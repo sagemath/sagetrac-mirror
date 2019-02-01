@@ -1150,30 +1150,38 @@ class PackedWord(ClonableIntArray):
 
 class PackedWordsFactory(SetFactory):
     r"""
+    This class is the set factory for Packed Words.
+
+    .. SEEALSO::
+
+        :mod:`~sage.structure.set_factories` for an introduction to set factories.
     """
     def __call__(self, n=None, policy=None):
         r"""
-        TODO comments with new tests
-        Construct the correct parent based upon input ``n``.
+        Construct the subset based upon input ``n``.
+
+        INPUT:
+
+        - ``n`` -- (optional) an integer
+        - ``policy`` -- the policy passed to the created set.
+
+        .. SEEALSO::
+
+            :class:`.set_factories.SetFactoryPolicy`
+
+
 
         TESTS::
 
-            # sage: from sage.combinat.packed_words import PackedWords_size, PackedWords_all
-            # sage: isinstance(PackedWords(2), PackedWords)
-            # True
-            # sage: isinstance(PackedWords(), PackedWords)
-            # True
-            # sage: PackedWords(2) is PackedWords_size(2)
-            # True
-            # sage: PackedWords(5).cardinality()
-            # 541
-            # sage: PackedWords() is PackedWords_all()
-            # True
-
-            # sage: PackedWords(3/2)
-            # Traceback (most recent call last):
-            # ...
-            # ValueError: n must be a non-negative integer
+            sage: from sage.combinat.packed_words import PackedWordsFactory
+            sage: PackedWords == PackedWordsFactory()
+            True
+            sage: PackedWords(5).cardinality()
+            541
+            sage: PackedWords(3/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non-negative integer
         """
         if policy is None:
             policy = TopMostParentPolicy(self, (), PackedWord)
