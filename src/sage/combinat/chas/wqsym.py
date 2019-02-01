@@ -790,7 +790,13 @@ sage: t0 = time.time(); m4HQ = matr_chgmt_base_osp(H,Q,4); print time.time() - t
 51.6398468018
 
 TODO
-c'est encore long je trouve.... faut que je regarde si c'est aussi long avec les PW... 
+c'est encore long je trouve.... faut que je regarde si c'est aussi long avec les PW... c'est bcp moins long... faut comprendre pk.......... c'est trop relou!!!
+
+sage: t0 = time.time(); m4HQ = matr_chgmt_base_pw(GL,L,4); print
+....:  time.time() - t0; m4QH = matr_chgmt_base_pw(L,GL,4); prin
+....: t time.time() - t0
+6.23473000526
+13.2976300716
 
 
 
