@@ -28,7 +28,7 @@ AUTHORS:
 #*****************************************************************************
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
-from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
+from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize, PyBytes_AS_STRING
 from sage.cpython.string cimport str_to_bytes
 from cysignals.signals cimport sig_on, sig_off, sig_check
 cimport cython
@@ -521,27 +521,25 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: M is loads(dumps(M))
             False
         """
-        cdef char* d
         cdef char* x
         cdef int i
         cdef PTR p
         cdef Py_ssize_t pickle_size = FfCurrentRowSizeIo
         nor = self.Data.Nor
-        cdef bytes pickle_str
+        cdef bytes pickle_str = PyBytes_FromStringAndSize(NULL, pickle_size)
         if self.Data:
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
             pickle_size *= self.Data.Nor
-            d = <char*>check_malloc(pickle_size)
+            pickle_str = PyBytes_FromStringAndSize(NULL, pickle_size)
+            x = PyBytes_AS_STRING(pickle_str)
             p = self.Data.Data
-            x = d
             for i in range(self.Data.Nor):
                 memcpy(x, p, FfCurrentRowSizeIo)
                 sig_check()
                 x += FfCurrentRowSizeIo
                 FfStepPtr(&p)
-            pickle_str = PyBytes_FromStringAndSize(d, pickle_size)
-            sig_free(d)
+
             return mtx_unpickle, (self._parent, self.Data.Nor, self.Data.Noc,
                         pickle_str,
                         not self._is_immutable) # for backward compatibility with the group cohomology package
@@ -801,11 +799,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 ##################
 ## comparison
-    cpdef _richcmp_(left, right, int op):
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two :class:`Matrix_gfpn_dense` matrices.
 
-        Of course, '<' and '>' do not make much sense for matrices.
+        Of course, '<' and '>' doesn't make much sense for matrices.
 
         EXAMPLES::
 
@@ -826,39 +824,38 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense self = left
         cdef Matrix_gfpn_dense N = right
         if self is None or N is None:
-            return rich_to_bool(op, -1)
+            return -1
+        cdef char* d1
+        cdef char* d2
         if self.Data == NULL:
             if N.Data == NULL:
-                return rich_to_bool(op, 0)
+                return 0
             else:
-                return rich_to_bool(op, 1)
+                return 1
         elif N.Data == NULL:
-            return rich_to_bool(op, -1)
+            return -1
         if self.Data.Field != N.Data.Field:
             if self.Data.Field > N.Data.Field:
-                return rich_to_bool(op, 1)
-            return rich_to_bool(op, -1)
+                return 1
+            return -1
         if self.Data.Noc != N.Data.Noc:
             if self.Data.Noc > N.Data.Noc:
-                return rich_to_bool(op, 1)
-            return rich_to_bool(op, -1)
+                return 1
+            return -1
         if self.Data.Nor != N.Data.Nor:
             if self.Data.Nor > N.Data.Nor:
-                return rich_to_bool(op, 1)
-            return rich_to_bool(op, -1)
-
-        cdef char* d1 = <char*>self.Data.Data
-        cdef char* d2 = <char*>N.Data.Data
-        cdef Py_ssize_t total_size = self.Data.RowSize
-        total_size *= self.Data.Nor
+                return 1
+            return -1
+        d1 = <char*>(self.Data.Data)
+        d2 = <char*>(N.Data.Data)
         cdef bytes s1, s2
-        s1 = PyBytes_FromStringAndSize(d1, total_size)
-        s2 = PyBytes_FromStringAndSize(d2, total_size)
+        s1 = PyBytes_FromStringAndSize(d1, self.Data.RowSize * self.Data.Nor)
+        s2 = PyBytes_FromStringAndSize(d2, N.Data.RowSize * N.Data.Nor)
         if s1 != s2:
             if s1 > s2:
-                return rich_to_bool(op, 1)
-            return rich_to_bool(op, -1)
-        return rich_to_bool(op, 0)
+                return 1
+            return -1
+        return 0
 
     cpdef list _rowlist_(self, i, j=-1):
         """
@@ -1794,7 +1791,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 from sage.misc.superseded import deprecation
 
-def mtx_unpickle(f, int nr, int nc, data, bint m):
+def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     r"""
     Helper function for unpickling.
 
@@ -1908,12 +1905,6 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
         sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
     """
-    # The expected input type is bytes. However, Python-2 legacy pickles do
-    # not distinguish between str and bytes. If such pickle is unpickled
-    # in Python-3, Sage will receive a str in `latin1` encoding. Therefore,
-    # in the following line, we use a helper function that would return bytes,
-    # regardless whether the input is bytes or str.
-    cdef bytes Data = str_to_bytes(data, encoding='latin1')
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
         MS = MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense)
@@ -1942,7 +1933,7 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
         pickled_rowsize = lenData//nr
         if lenData != pickled_rowsize*nr:
             raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes, got {lenData} instead")
-        x = PyBytes_AsString(Data)
+        x = Data
         if pickled_rowsize == FfCurrentRowSizeIo:
             pt = OUT.Data.Data
             for i in range(nr):
