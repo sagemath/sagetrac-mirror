@@ -156,6 +156,7 @@ src/*.egg-info/
 /src/build
 /src/Makefile
 /src/bin/sage-env-config
+<<<<<<< HEAD
 /src/bin/sage-src-env-config
 
 # Virtual environments
@@ -177,3 +178,8 @@ src/venv.bak/
 
 # git worktree
 worktree*
+=======
+
+
+test.sage
+>>>>>>> 801ef0103f (added a few more examples)
