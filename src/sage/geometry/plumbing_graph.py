@@ -415,7 +415,7 @@ class PlumbingGraph():
         del self.epsilon[e]
         self.edges = self.edges.difference({e})
 
-    def add_bamboo(self, x, j=None):
+    def add_bamboo(self, x, j=None, r=0):
         r"""
         Create a bamboo in the graph. A bamboo is a string of rational (g=0)
         vertices. If the vertex j is specified, then this
@@ -427,6 +427,7 @@ class PlumbingGraph():
         
         - ``x`` -- a rational number,
         - ``j`` -- a vertex of self,
+        - ``r`` -- a nonnegative integer.
 
         OUTPUT:
 
