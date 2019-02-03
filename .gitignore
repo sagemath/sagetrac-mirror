@@ -93,3 +93,5 @@ gitlab-build-docker.log
 /src/Makefile
 /src/bin/sage-env-config
 
+
+test.sage
