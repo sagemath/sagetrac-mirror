@@ -53,7 +53,7 @@
     #define leading_zero_count(one) leading_zero_workaround(one)
     #define trailing_zero_count(one) trailing_zero_workaround(one)
 
-#elif INTPTR_MAX == INT64_MAX 
+#elif INTPTR_MAX == INT64_MAX
     //64 bit commands
     #define chunktype uint64_t
     const unsigned int chunksize = 64;
@@ -183,8 +183,8 @@ inline unsigned int trailing_zero_workaround(chunktype chunk){
     return count;
 }
 
-inline unsigned int naive_popcount(uint64_t_or_uint32_t A){
-    unsigned int count = 0;
+inline int naive_popcount(uint64_t_or_uint32_t A){
+    int count = 0;
     while (A){
         count += A & 1;
         A >>= 1;
@@ -196,12 +196,12 @@ inline unsigned int naive_popcount(uint64_t_or_uint32_t A){
 void * aligned_malloc_workaround(size_t size, int align) {
     //taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
     //they are a workaround in case that C11 is not available
-    
+
     // alignment could not be less than 0
     if (size<0) {
         return NULL;
     }
-    // allocate necessary memory for 
+    // allocate necessary memory for
     // alignment +
     // area to store the address of memory returned by malloc
     void *p = malloc(size + align-1 + sizeof(void *));
@@ -220,7 +220,7 @@ void * aligned_malloc_workaround(size_t size, int align) {
 
 void aligned_free_workaround(void *p) {
     //taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
-    
+
     // Get address of the memory from start of total memory area
     free ( *( (void **)p - 1) );
 }
@@ -248,7 +248,7 @@ class CombinatorialPolyhedron {
             get_facets_bitrep_from_facets_pointer(facets_pointer, len_facets);
             get_vertices_bitrep_from_facets_pointer(facets_pointer, len_facets);
         }
-        
+
         CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded){
             //initialization with an incidence matrix given as tuple of tuples
             unbounded = is_unbounded;
@@ -268,7 +268,7 @@ class CombinatorialPolyhedron {
             get_facets_from_incidence_matrix(incidence_matrix);
             get_vertices_from_incidence_matrix(incidence_matrix);
         }
-        
+
         ~CombinatorialPolyhedron(){
             //cleanup to avoid memory leak
             unsigned int i;
@@ -305,7 +305,7 @@ class CombinatorialPolyhedron {
             }
             face_iterator_destroy();
         }
-        
+
         unsigned int get_dimension(){
             if (dimension){
                 return dimension;
@@ -313,7 +313,7 @@ class CombinatorialPolyhedron {
             dimension = calculate_dimension(facets, nr_facets);
             return dimension;
         }
-        
+
         inline void get_f_vector(unsigned long *vector){
             unsigned int i;
             get_dimension();//this assigns dimension the correct value
@@ -331,7 +331,7 @@ class CombinatorialPolyhedron {
                 }
             }
         }
-        
+
         inline unsigned int ** get_edges(){
             //returns the edges as array of arrays of the vertices
             if (polar){
@@ -348,7 +348,7 @@ class CombinatorialPolyhedron {
                 return edges;
             }
         }
-        
+
         inline unsigned int ** get_ridges(){
             //returns the ridges as array of arrays of the facets
             if (!polar){
@@ -365,7 +365,7 @@ class CombinatorialPolyhedron {
                 return edges;
             }
         }
-        
+
         void get_faces(int face_dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces){
             //get_faces fills faces_to_return with all faces in dimension face_dimension and length_of_faces with length of the faces, if facet_repr then faces will be given with facet_incidences, otherwise with vertex incidences
             get_dimension();//this assigns dimension the correct value
@@ -444,13 +444,13 @@ class CombinatorialPolyhedron {
             else
                 return bitrep_to_list(allfaces_facet_repr[face_dimension_unsigned], allfaces_counter[face_dimension_unsigned], faces_to_return, length_of_faces, 1);
         }
-        
+
         void face_iterator_init(){
             // calls face_iterator init with default values
-            // this is, we want to iterate over all faces 
+            // this is, we want to iterate over all faces
             face_iterator_init(-2,0,0);
         }
-        
+
         void face_iterator_init(int record_dimension, unsigned int vertex_repr, unsigned int facet_repr){
             // initializes the face_iterator
             if (face_iterator_is_initialized){
@@ -476,14 +476,14 @@ class CombinatorialPolyhedron {
                 face_iterator_vertex_repr = vertex_repr;
                 face_iterator_facet_repr = facet_repr;
             }
-        
+
             //in case we have already recorded all faces in the given dimension, we might save time, just returning the stored lists
             if ((0 < face_iterator_record_dimension) && (face_iterator_record_dimension < (int) dimension - 1) && allfaces_are_allocated && allfaces_are_allocated[face_iterator_record_dimension]){
                 face_iterator_counter = 0;
                 face_iterator_is_initialized = 2;
                 return;
             }
-        
+
             if (record_dimension < 0){
                 face_iterator_lowest_dimension = 0;
             }
@@ -498,7 +498,7 @@ class CombinatorialPolyhedron {
             face_iterator_first_time = new unsigned int[dim]();
             face_iterator_first_time[dimension - 1] = 1;
         }
-        
+
         void face_iterator_destroy(){
             face_iterator_is_initialized = 0;
             if (face_iterator_nr_faces)
@@ -511,7 +511,7 @@ class CombinatorialPolyhedron {
             face_iterator_nr_forbidden = NULL;
             face_iterator_first_time = NULL;
         }
-        
+
         inline unsigned int face_iterator_call(unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
             //returns one face at a time of all faces of record_dimension dimension
             //returns all faces if dimension == -2
@@ -519,7 +519,7 @@ class CombinatorialPolyhedron {
             unsigned int return_length = 0;
             if (!face_iterator_is_initialized)
                 return 0;
-        
+
             if (face_iterator_is_initialized == 2){
                 if (face_iterator_counter < allfaces_counter[face_iterator_record_dimension]){
                     if (!polar){
@@ -541,21 +541,21 @@ class CombinatorialPolyhedron {
                 }
                 return 0;
             }
-        
+
             while ((!return_length) && (face_iterator_current_dimension != dimension)){
                 if (polar)
                     return_length = face_iterator(Hface_to_return, Hlength, Vface_to_return, Vlength);
                 else
                     return_length = face_iterator(Vface_to_return, Vlength, Hface_to_return, Hlength);
             }
-        
+
             //in this case the iterator is used up and we should clean up
             if (!return_length) {
                 face_iterator_destroy();
             }
             return return_length;
         }
-        
+
         void record_all_faces(){
             allocate_allfaces();
             if (unbounded){
@@ -565,7 +565,7 @@ class CombinatorialPolyhedron {
                 record_faces(1);
             }
         }
-        
+
         unsigned long ** get_incidences(int dimension_one, int dimension_two, unsigned long * nr_incidences_to_return, unsigned int * twisted){
             nr_incidences = 0;
             get_dimension();//this assigns dimension the correct value
@@ -662,7 +662,7 @@ class CombinatorialPolyhedron {
             nr_incidences_to_return[0] = nr_incidences;
             return incidences;
         }
-        
+
         inline unsigned long get_flag_number_init(unsigned int *flagarray, unsigned int length){
             // expects a sorted array of size lenght with pairwise distinct integers at least 0 and at most dim
             unsigned int i;
@@ -689,7 +689,7 @@ class CombinatorialPolyhedron {
             record_faces(counter);
             return get_flag_number(flagarray,length);
         }
-    
+
     private:
         int polar = 0;
         // in order to speed things up, we will consider the dual/polar
@@ -729,9 +729,9 @@ class CombinatorialPolyhedron {
         void ***allfaces_facet_repr_allocator = NULL;
         chunktype ***allfaces_facet_repr = NULL;
         unsigned long *allfaces_counter = NULL;
-        
+
         // *********** elementary functions ********************
-        
+
         inline void intersection(chunktype *A, chunktype *B, chunktype *C){
             // will set C to be the intersection of A and B
             unsigned int i;
@@ -739,7 +739,7 @@ class CombinatorialPolyhedron {
                 C[i] = bitwise_intersection(A[i],B[i]);
             }
         }
-        
+
         inline int is_subset(chunktype *A, chunktype *B){
             //returns 1 if A is a proper subset of B, otherwise returns 0,
             // this is done by checking if there is an element in A, which is not in B
@@ -751,7 +751,7 @@ class CombinatorialPolyhedron {
             }
             return 1;
         }
-        
+
         inline int is_subset_facet_repr(chunktype *A, chunktype *B){
             // as above just in facet_repr
             unsigned int i;
@@ -762,7 +762,7 @@ class CombinatorialPolyhedron {
             }
             return 1;
         }
-        
+
         inline unsigned int CountFaceBits(chunktype* A1) {
             // counts the number of vertices in a face by counting bits set to one
             unsigned int i,count = 0;
@@ -776,7 +776,7 @@ class CombinatorialPolyhedron {
             }
             return count;
         }
-        
+
         inline unsigned int CountFaceBits_facet_repr(chunktype* A1) {
             // as above, just in facet-representation
             unsigned int i,count = 0;
@@ -790,9 +790,9 @@ class CombinatorialPolyhedron {
             }
             return count;
         }
-    
+
         // ************* record stuff *************************
-        
+
         inline void add_edge(chunktype *face){
             // adds an edge to the edges list
             // the edge given as face
@@ -811,7 +811,7 @@ class CombinatorialPolyhedron {
             }
             add_edge(one,length_of_face*chunksize - two - 1);
         }
-        
+
         inline void add_edge(unsigned int one, unsigned int two){
             // adds an edge to the edges list
             // the edge given as its two vertices
@@ -827,7 +827,7 @@ class CombinatorialPolyhedron {
             edges[position_one][position_two + 1] = two;
             nr_edges += 1;
         }
-        
+
         inline void add_ridge(unsigned int one, unsigned int two){
             // adds a ridge to the ridge list given as its two facets
             if (nr_ridges >= maxnumberedges*maxnumberedges){
@@ -842,7 +842,7 @@ class CombinatorialPolyhedron {
             ridges[position_one][position_two + 1] = two;
             nr_ridges += 1;
         }
-        
+
         inline void add_incidence(unsigned long one, unsigned long two){
             // adds an incidence to the list of incidences,
             // where one and two correspond to the index of the faces
@@ -867,7 +867,7 @@ class CombinatorialPolyhedron {
             record_face_facet_repr(face, current_dimension);
             allfaces_counter[current_dimension]++;
         }
-        
+
         inline void record_face_facet_repr(chunktype *face, unsigned int current_dimension){
             unsigned int i;
             unsigned int position, value;
@@ -885,14 +885,14 @@ class CombinatorialPolyhedron {
             }
             delete[] array;
         }
- 
+
         void vertex_facet_incidences(){
             // will add all the incidences between vertices and facets to
             // `incidences`
             for (unsigned int i = 0; i < nr_facets; i++)
                 vertex_facet_incidences(facets[i],i);
         }
-        
+
         void vertex_facet_incidences(chunktype *array1, unsigned int nr_facet){
             // will add all the incidences between `array1` and its vertices to `incidences`
             unsigned int i,j;
@@ -912,10 +912,10 @@ class CombinatorialPolyhedron {
                 }
             }
         }
-        
+
         // ************* face iterator ****************
         // ******** (this is the heart of the entire class) ****************
-        
+
         inline chunktype * face_iterator(){
             // this calls face_iterator loop until it returns a face
             // or until its consumed
@@ -931,13 +931,13 @@ class CombinatorialPolyhedron {
             }
             return face;
         }
-        
+
         inline chunktype * face_iterator_loop(){
             // returns on each call one face
             // might return NULL, if it returns NULL and
             // `face_iterator_current_dimension == dimension`
             // then there are no more faces
-            
+
             unsigned int current_dimension = face_iterator_current_dimension;
             if (current_dimension == dimension){
                 //the function is not supposed to be called in this case
@@ -1019,9 +1019,9 @@ class CombinatorialPolyhedron {
             }
             return NULL;
         }
-        
+
         // ********** functions that call face iterator *************
-        
+
         void get_f_vector_and_edges(){
             unsigned int i;
             if (!dimension){
@@ -1050,7 +1050,7 @@ class CombinatorialPolyhedron {
             }
             face_iterator_destroy();
         }
-        
+
         void record_faces(unsigned int lowest_dimension){
             if (nr_lines > lowest_dimension){
                 lowest_dimension = nr_lines;
@@ -1070,7 +1070,7 @@ class CombinatorialPolyhedron {
                     allfaces_are_allocated[i] = 2; //making sure that we record the faces of each dimension at most once
             face_iterator_destroy();
         }
-        
+
         inline unsigned int face_iterator(unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
             // calls the face iterator and records the face return
             // return 1 on sucess and 0 if there are no more faces
@@ -1093,9 +1093,9 @@ class CombinatorialPolyhedron {
             }
             return 1;
         }
-        
+
         // ********** other functions ***************
-        
+
         inline unsigned int get_next_level(chunktype **faces, unsigned int lenfaces, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
             // intersects the first `lenfaces - 1` faces of `faces` with'faces[lenfaces-1]`
             // determines which ones are exactly of one dimension less
@@ -1123,7 +1123,7 @@ class CombinatorialPolyhedron {
                 if (!addfacearray[j]) {
                     continue;
                 }
-        
+
                 for(k = j+1; k < lenfaces-1; k++){
                     // testing if nextfaces[j] is contained in a different nextface
                     if(is_subset(nextfaces[j],nextfaces[k])){
@@ -1134,7 +1134,7 @@ class CombinatorialPolyhedron {
                 if (!addfacearray[j]) {
                     continue;
                 }
-                
+
                 for (k = 0; k < nr_forbidden; k++){
                     // we do not want to double count any faces,
                     // we have visited all faces in forbidden again, so we do not want to do that again
@@ -1144,7 +1144,7 @@ class CombinatorialPolyhedron {
                     }
                 }
             }
-        
+
             for (j = 0; j < lenfaces -1; j++){
                 // let `newfaces2` point to the newfaces we want to consider
                 if (!addfacearray[j]) {
@@ -1155,7 +1155,7 @@ class CombinatorialPolyhedron {
             }
             return newfacescounter;
         }
-        
+
         unsigned int calculate_dimension(chunktype **faces, unsigned int nr_faces){
             // before doing pretty much anything, we need to know the dimension of the polyhedron
             // this is done by calculating the dimension of an arbitrary facet
@@ -1191,7 +1191,7 @@ class CombinatorialPolyhedron {
             }
             return dim;
         }
-        
+
         void calculate_ridges(){
             // instead of this approach, one could also iterator over all such faces
             // however, this approach is more direct
@@ -1230,7 +1230,7 @@ class CombinatorialPolyhedron {
                 free_aligned(nextfaces_creator[i]);
             }
         }
-        
+
         unsigned long get_flag_number(unsigned int *array, unsigned int len){
             if (len == 0){
                 return 0;
@@ -1308,7 +1308,7 @@ class CombinatorialPolyhedron {
         }
 
         // ************** initialization **************
-        
+
         void get_facets_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets){
             length_of_face = ((nr_vertices - 1)/chunksize + 1);//this determines the length of the face in terms of chunktype
             allocate_facets();
@@ -1319,7 +1319,7 @@ class CombinatorialPolyhedron {
                 get_vertices_or_facets_bitrep_from_facets_pointer(facets_pointer, len_facets, facets, 0, nr_vertices, nr_facets, 0);
             }
         }
-        
+
         void get_vertices_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets){
             length_of_face_in_facet_repr = ((nr_facets - 1)/chunksize + 1);//this determines the length in facet representation in terms of chunktype
             allocate_vertices();
@@ -1330,7 +1330,7 @@ class CombinatorialPolyhedron {
                 get_vertices_or_facets_bitrep_from_facets_pointer(facets_pointer, len_facets, vertices, 0, nr_facets, nr_vertices, 1);
             }
         }
-        
+
         void get_vertices_or_facets_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr){
             unsigned int i,j;
             if (flip){//getting the vertices from the original polytope, those will be facets or vertices depending on wether we consider polar or not
@@ -1359,7 +1359,7 @@ class CombinatorialPolyhedron {
                 }
             }
         }
-        
+
         void get_facets_from_incidence_matrix(unsigned int **incidence_matrix){
             length_of_face = ((nr_vertices - 1)/chunksize + 1);//this determines the length of the face in terms of chunktype
             allocate_facets();
@@ -1370,7 +1370,7 @@ class CombinatorialPolyhedron {
                 get_facets_or_vertices_from_incidence_matrix(incidence_matrix, facets, 0, nr_vertices, nr_facets, 0);
             }
         }
-        
+
         void get_vertices_from_incidence_matrix(unsigned int **incidence_matrix){
             length_of_face_in_facet_repr = ((nr_facets - 1)/chunksize + 1);//this determines the length in facet representation in terms of chunktype
             allocate_vertices();
@@ -1381,7 +1381,7 @@ class CombinatorialPolyhedron {
                 get_facets_or_vertices_from_incidence_matrix(incidence_matrix, vertices, 0, nr_facets, nr_vertices, 1);
             }
         }
-        
+
         void get_facets_or_vertices_from_incidence_matrix(unsigned int **incidence_matrix, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr){
             unsigned int i,j;
             if (flip){//getting the vertices from the original polytope, those will be facets or vertices depending on wether we consider polar or not
@@ -1407,7 +1407,7 @@ class CombinatorialPolyhedron {
         }
 
         // *************** conversions ****************
-        
+
         inline void bitrep_to_list(chunktype *array1, unsigned int *face_to_return, unsigned int *length_of_faces, unsigned int facet_repr){
             unsigned int i,j;
             unsigned int face_length = length_of_face;
@@ -1433,14 +1433,14 @@ class CombinatorialPolyhedron {
             delete[] array;
             return;
         }
-        
+
         inline void bitrep_to_list(chunktype **array1, unsigned int len, unsigned int **faces_to_return, unsigned int *length_of_faces, unsigned int facet_repr){
             for(unsigned int i = 0;i < len; i++){
                 bitrep_to_list(array1[i], faces_to_return[i], &length_of_faces[i], facet_repr);
             }
             return;
         }
-        
+
         void char_from_incidence_list(unsigned int *incidence_list, unsigned int nr_vertices_given, chunktype *array1, unsigned int facet_repr){
             unsigned int face_length;
             if (facet_repr){
@@ -1465,7 +1465,7 @@ class CombinatorialPolyhedron {
             }
             delete[] array;
         }
-        
+
         void char_from_array(unsigned int* input, unsigned int len, chunktype *array1, unsigned int facet_repr){
             unsigned int face_length;
             if (facet_repr){
@@ -1490,7 +1490,7 @@ class CombinatorialPolyhedron {
         }
 
         // *************** allocation and deallocation ******************
-        
+
         void allocate_facets(){
             // allocates the lists of the facets
             if (facets_are_allocated){
@@ -1507,7 +1507,7 @@ class CombinatorialPolyhedron {
             }
             facets_are_allocated = 1;
         }
-        
+
         void deallocate_facets(){
             // deallocates the list of facets
             unsigned int i;
@@ -1520,7 +1520,7 @@ class CombinatorialPolyhedron {
             delete[] facets_allocator;
             facets_are_allocated = 0;
         }
-        
+
         void allocate_vertices(){
             // allocates the lists of vertices (in the facet-representation)
             if (vertices_are_allocated)
@@ -1536,7 +1536,7 @@ class CombinatorialPolyhedron {
             }
             vertices_are_allocated = 1;
         }
-        
+
         void deallocate_vertices(){
             // deallocates the list of vertices
             unsigned int i;
@@ -1549,7 +1549,7 @@ class CombinatorialPolyhedron {
             delete[] vertices_allocator;
             vertices_are_allocated = 0;
         }
-        
+
         void allocate_newfaces(){
             // allocates the lists of faces for the face-iteration
             // newfaces records nr_facets possible faces in each dimension
@@ -1561,7 +1561,7 @@ class CombinatorialPolyhedron {
             unsigned int i,j;
             const unsigned int const_dimension = dimension;
             const unsigned int const_facets = nr_facets;
-        
+
             forbidden = new chunktype *[const_facets]();
             newfaces = new chunktype **[const_dimension -1 ]();
             newfaces2 = new chunktype **[const_dimension -1 ]();
@@ -1577,7 +1577,7 @@ class CombinatorialPolyhedron {
             }
             newfaces_are_allocated = 1;
         }
-        
+
         void deallocate_newfaces(){
             // deallocates newfaces, newfaces2, forbidden
             if (!newfaces_are_allocated)
@@ -1594,7 +1594,7 @@ class CombinatorialPolyhedron {
             delete[] newfaces_allocator;
             newfaces_are_allocated = 0;
         }
-        
+
         void allocate_allfaces(){
             // allocates allfaces in all dimensions
             unsigned int i;
@@ -1607,13 +1607,13 @@ class CombinatorialPolyhedron {
             if (unbounded)
                 allocate_allfaces(0);
         }
-        
+
         void allocate_allfaces(unsigned int dimension_to_allocate){
             // allocates `allfaces`` in `dimension_to_allocate`
             // this is a list large enought to contain all faces of that dimension
             // allocates `allfaces_facet_repr` as well,
             // same ting but in facet-representation
-            
+
             // `dimension to allocate must be at least 0 and at most `dimension`
             unsigned int i;
             if (!f_vector){
@@ -1646,7 +1646,7 @@ class CombinatorialPolyhedron {
                 }
             }
         }
-        
+
         void deallocate_allfaces(){
             // deallocates `allfaces` and `allfaces_facet_repr`
             if (!allfaces_are_allocated)

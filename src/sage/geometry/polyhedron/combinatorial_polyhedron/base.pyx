@@ -349,7 +349,7 @@ cdef class FaceIterator:
         self.record_dimension = dim
         self.lowest_dimension = max(0,dim)
 
-    cdef void get_f_vector(self, size_t * f_vector):
+    cdef int get_f_vector(self, size_t * f_vector):
         cdef dim = self.dimension
         f_vector[0] = 1
         f_vector[dim + 1] = 0 # the full-dimensional face will be added
@@ -358,9 +358,9 @@ cdef class FaceIterator:
                 while (self.next_face_loop() == 0) and (self.current_dimension < dim):
                     sig_check()
                 f_vector[self.current_dimension + 1] += 1
-        except KeyboardInterrupt:
-            raise KeyboardInterrupt()
-        return
+        except:
+            return 0
+        return 1
 
 
     cdef inline int next_face(self):
@@ -466,6 +466,54 @@ cdef class FaceIterator:
             # self.first_time[self.current_dimension] = 1
 
         return 0
+
+    cdef size_t nr_vertices(self):
+        if self.face:
+            return CountFaceBits(self.face, self.length_of_face)
+
+        # the face was not initialized properly
+        raise LookupError('The `FaceIterator` does not point to a face.')
+
+    cdef tuple which_ridge(self):
+        r"""
+        Assumes that self.face is a ridge. Returns the tuple of the facets.
+        """
+        cdef size_t nr_facets = self.nr_faces[self.dimension - 1]
+        cdef void ** facets = self.newfaces2[self.dimension - 1]
+        cdef size_t length_of_face = self.length_of_face
+        cdef size_t one = nr_facets
+        cdef size_t two = nr_facets
+        cdef size_t counter = 0
+        cdef size_t counter2 = 0
+        while counter < nr_facets:
+            if is_subset(self.face, facets[counter], length_of_face):
+                one = counter
+                counter2 = counter + 1
+                counter = nr_facets
+            counter += 1
+        while counter2 < nr_facets:
+            if is_subset(self.face, facets[counter2], length_of_face):
+                two = counter2
+                counter2 = nr_facets
+            counter2 += 1
+        return (one, two)
+
+    cdef list ridges(self):
+        self.set_record_dimension(self.dimension - 2)
+        cdef list ridges
+        cdef size_t counter = 0
+        cdef size_t length = 1024
+        ridges = [0] * 1024
+        while self.next_face() != self.dimension:
+            if counter + 1 > length:
+                ridges += [0] * length
+                length *= 2
+            ridges[counter] = self.which_ridge()
+            counter += 1
+        return ridges[:counter]
+
+
+
 
 
 
@@ -827,7 +875,7 @@ cdef extern from "helper.cc":
     # which are not contained in any of the faces in 'forbidden'
     # returns the number of those faces
 
-    cdef inline unsigned int CountFaceBits(void* A1, size_t face_length)
+    cdef size_t CountFaceBits(void* A1, size_t face_length)
 
     cdef void get_facets_from_incidence_matrix(unsigned int **incidence_matrix, void **facets, \
                                       size_t nr_vertices, size_t nr_facets)
@@ -1696,6 +1744,26 @@ cdef class CombinatorialPolyhedron(SageObject):
             # in some instances there are no ridges as intersections of facets,
             # i.e. if we treat a ray, or a halfspace
             return ()
+
+        # The new approach is going to look somewhat like this.
+        """
+        cdef FaceIterator face_iter
+        cdef list_of_faces facets = self.bitrep_facets
+        cdef int dim = self.dimension()
+        cdef list ridges
+        face_iter = FaceIterator(facets, dim, self._nr_lines)
+        ridges = face_iter.ridges()
+        if self._H is not None and names is True:
+            def f(i): return self._H[i]
+        else:
+            def f(i): return Integer(i)
+        if add_equalities:
+            return tuple(self._equalities + (f(i[0]),f(i[1])) for i in ridges)
+        else:
+            return tuple((f(i[0]),f(i[1])) for i in ridges)
+        """
+
+        # old version
         cdef unsigned int ** ridgepointer = ridges(self._C)
         cdef unsigned long maxnumberedges = get_maxnumberedges()
         # the ridges are being saved in a list basically,
@@ -1771,6 +1839,42 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.f_vector()
             (1, 10, 45, 120, 185, 150, 50, 1)
 
+        TESTS::
+
+            sage: from itertools import combinations
+            sage: N = combinations(range(20),19)
+            sage: C = CombinatorialPolyhedron(list(N))
+            sage: try:
+            ....:     alarm(0.0001)
+            ....:     C.f_vector()
+            ....: except:
+            ....:     print("alarm!")
+            ....:
+            alarm!
+            sage: C.f_vector()
+            (1,
+             20,
+             190,
+             1140,
+             4845,
+             15504,
+             38760,
+             77520,
+             125970,
+             167960,
+             184756,
+             167960,
+             125970,
+             77520,
+             38760,
+             15504,
+             4845,
+             1140,
+             190,
+             20,
+             1)
+
+
         ALGORITHM:
 
         The number of facets is assumed to be at least two here.
@@ -1837,6 +1941,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef FaceIterator face_iter
         cdef list_of_faces facets
         cdef int dim = self.dimension()
+        cdef int sucess = 0
         self._f_vector = <size_t *> sig_malloc((dim + 2)*sizeof(size_t))
         for i in range(dim + 2):
             self._f_vector[i] = 0
@@ -1851,14 +1956,10 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         facets = self.bitrep_facets
         face_iter = FaceIterator(facets, dim, self._nr_lines)
-        if not sig_on_no_except():
+        #if not sig_on_no_except():
+        if not face_iter.get_f_vector(self._f_vector):
             sig_free(self._f_vector)
             self._f_vector = NULL
-            raise KeyboardInterrupt('Interrupt on user intput')
-        face_iter.get_f_vector(self._f_vector)
-        sig_off()
-
-
 
     def _record_all_faces(self):
         r"""

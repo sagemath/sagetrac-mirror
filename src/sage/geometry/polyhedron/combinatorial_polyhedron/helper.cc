@@ -248,7 +248,7 @@ inline int is_subset(void *A1, void *B1, size_t face_length){
 }
 
 
-inline unsigned int CountFaceBits(void* A2, size_t face_length) {
+inline size_t CountFaceBits(void* A2, size_t face_length) {
     // counts the number of vertices in a face by counting bits set to one
     size_t i;
     unsigned int count = 0;
@@ -259,7 +259,7 @@ inline unsigned int CountFaceBits(void* A2, size_t face_length) {
         store_register(A[i*chunksize/bit64or32],A1[i]);
     }
     for (i=0;i<length_of_conversion_face;i++){
-        count += popcount(A[i]);
+        count += (size_t) popcount(A[i]);
     }
     return count;
 }
