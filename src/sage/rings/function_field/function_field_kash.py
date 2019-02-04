@@ -289,9 +289,21 @@ class RationalFunctionField_kash(RationalFunctionField):
 
     def to_kash(self, c):
         x = self.kash().gen(1)
-        c = c.element()
         # c will be an element of a fraction field with polynomial coefficients
-        #
+        c = c.element()
+        # This isn't just an optimization.  Kash won't build multivariate polynomials
+        # if a constant coefficient is in a polynomial ring / fraction field.  The
+        # main line code below does that; this code makes sure that constants
+        # are presented as constants, and not as zero-degree polynomials.
+        # XXX probably still has problems with algebraic constants like sqrt(2),
+        # which fall through into the code below
+        try:
+            if self.constant_field() is QQbar:
+                return QQ(c)
+            else:
+                return self.constant_field()(c)
+        except:
+            pass
         # Sage considers QQ to be a number field, which is why I check
         # to see if there's a reverse_map instead of just checking
         # to see if self.constant_field() is a NumberField.
