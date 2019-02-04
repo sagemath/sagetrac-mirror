@@ -349,20 +349,6 @@ cdef class FaceIterator:
         self.record_dimension = dim
         self.lowest_dimension = max(0,dim)
 
-    cdef int get_f_vector(self, size_t * f_vector):
-        cdef dim = self.dimension
-        f_vector[0] = 1
-        f_vector[dim + 1] = 0 # the full-dimensional face will be added
-        try:
-            while (self.current_dimension < dim):
-                while (self.next_face_loop() == 0) and (self.current_dimension < dim):
-                    sig_check()
-                f_vector[self.current_dimension + 1] += 1
-        except:
-            return 0
-        return 1
-
-
     cdef inline int next_face(self):
         # this calls next_face_loop until it sets a new face
         # or until its consumed and `_current_dimension` is `_dimension`
@@ -1941,6 +1927,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef FaceIterator face_iter
         cdef list_of_faces facets
         cdef int dim = self.dimension()
+        cdef int d
         cdef int sucess = 0
         self._f_vector = <size_t *> sig_malloc((dim + 2)*sizeof(size_t))
         for i in range(dim + 2):
@@ -1956,10 +1943,19 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         facets = self.bitrep_facets
         face_iter = FaceIterator(facets, dim, self._nr_lines)
-        #if not sig_on_no_except():
-        if not face_iter.get_f_vector(self._f_vector):
+        self._f_vector[0] = 1
+        self._f_vector[dim + 1] = 1
+        try:
+            d = face_iter.next_face()
+            while (d < dim):
+                self._f_vector[d+1] += 1
+                d = face_iter.next_face()
+                sig_check()
+        except:
             sig_free(self._f_vector)
             self._f_vector = NULL
+
+
 
     def _record_all_faces(self):
         r"""
