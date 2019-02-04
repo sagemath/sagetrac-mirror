@@ -722,7 +722,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); R.<t> = PolynomialRing(K)
             sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
             sage: F.different()
             2*Place (x, (1/(x^3 + x^2 + x))*y^2)
