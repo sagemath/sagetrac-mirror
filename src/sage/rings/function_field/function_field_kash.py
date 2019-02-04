@@ -98,7 +98,7 @@ from .function_field import RationalFunctionField
 from .function_field import FunctionFieldElement_rational
 from .function_field import FunctionField_polymod
 from .function_field import FunctionFieldElement_polymod
-from .differential import FunctionFieldDifferential
+from .differential import DifferentialsSpace, FunctionFieldDifferential_global
 from .order import FunctionFieldMaximalOrder
 from .order import FunctionFieldMaximalOrderInfinite
 from .ideal import FunctionFieldIdeal
@@ -384,6 +384,24 @@ class RationalFunctionField_kash(RationalFunctionField):
         from .place import PlaceSet
         return PlaceSet(self)
 
+    @cached_method
+    def space_of_differentials(self):
+        """
+        Return the space of differentials attached to the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5), implementation='kash'); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: L.space_of_differentials()
+            Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+
+            sage: K.<t> = FunctionField(QQ, implementation='kash')
+            sage: K.space_of_differentials()
+            Space of differentials of Rational function field in t over Rational Field
+        """
+        return DifferentialsSpace_kash(self)
+
 def divisor_decorator(f):
 
     def wrapper(self):
@@ -410,6 +428,38 @@ def divisor_decorator(f):
         return D
 
     return wrapper
+
+class FunctionFieldDifferential_kash(FunctionFieldDifferential_global):
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles of the differential.
+
+        NOTE::
+            To avoid extending the constant field unnecessarily, we first
+            compute the full divisor in the current constant field, then
+            discard any positive places to get the divisor of poles,
+            then extend the constant field so that all of of those places
+            factor, then repeat the calculation for the final result.
+        """
+        from .divisor import FunctionFieldDivisor
+        F = self._field
+        x = F.base_field().gen()
+        D = self._f._divisor() + (-2) * F(x)._divisor_of_poles() + F.different()
+        D = FunctionFieldDivisor(D.parent().function_field(), {p:-m for p,m in D.list() if m < 0})
+        F.base_field()._extend_constant_field(D)
+        D = self._f._divisor() + (-2) * F(x)._divisor_of_poles() + F.different()
+        D = FunctionFieldDivisor(D.parent().function_field(), {p:-m for p,m in D.list() if m < 0})
+        return D
+
+    def residue(self, place):
+        return self._field.completion(place, prec=0)(self)[-1]
+
+class DifferentialsSpace_kash(DifferentialsSpace):
+    """
+    Space of differentials of a function field.
+    """
+    Element = FunctionFieldDifferential_kash
 
 class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
 
@@ -655,6 +705,24 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         """
         from .place import PlaceSet
         return PlaceSet(self)
+
+    @cached_method
+    def space_of_differentials(self):
+        """
+        Return the space of differentials attached to the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5), implementation='kash'); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: L.space_of_differentials()
+            Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+
+            sage: K.<t> = FunctionField(QQ, implementation='kash')
+            sage: K.space_of_differentials()
+            Space of differentials of Rational function field in t over Rational Field
+        """
+        return DifferentialsSpace_kash(self)
 
     @cached_method
     def divisor_group(self):
