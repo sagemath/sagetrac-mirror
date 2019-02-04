@@ -94,7 +94,7 @@ def differential(field, f, t=None):
     if t is not None:
         t = field(t)
 
-    return FunctionFieldDifferential_global(field, f, t)
+    return field.space_of_differentials().element_class(field, f, t)
 
 class FunctionFieldDifferential(ModuleElement):
     """
@@ -501,7 +501,7 @@ class DifferentialsSpaceMorphism(Morphism):
 
         """
         field = self.codomain().function_field()
-        return FunctionFieldDifferential_global(field, field(v._f))
+        return differential(field, v._f)
 
 class DifferentialMultiplicationAction(Action):
     """
@@ -581,6 +581,8 @@ class DifferentialsSpace(Parent):
     """
     Space of differentials of a function field.
     """
+    Element = FunctionFieldDifferential_global
+
     def __init__(self, field):
         """
         Initialize the space of differentials of the function field.
