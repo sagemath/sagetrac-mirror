@@ -524,15 +524,14 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef char* x
         cdef int i
         cdef PTR p
-        cdef Py_ssize_t pickle_size = FfCurrentRowSizeIo
-        nor = self.Data.Nor
-        cdef bytes pickle_str = PyBytes_FromStringAndSize(NULL, pickle_size)
+        cdef Py_ssize_t pickle_size
+        cdef bytes pickle_bytes
         if self.Data:
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
-            pickle_size *= self.Data.Nor
-            pickle_str = PyBytes_FromStringAndSize(NULL, pickle_size)
-            x = PyBytes_AS_STRING(pickle_str)
+            pickle_size  = <Py_ssize_t>FfCurrentRowSizeIo*<Py_ssize_t>self.Data.Nor
+            pickle_bytes = PyBytes_FromStringAndSize(NULL, pickle_size)
+            x = PyBytes_AS_STRING(pickle_bytes)
             p = self.Data.Data
             for i in range(self.Data.Nor):
                 memcpy(x, p, FfCurrentRowSizeIo)
@@ -541,7 +540,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 FfStepPtr(&p)
 
             return mtx_unpickle, (self._parent, self.Data.Nor, self.Data.Noc,
-                        pickle_str,
+                        pickle_bytes,
                         not self._is_immutable) # for backward compatibility with the group cohomology package
         else:
             return mtx_unpickle, (0, 0, 0, '', not self._is_immutable)
@@ -1925,7 +1924,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     cdef char *x
     cdef PTR pt
     cdef Py_ssize_t lenData = len(Data)
-    cdef int pickled_rowsize
+    cdef Py_ssize_t pickled_rowsize
     cdef int i
     if Data:
         if nr <= 0 or nc <= 0:
@@ -1943,8 +1942,8 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
                 sig_check()
         elif pickled_rowsize >= FfCurrentRowSizeIo:
             deprecation(23411, "Reading this pickle may be machine dependent")
-            if <size_t>pickled_rowsize == FfCurrentRowSize:
-                memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
+            if pickled_rowsize == <Py_ssize_t>FfCurrentRowSize:
+                memcpy(OUT.Data.Data, x, <Py_ssize_t>OUT.Data.RowSize*<Py_ssize_t>OUT.Data.Nor)
             else:
                 pt = OUT.Data.Data
                 for i in range(nr):
