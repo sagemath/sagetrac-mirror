@@ -1,0 +1,128 @@
+See https://github.com/pynac/pynac/pull/339
+
+commit 76b3110d529edf439bcb22f3c50f398bb60f1f5d
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Mon Jan 7 17:32:41 2019 +0100
+
+    Use unordered_map in replace_with_symbol()
+
+diff --git a/ginac/basic.h b/ginac/basic.h
+index 788aa06..595b25c 100644
+--- a/ginac/basic.h
++++ b/ginac/basic.h
+@@ -26,6 +26,7 @@
+ #include <vector>
+ #include <set>
+ #include <map>
++#include <unordered_map>
+ // CINT needs <algorithm> to work properly with <vector>
+ #include <algorithm>
+ 
+@@ -61,6 +62,7 @@ namespace GiNaC {
+ 
+ class ex;
+ struct ex_is_less;
++struct ex_hash;
+ class symbol;
+ class numeric;
+ class relational;
+@@ -72,6 +74,8 @@ typedef std::vector<ex> exvector;
+ typedef std::set<ex, ex_is_less> exset;
+ typedef std::map<ex, ex, ex_is_less> exmap;
+ using ex_int_map = std::map<GiNaC::ex, int, GiNaC::ex_is_less>;
++using ex_int_umap = std::unordered_map<ex, int, ex_hash>;
++
+ // Define this to enable some statistical output for comparisons and hashing
+ #undef GINAC_COMPARE_STATISTICS
+ 
+diff --git a/ginac/ex.h b/ginac/ex.h
+index fdb3f66..f904fb6 100644
+--- a/ginac/ex.h
++++ b/ginac/ex.h
+@@ -233,7 +233,7 @@ public:
+ #ifdef PYNAC_HAVE_LIBGIAC
+         const giac::polynome to_polynome(ex_int_map& map, exvector& revmap) const;
+ #endif
+-        const CanonicalForm to_canonical(ex_int_map& map,
++        const CanonicalForm to_canonical(ex_int_umap& map,
+                         power_ocvector_map& pomap, exvector& revmap) const;
+         void collect_powers(power_ocvector_map& pomap) const;
+ 	ex numer() const;
+@@ -293,6 +293,10 @@ public:
+ 	mutable ptr<basic> bp;  ///< pointer to basic object managed by this
+ };
+ 
++struct ex_hash {
++    long operator()(const ex& e) const { return e.gethash(); }
++};
++
+ 
+ // performance-critical inlined method implementations
+ 
+diff --git a/ginac/mpoly-singular.cpp b/ginac/mpoly-singular.cpp
+index 838f51b..5a2922b 100644
+--- a/ginac/mpoly-singular.cpp
++++ b/ginac/mpoly-singular.cpp
+@@ -58,7 +58,7 @@ void Log(const power_ocvector_map& m, const std::string& str)
+         }
+ }
+ 
+-static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector& revmap)
++static CanonicalForm replace_with_symbol(const ex& e, ex_int_umap& map, exvector& revmap)
+ {
+         // Expression already replaced? Then return the assigned symbol
+         auto it = map.find(e);
+@@ -73,7 +73,7 @@ static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector&
+         return Variable(index);
+ }
+ 
+-static CanonicalForm num2canonical(const numeric& n, ex_int_map& map, exvector& revmap)
++static CanonicalForm num2canonical(const numeric& n, ex_int_umap& map, exvector& revmap)
+ {
+         try {
+                 return n.to_canonical();
+@@ -186,7 +186,7 @@ static void transform_powers(power_ocvector_map& pomap)
+ }
+ 
+ // Convert to Singular polynomial over QQ, filling replacement dicts
+-const CanonicalForm ex::to_canonical(ex_int_map& amap,
++const CanonicalForm ex::to_canonical(ex_int_umap& amap,
+                 power_ocvector_map& pomap,
+                 exvector& revmap) const
+ {
+@@ -523,7 +523,7 @@ factored_b:
+ 	}
+ 
+ 
+-        ex_int_map map;
++        ex_int_umap map;
+         exvector revmap;
+         map.insert(std::make_pair(symbol_E, 1));
+         revmap.emplace_back(exp(1));
+@@ -601,7 +601,7 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
+                 throw(std::runtime_error("can't happen in factor"));
+ 
+ 
+-        ex_int_map map;
++        ex_int_umap map;
+         exvector revmap;
+         map.insert(std::make_pair(symbol_E, 1));
+         revmap.emplace_back(exp(1));
+@@ -633,7 +633,7 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
+ 
+ ex poly_mul_expand(const ex& a, const ex& b)
+ {
+-        ex_int_map map;
++        ex_int_umap map;
+         exvector revmap;
+         power_ocvector_map pomap;
+         a.collect_powers(pomap);
+@@ -654,7 +654,7 @@ ex poly_mul_expand(const ex& a, const ex& b)
+ 
+ ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
+ {
+-        ex_int_map map;
++        ex_int_umap map;
+         exvector revmap;
+         map.insert(std::make_pair(symbol_E, 1));
+         revmap.emplace_back(exp(1));
