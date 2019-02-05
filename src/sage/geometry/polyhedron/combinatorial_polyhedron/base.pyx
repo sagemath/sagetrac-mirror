@@ -1573,6 +1573,21 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.edges()
             ((A vertex at (0, 0), A vertex at (1, 0)),)
 
+        TESTS::
+
+            sage: from itertools import combinations
+            sage: N = combinations(range(20),19)
+            sage: C = CombinatorialPolyhedron(list(N))
+            sage: try:
+            ....:     alarm(0.0001)
+            ....:     C.edges()
+            ....: except:
+            ....:     print("alarm!")
+            ....:
+            alarm!
+            sage: len(C.edges())
+            190
+
         """
         cdef size_t ** edges
         cdef size_t nr_edges
@@ -1581,11 +1596,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self._polar:
             if not self._ridges:
                 self._calculate_ridges()
+            if self._ridges is NULL:
+                raise KeyboardInterrupt('Interrupt on user intput')
             edges = self._ridges
             nr_edges = self._nr_ridges
         else:
             if not self._edges:
                 self._calculate_edges()
+            if self._edges is NULL:
+                raise KeyboardInterrupt('Interrupt on user intput')
             edges = self._edges
             nr_edges = self._nr_edges
 
@@ -1729,6 +1748,21 @@ cdef class CombinatorialPolyhedron(SageObject):
             ((An equation (0, 1) x + 0 == 0, An inequality (1, 0) x + 0 >= 0),)
 
 
+        TESTS::
+
+            sage: from itertools import combinations
+            sage: N = combinations(range(20),19)
+            sage: C = CombinatorialPolyhedron(list(N))
+            sage: try:
+            ....:     alarm(0.0001)
+            ....:     C.ridges()
+            ....: except:
+            ....:     print("alarm!")
+            ....:
+            alarm!
+            sage: len(C.ridges())
+            190
+
         """
 
         cdef size_t ** ridges
@@ -1738,11 +1772,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self._polar:
             if not self._edges:
                 self._calculate_edges()
+            if self._edges is NULL:
+                raise KeyboardInterrupt('Interrupt on user intput')
             ridges = self._edges
             nr_ridges = self._nr_edges
         else:
             if not self._ridges:
                 self._calculate_ridges()
+            if self._ridges is NULL:
+                raise KeyboardInterrupt('Interrupt on user intput')
             ridges = self._ridges
             nr_ridges = self._nr_ridges
 
@@ -1996,11 +2034,11 @@ cdef class CombinatorialPolyhedron(SageObject):
                         <size_t *> sig_malloc(2*len_edgelist*sizeof(size_t))
                 self._edges[one][2*two] = output[0]
                 self._edges[one][2*two + 1] = output[1]
-                sig_check()
                 counter += 1
+                sig_check()
         except:
             sig_free(output)
-            for i in counter/len_edgelist:
+            for i in range((counter - 1)/len_edgelist + 1):
                 sig_free(self._edges[i])
             sig_free(self._edges)
             self._edges = NULL
@@ -2050,11 +2088,11 @@ cdef class CombinatorialPolyhedron(SageObject):
                         <size_t *> sig_malloc(2*len_edgelist*sizeof(size_t))
                 self._ridges[one][2*two] = output[0]
                 self._ridges[one][2*two + 1] = output[1]
-                sig_check()
                 counter += 1
+                sig_check()
         except:
             sig_free(output)
-            for i in counter/len_edgelist:
+            for i in range((counter - 1)/len_edgelist + 1):
                 sig_free(self._ridges[i])
             sig_free(self._ridges)
             self._ridges = NULL
