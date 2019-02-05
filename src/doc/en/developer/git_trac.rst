@@ -91,14 +91,14 @@ to the Sage directory and tell ``git trac`` about your trac account::
     Retrieving SSH keys...
         1024 ab:1b:7c:c9:9b:48:fe:dd:59:56:1e:9d:a4:a6:51:9d  My SSH Key
 
-where you have to replace USERNAME with your trac user name and
-PASSWORD with your trac password. If you don't have a trac account,
-use ``git trac config`` without any arguments. The single quotes in
-``'PASSWORD'`` escape special characters that you might have in your
-password. The password is stored in plain-text in ``.git/config``, so
-make sure that it is not readable by other users on your system. For
-example, by running ``chmod 0600 .git/config`` if your home directory
-is not already private.
+where you have to replace USERNAME with your trac user name and PASSWORD with
+your trac password (see below if you authenticate with trac via GitHub).
+If you don't have a trac account, use ``git trac config`` without any arguments.
+The single quotes in ``'PASSWORD'`` escape special characters that you might
+have in your password. The password is stored in plain-text in ``.git/config``,
+so make sure that it is not readable by other users on your system. For example,
+by running ``chmod 0600 .git/config`` if your home directory is not already
+private.
 
 If there is no SSH key listed then you haven't uploaded your SSH
 public key to the trac server. You should do that now following the
@@ -106,6 +106,12 @@ instructions to :ref:`section-trac-ssh-key`, if you want to upload
 any changes. You may have to add your private key to your authentication agent::
 
     [user@localhost sage]$ ssh-add
+
+If you login on trac using a GitHub account, you should use instead the command
+``git trac config --token 'TRAC_TOKEN'`` where ``'TRAC_TOKEN'`` is the trac
+authentication token. This token can be used in lieu of username/password and
+must be used if you authenticate with trac via GitHub. This token can be found
+on http://trac.sagemath.org in the "Preferences" menu on the "Token" tab.
 
 .. NOTE::
 
