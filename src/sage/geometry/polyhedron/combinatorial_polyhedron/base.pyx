@@ -1023,6 +1023,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef unsigned int * len_facets
         self._dimension = -2
         self._f_vector = NULL
+        self._edges = NULL
+        self._ridges = NULL
         self._polar = 0
         self._nr_lines = 0
         self._length_edges_list = 16348
@@ -1579,7 +1581,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: N = combinations(range(20),19)
             sage: C = CombinatorialPolyhedron(list(N))
             sage: try:
-            ....:     alarm(0.0001)
+            ....:     alarm(0.001)
             ....:     C.edges()
             ....: except:
             ....:     print("alarm!")
@@ -1751,17 +1753,17 @@ cdef class CombinatorialPolyhedron(SageObject):
         TESTS::
 
             sage: from itertools import combinations
-            sage: N = combinations(range(20),19)
+            sage: N = combinations(range(200),199)
             sage: C = CombinatorialPolyhedron(list(N))
             sage: try:
-            ....:     alarm(0.0001)
+            ....:     alarm(0.01)
             ....:     C.ridges()
             ....: except:
             ....:     print("alarm!")
             ....:
             alarm!
             sage: len(C.ridges())
-            190
+            19900
 
         """
 
@@ -1860,7 +1862,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: N = combinations(range(20),19)
             sage: C = CombinatorialPolyhedron(list(N))
             sage: try:
-            ....:     alarm(0.0001)
+            ....:     alarm(0.001)
             ....:     C.f_vector()
             ....: except:
             ....:     print("alarm!")
@@ -1959,24 +1961,23 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef list_of_faces facets
         cdef int dim = self.dimension()
         cdef int d
-        cdef int sucess = 0
-        self._f_vector = <size_t *> sig_malloc((dim + 2)*sizeof(size_t))
-        for i in range(dim + 2):
-            self._f_vector[i] = 0
-        self._f_vector[0] = 1
-        self._f_vector[dim + 1] = 1
-
-        if self.is_trivial == 1:
-            return
-        if self.is_trivial == 2:
-            self._f_vector[dim] = 1
-            return
-
-        facets = self.bitrep_facets
-        face_iter = FaceIterator(facets, dim, self._nr_lines)
-        self._f_vector[0] = 1
-        self._f_vector[dim + 1] = 1
         try:
+            self._f_vector = <size_t *> sig_malloc((dim + 2)*sizeof(size_t))
+            for i in range(dim + 2):
+                self._f_vector[i] = 0
+            self._f_vector[0] = 1
+            self._f_vector[dim + 1] = 1
+
+            if self.is_trivial == 1:
+                return
+            if self.is_trivial == 2:
+                self._f_vector[dim] = 1
+                return
+
+            facets = self.bitrep_facets
+            face_iter = FaceIterator(facets, dim, self._nr_lines)
+            self._f_vector[0] = 1
+            self._f_vector[dim + 1] = 1
             d = face_iter.next_face()
             while (d < dim):
                 self._f_vector[d+1] += 1
@@ -1995,56 +1996,103 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t one
         cdef size_t two
         cdef size_t * output
+        cdef int d
+        cdef int j
+        cdef size_t i
         cdef FaceIterator face_iter
         cdef list_of_faces facets
         cdef list_of_faces vertices
-        self._edges = <size_t**> sig_malloc(sizeof(size_t*))
+        cdef int is_f_vector
 
-        if self.is_trivial > 0:
-            self._nr_edges = 0
-            return
-
-        if dim <  1:
-            self._nr_edges = 0
-            return
-
-        if dim == 1:
-            self._nr_edges = 1
-            self._edges[0] = <size_t *> sig_malloc(2*sizeof(size_t))
-            self._edges[0][0] = 0
-            self._edges[0][1] = 1
-            return
-
-
-        facets = self.bitrep_facets
-        vertices = self.bitrep_vertices
-        face_iter = FaceIterator(facets, dim, self._nr_lines)
-        face_iter.set_record_dimension(1)
-        output = <size_t*> sig_malloc(vertices.nr_faces()*sizeof(size_t))
+        self._edges = NULL
+        if self._f_vector:
+            is_f_vector = 1
+        else:
+            is_f_vector = 0
         counter = 0
+        output = NULL
+
         try:
-            while (face_iter.next_face() == 1):
-                face_iter.vertex_repr(output)
-                one = counter/len_edgelist
-                two = counter % len_edgelist
-                if (two == 0):
-                    self._edges = <size_t **> \
-                        sig_realloc(self._edges, (one+1)*sizeof(size_t*))
-                    self._edges[one] = \
-                        <size_t *> sig_malloc(2*len_edgelist*sizeof(size_t))
-                self._edges[one][2*two] = output[0]
-                self._edges[one][2*two + 1] = output[1]
-                counter += 1
-                sig_check()
+            self._edges = <size_t**> sig_malloc(sizeof(size_t*))
+
+            if self.is_trivial > 0:
+                self._nr_edges = 0
+                return
+
+            if dim <  1:
+                self._nr_edges = 0
+                return
+
+            if dim == 1:
+                self._nr_edges = 1
+                self._edges[0] = <size_t *> sig_malloc(2*sizeof(size_t))
+                self._edges[0][0] = 0
+                self._edges[0][1] = 1
+                return
+
+            facets = self.bitrep_facets
+            vertices = self.bitrep_vertices
+            face_iter = FaceIterator(facets, dim, self._nr_lines)
+            output = <size_t*> sig_malloc(vertices.nr_faces()*sizeof(size_t))
+
+            if is_f_vector:
+                face_iter.set_record_dimension(1)
+                while (face_iter.next_face() == 1):
+                    face_iter.vertex_repr(output)
+                    one = counter/len_edgelist
+                    two = counter % len_edgelist
+                    if (two == 0):
+                        self._edges = <size_t **> \
+                            sig_realloc(self._edges, (one+1)*sizeof(size_t*))
+                        self._edges[one] = \
+                            <size_t *> sig_malloc(2*len_edgelist*sizeof(size_t))
+                    self._edges[one][2*two] = output[0]
+                    self._edges[one][2*two + 1] = output[1]
+                    counter += 1
+                    sig_check()
+            else:
+                # while doing the edges one might as well do the f_vector
+                self._f_vector = <size_t *> sig_malloc((dim + 2)*sizeof(size_t))
+                for j in range(dim + 2):
+                    self._f_vector[j] = 0
+                self._f_vector[0] = 1
+                self._f_vector[dim + 1] = 1
+
+                counter = 0
+                d = face_iter.next_face()
+                while (d < dim):
+                    self._f_vector[d+1] += 1
+                    if d == 1:
+                        face_iter.vertex_repr(output)
+                        one = counter/len_edgelist
+                        two = counter % len_edgelist
+                        if (two == 0):
+                            self._edges = <size_t **> \
+                                sig_realloc(self._edges, (one+1)*sizeof(size_t*))
+                            self._edges[one] = \
+                                <size_t *> sig_malloc(2*len_edgelist*sizeof(size_t))
+                        self._edges[one][2*two] = output[0]
+                        self._edges[one][2*two + 1] = output[1]
+                        counter += 1
+
+                    d = face_iter.next_face()
+                    sig_check()
         except:
-            sig_free(output)
+            if output:
+                sig_free(output)
             for i in range((counter - 1)/len_edgelist + 1):
                 sig_free(self._edges[i])
-            sig_free(self._edges)
-            self._edges = NULL
+            if self._edges:
+                sig_free(self._edges)
+                self._edges = NULL
+            if not is_f_vector:
+                if self._f_vector:
+                    sig_free(self._f_vector)
+                    self._f_vector = NULL
             return
 
-        sig_free(output)
+        if output:
+            sig_free(output)
         self._nr_edges = counter
 
     cdef void _calculate_ridges(self):
@@ -2058,25 +2106,28 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t * output
         cdef FaceIterator face_iter
         cdef list_of_faces facets
-        self._ridges = <size_t**> sig_malloc(sizeof(size_t*))
 
-        if self.is_trivial > 0:
-            self._nr_ridges = 0
-            return
-
-        if dim == 1:
-            self._nr_ridges = 1
-            self._ridges[0] = <size_t *> sig_malloc(2*sizeof(size_t))
-            self._ridges[0][0] = 0
-            self._ridges[0][1] = 1
-            return
-
-        facets = self.bitrep_facets
-        face_iter = FaceIterator(facets, dim, self._nr_lines)
-        face_iter.set_record_dimension(dim - 2)
-        output = <size_t*> sig_malloc(facets.nr_faces()*sizeof(size_t))
+        output = NULL
+        self._ridges = NULL
         counter = 0
         try:
+            self._ridges = <size_t**> sig_malloc(sizeof(size_t*))
+
+            if self.is_trivial > 0:
+                self._nr_ridges = 0
+                return
+
+            if dim == 1:
+                self._nr_ridges = 1
+                self._ridges[0] = <size_t *> sig_malloc(2*sizeof(size_t))
+                self._ridges[0][0] = 0
+                self._ridges[0][1] = 1
+                return
+
+            facets = self.bitrep_facets
+            face_iter = FaceIterator(facets, dim, self._nr_lines)
+            face_iter.set_record_dimension(dim - 2)
+            output = <size_t*> sig_malloc(facets.nr_faces()*sizeof(size_t))
             while (face_iter.next_face() == dim - 2):
                 face_iter.facet_repr(output)
                 one = counter/len_edgelist
@@ -2091,10 +2142,12 @@ cdef class CombinatorialPolyhedron(SageObject):
                 counter += 1
                 sig_check()
         except:
-            sig_free(output)
+            if output:
+                sig_free(output)
             for i in range((counter - 1)/len_edgelist + 1):
                 sig_free(self._ridges[i])
-            sig_free(self._ridges)
+            if self._ridges:
+                sig_free(self._ridges)
             self._ridges = NULL
             return
 
