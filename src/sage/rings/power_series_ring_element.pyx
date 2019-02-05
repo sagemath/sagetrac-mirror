@@ -1936,9 +1936,22 @@ cdef class PowerSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: constant term of power series does not support exponentiation
+            
+        ::
+        
+            sage: R.<x> = GF(2)[[]]
+            sage: f = x + x^2 + O(x^5)
+            sage: exp(f)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ring has nonzero characteristic (consider using lower precision)
+
         """
         if prec is None:
             prec = self._parent.default_prec()
+        
+        if self._parent.characteristic() != 0 and prec >= self._parent.characteristic():
+            raise ArithmeticError("ring has nonzero characteristic (consider using lower precision)")
 
         t = self.derivative().solve_linear_de(prec)
 
