@@ -53,21 +53,10 @@
     #define leading_zero_count(one) leading_zero_workaround(one)
     #define trailing_zero_count(one) trailing_zero_workaround(one)
 
-#elif INTPTR_MAX == INT64_MAX
+#else
     //64 bit commands
     #define chunktype uint64_t
     const unsigned int chunksize = 64;
-    #define bitwise_intersection(one,two) (one) & (two)
-    #define bitwise_is_not_subset(one,two) (one) & ~(two)
-    #define store_register(one,two) one = two
-    #define load_register(one,two) one = two
-    #define leading_zero_count(one) leading_zero_naive3(one)
-    #define trailing_zero_count(one) trailing_zero_naive3(one)
-
-#else
-    //32 bit commands
-    #define chunktype uint32_t
-    const unsigned int chunksize = 32;
     #define bitwise_intersection(one,two) (one) & (two)
     #define bitwise_is_not_subset(one,two) (one) & ~(two)
     #define store_register(one,two) one = two
@@ -81,7 +70,7 @@
     #if INTPTR_MAX == INT64_MAX //64-bit
         #define popcount(A) _mm_popcnt_u64(A)
     #else //assuming 32-bit
-        #define popcount(A) _mm_popcnt_u32(A)
+        #define popcount(A) _mm_popcnt_u32(((uint32_t *) &A)[0]) + _mm_popcnt_u32(((uint32_t *) &A)[1])
     #endif
 #else
     #define popcount(A) naive_popcount(A)
@@ -116,13 +105,18 @@ static uint64_t_or_uint32_t vertex_to_bit_dictionary[bit64or32];
 //this dictionary helps storing a vector of 64 or 32 incidences as uint64_t or uint32_t,
 //where each bit represents an incidence
 
+static int dictionary_is_build = 0;
+
 void build_dictionary(){
+    if (dictionary_is_build)
+        return;
     unsigned int i = 0;
     uint64_t_or_uint32_t count = 1;
     for (i=0; i< bit64or32;i++){
         vertex_to_bit_dictionary[bit64or32 -i-1] = count;
         count *= 2;
     }
+    dictionary_is_build = 1;
 }
 
 

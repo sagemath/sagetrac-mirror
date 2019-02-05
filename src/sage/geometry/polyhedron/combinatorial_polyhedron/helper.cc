@@ -54,21 +54,10 @@
     #define leading_zero_count(one) leading_zero_workaround(one)
     #define trailing_zero_count(one) trailing_zero_workaround(one)
 
-#elif INTPTR_MAX == INT64_MAX
+#else
     //64 bit commands
     #define chunktype uint64_t
     const unsigned int chunksize = 64;
-    #define bitwise_intersection(one,two) (one) & (two)
-    #define bitwise_is_not_subset(one,two) (one) & ~(two)
-    #define store_register(one,two) one = two
-    #define load_register(one,two) one = two
-    #define leading_zero_count(one) leading_zero_naive3(one)
-    #define trailing_zero_count(one) trailing_zero_naive3(one)
-
-#else
-    //32 bit commands
-    #define chunktype uint32_t
-    const unsigned int chunksize = 32;
     #define bitwise_intersection(one,two) (one) & (two)
     #define bitwise_is_not_subset(one,two) (one) & ~(two)
     #define store_register(one,two) one = two
@@ -82,7 +71,7 @@
     #if INTPTR_MAX == INT64_MAX //64-bit
         #define popcount(A) _mm_popcnt_u64(A)
     #else //assuming 32-bit
-        #define popcount(A) _mm_popcnt_u32(A)
+        #define popcount(A) _mm_popcnt_u32(((uint32_t *) &A)[0]) + _mm_popcnt_u32(((uint32_t *) &A)[1])
     #endif
 #else
     #define popcount(A) naive_popcount(A)
@@ -473,4 +462,43 @@ void get_vertices_bitrep_from_facets_pointer( \
                         (chunktype *) vertices_output[i], face_length);
     }
     delete[] old_facets_walker;
+}
+
+size_t facet_repr_from_bitrep(void *face, void **facets, size_t *output, \
+                              size_t nr_facets, size_t length_of_face){
+    // Writes the facet_repr of the current face in output.
+    // Returns the length of the representation.
+    size_t counter = 0;
+    size_t i;
+    for (i = 0; i < nr_facets; i++){
+        if (is_subset(face, facets[i], length_of_face)){
+            output[counter] = i;
+            counter++;
+        }
+    }
+    return counter;
+}
+
+size_t vertex_repr_from_bitrep(void *face1, size_t *output, \
+                               size_t length_of_face){
+    build_dictionary();
+    chunktype * face = (chunktype *) face1;
+    size_t i,j;
+    size_t counter = 0;
+    const size_t size_array = length_of_face*chunksize/64;
+    uint64_t *array = new uint64_t [size_array]();
+    for (i = 0; i < length_of_face; i++){
+        store_register(array[i*chunksize/bit64or32], face[i]);
+    }
+    for (i = 0; i < size_array; i++){
+        for (j = 0; j < 64; j++){
+            if (array[i] >= vertex_to_bit_dictionary[j]){
+                output[counter] = i*64 + j;
+                counter++;
+                array[i] -= vertex_to_bit_dictionary[j];
+            }
+        }
+    }
+    delete[] array;
+    return counter;
 }
