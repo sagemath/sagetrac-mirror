@@ -311,6 +311,9 @@ cdef class FaceIterator:
     cdef int * first_time
     cdef size_t length_of_face
     cdef size_t nr_facets
+    cdef size_t nr_vertices
+    cdef size_t *output1
+    cdef size_t *output2
 
     def __init__(self, list_of_faces facets, int dimension, int nr_lines):
         if dimension <= 0:
@@ -340,12 +343,19 @@ cdef class FaceIterator:
         self.lowest_dimension = nr_lines
         self.first_time = <int *> sig_malloc(dimension * sizeof(int))
         self.first_time[dimension - 1] = 1
+        self.output1 = NULL
+        self.output2 = NULL
+        self.nr_vertices = facets.length()
 
 
     def __dealloc__(self):
         sig_free(self.nr_faces)
         sig_free(self.nr_forbidden)
         sig_free(self.first_time)
+        if self.output1:
+            sig_free(self.output1)
+        if self.output2:
+            sig_free(self.output2)
 
     cdef void set_record_dimension(self, int dim):
         self.record_dimension = dim
@@ -481,6 +491,23 @@ cdef class FaceIterator:
         cdef size_t length_of_face = self.length_of_face
         return vertex_repr_from_bitrep(self.face, output, length_of_face)
 
+    cdef size_t * get_output1_array(self):
+        r"""
+        This will allocate an array to store the vertex_repr of a face in.
+        The class face_iterator will take care of deallocation.
+        """
+        self.output1 = \
+            <size_t *> sig_malloc(self.nr_vertices * sizeof(size_t))
+        return self.output1
+
+    cdef size_t * get_output2_array(self):
+        r"""
+        This will allocate an array to store the facet_repr of a face in.
+        The class face_iterator will take care of deallocation.
+        """
+        self.output2 = \
+            <size_t *> sig_malloc(self.nr_facets * sizeof(size_t))
+        return self.output2
 
 
 
@@ -2315,7 +2342,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         return returntuple
 
     def face_iter(self, dimension=None, vertex_repr=True,
-                  facet_repr=False, names=True):
+                  facet_repr=False, give_dimension = False, names=True):
         r"""
         Iterator over all faces of specified dimension.
 
@@ -2331,30 +2358,11 @@ cdef class CombinatorialPolyhedron(SageObject):
           this will give each face as tuple of the form
           (``vertex_repr``, ``facet_rerpr``).
 
-        If ``names`` is ``False`` then vertices and facets are labeled
+        If ``names`` is ``False``, then vertices and facets are labeled
         by their indexes.
 
-        .. WARNING::
-
-            There can only be one face iterator around. The second
-            one will invalid the first one. Even worse, if you then call
-            the first one again, the output will be incorrect and the
-            second one will not yield all faces.
-
-            This shares resources with other methods. Do not call other
-            methods while iteration, s.t.
-
-            - :meth:`faces`
-            - :meth:`vertices`
-            - :meth:`edges` (a second call is fine)
-            - :meth:`ridges` (a second call is fine)
-            - :meth:`f_vector` (a second call is fine)
-            - :meth:`_record_all_faces`
-            - :meth:`incidences`
-            - :meth:`face_lattice`
-            - :meth:`flag`
-            - :meth:`k-simplicial`
-            - :meth:`k-simple`
+        If ``give_dimension`` is ``True``, then the dimension of the face is
+        printed as well.
 
         EXAMPLES::
 
@@ -2391,6 +2399,26 @@ cdef class CombinatorialPolyhedron(SageObject):
             (28, 29)
             sage: next(it)
             (25, 29)
+
+            sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
+            sage: it = C.face_iter(give_dimension=True)
+            sage: for i in it: i
+            ((), -1)
+            ((0, 1, 2, 3), 3)
+            ((1, 2, 3), 2)
+            ((0, 2, 3), 2)
+            ((0, 1, 3), 2)
+            ((0, 1, 2), 2)
+            ((2, 3), 1)
+            ((1, 3), 1)
+            ((1, 2), 1)
+            ((3,), 0)
+            ((2,), 0)
+            ((1,), 0)
+            ((0, 3), 1)
+            ((0, 2), 1)
+            ((0,), 0)
+            ((0, 1), 1)
 
 
         TESTS::
@@ -2448,6 +2476,13 @@ cdef class CombinatorialPolyhedron(SageObject):
         on how all faces are visited.
         """
 
+        cdef FaceIterator face_iter
+        cdef list_of_faces facets
+        cdef int dim
+        cdef int next_dim
+        cdef size_t * output1
+        cdef size_t * output2
+
         if dimension is not None:
             dimension = int(dimension)
             dimensionrange = (dimension,)
@@ -2455,42 +2490,57 @@ cdef class CombinatorialPolyhedron(SageObject):
             dimensionrange = range(-1, self.dimension()+1)
             dimension = -2
 
-        if not facet_repr:
-            vertex_repr = True
-
         if self.is_trivial > 0:  # taking care of the trivial polynomial
             for dim in dimensionrange:
                 if vertex_repr and facet_repr:
                     vert = self.faces(dim, names=names)
                     fac = self.faces(dim, facet_repr=True, names=names)
                     for i in range(len(vert)):
-                        yield (vert[i], fac[i])
+                        if give_dimension:
+                            yield (vert[i], fac[i], Integer(dim))
+                        else:
+                            yield (vert[i], fac[i])
                 elif vertex_repr:
                     vert = self.faces(dim, names=names)
                     for i in range(len(vert)):
-                        yield vert[i]
+                        if give_dimension:
+                            yield (vert[i], Integer(dim))
+                        else:
+                            yield vert[i]
                 else:
                     fac = self.faces(dim, facet_repr=True, names=names)
                     for i in range(len(fac)):
-                        yield fac[i]
+                        if give_dimension:
+                            yield (fac[i], Integer(dim))
+                        else:
+                            yield fac[i]
             return
 
-        #return face_iter(self.bitrep_facets, self.dimension())
+        facets = self.bitrep_facets
 
         if 0 == dimension:
             if vertex_repr and facet_repr:
                 vert = self.faces(0, names=names)
                 fac = self.faces(0, facet_repr=True, names=names)
                 for i in range(len(vert)):
-                    yield (vert[i], fac[i])
+                    if give_dimension:
+                        yield (vert[i], fac[i], Integer(0))
+                    else:
+                        yield (vert[i], fac[i])
             elif vertex_repr:
                 vert = self.faces(0, names=names)
                 for i in range(len(vert)):
-                    yield vert[i]
+                    if give_dimension:
+                        yield (vert[i], Integer(0))
+                    else:
+                        yield vert[i]
             else:
                 fac = self.faces(0, facet_repr=True, names=names)
                 for i in range(len(fac)):
-                    yield fac[i]
+                    if give_dimension:
+                        yield (fac[i], Integer(0))
+                    else:
+                        yield fac[i]
             return
 
         if dimension == self.dimension() - 1:
@@ -2498,15 +2548,24 @@ cdef class CombinatorialPolyhedron(SageObject):
                 vert = self.faces(dimension, names=names)
                 fac = self.faces(dimension, facet_repr=True, names=names)
                 for i in range(len(vert)):
-                    yield (vert[i], fac[i])
+                    if give_dimension:
+                        yield (vert[i], fac[i], Integer(dimension))
+                    else:
+                        yield (vert[i], fac[i])
             elif vertex_repr:
                 vert = self.faces(dimension, names=names)
                 for i in range(len(vert)):
-                    yield vert[i]
+                    if give_dimension:
+                        yield (vert[i], Integer(dimension))
+                    else:
+                        yield vert[i]
             else:
                 fac = self.faces(dimension, facet_repr=True, names=names)
                 for i in range(len(fac)):
-                    yield fac[i]
+                    if give_dimension:
+                        yield (fac[i], Integer(dimension))
+                    else:
+                        yield fac[i]
             return
 
         if -1 in dimensionrange:
@@ -2514,15 +2573,24 @@ cdef class CombinatorialPolyhedron(SageObject):
                 vert = self.faces(-1, names=names)
                 fac = self.faces(-1, facet_repr=True, names=names)
                 for i in range(len(vert)):
-                    yield (vert[i], fac[i])
+                    if give_dimension:
+                        yield (vert[i], fac[i], Integer(-1))
+                    else:
+                        yield (vert[i], fac[i])
             elif vertex_repr:
                 vert = self.faces(-1, names=names)
                 for i in range(len(vert)):
-                    yield vert[i]
+                    if give_dimension:
+                        yield (vert[i], Integer(-1))
+                    else:
+                        yield vert[i]
             else:
                 fac = self.faces(-1, facet_repr=True, names=names)
                 for i in range(len(fac)):
-                    yield fac[i]
+                    if give_dimension:
+                        yield (fac[i], Integer(-1))
+                    else:
+                        yield fac[i]
             if -1 == dimension:
                 return
 
@@ -2532,34 +2600,26 @@ cdef class CombinatorialPolyhedron(SageObject):
                 vert = self.faces(dim, names=names)
                 fac = self.faces(dim, facet_repr=True, names=names)
                 for i in range(len(vert)):
-                    yield (vert[i], fac[i])
+                    if give_dimension:
+                        yield (vert[i], fac[i], Integer(dim))
+                    else:
+                        yield (vert[i], fac[i])
             elif vertex_repr:
                 vert = self.faces(dim, names=names)
                 for i in range(len(vert)):
-                    yield vert[i]
+                    if give_dimension:
+                        yield (vert[i], Integer(dim))
+                    else:
+                        yield vert[i]
             else:
                 fac = self.faces(dim, facet_repr=True, names=names)
                 for i in range(len(fac)):
-                    yield fac[i]
+                    if give_dimension:
+                        yield (fac[i], Integer(dim))
+                    else:
+                        yield fac[i]
             if dim == dimension:
                 return
-
-        dim = self.dimension()
-        if dimension not in range(-2, dim + 1):
-            return ()
-
-        # creating two arrays for the C function to store the faces in
-        cdef unsigned int successful
-        size_of_faceV = self._length_Vrep
-        size_of_faceH = self._length_Hrep
-        cdef unsigned int VSize[1]
-        VSize[0] = 0
-        cdef unsigned int HSize[1]
-        HSize[0] = 0
-        cdef unsigned int * Vface_to_return = \
-            <unsigned int*> PyMem_Malloc(size_of_faceV * sizeof(unsigned int))
-        cdef unsigned int * Hface_to_return = \
-            <unsigned int*> PyMem_Malloc(size_of_faceH * sizeof(unsigned int))
 
         # translating the result to the desired representation
         addtuple = self._equalities
@@ -2577,29 +2637,71 @@ cdef class CombinatorialPolyhedron(SageObject):
         if names:
             addtuple = self._equalities
 
-        # init
-        face_iterator_init(self._C, dimension, int(vertex_repr),
-                           int(facet_repr))
+        if self._polar:
+            def get_vertex_repr():
+                cdef size_t leng
+                cdef size_t t
+                leng = face_iter.facet_repr(output2)
+                return tuple(v(output2[t]) for t in range(leng))
 
-        # filling the array
-        successful = face_iterator(self._C, Vface_to_return, VSize,
-                                   Hface_to_return, HSize)
-        while successful:
-            if vertex_repr and facet_repr:
-                yield (tuple(v(Vface_to_return[i]) for i in range(VSize[0])),
-                       addtuple + tuple(h(Hface_to_return[i])
-                       for i in range(HSize[0])))
-            elif vertex_repr:
-                yield tuple(v(Vface_to_return[i]) for i in range(VSize[0]))
-            else:
-                yield addtuple + tuple(h(Hface_to_return[i])
-                                       for i in range(HSize[0]))
-            successful = face_iterator(self._C, Vface_to_return, VSize,
-                                       Hface_to_return, HSize)
+            def get_facet_repr():
+                cdef size_t leng
+                cdef size_t t
+                leng = face_iter.vertex_repr(output1)
+                return addtuple + tuple(h(output1[t]) for t in range(leng))
 
-        # cleaning up
-        PyMem_Free(Vface_to_return)
-        PyMem_Free(Hface_to_return)
+            def print_dim():
+                return Integer(dim - 1 - next_dim)
+            dimension = dim - 1 - dimension
+        else:
+            def get_facet_repr():
+                cdef size_t leng
+                cdef size_t t
+                leng = face_iter.facet_repr(output2)
+                return addtuple + tuple(h(output2[t]) for t in range(leng))
+
+            def get_vertex_repr():
+                cdef size_t leng
+                cdef size_t t
+                leng = face_iter.vertex_repr(output1)
+                return tuple(v(output1[t]) for t in range(leng))
+
+            def print_dim():
+                return Integer(next_dim)
+
+        # settling the kind of output the user wants once and for all
+        if vertex_repr and facet_repr and give_dimension:
+            def generate_output():
+                return (get_vertex_repr(), get_facet_repr(),
+                        print_dim())
+        elif vertex_repr and facet_repr:
+            def generate_output():
+                return (get_vertex_repr(), get_facet_repr())
+        elif vertex_repr and give_dimension:
+            def generate_output():
+                return (get_vertex_repr(), print_dim())
+        elif vertex_repr:
+            def generate_output():
+                return get_vertex_repr()
+        elif facet_repr and give_dimension:
+            def generate_output():
+                return (get_facet_repr(), print_dim())
+        elif facet_repr:
+            def generate_output():
+                return get_facet_repr()
+        else:
+            def generate_output():
+                return print_dim()
+
+
+        face_iter = FaceIterator(facets, dim, self._nr_lines)
+        face_iter.set_record_dimension(dimension)
+        output1 = face_iter.get_output1_array()
+        output2 = face_iter.get_output2_array()
+        next_dim = face_iter.next_face()
+        while next_dim is not dim:
+            yield generate_output()
+            next_dim = face_iter.next_face()
 
     def incidences(self, dimension_one, dimension_two):
         r"""
@@ -2733,16 +2835,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         return tuple((incidence_one(i), incidence_two(i))
                      for i in range(nr_incidences[0]))
 
-    def new_face_iter(self):
-        cdef FaceIterator face_iter
-        cdef list_of_faces facets = self.bitrep_facets
-        cdef int dim = self.dimension()
-        cdef int next_dim
-        face_iter = FaceIterator(facets, dim, self._nr_lines)
-        next_dim = face_iter.next_face()
-        while next_dim is not dim:
-            yield next_dim
-            next_dim = face_iter.next_face()
 
     def face_lattice(self, vertices=False, facets=False, names=False):
         r"""
