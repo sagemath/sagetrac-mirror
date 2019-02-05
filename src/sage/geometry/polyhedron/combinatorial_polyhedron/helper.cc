@@ -491,11 +491,13 @@ size_t vertex_repr_from_bitrep(void *face1, size_t *output, \
         store_register(array[i*chunksize/bit64or32], face[i]);
     }
     for (i = 0; i < size_array; i++){
-        for (j = 0; j < 64; j++){
-            if (array[i] >= vertex_to_bit_dictionary[j]){
-                output[counter] = i*64 + j;
-                counter++;
-                array[i] -= vertex_to_bit_dictionary[j];
+        if (array[i]){
+            for (j = 0; j < 64; j++){
+                if (array[i] >= vertex_to_bit_dictionary[j]){
+                    output[counter] = i*64 + j;
+                    counter++;
+                    array[i] -= vertex_to_bit_dictionary[j];
+                }
             }
         }
     }
