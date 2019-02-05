@@ -1610,11 +1610,6 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         return tuple((vertex_one(j), vertex_two(j)) for j in range(nr_edges))
 
-        # TODO: In the unbounded case, one should check if the vertices
-        # of edges are vertices of the Polyhedron
-        #
-        # P = Polyhedron(vertices=[[0,0],[1,0]], rays=[[0,1]])
-
     def edge_graph(self, names=True):
         r"""
         Returns the edge graph.
@@ -1692,36 +1687,36 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.cyclic_polytope(4,5)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.ridges()
-            ((An inequality (-6, 11, -6, 1) x + 0 >= 0,
-              An inequality (-50, 35, -10, 1) x + 24 >= 0),
-             (An inequality (8, -14, 7, -1) x + 0 >= 0,
+            ((An inequality (24, -26, 9, -1) x + 0 >= 0,
               An inequality (-50, 35, -10, 1) x + 24 >= 0),
              (An inequality (-12, 19, -8, 1) x + 0 >= 0,
               An inequality (-50, 35, -10, 1) x + 24 >= 0),
-             (An inequality (24, -26, 9, -1) x + 0 >= 0,
+             (An inequality (8, -14, 7, -1) x + 0 >= 0,
               An inequality (-50, 35, -10, 1) x + 24 >= 0),
              (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (-50, 35, -10, 1) x + 24 >= 0),
+             (An inequality (-12, 19, -8, 1) x + 0 >= 0,
               An inequality (24, -26, 9, -1) x + 0 >= 0),
              (An inequality (8, -14, 7, -1) x + 0 >= 0,
               An inequality (24, -26, 9, -1) x + 0 >= 0),
-             (An inequality (-12, 19, -8, 1) x + 0 >= 0,
-              An inequality (24, -26, 9, -1) x + 0 >= 0),
              (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (24, -26, 9, -1) x + 0 >= 0),
+             (An inequality (8, -14, 7, -1) x + 0 >= 0,
               An inequality (-12, 19, -8, 1) x + 0 >= 0),
-             (An inequality (8, -14, 7, -1) x + 0 >= 0,
+             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
               An inequality (-12, 19, -8, 1) x + 0 >= 0),
              (An inequality (-6, 11, -6, 1) x + 0 >= 0,
               An inequality (8, -14, 7, -1) x + 0 >= 0))
             sage: C.ridges(names=False)
-            ((0, 4),
-             (1, 4),
+            ((3, 4),
              (2, 4),
-             (3, 4),
-             (0, 3),
-             (1, 3),
+             (1, 4),
+             (0, 4),
              (2, 3),
-             (0, 2),
+             (1, 3),
+             (0, 3),
              (1, 2),
+             (0, 2),
              (0, 1))
 
             sage: P = Polyhedron(rays=[[1,0]])
@@ -1736,55 +1731,39 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         """
 
-        if self.is_trivial > 1:
-            return ()
-        if self.f_vector()[-2] <= 1:
-            # in some instances there are no ridges as intersections of facets,
-            # i.e. if we treat a ray, or a halfspace
-            return ()
-
-        # The new approach is going to look somewhat like this.
-        """
-        cdef FaceIterator face_iter
-        cdef list_of_faces facets = self.bitrep_facets
-        cdef int dim = self.dimension()
-        cdef list ridges
-        face_iter = FaceIterator(facets, dim, self._nr_lines)
-        ridges = face_iter.ridges()
-        if self._H is not None and names is True:
-            def f(i): return self._H[i]
+        cdef size_t ** ridges
+        cdef size_t nr_ridges
+        cdef size_t len_edgelist = self._length_edges_list
+        cdef size_t j
+        if self._polar:
+            if not self._edges:
+                self._calculate_edges()
+            ridges = self._edges
+            nr_ridges = self._nr_edges
         else:
-            def f(i): return Integer(i)
-        if add_equalities:
-            return tuple(self._equalities + (f(i[0]),f(i[1])) for i in ridges)
-        else:
-            return tuple((f(i[0]),f(i[1])) for i in ridges)
-        """
+            if not self._ridges:
+                self._calculate_ridges()
+            ridges = self._ridges
+            nr_ridges = self._nr_ridges
 
-        # old version
-        cdef unsigned int ** ridgepointer = ridges(self._C)
-        cdef unsigned long maxnumberedges = get_maxnumberedges()
-        # the ridges are being saved in a list basically,
+        # the ridges are being saved in a list basically
         # with the first entry the first facet of the first ridge,
-        # the second entry the second facet of that ridges
-        # as there might be many ridges they are saved in an array of arrays,
+        # the second entry the second facet of that ridge
+
+        # possibly there are many ridges,
+        # hence they are stored in an array of arrays,
         # with each array containing maxnumberedges of ridges
-        if self.dimension() <= 0:
-            return ()
-        cdef unsigned long nr_ridges = self.f_vector()[-3]
-        if nr_ridges > maxnumberedges*maxnumberedges:
-            raise ValueError("Cannot calculate %s ridges" % nr_ridges)
 
         if self._H is not None and names is True:
-            def f(i): return self._H[i]
+            def f(size_t i): return self._H[i]
         else:
-            def f(i): return Integer(i)
+            def f(size_t i): return Integer(i)
 
-        def facet_one(i):
-            return f(ridgepointer[i/maxnumberedges][2*(i % maxnumberedges)])
+        def facet_one(size_t i):
+            return f(ridges[i/len_edgelist][2*(i % len_edgelist)])
 
-        def facet_two(i):
-            return f(ridgepointer[i/maxnumberedges][2*(i % maxnumberedges)+1])
+        def facet_two(size_t i):
+            return f(ridges[i/len_edgelist][2*(i % len_edgelist)+1])
 
         if add_equalities:
             return tuple(
@@ -2045,6 +2024,13 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if self.is_trivial > 0:
             self._nr_ridges = 0
+            return
+
+        if dim == 1:
+            self._nr_ridges = 1
+            self._ridges[0] = <size_t *> sig_malloc(2*sizeof(size_t))
+            self._ridges[0][0] = 0
+            self._ridges[0][1] = 1
             return
 
         facets = self.bitrep_facets
