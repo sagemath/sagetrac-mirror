@@ -4,69 +4,8 @@ from sage.rings.finite_rings.integer_mod_ring import *
 from sage.categories.homset import *
 from sage.rings.power_series_ring import *
 from sage.rings.finite_rings.finite_field_constructor import *
-#Python/Sage can only compare the addresses of function pointers. It cannot compare if two function pointer point to functions that do the same thing.
-#This function is defined now so that its address may be compared to later.
-def universal_identity(integer):
-    return integer
-
-#User has three options to define an IndRing
-#Option 1) Pass a string name of an IndRing we have already constructed. That IndRing is returned by the constructor
-#Option 2) Pass a ring without a homs function.
-#In this case the constructor builds an IndRing whose self.rings function sends every natural to number user passed ring object
-#self.homs function sends every natural number to the identity on the user passed ring
-#Option 3) User passes function pointers to a rings and a homs function
-class IndRing:
-    def __init__(self, rings, homs = None):
-        # self.rings is a function from the natural numbers to rings
-        # self.homs is a function from the natural numbers to homomorphisms of rings where homs(n): rings(n) -> rings(n+1)
-        if homs == None:
-            if str(type(rings)) == "<type 'str'>":
-                # built-in cases
-                if rings == "lazard":
-                    self.rings = lambda n: PolynomialRing(ZZ, n, 'U')
-                    self.homs = lambda n: (self.rings(n)).hom((self.rings(n+1).gens())[:-1], self.rings(n+1))
-                    self.name = "Lazard Ring"
-                elif rings == "rational_lazard":
-                    self.rings = lambda n: PolynomialRing(QQ, n, 'U')
-                    self.homs = lambda n: (self.rings(n)).hom((self.rings(n+1).gens())[:-1], self.rings(n+1))
-                    self.name = "Rational Lazard Ring"
-            else: # assume the argument given is a ring
-                self.storageVar = rings
-                self.storageVar2 = End(self.storageVar)
-                self.rings = lambda n: self.storageVar
-                self.homs = lambda n: self.storageVar2.identity()
-        else: #rings and homs are pointers to functions as described above
-            self.rings = rings
-            self.homs = homs
-
-    def __repr__(self):
-        if self.id != None:
-            return self.name
-        else:
-            return "User-defined IndRing" #TODO: figure out if there is a __name__ method
-#This data type is a map between IndRings
-#Domain and codomain are both IndRings
-#Maps is a function pointer to a function from the natural numbers to homomorphisms from rings that make up the domain to rings that make up the codomain
-#The default implementation is for maps(i) to be a homomorphism from domain.rings(i) to codomain.rings(i)
-#rstep and sstep are optional parameters that allow the user to reparameterize the domain and codomain for the homomorphisms from the map functions
-#maps(i) is a homomorphism from domain.rings(rstep(i)) to codomain.rings(sstep(i))
-#It is assumed that the user is careful enough that the appropriate squares commute
-class IndRingHom:
-    def __init__(self, domain, codomain, maps, rstep = universal_identity, sstep = universal_identity):
-        self.domain = domain
-        self.codomain = codomain
-        self.maps = maps
-        self.rstep = rstep
-        self.sstep = sstep
-
-    def __call__(series):
-        return series.change_base(self)
-
-Lazard = IndRing('lazard')
-Rational_Lazard = IndRing('rational_lazard')
-Integer_Ring = IndRing(ZZ)
-Rational_Ring = IndRing(QQ)
-Integer_7_Ring = IndRing(Integers(7))
+from sage.arith.misc import *
+from indring import *
 
 #Used to multiply power series faster.
 def fast_mult_pow(poly1, poly2, prec):
@@ -487,6 +426,34 @@ class FPS:
         target = self.ring_size(prec, 0)
         return self.view_helper(prec, target)
 
+# convert multivariate polynomial to Formal Power Series represented in FPS class
+# Arguments:
+#  poly - the given polynomial
+#  big_ring - the IndRing in which the FPS has coefficients
+#  size - Given the IndRing
+#    R0 -> R1 -> R2 -> ...
+#    there is a stage in the IndRing that contains all the coefficients of poly.
+#    R_size is one such stage.
+#  var_name - self-explanatory
+def Poly_To_FPS(poly, big_ring, size, var_name = 'x'):
+    #returns list of generators
+    x = (poly.parent()).gens()
+    #Figure out how many generators
+    n = len(x)
+    #Make line of code to find a coefficient given a list of powers of variables l
+    code = "poly.coefficient({"
+    for i in range(0, n):
+        code = code + "x[" +str(i) + "]:l[" + str(i) + "]"
+        if i < n-1:
+            code = code + ","
+    code = code + "})"
+    def dummy_fn(poly, l):
+        x = (poly.parent()).gens()
+        return eval(code)
+    def dummy_fn2(l):
+        return dummy_fn(poly, l)
+    return FPS(big_ring, n, lambda l: dummy_fn2(l) if max(l) < poly.degree() + 1 else 0, lambda k: size, var_name)
+
 class UFGL(FPS):
     def __init__(self):
         def v(n):
@@ -546,259 +513,3 @@ class UFGL(FPS):
         self.var = 'x'
         self.const = 0
 
-
-def Poly_To_FPS(poly, big_ring, size, var_name = 'x'):
-    #returns list of generators
-    x = (poly.parent()).gens()
-    #Figure out how many generators
-    n = len(x)
-    #Make line of code to find a coefficient given a list of powers of variables l
-    code = "poly.coefficient({"
-    for i in range(0, n):
-        code = code + "x[" +str(i) + "]:l[" + str(i) + "]"
-        if i < n-1:
-            code = code + ","
-    code = code + "})"
-    return FPS(big_ring, n, lambda l: eval(code) if max(l) < poly.degree() + 1 else 0, lambda k: size, var_name)
-
-
-
-
-#Example Coefficient function
-def f_coeffs(powers):
-    n = powers[0] + powers[1]
-    if n == 0:
-        return 0
-    R = PolynomialRing(ZZ, n, 'U')
-    U = R.gens()
-    return (powers[0]*U[0] + powers[1]*U[-1])
-
-f = FPS(Lazard, 2, f_coeffs, universal_identity,)
-#repr(f); f
-print("f view 3:")
-print(f.view(3))
-print("\n")
-
-##Another example
-def g_b(size):
-    return size**2
-
-def g_coeffs(powers):
-    n = (powers[0] + powers[1]) ** 2
-    if n == 0:
-        return 0
-    R = PolynomialRing(ZZ, n, 'U')
-    U = R.gens()
-    return (powers[0]*powers[1]*U[-1])
-g = FPS(Lazard, 2, g_coeffs, g_b)
-
-
-print("g view 3:")
-print(g.view(10))
-print("\n")
-
-#Addition
-h = g+f
-print("g+f view 3:")
-print(h.view(3))
-print("g+f view 4:")
-print(h.view(4))
-print("\n")
-
-#Derivatives
-h = (g+f).derive(0).derive(0)
-print("Two derivatives of g+f with respect to x0:")
-print(h.view(3))
-print("\n")
-
-#Multipication
-h = f*g
-print("f*g view 5:")
-print(h.view(5))
-print("\n")
-
-#Slow Mult
-h = f.slow_mult(g)
-print("f slow mult g:")
-print(h.view(5))
-print("\n")
-#Example of user defined IndRing
-def perfect_closure_ring_7(n):
-    prime = 3
-    if n == 0:
-        return PolynomialRing(GF(prime), 1, 'c0')
-    else:
-        R = PolynomialRing(GF(prime), 2, "xy")
-        x, y = R.gens()
-        S = R.quotient(y**(prime**n) - x, names=('c0', 'c' + str(n),))
-        return S
-def perfect_closure_homs_7(n):
-    prime = 3
-    if n == 0:
-        return perfect_closure_ring_7(0).hom((perfect_closure_ring_7(1).gens())[:-1], perfect_closure_ring_7(1))
-    else:
-        generators = perfect_closure_ring_7(n+1).gens()
-        return perfect_closure_ring_7(n).hom([generators[0],generators[1]**prime], perfect_closure_ring_7(n+1))
-perfect_closure_7 = IndRing(perfect_closure_ring_7, perfect_closure_homs_7)
-
-#Example of a power series of this IndRing plus finding its inverse
-def k_coeffs(natural):
-    if natural[0] == 0:
-        R = perfect_closure_ring_7(0)
-        c = R.gens()
-        return(1 + 0*c[0])
-    else:
-        R = perfect_closure_ring_7(natural[0] - 1)
-        c = R.gens()
-        return(1*c[-1])
-
-def k_b (natural):
-    if natural == 0:
-        return 0
-    else:
-        return natural - 1
-
-def l_coeffs(natural):
-    prime = 3
-    R = perfect_closure_ring_7(natural[0])
-    c = R.gens()
-    total = 0
-    for i in range(0, natural[0] + 1):
-        total += (c[-1]**(prime**(i)))
-    return total
-def l_b(natural):
-    return natural
-
-print("Inverses and perfect closure ring:")
-k = FPS(perfect_closure_7, 1, k_coeffs, k_b)
-l = FPS(perfect_closure_7, 1, l_coeffs, l_b)
-print("k view 5:")
-print(k.view(5))
-print("")
-print("k inverse view 5:")
-print((k.inverse()).view(5))
-print("l view 5:")
-print(l.view(5))
-print("k * l view 5:")
-print((k*l).view(5))
-print("\n")
-
-
-#Reversion
-print("Reversion")
-def p_func(integer):
-    return integer[0]
-p = FPS(Integer_Ring, 1,  p_func, universal_identity)
-print("p view 3:")
-print(p.view(3))
-print("reverse of p view 3:")
-print(p.reversion().view(3))
-print("\n")
-#Change Base Examples
-def lazard_to_integers_f(n):
-    ring = PolynomialRing(ZZ, n, 'U')
-    eval_list = [1]*(n)
-    hom = ring.hom(eval_list, ZZ)
-    return hom
-
-print("H is a homomorphism that sends all of the ci's in the Lazard ring to 1")
-H = IndRingHom(Lazard, Integer_Ring, lazard_to_integers_f)
-h = f.change_base(H)
-print(" ")
-print("H(f): ")
-print(h.view(3))
-
-j = g.change_base(H)
-print("H(g):")
-print(j.view(3))
-
-def lazard_to_integers_g(n):
-    ring = PolynomialRing(ZZ, n**2, 'c')
-    eval_list = []
-    for i in range(0, n**2):
-        eval_list.append(i)
-    hom = ring.hom(eval_list, ZZ)
-    return hom
-K = IndRingHom(Lazard, Integer_Ring, lazard_to_integers_g, lambda n: n**2, lambda n: 2*n)
-j = g.change_base(K)
-print("K(g):")
-print(j.view(10))
-print("")
-
-
-print("Inclusion: variable swap of f; third variable added")
-j = f.include([1, 0], 3)
-print(j.view(4))
-
-
-def f_coeffs(powers):
-    n = powers[0]
-    if n == 0:
-        return 0
-    R = PolynomialRing(ZZ, n, 'U')
-    U = R.gens()
-    return (powers[0]*U[0] + U[-1])
-
-f = FPS(Lazard, 1, f_coeffs, universal_identity)
-print("")
-print("one-dimensional f")
-print(f.view(3))
-k = f.include([1], 2)
-print("f in two dimensions")
-print(k.view(3))
-print("f([g]) with f in two dimensions")
-print(k([g, g]).view(4))
-print("One variable composition")
-print(f([g]).view(4))
-
-
-#Turn Multivariable Power Series into FPS data type
-#Make example multivariable power series
-Lazard_3 = Lazard.rings(3)
-U = Lazard_3.gens()
-L = PolynomialRing(Lazard_3, 2, 'xy')
-x = L.gens()
-poly = 0
-
-for i in range(0, 3):
-    for j in range(0, 3):
-        poly += (i+j+1)*U[0]*U[1]*U[i]^j*x[0]^i*x[1]^j
-
-print("poly:")
-print(poly)
-
-#Turn this example into an FPS data type
-q = Poly_To_FPS(poly, Lazard, 3, 'xy')
-print("q:")
-print(q.view(4))
-print("\n")
-
-
-#Test how sage treats rationals to zmodp
-print("This is a test.")
-R = PolynomialRing(QQ, 2, 'xy')
-x = R.gens()
-poly2 = 7*x[0]*x[1] + 8*x[0]^3 + 9
-print("poly2:")
-print(poly2)
-q = Poly_To_FPS(poly2, Rational_Ring, 3, 'xy')
-
-def integers_to_modp(natural):
-    S = ZZ.quo(7*ZZ)
-    pi = S.cover()
-    return pi
-
-K = IndRingHom(Rationals, Integer_7_Ring, integers_to_modp)
-print("q:")
-print(q.view(5))
-print("t:")
-t = q.change_base(K)
-print(t.view(5))
-print("\n")
-      
-#Universal Formal Group Law
-ufgl = UFGL()
-print("UFGL")
-print(ufgl.view(4))
-print("\n\n")
-#print(ufgl.view(3).parent())
