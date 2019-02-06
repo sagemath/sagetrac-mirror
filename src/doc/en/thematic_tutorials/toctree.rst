@@ -27,3 +27,4 @@ Thematic tutorial document tree
    explicit_methods_in_number_theory/index
    sws2rst
    profiling
+   chow

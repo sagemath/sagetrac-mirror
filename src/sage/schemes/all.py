@@ -44,4 +44,5 @@ from .projective.all import *
 from .product_projective.all import *
 
 from .cyclic_covers.all import *
+from .chow.all import *
 
