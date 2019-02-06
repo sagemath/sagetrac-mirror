@@ -275,6 +275,7 @@ cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t fac
     cdef list_of_pointers newfaces2
     cdef void ** newfaces2data
     cdef int dim
+    cdef int returnvalue
 
     if nr_faces == 0:
             raise TypeError('Wrong usage of `calculate_dimension_loop`, at least one face needed.')
@@ -291,10 +292,20 @@ cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t fac
     newfaces2 = list_of_pointers(nr_faces)
     newfacesdata = newfaces.data()
     newfaces2data = newfaces2.data()
-    new_nr_faces = get_next_level(facesdata, nr_faces, newfacesdata,
-                         newfaces2data, newfacesdata, 0, face_length)
-    return calculate_dimension_loop(newfaces2data, new_nr_faces,
-                                    face_length, chunksize) + 1
+    try:
+        sig_on()
+        new_nr_faces = get_next_level(facesdata, nr_faces, newfacesdata,
+                                      newfaces2data, newfacesdata, 0,
+                                      face_length)
+        sig_off()
+    except:
+        return -2
+    returnvalue = calculate_dimension_loop(newfaces2data, new_nr_faces,
+                                           face_length, chunksize)
+    if returnvalue > -2:
+        return returnvalue + 1
+    else:
+        return -2
 
 cdef class FaceIterator:
     cdef void * face
@@ -1698,6 +1709,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if self._dimension == -2:
             self._dimension = calculate_dimension(self.bitrep_facets)
+        if self._dimension == -2:
+            raise KeyboardInterrupt('Interrupt on user input')
         return Integer(self._dimension)
 
     def ridges(self, add_equalities=False, names=True):
