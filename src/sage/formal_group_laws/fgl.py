@@ -1,3 +1,9 @@
+from sage.rings.integer_ring import *
+from sage.rings.rational_field import *
+from sage.rings.finite_rings.integer_mod_ring import *
+from sage.categories.homset import *
+from sage.rings.power_series_ring import *
+from sage.rings.finite_rings.finite_field_constructor import *
 #Python/Sage can only compare the addresses of function pointers. It cannot compare if two function pointer point to functions that do the same thing.
 #This function is defined now so that its address may be compared to later.
 def universal_identity(integer):
@@ -443,8 +449,8 @@ class FPS:
                     poly2 = 0
                     poly_coeffs = poly.coefficients()
                     for i in range(0, prec + 1):
-                        if (x[0]^i in poly_coeffs.keys()):
-                            poly2 += poly_coeffs[x[0]^i] * y[(self.operation[1])[0]]^i
+                        if (x[0]**i in poly_coeffs.keys()):
+                            poly2 += poly_coeffs[x[0]**i] * y[(self.operation[1])[0]]**i
                     return poly2.add_bigoh(prec + 1)
                 K = PowerSeriesRing(self.ring.rings(self.ring_size(prec, 0)), self.n, 'zzz')
                 y = K.gens()
@@ -622,7 +628,8 @@ def perfect_closure_ring_7(n):
     if n == 0:
         return PolynomialRing(GF(prime), 1, 'c0')
     else:
-        R.<x,y> = PolynomialRing(GF(prime), 2)
+        R = PolynomialRing(GF(prime), 2, "xy")
+        x, y = R.gens()
         S = R.quotient(y**(prime**n) - x, names=('c0', 'c' + str(n),))
         return S
 def perfect_closure_homs_7(n):
