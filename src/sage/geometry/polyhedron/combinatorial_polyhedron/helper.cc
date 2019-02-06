@@ -387,6 +387,23 @@ void char_from_array(unsigned int* input, unsigned int len, \
     delete[] array;
 }
 
+void make_trivial_face(size_t nr_vertices, void * output, size_t face_length){
+    build_dictionary();
+    chunktype * array1 = (chunktype *) output;
+    size_t entry, position, value, i;
+    const size_t size_array = face_length*chunksize/64;
+    uint64_t *array = new uint64_t [size_array]();
+    for (entry = 0; entry < nr_vertices; entry++){
+        value = entry % 64;
+        position = entry/64;
+        array[position] += vertex_to_bit_dictionary[value];
+    }
+    for (i=0;i<face_length;i++){
+        load_register(array1[i],array[i*chunksize/64]);
+    }
+    delete[] array;
+}
+
 void get_facets_from_incidence_matrix(unsigned int **incidence_matrix, void **facets, \
                                       size_t nr_vertices, size_t nr_facets){
     build_dictionary();
@@ -503,4 +520,112 @@ size_t vertex_repr_from_bitrep(void *face1, size_t *output, \
     }
     delete[] array;
     return counter;
+}
+
+void copy_face(void *input1, void *output1, size_t length_of_face){
+    size_t i;
+    chunktype *input = (chunktype *) input1;
+    chunktype *output = (chunktype *) output1;
+    for (i = 0; i < length_of_face; i++){
+        store_register(output[i], input[i]);
+    }
+}
+
+
+inline int is_smaller(void * one1, void * two1, size_t length_of_face1){
+    // returns 1 if `one1` is smaller than `two1`
+    // otherwise returns 0
+    uint64_t * one = (uint64_t *) one1;
+    uint64_t * two = (uint64_t *) two1;
+    size_t i;
+    for (i = 0; i < length_of_face1; i++){
+        if (one[i] < two[i])
+            return 1;
+        if (two[i] < one[i])
+            return 0;
+    }
+    return 0;
+}
+
+void sort_pointers_loop(void **input, void **output1, void **output2, \
+                        size_t nr_faces, size_t length_of_face1){
+    // this is mergesort
+    // sorts the faces in input and returns them in output1
+    // BEWARE: Input is the same as output1 or output2
+    size_t middle = nr_faces/2;
+    size_t other = nr_faces - middle;
+    size_t i = 0, j = middle, counter = 0;
+    if (nr_faces == 1){
+        output1[0] = input[0];
+        return;
+    }
+    sort_pointers_loop(input, output2, output1, middle, length_of_face1);
+    sort_pointers_loop(&(input[middle]), &(output2[middle]), \
+                       &(output1[middle]), other, length_of_face1);
+    while ((i < middle) and (j < nr_faces)){
+        if (is_smaller(output2[i],output2[j],length_of_face1)){
+            output1[counter] = output2[i];
+            i++;
+            counter++;
+        } else {
+            output1[counter] = output2[j];
+            j++;
+            counter++;
+        }
+    }
+    if (i < middle){
+        while (i < middle){
+            output1[counter] = output2[i];
+            i++;
+            counter++;
+        }
+    } else {
+        while (j < nr_faces){
+            output1[counter] = output2[j];
+            j++;
+            counter++;
+        }
+    }
+}
+
+
+void sort_pointers(void **input, size_t nr_faces, size_t length_of_face){
+    // sorts nr_faces in `input` according to their values
+    size_t length_of_face1 = length_of_face*chunksize/64;
+    const size_t const_nr_faces = nr_faces;
+    void *input2[const_nr_faces];
+    sort_pointers_loop(input, input, input2, nr_faces, length_of_face1);
+}
+
+size_t find_face_loop(void **list, void *face, size_t nr_faces, \
+                      size_t length_of_face1){
+    if (nr_faces == 1)
+        return 0;
+    size_t middle = nr_faces/2;
+    if (is_smaller(face, list[middle], length_of_face1)){
+        return find_face_loop(list, face, middle, length_of_face1);
+    } else {
+        return middle + \
+            find_face_loop(&(list[middle]), face, \
+                            nr_faces - middle, length_of_face1);
+    }
+}
+
+
+size_t find_face(void **list, void *face, size_t nr_faces, \
+                 size_t length_of_face){
+    return find_face_loop(list, face, nr_faces, \
+                          length_of_face*chunksize/64);
+}
+
+int is_equal(void *one1, void *two1, size_t length_of_face){
+    uint64_t * one = (uint64_t *) one1;
+    uint64_t * two = (uint64_t *) two1;
+    size_t i;
+    size_t length_of_face1 = length_of_face*chunksize/64;
+    for (i = 0; i < length_of_face1; i++){
+        if (one[i] != two[i])
+            return 0;
+    }
+    return 1;
 }
