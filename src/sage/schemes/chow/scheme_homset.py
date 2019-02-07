@@ -22,7 +22,8 @@ from sage.structure.factory import UniqueFactory
 from sage.schemes.chow.scheme import PointChowScheme
 from sage.schemes.chow.morphism import ChowSchemeMorphism
 from sage.schemes.chow.scheme import is_chowScheme
-from sage.rings.morphism import is_RingHomomorphism
+from sage.categories.map import Map
+from sage.categories.all import Rings
 
 
 def is_ChowSchemeHomset(H):
@@ -32,15 +33,14 @@ def is_ChowSchemeHomset(H):
     return isinstance(H, ChowSchemeHomset_generic)
 
 
-# noinspection PyProtectedMember
 class ChowSchemeHomsetFactory(UniqueFactory):
-    """
+    r"""
     Factory for SHom-sets of schemes.
     """
 
     def create_key_and_extra_args(self, X, Y, category=None,
                                   base=None, check=True):
-        """
+        r"""
         Create a key that uniquely determines the SHom-set.
 
         INPUT:
@@ -68,7 +68,7 @@ class ChowSchemeHomsetFactory(UniqueFactory):
         return key, extra
 
     def create_object(self, version, key, **extra_args):
-        """
+        r"""
         Create a :class:`SchemeHomset_generic`.
 
         INPUT:
@@ -94,7 +94,6 @@ class ChowSchemeHomsetFactory(UniqueFactory):
 ChowSchemeHomset = ChowSchemeHomsetFactory('chow.scheme_homset.ChowSchemeHomset')
 
 
-# noinspection PyProtectedMember
 class ChowSchemeHomset_generic(HomsetWithBase):
     r"""
     The base class for SHom-sets of ChowSchemes.
@@ -152,9 +151,8 @@ class ChowSchemeHomset_generic(HomsetWithBase):
             return X.base_morphism()
         raise NotImplementedError
 
-    # noinspection PyUnusedLocal
     def _element_constructor_(self, x, check=True):
-        """
+        r"""
         Construct a chowscheme morphism.
 
         INPUT:
@@ -172,13 +170,13 @@ class ChowSchemeHomset_generic(HomsetWithBase):
         if isinstance(x, str):
             return self.domain()._morphism(self, x)
 
-        if is_RingHomomorphism(x):
+        if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
             return ChowSchemeMorphism(self, x)
 
         raise TypeError("x must be a ring homomorphism, list or tuple")
 
     def zero_element(self):
-        """
+        r"""
         Backward compatibility alias for self.zero()
 
         """

@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
-Corner Cases:
+AUTHORS:
+
+- Manfred Lehn
+
+- Christoph Sorger
 
 The following are doctests of the package not supposed to figure in the
 documentation. Mostly corner cases are considered to ease refactoring...
@@ -105,8 +109,7 @@ TESTS::
 Twisted cubics
 --------------
 
-Absolute Case::
-
+    Absoluter Fall::
     sage: P = PointChowScheme
     sage: W = Bundle(P, 4, [1])
     sage: I = incidence_variety(W)

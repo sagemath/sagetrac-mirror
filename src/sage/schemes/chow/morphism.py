@@ -83,9 +83,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.element import Element, generic_power
-# noinspection PyUnresolvedReferences
-from sage.rings.morphism import is_RingHomomorphism
+from sage.structure.element import Element
+from sage.categories.map import Map
+from sage.categories.all import Rings
+from sage.arith.power import generic_power
 
 
 def is_chowSchemeMorphism(f):
@@ -149,8 +150,7 @@ class ChowSchemeMorphism(Element):
         self._domain, self._codomain = X, Y
         self._category = parent.category()
         self._is_endomorphism_set = parent.is_endomorphism_set()
-
-        if is_RingHomomorphism(phi):
+        if isinstance(phi, Map) and phi.category_for().is_subcategory(Rings()):
             msg = "Expect a ring morphism from %s to %s" % (str(AY), str(AX))
             if not (phi.domain() == AY and phi.codomain() == AX):
                 raise TypeError(msg)
@@ -327,8 +327,7 @@ class ChowSchemeMorphism(Element):
         Im = self._chowring_morphism.morphism_from_cover().im_gens()
         return '\n'.join(['%s |--> %s' % (D[i], Im[i]) for i in range(len(D))])
 
-    @staticmethod
-    def _repr_type():
+    def _repr_type(self):
         r"""
         Return a string representation of the type of this ChowSchemeMorphism.
 
@@ -592,7 +591,7 @@ class ChowSchemeMorphism(Element):
         if type(v) is list:
             return [self.lowerstar(x, verbose=verbose) for x in v]
         AX, AY = X.chowring(), Y.chowring()
-        v = AX(v) if isinstance(v, basestring) else v
+        v = AX(v) if isinstance(v, str) else v
         rb, dbd = AY.basis(), AY.dual_basis_dict(verbose=verbose)
         return sum((self(dbd[e]) * v).integral() * e for e in rb)
 

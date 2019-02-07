@@ -67,17 +67,17 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
-from sage.all import QQ
-from sage.functions.all import exp
-from sage.arith.all import factorial
+
 from sage.misc.cachefunc import cached_method
 from sage.rings.quotient_ring_element import QuotientRingElement
-from sage.symbolic.all import SR
+from sage.functions.other import factorial
+from sage.symbolic.ring import SR
+from sage.functions.log import exp
+from sage.rings.rational_field import QQ
 from sage.libs.singular.function import singular_function
-from sage.structure.element import FieldElement
+from sage.structure.richcmp import richcmp
 
 
-# noinspection PyProtectedMember
 class ChowRingElement(QuotientRingElement):
     """
     Class representing the elements of a ChowRing.
@@ -118,7 +118,7 @@ class ChowRingElement(QuotientRingElement):
         red = False if parent.ngens() == 0 else True
         QuotientRingElement.__init__(self, parent, rep, reduce=red)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compares two elements.
 
@@ -138,8 +138,8 @@ class ChowRingElement(QuotientRingElement):
         """
         A = self._parentchowring
         if A.ngens() == 0:
-            return cmp(QQ(str(self)), QQ(str(other)))
-        return QuotientRingElement.__cmp__(self, other)
+            return richcmp(QQ(str(self)), QQ(str(other)), op)
+        return QuotientRingElement._richcmp_(self, other, op)
 
     @cached_method
     def by_degrees(self):

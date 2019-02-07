@@ -77,20 +77,17 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.all import QQ
-
+from sage.matrix.constructor import matrix
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.polynomial.term_order import TermOrder
-# noinspection PyUnresolvedReferences
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
-from sage.schemes.chow.ring import Kernel2
-# noinspection PyUnresolvedReferences
 from sage.libs.singular.function import singular_function, lib as singular_lib
-# noinspection PyUnresolvedReferences
-from sage.matrix.all import matrix
+from sage.rings.polynomial.multi_polynomial_ring_generic import \
+    is_MPolynomialRing
+
+from sage.schemes.chow.ring import Kernel2
 
 
-# noinspection PyCallingNonCallable
 class FiniteRingExtension(QuotientRing_generic):
 
     def __init__(self, f, var_name='z'):
@@ -181,9 +178,9 @@ class FiniteRingExtension(QuotientRing_generic):
         ff = f  # A priori A, B are MPolynomial.
         # Check the ring A and get the rings AA and AI:
         if is_MPolynomialRing(A):
-            AA, AI = A, A.ideal(0)
+            AA = A
         elif isinstance(A, QuotientRing_generic):
-            AA, AI = A.cover_ring(), A.defining_ideal()
+            AA = A.cover_ring()
             ff = f.morphism_from_cover()
         else:
             err = "Domain is not (quotient of) Multivariate Polynomial Ring."
@@ -335,60 +332,8 @@ class FiniteRingExtension(QuotientRing_generic):
         Q = matrix(R, IX.ngens(), 1, L[1])
         M = matrix(R, 1, s)
         M[0, s - 1] = 1
-        self._prm = (P + (Q * M)).transpose().apply_map(lambda xx: A(str(xx)), A)
+        self._prm = (P + (Q * M)).transpose().apply_map(lambda x: A(str(x)), A)
         QuotientRing_generic.__init__(self, CC, CI, c_vars)
-
-    def __iter__(self):
-        r"""
-        Return an iterator through the elements of ``self``.
-        Not implemented in general.
-
-        EXAMPLES::
-
-            sage: A.<y> = ChowRing('y', 1, 'y^6')  # P5
-            sage: B.<x> = ChowRing('x', 1, 'x^3')  # P2
-            sage: f = A.hom([2*x], B)
-            sage: F = FiniteRingExtension(f)
-            sage: sage.schemes.chow.finite_ring_extension.FiniteRingExtension.__iter__(F)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: FiniteRingExtension does not support iteration
-        """
-        raise NotImplementedError("FiniteRingExtension does not support iteration")
-
-    def characteristic(self):
-        r"""
-        Return the characteristic of this ring, which is the same
-        as the characteristic of its base ring.
-
-        EXAMPLES::
-
-            sage: A.<y> = ChowRing('y', 1, 'y^6')  # P5
-            sage: B.<x> = ChowRing('x', 1, 'x^3')  # P2
-            sage: f = A.hom([2*x], B)
-            sage: F = FiniteRingExtension(f)
-            sage: F.characteristic()
-            0
-        """
-        return self.base_ring().characteristic()
-
-    def krull_dimension(self):
-        """
-        Return the Krull dimension of this commutative ring.
-
-        EXAMPLES::
-
-            sage: A.<y> = ChowRing('y', 1, 'y^6')  # P5
-            sage: B.<x> = ChowRing('x', 1, 'x^3')  # P2
-            sage: f = A.hom([2*x], B)
-            sage: F = FiniteRingExtension(f)
-            sage: F.krull_dimension()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        """
-        raise NotImplementedError
 
     def ann(self):
         r"""
@@ -611,7 +556,7 @@ class FiniteRingExtension(QuotientRing_generic):
         M = matrix(self, 1, s)
         M[0, s - 1] = 1
 
-        return ((P + (Q * M)).transpose()).apply_map(lambda xx: self(str(xx)))
+        return ((P + (Q * M)).transpose()).apply_map(lambda x: self(str(x)))
 
     def psi(self):
         r"""

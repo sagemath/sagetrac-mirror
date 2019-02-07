@@ -53,16 +53,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-# noinspection PyUnresolvedReferences
 from sage.rings.integer import is_Integer
-# noinspection PyUnresolvedReferences
-from sage.rings.morphism import is_RingHomomorphism
 from sage.misc.cachefunc import cached_method
+from sage.categories.map import Map
+from sage.categories.all import Rings
 from sage.schemes.chow.ring import ChowRing, is_chowRing, PointChowRing
 from sage.schemes.chow.schemes import ChowSchemes
 from sage.schemes.chow.sheaf import Sheaf
 from sage.structure.parent import Parent
-from sage.schemes.chow.morphism import ChowSchemeMorphism
 
 
 def is_chowScheme(x):
@@ -202,7 +200,7 @@ class ChowScheme_generic(Parent):
             self._chowring = R
             self._base_chowring = PointChowRing
             self._base_chowring_morphism = self._base_chowring.hom([], R)
-        elif is_RingHomomorphism(R):
+        elif isinstance(R, Map) and R.category_for().is_subcategory(Rings()):
             self._chowring = R.codomain()
             self._base_chowring = R.domain()
             self._base_chowring_morphism = R
@@ -454,8 +452,7 @@ class ChowScheme_generic(Parent):
         """
         self._sheaves = value
 
-    @staticmethod
-    def _morphism(*args, **kwds):
+    def _morphism(self, *args, **kwds):
         r"""
         Internal. Construct a morphism determined the arguments.
 
@@ -469,6 +466,7 @@ class ChowScheme_generic(Parent):
               To:   P3
               Defn: k |--> 3*h
         """
+        from sage.schemes.chow.morphism import ChowSchemeMorphism
         return ChowSchemeMorphism(*args, **kwds)
 
     def identity_morphism(self):
@@ -1230,6 +1228,7 @@ class ChowScheme_generic(Parent):
 
         """
         return self.tangent_bundle().todd_class()
+
 
 PointChowScheme_generic = ChowScheme_generic(name='PointChowScheme', latex_name='PointChowScheme')
 PointChowScheme = ChowScheme_generic(name='PointChowScheme', latex_name='PointChowScheme')

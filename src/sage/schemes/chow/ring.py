@@ -160,17 +160,16 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.all import QQ
-from sage.matrix.all import matrix
 from sage.modules.all import vector
+from sage.matrix.constructor import matrix
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_generic
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_generic import \
+    is_MPolynomialRing
 from sage.libs.singular.function import singular_function, lib as singular_lib
 from sage.misc.cachefunc import cached_method
-# noinspection PyUnresolvedReferences
 from sage.rings.integer import is_Integer
-from sage.schemes.chow.ring_element import ChowRingElement
 
 
 def is_chowRing(R):
@@ -250,8 +249,8 @@ def ChowRingFromRing(S, names=None, name=None, latex_name=None):
 
 def ChowRing(generators=None, degrees=None, relations=None,
              names=None, name=None, latex_name=None):
-    """
-    Returns a ChowRing, given its dimension, generators, degrees, relations
+    r"""
+    Return a ChowRing, given its dimension, generators, degrees, relations
     and point_class.
 
     INPUT:
@@ -375,18 +374,19 @@ def ChowRing(generators=None, degrees=None, relations=None,
         R = PolynomialRing(QQ, 0, names=[])
         I = R.ideal(0)
         if degrees:
-            print Warning("No generators, degrees ignored.")
+            print(Warning("No generators, degrees ignored."))
         if relations:
-            print Warning("No generators, relations ignored.")
+            print(Warning("No generators, relations ignored."))
     return ChowRingFromRing(R.quotient(I), names, name, latex_name)
 
 
 class ChowRing_generic(QuotientRing_generic):
 
+    from sage.schemes.chow.ring_element import ChowRingElement
     Element = ChowRingElement
 
     def __init__(self, R, I, names=None, name=None, latex_name=None):
-        """
+        r"""
         Construct a :class:`ChowRing_generic`.
 
         .. WARNING::
@@ -548,19 +548,6 @@ class ChowRing_generic(QuotientRing_generic):
             '\\Bold{Q}[]/\\left(0\\right)\\Bold{Q}[]'
         """
         return self._name if self._name else QuotientRing_generic._latex_(self)
-
-    def characteristic(self):
-        r"""
-        Return the characteristic of this ring, which is the same
-        as the characteristic of its base ring.
-
-        EXAMPLES::
-
-            sage: A = ChowRing('h', 1, 'h^2')
-            sage: A.characteristic()
-            0
-        """
-        return self.base_ring().characteristic()
 
     def dimension(self):
         r"""
@@ -978,8 +965,6 @@ class ChowRing_generic(QuotientRing_generic):
         if self.krull_dimension() != 0:
             return 0
         # Compute max degree:
-
-        # noinspection PyUnresolvedReferences
         return max([x.lift().degree() for x in self.basis()])
 
     @cached_method
@@ -1140,7 +1125,7 @@ class ChowRing_generic(QuotientRing_generic):
             # Ring basis in degree d and complementary degree maxdeg - d - 1
             rbd, rbdc, n = rbbd[d], rbbd[maxdeg - d - 1], len(rbbd[d])
             if verbose:
-                print "Computing block %s of size %s ..." % (d, n)
+                print("Computing block %s of size %s ..." % (d, n))
             # Compute the intersection matrix relative to degree d
             m = [QQ(division(self(rbd[i] * rbdc[j]).lift(),
                              pc, ring=R)[0][0, 0])
@@ -1288,11 +1273,11 @@ def Kernel(f):
     singular_lib('algebra.lib')
     sing_alg_kernel = singular_function('alg_kernel')
     A, B = f.domain(), f.codomain()
-    AA, AI = A, A.ideal(0)
+    AA = A
     BB, BI, = B, B.ideal(0)
     ff = f
     if isinstance(A, QuotientRing_generic):
-        AA, AI = A.cover_ring(), A.defining_ideal()
+        AA = A.cover_ring()
         ff = f.morphism_from_cover()
     if isinstance(B, QuotientRing_generic):
         BB, BI = B.cover_ring(), B.defining_ideal()
