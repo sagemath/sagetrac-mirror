@@ -764,7 +764,8 @@ sage: for p in PackedWords(4):
             phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=new_rank)
             phi.register_as_coercion()
             (~phi).register_as_coercion()
-            
+
+        @cached_method
         def _H_to_Q(self, P):
             """
             Return the image of the basis element of ``self`` indexed
@@ -784,8 +785,7 @@ sage: for p in PackedWords(4):
 sage: H = algebras.WQSym(QQ).H()
 sage: Q = algebras.WQSym(QQ).Q()
 sage: import time
-sage: t0 = time.time(); m4HQ = matr_chgmt_base_osp(H,Q,4); print time.time() - t0; m4QH = matr_chgm
-....: t_base_osp(Q,H,4); print time.time() - t0
+sage: t0 = time.time(); m4HQ = matr_chgmt_base_osp(H,Q,4); print time.time() - t0; m4QH = matr_chgmt_base_osp(Q,H,4); print time.time() - t0
 16.4242839813
 51.6398468018
 
