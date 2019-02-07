@@ -63,7 +63,6 @@ from sage.rings.homset import RingHomset_generic
 from sage.rings import morphism
 
 
-# noinspection PyProtectedMember
 class ChowRingHomSet(RingHomset_generic):
 
     def __call__(self, im_gens, check=True):

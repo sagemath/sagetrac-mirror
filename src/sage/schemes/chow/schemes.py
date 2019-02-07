@@ -26,7 +26,7 @@ from sage.categories.sets_cat import Sets
 
 # noinspection PyAbstractClass
 class ChowSchemes(Category):
-    """
+    r"""
     Construct a category of ChowSchemes.
     """
 
@@ -66,7 +66,7 @@ class ChowSchemes(Category):
 
 # noinspection PyAbstractClass
 class ChowSchemes_over_base(Category_over_base):
-    """
+    r"""
     The category of schemes over a given base scheme.
     """
 

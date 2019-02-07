@@ -30,8 +30,7 @@ def Proj(n, hyperplane_class='h', names=None, name=None, latex_name=None):
     - ``n`` -- An integer, the dimension of the projective space.
     - ``hyperplane_class`` - An (optional) name for the hyperplane class
     - ``name`` -- An optional string, the name of the ChowScheme
-    - ``latex_name``-- An optional string, the latex representation of the
-                       ChowScheme
+    - ``latex_name``-- An optional string, the latex representation of the ChowScheme
 
     OUTPUT:
 
@@ -52,8 +51,9 @@ def Proj(n, hyperplane_class='h', names=None, name=None, latex_name=None):
                  name=name, latex_name=latex_name)
 
 
-def ProjBundle(E, hyperplane_class='h', names=None, name=None, latex_name=None):
-    """
+def ProjBundle(E, hyperplane_class='h',
+               names=None, name=None, latex_name=None):
+    r"""
     Return the *Proj* of a bundle E.
 
     INPUT:
@@ -61,8 +61,7 @@ def ProjBundle(E, hyperplane_class='h', names=None, name=None, latex_name=None):
     - ``E`` -- A sheaf on a ChowScheme
     - ``hyperplane_class`` - An (optional) name for the hyperplane class
     - ``name`` -- An optional string, the name of the ProjBundle
-    - ``latex_name``-- An optional string, the latex representation of the
-                       ProjBundle
+    - ``latex_name``-- An optional string, the latex representation of the ProjBundle
 
     OUTPUT:
 

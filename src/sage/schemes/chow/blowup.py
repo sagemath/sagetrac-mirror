@@ -79,6 +79,7 @@ TESTS::
     sage: P5.<k> = Proj(5, 'k')
     sage: f = P2.hom([2*h], P5)
     sage: g = Blowup(f)
+    sage: TestSuite(g).run(skip=["_test_category","_test_pickling"])
 
 AUTHORS:
 
@@ -98,8 +99,7 @@ AUTHORS:
 
 from sage.all import QQ
 from sage.rings.polynomial.term_order import TermOrder
-# noinspection PyUnresolvedReferences
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.chow.finite_ring_extension import FiniteRingExtension
 from sage.schemes.chow.library.proj import ProjBundle
@@ -136,7 +136,7 @@ class Blowup(ChowSchemeMorphism):
     def __init__(self, f, var_name='e', proj_var_name='z', verbose=False,
                  domain_name=None, codomain_name=None,
                  latex_domain_name=None, latex_codomain_name=None):
-        """
+        r"""
         Construct the class `:class:Blowup`.
 
         INPUT:
@@ -203,7 +203,7 @@ class Blowup(ChowSchemeMorphism):
 
         # Get the finite ring extension associated to Hf: HY --> HX
         if verbose:
-            print "Computing finite ring extension for Hf: HY --> HX..."
+            print("Computing finite ring extension for Hf: HY --> HX...")
 
         A_f = FiniteRingExtension(Hf, var_name=var_name)
 
@@ -212,7 +212,7 @@ class Blowup(ChowSchemeMorphism):
         #######################################################################
 
         if verbose:
-            print "Computing Exceptional locus..."
+            print("Computing Exceptional locus...")
         # Get the normal bundle N_{X/Y} from the exact sequence:
         #       0 --> TX --> f^*(TY) --> N_{X/Y} --> 0
         TX, TY = X.tangent_bundle(), Y.tangent_bundle()
@@ -232,7 +232,7 @@ class Blowup(ChowSchemeMorphism):
         # viewed as HY-module under Hf.
 
         if verbose:
-            print "Computing Blowup..."
+            print("Computing Blowup...")
         vnms = A_f.nvs() + Y.variable_names()    # Strings
         mds1 = tuple(d + 1 for d in A_f.mds())   # Add 1 to the module degrees
         degs = mds1 + Y.degs()
@@ -253,13 +253,13 @@ class Blowup(ChowSchemeMorphism):
         rels = rels + R.ideal(new_rels)
 
         # 3) Add module relations of HX as HY module (eg presentation matrix)
-        mod_matrix = T * A_f.prm().apply_map(lambda xx: R(xx))
+        mod_matrix = T * A_f.prm().apply_map(lambda t: R(t))
         new_rels = mod_matrix.list()
         rels = rels + R.ideal(new_rels)
 
         # 4) Multiplicative relations from m_i * m_j
         mm = [m * n for m in A_f.mgs() for n in A_f.mgs()]
-        pd = A_f.push_down(mm).apply_map(lambda xx: R(xx))
+        pd = A_f.push_down(mm).apply_map(lambda t: R(t))
         mu = matrix(s, s, (T * pd).list())
         new_rels = (T.transpose() * T - last_nv * mu).list()
         rels = rels + R.ideal(new_rels)
@@ -269,7 +269,7 @@ class Blowup(ChowSchemeMorphism):
         z = HXX.cover_ring()(proj_var_name)
         u = (z ** codim).reduce(HXX.defining_ideal())
         uc = [HX(str(u.coefficient({z: d}))) for d in range(codim)]
-        pd = A_f.push_down(uc).apply_map(lambda xx: R(xx))
+        pd = A_f.push_down(uc).apply_map(lambda t: R(t))
         M = matrix(codim, 1, [(- last_nv) ** d for d in range(codim)])
         new_rels = (mu * pd * M - T.transpose() * (- last_nv) ** codim).list()
         rels = rels + R.ideal(new_rels)
@@ -286,9 +286,9 @@ class Blowup(ChowSchemeMorphism):
         top = S.dual().chern_classes()[codim - 1].lift()
         top = top.reduce(HXX.defining_ideal())
         topc = [HX(str(top.coefficient({z: d}))) for d in range(codim)]
-        pd = A_f.push_down(topc).apply_map(lambda xx: R(xx))
+        pd = A_f.push_down(topc).apply_map(lambda t: R(t))
         JX = matrix(s, 1, f.lowerstar(list(A_f.mgs()), verbose=verbose))
-        JX = JX.apply_map(lambda xx: R(xx))
+        JX = JX.apply_map(lambda t: R(t))
         new_rels = (mu * pd * M - JX).list()
         rels = rels + R.ideal(new_rels)
 
@@ -302,7 +302,7 @@ class Blowup(ChowSchemeMorphism):
                         name=codomain_name, latex_name=latex_codomain_name)
 
         if verbose:
-            print "Computing tangent bundle of blowup..."
+            print("Computing tangent bundle of blowup...")
 
         SY = YY.hom(Y.gens(), Y)
         YY = YY.base_change(SY)

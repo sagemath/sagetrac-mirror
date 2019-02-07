@@ -62,15 +62,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.rings.integer import is_Integer
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.structure.sage_object import SageObject
-from sage.symbolic.ring import SR
 from sage.misc.cachefunc import cached_method
-# noinspection PyUnresolvedReferences
-from sage.rings.integer import is_Integer
 
 
-# noinspection PyProtectedMember
 class Sheaf(SageObject):
     r"""
     A *sheaf* is an element of the Grothendieck ring of coherent sheaves on a
@@ -143,7 +140,7 @@ class Sheaf(SageObject):
                 raise ValueError("Expect at most %s chern classes:"
                                  % (d + 1), cc)
             # Fill up with 0 if too few Chern classes are given.
-            cc += [AX(0)] * (d + 1 - len(cc))
+            cc = cc + [AX(0)] * (d + 1 - len(cc))
             # Checks and Convert (if necessary)
             for i in range(1, d + 1):
                 if AX(cc[i]) != AX(0):
@@ -169,7 +166,6 @@ class Sheaf(SageObject):
                 raise TypeError("Expect ch in the Chow ring")
 
         self._chern_character = ch
-        super(SageObject, self).__init__()
 
     def chowscheme(self):
         r"""
@@ -371,14 +367,15 @@ class Sheaf(SageObject):
             sage: S.symbolic_chern_polynomial()
             1 - c1*t + c2*t^2
         """
-        R = PowerSeriesRing(SR, var_name, self.chowscheme().dimension() + 1)
-        t = R.gen()
         cc = self.chern_classes()
-        return sum(SR(str(cc[i])) * t ** i for i in range(len(cc)))
+        ring = cc[0].parent()
+        R = PowerSeriesRing(ring, var_name, self.chowscheme().dimension() + 1)
+        t = R.gen()
+        return sum(cci * t ** i for i, cci in enumerate(cc))
 
     @cached_method
     def segre_classes(self):
-        """
+        r"""
         Returns `[s_0, ..., s_r]` where the `s_i` are the Segre classes.
 
         Nota Bene: We use the convention that `s_t(E)*c_t(E^*) = 1`
@@ -395,10 +392,9 @@ class Sheaf(SageObject):
             sage: S.segre_classes()
             [1, c1, c1^2 - c2, c1^3 - 2*c1*c2 + c3]
         """
-        a = self.chowscheme().chowring()
         c_t = self.dual().symbolic_chern_polynomial()
-        s_t = SR(1) / c_t
-        return map(lambda x: a(str(x)), s_t.list())
+        s_t = ~c_t
+        return s_t.list()
 
     @cached_method
     def symbolic_segre_polynomial(self, var_name='t'):
@@ -423,10 +419,11 @@ class Sheaf(SageObject):
             sage: S.symbolic_segre_polynomial()
             1 + c1*t + (c1^2 - c2)*t^2 + (c1^3 - 2*c1*c2 + c3)*t^3
         """
-        R = PowerSeriesRing(SR, var_name, self.chowscheme().dimension() + 1)
-        t = R.gen()
         cc = self.segre_classes()
-        return sum(SR(str(cc[i])) * t ** i for i in range(len(cc)))
+        ring = cc[0].parent()
+        R = PowerSeriesRing(ring, var_name, self.chowscheme().dimension() + 1)
+        t = R.gen()
+        return sum(cc[i] * t ** i for i in range(len(cc)))
 
     @cached_method
     def total_segre_class(self):
@@ -492,6 +489,18 @@ class Sheaf(SageObject):
             False
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        r"""
+        Return the hash of self.
+
+        EXAMPLES::
+
+            sage: X.<c1, c2, c3> = ChowScheme(3, ['c1', 'c2', 'c3'], [1, 2, 3])
+            sage: S = Sheaf(X, 3, [1, c1, c2, c3])
+            sage: H = hash(S)
+        """
+        return hash((self.chowscheme(), self.chern_character()))
 
     def _binary_operation_names(self, other, op, latex_op):
         r"""
@@ -834,7 +843,7 @@ class Sheaf(SageObject):
 
     @cached_method
     def wedge(self, p):
-        """
+        r"""
         Return the p-th exterior power of this sheaf.
 
         EXAMPLES::
@@ -855,7 +864,7 @@ class Sheaf(SageObject):
         """
         X, ch = self.chowscheme(), self.chern_character()
         ch = ch.wedge(p)
-        a, b = self._unary_op_names('/\^%s(x)' % p, r'\Lambda^{%s}(x)' % p)
+        a, b = self._unary_op_names(r'/\^%s(x)' % p, r'\Lambda^{%s}(x)' % p)
         result = Sheaf(X, ch=ch, name=a, latex_name=b)
         # If called from a derived class like bundle return a bundle
         result.__class__ = self.__class__
@@ -863,7 +872,7 @@ class Sheaf(SageObject):
 
     @cached_method
     def symm(self, p):
-        """
+        r"""
         Return the p-th symmetric power of this sheaf.
 
         EXAMPLES::
@@ -892,7 +901,7 @@ class Sheaf(SageObject):
 
     @cached_method
     def todd_class(self):
-        """
+        r"""
         Returns the todd class of this sheaf.
 
         EXAMPLES::
@@ -907,7 +916,7 @@ class Sheaf(SageObject):
 
     @cached_method
     def euler_characteristic(self):
-        """
+        r"""
         Return the euler-characteristic of this sheaf using
         Hirzebruch-Riemann-Roch. Requires the underlying ChowScheme to be
         a point.
@@ -923,10 +932,9 @@ class Sheaf(SageObject):
         ch, td = self.chern_character(), self.chowscheme().todd_class()
         return (ch * td).integral()
 
-    # TODO define equality for sheaves...
-    # @cached_method
+    @cached_method
     def sans_denominateurs(self, E):
-        """
+        r"""
         Returns the expression P(self,E) (see Fulton 296-297, Lemma 15.3).
 
         EXAMPLES::
@@ -955,7 +963,7 @@ class Sheaf(SageObject):
 
 
 def is_sheaf(x):
-    """
+    r"""
         Test whether ``x`` is a sheaf.
 
         INPUT:
@@ -975,7 +983,6 @@ def is_sheaf(x):
     return isinstance(x, Sheaf)
 
 
-# noinspection PyProtectedMember
 def sans_denominateurs_p(n, d, e):
     r"""
     Return the expression `P(D,E)` (see Fulton 296-297, Lemma 15.3) where

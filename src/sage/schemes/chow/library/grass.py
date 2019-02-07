@@ -22,7 +22,6 @@ from sage.schemes.chow.bundle import Bundle, BundleDiffRelations
 from sage.schemes.chow.scheme import PointChowScheme
 from sage.schemes.chow.sheaf import SHom, Sheaf
 from sage.schemes.chow.scheme import ChowScheme
-# noinspection PyUnresolvedReferences
 from sage.rings.integer import is_Integer
 
 
@@ -87,7 +86,7 @@ def GrassBundle(A, B, chern_class='c', names=None, name=None, latex_name=None):
     #
 
     EZ = Bundle(Z, n, [str(c) for c in E.chern_classes()])  # p^{*}E
-    QZ = Bundle(Z, r, [str(1)] + new_vars)  # if s==k : c_{s+1} = ... = c_{r} = 0
+    QZ = Bundle(Z, r, [str(1)] + new_vars)  # if s==k : c_{s+1} =...= c_{r} = 0
     SZ = Bundle(Z, k, (EZ - QZ).chern_classes()[0: k + 1])
     QZ = Bundle(Z, r, (EZ - SZ).chern_classes()[0: r + 1]) if s == k else QZ
 
