@@ -78,6 +78,8 @@ EXAMPLES::
     s + s^3 + 9/16*s^5 + 1/4*s^7 + 25/256*s^9 + 9/256*s^11 + 49/4096*s^13 + 1/256*s^15 + 81/65536*s^17 + 25/65536*s^19 + O(s^20)
 """
 
+import itertools
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 
@@ -253,7 +255,7 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         self._kash_ = self.kash_constant_field.RationalFunctionField()
 
-    def _extend_constant_field(self, D):
+    def _extend_constant_field(self, arg):
         """
         Extend the constant field to express `arg`.
         (only for function fields over QQbar)
@@ -267,11 +269,13 @@ class RationalFunctionField_kash(RationalFunctionField):
         if self.working_constant_field != QQ:
             algebraics.append(self.working_constant_field.gen())
 
-        for pls in D.support():
-            for g in pls.prime_ideal().gens():
-                if g.parent() is self:
-                    for r,m in g.element().numerator().change_ring(QQbar).roots():
-                        algebraics.append(r)
+        if isinstance(arg, FunctionFieldDivisor):
+            arg = itertools.chain.from_iterable([pls.prime_ideal().gens() for pls in arg.support()])
+
+        for g in arg:
+            if g.parent() is self:
+                for r,m in g.element().numerator().change_ring(QQbar).roots():
+                    algebraics.append(r)
 
         (constant_field, new_algebraics, nftoQQbar) = number_field_elements_from_algebraics(algebraics)
 
@@ -1432,6 +1436,8 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             self._kash_ = gens
             self._gens = tuple(gens.Generators().sage(ring._field.reverse_map))
         else:
+            if ring.function_field().constant_base_field() is QQbar:
+                ring.function_field().base_field()._extend_constant_field(gens)
             self._gens = tuple(flatten(gens))
             self._kash_ = ring.kash().Ideal(map(ring._field.to_kash, self._gens))
 
