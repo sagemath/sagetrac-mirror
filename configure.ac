@@ -217,11 +217,12 @@ then
 fi
 
 m4_ifndef([PKG_PROG_PKG_CONFIG],
-    [m4_fatal([Could not locate the pkg-config autoconf macros.
-    These are usually located in /usr/share/aclocal/pkg.m4. If your
-    macros are in a different location, try setting the environment
-    variable ACLOCAL="aclocal -I/other/macro/dir" before running
-    ./bootstrap])])
+    [m4_errprint([Could not locate the pkg-config autoconf macros.
+       These are usually located in /usr/share/aclocal/pkg.m4. If your
+       macros are in a different location, try setting the environment
+       variable ACLOCAL="aclocal -I/other/macro/dir" before running
+       ./bootstrap])
+     m4_exit(42)])
 
 PKG_PROG_PKG_CONFIG
 
