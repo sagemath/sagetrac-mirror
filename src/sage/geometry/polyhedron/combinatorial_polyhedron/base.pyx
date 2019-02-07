@@ -556,6 +556,14 @@ cdef class ListOfAllFaces:
     cdef int is_sorted
     cdef size_t *output1
     cdef size_t *output2
+    cdef int incidence_dim_one
+    cdef int incidence_dim_two
+    cdef size_t incidence_counter_one
+    cdef size_t incidence_counter_two
+    cdef ListOfFaces incidence_faces_mem
+    cdef void ** incidence_faces
+    cdef void ** facets
+    cdef int incidence_is_initialized
 
     def __init__(self, ListOfFaces facets, int dimension, f_vector):
         cdef int i
@@ -598,6 +606,8 @@ cdef class ListOfAllFaces:
         self.is_sorted = 0
         self.output1 = NULL
         self.output2 = NULL
+        self.facets = facets.data()
+        self.incidence_is_initialized = 0
 
     def __dealloc__(self):
         sig_free(self.face_counter)
@@ -708,6 +718,73 @@ cdef class ListOfAllFaces:
             self.output2 = \
                 <size_t *> sig_malloc(self.nr_facets * sizeof(size_t))
         return self.output2
+
+    cdef void incidence_init(self, int dimension_one, int dimension_two):
+        cdef size_t nr_facets = self.nr_facets
+        cdef size_t i
+        if dimension_one != dimension_two + 1:
+            raise ValueError('`dimension_one` = `dimension_two` + 1 must hold')
+            # we give this function in more genarality,
+            # so that we can later calculate more than just incidences of
+            # neighbor-dimensions
+        if dimension_one > self.dimension:
+            raise ValueError('No faces of dimension %s'%dimension_one)
+        if dimension_two < -1:
+            raise ValueError('No faces of dimension %s'%dimension_two)
+        if not self.is_sorted:
+            raise ValueError('Allfaces need to be sorted with sort() yet.')
+        if not self.incidence_faces_mem:
+            self.incidence_faces_mem = \
+                ListOfFaces(self.nr_facets, self.nr_vertices, self.chunksize)
+        self.incidence_faces = self.incidence_faces_mem.data()
+        self.incidence_dim_one = dimension_one
+        self.incidence_dim_two = dimension_two
+        self.incidence_counter_one = 0
+        self.incidence_counter_two = 0
+        self.incidence_is_initialized = 1
+
+    cdef int next_incidence(self, size_t *one, size_t *two):
+        cdef ListOfFaces dimension_one_faces
+        cdef void ** dimension_one_data
+        cdef void * face_one
+        cdef size_t location
+        cdef void * current_face
+        cdef int is_it_equal
+        if not self.incidence_is_initialized:
+            return 0
+        one[0] = self.incidence_counter_one
+        if self.incidence_counter_one == self.f_vector[self.incidence_dim_one + 1]:
+            # in this case there are no more incidences
+            self.incidence_is_initialized = 0
+            return 0
+        if self.incidence_counter_two == 0:
+            dimension_one_faces = \
+                self.lists_vertex_repr[self.incidence_dim_one + 1]
+            dimension_one_data = dimension_one_faces.data()
+            face_one = dimension_one_data[self.incidence_counter_one]
+            # getting all the faces that face_one can be incident to
+            for i in range(self.nr_facets):
+                intersection(self.facets[i], face_one, self.incidence_faces[i],
+                             self.length_of_face_vertex)
+        while (self.incidence_counter_two < self.nr_facets):
+            current_face = self.incidence_faces[self.incidence_counter_two]
+            location = \
+                self.find_face(self.incidence_dim_two, current_face)
+            is_it_equal = self.is_equal(self.incidence_dim_two,
+                                        location, current_face)
+            two[0] = self.incidence_counter_two
+            self.incidence_counter_two += 1
+            if is_it_equal:
+                if self.incidence_counter_two == self.nr_facets:
+                    self.incidence_counter_one += 1
+                    self.incidence_counter_two = 0
+                return 1
+        self.incidence_counter_one += 1
+        self.incidence_counter_two = 0
+        return self.next_incidence(one, two)
+
+
+
 
 cdef extern from "hasse_diagram.cc":
     cdef const unsigned int chunksize;
@@ -1053,8 +1130,6 @@ cdef extern from "hasse_diagram.cc":
 
 cdef extern from "helper.cc":
     cdef void intersection(void *A1, void *B1, void *C1, size_t face_length)
-
-    cdef int is_subset(void *A1, void *B1, size_t face_length)
 
     cdef size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, \
                                void **nextfaces2, void **forbidden, \
@@ -2215,6 +2290,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             f = tuple(Integer(self._f_vector[i]) for i in range(dim + 2))
         return f
+
+    def get_incidences(self, int dimension_one, int dimension_two):
+        self._record_all_faces()
+        cdef ListOfAllFaces all_faces = self._all_faces
+        cdef size_t one = 0
+        cdef size_t two = 0
+        all_faces.incidence_init(dimension_one, dimension_two)
+        while all_faces.next_incidence(&one, &two):
+            yield (Integer(one), Integer(two))
 
     cdef void _calculate_f_vector(self):
         if self._f_vector:
