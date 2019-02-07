@@ -527,8 +527,9 @@ cdef class FaceIterator:
         This will allocate an array to store the vertex_repr of a face in.
         The class face_iterator will take care of deallocation.
         """
-        self.output1 = \
-            <size_t *> sig_malloc(self.nr_vertices * sizeof(size_t))
+        if self.output1 is NULL:
+            self.output1 = \
+                <size_t *> sig_malloc(self.nr_vertices * sizeof(size_t))
         return self.output1
 
     cdef size_t * get_output2_array(self):
@@ -536,13 +537,14 @@ cdef class FaceIterator:
         This will allocate an array to store the facet_repr of a face in.
         The class face_iterator will take care of deallocation.
         """
-        self.output2 = \
-            <size_t *> sig_malloc(self.nr_facets * sizeof(size_t))
+        if self.output2 is NULL:
+            self.output2 = \
+                <size_t *> sig_malloc(self.nr_facets * sizeof(size_t))
         return self.output2
 
 cdef class ListOfAllFaces:
-    cdef list lists_facet_repr
-    cdef list lists_vertex_repr
+    cdef tuple lists_facet_repr
+    cdef tuple lists_vertex_repr
     cdef size_t nr_facets
     cdef size_t nr_vertices
     cdef size_t length_of_face_vertex
@@ -552,6 +554,8 @@ cdef class ListOfAllFaces:
     cdef size_t * face_counter
     cdef size_t * f_vector
     cdef int is_sorted
+    cdef size_t *output1
+    cdef size_t *output2
 
     def __init__(self, list_of_faces facets, int dimension, f_vector):
         cdef int i
@@ -563,13 +567,12 @@ cdef class ListOfAllFaces:
         self.length_of_face_vertex = facets.length_of_face()
         self.chunksize = facets.chunksize()
         self.dimension = dimension
-        self.lists_vertex_repr = [0] * (dimension + 2)
-        for i in range(-1,dimension):
-            self.lists_vertex_repr[i+1] = \
-                list_of_faces(f_vector[i+1], self.nr_vertices, self.chunksize)
-        self.lists_vertex_repr[dimension] = facets
-        self.lists_vertex_repr[dimension + 1] = \
-            list_of_faces(1, self.nr_vertices, self.chunksize)
+        self.lists_vertex_repr = \
+            tuple(list_of_faces(f_vector[i+1], self.nr_vertices, self.chunksize)
+                  for i in range(-1,dimension-1))
+        self.lists_vertex_repr += (facets,)
+        self.lists_vertex_repr += \
+            (list_of_faces(1, self.nr_vertices, self.chunksize),)
         # initialize the empty face
         some_list = self.lists_vertex_repr[0]
         some_list_data = some_list.data()
@@ -586,37 +589,125 @@ cdef class ListOfAllFaces:
         self.face_counter[0] = 1
         self.face_counter[dimension + 1] = 1
         self.face_counter[dimension] = self.nr_facets
+        for i in range(1,dimension):
+            self.face_counter[i] = 0
         # copy f_vector for later use
         self.f_vector = <size_t *> sig_malloc((dimension + 2) * sizeof(size_t))
-        for i in range(dimension + 1):
+        for i in range(dimension + 2):
             self.f_vector[i] = f_vector[i]
         self.is_sorted = 0
+        self.output1 = NULL
+        self.output2 = NULL
 
     def __dealloc__(self):
         sig_free(self.face_counter)
         sig_free(self.f_vector)
+        if self.output1:
+            sig_free(self.output1)
+        if self.output2:
+            sig_free(self.output2)
 
     cdef void add_face(self, int face_dim, void * face):
         cdef size_t counter = self.face_counter[face_dim + 1]
         cdef size_t max_number = self.f_vector[face_dim + 1]
         cdef list_of_faces face_list = self.lists_vertex_repr[face_dim + 1]
         if counter >= max_number:
-            raise IOError('Trying to add to many faces to `ListOfAllFaces`')
+            raise IOError('Trying to add too many faces to `ListOfAllFaces`')
         face_list.add_face(counter, face)
         self.face_counter[face_dim + 1] += 1
 
     cdef void sort(self):
+        r"""
+        Sorts the list faces in vertex-representation (except for facets).
+        This way one can fastly find a certain face in the list later.
+        """
         cdef int dim = self.dimension
         cdef int i
+        cdef list_of_faces faces
         for i in range(dim + 2):
             if self.f_vector[i] != self.face_counter[i]:
+                print (i,self.f_vector[i], self.face_counter[i], i+1, self.f_vector[i+1], self.face_counter[i+1])
                 raise ValueError('`ListOfAllFaces` does not contain all faces!')
-        cdef list_of_faces faces
-        for i in range(1,dim):
-            faces = self.lists_facet_repr[i]
-            #faces.sort()
+        for i in range(0,dim):
+            faces = self.lists_vertex_repr[i]
+            faces.sort()
+        self.is_sorted = 1
 
+    cdef size_t find_face(self, int dimension, void *face):
+        r"""
+        Returns the index of `face`, if it is of dimension `dimension`.
+        Assumes `face` in vertex-representation.
 
+        NOTE:
+
+            Will give an index no matter if `face` is actual of dimension
+            `dimension`. Check the result with belows `is_equal`.
+        """
+        cdef list_of_faces faces = self.lists_vertex_repr[dimension + 1]
+        if not self.is_sorted:
+            raise ValueError('`ListOfAllFaces` needs to be sorted first')
+        if dimension == self.dimension -1:
+            raise ValueError('Cannot find facet, as those are not sorted')
+            # of course one can easily add a function to search for a facet as
+            # well, but there seems to be no need for that
+        return find_face(faces.data(), face,
+                         faces.nr_faces(), faces.length_of_face())
+
+    cdef inline int is_equal(self, int dimension, size_t index, void *face):
+        r"""
+        Checks wether `face` is in the list with dimension `dimension` and
+        index `index`.
+        """
+        cdef list_of_faces faces = self.lists_vertex_repr[dimension + 1]
+        cdef void * face2 = faces.data()[index]
+        return is_equal(face, face2, faces.length_of_face())
+
+    cdef size_t facet_repr(self, int dimension, size_t index, size_t * output):
+        r"""
+        Writes the facet_repr of the face of dimension `dimension` and index
+        `index` in `output`.
+        Returns the length of the representation.
+        """
+        cdef size_t nr_facets = self.nr_facets
+        cdef list_of_faces faces = self.lists_vertex_repr[dimension + 1]
+        cdef list_of_faces facets = self.lists_vertex_repr[self.dimension]
+        cdef size_t length_of_face = self.length_of_face_vertex
+        cdef void ** facesdata = faces.data()
+        cdef void * face = facesdata[index]
+        return facet_repr_from_bitrep(face, facets.data(), output,
+                                      nr_facets, length_of_face)
+
+    cdef size_t vertex_repr(self, int dimension, size_t index, size_t * output):
+        r"""
+        Writes the vertex_repr of the face of dimension `dimension` and index
+        `index` in `output`.
+        Returns the length of the representation.
+        """
+        cdef size_t length_of_face = self.length_of_face_vertex
+        cdef list_of_faces faces = self.lists_vertex_repr[dimension + 1]
+        cdef void ** facesdata = faces.data()
+        cdef void * face = facesdata[index]
+        return vertex_repr_from_bitrep(face, output, length_of_face)
+
+    cdef size_t * get_output1_array(self):
+        r"""
+        This will allocate an array to store the vertex_repr of a face in.
+        The class face_iterator will take care of deallocation.
+        """
+        if self.output1 is NULL:
+            self.output1 = \
+                <size_t *> sig_malloc(self.nr_vertices * sizeof(size_t))
+        return self.output1
+
+    cdef size_t * get_output2_array(self):
+        r"""
+        This will allocate an array to store the facet_repr of a face in.
+        The class face_iterator will take care of deallocation.
+        """
+        if self.output2 is NULL:
+            self.output2 = \
+                <size_t *> sig_malloc(self.nr_facets * sizeof(size_t))
+        return self.output2
 
 cdef extern from "hasse_diagram.cc":
     cdef const unsigned int chunksize;
@@ -2355,6 +2446,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef tuple f_tuple
         cdef ListOfAllFaces all_faces
         cdef void * face
+        cdef FaceIterator face_iter
+        cdef list_of_faces facets
+        cdef int d
         self._calculate_f_vector()
         if not self._f_vector:
             raise TypeError('Could not determine f_vector. User Interrupt?')
@@ -2363,11 +2457,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_tuple = tuple(self._f_vector[i] for i in range(dim + 2))
         self._all_faces = ListOfAllFaces(self.bitrep_facets, dim, f_tuple)
         all_faces = self._all_faces
-        if self._f_vector:
-            return # there is no need to recalculate the f_vector
-        cdef FaceIterator face_iter
-        cdef list_of_faces facets
-        cdef int d
         try:
             facets = self.bitrep_facets
             face_iter = FaceIterator(facets, dim, self._nr_lines)
@@ -2663,12 +2752,18 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
 
         cdef FaceIterator face_iter
+        cdef ListOfAllFaces all_faces
         cdef list_of_faces facets
         cdef int dim
         cdef int next_dim
         cdef size_t * output1
         cdef size_t * output2
+        cdef size_t * f_vector
+        cdef size_t index
 
+        if not vertex_repr and not facet_repr and not give_dimension:
+            # the user wants no output for some reason
+            return
         if dimension is not None:
             dimension = int(dimension)
             dimensionrange = (dimension,)
@@ -2693,13 +2788,17 @@ cdef class CombinatorialPolyhedron(SageObject):
                             yield (vert[i], Integer(dim))
                         else:
                             yield vert[i]
-                else:
+                elif facet_repr:
                     fac = self.faces(dim, facet_repr=True, names=names)
                     for i in range(len(fac)):
                         if give_dimension:
                             yield (fac[i], Integer(dim))
                         else:
                             yield fac[i]
+                else:
+                    fac = self.faces(dim, facet_repr=True, names=False)
+                    for i in range(len(fac)):
+                        yield Integer(dim)
             return
 
         facets = self.bitrep_facets
@@ -2720,13 +2819,17 @@ cdef class CombinatorialPolyhedron(SageObject):
                         yield (vert[i], Integer(0))
                     else:
                         yield vert[i]
-            else:
+            elif facet_repr:
                 fac = self.faces(0, facet_repr=True, names=names)
                 for i in range(len(fac)):
                     if give_dimension:
                         yield (fac[i], Integer(0))
                     else:
                         yield fac[i]
+            else:
+                fac = self.faces(0, facet_repr=True, names=False)
+                for i in range(len(fac)):
+                    yield Integer(0)
             return
 
         if dimension == self.dimension() - 1:
@@ -2745,13 +2848,17 @@ cdef class CombinatorialPolyhedron(SageObject):
                         yield (vert[i], Integer(dimension))
                     else:
                         yield vert[i]
-            else:
+            elif facet_repr:
                 fac = self.faces(dimension, facet_repr=True, names=names)
                 for i in range(len(fac)):
                     if give_dimension:
                         yield (fac[i], Integer(dimension))
                     else:
                         yield fac[i]
+            else:
+                fac = self.faces(dimension, facet_repr=True, names=names)
+                for i in range(len(fac)):
+                    yield Integer(dimension)
             return
 
         if -1 in dimensionrange:
@@ -2770,13 +2877,15 @@ cdef class CombinatorialPolyhedron(SageObject):
                         yield (vert[i], Integer(-1))
                     else:
                         yield vert[i]
-            else:
+            elif facet_repr:
                 fac = self.faces(-1, facet_repr=True, names=names)
                 for i in range(len(fac)):
                     if give_dimension:
                         yield (fac[i], Integer(-1))
                     else:
                         yield fac[i]
+            else:
+                yield Integer(-1)
             if -1 == dimension:
                 return
 
@@ -2797,13 +2906,15 @@ cdef class CombinatorialPolyhedron(SageObject):
                         yield (vert[i], Integer(dim))
                     else:
                         yield vert[i]
-            else:
+            elif facet_repr:
                 fac = self.faces(dim, facet_repr=True, names=names)
                 for i in range(len(fac)):
                     if give_dimension:
                         yield (fac[i], Integer(dim))
                     else:
                         yield fac[i]
+            else:
+                yield Integer(dim)
             if dim == dimension:
                 return
 
@@ -2823,37 +2934,77 @@ cdef class CombinatorialPolyhedron(SageObject):
         if names:
             addtuple = self._equalities
 
-        if self._polar:
-            def get_vertex_repr():
-                cdef size_t leng
-                cdef size_t t
-                leng = face_iter.facet_repr(output2)
-                return tuple(v(output2[t]) for t in range(leng))
+        # figuring out how to determin vertex-repr, facet_repr and dimension
+        # of a face
+        if self._all_faces:
+            # if there is a already a list of all faces, we do not need to start
+            # the iterator again
+            all_faces = self._all_faces
+            if self._polar:
+                def get_vertex_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = all_faces.facet_repr(next_dim, index, output2)
+                    return tuple(v(output2[t]) for t in range(leng))
 
-            def get_facet_repr():
-                cdef size_t leng
-                cdef size_t t
-                leng = face_iter.vertex_repr(output1)
-                return addtuple + tuple(h(output1[t]) for t in range(leng))
+                def get_facet_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = all_faces.vertex_repr(next_dim, index, output1)
+                    return addtuple + tuple(h(output1[t]) for t in range(leng))
 
-            def print_dim():
-                return Integer(dim - 1 - next_dim)
-            dimension = dim - 1 - dimension
+                def print_dim():
+                    return Integer(dim - 1 - next_dim)
+                if dimension != -2:
+                    dimension = dim - 1 - dimension
+            else:
+                def get_facet_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = all_faces.facet_repr(next_dim, index, output2)
+                    return addtuple + tuple(h(output2[t]) for t in range(leng))
+
+                def get_vertex_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = all_faces.vertex_repr(next_dim, index, output1)
+                    return tuple(v(output1[t]) for t in range(leng))
+
+                def print_dim():
+                    return Integer(next_dim)
         else:
-            def get_facet_repr():
-                cdef size_t leng
-                cdef size_t t
-                leng = face_iter.facet_repr(output2)
-                return addtuple + tuple(h(output2[t]) for t in range(leng))
+            if self._polar:
+                def get_vertex_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = face_iter.facet_repr(output2)
+                    return tuple(v(output2[t]) for t in range(leng))
 
-            def get_vertex_repr():
-                cdef size_t leng
-                cdef size_t t
-                leng = face_iter.vertex_repr(output1)
-                return tuple(v(output1[t]) for t in range(leng))
+                def get_facet_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = face_iter.vertex_repr(output1)
+                    return addtuple + tuple(h(output1[t]) for t in range(leng))
 
-            def print_dim():
-                return Integer(next_dim)
+                def print_dim():
+                    return Integer(dim - 1 - next_dim)
+                if dimension != -2:
+                    dimension = dim - 1 - dimension
+            else:
+                def get_facet_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = face_iter.facet_repr(output2)
+                    return addtuple + tuple(h(output2[t]) for t in range(leng))
+
+                def get_vertex_repr():
+                    cdef size_t leng
+                    cdef size_t t
+                    leng = face_iter.vertex_repr(output1)
+                    return tuple(v(output1[t]) for t in range(leng))
+
+                def print_dim():
+                    return Integer(next_dim)
 
         # settling the kind of output the user wants once and for all
         if vertex_repr and facet_repr and give_dimension:
@@ -2879,15 +3030,27 @@ cdef class CombinatorialPolyhedron(SageObject):
             def generate_output():
                 return print_dim()
 
-
-        face_iter = FaceIterator(facets, dim, self._nr_lines)
-        face_iter.set_record_dimension(dimension)
-        output1 = face_iter.get_output1_array()
-        output2 = face_iter.get_output2_array()
-        next_dim = face_iter.next_face()
-        while next_dim is not dim:
-            yield generate_output()
+        if self._all_faces:
+            f_vector = self._f_vector
+            output1 = all_faces.get_output1_array()
+            output2 = all_faces.get_output2_array()
+            if dimension == -2:
+                for next_dim in range(dim):
+                    for index in range(f_vector[next_dim + 1]):
+                        yield generate_output()
+            else:
+                next_dim = dimension
+                for index in range(f_vector[next_dim + 1]):
+                    yield generate_output()
+        else:
+            face_iter = FaceIterator(facets, dim, self._nr_lines)
+            face_iter.set_record_dimension(dimension)
+            output1 = face_iter.get_output1_array()
+            output2 = face_iter.get_output2_array()
             next_dim = face_iter.next_face()
+            while next_dim is not dim:
+                yield generate_output()
+                next_dim = face_iter.next_face()
 
     def incidences(self, dimension_one, dimension_two):
         r"""
