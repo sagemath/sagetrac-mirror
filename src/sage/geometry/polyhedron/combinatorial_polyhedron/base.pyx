@@ -1343,7 +1343,6 @@ cdef class CombinatorialPolyhedron(SageObject):
 
 
     """
-    cdef CombinatorialPolyhedron_ptr _C
     cdef tuple _V
     cdef tuple _H
     cdef tuple _equalities
@@ -1505,8 +1504,6 @@ cdef class CombinatorialPolyhedron(SageObject):
                                                  sizeof(unsigned int))
                 for j in range(self._length_Vrep):
                     incidence_matrix[i][j] = tup[i][j]
-            self._C = init_CombinatorialPolyhedron(
-                incidence_matrix, len(tup), self._length_Vrep, self._unbounded)
 
             nr_vertices = self._length_Vrep
             nr_facets = len(tup)
@@ -1600,9 +1597,6 @@ cdef class CombinatorialPolyhedron(SageObject):
                                                  sizeof(unsigned int))
                 for j in range(len_facets[i]):
                     facets_pointer[i][j] = facets[i][j]
-            self._C = init_CombinatorialPolyhedron(facets_pointer, len(facets),
-                                                   len_facets, nr_vertices,
-                                                   self._unbounded)
 
             if self._unbounded or len(facets) <= nr_vertices:
                 self._polar = 0
@@ -1654,7 +1648,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t nr_incidences
         if self.is_trivial > 0:
             return
-        delete_CombinatorialPolyhedron(self._C)
         if self._f_vector:
             sig_free(self._f_vector)
 
@@ -2684,7 +2677,6 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if self.is_trivial >= 1:
             return
-        record_all_faces(self._C)
 
         if self._all_faces:
             return
