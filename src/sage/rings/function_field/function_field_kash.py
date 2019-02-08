@@ -963,14 +963,15 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         if name is None:
             name = 's' # default
 
-        # Currently we only work on an algebraically closed constant base field,
-        # since otherwise our reside field would depend on the degree of the place.
+        # Currently we only work on places of degree one, where our residue field
+        # is simply the constant base field.  In particular, this always works over QQbar.
 
-        assert field.constant_base_field() is QQbar
+        if place.degree() != 1:
+            raise NotImplementedError("series expansions not implemented at places of degree > 1")
 
         # if prec is None, the Laurent series ring provides default
         # precision
-        codomain = LaurentSeriesRing(QQbar, name=name, default_prec=prec)
+        codomain = LaurentSeriesRing(field.constant_base_field(), name=name, default_prec=prec)
 
         FunctionFieldCompletion.__init__(self, field, codomain)
 
