@@ -722,6 +722,30 @@ cdef class ListOfAllFaces:
     cdef void incidence_init(self, int dimension_one, int dimension_two):
         cdef size_t nr_facets = self.nr_facets
         cdef size_t i
+        if dimension_one == self.dimension:
+            # the entire polyhedron is incident to every face
+            if dimension_two < -1:
+                raise ValueError('No faces of dimension %s'%dimension_two)
+            if dimension_two > self.dimension:
+                raise ValueError('No faces of dimension %s'%dimension_two)
+            self.incidence_dim_one = dimension_one
+            self.incidence_dim_two = dimension_two
+            self.incidence_counter_one = 0
+            self.incidence_counter_two = 0
+            self.incidence_is_initialized = 2
+            return
+        if dimension_two == -1:
+            # the entire polyhedron is incident to every face
+            if dimension_one < -1:
+                raise ValueError('No faces of dimension %s'%dimension_two)
+            if dimension_one > self.dimension:
+                raise ValueError('No faces of dimension %s'%dimension_two)
+            self.incidence_dim_one = dimension_one
+            self.incidence_dim_two = dimension_two
+            self.incidence_counter_one = 0
+            self.incidence_counter_two = 0
+            self.incidence_is_initialized = 3
+            return
         if dimension_one != dimension_two + 1:
             raise ValueError('`dimension_one` = `dimension_two` + 1 must hold')
             # we give this function in more genarality,
@@ -743,6 +767,24 @@ cdef class ListOfAllFaces:
         self.incidence_counter_two = 0
         self.incidence_is_initialized = 1
 
+    cdef int next_trivial_incidence(self, size_t *one, size_t *two):
+        r"""
+        Handling the case where dimension_one is the full polyhedron
+        """
+        one[0] = 0
+        two[0] = self.incidence_counter_two
+        self.incidence_counter_two += 1
+        return (two[0] < self.f_vector[self.incidence_dim_two + 1])
+
+    cdef int next_trivial_incidence2(self, size_t *one, size_t *two):
+        r"""
+        Handling the case where dimension_two is the empty face
+        """
+        two[0] = 0
+        one[0] = self.incidence_counter_one
+        self.incidence_counter_one += 1
+        return (one[0] < self.f_vector[self.incidence_dim_one + 1])
+
     cdef int next_incidence(self, size_t *one, size_t *two):
         cdef ListOfFaces dimension_one_faces
         cdef void ** dimension_one_data
@@ -752,6 +794,10 @@ cdef class ListOfAllFaces:
         cdef int is_it_equal
         if not self.incidence_is_initialized:
             return 0
+        if self.incidence_is_initialized == 2:
+            return self.next_trivial_incidence(one, two)
+        if self.incidence_is_initialized == 3:
+            return self.next_trivial_incidence2(one, two)
         one[0] = self.incidence_counter_one
         if self.incidence_counter_one == self.f_vector[self.incidence_dim_one + 1]:
             # in this case there are no more incidences
@@ -772,7 +818,7 @@ cdef class ListOfAllFaces:
                 self.find_face(self.incidence_dim_two, current_face)
             is_it_equal = self.is_equal(self.incidence_dim_two,
                                         location, current_face)
-            two[0] = self.incidence_counter_two
+            two[0] = location
             self.incidence_counter_two += 1
             if is_it_equal:
                 if self.incidence_counter_two == self.nr_facets:
@@ -1317,8 +1363,10 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef size_t _length_edges_list
     cdef size_t ** _edges
     cdef size_t ** _ridges
+    cdef size_t ** _face_lattice_incidences
     cdef size_t _nr_edges
     cdef size_t _nr_ridges
+    cdef size_t _nr_face_lattice_incidences
     cdef ListOfAllFaces _all_faces
 
     def __init__(self, data, vertices=None, facets=None, nr_lines=None):
@@ -1340,6 +1388,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._f_vector = NULL
         self._edges = NULL
         self._ridges = NULL
+        self._face_lattice_incidences = NULL
         self._polar = 0
         self._nr_lines = 0
         self._length_edges_list = 16348
@@ -1596,6 +1645,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t nr_edges
         cdef size_t nr_ridges
         cdef size_t i
+        cdef size_t nr_incidences
         if self.is_trivial > 0:
             return
         delete_CombinatorialPolyhedron(self._C)
@@ -1614,6 +1664,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             for i in range((nr_ridges - 1)/length + 1):
                 sig_free(self._ridges[i])
             sig_free(self._ridges)
+
+        if self._face_lattice_incidences:
+            nr_incidences = self._nr_face_lattice_incidences
+            for i in range((nr_incidences - 1)/length + 1):
+                sig_free(self._face_lattice_incidences[i])
+            sig_free(self._face_lattice_incidences)
+
 
     def _repr_(self):
         r"""
@@ -1890,6 +1947,21 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.edges()
             ((A vertex at (0, 0), A vertex at (1, 0)),)
+
+            sage: from itertools import combinations
+            sage: N = combinations(['a','b','c','d','e'], 4)
+            sage: C = CombinatorialPolyhedron(list(N))
+            sage: C.edges()
+            (('d', 'e'),
+             ('c', 'e'),
+             ('c', 'd'),
+             ('b', 'e'),
+             ('b', 'd'),
+             ('b', 'c'),
+             ('a', 'e'),
+             ('a', 'd'),
+             ('a', 'c'),
+             ('a', 'b'))
 
         TESTS::
 
@@ -2291,15 +2363,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             f = tuple(Integer(self._f_vector[i]) for i in range(dim + 2))
         return f
 
-    def get_incidences(self, int dimension_one, int dimension_two):
-        self._record_all_faces()
-        cdef ListOfAllFaces all_faces = self._all_faces
-        cdef size_t one = 0
-        cdef size_t two = 0
-        all_faces.incidence_init(dimension_one, dimension_two)
-        while all_faces.next_incidence(&one, &two):
-            yield (Integer(one), Integer(two))
-
     cdef void _calculate_f_vector(self):
         if self._f_vector:
             return # there is no need to recalculate the f_vector
@@ -2354,6 +2417,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self._f_vector:
             is_f_vector = 1
         else:
+            # in this case we will calculate the f_vector while we're at it
             is_f_vector = 0
         counter = 0
         output = NULL
@@ -2500,7 +2564,98 @@ cdef class CombinatorialPolyhedron(SageObject):
         sig_free(output)
         self._nr_ridges = counter
 
+    cdef void _calculate_face_lattice_incidences(self):
+        if self._face_lattice_incidences:
+            return # there is no need to recalculate the incidences
+        cdef size_t len_edgelist = self._length_edges_list
+        cdef int dim = self.dimension()
+        cdef size_t counter
+        cdef size_t one
+        cdef size_t two
+        cdef size_t * output
+        cdef int j
+        cdef size_t i
+        cdef ListOfAllFaces all_faces
+        cdef size_t first = 0
+        cdef size_t second = 0
+        cdef int dimension_two
+        cdef int dimension_one
+        cdef size_t * f_vector
+        cdef size_t already_seen
+        cdef size_t already_seen_next
 
+        self._record_all_faces()
+        all_faces = self._all_faces
+        f_vector = self._f_vector
+        if all_faces is None and self.is_trivial == 0:
+                raise KeyboardInterrupt('Could not determine a list of all faces.')
+        try:
+            self._face_lattice_incidences = \
+                <size_t**> sig_malloc(sizeof(size_t*))
+
+            if self.is_trivial == 1:
+                # the case of a Polyhedron with only two faces
+                self._face_lattice_incidences[0] = \
+                    <size_t *> sig_malloc(2*sizeof(size_t))
+                self._face_lattice_incidences[0][0] = 0
+                self._face_lattice_incidences[0][1] = 1
+                self._nr_face_lattice_incidences = 1
+                return
+
+
+            if self.is_trivial == 2:
+                # the case of a Polyhedron with only three face
+                # the Polyhedron is a half-space
+                self._face_lattice_incidences[0] = \
+                    <size_t *> sig_malloc(4*sizeof(size_t))
+                self._face_lattice_incidences[0][0] = 0
+                self._face_lattice_incidences[0][1] = 1
+                self._face_lattice_incidences[0][2] = 1
+                self._face_lattice_incidences[0][3] = 2
+                self._nr_face_lattice_incidences = 2
+                return
+
+            counter = 0
+
+            dimension_one = 0
+            while (f_vector[dimension_one + 1] == 0):
+                # taking care of cases, where there might be no faces
+                # of dimension 0
+                dimension_one += 1
+            dimension_two = -1
+            while (dimension_one < dim + 1):
+                already_seen = \
+                    sum(f_vector[j] for j in range(dimension_two + 1))
+                already_seen_next = already_seen + f_vector[dimension_two + 1]
+                dimension_one = dimension_two + 1
+                all_faces.incidence_init(dimension_one, dimension_two)
+                while all_faces.next_incidence(&second, &first):
+                    second += already_seen_next
+                    first += already_seen
+                    one = counter/len_edgelist
+                    two = counter % len_edgelist
+                    if (two == 0):
+                        self._face_lattice_incidences = <size_t **> \
+                            sig_realloc(self._face_lattice_incidences,
+                                        (one+1)*sizeof(size_t*))
+                        self._face_lattice_incidences[one] = \
+                            <size_t *> sig_malloc(2*len_edgelist*sizeof(size_t))
+                    self._face_lattice_incidences[one][2*two] = first
+                    self._face_lattice_incidences[one][2*two + 1] = second
+                    counter += 1
+                    sig_check()
+                dimension_one += 1
+                dimension_two = dimension_one -1
+
+        except:
+            for i in range((counter - 1)/len_edgelist + 1):
+                sig_free(self._face_lattice_incidences[i])
+            if self._face_lattice_incidences:
+                sig_free(self._face_lattice_incidences)
+                self._face_lattice_incidences = NULL
+            return
+
+        self._nr_face_lattice_incidences = counter
 
     def _record_all_faces(self):
         r"""
@@ -3136,138 +3291,6 @@ cdef class CombinatorialPolyhedron(SageObject):
                 yield generate_output()
                 next_dim = face_iter.next_face()
 
-    def incidences(self, dimension_one, dimension_two):
-        r"""
-        Returns all incidences between ``dimension_one``-faces and
-        ``dimension_two``-faces.
-
-        Incidences are given as tuple of integers, where the integer
-        corresponds to the enumeration according to :meth:`faces`
-
-        EXAMPLES::
-
-            sage: P = polytopes.cube()
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C.incidences(0,1)
-            ((0, 0),
-             (4, 0),
-             (0, 1),
-             (1, 1),
-             (4, 2),
-             (5, 2),
-             (1, 3),
-             (5, 3),
-             (0, 4),
-             (2, 4),
-             (4, 5),
-             (6, 5),
-             (2, 6),
-             (6, 6),
-             (2, 7),
-             (3, 7),
-             (1, 8),
-             (3, 8),
-             (6, 9),
-             (7, 9),
-             (5, 10),
-             (7, 10),
-             (3, 11),
-             (7, 11))
-            sage: C.incidences(1,2)
-            ((3, 0),
-             (8, 0),
-             (10, 0),
-             (11, 0),
-             (6, 1),
-             (7, 1),
-             (9, 1),
-             (11, 1),
-             (2, 2),
-             (5, 2),
-             (9, 2),
-             (10, 2),
-             (1, 3),
-             (4, 3),
-             (7, 3),
-             (8, 3),
-             (0, 4),
-             (4, 4),
-             (5, 4),
-             (6, 4),
-             (0, 5),
-             (1, 5),
-             (2, 5),
-             (3, 5))
-            sage: C.incidences(0,2)
-            ((1, 0),
-             (3, 0),
-             (5, 0),
-             (7, 0),
-             (2, 1),
-             (3, 1),
-             (6, 1),
-             (7, 1),
-             (4, 2),
-             (5, 2),
-             (6, 2),
-             (7, 2),
-             (0, 3),
-             (1, 3),
-             (2, 3),
-             (3, 3),
-             (0, 4),
-             (2, 4),
-             (4, 4),
-             (6, 4),
-             (0, 5),
-             (1, 5),
-             (4, 5),
-             (5, 5))
-        """
-        if self.is_trivial == 1:
-            if dimension_one in (-1, self._dimension) \
-                    and dimension_two in (-1, self._dimension):
-                return ((0, 0),)
-            return ()
-        if self.is_trivial == 2:
-            if dimension_one in (-1, self._dimension, self._dimension - 1) \
-                and dimension_two in (-1, self._dimension,
-                                      self._dimension - 1):
-                return ((0, 0),)
-            return ()
-
-        cdef unsigned long maxnumberincidences = get_maxnumberincidences()
-        cdef unsigned long nr_incidences[1]
-        nr_incidences[:] = [0]
-        cdef unsigned int twisted[1]
-        twisted[:] = [0]
-        cdef unsigned long ** incidencepointer \
-            = incidences(self._C, dimension_one, dimension_two,
-                         nr_incidences, twisted)
-
-        if nr_incidences[0] > maxnumberincidences*maxnumberincidences:
-            raise ValueError("Cannot calculate %s incidences"
-                             % nr_incidences[0])
-
-        if twisted[0] == 0:
-            def incidence_one(i):
-                return Integer(incidencepointer[i / maxnumberincidences]
-                                               [2*(i % maxnumberincidences)])
-
-            def incidence_two(i):
-                return Integer(incidencepointer[i / maxnumberincidences]
-                                               [2*(i % maxnumberincidences)+1])
-        else:
-            def incidence_two(i):
-                return Integer(incidencepointer[i / maxnumberincidences]
-                                               [2*(i % maxnumberincidences)])
-
-            def incidence_one(i):
-                return Integer(incidencepointer[i / maxnumberincidences]
-                                               [2*(i % maxnumberincidences)+1])
-        return tuple((incidence_one(i), incidence_two(i))
-                     for i in range(nr_incidences[0]))
-
 
     def face_lattice(self, vertices=False, facets=False, names=False):
         r"""
@@ -3308,11 +3331,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: P = Polyhedron(rays=[[1,0],[0,1]])
             sage: C = CombinatorialPolyhedron(P)
-            sage: C.incidences(0,1)
-            ((0, 0), (0, 1))
             sage: C.face_lattice()
             Finite lattice containing 5 elements
-            sage: C.face_lattice(vertices=True).atoms()
+            sage: C.face_lattice(vertices=True, names=True).atoms()
             [(A vertex at (0, 0),)]
 
             sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0], [0,-1,0], [0,1,0]])
@@ -3328,6 +3349,21 @@ cdef class CombinatorialPolyhedron(SageObject):
             Finite lattice containing 542 elements
         """
 
+        cdef size_t ** incidences
+        cdef size_t nr_incidences
+        cdef size_t len_edgelist = self._length_edges_list
+        cdef size_t * f_vector
+        cdef int k
+        cdef int l
+        cdef int dim
+        if not self._face_lattice_incidences:
+            self._calculate_face_lattice_incidences()
+        if self._face_lattice_incidences is NULL:
+            raise KeyboardInterrupt('Interrupt on user intput')
+        incidences = self._face_lattice_incidences
+        nr_incidences = self._nr_face_lattice_incidences
+
+
         # we must ignore part of the input to ensure an injective relabeling
         if self.is_trivial == 1:
             facets = False
@@ -3335,95 +3371,59 @@ cdef class CombinatorialPolyhedron(SageObject):
             vertices = False
             facets = False
 
-        f_vector = self.f_vector()
-        self._record_all_faces()
-        dimension = self.dimension()
-        dic = {}
-        range_f_vector = [k for k in range(-1, dimension + 1)
-                          if f_vector[k+1] > 0]
-        range_f_vector1 = range_f_vector[1:-1]
-        for k in range_f_vector:
-            faces = (self.faces(k), self.faces(k, facet_repr=True))
-            dic[k] = tuple((faces[0][i], faces[1][i])
-                           for i in range(f_vector[k+1]))
-        edges0 = ()
-        if dimension >= 0:
-            edges0 = tuple((i[0], i[1] + 1) for i in
-                           self.incidences(-1, range_f_vector[1]))
-            # we must take care of the case, when there are no vertices
+        dim = self._dimension
+        self._calculate_f_vector()
+        f_vector = self._f_vector
+        polar_correct = tuple((sum(f_vector[k] for k in range(0,l)),
+                               sum(f_vector[k] for k in range(l+1,dim+2)))
+                              for l in range(dim+2))
 
-        edges = edges0 + tuple((i[0] + sum(f_vector[:k+1]),
-                                i[1] + sum(f_vector[:k+2]))
-                               for k in range_f_vector1
-                               for i in self.incidences(k, k+1))
-        all_faces = tuple(i for k in range_f_vector for i in dic[k])
-        if vertices and facets:
-            def f(i): return all_faces[i]
-        elif vertices:
-            def f(i): return all_faces[i][0]
-        elif facets:
-            def f(i): return all_faces[i][1]
+        # the incidences recorded assume we are not in the polar case
+        # in the polar case, we want to somewhat reverse the order of the faces
+        # the j-th face of dimension i will be the j-th face of dimension
+        # `self.dimension -1 -j`
+
+        if self._polar:
+            def pol(size_t i):
+                for l in range(1,dim + 2):
+                    if i < polar_correct[l][0]:
+                        # so i is of dimension `l` in the polar version
+                        # we will correct its entry to correspond to dimension
+                        # `self.dimension() - 1 - l`
+                        return Integer(i - polar_correct[l-1][0] \
+                                       + polar_correct[l-1][1])
+                return Integer(i - polar_correct[dim+1][0] \
+                               + polar_correct[dim+1][1])
         else:
-            def f(i): return i
-        V = tuple(range(sum(f_vector)))
+            def pol(size_t i): return Integer(i)
+
+        def face_one(size_t i):
+            return pol(incidences[i / len_edgelist][2*(i % len_edgelist)])
+
+        def face_two(size_t i):
+            return pol(incidences[i / len_edgelist][2*(i % len_edgelist)+1])
+
+        if self._polar:
+            edges = tuple((face_two(j), face_one(j)) for j in range(nr_incidences))
+        else:
+            edges = tuple((face_one(j), face_two(j)) for j in range(nr_incidences))
+
+        V = tuple(range(sum(f_vector[k] for k in range(dim+2))))
         D = DiGraph([V, edges], format='vertices_and_edges')
-        D.relabel(f)
+        if vertices or facets:
+            dic = {}
+            real_f = self.f_vector()
+            counters = list(sum(real_f[:i]) for i in range(dim+2))
+            for i in self.face_iter(vertex_repr=vertices, facet_repr=facets,
+                                    names= names, give_dimension = True):
+                d = i[-1]
+                if len(i) > 2:
+                    dic[counters[d+1]] = i[:-1]
+                else:
+                    dic[counters[d+1]] = i[0]
+                counters[d+1] += 1
+            D.relabel(dic)
         return FiniteLatticePoset(D)
-
-    def flag(self, *flag):
-        r"""
-        Returns the number of flags of given type.
-
-        flag(i) is equivalent to f_vector(i).
-
-        flag(i_1,...,i_n) will count the number of tuples
-        (face_1,...,face_n), where each face_j is an i_j face and
-        face_1 is contained in face_2 is contained in face_3 ...
-
-        The implementation sorts the input arguments.
-
-        EXAMPLES::
-
-            sage: P = polytopes.cyclic_polytope(8,15)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C.flag(1,3,6)
-            378000
-
-            sage: P = polytopes.permutahedron(6)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C.flag(1,4)
-            7200
-            sage: C.flag(1,4,4)
-            7200
-            sage: C.flag(1,3,4,4)
-            21600
-            sage: C.flag(1,4,3)
-            21600
-            sage: C.flag(1,2,3,4)
-            43200
-        """
-        for number in flag:
-            if not isinstance(number, Integer):
-                return TypeError("All arguments of \
-                    combinatorialPolyhedron.flag() must be integers.")
-        dim = self.dimension()
-        flag = set(number for number in flag if number in range(-1, dim+1))
-        if flag == set():
-            return 0
-        if flag <= set([-1, dim]):
-            return 1
-        if self.is_trivial == 1:
-            return 0
-        if self.is_trivial == 2:
-            if set(flag) <= set([-1, dim-1, dim]):
-                return 1
-            return 0
-        cdef array.array flagarray = \
-            array.array('I', sorted(number for number in flag
-                                    if number in range(0, dim)))
-        return Integer(get_flag(self._C, flagarray.data.as_uints,
-                                len(flagarray)))
-
 
 # Error checking on intput!
 # check for containments, shouldn't take long but is very nice to the user
