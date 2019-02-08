@@ -28,7 +28,7 @@
 // #define chunktype __m512i
 // #define bitwise_intersection(one,two) _mm512_and_si512((one),(two))
 
-/*
+
 #if __AVX2__
     //256 bit commands
     #include <immintrin.h>
@@ -94,26 +94,26 @@ const unsigned int maxnumberedges = 16348;//^2
 const unsigned int maxnumberincidences = 16348;//^2
 //the maximal number of incidences between l-faces and k-faces
 
-static uint64_t_or_uint32_t vertex_to_bit_dictionary[bit64or32];
+static uint64_t vertex_to_bit_dictionary[64];
 //this dictionary helps storing a vector of 64 or 32 incidences as uint64_t or uint32_t,
 //where each bit represents an incidence
 
 
 void build_dictionary(){
     unsigned int i = 0;
-    uint64_t_or_uint32_t count = 1;
-    for (i=0; i< bit64or32;i++){
-        vertex_to_bit_dictionary[bit64or32 -i-1] = count;
+    uint64_t count = 1;
+    for (i=0; i< 64;i++){
+        vertex_to_bit_dictionary[64 -i-1] = count;
         count *= 2;
     }
 }
 
 
-inline unsigned int leading_zero_naive3(uint64_t_or_uint32_t x){
+inline unsigned int leading_zero_naive3(uint64_t x){
     //taken from https://codingforspeed.com/counting-the-number-of-leading-zeros-for-a-32-bit-integer-signed-or-unsigned/
     //counts the number of leading zero bits of an uint64_t
     unsigned n = 0;
-    if (x == 0) return bit64or32;
+    if (x == 0) return 64;
     while (1) {
         if (x > vertex_to_bit_dictionary[0]) break;
         n++;
@@ -127,21 +127,21 @@ inline unsigned int leading_zero_workaround(chunktype chunk){
     //where chunktype represents 1,2 or 4 uint64_t or uint32_t depending on the processor
     unsigned int i;
     unsigned int count = 0;
-    uint64_t_or_uint32_t A[chunksize/bit64or32];
+    uint64_t A[chunksize/64];
     store_register(A[0],chunk);
-    for (i = 0;i < chunksize/bit64or32;i++){
+    for (i = 0;i < chunksize/64;i++){
         count += leading_zero_naive3(A[i]);
-        if (count < bit64or32*(i+1)){
+        if (count < 64*(i+1)){
             return count;
         }
     }
     return count;
 }
 
-inline unsigned int trailing_zero_naive3(uint64_t_or_uint32_t x){
-    //counts the number of trailing zero bits of an uint64_t_or_uint32_t
+inline unsigned int trailing_zero_naive3(uint64_t x){
+    //counts the number of trailing zero bits of an uint64_t
     unsigned n = 0;
-    if (x == 0) return bit64or32;
+    if (x == 0) return 64;
     while (1) {
         if (x % 2) break;
         n ++;
@@ -155,18 +155,18 @@ inline unsigned int trailing_zero_workaround(chunktype chunk){
     //where chunktype represents 1,2 or 4 uint64_t depending on the processor
     unsigned int i;
     unsigned int count = 0;
-    uint64_t_or_uint32_t A[chunksize/bit64or32];
+    uint64_t A[chunksize/64];
     store_register(A[0],chunk);
-    for (i = 0;i < chunksize/bit64or32;i++){
-        count += trailing_zero_naive3(A[chunksize/bit64or32-i-1]);
-        if (count < bit64or32*(i+1)){
+    for (i = 0;i < chunksize/64;i++){
+        count += trailing_zero_naive3(A[chunksize/64-i-1]);
+        if (count < 64*(i+1)){
             return count;
         }
     }
     return count;
 }
 
-inline unsigned int naive_popcount(uint64_t_or_uint32_t A){
+inline unsigned int naive_popcount(uint64_t A){
     unsigned int count = 0;
     while (A){
         count += A & 1;
@@ -207,7 +207,7 @@ void aligned_free_workaround(void *p) {
     // Get address of the memory from start of total memory area
     free ( *( (void **)p - 1) );
 }
-*/
+
 
 
 
@@ -243,9 +243,9 @@ inline size_t CountFaceBits(void* A2, size_t face_length) {
     unsigned int count = 0;
     chunktype *A1 = (chunktype *) A2;
     const unsigned int length_of_conversion_face = face_length*chunksize/64;
-    uint64_t_or_uint32_t A[length_of_conversion_face];
+    uint64_t A[length_of_conversion_face];
     for (i=0;i<face_length;i++){
-        store_register(A[i*chunksize/bit64or32],A1[i]);
+        store_register(A[i*chunksize/64],A1[i]);
     }
     for (i=0;i<length_of_conversion_face;i++){
         count += (size_t) popcount(A[i]);
@@ -505,7 +505,7 @@ size_t vertex_repr_from_bitrep(void *face1, size_t *output, \
     const size_t size_array = length_of_face*chunksize/64;
     uint64_t *array = new uint64_t [size_array]();
     for (i = 0; i < length_of_face; i++){
-        store_register(array[i*chunksize/bit64or32], face[i]);
+        store_register(array[i*chunksize/64], face[i]);
     }
     for (i = 0; i < size_array; i++){
         if (array[i]){
@@ -597,25 +597,26 @@ void sort_pointers(void **input, size_t nr_faces, size_t length_of_face){
     sort_pointers_loop(input, input, input2, nr_faces, length_of_face1);
 }
 
-size_t find_face_loop(void **list, void *face, size_t nr_faces, \
-                      size_t length_of_face1){
-    if (nr_faces == 1)
-        return 0;
-    size_t middle = nr_faces/2;
-    if (is_smaller(face, list[middle], length_of_face1)){
-        return find_face_loop(list, face, middle, length_of_face1);
-    } else {
-        return middle + \
-            find_face_loop(&(list[middle]), face, \
-                            nr_faces - middle, length_of_face1);
-    }
-}
-
 
 size_t find_face(void **list, void *face, size_t nr_faces, \
                  size_t length_of_face){
-    return find_face_loop(list, face, nr_faces, \
-                          length_of_face*chunksize/64);
+    // finds the position of `face` in `list` (assumed to be sorted)
+    // does not check, if the result is actually correct, i.e. if `face`
+    // is even an element of `list`
+    // use `is_equal` for that
+    size_t length_of_face1 = length_of_face*chunksize/64;
+    size_t start = 0;
+    size_t middle;
+    while (nr_faces > 1){
+        middle = nr_faces/2;
+        if (is_smaller(face, list[middle + start], length_of_face1)){
+            nr_faces = middle;
+        } else {
+            nr_faces -= middle;
+            start += middle;
+        }
+    }
+    return start;
 }
 
 int is_equal(void *one1, void *two1, size_t length_of_face){
