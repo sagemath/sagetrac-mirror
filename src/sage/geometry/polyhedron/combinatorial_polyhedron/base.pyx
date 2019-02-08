@@ -543,12 +543,12 @@ cdef class FaceIterator:
         return self.output2
 
 cdef class ListOfAllFaces:
-    cdef tuple lists_facet_repr
+    # cdef tuple lists_facet_repr #might need this for flag-vector
     cdef tuple lists_vertex_repr
     cdef size_t nr_facets
     cdef size_t nr_vertices
     cdef size_t length_of_face_vertex
-    cdef size_t length_of_face_facet
+    # cdef size_t length_of_face_facet #might need this for flag-vector
     cdef int dimension
     cdef size_t chunksize
     cdef size_t * face_counter
@@ -1356,7 +1356,6 @@ cdef class CombinatorialPolyhedron(SageObject):
     # otherwise it is 1 + nr_lines
     cdef int _nr_lines
     cdef ListOfFaces bitrep_facets
-    cdef ListOfFaces bitrep_vertices
     cdef int _polar
     cdef unsigned int chunksize
     cdef size_t * _f_vector
@@ -1515,22 +1514,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 get_facets_from_incidence_matrix(
                     incidence_matrix, self.bitrep_facets.data(),
                     nr_vertices, nr_facets)
-                # initializing the vertices as BitVectors
-                self.bitrep_vertices = \
-                    ListOfFaces(nr_vertices, nr_facets,
-                                  self.chunksize)
-                get_vertices_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_vertices.data(),
-                    nr_vertices, nr_facets)
             else:
                 self._polar = 1
-                # initializing the vertices as BitVectors
-                self.bitrep_vertices = \
-                    ListOfFaces(nr_facets, nr_vertices,
-                                  self.chunksize)
-                get_facets_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_vertices.data(),
-                    nr_vertices, nr_facets)
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
                     ListOfFaces(nr_vertices, nr_facets,
@@ -1607,22 +1592,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 get_facets_bitrep_from_facets_pointer(
                     facets_pointer, len_facets, self.bitrep_facets.data(),
                     nr_vertices, len(facets))
-                # initializing the vertices as BitVectors
-                self.bitrep_vertices = \
-                    ListOfFaces(nr_vertices, len(facets),
-                                  self.chunksize)
-                get_vertices_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_vertices.data(),
-                    nr_vertices, len(facets))
             else:
                 self._polar = 1
-                # initializing the vertices as BitVectors
-                self.bitrep_vertices = \
-                    ListOfFaces(len(facets), nr_vertices,
-                                  self.chunksize)
-                get_facets_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_vertices.data(),
-                    nr_vertices, len(facets))
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
                     ListOfFaces(nr_vertices, len(facets),
@@ -2441,9 +2412,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 return
 
             facets = self.bitrep_facets
-            vertices = self.bitrep_vertices
             face_iter = FaceIterator(facets, dim, self._nr_lines)
-            output = <size_t*> sig_malloc(vertices.nr_faces()*sizeof(size_t))
+            output = <size_t*> sig_malloc(facets.nr_vertices()*sizeof(size_t))
 
             if is_f_vector:
                 face_iter.set_record_dimension(1)
