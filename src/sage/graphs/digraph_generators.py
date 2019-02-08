@@ -643,18 +643,19 @@ class DiGraphGenerators():
                                **enc_kwargs)
         out, err = sub.communicate(input=input)
 
-        if debug:
-            print(err)
+        return out
+        # if debug:
+        #     print(err)
+        #
+        # for l in out.split('\n'):
+        #     # directg return graphs in the digraph6 format.
+        #     # digraph6 is very similar with the dig6 format used in sage :
+        #     # digraph6_string = '&' +  dig6_string
+        #     # digraph6 specifications: http://users.cecs.anu.edu.au/~bdm/data/formats.txt
+        #     if l != '' and l[0] == '&':
+        #         yield DiGraph(l[1:])
 
-        for l in out.split('\n'):
-            # directg return graphs in the digraph6 format.
-            # digraph6 is very similar with the dig6 format used in sage :
-            # digraph6_string = '&' +  dig6_string
-            # digraph6 specifications: http://users.cecs.anu.edu.au/~bdm/data/formats.txt
-            if l != '' and l[0] == '&':
-                yield DiGraph(l[1:])
-
-    def nauty_watercluster2(self, graphs, options="", debug=False):
+    def nauty_watercluster2(self, graphs, options='T', debug=False):
         r"""
         Return an iterator yielding digraphs using nauty's ``directg`` program.
 
@@ -704,9 +705,6 @@ class DiGraphGenerators():
         if '-u' in options or '-T' in options or '-G' in options:
             raise ValueError("directg output options [-u|-T|-G] are not allowed")
 
-        if '-q' not in options:
-            options += ' -q'
-
         if PY2:
             enc_kwargs = {}
         else:
@@ -717,7 +715,7 @@ class DiGraphGenerators():
 
         # Build directg input (graphs6 format)
         input = ''.join(g.graph6_string()+'\n' for g in graphs)
-        sub = subprocess.Popen('directg {0}'.format(options),
+        sub = subprocess.Popen('watercluster2 {0}'.format(options),
                                shell=True,
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE,
@@ -725,16 +723,18 @@ class DiGraphGenerators():
                                **enc_kwargs)
         out, err = sub.communicate(input=input)
 
-        if debug:
-            print(err)
-
-        for l in out.split('\n'):
-            # directg return graphs in the digraph6 format.
-            # digraph6 is very similar with the dig6 format used in sage :
-            # digraph6_string = '&' +  dig6_string
-            # digraph6 specifications: http://users.cecs.anu.edu.au/~bdm/data/formats.txt
-            if l != '' and l[0] == '&':
-                yield DiGraph(l[1:])
+        return out
+        # if debug:
+        #     print(err)
+        #
+        # for l in out.split('\n'):
+        #     # directg return graphs in the digraph6 format.
+        #     # digraph6 is very similar with the dig6 format used in sage :
+        #     # digraph6_string = '&' +  dig6_string
+        #     # digraph6 specifications: http://users.cecs.anu.edu.au/~bdm/data/formats.txt
+        #     # if l != '' and l[0] == '&':
+        #     #     yield DiGraph(l[1:])
+        #     print(l)
 
     def Complete(self, n, loops=False):
         r"""
