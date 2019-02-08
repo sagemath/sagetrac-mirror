@@ -124,10 +124,10 @@ import six
 from weakref import KeyedRef
 from copy import deepcopy
 
-from cpython.dict cimport *
+from cpython.dict cimport PyDict_GetItemWithError, PyDict_SetItem, PyDict_Next
 from cpython.tuple cimport PyTuple_GET_SIZE, PyTuple_New
 from cpython.weakref cimport PyWeakref_NewRef
-from cpython.object cimport PyObject_Hash
+from cpython.object cimport PyObject
 from cpython.ref cimport Py_INCREF, Py_XINCREF, Py_XDECREF
 from sage.cpython.dict_del_by_value cimport *
 
@@ -216,7 +216,7 @@ cdef class WeakValueDictEraser:
         if D._guard_level:
             D._pending_removals.append(r)
         else:
-            del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>r, r.key)
+            del_dictitem_by_exact_value(D, r, r.key)
 
 
 cdef class WeakValueDictionary(dict):

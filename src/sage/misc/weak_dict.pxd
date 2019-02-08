@@ -1,3 +1,5 @@
+from cpython.dict cimport dict
+
 cdef class WeakValueDictionary(dict):
     cdef __weakref__
     cdef callback

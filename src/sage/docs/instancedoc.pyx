@@ -118,10 +118,11 @@ Check that inheritance works (after passing the subclass to
 #*****************************************************************************
 
 from cpython.object cimport PyObject, PyTypeObject
+from cpython.type cimport PyType_Modified
 
 cdef extern from *:
     cdef int PyDict_SetItemString(PyObject*, const char*, object) except -1
-    cdef void PyType_Modified(PyTypeObject*)
+
 
 cdef inline PyTypeObject* TypeObject(cls) except NULL:
     if not isinstance(cls, type):
@@ -330,5 +331,5 @@ def instancedoc(cls):
     docattr = InstanceDocDescriptor(cls.__doc__, instdoc)
     PyDict_SetItemString(tp.tp_dict, "__doc__", docattr)
     tp.tp_doc = NULL
-    PyType_Modified(tp)
+    PyType_Modified(cls)
     return cls

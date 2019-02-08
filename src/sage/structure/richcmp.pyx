@@ -43,10 +43,9 @@ AUTHORS:
 #*****************************************************************************
 
 from cpython.object cimport Py_TYPE, PyTypeObject
-from sage.cpython.wrapperdescr cimport get_slotdef, wrapperbase, PyDescr_NewWrapper
-
-cdef extern from *:
-    void PyType_Modified(PyTypeObject* cls)
+from cpython.type cimport PyType_Modified
+from cpython.descr cimport wrapperbase, PyDescr_NewWrapper
+from sage.cpython.wrapperdescr cimport get_slotdef
 
 
 op_LT = Py_LT   # operator <
@@ -366,8 +365,7 @@ def richcmp_method(cls):
             raise TypeError("class %r defines %s which cannot be combined with @richcmp_method" % (cls, name))
         D[name] = PyDescr_NewWrapper(tp, slotdef, <void*>slot_tp_richcompare)
 
-    PyType_Modified(tp)
-
+    PyType_Modified(cls)
     return cls
 
 

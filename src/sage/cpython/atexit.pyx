@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 
+from cpython.module cimport PyModule_GetState
 
 import atexit
 
@@ -184,10 +185,6 @@ ELSE:
         atexit_callback** atexit_callbacks
         int ncallbacks
         int callback_len
-
-
-    cdef extern from "Python.h":
-        void* PyModule_GetState(object module)
 
 
     def _get_exithandlers():

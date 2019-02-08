@@ -1,27 +1,4 @@
-from cpython.object cimport PyObject, PyTypeObject
-
-cdef extern from *:
-    ctypedef object (*wrapperfunc)(self, args, void* wrapped)
-    ctypedef object (*wrapperfunc_kwds)(self, args, void* wrapped, kwds)
-
-    struct wrapperbase:
-        char* name
-        int offset
-        void* function
-        wrapperfunc wrapper
-        char* doc
-        int flags
-        PyObject* name_strobj
-
-    int PyWrapperFlag_KEYWORDS
-
-    ctypedef class sage.cpython.builtin_types.wrapper_descriptor [object PyWrapperDescrObject]:
-        cdef type d_type
-        cdef d_name
-        cdef wrapperbase* d_base
-        cdef void* d_wrapped
-
-    PyDescr_NewWrapper(PyTypeObject* cls, wrapperbase* wrapper, void* wrapped)
+from cpython.descr cimport wrapper_descriptor, wrapperbase
 
 
 cdef wrapperdescr_fastcall(wrapper_descriptor slotwrapper, self, args, kwds)

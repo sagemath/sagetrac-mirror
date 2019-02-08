@@ -32,6 +32,9 @@ Pure Python classes have normal methods, not slot wrappers::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cpython.object cimport PyObject
+from cpython.descr cimport wrapperfunc_kwds, PyWrapperFlag_KEYWORDS
+
 from .string import bytes_to_str
 
 
