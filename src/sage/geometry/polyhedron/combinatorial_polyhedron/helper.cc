@@ -38,8 +38,6 @@
     #define bitwise_is_not_subset(one,two) !_mm256_testc_si256((two),(one)) // this is supposed to something as (one) & ~(two)
     #define store_register(one,two) _mm256_storeu_si256((__m256i*)&(one),(two)) //this is supposed to be something as one = two, where two is a register
     #define load_register(one,two) (one) = _mm256_loadu_si256((const __m256i*)&(two)) //this is supposed to be somethign as one = two, where one is a register
-    #define leading_zero_count(one) leading_zero_workaround(one) //the workaround is not extremely fast, but it is not needed often (only for edges)
-    #define trailing_zero_count(one) trailing_zero_workaround(one) //the workaround is not extremely fast, but it is not needed often
 
 #elif __SSE4_1__
     //128 bit commands
@@ -51,8 +49,6 @@
     #define bitwise_is_not_subset(one,two) !_mm_testc_si128((two),(one))
     #define store_register(one,two) _mm_storeu_si128((__m128i*)&(one),(two))
     #define load_register(one,two) (one) = _mm_loadu_si128((const __m128i*)&(two))
-    #define leading_zero_count(one) leading_zero_workaround(one)
-    #define trailing_zero_count(one) trailing_zero_workaround(one)
 
 #else
     //64 bit commands
@@ -62,8 +58,6 @@
     #define bitwise_is_not_subset(one,two) (one) & ~(two)
     #define store_register(one,two) one = two
     #define load_register(one,two) one = two
-    #define leading_zero_count(one) leading_zero_naive3(one)
-    #define trailing_zero_count(one) trailing_zero_naive3(one)
 #endif
 
 #if __POPCNT__
@@ -78,21 +72,6 @@
 #endif
 
 
-#if (__GNUC__ >= 5)  // checking if GCC has aligned_alloc, this should always be the case for sages build in gcc
-#define free_aligned(one) free(one)
-#else //otherwise falling back to a manual approach
-#define aligned_alloc(one,two) aligned_malloc_workaround(two,one)
-#define free_aligned(one) aligned_free_workaround(one)
-#endif
-
-
-const unsigned int maxnumberedges = 16348;//^2
-//(the edges will be build as an array of arrays,
-//such that we can save up to maxnumberedges*maxnumberedges edges,
-//the number should contain a high power of two
-
-const unsigned int maxnumberincidences = 16348;//^2
-//the maximal number of incidences between l-faces and k-faces
 
 static uint64_t vertex_to_bit_dictionary[64];
 //this dictionary helps storing a vector of 64 or 32 incidences as uint64_t or uint32_t,
@@ -108,64 +87,6 @@ void build_dictionary(){
     }
 }
 
-
-inline unsigned int leading_zero_naive3(uint64_t x){
-    //taken from https://codingforspeed.com/counting-the-number-of-leading-zeros-for-a-32-bit-integer-signed-or-unsigned/
-    //counts the number of leading zero bits of an uint64_t
-    unsigned n = 0;
-    if (x == 0) return 64;
-    while (1) {
-        if (x > vertex_to_bit_dictionary[0]) break;
-        n++;
-        x <<= 1;
-    }
-    return n;
-}
-
-inline unsigned int leading_zero_workaround(chunktype chunk){
-    //counts the number of leading zero bits of a chunktype,
-    //where chunktype represents 1,2 or 4 uint64_t or uint32_t depending on the processor
-    unsigned int i;
-    unsigned int count = 0;
-    uint64_t A[chunksize/64];
-    store_register(A[0],chunk);
-    for (i = 0;i < chunksize/64;i++){
-        count += leading_zero_naive3(A[i]);
-        if (count < 64*(i+1)){
-            return count;
-        }
-    }
-    return count;
-}
-
-inline unsigned int trailing_zero_naive3(uint64_t x){
-    //counts the number of trailing zero bits of an uint64_t
-    unsigned n = 0;
-    if (x == 0) return 64;
-    while (1) {
-        if (x % 2) break;
-        n ++;
-        x >>= 1;
-    }
-    return n;
-}
-
-inline unsigned int trailing_zero_workaround(chunktype chunk){
-    //counts the number of trailing zero bits of a chunktype,
-    //where chunktype represents 1,2 or 4 uint64_t depending on the processor
-    unsigned int i;
-    unsigned int count = 0;
-    uint64_t A[chunksize/64];
-    store_register(A[0],chunk);
-    for (i = 0;i < chunksize/64;i++){
-        count += trailing_zero_naive3(A[chunksize/64-i-1]);
-        if (count < 64*(i+1)){
-            return count;
-        }
-    }
-    return count;
-}
-
 inline unsigned int naive_popcount(uint64_t A){
     unsigned int count = 0;
     while (A){
@@ -174,40 +95,6 @@ inline unsigned int naive_popcount(uint64_t A){
     }
     return count;
 }
-
-
-void * aligned_malloc_workaround(size_t size, int align) {
-    //taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
-    //they are a workaround in case that C11 is not available
-
-    // alignment could not be less than 0
-    if (size<0) {
-        return NULL;
-    }
-    // allocate necessary memory for
-    // alignment +
-    // area to store the address of memory returned by malloc
-    void *p = malloc(size + align-1 + sizeof(void *));
-    if (p == NULL) {
-        return NULL;
-    }
-    // address of the aligned memory according to the align parameter
-    void *ptr = (void *) (((unsigned long)p + sizeof(void *) + align-1) & ~(align-1));
-
-    // store th address of mallc() above at the beginning of our total memory area
-    *((void **)ptr -1) = p;
-
-    // return the address of aligned memory
-    return ptr;
-}
-
-void aligned_free_workaround(void *p) {
-    //taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
-
-    // Get address of the memory from start of total memory area
-    free ( *( (void **)p - 1) );
-}
-
 
 
 
@@ -314,42 +201,6 @@ inline size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, vo
     return newfacescounter;
 }
 
-
-unsigned int calculate_dimension(void **faces, unsigned int nr_faces, size_t face_length){
-    // before doing pretty much anything, we need to know the dimension of the polyhedron
-    // this is done by calculating the dimension of an arbitrary facet
-    // this dimension is again calculated by calculating the dimension
-    // of an arbitrary facet and so on
-    unsigned int i,j,k, newfacescounter, dim;
-    if (nr_faces == 0){
-        return 0;//this isn't supposed to happen, but maybe the data is malformed
-    }
-    unsigned int bitcount = CountFaceBits(faces[0], face_length);
-    if (bitcount == 0){//if a polyhedron contains only the empty face as facet, then it is of dimension 0
-        return 0;
-    }
-    if (nr_faces == 1){//if there is only one facet and this contains bitcount # of vertices/rays/lines then the polyhedron is of dimension bitcount -1
-        return bitcount;
-    }
-    if (bitcount == 1){
-        return 1;
-    }
-    void *nextfaces_creator[nr_faces-1];
-    void  *nextfaces2[nr_faces-1], *nextfaces[nr_faces-1];
-    for (i=0; i < (nr_faces-1); i++){
-        nextfaces_creator[i] = aligned_alloc(chunksize/8,face_length*chunksize/8);
-        nextfaces[i] = nextfaces_creator[i];
-    }
-    newfacescounter = get_next_level(faces,nr_faces,nextfaces,nextfaces2,nextfaces,0,face_length);//calculates the ridges contained in one facet
-    dim =  calculate_dimension(nextfaces2,newfacescounter, face_length) + 1;//calculates the dimension of that facet
-    if (dim == 1){
-        dim = bitcount;//our face should be a somewhat a vertex, but if the polyhedron is unbounded, than our face will have dimension equal to the number of 'vertices' it contains, where some of the vertices might represent lines
-    }
-    for (i=0; i < (nr_faces - 1); i++){
-        free_aligned(nextfaces_creator[i]);
-    }
-    return dim;
-}
 
 void char_from_incidence_list(unsigned int *incidence_list, size_t nr_vertices, \
                               chunktype *array1, size_t face_length){
