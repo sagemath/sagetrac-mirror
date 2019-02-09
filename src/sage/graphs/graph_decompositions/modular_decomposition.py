@@ -19,8 +19,25 @@ of undirected graphs.
 from collections import deque
 from enum import Enum
 
+class OrderedEnum(Enum):
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value >= other.value
+        return NotImplemented
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value > other.value
+        return NotImplemented
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value <= other.value
+        return NotImplemented
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
 
-class NodeType(Enum):
+class NodeType(OrderedEnum):
     """
     NodeType is an enumeration class used to define the various types of nodes
     in modular decomposition tree.
@@ -43,19 +60,6 @@ class NodeType(Enum):
     NORMAL = 3
     FOREST = -1
 
-    def __str__(self):
-        r"""
-        String representation of this node type.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import NodeType
-            sage: str(NodeType.PARALLEL)
-            'PARALLEL'
-        """
-        return self.name
-
     def __repr__(self):
         r"""
         String representation of this node type.
@@ -63,12 +67,13 @@ class NodeType(Enum):
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                      import NodeType
+            ....:     import NodeType
             sage: repr(NodeType.PARALLEL)
             'PARALLEL'
         """
         return self.name
 
+    __str__ = __repr__
 
 class NodeSplit(Enum):
     """
@@ -145,7 +150,7 @@ class Node:
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType
+            ....:      import Node, NodeType
             sage: n = Node(NodeType.SERIES); n.node_type
             SERIES
             sage: n.children
@@ -171,7 +176,7 @@ class Node:
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                      import Node, NodeType, NodeSplit
+            ....:     import Node, NodeType, NodeSplit
             sage: node = Node(NodeType.PRIME)
             sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
             sage: node.node_split == NodeSplit.LEFT_SPLIT
@@ -203,7 +208,7 @@ class Node:
         EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import Node, NodeType, NodeSplit
+        ....:      import Node, NodeType, NodeSplit
         sage: node = Node(NodeType.PRIME)
         sage: node.set_node_split(NodeSplit.LEFT_SPLIT)
         sage: node.has_left_split()
@@ -227,7 +232,7 @@ class Node:
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType, NodeSplit
+            ....:      import Node, NodeType, NodeSplit
             sage: node = Node(NodeType.PRIME)
             sage: node.set_node_split(NodeSplit.RIGHT_SPLIT)
             sage: node.has_right_split()
@@ -240,14 +245,14 @@ class Node:
         return self.node_split == NodeSplit.RIGHT_SPLIT or \
                self.node_split == NodeSplit.BOTH_SPLIT
 
-    def __str__(self):
+    def __repr__(self):
         r"""
         Return a string representation of the node.
 
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType, create_normal_node
+            ....:      import Node, NodeType, create_normal_node
             sage: n = Node(NodeType.PRIME)
             sage: n.children.append(create_normal_node(1))
             sage: n.children.append(create_normal_node(2))
@@ -268,21 +273,7 @@ class Node:
         s += str(self.children)
         return s
 
-    def __repr__(self):
-        r"""
-        Return a string representation of the node.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType, create_normal_node
-            sage: n = Node(NodeType.PRIME)
-            sage: n.children.append(create_normal_node(1))
-            sage: n.children.append(create_normal_node(2))
-            sage: repr(n)
-            'PRIME [NORMAL [1], NORMAL [2]]'
-        """
-        return self.__str__()
+    __str__ = __repr__
 
     def __eq__(self, other):
         r"""
@@ -291,7 +282,7 @@ class Node:
         EXAMPLES::
 
             sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType
+            ....:      import Node, NodeType
             sage: n1 = Node(NodeType.PRIME)
             sage: n2 = Node(NodeType.PRIME)
             sage: n3 = Node(NodeType.SERIES)
@@ -331,8 +322,8 @@ def modular_decomposition(graph):
     The Icosahedral graph is Prime::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                    import modular_decomposition, test_modular_decomposition, \
-                           print_md_tree
+        ....:       import modular_decomposition, test_modular_decomposition, \
+        ....:              print_md_tree
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
               8
@@ -404,10 +395,10 @@ def modular_decomposition(graph):
     Graph from Marc Tedder implementation of modular decomposition::
 
         sage: d = {1:[5,4,3,24,6,7,8,9,2,10,11,12,13,14,16,17], 2:[1], \
-                    3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
-                    7:[6,8,9,1], 8:[6,7,9,1], 9:[6,7,8,5,4,3,1], 10:[1], \
-                    11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1], \
-                    16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
+        ....:      3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
+        ....:      7:[6,8,9,1], 8:[6,7,9,1], 9:[6,7,8,5,4,3,1], 10:[1], \
+        ....:      11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1], \
+        ....:      16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
         sage: g = Graph(d)
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
@@ -415,9 +406,9 @@ def modular_decomposition(graph):
     Graph from the :wikipedia:`Modular_decomposition`::
 
         sage: d2 = {1:[2,3,4], 2:[1,4,5,6,7], 3:[1,4,5,6,7], 4:[1,2,3,5,6,7], \
-                    5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
-                    7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
-                    10:[6,7,8,9], 11:[6,7,8,9]}
+        ....:       5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
+        ....:       7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
+        ....:       10:[6,7,8,9], 11:[6,7,8,9]}
         sage: g = Graph(d2)
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
@@ -547,26 +538,26 @@ def number_components(root, vertex_status):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                    import Node, NodeType, VertexPosition, create_normal_node, \
-                           number_components
+        ....:       import Node, NodeType, VertexPosition, create_normal_node, \
+        ....:              number_components
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.append(series_node)
         sage: forest.children.append(parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.RIGHT_OF_SOURCE, \
-                               5: VertexPosition.RIGHT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  5: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: number_components(forest, vertex_status)
         sage: forest.children[-1].children[0].comp_num
         2
@@ -576,10 +567,10 @@ def number_components(root, vertex_status):
     TESTS::
 
         sage: forest.children[-1].children[0].comp_num == 2 and \
-              forest.children[-1].children[1].comp_num == 3
+        ....: forest.children[-1].children[1].comp_num == 3
         True
         sage: forest.children[-2].children[0].comp_num == 1 and \
-              forest.children[-2].children[1].comp_num == 1
+        ....: forest.children[-2].children[1].comp_num == 1
         True
 
     """
@@ -617,26 +608,26 @@ def number_cocomponents(root, vertex_status):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import Node, NodeType, VertexPosition, create_normal_node, \
-                          number_cocomponents
+        ....:      import Node, NodeType, VertexPosition, create_normal_node, \
+        ....:             number_cocomponents
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(2, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.LEFT_OF_SOURCE, \
-                               7: VertexPosition.LEFT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  7: VertexPosition.LEFT_OF_SOURCE}
         sage: number_cocomponents(forest, vertex_status)
         sage: forest.children[1].children[0].comp_num
         1
@@ -646,10 +637,10 @@ def number_cocomponents(root, vertex_status):
     TESTS::
 
         sage: forest.children[1].children[0].comp_num and \
-              forest.children[1].children[1].comp_num == 2
+        ....: forest.children[1].children[1].comp_num == 2
         True
         sage: forest.children[2].children[0].comp_num == 3 and \
-              forest.children[2].children[1].comp_num == 3
+        ....: forest.children[2].children[1].comp_num == 3
         True
 
     """
@@ -685,11 +676,11 @@ def recursively_number_parts(part_root, part_num, by_type):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import Node, NodeType, VertexPosition, create_normal_node, \
-                          recursively_number_parts
+        ....:       import Node, NodeType, VertexPosition, create_normal_node, \
+        ....:              recursively_number_parts
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: recursively_number_parts(series_node, 1, NodeType.SERIES)
         2
         sage: series_node.comp_num
@@ -702,8 +693,8 @@ def recursively_number_parts(part_root, part_num, by_type):
     TESTS::
 
         sage: series_node.comp_num == 1 and \
-              series_node.children[0].comp_num == 1 and \
-              series_node.children[1].comp_num == 2
+        ....: series_node.children[0].comp_num == 1 and \
+        ....: series_node.children[1].comp_num == 2
         True
 
     """
@@ -757,8 +748,8 @@ def assembly(graph, root, vertex_status, vertex_dist):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import Node, NodeType, VertexPosition, create_normal_node, \
-                          number_cocomponents, number_components, assembly
+        ....:      import Node, NodeType, VertexPosition, create_normal_node, \
+        ....:             number_cocomponents, number_components, assembly
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -769,22 +760,22 @@ def assembly(graph, root, vertex_status, vertex_dist):
         sage: g.add_edge(6, 1)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
                                         create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: forest.children[0].comp_num = 1
         sage: forest.children[1].comp_num = 1
@@ -799,13 +790,13 @@ def assembly(graph, root, vertex_status, vertex_dist):
         sage: g.add_edge(5, 2)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: number_cocomponents(forest, vertex_status)
@@ -898,18 +889,18 @@ def update_comp_num(node):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                     import Node, NodeType, create_normal_node, update_comp_num
+        ....:        import Node, NodeType, create_normal_node, update_comp_num
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.comp_num = 2
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: series_node.children[0].comp_num = 3
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(0, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: update_comp_num(forest)
@@ -952,9 +943,9 @@ def check_prime(graph, root, left, right,
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, number_cocomponents, \
-              number_components, check_prime, get_vertices, \
-              compute_mu_for_co_component, compute_mu_for_component
+        ....: VertexPosition, create_normal_node, number_cocomponents, \
+        ....: number_components, check_prime, get_vertices, \
+        ....: compute_mu_for_co_component, compute_mu_for_component
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -965,22 +956,22 @@ def check_prime(graph, root, left, right,
         sage: g.add_edge(6, 1)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: source_index = 2
         sage: vertices_in_component = {}
@@ -1146,22 +1137,22 @@ def check_parallel(graph, root, left, right,
         sage: g.add_edge(4, 1)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3)]
+        ....:                    create_normal_node(3)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                create_normal_node(7), create_normal_node(1)]
+        ....:                   create_normal_node(7), create_normal_node(1)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.append(parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 2}
         sage: source_index = 2
         sage: vertices_in_component = {}
@@ -1270,9 +1261,9 @@ def check_series(root, left, right, source_index, mu):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, number_cocomponents, \
-              number_components, check_series, get_vertices, \
-              compute_mu_for_co_component, compute_mu_for_component
+        ....: VertexPosition, create_normal_node, number_cocomponents, \
+        ....: number_components, check_series, get_vertices, \
+        ....: compute_mu_for_co_component, compute_mu_for_component
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1286,22 +1277,22 @@ def check_series(root, left, right, source_index, mu):
         sage: g.add_edge(5, 2)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: source_index = 2
         sage: vertices_in_component = {}
@@ -1397,16 +1388,16 @@ def has_left_cocomponent_fragment(root, cocomp_index):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, has_left_cocomponent_fragment
+        ....: create_normal_node, has_left_cocomponent_fragment
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: forest.children[0].comp_num = 1
@@ -1444,16 +1435,16 @@ def has_right_component_fragment(root, comp_index):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, has_right_component_fragment
+        ....: create_normal_node, has_right_component_fragment
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: forest.children[3].comp_num = 1
@@ -1494,7 +1485,7 @@ def has_right_layer_neighbor(graph, root, comp_index,
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, get_vertices, has_right_layer_neighbor
+        ....: create_normal_node, get_vertices, has_right_layer_neighbor
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1506,13 +1497,13 @@ def has_right_layer_neighbor(graph, root, comp_index,
         sage: g.add_edge(6, 1)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
@@ -1557,13 +1548,13 @@ def get_vertex_in(node):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, get_vertex_in
+        ....: create_normal_node, get_vertex_in
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: forest.children.insert(1, series_node)
         sage: get_vertex_in(forest)
         2
@@ -1594,7 +1585,7 @@ def compute_mu_for_co_component(graph, component_index, source_index,
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, get_vertices, compute_mu_for_co_component
+        ....: create_normal_node, get_vertices, compute_mu_for_co_component
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1606,13 +1597,13 @@ def compute_mu_for_co_component(graph, component_index, source_index,
         sage: g.add_edge(6, 1)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertices_in_component = {}
@@ -1658,7 +1649,7 @@ def compute_mu_for_component(graph, component_index, source_index,
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, get_vertices, compute_mu_for_component
+        ....: create_normal_node, get_vertices, compute_mu_for_component
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1669,13 +1660,13 @@ def compute_mu_for_component(graph, component_index, source_index,
         sage: g.add_edge(6, 1)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertices_in_component = {}
@@ -1723,7 +1714,7 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, get_vertices, is_component_connected
+        ....: create_normal_node, get_vertices, is_component_connected
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1734,13 +1725,13 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
         sage: g.add_edge(6, 1)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertices_in_component = {}
@@ -1778,16 +1769,16 @@ def get_vertices(component_root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              create_normal_node, get_vertices
+        ....: create_normal_node, get_vertices
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: get_vertices(forest)
@@ -1822,8 +1813,8 @@ def promote_left(root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, \
-              maximal_subtrees_with_leaves_in_x, promote_left
+        ....: VertexPosition, create_normal_node, \
+        ....: maximal_subtrees_with_leaves_in_x, promote_left
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1837,22 +1828,22 @@ def promote_left(root):
         sage: g.add_edge(5, 2)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                        create_normal_node(3), create_normal_node(1)]
+        ....:           create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: x = {u for u in g.neighbor_iterator(2)
         ....:            if vertex_dist[u] != vertex_dist[2]}
@@ -1912,7 +1903,7 @@ def promote_right(root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, refine, promote_right
+        ....: VertexPosition, create_normal_node, refine, promote_right
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -1926,22 +1917,22 @@ def promote_right(root):
         sage: g.add_edge(5, 2)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: refine(g, forest, vertex_dist, vertex_status)
         sage: promote_right(forest)
@@ -1997,8 +1988,8 @@ def promote_child(root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, refine, promote_right, \
-              promote_child
+        ....: VertexPosition, create_normal_node, refine, promote_right, \
+        ....: promote_child
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -2012,22 +2003,22 @@ def promote_child(root):
         sage: g.add_edge(5, 2)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: refine(g, forest, vertex_dist, vertex_status)
         sage: promote_right(forest)
@@ -2080,13 +2071,13 @@ def clear_node_split_info(root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              NodeSplit, create_normal_node, clear_node_split_info
+        ....: NodeSplit, create_normal_node, clear_node_split_info
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: series_node.children[0].node_split = NodeSplit.LEFT_SPLIT
         sage: series_node.node_split = NodeSplit.RIGHT_SPLIT
         sage: forest.children.insert(1, series_node)
@@ -2121,7 +2112,7 @@ def refine(graph, root, vertex_dist, vertex_status):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, refine
+        ....: VertexPosition, create_normal_node, refine
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -2135,22 +2126,22 @@ def refine(graph, root, vertex_dist, vertex_status):
         sage: g.add_edge(5, 2)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: refine(g, forest, vertex_dist, vertex_status)
         sage: forest
@@ -2187,13 +2178,13 @@ def get_child_splits(root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              NodeSplit, create_normal_node, get_child_splits
+        ....: NodeSplit, create_normal_node, get_child_splits
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: series_node.children[0].node_split = NodeSplit.LEFT_SPLIT
         sage: series_node.node_split = NodeSplit.RIGHT_SPLIT
         sage: forest.children.insert(1, series_node)
@@ -2236,8 +2227,8 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import Node, NodeType, \
-              VertexPosition, create_normal_node, \
-              maximal_subtrees_with_leaves_in_x
+        ....: VertexPosition, create_normal_node, \
+        ....: maximal_subtrees_with_leaves_in_x
         sage: g = Graph()
         sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
         sage: g.add_edge(2, 3)
@@ -2251,22 +2242,22 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
         sage: g.add_edge(5, 2)
         sage: forest = Node(NodeType.FOREST)
         sage: forest.children = [create_normal_node(2), \
-                                 create_normal_node(3), create_normal_node(1)]
+        ....:                    create_normal_node(3), create_normal_node(1)]
         sage: series_node = Node(NodeType.SERIES)
         sage: series_node.children = [create_normal_node(4), \
-                                      create_normal_node(5)]
+        ....:                         create_normal_node(5)]
         sage: parallel_node = Node(NodeType.PARALLEL)
         sage: parallel_node.children = [create_normal_node(6), \
-                                        create_normal_node(7)]
+        ....:                           create_normal_node(7)]
         sage: forest.children.insert(1, series_node)
         sage: forest.children.insert(3, parallel_node)
         sage: vertex_status = {2: VertexPosition.LEFT_OF_SOURCE, \
-                               3: VertexPosition.SOURCE, \
-                               1: VertexPosition.RIGHT_OF_SOURCE, \
-                               4: VertexPosition.LEFT_OF_SOURCE, \
-                               5: VertexPosition.LEFT_OF_SOURCE, \
-                               6: VertexPosition.RIGHT_OF_SOURCE, \
-                               7: VertexPosition.RIGHT_OF_SOURCE}
+        ....:                  3: VertexPosition.SOURCE, \
+        ....:                  1: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  4: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  5: VertexPosition.LEFT_OF_SOURCE, \
+        ....:                  6: VertexPosition.RIGHT_OF_SOURCE, \
+        ....:                  7: VertexPosition.RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: x = {u for u in g.neighbor_iterator(2)
         ....:            if vertex_dist[u] != vertex_dist[2]}
@@ -2500,7 +2491,7 @@ def print_md_tree(root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              modular_decomposition, test_modular_decomposition, print_md_tree
+        ....: modular_decomposition, test_modular_decomposition, print_md_tree
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
               8
@@ -2567,7 +2558,7 @@ def gamma_classes(graph):
     corresponding to the slices through the center of the octahedron::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import gamma_classes
+        ....:      import gamma_classes
         sage: g = graphs.OctahedralGraph()
         sage: gamma_classes(g).keys()
         [frozenset({1, 2, 3, 4}), frozenset({0, 2, 3, 5}), frozenset({0, 1, 4, 5})]
@@ -2577,7 +2568,7 @@ def gamma_classes(graph):
     Ensure that the returned vertex sets from some random graphs are modules.
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import test_gamma_modules
+        ....:      import test_gamma_modules
         sage: test_gamma_modules(2, 10, 0.5)
     """
 
@@ -2629,8 +2620,8 @@ def habib_maurer_algorithm(graph, g_classes=None):
     The Icosahedral graph is Prime::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-              import habib_maurer_algorithm, test_modular_decomposition, \
-                    print_md_tree
+        ....: import habib_maurer_algorithm, test_modular_decomposition, \
+        ....:       print_md_tree
         sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))
         PRIME
          8
@@ -2686,10 +2677,10 @@ def habib_maurer_algorithm(graph, g_classes=None):
     Graph from Marc Tedder implementation of modular decomposition::
 
         sage: d = {1:[5,4,3,24,6,7,8,9,2,10,11,12,13,14,16,17], 2:[1], \
-                    3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
-                    7:[6,8,9,1], 8:[6,7,9,1], 9:[6,7,8,5,4,3,1], 10:[1], \
-                    11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1], \
-                    16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
+        ....:      3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
+        ....:      7:[6,8,9,1], 8:[6,7,9,1], 9:[6,7,8,5,4,3,1], 10:[1], \
+        ....:      11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1], \
+        ....:      16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
         sage: g = Graph(d)
         sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
         True
@@ -2697,9 +2688,9 @@ def habib_maurer_algorithm(graph, g_classes=None):
     Graph from the :wikipedia:`Modular_decomposition`::
 
         sage: d2 = {1:[2,3,4], 2:[1,4,5,6,7], 3:[1,4,5,6,7], 4:[1,2,3,5,6,7], \
-                    5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
-                    7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
-                    10:[6,7,8,9], 11:[6,7,8,9]}
+        ....:       5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
+        ....:       7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
+        ....:       10:[6,7,8,9], 11:[6,7,8,9]}
         sage: g = Graph(d2)
         sage: test_modular_decomposition(habib_maurer_algorithm(g), g)
         True
@@ -2815,7 +2806,7 @@ def test_modular_decomposition(tree_root, graph):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              modular_decomposition, test_modular_decomposition
+        ....: modular_decomposition, test_modular_decomposition
         sage: g = graphs.HexahedralGraph()
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
@@ -2866,7 +2857,7 @@ def test_maximal_modules(tree_root, graph):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              modular_decomposition, test_maximal_modules
+        ....: modular_decomposition, test_maximal_modules
         sage: g = graphs.HexahedralGraph()
         sage: test_maximal_modules(modular_decomposition(g), g)
         True
@@ -2912,7 +2903,7 @@ def get_module_type(graph):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                   import get_module_type
+        ....:      import get_module_type
         sage: g = graphs.HexahedralGraph()
         sage: get_module_type(g)
         PRIME
@@ -2952,7 +2943,7 @@ def form_module(index, other_index, tree_root, graph):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              modular_decomposition, form_module
+        ....: modular_decomposition, form_module
         sage: g = graphs.HexahedralGraph()
         sage: tree_root = modular_decomposition(g)
         sage: form_module(0, 2, tree_root, g)
@@ -3015,7 +3006,7 @@ def test_module(module, graph):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              modular_decomposition, test_module
+        ....: modular_decomposition, test_module
         sage: g = graphs.HexahedralGraph()
         sage: tree_root = modular_decomposition(g)
         sage: test_module(tree_root, g)
@@ -3074,8 +3065,8 @@ def children_node_type(module, node_type):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              modular_decomposition, print_md_tree, children_node_type, \
-              NodeType
+        ....: modular_decomposition, print_md_tree, children_node_type, \
+        ....: NodeType
         sage: g = graphs.OctahedralGraph()
         sage: tree_root = modular_decomposition(g)
         sage: print_md_tree(modular_decomposition(g))
@@ -3120,8 +3111,8 @@ def either_connected_or_not_connected(v, vertices_in_module, graph):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-              print_md_tree, modular_decomposition, \
-              either_connected_or_not_connected
+        ....: print_md_tree, modular_decomposition, \
+        ....: either_connected_or_not_connected
         sage: g = graphs.OctahedralGraph()
         sage: print_md_tree(modular_decomposition(g))
         SERIES
@@ -3166,7 +3157,7 @@ def tree_to_nested_tuple(root):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-              import tree_to_nested_tuple, modular_decomposition
+        ....: import tree_to_nested_tuple, modular_decomposition
         sage: g = graphs.OctahedralGraph()
         sage: tree_to_nested_tuple(modular_decomposition(g))
         (SERIES, [(PARALLEL, [2, 3]), (PARALLEL, [1, 4]), (PARALLEL, [0, 5])])
@@ -3191,7 +3182,7 @@ def nested_tuple_to_tree(nest):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                 import NodeType, print_md_tree, nested_tuple_to_tree
+        ....:    import NodeType, print_md_tree, nested_tuple_to_tree
         sage: tree = (NodeType.SERIES, 1, 2, (NodeType.PARALLEL, 3, 4))
         sage: print_md_tree(nested_tuple_to_tree(tree))
         SERIES
@@ -3271,8 +3262,8 @@ def relabel_tree(root, perm):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                 import NodeType, print_md_tree, nested_tuple_to_tree, \
-                 relabel_tree
+        ....:    import NodeType, print_md_tree, nested_tuple_to_tree, \
+        ....:    relabel_tree
         sage: tuple_tree = (NodeType.SERIES, 1, 2, (NodeType.PARALLEL, 3, 4))
         sage: tree = nested_tuple_to_tree(tuple_tree)
         sage: print_md_tree(relabel_tree(tree, (4,3,2,1)))
@@ -3375,7 +3366,7 @@ def permute_decomposition(trials, algorithm, vertices, prob, verbose=False):
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import \
-                 permute_decomposition, habib_maurer_algorithm
+        ....:    permute_decomposition, habib_maurer_algorithm
         sage: permute_decomposition(30, habib_maurer_algorithm, 10, 0.5)
     """
     from sage.graphs.all import graphs
@@ -3470,11 +3461,11 @@ def md_tree_to_graph(root):
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: tup1 = (NodeType.PRIME, 1, (NodeType.SERIES, 2, 3), \
-                     (NodeType.PARALLEL, 4, 5), 6)
+        ....:        (NodeType.PARALLEL, 4, 5), 6)
         sage: tree1 = nested_tuple_to_tree(tup1)
         sage: g1 = md_tree_to_graph(tree1)
         sage: g2 = Graph({1: [2, 3], 2: [1, 3, 4, 5], 3: [1, 2, 4, 5],\
-                          4: [2, 3, 6], 5: [2, 3, 6], 6: [4, 5]})
+        ....:             4: [2, 3, 6], 5: [2, 3, 6], 6: [4, 5]})
         sage: g1.is_isomorphic(g2)
         True
     """
@@ -3518,7 +3509,7 @@ def recreate_decomposition(trials, algorithm, max_depth, max_fan_out,
 
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: recreate_decomposition(3, habib_maurer_algorithm, 4, 6, 0.5,\
-                                      verbose=False)
+        ....:                         verbose=False)
     """
     for _ in range(trials):
         rand_tree = random_md_tree(max_depth, max_fan_out, leaf_probability)
