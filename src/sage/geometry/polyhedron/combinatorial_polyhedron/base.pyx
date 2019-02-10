@@ -15,7 +15,7 @@ The atoms must be labeled 0,...,n.
 
 AUTHOR:
 
-- Jonathan Kliem (2019-01)
+- Jonathan Kliem (2019-02)
 
 
 """
@@ -1387,6 +1387,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             ....: == tuple(i for i in C1.face_iter(facet_repr=True))
             True
 
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C1 = loads(C.dumps())
+            sage: tuple(i for i in C.face_iter(facet_repr=True)) \
+            ....: == tuple(i for i in C1.face_iter(facet_repr=True))
+            True
+
             sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0], [0,-1,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: C1 = loads(C.dumps())
@@ -1557,13 +1564,14 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         """
         tup = self.faces(self.dimension()-1, names=names)
-        if not self._all_faces:
-            # if all_faces has not been allocated, than faces will
-            # return the facets in the opposite order
-            # this is very important to consider for __reduce__()
-            return tuple(tup[-i - 1] for i in range(len(tup)))
-        else:
-            return tuple(tup[i] for i in range(len(tup)))
+        # it is important to have the facets in the exact same order as
+        # on input
+        # every facet knows its order by the facet representation
+        order = self.faces(self.dimension()-1, facet_repr=True, names=False)
+        dic = {}
+        for i in range(len(tup)):
+            dic[order[i][0]] = tup[i]
+        return tuple(dic[i] for i in range(len(tup)))
 
     def edges(self, names=True):
         r"""
@@ -2328,6 +2336,41 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.cyclic_polytope(4,10)
             sage: C = CombinatorialPolyhedron(P)
             sage: C._record_all_faces()
+
+        TESTS::
+
+            sage: P = polytopes.permutahedron(4)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: tup = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: C._record_all_faces()
+            sage: tup1 = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: sorted(tup) == sorted(tup1)
+            True
+
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: tup = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: C._record_all_faces()
+            sage: tup1 = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: sorted(tup) == sorted(tup1)
+            True
+
+            sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0], [0,-1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: tup = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: C._record_all_faces()
+            sage: tup1 = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: sorted(tup) == sorted(tup1)
+            True
+
+            sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0],
+            ....:                      [0,-1,0], [0,1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: tup = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: C._record_all_faces()
+            sage: tup1 = tuple(i for i in C.face_iter(facet_repr=True))
+            sage: sorted(tup) == sorted(tup1)
+            True
         """
 
         if self.is_trivial >= 1:
@@ -2814,7 +2857,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
                 def print_dim():
                         return Integer(dim - 1 - next_dim)
-                dimension = dim - 1 - dimension
+                if dimension > -2:
+                    dimension = dim - 1 - dimension
             else:
                 def get_facet_repr():
                     cdef size_t leng
