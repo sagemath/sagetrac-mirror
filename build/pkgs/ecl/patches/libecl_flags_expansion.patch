@@ -1,0 +1,31 @@
+From 612eeb5ed1623c4c7cb71029aab39107caf1cdba Mon Sep 17 00:00:00 2001
+From: Daniel Kochmanski <daniel@turtleware.eu>
+Date: Wed, 2 Aug 2017 22:18:23 +0200
+Subject: [PATCH] makefile.in: fix libecl flags expansion
+
+Closes #398. Patch provided by Mark Cox.
+---
+ src/Makefile.in | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/Makefile.in b/src/Makefile.in
+index 93b018ec..8568645f 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -171,8 +171,12 @@ $(ECL_CMPDIR)/cmpdefs.lsp: $(ECL_CMPDIR)/cmpdefs.pre
+ 	sed -e 's,@ecldir\\@,$(ecldir),g' \
+ 	    -e 's,@libdir\\@,$(libdir),g' \
+ 	    -e 's,@includedir\\@,$(includedir),g' < $(ECL_CMPDIR)/cmpdefs.pre > $@
++
++# @SONAME_LDFLAGS@ expansion may contain @libdir@ on OSX
+ compile.lsp: compile.pre
+-	sed -e 's,@ecldir\\@,$(ecldir),g' < compile.pre > compile.lsp
++	sed -e 's,@ecldir\\@,$(ecldir),g' \
++            -e 's,@libdir\\@,$(libdir),g' < compile.pre > compile.lsp
++
+ bin/ecl-config: bin/ecl-config.pre
+ 	sed -e 's,@libdir\\@,$(libdir),' \
+ 	    -e 's,@includedir\\@,$(includedir),' \
+-- 
+2.18.1
+
