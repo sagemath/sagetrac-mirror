@@ -1,13 +1,14 @@
 #distutils: language = c++
 #distutils: extra_compile_args = -march=native
+
 r"""
 Several algorithms working implicitly with the hasse_diagram
 (of a polytope), including calculating the f_vector, dimension,
 flags, level-sets and even the face lattice.
 
 This computes implicitely a finite atomic and coatomic lattices,
-where every interval of length two has at exactly 4 elements.
-(Knwon as the diamond property).
+where every interval of length two has at exactly 4 elements
+(known as the diamond property).
 In particular this module calculates quickly the f_vector of polytopes.
 The input must be a tuple of coatoms given each by a tuple of atoms.
 The atoms must be labeled 0,...,n.
@@ -39,12 +40,15 @@ from sage.combinat.posets.lattices import FiniteLatticePoset
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.lattice_polytope import is_LatticePolytope
 
-from cpython cimport array
-import array
+from libc cimport stdint
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from sage.structure.sage_object cimport SageObject
 from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_on_no_except
+
+ctypedef stdint.uint64_t uint64_t
+
+cdef uint64_t test
 
 
 cdef void * aligned_malloc(size_t size, size_t align):
@@ -77,161 +81,123 @@ cdef void aligned_free(void *p):
     sig_free (( <void **>p - 1)[0] )
 
 cdef class ListOfPointers:
-    cdef void ** _data
+    cdef void ** data
     cdef void ** _memory
     # just to be on the safe side, we keep a pointer to the memory here
     # if the user messes with `data`, this should not hurt
-    cdef size_t _length
+    cdef size_t length
 
     def __init__(self, size_t length):
-        self._length = length
+        self.length = length
         self._memory = <void **> sig_malloc(length * sizeof(void *))
-        self._data = self._memory
+        self.data = self._memory
 
     def __dealloc__(self):
         sig_free(self._memory)
 
-    cdef void ** data(self):
-        return self._data
-
-    cdef size_t length(self):
-        return self._length
-
 cdef class ListOfListOfPointers:
-    cdef void *** _data
+    cdef void *** data
     cdef void *** _memory
     cdef void *** _memory1
     # just to be on the safe side, we keep a pointer to the memory here
     # if the user messes with `data`, this should not hurt
-    cdef size_t _length1
-    cdef size_t _length2
+    cdef size_t length1
+    cdef size_t length2
 
     def __init__(self, size_t length1, size_t length2):
         cdef size_t i
-        self._length1 = length1
-        self._length2 = length2
+        self.length1 = length1
+        self.length2 = length2
         self._memory = <void ***> sig_malloc(length1 * sizeof(void **))
         self._memory1 = <void ***> sig_malloc(length1 * sizeof(void **))
         for i in range(length1):
             self._memory1[i] = <void **> sig_malloc(length2 * sizeof(void *))
             self._memory[i] = self._memory1[i]
-        self._data = self._memory
+        self.data = self._memory
 
     def __dealloc(self):
         cdef size_t i
-        for i in range(self._length1):
+        for i in range(self.length1):
             sig_free(self._memory1[i])
         sig_free(self._memory)
         sig_free(self._memory1)
 
-    cdef void *** data(self):
-        return self._data
-
-    cdef size_t length1(self):
-        return self._length1
-
-    cdef size_t length2(self):
-        return self._length2
-
 
 cdef class ListOfFaces:
-    cdef void ** _data
+    cdef void ** data
     cdef void ** _memory
     cdef void ** _memory1
-    cdef size_t _chunksize
-    cdef size_t _nr_faces
-    cdef size_t _length_of_face
-    cdef size_t _max_nr_faces
-    cdef size_t _nr_vertices
+    cdef size_t chunksize
+    cdef size_t nr_faces
+    cdef size_t length_of_face
+    cdef size_t max_nr_faces
+    cdef size_t nr_vertices
     # `_data` is not supposed to change, if memory has been allocated
     # to be on the safe side, we will store the allocated memory in
     # in `_memory`
 
     def __init__ (self, size_t nr_faces, size_t length, size_t chunksize):
         cdef size_t i
-        self._nr_faces = nr_faces
-        self._length_of_face = ((length - 1)/chunksize + 1)
-        # `_length_of_face` is the length in terms chunks of size `chunksize`
+        self.nr_faces = nr_faces
+        self.length_of_face = ((length - 1)/chunksize + 1)
+        # `length_of_face` is the length in terms chunks of size `chunksize`
         self._memory = <void **> sig_malloc(nr_faces * sizeof(void *))
-        self._data = self._memory
-        self._chunksize = chunksize
+        self.data = self._memory
+        self.chunksize = chunksize
         self._memory1 = <void **> PyMem_Malloc(nr_faces * sizeof(void *))
-        self._nr_vertices = length
+        self.nr_vertices = length
         for i in range(nr_faces):
             self._memory1[i] = aligned_malloc(
-                self._length_of_face*chunksize/8, chunksize/8)
+                self.length_of_face*chunksize/8, chunksize/8)
             self._memory[i] = self._memory1[i]
 
     def __dealloc__(self):
         cdef size_t i
-        for i in range(self._nr_faces):
+        for i in range(self.nr_faces):
             aligned_free(self._memory1[i])
         sig_free(self._memory1)
         sig_free(self._memory)
 
     cdef void add_face(self, size_t index, void * face):
-        cdef void * output = self.data()[index]
-        if index >= self.nr_faces():
+        cdef void * output = self.data[index]
+        if index >= self.nr_faces:
             raise IndexError('Only %s faces, cannot add a %sth face'%
-                             (self.nr_faces(), index))
-        copy_face(face, output, self.length_of_face())
+                             (self.nr_faces, index))
+        copy_face(face, output, self.length_of_face)
 
     cdef make_copy(self):
         return ListOfFaces(
-            self._nr_faces, self.nr_vertices(),
-            self._chunksize)
-
-    cdef void ** data(self):
-        return self._data
-
-    cdef size_t chunksize(self):
-        return self._chunksize
-
-    cdef size_t nr_faces(self):
-        return self._nr_faces
+            self.nr_faces, self.nr_vertices,
+            self.chunksize)
 
     cdef size_t length(self):
-        return self._length_of_face*self._chunksize
-
-    cdef size_t length_of_face(self):
-        return self._length_of_face
-
-    cdef size_t max_nr_faces(self):
-        return self._max_nr_faces
-
-    cdef size_t nr_vertices(self):
-        return self._nr_vertices
+        return self.length_of_face*self.chunksize
 
     cdef void sort(self):
-        sort_pointers(self._data, self._nr_faces, self._length_of_face)
+        sort_pointers(self.data, self.nr_faces, self.length_of_face)
 
 
 
 cdef class ListOfListOfFaces:
-    cdef void *** _data
+    cdef void *** data
     cdef void *** _memory
     cdef tuple _lists
-    cdef size_t _nr_lists
+    cdef size_t nr_lists
 
     def __init__(self, size_t nr_lists, size_t nr_faces, size_t length, size_t chunksize):
         cdef size_t i
         cdef ListOfFaces saver
-        self._nr_lists = nr_lists
+        self.nr_lists = nr_lists
         self._memory = <void ***> sig_malloc(nr_lists * sizeof(void **))
-        self._data = self._memory
+        self.data = self._memory
         self._lists = tuple(ListOfFaces(nr_faces, length, chunksize) for i in range(nr_lists))
         for i in range(nr_lists):
             saver = self._lists[i]
-            self._memory[i] = saver.data()
+            self._memory[i] = saver.data
 
     def __dealloc__(self):
         sig_free(self._memory)
 
-    cdef void *** data(self):
-        return self._data
-
-    cdef size_t nr_lists(self):
-        return self._nr_lists
 
     cdef ListOfFaces get_list(self, size_t index):
         return self._lists[index]
@@ -272,12 +238,12 @@ cdef class ListOfListOfFaces:
 cdef int calculate_dimension(ListOfFaces faces):
     cdef size_t nr_faces
     cdef int dim
-    nr_faces = faces.nr_faces()
+    nr_faces = faces.nr_faces
     if nr_faces == 0:
             raise TypeError('Wrong usage of `calculate_dimension`, at least one face needed.')
 
-    return calculate_dimension_loop(faces.data(), nr_faces,
-                                    faces.length_of_face(), faces.chunksize())
+    return calculate_dimension_loop(faces.data, nr_faces,
+                                    faces.length_of_face, faces.chunksize)
 
 
 cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t face_length, size_t chunksize):
@@ -302,8 +268,8 @@ cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t fac
 
     newfaces = ListOfFaces(nr_faces, face_length*chunksize, chunksize)
     newfaces2 = ListOfPointers(nr_faces)
-    newfacesdata = newfaces.data()
-    newfaces2data = newfaces2.data()
+    newfacesdata = newfaces.data
+    newfaces2data = newfaces2.data
     try:
         sig_on()
         new_nr_faces = get_next_level(facesdata, nr_faces, newfacesdata,
@@ -342,27 +308,27 @@ cdef class FaceIterator:
     def __init__(self, ListOfFaces facets, int dimension, int nr_lines):
         if dimension <= 0:
             raise TypeError('FaceIterator expects positive dimensions')
-        if facets.nr_faces() < 0:
+        if facets.nr_faces < 0:
             raise TypeError('FaceIterator expects non-empty `ListOfFaces`')
         self.dimension = dimension
         self.current_dimension = dimension - 1
-        self.length_of_face = facets.length_of_face()
+        self.length_of_face = facets.length_of_face
         self.nr_faces = <size_t *> sig_malloc(dimension * sizeof(size_t))
-        self.nr_facets = facets.nr_faces()
+        self.nr_facets = facets.nr_faces
         self.nr_faces[dimension - 1] = self.nr_facets
         self.nr_forbidden = <size_t *> sig_malloc(dimension * sizeof(size_t))
         self.nr_forbidden[dimension -1] = 0
         self.newfaces2_mem = ListOfListOfPointers(<size_t> dimension,
-                                                      facets.nr_faces())
-        self.newfaces2 = self.newfaces2_mem.data()
-        self.newfaces2[dimension - 1] = facets.data()
+                                                      facets.nr_faces)
+        self.newfaces2 = self.newfaces2_mem.data
+        self.newfaces2[dimension - 1] = facets.data
         self.newfaces_mem = \
-            ListOfListOfFaces(dimension -1, facets.nr_faces(),
-                                  facets.length(), facets.chunksize())
-        self.newfaces = self.newfaces_mem.data()
-        self.forbidden_mem = ListOfPointers(facets.nr_faces())
-        self.forbidden = self.forbidden_mem.data()
-        self.yet_to_yield = facets.nr_faces()
+            ListOfListOfFaces(dimension -1, facets.nr_faces,
+                                  facets.length(), facets.chunksize)
+        self.newfaces = self.newfaces_mem.data
+        self.forbidden_mem = ListOfPointers(facets.nr_faces)
+        self.forbidden = self.forbidden_mem.data
+        self.yet_to_yield = facets.nr_faces
         self.record_dimension = -2
         self.lowest_dimension = nr_lines
         self.nr_lines = nr_lines
@@ -567,10 +533,10 @@ cdef class ListOfAllFaces:
         cdef ListOfFaces some_list
         cdef void ** some_list_data
         cdef void * some_face
-        self.nr_facets = facets.nr_faces()
-        self.nr_vertices = facets.nr_vertices()
-        self.length_of_face_vertex = facets.length_of_face()
-        self.chunksize = facets.chunksize()
+        self.nr_facets = facets.nr_faces
+        self.nr_vertices = facets.nr_vertices
+        self.length_of_face_vertex = facets.length_of_face
+        self.chunksize = facets.chunksize
         self.dimension = dimension
         self.lists_vertex_repr = \
             tuple(ListOfFaces(f_vector[i+1], self.nr_vertices, self.chunksize)
@@ -580,12 +546,12 @@ cdef class ListOfAllFaces:
             (ListOfFaces(1, self.nr_vertices, self.chunksize),)
         # initialize the empty face
         some_list = self.lists_vertex_repr[0]
-        some_list_data = some_list.data()
+        some_list_data = some_list.data
         some_face = some_list_data[0]
         make_trivial_face(0, some_face, self.length_of_face_vertex)
         # intialize the full polyhedron
         some_list = self.lists_vertex_repr[dimension + 1]
-        some_list_data = some_list.data()
+        some_list_data = some_list.data
         some_face = some_list_data[0]
         make_trivial_face(self.nr_vertices, some_face,
                           self.length_of_face_vertex)
@@ -603,7 +569,7 @@ cdef class ListOfAllFaces:
         self.is_sorted = 0
         self.output1 = NULL
         self.output2 = NULL
-        self.facets = facets.data()
+        self.facets = facets.data
         self.incidence_is_initialized = 0
 
     def __dealloc__(self):
@@ -657,8 +623,8 @@ cdef class ListOfAllFaces:
             raise ValueError('Cannot find facet, as those are not sorted')
             # of course one can easily add a function to search for a facet as
             # well, but there seems to be no need for that
-        return find_face(faces.data(), face,
-                         faces.nr_faces(), faces.length_of_face())
+        return find_face(faces.data, face,
+                         faces.nr_faces, faces.length_of_face)
 
     cdef inline int is_equal(self, int dimension, size_t index, void *face):
         r"""
@@ -666,8 +632,8 @@ cdef class ListOfAllFaces:
         index `index`.
         """
         cdef ListOfFaces faces = self.lists_vertex_repr[dimension + 1]
-        cdef void * face2 = faces.data()[index]
-        return is_equal(face, face2, faces.length_of_face())
+        cdef void * face2 = faces.data[index]
+        return is_equal(face, face2, faces.length_of_face)
 
     cdef size_t facet_repr(self, int dimension, size_t index, size_t * output):
         r"""
@@ -679,9 +645,9 @@ cdef class ListOfAllFaces:
         cdef ListOfFaces faces = self.lists_vertex_repr[dimension + 1]
         cdef ListOfFaces facets = self.lists_vertex_repr[self.dimension]
         cdef size_t length_of_face = self.length_of_face_vertex
-        cdef void ** facesdata = faces.data()
+        cdef void ** facesdata = faces.data
         cdef void * face = facesdata[index]
-        return facet_repr_from_bitrep(face, facets.data(), output,
+        return facet_repr_from_bitrep(face, facets.data, output,
                                       nr_facets, length_of_face)
 
     cdef size_t vertex_repr(self, int dimension, size_t index, size_t * output):
@@ -692,7 +658,7 @@ cdef class ListOfAllFaces:
         """
         cdef size_t length_of_face = self.length_of_face_vertex
         cdef ListOfFaces faces = self.lists_vertex_repr[dimension + 1]
-        cdef void ** facesdata = faces.data()
+        cdef void ** facesdata = faces.data
         cdef void * face = facesdata[index]
         return vertex_repr_from_bitrep(face, output, length_of_face)
 
@@ -757,7 +723,7 @@ cdef class ListOfAllFaces:
         if not self.incidence_faces_mem:
             self.incidence_faces_mem = \
                 ListOfFaces(self.nr_facets, self.nr_vertices, self.chunksize)
-        self.incidence_faces = self.incidence_faces_mem.data()
+        self.incidence_faces = self.incidence_faces_mem.data
         self.incidence_dim_one = dimension_one
         self.incidence_dim_two = dimension_two
         self.incidence_counter_one = 0
@@ -803,7 +769,7 @@ cdef class ListOfAllFaces:
         if self.incidence_counter_two == 0:
             dimension_one_faces = \
                 self.lists_vertex_repr[self.incidence_dim_one + 1]
-            dimension_one_data = dimension_one_faces.data()
+            dimension_one_data = dimension_one_faces.data
             face_one = dimension_one_data[self.incidence_counter_one]
             # getting all the faces that face_one can be incident to
             for i in range(self.nr_facets):
@@ -825,8 +791,6 @@ cdef class ListOfAllFaces:
         self.incidence_counter_one += 1
         self.incidence_counter_two = 0
         return self.next_incidence(one, two)
-
-
 
 
 cdef extern from "helper.cc":
@@ -1169,14 +1133,14 @@ cdef class CombinatorialPolyhedron(SageObject):
                     ListOfFaces(nr_facets, nr_vertices,
                                   self.chunksize)
                 get_facets_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_facets.data(),
+                    incidence_matrix, self.bitrep_facets.data,
                     nr_vertices, nr_facets)
                 # initializing the vertices as BitVectors
                 self.bitrep_vertices = \
                     ListOfFaces(nr_vertices, nr_facets,
                                   self.chunksize)
                 get_vertices_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_vertices.data(),
+                    incidence_matrix, self.bitrep_vertices.data,
                     nr_vertices, nr_facets)
             else:
                 self._polar = 1
@@ -1185,14 +1149,14 @@ cdef class CombinatorialPolyhedron(SageObject):
                     ListOfFaces(nr_facets, nr_vertices,
                                   self.chunksize)
                 get_facets_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_vertices.data(),
+                    incidence_matrix, self.bitrep_vertices.data,
                     nr_vertices, nr_facets)
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
                     ListOfFaces(nr_vertices, nr_facets,
                                   self.chunksize)
                 get_vertices_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_facets.data(),
+                    incidence_matrix, self.bitrep_facets.data,
                     nr_vertices, nr_facets)
 
             # cleanup
@@ -1260,14 +1224,14 @@ cdef class CombinatorialPolyhedron(SageObject):
                     ListOfFaces(len(facets), nr_vertices,
                                   self.chunksize)
                 get_facets_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_facets.data(),
+                    facets_pointer, len_facets, self.bitrep_facets.data,
                     nr_vertices, len(facets))
                 # initializing the vertices as BitVectors
                 self.bitrep_vertices = \
                     ListOfFaces(nr_vertices, len(facets),
                                   self.chunksize)
                 get_vertices_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_vertices.data(),
+                    facets_pointer, len_facets, self.bitrep_vertices.data,
                     nr_vertices, len(facets))
             else:
                 self._polar = 1
@@ -1276,14 +1240,14 @@ cdef class CombinatorialPolyhedron(SageObject):
                     ListOfFaces(len(facets), nr_vertices,
                                   self.chunksize)
                 get_facets_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_vertices.data(),
+                    facets_pointer, len_facets, self.bitrep_vertices.data,
                     nr_vertices, len(facets))
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
                     ListOfFaces(nr_vertices, len(facets),
                                   self.chunksize)
                 get_vertices_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_facets.data(),
+                    facets_pointer, len_facets, self.bitrep_facets.data,
                     nr_vertices, len(facets))
 
             # cleanup
@@ -2113,7 +2077,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             facets = self.bitrep_facets
             vertices = self.bitrep_vertices
             face_iter = FaceIterator(facets, dim, self._nr_lines)
-            output = <size_t*> sig_malloc(vertices.nr_faces()*sizeof(size_t))
+            output = <size_t*> sig_malloc(vertices.nr_faces*sizeof(size_t))
 
             if is_f_vector:
                 face_iter.set_record_dimension(1)
@@ -2207,7 +2171,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             facets = self.bitrep_facets
             face_iter = FaceIterator(facets, dim, self._nr_lines)
             face_iter.set_record_dimension(dim - 2)
-            output = <size_t*> sig_malloc(facets.nr_faces()*sizeof(size_t))
+            output = <size_t*> sig_malloc(facets.nr_faces*sizeof(size_t))
             while (face_iter.next_face() == dim - 2):
                 face_iter.facet_repr(output)
                 one = counter/len_edgelist
@@ -2413,7 +2377,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._all_faces = all_faces
         except:
             self._all_faces = None
-
 
     def faces(self, dimension, facet_repr=False, names=True):
         r"""
