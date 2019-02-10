@@ -46,9 +46,6 @@ from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_on_no_except
 from sage.ext.memory_allocator cimport MemoryAllocator
 
-cdef uint64_t test
-
-
 
 cdef void * aligned_malloc(MemoryAllocator mem, size_t size, size_t align):
     #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
@@ -195,8 +192,8 @@ cdef class FaceIterator:
     cdef void * face
     cdef int current_dimension, dimension, record_dimension, lowest_dimension
     cdef MemoryAllocator _mem
-    cdef ListOfListOfFaces newfaces_mem
     cdef void *** newfaces2
+    cdef tuple newfaces_lists
     cdef void *** newfaces
     cdef void ** forbidden
     cdef size_t * nr_faces
@@ -212,6 +209,7 @@ cdef class FaceIterator:
 
     def __init__(self, ListOfFaces facets, int dimension, int nr_lines):
         cdef int i
+        cdef ListOfFaces some_list
         if dimension <= 0:
             raise TypeError('FaceIterator expects positive dimensions')
         if facets.nr_faces < 0:
@@ -234,10 +232,15 @@ cdef class FaceIterator:
                 <void **> self._mem.malloc(self.nr_facets *
                                            sizeof(void *))
         self.newfaces2[dimension - 1] = facets.data
-        self.newfaces_mem = \
-            ListOfListOfFaces(dimension -1, facets.nr_faces,
-                                  facets.length(), facets.chunksize)
-        self.newfaces = self.newfaces_mem.data
+        self.newfaces_lists = \
+            tuple(ListOfFaces(facets.nr_faces, facets.length(),
+                              facets.chunksize)
+                  for i in range(dimension -1))
+        self.newfaces = <void ***> \
+            self._mem.malloc((dimension -1) * sizeof(void **))
+        for i in range(dimension -1):
+            some_list = self.newfaces_lists[i]
+            self.newfaces[i] = some_list.data
         self.forbidden = <void **> \
             self._mem.malloc(facets.nr_faces*sizeof(void *))
         self.yet_to_yield = facets.nr_faces
