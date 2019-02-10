@@ -40,12 +40,10 @@ from sage.combinat.posets.lattices import FiniteLatticePoset
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.lattice_polytope import is_LatticePolytope
 
-from libc cimport stdint
+from libc.stdint cimport uint64_t
 from sage.structure.sage_object cimport SageObject
 from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_on_no_except
-
-ctypedef stdint.uint64_t uint64_t
 
 cdef uint64_t test
 
