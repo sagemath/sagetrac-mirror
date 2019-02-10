@@ -32,7 +32,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 from sage.rings.integer import Integer
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
@@ -49,7 +49,8 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 cdef uint64_t test
 
 
-cdef void * aligned_malloc(size_t size, size_t align):
+
+cdef void * aligned_malloc(MemoryAllocator mem, size_t size, size_t align):
     #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
     #they are a workaround in case that C11 is not available
 
@@ -59,72 +60,19 @@ cdef void * aligned_malloc(size_t size, size_t align):
     # allocate necessary memory for
     # alignment +
     # area to store the address of memory returned by malloc
-    cdef void *p = sig_malloc(size + align-1 + sizeof(void *))
+    cdef void *p = mem.malloc(size + align-1)
     if (p == NULL):
         raise MemoryError()
 
     # address of the aligned memory according to the align parameter
-    cdef void *ptr = <void *> ((<unsigned long>p + sizeof(void *) + align-1) & ~(align-1))
-
-    # store th address of mallc() above at the beginning of our total memory area
-    (<void **>ptr -1)[0] = p
+    cdef void *ptr = <void *> ((<unsigned long>p + align-1) & ~(align-1))
 
     # return the address of aligned memory
     return ptr
 
-cdef void aligned_free(void *p):
-    #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
-
-    # Get address of the memory from start of total memory area
-    sig_free (( <void **>p - 1)[0] )
-
-cdef class ListOfPointers:
-    cdef void ** data
-    cdef void ** _memory
-    # just to be on the safe side, we keep a pointer to the memory here
-    # if the user messes with `data`, this should not hurt
-    cdef size_t length
-
-    def __init__(self, size_t length):
-        self.length = length
-        self._memory = <void **> sig_malloc(length * sizeof(void *))
-        self.data = self._memory
-
-    def __dealloc__(self):
-        sig_free(self._memory)
-
-cdef class ListOfListOfPointers:
-    cdef void *** data
-    cdef void *** _memory
-    cdef void *** _memory1
-    # just to be on the safe side, we keep a pointer to the memory here
-    # if the user messes with `data`, this should not hurt
-    cdef size_t length1
-    cdef size_t length2
-
-    def __init__(self, size_t length1, size_t length2):
-        cdef size_t i
-        self.length1 = length1
-        self.length2 = length2
-        self._memory = <void ***> sig_malloc(length1 * sizeof(void **))
-        self._memory1 = <void ***> sig_malloc(length1 * sizeof(void **))
-        for i in range(length1):
-            self._memory1[i] = <void **> sig_malloc(length2 * sizeof(void *))
-            self._memory[i] = self._memory1[i]
-        self.data = self._memory
-
-    def __dealloc(self):
-        cdef size_t i
-        for i in range(self.length1):
-            sig_free(self._memory1[i])
-        sig_free(self._memory)
-        sig_free(self._memory1)
-
-
 cdef class ListOfFaces:
     cdef void ** data
-    cdef void ** _memory
-    cdef void ** _memory1
+    cdef MemoryAllocator _mem
     cdef size_t chunksize
     cdef size_t nr_faces
     cdef size_t length_of_face
@@ -139,22 +87,16 @@ cdef class ListOfFaces:
         self.nr_faces = nr_faces
         self.length_of_face = ((length - 1)/chunksize + 1)
         # `length_of_face` is the length in terms chunks of size `chunksize`
-        self._memory = <void **> sig_malloc(nr_faces * sizeof(void *))
-        self.data = self._memory
+        self._mem = MemoryAllocator()
+        self.data = <void **> \
+            self._mem.malloc(nr_faces * sizeof(void *))
         self.chunksize = chunksize
-        self._memory1 = <void **> sig_malloc(nr_faces * sizeof(void *))
         self.nr_vertices = length
         for i in range(nr_faces):
-            self._memory1[i] = aligned_malloc(
-                self.length_of_face*chunksize/8, chunksize/8)
-            self._memory[i] = self._memory1[i]
-
-    def __dealloc__(self):
-        cdef size_t i
-        for i in range(self.nr_faces):
-            aligned_free(self._memory1[i])
-        sig_free(self._memory1)
-        sig_free(self._memory)
+            self.data[i] = \
+                <void *> aligned_malloc(self._mem,
+                                        self.length_of_face*chunksize/8,
+                                        chunksize/8)
 
     cdef void add_face(self, size_t index, void * face):
         cdef void * output = self.data[index]
