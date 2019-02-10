@@ -120,7 +120,7 @@ cdef class ListOfFaces:
 
 cdef class ListOfListOfFaces:
     cdef void *** data
-    cdef void *** _memory
+    cdef MemoryAllocator _mem
     cdef tuple _lists
     cdef size_t nr_lists
 
@@ -128,16 +128,14 @@ cdef class ListOfListOfFaces:
         cdef size_t i
         cdef ListOfFaces saver
         self.nr_lists = nr_lists
-        self._memory = <void ***> sig_malloc(nr_lists * sizeof(void **))
-        self.data = self._memory
-        self._lists = tuple(ListOfFaces(nr_faces, length, chunksize) for i in range(nr_lists))
+        self._mem = MemoryAllocator()
+        self.data = \
+            <void ***> self._mem.malloc(nr_lists * sizeof(void **))
+        self._lists = tuple(ListOfFaces(nr_faces, length, chunksize)
+                            for i in range(nr_lists))
         for i in range(nr_lists):
             saver = self._lists[i]
-            self._memory[i] = saver.data
-
-    def __dealloc__(self):
-        sig_free(self._memory)
-
+            self.data[i] = saver.data
 
     cdef ListOfFaces get_list(self, size_t index):
         return self._lists[index]
@@ -221,15 +219,20 @@ cdef class FaceIterator:
         self.dimension = dimension
         self.current_dimension = dimension - 1
         self.length_of_face = facets.length_of_face
-        self.nr_faces = <size_t *> sig_malloc(dimension * sizeof(size_t))
+        self._mem = MemoryAllocator()
+        self.nr_faces = \
+            <size_t *> self._mem.malloc(dimension * sizeof(size_t))
         self.nr_facets = facets.nr_faces
         self.nr_faces[dimension - 1] = self.nr_facets
-        self.nr_forbidden = <size_t *> sig_malloc(dimension * sizeof(size_t))
+        self.nr_forbidden = \
+            <size_t *> self._mem.malloc(dimension * sizeof(size_t))
         self.nr_forbidden[dimension -1] = 0
-        self._mem = MemoryAllocator()
-        self.newfaces2 = <void ***> self._mem.malloc(dimension * sizeof(void **))
+        self.newfaces2 = \
+            <void ***> self._mem.malloc(dimension * sizeof(void **))
         for i in range(dimension - 1):
-            self.newfaces2[i] = <void **> self._mem.malloc(self.nr_facets * sizeof(void *))
+            self.newfaces2[i] = \
+                <void **> self._mem.malloc(self.nr_facets *
+                                           sizeof(void *))
         self.newfaces2[dimension - 1] = facets.data
         self.newfaces_mem = \
             ListOfListOfFaces(dimension -1, facets.nr_faces,
@@ -241,21 +244,12 @@ cdef class FaceIterator:
         self.record_dimension = -2
         self.lowest_dimension = nr_lines
         self.nr_lines = nr_lines
-        self.first_time = <int *> sig_malloc(dimension * sizeof(int))
+        self.first_time = \
+            <int *> self._mem.malloc(dimension * sizeof(int))
         self.first_time[dimension - 1] = 1
         self.output1 = NULL
         self.output2 = NULL
         self.nr_vertices = facets.length()
-
-
-    def __dealloc__(self):
-        sig_free(self.nr_faces)
-        sig_free(self.nr_forbidden)
-        sig_free(self.first_time)
-        if self.output1:
-            sig_free(self.output1)
-        if self.output2:
-            sig_free(self.output2)
 
     cdef void set_record_dimension(self, int dim):
         self.record_dimension = dim
@@ -401,7 +395,8 @@ cdef class FaceIterator:
         """
         if self.output1 is NULL:
             self.output1 = \
-                <size_t *> sig_malloc(self.nr_vertices * sizeof(size_t))
+                <size_t *> self._mem.malloc(self.nr_vertices *
+                                            sizeof(size_t))
         return self.output1
 
     cdef size_t * get_output2_array(self):
@@ -411,11 +406,13 @@ cdef class FaceIterator:
         """
         if self.output2 is NULL:
             self.output2 = \
-                <size_t *> sig_malloc(self.nr_facets * sizeof(size_t))
+                <size_t *> self._mem.malloc(self.nr_facets *
+                                            sizeof(size_t))
         return self.output2
 
 cdef class ListOfAllFaces:
     # cdef tuple lists_facet_repr #might need this for flag-vector
+    cdef MemoryAllocator _mem
     cdef tuple lists_vertex_repr
     cdef size_t nr_facets
     cdef size_t nr_vertices
@@ -442,6 +439,7 @@ cdef class ListOfAllFaces:
         cdef ListOfFaces some_list
         cdef void ** some_list_data
         cdef void * some_face
+        self._mem = MemoryAllocator()
         self.nr_facets = facets.nr_faces
         self.nr_vertices = facets.nr_vertices
         self.length_of_face_vertex = facets.length_of_face
@@ -465,14 +463,16 @@ cdef class ListOfAllFaces:
         make_trivial_face(self.nr_vertices, some_face,
                           self.length_of_face_vertex)
         self.face_counter = \
-            <size_t *> sig_malloc((dimension + 2) * sizeof(size_t))
+            <size_t *> self._mem.malloc((dimension + 2) *
+                                        sizeof(size_t))
         self.face_counter[0] = 1
         self.face_counter[dimension + 1] = 1
         self.face_counter[dimension] = self.nr_facets
         for i in range(1,dimension):
             self.face_counter[i] = 0
         # copy f_vector for later use
-        self.f_vector = <size_t *> sig_malloc((dimension + 2) * sizeof(size_t))
+        self.f_vector = <size_t *> self._mem.malloc((dimension + 2) *
+                                                    sizeof(size_t))
         for i in range(dimension + 2):
             self.f_vector[i] = f_vector[i]
         self.is_sorted = 0
@@ -480,14 +480,6 @@ cdef class ListOfAllFaces:
         self.output2 = NULL
         self.facets = facets.data
         self.incidence_is_initialized = 0
-
-    def __dealloc__(self):
-        sig_free(self.face_counter)
-        sig_free(self.f_vector)
-        if self.output1:
-            sig_free(self.output1)
-        if self.output2:
-            sig_free(self.output2)
 
     cdef void add_face(self, int face_dim, void * face):
         cdef size_t counter = self.face_counter[face_dim + 1]
@@ -578,7 +570,8 @@ cdef class ListOfAllFaces:
         """
         if self.output1 is NULL:
             self.output1 = \
-                <size_t *> sig_malloc(self.nr_vertices * sizeof(size_t))
+                <size_t *> self._mem.malloc(self.nr_vertices *
+                                            sizeof(size_t))
         return self.output1
 
     cdef size_t * get_output2_array(self):
@@ -588,7 +581,8 @@ cdef class ListOfAllFaces:
         """
         if self.output2 is NULL:
             self.output2 = \
-                <size_t *> sig_malloc(self.nr_facets * sizeof(size_t))
+                <size_t *> self._mem.malloc(self.nr_facets *
+                                            sizeof(size_t))
         return self.output2
 
     cdef void incidence_init(self, int dimension_one, int dimension_two):
