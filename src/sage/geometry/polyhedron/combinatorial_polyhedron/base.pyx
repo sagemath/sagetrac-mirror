@@ -44,6 +44,7 @@ from libc.stdint cimport uint64_t
 from sage.structure.sage_object cimport SageObject
 from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_on_no_except
+from sage.ext.memory_allocator cimport MemoryAllocator
 
 cdef uint64_t test
 
@@ -215,7 +216,7 @@ cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t fac
     cdef size_t bitcount, new_nr_faces
     cdef ListOfFaces newfaces
     cdef void ** newfacesdata
-    cdef ListOfPointers newfaces2
+    cdef MemoryAllocator newfaces2
     cdef void ** newfaces2data
     cdef int dim
     cdef int returnvalue
@@ -232,9 +233,9 @@ cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t fac
         return int(bitcount)
 
     newfaces = ListOfFaces(nr_faces, face_length*chunksize, chunksize)
-    newfaces2 = ListOfPointers(nr_faces)
+    newfaces2 = MemoryAllocator()
     newfacesdata = newfaces.data
-    newfaces2data = newfaces2.data
+    newfaces2data = <void **> newfaces2.malloc(nr_faces*sizeof(void *))
     try:
         sig_on()
         new_nr_faces = get_next_level(facesdata, nr_faces, newfacesdata,
@@ -253,9 +254,8 @@ cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t fac
 cdef class FaceIterator:
     cdef void * face
     cdef int current_dimension, dimension, record_dimension, lowest_dimension
-    cdef ListOfListOfPointers newfaces2_mem
+    cdef MemoryAllocator _mem
     cdef ListOfListOfFaces newfaces_mem
-    cdef ListOfPointers forbidden_mem
     cdef void *** newfaces2
     cdef void *** newfaces
     cdef void ** forbidden
@@ -271,6 +271,7 @@ cdef class FaceIterator:
     cdef int nr_lines
 
     def __init__(self, ListOfFaces facets, int dimension, int nr_lines):
+        cdef int i
         if dimension <= 0:
             raise TypeError('FaceIterator expects positive dimensions')
         if facets.nr_faces < 0:
@@ -283,16 +284,17 @@ cdef class FaceIterator:
         self.nr_faces[dimension - 1] = self.nr_facets
         self.nr_forbidden = <size_t *> sig_malloc(dimension * sizeof(size_t))
         self.nr_forbidden[dimension -1] = 0
-        self.newfaces2_mem = ListOfListOfPointers(<size_t> dimension,
-                                                      facets.nr_faces)
-        self.newfaces2 = self.newfaces2_mem.data
+        self._mem = MemoryAllocator()
+        self.newfaces2 = <void ***> self._mem.malloc(dimension * sizeof(void **))
+        for i in range(dimension - 1):
+            self.newfaces2[i] = <void **> self._mem.malloc(self.nr_facets * sizeof(void *))
         self.newfaces2[dimension - 1] = facets.data
         self.newfaces_mem = \
             ListOfListOfFaces(dimension -1, facets.nr_faces,
                                   facets.length(), facets.chunksize)
         self.newfaces = self.newfaces_mem.data
-        self.forbidden_mem = ListOfPointers(facets.nr_faces)
-        self.forbidden = self.forbidden_mem.data
+        self.forbidden = <void **> \
+            self._mem.malloc(facets.nr_faces*sizeof(void *))
         self.yet_to_yield = facets.nr_faces
         self.record_dimension = -2
         self.lowest_dimension = nr_lines
