@@ -1351,12 +1351,14 @@ cdef class NCPolynomialRing_plural(Ring):
             Defining x, y, z
 
             sage: P.monomial_all_divisors(x^2*z^3)
-            [x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
+            [1, x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
 
         ALGORITHM: addwithcarry idea by Toon Segers
         """
-
-        M = list()
+        
+        R = self
+        one = R.base_ring().one()
+        M = [one]
 
         cdef ring *_ring = self._ring
         cdef poly *maxvector = t._poly

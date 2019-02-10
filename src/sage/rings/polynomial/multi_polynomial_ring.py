@@ -888,7 +888,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_all_divisors(x^2*z^3)
-            [x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
+            [1, x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
 
         ALGORITHM: addwithcarry idea by Toon Segers
         """
@@ -906,7 +906,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         R = self
         one = self.base_ring().one()
-        M = list()
+        M = [one]
 
         v, = t.dict()
         maxvector = list(v)
