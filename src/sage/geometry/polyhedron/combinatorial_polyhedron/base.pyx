@@ -115,29 +115,6 @@ cdef class ListOfFaces:
 
 
 
-cdef class ListOfListOfFaces:
-    cdef void *** data
-    cdef MemoryAllocator _mem
-    cdef tuple _lists
-    cdef size_t nr_lists
-
-    def __init__(self, size_t nr_lists, size_t nr_faces, size_t length, size_t chunksize):
-        cdef size_t i
-        cdef ListOfFaces saver
-        self.nr_lists = nr_lists
-        self._mem = MemoryAllocator()
-        self.data = \
-            <void ***> self._mem.malloc(nr_lists * sizeof(void **))
-        self._lists = tuple(ListOfFaces(nr_faces, length, chunksize)
-                            for i in range(nr_lists))
-        for i in range(nr_lists):
-            saver = self._lists[i]
-            self.data[i] = saver.data
-
-    cdef ListOfFaces get_list(self, size_t index):
-        return self._lists[index]
-
-
 cdef int calculate_dimension(ListOfFaces faces):
     cdef size_t nr_faces
     cdef int dim
