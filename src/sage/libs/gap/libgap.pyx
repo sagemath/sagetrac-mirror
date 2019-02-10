@@ -1,8 +1,8 @@
 """
-libGAP shared library Interface to GAP
+Library Interface to GAP
 
-This module implements a fast C library interface to GAP. To use
-libGAP you simply call ``libgap`` (the parent of all
+This module implements a fast C library interface to GAP.
+To use it, you simply call ``libgap`` (the parent of all
 :class:`~sage.libs.gap.element.GapElement` instances) and use it to
 convert Sage objects into GAP objects.
 
@@ -157,12 +157,12 @@ using the recursive expansion of the
     [ 0  0  7  8]
 
 
-Using the libGAP C library from Cython
-======================================
+Using the GAP C library from Cython
+===================================
 
-.. TODO:: Update the following text
+.. TODO:: Expand the following text
 
-   We are using libgap API provided by the GAP project since
+   We are using the GAP API provided by the GAP project since
    GAP 4.10.
 
 AUTHORS:
@@ -224,6 +224,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, RingElement, Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
+from sage.misc.randstate cimport current_randstate
 from sage.misc.superseded import deprecated_function_alias, deprecation
 
 
@@ -356,12 +357,26 @@ class Gap(Parent):
 
         EXAMPLES::
 
-            sage: libgap._construct_matrix(identity_matrix(ZZ,2))
+            sage: M = libgap._construct_matrix(identity_matrix(ZZ,2)); M
             [ [ 1, 0 ], [ 0, 1 ] ]
-            sage: libgap(identity_matrix(ZZ,2))  # syntactic sugar
+            sage: M.IsMatrix()
+            true
+
+            sage: M = libgap(identity_matrix(ZZ,2)); M  # syntactic sugar
             [ [ 1, 0 ], [ 0, 1 ] ]
-            sage: libgap(matrix(GF(3),2,2,[4,5,6,7]))
+            sage: M.IsMatrix()
+            true
+
+            sage: M = libgap(matrix(GF(3),2,2,[4,5,6,7])); M
             [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
+            sage: M.IsMatrix()
+            true
+
+            sage: x = polygen(QQ, 'x')
+            sage: M = libgap(matrix(QQ['x'],2,2,[x,5,6,7])); M
+            [ [ x, 5 ], [ 6, 7 ] ]
+            sage: M.IsMatrix()
+            true
 
         TESTS:
 
@@ -379,7 +394,7 @@ class Gap(Parent):
         except ValueError:
             raise TypeError('base ring is not supported by GAP')
         M_list = map(list, M.rows())
-        return make_GapElement_List(self, make_gap_list(M_list))
+        return make_GapElement_List(self, make_gap_matrix(M_list, gap_ring))
 
     def eval(self, gap_command):
         """
@@ -460,7 +475,7 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: Error, VAL_GVAR: No value bound to FooBar
         """
         is_bound = self.function_factory('IsBoundGlobal')
         bind_global = self.function_factory('BindGlobal')
@@ -485,7 +500,7 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: Error, VAL_GVAR: No value bound to FooBar
         """
         is_readonlyglobal = self.function_factory('IsReadOnlyGlobal')
         make_readwrite = self.function_factory('MakeReadWriteGlobal')
@@ -517,7 +532,7 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: Error, VAL_GVAR: No value bound to FooBar
         """
         value_global = self.function_factory('ValueGlobal')
         return value_global(variable)
@@ -547,6 +562,28 @@ class Gap(Parent):
         """
         from sage.libs.gap.context_managers import GlobalVariableContext
         return GlobalVariableContext(variable, value)
+
+    def set_seed(self, seed=None):
+        """
+        Reseed the standard GAP pseudo-random sources with the given seed.
+
+        Uses a random seed given by ``current_randstate().ZZ_seed()`` if
+        ``seed=None``.  Otherwise the seed should be an integer.
+
+        EXAMPLES::
+
+            sage: libgap.set_seed(0)
+            0
+            sage: [libgap.Random(1, 10) for i in range(5)]
+            [2, 3, 3, 4, 2]
+        """
+        if seed is None:
+            seed = current_randstate().ZZ_seed()
+
+        Reset = self.function_factory("Reset")
+        Reset(self.GlobalMersenneTwister, seed)
+        Reset(self.GlobalRandomSource, seed)
+        return seed
 
     def _an_element_(self):
         r"""
@@ -722,7 +759,7 @@ class Gap(Parent):
     def count_GAP_objects(self):
         """
         Return the number of GAP objects that are being tracked by
-        libGAP
+        GAP.
 
         OUTPUT:
 

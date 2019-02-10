@@ -1159,7 +1159,7 @@ cdef class EclObject:
 
         Strings are not characters
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.libs.ecl import *
             sage: EclObject('"a"').characterp()

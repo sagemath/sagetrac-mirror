@@ -14,7 +14,7 @@ from __future__ import print_function, absolute_import
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
-from sage.structure.element cimport coercion_model
+from sage.structure.coerce cimport coercion_model
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
 from sage.structure.element cimport Element
@@ -2330,7 +2330,7 @@ cdef class MPolynomial(CommutativeRingElement):
             z, th = covariant_z0(F, prec=prec, emb=emb, z0_cov=True)
         z = CF(z)
         # this moves z_0 to our fundamental domain using the three steps laid
-        # out in the algorithim by [CS2003]
+        # out in the algorithm by [CS2003]
         # this is found in section 5 of their paper
         M = matrix(QQ, [[1,0], [0,1]]) # used to keep track of how our z is moved.
         zc = z.center()
