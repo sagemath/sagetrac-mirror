@@ -41,7 +41,6 @@ from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.lattice_polytope import is_LatticePolytope
 
 from libc cimport stdint
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from sage.structure.sage_object cimport SageObject
 from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_on_no_except
@@ -144,7 +143,7 @@ cdef class ListOfFaces:
         self._memory = <void **> sig_malloc(nr_faces * sizeof(void *))
         self.data = self._memory
         self.chunksize = chunksize
-        self._memory1 = <void **> PyMem_Malloc(nr_faces * sizeof(void *))
+        self._memory1 = <void **> sig_malloc(nr_faces * sizeof(void *))
         self.nr_vertices = length
         for i in range(nr_faces):
             self._memory1[i] = aligned_malloc(
@@ -201,38 +200,6 @@ cdef class ListOfListOfFaces:
 
     cdef ListOfFaces get_list(self, size_t index):
         return self._lists[index]
-
-
-    """
-    def face_iter_method(self, dimension):
-        facets = self
-        nr_facets = facets.nr_faces
-        face_length = facets.length_of_face
-        newfaces = tuple(facets.make_copy() for _ in range(dimension - 1))
-        newfaces2 = tuple(facets.make_copy(allocation=False) for _ in range(dimension - 1))
-        cdef ListOfFaces forbidden = facets.make_copy()
-        cdef ListOfFaces saver
-        cdef void *** newfacespointer = <void ***> PyMem_Malloc((dimension - 1) * sizeof(void **))
-        cdef void *** newfaces2pointer = <void ***> PyMem_Malloc((dimension - 1) * sizeof(void **))
-        cdef FaceIterator_ptr it
-        cdef unsigned int face_dimension
-        for i in range(dimension -1):
-            saver = newfaces[i]
-            newfacespointer[i] = saver.data
-            saver = newfaces2[i]
-            newfaces2pointer[i] = saver.data
-        saver = facets
-        yield 2
-        it = FaceIterator_init(saver.data, newfacespointer, newfaces2pointer, forbidden.data, dimension, nr_facets, face_length)
-        yield 2
-        face_dimension = FaceIterator_call(it)
-        while (face_dimension < dimension):
-            yield face_dimension
-            face_dimension = FaceIterator_call(it)
-        FaceIterator_del(it)
-        PyMem_Free(newfacespointer)
-        PyMem_Free(newfaces2pointer)
-    """
 
 
 cdef int calculate_dimension(ListOfFaces faces):
@@ -1115,11 +1082,11 @@ cdef class CombinatorialPolyhedron(SageObject):
                 return
 
             incidence_matrix = \
-                <unsigned int**> PyMem_Malloc(len(tup)*
+                <unsigned int**> sig_malloc(len(tup)*
                                               sizeof(unsigned int *))
             for i in range(len(tup)):
                 incidence_matrix[i] = \
-                    <unsigned int*> PyMem_Malloc(self._length_Vrep *
+                    <unsigned int*> sig_malloc(self._length_Vrep *
                                                  sizeof(unsigned int))
                 for j in range(self._length_Vrep):
                     incidence_matrix[i][j] = tup[i][j]
@@ -1161,8 +1128,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # cleanup
             for i in range(len(tup)):
-                PyMem_Free(incidence_matrix[i])
-            PyMem_Free(incidence_matrix)
+                sig_free(incidence_matrix[i])
+            sig_free(incidence_matrix)
 
         elif isinstance(data, Integer):  # intput for a trivial Polyhedron
             if data < -1:
@@ -1205,14 +1172,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._nr_facets = len(facets)
             self._length_Hrep = len(facets)
             facets_pointer = \
-                <unsigned int**> PyMem_Malloc(len(facets) * sizeof(unsigned int *))
+                <unsigned int**> sig_malloc(len(facets) * sizeof(unsigned int *))
             len_facets = \
-                <unsigned int*> PyMem_Malloc(len(facets) *
+                <unsigned int*> sig_malloc(len(facets) *
                                              sizeof(unsigned int))
             for i in range(len(facets)):
                 len_facets[i] = len(facets[i])
                 facets_pointer[i] = \
-                    <unsigned int*> PyMem_Malloc(len_facets[i] *
+                    <unsigned int*> sig_malloc(len_facets[i] *
                                                  sizeof(unsigned int))
                 for j in range(len_facets[i]):
                     facets_pointer[i][j] = facets[i][j]
@@ -1252,9 +1219,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # cleanup
             for i in range(len(facets)):
-                PyMem_Free(facets_pointer[i])
-            PyMem_Free(facets_pointer)
-            PyMem_Free(len_facets)
+                sig_free(facets_pointer[i])
+            sig_free(facets_pointer)
+            sig_free(len_facets)
 
     def __dealloc__(self):
         r"""
