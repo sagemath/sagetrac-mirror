@@ -406,7 +406,7 @@ def orbits_lines_mod_p(self, p):
     gens = self.automorphism_group().gens()
     gens = [g.matrix().transpose().change_ring(GF(p)) for g in gens]
     orbs = libgap.function_factory("""function(gens, p)
-    local one, G, reps, V;
+    local one, G, reps, V, n, orb;
     one:= One(GF(p));
     G:=Group(List(gens, g -> g*one));
     n:= Size(gens[1]);
@@ -416,9 +416,9 @@ def orbits_lines_mod_p(self, p):
     return reps;
     end;""")
     from sage.interfaces.gap import get_gap_memory_pool_size, set_gap_memory_pool_size
-    memory_gap = get_gap_memory_pool_size()
-    set_gap_memory_pool_size(8*memory_gap)
+    #memory_gap = get_gap_memory_pool_size()
+    #set_gap_memory_pool_size(1028*memory_gap)
     orbs_reps = orbs(gens, p)
-    set_gap_memory_pool_size(memory_gap)
+    #set_gap_memory_pool_size(memory_gap)
     M = GF(p)**self.dim()
     return [M(m.sage()) for m in orbs_reps]
