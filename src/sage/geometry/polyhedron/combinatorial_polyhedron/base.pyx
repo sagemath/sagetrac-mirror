@@ -1,14 +1,9 @@
-# The actual algorithm is implemented in the C++ file partitions_c.cc
-# which requires the GMP, MPFR and NTL libraries.
-
 #distutils: language = c++
 #distutils: extra_compile_args = -march=native
 r"""
 Several algorithms working implicitly with the hasse_diagram
 (of a polytope), including calculating the f_vector, dimension,
 flags, level-sets and even the face lattice.
-
-This is a wrapper for the functions in hasse_diagram.cc.
 
 This computes implicitely a finite atomic and coatomic lattices,
 where every interval of length two has at exactly 4 elements.
