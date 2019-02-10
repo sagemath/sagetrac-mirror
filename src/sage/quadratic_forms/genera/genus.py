@@ -82,30 +82,31 @@ def my_zeta(s,D, max_terms=40000):
     D = ZZ(D)
     return RR.sum(D.jacobi(m)/RR(m)**s for m in range(1,max_terms,2))
 
-def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
+
+genera(sig_pair, determinant, max_scale=None, even=False):
     r"""
     Return a list of all global genera with the given conditions.
 
-    Here a genus is called global if it is non empty.
+    Here a genus is called global if it is non-empty.
 
     INPUT:
 
     - ``sig_pair`` -- a pair of non-negative integers giving the signature
 
-    - ``determinant`` -- an integer the sign is ignored
+    - ``determinant`` -- an integer; the sign is ignored
 
-    - ``max_scale`` -- (default: ``True``) an integer; the maximum scale of a jordan block
+    - ``max_scale`` -- (default: ``None``) an integer; the maximum scale of a
+      jordan block
 
-    - ``even`` -- bool (default: ``True``)
+    - ``even`` -- boolean (default: ``False``)
 
     OUTPUT:
 
-    A list of all global genera with the given conditions.
+    A list of all (non-empty) global genera with the given conditions.
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import all_genera_by_det
-        sage: all_genera_by_det((4,0), 125, even=True)
+        sage: QuadraticForm.genera((4,0), 125, even=True)
         [Genus of
         None
         Signature:  (4, 0)
@@ -129,27 +130,25 @@ def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
     ZZ = IntegerRing()
     determinant = ZZ(determinant)
     sig_pair = (ZZ(sig_pair[0]), ZZ(sig_pair[1]))
-    if not all([s >= 0 for s in sig_pair]):
+    even = bool(even)
+    if not all(s >= 0 for s in sig_pair):
         raise ValueError("the signature vector must be a pair of non negative integers.")
-    if max_scale == None:
+    if max_scale is None:
         max_scale = determinant
     else:
         max_scale = ZZ(max_scale)
-    if type(even) != bool:
-        raise ValueError("not a boolean")
-
     rank = sig_pair[0] + sig_pair[1]
     genera = []
     local_symbols = []
     # every global genus has a 2-adic symbol
     if determinant % 2 != 0:
-        local_symbols.append(_all_p_adic_genera(2, rank, 0, 0, even=even))
+        local_symbols.append(_local_genera(2, rank, 0, 0, even=even))
     # collect the p-adic symbols
     for pn in determinant.factor():
         p = pn[0]
         det_val = pn[1]
         mscale_p = max_scale.valuation(p)
-        local_symbol_p = _all_p_adic_genera(p, rank, det_val, mscale_p, even)
+        local_symbol_p = _local_genera(p, rank, det_val, mscale_p, even)
         local_symbols.append(local_symbol_p)
     # take the cartesian product of the collection of all possible
     # local genus symbols one for each prime
@@ -163,15 +162,17 @@ def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
         # discard the empty genera
         if is_GlobalGenus(G):
             genera.append(G)
-    # for testing
+    # render the output deterministic for testing
     genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
     return(genera)
 
-def _all_p_adic_genera(p, rank, det_val, max_scale, even):
+all_genera_by_det=genera
+
+def _local_genera(p, rank, det_val, max_scale, even):
     r"""
     Return all `p`-adic genera with the given conditions.
 
-    This is a helper function for :meth:`all_genera_by_det`.
+    This is a helper function for :meth:`genera`.
     No input checks are done.
 
     INPUT:
@@ -188,8 +189,8 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import _all_p_adic_genera
-        sage: _all_p_adic_genera(2,3,1,2,False)
+        sage: from sage.quadratic_forms.genera.genus import _local_genera
+        sage: _local_genera(2,3,1,2,False)
         [Genus symbol at 2:    1^-2 [2^1]_1,
          Genus symbol at 2:    1^2 [2^1]_1,
          Genus symbol at 2:    1^2 [2^1]_7,
@@ -205,9 +206,9 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
 
     Setting a maximum scale::
 
-        sage: _all_p_adic_genera(5, 2, 2, 1, True)
+        sage: _local_genera(5, 2, 2, 1, True)
         [Genus symbol at 5:     5^-2, Genus symbol at 5:     5^2]
-        sage: _all_p_adic_genera(5, 2, 2, 2, True)
+        sage: _local_genera(5, 2, 2, 2, True)
         [Genus symbol at 5:     1^-1 25^-1,
          Genus symbol at 5:     1^1 25^-1,
          Genus symbol at 5:     1^-1 25^1,
@@ -271,7 +272,7 @@ def _blocks(b, even_only=False):
     r"""
     Return all viable `2`-adic jordan blocks with rank and scale given by ``b``
 
-    This is a helper function for :meth:`_all_p_adic_genera`.
+    This is a helper function for :meth:`_local_genera`.
     It is based on the existence conditions for a modular `2`-adic genus symbol.
 
     INPUT:
