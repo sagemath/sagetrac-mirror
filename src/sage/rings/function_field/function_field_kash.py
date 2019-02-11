@@ -97,7 +97,7 @@ from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from .function_field import RationalFunctionField
-from .function_field import FunctionFieldElement_rational
+from .function_field import FunctionFieldElement, FunctionFieldElement_rational
 from .function_field import FunctionField_polymod
 from .function_field import FunctionFieldElement_polymod
 from .differential import DifferentialsSpace, FunctionFieldDifferential_global
@@ -260,7 +260,23 @@ class RationalFunctionField_kash(RationalFunctionField):
         Extend the constant field to express `arg`.
         (only for function fields over QQbar)
 
-        Currently, `arg` can only be a FunctionFieldDivisor.
+        Currently, `arg` can only be a list of polynomials or a FunctionFieldDivisor.
+
+        TESTS::
+
+        basis_function_space() creates an ideal(1), which broke this code before it
+        checked if g was a FunctionFieldElement before calling g.parent()
+
+            sage: F.<x> = FunctionField(QQbar, implementation='kash')
+            sage: R.<Y> = F[]
+            sage: L.<y> = F.extension(Y^2 - x^8 - 1)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(x, y-1)
+            sage: P = I.place()
+            sage: D = P.divisor()
+            sage: D.basis_function_space()
+            [1]
+
         """
 
         # XXX - should also be able to factor polynomials in the extension function field C(x,y)
@@ -273,7 +289,7 @@ class RationalFunctionField_kash(RationalFunctionField):
             arg = itertools.chain.from_iterable([pls.prime_ideal().gens() for pls in arg.support()])
 
         for g in arg:
-            if g.parent() is self:
+            if isinstance(g, FunctionFieldElement) and g.parent() is self:
                 for r,m in g.element().numerator().change_ring(QQbar).roots():
                     algebraics.append(r)
 
