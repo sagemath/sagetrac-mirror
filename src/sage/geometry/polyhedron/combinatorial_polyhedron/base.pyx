@@ -114,7 +114,6 @@ cdef class ListOfFaces:
         sort_pointers(self.data, self.nr_faces, self.length_of_face)
 
 
-
 cdef int calculate_dimension(ListOfFaces faces):
     cdef size_t nr_faces
     cdef int dim
@@ -501,11 +500,36 @@ cdef class ListOfAllFaces:
         if not self.is_sorted:
             raise ValueError('`ListOfAllFaces` needs to be sorted first')
         if dimension == self.dimension -1:
-            raise ValueError('Cannot find facet, as those are not sorted')
+            raise ValueError('cannot find a facet, as those are not sorted')
             # of course one can easily add a function to search for a facet as
             # well, but there seems to be no need for that
-        return find_face(faces.data, face,
-                         faces.nr_faces, faces.length_of_face)
+        cdef size_t start = 0
+        cdef size_t middle
+        cdef nr_faces = faces.nr_faces
+        cdef uint64_t ** list_faces = faces.data
+        while (nr_faces > 1):
+            # this is a straightfo
+            middle = nr_faces/2
+            if self.is_smaller(face, list_faces[middle + start]):
+                nr_faces = middle
+            else:
+                nr_faces -= middle
+                start += middle
+        return start
+
+    cdef inline int is_smaller(self, uint64_t * one, uint64_t * two):
+        r"""
+        Returns 1 if `one` is smaller than `two`, otherwise 0.
+        Expects `one` and `two` to be in vertex-representation.
+        """
+        cdef size_t i
+        cdef size_t leng = self.length_of_face_vertex*self.chunksize/64
+        for i in range(leng):
+            if one[i] < two[i]:
+                return 1
+            if two[i] < one[i]:
+                return 0
+        return 0
 
     cdef inline int is_equal(self, int dimension, size_t index,
                              uint64_t *face):
@@ -682,7 +706,6 @@ cdef class ListOfAllFaces:
         self.incidence_counter_one += 1
         self.incidence_counter_two = 0
         return self.next_incidence(one, two)
-
 
 cdef extern from "helper.cc":
     cdef const unsigned int chunksize;
