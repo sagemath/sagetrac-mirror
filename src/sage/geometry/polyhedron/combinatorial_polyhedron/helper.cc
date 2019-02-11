@@ -36,8 +36,8 @@
     const unsigned int chunksize = 256;
     #define bitwise_intersection(one,two) _mm256_and_si256((one),(two)) // this is supposed to something as (one) & (two)
     #define bitwise_is_not_subset(one,two) !_mm256_testc_si256((two),(one)) // this is supposed to something as (one) & ~(two)
-    #define store_register(one,two) _mm256_storeu_si256((__m256i*)&(one),(two)) //this is supposed to be something as one = two, where two is a register
-    #define load_register(one,two) (one) = _mm256_loadu_si256((const __m256i*)&(two)) //this is supposed to be somethign as one = two, where one is a register
+    #define store_register(one,two) _mm256_store_si256((__m256i*)&(one),(two)) //this is supposed to be something as one = two, where two is a register
+    #define load_register(one,two) (one) = _mm256_load_si256((const __m256i*)&(two)) //this is supposed to be somethign as one = two, where one is a register
 
 #elif __SSE4_1__
     //128 bit commands
@@ -47,8 +47,8 @@
     const unsigned int chunksize = 128;
     #define bitwise_intersection(one,two) _mm_and_si128((one),(two))
     #define bitwise_is_not_subset(one,two) !_mm_testc_si128((two),(one))
-    #define store_register(one,two) _mm_storeu_si128((__m128i*)&(one),(two))
-    #define load_register(one,two) (one) = _mm_loadu_si128((const __m128i*)&(two))
+    #define store_register(one,two) _mm_store_si128((__m128i*)&(one),(two))
+    #define load_register(one,two) (one) = _mm_load_si128((const __m128i*)&(two))
 
 #else
     //64 bit commands
@@ -98,25 +98,31 @@ inline unsigned int naive_popcount(uint64_t A){
 
 
 
-inline void intersection(void *A1, void *B1, void *C1, size_t face_length){
+inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+                         size_t face_length){
     // will set C to be the intersection of A and B
     size_t i;
-    chunktype *A = (chunktype *) A1;
-    chunktype *B = (chunktype *) B1;
-    chunktype *C = (chunktype *) C1;
+    chunktype a;
+    chunktype b;
+    chunktype c;
     for (i = 0; i < face_length; i++){
-        C[i] = bitwise_intersection(A[i],B[i]);
+        load_register(a,A[i*chunksize/64]);
+        load_register(b,B[i*chunksize/64]);
+        c = bitwise_intersection(a,b);
+        store_register(C[i*chunksize/64],c);
     }
 }
 
-inline int is_subset(void *A1, void *B1, size_t face_length){
+inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
     //returns 1 if A is a proper subset of B, otherwise returns 0,
     // this is done by checking if there is an element in A, which is not in B
     size_t i;
-    chunktype *A = (chunktype *) A1;
-    chunktype *B = (chunktype *) B1;
+    chunktype a;
+    chunktype b;
     for (i = 0; i < face_length; i++){
-        if (bitwise_is_not_subset(A[i],B[i])){
+        load_register(a,A[i*chunksize/64]);
+        load_register(b,B[i*chunksize/64]);
+        if (bitwise_is_not_subset(a,b)){
             return 0;
         }
     }
@@ -124,24 +130,21 @@ inline int is_subset(void *A1, void *B1, size_t face_length){
 }
 
 
-inline size_t CountFaceBits(void* A2, size_t face_length) {
+inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
     // counts the number of vertices in a face by counting bits set to one
     size_t i;
     unsigned int count = 0;
-    chunktype *A1 = (chunktype *) A2;
-    const unsigned int length_of_conversion_face = face_length*chunksize/64;
-    uint64_t A[length_of_conversion_face];
-    for (i=0;i<face_length;i++){
-        store_register(A[i*chunksize/64],A1[i]);
-    }
-    for (i=0;i<length_of_conversion_face;i++){
+    for (i=0;i<face_length*chunksize/64;i++){
         count += (size_t) popcount(A[i]);
     }
     return count;
 }
 
 
-inline size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, void **nextfaces2, void **forbidden, size_t nr_forbidden, size_t face_length){
+inline size_t get_next_level(\
+        uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
+        uint64_t **nextfaces2, uint64_t **forbidden, \
+        size_t nr_forbidden, size_t face_length){
     // intersects the first `lenfaces - 1` faces of `faces` with'faces[lenfaces-1]`
     // determines which ones are exactly of one dimension less
     // by considering containment
@@ -202,74 +205,68 @@ inline size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, vo
 }
 
 
-void char_from_incidence_list(unsigned int *incidence_list, size_t nr_vertices, \
-                              chunktype *array1, size_t face_length){
+void char_from_incidence_list(unsigned int *incidence_list, \
+                              size_t nr_vertices, \
+                              uint64_t *output, size_t face_length){
     size_t entry, position, value, i;
-    const size_t size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    for (i = 0; i < face_length*chunksize/64; i++){
+        output[i] = 0;
+    }
     while (nr_vertices--) {
         entry = incidence_list[nr_vertices];
         if (entry){
             value = nr_vertices % 64;
             position = nr_vertices/64;
-            array[position] += vertex_to_bit_dictionary[value];
+            output[position] += vertex_to_bit_dictionary[value];
         }
     }
-    for (i=0;i<face_length;i++){
-        load_register(array1[i],array[i*chunksize/64]);
-    }
-    delete[] array;
 }
 
 void char_from_array(unsigned int* input, unsigned int len, \
-                     chunktype *array1, size_t face_length){
+                     uint64_t *output, size_t face_length){
     size_t entry, position, value, i;
-    const size_t size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    for (i = 0; i < face_length*chunksize/64; i++){
+        output[i] = 0;
+    }
     while (len--) {
         entry = input[len];
         value = entry % 64;
         position = entry/64;
-        array[position] += vertex_to_bit_dictionary[value];
+        output[position] += vertex_to_bit_dictionary[value];
     }
-    for (i=0;i<face_length;i++){
-        load_register(array1[i],array[i*chunksize/64]);
-    }
-    delete[] array;
 }
 
-void make_trivial_face(size_t nr_vertices, void * output, size_t face_length){
+void make_trivial_face(size_t nr_vertices, uint64_t * output, \
+                       size_t face_length){
     build_dictionary();
-    chunktype * array1 = (chunktype *) output;
     size_t entry, position, value, i;
-    const size_t size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    for (i = 0; i < face_length*chunksize/64; i++){
+        output[i] = 0;
+    }
     for (entry = 0; entry < nr_vertices; entry++){
         value = entry % 64;
         position = entry/64;
-        array[position] += vertex_to_bit_dictionary[value];
+        output[position] += vertex_to_bit_dictionary[value];
     }
-    for (i=0;i<face_length;i++){
-        load_register(array1[i],array[i*chunksize/64]);
-    }
-    delete[] array;
 }
 
-void get_facets_from_incidence_matrix(unsigned int **incidence_matrix, void **facets, \
-                                      size_t nr_vertices, size_t nr_facets){
+void get_facets_from_incidence_matrix(\
+        unsigned int **incidence_matrix, uint64_t **facets, \
+        size_t nr_vertices, size_t nr_facets){
     build_dictionary();
     size_t i;
     size_t length_of_face = ((nr_vertices - 1)/chunksize + 1);
     //this determines the length of the face in terms of chunktype
     for(i = 0; i<nr_facets; i++){
         char_from_incidence_list(incidence_matrix[i], nr_vertices, \
-                                (chunktype *) facets[i], length_of_face);
+                                 facets[i], length_of_face);
     }
 }
 
 
-void get_vertices_from_incidence_matrix(unsigned int **incidence_matrix, void **vertices, \
-                                        size_t nr_vertices, size_t nr_facets){
+void get_vertices_from_incidence_matrix(\
+        unsigned int **incidence_matrix, uint64_t **vertices, \
+        size_t nr_vertices, size_t nr_facets){
     build_dictionary();
     size_t i, j;
     size_t face_length = ((nr_facets - 1)/chunksize + 1);
@@ -287,26 +284,28 @@ void get_vertices_from_incidence_matrix(unsigned int **incidence_matrix, void **
             }
         }
         char_from_array(new_facets_array, length_that_face, \
-                        (chunktype *) vertices[i], face_length);
+                        vertices[i], face_length);
     }
 }
 
 
 void get_facets_bitrep_from_facets_pointer( \
         unsigned int ** facets_input, unsigned int *len_facets, \
-        void ** facets_output, size_t nr_vertices, size_t nr_facets){
+        uint64_t ** facets_output, size_t nr_vertices, \
+        size_t nr_facets){
     size_t i;
     size_t face_length = ((nr_vertices - 1)/chunksize + 1);
     //this determines the length of the face in terms of chunktype
     for(i = 0; i<nr_facets; i++){
         char_from_array(facets_input[i], len_facets[i], \
-                        (chunktype *) facets_output[i], face_length);
+                        facets_output[i], face_length);
     }
 }
 
 void get_vertices_bitrep_from_facets_pointer( \
         unsigned int ** facets_input, unsigned int *len_facets, \
-        void ** vertices_output, size_t nr_vertices, size_t nr_facets){
+        uint64_t ** vertices_output, size_t nr_vertices, \
+        size_t nr_facets){
     size_t i,j;
     size_t face_length = ((nr_facets - 1)/chunksize + 1);
     //this determines the length in facet representation in terms of chunktype
@@ -314,9 +313,9 @@ void get_vertices_bitrep_from_facets_pointer( \
     unsigned int *old_facets_walker = new unsigned int [size_three]();
     unsigned int new_facets_array[size_three];
     unsigned int length_that_face;
-    for(i = 0;i<nr_vertices;i++){
+    for(i = 0; i<nr_vertices; i++){
         length_that_face = 0;
-        for (j=0;j < nr_facets;j++){
+        for (j=0; j < nr_facets; j++){
             if (i == facets_input[j][old_facets_walker[j]]){
                 //testing if vertex i is contained in the j-th facet
                 new_facets_array[length_that_face] = j;
@@ -327,13 +326,14 @@ void get_vertices_bitrep_from_facets_pointer( \
             }
         }
         char_from_array(new_facets_array, length_that_face, \
-                        (chunktype *) vertices_output[i], face_length);
+                        vertices_output[i], face_length);
     }
     delete[] old_facets_walker;
 }
 
-size_t facet_repr_from_bitrep(void *face, void **facets, size_t *output, \
-                              size_t nr_facets, size_t length_of_face){
+size_t facet_repr_from_bitrep(uint64_t *face, uint64_t **facets, \
+                              size_t *output, size_t nr_facets, \
+                              size_t length_of_face){
     // Writes the facet_repr of the current face in output.
     // Returns the length of the representation.
     size_t counter = 0;
@@ -347,47 +347,42 @@ size_t facet_repr_from_bitrep(void *face, void **facets, size_t *output, \
     return counter;
 }
 
-size_t vertex_repr_from_bitrep(void *face1, size_t *output, \
+size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output, \
                                size_t length_of_face){
     build_dictionary();
-    chunktype * face = (chunktype *) face1;
     size_t i,j;
     size_t counter = 0;
-    const size_t size_array = length_of_face*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
-    for (i = 0; i < length_of_face; i++){
-        store_register(array[i*chunksize/64], face[i]);
-    }
-    for (i = 0; i < size_array; i++){
-        if (array[i]){
+    uint64_t copy;
+    for (i = 0; i < length_of_face*chunksize/64; i++){
+        if (face[i]){
+            copy = face[i];
             for (j = 0; j < 64; j++){
-                if (array[i] >= vertex_to_bit_dictionary[j]){
+                if (copy >= vertex_to_bit_dictionary[j]){
                     output[counter] = i*64 + j;
                     counter++;
-                    array[i] -= vertex_to_bit_dictionary[j];
+                    copy -= vertex_to_bit_dictionary[j];
                 }
             }
         }
     }
-    delete[] array;
     return counter;
 }
 
-void copy_face(void *input1, void *output1, size_t length_of_face){
+void copy_face(uint64_t *input1, uint64_t *output1, \
+               size_t length_of_face){
     size_t i;
-    chunktype *input = (chunktype *) input1;
-    chunktype *output = (chunktype *) output1;
+    chunktype input;
     for (i = 0; i < length_of_face; i++){
-        store_register(output[i], input[i]);
+        load_register(input, input1[i*chunksize/64]);
+        store_register(output1[i*chunksize/64], input);
     }
 }
 
 
-inline int is_smaller(void * one1, void * two1, size_t length_of_face1){
+inline int is_smaller(uint64_t * one, uint64_t * two, \
+                      size_t length_of_face1){
     // returns 1 if `one1` is smaller than `two1`
     // otherwise returns 0
-    uint64_t * one = (uint64_t *) one1;
-    uint64_t * two = (uint64_t *) two1;
     size_t i;
     for (i = 0; i < length_of_face1; i++){
         if (one[i] < two[i])
@@ -398,8 +393,9 @@ inline int is_smaller(void * one1, void * two1, size_t length_of_face1){
     return 0;
 }
 
-void sort_pointers_loop(void **input, void **output1, void **output2, \
-                        size_t nr_faces, size_t length_of_face1){
+void sort_pointers_loop(uint64_t **input, uint64_t **output1, \
+                        uint64_t **output2, size_t nr_faces, \
+                        size_t length_of_face1){
     // this is mergesort
     // sorts the faces in input and returns them in output1
     // BEWARE: Input is the same as output1 or output2
@@ -440,16 +436,17 @@ void sort_pointers_loop(void **input, void **output1, void **output2, \
 }
 
 
-void sort_pointers(void **input, size_t nr_faces, size_t length_of_face){
+void sort_pointers(uint64_t **input, size_t nr_faces, \
+                   size_t length_of_face){
     // sorts nr_faces in `input` according to their values
     size_t length_of_face1 = length_of_face*chunksize/64;
     const size_t const_nr_faces = nr_faces;
-    void *input2[const_nr_faces];
+    uint64_t *input2[const_nr_faces];
     sort_pointers_loop(input, input, input2, nr_faces, length_of_face1);
 }
 
 
-size_t find_face(void **list, void *face, size_t nr_faces, \
+size_t find_face(uint64_t **list, uint64_t *face, size_t nr_faces, \
                  size_t length_of_face){
     // finds the position of `face` in `list` (assumed to be sorted)
     // does not check, if the result is actually correct, i.e. if `face`
@@ -470,9 +467,7 @@ size_t find_face(void **list, void *face, size_t nr_faces, \
     return start;
 }
 
-int is_equal(void *one1, void *two1, size_t length_of_face){
-    uint64_t * one = (uint64_t *) one1;
-    uint64_t * two = (uint64_t *) two1;
+int is_equal(uint64_t *one, uint64_t *two, size_t length_of_face){
     size_t i;
     size_t length_of_face1 = length_of_face*chunksize/64;
     for (i = 0; i < length_of_face1; i++){
