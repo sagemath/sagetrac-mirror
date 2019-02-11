@@ -67,21 +67,8 @@ cdef extern from "helper.cc":
 
     cdef size_t CountFaceBits(uint64_t * A, size_t face_length)
 
-    cdef void get_facets_from_incidence_matrix(\
-        unsigned int **incidence_matrix, uint64_t **facets, \
-        size_t nr_vertices, size_t nr_facets)
-
-    cdef void get_vertices_from_incidence_matrix(\
-        unsigned int **incidence_matrix, uint64_t **vertices, \
-        size_t nr_vertices, size_t nr_facets)
-
-    cdef void get_vertices_bitrep_from_facets_pointer( \
-        unsigned int ** facets_input, unsigned int *len_facets, \
-        uint64_t ** vertices_output, size_t nr_vertices, size_t nr_facets)
-
-    cdef void get_facets_bitrep_from_facets_pointer( \
-        unsigned int ** facets_input, unsigned int *len_facets, \
-        uint64_t ** facets_output, size_t nr_vertices, size_t nr_facets)
+    cdef void copy_face(uint64_t *input1, uint64_t *output1, \
+                        size_t length_of_face)
 
     cdef size_t facet_repr_from_bitrep(\
         uint64_t *face, uint64_t **facets, size_t *output, \
@@ -94,10 +81,6 @@ cdef extern from "helper.cc":
                                         size_t length_of_face)
     # Writes the vertex_repr of the current face in output.
     # Return the length of the representation.
-
-    cdef void copy_face(uint64_t *input1, uint64_t *output1, \
-                        size_t length_of_face)
-
 
 cdef uint64_t vertex_to_bit_dictionary[64]
 for i in range(64):
@@ -148,7 +131,7 @@ cdef int make_trivial_face(size_t nr_vertices, uint64_t * output,
     cdef tup = tuple(i for i in range(nr_vertices))
     return char_from_tuple(tup, output, face_length)
 
-cdef ListOfFaces get_facets_from_incidence_matrix2(tuple matrix):
+cdef ListOfFaces get_facets_from_incidence_matrix(tuple matrix):
     # expects the incidence matrix to be given as tuple of tuples
     cdef ListOfFaces facets = ListOfFaces(len(matrix), len(matrix[0]),
                                           chunksize)
@@ -159,16 +142,16 @@ cdef ListOfFaces get_facets_from_incidence_matrix2(tuple matrix):
                             facets.length_of_face)
     return facets
 
-cdef ListOfFaces get_vertices_from_incidence_matrix2(tuple matrix):
+cdef ListOfFaces get_vertices_from_incidence_matrix(tuple matrix):
     # expects the incidence matrix to be given as tuple of tuples
     cdef int i
     cdef int j
     cdef tuple newmatrix
-    newmatrix = tuple(tuple(matrix[i][j] for i in len(matrix))
-                      for j in len(matrix[0]))
-    return get_facets_from_incidence_matrix2(newmatrix)
+    newmatrix = tuple(tuple(matrix[i][j] for i in range(len(matrix)))
+                      for j in range(len(matrix[0])))
+    return get_facets_from_incidence_matrix(newmatrix)
 
-cdef ListOfFaces get_facets_bitrep_from_facets_pointer2(
+cdef ListOfFaces get_facets_bitrep_from_facets_tuple(
         tuple facets_input, size_t nr_vertices):
     cdef int i
     cdef ListOfFaces facets = ListOfFaces(len(facets_input),
@@ -180,15 +163,31 @@ cdef ListOfFaces get_facets_bitrep_from_facets_pointer2(
         char_from_tuple(facets_input[i], facets_data[i], face_length)
     return facets
 
-cdef ListOfFaces get_vertices_bitrep_from_facets_pointer2(
+cdef ListOfFaces get_vertices_bitrep_from_facets_tuple(
         tuple facets_input, size_t nr_vertices):
     cdef tuple new_input
-    cdef int i
-    cdef int j
-    new_input = tuple((i for i in range(len(facets_input)) if j in i)
-                      for j in range(nr_vertices))
-    return get_facets_bitrep_from_facets_pointer2(new_input,
-                                                 len(facets_input))
+    cdef size_t j
+    cdef size_t i
+    cdef size_t inputlength
+    cdef size_t value
+    cdef size_t position
+    cdef int k
+    cdef ListOfFaces vertices = ListOfFaces(nr_vertices,
+                                            len(facets_input),
+                                            chunksize)
+    cdef uint64_t ** vertices_data = vertices.data
+    cdef size_t face_length = vertices.length_of_face
+    for i in range(nr_vertices):
+        for j in range(face_length*chunksize/64):
+            vertices_data[i][j] = 0
+    inputlength = len(facets_input)
+    for i in range(inputlength):
+        value = i % 64
+        position = i/64
+        for j in facets_input[i]:
+            vertices_data[j][position] += \
+                vertex_to_bit_dictionary[value]
+    return vertices
 
 cdef void * aligned_malloc(MemoryAllocator mem, size_t size, size_t align):
     #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
@@ -1132,75 +1131,44 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._length_Hrep = data.ncols()
             self._length_Vrep = data.nrows()
             rg = range(data.nrows())
-            tup = tuple(tuple(data[i,j] for i in rg)
-                        for j in range(data.ncols())
-                        if not all(data[i,j] for i in rg))
+            matrix = tuple(tuple(data[i,j] for i in rg)
+                                 for j in range(data.ncols())
+                                 if not all(data[i,j] for i in rg))
             # transpose and get rid of equalities (which all vertices satisfie)
-            self._nr_facets = len(tup)
+            self._nr_facets = len(matrix)
 
-            if len(tup) == 0:  # the case of the empty Polyhedron
+            if len(matrix) == 0:  # the case of the empty Polyhedron
                 self.is_trivial = 1
                 self._dimension = -1 + data.nrows()
                 # the elements in Vrep are assumed to be one vertex
                 # and otherwise lines
                 return
 
-            if len(tup) == 1:  # the case of a half space
+            if len(matrix) == 1:  # the case of a half space
                 self.is_trivial = 2
                 self._dimension = -1 + data.nrows()
                 # the elements in Vrep are assumed to be one vertex
                 # and otherwise lines
                 return
 
-            incidence_matrix = \
-                <unsigned int**> sig_malloc(len(tup)*
-                                              sizeof(unsigned int *))
-            for i in range(len(tup)):
-                incidence_matrix[i] = \
-                    <unsigned int*> sig_malloc(self._length_Vrep *
-                                                 sizeof(unsigned int))
-                for j in range(self._length_Vrep):
-                    incidence_matrix[i][j] = tup[i][j]
-
             nr_vertices = self._length_Vrep
-            nr_facets = len(tup)
+            nr_facets = len(matrix)
             if self._unbounded or nr_facets <= nr_vertices:
                 self._polar = 0
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
-                    ListOfFaces(nr_facets, nr_vertices,
-                                  self.chunksize)
-                get_facets_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_facets.data,
-                    nr_vertices, nr_facets)
+                    get_facets_from_incidence_matrix(matrix)
                 # initializing the vertices as BitVectors
                 self.bitrep_vertices = \
-                    ListOfFaces(nr_vertices, nr_facets,
-                                  self.chunksize)
-                get_vertices_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_vertices.data,
-                    nr_vertices, nr_facets)
+                    get_vertices_from_incidence_matrix(matrix)
             else:
                 self._polar = 1
                 # initializing the vertices as BitVectors
                 self.bitrep_vertices = \
-                    ListOfFaces(nr_facets, nr_vertices,
-                                  self.chunksize)
-                get_facets_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_vertices.data,
-                    nr_vertices, nr_facets)
+                    get_facets_from_incidence_matrix(matrix)
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
-                    ListOfFaces(nr_vertices, nr_facets,
-                                  self.chunksize)
-                get_vertices_from_incidence_matrix(
-                    incidence_matrix, self.bitrep_facets.data,
-                    nr_vertices, nr_facets)
-
-            # cleanup
-            for i in range(len(tup)):
-                sig_free(incidence_matrix[i])
-            sig_free(incidence_matrix)
+                    get_vertices_from_incidence_matrix(matrix)
 
         elif isinstance(data, Integer):  # intput for a trivial Polyhedron
             if data < -1:
@@ -1242,57 +1210,28 @@ cdef class CombinatorialPolyhedron(SageObject):
             facets = tuple(tuple(f(i) for i in j) for j in data)
             self._nr_facets = len(facets)
             self._length_Hrep = len(facets)
-            facets_pointer = \
-                <unsigned int**> sig_malloc(len(facets) * sizeof(unsigned int *))
-            len_facets = \
-                <unsigned int*> sig_malloc(len(facets) *
-                                             sizeof(unsigned int))
-            for i in range(len(facets)):
-                len_facets[i] = len(facets[i])
-                facets_pointer[i] = \
-                    <unsigned int*> sig_malloc(len_facets[i] *
-                                                 sizeof(unsigned int))
-                for j in range(len_facets[i]):
-                    facets_pointer[i][j] = facets[i][j]
 
             if self._unbounded or len(facets) <= nr_vertices:
                 self._polar = 0
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
-                    ListOfFaces(len(facets), nr_vertices,
-                                  self.chunksize)
-                get_facets_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_facets.data,
-                    nr_vertices, len(facets))
+                    get_facets_bitrep_from_facets_tuple(
+                        facets, nr_vertices)
                 # initializing the vertices as BitVectors
+
                 self.bitrep_vertices = \
-                    ListOfFaces(nr_vertices, len(facets),
-                                  self.chunksize)
-                get_vertices_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_vertices.data,
-                    nr_vertices, len(facets))
+                    get_vertices_bitrep_from_facets_tuple(
+                        facets, nr_vertices)
             else:
                 self._polar = 1
                 # initializing the vertices as BitVectors
                 self.bitrep_vertices = \
-                    ListOfFaces(len(facets), nr_vertices,
-                                  self.chunksize)
-                get_facets_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_vertices.data,
-                    nr_vertices, len(facets))
+                    get_facets_bitrep_from_facets_tuple(
+                        facets, nr_vertices)
                 # initializing the facets as BitVectors
                 self.bitrep_facets = \
-                    ListOfFaces(nr_vertices, len(facets),
-                                  self.chunksize)
-                get_vertices_bitrep_from_facets_pointer(
-                    facets_pointer, len_facets, self.bitrep_facets.data,
-                    nr_vertices, len(facets))
-
-            # cleanup
-            for i in range(len(facets)):
-                sig_free(facets_pointer[i])
-            sig_free(facets_pointer)
-            sig_free(len_facets)
+                    get_vertices_bitrep_from_facets_tuple(
+                        facets, nr_vertices)
 
     def __dealloc__(self):
         r"""
