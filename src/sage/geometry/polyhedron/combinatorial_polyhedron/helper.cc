@@ -71,22 +71,6 @@
     #define popcount(A) naive_popcount(A)
 #endif
 
-
-
-static uint64_t vertex_to_bit_dictionary[64];
-//this dictionary helps storing a vector of 64 or 32 incidences as uint64_t or uint32_t,
-//where each bit represents an incidence
-
-
-void build_dictionary(){
-    unsigned int i = 0;
-    uint64_t count = 1;
-    for (i=0; i< 64;i++){
-        vertex_to_bit_dictionary[64 -i-1] = count;
-        count *= 2;
-    }
-}
-
 inline unsigned int naive_popcount(uint64_t A){
     unsigned int count = 0;
     while (A){
@@ -95,7 +79,6 @@ inline unsigned int naive_popcount(uint64_t A){
     }
     return count;
 }
-
 
 
 inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
@@ -216,27 +199,6 @@ size_t facet_repr_from_bitrep(uint64_t *face, uint64_t **facets, \
         if (is_subset(face, facets[i], length_of_face)){
             output[counter] = i;
             counter++;
-        }
-    }
-    return counter;
-}
-
-size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output, \
-                               size_t length_of_face){
-    build_dictionary();
-    size_t i,j;
-    size_t counter = 0;
-    uint64_t copy;
-    for (i = 0; i < length_of_face*chunksize/64; i++){
-        if (face[i]){
-            copy = face[i];
-            for (j = 0; j < 64; j++){
-                if (copy >= vertex_to_bit_dictionary[j]){
-                    output[counter] = i*64 + j;
-                    counter++;
-                    copy -= vertex_to_bit_dictionary[j];
-                }
-            }
         }
     }
     return counter;

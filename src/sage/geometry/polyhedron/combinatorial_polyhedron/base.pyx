@@ -76,13 +76,9 @@ cdef extern from "helper.cc":
     # Writes the facet_repr of the current face in output.
     # Returns the length of the representation.
 
-    cdef size_t vertex_repr_from_bitrep(uint64_t *face, \
-                                        size_t *output, \
-                                        size_t length_of_face)
-    # Writes the vertex_repr of the current face in output.
-    # Return the length of the representation.
-
 cdef uint64_t vertex_to_bit_dictionary[64]
+# this dictionary helps storing a vector of 64 incidences as uint64_t,
+# where each bit represents an incidence
 for i in range(64):
     vertex_to_bit_dictionary[i] = 2**(64-i-1)
 
@@ -188,6 +184,22 @@ cdef ListOfFaces get_vertices_bitrep_from_facets_tuple(
             vertices_data[j][position] += \
                 vertex_to_bit_dictionary[value]
     return vertices
+
+cdef size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output,
+                                    size_t length_of_face):
+    cdef size_t i
+    cdef size_t j
+    cdef size_t counter = 0
+    cdef uint64_t copy
+    for i in range(length_of_face*chunksize/64):
+        if face[i]:
+            copy = face[i]
+            for j in range(64):
+                if copy >= vertex_to_bit_dictionary[j]:
+                    output[counter] = i*64 + j
+                    counter += 1
+                    copy -= vertex_to_bit_dictionary[j]
+    return counter
 
 cdef void * aligned_malloc(MemoryAllocator mem, size_t size, size_t align):
     #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
