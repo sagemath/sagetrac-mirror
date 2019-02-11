@@ -466,13 +466,3 @@ size_t find_face(uint64_t **list, uint64_t *face, size_t nr_faces, \
     }
     return start;
 }
-
-int is_equal(uint64_t *one, uint64_t *two, size_t length_of_face){
-    size_t i;
-    size_t length_of_face1 = length_of_face*chunksize/64;
-    for (i = 0; i < length_of_face1; i++){
-        if (one[i] != two[i])
-            return 0;
-    }
-    return 1;
-}

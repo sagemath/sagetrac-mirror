@@ -515,7 +515,12 @@ cdef class ListOfAllFaces:
         """
         cdef ListOfFaces faces = self.lists_vertex_repr[dimension + 1]
         cdef uint64_t * face2 = faces.data[index]
-        return is_equal(face, face2, faces.length_of_face)
+        cdef size_t i
+        cdef size_t len = self.length_of_face_vertex*self.chunksize/64
+        if all(face[i] == face2[i] for i in range(len)):
+            return 1
+        else:
+            return 0
 
     cdef size_t facet_repr(self, int dimension, size_t index,
                            size_t * output):
@@ -733,10 +738,8 @@ cdef extern from "helper.cc":
     # this will intialize a face in bitrep-reprsentation that contains the first
     # nr_vertices vertices (usefull for the empty face or the full Polyhedron)
 
-    cdef void copy_face(uint64_t *input1, uint64_t *output1, size_t length_of_face)
-
-    cdef int is_equal(uint64_t *one, uint64_t *two, \
-                      size_t length_of_face)
+    cdef void copy_face(uint64_t *input1, uint64_t *output1, \
+                        size_t length_of_face)
 
     cdef void sort_pointers(uint64_t **input, size_t nr_faces, \
                             size_t length_of_face)
