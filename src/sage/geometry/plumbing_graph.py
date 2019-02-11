@@ -1661,9 +1661,9 @@ class PlumbingGraph():
         self.g[i] = g
         a = self.add_vertex(d, 0, 0)
         self.add_edge({i,a})
-        b = self.add_vertex(d1, 0, 0)
+        b = self.add_vertex(2*d1, 0, 0)
         self.add_edge({a,b})
-        c = self.add_vertex(d2, 0, 0)
+        c = self.add_vertex(2*d2, 0, 0)
         self.add_edge({a,c})
         return True
        
@@ -3466,8 +3466,6 @@ class PlumbingGraph():
             sage: P.mb
             {0: -2, 4: -5}
         """
-        if not self.N1():
-            return False
         while True:
             L = [i for i in self.vertices - self.nodes() if self.mb[i] > -2]
             if not L:
