@@ -2849,6 +2849,19 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.face_lattice()
             Finite lattice containing 542 elements
+
+        TESTS::
+
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.face_lattice().is_isomorphic(P.face_lattice())
+            True
+
+            sage: P = polytopes.permutahedron(4)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.face_lattice().is_isomorphic(P.face_lattice())
+            True
+
         """
 
         cdef size_t ** incidences
