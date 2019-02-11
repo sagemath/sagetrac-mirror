@@ -110,16 +110,12 @@ cdef class ListOfFaces:
     cdef size_t length(self):
         return self.length_of_face*self.chunksize
 
-    cdef void sort(self):
-        sort_pointers(self.data, self.nr_faces, self.length_of_face)
-
-
 cdef int calculate_dimension(ListOfFaces faces):
     cdef size_t nr_faces
     cdef int dim
     nr_faces = faces.nr_faces
     if nr_faces == 0:
-            raise TypeError('Wrong usage of `calculate_dimension`, at least one face needed.')
+            raise TypeError('at least one face needed')
 
     return calculate_dimension_loop(faces.data, nr_faces,
                                     faces.length_of_face, faces.chunksize)
@@ -483,8 +479,56 @@ cdef class ListOfAllFaces:
                 raise ValueError('`ListOfAllFaces` does not contain all faces!')
         for i in range(0,dim):
             faces = self.lists_vertex_repr[i]
-            faces.sort()
+            self._sort_one_list(faces.data, faces.nr_faces)
         self.is_sorted = 1
+
+    cdef void _sort_one_list(self, uint64_t ** faces, size_t nr_faces):
+        # sorts nr_faces in `input` according to their values
+        # assumes the faces to be in vertex_representation
+        cdef MemoryAllocator mem = MemoryAllocator()
+        cdef uint64_t **extra_mem = \
+            <uint64_t **> mem.malloc(nr_faces*sizeof(uint64_t *))
+        self._sort_one_list_loop(faces, faces, extra_mem, nr_faces)
+
+    cdef void _sort_one_list_loop(
+            self, uint64_t **inp, uint64_t ** output1,
+            uint64_t ** output2, size_t nr_faces):
+        r"""
+        this is mergesort
+        sorts the faces in input and returns them in output1
+        BEWARE: Input is the same as output1 or output2
+        """
+        cdef size_t middle = nr_faces/2
+        cdef size_t other = nr_faces - middle
+        cdef size_t i = 0
+        cdef size_t j = middle
+        cdef size_t counter = 0;
+        if nr_faces == 1:
+            output1[0] = inp[0]
+            return
+
+        self._sort_one_list_loop(inp, output2, output1, middle)
+        self._sort_one_list_loop(&(inp[middle]), &(output2[middle]),
+                                 &(output1[middle]), other)
+        while i < middle and j < nr_faces:
+            if self.is_smaller(output2[i],output2[j]):
+                output1[counter] = output2[i]
+                i += 1
+                counter += 1
+            else:
+                output1[counter] = output2[j]
+                j += 1
+                counter += 1
+        if i < middle:
+            while i < middle:
+                output1[counter] = output2[i]
+                i += 1
+                counter += 1
+        else:
+            while j < nr_faces:
+                output1[counter] = output2[j]
+                j += 1
+                counter += 1
 
     cdef size_t find_face(self, int dimension, uint64_t *face):
         r"""
@@ -763,12 +807,6 @@ cdef extern from "helper.cc":
 
     cdef void copy_face(uint64_t *input1, uint64_t *output1, \
                         size_t length_of_face)
-
-    cdef void sort_pointers(uint64_t **input, size_t nr_faces, \
-                            size_t length_of_face)
-
-    cdef size_t find_face(uint64_t **list, uint64_t *face, \
-                          size_t nr_faces, size_t length_of_face)
 
 cdef class CombinatorialPolyhedron(SageObject):
     r"""
