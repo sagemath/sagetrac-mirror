@@ -46,6 +46,149 @@ from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_on_no_except
 from sage.ext.memory_allocator cimport MemoryAllocator
 
+cdef extern from "helper.cc":
+    cdef const size_t chunksize;
+
+    cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
+                           size_t face_length)
+
+    cdef size_t get_next_level(\
+        uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
+        uint64_t **nextfaces2, uint64_t **forbidden, \
+        size_t nr_forbidden, size_t face_length)
+    # intersects the first `lenfaces - 1` faces of `faces`
+    # with 'faces[lenfaces-1]`
+    # stores the faces in `newfaces`
+    # determines which ones are exactly of one dimension less
+    # by considering containment
+    # newfaces2 will point at those of exactly one dimension less
+    # which are not contained in any of the faces in 'forbidden'
+    # returns the number of those faces
+
+    cdef size_t CountFaceBits(uint64_t * A, size_t face_length)
+
+    cdef void get_facets_from_incidence_matrix(\
+        unsigned int **incidence_matrix, uint64_t **facets, \
+        size_t nr_vertices, size_t nr_facets)
+
+    cdef void get_vertices_from_incidence_matrix(\
+        unsigned int **incidence_matrix, uint64_t **vertices, \
+        size_t nr_vertices, size_t nr_facets)
+
+    cdef void get_vertices_bitrep_from_facets_pointer( \
+        unsigned int ** facets_input, unsigned int *len_facets, \
+        uint64_t ** vertices_output, size_t nr_vertices, size_t nr_facets)
+
+    cdef void get_facets_bitrep_from_facets_pointer( \
+        unsigned int ** facets_input, unsigned int *len_facets, \
+        uint64_t ** facets_output, size_t nr_vertices, size_t nr_facets)
+
+    cdef size_t facet_repr_from_bitrep(\
+        uint64_t *face, uint64_t **facets, size_t *output, \
+        size_t nr_facets, size_t length_of_face)
+    # Writes the facet_repr of the current face in output.
+    # Returns the length of the representation.
+
+    cdef size_t vertex_repr_from_bitrep(uint64_t *face, \
+                                        size_t *output, \
+                                        size_t length_of_face)
+    # Writes the vertex_repr of the current face in output.
+    # Return the length of the representation.
+
+    cdef void copy_face(uint64_t *input1, uint64_t *output1, \
+                        size_t length_of_face)
+
+
+cdef uint64_t vertex_to_bit_dictionary[64]
+for i in range(64):
+    vertex_to_bit_dictionary[i] = 2**(64-i-1)
+
+cdef int char_from_tuple(tuple tup, uint64_t *output,
+                         size_t face_length) except 0:
+    r"""
+    Converts a tuple into a bit-representation. Stores it in `output`.
+
+    So the first bit represents the entry `0` and is one, iff `0` is
+    in `tup`. The second bit represents `1` and so on.
+    """
+    cdef size_t entry, position, value, i;
+    for i in range(face_length*chunksize/64):
+        output[i] = 0
+    for entry in tup:
+        value = entry % 64
+        position = entry/64
+        output[position] += vertex_to_bit_dictionary[value]
+    return 1
+
+cdef int char_from_incidence(tuple incidences, uint64_t *output,
+                             size_t face_length) except 0:
+    r"""
+    Converts a tuple of incidences to bit-representation.
+
+    Each entry in `incidences` is either 0 or 1, depending on wether
+    the corresponding vertex is in the face.
+
+    E.g. (0,0,0,1) corresponds to tuple (3,) in `char_from_tuple`.
+    """
+    cdef size_t position, value, i
+    cdef int entry
+    for i in range(face_length*chunksize/64):
+        output[i] = 0
+    for entry in range(len(incidences)):
+        if incidences[entry]:
+            value = entry % 64
+            position = entry/64
+            output[position] += vertex_to_bit_dictionary[value]
+    return 1
+
+cdef int make_trivial_face(size_t nr_vertices, uint64_t * output,
+                            size_t face_length) except 0:
+    # this will intialize a face in bitrep-reprsentation that contains the first
+    # nr_vertices vertices (usefull for the empty face or the full Polyhedron)
+    cdef tup = tuple(i for i in range(nr_vertices))
+    return char_from_tuple(tup, output, face_length)
+
+cdef ListOfFaces get_facets_from_incidence_matrix2(tuple matrix):
+    # expects the incidence matrix to be given as tuple of tuples
+    cdef ListOfFaces facets = ListOfFaces(len(matrix), len(matrix[0]),
+                                          chunksize)
+    cdef uint64_t ** facets_data = facets.data
+    cdef int i
+    for i in range(len(matrix)):
+        char_from_incidence(matrix[i], facets_data[i],
+                            facets.length_of_face)
+    return facets
+
+cdef ListOfFaces get_vertices_from_incidence_matrix2(tuple matrix):
+    # expects the incidence matrix to be given as tuple of tuples
+    cdef int i
+    cdef int j
+    cdef tuple newmatrix
+    newmatrix = tuple(tuple(matrix[i][j] for i in len(matrix))
+                      for j in len(matrix[0]))
+    return get_facets_from_incidence_matrix2(newmatrix)
+
+cdef ListOfFaces get_facets_bitrep_from_facets_pointer2(
+        tuple facets_input, size_t nr_vertices):
+    cdef int i
+    cdef ListOfFaces facets = ListOfFaces(len(facets_input),
+                                          nr_vertices,
+                                          chunksize)
+    cdef size_t face_length = facets.length_of_face
+    cdef uint64_t ** facets_data = facets.data
+    for i in range(len(facets_input)):
+        char_from_tuple(facets_input[i], facets_data[i], face_length)
+    return facets
+
+cdef ListOfFaces get_vertices_bitrep_from_facets_pointer2(
+        tuple facets_input, size_t nr_vertices):
+    cdef tuple new_input
+    cdef int i
+    cdef int j
+    new_input = tuple((i for i in range(len(facets_input)) if j in i)
+                      for j in range(nr_vertices))
+    return get_facets_bitrep_from_facets_pointer2(new_input,
+                                                 len(facets_input))
 
 cdef void * aligned_malloc(MemoryAllocator mem, size_t size, size_t align):
     #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
@@ -101,11 +244,6 @@ cdef class ListOfFaces:
             raise IndexError('Only %s faces, cannot add a %sth face'%
                              (self.nr_faces, index))
         copy_face(face, output, self.length_of_face)
-
-    cdef make_copy(self):
-        return ListOfFaces(
-            self.nr_faces, self.nr_vertices,
-            self.chunksize)
 
     cdef size_t length(self):
         return self.length_of_face*self.chunksize
@@ -750,63 +888,6 @@ cdef class ListOfAllFaces:
         self.incidence_counter_one += 1
         self.incidence_counter_two = 0
         return self.next_incidence(one, two)
-
-cdef extern from "helper.cc":
-    cdef const unsigned int chunksize;
-
-    cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
-                           size_t face_length)
-
-    cdef size_t get_next_level(\
-        uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
-        uint64_t **nextfaces2, uint64_t **forbidden, \
-        size_t nr_forbidden, size_t face_length)
-    # intersects the first `lenfaces - 1` faces of `faces`
-    # with 'faces[lenfaces-1]`
-    # stores the faces in `newfaces`
-    # determines which ones are exactly of one dimension less
-    # by considering containment
-    # newfaces2 will point at those of exactly one dimension less
-    # which are not contained in any of the faces in 'forbidden'
-    # returns the number of those faces
-
-    cdef size_t CountFaceBits(uint64_t * A, size_t face_length)
-
-    cdef void get_facets_from_incidence_matrix(\
-        unsigned int **incidence_matrix, uint64_t **facets, \
-        size_t nr_vertices, size_t nr_facets)
-
-    cdef void get_vertices_from_incidence_matrix(\
-        unsigned int **incidence_matrix, uint64_t **vertices, \
-        size_t nr_vertices, size_t nr_facets)
-
-    cdef void get_vertices_bitrep_from_facets_pointer( \
-        unsigned int ** facets_input, unsigned int *len_facets, \
-        uint64_t ** vertices_output, size_t nr_vertices, size_t nr_facets)
-
-    cdef void get_facets_bitrep_from_facets_pointer( \
-        unsigned int ** facets_input, unsigned int *len_facets, \
-        uint64_t ** facets_output, size_t nr_vertices, size_t nr_facets)
-
-    cdef size_t facet_repr_from_bitrep(\
-        uint64_t *face, uint64_t **facets, size_t *output, \
-        size_t nr_facets, size_t length_of_face)
-    # Writes the facet_repr of the current face in output.
-    # Returns the length of the representation.
-
-    cdef size_t vertex_repr_from_bitrep(uint64_t *face, \
-                                        size_t *output, \
-                                        size_t length_of_face)
-    # Writes the vertex_repr of the current face in output.
-    # Return the length of the representation.
-
-    cdef void make_trivial_face(size_t nr_vertices, \
-                                uint64_t * output, size_t face_length)
-    # this will intialize a face in bitrep-reprsentation that contains the first
-    # nr_vertices vertices (usefull for the empty face or the full Polyhedron)
-
-    cdef void copy_face(uint64_t *input1, uint64_t *output1, \
-                        size_t length_of_face)
 
 cdef class CombinatorialPolyhedron(SageObject):
     r"""
