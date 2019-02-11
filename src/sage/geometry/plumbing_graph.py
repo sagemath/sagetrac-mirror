@@ -6,6 +6,23 @@ together with decorations on the vertices and the edges, and they encode
 *plumbing manifolds*, three dimensional manifolds whose JSJ-pieces are
 Seifert manifolds.
 
+EXAMPLES::
+
+    sage: P = PlumbingGraph()
+    sage: P.add_Seifert(-2,0,[2,2,2])
+    0
+    sage: P.intersection_matrix()
+    [-2  1  1  1]
+    [ 1 -2  0  0]
+    [ 1  0 -2  0]
+    [ 1  0  0 -2]
+    sage: P.delete_vertex(0)
+    sage: P.add_bamboo(1,j=1)
+    0
+    sage: P.minimal_representative()
+    sage: P
+    A plumbing graph with 2 vertices
+
 AUTHORS:
 
 - Baldur Sigur\dh sson (2018)
