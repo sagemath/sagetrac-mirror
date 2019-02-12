@@ -1214,14 +1214,35 @@ class PackedWordsFactory(SetFactory):
 
     def add_constraints(self, cons, args_opts):
         """
-        TODO: instead of returning an error, should we return an "empty family?"
+        Add constraints to the set ``cons`` as per
+        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
+
+        Here we just have the constraint for the size of the packed words and we have no 
+        possible option yet.
+
+        EXAMPLES::
+
+
+            sage: PackedWords.add_constraints((), (() ,{}))
+            ()
+            sage: PackedWords.add_constraints((), ((3,), {}))
+            (3,)
+            sage: PackedWords.add_constraints((2,), ((2,), {}))
+            (2,)
+            sage: PackedWords.add_constraints((2,), ((3,), {}))
+            Traceback (most recent call last):
+            ...
+            ValueError: Constraint size=3 cannot replace constraint size=2
         """
         args, opts = args_opts
         if len(args + cons) > 1 and args[0] != cons[0]:
             raise ValueError("Constraint size={} cannot replace constraint size={}".format(args[0], cons[0]))
         res = args + cons
-        return (res[0],)
-
+        if (res):
+            return (res[0],)
+        else:
+            return ()
+    
 PackedWords = PackedWordsFactory()
 
 class PackedWordsBaseClass(ParentWithSetFactory):
