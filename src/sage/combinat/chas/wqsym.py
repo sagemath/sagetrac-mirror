@@ -757,13 +757,17 @@ sage: for p in PackedWords(4):
 
             @cached_function
             def new_rank(x):
-#                import pdb; pdb.set_trace() # TODO
                 return (SetPartition(x),x.to_packed_word())
             
             Q = self.realization_of().Q()
             phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=new_rank)
             phi.register_as_coercion()
-            (~phi).register_as_coercion()
+            inv_phi = ~phi
+            inv_phi.register_as_coercion()
+            M = self.realization_of().M()
+            M.register_coercion(M.coerce_map_from(Q) * phi)
+            self.register_coercion(inv_phi * Q.coerce_map_from(M))
+            
 
         @cached_method
         def _H_to_Q(self, P):
@@ -818,6 +822,9 @@ sage: t0 = time.time(); m4HQ = matr_chgmt_base_pw(GL,L,4); print
             one = R.one()
             return Q._from_dict({G.to_ordered_set_partition():
                                  one for G in PW.left_weak_order_greater()}, coerce=False)
+
+        
+            WQSymBasis_abstract.__init__(self, alg)
             
         def some_elements(self):
             """
