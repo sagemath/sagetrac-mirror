@@ -199,6 +199,22 @@ class PlumbingGraph():
             self.add_edge(e, -1)
     
     def __repr__(self):
+        r"""
+        Returns a string representation of self.
+
+        OUTPUT:
+
+        A string.
+
+        Example:
+
+            sage: P = PlumbingGraph
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[2,3/2,5/4])
+            0
+            sage: P
+            A plumbing graph with 8 vertices
+        """
         if len(self.vertices) == 0:
             return "An empty plumbing graph"
         if len(self.vertices) == 1:
@@ -593,7 +609,7 @@ class PlumbingGraph():
         
         An integer, the degree of i.
 
-        EXAMPLE:
+        EXAMPLE::
         
         We construct here the E_8 graph, and check some degrees:
         
@@ -738,7 +754,6 @@ class PlumbingGraph():
 
         n = len(self.vertices)
         V = list(self.vertices)
-        d = { V[i]:i for i in range(0,n) }
         
         M = MatrixSpace(ZZ, n,n) 
         I  = copy(M.zero_matrix())
@@ -996,7 +1011,6 @@ class PlumbingGraph():
             return set()
         R = {i}
         Nbrs = self.neighbors(i)
-        dummy = True
         while True:
             if Nbrs <= Nds:
                 return R
@@ -1534,6 +1548,14 @@ class PlumbingGraph():
         
         Some vertex on which R2 can be applied, if it exists, otherwise,
         -1.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-1,0,[2,2,7/4])
+            0
+            sage: P.find_R2_candidate()
+            0
         """
         for j in self.vertices:
             if self.R2_candidate(j):
@@ -2303,7 +2325,7 @@ class PlumbingGraph():
 
         True or False
 
-        EXAMPPLES::
+        EXAMPLES::
 
             sage: P = PlumbingGraph()
             sage: P.add_bamboo(5/4)
@@ -2401,7 +2423,7 @@ class PlumbingGraph():
 
         True or False.
 
-        EXAMPPLES::
+        EXAMPLES::
         
         D_4 is in normal form:
 
@@ -3549,7 +3571,7 @@ class PlumbingGraph():
 
         True if N3() holds in the end, otherwise False.
 
-        EXAMPLE:
+        EXAMPLE::
 
         In the following example, we start by creating a Seifert graph
         with two (-2)-neighbors which are leaves, like in N3. For this to
@@ -3816,6 +3838,7 @@ class PlumbingGraph():
             sage: P.add_cycle(5/4)
             3
             sage: P.step_6()
+            True
             sage: P
             A plumbing graph with one vertex
 
@@ -3825,6 +3848,7 @@ class PlumbingGraph():
             sage: P.add_cycle(5/4, epsilon=-1)
             3
             sage: P.step_6()
+            True
             sage: P
             A plumbing graph with one vertex
 
@@ -3840,6 +3864,7 @@ class PlumbingGraph():
             sage: P.add_edge({5,6})
             5
             sage: P.step_6()
+            True
             sage: P
             A plumbing graph with 5 vertices
 
@@ -3853,6 +3878,7 @@ class PlumbingGraph():
             sage: P.add_edge({0,1})
             0
             sage: P.step_6()
+            True
             sage: P
             A plumbing graph with 5 vertices
 
@@ -3870,6 +3896,7 @@ class PlumbingGraph():
             sage: P.add_edge({1,2})
             1
             sage: P.step_6()
+            True
             sage: P
             A plumbing graph with 5 vertices
 
@@ -3879,6 +3906,7 @@ class PlumbingGraph():
             sage: P.add_vertex(0,-2,0)
             0
             sage: P.step_6()
+            True
             sage: P
             A plumbing graph with 5 vertices
 
@@ -3888,6 +3916,7 @@ class PlumbingGraph():
             sage: P.add_vertex(0,-1,1)
             0
             sage: P.step_6()
+            True
             sage: P
             A plumbing graph with 3 vertices
         """
@@ -3951,3 +3980,4 @@ class PlumbingGraph():
                 break
             self.delete_component(i)
             self.add_Seifert(0, 0, [2,2], r=1)
+        return self.N6()
