@@ -25,7 +25,6 @@ from sage.structure.set_factories import (SetFactory, ParentWithSetFactory, TopM
 from sage.structure.element import parent
 from sage.structure.list_clone import ClonableIntArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.misc import uniq
 
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -1346,7 +1345,7 @@ class PackedWordsBaseClass(ParentWithSetFactory):
             sage: PackedWords().pack([11, 4, 1, 11, 4])
             [3, 2, 1, 3, 2]
         """
-        l = uniq(li)
+        l = sorted(set(li))
         return PackedWord([l.index(i) + 1 for i in li])
 
     def permutation_to_packed_words(self, sigma):
