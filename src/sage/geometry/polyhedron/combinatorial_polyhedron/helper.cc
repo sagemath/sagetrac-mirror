@@ -17,6 +17,7 @@
 #include <stdlib.h>  // for aligned_alloc in C++11
 #include <cstdlib>  // for aligned_alloc in C++17
 #include <cstdio>
+#include <csignal>
 
 
 
@@ -81,6 +82,13 @@
     #define popcount(A) naive_popcount(A)
 #endif
 
+int interrupt;
+
+void inline signalHandler( int signum ) {
+    // setting a variable, so I can catch the the signal later
+    interrupt = 1;
+}
+
 inline unsigned int naive_popcount(uint64_t A){
     // popcount without intrinsics
     unsigned int count = 0;
@@ -94,8 +102,8 @@ inline unsigned int naive_popcount(uint64_t A){
 
 inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
                          size_t face_length){
-    // will set C to be the intersection of A and B, i.e.
     // C = A & B
+    // will set C to be the intersection of A and B
     // `face_length` is the length of A, B and C in terms of uint64_t
     size_t i;
     chunktype a;
@@ -110,8 +118,10 @@ inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
 }
 
 inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
-    //returns 1 if A is a proper subset of B, otherwise returns 0,
+    // A & ~B == 0
+    // returns 1 if A is a subset of B, otherwise returns 0
     // this is done by checking if there is an element in A, which is not in B
+    // `face_length` is the length of A and B in terms of uint64_t
     size_t i;
     chunktype a;
     chunktype b;
@@ -128,26 +138,30 @@ inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
 
 inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
     // counts the number of vertices in a face by counting bits set to one
+    // `face_length` is the length of A in terms of uint64_t
     size_t i;
     unsigned int count = 0;
-    for (i=0;i<face_length;i++){
+    for (i=0; i<face_length; i++){
         count += (size_t) popcount(A[i]);
     }
     return count;
 }
 
 
-inline size_t get_next_level(\
+size_t get_next_level(\
         uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
         uint64_t **nextfaces2, uint64_t **forbidden, \
         size_t nr_forbidden, size_t face_length){
-    // intersects the first `lenfaces - 1` faces of `faces` with'faces[lenfaces-1]`
+    // intersects the first `lenfaces - 1` faces of `faces` with faces[lenfaces-1]`
     // determines which ones are exactly of one dimension less
     // by considering containment
     // newfaces2 will point at those of exactly one dimension less
     // which are not contained in any of the faces in 'forbidden'
     // returns the number of those faces
+    interrupt = 0;
+    signal(SIGINT, signalHandler);
     const size_t constlenfaces = lenfaces;
+    int ret;
     int addfacearray[constlenfaces - 1] = { };
     size_t j,k, addthisface;
     size_t newfacescounter = 0;
@@ -157,6 +171,10 @@ inline size_t get_next_level(\
     }
     // we have create all possible intersection with the i_th-face, but some of them might not be of exactly one dimension less
     for (j = 0; j< lenfaces-1; j++){
+        if (interrupt){
+            // check for interrupt signal
+            return 0;
+        }
         for(k = 0; k < j; k++){
             // testing if nextfaces[j] is contained in different nextface
             if(is_subset(nextfaces[j],nextfaces[k], face_length)){
@@ -197,7 +215,11 @@ inline size_t get_next_level(\
         nextfaces2[newfacescounter] = nextfaces[j];
         newfacescounter++;
     }
-    return newfacescounter;
+    if (interrupt){
+        // check for interrupt signal
+        return 0;
+    }
+    return newfacescounter + 1;
 }
 
 
