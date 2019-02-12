@@ -203,13 +203,13 @@ inline size_t get_next_level(\
 
 size_t facet_repr_from_bitrep(uint64_t *face, uint64_t **facets, \
                               size_t *output, size_t nr_facets, \
-                              size_t length_of_face){
+                              size_t face_length){
     // Writes the facet_repr of the current face in output.
     // Returns the length of the representation.
     size_t counter = 0;
     size_t i;
     for (i = 0; i < nr_facets; i++){
-        if (is_subset(face, facets[i], length_of_face)){
+        if (is_subset(face, facets[i], face_length)){
             output[counter] = i;
             counter++;
         }
@@ -218,10 +218,10 @@ size_t facet_repr_from_bitrep(uint64_t *face, uint64_t **facets, \
 }
 
 void copy_face(uint64_t *input1, uint64_t *output1, \
-               size_t length_of_face){
+               size_t face_length){
     size_t i;
     chunktype input;
-    for (i = 0; i < length_of_face; i += chunksize/64){
+    for (i = 0; i < face_length; i += chunksize/64){
         load_register(input, input1[i]);
         store_register(output1[i], input);
     }
