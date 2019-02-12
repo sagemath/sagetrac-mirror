@@ -807,7 +807,6 @@ class PlumbingGraph():
 
         n = len(self.vertices)
         V = list(self.vertices)
-        d = { V[i]:i for i in range(0,n) }
         
         M = MatrixSpace(ZZ, n,n) 
         I  = copy(M.zero_matrix())
