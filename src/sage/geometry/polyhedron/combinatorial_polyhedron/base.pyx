@@ -3489,10 +3489,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             def pol(size_t i): return Integer(i)
 
         def face_one(size_t i):
-            return pol(incidences[i / len_edgelist][2*(i % len_edgelist)])
+            return pol(incidences[i // len_edgelist][2*(i % len_edgelist)])
 
         def face_two(size_t i):
-            return pol(incidences[i / len_edgelist][2*(i % len_edgelist)+1])
+            return pol(incidences[i // len_edgelist][2*(i % len_edgelist)+1])
 
         if self._polar:
             edges = tuple((face_two(j), face_one(j)) for j in range(nr_incidences))
