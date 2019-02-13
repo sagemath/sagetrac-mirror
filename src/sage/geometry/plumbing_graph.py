@@ -609,7 +609,7 @@ class PlumbingGraph():
         
         An integer, the degree of i.
 
-        EXAMPLE::
+        EXAMPLES::
         
         We construct here the E_8 graph, and check some degrees:
         
@@ -3571,7 +3571,7 @@ class PlumbingGraph():
 
         True if N3() holds in the end, otherwise False.
 
-        EXAMPLE::
+        EXAMPLES::
 
         In the following example, we start by creating a Seifert graph
         with two (-2)-neighbors which are leaves, like in N3. For this to
