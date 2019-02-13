@@ -275,7 +275,7 @@ cdef ListOfFaces get_facets_from_incidence_matrix(tuple matrix):
         ....:     length = vertex_repr_from_bitrep(facets.data[i], output,
         ....:                                      facets.face_length)
         ....:     print tuple(output[j] for j in range(length))
-        ....: ''')
+        ....: ''') # long time
         (18, 19, 20, 21, 22, 23)
         (9, 11, 15, 17, 21, 23)
         (16, 17, 22, 23)
@@ -340,7 +340,7 @@ cdef ListOfFaces get_vertices_from_incidence_matrix(tuple matrix):
         ....:     length = vertex_repr_from_bitrep(vertices.data[i], output,
         ....:                                      vertices.face_length)
         ....:     print tuple(output[j] for j in range(length))
-        ....: ''')
+        ....: ''') # long time
         (3, 5, 9)
         (3, 5, 8)
         (3, 4, 9)
@@ -708,7 +708,14 @@ cdef class ListOfFaces:
             ....: facets1 = ListOfFaces(1, 155)
             ....: facets2 = ListOfFaces(2, 155)
             ....: facets2.copy_face(1, facets1.data[0])
+            ....: print 'no error'
+            ....: try:
+            ....:     facets2.copy_face(2, facets1.data[0])
+            ....: except:
+            ....:     print 'out of range'
             ....: ''')
+            no error
+            out of range
         """
         cdef uint64_t * output = self.data[index]
         if index >= self.nr_faces:
