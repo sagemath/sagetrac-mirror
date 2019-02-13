@@ -498,7 +498,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi', 'H'])
+    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi', 'H', 'E'])
 
     # add options to class
     class options(GlobalOptions):
@@ -729,7 +729,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             
 sage: WQSym = algebras.WQSym(QQ)
 sage: WQSym.inject_shorthands()
-sage: H.options.objects = 'words'
+#sage: H.options.objects = 'words'
 sage: matr_chgmt_base_osp = lambda X,Y, n: matrix([[Y(X(mu)).coefficient(sigma) for mu in OrderedSetPartitions(n)] for sigma in OrderedSetPartitions(n)])
 sage: matr_chgmt_base_osp(H,Q,3)
 [1 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -879,177 +879,245 @@ sage: t0 = time.time(); m4HQ = matr_chgmt_base_pw(GL,L,4); print
             yshift = [[val + m for val in part] for part in y]
             return self.monomial(K(x + yshift))
 
-        # def coproduct_on_basis(self, x):
-        #     r"""
-        #     Return the coproduct of ``self`` on the basis element
-        #     indexed by the ordered set partition ``x``.
-
-        #     EXAMPLES::
-
-        #         sage: Q = algebras.WQSym(QQ).Q()
-
-        #         sage: Q.coproduct(Q.one())  # indirect doctest
-        #         Q[] # Q[]
-        #         sage: Q.coproduct( Q([[1]]) )  # indirect doctest
-        #         Q[] # Q[{1}] + Q[{1}] # Q[]
-        #         sage: Q.coproduct( Q([[1,2]]) )
-        #         Q[] # Q[{1, 2}] + Q[{1, 2}] # Q[]
-        #         sage: Q.coproduct( Q([[1], [2]]) )
-        #         Q[] # Q[{1}, {2}] + Q[{1}] # Q[{1}] + Q[{1}, {2}] # Q[]
-        #         sage: Q[[1,2],[3],[4]].coproduct()
-        #         Q[] # Q[{1, 2}, {3}, {4}] + Q[{1, 2}] # Q[{1}, {2}]
-        #          + Q[{1, 2}, {3}] # Q[{1}] + Q[{1, 2}, {3}, {4}] # Q[]
-        #     """
-        #     # The coproduct on the Q basis satisfies the same formula
-        #     # as on the M basis. This is easily derived from the
-        #     # formula on the M basis.
-        #     if not len(x):
-        #         return self.one().tensor(self.one())
-        #     K = self.indices()
-        #     def standardize(P): # standardize an ordered set partition
-        #         base = sorted(sum((list(part) for part in P), []))
-        #         # base is the ground set of P, as a sorted list.
-        #         d = {val: i+1 for i,val in enumerate(base)}
-        #         # d is the unique order isomorphism from base to
-        #         # {1, 2, ..., |base|} (encoded as dict).
-        #         return K([[d[x] for x in part] for part in P])
-        #     T = self.tensor_square()
-        #     return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
-        #                               for i in range(len(x) + 1))
-
-        # class Element(WQSymBasis_abstract.Element):
-        #     def algebraic_complement(self):
-        #         r"""
-        #         Return the image of the element ``self`` of `WQSym`
-        #         under the algebraic complement involution.
-
-        #         See
-        #         :meth:`WQSymBases.ElementMethods.algebraic_complement`
-        #         for a definition of the involution and for examples.
-
-        #         .. SEEALSO::
-
-        #             :meth:`coalgebraic_complement`, :meth:`star_involution`
-
-        #         EXAMPLES::
-
-        #             sage: WQSym = algebras.WQSym(ZZ)
-        #             sage: Q = WQSym.Q()
-        #             sage: Q[[1,2],[5,6],[3,4]].algebraic_complement()
-        #             Q[{3, 4}, {1, 2, 5, 6}] + Q[{3, 4}, {5, 6}, {1, 2}]
-        #              - Q[{3, 4, 5, 6}, {1, 2}]
-        #             sage: Q[[3], [1, 2], [4]].algebraic_complement()
-        #             Q[{1, 2, 4}, {3}] + Q[{4}, {1, 2}, {3}] - Q[{4}, {1, 2, 3}]
-
-        #         TESTS::
-
-        #             sage: M = WQSym.M()
-        #             sage: all(M(Q[A]).algebraic_complement()  # long time
-        #             ....:     == M(Q[A].algebraic_complement())
-        #             ....:     for A in OrderedSetPartitions(4))
-        #             True
-        #         """
-        #         # See the WQSymBases.ElementMethods.algebraic_complement doc
-        #         # for the formula we're using here.
-        #         BR = self.base_ring()
-        #         one = BR.one()
-        #         mine = -one
-        #         Q = self.parent()
-        #         OSPs = Q.basis().keys()
-        #         from sage.data_structures.blas_dict import linear_combination
-        #         def img(A):
-        #             # The image of the basis element Q[A], written as a
-        #             # dictionary (of its coordinates in the Q-basis).
-        #             Rs = [Rr.reversed() for Rr in A.strongly_fatter()]
-        #             return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-        #                               else mine)
-        #                     for R in Rs for P in R.strongly_fatter()}
-        #         return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
-
-        #     def coalgebraic_complement(self):
-        #         r"""
-        #         Return the image of the element ``self`` of `WQSym`
-        #         under the coalgebraic complement involution.
-
-        #         See
-        #         :meth:`WQSymBases.ElementMethods.coalgebraic_complement`
-        #         for a definition of the involution and for examples.
-
-        #         .. SEEALSO::
-
-        #             :meth:`algebraic_complement`, :meth:`star_involution`
-
-        #         EXAMPLES::
-
-        #             sage: WQSym = algebras.WQSym(ZZ)
-        #             sage: Q = WQSym.Q()
-        #             sage: Q[[1,2],[5,6],[3,4]].coalgebraic_complement()
-        #             Q[{1, 2, 5, 6}, {3, 4}] + Q[{5, 6}, {1, 2}, {3, 4}] - Q[{5, 6}, {1, 2, 3, 4}]
-        #             sage: Q[[3], [1, 2], [4]].coalgebraic_complement()
-        #             Q[{2}, {1, 3, 4}] + Q[{2}, {3, 4}, {1}] - Q[{2, 3, 4}, {1}]
-
-        #         TESTS::
-
-        #             sage: M = WQSym.M()
-        #             sage: all(M(Q[A]).coalgebraic_complement()  # long time
-        #             ....:     == M(Q[A].coalgebraic_complement())
-        #             ....:     for A in OrderedSetPartitions(4))
-        #             True
-        #         """
-        #         # See the WQSymBases.ElementMethods.coalgebraic_complement doc
-        #         # for the formula we're using here.
-        #         BR = self.base_ring()
-        #         one = BR.one()
-        #         mine = -one
-        #         Q = self.parent()
-        #         OSPs = Q.basis().keys()
-        #         from sage.data_structures.blas_dict import linear_combination
-        #         def img(A):
-        #             # The image of the basis element Q[A], written as a
-        #             # dictionary (of its coordinates in the Q-basis).
-        #             Rs = [Rr.complement() for Rr in A.strongly_fatter()]
-        #             return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-        #                               else mine)
-        #                     for R in Rs for P in R.strongly_fatter()}
-        #         return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
-
-        #     def star_involution(self):
-        #         r"""
-        #         Return the image of the element ``self`` of `WQSym`
-        #         under the star involution.
-
-        #         See
-        #         :meth:`WQSymBases.ElementMethods.star_involution`
-        #         for a definition of the involution and for examples.
-
-        #         .. SEEALSO::
-
-        #             :meth:`algebraic_complement`, :meth:`coalgebraic_complement`
-
-        #         EXAMPLES::
-
-        #             sage: WQSym = algebras.WQSym(ZZ)
-        #             sage: Q = WQSym.Q()
-        #             sage: Q[[1,2],[5,6],[3,4]].star_involution()
-        #             Q[{3, 4}, {1, 2}, {5, 6}]
-        #             sage: Q[[3], [1, 2], [4]].star_involution()
-        #             Q[{1}, {3, 4}, {2}]
-
-        #         TESTS::
-
-        #             sage: M = WQSym.M()
-        #             sage: all(M(Q[A]).star_involution() == M(Q[A].star_involution())
-        #             ....:     for A in OrderedSetPartitions(4))
-        #             True
-        #         """
-        #         # See the WQSymBases.ElementMethods.star_involution doc
-        #         # for the formula we're using here.
-        #         Q = self.parent()
-        #         OSPs = Q.basis().keys()
-        #         return Q._from_dict({OSPs(A.complement().reversed()): c for (A, c) in self},
-        #                             remove_zeros=False)
-
     H = Homogeneous
+
+######## autre base ##########
+# TODO    
+    class Elementaire(WQSymBasis_abstract):
+        r"""
+        The Elementaire basis of `WQSym`.
+
+        # We define a partial order `\leq` on the set of all ordered
+        # set partitions as follows: `A \leq B` if and only if
+        # `A` is strongly finer than `B` (see
+        # :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
+        # for a definition of this).
+
+        # The *Q basis* `(Q_P)_P` is a basis of `WQSym` indexed by ordered
+        # set partitions, and is defined by
+
+        # .. MATH::
+
+        #     Q_P = \sum \mathbf{M}_W,
+
+        # where the sum is over ordered set partitions `W` satisfying
+        # `P \leq W`.
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: M = WQSym.M(); Q = WQSym.Q(); E = WQSym.E()
+            sage: Q
+            Word Quasi-symmetric functions over Rational Field in the Q basis
+            sage: E
+            Word Quasi-symmetric functions over Rational Field in the Elementaire basis
+
+        #     sage: Q(M[[2,3],[1,4]])
+        #     Q[{2, 3}, {1, 4}]
+        #     sage: Q(M[[1,2],[3,4]])
+        #     Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
+        #     sage: M(Q[[1,2],[3,4]])
+        #     M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
+        #     sage: M(Q[[2,3],[1],[4]])
+        #     M[{2, 3}, {1}, {4}] + M[{2, 3}, {1, 4}]
+        #     sage: M(Q[[3], [2, 5], [1, 4]])
+        #     M[{3}, {2, 5}, {1, 4}]
+        #     sage: M(Q[[1, 4], [2, 3], [5], [6]])
+        #     M[{1, 4}, {2, 3}, {5}, {6}] + M[{1, 4}, {2, 3}, {5, 6}]
+        #      + M[{1, 4}, {2, 3, 5}, {6}] + M[{1, 4}, {2, 3, 5, 6}]
+
+        #     sage: Q[[1, 3], [2]] * Q[[1], [2]]
+        #     Q[{1, 3}, {2}, {4}, {5}] + Q[{1, 3}, {4}, {2}, {5}]
+        #      + Q[{1, 3}, {4}, {5}, {2}] + Q[{4}, {1, 3}, {2}, {5}]
+        #      + Q[{4}, {1, 3}, {5}, {2}] + Q[{4}, {5}, {1, 3}, {2}]
+
+        #     sage: Q[[1, 3], [2]].coproduct()
+        #     Q[] # Q[{1, 3}, {2}] + Q[{1, 2}] # Q[{1}] + Q[{1, 3}, {2}] # Q[]
+
+        # REFERENCES:
+
+        # - Section 6 of [BerZab05]_
+        """
+        _prefix = "E"
+        _basis_name = "Elementaire"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: E = algebras.WQSym(QQ).E()
+                sage: TestSuite(E).run()  # long time
+            
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+Defining M as shorthand for Word Quasi-symmetric functions over Rational Field in the Monomial basis
+Defining X as shorthand for Word Quasi-symmetric functions over Rational Field in the Characteristic basis
+Defining C as shorthand for Word Quasi-symmetric functions over Rational Field in the Cone basis
+Defining Q as shorthand for Word Quasi-symmetric functions over Rational Field in the Q basis
+Defining Phi as shorthand for Word Quasi-symmetric functions over Rational Field in the Phi basis
+Defining H as shorthand for Word Quasi-symmetric functions over Rational Field in the Homogeneous basis
+Defining E as shorthand for Word Quasi-symmetric functions over Rational Field in the Elementaire basis
+sage: H.options.objects = 'words'
+sage: matr_chgmt_base_osp = lambda X,Y, n: matrix([[Y(X(mu)).coefficient(sigma) for mu in OrderedSetPartitions(n)] for sigma in OrderedSetPartitions(n)])
+sage: matr_chgmt_base_osp(H,Q,3)
+[1 0 0 0 0 0 0 0 0 0 0 0 0]
+[1 1 0 0 0 0 0 0 0 0 0 0 0]
+[1 0 1 0 0 0 0 0 0 0 0 0 0]
+[1 1 0 1 0 0 0 0 0 0 0 0 0]
+[1 0 1 0 1 0 0 0 0 0 0 0 0]
+[1 1 1 1 1 1 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(H,E,3)
+[0 0 0 0 0 1 0 0 0 0 0 0 0]
+[0 0 0 1 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 1 0 0 0 0 0 0 0 0]
+[0 1 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 1 0 0 0 0 0 0 0 0 0 0]
+[1 0 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 0 0 0 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(E,H,3)
+[0 0 0 0 0 1 0 0 0 0 0 0 0]
+[0 0 0 1 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 1 0 0 0 0 0 0 0 0]
+[0 1 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 1 0 0 0 0 0 0 0 0 0 0]
+[1 0 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 0 0 0 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(E,Q,3)
+[0 0 0 0 0 1 0 0 0 0 0 0 0]
+[0 0 0 1 0 1 0 0 0 0 0 0 0]
+[0 0 0 0 1 1 0 0 0 0 0 0 0]
+[0 1 0 1 0 1 0 0 0 0 0 0 0]
+[0 0 1 0 1 1 0 0 0 0 0 0 0]
+[1 1 1 1 1 1 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 0 0 1 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(Q,E,3)
+[ 1  0  0 -1 -1  1  0  0  0  0  0  0  0]
+[ 0 -1  0  1  0  0  0  0  0  0  0  0  0]
+[ 0  0 -1  0  1  0  0  0  0  0  0  0  0]
+[-1  1  0  0  0  0  0  0  0  0  0  0  0]
+[-1  0  1  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0  0  0  0  0  0  0  0  0  0  0]
+[ 0  0  0  0  0  0  0  0  1 -1  0  0  0]
+[ 0  0  0  0  0  0  0  1  0  0  0  0  0]
+[ 0  0  0  0  0  0  1  0  0  0  0  0  0]
+[ 0  0  0  0  0  0 -1  0  0  0  0  1  0]
+[ 0  0  0  0  0  0  0  0  0  0  1  0  0]
+[ 0  0  0  0  0  0  0  0  0  1  0  0  0]
+[ 0  0  0  0  0  0  0  0  0  0  0  0  1]
+sage: matr_chgmt_base_osp(M,E,3)
+[ 1  0  0 -1 -1  1  0  0  0  0  0  0  0]
+[ 0 -1  0  1  0  0  0  0  0  0  0  0  0]
+[ 0  0 -1  0  1  0  0  0  0  0  0  0  0]
+[-1  1  0  0  0  0  0  0  0  0  0  0  0]
+[-1  0  1  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0 -1  0  0  0  0  1 -1  0  0  0]
+[ 0  0 -1  0  0  0  0  1  0  0  0  0  0]
+[-1  0  0  0  0  0  1  0  0  0  0  0  0]
+[ 1  0  0  0 -1  0 -1  0  0  0  0  1  0]
+[ 0 -1  0  0  0  0  0  0  0  0  1  0  0]
+[-1  0  0  0  0  0  0  0  0  1  0  0  0]
+[ 1  0  0  0  0  0 -1  0  0 -1  0  0  1]
+sage: matr_chgmt_base_osp(E,M,3)
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+            
+            H = self.realization_of().H()
+            
+            phi = self.module_morphism(lambda ops: H[ops.complement()], codomain=H)
+            phi.register_as_coercion()
+            inv_phi = H.module_morphism(lambda ops: self[ops.complement()], codomain=self)
+            inv_phi.register_as_coercion()
+            
+            Q = self.realization_of().Q()
+            Q.register_coercion(Q.coerce_map_from(H) * phi)
+            self.register_coercion(inv_phi * H.coerce_map_from(Q))
+            
+            M = self.realization_of().M()
+            M.register_coercion(M.coerce_map_from(H) * phi)
+            self.register_coercion(inv_phi * H.coerce_map_from(M))
+            
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Homogeneous basis.
+
+            EXAMPLES::
+
+                sage: H = algebras.WQSym(QQ).H()
+                sage: H.some_elements()
+                [H[], H[{1}], H[{1, 2}], H[] + 1/2*H[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+        def product_on_basis(self, x, y):
+            r"""
+            Return the (associative) `*` product of the basis elements
+            of the Elementaire basis ``self`` indexed by the ordered set partitions
+            `x` and `y`.
+
+            This is the concatenating product of shifted `y` and `x`.
+
+            EXAMPLES::
+
+                sage: A = algebras.WQSym(QQ).E()
+                sage: x = OrderedSetPartition([[1],[2,3]])
+                sage: y = OrderedSetPartition([[1,2]])
+                sage: z = OrderedSetPartition([[1,2],[3]])
+                sage: A.product_on_basis(x, y)
+                E[{4, 5}, {1}, {2, 3}]
+                sage: A.product_on_basis(x, z)
+                E[{4, 5}, {6}, {1}, {2, 3}]
+                sage: A.product_on_basis(y, y)
+                E[{3, 4}, {1, 2}]
+
+            TESTS::
+
+                sage: one = OrderedSetPartition([])
+                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+            """
+            K = self.basis().keys()
+            if not x:
+                return self.monomial(y)
+            m = max(max(part) for part in x) # The degree of x
+            x = [set(part) for part in x]
+            yshift = [[val + m for val in part] for part in y]
+            return self.monomial(K(yshift + x))
+
+    E = Elementaire
 
     ############### HuxoD End #############
 
