@@ -93,10 +93,10 @@ class FPS:
 
     def reversion(self): # compositional inverse
         if self.n != 1:
-            raise ValueError("More than one variable")
+            raise ValueError("Cannot compute reversion: more than one variable")
         poly = self.view(1)
         if poly[0] != 0:
-            raise ValueError("Constant term is nonzero")
+            raise ValueError("Cannot compute reversion: constant term is nonzero")
         # should also check that poly[1] is a unit
         return FPS(self.ring, self.n, None, None, self.var, None, [self], ["rev"])
 
@@ -130,7 +130,7 @@ class FPS:
         # returning to the first example, f(g(x), h(x)) is considered to have one variable, if we change the position to [1, 1] then we have
         # an answer corresponding to f(g(y), h(y)); this lives in two variables.
         # Variables can be added and moved around in the include method.
-        sumdim = sum([seriesList[i].n for i in range(len(seriesList))])
+        sumdim = sum([i.n for i in seriesList])
         if positions == None: # default case is that each of the arguments' variables are independent
             positions = list(range(sumdim))
         if len(seriesList) != self.n:
@@ -468,7 +468,7 @@ class UFGL(FPS):
                 return 1
             else:
                 R = Integers(p)
-                ans = (int(R(q) ^-1) * q)
+                ans = (int(R(q)**-1) * q)
                 return ans
         def mu(n, d):
             ans = 1
