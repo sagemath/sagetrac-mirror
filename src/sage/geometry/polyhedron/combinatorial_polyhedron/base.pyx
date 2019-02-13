@@ -712,7 +712,7 @@ cdef class ListOfFaces:
         """
         cdef uint64_t * output = self.data[index]
         if index >= self.nr_faces:
-            raise IndexError('Only %s faces, cannot add a %sth face'%
+            raise IndexError('only %s faces, cannot add a %sth face'%
                              (self.nr_faces, index))
         copy_face(face, output, self.face_length)
         return 1
@@ -736,7 +736,8 @@ cdef int calculate_dimension_loop(uint64_t ** facesdata, size_t nr_faces, size_t
     cdef int returnvalue
 
     if nr_faces == 0:
-            raise TypeError('Wrong usage of `calculate_dimension_loop`, at least one face needed.')
+            raise TypeError('wrong usage of `calculate_dimension_loop`,\n' + \
+                            'at least one face needed.')
 
     if nr_faces == 1:
         # we expect the face to be a vertex
@@ -945,7 +946,7 @@ cdef class FaceIterator:
             return CountFaceBits(self.face, self.face_length)
 
         # the face was not initialized properly
-        raise LookupError('The `FaceIterator` does not point to a face.')
+        raise LookupError('`FaceIterator` does not point to a face')
 
     cdef size_t facet_repr(self, size_t * output):
         r"""
@@ -1071,7 +1072,7 @@ cdef class ListOfAllFaces:
         cdef size_t max_number = self.f_vector[face_dim + 1]
         cdef ListOfFaces face_list = self.lists_vertex_repr[face_dim + 1]
         if counter >= max_number:
-            raise IOError('Trying to add too many faces to `ListOfAllFaces`')
+            raise IOError('trying to add too many faces to `ListOfAllFaces`')
         face_list.copy_face(counter, face)
         self.face_counter[face_dim + 1] += 1
 
@@ -1086,7 +1087,7 @@ cdef class ListOfAllFaces:
         for i in range(dim + 2):
             if self.f_vector[i] != self.face_counter[i]:
                 print (i,self.f_vector[i], self.face_counter[i], i+1, self.f_vector[i+1], self.face_counter[i+1])
-                raise ValueError('`ListOfAllFaces` does not contain all faces!')
+                raise ValueError('`ListOfAllFaces` does not contain all faces')
         for i in range(0,dim):
             faces = self.lists_vertex_repr[i]
             self._sort_one_list(faces.data, faces.nr_faces)
@@ -1257,9 +1258,9 @@ cdef class ListOfAllFaces:
         if dimension_one == self.dimension:
             # the entire polyhedron is incident to every face
             if dimension_two < -1:
-                raise ValueError('No faces of dimension %s'%dimension_two)
+                raise ValueError('no faces of dimension %s'%dimension_two)
             if dimension_two > self.dimension:
-                raise ValueError('No faces of dimension %s'%dimension_two)
+                raise ValueError('no faces of dimension %s'%dimension_two)
             self.incidence_dim_one = dimension_one
             self.incidence_dim_two = dimension_two
             self.incidence_counter_one = 0
@@ -1269,9 +1270,9 @@ cdef class ListOfAllFaces:
         if dimension_two == -1:
             # the entire polyhedron is incident to every face
             if dimension_one < -1:
-                raise ValueError('No faces of dimension %s'%dimension_two)
+                raise ValueError('no faces of dimension %s'%dimension_two)
             if dimension_one > self.dimension:
-                raise ValueError('No faces of dimension %s'%dimension_two)
+                raise ValueError('no faces of dimension %s'%dimension_two)
             self.incidence_dim_one = dimension_one
             self.incidence_dim_two = dimension_two
             self.incidence_counter_one = 0
@@ -1284,11 +1285,11 @@ cdef class ListOfAllFaces:
             # so that we can later calculate more than just incidences of
             # neighbor-dimensions
         if dimension_one > self.dimension:
-            raise ValueError('No faces of dimension %s'%dimension_one)
+            raise ValueError('no faces of dimension %s'%dimension_one)
         if dimension_two < -1:
-            raise ValueError('No faces of dimension %s'%dimension_two)
+            raise ValueError('no faces of dimension %s'%dimension_two)
         if not self.is_sorted:
-            raise ValueError('Allfaces need to be sorted with sort() yet.')
+            raise ValueError('Allfaces need to be sorted with sort() yet')
         if not self.incidence_faces_mem:
             self.incidence_faces_mem = \
                 ListOfFaces(self.nr_facets, self.nr_vertices)
@@ -1645,7 +1646,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         elif isinstance(data, Integer):  # intput for a trivial Polyhedron
             if data < -1:
-                TypeError("A polyhedron must have dimension at least -1")
+                TypeError("any polyhedron must have dimension at least -1")
             self._nr_facets = 0
             self.is_trivial = 1
             self._dimension = data
@@ -2833,7 +2834,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef int d
         self._calculate_f_vector()
         if not self._f_vector:
-            raise TypeError('Could not determine f_vector. User Interrupt?')
+            raise TypeError('could not determine f_vector')
         if self.is_trivial:
             return 1 #in this case we will not record all faces
         f_tuple = tuple(self._f_vector[i] for i in range(dim + 2))
