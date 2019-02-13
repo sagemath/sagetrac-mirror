@@ -113,6 +113,7 @@ from sage.interfaces.all import *
 
 from sage.functions.all  import *
 from sage.calculus.all   import *
+from sage.formal_group_laws.all import *
 
 import sage.tests.all as tests
 from sage.cpython.all    import *
