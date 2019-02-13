@@ -26,7 +26,6 @@
 // which is the bottle neck of this function,
 // so it does not make sene to implement it
 
-
 #if __AVX2__
     // 256-bit commands
     #include <immintrin.h>
@@ -82,13 +81,6 @@
     #define popcount(A) naive_popcount(A)
 #endif
 
-int interrupt;
-
-void inline signalHandler( int signum ) {
-    // setting a variable, so I can catch the the signal later
-    interrupt = 1;
-}
-
 inline unsigned int naive_popcount(uint64_t A){
     // popcount without intrinsics
     unsigned int count = 0;
@@ -98,7 +90,6 @@ inline unsigned int naive_popcount(uint64_t A){
     }
     return count;
 }
-
 
 inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
                          size_t face_length){
@@ -152,33 +143,29 @@ size_t get_next_level(\
         uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
         uint64_t **nextfaces2, uint64_t **forbidden, \
         size_t nr_forbidden, size_t face_length){
-    // intersects the first `lenfaces - 1` faces of `faces` with faces[lenfaces-1]`
+    // intersects the first `lenfaces - 1` faces of `faces`
+    // with faces[lenfaces-1]`
     // determines which ones are exactly of one dimension less
     // by considering containment
     // newfaces2 will point at those of exactly one dimension less
-    // which are not contained in any of the faces in 'forbidden'
+    // which are not contained in any of the faces in `forbidden`
     // returns the number of those faces
-    interrupt = 0;
-    signal(SIGINT, signalHandler);
     const size_t constlenfaces = lenfaces;
-    int ret;
     int addfacearray[constlenfaces - 1] = { };
     size_t j,k, addthisface;
     size_t newfacescounter = 0;
     for (j = 0; j < lenfaces - 1; j++){
-        intersection(faces[j],faces[lenfaces - 1],nextfaces[j], face_length);
+        intersection(faces[j], faces[lenfaces - 1], nextfaces[j], face_length);
         addfacearray[j] = 1;
     }
-    // we have create all possible intersection with the i_th-face, but some of them might not be of exactly one dimension less
-    for (j = 0; j< lenfaces-1; j++){
-        if (interrupt){
-            // check for interrupt signal
-            return 0;
-        }
+    // we have create all possible intersection with the i_th-face,
+    // but some of them might not be of exactly one dimension less
+    for (j = 0; j < lenfaces-1; j++){
         for(k = 0; k < j; k++){
             // testing if nextfaces[j] is contained in different nextface
-            if(is_subset(nextfaces[j],nextfaces[k], face_length)){
+            if(is_subset(nextfaces[j], nextfaces[k],face_length)){
                 addfacearray[j] = 0;
+                // nextfaces[j] is a subset of nextfaces[k] -> do not add it
                 break;
                 }
             }
@@ -190,6 +177,7 @@ size_t get_next_level(\
             // testing if nextfaces[j] is contained in a different nextface
             if(is_subset(nextfaces[j],nextfaces[k], face_length)){
             addfacearray[j] = 0;
+            // nextfaces[j] is a subset of nextfaces[k] -> do not add it
             break;
             }
         }
@@ -198,10 +186,12 @@ size_t get_next_level(\
         }
 
         for (k = 0; k < nr_forbidden; k++){
-            // we do not want to double count any faces,
-            // we have visited all faces in forbidden again, so we do not want to do that again
+            // we do not want to double count any faces
             if(is_subset(nextfaces[j],forbidden[k], face_length)){
                 addfacearray[j] = 0;
+                // nextfaces[j] is a subset of forbidden[k]
+                // as we have visited all faces of forbidden[k] already, we must
+                // have visitied nextfaces[j] before
                 break;
             }
         }
@@ -215,11 +205,7 @@ size_t get_next_level(\
         nextfaces2[newfacescounter] = nextfaces[j];
         newfacescounter++;
     }
-    if (interrupt){
-        // check for interrupt signal
-        return 0;
-    }
-    return newfacescounter + 1;
+    return newfacescounter;
 }
 
 
