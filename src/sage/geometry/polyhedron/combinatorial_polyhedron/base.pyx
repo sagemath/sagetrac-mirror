@@ -46,6 +46,9 @@ from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_block, sig_unblock
 from sage.ext.memory_allocator cimport MemoryAllocator
 
+cdef extern from "Python.h":
+    int unlikely(int) nogil  # Defined by Cython
+
 cdef extern from "helper.cc":
     cdef const size_t chunksize;
 
@@ -58,7 +61,7 @@ cdef extern from "helper.cc":
     cdef size_t get_next_level(\
         uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
         uint64_t **nextfaces2, uint64_t **forbidden, \
-        size_t nr_forbidden, size_t face_length) except 0
+        size_t nr_forbidden, size_t face_length)
     # intersects the first `lenfaces - 1` faces of `faces`
     # with `faces[lenfaces-1]`
     # stores the faces in `nextfaces`
@@ -67,7 +70,7 @@ cdef extern from "helper.cc":
     # by considering containment
     # newfaces2 will point at those of exactly one dimension less
     # which are not contained in any of the faces in `forbidden`
-    # returns the number of those faces + 1
+    # returns the number of those faces
 
     cdef size_t CountFaceBits(uint64_t * A, size_t face_length)
 
@@ -91,48 +94,205 @@ cdef int char_from_tuple(tuple tup, uint64_t *output,
     r"""
     Converts a tuple into a bit-representation. Stores it in `output`.
 
-    So the first bit represents the entry `0` and is one, iff `0` is
-    in `tup`. The second bit represents `1` and so on.
+    The first bit represent the entry `0` and is set to one, iff `0` is in
+    `tup`. The second bit represents `1` and so on.
+
+    INPUT:
+
+    - `tup` -- tuple of pairwise distinct positive integers in
+      `range(face_length*64)`.
+    - `output` -- array of `uint64_t` of length `face_lenght`.
+    - `face_length`.
+
+    OUTPUT:
+
+    - `1` on sucess
+    - fills and initializes `output`.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from libc.stdint cimport uint64_t
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport char_from_tuple
+        ....:
+        ....: cdef uint64_t output
+        ....: cdef uint64_t[2] output2
+        ....:
+        ....: char_from_tuple((62,63), &output, 1)
+        ....: print str(output)
+        ....:
+        ....: char_from_tuple((61,63,125), output2, 2)
+        ....: print str(output2)
+        ....:
+        ....: tup = tuple(i for i in range(64))
+        ....: char_from_tuple(tup, &output, 1)
+        ....: print str(output)
+        ....: print str(output+1)
+        ....:
+        ....: try:
+        ....:     char_from_tuple((62,70), &output, 1)
+        ....: except:
+        ....:     print 'out of range'
+        ....:
+        ....: try:
+        ....:     char_from_tuple((-1,12), &output, 1)
+        ....: except:
+        ....:     print 'negatives not allowed'
+        ....:
+        ....: try:
+        ....:     char_from_tuple((0,0), &output, 1)
+        ....: except:
+        ....:     print 'duplicates not allowed'
+        ....: ''')
+        3
+        [5L, 4L]
+        18446744073709551615
+        0
+        out of range
+        negatives not allowed
+        duplicates not allowed
+
     """
-    cdef size_t entry, position, value, i;
+    cdef size_t entry, position, value, i
     for i in range(face_length):
         output[i] = 0
+    if unlikely(len(tup) != len(set(tup))):
+        raise ValueError('entries of `tup` are not distinct')
     for entry in tup:
         value = entry % 64
-        position = entry/64
+        position = entry//64
+        if unlikely(position >= face_length):
+            raise IndexError('output too small to represent %s'%position)
         output[position] += vertex_to_bit_dictionary[value]
     return 1
 
 cdef int char_from_incidence(tuple incidences, uint64_t *output,
                              size_t face_length) except 0:
+
     r"""
-    Converts a tuple of incidences to bit-representation.
+    Converts a tuple of incidences into a bit-representation.
 
-    Each entry in `incidences` is either 0 or 1, depending on wether
-    the corresponding vertex is in the face.
+    Stores it in `output`. Each entry in `incidences` represents a bit in
+    `output`. It is set to `1`, iff the entry in `incidences` in non-zero.
 
-    E.g. (0,0,0,1) corresponds to tuple (3,) in `char_from_tuple`.
+    INPUT:
+
+    - `tup` -- tuple of integers representing incidences of length at most
+      `face_length*64`.
+    - `output` -- array of `uint64_t` of length `face_lenght`.
+    - `face_length`.
+
+    OUTPUT:
+
+    - `1` on sucess
+    - fills and initializes `output`.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from libc.stdint cimport uint64_t
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport char_from_incidence
+        ....:
+        ....: cdef uint64_t output
+        ....: cdef uint64_t[2] output2
+        ....:
+        ....: tup = tuple(0 for _ in range(62)) + (1,1)
+        ....: char_from_incidence(tup, &output, 1)
+        ....: print str(output)
+        ....:
+        ....: tup = tuple(0 for _ in range(61)) + (1,0,1)
+        ....: tup += tuple(0 for _ in range(61)) + (1,)
+        ....: char_from_incidence(tup, output2, 2)
+        ....: print str(output2)
+        ....:
+        ....: tup = tuple(1 for _ in range(64))
+        ....: char_from_incidence(tup, &output, 1)
+        ....: print str(output)
+        ....: print str(output+1)
+        ....:
+        ....: tup = tuple(0 for _ in range(70))
+        ....: try:
+        ....:     raise IndexError()
+        ....: except:
+        ....:     print 'out of range'
+        ....: ''')
+        3
+        [5L, 4L]
+        18446744073709551615
+        0
+        out of range
+
     """
-    cdef size_t position, value, i
-    cdef int entry
+    cdef size_t position, value, i, entry
+    cdef size_t length = len(incidences)
     for i in range(face_length):
         output[i] = 0
-    for entry in range(len(incidences)):
+    if unlikely(length > 64*face_length):
+        raise IndexError('output too small to represent all incidences')
+    for entry in range(length):
         if incidences[entry]:
             value = entry % 64
-            position = entry/64
+            position = entry//64
             output[position] += vertex_to_bit_dictionary[value]
     return 1
 
-cdef int make_trivial_face(size_t nr_vertices, uint64_t * output,
-                            size_t face_length) except 0:
-    # this will intialize a face in bitrep-reprsentation that contains the first
-    # nr_vertices vertices (usefull for the empty face or the full Polyhedron)
-    cdef tup = tuple(i for i in range(nr_vertices))
-    return char_from_tuple(tup, output, face_length)
-
 cdef ListOfFaces get_facets_from_incidence_matrix(tuple matrix):
-    # expects the incidence matrix to be given as tuple of tuples
+    r"""
+    Initializes facets in bit-representation as `ListOfFaces`.
+
+    INPUT:
+
+    - `matrix` -- an incidence matrix as tuple of tuples.
+
+    .. NOTE::
+
+        :meth:`sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
+        also has equalities appearing the incidence matrix. Those must be
+        removed.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport ListOfFaces, vertex_repr_from_bitrep, \
+        ....:         get_facets_from_incidence_matrix
+        ....: from sage.geometry.polyhedron.library import polytopes
+        ....:
+        ....: cdef ListOfFaces facets
+        ....: cdef size_t[24] output
+        ....: cdef size_t length
+        ....: P = polytopes.permutahedron(4)
+        ....: data = P.incidence_matrix()
+        ....: rg = range(data.nrows())
+        ....: matrix = tuple(tuple(data[i,j] for i in rg)
+        ....:                for j in range(data.ncols())
+        ....:                if not all(data[i,j] for i in rg))
+        ....:
+        ....: facets = get_facets_from_incidence_matrix(matrix)
+        ....: for i in range(facets.nr_faces):
+        ....:     length = vertex_repr_from_bitrep(facets.data[i], output,
+        ....:                                      facets.face_length)
+        ....:     print tuple(output[j] for j in range(length))
+        ....: ''')
+        (18, 19, 20, 21, 22, 23)
+        (9, 11, 15, 17, 21, 23)
+        (16, 17, 22, 23)
+        (0, 1, 2, 3, 4, 5)
+        (2, 4, 8, 10)
+        (0, 1, 6, 7)
+        (6, 7, 12, 13, 18, 19)
+        (3, 5, 9, 11)
+        (1, 3, 7, 9, 13, 15)
+        (0, 2, 6, 8, 12, 14)
+        (12, 14, 18, 20)
+        (4, 5, 10, 11, 16, 17)
+        (8, 10, 14, 16, 20, 22)
+        (13, 15, 19, 21)
+
+    """
+
     cdef ListOfFaces facets = ListOfFaces(len(matrix), len(matrix[0]))
     cdef uint64_t ** facets_data = facets.data
     cdef int i
@@ -142,6 +302,72 @@ cdef ListOfFaces get_facets_from_incidence_matrix(tuple matrix):
     return facets
 
 cdef ListOfFaces get_vertices_from_incidence_matrix(tuple matrix):
+    r"""
+    Initializes vertices in bit-representation as `ListOfFaces`.
+
+    Those are the facets of the polar polyhedron.
+
+    INPUT:
+
+    - `matrix` -- an incidence matrix as tuple of tuples.
+
+    .. NOTE::
+
+        :meth:`sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
+        also has equalities appearing the incidence matrix. Those must be
+        removed.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport ListOfFaces, vertex_repr_from_bitrep, \
+        ....:         get_vertices_from_incidence_matrix
+        ....: from sage.geometry.polyhedron.library import polytopes
+        ....:
+        ....: cdef ListOfFaces vertices
+        ....: cdef size_t[14] output
+        ....: cdef size_t length
+        ....: P = polytopes.permutahedron(4)
+        ....: data = P.incidence_matrix()
+        ....: rg = range(data.nrows())
+        ....: matrix = tuple(tuple(data[i,j] for i in rg)
+        ....:                for j in range(data.ncols())
+        ....:                if not all(data[i,j] for i in rg))
+        ....:
+        ....: vertices = get_vertices_from_incidence_matrix(matrix)
+        ....: for i in range(vertices.nr_faces):
+        ....:     length = vertex_repr_from_bitrep(vertices.data[i], output,
+        ....:                                      vertices.face_length)
+        ....:     print tuple(output[j] for j in range(length))
+        ....: ''')
+        (3, 5, 9)
+        (3, 5, 8)
+        (3, 4, 9)
+        (3, 7, 8)
+        (3, 4, 11)
+        (3, 7, 11)
+        (5, 6, 9)
+        (5, 6, 8)
+        (4, 9, 12)
+        (1, 7, 8)
+        (4, 11, 12)
+        (1, 7, 11)
+        (6, 9, 10)
+        (6, 8, 13)
+        (9, 10, 12)
+        (1, 8, 13)
+        (2, 11, 12)
+        (1, 2, 11)
+        (0, 6, 10)
+        (0, 6, 13)
+        (0, 10, 12)
+        (0, 1, 13)
+        (0, 2, 12)
+        (0, 1, 2)
+
+    """
+
     # expects the incidence matrix to be given as tuple of tuples
     cdef int i
     cdef int j
@@ -150,8 +376,46 @@ cdef ListOfFaces get_vertices_from_incidence_matrix(tuple matrix):
                       for j in range(len(matrix[0])))
     return get_facets_from_incidence_matrix(newmatrix)
 
-cdef ListOfFaces get_facets_bitrep_from_facets_tuple(
-        tuple facets_input, size_t nr_vertices):
+cdef ListOfFaces get_facets_bitrep_from_facets_tuple(tuple facets_input,
+                                                     size_t nr_vertices):
+    r"""
+    Initializes facets in bit-representation as `ListOfFaces`.
+
+    INPUT:
+
+    - `facets_input` -- a tuple of facets, each facet a tuple of vertices.
+      The vertices must be exactly range(nr_vertices).
+    - `nr_vertices`.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport ListOfFaces, vertex_repr_from_bitrep, \
+        ....:         get_facets_bitrep_from_facets_tuple
+        ....:
+        ....: cdef ListOfFaces facets
+        ....: cdef size_t[6] output
+        ....: cdef size_t length
+        ....:
+        ....: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
+        ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+        ....: facets = get_facets_bitrep_from_facets_tuple(bi_pyr, 6)
+        ....: for i in range(facets.nr_faces):
+        ....:     length = vertex_repr_from_bitrep(facets.data[i], output,
+        ....:                                      facets.face_length)
+        ....:     print tuple(output[j] for j in range(length))
+        ....: ''')
+        (0, 1, 4)
+        (1, 2, 4)
+        (2, 3, 4)
+        (0, 3, 4)
+        (0, 1, 5)
+        (1, 2, 5)
+        (2, 3, 5)
+        (0, 3, 5)
+
+    """
     cdef int i
     cdef ListOfFaces facets = ListOfFaces(len(facets_input),
                                           nr_vertices)
@@ -161,8 +425,46 @@ cdef ListOfFaces get_facets_bitrep_from_facets_tuple(
         char_from_tuple(facets_input[i], facets_data[i], face_length)
     return facets
 
-cdef ListOfFaces get_vertices_bitrep_from_facets_tuple(
-        tuple facets_input, size_t nr_vertices):
+cdef ListOfFaces get_vertices_bitrep_from_facets_tuple(tuple facets_input,
+                                                       size_t nr_vertices):
+    r"""
+    Initializes vertices in bit-representation as `ListOfFaces`.
+
+    Those are the facets of the polar polyhedron.
+
+    INPUT:
+
+    - `facets_input` -- a tuple of facets, each facet a tuple of vertices.
+      The vertices must be exactly range(nr_vertices).
+    - `nr_vertices`.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport ListOfFaces, vertex_repr_from_bitrep, \
+        ....:         get_vertices_bitrep_from_facets_tuple
+        ....:
+        ....: cdef ListOfFaces vertices
+        ....: cdef size_t[8] output
+        ....: cdef size_t length
+        ....:
+        ....: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
+        ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+        ....: vertices = get_vertices_bitrep_from_facets_tuple(bi_pyr, 6)
+        ....: for i in range(vertices.nr_faces):
+        ....:     length = vertex_repr_from_bitrep(vertices.data[i], output,
+        ....:                                      vertices.face_length)
+        ....:     print tuple(output[j] for j in range(length))
+        ....: ''')
+        (0, 3, 4, 7)
+        (0, 1, 4, 5)
+        (1, 2, 5, 6)
+        (2, 3, 6, 7)
+        (0, 1, 2, 3)
+        (4, 5, 6, 7)
+
+    """
     cdef tuple new_input
     cdef size_t j
     cdef size_t i
@@ -180,7 +482,7 @@ cdef ListOfFaces get_vertices_bitrep_from_facets_tuple(
     inputlength = len(facets_input)
     for i in range(inputlength):
         value = i % 64
-        position = i/64
+        position = i//64
         for j in facets_input[i]:
             vertices_data[j][position] += \
                 vertex_to_bit_dictionary[value]
@@ -188,6 +490,72 @@ cdef ListOfFaces get_vertices_bitrep_from_facets_tuple(
 
 cdef size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output,
                                     size_t face_length) except? 0:
+    r"""
+    Takes a bitrep-representation and converts it to an array.
+
+    Basically this is an inverse to `char_from_tuple`. Instead of a tuple,
+    it stores the vertices in `output`. Returns length of representation.
+
+    INPUT::
+
+    - `face` -- a bit-representation of a face.
+    - `output` -- an array of `size_t` long enough to contain all vertices of
+      that face. `face_length*64` will suffice.
+    - `face_length` -- the length of `face`.
+
+    OUTPUT:
+
+    - returns length of `output`
+    - stores vertices in `ouput`
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from libc.stdint cimport uint64_t
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport vertex_repr_from_bitrep
+        ....:
+        ....: cdef uint64_t[2] face
+        ....: cdef size_t[128] output
+        ....: cdef size_t length
+        ....:
+        ....: face[0] = 17
+        ....: face[1] = 31
+        ....: length = vertex_repr_from_bitrep(face, output, 2)
+        ....: print tuple(output[i] for i in range(length))
+        ....:
+        ....: face[0] = 0
+        ....: face[1] = 61
+        ....: length = vertex_repr_from_bitrep(face, output, 2)
+        ....: print tuple(output[i] for i in range(length))
+        ....: ''')
+        (59, 63, 123, 124, 125, 126, 127)
+        (122, 123, 124, 125, 127)
+
+    TESTS::
+
+        sage: cython('''
+        ....: from libc.stdint cimport uint64_t
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport vertex_repr_from_bitrep, char_from_tuple
+        ....: from sage.misc.prandom import randint
+        ....:
+        ....: cdef uint64_t[2] face
+        ....: cdef size_t length
+        ....: cdef size_t[128] output
+        ....:
+        ....: for _ in range(10):
+        ....:     st = set(randint(0,127) for i in range(40))
+        ....:     tup = tuple(sorted(tuple(st)))
+        ....:     char_from_tuple(tup, face, 2)
+        ....:     length = vertex_repr_from_bitrep(face, output, 2)
+        ....:     tup2 = tuple(output[i] for i in range(length))
+        ....:     if not tup == tup2:
+        ....:         print '`vertex_repr_from_bitrep` does not behave' +\
+        ....:               'as the inverse of `char_from_tuple`'
+        ....: ''')
+
+    """
     cdef size_t i
     cdef size_t j
     cdef size_t counter = 0
@@ -204,8 +572,16 @@ cdef size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output,
 
 cdef void * aligned_malloc(MemoryAllocator mem, size_t size,
                            size_t align) except NULL:
-    #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
-    #they are a workaround in case that C11 is not available
+    r"""
+    Allocates `align`-byte aligned memory of size at least `size`.
+
+    Allocates memory of length `size + align - 1` with `mem.malloc`.
+    Returns the pointer the the first address that is `align`-byte aligned.
+
+    `align` needs to be a power of two.
+
+    Taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
+    """
 
     # alignment could not be less than 0
     if (size<0):
@@ -224,45 +600,122 @@ cdef void * aligned_malloc(MemoryAllocator mem, size_t size,
     return ptr
 
 cdef class ListOfFaces:
-    cdef uint64_t ** data
-    cdef MemoryAllocator _mem
-    cdef size_t nr_faces
-    cdef size_t face_length
-    cdef size_t max_nr_faces
-    cdef size_t nr_vertices
-    # `_data` is not supposed to change, if memory has been allocated
-    # to be on the safe side, we will store the allocated memory in
-    # in `_memory`
+    r"""
+    A class to store the bit-representation of faces in.
 
-    def __init__ (self, size_t nr_faces, size_t length):
+    This class will allocate the memory to store the
+
+    INPUT:
+
+    - `nr_faces` -- the number of faces to be stored.
+    - `nr_vertices` -- the total number of vertices of the Polyhedron.
+
+    .. SEEALSO::
+
+        :meth:`get_facets_from_incidence_matrix`,
+        :meth:`get_vertices_from_incidence_matrix`,
+        :meth:`get_facets_bitrep_from_facets_tuple`,
+        :meth:`get_vertices_bitrep_from_facets_tuple`,
+        :class:`FaceIterator`.
+
+    EXAMPLES::
+
+        sage: cython('''
+        ....: from libc.stdint cimport uint64_t
+        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+        ....: cimport ListOfFaces
+        ....:
+        ....: cdef ListOfFaces facets
+        ....:
+        ....: facets = ListOfFaces(5, 13)
+        ....: print facets.face_length in (1, 2, 4)
+        ....: print facets.nr_vertices
+        ....: print facets.nr_faces
+        ....: ''')
+        True
+        13
+        5
+
+    """
+    # Those are the definitions done in the header:
+    # cdef uint64_t ** data
+    # cdef MemoryAllocator _mem
+    # cdef size_t nr_faces, face_length, nr_vertices
+
+    def __cinit__ (self, size_t nr_faces, size_t nr_vertices):
+        r"""
+        Initializes `ListOfFaces`.
+
+        See :class:`ListOfFaces`.
+
+        TESTS:
+
+        Checking for correct alignment of the data::
+
+            sage: cython('''
+            ....: from libc.stdint cimport uint64_t
+            ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+            ....: cimport ListOfFaces
+            ....:
+            ....: cdef ListOfFaces facets
+            ....: cdef size_t address
+            ....: cdef size_t required_alignment
+            ....:
+            ....: facets = ListOfFaces(10, 13)
+            ....: required_alignment = facets.face_length*8
+            ....: for i in range(10):
+            ....:     address = <size_t> facets.data[i]
+            ....:     if not address == address & ~(required_alignment - 1):
+            ....:         print 'Alignment not correct'
+            ....: ''')
+        """
         cdef size_t i
         self.nr_faces = nr_faces
-        self.face_length = ((length - 1)/chunksize + 1)*chunksize/64
+        self.face_length = ((nr_vertices - 1)//chunksize + 1)*chunksize//64
         # `face_length` is the length in terms of `uint64_t
         # WARNING: This needs to be divisible by 2, if chunksize is 128
         #          and divisible by 4, if chunksize is 256.
         self._mem = MemoryAllocator()
         self.data = <uint64_t **> \
             self._mem.malloc(nr_faces * sizeof(uint64_t *))
-        self.nr_vertices = length
+        self.nr_vertices = nr_vertices
         for i in range(nr_faces):
             self.data[i] = \
                 <uint64_t *> aligned_malloc(self._mem, self.face_length*8,
-                                            chunksize/8)
+                                            chunksize//8)
             # we must allocate the memory for ListOfFaces overaligned:
             #     must be 16-byte aligned if chunksize = 128
             #     must be 32-byte aligned if chunksize = 256
 
-    cdef int add_face(self, size_t index, uint64_t * face) except 0:
+    cdef int copy_face(self, size_t index, uint64_t * face) except 0:
+        r"""
+        Copies `face` to the `index`-th face of `self`.
+
+        .. WARNING::
+
+            Possibly `face` needs to be 32-byte aligned. It is recommended to
+            copy a `face` from :class:`ListOfFaces` or :class:`FaceIterator`.
+
+        EXAMPLES::
+
+            sage: cython('''
+            ....: from libc.stdint cimport uint64_t
+            ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
+            ....: cimport ListOfFaces
+            ....:
+            ....: cdef ListOfFaces facets1, facets2
+            ....:
+            ....: facets1 = ListOfFaces(1, 155)
+            ....: facets2 = ListOfFaces(2, 155)
+            ....: facets2.copy_face(1, facets1.data[0])
+            ....: ''')
+        """
         cdef uint64_t * output = self.data[index]
         if index >= self.nr_faces:
             raise IndexError('Only %s faces, cannot add a %sth face'%
                              (self.nr_faces, index))
         copy_face(face, output, self.face_length)
         return 1
-
-    cdef size_t length(self):
-        return self.face_length*64
 
 cdef int calculate_dimension(ListOfFaces faces) except -2:
     cdef size_t nr_faces
@@ -297,12 +750,14 @@ cdef int calculate_dimension_loop(uint64_t ** facesdata, size_t nr_faces, size_t
     newfaces2 = MemoryAllocator()
     newfacesdata = newfaces.data
     newfaces2data = <uint64_t **> newfaces2.malloc(nr_faces*sizeof(uint64_t *))
-    new_nr_faces = get_next_level(facesdata, nr_faces, newfacesdata,
-                                  newfaces2data, newfacesdata, 0,
-                                  face_length)
-    if new_nr_faces == 0:
+    try:
+        sig_on()
+        new_nr_faces = get_next_level(facesdata, nr_faces, newfacesdata,
+                                      newfaces2data, newfacesdata, 0,
+                                      face_length)
+        sig_off()
+    except:
         raise KeyboardInterrupt()
-    new_nr_faces -= 1
     sig_check()
     return calculate_dimension_loop(newfaces2data, new_nr_faces,
                                            face_length) + 1
@@ -352,7 +807,7 @@ cdef class FaceIterator:
                                                sizeof(uint64_t *))
         self.newfaces2[dimension - 1] = facets.data
         self.newfaces_lists = \
-            tuple(ListOfFaces(facets.nr_faces, facets.length())
+            tuple(ListOfFaces(facets.nr_faces, facets.nr_vertices)
                   for i in range(dimension -1))
         self.newfaces = <uint64_t ***> \
             self._mem.malloc((dimension -1) * sizeof(uint64_t **))
@@ -370,7 +825,7 @@ cdef class FaceIterator:
         self.first_time[dimension - 1] = 1
         self.output1 = NULL
         self.output2 = NULL
-        self.nr_vertices = facets.length()
+        self.nr_vertices = facets.nr_vertices
 
     cdef void set_record_dimension(self, int dim):
         self.record_dimension = dim
@@ -456,11 +911,12 @@ cdef class FaceIterator:
         # get the facets contained in faces[i] but not in any of the forbidden
         sig_check()
         try:
+            sig_on()
             newfacescounter = get_next_level(
                 faces, i+1, self.newfaces[self.current_dimension-1],
                 self.newfaces2[self.current_dimension-1],
-                self.forbidden, nr_forbidden, self.face_length)\
-                - 1
+                self.forbidden, nr_forbidden, self.face_length)
+            sig_off()
         except:
             raise KeyboardInterrupt()
         if newfacescounter:
@@ -558,8 +1014,14 @@ cdef class ListOfAllFaces:
     cdef uint64_t ** facets
     cdef int incidence_is_initialized
 
-    def __init__(self, ListOfFaces facets, int dimension, f_vector):
+    def __cinit__(self, ListOfFaces facets, int dimension, f_vector):
+        r"""
+        Initializes `ListOfAllFaces`.
+
+        See :class:`ListOfAllFaces`.
+        """
         cdef int i
+        cdef size_t j
         cdef ListOfFaces some_list
         cdef uint64_t ** some_list_data
         cdef uint64_t * some_face
@@ -578,13 +1040,13 @@ cdef class ListOfAllFaces:
         some_list = self.lists_vertex_repr[0]
         some_list_data = some_list.data
         some_face = some_list_data[0]
-        make_trivial_face(0, some_face, self.face_length_vertex)
+        char_from_tuple((), some_face, self.face_length_vertex)
         # intialize the full polyhedron
         some_list = self.lists_vertex_repr[dimension + 1]
         some_list_data = some_list.data
         some_face = some_list_data[0]
-        make_trivial_face(self.nr_vertices, some_face,
-                          self.face_length_vertex)
+        char_from_tuple(tuple(j for j in range(self.nr_vertices)), some_face,
+                        self.face_length_vertex)
         self.face_counter = \
             <size_t *> self._mem.malloc((dimension + 2) *
                                         sizeof(size_t))
@@ -610,7 +1072,7 @@ cdef class ListOfAllFaces:
         cdef ListOfFaces face_list = self.lists_vertex_repr[face_dim + 1]
         if counter >= max_number:
             raise IOError('Trying to add too many faces to `ListOfAllFaces`')
-        face_list.add_face(counter, face)
+        face_list.copy_face(counter, face)
         self.face_counter[face_dim + 1] += 1
 
     cdef void sort(self):
@@ -646,7 +1108,7 @@ cdef class ListOfAllFaces:
         sorts the faces in input and returns them in output1
         BEWARE: Input is the same as output1 or output2
         """
-        cdef size_t middle = nr_faces/2
+        cdef size_t middle = nr_faces//2
         cdef size_t other = nr_faces - middle
         cdef size_t i = 0
         cdef size_t j = middle
@@ -683,7 +1145,7 @@ cdef class ListOfAllFaces:
         Returns the index of `face`, if it is of dimension `dimension`.
         Assumes `face` in vertex-representation.
 
-        NOTE:
+        .. NOTE::
 
             Will give an index no matter if `face` is actual of dimension
             `dimension`. Check the result with belows `is_equal`.
@@ -701,7 +1163,7 @@ cdef class ListOfAllFaces:
         cdef uint64_t ** list_faces = faces.data
         while (nr_faces > 1):
             # this is a straightfo
-            middle = nr_faces/2
+            middle = nr_faces//2
             if self.is_smaller(face, list_faces[middle + start]):
                 nr_faces = middle
             else:
@@ -1601,10 +2063,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             def f(size_t i): return Integer(i)
 
         def vertex_one(size_t i):
-            return f(edges[i / len_edgelist][2*(i % len_edgelist)])
+            return f(edges[i // len_edgelist][2*(i % len_edgelist)])
 
         def vertex_two(size_t i):
-            return f(edges[i / len_edgelist][2*(i % len_edgelist)+1])
+            return f(edges[i // len_edgelist][2*(i % len_edgelist)+1])
 
         return tuple((vertex_one(j), vertex_two(j)) for j in range(nr_edges))
 
@@ -1796,10 +2258,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             def f(size_t i): return Integer(i)
 
         def facet_one(size_t i):
-            return f(ridges[i/len_edgelist][2*(i % len_edgelist)])
+            return f(ridges[i // len_edgelist][2*(i % len_edgelist)])
 
         def facet_two(size_t i):
-            return f(ridges[i/len_edgelist][2*(i % len_edgelist)+1])
+            return f(ridges[i // len_edgelist][2*(i % len_edgelist)+1])
 
         if add_equalities:
             return tuple(
@@ -2069,7 +2531,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             face_iter.set_record_dimension(1)
             while (face_iter.next_face() == 1):
                 face_iter.vertex_repr(output)
-                one = counter/len_edgelist
+                one = counter // len_edgelist
                 two = counter % len_edgelist
                 if (two == 0):
                     sig_block()
@@ -2104,7 +2566,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 f_vector[d+1] += 1
                 if d == 1:
                     face_iter.vertex_repr(output)
-                    one = counter/len_edgelist
+                    one = counter // len_edgelist
                     two = counter % len_edgelist
                     if (two == 0):
                         sig_block()
@@ -2178,7 +2640,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         output = face_iter.get_output2_array()
         while (face_iter.next_face() == dim - 2):
             face_iter.facet_repr(output)
-            one = counter/len_edgelist
+            one = counter // len_edgelist
             two = counter % len_edgelist
             if (two == 0):
                 sig_block()
@@ -2279,7 +2741,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             while all_faces.next_incidence(&second, &first):
                 second += already_seen_next
                 first += already_seen
-                one = counter/len_edgelist
+                one = counter // len_edgelist
                 two = counter % len_edgelist
                 if (two == 0):
                     sig_block()
