@@ -20,6 +20,18 @@
 #include <csignal>
 
 
+#if __AVX2__
+    #include <immintrin.h>
+
+#elif __SSE4_1__
+    #include <emmintrin.h>
+    #include <smmintrin.h>
+#endif
+
+#if __POPCNT__
+    #include <immintrin.h>
+#endif
+
 
 
 // as of now, 512bit does not have something like _mm256_testc_si256,
@@ -27,116 +39,140 @@
 // so it does not make sene to implement it
 
 #if __AVX2__
-    // 256-bit commands
-    #include <immintrin.h>
-    #define chunktype __m256i
+    // 256-bit commands, those operations are equivalent to the operations
+    // defined in `#else`
     const size_t chunksize = 256;
-    #define bitwise_intersection(one,two) _mm256_and_si256((one),(two))
-    // this is supposed to something as (one) & (two)
-    #define bitwise_is_not_subset(one,two) !_mm256_testc_si256((two),(one))
-    // this is supposed to something as (one) & ~(two)
-    #define store_register(one,two) _mm256_store_si256((__m256i*)&(one),(two))
-    // this is supposed to be something as `one = two`,
-    // where `two` is a register
-    // note that `one` needs to be 32-byte-aligned
-    #define load_register(one,two) \
-        (one) = _mm256_load_si256((const __m256i*)&(two))
-    // this is supposed to be something as `one = two`,
-    // where `one` is a register
-    // note that `two` needs to be 32-byte-aligned
-
-#elif __SSE4_1__
-    // 128-bit commands
-    // comments see AVX2
-    #include <emmintrin.h>
-    #include <smmintrin.h>
-    #define chunktype __m128i
-    const size_t chunksize = 128;
-    #define bitwise_intersection(one,two) _mm_and_si128((one),(two))
-    #define bitwise_is_not_subset(one,two) !_mm_testc_si128((two),(one))
-    #define store_register(one,two) _mm_store_si128((__m128i*)&(one),(two))
-    // note that `one` needs to be 16-byte-aligned
-    #define load_register(one,two) \
-        (one) = _mm_load_si128((const __m128i*)&(two))
-    // note that `two` needs to be 16-byte-aligned
-
-#else
-    // 64-bit commands, without intrinsics
-    #define chunktype uint64_t
-    const size_t chunksize = 64;
-    #define bitwise_intersection(one,two) (one) & (two)
-    #define bitwise_is_not_subset(one,two) (one) & ~(two)
-    #define store_register(one,two) one = two
-    #define load_register(one,two) one = two
-#endif
-
-#if __POPCNT__
-    #include <immintrin.h>
-    #if INTPTR_MAX == INT64_MAX // 64-bit
-        #define popcount(A) _mm_popcnt_u64(A)
-    #else // assuming 32-bit
-        #define popcount(A) _mm_popcnt_u32(((uint32_t *) &A)[0]) + _mm_popcnt_u32(((uint32_t *) &A)[1])
-    #endif
-#else
-    #define popcount(A) naive_popcount(A)
-#endif
-
-inline unsigned int naive_popcount(uint64_t A){
-    // popcount without intrinsics
-    unsigned int count = 0;
-    while (A){
-        count += A & 1;
-        A >>= 1;
-    }
-    return count;
-}
-
-inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
-                         size_t face_length){
-    // C = A & B
-    // will set C to be the intersection of A and B
-    // `face_length` is the length of A, B and C in terms of uint64_t
-    size_t i;
-    chunktype a;
-    chunktype b;
-    chunktype c;
-    for (i = 0; i < face_length; i += chunksize/64){
-        load_register(a,A[i]);
-        load_register(b,B[i]);
-        c = bitwise_intersection(a,b);
-        store_register(C[i],c);
-    }
-}
-
-inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
-    // A & ~B == 0
-    // returns 1 if A is a subset of B, otherwise returns 0
-    // this is done by checking if there is an element in A, which is not in B
-    // `face_length` is the length of A and B in terms of uint64_t
-    size_t i;
-    chunktype a;
-    chunktype b;
-    for (i = 0; i < face_length; i += chunksize/64){
-        load_register(a,A[i]);
-        load_register(b,B[i]);
-        if (bitwise_is_not_subset(a,b)){
-            return 0;
+    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+                             size_t face_length){
+        // C = A & B
+        // will set C to be the intersection of A and B
+        // `face_length` is the length of A, B and C in terms of uint64_t
+        // note that A,B,C need to be 32-byte-aligned
+        size_t i;
+        for (i = 0; i < face_length; i += 4){
+            __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
+            __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
+            __m256i c = _mm256_and_si256(a, b);
+            _mm256_store_si256((__m256i*)&C[i],c);
         }
     }
-    return 1;
-}
 
-
-inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
-    // counts the number of vertices in a face by counting bits set to one
-    // `face_length` is the length of A in terms of uint64_t
-    size_t i;
-    unsigned int count = 0;
-    for (i=0; i<face_length; i++){
-        count += (size_t) popcount(A[i]);
+    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+        // A & ~B == 0
+        // returns 1 if A is a subset of B, otherwise returns 0
+        // this is done by checking if there is an element in A,
+        // which is not in B
+        // `face_length` is the length of A and B in terms of uint64_t
+        // note that A,B need to be 32-byte-aligned
+        size_t i;
+        for (i = 0; i < face_length; i += 4){
+            __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
+            __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
+            if (!_mm256_testc_si256(b, a)){ //need to be opposite order !!
+                return 0;
+            }
+        }
+        return 1;
     }
-    return count;
-}
+
+#elif __SSE4_1__
+    // 128-bit commands, those operations are equivalent to the operations
+    // defined in `#else`
+    const size_t chunksize = 128;
+    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+                             size_t face_length){
+        // C = A & B
+        // will set C to be the intersection of A and B
+        // `face_length` is the length of A, B and C in terms of uint64_t
+        // note that A,B,C need to be 16-byte-aligned
+        size_t i;
+        for (i = 0; i < face_length; i += 2){
+            __m128i a = _mm_load_si128((const __m128i*)&A[i]);
+            __m128i b = _mm_load_si128((const __m128i*)&B[i]);
+            __m128i c = _mm_and_si128(a, b);
+            _mm_store_si128((__m128i*)&C[i],c);
+        }
+    }
+
+    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+        // A & ~B == 0
+        // returns 1 if A is a subset of B, otherwise returns 0
+        // this is done by checking if there is an element in A,
+        // which is not in B
+        // `face_length` is the length of A and B in terms of uint64_t
+        // note that A,B need to be 16-byte-aligned
+        size_t i;
+        for (i = 0; i < face_length; i += 2){
+            __m128i a = _mm_load_si128((const __m128i*)&A[i]);
+            __m128i b = _mm_load_si128((const __m128i*)&B[i]);
+            if (!_mm_testc_si128(b, a)){ //need to be opposite order !!
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+#else
+    // commands, without intrinsics
+    const size_t chunksize = 64;
+    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+                             size_t face_length){
+        // C = A & B
+        // will set C to be the intersection of A and B
+        // `face_length` is the length of A, B and C in terms of uint64_t
+        size_t i;
+        for (i = 0; i < face_length; i++){
+            C[i] = A[i] & B[i];
+        }
+    }
+
+    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+        // A & ~B == 0
+        // returns 1 if A is a subset of B, otherwise returns 0
+        // this is done by checking if there is an element in A,
+        // which is not in B
+        // `face_length` is the length of A and B in terms of uint64_t
+        size_t i;
+        for (i = 0; i < face_length; i++){
+            if (A[i] & ~B[i]){
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+#endif
+
+#if (__POPCNT__) && (INTPTR_MAX == INT64_MAX) // 64-bit and popcnt
+    inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
+        // counts the number of vertices in a face by counting bits set to one
+        // `face_length` is the length of A in terms of uint64_t
+        size_t i;
+        unsigned int count = 0;
+        for (i=0; i<face_length; i++){
+            count += (size_t) _mm_popcnt_u64(A[i]);
+        }
+        return count;
+    }
+
+#else // popcount without intrinsics
+    inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
+        // counts the number of vertices in a face by counting bits set to one
+        // `face_length` is the length of A in terms of uint64_t
+        size_t i;
+        unsigned int count = 0;
+        for (i=0; i<face_length; i++){
+            uint64_t a = A[i];
+            while (a){
+                count += a & 1;
+                a >>= 1;
+            }
+        }
+        return count;
+    }
+
+#endif
+
 
 
 size_t get_next_level(\
@@ -227,10 +263,5 @@ size_t facet_repr_from_bitrep(uint64_t *face, uint64_t **facets, \
 
 void copy_face(uint64_t *input1, uint64_t *output1, \
                size_t face_length){
-    size_t i;
-    chunktype input;
-    for (i = 0; i < face_length; i += chunksize/64){
-        load_register(input, input1[i]);
-        store_register(output1[i], input);
-    }
+    memcpy(output1, input1, face_length*8);
 }
