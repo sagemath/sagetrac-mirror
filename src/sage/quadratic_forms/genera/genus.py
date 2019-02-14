@@ -83,7 +83,7 @@ def my_zeta(s,D, max_terms=40000):
     return RR.sum(D.jacobi(m)/RR(m)**s for m in range(1,max_terms,2))
 
 
-genera(sig_pair, determinant, max_scale=None, even=False):
+def genera(sig_pair, determinant, max_scale=None, even=False):
     r"""
     Return a list of all global genera with the given conditions.
 
