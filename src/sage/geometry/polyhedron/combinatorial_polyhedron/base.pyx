@@ -32,7 +32,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, print_function
 from sage.rings.integer import Integer
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
@@ -120,30 +120,30 @@ cdef int char_from_tuple(tuple tup, uint64_t *output,
         ....: cdef uint64_t[2] output2
         ....:
         ....: char_from_tuple((62,63), &output, 1)
-        ....: print str(output)
+        ....: print(str(output))
         ....:
         ....: char_from_tuple((61,63,125), output2, 2)
-        ....: print str(output2)
+        ....: print(str(output2))
         ....:
         ....: tup = tuple(i for i in range(64))
         ....: char_from_tuple(tup, &output, 1)
-        ....: print str(output)
-        ....: print str(output+1)
+        ....: print(str(output))
+        ....: print(str(output+1))
         ....:
         ....: try:
         ....:     char_from_tuple((62,70), &output, 1)
         ....: except:
-        ....:     print 'out of range'
+        ....:     print('out of range')
         ....:
         ....: try:
         ....:     char_from_tuple((-1,12), &output, 1)
         ....: except:
-        ....:     print 'negatives not allowed'
+        ....:     print('negatives not allowed')
         ....:
         ....: try:
         ....:     char_from_tuple((0,0), &output, 1)
         ....: except:
-        ....:     print 'duplicates not allowed'
+        ....:     print('duplicates not allowed')
         ....: ''')
         3
         [5L, 4L]
@@ -200,23 +200,23 @@ cdef int char_from_incidence(tuple incidences, uint64_t *output,
         ....:
         ....: tup = tuple(0 for _ in range(62)) + (1,1)
         ....: char_from_incidence(tup, &output, 1)
-        ....: print str(output)
+        ....: print(str(output))
         ....:
         ....: tup = tuple(0 for _ in range(61)) + (1,0,1)
         ....: tup += tuple(0 for _ in range(61)) + (1,)
         ....: char_from_incidence(tup, output2, 2)
-        ....: print str(output2)
+        ....: print(str(output2))
         ....:
         ....: tup = tuple(1 for _ in range(64))
         ....: char_from_incidence(tup, &output, 1)
-        ....: print str(output)
-        ....: print str(output+1)
+        ....: print(str(output))
+        ....: print(str(output+1))
         ....:
         ....: tup = tuple(0 for _ in range(70))
         ....: try:
         ....:     raise IndexError()
         ....: except:
-        ....:     print 'out of range'
+        ....:     print('out of range')
         ....: ''')
         3
         [5L, 4L]
@@ -274,7 +274,7 @@ cdef ListOfFaces get_facets_from_incidence_matrix(tuple matrix):
         ....: for i in range(facets.nr_faces):
         ....:     length = vertex_repr_from_bitrep(facets.data[i], output,
         ....:                                      facets.face_length)
-        ....:     print tuple(output[j] for j in range(length))
+        ....:     print(tuple(output[j] for j in range(length)))
         ....: ''') # long time
         (18, 19, 20, 21, 22, 23)
         (9, 11, 15, 17, 21, 23)
@@ -339,7 +339,7 @@ cdef ListOfFaces get_vertices_from_incidence_matrix(tuple matrix):
         ....: for i in range(vertices.nr_faces):
         ....:     length = vertex_repr_from_bitrep(vertices.data[i], output,
         ....:                                      vertices.face_length)
-        ....:     print tuple(output[j] for j in range(length))
+        ....:     print(tuple(output[j] for j in range(length)))
         ....: ''') # long time
         (3, 5, 9)
         (3, 5, 8)
@@ -404,7 +404,7 @@ cdef ListOfFaces get_facets_bitrep_from_facets_tuple(tuple facets_input,
         ....: for i in range(facets.nr_faces):
         ....:     length = vertex_repr_from_bitrep(facets.data[i], output,
         ....:                                      facets.face_length)
-        ....:     print tuple(output[j] for j in range(length))
+        ....:     print(tuple(output[j] for j in range(length)))
         ....: ''')
         (0, 1, 4)
         (1, 2, 4)
@@ -455,7 +455,7 @@ cdef ListOfFaces get_vertices_bitrep_from_facets_tuple(tuple facets_input,
         ....: for i in range(vertices.nr_faces):
         ....:     length = vertex_repr_from_bitrep(vertices.data[i], output,
         ....:                                      vertices.face_length)
-        ....:     print tuple(output[j] for j in range(length))
+        ....:     print(tuple(output[j] for j in range(length)))
         ....: ''')
         (0, 3, 4, 7)
         (0, 1, 4, 5)
@@ -522,12 +522,12 @@ cdef size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output,
         ....: face[0] = 17
         ....: face[1] = 31
         ....: length = vertex_repr_from_bitrep(face, output, 2)
-        ....: print tuple(output[i] for i in range(length))
+        ....: print(tuple(output[i] for i in range(length)))
         ....:
         ....: face[0] = 0
         ....: face[1] = 61
         ....: length = vertex_repr_from_bitrep(face, output, 2)
-        ....: print tuple(output[i] for i in range(length))
+        ....: print(tuple(output[i] for i in range(length)))
         ....: ''')
         (59, 63, 123, 124, 125, 126, 127)
         (122, 123, 124, 125, 127)
@@ -551,8 +551,8 @@ cdef size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output,
         ....:     length = vertex_repr_from_bitrep(face, output, 2)
         ....:     tup2 = tuple(output[i] for i in range(length))
         ....:     if not tup == tup2:
-        ....:         print '`vertex_repr_from_bitrep` does not behave' +\
-        ....:               'as the inverse of `char_from_tuple`'
+        ....:         print('`vertex_repr_from_bitrep` does not behave',
+        ....:               'as the inverse of `char_from_tuple`')
         ....: ''')
 
     """
@@ -628,9 +628,9 @@ cdef class ListOfFaces:
         ....: cdef ListOfFaces facets
         ....:
         ....: facets = ListOfFaces(5, 13)
-        ....: print facets.face_length in (1, 2, 4)
-        ....: print facets.nr_vertices
-        ....: print facets.nr_faces
+        ....: print(facets.face_length in (1, 2, 4))
+        ....: print(facets.nr_vertices)
+        ....: print(facets.nr_faces)
         ....: ''')
         True
         13
@@ -666,7 +666,7 @@ cdef class ListOfFaces:
             ....: for i in range(10):
             ....:     address = <size_t> facets.data[i]
             ....:     if not address == address & ~(required_alignment - 1):
-            ....:         print 'Alignment not correct'
+            ....:         print('Alignment not correct')
             ....: ''')
         """
         cdef size_t i
@@ -708,11 +708,11 @@ cdef class ListOfFaces:
             ....: facets1 = ListOfFaces(1, 155)
             ....: facets2 = ListOfFaces(2, 155)
             ....: facets2.copy_face(1, facets1.data[0])
-            ....: print 'no error'
+            ....: print('no error')
             ....: try:
             ....:     facets2.copy_face(2, facets1.data[0])
             ....: except:
-            ....:     print 'out of range'
+            ....:     print('out of range')
             ....: ''')
             no error
             out of range
@@ -1093,7 +1093,8 @@ cdef class ListOfAllFaces:
         cdef ListOfFaces faces
         for i in range(dim + 2):
             if self.f_vector[i] != self.face_counter[i]:
-                print (i,self.f_vector[i], self.face_counter[i], i+1, self.f_vector[i+1], self.face_counter[i+1])
+                print (tuple(i, self.f_vector[i], self.face_counter[i], \
+                             i+1, self.f_vector[i+1], self.face_counter[i+1]))
                 raise ValueError('`ListOfAllFaces` does not contain all faces')
         for i in range(0,dim):
             faces = self.lists_vertex_repr[i]
