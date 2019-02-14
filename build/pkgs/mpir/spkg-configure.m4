@@ -26,7 +26,7 @@ dnl Implement cases for what to do on different options here
             AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [break],
                 [sage_spkg_install_mpir=yes])
             AC_MSG_RESULT([using GMP-compatible library from the system])
-            SAGE_MP_LIBRARY=system
+	    SAGE_MP_LIBRARY = mpir
             ;;
         mpir)
             sage_spkg_install_mpir=yes
@@ -40,16 +40,8 @@ dnl Implement cases for what to do on different options here
             ;;
     esac
 
-    if test $SAGE_MP_LIBRARY = system; then
+    if test $sage_spkg_install_mpir = yes -o $sage_spkg_install_gmp = yes; then
         AC_SUBST(SAGE_GMP_PREFIX, ['$SAGE_LOCAL'])
-        if test "$sage_spkg_install_mpir" = yes; then
-            SAGE_MP_LIBRARY=mpir
-        else
-            # We just set this as a dummy placeholder for this variable
-            # indicating that we used the system gmp (whether it's MPIR
-            # or whatever)
-            SAGE_MP_LIBRARY=gmp
-        fi
     else
         AC_SUBST(SAGE_GMP_PREFIX, [''])
     fi
