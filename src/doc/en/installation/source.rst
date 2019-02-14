@@ -101,6 +101,13 @@ computer:
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
 - **python**: Python >= 2.6.
 
+A **Fortran compiler** (matching the C/C++ compiler) is recommended,
+although not a strict requirement: if none is present, **gfortran**
+will be built, and this might also trigger building **gcc**, since
+it is necessary to have matching versions of these two compilers.
+Thus having a Fortran compiler present and compatible with the C/C++
+compiler (for example matching versions of **gcc** and **gfortran**,
+or **Clang** and **Flang**) can make the build simpler and faster.
 
 Libraries
 ^^^^^^^^^
@@ -217,7 +224,7 @@ you would use
      # redhat
      sudo yum install binutils gcc make m4 perl tar git \
      perl-ExtUtils-MakeMaker openssl openssl-devel
-     
+
 to install all general requirements, or, if you don't want Sage to build its
 own GCC::
 
@@ -228,7 +235,7 @@ own GCC::
      # redhat
      sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl \
      tar git perl-ExtUtils-MakeMaker openssl openssl-devel
-     
+
 (These examples suppose that you choose to use a systemwide OpenSSL
 library. This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
@@ -618,7 +625,6 @@ Running Sage from a directory with spaces in its name will also fail.
        sage: factor(2005)
        5 * 401
 
-
 #. Optional, but highly recommended:
    Test the install by typing ``./sage --testall``.
    This runs most examples in the source code and makes sure that they run
@@ -635,7 +641,6 @@ Running Sage from a directory with spaces in its name will also fail.
    Testing the Sage library can take from half an hour to several hours,
    depending on your hardware.
    On slow hardware building and testing Sage can even take several days!
-
 
 #. Optional:
    Check the interfaces to any other software that you have available.
@@ -803,7 +808,6 @@ Finally, on Cygwin, one should also avoid the following:
 - building in home directories of Windows domain users;
 - building in paths with capital letters
   (see :trac:`13343`, although there has been some success doing so).
-
 
 .. _section_make:
 
@@ -1378,6 +1382,4 @@ the directory where you want to install Sage.
    You can also omit ``long`` to skip tests which take a long time.
 
 
-
-
-**This page was last updated in September 2017 (Sage 8.1).**
+**This page was last updated in February 2019 (Sage 8.7).**
