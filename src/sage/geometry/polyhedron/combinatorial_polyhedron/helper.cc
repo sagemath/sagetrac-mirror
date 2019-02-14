@@ -12,17 +12,12 @@
 
 // Copyright: see base.pyx
 
-#include <math.h>
 #include <cstdint>
-#include <stdlib.h>  // for aligned_alloc in C++11
-#include <cstdlib>  // for aligned_alloc in C++17
 #include <cstdio>
-#include <csignal>
 
 
-#if __AVX2__
+#if __AVX__
     #include <immintrin.h>
-
 #elif __SSE4_1__
     #include <emmintrin.h>
     #include <smmintrin.h>
@@ -32,31 +27,18 @@
     #include <immintrin.h>
 #endif
 
-
-
 // as of now, 512bit does not have something like _mm256_testc_si256,
 // which is the bottle neck of this function,
-// so it does not make sene to implement it
+// so it does not make sense to implement it
 
-#if __AVX2__
+// inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length)
+// the bottlen-neck is checking for subsets, which requires something as
+// _mm256_testc_si256, trying to determine, what is the best way of doing it:
+#if __AVX__
     // 256-bit commands, those operations are equivalent to the operations
     // defined in `#else`
+    // intrics defined in immintrin.h
     const size_t chunksize = 256;
-    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
-                             size_t face_length){
-        // C = A & B
-        // will set C to be the intersection of A and B
-        // `face_length` is the length of A, B and C in terms of uint64_t
-        // note that A,B,C need to be 32-byte-aligned
-        size_t i;
-        for (i = 0; i < face_length; i += 4){
-            __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
-            __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
-            __m256i c = _mm256_and_si256(a, b);
-            _mm256_store_si256((__m256i*)&C[i],c);
-        }
-    }
-
     inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
         // A & ~B == 0
         // returns 1 if A is a subset of B, otherwise returns 0
@@ -78,22 +60,8 @@
 #elif __SSE4_1__
     // 128-bit commands, those operations are equivalent to the operations
     // defined in `#else`
+    // intrics defined in smmintrin.h and emmintrin.h
     const size_t chunksize = 128;
-    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
-                             size_t face_length){
-        // C = A & B
-        // will set C to be the intersection of A and B
-        // `face_length` is the length of A, B and C in terms of uint64_t
-        // note that A,B,C need to be 16-byte-aligned
-        size_t i;
-        for (i = 0; i < face_length; i += 2){
-            __m128i a = _mm_load_si128((const __m128i*)&A[i]);
-            __m128i b = _mm_load_si128((const __m128i*)&B[i]);
-            __m128i c = _mm_and_si128(a, b);
-            _mm_store_si128((__m128i*)&C[i],c);
-        }
-    }
-
     inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
         // A & ~B == 0
         // returns 1 if A is a subset of B, otherwise returns 0
@@ -113,19 +81,8 @@
     }
 
 #else
-    // commands, without intrinsics
+    // no intrinsics
     const size_t chunksize = 64;
-    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
-                             size_t face_length){
-        // C = A & B
-        // will set C to be the intersection of A and B
-        // `face_length` is the length of A, B and C in terms of uint64_t
-        size_t i;
-        for (i = 0; i < face_length; i++){
-            C[i] = A[i] & B[i];
-        }
-    }
-
     inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
         // A & ~B == 0
         // returns 1 if A is a subset of B, otherwise returns 0
@@ -143,6 +100,66 @@
 
 #endif
 
+// inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
+//                          size_t face_length)
+// now determining, how to do insersection
+#if __AVX2__
+    // 256-bit commands, those operations are equivalent to the operations
+    // defined in `#else`
+    // intrics defined in immintrin.h
+    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+                             size_t face_length){
+        // C = A & B
+        // will set C to be the intersection of A and B
+        // `face_length` is the length of A, B and C in terms of uint64_t
+        // note that A,B,C need to be 32-byte-aligned
+        size_t i;
+        for (i = 0; i < face_length; i += 4){
+            __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
+            __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
+            __m256i c = _mm256_and_si256(a, b);
+            _mm256_store_si256((__m256i*)&C[i],c);
+        }
+    }
+
+#elif __SSE4_1__
+    // actually SSE2 would be fine, but we don't want to force greater chunks,
+    // because of intersection, which is not the bottleneck
+    // 128-bit commands, those operations are equivalent to the operations
+    // defined in `#else`
+    // intrinsics defined in emmintrin.h
+    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+                             size_t face_length){
+        // C = A & B
+        // will set C to be the intersection of A and B
+        // `face_length` is the length of A, B and C in terms of uint64_t
+        // note that A,B,C need to be 16-byte-aligned
+        size_t i;
+        for (i = 0; i < face_length; i += 2){
+            __m128i a = _mm_load_si128((const __m128i*)&A[i]);
+            __m128i b = _mm_load_si128((const __m128i*)&B[i]);
+            __m128i c = _mm_and_si128(a, b);
+            _mm_store_si128((__m128i*)&C[i],c);
+        }
+    }
+
+#else
+    // commands, without intrinsics
+    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+                             size_t face_length){
+        // C = A & B
+        // will set C to be the intersection of A and B
+        // `face_length` is the length of A, B and C in terms of uint64_t
+        size_t i;
+        for (i = 0; i < face_length; i++){
+            C[i] = A[i] & B[i];
+        }
+    }
+
+#endif
+
+// inline size_t CountFaceBits(uint64_t* A, size_t face_length)
+// determine the best way to count the set bits in uint64_t *
 #if (__POPCNT__) && (INTPTR_MAX == INT64_MAX) // 64-bit and popcnt
     inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
         // counts the number of vertices in a face by counting bits set to one
