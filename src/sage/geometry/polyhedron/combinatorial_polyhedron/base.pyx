@@ -41,10 +41,12 @@ from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.lattice_polytope import is_LatticePolytope
 
 from libc.stdint cimport uint64_t
+from libc.string cimport memcmp, memcpy
 from sage.structure.sage_object cimport SageObject
 from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_block, sig_unblock
 from sage.ext.memory_allocator cimport MemoryAllocator
+
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -73,9 +75,6 @@ cdef extern from "helper.cc":
     # returns the number of those faces
 
     cdef size_t CountFaceBits(uint64_t * A, size_t face_length)
-
-    cdef void copy_face(uint64_t *input1, uint64_t *output1, \
-                        size_t face_length)
 
     cdef size_t facet_repr_from_bitrep(\
         uint64_t *face, uint64_t **facets, size_t *output, \
@@ -721,7 +720,7 @@ cdef class ListOfFaces:
         if index >= self.nr_faces:
             raise IndexError('only %s faces, cannot add a %sth face'%
                              (self.nr_faces, index))
-        copy_face(face, output, self.face_length)
+        memcpy(output, face, self.face_length*8)
         return 1
 
 cdef int calculate_dimension(ListOfFaces faces) except -2:
@@ -1187,12 +1186,7 @@ cdef class ListOfAllFaces:
         """
         cdef size_t i
         cdef size_t leng = self.face_length_vertex
-        for i in range(leng):
-            if one[i] < two[i]:
-                return 1
-            if two[i] < one[i]:
-                return 0
-        return 0
+        return memcmp(one, two, leng*8) < 0
 
     cdef inline int is_equal(self, int dimension, size_t index,
                              uint64_t *face):
@@ -1203,11 +1197,8 @@ cdef class ListOfAllFaces:
         cdef ListOfFaces faces = self.lists_vertex_repr[dimension + 1]
         cdef uint64_t * face2 = faces.data[index]
         cdef size_t i
-        cdef size_t len = self.face_length_vertex
-        if all(face[i] == face2[i] for i in range(len)):
-            return 1
-        else:
-            return 0
+        cdef size_t length = self.face_length_vertex
+        return (0 == memcmp(face, face2, length*8))
 
     cdef size_t facet_repr(self, int dimension, size_t index,
                            size_t * output):

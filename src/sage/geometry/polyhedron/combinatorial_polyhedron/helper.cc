@@ -260,8 +260,3 @@ size_t facet_repr_from_bitrep(uint64_t *face, uint64_t **facets, \
     }
     return counter;
 }
-
-void copy_face(uint64_t *input1, uint64_t *output1, \
-               size_t face_length){
-    memcpy(output1, input1, face_length*8);
-}
