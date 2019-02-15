@@ -1656,9 +1656,11 @@ cdef class DetAutomaton:
         if verb:
             print("plot...")
         sig_on()
-        plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, html, verb, False)     
+        plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, html, verb, False)
+        sig_off()
         if verb:
             print("free...plot")
+        sig_on()
         free(ll)
         if vlabels is not None:
             free(vl)
@@ -1679,7 +1681,7 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: hash(a)
             761033288
-            
+
             sage: a = dag.AnyLetter([0,1])
             sage: hash(a)
             1519588028
@@ -1881,20 +1883,20 @@ cdef class DetAutomaton:
                 print("alloc %s..."%self.a.na)
             sig_on()
             ll = <char **>malloc(sizeof(char*) * self.a.na)
+            sig_off()
             if ll is NULL:
                 raise MemoryError("Failed to allocate memory for ll in "
-                                  "plot")
-            sig_off()
+                                  "plot")       
             if vlabels is None:
                 if self.S is not None:
                     if verb:
                         print("alloc %s..." % self.a.n)
                     sig_on()
                     vl = <char **>malloc(sizeof(char*) * self.a.n)
+                    sig_off()
                     if vl is NULL:
                         raise MemoryError("Failed to allocate memory for vl in "
                                           "plot")
-                    sig_off()
                     strV = []
                     if html:
                         from sage.misc.html import html as htm
@@ -2755,7 +2757,9 @@ cdef class DetAutomaton:
         sig_off()
         if verb:
             print("dC=")
+            sig_on()
             printDict(dC)
+            sig_off()
         sig_on()
         a = Product(self.a[0], b.a[0], dC, verb)
         FreeDict(&dC)
@@ -2966,8 +2970,8 @@ cdef class DetAutomaton:
             a = DetAutomaton(None)
             sig_on()
             a.a[0] = PieceAutomaton(self.a[0], l, len(w), i)
-            sig_off()
             free(l)
+            sig_off()
             a.A = self.A
             return a
         else:
@@ -3104,10 +3108,12 @@ cdef class DetAutomaton:
         sig_on()
         dC = getProductDict(d, a1.A, a2.A, dv=dv, verb=verb)
         sig_off()
-        sig_on()
         if verb:
             print("dC=")
+            sig_on()
             printDict(dC)
+            sig_off()
+        sig_on()
         ap = Product(a1.a[0], a2.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
@@ -4781,7 +4787,7 @@ cdef class DetAutomaton:
             []
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.find_word()
-            
+
             sage: a = DetAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
             sage: a.find_word()
             ['y']
