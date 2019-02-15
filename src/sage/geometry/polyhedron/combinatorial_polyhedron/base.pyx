@@ -3178,7 +3178,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                     incidences = <size_t **> mem.pointers[location_of_mem]
                     # messing with MemoryAllocator
                     sig_unblock()
-                    incidences[one] = <size_t *> \\
+                    incidences[one] = <size_t *> \
                         mem.malloc(2 * len_edgelist * sizeof(size_t))
                 incidences[one][2*two] = first
                 incidences[one][2*two + 1] = second
