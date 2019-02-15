@@ -1931,7 +1931,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
         if not self.is_prime():
             raise TypeError("not a prime ideal")
 
-        return ideal.kash().Valuation(self.kash())
+        return ideal.kash().Valuation(self.kash()).sage()
 
 
 class FunctionFieldPlace_kash(FunctionFieldPlace):
