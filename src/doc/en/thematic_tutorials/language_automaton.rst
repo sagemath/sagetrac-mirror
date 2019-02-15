@@ -55,9 +55,9 @@ Graphical representation
 
 Automata are represented as graphs whose edges are labeled by letters of the alphabet. 
 On the drawings in this section, the initial state is in bold, and the final states are the circles drawn with a double line
-Deterministic automaton can be created in sage by the use of :class:`sage.combinat.words.DetAutomaton` as follow::
+Deterministic automaton can be created in sage by the use of :class:`sage.combinat.words.DeterministicAutomaton` as follow::
 
-    sage: a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    sage: a = DeterministicAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     sage: a.set_final_states([0])
     sage: a.set_initial_state(0)
     sage: a.add_transition(0,'(1,0)',1)
@@ -66,7 +66,7 @@ Deterministic automaton can be created in sage by the use of :class:`sage.combin
 .. PLOT::
    :align: center
 
-    a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    a = DeterministicAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
     a.add_transition(0,'(1,0)',1)
@@ -78,7 +78,7 @@ Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}
    :width: 50%
    :align: center
 
-    a = DetAutomaton([(0,0,'*'),(0,1,'0'),(0,3,'1'),(1,2,'1'),(2,0,'1'),(2,1,'*'),(4,0,'0'),(4,3,'*'),(3,4,'0')])
+    a = DeterministicAutomaton([(0,0,'*'),(0,1,'0'),(0,3,'1'),(1,2,'1'),(2,0,'1'),(2,1,'*'),(4,0,'0'),(4,3,'*'),(3,4,'0')])
     a.set_final_states([0])
     a.set_initial_state(0)
     sphinx_plot(a)
@@ -88,7 +88,7 @@ Automaton with states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, set of inital s
 .. PLOT::
    :align: center
 
-    a = DetAutomaton([(0,0,'(0,0)'),(0,1,'(1,1)'),(0,3,'(0,1)'),(0,5,'(1,0)'),(3,4,'(0,1)'),(4,2,'(1,0)'),(2,1,'(1,1)'),(1,5,'(1,0)'),(5,6,'(0,1)'),(6,5,'(0,0)'),(6,5,'(1,1)')])
+    a = DeterministicAutomaton([(0,0,'(0,0)'),(0,1,'(1,1)'),(0,3,'(0,1)'),(0,5,'(1,0)'),(3,4,'(0,1)'),(4,2,'(1,0)'),(2,1,'(1,1)'),(1,5,'(1,0)'),(5,6,'(0,1)'),(6,5,'(0,0)'),(6,5,'(1,1)')])
     a.add_transition(1,'(1,1)',1)
     a.add_transition(1,'(0,0)',2)
     a.add_transition(4,'(0,0)',3)
@@ -108,7 +108,7 @@ Automaton recognizing a single word::
    :align: center
 
     a = dag.Word("gabian")
-    draw(a)
+    sphinx_plot(a)
 
 Automaton recognizing every words over a given alphabet::
 
@@ -148,7 +148,7 @@ some examples of automaton.
    :width: 60%
    :align: center
 
-    a = DetAutomaton([(0, 0,'0'),(0, 1, '1'),(1, 0, '1'), (1, 2, '0'), (2, 1, '0'), (2, 2, '1')])
+    a = DeterministicAutomaton([(0, 0,'0'),(0, 1, '1'),(1, 0, '1'), (1, 2, '0'), (2, 1, '0'), (2, 2, '1')])
     a.set_final_states([0])
     a.set_initial_state(0)
     sphinx_plot(a)
@@ -159,7 +159,7 @@ The above automaton recognize all the numbers written in binaries that are divis
    :width: 40%
    :align: center
 
-    a = DetAutomaton([(0,1,'a'),(1,2,'b'),(2,0,'a')])
+    a = DeterministicAutomaton([(0,1,'a'),(1,2,'b'),(2,0,'a')])
     a.set_final_states([1])
     a.set_initial_state(0)
     sphinx_plot(a)
@@ -170,7 +170,7 @@ The above automaton recognize the set of words of the form :math:`a(baa)^n`.
    :format: doctest
    :align: center
 
-    a = DetAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e') ])
+    a = DeterministicAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e') ])
     a.set_final_states([10,11])
     a.set_initial_state(0)
     b= CAutomaton(a)
@@ -180,7 +180,7 @@ The above automaton recognize the set of words of the form :math:`a(baa)^n`.
 The above non deterministic automaton recognize the set of words
 \{lapin, laitue\}. Obtained with the followed code and the class :class:`sage.combinat.words.NFastAutomaton`::
 
-    sage: a = DetAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e')])
+    sage: a = DeterministicAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e')])
     sage: a.set_final_states([10,11])
     sage: a.set_initial_state(0)
     sage: b = CAutomaton(a)
@@ -199,7 +199,7 @@ Automaton equivalent to the previous one is::
 .. PLOT::
    :align: center
 
-    a = DetAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'i') ,(3,5,'t'),(5,7,'u'),(7,9,'e'),(2,4,'p'),(4,6,'i'),(6,8,'n') ])
+    a = DeterministicAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'i') ,(3,5,'t'),(5,7,'u'),(7,9,'e'),(2,4,'p'),(4,6,'i'),(6,8,'n') ])
     a.set_final_states([8,9])
     a.set_initial_state(0)
     sphinx_plot(a)
@@ -228,7 +228,7 @@ The minimal automaton of the language \{lapin, laitue\} is the following::
 .. PLOT::
    :align: center
 
-    a = DetAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
+    a = DeterministicAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
     a.set_final_states([0])
     a.set_initial_state(7)
     sphinx_plot(a)
@@ -256,7 +256,7 @@ The transposed of the minimal automaton of the language \{lapin, laitue\} is::
 .. PLOT::
    :align: center
 
-    a = DetAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
+    a = DeterministicAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
     a.set_final_states([0])
     a.set_initial_state(7)
     b = a.mirror()
@@ -275,7 +275,7 @@ states that are reachable from an initial state, and from which we can go to a f
 
 Example of non-pruned automaton::
 
-    sage: a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    sage: a = DeterministicAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     sage: a.set_final_states([0])
     sage: a.set_initial_state(0)
     sage: a.add_transition(0,'(1,0)',1)
@@ -284,7 +284,7 @@ Example of non-pruned automaton::
 .. PLOT::
    :align: center
 
-    a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    a = DeterministicAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
     a.add_transition(0,'(1,0)',1)
@@ -301,7 +301,7 @@ This automaton can be seen below:
    :width: 50%
    :align: center
       
-    a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    a = DeterministicAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
     a.add_transition(0,'(1,0)',1)

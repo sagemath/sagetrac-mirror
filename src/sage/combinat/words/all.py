@@ -10,7 +10,7 @@ from .word import Word
 from .word_options import WordOptions
 from .word_generators import words
 from .words import Words, FiniteWords, InfiniteWords
-from .cautomata import DetAutomaton
+from .cautomata import DeterministicAutomaton
 from .cautomata import CAutomaton
-from .cautomata_generators import DetAutomatonGenerators
-dag = DetAutomatonGenerators()
+from .cautomata_generators import DeterministicAutomatonGenerators
+dag = DeterministicAutomatonGenerators()

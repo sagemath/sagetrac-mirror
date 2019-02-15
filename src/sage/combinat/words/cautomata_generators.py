@@ -1,6 +1,6 @@
 # coding=utf8
 r"""
-DetAutomaton generators
+DeterministicAutomaton generators
 
 AUTHORS:
 
@@ -26,40 +26,40 @@ AUTHORS:
 # *****************************************************************************
 from __future__ import print_function
 
-from sage.combinat.words.cautomata import DetAutomaton
+from sage.combinat.words.cautomata import DeterministicAutomaton
 from sage.misc.prandom import randint, random
 
 
-class DetAutomatonGenerators(object):
+class DeterministicAutomatonGenerators(object):
     """
     This class permits to generate various usefull DetAutomata.
 
     EXAMPLES::
 
-        #. DetAutomaton recognizing every words over a given alphabet
+        #. DeterministicAutomaton recognizing every words over a given alphabet
         sage: dag.AnyWord(['a','b'])
-        DetAutomaton with 1 state and an alphabet of 2 letters
+        DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
-        #. DetAutomaton recognizing every letters of a given alphabet
+        #. DeterministicAutomaton recognizing every letters of a given alphabet
         sage: dag.AnyLetter(['a','b'])
-        DetAutomaton with 2 states and an alphabet of 2 letters
+        DeterministicAutomaton with 2 states and an alphabet of 2 letters
 
-        #. DetAutomaton whose language is a single word
+        #. DeterministicAutomaton whose language is a single word
         sage: dag.Word(['a','b','a'])
-        DetAutomaton with 4 states and an alphabet of 2 letters
+        DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
-        #. DetAutomaton with a given alphabet, recognizing the empty word
+        #. DeterministicAutomaton with a given alphabet, recognizing the empty word
         sage: dag.EmptyWord(['a','b'])
-        DetAutomaton with 1 state and an alphabet of 2 letters
+        DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
-        #. random DetAutomaton
+        #. random DeterministicAutomaton
         sage: dag.Random()      # random
-        DetAutomaton with 244 states and an alphabet of 183 letters
+        DeterministicAutomaton with 244 states and an alphabet of 183 letters
     """
 
     def AnyLetter(self, A, A2=None):
         """
-        Generate a DetAutomaton recognizing every letter of the alphabet A.
+        Generate a DeterministicAutomaton recognizing every letter of the alphabet A.
 
         INPUT:
 
@@ -69,15 +69,15 @@ class DetAutomatonGenerators(object):
 
         OUTPUT:
 
-        A :class:`DetAutomaton`
+        A :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: dag.AnyLetter(['a', 'b'])
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
 
             sage: dag.AnyLetter(['a', 'b'], ['a', 0, 'b', 1])
-            DetAutomaton with 2 states and an alphabet of 4 letters
+            DeterministicAutomaton with 2 states and an alphabet of 4 letters
 
         TESTS::
 
@@ -86,11 +86,11 @@ class DetAutomatonGenerators(object):
             ...
             ValueError: A label of a transition is not in the alphabet [0, 1]
         """
-        return DetAutomaton([(0, 1, i) for i in A], A=A2, i=0, final_states=[1])
+        return DeterministicAutomaton([(0, 1, i) for i in A], A=A2, i=0, final_states=[1])
 
     def AnyWord(self, A, A2=None):
         """
-        Generate a DetAutomaton recognizing every words over the alphabet A.
+        Generate a DeterministicAutomaton recognizing every words over the alphabet A.
 
         INPUT:
 
@@ -100,15 +100,15 @@ class DetAutomatonGenerators(object):
 
         OUTPUT:
 
-        A :class:`DetAutomaton`
+        A :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: dag.AnyWord(['a', 'b'])
-            DetAutomaton with 1 state and an alphabet of 2 letters
+            DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
             sage: dag.AnyWord(['a', 'b'], ['a', 0, 'b', 1])
-            DetAutomaton with 1 state and an alphabet of 4 letters
+            DeterministicAutomaton with 1 state and an alphabet of 4 letters
 
         TESTS::
 
@@ -117,11 +117,11 @@ class DetAutomatonGenerators(object):
             ...
             ValueError: A label of a transition is not in the alphabet [0, 1]
         """
-        return DetAutomaton([(0, 0, i) for i in A], A=A2, i=0, final_states=[0])
+        return DeterministicAutomaton([(0, 0, i) for i in A], A=A2, i=0, final_states=[0])
 
     def Empty(self, A):
         """
-        Generate a DetAutomaton recognizing the empty language over the alphabet A.
+        Generate a DeterministicAutomaton recognizing the empty language over the alphabet A.
 
         INPUT:
 
@@ -129,18 +129,18 @@ class DetAutomatonGenerators(object):
 
         OUTPUT:
 
-        A :class:`DetAutomaton`
+        A :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: dag.Empty(['a', 'b'])
-            DetAutomaton with 0 state and an alphabet of 2 letters
+            DeterministicAutomaton with 0 state and an alphabet of 2 letters
         """
-        return DetAutomaton([], A=A)
+        return DeterministicAutomaton([], A=A)
 
     def EmptyWord(self, A):
         """
-        Generate a DetAutomaton recognizing the empty word and having the alphabet A.
+        Generate a DeterministicAutomaton recognizing the empty word and having the alphabet A.
 
         INPUT:
 
@@ -148,18 +148,18 @@ class DetAutomatonGenerators(object):
 
         OUTPUT:
 
-        A :class:`DetAutomaton`
+        A :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: dag.EmptyWord(['a', 'b'])
-            DetAutomaton with 1 state and an alphabet of 2 letters
+            DeterministicAutomaton with 1 state and an alphabet of 2 letters
         """
-        return DetAutomaton([], S=[0], i=0, final_states=[0], A=A)
+        return DeterministicAutomaton([], S=[0], i=0, final_states=[0], A=A)
 
     def Word(self, w, A=None):
         """
-        Generate a DetAutomaton recognizing the word w.
+        Generate a DeterministicAutomaton recognizing the word w.
 
         INPUT:
 
@@ -169,15 +169,15 @@ class DetAutomatonGenerators(object):
 
         OUTPUT:
 
-        A :class:`DetAutomaton`
+        A :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: dag.Word(['a', 'b'])
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
             sage: dag.Word(['a', 'b'], ['a', 0, 'b', 1])
-            DetAutomaton with 3 states and an alphabet of 4 letters
+            DeterministicAutomaton with 3 states and an alphabet of 4 letters
 
         TESTS::
 
@@ -186,13 +186,13 @@ class DetAutomatonGenerators(object):
             ...
             ValueError: A label of a transition is not in the alphabet [0, 1]
         """
-        return DetAutomaton(
+        return DeterministicAutomaton(
             [(i, i+1, j) for i, j in enumerate(w)], A=A, i=0, final_states=[len(w)])
 
     def Random(self, n=None, A=None, density_edges=None, 
                density_finals=None, verb=False):
         """
-        Generate a random DetAutomaton.
+        Generate a random DeterministicAutomaton.
 
         INPUT:
 
@@ -208,15 +208,15 @@ class DetAutomatonGenerators(object):
 
         OUTPUT:
 
-        A :class:`DetAutomaton`
+        A :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: dag.Random()      # random
-            DetAutomaton with 401 states and an alphabet of 836 letters
+            DeterministicAutomaton with 401 states and an alphabet of 836 letters
 
             sage: dag.Random(3, ['a','b'])
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
         """
         if density_edges is None:
@@ -245,8 +245,8 @@ class DetAutomatonGenerators(object):
                 F.append(i)
         if verb:
             print("final states %s" % F)
-        return DetAutomaton(L, A=A, S=range(n), i=randint(0,n-1), final_states=F)
+        return DeterministicAutomaton(L, A=A, S=range(n), i=randint(0,n-1), final_states=F)
 
 
 # Easy access to the automaton generators:
-dag = DetAutomatonGenerators()
+dag = DeterministicAutomatonGenerators()

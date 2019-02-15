@@ -1,7 +1,7 @@
 # coding=utf8
 """
-Det automaton of Finite state machines using C
-DetAutomaton for determinist automata and CAutomaton for non necessarily determinist automaton
+Deterministic automaton of Finite state machines using C
+DeterministicAutomaton for determinist automata and CAutomaton for non necessarily determinist automaton
 
 
 AUTHORS:
@@ -36,10 +36,10 @@ from libc.stdlib cimport malloc, free
 from sage.graphs.digraph import DiGraph
 from cysignals.signals cimport sig_on, sig_off, sig_check
 from cpython cimport bool as c_bool
-from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
+from sage.combinat.words.cautomata_generators import DeterministicAutomatonGenerators
 cimport sage.combinat.words.cautomata
 
-dag = DetAutomatonGenerators()
+dag = DeterministicAutomatonGenerators()
 
 cdef extern from "Automaton.h":
 
@@ -451,7 +451,7 @@ cdef class CAutomaton:
 
     INPUT:
 
-    - ``a`` -- an automaton given as a list, a DiGraph, an Automaton, a DetAutomaton or a CAutomaton
+    - ``a`` -- an automaton given as a list, a DiGraph, an Automaton, a DeterministicAutomaton or a CAutomaton
 
     - ``I`` -- list (default: None)
         The set of initial states.
@@ -474,7 +474,7 @@ cdef class CAutomaton:
 
     EXAMPLES::
 
-        sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: b = CAutomaton(a)
         sage: b
         CAutomaton with 4 states and an alphabet of 2 letters
@@ -508,7 +508,7 @@ cdef class CAutomaton:
 
             sage: CAutomaton([(0, 1, 'a'), (2, 3, 'b')], I=[1])
             CAutomaton with 4 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
             sage: a = CAutomaton(a)
             sage: a
             CAutomaton with 4 states and an alphabet of 2 letters
@@ -516,7 +516,7 @@ cdef class CAutomaton:
             CAutomaton with 4 states and an alphabet of 2 letters
 
         """
-        cdef DetAutomaton da
+        cdef DeterministicAutomaton da
         cdef CAutomaton na
         if a is None:
             if verb:
@@ -566,9 +566,9 @@ cdef class CAutomaton:
             sig_off()
             self.A = na.A
             self.S = na.S
-        elif isinstance(a, DetAutomaton):
+        elif isinstance(a, DeterministicAutomaton):
             if verb:
-                print("DetAutomaton")
+                print("DeterministicAutomaton")
             da = a
             self.a[0] = CopyN(da.a[0], verb=verb)
             self.A = da.A
@@ -610,7 +610,7 @@ cdef class CAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = CAutomaton(a)
             sage: latex(b)     # optional -  dot2tex
             \documentclass{article}
@@ -752,7 +752,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.n_states
             4
@@ -772,7 +772,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.n_succs(0)
             1
@@ -796,7 +796,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.succ(1, 0)
             2
@@ -822,7 +822,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.label(1, 0)
             1
@@ -847,7 +847,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.is_final(1)
             True
@@ -873,7 +873,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.is_initial(1)
             False
@@ -904,15 +904,15 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = CAutomaton(a)
             sage: b.initial_states
             []
-            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')], i=12)
+            sage: a = DeterministicAutomaton([(10,11,'a') ,(12,13,'b')], i=12)
             sage: b = CAutomaton(a)
             sage: b.initial_states
             [2]
-            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')], i=0).mirror()
+            sage: a = DeterministicAutomaton([(10,11,'a') ,(12,13,'b')], i=0).mirror()
             sage: a.initial_states
             [0, 1, 2, 3]
         """
@@ -934,19 +934,19 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')])
+            sage: a = DeterministicAutomaton([(10,11,'a') ,(12,13,'b')])
             sage: b = CAutomaton(a)
             sage: b.final_states
             [0, 1, 2, 3]
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], )
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')], )
             sage: b = CAutomaton(a)
             sage: b.final_states
             [0, 1, 2, 3]
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
             sage: b = CAutomaton(a)
             sage: b.final_states
             [0, 3]
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+            sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
             sage: a.final_states
@@ -970,11 +970,11 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = CAutomaton(a)
             sage: b.alphabet
             ['a', 'b']
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+            sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
             sage: a.alphabet
@@ -993,7 +993,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')], i=10, final_states=[])
+            sage: a = DeterministicAutomaton([(10,11,'a') ,(12,13,'b')], i=10, final_states=[])
             sage: b = CAutomaton(a)
             sage: b.set_final(2)
             sage: b.final_states
@@ -1024,7 +1024,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = CAutomaton(a)
             sage: b.set_initial_state(2)
             sage: b.initial_states
@@ -1054,7 +1054,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(10, 11, 'a'), (12, 13, 'b')], i=10)
+            sage: a = DeterministicAutomaton([(10, 11, 'a'), (12, 13, 'b')], i=10)
             sage: b = CAutomaton(a)
             sage: b.add_transition(2,'a',1)
             sage: b.plot()  # random
@@ -1103,7 +1103,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.add_state(True)  # not implemented
             TypeError                                 Traceback (most recent call last)
@@ -1146,7 +1146,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: a = DeterministicAutomaton([(0,1,'a'), (2,3,'b')], i=2)
             sage: b = CAutomaton(a)
             sage: b.add_path(1, 2, ['a'])
             sage: b.plot()  # random
@@ -1181,18 +1181,18 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.determinize()
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
 
             sage: a = CAutomaton([(0,0,0),(0,0,1),(0,1,1),(1,2,0),(1,2,1),(2,3,0),(2,3,1),(3,4,0),(3,4,1)], I=[0], F=[4])
             sage: a.determinize()
-            DetAutomaton with 16 states and an alphabet of 2 letters
+            DeterministicAutomaton with 16 states and an alphabet of 2 letters
 
         """
         cdef Automaton a
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         a = DeterminizeN(self.a[0], sink, verb)
         sig_off()
@@ -1213,7 +1213,7 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
             sage: b.plot()   # random
 
@@ -1224,7 +1224,7 @@ cdef class CAutomaton:
         .. PLOT::
            :width: 50%
 
-            a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             b = CAutomaton(a)
             sphinx_plot(b)
 
@@ -1280,38 +1280,38 @@ cdef class CAutomaton:
             raise NotImplementedError("You cannot plot the CAutomaton without dot. Install the dot command of the GraphViz package.")
 
 
-cdef class DetAutomaton:
+cdef class DeterministicAutomaton:
     r"""
-    Class :class:`DetAutomaton`, this class encapsulates a C structure
+    Class :class:`DeterministicAutomaton`, this class encapsulates a C structure
     for deterministic automata and implement methods to manipulate them.
 
     EXAMPLES::
 
-        sage: DetAutomaton([(0,1,'a') ,(2,3,'b')])
-        DetAutomaton with 4 states and an alphabet of 2 letters
+        sage: DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
+        DeterministicAutomaton with 4 states and an alphabet of 2 letters
         sage: d = DiGraph({0: [1,2,3], 1: [0,2]})
-        sage: DetAutomaton(d)
+        sage: DeterministicAutomaton(d)
         Warning: the automaton was not deterministic! (edge 0 -None-> 1 and edge 0 -None-> 2)
         The result lost some informations.
-        DetAutomaton with 4 states and an alphabet of 1 letter
+        DeterministicAutomaton with 4 states and an alphabet of 1 letter
         sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}})
-        sage: DetAutomaton(g)
-        DetAutomaton with 5 states and an alphabet of 4 letters
-        sage: a = DetAutomaton([(0, 1,'a') ,(2, 3,'b')], i = 2)
+        sage: DeterministicAutomaton(g)
+        DeterministicAutomaton with 5 states and an alphabet of 4 letters
+        sage: a = DeterministicAutomaton([(0, 1,'a') ,(2, 3,'b')], i = 2)
         sage: a
-        DetAutomaton with 4 states and an alphabet of 2 letters
-        sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+        DeterministicAutomaton with 4 states and an alphabet of 2 letters
+        sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
         sage: a
-        DetAutomaton with 4 states and an alphabet of 2 letters
-        sage: b = DetAutomaton(a)
+        DeterministicAutomaton with 4 states and an alphabet of 2 letters
+        sage: b = DeterministicAutomaton(a)
         sage: b
-        DetAutomaton with 4 states and an alphabet of 2 letters
+        DeterministicAutomaton with 4 states and an alphabet of 2 letters
         sage: c = Automaton({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}},initial_states=[0])
-        sage: b = DetAutomaton(c)
+        sage: b = DeterministicAutomaton(c)
         sage: b
-        DetAutomaton with 5 states and an alphabet of 4 letters
+        DeterministicAutomaton with 5 states and an alphabet of 4 letters
         sage: dag.AnyWord([0, 1, 'a'])
-        DetAutomaton with 1 state and an alphabet of 3 letters
+        DeterministicAutomaton with 1 state and an alphabet of 3 letters
         sage: dag.Random(n=40, A=[None, -1, 1,2,3,'x','y','z'])  # random
 
     """
@@ -1327,7 +1327,7 @@ cdef class DetAutomaton:
         self.a = <Automaton *>malloc(sizeof(Automaton))
         if self.a is NULL:
             raise MemoryError("Failed to allocate memory for "
-                              "C initialization of DetAutomaton.")
+                              "C initialization of DeterministicAutomaton.")
         # initialise
         self.a.e = NULL
         self.a.n = 0
@@ -1343,7 +1343,7 @@ cdef class DetAutomaton:
         r"""
         INPUT:
 
-        -``a`` - a list, a DiGraph, an Automaton, or a ``DetAutomaton``
+        -``a`` - a list, a DiGraph, an Automaton, or a ``DeterministicAutomaton``
 
         - ``i`` - (default: None) - initial state
 
@@ -1355,17 +1355,17 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a instance of :class:`DetAutomaton`.
+        Return a instance of :class:`DeterministicAutomaton`.
 
         TESTS::
 
-            sage: DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            DetAutomaton with 4 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: DetAutomaton(a)
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            sage: DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: DeterministicAutomaton(a)
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
         """
-        cdef DetAutomaton da
+        cdef DeterministicAutomaton da
         # print("init")
         if a is None:
             if A is not None:
@@ -1422,9 +1422,9 @@ cdef class DetAutomaton:
             if keep_S:
                 self.S = a.vertices()
                 #self.dS = a.dS
-        elif isinstance(a, DetAutomaton):
+        elif isinstance(a, DeterministicAutomaton):
             if verb:
-                print("DetAutomaton...")
+                print("DeterministicAutomaton...")
             da = a
             sig_on()
             self.a[0] = CopyAutomaton(da.a[0], da.a.n, da.a.na)
@@ -1432,7 +1432,7 @@ cdef class DetAutomaton:
             self.A = da.A
             self.S = da.S
         else:
-            raise ValueError("Cannot convert the input to DetAutomaton.")
+            raise ValueError("Cannot convert the input to DeterministicAutomaton.")
 
     def __dealloc__(self):
         """
@@ -1450,17 +1450,17 @@ cdef class DetAutomaton:
 
     def copy(self):
         """
-        Do a copy of the :class:`DetAutomaton`.
+        Do a copy of the :class:`DeterministicAutomaton`.
 
         OUTPUT:
 
-        Return a copy of the :class:`DetAutomaton`
+        Return a copy of the :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.copy()
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
         
         TESTS::
 
@@ -1477,8 +1477,8 @@ cdef class DetAutomaton:
             False
 
         """
-        cdef DetAutomaton r 
-        r = DetAutomaton(None)
+        cdef DeterministicAutomaton r 
+        r = DeterministicAutomaton(None)
         sig_on()
         r.a[0] = CopyAutomaton(self.a[0], self.a.n, self.a.na)
         sig_off()
@@ -1489,7 +1489,7 @@ cdef class DetAutomaton:
 
     def __copy__(self):
         """
-        Return a copy of the :class:`DetAutomaton`.
+        Return a copy of the :class:`DeterministicAutomaton`.
         Overwrite builtin function.
         
         See copy() for more details.
@@ -1506,12 +1506,12 @@ cdef class DetAutomaton:
 
         TESTS:
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: repr(a)
-            'DetAutomaton with 4 states and an alphabet of 2 letters'
+            'DeterministicAutomaton with 4 states and an alphabet of 2 letters'
 
         """
-        str = "DetAutomaton with %d state"%self.a.n
+        str = "DeterministicAutomaton with %d state"%self.a.n
         if self.a.n > 1:
             str += 's'
         str += " and an alphabet of %d letter"%self.a.na
@@ -1529,7 +1529,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: latex(a)      # optional -  dot2tex
             \documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -1622,7 +1622,7 @@ cdef class DetAutomaton:
         try:
             from dot2tex import dot2tex
         except ImportError:
-            print("dot2tex must be installed in order to have the LaTeX representation of the DetAutomaton.")
+            print("dot2tex must be installed in order to have the LaTeX representation of the DeterministicAutomaton.")
             print("You can install it by doing './sage -i dot2tex' in a shell in the sage directory, or by doing 'install_package(package='dot2tex')' in the notebook.")
             return None
         cdef char** ll # labels of edges
@@ -1682,11 +1682,11 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a ``int``, hash code of the :class:`DetAutomaton`
+        Return a ``int``, hash code of the :class:`DeterministicAutomaton`
 
         TESTS::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: hash(a)
             761033288
 
@@ -1703,10 +1703,10 @@ cdef class DetAutomaton:
 
     def string(self):
         r"""
-        Return a ``string`` that can be evaluated to recover the DetAutomaton.
+        Return a ``string`` that can be evaluated to recover the DeterministicAutomaton.
         """
         S = self.states
-        r = "DetAutomaton([%s, [" % S
+        r = "DeterministicAutomaton([%s, [" % S
         c = 0
         for i in range(self.a.n):
             for j in range(self.a.na):
@@ -1719,7 +1719,7 @@ cdef class DetAutomaton:
         r += "]], A=%s, i=%r, final_states=%s)" % (self.A, S[self.a.i], self.final_states)
         return r
 
-    def is_equal_to(self, DetAutomaton other, verb=False):
+    def is_equal_to(self, DeterministicAutomaton other, verb=False):
         r"""
         Test if the two DetAutomata are equal.
         To be equal, the automata must have the same alphabet
@@ -1728,7 +1728,7 @@ cdef class DetAutomaton:
 
         INPUT:
 
-        - ``other`` -- other :class:`DetAutomaton` to compare
+        - ``other`` -- other :class:`DeterministicAutomaton` to compare
 
         OUTPUT:
 
@@ -1736,8 +1736,8 @@ cdef class DetAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = DetAutomaton([(0, 1, 'a'),(2,3,'b')], i=0)
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = DeterministicAutomaton([(0, 1, 'a'),(2,3,'b')], i=0)
             sage: a.is_equal_to(b)
             False
             sage: a.set_initial_state(0)
@@ -1753,13 +1753,13 @@ cdef class DetAutomaton:
         sig_off()
         return c_bool(r)
 
-    def __richcmp__(self, DetAutomaton other, int op):
+    def __richcmp__(self, DeterministicAutomaton other, int op):
         r"""
         Compare function, Overwrite built-in function
 
         INPUT:
 
-        - ``other`` -- other :class:`DetAutomaton` to compare
+        - ``other`` -- other :class:`DeterministicAutomaton` to compare
 
         OUTPUT:
 
@@ -1767,8 +1767,8 @@ cdef class DetAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = DetAutomaton([(0, 1, 'a'),(2,3,'b')], i=0)
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = DeterministicAutomaton([(0, 1, 'a'),(2,3,'b')], i=0)
             sage: a == b
             False
             sage: a.set_initial_state(0)
@@ -1796,23 +1796,23 @@ cdef class DetAutomaton:
         else:
             return not c_bool(r)
 
-    # give a Sage Automon from the DetAutomaton
+    # give a Sage Automon from the DeterministicAutomaton
     def get_Automaton(self):
         r"""
-        Give a Sage Automon from the DetAutomaton
+        Give a Sage Automon from the DeterministicAutomaton
 
         TESTS::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.get_Automaton()
             Automaton with 4 states
         """
         return AutomatonToSageAutomaton(self.a[0], self.A)
 
-    # give a Graph from the DetAutomaton
+    # give a Graph from the DeterministicAutomaton
     def get_DiGraph(self, keep_transitions_labels=True):
         r"""
-        Give a DiGraph from the DetAutomaton
+        Give a DiGraph from the DeterministicAutomaton
 
         INPUT:
 
@@ -1830,7 +1830,7 @@ cdef class DetAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.get_DiGraph()
             Looped multi-digraph on 4 vertices
 
@@ -1840,7 +1840,7 @@ cdef class DetAutomaton:
     def plot(self, int sx=10, int sy=8, vlabels=None,
              html=False, file=None, bool draw=True, verb=False):
         """
-        Plot the :class:`DetAutomaton`. Draw using the dot command, if installed on the platform.
+        Plot the :class:`DeterministicAutomaton`. Draw using the dot command, if installed on the platform.
 
         It is strongly recommanded to install the dot command of the Graphviz package in your system in order to get a nice picture.
         Otherwise it will draw using the function plot of :class:`Automaton` of Sage.
@@ -1857,7 +1857,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.plot()  # random
             <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7F6711E442D0>
 
@@ -1866,14 +1866,14 @@ cdef class DetAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.plot()  # random
             <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7FD4B6D94390>
 
         .. PLOT::
            :width: 50%
 
-            a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sphinx_plot(a)
         """
         cdef char *cfile
@@ -1984,15 +1984,15 @@ cdef class DetAutomaton:
     @property
     def alphabet(self):
         """
-        To get the :class:`DetAutomaton` attribut alphabet
+        To get the :class:`DeterministicAutomaton` attribut alphabet
 
         OUTPUT:
 
-        Return the alphabet ``A`` of the :class:`DetAutomaton`
+        Return the alphabet ``A`` of the :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.alphabet
             ['a', 'b']
 
@@ -2020,11 +2020,11 @@ cdef class DetAutomaton:
             sage: a == b
             True
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_alphabet(['a', 'c', 'b'])
             sage: a.alphabet
             ['a', 'c']
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_alphabet(['a','e'])
             sage: a.alphabet
             ['a', 'e']
@@ -2045,19 +2045,19 @@ cdef class DetAutomaton:
     @property
     def initial_state(self):
         """
-        Get the initial state of the :class:`DetAutomaton`
+        Get the initial state of the :class:`DeterministicAutomaton`
 
         OUTPUT:
 
-        Return an int, index of the initial state ``i`` of :class:`DetAutomaton`,
+        Return an int, index of the initial state ``i`` of :class:`DeterministicAutomaton`,
         or -1 if there is no initial state.
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.initial_state
             -1
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
             sage: a.initial_state
             2
         """
@@ -2073,7 +2073,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_initial_state(2)
             sage: a.initial_state
             2
@@ -2099,10 +2099,10 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.final_states
             [0, 1, 2, 3]
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
             sage: a.final_states
             [0, 3]
             sage: a = dag.Word(['a', 'b', None])
@@ -2146,7 +2146,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_final_states([0,3])
             sage: a.final_states
             [0, 3]
@@ -2182,7 +2182,7 @@ cdef class DetAutomaton:
             sage: a.is_final(1)
             False
 
-            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')])
+            sage: a = DeterministicAutomaton([(10,11,'a') ,(12,13,'b')])
             sage: a.is_final(1)
             True
             sage: a.is_final(10)
@@ -2214,7 +2214,7 @@ cdef class DetAutomaton:
             sage: a.final_states
             [1, 2]
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_final(2, False)
             sage: a.final_states
             [0, 1, 3]
@@ -2244,7 +2244,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a'), (2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a'), (2,3,'b')])
             sage: a.succ(0, 1)
             -1
             sage: a.succ(2, 1)
@@ -2268,7 +2268,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a'), (2,3,'b')])
+            sage: a = DeterministicAutomaton([(0,1,'a'), (2,3,'b')])
             sage: a.succs(2)
             [1]
             sage: a.succs(4)
@@ -2296,7 +2296,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: a = DeterministicAutomaton([(0,1,'a'), (2,3,'b')], i=2)
             sage: a.path([1])
             3
             sage: a.path([0, 2])
@@ -2322,7 +2322,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a'), (2, 3,'b')], i=2)
+            sage: a = DeterministicAutomaton([(0,1,'a'), (2, 3,'b')], i=2)
             sage: a.set_succ(0, 1, 2)
             sage: a.succs(0)
             [0, 1]
@@ -2352,7 +2352,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`.
+        Return a :class:`DeterministicAutomaton`.
 
         EXAMPLES::
 
@@ -2363,7 +2363,7 @@ cdef class DetAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.zero_complete_op()
             Traceback (most recent call last):
             ...
@@ -2395,23 +2395,23 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`.
+        Return a :class:`DeterministicAutomaton`.
 
         EXAMPLES::
 
             sage: a = dag.Word([0,1,0])
             sage: a.concat_zero_star()
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.concat_zero_star(z=0)
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.concat_zero_star(z=0, sink_state=True, simplify=False)
-            DetAutomaton with 5 states and an alphabet of 2 letters
-            sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')])
+            DeterministicAutomaton with 5 states and an alphabet of 2 letters
+            sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')])
             sage: b.concat_zero_star(True)
-            DetAutomaton with 1 state and an alphabet of 2 letters
+            DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
         TESTS::
 
@@ -2424,7 +2424,7 @@ cdef class DetAutomaton:
         cdef Automaton a
         if z is None:
             z = self.A.index(0)
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         a = ZeroComplete2(self.a, z, sink_state, verb)
         sig_off()
@@ -2450,7 +2450,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton` whose language is the set of words of
+        Return a :class:`DeterministicAutomaton` whose language is the set of words of
         the language of a with some zeroes on the beggining
         (we call zero the letter of index z).
 
@@ -2458,16 +2458,16 @@ cdef class DetAutomaton:
 
             sage: a = dag.Word([0,1,0])
             sage: a.zero_star_concat()
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.zero_star_concat(0)
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
             sage: a.zero_star_concat(1)
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')])
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
+            sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')])
             sage: b.zero_star_concat(1)
-            DetAutomaton with 1 state and an alphabet of 2 letters
+            DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
         TESTS::
 
@@ -2481,7 +2481,7 @@ cdef class DetAutomaton:
         cdef Automaton a
         if z is None:
             z = self.A.index(0)
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         a = ZeroInv(self.a, z)  # list(self.A).index(self.A[z]))
         sig_off()
@@ -2493,25 +2493,25 @@ cdef class DetAutomaton:
         else:
             return r
 
-    def diff(self, DetAutomaton a, bool det=True, bool simplify=True):
+    def diff(self, DeterministicAutomaton a, bool det=True, bool simplify=True):
         """
         Compute an automaton whose language is the set of differences of the two languages.
 
         INPUT:
 
-        - ``a`` - DetAutomaton - the automaton of the language that we substract
+        - ``a`` - DeterministicAutomaton - the automaton of the language that we substract
         - ``det`` - bool (default: ``True``) - determinize the result
         - ``simplify`` - bool (default: ``True``) - prune and minimize the result
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton` if ``det`` is True, and return a :class:`Cautomaton` otherwise.
+        Return a :class:`DeterministicAutomaton` if ``det`` is True, and return a :class:`Cautomaton` otherwise.
 
         EXAMPLES::
 
             sage: a = dag.AnyWord([0, 1])
             sage: a.diff(a)
-            DetAutomaton with 1 state and an alphabet of 3 letters
+            DeterministicAutomaton with 1 state and an alphabet of 3 letters
 
         TESTS::
 
@@ -2521,7 +2521,7 @@ cdef class DetAutomaton:
             ...
             TypeError: unsupported operand type(s) for -: 'str' and 'str'
         """
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
         cdef CAutomaton nr
         cdef dict d
         r = self.product(a)
@@ -2542,44 +2542,44 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return the pruned :class:`DetAutomaton`.
+        Return the pruned :class:`DeterministicAutomaton`.
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.prune_inf()
-            DetAutomaton with 0 state and an alphabet of 2 letters
-            sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')])
+            DeterministicAutomaton with 0 state and an alphabet of 2 letters
+            sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')])
             sage: b.prune_inf()
-            DetAutomaton with 0 state and an alphabet of 2 letters
+            DeterministicAutomaton with 0 state and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+            sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
             sage: a.prune_inf()
-            DetAutomaton with 3 states and an alphabet of 3 letters
+            DeterministicAutomaton with 3 states and an alphabet of 3 letters
 
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+            sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10, final_states=[])
             sage: a.prune_inf()
-            DetAutomaton with 3 states and an alphabet of 3 letters
+            DeterministicAutomaton with 3 states and an alphabet of 3 letters
 
 
         TESTS::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.prune_inf(True)
             induction...
             States counter = 0
             count...
             cpt = 0
             final states...
-            DetAutomaton with 0 state and an alphabet of 2 letters
+            DeterministicAutomaton with 0 state and an alphabet of 2 letters
 
         """
         cdef Automaton a
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         a = prune_inf(self.a[0], verb)
         sig_off()
@@ -2599,24 +2599,24 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return the pruned :class:`DetAutomaton`.
+        Return the pruned :class:`DeterministicAutomaton`.
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')], i=0)
             sage: a.prune_i()
-            DetAutomaton with 3 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
             sage: a.prune_i()
-            DetAutomaton with 0 state and an alphabet of 2 letters
-            sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
+            DeterministicAutomaton with 0 state and an alphabet of 2 letters
+            sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
             sage: b.prune_i()
-            DetAutomaton with 0 state and an alphabet of 2 letters
+            DeterministicAutomaton with 0 state and an alphabet of 2 letters
         """
         if self.a.i == -1:
-            return DetAutomaton([], A=self.alphabet)
+            return DeterministicAutomaton([], A=self.alphabet)
         cdef Automaton a
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         a = pruneI(self.a[0], verb)
         sig_off()
@@ -2636,20 +2636,20 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return the pruned :class:`DetAutomaton`.
+        Return the pruned :class:`DeterministicAutomaton`.
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.prune()
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: b = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
+            sage: b = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: b.prune()
-            DetAutomaton with 0 state and an alphabet of 2 letters
+            DeterministicAutomaton with 0 state and an alphabet of 2 letters
 
         """
         cdef Automaton a
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         a = prune(self.a[0], verb)
         sig_off()
@@ -2658,14 +2658,14 @@ cdef class DetAutomaton:
         r.S = None
         return r
 
-    def product(self, DetAutomaton b, dict d=None, bool simplify=True, verb=False):
+    def product(self, DeterministicAutomaton b, dict d=None, bool simplify=True, verb=False):
         """
-        Give the product of the :class:`DetAutomaton` and ``a`` an other
-        ``DetAutomaton``. Assume the dictionnary ``d`` to be injective.
+        Give the product of the :class:`DeterministicAutomaton` and ``a`` an other
+        ``DeterministicAutomaton``. Assume the dictionnary ``d`` to be injective.
 
         INPUT:
 
-        - ``a`` -- :class:`DetAutomaton` to multiply
+        - ``a`` -- :class:`DeterministicAutomaton` to multiply
 
         - ``d`` -- dict (default: ``None``) - dictionary that associates
             something to couples of letters of each alphabet.
@@ -2680,7 +2680,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return the product as a :class:`DetAutomaton`.
+        Return the product as a :class:`DeterministicAutomaton`.
 
         EXAMPLES::
 
@@ -2688,14 +2688,14 @@ cdef class DetAutomaton:
             sage: b = dag.Word([0,1])
             sage: c = a.product(b)
             sage: c
-            DetAutomaton with 3 states and an alphabet of 4 letters
+            DeterministicAutomaton with 3 states and an alphabet of 4 letters
             sage: c.alphabet
             [('a', 0), ('a', 1), ('b', 0), ('b', 1)]
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
             sage: a.product(b)
-            DetAutomaton with 1 state and an alphabet of 4 letters
+            DeterministicAutomaton with 1 state and an alphabet of 4 letters
         
         TESTS::
 
@@ -2714,8 +2714,8 @@ cdef class DetAutomaton:
             ValueError: The dictionnary is not injective!
 
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
             sage: a.product(b, verb =True)
             {('b', 'c'): ('b', 'c'), ('a', 'd'): ('a', 'd'), ('a', 'c'): ('a', 'c'), ('b', 'd'): ('b', 'd')}
             Av=[('a', 'c'), ('a', 'd'), ('b', 'c'), ('b', 'd')]
@@ -2733,10 +2733,10 @@ cdef class DetAutomaton:
             0 --1--> 1
             2 --0--> 1
             initial state 1.
-            DetAutomaton with 1 state and an alphabet of 4 letters
-            sage: b = DetAutomaton([(3, 2, 'c'), (1, 2, 'd')])
+            DeterministicAutomaton with 1 state and an alphabet of 4 letters
+            sage: b = DeterministicAutomaton([(3, 2, 'c'), (1, 2, 'd')])
             sage: a.product(b)
-            DetAutomaton with 1 state and an alphabet of 4 letters
+            DeterministicAutomaton with 1 state and an alphabet of 4 letters
 
         """
         if d is None:
@@ -2752,7 +2752,7 @@ cdef class DetAutomaton:
                 raise ValueError("The dictionnary is not injective!")
         cdef Automaton a
         cdef Dict dC
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         Av = []
         dv = imagProductDict(d, self.A, b.A, Av=Av)
         if verb:
@@ -2775,14 +2775,14 @@ cdef class DetAutomaton:
         else:
             return r
 
-    def intersection(self, DetAutomaton a, simplify=True, verb=False):
+    def intersection(self, DeterministicAutomaton a, simplify=True, verb=False):
         """
         Give a automaton recognizing the intersection of the languages
         of ``self`` and ``a``.
 
         INPUT:
 
-        - ``a`` -- :class:`DetAutomaton` to intersect
+        - ``a`` -- :class:`DeterministicAutomaton` to intersect
 
         - ``simplify`` - (default: ``True``) - if True,
             prune and minimize the result
@@ -2792,7 +2792,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return the intersected :class:`DetAutomaton`.
+        Return the intersected :class:`DeterministicAutomaton`.
 
         EXAMPLES::
 
@@ -2801,14 +2801,14 @@ cdef class DetAutomaton:
                 sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
                 sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
                 sage: a.intersection(b)
-                DetAutomaton with 8 states and an alphabet of 2 letters
+                DeterministicAutomaton with 8 states and an alphabet of 2 letters
 
             #. Intersection of two languages whose alphabets are different
 
                 sage: a = dag.AnyWord(['a','b','c'])
                 sage: b = dag.AnyWord(['a','b','e'])
                 sage: a.intersection(b)
-                DetAutomaton with 1 state and an alphabet of 2 letters
+                DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = dag.Word(['a','b','a'])
@@ -2822,16 +2822,16 @@ cdef class DetAutomaton:
             sage: a.intersection(b) == dag.AnyWord(['a', 'b'])
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
             sage: a.intersection(b)
-            DetAutomaton with 1 state and an alphabet of 0 letter
+            DeterministicAutomaton with 1 state and an alphabet of 0 letter
             sage: a.intersection(b, simplify=False)
-            DetAutomaton with 12 states and an alphabet of 0 letter
+            DeterministicAutomaton with 12 states and an alphabet of 0 letter
 
         """
         cdef dict d
-        cdef DetAutomaton p
+        cdef DeterministicAutomaton p
         d = {}
         for l in self.A:
             if l in a.A:
@@ -2862,10 +2862,10 @@ cdef class DetAutomaton:
             sage: a = dag.Word(['a','b'])
             sage: a.is_complete()
             False
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.is_complete()
             False
-            sage: a = DetAutomaton([(0, 0, 'a')])
+            sage: a = DeterministicAutomaton([(0, 0, 'a')])
             sage: a.is_complete()
             True
         """
@@ -2892,11 +2892,11 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complete_op()
             True
             sage: a
-            DetAutomaton with 5 states and an alphabet of 2 letters
+            DeterministicAutomaton with 5 states and an alphabet of 2 letters
 
             sage: dag.AnyWord(['a','b']).complete_op()
             False
@@ -2940,11 +2940,11 @@ cdef class DetAutomaton:
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: a.prefix(['a', 'a'])
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: a.prefix(['a', 'a'], algo=2)
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
         TESTS::
 
@@ -2959,7 +2959,7 @@ cdef class DetAutomaton:
             True
 
         """
-        cdef DetAutomaton a
+        cdef DeterministicAutomaton a
         cdef int* l
         cdef int j
         if algo == 2:
@@ -2971,7 +2971,7 @@ cdef class DetAutomaton:
                     raise ValueError("letter %s of the word %s is not in the alphabet of self"%(w[j], w))
             if i is None:
                 i = self.a.i
-            a = DetAutomaton(None)
+            a = DeterministicAutomaton(None)
             sig_on()
             a.a[0] = PieceAutomaton(self.a[0], l, len(w), i)
             free(l)
@@ -2991,23 +2991,23 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`
+        Return a :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.prefix_closure()
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
 
             sage: b = dag.Word(['a','b','a'])
             sage: c = b.prefix_closure()
             sage: c
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
             sage: dag.Word(['a', 'b']).included(c)
             True
         """
         cdef int i
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         r.a[0] = prune(self.a[0], False)
         sig_off()
@@ -3017,14 +3017,14 @@ cdef class DetAutomaton:
         return r
 
     # Use epsilon-transitions rather than product ?
-    def union(self, DetAutomaton a, simplify=True, verb=False):
+    def union(self, DeterministicAutomaton a, simplify=True, verb=False):
         """
         Return an automaton recognizing the union of the two languages.
         Warning: there is a side effect, the automata are completed.
 
         INPUT:
 
-        - ``a`` -- :class:`DetAutomaton`
+        - ``a`` -- :class:`DeterministicAutomaton`
 
         - ``simplify`` --  (default: ``True``)
           prune and minimize the result ?
@@ -3034,7 +3034,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`
+        Return a :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
@@ -3043,28 +3043,28 @@ cdef class DetAutomaton:
                 sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
                 sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
                 sage: a.union(b)
-                DetAutomaton with 4 states and an alphabet of 2 letters
+                DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
             #. Union of two languages whose alphabets are differents
 
                 sage: a = dag.Word(['a','b','c'])
                 sage: b = dag.Word(['a','b','a'])
                 sage: a.union(b)
-                DetAutomaton with 4 states and an alphabet of 3 letters
+                DeterministicAutomaton with 4 states and an alphabet of 3 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.union(b)
-            DetAutomaton with 2 states and an alphabet of 3 letters
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
+            DeterministicAutomaton with 2 states and an alphabet of 3 letters
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')])
             sage: a.union(b)
-            DetAutomaton with 2 states and an alphabet of 3 letters
+            DeterministicAutomaton with 2 states and an alphabet of 3 letters
 
         TESTS::
 
             sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
             sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
-            sage: c = DetAutomaton([(0, 0, 'a'), (0, 0, 'b'), (1, 2, 'a'), (1, 3, 'b'), (2, 0, 'a'), (2, 3, 'b'), (3, 2, 'a'), (3, 0, 'b')], i=1, final_states=[0])
+            sage: c = DeterministicAutomaton([(0, 0, 'a'), (0, 0, 'b'), (1, 2, 'a'), (1, 3, 'b'), (2, 0, 'a'), (2, 3, 'b'), (3, 2, 'a'), (3, 0, 'b')], i=1, final_states=[0])
             sage: a.union(b) == c
             True
 
@@ -3076,8 +3076,8 @@ cdef class DetAutomaton:
             True
 
         """
-        cdef DetAutomaton a1 = self
-        cdef DetAutomaton a2 = a
+        cdef DeterministicAutomaton a1 = self
+        cdef DeterministicAutomaton a2 = a
 
         # increase the alphabets if necessary
         if set(a1.A) != set(a2.A):
@@ -3101,7 +3101,7 @@ cdef class DetAutomaton:
 
         cdef Automaton ap
         cdef Dict dC
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         Av = []
         dv = imagProductDict(d, a1.A, a2.A, Av=Av)
         if verb:
@@ -3131,23 +3131,19 @@ cdef class DetAutomaton:
         else:
             return r
 
-    def split(self, DetAutomaton a, bool simplify=True, bool verb=False):
+    def split(self, DeterministicAutomaton a, bool simplify=True, bool verb=False):
         """
-        Split the automaton with respect to a :class:`DetAutomaton` ``a``.
-        Return two DetAutomaton recognizing the intersection of the language
+        Split the automaton with respect to a :class:`DeterministicAutomaton` ``a``.
+        Return two DeterministicAutomaton recognizing the intersection of the language
         of self with the one of a and with the complementary of the language
         of a.
         We assume that the two automata have the same alphabet, otherwise the
         complementary is taken in the set of words over the intersection of
         the two alphabets.
 
-        .. WARNING::
-
-            There is a side-effect: the automaton ``a`` is completed.
-
         INPUT:
 
-        - ``a`` -- :class:`DetAutomaton` - we split ``self`` with respect
+        - ``a`` -- :class:`DeterministicAutomaton` - we split ``self`` with respect
           to this automaton.
 
         - ``simplify`` -- bool (default: True) - if True, prune and
@@ -3168,40 +3164,44 @@ cdef class DetAutomaton:
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = a.concat(dag.Word(['a', 'a'])).concat(a)
             sage: a.split(b)
-            [DetAutomaton with 3 states and an alphabet of 2 letters,
-             DetAutomaton with 2 states and an alphabet of 2 letters]
+            [DeterministicAutomaton with 3 states and an alphabet of 2 letters,
+             DeterministicAutomaton with 2 states and an alphabet of 2 letters]
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = a.concat(dag.Word(['a', 'a'])).concat(a)
             sage: c = a.concat(dag.Word(['b', 'b'])).concat(a)
             sage: c.split(b)
-            [DetAutomaton with 8 states and an alphabet of 2 letters,
-             DetAutomaton with 5 states and an alphabet of 2 letters]
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+            [DeterministicAutomaton with 8 states and an alphabet of 2 letters,
+             DeterministicAutomaton with 5 states and an alphabet of 2 letters]
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.split(b)
-            [DetAutomaton with 1 state and an alphabet of 1 letter,
-             DetAutomaton with 2 states and an alphabet of 1 letter]
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
+            [DeterministicAutomaton with 1 state and an alphabet of 1 letter,
+             DeterministicAutomaton with 2 states and an alphabet of 1 letter]
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')])
             sage: a.split(b)
-            [DetAutomaton with 1 state and an alphabet of 1 letter,
-             DetAutomaton with 2 states and an alphabet of 1 letter]
+            [DeterministicAutomaton with 1 state and an alphabet of 1 letter,
+             DeterministicAutomaton with 2 states and an alphabet of 1 letter]
             sage: print(a)
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
         TESTS::
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = dag.AnyWord(['c', 'a'])
             sage: a.split(b)
-            [DetAutomaton with 1 state and an alphabet of 1 letter,
-             DetAutomaton with 1 state and an alphabet of 1 letter]
+            [DeterministicAutomaton with 1 state and an alphabet of 1 letter,
+             DeterministicAutomaton with 1 state and an alphabet of 1 letter]
             sage: print(a)
-            DetAutomaton with 1 state and an alphabet of 2 letters
+            DeterministicAutomaton with 1 state and an alphabet of 2 letters
+            
+        .. WARNING::
+
+            There is a side-effect: the automaton ``a`` is completed.
 
         """
         cdef Automaton ap, ap2
         cdef Dict dC
-        cdef DetAutomaton r, r2
+        cdef DeterministicAutomaton r, r2
         cdef list Av
 
         # complete the automaton a
@@ -3214,8 +3214,8 @@ cdef class DetAutomaton:
             if l in a.A:
                 d[(l, l)] = l
 
-        r = DetAutomaton(None)
-        r2 = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
+        r2 = DeterministicAutomaton(None)
         Av = []
         dv = imagProductDict(d, self.A, a.A, Av=Av)
         if verb:
@@ -3272,7 +3272,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
             sage: a.shift_op('a')
@@ -3312,7 +3312,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
             sage: a.shift_list_op(['a'])
@@ -3361,28 +3361,28 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`
+        Return a :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
             sage: a.unshift('a')
-            DetAutomaton with 5 states and an alphabet of 2 letters
+            DeterministicAutomaton with 5 states and an alphabet of 2 letters
             sage: a.unshift('c')
-            DetAutomaton with 5 states and an alphabet of 3 letters
+            DeterministicAutomaton with 5 states and an alphabet of 3 letters
             sage: a.unshift('a', 4)
-            DetAutomaton with 8 states and an alphabet of 2 letters
+            DeterministicAutomaton with 8 states and an alphabet of 2 letters
         """
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
         cdef int i
         cdef int ne
 
         if np <= 0:
             raise ValueError("np must be positive!")
 
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         try:
             l = self.A.index(l)
             r.A = self.A[:]
@@ -3421,19 +3421,19 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`
+        Return a :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.unshiftl(['a', 'b'])
-            DetAutomaton with 6 states and an alphabet of 2 letters
+            DeterministicAutomaton with 6 states and an alphabet of 2 letters
             sage: a.unshiftl(['c', 'd'])
-            DetAutomaton with 6 states and an alphabet of 4 letters
+            DeterministicAutomaton with 6 states and an alphabet of 4 letters
 
             sage: a = dag.AnyWord([0,1])
             sage: a.unshiftl([1,0,1])
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
         """
         a = self
@@ -3445,7 +3445,7 @@ cdef class DetAutomaton:
 
     def copyn(self, verb=False):
         """
-        Convert  a determinist automaton :class:`DetAutomaton` to
+        Convert  a determinist automaton :class:`DeterministicAutomaton` to
         a non determinist automaton :class:`CAutomaton`
 
         INPUT:
@@ -3459,7 +3459,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.copyn()
             CAutomaton with 4 states and an alphabet of 2 letters
 
@@ -3488,14 +3488,14 @@ cdef class DetAutomaton:
         r.A = self.A[:]
         return r
 
-    def concat(self, DetAutomaton b, det=True, simplify=True, verb=False):
+    def concat(self, DeterministicAutomaton b, det=True, simplify=True, verb=False):
         """
         Return an automaton recognizing the concatenation of the
         languages of self and ``b``.
 
         INPUT:
 
-        - ``b`` -- :class:`DetAutomaton`  to concatenate to self
+        - ``b`` -- :class:`DeterministicAutomaton`  to concatenate to self
 
         - ``det``  -- boolean (default: ``True``) - if True, determinize
 
@@ -3508,30 +3508,30 @@ cdef class DetAutomaton:
         OUTPUT:
 
         Return a :class:`CAutomaton` (if ``det`` is ``False``)
-        or  :class:`DetAutomaton` (if ``det`` is ``True``)
+        or  :class:`DeterministicAutomaton` (if ``det`` is ``True``)
 
         EXAMPLES::
 
             #. Words starting by 'aa'
                 sage: dag.Word(['a','a']).concat(dag.AnyWord(['a','b']))
-                DetAutomaton with 3 states and an alphabet of 2 letters
+                DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
             #. words containing 'aa'
 
                 sage: a = dag.AnyWord(['a','b'])
                 sage: a.concat(dag.Word(['a','a'])).concat(a)
-                DetAutomaton with 3 states and an alphabet of 2 letters
-            
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+                DeterministicAutomaton with 3 states and an alphabet of 2 letters
+
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.concat(b)
-            DetAutomaton with 2 states and an alphabet of 3 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            DeterministicAutomaton with 2 states and an alphabet of 3 letters
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.concat(b, det=False)
             CAutomaton with 7 states and an alphabet of 3 letters
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')])
             sage: a.concat(b)
-            DetAutomaton with 1 state and an alphabet of 3 letters
+            DeterministicAutomaton with 1 state and an alphabet of 3 letters
 
         TESTS::
 
@@ -3541,10 +3541,10 @@ cdef class DetAutomaton:
             True
 
         """
-        cdef DetAutomaton a
+        cdef DeterministicAutomaton a
         cdef NAutomaton na
         cdef CAutomaton r
-        cdef DetAutomaton r2
+        cdef DeterministicAutomaton r2
 
         if self.A != b.A:
             A = list(set(self.A).union(set(b.A)))
@@ -3597,7 +3597,7 @@ cdef class DetAutomaton:
         OUTPUT:
 
         Return a :class:`CAutomaton` (when ``det``=``False``)
-        or a :class:`DetAutomaton` (when ``det``=``True``)
+        or a :class:`DeterministicAutomaton` (when ``det``=``True``)
 
         EXAMPLES::
 
@@ -3605,12 +3605,12 @@ cdef class DetAutomaton:
             sage: b = a.product(a)
             sage: d = {('a','a'):'a', ('a','b'):'a', ('b','a'):'b', ('b','b'):'b'}
             sage: b.proj(d)
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = {'a' : 0, 'b': 0, 'c':1, 'd':1}
             sage: a.proj(d)
-            DetAutomaton with 2 states and an alphabet of 1 letter
+            DeterministicAutomaton with 2 states and an alphabet of 1 letter
 
             sage: a = dag.Word([(0,1), (1,0), (1,1)])
             sage: d = {}
@@ -3632,7 +3632,7 @@ cdef class DetAutomaton:
         cdef NAutomaton a
         cdef Dict dC
         cdef CAutomaton r
-        cdef DetAutomaton r2
+        cdef DeterministicAutomaton r2
 
         r = CAutomaton(None)
         A2 = []
@@ -3677,20 +3677,20 @@ cdef class DetAutomaton:
         OUTPUT:
 
         Return a :class:`CAutomaton` (``det``=``False``)
-        or :class:`DetAutomaton` (``det``=``True``)
+        or :class:`DeterministicAutomaton` (``det``=``True``)
 
 
         EXAMPLES::
 
             sage: a = dag.Word([('a', 'b'), ('b', 'a'), ('c', 'a')])
             sage: a.proji(1)
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0, 1, 'abc')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'abc')], i=0)
             sage: b = a.proji(0)
             sage: b
-            DetAutomaton with 2 states and an alphabet of 1 letter
-            sage: b == DetAutomaton([(1, 0, 'a')], i=1)
+            DeterministicAutomaton with 2 states and an alphabet of 1 letter
+            sage: b == DeterministicAutomaton([(1, 0, 'a')], i=1)
             True
 
         TESTS::
@@ -3733,16 +3733,16 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a new :class:`DetAutomaton` with new letters
+        Return a new :class:`DeterministicAutomaton` with new letters
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = { 'a' : 'ac', 'b': 'cc', 'ca':'c', 'd':'b'}
             sage: b = a.duplicate(d)
             sage: b.alphabet
             ['a', 'c']
-            
+
             sage: a = dag.Word(['a', 'b', 'c'])
             sage: d = { 'a' : [0,1], 'b': [0], 'c':[]}
             sage: b = a.duplicate(d)
@@ -3753,9 +3753,9 @@ cdef class DetAutomaton:
         """
         cdef Automaton a
         cdef InvertDict dC
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
 
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         A2 = []
         d1 = imagDict2(d, self.A, A2=A2)
         if verb:
@@ -3779,7 +3779,7 @@ cdef class DetAutomaton:
 
     def relabel(self, dict d):
         """
-        Change letters of the :class:`DetAutomaton` ON PLACE,
+        Change letters of the :class:`DeterministicAutomaton` ON PLACE,
         with respect to the dictionnary ``d``.
         The dictionary is assumed to be one-to-one.
 
@@ -3789,12 +3789,12 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = { 'a' : 'a', 'b': 'c', 'c':'b', 'd':'b'}
             sage: a.relabel(d)
             sage: a.alphabet
             ['a', 'c']
-            
+
             sage: a = dag.Word(['a', 'b'])
             sage: d = {'a':0, 'b':1}
             sage: a.relabel(d)
@@ -3817,7 +3817,7 @@ cdef class DetAutomaton:
     def permut(self, list A, bool verb=False):
         """
         Permutes (and eventually remove) letters of the alphabet,
-        and return permuted new :class:`DetAutomaton` with
+        and return permuted new :class:`DeterministicAutomaton` with
         the same language restricted to the new alphabet.
 
         INPUT:
@@ -3830,7 +3830,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return new :class:`DetAutomaton`
+        Return new :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
@@ -3852,7 +3852,7 @@ cdef class DetAutomaton:
             sage: b.has_same_language_as(dag.AnyWord(['a', 'b']))
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: l = [ 'b', 'c', 'a']
             sage: b = a.permut(l)
             sage: b.alphabet
@@ -3869,11 +3869,11 @@ cdef class DetAutomaton:
         cdef Automaton a
         cdef int *l
         cdef int i, na
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
 
         if verb:
             print("A=%s" % A)
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         l = <int*>malloc(sizeof(int) * len(A))
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
@@ -3934,7 +3934,7 @@ cdef class DetAutomaton:
             sage: a.has_same_language_as(dag.AnyWord(['a', 'b']))
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: l = [ 'b', 'c', 'a']
             sage: a.permut_op(l)
             sage: a.alphabet
@@ -3987,7 +3987,7 @@ cdef class DetAutomaton:
 
     def mirror_det(self):
         """
-        Return a :class:`DetAutomaton`, whose language is the mirror of the
+        Return a :class:`DeterministicAutomaton`, whose language is the mirror of the
         language of self.
         We assume the result to be deterministic!
         If it is not the case, you should rather use mirror()
@@ -3995,35 +3995,35 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`
+        Return a :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: a = dag.Word(['a', 'b', 'c', 'b'])
             sage: b = a.mirror_det()
             sage: b
-            DetAutomaton with 5 states and an alphabet of 3 letters
+            DeterministicAutomaton with 5 states and an alphabet of 3 letters
             sage: b.has_same_language_as(dag.Word(['b', 'c', 'b', 'a']))
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.mirror_det()
-            DetAutomaton with 4 states and an alphabet of 2 letters
+            DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
         TESTS::
 
-            sage: a = DetAutomaton([('a','a',0), ('a','b',1), ('b','a',0)], i='a')
+            sage: a = DeterministicAutomaton([('a','a',0), ('a','b',1), ('b','a',0)], i='a')
             sage: b = a.mirror_det()
             sage: b
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
             sage: b.has_same_language_as(a.mirror().determinize())
             False
             sage: b.states
             ['a', 'b']
         """
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
 
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         r.a[0] = MirrorDet(self.a[0])
         sig_off()
@@ -4049,13 +4049,13 @@ cdef class DetAutomaton:
             sage: b.determinize().has_same_language_as(dag.Word(['b', 'c', 'b', 'a']))
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.mirror()
             CAutomaton with 4 states and an alphabet of 2 letters
 
         TESTS::
         
-            sage: a = DetAutomaton([('a','a',0), ('a','b',1), ('b','a',0)], i='a')
+            sage: a = DeterministicAutomaton([('a','a',0), ('a','b',1), ('b','a',0)], i='a')
             sage: a.mirror()
             CAutomaton with 2 states and an alphabet of 2 letters
 
@@ -4095,7 +4095,7 @@ cdef class DetAutomaton:
 
             sage: a = dag.Word(['a', 'b']).concat(dag.AnyWord(['a', 'b']))
             sage: a
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
             sage: a.strongly_connected_components()
             [[0], [2], [1]]
             
@@ -4110,11 +4110,11 @@ cdef class DetAutomaton:
              [1],
              [9]]
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (1,0,'b'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (1,0,'b'), (2, 3, 'b')], i=0)
             sage: a.strongly_connected_components()
             [[0, 1], [3], [2]]
 
-            sage: a = DetAutomaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 0)], i='a')
+            sage: a = DeterministicAutomaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 0)], i='a')
             sage: a.strongly_connected_components()
             [[0, 1]]
 
@@ -4170,18 +4170,18 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`DetAutomaton`
+        Return a :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: a = dag.Word(['a', 'b', 'c'])
             sage: a.sub_automaton([0,1])
-            DetAutomaton with 2 states and an alphabet of 3 letters
+            DeterministicAutomaton with 2 states and an alphabet of 3 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = a.sub_automaton([0,1])
             sage: b
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
             sage: b.has_same_language_as(a)
             True
 
@@ -4194,7 +4194,7 @@ cdef class DetAutomaton:
             ValueError: Element 4 of the list given is not a state (i.e. between 0 and 4).
 
         """
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
         cdef int i, n
         # check that the list l is correct
         if len(l) != len(set(l)):
@@ -4203,7 +4203,7 @@ cdef class DetAutomaton:
         for i in l:
             if i < 0 or i >= n:
                 raise ValueError("Element %s of the list given is not a state (i.e. between 0 and %s)."% (i, n))
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         r.a[0] = SubAutomaton(self.a[0], list_to_Dict(l), verb)
         sig_off()
@@ -4221,16 +4221,16 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        :class:`DetAutomaton`
+        :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
             sage: a = dag.Word(['a','b','a','b'])
             sage: a.shift_list_op(['a','b'])
             sage: a
-            DetAutomaton with 5 states and an alphabet of 2 letters
+            DeterministicAutomaton with 5 states and an alphabet of 2 letters
             sage: a.simplify()
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
         """
         return self.prune().minimize()
@@ -4249,62 +4249,62 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a minimized :class:`DetAutomaton`
+        Return a minimized :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),
+            sage: a = DeterministicAutomaton([('a','b',0),('a','c',1),('b','a',0),
             ....:                   ('b','d',1),('c','e',0),('c','f',1),
             ....:                   ('d','e',0),('d','f',1),('e','e',0),
             ....:                   ('e','f',1),('f','f',0),('f','f',1)],
             ....:                   i='a', final_states=['c','d','e'])
             sage: a.minimize()
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0,1,0), (0,5,1), (1,2,1), (1,6,0),
+            sage: a = DeterministicAutomaton([(0,1,0), (0,5,1), (1,2,1), (1,6,0),
             ....:                   (2,0,0), (2,2,1), (3,2,0), (3,6,1),
             ....:                   (4,7,0), (4,5,1), (5,2,0), (5,6,1),
             ....:                   (6,6,0), (6,4,1), (7,6,0), (7,2,1)],
             ....:                   i=0, final_states=[2,6])
             sage: a.minimize()
-            DetAutomaton with 5 states and an alphabet of 2 letters
+            DeterministicAutomaton with 5 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.minimize()
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+            sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                     (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                     (10,30,'z')], i=10)
             sage: a.minimize()
-            DetAutomaton with 1 state and an alphabet of 3 letters
+            DeterministicAutomaton with 1 state and an alphabet of 3 letters
 
         TESTS::
 
-            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),
+            sage: a = DeterministicAutomaton([('a','b',0),('a','c',1),('b','a',0),
             ....:                   ('b','d',1),('c','e',0),('c','f',1),
             ....:                   ('d','e',0),('d','f',1),('e','e',0),
             ....:                   ('e','f',1),('f','f',0),('f','f',1)],
             ....:                   i='a', final_states=['c','d','e'])
-            sage: b = DetAutomaton([(0, 0, 0), (0, 2, 1), (1, 1, 0),
+            sage: b = DeterministicAutomaton([(0, 0, 0), (0, 2, 1), (1, 1, 0),
             ....:                   (1, 0, 1), (2, 2, 0), (2, 2, 1)],
             ....:                  A=[0, 1], i=1, final_states=[0])
             sage: a.minimize() == b
             True
             
-            sage: a = DetAutomaton([(0,1,0), (0,5,1), (1,2,1), (1,6,0),
+            sage: a = DeterministicAutomaton([(0,1,0), (0,5,1), (1,2,1), (1,6,0),
             ....:                   (2,0,0), (2,2,1), (3,2,0), (3,6,1),
             ....:                   (4,7,0), (4,5,1), (5,2,0), (5,6,1),
             ....:                   (6,6,0), (6,4,1), (7,6,0), (7,2,1)],
             ....:                   i=0, final_states=[2,6])
-            sage: b = DetAutomaton([(0, 0, 0), (0, 2, 1), (1, 3, 0),
+            sage: b = DeterministicAutomaton([(0, 0, 0), (0, 2, 1), (1, 3, 0),
             ....:                   (1, 0, 1), (2, 4, 0), (2, 1, 1),
             ....:                   (3, 2, 0), (3, 3, 1), (4, 0, 0),
             ....:                   (4, 3, 1)], i=2, final_states=[0, 3])
             sage: a.minimize() == b
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.minimize(True)
             transition i[0][0] = [ ]
             transition i[0][1] = [ ]
@@ -4374,11 +4374,11 @@ cdef class DetAutomaton:
             class 3 : 2
             a.i = 0 class 2
             removes the sink state  1...
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
         """
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
 
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         r.a[0] = Minimise(self.a[0], verb)
         sig_off()
@@ -4387,7 +4387,7 @@ cdef class DetAutomaton:
 
     def adjacency_matrix(self, sparse=None):
         """
-        Compute the adjacency matrix of the :class:`DetAutomaton`
+        Compute the adjacency matrix of the :class:`DeterministicAutomaton`
 
         INPUT:
 
@@ -4399,7 +4399,7 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.adjacency_matrix()
             [0 1 0 0]
             [0 0 0 0]
@@ -4448,7 +4448,7 @@ cdef class DetAutomaton:
 
     def delete_state(self, int i):
         """
-        Gives a copy of the :class:`DetAutomaton` but
+        Gives a copy of the :class:`DeterministicAutomaton` but
         without the state ``i``.
 
         INPUT:
@@ -4457,21 +4457,21 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        :class:`DetAutomaton`
+        :class:`DeterministicAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.delete_state(2)
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
             sage: a.delete_state(2).delete_state(1)
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
 
         TESTS::
 
-            sage: a = DetAutomaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 0), ('b', 'c', 1), ('c', 'a', 0)], i='a')
+            sage: a = DeterministicAutomaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 0), ('b', 'c', 1), ('c', 'a', 0)], i='a')
             sage: a = a.delete_state(a.states.index('b'))
-            sage: b = DetAutomaton([('a', 'a', 0), ('c', 'a', 0)], A=[0, 1], i='a')
+            sage: b = DeterministicAutomaton([('a', 'a', 0), ('c', 'a', 0)], A=[0, 1], i='a')
             sage: a == b
             True
 
@@ -4482,10 +4482,10 @@ cdef class DetAutomaton:
             ValueError: 1 is not a state (should be between 0 and 0)
 
         """
-        cdef DetAutomaton r
+        cdef DeterministicAutomaton r
         if i < 0 or i >= self.a.n:
             raise ValueError("%s is not a state (should be between 0 and %s)"%(i, self.a.n-1))
-        r = DetAutomaton(None)
+        r = DeterministicAutomaton(None)
         sig_on()
         r.a[0] = DeleteVertex(self.a[0], i)
         sig_off()
@@ -4504,13 +4504,13 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.delete_state_op(2)
             sage: a
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DeterministicAutomaton with 3 states and an alphabet of 2 letters
             sage: a.delete_state_op(1)
             sage: a
-            DetAutomaton with 2 states and an alphabet of 2 letters
+            DeterministicAutomaton with 2 states and an alphabet of 2 letters
 
         TESTS::
 
@@ -4555,19 +4555,19 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.spectral_radius()
             0.0000000000...
             
-            sage: a = DetAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
+            sage: a = DeterministicAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
             sage: a.spectral_radius()
             1.61803398...
             
-            sage: a = DetAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
+            sage: a = DeterministicAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
             sage: a.spectral_radius(couple=True)
             (1.61803398..., 1.61803398...)
             
-            sage: a = DetAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
+            sage: a = DeterministicAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
             sage: a.spectral_radius(approx=False).minpoly()
             x^2 - x - 1
 
@@ -4625,16 +4625,16 @@ cdef class DetAutomaton:
 
     def has_empty_language(self):
         r"""
-        Test if the  :class:`DetAutomaton` has an empty language.
+        Test if the  :class:`DeterministicAutomaton` has an empty language.
 
         OUTPUT:
 
-        Return ``True`` the :class:`DetAutomaton` has a empty language
+        Return ``True`` the :class:`DeterministicAutomaton` has a empty language
         ``False`` if not
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.has_empty_language()
             False
 
@@ -4645,16 +4645,16 @@ cdef class DetAutomaton:
         sig_off()
         return answ
 
-    def has_same_language_as(self, DetAutomaton a, bool minimized=False,
+    def has_same_language_as(self, DeterministicAutomaton a, bool minimized=False,
                         bool pruned=False, bool verb=False):
         """
-        Test if the languages of :class:`DetAutomaton` ``self`` and ``a`` are
+        Test if the languages of :class:`DeterministicAutomaton` ``self`` and ``a`` are
         equal or not.
         If the alphabets are differents it returns False, even if the automata describe the same languages.
 
         INPUT:
 
-        - ``a``  -- the :class:`DetAutomaton` to compare
+        - ``a``  -- the :class:`DeterministicAutomaton` to compare
 
         - ``minimized``  -- (default: ``False``) if minimization is
           required or not
@@ -4666,23 +4666,23 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return ``True`` if the both :class:`DetAutomaton` have
+        Return ``True`` if the both :class:`DeterministicAutomaton` have
         the same language and same alphabet ``False`` if not
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=3)
-            sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')], i=2)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=3)
+            sage: c = DeterministicAutomaton([(3, 2, 'd'), (1, 2, 'c')], i=2)
             sage: a.has_same_language_as(b)
             False
             sage: a.has_same_language_as(c)
             False
-            sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')])
+            sage: c = DeterministicAutomaton([(3, 2, 'd'), (1, 2, 'c')])
             sage: a.has_same_language_as(c)
             False
 
-            sage: a = DetAutomaton([(0,0,0), (0,1,1), (1,1,0), (1,1,1)], i=0)
+            sage: a = DeterministicAutomaton([(0,0,0), (0,1,1), (1,1,0), (1,1,1)], i=0)
             sage: dag.AnyWord([0,1]).has_same_language_as(a)
             True
         """
@@ -4715,9 +4715,9 @@ cdef class DetAutomaton:
         sig_off()
         return answ
 
-    def intersect(self, DetAutomaton a, bool verb=False):
+    def intersect(self, DeterministicAutomaton a, bool verb=False):
         """
-        Determine if the languages of the :class:`DetAutomaton` ``self``
+        Determine if the languages of the :class:`DeterministicAutomaton` ``self``
         and ``a`` have a non-empty intersection.
 
         INPUT:
@@ -4741,11 +4741,11 @@ cdef class DetAutomaton:
             sage: a.prefix_closure().intersect(b)
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.intersect(b)
             True
-            sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
+            sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')])
             sage: a.intersect(b)
             False
         """
@@ -4774,13 +4774,13 @@ cdef class DetAutomaton:
             sage: a.find_word()
             ['g', 'a', 'b', 'i', 'a', 'n']
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.find_word()
             []
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.find_word()
 
-            sage: a = DetAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
+            sage: a = DeterministicAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
             sage: a.find_word()
             ['y']
         """
@@ -4822,11 +4822,11 @@ cdef class DetAutomaton:
             sage: a.shortest_word()
             ['g', 'a', 'b', 'i', 'a', 'n']
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.shortest_word(i=2, f=3)
             ['b']
 
-            sage: a = DetAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
+            sage: a = DeterministicAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
             sage: a.shortest_word()
             ['y']
 
@@ -4897,7 +4897,7 @@ cdef class DetAutomaton:
             sage: a.shortest_words()
             [[]]
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.shortest_words()
             [[], ['a'], [], []]
 
@@ -4960,7 +4960,7 @@ cdef class DetAutomaton:
             sage: a.rec_word("abaa")
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.rec_word(['a', 'b', 'b'])
             False
             sage: a.rec_word("a")
@@ -5011,21 +5011,21 @@ cdef class DetAutomaton:
             sage: a.rec_word("abb")
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.add_state(True)
             4
             sage: a.add_state(False)
             5
 
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+            sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
             sage: a
-            DetAutomaton with 3 states and an alphabet of 3 letters
+            DeterministicAutomaton with 3 states and an alphabet of 3 letters
             sage: a.add_state(True)
             3
             sage: a
-            DetAutomaton with 4 states and an alphabet of 3 letters
+            DeterministicAutomaton with 4 states and an alphabet of 3 letters
 
         """
         sig_on()
@@ -5062,9 +5062,9 @@ cdef class DetAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.add_transition(2,'a',1)
-            sage: a == DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (2, 1, 'a')], i=0)
+            sage: a == DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b'), (2, 1, 'a')], i=0)
             True
             sage: a.add_transition(2,'v',1)
             Traceback (most recent call last):
@@ -5107,7 +5107,7 @@ cdef class DetAutomaton:
             sage: a.n_states
             5
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.n_states
             4
 
@@ -5129,7 +5129,7 @@ cdef class DetAutomaton:
             sage: a.n_letters
             3
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.n_letters
             2
 
@@ -5138,7 +5138,7 @@ cdef class DetAutomaton:
 
     def bigger_alphabet(self, A):
         """
-        Gives a copy of the :class:`DetAutomaton`, but with the
+        Gives a copy of the :class:`DeterministicAutomaton`, but with the
         bigger alphabet ``A``.
 
         INPUT:
@@ -5148,17 +5148,17 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        return a :class:`DetAutomaton` with a bigger alphabet ``nA``
+        return a :class:`DeterministicAutomaton` with a bigger alphabet ``nA``
 
         EXAMPLES::
 
             sage: a = dag.AnyLetter(['a', 'b'])
             sage: a.bigger_alphabet(['a','b','c'])
-            DetAutomaton with 2 states and an alphabet of 3 letters
+            DeterministicAutomaton with 2 states and an alphabet of 3 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.bigger_alphabet(['a','b','c'])
-            DetAutomaton with 4 states and an alphabet of 3 letters
+            DeterministicAutomaton with 4 states and an alphabet of 3 letters
 
         TESTS::
 
@@ -5171,8 +5171,8 @@ cdef class DetAutomaton:
         """
         cdef Dict d
         cdef int i
-        cdef DetAutomaton r
-        r = DetAutomaton(None)
+        cdef DeterministicAutomaton r
+        r = DeterministicAutomaton(None)
         sig_on()
         d = NewDict(self.a.na)
         sig_off()
@@ -5205,12 +5205,12 @@ cdef class DetAutomaton:
             sage: a = dag.Word("abaa")
             sage: a.complementary_op()
             sage: a
-            DetAutomaton with 6 states and an alphabet of 2 letters
+            DeterministicAutomaton with 6 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complementary_op()
             sage: a
-            DetAutomaton with 5 states and an alphabet of 2 letters
+            DeterministicAutomaton with 5 states and an alphabet of 2 letters
         """
         cdef i
         self.complete_op()
@@ -5223,7 +5223,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        :class:`DetAutomaton`
+        :class:`DeterministicAutomaton`
         return  a new automaton whose language is the complementary
         of the language of ``self``
 
@@ -5231,23 +5231,23 @@ cdef class DetAutomaton:
 
             sage: a = dag.Word("abaa")
             sage: a.complementary()
-            DetAutomaton with 6 states and an alphabet of 2 letters
+            DeterministicAutomaton with 6 states and an alphabet of 2 letters
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complementary()
-            DetAutomaton with 5 states and an alphabet of 2 letters
+            DeterministicAutomaton with 5 states and an alphabet of 2 letters
         """
         a = self.copy()
         a.complementary_op()
         return a
 
-    def included(self, DetAutomaton a, bool pruned=False, bool verb=False):
+    def included(self, DeterministicAutomaton a, bool pruned=False, bool verb=False):
         r"""
         Test if the language of self is included in the language of ``a``
 
         INPUT:
 
-        - ``a`` --  a :class:`DetAutomaton`
+        - ``a`` --  a :class:`DeterministicAutomaton`
 
         - ``pruned`` -- (default: False) - set to True if the automaton self is
           already pruned, in order to avoid unuseful computation.
@@ -5276,20 +5276,20 @@ cdef class DetAutomaton:
             sage: b.included(a)
             True
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.included(a)
             True
-            sage: b = DetAutomaton([(0, 1, 'c')], i=0)
+            sage: b = DeterministicAutomaton([(0, 1, 'c')], i=0)
             sage: a.included(b)
             False
-            sage: b = DetAutomaton([(0, 1, 'a')], i=0)
+            sage: b = DeterministicAutomaton([(0, 1, 'a')], i=0)
             sage: b.included(a)
             True
-            sage: b = DetAutomaton([(0, 1, 'c')])
+            sage: b = DeterministicAutomaton([(0, 1, 'c')])
             sage: b.included(a)
             True
         """
-        cdef DetAutomaton b, a2
+        cdef DeterministicAutomaton b, a2
         cdef list A
         if self.A != a.A:
             A = list(set(a.A+self.A))
@@ -5311,7 +5311,7 @@ cdef class DetAutomaton:
 #        if verb:
 #            print("d=%s"%d)
 #        a.complete_op()
-#        cdef DetAutomaton p = self.product(a, d, verb=verb)
+#        cdef DeterministicAutomaton p = self.product(a, d, verb=verb)
 #
 #        #set final states
 #        cdef int i,j

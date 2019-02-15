@@ -40,7 +40,7 @@ cdef extern from "automataC.h":
     NAutomaton NewNAutomaton(int n, int na)
     void FreeNAutomaton(NAutomaton *a)
 
-cdef class DetAutomaton:
+cdef class DeterministicAutomaton:
     cdef Automaton* a
     cdef list A	 # alphabet
     #cdef dict dA  # dictionnary giving the index in A

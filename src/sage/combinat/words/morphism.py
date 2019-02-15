@@ -3012,27 +3012,27 @@ class WordMorphism(SageObject):
     def DumontThomas(self, initial_state=None, final_states=None, proj=True, verb=False):
         r"""
         If proj=True, return a BetaAdicSet corresponding to the Dumont-Thomas numeration of the substitution.
-        If proj=False, return a DetAutomaton corresponding to the Dumont-Thomas numeration of the substitution (this is the abelianization of the prefix automaton).
-        
+        If proj=False, return a DeterministicAutomaton corresponding to the Dumont-Thomas numeration of the substitution (this is the abelianization of the prefix automaton).
+
         EXAMPLE:
-        
+
         sage: s = WordMorphism('a->aabab,b->ababb')
         sage: a = s.DumontThomas(proj=False); a
-        DetAutomaton with 2 states and an alphabet of 7 letters
+        DeterministicAutomaton with 2 states and an alphabet of 7 letters
         sage: a.plot()          # random
-        
+
         # Zoom in a complicated Rauzy fractal
         sage: s = WordMorphism('1->2,2->3,3->12')
         sage: m = s.DumontThomas().mirror(); m
         b-adic set with b root of x^3 - x - 1, and an automaton of 4 states and 2 letters
         sage: m.draw_zoom()         # not tested (need the intervention of the user)
-        
+
         # Draw the Rauzy fractal of the Hokkaido substitution
         sage: s = WordMorphism('1->12,2->3,3->4,4->5,5->1')
         sage: m = s.DumontThomas(); m
         b-adic set with b root of x^3 - x - 1, and an automaton of 5 states and 2 letters
         sage: m.plot_list(mirror=True)      # random
-        
+
         """
         M = self.incidence_matrix()
         if proj:
@@ -3091,10 +3091,10 @@ class WordMorphism(SageObject):
                     t += vector(I[A.index(c2)])
         if verb:
             print(L)
-        from sage.combinat.words.cautomata import DetAutomaton
+        from sage.combinat.words.cautomata import DeterministicAutomaton
         if final_states is None:
             final_states = A
-        a = DetAutomaton(L, i=initial_state, final_states=final_states)
+        a = DeterministicAutomaton(L, i=initial_state, final_states=final_states)
         if verb:
             print(a)
         if proj:
