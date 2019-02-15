@@ -149,7 +149,9 @@ cdef imagDict2(dict d, list A, list A2=[]):
 cdef Dict getDict(dict d, list A, dict d1=None):
     A = list(A)
     cdef Dict r
+    sig_on()
     r = NewDict(len(A))
+    sig_off()
     cdef int i
     if d1 is None:
         d1 = imagDict(d, A)
@@ -171,14 +173,18 @@ cdef Dict list_to_Dict(list l):
 cdef InvertDict getDict2(dict d, list A, dict d1=None):
     A = list(A)
     cdef InvertDict r
+    sig_on()
     r = NewInvertDict(len(A))
+    sig_off()
     cdef int i
     if d1 is None:
         d1 = imagDict2(d, A)
     # print(d1)
     for i in range(r.n):
         if d.has_key(A[i]):
+            sig_on()
             r.d[i] = NewDict(len(d[A[i]]))
+            sig_off()
             for j in range(r.d[i].n):
                 r.d[i].e[j] = d1[d[A[i]][j]]
         else:
@@ -217,7 +223,9 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
         print(d2)
     if dv is None:
         dv = imagProductDict(d, A1, A2)
+    sig_on()
     r = NewDict(n1*n2)
+    sig_off()
     Keys = d.keys()
     if verb:
         print("Keys=%s" % Keys)
@@ -2746,15 +2754,11 @@ cdef class DetAutomaton:
         cdef Dict dC
         r = DetAutomaton(None)
         Av = []
-        sig_on()
         dv = imagProductDict(d, self.A, b.A, Av=Av)
-        sig_off()
         if verb:
             print("Av=%s" % Av)
             print("dv=%s" % dv)
-        sig_on()
         dC = getProductDict(d, self.A, b.A, dv=dv, verb=verb)
-        sig_off()
         if verb:
             print("dC=")
             sig_on()
@@ -3099,15 +3103,11 @@ cdef class DetAutomaton:
         cdef Dict dC
         r = DetAutomaton(None)
         Av = []
-        sig_on()
         dv = imagProductDict(d, a1.A, a2.A, Av=Av)
-        sig_off()
         if verb:
             print("Av=%s" % Av)
             print("dv=%s" % dv)
-        sig_on()
         dC = getProductDict(d, a1.A, a2.A, dv=dv, verb=verb)
-        sig_off()
         if verb:
             print("dC=")
             sig_on()
@@ -3217,18 +3217,16 @@ cdef class DetAutomaton:
         r = DetAutomaton(None)
         r2 = DetAutomaton(None)
         Av = []
-        sig_on()
         dv = imagProductDict(d, self.A, a.A, Av=Av)
-        sig_off()
         if verb:
             print("Av=%s" % Av)
             print("dv=%s" % dv)
-        sig_on()
         dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
-        sig_off()
         if verb:
             print("dC=")
+            sig_on()
             printDict(dC)
+            sig_off()
         sig_on()
         ap = Product(self.a[0], a.a[0], dC, verb)
         FreeDict(&dC)
@@ -3638,13 +3636,11 @@ cdef class DetAutomaton:
 
         r = CAutomaton(None)
         A2 = []
-        sig_on()
         d1 = imagDict(d, self.A, A2=A2)
-        sig_off()
         if verb:
             print("d1=%s, A2=%s" % (d1, A2))
-        sig_on()
         dC = getDict(d, self.A, d1=d1)
+        sig_on()
         a = Proj(self.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
@@ -3761,14 +3757,10 @@ cdef class DetAutomaton:
 
         r = DetAutomaton(None)
         A2 = []
-        sig_on()
         d1 = imagDict2(d, self.A, A2=A2)
-        sig_off()
         if verb:
             print("d1=%s, A2=%s" % (d1, A2))
-        sig_on()
         dC = getDict2(d, self.A, d1=d1)
-        sig_off()
         if verb:
             sig_on()
             printInvertDict(dC)
