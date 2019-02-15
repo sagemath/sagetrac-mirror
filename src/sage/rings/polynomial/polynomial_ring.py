@@ -2674,6 +2674,37 @@ class PolynomialRing_cdvf(PolynomialRing_cdvr, PolynomialRing_field):
                 element_class = Polynomial_generic_dense_cdvf
         PolynomialRing_field.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
 
+class PolynomialRing_powerseries_cdvr(PolynomialRing_cdvr):
+    r"""
+    A class for polynomial ring over a ring of discrete valuation ring K[[x]]
+    """
+    def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_cdvr
+
+            sage: S.<x> = ZZ[]
+            sage: isinstance(S, PolynomialRing_powerseries_cdvr)
+            False
+
+            sage: S.<x> = Zp(5)[]
+            sage: isinstance(S, PolynomialRing_powerseries_cdvr)
+            False
+
+            sage: K.<x> = QQ[[]]
+            sage: S.<y> = K[]
+            sage: isinstance(S, PolynomialRing_powerseries_cdvr)
+            True
+        """
+        if element_class is None:
+            if sparse:
+                from sage.rings.polynomial.polynomial_element_generic import Polynomial_powerseries_sparse_cdvr
+                element_class = Polynomial_powerseries_sparse_cdvr
+            else:
+                from sage.rings.polynomial.polynomial_element_generic import Polynomial_powerseries_dense_cdvr
+                element_class = Polynomial_powerseries_dense_cdvr
+        PolynomialRing_integral_domain.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_ring_generic(PolynomialRing_cdvr):
     r"""

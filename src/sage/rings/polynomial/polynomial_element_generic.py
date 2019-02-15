@@ -1488,8 +1488,6 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, [r-rbar for r in rootsbar])]  # recursive call
         return roots
 
-
-
 class Polynomial_generic_dense_cdv(Polynomial_generic_dense_inexact, Polynomial_generic_cdv):
     pass
 
@@ -1514,6 +1512,246 @@ class Polynomial_generic_dense_cdvf(Polynomial_generic_dense_cdv, Polynomial_gen
     pass
 
 class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_generic_cdvf):
+    pass
+
+#################################################
+# Polynomial over power series fields : K[[x]][y]
+#################################################
+
+class Polynomial_powerseries_cdv(Polynomial_generic_cdv):
+    """
+    A generic class for polynomials over power series rings
+    (viewed as a discrete valuation ring)
+
+    AUTHOR:
+
+    - Adrien Poteaux (2019-02)
+    """
+
+    def weierstrass_preparation_theorem(self,N):
+        """
+        Returns the Weierstrass factor of self
+
+        It is F s.t. self=F*u with F Weierstrass and u unit
+        N is an integer providing the required precision.
+
+        EXAMPLES::
+
+            sage: K = GF(211)
+            sage: L.<x> = K[[]]
+            sage: R.<y> = L[]
+            sage: F = y^2 + y^4 + x + x^2*y + y^3*x
+            sage: F.WeierstrassPreparationTheorem(5)
+            y^2 + (210*x^3 + 207*x^4)*y + x + x^2 + 2*x^3 + 5*x^4
+
+        AUTHOR:
+
+        - Adrien Poteaux (2019-02-14)
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        # a couple of local functions
+        def IncreaseGlobalBigOh(F,n=+Infinity):
+            # artificially increases the input precision of F
+            L = F.parent()
+            y = F.parent().gens()[0]
+            G = L(0)
+            for i in range(F.degree()+1):
+                G += F[i].polynomial().add_bigoh(n) * y**i
+            return G
+
+        def GlobalBigOh(F,n):
+            # truncate every coefficient of F\in A((x))[y] modulo x**(n+1)
+            L = F.parent()
+            y = F.parent().gens()[0]
+            G = L(0)
+            for i in range(F.degree()+1):
+                if F[i].valuation() <= n:
+                    G += F[i].add_bigoh(n) * y**i
+            return G
+
+        K = self[0].base_ring()
+        X = self[0].parent().gens()[0]
+        Y = self.parent().gens()[0]
+        L = PolynomialRing(K,'T') # univariate world for initial Bezout computation
+        T = L.gens()[0]
+        d = self.degree()
+        for M in range(0,d+1):
+            if (self[M][0] != 0):
+                break
+        H = Y**M
+        G = sum([self[i][0] * Y**(i-M) for i in range(M,d+1)])
+        Ht = T**M
+        Gt = sum([self[i][0] * T**(i-M) for i in range(M,d+1)])
+        k,Ut,Vt = Gt.xgcd(Ht)
+        U = Ut(Y)
+        V = Vt(Y)
+        k = 1 # precision
+        while (k<N): # Hensel step
+            k = 2 * k
+            G = IncreaseGlobalBigOh(G,k) # pour que self-G*H ne fasse pas 0 !
+            H = IncreaseGlobalBigOh(H,k)
+            alpha = GlobalBigOh((self-G*H),k) # e
+            tmp = GlobalBigOh(U*alpha,k) # s*e
+            q,r = tmp.quo_rem(H) # q and r
+            q = GlobalBigOh(q,k)
+            r = GlobalBigOh(r,k)
+            G = GlobalBigOh(G + alpha*V + q*G,k) # g*
+            H = H+r # h* ; déjà réduit, pas besoin de BigOh
+            U = IncreaseGlobalBigOh(U,k) # idem
+            V = IncreaseGlobalBigOh(V,k)
+            beta = GlobalBigOh(U*G + V*H,k)-1 # b
+            tmp = GlobalBigOh(beta*U,k) # s*b
+            q,r = tmp.quo_rem(H); # c and d ; a tronquer ???
+            q = GlobalBigOh(q,k)
+            r = GlobalBigOh(r,k)
+            U = U - r # s*
+            V = GlobalBigOh(V - V*beta - q*G,k) # t*
+        return IncreaseGlobalBigOh(GlobalBigOh(H,N))
+
+    def characteristic_polynomial(self,Delta):
+        """
+        Returns the characteristic polynomial associated to the edge Delta of self.newton_polygon()
+
+        EXAMPLES::
+
+            sage: K = GF(211)
+            sage: L.<x> = K[[]]
+            sage: R.<y> = L[]
+            sage: F = y^2 + y^4 + x + x^2*y + y^3*x
+            sage: F.CharacteristicPolynomial(F.newton_polygon().vertices()[0:2])
+            T + 1
+
+        AUTHOR:
+
+        - Adrien Poteaux (2019-02-14)
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        L = PolynomialRing(self.base_ring().base_ring(),'T')
+        T = L.gens()[0]
+
+        res = L(0)
+        slope = (Delta[1][1]-Delta[0][1])/(Delta[1][0]-Delta[0][0])
+        q = slope.denominator()
+        m = -slope.numerator()
+        for i in range(Delta[0][0],Delta[1][0]+1,q):
+            res+=self[i][Delta[0][1]-(i-Delta[0][0])*m/q]*T^((i-Delta[0][0])/q)
+        return res
+
+    def rational_newton_puiseux(self,n=0,pi=(0,0),first=True):
+        """
+        Returns the Puiseux series above 0 of self
+        This version corresponds to the ISSAC'15 paper of Poteaux and Rybowicz
+        (Improving complexity bounds for the computation of puiseux series over finite fields)
+
+        Puiseux series are expressed as Rational Newton Expansions
+        i.e. a list of pairs [\lambda T^e, S(T)]
+
+        * n is the number of required terms ; 0 means the singular part.
+        * first is a boolean saying if we are only interesting with 
+        Puiseux series above (0,0) [False] or not [True]
+
+        EXAMPLES::
+
+            sage: K = GF(211)
+            sage: L.<x> = K[[]]
+            sage: R.<y> = L[]
+            sage: F = y^2 + y^4 + x + x^2*y + y^3*x
+            sage: F.RationalNewtonPuiseux()
+            TO FILL
+
+        AUTHOR:
+
+        - Adrien Poteaux (2019-02-14)
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.power_series_ring import PowerSeriesRing
+        
+        Res = []
+        K = self[0].base_ring()
+        x = self[0].parent().gens()[0]
+        y = self.parent().gens()[0]
+        if pi[0]==0:
+            pi = [x,y]
+        Lx = PowerSeriesRing(K,'X')
+        X = Lx.gens()[0]
+        Ly = PolynomialRing(Lx,'Y')
+        Y = Ly.gens()[0]
+        while (self.degree() >= 0 and self[0].valuation()==Infinity): # if Y^n divides self, we output n times the RPE (T,0)
+            Res.append(pi)
+            self = self.shift(-1)
+        if first:
+            d = self.degree()
+        else: # d will be I(self)
+            for d in range(self.degree()+1):
+                if (self[d][0] != 0):
+                    break
+        N = (self.mod(y^(d+1))).newton_polygon()
+        slopes = N.slopes(False)
+        s = len(slopes)
+        oldpi = pi
+        for i in range(s):
+            m = -slopes[i].numerator()
+            q = slopes[i].denominator()
+            l = m*N.vertices()[i][0]+q*N.vertices()[i][1]
+            if q==1:
+                u,v = 1,0
+            else: # TODO : assurer que 0 <= v < q ?
+                u,v = xgcd(q,m)[1:3]
+                v = -v
+            phi = characteristic_polynomial(self,N.vertices()[i:i+2]).factor()
+            for j in range(len(phi)):
+                if phi[j][0].degree()>1:
+# changement pour contourner le bug : on rend phi[j][0] integral
+                    if K.is_finite()==False:
+                        p = phi[j][0].numerator()
+                        lc = p.leading_coefficient() # p étant un facteur irréductible, ca devrait déjà être unitaire non ?
+                        p = lc^(p.degree()-1)*p(p.parent().gens()[0]/lc) # lc^(d-1) * phi(T/lc)
+                        extension_name = K.variable_name()+'_ext' # so that there is never twice the same expansion variable
+                        L = p.root_field(extension_name)
+                        xi = (L.gens()[0])/lc
+                    else:
+                        L = K.extension(phi[j][0].degree())
+                        xi = -phi[j][0].change_ring(L).factor()[0][0][0]
+# fin du changement
+                else:
+                    xi = -phi[j][0][0]# degree 1 -> root is the opposite of the constant coefficient
+                    L = K
+                Lx = PowerSeriesRing(L,'X')
+                X = Lx.gens()[0]
+                Ly = PolynomialRing(Lx,'Y')
+                Y = Ly.gens()[0]
+                pi = oldpi
+                G = SubsSecondVariable(ChangeBaseField(self,X,Y), xi^v*X^q)(X^m*(Y+xi^u))
+                G = add([G[i].shift(-l)*Y^i for i in range(G.degree()+1)])
+                pi = [pi[0](X)(xi^v*X^q),SubsSecondVariable(ChangeBaseField(pi[1],X,Y), xi^v*X^q)(X^m*(Y+xi^u))]
+                if m<0:
+                    G = G.numerator()//G.denominator() # ???
+                if phi[j][1]==1:
+                    if (n>0):
+                        G = G.weierstrass_preparation_theorem(n)
+                        pi = [pi[0],pi[1](Y-G[0].polynomial())]
+                    Res.append(pi)
+                else:
+                    for RecRes in rational_newton_puiseux(G,(n-m*d/q),pi,False): # la MAJ de n ne doit marcher que pour le cas irreductible
+                        Res.append(RecRes)
+        return Res
+
+class Polynomial_powerseries_dense_cdv(Polynomial_generic_dense_inexact, Polynomial_powerseries_cdv):
+    pass
+
+class Polynomial_powerseries_sparse_cdv(Polynomial_generic_sparse, Polynomial_powerseries_cdv):
+    pass
+
+
+class Polynomial_powerseries_cdvr(Polynomial_powerseries_cdv):
+    pass
+
+class Polynomial_powerseries_dense_cdvr(Polynomial_powerseries_dense_cdv, Polynomial_powerseries_cdvr):
+    pass
+
+class Polynomial_powerseries_sparse_cdvr(Polynomial_powerseries_sparse_cdv, Polynomial_powerseries_cdvr):
     pass
 
 ############################################################################

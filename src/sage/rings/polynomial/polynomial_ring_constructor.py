@@ -723,6 +723,8 @@ def _single_variate(base_ring, name, sparse=None, implementation=None, order=Non
     if constructor is None:
         if not isinstance(base_ring, ring.CommutativeRing):
             constructor = polynomial_ring.PolynomialRing_general
+        elif isinstance(base_ring,ring.power_series_ring.PowerSeriesRing_over_field):
+            constructor = polynomial_ring.PolynomialRing_powerseries_cdvr
         elif base_ring in _CompleteDiscreteValuationRings:
             constructor = polynomial_ring.PolynomialRing_cdvr
         elif base_ring in _CompleteDiscreteValuationFields:
