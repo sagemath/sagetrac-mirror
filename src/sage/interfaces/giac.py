@@ -293,7 +293,7 @@ class Giac(Expect):
       a^2+2*a*b+4*a+b^2+4*b+4
       a^2 + 2*a*b + b^2 + 4*a + 4*b + 4
 
-    Variable names in python and giac are independant.
+    Variable names in python and giac are independent.
 
     ::
 
