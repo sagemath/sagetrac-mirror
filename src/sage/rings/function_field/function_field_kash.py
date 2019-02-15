@@ -79,6 +79,7 @@ EXAMPLES::
 """
 
 import itertools
+import operator
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
@@ -95,6 +96,8 @@ from sage.rings.number_field.number_field_base import NumberField
 from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+from sage.symbolic.ring import SR
 
 from .function_field import RationalFunctionField
 from .function_field import FunctionFieldElement, FunctionFieldElement_rational
@@ -833,7 +836,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         data = {FunctionFieldPlace_kash(self, place) : D.Valuation(place).sage() for place in support}
         return FunctionFieldDivisor(self, data)
 
-    def completion(self, place, name=None, prec=None):
+    def completion(self, place, name=None, prec=None, uvar=None):
         """
         Return the completion of the function field at the place.
 
@@ -844,6 +847,16 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         - ``name`` -- string; name of the series variable
 
         - ``prec`` -- integer; default precision
+
+        - ``uvar`` -- uniformizing variable.  If ``None``, then an
+          arbitrary uniformizing variable is selected.  Must be either
+          an element of the function field, or an element of the
+          Symbolic Ring constructed from a root of such an element.
+          In either case, the specified variable is checked to see
+          if it has valuation one at the specified place, but in
+          the later case (element of the Symbolic Ring), no check
+          is made to see if such a variable actually exists in the
+          function field.
 
         EXAMPLES::
 
@@ -862,8 +875,26 @@ class FunctionField_polymod_kash(FunctionField_polymod):
             sage: m(y, 10)
             2*I*s + 2*I*s^3 + 2*I*s^5 + 2*I*s^7 + 2*I*s^9 + O(s^10)
 
+            sage: I = sqrt(QQbar(-1))
+            sage: m2 = F.completion(p, uvar=(x-I))
+            Traceback (most recent call last):
+            ...
+            ValueError: x - I is not a uniformizing variable at Place (x - I, y)
+            sage: m2 = F.completion(p, uvar=SR(x-I)^(1/3))
+            Traceback (most recent call last):
+            ...
+            ValueError: (x - I)^(1/3) is not a uniformizing variable at Place (x - I, y)
+            sage: m2 = F.completion(p, uvar=sqrt(x-I))
+            sage: m2(x, 10)
+            I + s^2
+            sage: m2(y, 10)
+            (I + 1)*s + (-1/4*I + 1/4)*s^3 + (1/32*I + 1/32)*s^5 + (1/128*I - 1/128)*s^7 + (-5/2048*I - 5/2048)*s^9 + O(s^10)
+
+        .. TODO:
+            Remove the need to explicitly cast into SR when constructing
+            roots of uniformizing variables.
         """
-        return FunctionFieldCompletion_kash(self, place, name=name, prec=prec)
+        return FunctionFieldCompletion_kash(self, place, name=name, prec=prec, uvar=uvar)
 
     def places_infinite(self, degree=1):
         """
@@ -946,7 +977,7 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         sage: m2(y)
         1 + 1/2*t^2 + 1/8*t^4 + 1/32*t^6 + 1/128*t^8 + O(t^10)
     """
-    def __init__(self, field, place, name=None, prec=None):
+    def __init__(self, field, place, name=None, prec=None, uvar=None):
         """
         Initialize.
 
@@ -959,6 +990,9 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         - ``name`` -- string for the name of the series variable
 
         - ``prec`` -- positive integer; default precision
+
+        - ``uvar`` -- uniformizing variable.  If ``None``, then an
+          arbitrary uniformizing variable is selected.
 
         EXAMPLES::
 
@@ -991,8 +1025,23 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
         FunctionFieldCompletion.__init__(self, field, codomain)
 
+        if uvar is not None:
+            if uvar.parent() is SR:
+                if uvar.operator() is operator.pow:
+                    u,p = uvar.operands()
+                    u = field(u)
+                else:
+                    u = field(uvar)
+                    p = 1
+            else:
+                u = uvar
+                p = 1
+            if u.valuation(place) != 1/p:
+                raise ValueError("{} is not a uniformizing variable at {}".format(uvar, place))
+
         self._place = place
         self._precision = codomain.default_prec()
+        self._uvar = uvar
 
     def _call_(self, f):
         """
@@ -1032,15 +1081,22 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         """
         return self._expand(f, *args, **kwds)
 
-    def _expand(self, f, prec=None):
-        """
-        Return the power series representation of f of precision prec.
+    def _expand(self, f, prec=None, uvar=None):
+        """Return the power series representation of f of precision prec.
 
         INPUT:
 
         - ``f`` -- element of the function field
 
         - ``prec`` -- integer; absolute precision of the series
+
+        - ``uvar`` -- uniformizing variable.  If ``None``, then the
+          uniformizing variable specified with the completion is
+          selected, or if no uniformizing variable was specified with
+          the completion, then an arbitrary one is selected.
+          ``False`` is used internally to force selection of an
+          arbitrary uniformizing variable, even if one was specified
+          when the completion was created.
 
         OUTPUT:
 
@@ -1059,6 +1115,8 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         """
         if prec is None:
             prec = self._precision
+        if uvar is None:
+            uvar = self._uvar
 
         place = self._place
         F = place.function_field()
@@ -1068,7 +1126,34 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         val = kash_series.Valuation()
         coeffs = [c.sage(F.reverse_map) for c in list(kash_series.Coefficients())]
 
-        return self.codomain()(coeffs, val).add_bigoh(prec)
+        s_series = self.codomain()(coeffs, val).add_bigoh(prec)
+
+        if uvar is not None and uvar is not False:
+            if uvar.parent() is SR:
+                if uvar.operator() is operator.pow:
+                    u,p = uvar.operands()
+                    u = F(u)
+                else:
+                    u = F(uvar)
+                    p = 1
+            else:
+                u = uvar
+                p = 1
+            if u.valuation(place) != 1/p:
+                raise ValueError("{} is not a uniformizing variable at {}".format(uvar, place))
+            v = s_series.valuation()
+            t_series = s_series((self(u, uvar=False, prec=int((prec-v+1)/p))**QQ(p)).reverse())
+            # Check to see if expansion is exact.
+            # If so, return an exact result.
+            try:
+                p = t_series.laurent_polynomial()
+                if F(p(uvar)) == f:
+                    return self.codomain()(p)
+            except:
+                pass
+            return t_series
+
+        return s_series
 
     def pushforward(self, f, prec=None):
         """
