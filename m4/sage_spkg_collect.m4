@@ -158,7 +158,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             AC_MSG_RESULT([    $PKG_NAME-$PKG_VERSION])
         else
             SAGE_DUMMY_PACKAGES+="    $PKG_NAME \\"$'\n'
-            AC_MSG_RESULT([    $PKG_NAME-$PKG_VERSION not installed (configure check)])
+            AC_MSG_RESULT([    $PKG_NAME-$PKG_VERSION will not be installed (configure check)])
         fi
     fi
 
