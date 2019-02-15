@@ -719,9 +719,11 @@ cdef class ListOfFaces:
             out of range
         """
         cdef uint64_t * output = self.data[index]
-        if index >= self.nr_faces:
+        if unlikely(index >= self.nr_faces):
             raise IndexError('only %s faces, cannot add a %sth face'%
                              (self.nr_faces, index))
+        if unlikely(face is NULL):
+            raise ValueError('face needs to be non-NULL')
         memcpy(output, face, self.face_length*8)
         return 1
 
@@ -758,11 +760,12 @@ cdef int calculate_dimension(ListOfFaces faces) except -2:
     one of the facets). Then calculates the dimension of the facet, by
     considering its facets.
 
-    Repeats until a face has only one facet. This face will usually be a vertex.
+    Repeats until a face has only one facet. Usually this is a  vertex.
 
-    However, in the unbounded case, all faces might contain common lines, so
-    the correct dimension of a Polyhedron with one facet is the number of
-    "lines/rays/vertices" that facet contains.
+    However, in the unbounded case, this might be different. The face with only
+    one facet might be a ray or a line. So the correct dimension of a
+    Polyhedron with one facet is the number of "lines/rays/vertices"
+    that the facet contains.
 
     Hence, we know the dimension of a face, which has only one facet and
     iteratively we know the dimension of entire Polyhedron we started with.
