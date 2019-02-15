@@ -16,6 +16,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
+from sage.arith.all import factorial
 from sage.combinat.permutation import Permutations
 from sage.matrix.constructor import diagonal_matrix
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
@@ -31,9 +32,8 @@ class DecoratedPermutation(Element):
     def __init__(self, parent, colors, perm):
         """
         Initialize ``self``.
-
+        
         TESTS::
-
             sage: C = ColoredPermutations(4, 3)
             sage: s1,s2,t = C.gens()
             sage: TestSuite(s1*s2*t).run()
@@ -430,26 +430,26 @@ class DecoratedPermutations(Parent, UniqueRepresentation):
         """
         for p in self._P:
             for c in itertools.product({-1,1}, repeat=p.number_of_fixed_points()):
-                d=[0]*len(p)                 
+                d=[0]*len(p)
                 for i in p.fixed_points():
                     d[i-1]=c[p.fixed_points().index(i)]
                 yield self.element_class(self, d, p)
 
-#    def cardinality(self):
-#        """
-#        Return the cardinality of ``self``.
-#
-#        EXAMPLES::
-#
-#            sage: C = ColoredPermutations(4, 3)
-#            sage: C.cardinality()
-#            384
-#            sage: C.cardinality() == 4**3 * factorial(3)
-#            True
-#        """
-#        return self._m ** self._n * self._P.cardinality()
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
 
-#    order = cardinality
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(4, 3)
+            sage: C.cardinality()
+            384
+            sage: C.cardinality() == 4**3 * factorial(3)
+            True
+        """
+        return sum (factorial(self._n)/factorial(k) for k in range(self._n + 1))
+
+    order = cardinality
 
     def rank(self):
         """
