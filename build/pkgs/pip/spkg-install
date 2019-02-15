@@ -8,8 +8,14 @@ export PYTHONPATH=`cd src && pwd`
 # need to use --upgrade or --ignore-installed; Otherwise pip, which is
 # importing itself, will think itself is already installed
 #
-# Install pip3 first so pip2 overwrites local/bin/pip
-for vers in 3 2; do
+# If using Python 3, install pip2 first so pip3 overwrites
+# local/bin/pip, and conversely if using Python 2.
+if [ "$SAGE_PYTHON3" = yes ]; then
+    VERS="2 3"
+else
+    VERS="3 2"
+fi
+for vers in $VERS; do
     python${vers} -m pip install --verbose --no-index --ignore-installed \
             --no-build-isolation --isolated --root="$SAGE_DESTDIR" . || \
         sdh_die "Error building / installing pip${vers}"
