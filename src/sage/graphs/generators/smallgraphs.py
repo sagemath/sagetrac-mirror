@@ -4184,8 +4184,7 @@ def SousselierGraph():
     Return the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
-    edges. For more information, see the corresponding `Wikipedia page (in
-    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
+    edges. For more information, see :wikipedia:`Sousselier_graph`.
 
     EXAMPLES::
 
@@ -4575,9 +4574,8 @@ def WienerArayaGraph():
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
     67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
-    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
-    `(french) Wikipedia page
-    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or
+    :wikipedia:`Wiener–Araya_graph`.
 
     EXAMPLES::
 
