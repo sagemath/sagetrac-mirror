@@ -61,7 +61,7 @@ RUN ln -s /usr/bin/sage /usr/bin/sagemath
 # We need gcc/g++ and libstdc++-5-dev to allow compilation of cython at run-time from the notebook.
 # We also install sudo for the sage user, see below.
 RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-5-dev sudo openssl \
+    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-5-dev sudo openssl make \
     && apt-get -qq clean \
     && rm -r /var/lib/apt/lists/*
 # Sage refuses to build as root, so we add a "sage" user that can sudo without a password.
