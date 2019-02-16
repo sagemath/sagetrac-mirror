@@ -723,7 +723,7 @@ class DisplayManager(SageObject):
 
         INPUT:
 
-        - ``from_cdn`` -- a boolean (default: ``True``); wheter
+        - ``from_cdn`` -- a boolean (default: ``True``); whether
           to serve the scripts from a content delivery network
 
         EXAMPLES::
