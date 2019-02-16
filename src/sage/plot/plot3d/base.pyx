@@ -366,7 +366,9 @@ cdef class Graphics3d(SageObject):
         # Threejs specific options
         options.setdefault('axes_labels', ['x','y','z'])
         options.setdefault('decimals', 2)
-        options.setdefault('online', False)
+        # "online" has been renamed to "from_cdn", which hopefully makes the
+        # intention of that switch more clear (at least to developers.)
+        options.setdefault('from_cdn', options.get('online', False))
         # Normalization of options values for proper JSONing
         options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
         options['decimals'] = int(options['decimals'])
@@ -375,7 +377,7 @@ cdef class Graphics3d(SageObject):
             options['axes_labels'] = False
 
         from sage.repl.rich_output import get_display_manager
-        scripts = get_display_manager().threejs_scripts(options['online'])
+        scripts = get_display_manager().threejs_scripts(options['from_cdn'])
 
         b = self.bounding_box()
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
