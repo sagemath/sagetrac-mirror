@@ -14,13 +14,6 @@
 <body>
 SAGE_SCRIPTS
 <script>
-    if (THREE == null) {
-        var err = document.createElement("div");
-        err.innerText = "The version of three.js that comes packaged with SageMath could not be loaded. To see 3D output you might want to try to add .show(from_cdn=True) to your command or use a different 3D viewer.";
-	document.body.appendChild(err);
-    }
-</script>
-<script>
 
     var scene = new THREE.Scene();
 

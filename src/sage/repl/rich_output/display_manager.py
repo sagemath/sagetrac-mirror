@@ -717,52 +717,28 @@ class DisplayManager(SageObject):
         buf = OutputBuffer.from_file(filename)
         return output_container(buf)
 
-    def threejs_scripts(self, from_cdn=True):
+    def threejs_scripts(self):
         """
         Return three.js script tags for the current backend.
-
-        INPUT:
-
-        - ``from_cdn`` -- a boolean (default: ``True``); whether
-          to serve the scripts from a content delivery network
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output import get_display_manager
-            sage: get_display_manager().threejs_scripts(from_cdn=True)
-            '...<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
-            sage: get_display_manager().threejs_scripts(from_cdn=False)
+            sage: get_display_manager().threejs_scripts()
             '...THREE...'
 
         """
-        version = 'r80'
-
-        # make sure we do not forget to upgrade the hard-coded version number above when we upgrade the SPKG
-        from sage.misc.package import installed_packages
-        packages = installed_packages()
-        if 'threejs' in packages:
-            spkg_version = packages['threejs'].split('.')[0]
-            if spkg_version != version:
-                raise NotImplementedError("expected version {0} to be installed but found {1}; did you upgrade the threejs SPKG without changing the hard-coded version number in the source code?".format(version, spkg_version))
-
-        if from_cdn:
-            # Serve three.js from GitHub
-            return """
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
-            """.format(version)
-        else:
-            # Serve three.js from the local system (SPKG)
-            from sage.env import THREEJS_DIR
-            scripts = [os.path.join(THREEJS_DIR, script) for script in ['three.min.js', 'OrbitControls.js']]
-            if sys.platform == 'cygwin':
-                import cygwin
-                scripts = [cygwin.cygpath(script, 'w') for script in scripts]
-            # We emit the full script instead of <script src=...> tags as we do
-            # not know where the scripts reside relative to the webserver root
-            # or whether they are accessible at all; for a related issue see
-            # https://github.com/jupyterhub/jupyterhub/issues/1574.
-            return '\n'.join('<script>{0}</script>'.format(open(script).read()) for script in scripts)
+        # Serve three.js from the local system (SPKG)
+        from sage.env import THREEJS_DIR
+        scripts = [os.path.join(THREEJS_DIR, script) for script in ['three.min.js', 'OrbitControls.js']]
+        if sys.platform == 'cygwin':
+            import cygwin
+            scripts = [cygwin.cygpath(script, 'w') for script in scripts]
+        # We emit the full script instead of <script src=...> tags as we do
+        # not know where the scripts reside relative to the webserver root
+        # or whether they are accessible at all; for a related issue see
+        # https://github.com/jupyterhub/jupyterhub/issues/1574.
+        return '\n'.join('<script>{0}</script>'.format(open(script).read()) for script in scripts)
 
     def supported_output(self):
         """
