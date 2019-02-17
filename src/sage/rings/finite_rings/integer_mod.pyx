@@ -4092,7 +4092,6 @@ def lucas(k, P, Q=1, n=None):
     q0 = p._new_c_from_long(1)
     q1 = p._new_c_from_long(1)
 
-    sig_on()
     cdef int j
     for j from mpz_sizeinbase(m.value, 2)-1 >= j >= 0:
         q0 = q0*q1
@@ -4104,7 +4103,6 @@ def lucas(k, P, Q=1, n=None):
             q1 = q0
             v1 = v0*v1 - p*q0
             v0 = v0*v0 - two*q0
-    sig_off()
     return [v0,q0]
 
 ############# Homomorphisms ###############
