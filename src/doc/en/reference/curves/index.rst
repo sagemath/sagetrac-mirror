@@ -77,6 +77,9 @@ Elliptic curves over number fields
    sage/schemes/elliptic_curves/ec_database
 
    sage/schemes/elliptic_curves/ell_number_field
+   sage/schemes/elliptic_curves/ell_finite_field
+   sage/schemes/elliptic_curves/ell_point
+   sage/schemes/elliptic_curves/ell_int_points
    sage/schemes/elliptic_curves/height
    sage/schemes/elliptic_curves/saturation
 
