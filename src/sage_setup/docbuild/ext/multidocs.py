@@ -309,6 +309,9 @@ def init_subdoc(app):
 
     if app.config.multidoc_first_pass == 1:
         app.config.intersphinx_mapping = {}
+    else:
+        app.emit('env-check-consistency', app.env)
+
 
 
 def setup(app):
