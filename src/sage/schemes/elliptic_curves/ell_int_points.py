@@ -711,7 +711,7 @@ def _cyc_iter(id, gens, mult, both_signs=False):
 
     Returns all elements of the cyclic group, remembering all intermediate steps
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sage.schemes.elliptic_curves.ell_int_points as ellpts
         sage: E = EllipticCurve('57b')
@@ -808,7 +808,7 @@ def _integral_points_with_Q(E, L, Q):
 
     Returns the sequence of all integral points modulo `[-1]`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sage.schemes.elliptic_curves.ell_int_points as ellpts
         sage: K.<a> = NumberField(x^2-x-1)
@@ -859,7 +859,7 @@ def _calculate_Q(E, L):
     A positive integer, maximum for the absolute bound on all
     coefficients in the linear combination of points in `L`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sage.schemes.elliptic_curves.ell_int_points as ellpts
         sage: K.<a> = NumberField(x^2+5)

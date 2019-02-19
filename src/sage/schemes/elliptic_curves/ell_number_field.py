@@ -335,23 +335,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
                                    if P not in self._known_points])
         return t
 
-
     integral_points = integral_points
 
     def faltings_height(self):
         r"""
         Faltings's height of the elliptic curve `E`.
+
         This is double the formula in Silverman Math Comp 1990 page 725.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2+5)
             sage: E = EllipticCurve(K,[-112,400])
             sage: E.faltings_height()
             4.29484994110149
-
         """
-        RR=RealField()
+        RR = RealField()
         K = self.base_field()
         c = RR(2).log()
         if self.b2().is_zero():
