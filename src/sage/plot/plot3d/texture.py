@@ -266,7 +266,7 @@ class Texture_class(WithEqualityById, SageObject):
         sage: t.mtl_str()
         'newmtl texture...\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 0.6'
         sage: t.x3d_str()
-        "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance>"
+        "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0' transparency='0.6'/></Appearance>"
 
     TESTS::
 
@@ -388,15 +388,18 @@ class Texture_class(WithEqualityById, SageObject):
             sage: from sage.plot.plot3d.texture import Texture
             sage: t = Texture(opacity=0.6)
             sage: t.x3d_str()
-            "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance>"
+            "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0' transparency='0.6'/></Appearance>"
         """
-        return (
-            "<Appearance>"
-            "<Material diffuseColor='{color[0]!r} {color[1]!r} {color[2]!r}' "
-                      "shininess='{shininess!r}' "
-                      "specularColor='{specular!r} {specular!r} {specular!r}'/>"
-            "</Appearance>").format(color=self.color, shininess=self.shininess,
-                                    specular=self.specular[0])
+        txt = "<Appearance><Material "
+        txt += "diffuseColor='{color[0]!r} {color[1]!r} {color[2]!r}' "
+        txt += "shininess='{shininess!r}' "
+        txt += "specularColor='{specular!r} {specular!r} {specular!r}' "
+        txt = txt.format(color=self.color, shininess=self.shininess,
+                         specular=self.specular[0])
+        if self.opacity < 1:
+            txt += " transparency='{}'".format(self.opacity)
+        txt += "/></Appearance>"
+        return txt
 
     def mtl_str(self):
         r"""
