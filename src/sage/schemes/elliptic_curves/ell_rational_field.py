@@ -2692,7 +2692,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                  - 'mwrank' -- use a C++ implementation in the mwrank
                    library
 
-        NOTES:
+        .. NOTE::
 
            - The CPS_height_bound is often better (i.e. smaller) than
              the Silverman bound, but it only applies for points over
@@ -2700,7 +2700,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              all number fields.
 
            - The Silverman bound is also fairly straightforward to
-             compute over number fields, but isn't implemented here.
+             compute over number fields, but is not implemented here.
 
            - Silverman's paper is 'The Difference Between the Weil
              Height and the Canonical Height on Elliptic Curves',
@@ -2724,8 +2724,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             b2      = self.b2()
             twostar = 2 if b2 else 1
             from math import log
+
             def h(x):
                 return log(max(abs(x.numerator()), abs(x.denominator())))
+
             def h_oo(x):
                 return log(max(abs(x),1))
             mu    = h(Delta)/12 + h_oo(j)/12 + h_oo(b2/12)/2 + log(twostar)/2
@@ -2735,7 +2737,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         elif algorithm == 'mwrank':
             return self.mwrank_curve().silverman_bound()
         else:
-            raise ValueError("unknown algorithm '%s'"%algorithm)
+            raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def point_search(self, height_limit, verbose=False, rank_bound=None):
         """

@@ -363,15 +363,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def silverman_height_bounds(self):
         r"""
-        Return the Silverman height bound.  This is a positive real
-        (floating point) number B such that for all points `P` on the
-        curve over any number field, `|h(P) - \hat{h}(P)| \leq B`,
-        where `h(P)` is the naive logarithmic height of `P` and
-        `\hat{h}(P)` is the canonical height.
+        Return the Silverman height bound.
 
-        NOTES:
+        This is a positive real (floating point) number B such that
+        for all points `P` on the curve over any number field,
+        `|h(P) - \hat{h}(P)| \leq B`, where `h(P)` is the naive logarithmic
+        height of `P` and `\hat{h}(P)` is the canonical height.
 
-           - Silverman's paper is 'The Difference Between the Weil
+        .. NOTE::
+
+             Silverman's paper is 'The Difference Between the Weil
              Height and the Canonical Height on Elliptic Curves',
              Math. Comp., Volume 55, Number 192, pages 723-743.  We
              use a correction by Bremner with 0.973 replaced by 0.961,
@@ -382,7 +383,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve('37a1')
             sage: E.silverman_height_bounds()
             (-4.82540075818092, 4.07560050545395)
-
         """
         from sage.rings.all import CC, QQ
         Delta   = self.discriminant()
