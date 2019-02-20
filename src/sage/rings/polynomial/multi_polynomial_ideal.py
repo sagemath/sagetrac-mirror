@@ -233,7 +233,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems
+from six import iteritems, itervalues
 from six.moves import range
 
 from sage.interfaces.all import (singular as singular_default,
@@ -3786,6 +3786,17 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
             [x + y]
 
+        TESTS:
+
+        Check :trac:`27328`::
+
+            sage: R.<a,b> = QQ[]
+            sage: I = R.ideal([a^2-a, b^2-b, a+b])
+            sage: GB1 = I.groebner_basis(algorithm='libsingular:slimgb')
+            sage: GB2 = I.groebner_basis()
+            sage: GB1 is GB2
+            True
+
         ALGORITHM:
 
         Uses Singular, Magma (if available), Macaulay2 (if available),
@@ -3793,6 +3804,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+
+        if not algorithm and self.groebner_basis.cache:
+            return next(itervalues(self.groebner_basis.cache))
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
