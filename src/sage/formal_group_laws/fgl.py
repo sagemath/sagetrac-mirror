@@ -1,3 +1,10 @@
+"""
+Formal Group Laws
+
+Construct and manipulate formal power series defined as a function from a Cartesian power of the natural numbers into a coefficient commutative rings or an IndRing.
+
+"""
+
 from sage.rings.integer_ring import *
 from sage.rings.rational_field import *
 from sage.rings.finite_rings.integer_mod_ring import *
@@ -130,6 +137,11 @@ class FPS:
         # returning to the first example, f(g(x), h(x)) is considered to have one variable, if we change the position to [1, 1] then we have
         # an answer corresponding to f(g(y), h(y)); this lives in two variables.
         # Variables can be added and moved around in the include method.
+
+        #Special Case for n = 1
+        #See fast_comp below for more details of implementation 
+        if n = 1:
+            return self.fast_comp(seriesList[0])
         sumdim = sum([i.n for i in seriesList])
         if positions == None: # default case is that each of the arguments' variables are independent
             positions = list(range(sumdim))
@@ -175,8 +187,6 @@ class FPS:
             raise ValueError("Different Rings")
         elif self.n != 1:
             raise ValueError("Incompatible Dimensions")
-        elif self.var != ps.var:
-            raise ValueError("Different variables")
         else:
             return FPS(self.ring, self.n, None, None, self.var, None, [self,ps], ["fast_o", 0])
 

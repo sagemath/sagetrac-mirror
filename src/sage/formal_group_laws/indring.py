@@ -1,3 +1,11 @@
+'''
+
+IndRing
+
+Construct sequential diagrams of finitely generated commutative rings and maps between such diagrams.
+
+'''
+
 from sage.rings.integer_ring import *
 from sage.rings.rational_field import *
 from sage.rings.finite_rings.integer_mod_ring import *

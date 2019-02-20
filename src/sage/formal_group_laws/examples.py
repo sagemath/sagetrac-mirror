@@ -1,3 +1,12 @@
+'''
+
+Examples
+
+You can import this from python to see some examples run.
+
+'''
+
+
 from sage.rings.integer_ring import *
 from sage.rings.rational_field import *
 from sage.rings.finite_rings.integer_mod_ring import *
