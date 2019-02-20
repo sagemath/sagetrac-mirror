@@ -24,7 +24,7 @@ from .hyperbolic_space.all import *
 
 from .voronoi_diagram import VoronoiDiagram
 
-from .plumbing_graph import *
+lazy_import('sage.geometry.plumbing_graph', ['PlumbingGraph', 'genus_hash', 'big_genus_hash'])
 
 lazy_import('sage.geometry.ribbon_graph', ['RibbonGraph'])
 lazy_import('sage.geometry.tat_graph', ['TatGraph', 'safewalk', 'check_tat_property', 'bipartite_tat_graph', 'blow_up'])
