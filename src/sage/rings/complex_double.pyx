@@ -56,15 +56,15 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -447,6 +447,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return "ComplexField(%s : Bits := true)" % self.prec()
 
+    def _fricas_init_(self):
+        r"""
+        Return a string representation of ``self`` in the FriCAS language.
+
+        EXAMPLES::
+
+            sage: fricas(CDF)                     # indirect doctest, optional - fricas
+            Complex(DoubleFloat)
+        """
+        return "Complex DoubleFloat"
+
     def prec(self):
         """
         Return the precision of this complex double field (to be more
@@ -765,7 +776,7 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         return (ComplexDoubleElement,
-                (self._complex.dat[0], self._complex.dat[1]))
+                (self._complex.real, self._complex.imag))
 
     cdef ComplexDoubleElement _new_c(self, gsl_complex x):
         """
@@ -830,13 +841,13 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: 4.3 > CDF(5,1)
             False
         """
-        if left._complex.dat[0] < (<ComplexDoubleElement>right)._complex.dat[0]:
+        if left._complex.real < (<ComplexDoubleElement>right)._complex.real:
             return -1
-        if left._complex.dat[0] > (<ComplexDoubleElement>right)._complex.dat[0]:
+        if left._complex.real > (<ComplexDoubleElement>right)._complex.real:
             return 1
-        if left._complex.dat[1] < (<ComplexDoubleElement>right)._complex.dat[1]:
+        if left._complex.imag < (<ComplexDoubleElement>right)._complex.imag:
             return -1
-        if left._complex.dat[1] > (<ComplexDoubleElement>right)._complex.dat[1]:
+        if left._complex.imag > (<ComplexDoubleElement>right)._complex.imag:
             return 1
         return 0
 
@@ -952,9 +963,9 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: float(abs(CDF(1,1)))
             1.4142135623730951
         """
-        if self._complex.dat[1]==0:
-            return float(self._complex.dat[0])
-        raise TypeError("unable to convert {!r} to float; use abs() or real_part() as desired".format(self))
+        if self._complex.imag:
+            raise TypeError(f"unable to convert {self} to float; use abs() or real_part() as desired")
+        return self._complex.real
 
     def __complex__(self):
         """
@@ -968,7 +979,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: complex(CDF(a))
             (2303-3939j)
         """
-        return complex(self._complex.dat[0], self._complex.dat[1])
+        return complex(self._complex.real, self._complex.imag)
 
     def _interface_init_(self, I=None):
         """
@@ -1031,8 +1042,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(0)
             0.0
         """
-        cdef double x = self._complex.dat[0]
-        cdef double y = self._complex.dat[1]
+        x, y = self._complex.dat
         if x == 0:
             if y == 0:
                 # Not sure what to do with the signs of the real and
@@ -1082,10 +1092,10 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: pari(CDF(I))
             1.00000000000000*I
         """
-        if self._complex.dat[1] == 0:
-            return new_gen_from_double(self._complex.dat[0])
+        if not self._complex.imag:
+            return new_gen_from_double(self._complex.real)
         else:
-            return new_t_COMPLEX_from_double(self._complex.dat[0], self._complex.dat[1])
+            return new_t_COMPLEX_from_double(self._complex.real, self._complex.imag)
 
     def __mpc__(self):
         """
@@ -1392,7 +1402,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.real_part()
             3.0
         """
-        return RealDoubleElement(self._complex.dat[0])
+        return RealDoubleElement(self._complex.real)
 
     real_part = real
 
@@ -1408,7 +1418,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.imag_part()
             -2.0
         """
-        return RealDoubleElement(self._complex.dat[1])
+        return RealDoubleElement(self._complex.imag)
 
     imag_part = imag
 
@@ -2163,10 +2173,10 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         cdef GEN a, b, c, y, t
 
-        if self._complex.dat[1] <= 0:
+        if self._complex.imag <= 0:
             raise ValueError("value must be in the upper half plane")
 
-        if self._complex.dat[1] > 100000 and not omit_frac:
+        if self._complex.imag > 100000 and not omit_frac:
             # To the precision of doubles for such large imaginary
             # part, the answer is automatically 0. If we don't do
             # this, PARI can easily underflow.
@@ -2306,13 +2316,13 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(-1,0).gamma()
             Infinity
         """
-        if self._complex.dat[1] == 0:
-            if self._complex.dat[0] == 0:
+        if not self._complex.imag:
+            if self._complex.real == 0:
                 from .infinity import unsigned_infinity
                 return unsigned_infinity
             try:
                 from sage.rings.all import Integer, CC
-                if Integer(self._complex.dat[0]) < 0:
+                if Integer(self._complex.real) < 0:
                     return CC(self).gamma()
             except TypeError:
                 pass
@@ -2347,7 +2357,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: zeta(CDF(1))
             Infinity
         """
-        if self._complex.dat[0] == 1 and self._complex.dat[1] == 0:
+        if self._complex.real == 1 and self._complex.imag == 0:
             from .infinity import unsigned_infinity
             return unsigned_infinity
         return pari_to_cdf(self.__pari__().zeta())
@@ -2539,18 +2549,17 @@ cdef inline double complex extract_double_complex(ComplexDoubleElement x):
     Return the value of ``x`` as a c99 complex double.
     """
     cdef double complex z
-    z.real = x._complex.dat[0]
-    z.imag = x._complex.dat[1]
+    z.real = x._complex.real
+    z.imag = x._complex.imag
     return z
 
-cdef ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, double im):
+
+cdef inline ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, double im):
     """
     Create a new :class:`ComplexDoubleElement` with the specified real and
     imaginary parts.
     """
-    cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
-    z._complex.dat[0] = re
-    z._complex.dat[1] = im
+    z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
+    z._complex.real = re
+    z._complex.imag = im
     return z
-
-#####
