@@ -3009,7 +3009,7 @@ class WordMorphism(SageObject):
 
         return G
 
-    def DumontThomas(self, initial_state=None, final_states=None, proj=True, verb=False):
+    def DumontThomas(self, initial_state=None, final_states=None, proj=None, verb=False):
         r"""
         If proj=True, return a BetaAdicSet corresponding to the Dumont-Thomas numeration of the substitution.
         If proj=False, return a DeterministicAutomaton corresponding to the Dumont-Thomas numeration of the substitution (this is the abelianization of the prefix automaton).
@@ -3034,6 +3034,13 @@ class WordMorphism(SageObject):
         sage: m.plot_list(mirror=True)      # random
 
         """
+        if proj is None or proj == True:
+            try:
+                from sage.arith import BetaAdic
+            except:
+                if proj == True:
+                    raise ValueError("Cannot import module BetaAdic needed when proj=True.")
+                proj = False
         M = self.incidence_matrix()
         if proj:
             #choose b

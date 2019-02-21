@@ -492,7 +492,9 @@ cdef class CAutomaton:
 
     """
     def __cinit__(self):
+        sig_on()
         self.a = <NAutomaton *>malloc(sizeof(NAutomaton))
+        sig_off()
         if self.a is NULL:
             raise MemoryError("Failed to allocate memory for "
                               "C initialization of CAutomaton.")
@@ -759,7 +761,7 @@ cdef class CAutomaton:
         """
         return self.a.n
 
-    def n_succs(self, int i):
+    def n_successors(self, int i):
         """
         INPUT:
 
@@ -774,14 +776,14 @@ cdef class CAutomaton:
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
-            sage: b.n_succs(0)
+            sage: b.n_successors(0)
             1
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].n
 
-    def succ(self, int i, int j):
+    def successor(self, int i, int j):
         """
         Give the state at end of the ``j`` th edge from the state ``i``
 
@@ -798,7 +800,7 @@ cdef class CAutomaton:
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
-            sage: b.succ(1, 0)
+            sage: b.successor(1, 0)
             2
         """
         if i >= self.a.n or i < 0:
@@ -2228,7 +2230,7 @@ cdef class DeterministicAutomaton:
         else:
             raise ValueError("%d is not the index of a state (i.e. it is not between 0 and %s)!" % (e, self.a.n-1))
 
-    def succ(self, int i, int j):
+    def successor(self, int i, int j):
         """
         Return the state reached by following the transition with label of index j from state i.
         Return -1 if it doesn't exists.
@@ -2245,16 +2247,16 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0,1,'a'), (2,3,'b')])
-            sage: a.succ(0, 1)
+            sage: a.successor(0, 1)
             -1
-            sage: a.succ(2, 1)
+            sage: a.successor(2, 1)
             3
         """
         if i < 0 or i >= self.a.n or j < 0 or j >= self.a.na:
             return -1
         return self.a.e[i].f[j]
 
-    def succs(self, int i):
+    def successors(self, int i):
         """
         Return indices of letters of leaving transitions from state ``i``.
 
@@ -2269,9 +2271,9 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0,1,'a'), (2,3,'b')])
-            sage: a.succs(2)
+            sage: a.successors(2)
             [1]
-            sage: a.succs(4)
+            sage: a.successors(4)
             []
 
         """
@@ -2305,10 +2307,10 @@ cdef class DeterministicAutomaton:
         if i is None:
             i = self.a.i
         for j in l:
-            i = self.succ(i, j)
+            i = self.successor(i, j)
         return i
 
-    def set_succ(self, int i, int j, int k):
+    def set_successor(self, int i, int j, int k):
         """
         Set the successor of the state i, following the transition labeled by j.
         In other words, add a transition from state i to state k labeled by A[j].
@@ -2323,17 +2325,17 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0,1,'a'), (2, 3,'b')], i=2)
-            sage: a.set_succ(0, 1, 2)
-            sage: a.succs(0)
+            sage: a.set_successor(0, 1, 2)
+            sage: a.successors(0)
             [0, 1]
-            sage: a.set_succ(0, 4, 2)
+            sage: a.set_successor(0, 4, 2)
             Traceback (most recent call last):
             ...
-            ValueError: set_succ(0, 4, 2) : index out of bounds !
+            ValueError: set_successor(0, 4, 2) : index out of bounds !
 
         """
         if i < 0 or i >= self.a.n or j < 0 or j >= self.a.na or k < -1 or k >= self.a.n:
-            raise ValueError("set_succ(%s, %s, %s) : index out of bounds !" % (i, j, k))
+            raise ValueError("set_successor(%s, %s, %s) : index out of bounds !" % (i, j, k))
         self.a.e[i].f[j] = k
 
     def zero_complete_op(self, z=None, verb=False):
@@ -5374,20 +5376,20 @@ cdef class DeterministicAutomaton:
             nmin = 0
         from sage.misc.prandom import random
         for j in range(nmin):
-            li = [l for l in range(na) if self.succ(i, l) != -1]
+            li = [l for l in range(na) if self.successor(i, l) != -1]
             l = li[(int)(random() * len(li))]
             w.append(self.A[l])
-            i = self.succ(i, l)
+            i = self.successor(i, l)
         # continue the word to get into a final state
         for j in range(nmax-nmin):
             if self.a.e[i].final:
                 break
-            li = [l for l in range(na) if self.succ(i, l) != -1]
+            li = [l for l in range(na) if self.successor(i, l) != -1]
             if li == []:
                 return "word not found!"
             l = li[(int)(random() * len(li))]
             w.append(self.A[l])
-            i = self.succ(i, l)
+            i = self.successor(i, l)
         if i < 0 or not self.a.e[i].final:
             return "word not found!"
         return w
