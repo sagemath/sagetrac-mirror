@@ -6,7 +6,7 @@ The goal of this module is to give some tools to manipulate the
 parallelogram polyominoes.
 """
 # *****************************************************************************
-#  Copyright (C) 2014,2015 Adrien Boussicault (boussica@labri.fr),
+#  Copyright (C) 2014,2015,2018,2019 Adrien Boussicault (boussica@labri.fr),
 #  Copyright (C) 2016 Patxi Laborde-Zubieta (plaborde@labri.fr),
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -25,6 +25,7 @@ from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (SetFactory, ParentWithSetFactory,
                                           TopMostParentPolicy)
+from sage.misc.tikz import TikzPainter
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.sets.set import Set
 from sage.misc.lazy_attribute import lazy_class_attribute
@@ -42,8 +43,6 @@ from copy import deepcopy
 from sage.matrix.constructor import matrix
 from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.functions.trig import cos, sin
-from sage.functions.other import sqrt
 import pprint
 
 
@@ -562,310 +561,6 @@ EXAMPLES::
      'translation': [0, 0]}
 """
 
-
-class _drawing_tool:
-    r"""
-    Technical class to produce TIKZ drawing.
-
-    This class contains some 2D geometric tools to produce some TIKZ
-    drawings.
-
-    With that classes you can use options to set up drawing informations.
-    Then the class will produce a drawing by using those informations.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.parallelogram_polyomino import (
-        ....:     _drawing_tool, default_tikz_options,
-        ....:     ParallelogramPolyominoesOptions
-        ....: )
-        sage: opt = ParallelogramPolyominoesOptions['tikz_options']
-        sage: dt = _drawing_tool(opt)
-        sage: dt.draw_line([1, 1], [-1, -1])
-        u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
-        (-1.000000, -1.000000);'
-
-        sage: fct = lambda vec: [2*vec[0], vec[1]]
-        sage: dt = _drawing_tool(opt, fct)
-        sage: dt.draw_line([1, 1], [-1, -1])
-        u'\n  \\draw[color=black, line width=1] (2.000000, 1.000000) --
-        (-2.000000, -1.000000);'
-
-        sage: import copy
-        sage: opt = copy.deepcopy(opt)
-        sage: opt['mirror'] = [0,1]
-        sage: dt = _drawing_tool(opt)
-        sage: dt.draw_line([1, 1], [-1, -1])
-        u'\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) --
-        (1.000000, -1.000000);'
-
-    """
-    def __init__(self, options, XY=lambda v: v):
-        r"""
-        Construct a drawing tools to produce some TIKZ drawing.
-
-        INPUTS:
-
-        - ``options`` -- drawing options
-
-        - ``XY`` -- A user function to convert vector in other vector.
-                  (default : identity function)
-
-        EXAMPLES::
-
-            sage: from sage.combinat.parallelogram_polyomino import (
-            ....:     _drawing_tool, default_tikz_options,
-            ....:     ParallelogramPolyominoesOptions
-            ....: )
-            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
-            sage: dt = _drawing_tool(opt)
-            sage: dt.draw_line([1, 1], [-1, -1])
-            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
-            (-1.000000, -1.000000);'
-        """
-        self._XY = lambda v: XY([float(v[0]), float(v[1])])
-        self._translation = options['translation']
-        self._mirror = options['mirror']
-        self._rotation = options['rotation']
-        self._color_line = options['color_line']
-        self._line_size = options['line_size']
-        self._point_size = options['point_size']
-        self._color_point = options['color_point']
-
-    def XY(self, v):
-        r"""
-        This function give the image of v by some transformation given by the
-        drawing option of ``_drawing_tool``.
-
-        The transformation is the composition of rotation, mirror, translation
-        and XY user function.
-
-        First we apply XY function, then the translation, then the mirror and
-        finaly the rotation.
-
-        INPUT:
-
-        - ``v`` -- The vector to transform.
-
-        OUTPUT:
-
-        A list of 2 floats encoding a vector.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.parallelogram_polyomino import (
-            ....:     _drawing_tool, ParallelogramPolyominoesOptions
-            ....: )
-            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
-            sage: dt = _drawing_tool(opt)
-            sage: dt.XY([1, 1])
-            [1.0, 1.0]
-
-            sage: fct = lambda vec: [2*vec[0], vec[1]]
-            sage: dt = _drawing_tool(opt, fct)
-            sage: dt.XY([1, 1])
-            [2.0, 1.0]
-
-            sage: import copy
-            sage: opt = copy.deepcopy(opt)
-            sage: opt['mirror'] = [0, 1]
-            sage: dt = _drawing_tool(opt)
-            sage: dt.XY([1, 1])
-            [-1.0, 1.0]
-        """
-        def translate(pos, v):
-            r"""
-            Translate a position with a vector.
-
-            INPUTS:
-
-            - ``pos`` -- The position to translate.
-
-            - ``v`` -- The translation vector.
-
-            OUTPUT:
-
-            The translated position.
-            """
-            return [pos[0]+v[0], pos[1]+v[1]]
-
-        def rotate(pos, angle):
-            r"""
-            Rotate by `angle` a position around the origin.
-
-            INPUT:
-
-            - ``pos`` -- The position to rotate.
-
-            - ``angle`` -- The angle of rotation.
-
-            OUTPUT:
-
-            The rotated position.
-            """
-            [x, y] = pos
-            return [x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle)]
-
-        def mirror(pos, axe):
-            r"""
-            Return the mirror of a position according to a given axe.
-
-            INPUTS:
-
-            - ``pos`` -- The position to mirror.
-
-            - ``axe`` -- The axe vector.
-
-            OUTPUT:
-
-            The mirrored position.
-            """
-            if axe is None:
-                return pos
-            if not isinstance(axe, (list, tuple)):
-                raise ValueError(
-                    "mirror option should be None or a list of two real" +
-                    " encoding a 2D vector."
-                )
-            n = float(sqrt(axe[0]**2 + axe[1]**2))
-            axe[0] = float(axe[0]/n)
-            axe[1] = float(axe[1]/n)
-            sp = (pos[0]*axe[0] + pos[1]*axe[1])
-            sn = (- pos[0]*axe[1] + pos[1]*axe[0])
-            return [
-                sp*axe[0] + sn*axe[1],
-                sp*axe[1] - sn*axe[0]
-            ]
-        return rotate(
-            mirror(
-                translate(self._XY(v), self._translation),
-                self._mirror
-            ), self._rotation
-        )
-
-    def draw_line(self, v1, v2, color=None, size=None):
-        r"""
-        Return the TIKZ code for a line.
-
-        INPUT:
-
-        - ``v1`` -- point, The first point of the line.
-
-        - ``v2`` -- point, The second point of the line.
-
-        - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
-          drawing option given by ``_drawing_tool``.
-
-        - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
-          drawing option given by ``_drawing_tool``.
-
-        OUTPUT:
-
-        The code of a line in TIKZ.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.parallelogram_polyomino import (
-            ....:     _drawing_tool, ParallelogramPolyominoesOptions
-            ....: )
-            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
-            sage: dt = _drawing_tool(opt)
-            sage: dt.draw_line([1, 1], [-1, -1])
-            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
-            (-1.000000, -1.000000);'
-
-        """
-        if color is None:
-            color = self._color_line
-        if size is None:
-            size = self._line_size
-        [x1, y1] = self.XY(v1)
-        [x2, y2] = self.XY(v2)
-        return "\n  \\draw[color=%s, line width=%s] (%f, %f) -- (%f, %f);" % (
-            color, size, float(x1), float(y1), float(x2), float(y2)
-        )
-
-    def draw_polyline(self, list_of_vertices, color=None, size=None):
-        r"""
-        Return the TIKZ code for a polyline.
-
-        INPUT:
-
-        - ``list_of_vertices`` -- A list of points
-
-        - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
-          drawing option given by ``_drawing_tool``.
-
-        - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
-          drawing option given by ``_drawing_tool``.
-
-        OUTPUT:
-
-        The code of a polyline in TIKZ.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.parallelogram_polyomino import (
-            ....:     _drawing_tool, ParallelogramPolyominoesOptions
-            ....: )
-            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
-            sage: dt = _drawing_tool(opt)
-            sage: dt.draw_polyline([[1, 1], [-1, -1], [0,0]])
-            u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
-            (-1.000000, -1.000000);\n  \\draw[color=black, line width=1]
-            (-1.000000, -1.000000) -- (0.000000, 0.000000);'
-        """
-        res = ""
-        for i in range(len(list_of_vertices)-1):
-            res += self.draw_line(
-                list_of_vertices[i], list_of_vertices[i+1], color, size
-            )
-        return res
-
-    def draw_point(self, p1, color=None, size=None):
-        r"""
-        Return the TIKZ code for a point.
-
-
-        INPUT:
-
-        - ``p1`` -- A point
-
-        - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
-          drawing option given by ``_drawing_tool``.
-
-        - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
-          drawing option given by ``_drawing_tool``.
-
-        OUTPUT:
-
-        The code of a point in TIKZ.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.parallelogram_polyomino import (
-            ....:     _drawing_tool, ParallelogramPolyominoesOptions
-            ....: )
-            sage: opt = ParallelogramPolyominoesOptions['tikz_options']
-            sage: dt = _drawing_tool(opt)
-            sage: dt.draw_point([1, 1])
-            u'\n  \\filldraw[color=black] (1.000000, 1.000000) circle (3.5pt);'
-
-        """
-        if color is None:
-            color = self._color_point
-        if size is None:
-            size = self._point_size
-        [x1, y1] = self.XY(p1)
-        return "\n  \\filldraw[color=%s] (%f, %f) circle (%spt);" % (
-            color, float(x1), float(y1), size
-        )
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -2526,7 +2221,7 @@ class ParallelogramPolyomino(ClonableList):
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
         grid_height = self.height() + 1
-        drawing_tool = _drawing_tool(
+        drawing_tool = TikzPainter(
             tikz_options,
             XY=lambda v: [v[0], grid_height-1-v[1]]
         )
@@ -2622,7 +2317,7 @@ class ParallelogramPolyomino(ClonableList):
         res = ""
         tikz_options = self.get_tikz_options()
         grid_height = self.height() + 1
-        drawing_tool = _drawing_tool(
+        drawing_tool = TikzPainter(
             tikz_options,
             XY=lambda v: [v[0], grid_height-1-v[1]]
         )
@@ -2722,7 +2417,7 @@ class ParallelogramPolyomino(ClonableList):
         if self.size() == 1:
             return res
         grid_height = self.height() + 1
-        drawing_tool = _drawing_tool(
+        drawing_tool = TikzPainter(
             tikz_options,
             XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
         )
