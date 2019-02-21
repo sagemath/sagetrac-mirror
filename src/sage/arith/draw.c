@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-//#include "SDL2/SDL.h"
+//#include "hay_sdl.h"
+#define HAY_SDL 1
+#define HAY_SDL_IMAGE   0
+#if HAY_SDL
+    #include "SDL2/SDL.h"
+#endif
 #include "complex.h"
 #include "Automaton.h"
 #include "automataC.h"
@@ -35,7 +40,7 @@ double sqr (double x)
     return x*x;
 }
 
-/*
+#if HAY_SDL_IMAGE
 //rend une SDL_Surface contenant l'image
 void* OpenImage (const char *file_name)
 {
@@ -100,13 +105,13 @@ void SDLQuit ()
 {
     SDL_Quit();
 }
-*/
+#endif
 
 //////////////////////////////TEST(
 #define WIDTH	800
 #define HEIGHT	600
 
-/*
+#if HAY_SDL
 void DrawRond (int x, int y, SDL_Surface *s)
 {
 	Uint32 *pix = s->pixels;
@@ -124,11 +129,11 @@ void DrawRond (int x, int y, SDL_Surface *s)
 		}
 	}
 }
-*/
+#endif
 
 ////////////////////////////////////TEST)
 
-/*
+#if HAY_SDL
 void *GetSDL_SurfaceFromNumpy (PyArrayObject *o)
 {
     //PyArrayObject *o = (PyArrayObject *)np;
@@ -145,10 +150,8 @@ void *GetSDL_SurfaceFromNumpy (PyArrayObject *o)
     Uint8 *data = (Uint8 *)o->data;
     
     Uint32 rmask, gmask, bmask, amask;
-    */
     /* SDL interprets each pixel as a 32-bit number, so our masks must depend
        on the endianness (byte order) of the machine */
-    /*
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
@@ -178,9 +181,7 @@ void *GetSDL_SurfaceFromNumpy (PyArrayObject *o)
 	}
 	return (void *)r;
 }
-*/
 
-/*
 void SDL_SurfaceToNumpy (void *ss, PyArrayObject *o)
 {
     SDL_Surface *s = (SDL_Surface *)ss;
@@ -217,7 +218,7 @@ void SDL_SurfaceToNumpy (void *ss, PyArrayObject *o)
 		ptr += (s->pitch/4) - sx;
 	}
 }
-*/
+#endif
 
 void SurfaceToNumpy (Surface *s, PyArrayObject *o)
 {
@@ -260,14 +261,14 @@ void SurfaceToNumpy (Surface *s, PyArrayObject *o)
 	//printf("...done !\n");
 }
 
-/*
+#if HAY_SDL
 //dessine la surface dans la SDL_Surface
 SDL_Surface *GetSurface (Surface s)
 {
 	Uint32 rmask, gmask, bmask, amask;
 
-    *//* SDL interprets each pixel as a 32-bit number, so our masks must depend
-       on the endianness (byte order) of the machine *//*
+    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+       on the endianness (byte order) of the machine */
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
@@ -294,7 +295,7 @@ SDL_Surface *GetSurface (Surface s)
 	}
 	return r;
 }
-*/
+#endif
 
 Complexe getComplexe (int x, int y, int sx, int sy)
 {
@@ -310,7 +311,7 @@ void ComplexeToPoint (Complexe c, int *x, int *y, int sx, int sy)
 	*y = (c.y - my)*sy/(My - my);
 }
 
-/*
+#if HAY_SDL
 //dessine la transfomée inverse de l'image s
 void drawTransf (SDL_Surface *s, SDL_Surface *screen, Complexe m, Complexe t, Color col)
 {
@@ -374,7 +375,7 @@ void drawTransf (SDL_Surface *s, SDL_Surface *screen, Complexe m, Complexe t, Co
 		//d += (screen->pitch/4 - screen->w);
 	}
 }
-*/
+#endif
 
 int lt[256]; //liste des indices des translations du morceau courant
 
@@ -410,7 +411,7 @@ double FindNearest(BetaAdic b, Complexe ib, Complexe c, int n, double mmm)
     return mm;
 }
 
-/*
+#if HAY_SDL
 //find the path that get closest to c
 Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool verb)
 {
@@ -447,9 +448,7 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
     r.y = -r.y;   
     return r;
 }
-*/
 
-/*
 Complexe FindTr2 (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool verb)
 {
 	Complexe r = zero();
@@ -505,7 +504,7 @@ Complexe FindTr2 (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool 
 	r.y = -r.y;
 	return r;
 }
-*/
+#endif
 
 bool addA(Automaton *a, int ri, int n)
 {
@@ -664,7 +663,7 @@ void Ajust (BetaAdic b, int sx, int sy, int *n, double sp, bool auto_n, bool ver
     }
 }
 
-/*
+#if HAY_SDL
 Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double sp, int verb)
 {
     int i, j, ri;
@@ -857,15 +856,14 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, dou
     SDL_Quit();
     return r;
 }
-*/
-/*
+
 void invert(const SDL_PixelFormat* format, Uint32 *p)
 {
 	Uint8 r,g,b;
 	SDL_GetRGB(*p, format, &r, &g, &b);
 	*p = SDL_MapRGB(format, 255-r, 255-g, 255-b);
 }
-*/
+#endif
 
 int mini (int a, int b)
 {
@@ -881,7 +879,7 @@ int max (int a, int b)
 	return b;
 }
 
-/*
+#if HAY_SDL
 void invertRect(SDL_Surface *s, int x1, int y1, int x2, int y2)
 {
 	if (x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0)
@@ -901,13 +899,13 @@ void invertRect(SDL_Surface *s, int x1, int y1, int x2, int y2)
 		invert(s->format, ptr+x2+y*s->pitch/4);
 	}
 }
-*/
+#endif
 
 double mousex = 0, mousey = 0;
 
 double *Rmaj = NULL; //liste de majorants mesurés pour chaque état
 
-/*
+#if HAY_SDL
 //Open a window where we can zoom in the fractal
 //prec = number of additionnal iterations
 int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int nprec, double sp, int verb)
@@ -924,7 +922,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int npre
     if (ajust)
     {
     	Ajust (b, sx, sy, &n, sp, true, verb);
-    	*//*
+    	/*
     	if (b.a.n < 10)
     	{
     		Rmaj = (double *)malloc(sizeof(double)*b.a.n);
@@ -941,7 +939,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int npre
     			printf("	-> %lf\n", Rmaj[i]);
     		}
     	}
-    	*//*
+    	*/
     }
     
     //n = choose_n();
@@ -1147,7 +1145,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int npre
     SDL_Quit();
     return word;
 }
-*/
+#endif
 
 ColorList NewColorList (int n)
 {
@@ -1196,7 +1194,7 @@ void Fill (Surface s, Color c)
 	}
 }
 
-/*
+#if HAY_SDL
 void FillSDL (SDL_Surface *s, Color c)
 {
 	int x,y;
@@ -1212,7 +1210,7 @@ void FillSDL (SDL_Surface *s, Color c)
 		ptr += (s->pitch/4) - s->w;
 	}
 }
-*/
+#endif
 
 void FillNP (PyArrayObject *o, Color c)
 {
@@ -1341,7 +1339,7 @@ inline bool set_pix (Surface s, Complexe p)
 	return false;
 }
 
-/*
+#if HAY_SDL
 inline bool set_pix2 (SDL_Surface *s, Complexe p)
 {
 	if (p.x < mx || p.x >= Mx || p.y < my || p.y >= My)
@@ -1373,7 +1371,7 @@ inline bool set_pix2 (SDL_Surface *s, Complexe p)
 	}
 	return false;
 }
-*/
+#endif
 
 inline bool set_pixNP (Uint32 *pix, int sx, int sy, Complexe p)
 {
@@ -1652,7 +1650,7 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 	}
 }
 
-/*
+#if HAY_SDL
 //used by Draw_
 void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int etat)
 {
@@ -1670,7 +1668,7 @@ void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int e
 			printf("état %d !\n", etat);
 			return;
 		}
-		*//*
+		/*
 		if (p.x < mx2)
 			mx2 = p.x;
 		if (p.x > Mx2)
@@ -1679,7 +1677,7 @@ void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int e
 			my2 = p.y;
 		if (p.y > My2)
 			My2 = p.y;
-		*//*
+		*/
 		if (set_pix2(&s, p))
 			word[0] = -2;
 	}else
@@ -1691,12 +1689,12 @@ void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int e
 			double Mn = Maj*sqrt(cnorm(bn));
 			if (p.x + Mn > mx && p.x - Mn < Mx && p.y + Mn > my && p.y - Mn < My)
 			{
-				*//*
+				/*
 				if (Rmaj != NULL)
 				{
 					///////////TODO !!!
 				}
-				*//*
+				*/
 			}else
 				return; //intersection des rectangles vide
 		}
@@ -1722,7 +1720,7 @@ void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int e
 		}
 	}
 }
-*/
+#endif
 
 //used by DrawNP
 struct ArgNP
@@ -1899,7 +1897,7 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double
 	return word;
 }
 
-/*
+#if HAY_SDL
 //same as Draw, but use SDL_Surface rather than Surface
 int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, int nprec, double sp, int verb)
 {
@@ -1908,13 +1906,13 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, int nprec, d
 	color0.a = 0;
 	color = col;
 	int i, j;
-	*//*
+	/*
 	colors = (Color *)malloc(sizeof(Color)*b.a.n);
 	for (i=0;i<b.a.n;i++)
 	{
 		colors[i] = randCol(255);
 	}
-	*//*
+	*/
 	
 	word[0] = -1; //initialise le mot
 	
@@ -1979,7 +1977,7 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, int nprec, d
 	word[1023] = -1;
 	return word;
 }
-*/
+#endif
 
 //same as Draw, but draw into a numpy array rather than a surface
 int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, int nprec, double sp, int verb)
@@ -2167,7 +2165,7 @@ void printAutomate(Automaton a)
 }
 
 /*
-#used by Approx
+// used by Approx
 int Approx_rec (Automaton *a, test, f, x, int n, int n2)
 {
 	if (n == 0)
@@ -2188,8 +2186,10 @@ int Approx_rec (Automaton *a, test, f, x, int n, int n2)
 			return e3
 		return -1
 }
-	
-#gives a automaton describing a approximation of a set defined by the characteritic function test
+*/
+
+#if HAY_SDL_IMAGE
+// gives a automaton describing a approximation of a set defined by the characteritic function test
 Automaton ApproxImage (BetaAdic b, SDLImage s, int n)
 {
 	Automaton r;
@@ -2200,7 +2200,7 @@ Automaton ApproxImage (BetaAdic b, SDLImage s, int n)
 	a.set_initial_state(e)
 	return r;
 }
-*/
+#endif
 
 void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int nprec, int verb)
 {

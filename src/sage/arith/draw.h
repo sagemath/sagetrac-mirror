@@ -1,4 +1,6 @@
+#if HAY_SDL
 void TestSDL ();
+#endif
 
 typedef unsigned char uint8;
 
@@ -36,14 +38,13 @@ struct BetaAdic2
 };
 typedef struct BetaAdic2 BetaAdic2;
 
-/*
+#if HAY_SDL_IMAGE
 struct SDLImage
 {
 	void *img;
 };
-*/
 
-/*
+
 //rend une SDL_Surface contenant l'image
 void* OpenImage (const char *file_name);
 bool InImage (void* img, int x, int y);
@@ -53,12 +54,15 @@ void CloseImage (void* img);
 void PrintImageError();
 void SDLInit();
 void SDLQuit();
-*/
 
 void *GetSDL_SurfaceFromNumpy (PyArrayObject *o);
-void SurfaceToNumpy (Surface *s, PyArrayObject *o);
 void SDL_SurfaceToNumpy (void *ss, PyArrayObject *o);
+#endif
 
+void SurfaceToNumpy (Surface *s, PyArrayObject *o);
+
+int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int nprec, double sp, int verb);
+Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double sp, int verb);
 ColorList NewColorList (int n);
 void FreeColorList (ColorList l);
 Surface NewSurface (int sx, int sy);
@@ -75,8 +79,6 @@ Color moy (Color a, Color b, double ratio);
 bool set_pix (Surface s, Complexe p);
 void print_word (BetaAdic b, int n, int etat);
 Color randColor (int a);
-int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int nprec, double sp, int verb);
-Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double sp, int verb);
 //void WordZone (BetaAdic b, int *word, int nmax);
 int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb);
 void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb);
