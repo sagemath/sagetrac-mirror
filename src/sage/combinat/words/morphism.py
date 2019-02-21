@@ -3014,7 +3014,7 @@ class WordMorphism(SageObject):
 
         return G
 
-    def dumont_thomas(self, initial_state=None, final_states=None, proj=True, verb=False)
+    def dumont_thomas(self, initial_state=None, final_states=None, proj=None, verb=False):
         r"""
         If proj=True, return a BetaAdicSet corresponding to the Dumont-Thomas numeration of the substitution.
         If proj=False, return a DeterministicAutomaton corresponding to the Dumont-Thomas numeration of the substitution (this is the abelianization of the prefix automaton).
