@@ -3014,7 +3014,7 @@ class WordMorphism(SageObject):
 
         return G
 
-    def DumontThomas(self, initial_state=None, final_states=None, proj=None, verb=False):
+    def dumont_thomas(self, initial_state=None, final_states=None, proj=True, verb=False)
         r"""
         If proj=True, return a BetaAdicSet corresponding to the Dumont-Thomas numeration of the substitution.
         If proj=False, return a DeterministicAutomaton corresponding to the Dumont-Thomas numeration of the substitution (this is the abelianization of the prefix automaton).
@@ -3022,21 +3022,23 @@ class WordMorphism(SageObject):
         EXAMPLE:
 
         sage: s = WordMorphism('a->aabab,b->ababb')
-        sage: a = s.DumontThomas(proj=False); a
+        sage: a = s.dumont_thomas(proj=False); a
         DeterministicAutomaton with 2 states and an alphabet of 7 letters
         sage: a.plot()          # random
 
         # Zoom in a complicated Rauzy fractal
         sage: s = WordMorphism('1->2,2->3,3->12')
-        sage: m = s.DumontThomas().mirror(); m
+        sage: m = s.dumont_thomas().mirror()
+        sage: m                 # random
         b-adic set with b root of x^3 - x - 1, and an automaton of 4 states and 2 letters
         sage: m.draw_zoom()         # not tested (need the intervention of the user)
 
         # Draw the Rauzy fractal of the Hokkaido substitution
         sage: s = WordMorphism('1->12,2->3,3->4,4->5,5->1')
-        sage: m = s.DumontThomas(); m
+        sage: m = s.dumont_thomas()
+        sage: m                   # random
         b-adic set with b root of x^3 - x - 1, and an automaton of 5 states and 2 letters
-        sage: m.plot_list(mirror=True)      # random
+        # sage: m.plot_list(mirror=True)      # random
 
         """
         if proj is None or proj == True:
@@ -3048,7 +3050,7 @@ class WordMorphism(SageObject):
                 proj = False
         M = self.incidence_matrix()
         if proj:
-            #choose b
+            # choose b
             le = M.eigenvalues()
             dm = max([x.minpoly().degree() for x in le])
             led = [x for x in le if x.minpoly().degree() == dm]
@@ -3076,7 +3078,7 @@ class WordMorphism(SageObject):
             vb = (M-b).kernel().basis()[0]
             if verb:
                 print(vb)
-        #construct the automaton
+        # construct the automaton
         A = self.domain().alphabet()
         nA = len(A)
         if initial_state is None:
@@ -3084,7 +3086,7 @@ class WordMorphism(SageObject):
         if verb:
             print("initial state %s"%initial_state)
         dA = dict()
-        for i,a in enumerate(A):
+        for i, a in enumerate(A):
             dA[a] = i
         L = []
         from sage.matrix.special import identity_matrix
@@ -3096,10 +3098,10 @@ class WordMorphism(SageObject):
                 t = 0
             for c2 in self(c):
                 if proj:
-                    L.append((c,c2,t))
+                    L.append((c, c2, t))
                     t += vb[dA[c2]]
                 else:
-                    L.append((c,c2,tuple(t)))
+                    L.append((c, c2, tuple(t)))
                     t += vector(I[A.index(c2)])
         if verb:
             print(L)
@@ -3110,8 +3112,11 @@ class WordMorphism(SageObject):
         if verb:
             print(a)
         if proj:
-            from sage.arith.beta_adic import BetaAdicSet
-            return BetaAdicSet(b, a)
+            try:
+                from sage.arith.beta_adic import BetaAdicSet
+                return BetaAdicSet(b, a)
+            except Exception:
+                return a
         else:
             return a
 
