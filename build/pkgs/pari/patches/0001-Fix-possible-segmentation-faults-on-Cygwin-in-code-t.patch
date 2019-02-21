@@ -1,0 +1,54 @@
+From 244655df77ca2455a759fee5dd21d633c6e4b46b Mon Sep 17 00:00:00 2001
+From: "Erik M. Bray" <erik.bray@lri.fr>
+Date: Thu, 21 Feb 2019 19:31:17 +0100
+Subject: [PATCH] Fix possible segmentation faults on Cygwin in code that
+ happens to access the top of the stack.
+
+On Cygwin sysconf(_SC_PAGE_SIZE) cannot be relied on to accurately
+page-align the top of the PARI stack, because it does not actually give
+the correct physical page size (this is intentional, as a compromise
+with POSIX requirements that are incompatible with most Windows
+versions; see
+https://www.cygwin.com/ml/cygwin-patches/2016-q4/msg00002.html)
+
+Normally, the value returned by sysconf(_SC_PAGE_SIZE) is actually
+larger than the physical page size, which can result in placing the
+top of the pari_mainstack a little past the real end of the allocated
+memory region.
+
+As it happens, the mem_unit member returned by sysinfo() does, however,
+give the correct page size on Cygwin.
+---
+ src/language/init.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/src/language/init.c b/src/language/init.c
+index 65bdd5d65..d83a0c5d2 100644
+--- a/src/language/init.c
++++ b/src/language/init.c
+@@ -585,7 +585,22 @@ pari_add_defaults_module(entree *ep)
+ /*********************************************************************/
+ 
+ #ifdef HAS_MMAP
++#ifdef __CYGWIN__
++#include <sys/sysinfo.h>
++static unsigned int
++pari_sysinfo_mem_unit()
++{
++    struct sysinfo info;
++    if (sysinfo(&info))
++    {
++        pari_err_BUG("sysinfo() failed");
++    }
++    return info.mem_unit;
++}
++#define PARI_STACK_ALIGN pari_sysinfo_mem_unit()
++#else
+ #define PARI_STACK_ALIGN (sysconf(_SC_PAGE_SIZE))
++#endif
+ #ifndef MAP_ANONYMOUS
+ #define MAP_ANONYMOUS MAP_ANON
+ #endif
+-- 
+2.15.1
+
