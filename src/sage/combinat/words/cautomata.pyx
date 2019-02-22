@@ -113,7 +113,7 @@ cdef extern from "automataC.h":
     bool findWord(Automaton a, Dict *w, bool verb)
     bool shortestWord(Automaton a, Dict *w, int i, int f, bool verb)
     bool shortestWords(Automaton a, Dict *w, int i, bool verb)
-    bool rec_word(Automaton a, Dict d)
+    bool recognized_word(Automaton a, Dict d)
     void Test()
 
 cdef imagDict(dict d, list A, list A2=[]):
@@ -291,7 +291,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
             r.i = -1
 
     w = False
-    for e, f, l in a.edges():
+    for e, f, l in a.edges(sort=False):
         if r.e[d[e]].f[da[l]] != -1:
             if not w:
                 print("Warning: the automaton was not deterministic! (edge %s -%s-> %s and edge %s -%s-> %s)\nThe result lost some informations."% (d[e], l, r.e[d[e]].f[da[l]], d[e], l, d[f]))
@@ -1474,7 +1474,7 @@ cdef class DeterministicAutomaton:
             sage: a == b
             False
             sage: a = b.copy()
-            sage: a.delete_state_op(0)
+            sage: a.delete_state_in_place(0)
             sage: a == b
             False
 
@@ -1799,20 +1799,20 @@ cdef class DeterministicAutomaton:
             return not c_bool(r)
 
     # give a Sage Automon from the DeterministicAutomaton
-    def get_Automaton(self):
+    def get_automaton(self):
         r"""
         Give a Sage Automon from the DeterministicAutomaton
 
         TESTS::
 
             sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.get_Automaton()
+            sage: a.get_automaton()
             Automaton with 4 states
         """
         return AutomatonToSageAutomaton(self.a[0], self.A)
 
     # give a Graph from the DeterministicAutomaton
-    def get_DiGraph(self, keep_transitions_labels=True):
+    def get_digraph(self, keep_transitions_labels=True):
         r"""
         Give a DiGraph from the DeterministicAutomaton
 
@@ -1824,7 +1824,7 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.AnyLetter(['a', 'b'])
-            sage: g = a.get_DiGraph()
+            sage: g = a.get_digraph()
             sage: g
             Looped multi-digraph on 2 vertices
             sage: g.edges()
@@ -1833,7 +1833,7 @@ cdef class DeterministicAutomaton:
         TESTS::
 
             sage: a = DeterministicAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.get_DiGraph()
+            sage: a.get_digraph()
             Looped multi-digraph on 4 vertices
 
         """
@@ -2338,7 +2338,7 @@ cdef class DeterministicAutomaton:
             raise ValueError("set_successor(%s, %s, %s) : index out of bounds !" % (i, j, k))
         self.a.e[i].f[j] = k
 
-    def zero_complete_op(self, z=None, verb=False):
+    def zero_complete_in_place(self, z=None, verb=False):
         """
         Compute an automaton recognizing the language L(l*)^(-1), where L is
         the language of self and l is the letter of index z.
@@ -2359,14 +2359,14 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.Word([0,1,0])
-            sage: a.zero_complete_op()
+            sage: a.zero_complete_in_place()
             sage: a.final_states
             [2, 3]
 
         TESTS::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.zero_complete_op()
+            sage: a.zero_complete_in_place()
             Traceback (most recent call last):
             ...
             ValueError: 0 is not in list
@@ -2378,7 +2378,7 @@ cdef class DeterministicAutomaton:
         ZeroComplete(self.a, z, verb)
         sig_off()
 
-    def concat_zero_star(self, z=None, sink_state=False, simplify=True, verb=False):
+    def concatenate_with_zero_star(self, z=None, sink_state=False, simplify=True, verb=False):
         """
         Compute an automaton recognizing the language L(l*), where L is
         the language of self and l is the letter of index z.
@@ -2402,23 +2402,23 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.Word([0,1,0])
-            sage: a.concat_zero_star()
+            sage: a.concatenate_with_zero_star()
             DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.concat_zero_star(z=0)
+            sage: a.concatenate_with_zero_star(z=0)
             DeterministicAutomaton with 2 states and an alphabet of 2 letters
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.concat_zero_star(z=0, sink_state=True, simplify=False)
+            sage: a.concatenate_with_zero_star(z=0, sink_state=True, simplify=False)
             DeterministicAutomaton with 5 states and an alphabet of 2 letters
             sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')])
-            sage: b.concat_zero_star(True)
+            sage: b.concatenate_with_zero_star(True)
             DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
         TESTS::
 
             sage: a = dag.Word(['a', 'b'])
-            sage: a.concat_zero_star()
+            sage: a.concatenate_with_zero_star()
             Traceback (most recent call last):
             ...
             ValueError: 0 is not in list
@@ -2438,7 +2438,7 @@ cdef class DeterministicAutomaton:
         else:
             return r
 
-    def zero_star_concat(self, z=None, simplify=True):
+    def left_concatenate_with_zero_star(self, z=None, simplify=True):
         """
         Compute an automaton recognizing the language (l*)L, where L is
         the language of self and l is the letter of index z.
@@ -2459,22 +2459,22 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.Word([0,1,0])
-            sage: a.zero_star_concat()
+            sage: a.left_concatenate_with_zero_star()
             DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.zero_star_concat(0)
+            sage: a.left_concatenate_with_zero_star(0)
             DeterministicAutomaton with 2 states and an alphabet of 2 letters
-            sage: a.zero_star_concat(1)
+            sage: a.left_concatenate_with_zero_star(1)
             DeterministicAutomaton with 2 states and an alphabet of 2 letters
             sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')])
-            sage: b.zero_star_concat(1)
+            sage: b.left_concatenate_with_zero_star(1)
             DeterministicAutomaton with 1 state and an alphabet of 2 letters
 
         TESTS::
 
             sage: a = dag.Word(['a', 'b'])
-            sage: a.zero_star_concat()
+            sage: a.left_concatenate_with_zero_star()
             Traceback (most recent call last):
             ...
             ValueError: 0 is not in list
@@ -2495,7 +2495,7 @@ cdef class DeterministicAutomaton:
         else:
             return r
 
-    def diff(self, DeterministicAutomaton a, bool det=True, bool simplify=True):
+    def difference(self, DeterministicAutomaton a, bool det=True, bool simplify=True):
         """
         Compute an automaton whose language is the set of differences of the two languages.
 
@@ -2512,13 +2512,13 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.AnyWord([0, 1])
-            sage: a.diff(a)
+            sage: a.difference(a)
             DeterministicAutomaton with 1 state and an alphabet of 3 letters
 
         TESTS::
 
             sage: a = dag.AnyWord(['a', 'b'])
-            sage: a.diff(a)
+            sage: a.difference(a)
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand type(s) for -: 'str' and 'str'
@@ -2531,11 +2531,11 @@ cdef class DeterministicAutomaton:
         for i in self.A:
             for j in a.A:
                 d[(i, j)] = i-j
-        return r.proj(d, det=det, simplify=simplify)
+        return r.project(d, det=det, simplify=simplify)
 
-    def prune_inf(self, verb=False):
+    def prune_stop(self, verb=False):
         """
-        Prune "at infinity": remove all accessible states from which there no infinite way.
+        Prune every stop state : remove all accessible states from which there no infinite way.
 
         INPUT:
 
@@ -2549,29 +2549,29 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.prune_inf()
+            sage: a.prune_stop()
             DeterministicAutomaton with 0 state and an alphabet of 2 letters
             sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')])
-            sage: b.prune_inf()
+            sage: b.prune_stop()
             DeterministicAutomaton with 0 state and an alphabet of 2 letters
 
             sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
-            sage: a.prune_inf()
+            sage: a.prune_stop()
             DeterministicAutomaton with 3 states and an alphabet of 3 letters
 
             sage: a = DeterministicAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10, final_states=[])
-            sage: a.prune_inf()
+            sage: a.prune_stop()
             DeterministicAutomaton with 3 states and an alphabet of 3 letters
 
 
         TESTS::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.prune_inf(True)
+            sage: a.prune_stop(True)
             induction...
             States counter = 0
             count...
@@ -2590,7 +2590,7 @@ cdef class DeterministicAutomaton:
         r.S = None
         return r
 
-    def prune_i(self, verb=False):
+    def prune_non_reachable(self, verb=False):
         """
         Prune the automaton:
         remove all non-reachable states
@@ -2606,13 +2606,13 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')], i=0)
-            sage: a.prune_i()
+            sage: a.prune_non_reachable()
             DeterministicAutomaton with 3 states and an alphabet of 2 letters
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
-            sage: a.prune_i()
+            sage: a.prune_non_reachable()
             DeterministicAutomaton with 0 state and an alphabet of 2 letters
             sage: b = DeterministicAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
-            sage: b.prune_i()
+            sage: b.prune_non_reachable()
             DeterministicAutomaton with 0 state and an alphabet of 2 letters
         """
         if self.a.i == -1:
@@ -2800,8 +2800,8 @@ cdef class DeterministicAutomaton:
 
             #. Intersection of words that contains 'aa' and words that contains 'bb'
 
-                sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
-                sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
+                sage: a = dag.AnyWord(['a','b']).concatenate(dag.Word(['a', 'a'])).concatenate(dag.AnyWord(['a','b']))
+                sage: b = dag.AnyWord(['a','b']).concatenate(dag.Word(['b', 'b']).concatenate(dag.AnyWord(['a','b'])))
                 sage: a.intersection(b)
                 DeterministicAutomaton with 8 states and an alphabet of 2 letters
 
@@ -2878,9 +2878,9 @@ cdef class DeterministicAutomaton:
         sig_off()
         return answ
 
-    def complete_op(self, label_sink='s'):
+    def complete_in_place(self, label_sink='s'):
         """
-        Complete the automaton ON PLACE, by adding a sink state if necessary.
+        Complete the automaton in-place, by adding a sink state if necessary.
 
         INPUT:
 
@@ -2895,18 +2895,18 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.complete_op()
+            sage: a.complete_in_place()
             True
             sage: a
             DeterministicAutomaton with 5 states and an alphabet of 2 letters
 
-            sage: dag.AnyWord(['a','b']).complete_op()
+            sage: dag.AnyWord(['a','b']).complete_in_place()
             False
 
         TESTS::
 
             sage: a = dag.Word(['a','b','a'])
-            sage: a.complete_op()
+            sage: a.complete_in_place()
             True
             sage: a.has_same_language_as(dag.Word(['a','b','a']))
             True
@@ -2982,8 +2982,8 @@ cdef class DeterministicAutomaton:
             return a
         else:
             a = self.copy()
-            a.shift_list_op(w)
-            return dag.Word(w).concat(a)
+            a.shift_list_in_place(w)
+            return dag.Word(w).concatenate(a)
 
     def prefix_closure(self):
         """
@@ -3042,8 +3042,8 @@ cdef class DeterministicAutomaton:
 
             #. Union of words that contains 'aa' and words that contains 'bb'
 
-                sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
-                sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
+                sage: a = dag.AnyWord(['a','b']).concatenate(dag.Word(['a', 'a'])).concatenate(dag.AnyWord(['a','b']))
+                sage: b = dag.AnyWord(['a','b']).concatenate(dag.Word(['b', 'b']).concatenate(dag.AnyWord(['a','b'])))
                 sage: a.union(b)
                 DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
@@ -3064,8 +3064,8 @@ cdef class DeterministicAutomaton:
 
         TESTS::
 
-            sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
-            sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
+            sage: a = dag.AnyWord(['a','b']).concatenate(dag.Word(['a', 'a'])).concatenate(dag.AnyWord(['a','b']))
+            sage: b = dag.AnyWord(['a','b']).concatenate(dag.Word(['b', 'b']).concatenate(dag.AnyWord(['a','b'])))
             sage: c = DeterministicAutomaton([(0, 0, 'a'), (0, 0, 'b'), (1, 2, 'a'), (1, 3, 'b'), (2, 0, 'a'), (2, 3, 'b'), (3, 2, 'a'), (3, 0, 'b')], i=1, final_states=[0])
             sage: a.union(b) == c
             True
@@ -3164,13 +3164,13 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.AnyWord(['a', 'b'])
-            sage: b = a.concat(dag.Word(['a', 'a'])).concat(a)
+            sage: b = a.concatenate(dag.Word(['a', 'a'])).concatenate(a)
             sage: a.split(b)
             [DeterministicAutomaton with 3 states and an alphabet of 2 letters,
              DeterministicAutomaton with 2 states and an alphabet of 2 letters]
             sage: a = dag.AnyWord(['a', 'b'])
-            sage: b = a.concat(dag.Word(['a', 'a'])).concat(a)
-            sage: c = a.concat(dag.Word(['b', 'b'])).concat(a)
+            sage: b = a.concatenate(dag.Word(['a', 'a'])).concatenate(a)
+            sage: c = a.concatenate(dag.Word(['b', 'b'])).concatenate(a)
             sage: c.split(b)
             [DeterministicAutomaton with 8 states and an alphabet of 2 letters,
              DeterministicAutomaton with 5 states and an alphabet of 2 letters]
@@ -3258,9 +3258,9 @@ cdef class DeterministicAutomaton:
         else:
             return [r, r2]
 
-    def shift_op(self, l, int np=1, verb=False):
+    def shift_in_place(self, l, int np=1, verb=False):
         """
-        Shift the automaton ON PLACE to recognize the language shifted ``np``
+        Shift the automaton in-place to recognize the language shifted ``np``
         times by the letter l.
         The new language is the language of words u such that (l^np)u 
         was recognized by self.
@@ -3277,17 +3277,17 @@ cdef class DeterministicAutomaton:
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
-            sage: a.shift_op('a')
+            sage: a.shift_in_place('a')
             sage: a.initial_state
             1
-            sage: a.shift_op('a', 2)
+            sage: a.shift_in_place('a', 2)
             sage: a.initial_state
             -1
 
         TESTS::
 
             sage: a = dag.AnyWord(['a', 'b'])
-            sage: a.shift_op('c')
+            sage: a.shift_in_place('c')
             Traceback (most recent call last):
             ...
             ValueError: 'c' is not a letter of the alphabet ['a', 'b']
@@ -3302,9 +3302,9 @@ cdef class DeterministicAutomaton:
             if self.a.i != -1:
                 self.a.i = self.a.e[self.a.i].f[l]
 
-    def shift_list_op(self, list l):
+    def shift_list_in_place(self, list l):
         """
-        Shift the automaton ON PLACE to recognize the language shifted by l (list of letters).
+        Shift the automaton in-place to recognize the language shifted by l (list of letters).
         The new language is the language of words u such that lu 
         was recognized by self.
 
@@ -3317,19 +3317,19 @@ cdef class DeterministicAutomaton:
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
-            sage: a.shift_list_op(['a'])
+            sage: a.shift_list_in_place(['a'])
             sage: a.initial_state
             1
 
         TESTS::
 
             sage: a = dag.Word(['a','b','a','b'])
-            sage: a.shift_list_op(['a','b'])
+            sage: a.shift_list_in_place(['a','b'])
             sage: a.simplify().has_same_language_as(dag.Word(['a','b']))
             True
 
             sage: a = dag.AnyWord(['a', 'b'])
-            sage: a.shift_list_op(['a','c'])
+            sage: a.shift_list_in_place(['a','c'])
             Traceback (most recent call last):
             ...
             ValueError: 'c' is not in the alphabet ['a', 'b']
@@ -3411,7 +3411,7 @@ cdef class DeterministicAutomaton:
         return r
 
     # this function could be written in a more efficient way
-    def unshiftl(self, list l):
+    def unshift_list(self, list l):
         """
         Return a new automaton whose language is the set of words wu,
         where u is recognized by self, and w is the word
@@ -3428,13 +3428,13 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.unshiftl(['a', 'b'])
+            sage: a.unshift_list(['a', 'b'])
             DeterministicAutomaton with 6 states and an alphabet of 2 letters
-            sage: a.unshiftl(['c', 'd'])
+            sage: a.unshift_list(['c', 'd'])
             DeterministicAutomaton with 6 states and an alphabet of 4 letters
 
             sage: a = dag.AnyWord([0,1])
-            sage: a.unshiftl([1,0,1])
+            sage: a.unshift_list([1,0,1])
             DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
         """
@@ -3445,9 +3445,9 @@ cdef class DeterministicAutomaton:
         l.reverse()
         return a
 
-    def copyn(self, verb=False):
+    def get_cautomaton(self, verb=False):
         """
-        Convert  a determinist automaton :class:`DeterministicAutomaton` to
+        Convert a determinist automaton :class:`DeterministicAutomaton` to
         a non determinist automaton :class:`CAutomaton`
 
         INPUT:
@@ -3462,7 +3462,7 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.copyn()
+            sage: a.get_cautomaton()
             CAutomaton with 4 states and an alphabet of 2 letters
 
             sage: CAutomaton(dag.AnyWord(['a','b']))
@@ -3475,7 +3475,7 @@ cdef class DeterministicAutomaton:
             CAutomaton with 3 states and an alphabet of 2 letters
 
             sage: a = dag.Word(['a','b'])
-            sage: a.copyn().determinize() == a
+            sage: a.get_cautomaton().determinize() == a
             True
 
         """
@@ -3490,7 +3490,7 @@ cdef class DeterministicAutomaton:
         r.A = self.A[:]
         return r
 
-    def concat(self, DeterministicAutomaton b, det=True, simplify=True, verb=False):
+    def concatenate(self, DeterministicAutomaton b, det=True, simplify=True, verb=False):
         """
         Return an automaton recognizing the concatenation of the
         languages of self and ``b``.
@@ -3515,31 +3515,31 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             #. Words starting by 'aa'
-                sage: dag.Word(['a','a']).concat(dag.AnyWord(['a','b']))
+                sage: dag.Word(['a','a']).concatenate(dag.AnyWord(['a','b']))
                 DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
             #. words containing 'aa'
 
                 sage: a = dag.AnyWord(['a','b'])
-                sage: a.concat(dag.Word(['a','a'])).concat(a)
+                sage: a.concatenate(dag.Word(['a','a'])).concatenate(a)
                 DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
-            sage: a.concat(b)
+            sage: a.concatenate(b)
             DeterministicAutomaton with 2 states and an alphabet of 3 letters
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.concat(b, det=False)
+            sage: a.concatenate(b, det=False)
             CAutomaton with 7 states and an alphabet of 3 letters
             sage: b = DeterministicAutomaton([(3, 2, 'a'), (1, 2, 'd')])
-            sage: a.concat(b)
+            sage: a.concatenate(b)
             DeterministicAutomaton with 1 state and an alphabet of 3 letters
 
         TESTS::
 
             sage: a = dag.Word(['a', 'b'])
             sage: b = dag.Word(['a', 'c'])
-            sage: a.concat(b).has_same_language_as(dag.Word(['a','b','a','c']))
+            sage: a.concatenate(b).has_same_language_as(dag.Word(['a','b','a','c']))
             True
 
         """
@@ -3579,7 +3579,7 @@ cdef class DeterministicAutomaton:
         else:
             return r
 
-    def proj(self, dict d, bool det=True, bool simplify=True, bool verb=False):
+    def project(self, dict d, bool det=True, bool simplify=True, bool verb=False):
         """
         Project with respect to the dictionary ``d``.
         Give an automaton where labels are replaced according to ``d``.
@@ -3606,12 +3606,12 @@ cdef class DeterministicAutomaton:
             sage: a = dag.Word(['a','b'])
             sage: b = a.product(a)
             sage: d = {('a','a'):'a', ('a','b'):'a', ('b','a'):'b', ('b','b'):'b'}
-            sage: b.proj(d)
+            sage: b.project(d)
             DeterministicAutomaton with 3 states and an alphabet of 2 letters
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = {'a' : 0, 'b': 0, 'c':1, 'd':1}
-            sage: a.proj(d)
+            sage: a.project(d)
             DeterministicAutomaton with 2 states and an alphabet of 1 letter
 
             sage: a = dag.Word([(0,1), (1,0), (1,1)])
@@ -3619,7 +3619,7 @@ cdef class DeterministicAutomaton:
             sage: for i in range(2):
             ....:     for j in range(2):
             ....:         d[(i,j)] = i-j
-            sage: a.proj(d).has_same_language_as(dag.Word([-1, 1, 0]))
+            sage: a.project(d).has_same_language_as(dag.Word([-1, 1, 0]))
             True
 
         TESTS::
@@ -3627,7 +3627,7 @@ cdef class DeterministicAutomaton:
             sage: a = dag.Word(['a','b'])
             sage: b = a.product(a)
             sage: d = {('a','a'):'a', ('a','b'):'a', ('b','a'):'b', ('b','b'):'b'}
-            sage: a.has_same_language_as(b.proj(d))
+            sage: a.has_same_language_as(b.project(d))
             True
 
         """
@@ -3657,7 +3657,7 @@ cdef class DeterministicAutomaton:
         else:
             return r
 
-    def proji(self, int i, bool det=True, bool simplify=True, bool verb=False):
+    def project_on_ith(self, int i, bool det=True, bool simplify=True, bool verb=False):
         """
         Assuming that the alphabet of the automaton are iterable, project on
         the ith coordinate.
@@ -3685,11 +3685,11 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.Word([('a', 'b'), ('b', 'a'), ('c', 'a')])
-            sage: a.proji(1)
+            sage: a.project_on_ith(1)
             DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
             sage: a = DeterministicAutomaton([(0, 1, 'abc')], i=0)
-            sage: b = a.proji(0)
+            sage: b = a.project_on_ith(0)
             sage: b
             DeterministicAutomaton with 2 states and an alphabet of 1 letter
             sage: b == DeterministicAutomaton([(1, 0, 'a')], i=1)
@@ -3698,11 +3698,11 @@ cdef class DeterministicAutomaton:
         TESTS::
 
             sage: a = dag.Word([('a', 'b'), ('b', 'a'), ('c', 'a')])
-            sage: a.proji(1).has_same_language_as(dag.Word(['b', 'a', 'a']))
+            sage: a.project_on_ith(1).has_same_language_as(dag.Word(['b', 'a', 'a']))
             True
 
             sage: a = dag.Word([0,1])
-            sage: a.proji(0)
+            sage: a.project_on_ith(0)
             Traceback (most recent call last):
             ...
             TypeError: object of type 'sage.rings.integer.Integer' has no len()
@@ -3718,9 +3718,9 @@ cdef class DeterministicAutomaton:
                 d[l] = l[i]
             else:
                 raise ValueError("index i=%d must be smaller than the dimension of the label %s" % (i, l))
-        return self.proj(d, det=det, simplify=simplify, verb=verb)
+        return self.project(d, det=det, simplify=simplify, verb=verb)
 
-    def duplicate(self, d, verb=False):
+    def duplicate_transitions(self, d, verb=False):
         """
         Replace every transition of self labeled by a letter l
         by a list of transitions labeled by elements of d[l].
@@ -3741,13 +3741,13 @@ cdef class DeterministicAutomaton:
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = { 'a' : 'ac', 'b': 'cc', 'ca':'c', 'd':'b'}
-            sage: b = a.duplicate(d)
+            sage: b = a.duplicate_transitions(d)
             sage: b.alphabet
             ['a', 'c']
 
             sage: a = dag.Word(['a', 'b', 'c'])
             sage: d = { 'a' : [0,1], 'b': [0], 'c':[]}
-            sage: b = a.duplicate(d)
+            sage: b = a.duplicate_transitions(d)
             sage: b.alphabet
             [0, 1]
             sage: b.has_empty_language()
@@ -3779,9 +3779,9 @@ cdef class DeterministicAutomaton:
         r.A = A2
         return r
 
-    def relabel(self, dict d):
+    def relabel_in_place(self, dict d):
         """
-        Change letters of the :class:`DeterministicAutomaton` ON PLACE,
+        Change letters of the :class:`DeterministicAutomaton` in-place,
         with respect to the dictionnary ``d``.
         The dictionary is assumed to be one-to-one.
 
@@ -3793,13 +3793,13 @@ cdef class DeterministicAutomaton:
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = { 'a' : 'a', 'b': 'c', 'c':'b', 'd':'b'}
-            sage: a.relabel(d)
+            sage: a.relabel_in_place(d)
             sage: a.alphabet
             ['a', 'c']
 
             sage: a = dag.Word(['a', 'b'])
             sage: d = {'a':0, 'b':1}
-            sage: a.relabel(d)
+            sage: a.relabel_in_place(d)
             sage: a.alphabet
             [0, 1]
             sage: a == dag.Word([0, 1])
@@ -3808,7 +3808,7 @@ cdef class DeterministicAutomaton:
         TESTS::
 
             sage: a = dag.AnyWord([0,1])
-            sage: a.relabel({})
+            sage: a.relabel_in_place({})
             Traceback (most recent call last):
             ...
             KeyError: 0
@@ -3904,9 +3904,9 @@ cdef class DeterministicAutomaton:
         r.a.na = len(A)
         return r
 
-    def permut_op(self, list A, bool verb=False):
+    def permut_in_place(self, list A, bool verb=False):
         """
-        Permutes (and eventually remove) letters of the alphabet ON PLACE,
+        Permutes (and eventually remove) letters of the alphabet in-place,
         without changing the language restricted to the new alphabet.
 
         INPUT:
@@ -3921,7 +3921,7 @@ cdef class DeterministicAutomaton:
             sage: a = dag.Word([0,1,2])
             sage: a.alphabet
             [0, 1, 2]
-            sage: a.permut_op([2,1,0])
+            sage: a.permut_in_place([2,1,0])
             sage: a.alphabet
             [2, 1, 0]
             sage: a.has_same_language_as(dag.Word([0,1,2]))
@@ -3930,7 +3930,7 @@ cdef class DeterministicAutomaton:
             sage: a = dag.AnyWord(['a', 'b', 'c'])
             sage: a.alphabet
             ['a', 'c', 'b']
-            sage: a.permut_op(['a', 'b'])
+            sage: a.permut_in_place(['a', 'b'])
             sage: a.alphabet
             ['a', 'b']
             sage: a.has_same_language_as(dag.AnyWord(['a', 'b']))
@@ -3938,14 +3938,14 @@ cdef class DeterministicAutomaton:
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: l = [ 'b', 'c', 'a']
-            sage: a.permut_op(l)
+            sage: a.permut_in_place(l)
             sage: a.alphabet
             ['b', 'a']
 
         TESTS::
 
             sage: a = dag.Word(['a', 'b'])
-            sage: a.permut_op([0,1])
+            sage: a.permut_in_place([0,1])
             sage: a.alphabet
             []
 
@@ -3962,7 +3962,7 @@ cdef class DeterministicAutomaton:
         sig_off()
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
-                              "permut_op")
+                              "permut_in_place")
         for i in range(self.a.na):
             l[i] = -1
         d = {}
@@ -3987,7 +3987,7 @@ cdef class DeterministicAutomaton:
         self.A = A2
         self.a.na = len(A2)
 
-    def mirror_det(self):
+    def mirror_deterministic(self):
         """
         Return a :class:`DeterministicAutomaton`, whose language is the mirror of the
         language of self.
@@ -4002,20 +4002,20 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.Word(['a', 'b', 'c', 'b'])
-            sage: b = a.mirror_det()
+            sage: b = a.mirror_deterministic()
             sage: b
             DeterministicAutomaton with 5 states and an alphabet of 3 letters
             sage: b.has_same_language_as(dag.Word(['b', 'c', 'b', 'a']))
             True
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.mirror_det()
+            sage: a.mirror_deterministic()
             DeterministicAutomaton with 4 states and an alphabet of 2 letters
 
         TESTS::
 
             sage: a = DeterministicAutomaton([('a','a',0), ('a','b',1), ('b','a',0)], i='a')
-            sage: b = a.mirror_det()
+            sage: b = a.mirror_deterministic()
             sage: b
             DeterministicAutomaton with 2 states and an alphabet of 2 letters
             sage: b.has_same_language_as(a.mirror().determinize())
@@ -4095,7 +4095,7 @@ cdef class DeterministicAutomaton:
 
         EXAMPLES::
 
-            sage: a = dag.Word(['a', 'b']).concat(dag.AnyWord(['a', 'b']))
+            sage: a = dag.Word(['a', 'b']).concatenate(dag.AnyWord(['a', 'b']))
             sage: a
             DeterministicAutomaton with 3 states and an alphabet of 2 letters
             sage: a.strongly_connected_components()
@@ -4228,7 +4228,7 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.Word(['a','b','a','b'])
-            sage: a.shift_list_op(['a','b'])
+            sage: a.shift_list_in_place(['a','b'])
             sage: a
             DeterministicAutomaton with 5 states and an alphabet of 2 letters
             sage: a.simplify()
@@ -4496,9 +4496,9 @@ cdef class DeterministicAutomaton:
             r.S = [s for j,s in enumerate(self.S) if j != i]
         return r
 
-    def delete_state_op(self, int i):
+    def delete_state_in_place(self, int i):
         """
-        Delete vertex ``i`` on place.
+        Delete vertex ``i`` in-place.
 
         INPUT:
 
@@ -4507,17 +4507,17 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.delete_state_op(2)
+            sage: a.delete_state_in_place(2)
             sage: a
             DeterministicAutomaton with 3 states and an alphabet of 2 letters
-            sage: a.delete_state_op(1)
+            sage: a.delete_state_in_place(1)
             sage: a
             DeterministicAutomaton with 2 states and an alphabet of 2 letters
 
         TESTS::
 
             sage: a = dag.AnyWord(['a','b'])
-            sage: a.delete_state_op(1)
+            sage: a.delete_state_in_place(1)
             Traceback (most recent call last):
             ...
             ValueError: 1 is not a state (should be between 0 and 0)
@@ -4588,7 +4588,7 @@ cdef class DeterministicAutomaton:
                     print("component with %s states..." % len(c))
                 b = a.sub_automaton(c)
                 if approx:
-                    g = b.get_DiGraph()
+                    g = b.get_digraph()
                     if verb:
                         print("g=%s" % g)
                     if g.is_aperiodic():
@@ -4942,7 +4942,7 @@ cdef class DeterministicAutomaton:
         sig_off()
         return rt
 
-    def rec_word(self, w):
+    def recognized_word(self, w):
         """
         Determine if the word ``w`` is recognized or nor not by the automaton
 
@@ -4957,21 +4957,21 @@ cdef class DeterministicAutomaton:
         EXAMPLES::
 
             sage: a = dag.Word("abaa")
-            sage: a.rec_word("aba")
+            sage: a.recognized_word("aba")
             False
-            sage: a.rec_word("abaa")
+            sage: a.recognized_word("abaa")
             True
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.rec_word(['a', 'b', 'b'])
+            sage: a.recognized_word(['a', 'b', 'b'])
             False
-            sage: a.rec_word("a")
+            sage: a.recognized_word("a")
             True
 
         TESTS::
 
             sage: a = dag.Word("ab")
-            sage: a.rec_word(['a', 0])
+            sage: a.recognized_word(['a', 0])
             Traceback (most recent call last):
             ...
             KeyError: 0
@@ -5010,7 +5010,7 @@ cdef class DeterministicAutomaton:
             sage: a = dag.Word("abaa")
             sage: s = a.add_state(true)
             sage: a.add_transition(2,'b',s)
-            sage: a.rec_word("abb")
+            sage: a.recognized_word("abb")
             True
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -5053,13 +5053,13 @@ cdef class DeterministicAutomaton:
 
             sage: a = dag.Word("abaa")
             sage: a.add_transition(2,'a',4)
-            sage: a.rec_word("aba")
+            sage: a.recognized_word("aba")
             True
 
             sage: a = dag.Word("abaa")
             sage: s = a.add_state(true)
             sage: a.add_transition(2,'b',s)
-            sage: a.rec_word("abb")
+            sage: a.recognized_word("abb")
             True
 
         TESTS::
@@ -5190,9 +5190,9 @@ cdef class DeterministicAutomaton:
         r.A = A
         return r
 
-    def complementary_op(self):
+    def complementary_in_place(self):
         """
-        Change the language of the automaton to the complementary ON PLACE.
+        Change the language of the automaton to the complementary in-place.
         If the language of self was L and the alphabet is A,
         then the new language of self is A^*\L
         (i.e. words over the alphabet A that are not in L)
@@ -5200,22 +5200,22 @@ cdef class DeterministicAutomaton:
         OUTPUT:
 
         return None
-        (the operation is on place)
+        (the operation is in-place)
 
         EXAMPLES::
 
             sage: a = dag.Word("abaa")
-            sage: a.complementary_op()
+            sage: a.complementary_in_place()
             sage: a
             DeterministicAutomaton with 6 states and an alphabet of 2 letters
 
             sage: a = DeterministicAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.complementary_op()
+            sage: a.complementary_in_place()
             sage: a
             DeterministicAutomaton with 5 states and an alphabet of 2 letters
         """
         cdef i
-        self.complete_op()
+        self.complete_in_place()
         for i in range(self.a.n):
             self.a.e[i].final = not self.a.e[i].final
 
@@ -5240,7 +5240,7 @@ cdef class DeterministicAutomaton:
             DeterministicAutomaton with 5 states and an alphabet of 2 letters
         """
         a = self.copy()
-        a.complementary_op()
+        a.complementary_in_place()
         return a
 
     def included(self, DeterministicAutomaton a, bool pruned=False, bool verb=False):
@@ -5312,7 +5312,7 @@ cdef class DeterministicAutomaton:
 #                d[(l,l)] = l
 #        if verb:
 #            print("d=%s"%d)
-#        a.complete_op()
+#        a.complete_in_place()
 #        cdef DeterministicAutomaton p = self.product(a, d, verb=verb)
 #
 #        #set final states
