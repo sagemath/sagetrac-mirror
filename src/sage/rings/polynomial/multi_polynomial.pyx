@@ -1419,7 +1419,8 @@ cdef class MPolynomial(CommutativeRingElement):
         - ``variable`` -- the variable with respect to which we compute
           the discriminant
 
-        - ``algorithm`` -- optional, either ``'pari'`` or ``'singular'``
+        - ``algorithm`` -- optional, either ``'pari'``, ``'singular'``,
+          ``'flint'`` or ``'fricas'``
 
         By default, Pari is used (:pari:`poldisc`) when the base ring
         is `\ZZ` or `\QQ`, and Singular otherwise.
@@ -1481,12 +1482,22 @@ cdef class MPolynomial(CommutativeRingElement):
             else:
                 algorithm = 'singular'        
 
-        if algorithm not in ('pari', 'singular'):
+        if algorithm not in ('pari', 'singular', 'fricas', 'flint'):
             raise ValueError('unknown algorithm')
 
         if algorithm == 'pari':
+            # why is this so slow for small polynomials ?
             pari = Pari()
             return self.parent()(pari(self).poldisc(pari(variable)))
+
+        if algorithm == 'fricas':
+            # not yet tested
+            from sage.interfaces.fricas import fricas
+            return self.parent(fricas(self).discriminant(variable))
+
+        if algorithm == "flint":
+            # requires a newer version of flint
+            raise NotImplementedError
 
         # use singular otherwise
         n = self.degree(variable)
