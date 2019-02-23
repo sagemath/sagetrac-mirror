@@ -12,7 +12,8 @@ Base class for elements of multivariate polynomial rings
 
 from __future__ import print_function, absolute_import
 
-from cypari2.pari_instance cimport Pari
+#from cypari2.pari_instance cimport Pari
+from sage.libs.all import pari
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
@@ -1487,7 +1488,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         if algorithm == 'pari':
             # why is this so slow for small polynomials ?
-            pari = Pari()
+            # pari = Pari()
             return self.parent()(pari(self).poldisc(pari(variable)))
 
         if algorithm == 'fricas':
