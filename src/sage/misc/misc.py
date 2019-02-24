@@ -74,10 +74,9 @@ def sage_makedirs(dir):
         sage: sage_makedirs(DOT_SAGE) # no output
 
     The following fails because we are trying to create a directory in
-    place of an ordinary file (the main Sage executable)::
+    place of an ordinary file (the python executable)::
 
-        sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
-        sage: sage_makedirs(sage_executable)
+        sage: sage_makedirs(sys.executable)
         Traceback (most recent call last):
         ...
         OSError: ...
@@ -884,7 +883,7 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False,
             try:
                 if c < 0:
                     negative = True
-            except NotImplementedError:
+            except (NotImplementedError, TypeError):
                 # comparisons may not be implemented for some coefficients
                 pass
             if negative:
@@ -1670,7 +1669,7 @@ class AttrCallObject(object):
         unique representation of parents taking ``attrcall`` objects
         as input; see :trac:`8911`.
         """
-        return hash((self.args, tuple(self.kwds.items())))
+        return hash((self.args, tuple(sorted(self.kwds.items()))))
 
 
 def attrcall(name, *args, **kwds):
