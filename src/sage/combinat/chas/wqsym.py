@@ -498,7 +498,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi', 'H', 'E'])
+    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi', 'H', 'E', 'R'])
 
     # add options to class
     class options(GlobalOptions):
@@ -882,7 +882,7 @@ sage: t0 = time.time(); m4HQ = matr_chgmt_base_pw(GL,L,4); print
     H = Homogeneous
 
 ######## autre base ##########
-# TODO    
+
     class Elementaire(WQSymBasis_abstract):
         r"""
         The Elementaire basis of `WQSym`.
@@ -1095,9 +1095,9 @@ sage: matr_chgmt_base_osp(E,M,3)
                 sage: y = OrderedSetPartition([[1,2]])
                 sage: z = OrderedSetPartition([[1,2],[3]])
                 sage: A.product_on_basis(x, y)
-                E[{4, 5}, {1}, {2, 3}]
+                E[{3}, {4, 5}, {1, 2}]
                 sage: A.product_on_basis(x, z)
-                E[{4, 5}, {6}, {1}, {2, 3}]
+                E[{4}, {5, 6}, {1, 2}, {3}]
                 sage: A.product_on_basis(y, y)
                 E[{3, 4}, {1, 2}]
 
@@ -1112,12 +1112,221 @@ sage: matr_chgmt_base_osp(E,M,3)
             K = self.basis().keys()
             if not x:
                 return self.monomial(y)
-            m = max(max(part) for part in x) # The degree of x
-            x = [set(part) for part in x]
-            yshift = [[val + m for val in part] for part in y]
-            return self.monomial(K(yshift + x))
+            m = max(max(part) for part in y) # The degree of x
+            xshift = [[val + m for val in part] for part in x]
+            y = [set(part) for part in y]
+            return self.monomial(K(xshift + y))
 
     E = Elementaire
+
+######## autre base ##########
+# TODO    
+    class RightWeakOrder(WQSymBasis_abstract):
+        r"""
+        The Right Weak Order basis of `WQSym`.
+        """
+        _prefix = "R"
+        _basis_name = "RightWeakOrder"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: R = algebras.WQSym(QQ).R()
+                sage: TestSuite(R).run()  # long time
+            
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+Defining M as shorthand for Word Quasi-symmetric functions over Rational Field in the Monomial basis
+Defining X as shorthand for Word Quasi-symmetric functions over Rational Field in the Characteristic basis
+Defining C as shorthand for Word Quasi-symmetric functions over Rational Field in the Cone basis
+Defining Q as shorthand for Word Quasi-symmetric functions over Rational Field in the Q basis
+Defining Phi as shorthand for Word Quasi-symmetric functions over Rational Field in the Phi basis
+Defining H as shorthand for Word Quasi-symmetric functions over Rational Field in the Homogeneous basis
+Defining E as shorthand for Word Quasi-symmetric functions over Rational Field in the Elementaire basis
+sage: H.options.objects = 'words'
+sage: matr_chgmt_base_osp = lambda X,Y, n: matrix([[Y(X(mu)).coefficient(sigma) for mu in OrderedSetPartitions(n)] for sigma in OrderedSetPartitions(n)])
+sage: matr_chgmt_base_osp(H,Q,3)
+[1 0 0 0 0 0 0 0 0 0 0 0 0]
+[1 1 0 0 0 0 0 0 0 0 0 0 0]
+[1 0 1 0 0 0 0 0 0 0 0 0 0]
+[1 1 0 1 0 0 0 0 0 0 0 0 0]
+[1 0 1 0 1 0 0 0 0 0 0 0 0]
+[1 1 1 1 1 1 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(H,E,3)
+[0 0 0 0 0 1 0 0 0 0 0 0 0]
+[0 0 0 1 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 1 0 0 0 0 0 0 0 0]
+[0 1 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 1 0 0 0 0 0 0 0 0 0 0]
+[1 0 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 0 0 0 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(E,H,3)
+[0 0 0 0 0 1 0 0 0 0 0 0 0]
+[0 0 0 1 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 1 0 0 0 0 0 0 0 0]
+[0 1 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 1 0 0 0 0 0 0 0 0 0 0]
+[1 0 0 0 0 0 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 0 0 0 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(E,Q,3)
+[0 0 0 0 0 1 0 0 0 0 0 0 0]
+[0 0 0 1 0 1 0 0 0 0 0 0 0]
+[0 0 0 0 1 1 0 0 0 0 0 0 0]
+[0 1 0 1 0 1 0 0 0 0 0 0 0]
+[0 0 1 0 1 1 0 0 0 0 0 0 0]
+[1 1 1 1 1 1 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 0 0 1 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: matr_chgmt_base_osp(Q,E,3)
+[ 1  0  0 -1 -1  1  0  0  0  0  0  0  0]
+[ 0 -1  0  1  0  0  0  0  0  0  0  0  0]
+[ 0  0 -1  0  1  0  0  0  0  0  0  0  0]
+[-1  1  0  0  0  0  0  0  0  0  0  0  0]
+[-1  0  1  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0  0  0  0  0  0  0  0  0  0  0]
+[ 0  0  0  0  0  0  0  0  1 -1  0  0  0]
+[ 0  0  0  0  0  0  0  1  0  0  0  0  0]
+[ 0  0  0  0  0  0  1  0  0  0  0  0  0]
+[ 0  0  0  0  0  0 -1  0  0  0  0  1  0]
+[ 0  0  0  0  0  0  0  0  0  0  1  0  0]
+[ 0  0  0  0  0  0  0  0  0  1  0  0  0]
+[ 0  0  0  0  0  0  0  0  0  0  0  0  1]
+sage: matr_chgmt_base_osp(M,E,3)
+[ 1  0  0 -1 -1  1  0  0  0  0  0  0  0]
+[ 0 -1  0  1  0  0  0  0  0  0  0  0  0]
+[ 0  0 -1  0  1  0  0  0  0  0  0  0  0]
+[-1  1  0  0  0  0  0  0  0  0  0  0  0]
+[-1  0  1  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0  0  0  0  0  0  0  0  0  0  0]
+[ 1  0  0 -1  0  0  0  0  1 -1  0  0  0]
+[ 0  0 -1  0  0  0  0  1  0  0  0  0  0]
+[-1  0  0  0  0  0  1  0  0  0  0  0  0]
+[ 1  0  0  0 -1  0 -1  0  0  0  0  1  0]
+[ 0 -1  0  0  0  0  0  0  0  0  1  0  0]
+[-1  0  0  0  0  0  0  0  0  1  0  0  0]
+[ 1  0  0  0  0  0 -1  0  0 -1  0  0  1]
+sage: matr_chgmt_base_osp(E,M,3)
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+#TODO j'aimerais bien enlever la fct new_rank ici pcq c'est pas utile.... pour l'instant ça marche pas bien...
+            # @cached_function
+            # def new_rank(x):
+            #     return (SetPartition(x),x.to_packed_word())
+            
+            E = self.realization_of().E()
+            phi = E.module_morphism(self._E_to_R, codomain=self, unitriangular="lower")#, key=new_rank)
+            phi.register_as_coercion()
+            inv_phi = ~phi
+            inv_phi.register_as_coercion()
+            
+            # M = self.realization_of().M()
+            # M.register_coercion(M.coerce_map_from(Q) * phi)
+            # self.register_coercion(inv_phi * Q.coerce_map_from(M))
+            
+
+        @cached_method
+        def _E_to_R(self, P):
+            """
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+sage: H.options.objects = 'words'
+sage: E(R[1,3,2])
+sage: R(E[1,3,2,1])
+
+            """
+            E = self.realization_of().E()
+            if not P:
+                return self.one()
+            PW = PackedWords().from_ordered_set_partition(P)
+            Ring = self.base_ring()
+            one = Ring.one()
+            return self._from_dict({G.to_ordered_set_partition():
+                                 one for G in PW.right_weak_order_smaller()}, coerce=False)
+
+        
+            WQSymBasis_abstract.__init__(self, alg)
+            
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Homogeneous basis.
+
+            EXAMPLES::
+
+                sage: H = algebras.WQSym(QQ).H()
+                sage: H.some_elements()
+                [H[], H[{1}], H[{1, 2}], H[] + 1/2*H[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+        # def product_on_basis(self, x, y):
+        #     r"""
+        #     Return the (associative) `*` product of the basis elements
+        #     of the Elementaire basis ``self`` indexed by the ordered set partitions
+        #     `x` and `y`.
+
+        #     This is the concatenating product of shifted `y` and `x`.
+
+        #     EXAMPLES::
+
+        #         sage: A = algebras.WQSym(QQ).E()
+        #         sage: x = OrderedSetPartition([[1],[2,3]])
+        #         sage: y = OrderedSetPartition([[1,2]])
+        #         sage: z = OrderedSetPartition([[1,2],[3]])
+        #         sage: A.product_on_basis(x, y)
+        #         E[{4, 5}, {1}, {2, 3}]
+        #         sage: A.product_on_basis(x, z)
+        #         E[{4, 5}, {6}, {1}, {2, 3}]
+        #         sage: A.product_on_basis(y, y)
+        #         E[{3, 4}, {1, 2}]
+
+        #     TESTS::
+
+        #         sage: one = OrderedSetPartition([])
+        #         sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+        #         True
+        #         sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+        #         True
+        #     """
+        #     K = self.basis().keys()
+        #     if not x:
+        #         return self.monomial(y)
+        #     m = max(max(part) for part in x) # The degree of x
+        #     x = [set(part) for part in x]
+        #     yshift = [[val + m for val in part] for part in y]
+        #     return self.monomial(K(yshift + x))
+
+    R = RightWeakOrder
 
     ############### HuxoD End #############
 
