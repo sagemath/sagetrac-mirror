@@ -1200,11 +1200,14 @@ def two_adic_symbol(A, val):
         [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
 
     """
+    n = A.nrows()
+    # deal with the empty matrix
+    if n == 0:
+        return [[0,0,1,0,0]]
     m0 = min([ c.valuation(2) for c in A.list() ])
     q = 2**m0
     A = A.parent()([ c // q for c in A.list() ])
     ZZ = IntegerRing()
-    n = A.nrows()
     A_2 = MatrixSpace(FiniteField(2),n,n)(A)
     K_2 = A_2.kernel()
     R_8 = ZZ.quotient_ring(Integer(8))
@@ -1994,7 +1997,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G2.is_even()
             True
         """
-        if self.prime() != 2:
+        if self.prime() != 2 or self.rank() == 0:
             return True
         sym = self.symbol_tuple_list()[0]
         return sym[0] > 0 or sym[3]==0
@@ -2174,6 +2177,8 @@ class Genus_Symbol_p_adic_ring(object):
                     pass
             if b[1] != 0:
                 symbol.append(b)
+        if self.rank() == other.rank() == 0:
+            symbol = self.symbol_tuple_list()
         return Genus_Symbol_p_adic_ring(self.prime(), symbol, check=True)
 
     def excess(self):
@@ -2260,11 +2265,15 @@ class Genus_Symbol_p_adic_ring(object):
 
         an integer
         """
+        if self.rank()==0:
+            return ZZ(0)
         return self.prime()**self._symbol[0][0]
 
     def norm(self):
         r"""
         """
+        if self.rank()==0:
+            return ZZ(0)
         p = self.prime()
         if p == 2:
             fq = self._symbol[0]
@@ -2276,6 +2285,8 @@ class Genus_Symbol_p_adic_ring(object):
         r"""
         Return the maximal scale of a jordan component.
         """
+        if self.rank()==0:
+            return ZZ(1)
         return self.prime()**self._symbol[-1][0]
 
     def trains(self):
@@ -2580,6 +2591,8 @@ class GenusSymbol_global_ring(object):
             sage: G.is_even()
             True
         """
+        if self.rank()==0:
+            return True
         return self._local_symbols[0].is_even()
 
     def signature_pair(self):
@@ -3092,6 +3105,8 @@ class GenusSymbol_global_ring(object):
             pass
         n = self.dimension()
         representatives = []
+        if self.rank()==0:
+            return [self.representative()]
         if backend == "magma":
             from sage.interfaces.magma import Magma
             magma = Magma()

@@ -1163,6 +1163,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         from sage.matrix.matrix_space import MatrixSpace
         from sage.rings.all import GF
         from copy import copy
+        if self.value_module_qf().n != 2:
+            raise NotImplementedError("orthogonal groups are implemented only for even forms")
         if gens is not None:
             pass
         elif not self.is_degenerate():

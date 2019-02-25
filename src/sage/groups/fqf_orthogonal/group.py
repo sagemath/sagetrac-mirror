@@ -216,6 +216,16 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
             sage: all([x*f==x*fbar for x in D.gens()])
             True
+
+        Check that conversion of subgroup elements
+        works properly::
+
+            sage: t = TorsionQuadraticForm(matrix([1/4]))
+            sage: og = t.orthogonal_group()
+            sage: s = og.subgroup([])
+            sage: og.gen(0) in s
+            False
+
         """
         # the super class knows what to do
         from sage.libs.gap.element import GapElement
@@ -226,9 +236,9 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
                 x = matrix(ZZ, [(g*x).vector() for g in gen])
             except TypeError:
                 pass
-        f = AbelianGroupAutomorphismGroup_subgroup._element_constructor_(self, x, check=check)
+        f = AbelianGroupAutomorphismGroup_subgroup._element_constructor_(self, x, check=True)
         if check:
-            # check that the form is preserved
+            # double check that the form is preserved
             # this is expensive
             if not self._preserves_form(f):
                 raise ValueError("not an isometry")

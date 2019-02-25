@@ -250,7 +250,7 @@ def _orthogonal_grp_gens_odd(G):
             G = c * G # destroys the normal form of G
             _, Ud = _normal(G) # restore it
     gens = _gens_normal_form(O, R)
-    Uinv = Ud.adjoint()*Ud.det().inverse_of_unit()
+    Uinv = Ud.adjugate()*Ud.det().inverse_of_unit()
     gens = [Uinv * g * Ud for g in gens]
     # check that generators are indeed isometries
     for g in gens:
@@ -557,7 +557,7 @@ def _lift(q, f, a):
     qb = b * q * b.T
     G = qb[:-2,:-2]
     fG = f * G
-    fGinv = fG.adjoint() * fG.det().inverse_of_unit()
+    fGinv = fG.adjugate() * fG.det().inverse_of_unit()
 
     if mod(q[-2,-2] + q[-1,-1], 4) == 2:
         g[-1, -2] = a
@@ -571,7 +571,7 @@ def _lift(q, f, a):
     # check that lifting succeeded
     assert _min_val(err) >= 1
     assert _min_val(matrix.diagonal(err.diagonal())) >= 2
-    binv = b.adjoint() * b.det().inverse_of_unit()
+    binv = b.adjugate() * b.det().inverse_of_unit()
     return binv * g * b
 
 def _gens_mod_p(G):
