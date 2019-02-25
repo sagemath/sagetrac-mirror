@@ -46,7 +46,7 @@ class AdelicSquareClass(AbelianGroupElement_gap):
             sage: g
             f1*f2*f3*f4*f5*f6*f7
             sage: g.component(2)
-            (-1,2)
+            (-1, 2)
             sage: g.component(5)
             (-1, 0)
         """
@@ -86,13 +86,6 @@ class GammaA(AbelianGroupGap):
     """
     def __init__(self, S):
         r"""
-        Constructor.
-
-        TESTS::
-
-            sage: from sage.groups.fqf_orthogonal.spinor import GammaA
-            sage: gammaA = GammaA([2,5])
-            sage: TestSuite(gammaA).run()
         """
         n = 3*len(S) + 1
         self._S = S

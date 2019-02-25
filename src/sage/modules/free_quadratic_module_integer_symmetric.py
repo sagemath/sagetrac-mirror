@@ -1271,11 +1271,20 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: G.order()
             12
 
-        If the lattice is indefinite, sage does not know how to compute generators.
-        Can you teach it?::
+        Or indefinite of rank 2::
 
             sage: U = IntegralLattice(Matrix(ZZ,2,[0,1,1,0]))
             sage: U.orthogonal_group()
+            Group of isometries with 2 generators (
+            [-1  0]  [0 1]
+            [ 0 -1], [1 0]
+            )
+
+        If the lattice is indefinite of rank at least three, sage does not know how to compute generators.
+        Can you teach it?::
+
+            sage: L = IntegralLattice(matrix.diagonal([1,1,-1]))
+            sage: L.orthogonal_group()
             Traceback (most recent call last):
             ...
             NotImplementedError: currently, we can only compute generators for orthogonal groups over definite lattices.
@@ -1385,12 +1394,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L = IntegralLattice(matrix.diagonal([1,-2,64])*2)
             sage: L.genus_group().order()
             2
-            sage: G = Matrix(ZZ,3,3,[])
             sage: L = IntegralLattice(matrix.diagonal([1,-2,64])*2)
             sage: L.genus_group().order()
             2
-
-
         """
         sig = self.signature_pair()
         rk = self.rank()
@@ -1408,7 +1414,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             gammaS = Gamma.gammaS()
             gens = list(f.image(f.domain()).gens()) + [codom(g) for g in gammaS]
             sub = codom.subgroup(gens)
-            return codom.order() / sub.order()
+            return codom.quotient(sub)
 
     def image_in_Oq(self):
         r"""

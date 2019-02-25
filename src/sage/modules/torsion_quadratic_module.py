@@ -1746,7 +1746,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
             sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
             sage: q, fs , fo = q1.direct_sum(q2)
-            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
+            sage: q.all_primitive(3*fs.image(),fo.image())
         """
         if h1 is None:
             h1 = G1.one()

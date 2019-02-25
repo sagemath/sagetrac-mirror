@@ -63,7 +63,7 @@ class AdelicSquareClasses(AbelianGroupGap):
             sage: from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
             sage: AS = AdelicSquareClasses((2,3,7))
             sage: AS.to_square_class(5,7)
-            f6
+            f4
             sage: AS.to_square_class(5,2)
             f2
             sage: AS.to_square_class(-5,2)
@@ -110,9 +110,7 @@ class AdelicSquareClasses(AbelianGroupGap):
             sage: from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
             sage: AS = AdelicSquareClasses((2,3,7))
             sage: AS.delta(2, prime=3)
-            f4
-            sage: AS.delta(2)
-            f3*f4
+            f3
         """
         r = QQ(r)
         if prime is None:
