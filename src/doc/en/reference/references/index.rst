@@ -4385,9 +4385,11 @@ REFERENCES:
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
 
-.. [New2003] Newman, M.E.J. *The Structure and function of complex
-             networks*, SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
-             :doi:`10.1137/S003614450342480`.
+.. [Neu1981] Walter D. Neumann, *A calculus for plumbing applied to the
+             topology of complex surface singularities and degenerating
+             complex curves*, Transactions of the American
+             Mathematical Society, Vol. 268, No. 2 (Dec., 1981),
+             pp. 4807--4823
 
 .. [Nie2013] Johan S. R. Nielsen, List Decoding of Algebraic Codes,
              Ph.D. Thesis, Technical University of Denmark, 2013
