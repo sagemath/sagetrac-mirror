@@ -1007,6 +1007,16 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return (gcd((self/M).invariants()) == 0)
 
+    def kernel_sublattice(self, f):
+        r"""
+        """
+        try:
+            f = f.matrix()
+        except AttributeError:
+            pass
+        K = self.ambient_vector_space().span(f.kernel().gens())
+        return self.sublattice((self & K).gens())
+
     def maximal_overlattice(self, p=None):
         r"""
         Return a maximal even integral overlattice of this lattice.
