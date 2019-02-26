@@ -28,4 +28,6 @@ lazy_import('sage.geometry.ribbon_graph', 'RibbonGraph')
 lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')
 
+lazy_import('sage.geometry.plumbing_graph', ['PlumbingGraph', 'genus_hash', 'big_genus_hash'])
+
 del absolute_import

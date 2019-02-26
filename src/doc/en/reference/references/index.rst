@@ -2645,6 +2645,12 @@ REFERENCES:
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
 
+.. [Neu1981] Walter D. Neumann, *A calculus for plumbing applied to the
+             topology of complex surface singularities and degenerating
+             complex curves*, Transactions of the American
+             Mathematical Society, Vol. 268, No. 2 (Dec., 1981),
+             pp. 4807--4823
+
 .. [Nie2013] Johan S. R. Nielsen, List Decoding of Algebraic Codes,
              Ph.D. Thesis, Technical University of Denmark, 2013
 
