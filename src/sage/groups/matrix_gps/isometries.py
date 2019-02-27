@@ -42,6 +42,8 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 from sage.categories.action import Action
+from sage.modules.fg_pid.fgp_module import is_FGP_Module
+from sage.modules.free_module import is_FreeModule
 
 
 class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
@@ -60,11 +62,8 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
     - ``category`` -- (default: ``None``) a category of groups
     - ``check`` -- bool (default: ``True``) check if the generators
       preserve the bilinear form
-    - ``invariant_submodule`` -- a submodule preserved by the group action
-      (default: ``None``) registers an action on this submodule.
-    - ``invariant_quotient_module`` -- a quotient module preserved by
-      the group action (default: ``None``)
-      registers an action on this quotient module.
+    - ``invariant_submodule`` -- DEPRECATED
+    - ``invariant_quotient_module`` -- DEPRECATED
 
     EXAMPLES::
 
@@ -107,20 +106,15 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             sage: TestSuite(O).run()
         """
         from copy import copy
-        G = copy(invariant_bilinear_form)
-        G.set_immutable()
+        if invariant_bilinear_form.is_mutable():
+            G = copy(invariant_bilinear_form)
+            G.set_immutable()
+        else:
+            G = invariant_bilinear_form
         self._invariant_bilinear_form = G
-        self._invariant_submodule = invariant_submodule
-        self._invariant_quotient_module = invariant_quotient_module
         if check:
-            I = invariant_submodule
-            Q = invariant_quotient_module
             for f in gens:
                 self._check_matrix(f)
-                if (not I is None) and I*f != I:
-                    raise ValueError("the submodule is not preserved")
-                if not Q is None and (Q.W() != Q.W()*f or Q.V()*f != Q.V()):
-                    raise ValueError("the quotient module is not preserved")
         if len(gens) == 0:    # handle the trivial group
             gens = [G.parent().identity_matrix()]
         from sage.libs.gap.libgap import libgap
@@ -178,9 +172,7 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
         args = (self.degree(), self.base_ring(),
                 tuple(g.matrix() for g in self.gens()), self._invariant_bilinear_form,
                 self.category(),
-                False,
-                self._invariant_submodule,
-                self._invariant_quotient_module)
+                False)
         return (GroupOfIsometries, args)
 
     def invariant_bilinear_form(self):
@@ -212,14 +204,17 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             sage: from sage.groups.matrix_gps.isometries import GroupOfIsometries
             sage: bil = Matrix(ZZ,2,[3,2,2,3])
             sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-            sage: S = ZZ^2
+            sage: S = FreeQuadraticModule(ZZ,2,bil)
             sage: T = S/(6*S)
             sage: O = GroupOfIsometries(2, ZZ, gens, bil, invariant_submodule=S, invariant_quotient_module=T)
             sage: O._get_action_(S, operator.mul, False)
             Right action by Group of isometries with 1 generator (
             [ 0 -1]
             [-1  0]
-            ) on Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            ) on Ambient free quadratic module of rank 2 over the principal ideal domain Integer Ring
+            Inner product matrix:
+            [3 2]
+            [2 3]
             sage: U = T.submodule([2*t for t in T.gens()])
             sage: u = U.an_element()
             sage: f = O.an_element()
@@ -228,17 +223,16 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
         """
         import operator
         if op == operator.mul and not self_on_left:
-            if S is self._invariant_submodule:
+            if (is_FreeModule(S)
+                and S.inner_product_matrix() == self.invariant_bilinear_form()
+                and all(S == S * f.matrix() for f in self.gens())):
                 return GroupActionOnSubmodule(self, S)
-            if S is self._invariant_quotient_module:
-                return GroupActionOnQuotientModule(self, S)
-            from sage.modules.fg_pid.fgp_module import is_FGP_Module
-            T = self._invariant_quotient_module
             if is_FGP_Module(S):
-                if S.is_submodule(T):
-                    V = S.V()
-                    if all(V == V * f.matrix() for f in self.gens()):
-                        return GroupActionOnQuotientModule(self, S)
+                V = S.V()
+                W = S.W()
+                if (all(V == V * f.matrix() for f in self.gens())
+                    and all(W == W * f.matrix() for f in self.gens())):
+                    return GroupActionOnQuotientModule(self, S)
         return None
 
     def _check_matrix(self, x, *args):
@@ -281,7 +275,7 @@ class GroupActionOnSubmodule(Action):
         sage: from sage.groups.matrix_gps.isometries import GroupOfIsometries
         sage: S = span(ZZ,[[0,1]])
         sage: g = Matrix(QQ,2,[1,0,0,-1])
-        sage: G = GroupOfIsometries(2, ZZ, [g], invariant_bilinear_form=matrix.identity(2), invariant_submodule=S)
+        sage: G = GroupOfIsometries(2, ZZ, [g], invariant_bilinear_form=matrix.identity(2))
         sage: g = G.an_element()
         sage: x = S.an_element()
         sage: x*g

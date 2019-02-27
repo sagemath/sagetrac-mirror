@@ -1201,9 +1201,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                               base,
                               gens,
                               inv_bil,
-                              category=cat,
-                              invariant_submodule=self,
-                              invariant_quotient_module=D)
+                              category=cat)
+        from sage.groups.matrix_gps.isometries import GroupActionOnSubmodule, GroupActionOnQuotientModule
+        self._unset_coercions_used()
+        D._unset_coercions_used()
+        self.register_action(GroupActionOnSubmodule(G,self))
+        D.register_action(GroupActionOnQuotientModule(G,D))
         return G
 
     automorphisms=orthogonal_group
