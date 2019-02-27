@@ -3075,16 +3075,21 @@ class GenusSymbol_global_ring(object):
         if LLL:
             sig = self.signature_pair_of_matrix()
             if sig[0]*sig[1] != 0:
-                from sage.env import SAGE_EXTCODE
-                from sage.interfaces.gp import Gp
-                from cypari2.pari_instance import Pari
-                pari = Pari()
-                gp = Gp()
-                m = pari(L)
-                gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
-                m = gp.eval('qflllgram_indefgoon(%s)'%m)
-                # convert the output string to sage
-                L = pari(m).sage()[0]
+                # sometimes gp opts out
+                # of memory, then we do not LLL reduce
+                try:
+                    from sage.env import SAGE_EXTCODE
+                    from sage.interfaces.gp import Gp
+                    from cypari2.pari_instance import Pari
+                    pari = Pari()
+                    gp = Gp()
+                    m = pari(L)
+                    gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
+                    m = gp.eval('qflllgram_indefgoon(%s)'%m)
+                    # convert the output string to sage
+                    L = pari(m).sage()[0]
+                except OSError:
+                    pass
             elif sig[1] != 0:
                 U = -(-L).LLL_gram()
                 L = U.T * L * U

@@ -1699,10 +1699,10 @@ class TorsionQuadraticModule(FGP_Module_class):
                     continue
                 else:
                     # make it equivariant
-                    g = O2.gap().RepresentativeAction(h1_on_S2, h2_on_S2)
-                    phi = phi*g
-                assert h2_on_S2==phi.InducedAutomorphism(O1(h1).gap())
-
+                    g0 = O2.gap().RepresentativeAction(h1_on_S2, h2_on_S2)
+                    phi = phi*g0
+                h1_on_S2 = phi.InducedAutomorphism(O1(h1).gap())
+                assert h1_on_S2 == h2_on_S2
                 center = O2.gap().Centraliser(h2_on_S2)
 
                 stab1phi= [phi.InducedAutomorphism(O1(g).gap()) for g in stab1.gens()]
@@ -1713,8 +1713,9 @@ class TorsionQuadraticModule(FGP_Module_class):
 
                 for g in reps:
                     g = g[0]
-                    phig = phi*g
-                    g = O2(g)
+                    # phig = phi*g0*g
+                    g = O2(g0*g)
+                    # graph of phig
                     gens = [i1(S1n.gen(k)) + i2(S2n.gen(k)*g) for k in range(n)]
                     ext = D.submodule(gens)
                     # we also need the centralizer of h1 x h2 in S1 x S2

@@ -130,6 +130,7 @@ ElemAbelSubgrpOrbsStabs_equiv:=function(G, aut, gens_aut, gens_act, min_order, m
   fi;
 
   for k in [min..max] do
+    # list subspaces and filter the invariant ones
     subs:= List(Subspaces(V, k), i->Basis(i));
     subs:= Filtered(subs, i-> act(i,g)=i);
     # somehow this is slow
