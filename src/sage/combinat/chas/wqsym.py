@@ -498,7 +498,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi', 'H', 'E', 'R'])
+    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi', 'H', 'E', 'R', 'N', 'HD'])
 
     # add options to class
     class options(GlobalOptions):
@@ -792,18 +792,6 @@ sage: import time
 sage: t0 = time.time(); m4HQ = matr_chgmt_base_osp(H,Q,4); print time.time() - t0; m4QH = matr_chgmt_base_osp(Q,H,4); print time.time() - t0
 16.4242839813
 51.6398468018
-
-TODO
-c'est encore long je trouve.... faut que je regarde si c'est aussi long avec les PW... c'est bcp moins long... faut comprendre pk.......... c'est trop relou!!!
-
-sage: t0 = time.time(); m4HQ = matr_chgmt_base_pw(GL,L,4); print
-....:  time.time() - t0; m4QH = matr_chgmt_base_pw(L,GL,4); prin
-....: t time.time() - t0
-6.23473000526
-13.2976300716
-
-
-
             sage: Q = H.realization_of().Q()
             sage: if not P:
             ....:    print Q.one()
@@ -1120,7 +1108,7 @@ sage: matr_chgmt_base_osp(E,M,3)
     E = Elementaire
 
 ######## autre base ##########
-# TODO    
+
     class RightWeakOrder(WQSymBasis_abstract):
         r"""
         The Right Weak Order basis of `WQSym`.
@@ -1139,117 +1127,35 @@ sage: matr_chgmt_base_osp(E,M,3)
             
 sage: WQSym = algebras.WQSym(QQ)
 sage: WQSym.inject_shorthands()
-Defining M as shorthand for Word Quasi-symmetric functions over Rational Field in the Monomial basis
-Defining X as shorthand for Word Quasi-symmetric functions over Rational Field in the Characteristic basis
-Defining C as shorthand for Word Quasi-symmetric functions over Rational Field in the Cone basis
-Defining Q as shorthand for Word Quasi-symmetric functions over Rational Field in the Q basis
-Defining Phi as shorthand for Word Quasi-symmetric functions over Rational Field in the Phi basis
-Defining H as shorthand for Word Quasi-symmetric functions over Rational Field in the Homogeneous basis
-Defining E as shorthand for Word Quasi-symmetric functions over Rational Field in the Elementaire basis
 sage: H.options.objects = 'words'
 sage: matr_chgmt_base_osp = lambda X,Y, n: matrix([[Y(X(mu)).coefficient(sigma) for mu in OrderedSetPartitions(n)] for sigma in OrderedSetPartitions(n)])
-sage: matr_chgmt_base_osp(H,Q,3)
-[1 0 0 0 0 0 0 0 0 0 0 0 0]
-[1 1 0 0 0 0 0 0 0 0 0 0 0]
-[1 0 1 0 0 0 0 0 0 0 0 0 0]
-[1 1 0 1 0 0 0 0 0 0 0 0 0]
-[1 0 1 0 1 0 0 0 0 0 0 0 0]
-[1 1 1 1 1 1 0 0 0 0 0 0 0]
-[0 0 0 0 0 0 1 0 0 0 0 0 0]
-[0 0 0 0 0 0 0 1 0 0 0 0 0]
-[0 0 0 0 0 0 0 0 1 1 0 0 0]
-[0 0 0 0 0 0 0 0 0 1 0 0 0]
-[0 0 0 0 0 0 0 0 0 0 1 0 0]
-[0 0 0 0 0 0 1 0 0 0 0 1 0]
-[0 0 0 0 0 0 0 0 0 0 0 0 1]
-sage: matr_chgmt_base_osp(H,E,3)
-[0 0 0 0 0 1 0 0 0 0 0 0 0]
-[0 0 0 1 0 0 0 0 0 0 0 0 0]
-[0 0 0 0 1 0 0 0 0 0 0 0 0]
-[0 1 0 0 0 0 0 0 0 0 0 0 0]
-[0 0 1 0 0 0 0 0 0 0 0 0 0]
-[1 0 0 0 0 0 0 0 0 0 0 0 0]
-[0 0 0 0 0 0 0 0 1 0 0 0 0]
-[0 0 0 0 0 0 0 1 0 0 0 0 0]
-[0 0 0 0 0 0 1 0 0 0 0 0 0]
-[0 0 0 0 0 0 0 0 0 0 0 1 0]
-[0 0 0 0 0 0 0 0 0 0 1 0 0]
-[0 0 0 0 0 0 0 0 0 1 0 0 0]
-[0 0 0 0 0 0 0 0 0 0 0 0 1]
-sage: matr_chgmt_base_osp(E,H,3)
-[0 0 0 0 0 1 0 0 0 0 0 0 0]
-[0 0 0 1 0 0 0 0 0 0 0 0 0]
-[0 0 0 0 1 0 0 0 0 0 0 0 0]
-[0 1 0 0 0 0 0 0 0 0 0 0 0]
-[0 0 1 0 0 0 0 0 0 0 0 0 0]
-[1 0 0 0 0 0 0 0 0 0 0 0 0]
-[0 0 0 0 0 0 0 0 1 0 0 0 0]
-[0 0 0 0 0 0 0 1 0 0 0 0 0]
-[0 0 0 0 0 0 1 0 0 0 0 0 0]
-[0 0 0 0 0 0 0 0 0 0 0 1 0]
-[0 0 0 0 0 0 0 0 0 0 1 0 0]
-[0 0 0 0 0 0 0 0 0 1 0 0 0]
-[0 0 0 0 0 0 0 0 0 0 0 0 1]
-sage: matr_chgmt_base_osp(E,Q,3)
-[0 0 0 0 0 1 0 0 0 0 0 0 0]
-[0 0 0 1 0 1 0 0 0 0 0 0 0]
-[0 0 0 0 1 1 0 0 0 0 0 0 0]
-[0 1 0 1 0 1 0 0 0 0 0 0 0]
-[0 0 1 0 1 1 0 0 0 0 0 0 0]
-[1 1 1 1 1 1 0 0 0 0 0 0 0]
-[0 0 0 0 0 0 0 0 1 0 0 0 0]
-[0 0 0 0 0 0 0 1 0 0 0 0 0]
-[0 0 0 0 0 0 1 0 0 0 0 1 0]
-[0 0 0 0 0 0 0 0 0 0 0 1 0]
-[0 0 0 0 0 0 0 0 0 0 1 0 0]
-[0 0 0 0 0 0 0 0 1 1 0 0 0]
-[0 0 0 0 0 0 0 0 0 0 0 0 1]
-sage: matr_chgmt_base_osp(Q,E,3)
-[ 1  0  0 -1 -1  1  0  0  0  0  0  0  0]
-[ 0 -1  0  1  0  0  0  0  0  0  0  0  0]
-[ 0  0 -1  0  1  0  0  0  0  0  0  0  0]
-[-1  1  0  0  0  0  0  0  0  0  0  0  0]
-[-1  0  1  0  0  0  0  0  0  0  0  0  0]
-[ 1  0  0  0  0  0  0  0  0  0  0  0  0]
-[ 0  0  0  0  0  0  0  0  1 -1  0  0  0]
-[ 0  0  0  0  0  0  0  1  0  0  0  0  0]
-[ 0  0  0  0  0  0  1  0  0  0  0  0  0]
-[ 0  0  0  0  0  0 -1  0  0  0  0  1  0]
-[ 0  0  0  0  0  0  0  0  0  0  1  0  0]
-[ 0  0  0  0  0  0  0  0  0  1  0  0  0]
-[ 0  0  0  0  0  0  0  0  0  0  0  0  1]
-sage: matr_chgmt_base_osp(M,E,3)
-[ 1  0  0 -1 -1  1  0  0  0  0  0  0  0]
-[ 0 -1  0  1  0  0  0  0  0  0  0  0  0]
-[ 0  0 -1  0  1  0  0  0  0  0  0  0  0]
-[-1  1  0  0  0  0  0  0  0  0  0  0  0]
-[-1  0  1  0  0  0  0  0  0  0  0  0  0]
-[ 1  0  0  0  0  0  0  0  0  0  0  0  0]
-[ 1  0  0 -1  0  0  0  0  1 -1  0  0  0]
-[ 0  0 -1  0  0  0  0  1  0  0  0  0  0]
-[-1  0  0  0  0  0  1  0  0  0  0  0  0]
-[ 1  0  0  0 -1  0 -1  0  0  0  0  1  0]
-[ 0 -1  0  0  0  0  0  0  0  0  1  0  0]
-[-1  0  0  0  0  0  0  0  0  1  0  0  0]
-[ 1  0  0  0  0  0 -1  0  0 -1  0  0  1]
-sage: matr_chgmt_base_osp(E,M,3)
+sage: matr_chgmt_base_osp(E,R,3)
+sage: matr_chgmt_base_osp(R,E,3)
             """
             WQSymBasis_abstract.__init__(self, alg)
 #TODO j'aimerais bien enlever la fct new_rank ici pcq c'est pas utile.... pour l'instant ça marche pas bien...
-            # @cached_function
-            # def new_rank(x):
-            #     return (SetPartition(x),x.to_packed_word())
+            @cached_function
+            def new_rank(x):
+                return (x.to_composition(),x.to_packed_word())
             
             E = self.realization_of().E()
-            phi = E.module_morphism(self._E_to_R, codomain=self, unitriangular="lower")#, key=new_rank)
+            phi = E.module_morphism(self._E_to_R, codomain=self, unitriangular="upper", key=new_rank)
             phi.register_as_coercion()
             inv_phi = ~phi
             inv_phi.register_as_coercion()
+
             
-            # M = self.realization_of().M()
-            # M.register_coercion(M.coerce_map_from(Q) * phi)
-            # self.register_coercion(inv_phi * Q.coerce_map_from(M))
+            H = self.realization_of().H()
+            H.register_coercion(H.coerce_map_from(E) * inv_phi)
+            self.register_coercion(phi * E.coerce_map_from(H))
             
+            Q = self.realization_of().Q()
+            Q.register_coercion(Q.coerce_map_from(E) * inv_phi)
+            self.register_coercion(phi * E.coerce_map_from(Q))
+            
+            M = self.realization_of().M()
+            M.register_coercion(M.coerce_map_from(E) * inv_phi)
+            self.register_coercion(phi * E.coerce_map_from(M))
 
         @cached_method
         def _E_to_R(self, P):
@@ -1258,7 +1164,9 @@ sage: WQSym = algebras.WQSym(QQ)
 sage: WQSym.inject_shorthands()
 sage: H.options.objects = 'words'
 sage: E(R[1,3,2])
-sage: R(E[1,3,2,1])
+sage: E(R[2,1,3])
+sage: E(R[2,2,1])
+
 
             """
             E = self.realization_of().E()
@@ -1295,39 +1203,207 @@ sage: R(E[1,3,2,1])
         #     of the Elementaire basis ``self`` indexed by the ordered set partitions
         #     `x` and `y`.
 
-        #     This is the concatenating product of shifted `y` and `x`.
+        #     This is the classical shifted shuffle on pw `x` and `y`.
 
-        #     EXAMPLES::
-
-        #         sage: A = algebras.WQSym(QQ).E()
-        #         sage: x = OrderedSetPartition([[1],[2,3]])
-        #         sage: y = OrderedSetPartition([[1,2]])
-        #         sage: z = OrderedSetPartition([[1,2],[3]])
-        #         sage: A.product_on_basis(x, y)
-        #         E[{4, 5}, {1}, {2, 3}]
-        #         sage: A.product_on_basis(x, z)
-        #         E[{4, 5}, {6}, {1}, {2, 3}]
-        #         sage: A.product_on_basis(y, y)
-        #         E[{3, 4}, {1, 2}]
-
-        #     TESTS::
-
-        #         sage: one = OrderedSetPartition([])
-        #         sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
-        #         True
-        #         sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
-        #         True
-        #     """
-        #     K = self.basis().keys()
-        #     if not x:
-        #         return self.monomial(y)
-        #     m = max(max(part) for part in x) # The degree of x
-        #     x = [set(part) for part in x]
-        #     yshift = [[val + m for val in part] for part in y]
-        #     return self.monomial(K(yshift + x))
 
     R = RightWeakOrder
 
+######## autre base ##########
+
+    class ElementaireDual(WQSymBasis_abstract):
+        r"""
+        The dual basis of Elementaire basis of `WQSym`.
+        """
+        _prefix = "N"
+        _basis_name = "ElementaireDual"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: R = algebras.WQSym(QQ).R()
+                sage: TestSuite(R).run()  # long time
+            
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+sage: H.options.objects = 'words'
+sage: matr_chgmt_base_osp = lambda X,Y, n: matrix([[Y(X(mu)).coefficient(sigma) for mu in OrderedSetPartitions(n)] for sigma in OrderedSetPartitions(n)])
+sage: matr_chgmt_base_osp(N,Q,3)
+sage: matr_chgmt_base_osp(Q,N,3)
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+#TODO j'aimerais bien enlever la fct new_rank ici pcq c'est pas utile.... pour l'instant ça marche pas bien...
+            @cached_function
+            def new_rank(x):
+                return (x.to_composition(),x.to_packed_word())
+            
+            Q = self.realization_of().Q()
+            phi = Q.module_morphism(self._Q_to_N, codomain=self, unitriangular="lower", key=new_rank)
+            phi.register_as_coercion()
+            inv_phi = ~phi
+            inv_phi.register_as_coercion()
+
+            
+            H = self.realization_of().H()
+            H.register_coercion(H.coerce_map_from(Q) * inv_phi)
+            self.register_coercion(phi * Q.coerce_map_from(H))
+                        
+            M = self.realization_of().M()
+            M.register_coercion(M.coerce_map_from(Q) * inv_phi)
+            self.register_coercion(phi * Q.coerce_map_from(M))
+            
+            R = self.realization_of().R()
+            R.register_coercion(R.coerce_map_from(Q) * inv_phi)
+            self.register_coercion(phi * Q.coerce_map_from(R))
+            
+            E = self.realization_of().E()
+            E.register_coercion(E.coerce_map_from(Q) * inv_phi)
+            self.register_coercion(phi * Q.coerce_map_from(E))
+
+        @cached_method
+        def _Q_to_N(self, P):
+            """
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+sage: H.options.objects = 'words'
+sage: Q(N[1,3,2])
+sage: Q(N[2,1,3])
+sage: Q(N[2,2,1])
+
+
+            """
+            Q = self.realization_of().Q()
+            if not P:
+                return self.one()
+            PW = PackedWords().from_ordered_set_partition(P)
+            Ring = self.base_ring()
+            one = Ring.one()
+            return self._from_dict({G.to_ordered_set_partition():
+                                 one for G in PW.right_weak_order_greater()}, coerce=False)
+
+        
+            WQSymBasis_abstract.__init__(self, alg)
+            
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Homogeneous basis.
+
+            EXAMPLES::
+
+                sage: H = algebras.WQSym(QQ).H()
+                sage: H.some_elements()
+                [H[], H[{1}], H[{1, 2}], H[] + 1/2*H[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+    N = ElementaireDual
+    
+######## autre base ##########
+# TODO    
+    class HomogeneousDual(WQSymBasis_abstract):
+        r"""
+        The dual basis of Homogeneous basis of `WQSym`.
+        """
+        _prefix = "HD"
+        _basis_name = "HomogeneousDual"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: R = algebras.WQSym(QQ).R()
+                sage: TestSuite(R).run()  # long time
+            
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+sage: H.options.objects = 'words'
+sage: matr_chgmt_base_osp = lambda X,Y, n: matrix([[Y(X(mu)).coefficient(sigma) for mu in OrderedSetPartitions(n)] for sigma in OrderedSetPartitions(n)])
+sage: matr_chgmt_base_osp(HD,R,3)
+sage: matr_chgmt_base_osp(R,HD,3)
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+#TODO j'aimerais bien enlever la fct new_rank ici pcq c'est pas utile.... pour l'instant ça marche pas bien...
+            @cached_function
+            def new_rank(x):
+                return (SetPartition(x),x.to_packed_word())
+            
+            R = self.realization_of().R()
+            phi = R.module_morphism(self._R_to_HD, codomain=self, unitriangular="lower", key=new_rank)
+            phi.register_as_coercion()
+            inv_phi = ~phi
+            inv_phi.register_as_coercion()
+
+            
+            H = self.realization_of().H()
+            H.register_coercion(H.coerce_map_from(R) * inv_phi)
+            self.register_coercion(phi * R.coerce_map_from(H))
+                        
+            M = self.realization_of().M()
+            M.register_coercion(M.coerce_map_from(R) * inv_phi)
+            self.register_coercion(phi * R.coerce_map_from(M))
+            
+            E = self.realization_of().E()
+            E.register_coercion(E.coerce_map_from(R) * inv_phi)
+            self.register_coercion(phi * R.coerce_map_from(E))
+            
+            N = self.realization_of().N()
+            N.register_coercion(N.coerce_map_from(R) * inv_phi)
+            self.register_coercion(phi * R.coerce_map_from(N))
+            
+            Q = self.realization_of().Q()
+            Q.register_coercion(Q.coerce_map_from(R) * inv_phi)
+            self.register_coercion(phi * R.coerce_map_from(Q))
+
+        @cached_method
+        def _R_to_HD(self, P):
+            """
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+sage: H.options.objects = 'words'
+sage: R(HD[1,3,2])
+sage: R(HD[2,1,3])
+sage: R(HD[2,2,1])
+
+
+            """
+            R = self.realization_of().R()
+            if not P:
+                return self.one()
+            PW = PackedWords().from_ordered_set_partition(P)
+            Ring = self.base_ring()
+            one = Ring.one()
+            return self._from_dict({G.to_ordered_set_partition():
+                                 one for G in PW.left_weak_order_greater()}, coerce=False)
+
+        
+            WQSymBasis_abstract.__init__(self, alg)
+            
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Homogeneous basis.
+
+            EXAMPLES::
+
+                sage: H = algebras.WQSym(QQ).H()
+                sage: H.some_elements()
+                [H[], H[{1}], H[{1, 2}], H[] + 1/2*H[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+    HD = HomogeneousDual
+    
     ############### HuxoD End #############
 
     class Characteristic(WQSymBasis_abstract):
