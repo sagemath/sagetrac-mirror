@@ -1027,11 +1027,7 @@ REFERENCES:
              *The stability of the Kronecker products of Schur
              functions*.
              :arxiv:`0907.4652v2`.
-             
-.. [BPP2017] J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
-             surface homeomorphisms by tete-a-tete graphs*. 
-             :arxiv:`arXiv:1706.05580`
-             
+
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
 
@@ -2629,6 +2625,7 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
+<<<<<<< HEAD
 .. [Graham1985] \J. Graham,
                 *Modular representations of Hecke algebras and related algebras*.
                 PhD thesis, University of Sydney, 1985.
@@ -2636,6 +2633,11 @@ REFERENCES:
 .. [GriRei16] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
               :arxiv:`1409.8356v4`.
+=======
+.. [GriRei18] Darij Grinberg, Victor Reiner,
+              *Hopf Algebras in Combinatorics*,
+              :arxiv:`1409.8356v5`.
+>>>>>>> 7f8b361ca4 (Revert "Merge branch 'u/gh-baldursigurds/plumbing_graph' of git://trac.sagemath.org/sage into t/26945/plumbing_graph")
 
 .. [GR1989] \A. M. Garsia, C. Reutenauer. *A decomposition of Solomon's
             descent algebra.* Adv. Math. **77** (1989).
@@ -4392,12 +4394,6 @@ REFERENCES:
 
 .. [Nie2013] Johan S. R. Nielsen, List Decoding of Algebraic Codes,
              Ph.D. Thesis, Technical University of Denmark, 2013
-
-.. [Neu1981] Walter D. Neumann, *A calculus for plumbing applied to the
-             topology of complex surface singularities and degenerating
-             complex curves*, Transactions of the American
-             Mathematical Society, Vol. 268, No. 2 (Dec., 1981),
-             pp. 4807--4823
 
 .. [Nie] Johan S. R. Nielsen, Codinglib,
          https://bitbucket.org/jsrn/codinglib/.
