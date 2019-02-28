@@ -28,7 +28,7 @@ def get_precision():
 
        The precision used in eclib is binary (bit precision).  Until
        v20190226, it used bit precision internally but decimal
-       procision in the user interface.
+       precision in the user interface.
 
     OUTPUT:
 
