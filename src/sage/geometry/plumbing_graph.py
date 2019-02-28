@@ -609,7 +609,7 @@ class PlumbingGraph():
         
         An integer, the degree of i.
 
-        EXAMPLES::
+        EXAMPLES:
         
         We construct here the E_8 graph, and check some degrees:
         
@@ -1236,7 +1236,7 @@ class PlumbingGraph():
 
         Returns the new vertex.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Create a plumbing graph having one (-1)-vertex. This corresponds
         to blowing up the origin in \C^2.
@@ -1578,7 +1578,7 @@ class PlumbingGraph():
         
         True or False
         
-        EXAMPLES::
+        EXAMPLES:
         
         We construct a Seifert graph with a central vertex with genus -1,
         and extrude it.
@@ -2148,7 +2148,7 @@ class PlumbingGraph():
         
         - ``i`` -- a vertex.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Example a:
 
@@ -2423,7 +2423,7 @@ class PlumbingGraph():
 
         True or False.
 
-        EXAMPLES::
+        EXAMPLES:
         
         D_4 is in normal form:
 
@@ -2640,7 +2640,7 @@ class PlumbingGraph():
 
         True or False.
 
-        EXAMPLES::
+        EXAMPLES:
         
         We construct an example that is the exception, i.e. the neighbor
         of the vertex 0 is an interior vertex in a chain. Then we change
@@ -3571,7 +3571,7 @@ class PlumbingGraph():
 
         True if N3() holds in the end, otherwise False.
 
-        EXAMPLES::
+        EXAMPLES:
 
         In the following example, we start by creating a Seifert graph
         with two (-2)-neighbors which are leaves, like in N3. For this to
@@ -3677,7 +3677,7 @@ class PlumbingGraph():
         
         True or False.
 
-        EXAMPLES::
+        EXAMPLES:
 
         We test all the examples on p. 315 of [Neu1981].
 
@@ -3830,7 +3830,7 @@ class PlumbingGraph():
         
         True or False
         
-        EXAMPLES::
+        EXAMPLES:
 
         A cycle with positive edges:
 
