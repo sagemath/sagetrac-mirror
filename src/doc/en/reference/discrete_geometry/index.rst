@@ -111,6 +111,7 @@ Miscellaneous
    sage/geometry/tat_graph
    sage/geometry/pseudolines
    sage/geometry/voronoi_diagram
+   sage/geometry/plumbing_graph
 
 Helper functions
 ----------------
