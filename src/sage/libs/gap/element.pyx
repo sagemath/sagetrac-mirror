@@ -2407,7 +2407,6 @@ cdef class GapElement_Function(GapElement):
             libgap = self.parent()
             a = [x if isinstance(x, GapElement) else libgap(x) for x in args]
 
-        sig_on()
         try:
             GAP_Enter()
             if n == 0:
@@ -2456,7 +2455,6 @@ cdef class GapElement_Function(GapElement):
             return make_any_gap_element(self.parent(), result)
         finally:
             GAP_Leave()
-            sig_off()
 
 
 
