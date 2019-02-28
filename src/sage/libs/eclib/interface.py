@@ -45,7 +45,8 @@ def get_precision():
     return get_precision()
 
 def set_precision(n):
-    r""" Set the global NTL real number bit precision.  This has a massive
+    r"""
+    Set the global NTL real number bit precision.  This has a massive
     effect on the speed of mwrank calculations.  The default (used if
     this function is not called) is ``n=150``, but it might have to be
     increased if a computation fails.  See also :meth:`get_precision`.
