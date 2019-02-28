@@ -65,9 +65,10 @@ def genus_hash(a,b):
     OUTPUT:
 
     An integer, the genus of the connected sum of two surfaces having
-    genus a and b. See p. 304 of [Neu1981].
+    genus a and b. See p. 304 of [Neu1981]_.
 
     EXAMPLES::
+
         sage: genus_hash(2,3)
         5
         sage: genus_hash(-2,3)
@@ -123,7 +124,7 @@ class PlumbingGraph():
     r"""
     A plumbing graph is a decorated graph which encodes graph manifolds.
 
-    We implement the calculus described in [Neu1981]. The plumbing
+    We implement the calculus described in [Neu1981]_. The plumbing
     construction creates a graph manifold (three dimensional) specified
     by a plumbing graph. Each vertex of the graph specifies an
     S^1-bundle over a surface, and for each edge, the corresponding
@@ -133,7 +134,7 @@ class PlumbingGraph():
     number of boundary components of the surface, r. Each edge is
     decorated by +1 or -1, which specify different gluings.
     
-    The calculus of Neumann [Neu1981] consists of several operations, or
+    The calculus of Neumann [Neu1981]_ consists of several operations, or
     moves, which can be applied to a plumbing graph to get the same
     manifold. The main result is that two graphs inducing homeomorphic
     (or, equivalently, diffeomorphic) plumbed manifolds are related by a
@@ -174,6 +175,7 @@ class PlumbingGraph():
         between 0 and N-1.
     
         EXAMPLES::
+
             sage: mb = [-2,-3]
             sage: g = [1,-1]
             sage: r = [0,1]
@@ -206,7 +208,7 @@ class PlumbingGraph():
 
         A string.
 
-        Example:
+        Example::
 
             sage: P = PlumbingGraph
             sage: P = PlumbingGraph()
@@ -260,6 +262,7 @@ class PlumbingGraph():
           associated to the new vertex.
 
         EXAMPLES::
+
             sage: P = PlumbingGraph()
             sage: P
             An empty plumbing graph
@@ -611,7 +614,7 @@ class PlumbingGraph():
 
         EXAMPLES:
         
-        We construct here the E_8 graph, and check some degrees:
+        We construct here the E_8 graph, and check some degrees::
         
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-2,0,[2,3/2,5/3])
@@ -1187,7 +1190,7 @@ class PlumbingGraph():
         
         - ``e`` -- an edge.
 
-        EXAPMLES:
+        EXAPMLES::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-2,-1,[3/2,5/2,7/2])
@@ -1225,7 +1228,7 @@ class PlumbingGraph():
     
     def blow_up_disjoint(self, epsilon=-1):
         r"""
-        The opposite to R1 in [Neu1981]. Creates a new vertex in the graph
+        The opposite to R1 in [Neu1981]_. Creates a new vertex in the graph
         with g = r = 0 and mb = epsilon.
 
         INPUT:
@@ -1239,7 +1242,7 @@ class PlumbingGraph():
         EXAMPLES:
 
         Create a plumbing graph having one (-1)-vertex. This corresponds
-        to blowing up the origin in \C^2.
+        to blowing up the origin in \C^2::
 
             sage: P = PlumbingGraph()
             sage: P.blow_up_disjoint(-1)
@@ -1254,7 +1257,7 @@ class PlumbingGraph():
 
     def blow_up_vertex(self, i, epsilon=-1):
         r"""
-        The opposite to R1 in [Neu1981]. Creates a new vertex in the graph
+        The opposite to R1 in [Neu1981]_. Creates a new vertex in the graph
         with g = r = 0 and mb = epsilon, and an edge connecting it
         to i, and modifies the Euler number of i.
 
@@ -1283,7 +1286,7 @@ class PlumbingGraph():
 
     def blow_up_edge(self, e, epsilon=-1):
         r"""
-        The opposite to R1 in [Neu1981]. Creates a new vertex in the graph
+        The opposite to R1 in [Neu1981]_. Creates a new vertex in the graph
         with g = r = 0 and mb = epsilon and edges connecting it to the
         vertices adjacent to e, modifies those Euler numbers, and then
         deletes e.
@@ -1327,7 +1330,7 @@ class PlumbingGraph():
 
     def blow_down(self, i):
         r"""
-        R1 in [Neu1981]. If possible, blows down the vertex v.
+        R1 in [Neu1981]_. If possible, blows down the vertex v.
 
         INPUT:
         
@@ -1441,7 +1444,7 @@ class PlumbingGraph():
 
     def projective_absorb(self, j, i):
         r"""
-        Applies RP^2-absorption from [Neu1981], p. 305, to the graph.
+        Applies RP^2-absorption from [Neu1981]_, p. 305, to the graph.
 
         INPUT
         
@@ -1497,7 +1500,7 @@ class PlumbingGraph():
 
     def R2_candidate_neighbors(self, j):
         r"""
-        Let j be the central vertex on p. 305 in [Neu1981] with Euler number
+        Let j be the central vertex on p. 305 in [Neu1981]_ with Euler number
         delta, and two (-2)-neihbors. The function returns a set of neighbors
         which may play the role of i in that picture.
 
@@ -1570,9 +1573,9 @@ class PlumbingGraph():
 
         - ``i`` -- a vertex,
         - ``g`` -- an integer, the genus of i after extrusion.
-        - ``d`` -- an integer (delta on p. 305 of [Neu1981]),
-        - ``d1`` -- an integer (delta_1 on p. 305 of [Neu1981]),
-        - ``d2`` -- an integer (delta_2 on p. 305 of [Neu1981]),
+        - ``d`` -- an integer (delta on p. 305 of [Neu1981]_),
+        - ``d1`` -- an integer (delta_1 on p. 305 of [Neu1981]_),
+        - ``d2`` -- an integer (delta_2 on p. 305 of [Neu1981]_),
         
         OUTPUT:
         
@@ -1581,7 +1584,7 @@ class PlumbingGraph():
         EXAMPLES:
         
         We construct a Seifert graph with a central vertex with genus -1,
-        and extrude it.
+        and extrude it::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(4, -1, [4/3, 5/2, 9/4])
@@ -1613,7 +1616,7 @@ class PlumbingGraph():
 
     def zero_chain_absorb(self, k):
         r"""
-        R3 in [Neu1981]. Applies zero-chain absorption to the vertex
+        R3 in [Neu1981]_. Applies zero-chain absorption to the vertex
         k, if possible.
         
         INPUT:
@@ -1718,7 +1721,7 @@ class PlumbingGraph():
         Some vertex on which R3 can be applied, if it exists, otherwise,
         -1.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = PlumbingGraph()
             sage: P.add_bamboo(5/4)
@@ -1743,7 +1746,7 @@ class PlumbingGraph():
 
     def zero_chain_extrude(self, l, MB, G, R, E):
         r"""
-        Inverse to R3 from [Neu1981], zero-chain extrusion.
+        Inverse to R3 from [Neu1981]_, zero-chain extrusion.
 
         l is the central vertex on the picture to the right on p. 305.
         i and j are labelled on the picture to the left, and k is the
@@ -1766,7 +1769,7 @@ class PlumbingGraph():
         OUTPUT:
          
         A list of the vertices [i,k,j], where i and j are as in the
-        picture on p. 305 of [Neu1981], and k is the newly extruded
+        picture on p. 305 of [Neu1981]_, and k is the newly extruded
         zero-vertex, if the operation goes through, otherwise, the
         empty list.
         
@@ -1815,7 +1818,7 @@ class PlumbingGraph():
 
     def unoriented_handle_absorb(self, j):
         r"""
-        R4 in [Neu1981]. Applies unoriented handle absorption to the
+        R4 in [Neu1981]_. Applies unoriented handle absorption to the
         vertex j, if possible.
 
         INTPUT:
@@ -1925,7 +1928,7 @@ class PlumbingGraph():
 
     def oriented_handle_absorb(self, j):
         r"""
-        R5 in [Neu1981]. Applies oriented handle absorption to the
+        R5 in [Neu1981]_. Applies oriented handle absorption to the
         vertex j, if possible.
         
         INPUT:
@@ -2035,9 +2038,9 @@ class PlumbingGraph():
 
     def split(self, j):
         r"""
-        R6 in [Neu1981]. Applies splitting to he graph, if possible.
+        R6 in [Neu1981]_. Applies splitting to he graph, if possible.
         j is the vertex with Euler number zero in the picture on
-        page 305 of [Neu1981].
+        page 305 of [Neu1981]_.
 
         INPUT:
         
@@ -2141,7 +2144,7 @@ class PlumbingGraph():
 
     def Seifert_graph_exchange(self, i):
         r"""
-        R7 in [Neu1981]. Replaces component with a single vertex and
+        R7 in [Neu1981]_. Replaces component with a single vertex and
         loop with the appropriate star-shaped graph.
         
         INPUT:
@@ -2150,7 +2153,7 @@ class PlumbingGraph():
 
         EXAMPLES:
 
-        Example a:
+        Example a::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(-1,0,0)
@@ -2161,7 +2164,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 4 vertices
 
-        Example b:
+        Example b::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(0,0,0)
@@ -2172,7 +2175,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 4 vertices
         
-        Example c:
+        Example c::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(1,0,0)
@@ -2183,7 +2186,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 4 vertices
         
-        Example d:
+        Example d::
         
             sage: P = PlumbingGraph()
             sage: P.add_vertex(-1,0,0)
@@ -2194,7 +2197,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 7 vertices
         
-        Example e:
+        Example e::
         
             sage: P = PlumbingGraph()
             sage: P.add_vertex(0,0,0)
@@ -2205,7 +2208,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 8 vertices
         
-        Example f:
+        Example f::
         
             sage: P = PlumbingGraph()
             sage: P.add_vertex(1,0,0)
@@ -2314,7 +2317,7 @@ class PlumbingGraph():
 
     def annulus_absorb(self, j):
         r"""
-        R8 in [Neu1981]. Removes an edge and adds a boundary component to
+        R8 in [Neu1981]_. Removes an edge and adds a boundary component to
         its unique neighbor, when appropriate.
 
         INPUT:
@@ -2425,7 +2428,7 @@ class PlumbingGraph():
 
         EXAMPLES:
         
-        D_4 is in normal form:
+        D_4 is in normal form::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-2,0,[2,2,2])
@@ -2433,7 +2436,7 @@ class PlumbingGraph():
             sage: P.normal_form()
             True
         
-        A minus one vertex is not:
+        A minus one vertex is not::
         
             sage: P = PlumbingGraph()
             sage: P.blow_up_disjoint()
@@ -2451,7 +2454,7 @@ class PlumbingGraph():
 
     def N1(self):
         r"""
-        Checks if condition N1 of [Neu1981] holds.
+        Checks if condition N1 of [Neu1981]_ holds.
 
         OUTPUT:
 
@@ -2536,7 +2539,7 @@ class PlumbingGraph():
 
     def N2(self):
         r"""
-        Checks if condition N2 from p. 311 of [Neu1981] holds.
+        Checks if condition N2 from p. 311 of [Neu1981]_ holds.
         
         OUTPUT:
         
@@ -2565,7 +2568,7 @@ class PlumbingGraph():
 
     def N3(self):
         r"""
-        Checks if condition N3 from [Neu1981] holds.
+        Checks if condition N3 from [Neu1981]_ holds.
 
         OUTPUT:
         
@@ -2594,7 +2597,7 @@ class PlumbingGraph():
     def N3_obstruction(self, i):
         r"""
         Checks if the vertex i is the vertex with Euler number e in the
-        picture on p. 311 and 312 in [Neu1981] which obstructs N3.
+        picture on p. 311 and 312 in [Neu1981]_ which obstructs N3.
 
         INPUT:
 
@@ -2633,7 +2636,7 @@ class PlumbingGraph():
 
     def N4(self):
         r"""
-        Checks if condition N4 from [Neu1981] holds. I'm like 90% sure
+        Checks if condition N4 from [Neu1981]_ holds. I'm like 90% sure
         that I interpreted the text in the condition correctly.
 
         OUTPUT:
@@ -2644,7 +2647,7 @@ class PlumbingGraph():
         
         We construct an example that is the exception, i.e. the neighbor
         of the vertex 0 is an interior vertex in a chain. Then we change
-        it.
+        it::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(0,-1,[4/3])
@@ -2695,7 +2698,7 @@ class PlumbingGraph():
 # N5
     def N5(self):
         r"""
-        Checks if condition N5 from [Neu1981] holds.
+        Checks if condition N5 from [Neu1981]_ holds.
 
         OUTPUT:
 
@@ -2760,7 +2763,7 @@ class PlumbingGraph():
     
     def N6(self):
         r"""
-        Checks if condition N6 from [Neu1981] holds.
+        Checks if condition N6 from [Neu1981]_ holds.
 
         OUTPUT:
 
@@ -2849,7 +2852,7 @@ class PlumbingGraph():
     def N6_ab_find_candidate(self):
         r"""
         Returns some vertex which whose component is (equivalent to) one
-        of the first two grapohs under N6 on p. 312 of [Neu1981], otherwise
+        of the first two grapohs under N6 on p. 312 of [Neu1981]_, otherwise
         returns -1.
         
         OUTPUT:
@@ -2904,7 +2907,7 @@ class PlumbingGraph():
     def N6_c_candidate(self, i):
         r"""
         Chechs if the vertex i is one of the endpoints of a string seen as
-        the third graph under N6 on p. 312 of [Neu1981], i.e. a string whose
+        the third graph under N6 on p. 312 of [Neu1981]_, i.e. a string whose
         ends have mb =-1, g=-1, r=0 and in between vertices with
         mb=-2, g=0, r=0.
         
@@ -2949,7 +2952,7 @@ class PlumbingGraph():
     def N6_c_find_candidate(self):
         r"""
         Returns some vertex which is one of the endpoints of the third graph
-        under N6 on p. 312 of [Neu1981], otherwise returns -1.
+        under N6 on p. 312 of [Neu1981]_, otherwise returns -1.
         
         OUTPUT:
         
@@ -2981,7 +2984,7 @@ class PlumbingGraph():
 
     def N6_d(self):
         r"""
-        Checks if the two-vertex graph on p. 312 of [Neu1981] apprears
+        Checks if the two-vertex graph on p. 312 of [Neu1981]_ apprears
         as a component.
 
         OUTPUT:
@@ -3012,7 +3015,7 @@ class PlumbingGraph():
     def N6_d_candidate(self, i):
         r"""
         Chechs if the vertex i is one of the endpoints of a string seen as
-        the fourth graph under N6 on p. 312 of [Neu1981], i.e. a string which
+        the fourth graph under N6 on p. 312 of [Neu1981]_, i.e. a string which
         consists of two vertices with mb=1, g=-1, r=0.
         
         INPUT:
@@ -3048,7 +3051,7 @@ class PlumbingGraph():
     def N6_d_find_candidate(self):
         r"""
         Returns some vertex which is one of the endpoints of the fourth graph
-        under N6 on p. 312 of [Neu1981], otherwise returns -1.
+        under N6 on p. 312 of [Neu1981]_, otherwise returns -1.
         
         OUTPUT:
         
@@ -3078,7 +3081,7 @@ class PlumbingGraph():
 
     def N6_e(self):
         r"""
-        Checks if the three-vertex graph on p. 312 of [Neu1981] apprears
+        Checks if the three-vertex graph on p. 312 of [Neu1981]_ apprears
         as a component.
 
         OUTPUT:
@@ -3113,7 +3116,7 @@ class PlumbingGraph():
     def N6_e_candidate(self, i):
         r"""
         Checks if the vertex i is one of the endpoints of a string seen as
-        the fifth graph under N6 on p. 312 of [Neu1981], i.e. a string which
+        the fifth graph under N6 on p. 312 of [Neu1981]_, i.e. a string which
         consists of three vertices, the endpoints having mb=1, g=-1, r=0,
         and the middle one mb=e (some integer), g=0, r=0.
         
@@ -3154,7 +3157,7 @@ class PlumbingGraph():
     def N6_e_find_candidate(self):
         r"""
         Returns some vertex which is one of the endpoints of the fifth graph
-        under N6 on p. 312 of [Neu1981], otherwise returns -1.
+        under N6 on p. 312 of [Neu1981]_, otherwise returns -1.
         
         OUTPUT:
         
@@ -3213,7 +3216,7 @@ class PlumbingGraph():
 
     def N6_f_candidate(self, i):
         r"""
-        Checks if the vertex i is the second-last graph on p. 312 of [Neu1981],
+        Checks if the vertex i is the second-last graph on p. 312 of [Neu1981]_,
         i.e. a singleton with mb=0, g=-2, r=0.
         
         INPUT:
@@ -3251,7 +3254,7 @@ class PlumbingGraph():
     def N6_f_find_candidate(self):
         r"""
         Returns some vertex which is forms the second-last graph on
-        p. 312 of [Neu1981], otherwise returns -1.
+        p. 312 of [Neu1981]_, otherwise returns -1.
         
         OUTPUT:
         
@@ -3309,7 +3312,7 @@ class PlumbingGraph():
 
     def N6_g_candidate(self, i):
         r"""
-        Checks if the vertex i is the last graph on p. 312 of [Neu1981],
+        Checks if the vertex i is the last graph on p. 312 of [Neu1981]_,
         i.e. a singleton with g=-1, r=1.
         
         INPUT:
@@ -3339,7 +3342,7 @@ class PlumbingGraph():
     def N6_g_find_candidate(self):
         r"""
         Returns some vertex which is forms the last graph on
-        p. 312 of [Neu1981], otherwise returns -1.
+        p. 312 of [Neu1981]_, otherwise returns -1.
         
         OUTPUT:
         
@@ -3400,7 +3403,7 @@ class PlumbingGraph():
 
     def minimal_representative(self):
         r"""
-        Performs steps 1-6 described in [Neu1981].
+        Performs steps 1-6 described in [Neu1981]_.
 
         EXAMPLES::
 
@@ -3429,7 +3432,7 @@ class PlumbingGraph():
 
     def step_1(self):
         r"""
-        Executes step 1 in the proof of thm 4.1 in [Neu1981]. This just
+        Executes step 1 in the proof of thm 4.1 in [Neu1981]_. This just
         performs moves R1-8 until this is no longer possible..
 
         OUTPUT:
@@ -3505,7 +3508,7 @@ class PlumbingGraph():
 
     def step_2(self):
         r"""
-        Executes steop 2 in the proof of thm 4.1 in [Neu1981]. This
+        Executes steop 2 in the proof of thm 4.1 in [Neu1981]_. This
         modifies all bamboos to have only Euler number <= -2.
 
         OUTPUT:
@@ -3564,7 +3567,7 @@ class PlumbingGraph():
 # Step three
     def step_3(self):
         r"""
-        Executes steop 3 in the proof of thm 4.1 in [Neu1981]. This
+        Executes steop 3 in the proof of thm 4.1 in [Neu1981]_. This
         modifies all bamboos to have only Euler number <= -2.
 
         OUTPUT:
@@ -3577,7 +3580,7 @@ class PlumbingGraph():
         with two (-2)-neighbors which are leaves, like in N3. For this to
         really violate N3, we add another edge on the longer bamboo.
         This graph satisfies N1 and N2, and after applying step_3(),
-        it also satisfies N3.
+        it also satisfies N3::
         
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(5, 0, [2,2,7/5])
@@ -3627,7 +3630,7 @@ class PlumbingGraph():
 # Step four
     def step_4(self):
         r"""
-        Carries out step 4 in [Neu1981].
+        Carries out step 4 in [Neu1981]_.
 
         OUTPUT:
         
@@ -3671,7 +3674,7 @@ class PlumbingGraph():
 # Step five
     def step_5(self):
         r"""
-        Carries out step 5 in [Neu1981].
+        Carries out step 5 in [Neu1981]_.
 
         OUTPUT:
         
@@ -3679,9 +3682,9 @@ class PlumbingGraph():
 
         EXAMPLES:
 
-        We test all the examples on p. 315 of [Neu1981].
+        We test all the examples on p. 315 of [Neu1981]_.
 
-        The first example, only one vertex:
+        The first example, only one vertex::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(-3,-1,0)
@@ -3695,7 +3698,7 @@ class PlumbingGraph():
             sage: P.N5()
             True
         
-        The first example, several vertices:
+        The first example, several vertices::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-3,-1,[5/4])
@@ -3709,7 +3712,7 @@ class PlumbingGraph():
             sage: P.N5()
             True
 
-        The second example (b = 4):
+        The second example (b = 4)::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-1,-1,[11/9])
@@ -3721,7 +3724,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 4 vertices
 
-        The third example, case 1 (b=4):
+        The third example, case 1 (b=4)::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-1, -1, [5/4])
@@ -3735,7 +3738,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 5 vertices
         
-        The third example, case 2 (b=0):
+        The third example, case 2 (b=0)::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(-1,-1,0)
@@ -3747,7 +3750,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with one vertex
 
-        The fourth example:
+        The fourth example::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(0,-1,[7/4])
@@ -3757,7 +3760,7 @@ class PlumbingGraph():
             sage: P.step_5()
             True
 
-        The fourth example again:
+        The fourth example again::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(1,-1,[7/4])
@@ -3769,7 +3772,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 5 vertices
 
-        The fifth example, e=2 (the end result is D_4):
+        The fifth example, e=2 (the end result is D_4)::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(2,-1,0)
@@ -3777,7 +3780,7 @@ class PlumbingGraph():
             sage: P.step_5()
             True
 
-        The fifth example, e=0:
+        The fifth example, e=0::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(0,-1,0)
@@ -3824,7 +3827,7 @@ class PlumbingGraph():
 # Step six
     def step_6(self):
         r"""
-        Carries out step 6 in [Neu1981].
+        Carries out step 6 in [Neu1981]_.
 
         OUTPUT:
         
@@ -3832,7 +3835,7 @@ class PlumbingGraph():
         
         EXAMPLES:
 
-        A cycle with positive edges:
+        A cycle with positive edges::
 
             sage: P = PlumbingGraph()
             sage: P.add_cycle(5/4)
@@ -3842,7 +3845,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with one vertex
 
-        A cycle with a negative edge:
+        A cycle with a negative edge::
 
             sage: P = PlumbingGraph()
             sage: P.add_cycle(5/4, epsilon=-1)
@@ -3852,7 +3855,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with one vertex
 
-        The third graph:
+        The third graph::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-1,-1,[6/5])
@@ -3868,7 +3871,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 5 vertices
 
-        The fourth graph:
+        The fourth graph::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(1,-1,0)
@@ -3882,7 +3885,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 5 vertices
 
-        The fifth graph:
+        The fifth graph::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(0,-1,0)
@@ -3900,7 +3903,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 5 vertices
 
-        The sixth graph:
+        The sixth graph::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(0,-2,0)
@@ -3910,7 +3913,7 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 5 vertices
 
-        The seventh graph:
+        The seventh graph::
 
             sage: P = PlumbingGraph()
             sage: P.add_vertex(0,-1,1)
@@ -3921,7 +3924,7 @@ class PlumbingGraph():
             A plumbing graph with 3 vertices
         """
         # We use here the naming convention abcdefg for the graphs on
-        # p. 316 [Neu1981] established above for N6.
+        # p. 316 [Neu1981]_ established above for N6.
         
         # ab
         while True:
