@@ -1,0 +1,158 @@
+Apply patch from https://github.com/sagemath/cysignals/pull/108
+which impacts Cygwin only.  It is needed in order to fix
+https://trac.sagemath.org/ticket/27214 and can be removed once we upgrade to a
+cysignals that includes a fix for the issue.
+diff --git a/configure.ac b/configure.ac
+index 63c0326..c05710a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -21,7 +21,7 @@ fi
+ 
+ AC_LANG(C)
+ 
+-AC_CHECK_HEADERS([execinfo.h sys/prctl.h sys/time.h sys/wait.h])
++AC_CHECK_HEADERS([execinfo.h sys/mman.h sys/prctl.h sys/time.h sys/wait.h])
+ AC_CHECK_FUNCS([backtrace sigprocmask])
+ 
+ have_pari=no
+diff -u a/configure b/configure
+--- a/configure	2019-02-27 15:48:27.325054700 +0100
++++ b/configure	2019-02-27 15:50:11.917360900 +0100
+@@ -3365,7 +3365,7 @@
+ done
+ 
+ 
+-for ac_header in execinfo.h sys/prctl.h sys/time.h sys/wait.h
++for ac_header in execinfo.h sys/mman.h sys/prctl.h sys/time.h sys/wait.h
+ do :
+   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+diff --git a/src/cysignals/implementation_cygwin.c b/src/cysignals/implementation_cygwin.c
+index 9597a88..3b18114 100644
+--- a/src/cysignals/implementation_cygwin.c
++++ b/src/cysignals/implementation_cygwin.c
+@@ -5,6 +5,20 @@
+ LONG WINAPI win32_altstack_handler(EXCEPTION_POINTERS *exc)
+ {
+     int sig = 0;
++    /* If we're not handling a signal there is no reason to execute the
++     * following code; otherwise it can be run in inappropriate contexts
++     * such as when a STATUS_ACCESS_VIOLATION is raised when accessing
++     * uncommitted memory in an mmap created with MAP_NORESERVE. See
++     * discussion at https://trac.sagemath.org/ticket/27214#comment:11
++     *
++     * Unfortunately, when handling an exception that occurred while
++     * handling another signal, there is currently no way (through Cygwin)
++     * to distinguish this case from a legitimate segfault.
++     */
++    if (!cysigs.inside_signal_handler) {
++        return ExceptionContinueExecution;
++    }
++
+     /* Logic cribbed from Cygwin for mapping common Windows exception
+      * codes to the relevant signal numbers:
+      * https://cygwin.com/git/gitweb.cgi?p=newlib-cygwin.git;a=blob;f=winsup/cygwin/exceptions.cc;h=77eff05707f95f7277974fadbccf0e74223d8d1c;hb=HEAD#l650
+diff --git a/src/cysignals/tests.pyx b/src/cysignals/tests.pyx
+index 3444e29..9c7ec6c 100644
+--- a/src/cysignals/tests.pyx
++++ b/src/cysignals/tests.pyx
+@@ -42,6 +42,7 @@ from __future__ import absolute_import
+ from libc.signal cimport (SIGHUP, SIGINT, SIGABRT, SIGILL, SIGSEGV,
+         SIGFPE, SIGBUS, SIGQUIT)
+ from libc.stdlib cimport abort
++from libc.errno cimport errno
+ from posix.signal cimport sigaltstack, stack_t, SS_ONSTACK
+ 
+ from cpython cimport PyErr_SetString
+@@ -53,6 +54,8 @@ cdef extern from 'tests_helper.c':
+     void ms_sleep(long ms) nogil
+     void signal_after_delay(int signum, long ms) nogil
+     void signals_after_delay(int signum, long ms, long interval, int n) nogil
++    void* map_noreserve()
++    int unmap_noreserve(void* addr)
+ 
+ cdef extern from *:
+     ctypedef int volatile_int "volatile int"
+@@ -618,6 +621,28 @@ def unguarded_dereference_null_pointer():
+     with nogil:
+         dereference_null_pointer()
+ 
++def test_access_mmap_noreserve():
++    """
++    TESTS:
++
++    Regression test for https://github.com/sagemath/cysignals/pull/108; if
++    the issue is fixed then ``test_access_mmap_noreserve()`` should have no
++    output.  Otherwise the subprocess will exit and report an error occurred
++    during signal handling::
++
++        >>> from cysignals.tests import test_access_mmap_noreserve
++        >>> subpython_err('from cysignals.tests import *; test_access_mmap_noreserve()')
++
++    """
++
++    cdef int* ptr = <int*>map_noreserve()
++    if ptr == NULL:
++        raise RuntimeError(f"map_noreserve() failed; errno: {errno}")
++
++    ptr[0] += 1  # Should just work
++
++    if unmap_noreserve(ptr) != 0:
++        raise RuntimeError(f"uname_noreserve() failed; errno: {errno}")
+ 
+ def test_abort():
+     """
+diff --git a/src/cysignals/tests_helper.c b/src/cysignals/tests_helper.c
+index c82a06f..3831b8e 100644
+--- a/src/cysignals/tests_helper.c
++++ b/src/cysignals/tests_helper.c
+@@ -23,6 +23,9 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
++#if HAVE_SYS_MMAN_H
++#include <sys/mman.h>
++#endif
+ #include <sys/types.h>
+ #include <sys/time.h>
+ #include <unistd.h>
+@@ -41,6 +44,39 @@ void ms_sleep(long ms)
+ }
+ 
+ 
++/* Calls mmap if available with the MAP_NORESERVE flag; if neither is
++ * available just mmap without MAP_NORESERVE or malloc--this is used currently
++ * just to test a regression on Cygwin (see test_read_mmap_noreserve),
++ * so if the required functionality is not available then the test should pass
++ * trivially.
++ */
++#define MAP_NORESERVE_LEN 4096
++#if HAVE_SYS_MMAN_H
++#ifndef MAP_NORESERVE
++#define MAP_NORESERVE 0
++#endif
++static void* map_noreserve(void)
++{
++    return mmap(NULL, MAP_NORESERVE_LEN, PROT_READ|PROT_WRITE,
++                MAP_ANONYMOUS|MAP_PRIVATE|MAP_NORESERVE, -1, 0);
++}
++
++static int unmap_noreserve(void* addr) {
++    return munmap(addr, MAP_NORESERVE_LEN);
++}
++#else
++static void* map_noreserve(void)
++{
++    return malloc(MAP_NORESERVE_LEN);
++}
++
++static int unmap_noreserve(void* addr) {
++    free(addr);
++    return 0;
++}
++#endif
++
++
+ /* Signal process ``killpid`` with signal ``signum`` after ``ms``
+  * milliseconds.  Wait ``interval`` milliseconds, then signal again.
+  * Repeat this until ``n`` signals have been sent.
