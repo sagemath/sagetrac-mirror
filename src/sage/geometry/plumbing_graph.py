@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Plumbing Graphs
 
@@ -25,7 +26,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- Baldur Sigur\dh sson (2018)
+- Baldur Sigurðsson (2018)
 """
 
 #*****************************************************************************
@@ -109,6 +110,7 @@ def big_genus_hash(S):
 
     EXAMPLES::
 
+        sage: from sage.geometry.plumbing_graph import big_genus_hash
         sage: big_genus_hash([1,2,3])
         6
         sage: big_genus_hash([1,2,-3])
