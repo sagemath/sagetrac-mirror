@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Plumbing Graphs
 
@@ -25,7 +26,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- Baldur Sigur\dh sson (2018)
+- Baldur Sigurðsson (2018)
 """
 
 #*****************************************************************************
@@ -69,6 +70,7 @@ def genus_hash(a,b):
 
     EXAMPLES::
 
+        sage: from sage.geometry.plumbing_graph import genus_hash
         sage: genus_hash(2,3)
         5
         sage: genus_hash(-2,3)
@@ -108,6 +110,7 @@ def big_genus_hash(S):
 
     EXAMPLES::
 
+        sage: from sage.geometry.plumbing_graph import big_genus_hash
         sage: big_genus_hash([1,2,3])
         6
         sage: big_genus_hash([1,2,-3])
@@ -150,8 +153,8 @@ class PlumbingGraph():
     genera are positive, all edges are positive, and the associated
     intersection matrix is negative definite.
     
-    Another case related to singularity theory: As proved by N\'emethi and
-    Szil\'ard [], the boundary of the Milnor fiber of a reduced
+    Another case related to singularity theory: As proved by Némethi and
+    Szilárd [NSz2012]_, the boundary of the Milnor fiber of a reduced
     hypersurface singularity in complex 3-space is plumbed manifold.
     These do not necessarily have negative definite plumbing graphs, and
     may have negative edges as well.
@@ -418,7 +421,7 @@ class PlumbingGraph():
         - ``j`` -- a vertex of self,
         - ``r`` -- a nonnegative integer.
 
-        OUTPUT
+        OUTPUT:
 
         The last vertex of the bamboo.
         
@@ -990,8 +993,6 @@ class PlumbingGraph():
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-2,3,[5/3,5/3,5/3])
             0
-            sage: P.nodes
-            <bound method PlumbingGraph.nodes of A plumbing graph with 7 vertices>
             sage: P.nodes()
             {0}
         """
@@ -1058,7 +1059,7 @@ class PlumbingGraph():
             True
         """
         mc = self.max_chain(i)
-        if mc == set():
+        if not mc:
             return False
         for j in mc:
             if self.degree(j) != 2 or not (self.neighbors(j) <= mc):
@@ -1201,7 +1202,7 @@ class PlumbingGraph():
         
         - ``e`` -- an edge.
 
-        EXAPMLES::
+        EXAMPLES::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-2,-1,[3/2,5/2,7/2])
@@ -2924,7 +2925,7 @@ class PlumbingGraph():
         
         A vertex (nonnegative integer) or -1.
 
-        EXAPMLES::
+        EXAMPLES::
 
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(-1,-1,[4/3])
@@ -3390,7 +3391,7 @@ class PlumbingGraph():
 
         True if N2() holds in the end, otherwise False.
 
-        EXAPMLES::
+        EXAMPLES::
 
             sage: P = PlumbingGraph()
             sage: P.add_bamboo(9/7)

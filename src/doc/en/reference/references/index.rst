@@ -4381,7 +4381,7 @@ REFERENCES:
              topology of complex surface singularities and degenerating
              complex curves*, Transactions of the American
              Mathematical Society, Vol. 268, No. 2 (Dec., 1981),
-             pp. 4807--4823
+             pp. 4807--4823.
 
 .. [Nie2013] Johan S. R. Nielsen, List Decoding of Algebraic Codes,
              Ph.D. Thesis, Technical University of Denmark, 2013
@@ -4435,20 +4435,9 @@ REFERENCES:
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
 
-.. [NP2007] Nikolopoulos, S.D. and Palios, L.,
-            *Detecting holes and antiholes in graphs*,
-            Algorithmica, 2007,
-            Vol. 47, number 2, pages 119--138,
-            :doi:`10.1007/s00453-006-1225-y`,
-            http://www.cs.uoi.gr/~stavros/C-Papers/C-2004-SODA.pdf
-
-.. [NWS2002] Newman, M.E.J., Watts, D.J. and Strogatz, S.H.  *Random
-             graph models of social networks*. Proc. Nat. Acad. Sci. USA
-             99:1 (2002), 2566-2572. :doi:`10.1073/pnas.012582999`
-
-.. [NX2019] \E. M. d. Nascimento, J. A. M. Xexeo
-            "Name of Submission:FlexAEAD -A Lightweight Cipher withIntegrated Authentication"
-            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/FlexAEAD-spec.pdf
+.. [NSz2012] Némethi, András; Szilárd, Ágnes. Milnor fiber boundary of a
+             non-isolated surface singularity, volume 2037 of Lecture
+             Notes in Math. Springer, Heidelberg, 2012.
 
 .. [NZ1997] \T. Nakashima and A. Zelevinsky.
             Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.

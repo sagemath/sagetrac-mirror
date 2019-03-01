@@ -29,7 +29,5 @@ lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArran
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')
 
 lazy_import('sage.geometry.plumbing_graph', 'PlumbingGraph')
-lazy_import('sage.geometry.plumbing_graph', 'genus_hash')
-lazy_import('sage.geometry.plumbing_graph', 'big_genus_hash')
 
 del absolute_import
