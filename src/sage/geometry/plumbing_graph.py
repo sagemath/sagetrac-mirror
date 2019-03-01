@@ -25,7 +25,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- Baldur Sigur\dh sson (2018)
+- Baldur Sigurðsson (2018)
 """
 
 #*****************************************************************************
@@ -49,11 +49,11 @@ from copy import copy
 
 def genus_hash(a,b):
     r"""
-    Calculates the genus of a connected sum of two surfaces.
+    Calculate the genus of a connected sum of two surfaces.
 
     The surfaces are not assumed orientable. A surface of genus g>=0 is
     the connected sum of g tori. A surface of genus g<0 is the connected
-    sum of g real projective planes. The realation to note is that the
+    sum of g real projective planes. The relation to note is that the
     connected sum of a torus and a real projective plane is the same as
     the connected sum of three copies of the real projective plane.
 
@@ -89,11 +89,11 @@ def genus_hash(a,b):
 
 def big_genus_hash(S):
     r"""
-    Calculates the genus of a connected sum of a finite number of surfaces.
+    Calculate the genus of a connected sum of a finite number of surfaces.
 
     The surfaces are not assumed orientable. A surface of genus g>=0 is
     the connected sum of g tori. A surface of genus g<0 is the connected
-    sum of g real projective planes. The realation to note is that the
+    sum of g real projective planes. The relation to note is that the
     connected sum of a torus and a real projective plane is the same as
     the connected sum of three copies of the real projective plane.
 
@@ -185,12 +185,23 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 2 vertices
         """
-        if len(mb) != len(g) or len(g) != len(r):
-            print("Oh no!")
+        if mb:
+            if g:
+                assert len(mb) == len(g),"string of genera is not of correct length"
+            if r:
+                assert len(mb) == len(r),"string of boundary components is not of correct length"
         self.vertices = set(range(0,len(mb)))
         self.mb = { i:mb[i] for i in range(0,len(mb)) }
-        self.g = { i:g[i] for i in range(0,len(mb)) }
-        self.r = { i:r[i] for i in range(0,len(mb)) }
+        if g:
+            self.g = { i:g[i] for i in range(0,len(mb)) }
+        else:
+            self.g = { i:0 for i in range(0,len(mb)) }
+            
+        if r:
+            self.r = { i:r[i] for i in range(0,len(mb)) }
+        else:
+            self.r = { i:0 for i in range(0,len(mb)) }
+            
         self.edges = set()
         self.adj = {}
         self.epsilon = {}
@@ -202,13 +213,13 @@ class PlumbingGraph():
     
     def __repr__(self):
         r"""
-        Returns a string representation of self.
+        Return a string representation of self.
 
         OUTPUT:
 
         A string.
 
-        Example::
+        EXAMPLE::
 
             sage: P = PlumbingGraph
             sage: P = PlumbingGraph()
@@ -229,7 +240,7 @@ class PlumbingGraph():
     
     def _new_vertex_name(self):
         r"""
-        Finds a nonnegative integer which is not the name of any vertex.
+        Find a nonnegative integer which is not the name of any vertex.
         
         OUTPUT:
         
@@ -252,7 +263,7 @@ class PlumbingGraph():
 
     def add_vertex(self, mb, g, r):
         r"""
-        Creates a new vertex in the graph.
+        Create a new vertex in the graph.
         
         INPUT:
     
@@ -280,7 +291,7 @@ class PlumbingGraph():
     
     def delete_vertex(self, i):
         r"""
-        Deletes the vertex i, and all adjacent edges.
+        Delete the vertex i, and all adjacent edges.
         
         INPUT:
         
@@ -306,7 +317,7 @@ class PlumbingGraph():
 
     def _new_edge_name(self):
         r"""
-        Finds a nonnegative integer which is not the name of any edge.
+        Find a nonnegative integer which is not the name of any edge.
 
         OUTPUT:
 
@@ -331,7 +342,7 @@ class PlumbingGraph():
     
     def add_edge(self, A, epsilon=1):
         r"""
-        Creates a new edge in the graph.
+        Create a new edge in the graph.
         
         INPUT:
     
@@ -366,7 +377,7 @@ class PlumbingGraph():
 
     def delete_edge(self, e):
         r"""
-        Deletes an edge from the graph.
+        Delete an edge from the graph.
     
         INPUT:
         
@@ -436,7 +447,7 @@ class PlumbingGraph():
 
     def add_cycle(self, x, epsilon=1):
         r"""
-        Creates a cycle as a connected component which is a cycle, given
+        Create a cycle as a connected component which is a cycle, given
         by the negative continued fraction expansion of the rational
         number x.
 
@@ -499,7 +510,7 @@ class PlumbingGraph():
 
     def induced_subgraph(self, S):
         r"""
-        Returns the induced subgraph on the set of vertices S.
+        Return the induced subgraph on the set of vertices S.
 
         INPUT:
 
@@ -507,7 +518,7 @@ class PlumbingGraph():
 
         OUTPUT:
         
-        Returns a PlumbingGraph object.
+        Return a PlumbingGraph object.
 
         EXAMPLES::
 
@@ -536,7 +547,7 @@ class PlumbingGraph():
     
     def is_loop(self, e):
         r"""
-        Checks whether an edge is a loop or not.
+        Check whether an edge is a loop or not.
         
         INPUT:
         
@@ -569,7 +580,7 @@ class PlumbingGraph():
 
     def has_loop(self, i):
         r"""
-        Checks whether the vertex i has adjacent loops.
+        Check whether the vertex i has adjacent loops.
 
         INPUT:
 
@@ -602,7 +613,7 @@ class PlumbingGraph():
 
     def degree(self, i):
         r"""
-        Returns the degree of the vertex i.
+        Return the degree of the vertex i.
 
         INPUT:
         
@@ -637,7 +648,7 @@ class PlumbingGraph():
 
     def neighbors(self, i):
         r"""
-        Returns the neighbours of a vertex i in a set.
+        Return the neighbours of a vertex i in a set.
 
         INPUT:
 
@@ -673,7 +684,7 @@ class PlumbingGraph():
 
     def neighbor(self, i):
         r"""
-        Returns some neighbor of the vertex i if one exists, otherwise -1.
+        Return some neighbor of the vertex i if one exists, otherwise -1.
 
         INPUT:
 
@@ -707,7 +718,7 @@ class PlumbingGraph():
 
     def adjacent_edges(self, i):
         r"""
-        Returns a set of all edges adjacent to the vertex i.
+        Return a set of all edges adjacent to the vertex i.
 
         INPUT:
         
@@ -730,7 +741,7 @@ class PlumbingGraph():
 
     def intersection_matrix(self):
         r"""
-        Returns the intersection matrix associated with the plumbing
+        Return the intersection matrix associated with the plumbing
         graph.
 
         OUTPUT:
@@ -772,7 +783,7 @@ class PlumbingGraph():
 
     def is_analytic_link(self):
         r"""
-        Checks whether the plumbing graph is the graph associated
+        Check whether the plumbing graph is the graph associated
         with a resolution of an isolated complex surface singularity.
 
         OUTPUT:
@@ -807,7 +818,7 @@ class PlumbingGraph():
 
     def component(self, i):
         r"""
-        Returns the set of vertices in the connected component of
+        Return the set of vertices in the connected component of
         the vertex i.
         
         INPUT:
@@ -846,7 +857,7 @@ class PlumbingGraph():
 
     def components(self):
         r"""
-        Returns a list whose elements are the sets of vertices in
+        Return a list whose elements are the sets of vertices in
         the connected components of the graph. In particular, the
         list has length the number of connected components.
 
@@ -874,7 +885,7 @@ class PlumbingGraph():
     
     def delete_component(self, i):
         r"""
-        Deletes the connected component of self containing the vertex i.
+        Delete the connected component of self containing the vertex i.
         
         INPUT:
         
@@ -939,7 +950,7 @@ class PlumbingGraph():
 
     def _minus_two_leaves(self, i):
         r"""
-        Returns the set of those neighbours which are leaves, i.e. have
+        Return the set of those neighbours which are leaves, i.e. have
         degree == 1, are rational, i.e. g == 0, and have r == 0 and
         mb == -2. It's used in N1 and N3 and step_3().
 
@@ -967,7 +978,7 @@ class PlumbingGraph():
 
     def nodes(self):
         r"""
-        Returns the set of nodes. A node is a vertex with g != 0 or
+        Return the set of nodes. A node is a vertex with g != 0 or
         r != 0 or degree > 2.
 
         OUTPUT:
@@ -988,7 +999,7 @@ class PlumbingGraph():
 
     def max_chain(self, i):
         r"""
-        Returns the set of vertices on a maximal chain containing
+        Return the set of vertices on a maximal chain containing
         i, if i is not a node, otherwise the emptyset.
         
         INPUT:
@@ -1024,7 +1035,7 @@ class PlumbingGraph():
     
     def max_chain_is_cycle(self, i):
         r"""
-        Checks whether the maximal chain on which the vertex i lies is a cycle.
+        Check whether the maximal chain on which the vertex i lies is a cycle.
 
         INTPUT:
 
@@ -1142,7 +1153,7 @@ class PlumbingGraph():
 
     def reverse_edge_signs_pos(self, i):
         r"""
-        Reverses the sign of each edge adjacent to the vertex i,
+        Reverse the sign of each edge adjacent to the vertex i,
         except for loops. If i has genus <0, then the function does
         nothing.
         
@@ -1183,7 +1194,7 @@ class PlumbingGraph():
 
     def reverse_edge_signs_neg(self, e):
         r"""
-        Reverses the sign on an edge e if it is adjacent to a vertex
+        Reverse the sign on an edge e if it is adjacent to a vertex
         with negative genus.
         
         INPUT:
@@ -1376,7 +1387,7 @@ class PlumbingGraph():
 
     def R1_candidate(self, i):
         r"""
-        Checks whether the vertex i can be blown down or not.
+        Check whether the vertex i can be blown down or not.
         
         INPUT:
         
@@ -1414,7 +1425,7 @@ class PlumbingGraph():
      
     def find_R1_candidate(self):
         r"""
-        Returns a vertex which can be blown down, if it exists,
+        Return a vertex which can be blown down, if it exists,
         otherwise, return -1.
         
         OUTPUT:
@@ -1444,7 +1455,7 @@ class PlumbingGraph():
 
     def projective_absorb(self, j, i):
         r"""
-        Applies RP^2-absorption from [Neu1981]_, p. 305, to the graph.
+        Apply RP^2-absorption from [Neu1981]_, p. 305, to the graph.
 
         INPUT
         
@@ -1469,7 +1480,7 @@ class PlumbingGraph():
 
     def R2_candidate(self, j):
         r"""
-        Checks whether R2 can be applied to the vertex j.
+        Check whether R2 can be applied to the vertex j.
 
         INPUT:
 
@@ -1544,7 +1555,7 @@ class PlumbingGraph():
 
     def find_R2_candidate(self):
         r"""
-        Returns a vertex on which R2 can be applied, if it exists.
+        Return a vertex on which R2 can be applied, if it exists.
         Otherwise return -1.
         
         OUTPUT:
@@ -1672,7 +1683,7 @@ class PlumbingGraph():
     
     def R3_candidate(self, k):
         r"""
-        Checkes whether or not R3 can be applied to the vertex k.
+        Check whether or not R3 can be applied to the vertex k.
 
         INPUT:
         
@@ -1713,7 +1724,7 @@ class PlumbingGraph():
 
     def find_R3_candidate(self):
         r"""
-        Returns a vertex on which R3 can applied, if it exists,
+        Return a vertex on which R3 can applied, if it exists,
         otherwise, return -1.
         
         OUTPUT:
@@ -1853,7 +1864,7 @@ class PlumbingGraph():
 
     def R4_candidate(self, j):
         r"""
-        Checkes whether or not R4 can be applied to the vertex v
+        Check whether or not R4 can be applied to the vertex v.
 
         INPUT:
         
@@ -1895,7 +1906,7 @@ class PlumbingGraph():
 
     def find_R4_candidate(self):
         r"""
-        Returns a vertex on which R4 can applied, if it exists,
+        Return a vertex on which R4 can applied, if it exists,
         otherwise, return -1.
         
         OUTPUT:
@@ -1963,7 +1974,7 @@ class PlumbingGraph():
 
     def R5_candidate(self, j):
         r"""
-        Checkes whether or not R5 can be applied to the vertex j
+        Check whether or not R5 can be applied to the vertex j
 
         INPUT:
         
@@ -2005,7 +2016,7 @@ class PlumbingGraph():
 
     def find_R5_candidate(self):
         r"""
-        Returns a vertex on which R5 can be applied, if it exists,
+        Return a vertex on which R5 can be applied, if it exists,
         otherwise, return -1.
         
         OUTPUT:
@@ -2086,7 +2097,7 @@ class PlumbingGraph():
 
     def R6_candidate(self, j):
         r"""
-        Checkes whether or not R6 can be applied to the vertex j.
+        Check whether or not R6 can be applied to the vertex j.
 
         INPUT:
         
@@ -2117,7 +2128,7 @@ class PlumbingGraph():
 
     def find_R6_candidate(self):
         r"""
-        Returns a vertex on which R6 can applied, if it exists,
+        Return a vertex on which R6 can applied, if it exists,
         otherwise, return -1.
         
         OUTPUT:
@@ -2250,7 +2261,7 @@ class PlumbingGraph():
             
     def R7_candidate(self, i):
         r"""
-        Checkes whether or not R7 can be applied to the vertex i. This
+        Check whether or not R7 can be applied to the vertex i. This
         means that i should have Euler number = genus = r = 0, and
         one loop, and no other adjacent edges.
 
@@ -2286,7 +2297,7 @@ class PlumbingGraph():
 
     def find_R7_candidate(self):
         r"""
-        Returns a vertex on which R7 can applied, if it exists,
+        Return a vertex on which R7 can applied, if it exists,
         otherwise, return -1.
         
         OUTPUT:
@@ -2349,7 +2360,7 @@ class PlumbingGraph():
 
     def R8_candidate(self,j):
         r"""
-        Checks whether or not R8 can be applied to the vertex j. This
+        Check whether or not R8 can be applied to the vertex j. This
         means that j should have genus zero and r=1, and it should
         have a unique neighbour and no loop.
 
@@ -2385,7 +2396,7 @@ class PlumbingGraph():
 
     def find_R8_candidate(self):
         r"""
-        Returns a vertex on which R8 can be applied, if it exists,
+        Return a vertex on which R8 can be applied, if it exists,
         otherwise, return -1.
         
         OUTPUT:
@@ -2420,7 +2431,7 @@ class PlumbingGraph():
 
     def normal_form(self):
         r"""
-        Checks whether the graph is in normal form or not.
+        Check whether the graph is in normal form or not.
 
         OUTPUT:
 
@@ -2454,7 +2465,7 @@ class PlumbingGraph():
 
     def N1(self):
         r"""
-        Checks if condition N1 of [Neu1981]_ holds.
+        Check if condition N1 of [Neu1981]_ holds.
 
         OUTPUT:
 
@@ -2491,7 +2502,7 @@ class PlumbingGraph():
 
     def N1_exception(self, i):
         r"""
-        Checks whether the vertex i is the (-1)-vertex in the exceptional
+        Check whether the vertex i is the (-1)-vertex in the exceptional
         graph described in N1.
 
         OUTPUT:
@@ -2539,7 +2550,7 @@ class PlumbingGraph():
 
     def N2(self):
         r"""
-        Checks if condition N2 from p. 311 of [Neu1981]_ holds.
+        Check if condition N2 from p. 311 of [Neu1981]_ holds.
         
         OUTPUT:
         
@@ -2556,8 +2567,6 @@ class PlumbingGraph():
             sage: P.N2()
             False
         """
-        if not self.N1():
-            return False
         for i in self.vertices - self.nodes():
             if self.mb[i] > -2:
                 return False
@@ -2568,7 +2577,7 @@ class PlumbingGraph():
 
     def N3(self):
         r"""
-        Checks if condition N3 from [Neu1981]_ holds.
+        Check if condition N3 from [Neu1981]_ holds.
 
         OUTPUT:
         
@@ -2586,9 +2595,6 @@ class PlumbingGraph():
             sage: P.N3()
             False
         """
-        if not self.N2():
-            return False
-        
         for i in self.vertices:
             if self.N3_obstruction(i):
                 return False
@@ -2596,7 +2602,7 @@ class PlumbingGraph():
 
     def N3_obstruction(self, i):
         r"""
-        Checks if the vertex i is the vertex with Euler number e in the
+        Check if the vertex i is the vertex with Euler number e in the
         picture on p. 311 and 312 in [Neu1981]_ which obstructs N3.
 
         INPUT:
@@ -2625,6 +2631,11 @@ class PlumbingGraph():
             if len(mtn) == 3:
                     return False
             j = list(nbrs - mtn)[0]
+
+            for k in self.component(i):
+                if k != i and self.mb[k] > -2:
+                    return True
+
             if self._neighbor_yields_leg(i,j):
                 return False
             else:
@@ -2636,8 +2647,19 @@ class PlumbingGraph():
 
     def N4(self):
         r"""
-        Checks if condition N4 from [Neu1981]_ holds. I'm like 90% sure
+        Check if condition N4 from [Neu1981]_ holds. I'm like 90% sure
         that I interpreted the text in the condition correctly.
+        The uncertainty lies in the exact meaning of the phrase
+        "vertex i is an interior vertex of a chain". I figure it means
+        that i is not a node, that is, g=r=0 and degree <= 2.
+        This makes sense because of the following reasoning. There are
+        basically two cases to consider, if vertex i is not a node.
+        In the first case, vertex i lies on a chain connecting the
+        vertex with g=-1 to a node. In this case, step 4 would produce
+        something violating N3. We don't want that.
+        The other case is when the chain on which vertex i lies does
+        not connect the vertex with g=-1 to a node. This case is
+        handled by N5 and step 5.
 
         OUTPUT:
 
@@ -2658,8 +2680,6 @@ class PlumbingGraph():
             sage: P.N4()
             False
         """
-        if not self.N3():
-            return False
         for j in self.vertices:
             if self.N4_obstruction(j):
                 return False
@@ -2667,7 +2687,7 @@ class PlumbingGraph():
 
     def N4_obstruction(self, j):
         r"""
-        Checks whether the vertex j violates N4.
+        Check whether the vertex j violates N4.
 
         INPUT:
         
@@ -2698,7 +2718,7 @@ class PlumbingGraph():
 # N5
     def N5(self):
         r"""
-        Checks if condition N5 from [Neu1981]_ holds.
+        Check if condition N5 from [Neu1981]_ holds.
 
         OUTPUT:
 
@@ -2718,8 +2738,6 @@ class PlumbingGraph():
             sage: P.N5()
             True
         """
-        if not self.N4():
-            return False
         for j in self.vertices:
             if self.N5_obstruction(j):
                 return False
@@ -2727,7 +2745,7 @@ class PlumbingGraph():
     
     def N5_obstruction(self, j):
         r"""
-        Checks if j is the vertex with genus -1 in the drawing in N5.
+        Check if j is the vertex with genus -1 in the drawing in N5.
 
         INPUT:
         
@@ -2763,7 +2781,7 @@ class PlumbingGraph():
     
     def N6(self):
         r"""
-        Checks if condition N6 from [Neu1981]_ holds.
+        Check if condition N6 from [Neu1981]_ holds.
 
         OUTPUT:
 
@@ -2777,48 +2795,25 @@ class PlumbingGraph():
             sage: P.N6()
             False
         """
-        if not self.N5():
-            return False
         
-        if self.N6_ab():
+        if self.N6_ab_find_candidate() != -1:
             return False
-        if self.N6_c():
+        if self.N6_c_find_candidate() != -1:
             return False
-        if self.N6_d():
+        if self.N6_d_find_candidate() != -1:
             return False
-        if self.N6_e():
+        if self.N6_e_find_candidate() != -1:
             return False
-        if self.N6_f():
+        if self.N6_f_find_candidate() != -1:
             return False
-        if self.N6_g():
+        if self.N6_g_find_candidate() != -1:
             return False
         return True
 
-    def N6_ab(self):
-        r"""
-        Checks if there is a component which is a cycle of rational minus
-        two vertices.
-
-        OUTPUT:
-
-        True if such a component exists, False otherwise.
-
-        EXAMPLES::
-        
-            sage: P = PlumbingGraph()
-            sage: P.add_cycle(5/4)
-            3
-            sage: P.N6_ab()
-            True
-        """
-        for i in self.vertices:
-            if self.N6_ab_candidate(i):
-                return True
-        return False
 
     def N6_ab_candidate(self, i):
         r"""
-        Checks if the component containing the vertex i is a cycle of
+        Check if the component containing the vertex i is a cycle of
         vertices with mb = -2, g=0, r=0.
 
         INPUT:
@@ -2851,9 +2846,9 @@ class PlumbingGraph():
 
     def N6_ab_find_candidate(self):
         r"""
-        Returns some vertex which whose component is (equivalent to) one
+        Return some vertex whose component is (equivalent to) one
         of the first two grapohs under N6 on p. 312 of [Neu1981]_, otherwise
-        returns -1.
+        return -1.
         
         OUTPUT:
         
@@ -2874,39 +2869,10 @@ class PlumbingGraph():
         
         return -1
 
-    
-    def N6_c(self):
-        r"""
-        Checks if the graph contains a string consisting of rational
-        (-2)-vertices, except the ends should be (-1)-vertices with
-        genus -1. And all r=0.
-
-        OUTPUT:
-
-        True or False
-        
-        EXAMPLES::
-
-            sage: P = PlumbingGraph()
-            sage: P.add_Seifert(-1,-1,[4/3])
-            0
-            sage: P.vertices
-            {0, 1, 2, 3}
-            sage: P.add_vertex(-1,-1,0)
-            4
-            sage: P.add_edge({3,4})
-            3
-            sage: P.N6_c()
-            True
-        """
-        if self.N6_c_find_candidate() == -1:
-            return False
-        else:
-            return True
 
     def N6_c_candidate(self, i):
         r"""
-        Chechs if the vertex i is one of the endpoints of a string seen as
+        Check if the vertex i is one of the endpoints of a string seen as
         the third graph under N6 on p. 312 of [Neu1981]_, i.e. a string whose
         ends have mb =-1, g=-1, r=0 and in between vertices with
         mb=-2, g=0, r=0.
@@ -2951,8 +2917,8 @@ class PlumbingGraph():
 
     def N6_c_find_candidate(self):
         r"""
-        Returns some vertex which is one of the endpoints of the third graph
-        under N6 on p. 312 of [Neu1981]_, otherwise returns -1.
+        Return some vertex which is one of the endpoints of the third graph
+        under N6 on p. 312 of [Neu1981]_, otherwise return -1.
         
         OUTPUT:
         
@@ -2982,39 +2948,9 @@ class PlumbingGraph():
         return -1
 
 
-    def N6_d(self):
-        r"""
-        Checks if the two-vertex graph on p. 312 of [Neu1981]_ apprears
-        as a component.
-
-        OUTPUT:
-
-        True or False
-
-        EXAMPLES::
-
-            sage: P = PlumbingGraph()
-            sage: P.add_vertex(1,-1,0)
-            0
-            sage: P.add_vertex(1,-1,0)
-            1
-            sage: P.N6_d()
-            False
-            sage: P.add_edge({0,1})
-            0
-            sage: P.N6_d()
-            True
-        """
-        for i in self.vertices:
-            if self.mb[i] == 1 and self.g[i] == -1 and self.r[i] == 0 and self.degree(i) == 1:
-                j = list(self.neighbors(i))[0]
-                if self.mb[j] == 1 and self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 1:
-                    return True
-        return False
-
     def N6_d_candidate(self, i):
         r"""
-        Chechs if the vertex i is one of the endpoints of a string seen as
+        Check if the vertex i is one of the endpoints of a string seen as
         the fourth graph under N6 on p. 312 of [Neu1981]_, i.e. a string which
         consists of two vertices with mb=1, g=-1, r=0.
         
@@ -3050,8 +2986,8 @@ class PlumbingGraph():
 
     def N6_d_find_candidate(self):
         r"""
-        Returns some vertex which is one of the endpoints of the fourth graph
-        under N6 on p. 312 of [Neu1981]_, otherwise returns -1.
+        Return some vertex which is one of the endpoints of the fourth graph
+        under N6 on p. 312 of [Neu1981]_, otherwise return -1.
         
         OUTPUT:
         
@@ -3079,43 +3015,9 @@ class PlumbingGraph():
         return -1
 
 
-    def N6_e(self):
-        r"""
-        Checks if the three-vertex graph on p. 312 of [Neu1981]_ apprears
-        as a component.
-
-        OUTPUT:
-
-        True or False
-
-        EXAMPLES::
-
-            sage: P = PlumbingGraph()
-            sage: P.add_vertex(0,-1,0)
-            0
-            sage: P.add_vertex(10,0,0)
-            1
-            sage: P.add_vertex(0,-1,0)
-            2
-            sage: P.add_edge({0,1})
-            0
-            sage: P.add_edge({1,2})
-            1
-            sage: P.N6_e()
-            True
-            sage: P.add_edge({2})
-            2
-            sage: P.N6_e()
-            False
-        """
-        for i in self.vertices:
-            if self.N6_e_candidate(i):
-                return True
-        return False
-
     def N6_e_candidate(self, i):
         r"""
-        Checks if the vertex i is one of the endpoints of a string seen as
+        Check if the vertex i is one of the endpoints of a string seen as
         the fifth graph under N6 on p. 312 of [Neu1981]_, i.e. a string which
         consists of three vertices, the endpoints having mb=1, g=-1, r=0,
         and the middle one mb=e (some integer), g=0, r=0.
@@ -3156,8 +3058,8 @@ class PlumbingGraph():
 
     def N6_e_find_candidate(self):
         r"""
-        Returns some vertex which is one of the endpoints of the fifth graph
-        under N6 on p. 312 of [Neu1981]_, otherwise returns -1.
+        Return some vertex which is one of the endpoints of the fifth graph
+        under N6 on p. 312 of [Neu1981]_, otherwise return -1.
         
         OUTPUT:
         
@@ -3189,34 +3091,9 @@ class PlumbingGraph():
         return -1
 
 
-    def N6_f(self):
-        r"""
-        Checks if the graph has a component consisting of one edge with
-        Euler number 0, genus -2, and r=0, i.e. Klein bottle times S^1.
-
-        OUTPUT:
-
-        True or False
-
-        EXAMPLES::
-
-            sage: P = PlumbingGraph
-            sage: P = PlumbingGraph()
-            sage: P.N6_f()
-            False
-            sage: P.add_vertex(0,-2,0)
-            0
-            sage: P.N6_f()
-            True
-        """
-        for i in self.vertices:
-            if self.N6_f_candidate(i):
-                return True
-        return False
-
     def N6_f_candidate(self, i):
         r"""
-        Checks if the vertex i is the second-last graph on p. 312 of [Neu1981]_,
+        Check if the vertex i is the second-last graph on p. 312 of [Neu1981]_,
         i.e. a singleton with mb=0, g=-2, r=0.
         
         INPUT:
@@ -3253,7 +3130,7 @@ class PlumbingGraph():
 
     def N6_f_find_candidate(self):
         r"""
-        Returns some vertex which is forms the second-last graph on
+        Return some vertex which is forms the second-last graph on
         p. 312 of [Neu1981]_, otherwise returns -1.
         
         OUTPUT:
@@ -3284,35 +3161,9 @@ class PlumbingGraph():
         return -1
 
 
-    def N6_g(self):
-        r"""
-        Checks if the graph has a component consisting of one edge with
-        genus -1, and r=1, i.e. Mobius strip times S^1.
-
-        OUTPUT:
-
-        True or False
-
-        EXAMPLES::
-
-            sage: P = PlumbingGraph()
-            sage: P.add_vertex(-1,-2,2)
-            0
-            sage: P.N6_g()
-            False
-            sage: P.add_vertex(-100,-1,1)
-            1
-            sage: P.N6_g()
-            True
-        """
-        for i in self.vertices:
-            if self.g[i] == -1 and self.r[i] == 1 and self.degree(i) == 0:
-                return True
-        return False
-
     def N6_g_candidate(self, i):
         r"""
-        Checks if the vertex i is the last graph on p. 312 of [Neu1981]_,
+        Check if the vertex i is the last graph on p. 312 of [Neu1981]_,
         i.e. a singleton with g=-1, r=1.
         
         INPUT:
@@ -3341,8 +3192,8 @@ class PlumbingGraph():
 
     def N6_g_find_candidate(self):
         r"""
-        Returns some vertex which is forms the last graph on
-        p. 312 of [Neu1981]_, otherwise returns -1.
+        Return some vertex which is forms the last graph on
+        p. 312 of [Neu1981]_, otherwise return -1.
         
         OUTPUT:
         
@@ -3372,11 +3223,17 @@ class PlumbingGraph():
 
     def minimal_representative_analytic(self):
         r"""
-        Changes the graph to its minimal representative, assuing
+        Change the graph to its minimal representative, assuming
         that the graph is a resolution graph for a resolution. This
         is obtained simply by repeatedly blowing down any
-        (-1)-curves. The result coincides with the minimal good
-        resolution graph of any corresponding singularity.
+        (-1)-curves which are not nodes and have g = r = 0.
+        The result coincides with the minimal good
+        resolution graph of a corresponding singularity.
+
+        This is not the same as applying the algorithm below for the
+        minimal representative, as this can introduce vertices with
+        negative genus, which is something which does not occur for
+        resolution graphs.
 
         EXAMPLES::
 
@@ -3391,9 +3248,7 @@ class PlumbingGraph():
             sage: P
             An empty plumbing graph
         """
-        if not self.is_analytic_link():
-            print("This function only works on resolution graphs")
-            return
+        assert self.is_analytic_link(),"This function only works on resolution graphs"
         while True:
             v = self.find_R1_candidate()
             if v == -1:
@@ -3403,9 +3258,11 @@ class PlumbingGraph():
 
     def minimal_representative(self):
         r"""
-        Performs steps 1-6 described in [Neu1981]_.
+        Perform steps 1-6 described in [Neu1981]_.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        A pretty basic example::
 
             sage: P = PlumbingGraph()
             sage: P.add_bamboo(9/7)
@@ -3419,6 +3276,27 @@ class PlumbingGraph():
             sage: P.minimal_representative()
             sage: P
             A plumbing graph with one vertex
+
+        In the following example, we construct a plumbed manifold which
+        is the link of a surface singularity, but whose minimal plumbing
+        graph is not the resolution graph of a resolution::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[2,2,3/2])
+            0
+            sage: P.add_Seifert(-2,0,[2,2,3/2])
+            5
+            sage: P.add_vertex(-3,0,0)
+            10
+            sage: P.add_edge({10,4})
+            8
+            sage: P.add_edge({10,9})
+            9
+            sage: P.is_analytic_link()
+            True
+            sage: P.minimal_representative()
+            sage: P.is_analytic_link()
+            False
         """
         self.step_1()
         self.step_2()
@@ -3432,7 +3310,7 @@ class PlumbingGraph():
 
     def step_1(self):
         r"""
-        Executes step 1 in the proof of thm 4.1 in [Neu1981]_. This just
+        Execute step 1 in the proof of thm 4.1 in [Neu1981]_. This just
         performs moves R1-8 until this is no longer possible..
 
         OUTPUT:
@@ -3498,18 +3376,15 @@ class PlumbingGraph():
                 continue
             break
 
-        if self.N1():
-            return True
-        else:
-            return False
+        return self.N1()
             
 ########################################################################
 # Step two
 
     def step_2(self):
         r"""
-        Executes steop 2 in the proof of thm 4.1 in [Neu1981]_. This
-        modifies all bamboos to have only Euler number <= -2.
+        Execute step 2 in the proof of thm 4.1 in [Neu1981]_. This
+        modifies all chains to have only Euler number <= -2.
 
         OUTPUT:
 
@@ -3558,17 +3433,13 @@ class PlumbingGraph():
                         if self.adj[ed] == {new_vx,i} ][0]
                 self.blow_down(i)
                 self.step_1()
-        if self.N2():
-            return True
-        else:
-            return False
+        return self.N2()
 
 ########################################################################
 # Step three
     def step_3(self):
         r"""
-        Executes steop 3 in the proof of thm 4.1 in [Neu1981]_. This
-        modifies all bamboos to have only Euler number <= -2.
+        Execute step 3 in the proof of thm 4.1 in [Neu1981]_.
 
         OUTPUT:
 
@@ -3621,16 +3492,13 @@ class PlumbingGraph():
             self.step_1()
             self.step_2()
         
-        if self.N3():
-            return True
-        else:
-            return False
+        return self.N3()
 
 ########################################################################
 # Step four
     def step_4(self):
         r"""
-        Carries out step 4 in [Neu1981]_.
+        Carry out step 4 in [Neu1981]_.
 
         OUTPUT:
         
@@ -3665,16 +3533,13 @@ class PlumbingGraph():
             self.projective_extrude(j, 0, -1, -1, -1)
             self.zero_chain_absorb(j)
         
-        if self.N4():
-            return True
-        else:
-            return False
+        return self.N4()
 
 ########################################################################
 # Step five
     def step_5(self):
         r"""
-        Carries out step 5 in [Neu1981]_.
+        Carry out step 5 in [Neu1981]_.
 
         OUTPUT:
         
@@ -3790,9 +3655,6 @@ class PlumbingGraph():
             sage: P
             A plumbing graph with 2 vertices
         """
-        if not self.N4():
-            return False
-        
         L = [ j for j in self.vertices if self.N5_obstruction(j) ]
         for j in L:
             self.projective_extrude(j, 0, -1, -1, -1)
@@ -3827,7 +3689,7 @@ class PlumbingGraph():
 # Step six
     def step_6(self):
         r"""
-        Carries out step 6 in [Neu1981]_.
+        Carry out step 6 in [Neu1981]_.
 
         OUTPUT:
         
