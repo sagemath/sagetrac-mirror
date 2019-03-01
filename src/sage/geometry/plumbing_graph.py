@@ -25,7 +25,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- Baldur Sigur\dh sson (2018)
+- Baldur Sigurðsson (2018)
 """
 
 #*****************************************************************************
@@ -2618,8 +2618,6 @@ class PlumbingGraph():
             sage: P.N2()
             False
         """
-        if not self.N1():
-            return False
         for i in self.vertices - self.nodes():
             if self.mb[i] > -2:
                 return False
@@ -2648,9 +2646,6 @@ class PlumbingGraph():
             sage: P.N3()
             False
         """
-        if not self.N2():
-            return False
-        
         for i in self.vertices:
             if self.N3_obstruction(i):
                 return False
@@ -2734,8 +2729,6 @@ class PlumbingGraph():
             sage: P.N4()
             False
         """
-        if not self.N3():
-            return False
         for j in self.vertices:
             if self.N4_obstruction(j):
                 return False
@@ -2794,8 +2787,6 @@ class PlumbingGraph():
             sage: P.N5()
             True
         """
-        if not self.N4():
-            return False
         for j in self.vertices:
             if self.N5_obstruction(j):
                 return False
