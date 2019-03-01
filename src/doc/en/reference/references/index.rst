@@ -2649,7 +2649,7 @@ REFERENCES:
              topology of complex surface singularities and degenerating
              complex curves*, Transactions of the American
              Mathematical Society, Vol. 268, No. 2 (Dec., 1981),
-             pp. 4807--4823
+             pp. 4807--4823.
 
 .. [Nie2013] Johan S. R. Nielsen, List Decoding of Algebraic Codes,
              Ph.D. Thesis, Technical University of Denmark, 2013
@@ -2683,6 +2683,10 @@ REFERENCES:
 .. [NovThi06] Jean-Christophe Novelli, Jean-Yves Thibon,
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
+
+.. [NSz2012] Némethi, András; Szilárd, Ágnes. Milnor fiber boundary of a
+             non-isolated surface singularity, volume 2037 of Lecture
+             Notes in Math. Springer, Heidelberg, 2012.
 
 .. [NZ1997] \T. Nakashima and A. Zelevinsky.
             Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.
