@@ -25,7 +25,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- Baldur Sigurðsson (2018)
+- Baldur Sigur\dh sson (2018)
 """
 
 #*****************************************************************************
@@ -219,7 +219,7 @@ class PlumbingGraph():
 
         A string.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = PlumbingGraph
             sage: P = PlumbingGraph()
