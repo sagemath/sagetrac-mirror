@@ -59,12 +59,14 @@ def process_sws(sws_file):
     base_name = base_name.replace(' ','_')
 
     tempdir = tempfile.mkdtemp()
+    pathsep = os.pathsep
     try:
         with tarfile.open(sws_file, mode='r:bz2') as sws_file:
             # some security checks
             # file names should belong to the extracted directory
             members = [m for m in sws_file.getmembers()
-                       if not('..' in m.name() or m.name().startswith("\\"))]
+                       if not('..' in m.name() or m.name().startswith("/")
+                              or m.name().startswith(pathsep))]
             sws_file.extractall(tempdir, members)
         worksheet_dir = os.path.join(tempdir, 'sage_worksheet')
         if not os.path.isdir(worksheet_dir):
