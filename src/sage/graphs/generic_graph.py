@@ -9842,10 +9842,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.set_vertex(1, graphs.FlowerSnark())
             sage: T.get_vertex(1)
             Flower Snark: Graph on 20 vertices
+            sage: T.set_vertex(4, graphs.DodecahedralGraph())
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex (1) not in the graph.
+            Please use add_vertex() method to add the vertex to the graph before setting it to the object.
         """
         if hasattr(self, '_assoc') is False:
             self._assoc = {}
 
+        if not self._backend.has_vertex(vertex):
+            raise ValueError('vertex (%s) not in the graph.\nPlease use add_vertex() method to add the vertex to the graph before setting it to the object.'%str(vertex))
+            
         self._assoc[vertex] = object
 
     def get_vertex(self, vertex):
@@ -11304,6 +11312,48 @@ class GenericGraph(GenericGraph_pyx):
         """
         return [l for _, _, l in self.edge_iterator()]
 
+    def has_labels(self, check_in_vertices=True, check_in_edges=True):
+        """
+        Checks if the graph has labels.
+
+        Checks for atleast one label in the vertices of the graph, if the check_in_vertices
+        flag is set to True. 
+
+        Checks for atleast one label in the edges of the graph, if the check_in_edges
+        flag is set to True.
+
+        EXAMPLES::
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.has_labels()
+            False
+
+            sage: G.set_vertex(2, 'foo')
+            sage: G.has_labels()
+            True
+            sage: G.has_labels(check_in_vertices=False)
+            False
+
+            sage: G.set_edge_label(0, 1, 'bar')
+            sage: G.has_labels()
+            True
+            sage: G.has_labels(check_in_edges=False)
+            True
+            sage: G.has_labels(check_in_vertices=False)
+            True
+
+        """
+
+        if check_in_vertices:
+            for v in self.vertices():
+                if self.get_vertex(v) != None:
+                    return True
+
+        if check_in_edges:
+            if self.edge_labels() != [None]*(len(self.edges())):
+                return True
+        
+        return False
+
     def remove_multiple_edges(self):
         """
         Remove all multiple edges, retaining one edge for each.
@@ -12264,9 +12314,7 @@ class GenericGraph(GenericGraph_pyx):
         suppose ``G`` is not the empty graph. If there is no copy (induced or
         otherwise) of ``G`` in ``self``, we return ``None``.
 
-        .. NOTE::
-
-            This method does not take vertex/edge labels into account.
+        If vertex labels or edge labels are found, it returns a ValuesError.
 
         .. SEEALSO::
 
@@ -12351,12 +12399,40 @@ class GenericGraph(GenericGraph_pyx):
             sage: k3.subgraph_search(p3, induced=True) is None
             True
 
+        If the graph has labels::
+
+            sage: g.set_vertex(0, 'foo')
+            sage: g.subgraph_search(graphs.CycleGraph(3))
+            ---------------------------------------------------------------------------
+            ValueError                                Traceback (most recent call last)
+            ...
+            ValueError: Graph must be unlabelled
+
         TESTS:
 
         Inside of a small graph (:trac:`13906`)::
 
             sage: Graph(5).subgraph_search(Graph(1))
             Graph on 1 vertex
+        
+        For labelled edges (:trac: `14999`)::
+
+            sage: G = graphs.CompleteGraph(10) 
+            sage: C = G.subgraph_search(graphs.CycleGraph(4))
+            sage: C.size()
+            4
+            sage: C.edges()
+            [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
+
+            sage: for (u,v) in G.edges(labels=False):    
+            ...     G.set_edge_label(u,v, u | v)
+
+            sage: C = G.subgraph_search(graphs.CycleGraph(4)) 
+            ---------------------------------------------------------------------------
+            ValueError                                Traceback (most recent call last)
+            ...
+            ValueError: Graph must be unlabelled
+
         """
         from sage.graphs.generic_graph_pyx import SubgraphSearch
         from sage.graphs.graph_generators import GraphGenerators
@@ -12371,6 +12447,9 @@ class GenericGraph(GenericGraph_pyx):
                 return Graph({next(self.vertex_iterator()): []})
             else:
                 return None
+
+        if self.has_labels():
+            raise ValueError('Graph must be unlabelled')
 
         S = SubgraphSearch(self, G, induced=induced)
 
@@ -12388,16 +12467,14 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the number of labelled occurrences of ``G`` in ``self``.
 
+        If vertex labels or edge labels are found, it returns a ValuesError.
+
         INPUT:
 
         - ``G`` -- the (di)graph whose copies we are looking for in ``self``
 
         - ``induced`` -- boolean (default: ``False``); whether or not to count
           induced copies of ``G`` in ``self``
-
-        .. NOTE::
-
-            This method does not take vertex/edge labels into account.
 
         ALGORITHM:
 
@@ -12449,6 +12526,15 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.subgraph_search_count(graphs.EmptyGraph())
             1
+        
+        If the graph has vertex labels or edge labels, it returns a ValueError::
+            
+            sage: g.set_vertex(0, 'foo')
+            sage: g.subgraph_search_count(graphs.CycleGraph(3))
+            ---------------------------------------------------------------------------
+            ValueError                                Traceback (most recent call last)
+            ...
+            ValueError: Graph must be unlabelled
 
         TESTS:
 
@@ -12468,6 +12554,9 @@ class GenericGraph(GenericGraph_pyx):
         if G.order() == 1:
             return self.order()
 
+        if self.has_labels():
+            raise ValueError('Graph must be unlabelled')
+
         S = SubgraphSearch(self, G, induced=induced)
 
         return S.cardinality()
@@ -12476,16 +12565,14 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return an iterator over the labelled copies of ``G`` in ``self``.
 
+        If vertex labels or edge labels are found, it returns a ValuesError.
+
         INPUT:
 
         - ``G`` -- the graph whose copies we are looking for in ``self``
 
         - ``induced`` -- boolean (default: ``False``); whether or not to iterate
           over the induced copies of ``G`` in ``self``
-
-        .. NOTE::
-
-            This method does not take vertex/edge labels into account.
 
         ALGORITHM:
 
@@ -12524,6 +12611,16 @@ class GenericGraph(GenericGraph_pyx):
             [3, 2, 1]
             [4, 3, 2]
 
+        If the graph has vertex labels or edge labels, it returns a ValueError::
+            
+            sage: g.set_vertex(0, 'foo')
+            sage: for p in g.subgraph_search_iterator(graphs.PathGraph(3)):
+            ....:     print(p)
+            ---------------------------------------------------------------------------
+            ValueError                                Traceback (most recent call last)
+            ...
+            ValueError: Graph must be unlabelled
+
         TESTS:
 
         Inside of a small graph (:trac:`13906`)::
@@ -12538,6 +12635,9 @@ class GenericGraph(GenericGraph_pyx):
 
         elif not self.order():
             return []
+
+        if self.has_labels():
+            raise ValueError('Graph must be unlabelled')
 
         elif G.order() == 1:
             from sage.graphs.graph import Graph
