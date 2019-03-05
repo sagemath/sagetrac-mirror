@@ -423,7 +423,7 @@ are tailored to the specific kind of their base ring:
     sage: FreeModule(R, 3)
     Ambient free module of rank 3 over Ring of integers modulo 6
     sage: type(FreeModule(R, 3))
-    <class 'sage.modules.free_module.FreeModule_ambient_with_category'>
+    <class 'sage.modules.free_module.FreeModule_ambient_IntegerModRing_with_category'>
 
 - free module over an integral domain that is not principal (`\ZZ[X]`)::
 

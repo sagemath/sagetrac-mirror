@@ -2,10 +2,11 @@ r"""
 Free modules
 
 Sage supports computation with free modules over an arbitrary commutative ring.
-Nontrivial functionality is available over `\ZZ`, fields, and some principal
-ideal domains (e.g. `\QQ[x]` and rings of integers of number fields). All free
-modules over an integral domain are equipped with an embedding in an ambient
-vector space and an inner product, which you can specify and change.
+Nontrivial functionality is available over `\ZZ`, fields, some principal
+ideal domains (e.g. `\QQ[x]` and rings of integers of number fields) and the
+finite rings `\ZZ/n\ZZ`. All free modules over an integral domain are equipped
+with an embedding in an ambient vector space and an inner product, which you can
+specify and change.
 
 Create the free module of rank `n` over an arbitrary commutative ring `R` using
 the command ``FreeModule(R,n)``. Equivalently, ``R^n`` also creates that free
@@ -144,11 +145,15 @@ AUTHORS:
 - Simon King (2010-12), Peter Bruin (June 2014):
   :trac:`10513` : New coercion model and category framework.
 
+- Vincent Delecroix (2015): :trac:`6452` : submodules of `(ZZ/m\ZZ)^r`.
+
+
 """
 
 ###########################################################################
 #       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007, 2008 David Kohel <kohel@iml.univ-mrs.fr>
+#       Copyright (C) 2015  Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -168,6 +173,7 @@ from itertools import islice
 from . import free_module_element
 import sage.matrix.matrix_space
 import sage.misc.latex as latex
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.modules.module import Module
 import sage.rings.finite_rings.finite_field_constructor as finite_field
@@ -385,6 +391,10 @@ done from the right side.""")
 
             elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
                 return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
+
+            elif isinstance(base_ring, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic):
+
+                return FreeModule_ambient_IntegerModRing(base_ring, rank, sparse=sparse)
 
             else:
                 return FreeModule_ambient(base_ring, rank, sparse=sparse)
@@ -5203,7 +5213,6 @@ class FreeModule_ambient(FreeModule_generic):
             v.set_immutable()
             return v
 
-
 ###############################################################################
 #
 # Ambient free modules over an integral domain.
@@ -5584,6 +5593,77 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         except AttributeError:
             pass
         return FreeModule_generic_field._element_constructor_(self, e, *args, **kwds)
+
+#########
+#
+#####
+
+class FreeModule_ambient_IntegerModRing(FreeModule_ambient):
+    r"""
+    Free module over a finite ring `ZZ/mZZ`.
+
+    .. NOTE::
+
+        Possibly, the construction using Schmidt normal form in
+        :class:`FreeModule_submodule_IntegerModRing` can be used for more
+        general ring (i.e. any quotient of a PID).
+    """
+    def submodule(self, gens, check=True, category=None):
+        r"""
+        EXAMPLES::
+
+            sage: M = IntegerModRing(12) ** 3
+            sage: M.submodule([M((2,2,0)), M((0,0,3))])
+            Submodule of degree 3 and 2 generators over Ring of integers modulo 12
+            Invariants  : (1, 6)
+            Basis matrix:
+            [2 2 3]
+            [6 6 6]
+        """
+        return FreeModule_submodule_IntegerModRing(self, gens)
+
+    def span(self, gens, base_ring=None, check=True):
+        r"""
+        EXAMPLES::
+
+            sage: M = IntegerModRing(8) ** 3
+            sage: M.span([M((4,4,4)), M((2,0,0)), M((0,1,2))])
+            Submodule of degree 3 and 3 generators over Ring of integers modulo 8
+            Invariants  : (1, 2, 4)
+            Basis matrix:
+            [0 1 2]
+            [2 0 0]
+            [4 4 4]
+        """
+        if is_FreeModule(gens):
+            gens = gens.gens()
+        if base_ring is None or base_ring is self.base_ring():
+            return FreeModule_submodule_IntegerModRing(
+                self, gens)
+        else:
+            try:
+                M = self.change_ring(base_ring)
+            except TypeError:
+                raise ValueError("Argument base_ring (= %s) is not compatible "%base_ring + \
+                    "with the base field (= %s)." % self.base_field())
+            try:
+                return M.span(gens)
+            except TypeError:
+                raise ValueError("Argument gens (= %s) is not compatible "%gens + \
+                    "with base_ring (= %s)."%base_ring)
+
+    def _coerce_map_from_(self, other):
+        r"""
+        TESTS::
+
+            sage: M = IntegerModRing(4) ** 3
+            sage: U = M.span([(1,2,3)])
+            sage: M.has_coerce_map_from(U)
+            True
+        """
+        if isinstance(other, FreeModule_submodule_IntegerModRing) and other.ambient() is self:
+            return True
+        return super(FreeModule_ambient_IntegerModRing, self)._coerce_map_from_(other)
 
 ###############################################################################
 #
@@ -7166,6 +7246,420 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             True
         """
         return False
+
+class FreeModule_submodule_IntegerModRing(Module):
+    r"""
+    A submodule of `(\ZZ / n \ZZ)^d`.
+
+    Note that these are not free module in general.
+
+    EXAMPLES::
+
+        sage: M = IntegerModRing(12) ** 2
+        sage: V = M.submodule([M((2,3)), M((0,6))])
+        sage: V.cardinality()
+        12
+
+    .. TODO::
+
+        Implement a method to decompose a vector in the basis.
+
+        Find a canonical form for bases.
+    """
+    def __init__(self, ambient, gens, sparse=False):
+        r"""
+        INPUT:
+
+        - ``ambient`` - the ambient free module
+
+        - ``gens`` - generators of this submodule
+
+        - ``sparse`` - whether a sparse representation is used for vectors
+
+        TESTS::
+
+            sage: R = IntegerModRing(12)
+            sage: M = FreeModule(R, 3)
+            sage: U = M.submodule([M((0,3,0)), M((4,0,0))])
+            sage: TestSuite(U).run()
+
+            sage: U = M.span([])
+            sage: TestSuite(U).run()
+        """
+        base_ring = ambient.base_ring()
+
+        from sage.matrix.constructor import matrix
+        m = matrix(base_ring,
+                   gens,
+                   nrows=len(gens),
+                   ncols=ambient.dimension())
+
+        D,S,T = m.lift().smith_form()
+        D = D.change_ring(base_ring)
+        T = (~T).change_ring(base_ring)
+
+        i = 0
+        n = base_ring.cardinality()
+        while i < D.nrows() and i < D.ncols() and not (D[i,i] % n).is_zero():
+            i += 1
+        n = ambient.base_ring().cardinality()
+        self._d = tuple(n.gcd(D[j,j].lift()) for j in range(i))
+        self._T = T[:i,:]
+        for j in range(i):
+            self._T.set_row_to_multiple_of_row(j, j, D[j,j])
+        self._T.set_immutable()
+        self._ambient = ambient
+
+        self.Element = element_class(base_ring, sparse)
+        from sage.categories.all import Modules, EnumeratedSets
+        category = (Modules(base_ring) & EnumeratedSets().Finite())
+        Module.__init__(self, base_ring, category=category)
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: M = FreeModule(IntegerModRing(12), 3)
+            sage: M.submodule([M((2,0,0)), M((0,4,0)), M((0,0,6))])  # indirect doctest
+            Submodule of degree 3 and 2 generators over Ring of integers modulo 12
+            Invariants  : (2, 2)
+            Basis matrix:
+            [2 0 0]
+            [0 4 6]
+        """
+        return ("Submodule of degree {} and {} generator{} over {}\n"
+                "Invariants  : {}\n"
+                "Basis matrix:\n{}".format(self.degree(), self.ngens(),
+                    '' if self.ngens() <= 1 else 's',
+                    self.base_ring(), self._d, self.generator_matrix()))
+
+    def _element_constructor_(self, x, coerce=True, copy=True, check=True):
+        r"""
+        Create an element of this free module from x.
+
+        The ``coerce`` and ``copy`` arguments are
+        passed on to the underlying element constructor. If
+        ``check`` is ``True``, confirm that the
+        element specified by ``x`` does in fact lie in self.
+
+        TESTS::
+
+            sage: F = IntegerModRing(6) ** 2
+            sage: U = F.span([(2,0)])
+            sage: U((2,0))
+            (2, 0)
+            sage: U((1,0))
+            Traceback (most recent call last):
+            ...
+            TypeError: element (1, 0) is not in this module
+
+            sage: F((2,0)) in U
+            True
+            sage: F((1,0)) in U
+            False
+        """
+        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x == 0:
+            return self.zero_vector()
+        elif isinstance(x, free_module_element.FreeModuleElement):
+            if x.parent() is self:
+                return x.__copy__() if copy else x
+            x = x.list()
+        v = self.element_class(self, x, coerce, copy)
+        if check:
+            # TODO: there is not yet a nice procedure to decompose a given
+            # vector on a basis
+            w = self.element_class(self.ambient(), x, coerce, copy)
+            if w.lift() not in self._lift:
+                raise TypeError("element {!r} is not in this module".format(v))
+        return v
+
+    def zero_vector(self):
+        r"""
+        Return the zero vector (as a mutable vector).
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(12) ** 4
+            sage: M.zero_vector()
+            (0, 0, 0, 0)
+            sage: _.is_mutable()
+            True
+        """
+        return self.element_class(self, 0, False, False)
+
+    @cached_method
+    def zero(self):
+        r"""
+        Return the zero vector (as an immutable vector).
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(12) ** 4
+            sage: M.zero()
+            (0, 0, 0, 0)
+            sage: _.is_mutable()
+            False
+        """
+        v = self.element_class(self, 0, False, False)
+        v.set_immutable()
+        return v
+
+    @lazy_attribute
+    def _lift(self):
+        r"""
+        Return the lattice in `\ZZ^d` generated by the elements of this
+        submodule and `n \ZZ^d`.
+
+        TESTS::
+
+            sage: R = IntegerModRing(12)
+            sage: M = R**4
+            sage: U = M.submodule([M((2,0,0,0)), M((0,4,0,0)),
+            ....:            M((0,0,3,0)), M((0,0,0,6))])
+            sage: U._lift
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [2 0 0 0]
+            [0 4 0 0]
+            [0 0 3 0]
+            [0 0 0 6]
+
+            sage: U = M.submodule([M((2,4,0,3)), M((4,0,6,0))])
+            sage: U._lift
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [2 0 0 3]
+            [0 4 0 0]
+            [0 0 6 0]
+            [0 0 0 6]
+        """
+        from sage.rings.integer_ring import ZZ
+        F = FreeModule(ZZ, self.degree())
+        n = self.base_ring().cardinality()
+        B = [n*e for e in F.basis()]
+        return F.span([v.lift() for v in self._T.rows()] + B)
+
+    def ambient(self):
+        r"""
+        Return the ambient space.
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(6) ** 3
+            sage: M.span([M((1,1,1))]).ambient() is M
+            True
+        """
+        return self._ambient
+
+    def is_submodule(self, other):
+        r"""
+        Test whether this module is a submodule of ``other``.
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(6)**2
+            sage: U2 = M.span([(2,0),(0,2)])
+            sage: U2.is_submodule(M)
+            True
+            sage: M.span([(4,2)]).is_submodule(U2)
+            True
+            sage: M.span([(1,0)]).is_submodule(U2)
+            False
+        """
+        if other is self._ambient:
+            return True
+        if not isinstance(other, FreeModule_submodule_IntegerModRing):
+            return False
+        if self.base_ring() != other.base_ring() or \
+           self.degree() != other.degree() or \
+           self.ambient() != other.ambient():
+               return False
+        return all(g.lift() in other._lift for g in self._T.rows())
+
+    def degree(self):
+        r"""
+        Return the dimension of the ambient space.
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(4) ** 3
+            sage: M.span([M((1,1,1))]).degree()
+            3
+
+            sage: M.ambient_module()
+            Ambient free module of rank 3 over Ring of integers modulo 4
+        """
+        return self._ambient.dimension()
+
+    def ngens(self):
+        r"""
+        Return the number of generators of this module.
+
+        EXAMPLES::
+
+            sage: M = FreeModule(IntegerModRing(10), 2)
+            sage: M.span([M((5,2)), M((3,1))]).ngens()
+            2
+            sage: M.span([M((5,2)), M((3,1), M((2,1)))]).ngens()
+            2
+            sage: M.span([M((5,2)), M((3,1), M((2,1), M((0,1))))]).ngens()
+            2
+
+            sage: M = FreeModule(IntegerModRing(15), 2)
+            sage: U = M.span([M((3,0)), M((0,5))])
+            sage: U.ngens()
+            1
+        """
+        return len(self._d)
+
+    @cached_method
+    def gens(self):
+        r"""
+        Return the generators of this submodule.
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(12) ** 3
+            sage: V = M.span([M((2,3,4)), M((1,3,2))])
+            sage: V.gens()
+            [(1, 3, 2), (0, 9, 0)]
+
+            sage: V = M.span([M((2,0,0)), M((0,4,0)), M((0,0,3))])
+            sage: V.gens()
+            [(2, 0, 3), (6, 4, 6)]
+
+            sage: V.gens()[0].parent() is V
+            True
+        """
+        ans = [r.__copy__() for r in self._T.rows()]
+        for r in ans:
+            r._set_parent(self)
+            r.set_immutable()
+        return ans
+
+    def invariant_factors(self):
+        r"""
+        Return the invariant factors of this module.
+
+        The invariant factors are the integers `(d_1, d_2, \ldots, d_k)` so that
+        this module is isomorphic to `d_1 (\ZZ / n \ZZ) \oplus
+        d_2 (\ZZ / n \ZZ) \oplus ... \oplus d_k (\ZZ / n \ZZ)`. This completely
+        determines the isomorphism class. The module is free is free, if and
+        only if all invariant are `1`.
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(12)**3
+            sage: V = M.span([M((4,0,0)), M((0,3,0)), M((0,0,2))])
+            sage: V.invariant_factors()
+            (1, 2)
+
+            sage: v0, v1 = V.gens()
+            sage: (6 * v1).is_zero()
+            True
+            sage: all(not (i * v0).is_zero() for i in range(1,12))
+            True
+            sage: all(not (i * v1).is_zero() for i in range(1,6))
+            True
+        """
+        return self._d
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of this module.
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(8) ** 3
+            sage: U = M.span([M((4,4,4)), M((1,0,0)), M((0,2,2))])
+            sage: U.cardinality()
+            32
+            sage: sum(1 for u in U)
+            32
+
+            sage: M = IntegerModRing(6) ** 2
+            sage: M.span([M((2,4))]).cardinality()
+            3
+        """
+        from sage.misc.misc_c import prod
+        n = self.base_ring().cardinality()
+        return prod(n // i for i in self._d)
+
+    def generator_matrix(self):
+        r"""
+        Return the generator matrix of this module.
+
+        EXAMPLES::
+
+            sage: M = IntegerModRing(12) ** 3
+            sage: V = M.span([M((2,3,4)), M((1,3,2))])
+            sage: V.generator_matrix()
+            [1 3 2]
+            [0 9 0]
+        """
+        return self._T
+
+    def __iter__(self):
+        r"""
+        TESTS::
+
+            sage: R = IntegerModRing(6)
+            sage: M = R**4
+            sage: U = M.span([M((1,1,0,2))])
+            sage: for u in U: print u
+            (0, 0, 0, 0)
+            (1, 1, 0, 2)
+            (2, 2, 0, 4)
+            (3, 3, 0, 0)
+            (4, 4, 0, 2)
+            (5, 5, 0, 4)
+            sage: U = M.span([M((2,2,0,4))])
+            sage: for u in U: print u
+            (0, 0, 0, 0)
+            (2, 2, 0, 4)
+            (4, 4, 0, 2)
+
+            sage: R = IntegerModRing(6)
+            sage: M = R**4
+            sage: U = M.span([M((1,1,0,2))])
+            sage: next(iter(U)).parent() is U
+            True
+        """
+        from itertools import product
+        d = self._d
+        m = len(self._d)
+        M = FreeModule(self.base_ring(), m)
+        T = self._T
+        n = M.base_ring().cardinality()
+        div = [range(n // d[j]) for j in range(m)]
+        for v in product(*div):
+            v = M(v) * T
+            v._set_parent(self)
+            yield v
+
+    def __cmp__(self, other):
+        r"""
+        TESTS::
+
+            sage: M = IntegerModRing(8) ** 3
+            sage: U = M.span([M((2,2,0)), M((0,2,2))])
+            sage: V = M.span([M((0,2,2)), M((2,2,0))])
+            sage: U == V
+            True
+        """
+        if self is other:
+            return 0
+
+        c = cmp(type(self), type(other)) or \
+            cmp(self.base_ring(), other.base_ring()) or \
+            cmp(self.ambient(), other.ambient()) or \
+            cmp(self.ngens(), other.ngens()) or \
+            cmp(self._d, other._d)
+        if c: return c
+
+        # now we have two subspaces which are isomorphic. We compare the echelon
+        # form of their lift in ZZ^degree
+        return cmp(self._lift, other._lift)
 
 def basis_seq(V, vecs):
     """
