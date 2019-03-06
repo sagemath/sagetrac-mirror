@@ -29,6 +29,8 @@ from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from copy import copy, deepcopy
 from sage.misc.misc import verbose
+from sage.interfaces.gp import gp
+from sage.libs.pari import pari
 
 def M_p(species, p):
     r"""
@@ -3075,21 +3077,12 @@ class GenusSymbol_global_ring(object):
         if LLL:
             sig = self.signature_pair_of_matrix()
             if sig[0]*sig[1] != 0:
-                # sometimes gp opts out
-                # of memory, then we do not LLL reduce
-                try:
-                    from sage.env import SAGE_EXTCODE
-                    from sage.interfaces.gp import Gp
-                    from cypari2.pari_instance import Pari
-                    pari = Pari()
-                    gp = Gp()
-                    m = pari(L)
-                    gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
-                    m = gp.eval('qflllgram_indefgoon(%s)'%m)
-                    # convert the output string to sage
-                    L = pari(m).sage()[0]
-                except OSError:
-                    pass
+                from sage.env import SAGE_EXTCODE
+                m = pari(L)
+                gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
+                m = gp.eval('qflllgram_indefgoon(%s)'%m)
+                # convert the output string to sage
+                L = pari(m).sage()[0]
             elif sig[1] != 0:
                 U = -(-L).LLL_gram()
                 L = U.T * L * U

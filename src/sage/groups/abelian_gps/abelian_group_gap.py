@@ -352,11 +352,13 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
                 exp = vector(ZZ, x)
             # turn the exponents into a gap element
             gens_gap = self.gens()
+            orders = self.gens_orders()
             if len(exp) != len(gens_gap):
                 raise ValueError("input does not match the number of generators")
             x = gens_gap[0]**0
             for i in range(len(exp)):
-                x *= gens_gap[i]**exp[i]
+
+                x *= gens_gap[i]**(exp[i] % orders[i])
             x = x.gap()
         return self.element_class(self, x, check=check)
 

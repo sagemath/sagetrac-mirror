@@ -750,16 +750,18 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [ 2 -1]
             [-1  2]
         """
+        s = ""
         if self.is_sparse():
-            s = "Sparse lattice of degree %s and rank %s over %s\n"%(
-                self.degree(), self.rank(), self.base_ring()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+            s = "Sparse lattice "
         else:
-            s = "Lattice of degree %s and rank %s over %s\n"%(
-                self.degree(), self.rank(), self.base_ring()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+            s = "Lattice "
+        s += "of degree %s and rank %s over %s\n"%(
+              self.degree(), self.rank(), self.base_ring())
+        if self.basis_matrix() == 1:
+            s += "Standard basis \n"
+        else:
+            s += "Basis matrix:\n%s\n" % self.basis_matrix()
+        s += "Inner product matrix:\n%s" % self.inner_product_matrix()
         return s
 
     def all_overlattices(self, only_even=False):
