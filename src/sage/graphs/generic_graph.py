@@ -11304,6 +11304,56 @@ class GenericGraph(GenericGraph_pyx):
         """
         return [l for _, _, l in self.edge_iterator()]
 
+    def has_labels(self, check_vertices=True, check_edges=True):
+        """
+        Check if the graph has labels.
+
+        INPUT:
+
+        - ``check_vertices`` -- boolean (default: ``True``); Checks for at least 
+          one label in the vertices of the graph if set to ``True``
+
+        - ``check_edges`` -- boolean (default: ``True``); Checks for at least 
+          one label in the edges of the graph if set to ``True``
+
+        OUTPUT:
+
+        A boolean value. ``True`` if a label is found in the vertices (if 
+        ``check_vertices`` is set to ``True``) or in the edges (if 
+        ``check_edges`` is set to ``True``)
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.has_labels()
+            False
+
+            sage: G.set_vertex(2, 'foo')
+            sage: G.has_labels()
+            True
+            sage: G.has_labels(check_vertices=False)
+            False
+
+            sage: G.set_edge_label(0, 1, 'bar')
+            sage: G.has_labels()
+            True
+            sage: G.has_labels(check_edges=False)
+            True
+            sage: G.has_labels(check_vertices=False)
+            True
+
+        """
+
+        if check_vertices:
+            if any(self.get_vertex(v) is not None for v in self):
+                return True
+
+        if check_edges:
+            if any(l is not None for _,_,l in self.edge_iterator()):
+                return True
+        
+        return False
+
     def remove_multiple_edges(self):
         """
         Remove all multiple edges, retaining one edge for each.
@@ -12055,6 +12105,7 @@ class GenericGraph(GenericGraph_pyx):
         if edges is not None:
             edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
             edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
+
             edges_to_keep = []
             if self._directed:
                 for u, v, l in self.edge_iterator(vertices):
@@ -12264,9 +12315,7 @@ class GenericGraph(GenericGraph_pyx):
         suppose ``G`` is not the empty graph. If there is no copy (induced or
         otherwise) of ``G`` in ``self``, we return ``None``.
 
-        .. NOTE::
-
-            This method does not take vertex/edge labels into account.
+        If vertex labels or edge labels are found, an error is raised.
 
         .. SEEALSO::
 
@@ -12351,12 +12400,35 @@ class GenericGraph(GenericGraph_pyx):
             sage: k3.subgraph_search(p3, induced=True) is None
             True
 
+        If the graph has labels, the labels are just ignored::
+
+            sage: g.set_vertex(0, 'foo')
+            sage: c = g.subgraph_search(graphs.PathGraph(5))
+            sage: c.get_vertices()
+            {0: 'foo', 1: None, 2: None, 3: None, 4: None}
+
         TESTS:
 
         Inside of a small graph (:trac:`13906`)::
 
             sage: Graph(5).subgraph_search(Graph(1))
             Graph on 1 vertex
+
+        For labelled edges (:trac:`14999`)::
+
+            sage: G = graphs.CompleteGraph(10) 
+            sage: C = G.subgraph_search(graphs.CycleGraph(4))
+            sage: C.size()
+            4
+            sage: C.edges()
+            [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
+
+            sage: for (u,v) in G.edges(labels=False): G.set_edge_label(u, v, u)
+
+            sage: C = G.subgraph_search(graphs.CycleGraph(4)) 
+            sage: C.edges()
+            [(0, 1, 0), (0, 3, 0), (1, 2, 1), (2, 3, 2)]
+
         """
         from sage.graphs.generic_graph_pyx import SubgraphSearch
         from sage.graphs.graph_generators import GraphGenerators
@@ -12380,7 +12452,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 Gcopy = copy(G)
                 Gcopy.relabel(g)
-                return self.subgraph(vertices=Gcopy, edges=Gcopy.edges(sort=False))
+                return self.subgraph(vertices=Gcopy, edges=Gcopy.edges(labels=False, sort=False))
 
         return None
 
@@ -12388,16 +12460,14 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the number of labelled occurrences of ``G`` in ``self``.
 
+        If vertex labels or edge labels are found, an error is raised.
+
         INPUT:
 
         - ``G`` -- the (di)graph whose copies we are looking for in ``self``
 
         - ``induced`` -- boolean (default: ``False``); whether or not to count
           induced copies of ``G`` in ``self``
-
-        .. NOTE::
-
-            This method does not take vertex/edge labels into account.
 
         ALGORITHM:
 
@@ -12449,6 +12519,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.subgraph_search_count(graphs.EmptyGraph())
             1
+        
+        If the graph has vertex labels or edge labels, the label is just ignored::
+            
+            sage: g.set_vertex(0, 'foo')
+            sage: g.subgraph_search_count(graphs.CycleGraph(3))
+            0
 
         TESTS:
 
@@ -12476,16 +12552,14 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return an iterator over the labelled copies of ``G`` in ``self``.
 
+        If vertex labels or edge labels are found, an error is raised.
+
         INPUT:
 
         - ``G`` -- the graph whose copies we are looking for in ``self``
 
         - ``induced`` -- boolean (default: ``False``); whether or not to iterate
           over the induced copies of ``G`` in ``self``
-
-        .. NOTE::
-
-            This method does not take vertex/edge labels into account.
 
         ALGORITHM:
 
@@ -12515,6 +12589,18 @@ class GenericGraph(GenericGraph_pyx):
         Iterating through all the labelled `P_3` of `P_5`::
 
             sage: g = graphs.PathGraph(5)
+            sage: for p in g.subgraph_search_iterator(graphs.PathGraph(3)):
+            ....:     print(p)
+            [0, 1, 2]
+            [1, 2, 3]
+            [2, 1, 0]
+            [2, 3, 4]
+            [3, 2, 1]
+            [4, 3, 2]
+
+        If the graph has vertex labels or edge labels, the label is just ignored::
+
+            sage: g.set_vertex(0, 'foo')
             sage: for p in g.subgraph_search_iterator(graphs.PathGraph(3)):
             ....:     print(p)
             [0, 1, 2]
