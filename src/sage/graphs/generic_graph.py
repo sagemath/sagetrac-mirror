@@ -9845,7 +9845,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if hasattr(self, '_assoc') is False:
             self._assoc = {}
-
+            
         self._assoc[vertex] = object
 
     def get_vertex(self, vertex):
@@ -12315,7 +12315,7 @@ class GenericGraph(GenericGraph_pyx):
         suppose ``G`` is not the empty graph. If there is no copy (induced or
         otherwise) of ``G`` in ``self``, we return ``None``.
 
-        If vertex labels or edge labels are found, an error is raised.
+        The vertex or edge labels are ignored.
 
         .. SEEALSO::
 
@@ -12444,6 +12444,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return None
 
+        if self.has_labels():
+            raise ValueError('Graph must be unlabelled')
+
         S = SubgraphSearch(self, G, induced=induced)
 
         for g in S:
@@ -12460,7 +12463,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the number of labelled occurrences of ``G`` in ``self``.
 
-        If vertex labels or edge labels are found, an error is raised.
+        The vertex or edge labels are ignored.
 
         INPUT:
 
@@ -12544,6 +12547,9 @@ class GenericGraph(GenericGraph_pyx):
         if G.order() == 1:
             return self.order()
 
+        if self.has_labels():
+            raise ValueError('Graph must be unlabelled')
+
         S = SubgraphSearch(self, G, induced=induced)
 
         return S.cardinality()
@@ -12552,7 +12558,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return an iterator over the labelled copies of ``G`` in ``self``.
 
-        If vertex labels or edge labels are found, an error is raised.
+        The vertex or edge labels are ignored.
 
         INPUT:
 
@@ -12624,6 +12630,9 @@ class GenericGraph(GenericGraph_pyx):
 
         elif not self.order():
             return []
+
+        if self.has_labels():
+            raise ValueError('Graph must be unlabelled')
 
         elif G.order() == 1:
             from sage.graphs.graph import Graph
