@@ -12444,9 +12444,6 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return None
 
-        if self.has_labels():
-            raise ValueError('Graph must be unlabelled')
-
         S = SubgraphSearch(self, G, induced=induced)
 
         for g in S:
@@ -12547,9 +12544,6 @@ class GenericGraph(GenericGraph_pyx):
         if G.order() == 1:
             return self.order()
 
-        if self.has_labels():
-            raise ValueError('Graph must be unlabelled')
-
         S = SubgraphSearch(self, G, induced=induced)
 
         return S.cardinality()
@@ -12630,9 +12624,6 @@ class GenericGraph(GenericGraph_pyx):
 
         elif not self.order():
             return []
-
-        if self.has_labels():
-            raise ValueError('Graph must be unlabelled')
 
         elif G.order() == 1:
             from sage.graphs.graph import Graph
