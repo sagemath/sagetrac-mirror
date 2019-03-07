@@ -1941,7 +1941,7 @@ class EllipticCurveCanonicalHeight:
             doubling mu to 0.015625
             height bound in [0.0078125, 0.015625] using n_max = 13
             ...
-            height bound in [0.0120485220735, 0.0131390064883] using n_max = 13
+            height bound in [0.012048522073..., 0.013139006488...] using n_max = 13
             0.012048522073499539
         """
         test = self.test_mu
