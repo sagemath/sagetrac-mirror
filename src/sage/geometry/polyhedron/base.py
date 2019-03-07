@@ -5069,24 +5069,25 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``P`` -- Polyhedron.
+        - ``function`` -- a multivariate polynomial or
+          a valid LattE description string for polynomials
 
-        - ``polynomial`` -- A multivariate polynomial or a valid LattE description string for
-          polynomials.
+        - ``measure`` -- string, the measure to use
 
-        - ``measure`` -- string. The measure to use. Allowed values are:
+          Allowed values are:
 
-          * ``ambient`` (default): Lebesgue measure of ambient space
-          * ``induced``: Lebesgue measure of the affine hull
+          * ``ambient`` (default): Lebesgue measure of ambient space,
+          * ``induced``: Lebesgue measure of the affine hull,
           * ``induced_nonnormalized``: Lebesgue measure of the affine hull
             without the normalization by `\sqrt{\det(A^\top A)}` (with
-            `A` being the affine transformation map; see :meth:`affine_hull`).
+            `A` being the affine transformation matrix; see :meth:`affine_hull`).
 
-        - ``**kwds`` -- additional keyword arguments that are passed to the engine.
+        - ``**kwds`` -- additional keyword arguments that
+          are passed to the engine
 
         OUTPUT:
 
-        The integral of the polynomial over the polytope.
+        The value of the integral.
 
         .. NOTE::
 
