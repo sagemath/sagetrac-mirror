@@ -1,4 +1,4 @@
-if [[ "$SAGE_SPKG_INSTALL_DOCS" != no ]] ; then
+if [[ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ]] ; then
     # Compile pplpy's documentation
     cd src
     cd docs
