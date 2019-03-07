@@ -5051,8 +5051,7 @@ class Polyhedron_base(Element):
             affine_hull = self.affine_hull(
                 orthogonal=True, as_polyhedron=True, as_affine_map=True)
             polyhedron = affine_hull['polyhedron']
-            A = affine_hull['linear_transformation'].matrix()
-            b = affine_hull['shift']
+            A = affine_hull['affine_map'][0].matrix()
             Adet = (A.transpose() * A).det()
             return polyhedron.volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
         elif measure == 'induced_rational':
@@ -6666,6 +6665,38 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
+    def parametric_form(self):
+        r"""
+        Return a parametric form of this polyhedron.
+
+        This method is, for example, called when creating the
+        :meth:`affine_hull`.
+
+        OUTPUT:
+
+        A pair `(v_0, V)` where `v_0` is a vector and `V` a tuple of vectors.
+        The original polyhedron equals the polyhedron created by the
+        vertices `V` and then shifted by `v_0`, i.e.,
+        the original polyhedron equals
+        `v_0 + \sum_{v \in V} t_v v` with `t_v \in [0,1]`.
+
+        EXAMPLES::
+
+            sage: polytopes.simplex(2).parametric_form()
+            ((0, 0, 1), ((0, 1, -1), (1, 0, -1)))
+        """
+        if not self.is_compact():
+            raise NotImplementedError('method works only for compact polyhedra')
+        # translate 0th vertex to the origin
+        v0 = vector(self.vertices()[0])
+        Q = self.translation(-v0)
+        q0 = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
+        # finding the zero in Q; checking that Q actually has a vertex zero
+        assert q0.vector() == Q.ambient_space().zero()
+        q0_neighbors = tuple(vector(n) for n in
+                             itertools.islice(q0.neighbors(), self.dim()))
+        return v0, q0_neighbors
+
     def affine_hull(self, as_polyhedron=None, as_affine_map=False,
                     orthogonal=False, orthonormal=False, extend=False,
                     return_all_data=False):
@@ -6731,12 +6762,24 @@ class Polyhedron_base(Element):
 
         - ``polyhedron`` -- the affine hull of the original polyhedron
 
-        - ``linear_transformation`` and ``shift`` -- the affine map
+        - ``affine_map`` -- the affine map as a pair whose first component
+          is a linear transformation and its second component a shift;
+          see above.
 
-        - ``polyhedron_base`` and ``polyhedron_base_vertices`` -- the points
-          and vertices used in the transformation. The original polyhedron
-          equals the polyhedron created by the ``polyhedron_base_vertices``
-          and then shifted by ``polyhedron_base``.
+        - ``parametric_form`` -- the points and vertices (as a pair)
+          used in the transformation. This is the output of
+          :meth:`parametric_form` which is called when determining the
+          affine hull.
+
+        - ``coordinate_images`` -- a tuple of the images of the variables
+          in the standard coordinate system of the ambient space. These
+          images are degree one polynomials and are used for mapping a
+          function in the ambient space to a function in the affine hull
+          such that the values of this function are preserved.
+
+        Note that all entries of this dictionary are compatible (in the
+        sense that the order of points/columns/etc are compatible)
+        with each other.
 
         .. TODO:
 
@@ -6974,29 +7017,26 @@ class Polyhedron_base(Element):
             sage: S = polytopes.simplex(2)
             sage: S.affine_hull(orthogonal=True,
             ....:               as_polyhedron=True, as_affine_map=True)
-            {'linear_transformation': Vector space morphism represented by the matrix:
-             [   0    1]
-             [   1 -1/2]
-             [  -1 -1/2]
-             Domain: Vector space of dimension 3 over Rational Field
-             Codomain: Vector space of dimension 2 over Rational Field,
-             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-             'shift': (1, 1/2)}
+            {'affine_map': (Vector space morphism represented by the matrix:
+              [   0    1]
+              [   1 -1/2]
+              [  -1 -1/2]
+              Domain: Vector space of dimension 3 over Rational Field
+              Codomain: Vector space of dimension 2 over Rational Field, (1, 1/2)),
+             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices}
 
         Return additional data::
 
             sage: S.affine_hull(orthogonal=True, return_all_data=True)
-            {'linear_transformation': Vector space morphism represented by the matrix:
-             [   0    1]
-             [   1 -1/2]
-             [  -1 -1/2]
-             Domain: Vector space of dimension 3 over Rational Field
-             Codomain: Vector space of dimension 2 over Rational Field,
-             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-             'polyhedron_base': (0, 0, 1),
-             'polyhedron_base_vertices': [A vertex at (0, 1, -1),
-              A vertex at (1, 0, -1)],
-             'shift': (1, 1/2)}
+            {'affine_map': (Vector space morphism represented by the matrix:
+              [   0    1]
+              [   1 -1/2]
+              [  -1 -1/2]
+              Domain: Vector space of dimension 3 over Rational Field
+              Codomain: Vector space of dimension 2 over Rational Field, (1, 1/2)),
+             'coordinate_images': (2/3*t1, 1/2*t0 - 1/3*t1, -1/2*t0 - 1/3*t1 + 1),
+             'parametric_form': ((0, 0, 1), ((0, 1, -1), (1, 0, -1))),
+             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices}
         """
         if as_polyhedron is None:
             as_polyhedron = not as_affine_map
@@ -7013,26 +7053,19 @@ class Polyhedron_base(Element):
         if self.ambient_dim() == self.dim():
             result['polyhedron'] = self
             if as_affine_map or return_all_data:
-                result['linear_transformation'] = linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one()))
-                result['shift'] = self.ambient_space().zero()
+                result['affine_map'] = (linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())),
+                                        self.ambient_space().zero())
 
         elif orthogonal or orthonormal:
             # see TODO
             if not self.is_compact():
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
-            # translate 0th vertex to the origin
-            v0 = vector(self.vertices()[0])
-            Q = self.translation(-v0)
-            q0 = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
-            # finding the zero in Q; checking that Q actually has a vertex zero
-            assert q0.vector() == Q.ambient_space().zero()
-            q0_neighbors = list(itertools.islice(q0.neighbors(), self.dim()))
-            # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(),
-                       [list(w) for w in q0_neighbors])
+            parametric_form = self.parametric_form()
             if return_all_data:
-                result['polyhedron_base'] = v0
-                result['polyhedron_base_vertices'] = q0_neighbors
+                result['parametric_form'] = parametric_form
+            v0, vi = parametric_form
+            # choose as an affine basis the neighbors of the origin vertex
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), vi)
             # Switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
@@ -7046,11 +7079,23 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_polyhedron:
                 result['polyhedron'] = Polyhedron(
-                    [A*vector(A.base_ring(), v) for v in Q.vertices()],
+                    [A*vector(A.base_ring(), v)
+                     for v in self.translation(-v0).vertices()],
                     base_ring=A.base_ring())
             if as_affine_map:
-                result['linear_transformation'] = linear_transformation(A, side='right')
-                result['shift'] = -A*vector(A.base_ring(), self.vertices()[0])
+                L = linear_transformation(A, side='right')
+                result['affine_map'] = (L, -A*vector(A.base_ring(), self.vertices()[0]))
+            if return_all_data:
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                # columns of W are equal to the vertices of affine_hull['polyhedron']
+                # in an order compatible with the vectors vi
+                W = matrix([list(L(v)) for v in vi]).transpose()
+
+                # transform the coordinates
+                t = vector(PolynomialRing(self.base_ring(), 't', len(vi)).gens())
+                beta = W.inverse() * t
+                coordinate_images = v0 + sum(b * v  for b, v in zip(beta, vi))
+                result['coordinate_images'] = tuple(coordinate_images)
 
         else:
             # translate one vertex to the origin
@@ -7083,7 +7128,7 @@ class Polyhedron_base(Element):
         if return_all_data or (as_polyhedron and as_affine_map):
             return result
         elif as_affine_map:
-            return result['linear_transformation'], result['shift']
+            return result['affine_map']
         else:
             return result['polyhedron']
 
