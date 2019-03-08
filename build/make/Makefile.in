@@ -38,6 +38,7 @@ BLAS = @SAGE_BLAS@
 # Files to track installation of packages
 BUILT_PACKAGES = @SAGE_BUILT_PACKAGES@
 DUMMY_PACKAGES = @SAGE_DUMMY_PACKAGES@
+FROZEN_PACKAGES = @SAGE_FROZEN_PACKAGES@
 
 # Set to the path to Sage's GCC (if GCC is installed) to force rebuilds
 # of packages if GCC changed.
@@ -107,8 +108,13 @@ $(foreach pkgname,$(BUILT_PACKAGES),\
 $(foreach pkgname,$(DUMMY_PACKAGES),\
 	$(eval inst_$(pkgname) = $$(INST)/.dummy))
 
+$(foreach pkgname,$(FROZEN_PACKAGES),\
+	$(eval inst_$(pkgname) = $$(INST)/.dummy))
 
-# Dummy target for packages which are not installed
+
+# Dummy target for packages which are not installed (dummy or frozen)
+# The difference between dummy and frozen is that frozen have 
+# different install targets.
 $(INST)/.dummy:
 	touch $@
 
@@ -205,6 +211,30 @@ $(foreach pkgname, $(NORMAL_PACKAGES),\
 	                                   $(call pkg_deps,$(pkgname)))))
 endif
 
+# ============================= frozen packages ==============================
+# Positional arguments:
+#     $(1): package name
+#     $(2): package version
+#     $(3): package dependencies - not used, in fact
+define FROZEN_PACKAGE_templ
+$$(INST)/$(1)-$(2): $(3)
+	$(error $(1) must be installed by re-running ./configure --with... first)
+
+$(1): $$(INST)/$(1)-$(2)
+
+$(1)-clean:
+	$(info nothing to uninstall, as $(1) comes from the system)
+
+endef
+
+#################### TODO: fix these make rules.######################
+# this is commented out, and ./sage -i just errors out on frozen packages
+#
+#$(foreach pkgname, $(FROZEN_PACKAGES),\
+#	$(eval $(call FROZEN_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
+#	                                   $(call pkg_deps,$(pkgname)))))
+
+
 # ================================ pip packages ===============================
 # Generate build rules for 'pip' packages; this template is used to generate
 # two rules in the form:
@@ -279,12 +309,13 @@ endif
 # Use this target to list common targets of this Makefile (in particular for
 # installation with `sage -i`.
 list:
-	@for pkg in $(SAGE_I_TARGETS) $(NORMAL_PACKAGES) $(PIP_PACKAGES) $(SCRIPT_PACKAGES); do\
+	@for pkg in $(SAGE_I_TARGETS) $(NORMAL_PACKAGES) $(FROZEN_PACKAGES) $(PIP_PACKAGES) $(SCRIPT_PACKAGES); do\
 		echo $$pkg;\
 	done
 
 
 .PHONY: $(NORMAL_PACKAGES) $(addsuffix -clean,$(NORMAL_PACKAGES)) \
+        $(FROZEN_PACKAGES) $(addsuffix -clean,$(FROZEN_PACKAGES)) \
         $(PIP_PACKAGES) $(addsuffix -clean,$(PIP_PACKAGES)) \
         $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES)) \
 		list

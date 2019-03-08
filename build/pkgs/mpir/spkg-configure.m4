@@ -55,6 +55,8 @@ dnl Implement cases for what to do on different options here
         AC_SUBST(SAGE_GMP_INCLUDE, [`AS_DIRNAME($gl_cv_absolute_gmp_h)`])
         AC_SUBST(SAGE_GMP_PREFIX, [''])
         AC_MSG_RESULT([using GMP-compatible library from the system])
+        sage_spkg_freeze_mpir=yes
+        sage_spkg_freeze_gmp=yes
     fi
 
     AC_SUBST([SAGE_MP_LIBRARY], [$SAGE_MP_LIBRARY])

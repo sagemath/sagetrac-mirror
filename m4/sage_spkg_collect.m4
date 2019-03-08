@@ -20,6 +20,10 @@
 #        platform, or the dependency on them is satisfied by an existing
 #        system package.
 #
+#      - SAGE_FROZEN_PACKAGES - lists the names of packages that are not built
+#        and cannot be dynamically installed (i.e. by sage -i). To install them,
+#        re-run ./configure with appropriate `--with-...` option first.
+#
 #      - SAGE_STANDARD_PACKAGES - lists the names of all packages that have
 #        the "standard" type.  All "standard" packages are installed by
 #        default (if they are listed in SAGE_DUMMY_PACKAGES "installed" in
@@ -84,6 +88,8 @@ newest_version() {
 SAGE_BUILT_PACKAGES='\
 '
 SAGE_DUMMY_PACKAGES='\
+'
+SAGE_FROZEN_PACKAGES='\
 '
 # List of all standard packages
 SAGE_STANDARD_PACKAGES='\
@@ -152,13 +158,19 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     # "./sage -i SPKG_NAME" will still install the package.
     if test "$SPKG_NAME" != "$SPKG_VERSION"; then
         sage_spkg_install="sage_spkg_install_${SPKG_NAME}"
+        sage_spkg_freeze="sage_spkg_freeze_${SPKG_NAME}"
 
         if test "${!sage_spkg_install}" != no ; then
             SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
             AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION])
         else
-            SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION will not be installed (configure check)])
+            if test "${!sage_spkg_freeze}" = yes ; then
+                SAGE_FROZEN_PACKAGES+="    $SPKG_NAME \\"$'\n'
+                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION will be frozen (configure check)])
+            else
+                SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
+                AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION will not be installed (configure check)])
+            fi
         fi
     fi
 
@@ -207,7 +219,9 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         SAGE_SCRIPT_PACKAGES+="    $SPKG_NAME \\"$'\n'
         ;;
     *)
-        SAGE_NORMAL_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        if test "${!sage_spkg_freeze}" != yes ; then
+            SAGE_NORMAL_PACKAGES+="    $SPKG_NAME \\"$'\n'
+        fi
         ;;
     esac
 done
@@ -219,6 +233,7 @@ AC_SUBST([SAGE_PIP_PACKAGES])
 AC_SUBST([SAGE_SCRIPT_PACKAGES])
 AC_SUBST([SAGE_BUILT_PACKAGES])
 AC_SUBST([SAGE_DUMMY_PACKAGES])
+AC_SUBST([SAGE_FROZEN_PACKAGES])
 AC_SUBST([SAGE_STANDARD_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_INSTALLED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])
