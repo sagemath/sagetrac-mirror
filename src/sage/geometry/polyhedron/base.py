@@ -5272,6 +5272,115 @@ class Polyhedron_base(Element):
                          polynomial,
                          cdd=True, **kwds)
 
+    @staticmethod
+    def _convert_to_polynomial_and_log_factor_(function, polynomial_ring=None):
+        r"""
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: R.<x, y> = QQ[]
+            sage: P._convert_to_polynomial_and_log_factor_(x*y + y^2)
+            [(x*y + y^2, [])]
+            sage: P._convert_to_polynomial_and_log_factor_(SR(x*y + y^2))
+            Traceback (most recent call last):
+            ...
+            ValueError: to convert the symbolic expression x*y + y^2
+            a polynomial_ring is needed
+            sage: P._convert_to_polynomial_and_log_factor_(SR(x*y + y^2),
+            ....:                                          polynomial_ring=R)
+            [(x*y + y^2, [])]
+            sage: P._convert_to_polynomial_and_log_factor_(log(x),
+            ....:                                          polynomial_ring=R)
+            [(1, [(x, 1)])]
+            sage: P._convert_to_polynomial_and_log_factor_(x*log(x),
+            ....:                                          polynomial_ring=R)
+            [(x, [(x, 1)])]
+            sage: P._convert_to_polynomial_and_log_factor_(x*log(x) + y*log(y),
+            ....:                                          polynomial_ring=R)
+            [(x, [(x, 1)]), (y, [(y, 1)])]
+            sage: P._convert_to_polynomial_and_log_factor_(log(x) + (x+y)*log(y),
+            ....:                                          polynomial_ring=R)
+            [(x + y, [(y, 1)]), (1, [(x, 1)])]
+            sage: P._convert_to_polynomial_and_log_factor_(log(x) + y*log(y),
+            ....:                                          polynomial_ring=R)
+            [(y, [(y, 1)]), (1, [(x, 1)])]
+            sage: P._convert_to_polynomial_and_log_factor_(log(x)^2 + y*log(y)^3,
+            ....:                                          polynomial_ring=R)
+            [(y, [(y, 3)]), (1, [(x, 2)])]
+            sage: P._convert_to_polynomial_and_log_factor_(log(x)*y*log(y)^3,
+            ....:                                          polynomial_ring=R)
+            [(y, [(x, 1), (y, 3)])]
+        """
+        from sage.functions.log import function_log
+        from sage.misc.misc_c import prod
+        from operator import pow
+        from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+        from sage.symbolic.operators import add_vararg, mul_vararg
+        from sage.symbolic.ring import SymbolicRing
+
+        def convert(f):
+            if isinstance(f.parent(), SymbolicRing):
+                return f.polynomial(ring=polynomial_ring)
+            elif polynomial_ring is not None:
+                return polynomial_ring(f)
+            else:
+                return f
+
+        parent = function.parent()
+        if is_MPolynomialRing(parent):
+            return [(convert(function), [])]
+        if isinstance(parent, SymbolicRing):
+            if polynomial_ring is None:
+                raise ValueError('to convert the symbolic expression {} '
+                                 'a polynomial_ring is needed'.format(function))
+            try:
+                return [(convert(function), [])]
+            except TypeError:
+                pass
+
+            if function.operator() == add_vararg:
+                summands = function.operands()
+            else:
+                summands = [function]
+
+            class NoLogError(ValueError):
+                pass
+
+            def convert_to_log(factor):
+                op = factor.operator()
+                ops = factor.operands()
+                if op == function_log:
+                    if len(ops) != 1:
+                        raise ValueError('cannot convert {}'.format(function))
+                    argument, = ops
+                    return convert(argument), 1
+                elif op == pow:
+                    base, exponent_pow = ops
+                    argument, exponent_log = convert_to_log(base)
+                    return convert(argument), exponent_log * exponent_pow
+                else:
+                    raise NoLogError()
+
+            def convert_factor(factor):
+                try:
+                    return polynomial_ring(1), convert_to_log(factor)
+                except NoLogError:
+                    return convert(factor), None
+
+            def convert_summand(summand):
+                if summand.operator() == mul_vararg:
+                    factors = summand.operands()
+                else:
+                    factors = [summand]
+
+                pre_poly, pre_log_factor = zip(*(convert_factor(factor)
+                                                 for factor in factors))
+                return (prod(pre_poly),
+                        [f for f in pre_log_factor if f is not None])
+
+            return [convert_summand(summand) for summand in summands]
+
     def contains(self, point):
         """
         Test whether the polyhedron contains the given ``point``.
