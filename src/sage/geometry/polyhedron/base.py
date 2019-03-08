@@ -5143,6 +5143,82 @@ class Polyhedron_base(Element):
             sage: (P.integrate(z, measure='induced') / V).radical_expression()
             1/3
 
+        Getting started with logarithms::
+
+            sage: P = polytopes.simplex(1)
+            sage: R.<x, y> = QQ[]
+            sage: P.integrate(x*log(x), measure='induced', polynomial_ring=R).radical_expression()
+            -1/2*sqrt(1/2)
+            sage: P.integrate(x^2*log(x), measure='induced', polynomial_ring=R).radical_expression()
+            -1/9*sqrt(2)
+
+        ::
+
+            sage: P = polytopes.simplex(2)
+            sage: R.<x, y, z> = QQ[]
+            sage: V = P.integrate(R(1), measure='induced'); V.radical_expression()
+            1/2*sqrt(3)
+            sage: bool(V == P.volume(measure='induced'))
+            True
+
+            sage: syx, syy = SR.var('x, y')
+            sage: 2*SR(1).integrate(syy, 0, 1-syx).integrate(syx, 0, 1)
+            1
+            sage: ix = P.integrate(x*log(x), measure='induced', polynomial_ring=R)
+            sage: (ix / V).radical_expression()
+            -5/18
+            sage: bool(_ == 2*(syx*log(syx)).integrate(syy, 0, 1-syx).integrate(syx, 0, 1))
+            True
+            sage: iy = P.integrate(y*log(y), measure='induced', polynomial_ring=R)
+            sage: iz = P.integrate(z*log(z), measure='induced', polynomial_ring=R)
+            sage: ix == iy == iz
+            True
+
+        Computing the variance of dual-pivot quicksort algorithms;
+        see [WNN2015]_ and [NS2018]_. Basic set-up::
+
+            sage: P = polytopes.simplex(2)
+            sage: V = AA(P.volume(measure='induced'))
+            sage: R.<s, m, l> = QQ[]
+            sage: L = s*log(s) + m*log(m) + l*log(l)
+            sage: def E(polyhedron, polynomial):
+            ....:     return (polyhedron.integrate(
+            ....:         polynomial, measure='induced',
+            ....:         polynomial_ring=R) / V).radical_expression()
+            sage: N = E(P, s^2 + m^2 + l^2); N
+            1/2
+            sage: ssl3 = -1/12*pi^2 + 14/9
+
+        Variance of the number of key-comparisons using dual-pivot quicksort
+        with the Yaroslavskiy strategy (see [WNN2015]_)::
+
+            sage: C = 1 + (s+m) * (m+2*l)
+            sage: CL = (C*L).expand()
+            sage: (E(P, C^2 + 2*19/10*CL) + (19/10)^2 * ssl3) / (1-N)
+            -361/600*pi^2 + 2231/360
+
+        Variance of the number of key-comparisons using dual-pivot quicksort
+        with the optimal partitioning strategy (see [ADHKP2018]_, [WNN2015]_)::
+
+            sage: P_a = P.intersection(Polyhedron(ieqs=[(0, 1, 0, -1)]))
+            sage: P_b = P.intersection(Polyhedron(ieqs=[(0, -1, 0, 1)]))
+            sage: C_a = s + 2*m + 2*l
+            sage: C_b = 2*s + 2*m + l
+            sage: CL_a = (C_a*L).expand()
+            sage: CL_b = (C_b*L).expand()
+            sage: (E(P_a, C_a^2 + 2*9/5*CL_a) + E(P_b, C_b^2 + 2*9/5*CL_b) + (9/5)^2 * ssl3) / (1-N)
+            -27/50*pi^2 + 3/10*log(2) + 1609/300
+
+        Variance of the number of swaps using dual-pivot quicksort
+        with the optimal partitioning strategy (see [WNN2015]_)::
+
+            sage: S_a = s + l
+            sage: S_b = S_a + s/2 + m - l
+            sage: SL_a = (S_a*L).expand()
+            sage: SL_b = (S_b*L).expand()
+            sage: (E(P_a, S_a^2 + 2*3/4*SL_a) + E(P_b, S_b^2 + 2*3/4*SL_b) + (3/4)^2 * ssl3) / (1-N)
+            -3/32*pi^2 + 3/32*log(2) + 47/48
+
         TESTS:
 
         Testing a three-dimensional integral::
@@ -5190,6 +5266,44 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices=[(0, 0, 1), (0, 1, 0)])
             sage: P.integrate(x^2)
             0
+
+        Tests around integrals with logarithmic factors::
+
+            sage: P = polytopes.simplex(2)
+            sage: V = AA(P.volume(measure='induced'))
+            sage: R.<s, m, l> = QQ[]
+            sage: sys, sym, syl = SR.var('s, m, l')
+            sage: def E(polynomial):
+            ....:     return (P.integrate(
+            ....:         polynomial, measure='induced',
+            ....:         polynomial_ring=R) / V).radical_expression()
+            sage: ssl3 = -1/12*pi^2 + 14/9
+
+            sage: E(s^2 * log(s))
+            -7/72
+            sage: bool(_ == 2*(sys^2 * log(sys)).integrate(sym, 0, 1-sys).integrate(sys, 0, 1))
+            True
+            sage: E(s * log(s) * m)
+            -13/144
+            sage: bool(_ == 2*(sys * log(sys) * sym).integrate(sym, 0, 1-sys).integrate(sys, 0, 1))
+            True
+            sage: E(s * log(s) * m^2)
+            -77/1800
+            sage: bool(_ == 2*(sys * log(sys) * sym^2).integrate(sym, 0, 1-sys).integrate(sys, 0, 1))
+            True
+            sage: E(s * log(s) * m*l)
+            -77/3600
+            sage: bool(_ == 2*(sys * log(sys) * sym * (1-sys-sym)).integrate(sym, 0, 1-sys).integrate(sys, 0, 1))
+            True
+
+            sage: C = 1 + (s+m) * (m+2*l)
+            sage: L = s*log(s) + m*log(m) + l*log(l)
+            sage: E(C^2)
+            229/90
+            sage: E(L)
+            -5/6
+            sage: E((C*L).expand())
+            -959/720
         """
         from sage.structure.element import parent
         from sage.symbolic.ring import SymbolicRing
