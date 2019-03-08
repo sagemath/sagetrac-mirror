@@ -1605,10 +1605,15 @@ class AbsoluteOrder(Order):
         n = O.rank()
 
         from sage.matrix.all import matrix, block_matrix
+        # We follow the notation of the above cited paper.
+        # Bmatrix is the matrix of whose rows are the basis elements of O
+        # written in terms of the power basis for the number field.
         Bmatrix = matrix([vector(x) for x in O.basis()])
 
+        # Mj expresses the basis elements of OK as a the basis elements of O.
         Bj = lambda j: matrix([vector(x * OK.basis()[j]) for x in OK.basis()])
         Mj = lambda j: Bmatrix.solve_left(Bj(j)).transpose()
+
         M = block_matrix(n, 1, [Mj(j) for j in range(n)])
         d = M.denominator()
         dM = (d * M).change_ring(ZZ)
