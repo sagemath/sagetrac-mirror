@@ -5063,7 +5063,10 @@ class Polyhedron_base(Element):
                 return infinity
             return self._volume_latte(**kwds)
 
-    def integrate(self, function, measure='ambient', **kwds):
+    def integrate(self, function, measure='ambient',
+                  polynomial_ring=None,
+                  _log_factor=None,
+                  **kwds):
         r"""
         Return the integral of ``function`` over this polytope.
 
@@ -5188,6 +5191,9 @@ class Polyhedron_base(Element):
             sage: P.integrate(x^2)
             0
         """
+        from sage.structure.element import parent
+        from sage.symbolic.ring import SymbolicRing
+
         if function == 0 or function == '[]':
             return self.base_ring().zero()
 
@@ -5195,17 +5201,52 @@ class Polyhedron_base(Element):
             raise NotImplementedError(
                 'integration over non-compact polyhedra not allowed')
 
-        if measure == 'ambient':
-            if not self.is_full_dimensional():
-                return self.base_ring().zero()
+        if measure == 'ambient' and not self.is_full_dimensional():
+            return self.base_ring().zero()
 
-            return self._integrate_latte_(function, **kwds)
+        function_parent = parent(function)
+        if isinstance(function_parent, SymbolicRing):
+            if polynomial_ring is None:
+                raise ValueError('function {} is a symbolic expression, '
+                                 'so polynomial_ring must be '
+                                 'specified'.format(function))
+            def integrate(polynomial, log_factors):
+                if not log_factors:
+                    log_factor = None
+                elif len(log_factors) == 1:
+                    log_factor = log_factors[0]
+                else:
+                    raise NotImplementedError(
+                        'cannot integrate {} as there are '
+                        'multiple logarithmic factors '
+                        'in one summand'.format(function))
+                return self.integrate(polynomial,
+                                      measure=measure,
+                                      polynomial_ring=None,
+                                      _log_factor=log_factor,
+                                      **kwds)
+
+            return sum(integrate(polynomial, log_factors)
+                       for polynomial, log_factors in
+                       self._convert_to_polynomial_and_log_factor_(
+                           function, polynomial_ring=polynomial_ring))
+
+        if measure == 'ambient':
+            if _log_factor is not None:
+                return self._integrate_polynomial_one_log_(function,
+                                                           _log_factor,
+                                                           **kwds)
+            else:
+                return self._integrate_latte_(function, **kwds)
 
         elif measure == 'induced' or measure == 'induced_nonnormalized':
             # if polyhedron is actually full-dimensional,
             # return with ambient measure
             if self.is_full_dimensional():
-                return self.integrate(function, measure='ambient', **kwds)
+                return self.integrate(function,
+                                      measure='ambient',
+                                      _log_factor=_log_factor,
+                                      **kwds)
 
             if isinstance(function, six.string_types):
                 raise NotImplementedError(
@@ -5219,9 +5260,16 @@ class Polyhedron_base(Element):
 
             hom = function.parent().hom(coordinate_images)
             function_in_affine_hull = hom(function)
+            if _log_factor is not None:
+                _log_factor_in_affine_hull = (hom(_log_factor[0]), _log_factor[1])
+            else:
+                _log_factor_in_affine_hull = None
+
 
             I = polyhedron.integrate(function_in_affine_hull,
-                                     measure='ambient', **kwds)
+                                     measure='ambient',
+                                     _log_factor=_log_factor_in_affine_hull,
+                                     **kwds)
             if measure == 'induced_nonnormalized':
                 return I
             else:
