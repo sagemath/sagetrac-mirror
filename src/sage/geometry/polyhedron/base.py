@@ -5381,6 +5381,168 @@ class Polyhedron_base(Element):
 
             return [convert_summand(summand) for summand in summands]
 
+    def _integrate_polynomial_one_log_(self, polynomial, log_factor,
+                                       **kwds):
+        r"""
+        Integrate ``polynomial * log(argument)^exponent`` over ``polyhedron``,
+        where ``log_factor = (argument, exponent)``.
+
+        TESTS::
+
+            sage: P = polytopes.simplex(2)
+            sage: R.<x, y, z> = QQ[]
+            sage: P.integrate(x, _log_factor=(x, 1), measure='induced').radical_expression()  # indirect doctest
+            -5/12*sqrt(1/3)
+
+        ::
+
+            sage: S = PolynomialRing(QQ, 'x, y')
+            sage: P.integrate(R.gen(), _log_factor=(S.gen(), 1), measure='induced').radical_expression()  # indirect doctest
+            sage: P.integrate(S.gen(), _log_factor=(S.gen(), 1), measure='induced').radical_expression()  # indirect doctest
+            sage: P.integrate(x^2, _log_factor=(x^2, 1), measure='induced').radical_expression()  # indirect doctest
+            sage: P.integrate(y, _log_factor=(x, 1), measure='induced').radical_expression()  # indirect doctest
+
+        Logging::
+
+            sage: import logging
+            sage: logging.getLogger().setLevel(logging.DEBUG)
+
+            sage: logging.getLogger().setLevel(logging.WARN)
+        """
+        import logging
+        logger = logging.getLogger(__name__ + '.integrate')
+
+        polyhedron = self
+        log_argument, log_exponent = log_factor
+        if log_exponent == 0:
+            return self.integrate(polynomial, measure='ambient', **kwds)
+        if log_exponent != 1:
+            raise NotImplementedError('cannot compute powers of logarithms '
+                                      'larger than 1')
+
+        if polynomial.parent() != log_argument.parent():
+            raise TypeError('polynomial {} (parent {}) and '
+                            'argument {} (parent {}) of the logarithm '
+                            'need the same parents'.format(
+                                polynomial, polynomial.parent(),
+                                log_argument, log_argument.parent()))
+        if polynomial.parent().ngens() != polyhedron.ambient_dim():
+            raise TypeError('{} (the parent of {}) needs exactly {} '
+                            'generators'.format(polyhedron.ambient_dim()))
+
+        def str_function(polynomial, log):
+            return '({}) * log({})'.format(polynomial, log)
+
+        def verbose_integrate(polyhedron, polynomial, log,
+                              name='', level='info'):
+            logg = getattr(logger, level)
+            logg('integrating %sover',
+                 '"{}" '.format(name) if name else '')
+            logg('%s', polyhedron)
+            logg('with vertices %s',
+                 ', '.join(str(tuple(v)) for v in polyhedron.vertices()))
+            logg('the function: %s', str_function(polynomial, log))
+
+        verbose_integrate(polyhedron, polynomial, log_argument,
+                          name='ambient', level='info')
+
+        if log_argument.degree() > 1:
+            raise ValueError('cannot integrate {} because '
+                             '{} has degree larger than 1'.format(
+                                 str_function(polynomial, log_argument),
+                                 log_argument))
+        if polynomial.mod(log_argument) != 0:
+            raise ValueError('cannot integrate {} because '
+                             '{} to some power does not appear as factor'.format(
+                                 str_function(polynomial, log_argument),
+                                 log_argument))
+
+        if polynomial == 0 or log_argument == 0:
+            result = polynomial_ambient.parent().base_ring().zero()
+            logger.debug('= %s (zero function "ambient")', result)
+            return result
+
+        if polyhedron.dimension() == 0:
+            from sage.functions.log import log
+            logger.debug('* now computing:')
+            verbose_integrate(polyhedron, polynomial, log_argument,
+                              level='debug')
+            vertices = polyhedron.vertices()
+            assert len(vertices) == 1
+            vertex = tuple(vertices[0])
+            log_at_vertex = log_argument(vertex)
+            if log_at_vertex == 0:
+                result = log_at_vertex
+            else:
+                result = polynomial(vertex) * log(log_at_vertex)
+            logger.debug('= %s (zero dimensional polyhedron)', result)
+            return result
+
+        logger.debug('by multi-dimensional integration by parts')
+
+        # transformation from poly*log(ell) to poly*log(u)
+        ell = log_argument
+        assert all(sum(e) <= 1 for e in ell.exponents())  # make sure it is linear
+        u = ell.monomials()[0]
+        b = ell.coefficients()[0]
+        T = polynomial.parent()
+        # (t - ell) / b  + u = (t - (ell - b*u)) / b
+        back = T.hom([(ell if t == u else t) for t in T.gens()])
+        forth = T.hom([((t - ell) / b  + u if t == u else t) for t in T.gens()])
+        assert (back * forth).is_identity()
+        polynomial_forth = forth(polynomial)
+        logger.debug('function "forth": %s',
+                      str_function(polynomial_forth, forth(log_argument)))
+
+        log_coefficient = b
+        log_variable = u
+        logger.debug('using variable %s for partial integration', log_variable)
+        i_log_variable = log_argument.parent().gens().index(log_variable)
+
+        def normalize(v):
+            r"""
+            Normalize the vector.
+
+            Note that ``v.normalized()`` drifts off into the Symbolic Ring,
+            but this function does not if not needed.
+            """
+            s = v*v
+            try:
+                s = AA.coerce(s)
+            except TypeError:
+                pass
+            return v / sqrt(s)
+
+        # https://en.wikipedia.org/wiki/Integration_by_parts#Higher_dimensions
+        int_polynomial_forth = polynomial_forth.integral(log_variable)
+        A = tuple((face, normal,
+                  -normalize(normal)[i_log_variable]
+                    * face.as_polyhedron().integrate(
+                        back(int_polynomial_forth) / log_coefficient,
+                        _log_factor=(log_argument, log_exponent),
+                        measure='induced',
+                        **kwds))
+                    for face, normal in polyhedron.surface_faces_and_normals())
+        B = polyhedron.integrate(back(int_polynomial_forth // log_variable),
+                                         measure='ambient', **kwds)
+
+        logger.debug('* now computing:')
+        verbose_integrate(polyhedron, polynomial, log_argument,
+                          name='by parts', level='debug')
+
+        for face, normal, a in A:
+            logger.debug('+ %s (parent %s)',
+                         a, a.parent())
+            logger.debug('  [coming from face polyhedron with vertices %s,',
+                         [tuple(v) for v in face.as_polyhedron().vertices()])
+            logger.debug('  [normal %s, used normalized component %s',
+                         normal, -normal.normalized()[i_log_variable])
+        logger.debug('- %s (parent %s)', B, B.parent())
+        logger.debug('  [coming from full polyhedron over rational function]')
+        result = (sum(a for face, normal, a in A) - B)
+        logger.debug('= %s (integration by part)', result)
+        return result
+
     def contains(self, point):
         """
         Test whether the polyhedron contains the given ``point``.
