@@ -5602,8 +5602,20 @@ class Polyhedron_base(Element):
         Logging::
 
             sage: import logging
+            sage: logging.basicConfig()
             sage: logging.getLogger().setLevel(logging.DEBUG)
-
+            sage: P = polytopes.simplex(1)
+            sage: R.<x, y> = QQ[]
+            sage: P.integrate(x*log(x), measure='induced', polynomial_ring=R).radical_expression()
+            INFO:sage.geometry.polyhedron.base.integrate:projecting to affine hull
+            DEBUG:sage.geometry.polyhedron.base.integrate:coordinate images (1/2*t, -1/2*t + 1)
+            DEBUG:sage.geometry.polyhedron.base.integrate:integrating "induced" over
+            DEBUG:sage.geometry.polyhedron.base.integrate:A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
+            DEBUG:sage.geometry.polyhedron.base.integrate:with vertices (0,), (2,)
+            DEBUG:sage.geometry.polyhedron.base.integrate:the function (1/2*t) * log(1/2*t)^1
+            ...
+            DEBUG:sage.geometry.polyhedron.base.integrate:normalizing "induced" by dividing by 1.414213562373095?
+             -1/2*sqrt(1/2)
             sage: logging.getLogger().setLevel(logging.WARN)
         """
         import logging
