@@ -5065,7 +5065,6 @@ class Polyhedron_base(Element):
 
     def integrate(self, function, measure='ambient',
                   polynomial_ring=None,
-                  _log_factor=None,
                   **kwds):
         r"""
         Return the integral of ``function`` over this polytope.
@@ -5308,7 +5307,8 @@ class Polyhedron_base(Element):
         from sage.structure.element import parent
         from sage.symbolic.ring import SymbolicRing
 
-        if function == 0 or function == '[]':
+        if (not isinstance(function, self._PolynomialAndLogFactors_) and
+            (function == 0 or function == '[]')):
             return self.base_ring().zero()
 
         if not self.is_compact():
@@ -5320,36 +5320,28 @@ class Polyhedron_base(Element):
 
         function_parent = parent(function)
         if isinstance(function_parent, SymbolicRing):
-            if polynomial_ring is None:
-                raise ValueError('function {} is a symbolic expression, '
-                                 'so polynomial_ring must be '
-                                 'specified'.format(function))
             def integrate(polynomial, log_factors):
-                if not log_factors:
-                    log_factor = None
-                elif len(log_factors) == 1:
-                    log_factor = log_factors[0]
-                else:
-                    raise NotImplementedError(
-                        'cannot integrate {} as there are '
-                        'multiple logarithmic factors '
-                        'in one summand'.format(function))
                 return self.integrate(polynomial,
                                       measure=measure,
                                       polynomial_ring=None,
                                       _log_factor=log_factor,
                                       **kwds)
 
-            return sum(integrate(polynomial, log_factors)
-                       for polynomial, log_factors in
-                       self._convert_to_polynomial_and_log_factor_(
+            return sum(self.integrate(lf, measure=measure, polynomial_ring=None, **kwds)
+                       for lf in
+                       self._PolynomialAndLogFactors_.convert(
                            function, polynomial_ring=polynomial_ring))
 
         if measure == 'ambient':
-            if _log_factor is not None:
-                return self._integrate_polynomial_one_log_(function,
-                                                           _log_factor,
-                                                           **kwds)
+            if isinstance(function, self._PolynomialAndLogFactors_):
+                if not function.log_factors:
+                    return self._integrate_latte_(function.polynomial, **kwds)
+                elif len(function.log_factors) == 1:
+                    return self._integrate_polynomial_one_log_(function, **kwds)
+                else:
+                    raise NotImplementedError(
+                        'cannot integrate {} as it contains '
+                        'multiple logarithmic factors'.format(function))
             else:
                 return self._integrate_latte_(function, **kwds)
 
@@ -5357,10 +5349,8 @@ class Polyhedron_base(Element):
             # if polyhedron is actually full-dimensional,
             # return with ambient measure
             if self.is_full_dimensional():
-                return self.integrate(function,
-                                      measure='ambient',
-                                      _log_factor=_log_factor,
-                                      **kwds)
+                return self.integrate(function, measure='ambient',
+                                      polynomial_ring=None, **kwds)
 
             if isinstance(function, six.string_types):
                 raise NotImplementedError(
@@ -5372,20 +5362,18 @@ class Polyhedron_base(Element):
             polyhedron = affine_hull['polyhedron']
             coordinate_images = affine_hull['coordinate_images']
 
-            hom = function.parent().hom(coordinate_images)
-            function_in_affine_hull = hom(function)
-            if _log_factor is not None:
-                _log_factor_in_affine_hull = (hom(_log_factor[0]), _log_factor[1])
+            if isinstance(function, self._PolynomialAndLogFactors_):
+                hom = function.polynomial.parent().hom(coordinate_images)
+                function_in_affine_hull = function.hom_applied(hom)
             else:
-                _log_factor_in_affine_hull = None
+                hom = function.parent().hom(coordinate_images)
+                function_in_affine_hull = hom(function)
 
 
-            I = polyhedron.integrate(function_in_affine_hull,
-                                     measure='ambient',
-                                     _log_factor=_log_factor_in_affine_hull,
-                                     **kwds)
+            value = polyhedron.integrate(function_in_affine_hull, measure='ambient',
+                                         polynomial_ring=None, **kwds)
             if measure == 'induced_nonnormalized':
-                return I
+                return value
             else:
                 A = affine_hull['affine_map'][0].matrix()
                 Adet = (A.transpose() * A).det()
@@ -5393,7 +5381,7 @@ class Polyhedron_base(Element):
                     Adet = AA.coerce(Adet)
                 except TypeError:
                     pass
-                return I / sqrt(Adet)
+                return value / sqrt(Adet)
 
         else:
             raise ValueError('unknown measure "{}"'.format(measure))
@@ -5434,44 +5422,50 @@ class Polyhedron_base(Element):
                          polynomial,
                          cdd=True, **kwds)
 
-        def _convert_to_polynomial_and_log_factor_(function, polynomial_ring=None):
+    class _PolynomialAndLogFactors_(object):
+        def __init__(self, polynomial, log_factors):
+            self.polynomial = polynomial
+            self.log_factors = log_factors
+
+        def __repr__(self):
+            return ' * '.join(['({})'.format(self.polynomial)] +
+                              ['log({})^{}'.format(*log_factor)
+                               for log_factor in self.log_factors])
+
+        __str__ = __repr__
+
+        @staticmethod
+        def convert(function, polynomial_ring=None):
             r"""
 
             TESTS::
 
-                sage: P = polytopes.cube()
+                sage: from sage.geometry.polyhedron.base import Polyhedron_base
                 sage: R.<x, y> = QQ[]
-                sage: P._convert_to_polynomial_and_log_factor_(x*y + y^2)
-                [(x*y + y^2, [])]
-                sage: P._convert_to_polynomial_and_log_factor_(SR(x*y + y^2))
+                sage: convert = Polyhedron_base._PolynomialAndLogFactors_.convert
+                sage: convert(x*y + y^2)
+                [(x*y + y^2)]
+                sage: convert(SR(x*y + y^2))
                 Traceback (most recent call last):
                 ...
-                ValueError: to convert the symbolic expression x*y + y^2
+                ValueError: for converting the symbolic expression x*y + y^2
                 a polynomial_ring is needed
-                sage: P._convert_to_polynomial_and_log_factor_(SR(x*y + y^2),
-                ....:                                          polynomial_ring=R)
-                [(x*y + y^2, [])]
-                sage: P._convert_to_polynomial_and_log_factor_(log(x),
-                ....:                                          polynomial_ring=R)
-                [(1, [(x, 1)])]
-                sage: P._convert_to_polynomial_and_log_factor_(x*log(x),
-                ....:                                          polynomial_ring=R)
-                [(x, [(x, 1)])]
-                sage: P._convert_to_polynomial_and_log_factor_(x*log(x) + y*log(y),
-                ....:                                          polynomial_ring=R)
-                [(x, [(x, 1)]), (y, [(y, 1)])]
-                sage: P._convert_to_polynomial_and_log_factor_(log(x) + (x+y)*log(y),
-                ....:                                          polynomial_ring=R)
-                [(x + y, [(y, 1)]), (1, [(x, 1)])]
-                sage: P._convert_to_polynomial_and_log_factor_(log(x) + y*log(y),
-                ....:                                          polynomial_ring=R)
-                [(y, [(y, 1)]), (1, [(x, 1)])]
-                sage: P._convert_to_polynomial_and_log_factor_(log(x)^2 + y*log(y)^3,
-                ....:                                          polynomial_ring=R)
-                [(y, [(y, 3)]), (1, [(x, 2)])]
-                sage: P._convert_to_polynomial_and_log_factor_(log(x)*y*log(y)^3,
-                ....:                                          polynomial_ring=R)
-                [(y, [(x, 1), (y, 3)])]
+                sage: convert(SR(x*y + y^2), polynomial_ring=R)
+                [(x*y + y^2)]
+                sage: convert(log(x), polynomial_ring=R)
+                [(1) * log(x)^1]
+                sage: convert(x*log(x), polynomial_ring=R)
+                [(x) * log(x)^1]
+                sage: convert(x*log(x) + y*log(y), polynomial_ring=R)
+                [(x) * log(x)^1, (y) * log(y)^1]
+                sage: convert(log(x) + (x+y)*log(y), polynomial_ring=R)
+                [(x + y) * log(y)^1, (1) * log(x)^1]
+                sage: convert(log(x) + y*log(y), polynomial_ring=R)
+                [(y) * log(y)^1, (1) * log(x)^1]
+                sage: convert(log(x)^2 + y*log(y)^3, polynomial_ring=R)
+                [(y) * log(y)^3, (1) * log(x)^2]
+                sage: convert(log(x)*y*log(y)^3, polynomial_ring=R)
+                [(y) * log(x)^1 * log(y)^3]
             """
             from sage.functions.log import function_log
             from sage.misc.misc_c import prod
@@ -5480,7 +5474,7 @@ class Polyhedron_base(Element):
             from sage.symbolic.operators import add_vararg, mul_vararg
             from sage.symbolic.ring import SymbolicRing
 
-            def convert(f):
+            def to_poly(f):
                 if isinstance(f.parent(), SymbolicRing):
                     return f.polynomial(ring=polynomial_ring)
                 elif polynomial_ring is not None:
@@ -5488,15 +5482,18 @@ class Polyhedron_base(Element):
                 else:
                     return f
 
+            def create(polynomial, log_factors):
+                return Polyhedron_base._PolynomialAndLogFactors_(polynomial, log_factors)
+
             parent = function.parent()
             if is_MPolynomialRing(parent):
-                return [(convert(function), [])]
+                return [create(to_poly(function), [])]
             if isinstance(parent, SymbolicRing):
                 if polynomial_ring is None:
-                    raise ValueError('to convert the symbolic expression {} '
+                    raise ValueError('for converting the symbolic expression {} '
                                      'a polynomial_ring is needed'.format(function))
                 try:
-                    return [(convert(function), [])]
+                    return [create(to_poly(function), [])]
                 except TypeError:
                     pass
 
@@ -5515,11 +5512,11 @@ class Polyhedron_base(Element):
                         if len(ops) != 1:
                             raise ValueError('cannot convert {}'.format(function))
                         argument, = ops
-                        return convert(argument), 1
+                        return to_poly(argument), 1
                     elif op == pow:
                         base, exponent_pow = ops
                         argument, exponent_log = convert_to_log(base)
-                        return convert(argument), exponent_log * exponent_pow
+                        return to_poly(argument), exponent_log * exponent_pow
                     else:
                         raise NoLogError()
 
@@ -5527,7 +5524,7 @@ class Polyhedron_base(Element):
                     try:
                         return polynomial_ring(1), convert_to_log(factor)
                     except NoLogError:
-                        return convert(factor), None
+                        return to_poly(factor), None
 
                 def convert_summand(summand):
                     if summand.operator() == mul_vararg:
@@ -5537,13 +5534,17 @@ class Polyhedron_base(Element):
 
                     pre_poly, pre_log_factor = zip(*(convert_factor(factor)
                                                      for factor in factors))
-                    return (prod(pre_poly),
-                            [f for f in pre_log_factor if f is not None])
+                    return create(prod(pre_poly),
+                                  [f for f in pre_log_factor if f is not None])
 
                 return [convert_summand(summand) for summand in summands]
 
-    def _integrate_polynomial_one_log_(self, polynomial, log_factor,
-                                       **kwds):
+        def hom_applied(self, hom):
+            return self.__class__(hom(self.polynomial),
+                                  [(hom(log_argument), log_exponent)
+                                   for log_argument, log_exponent in self.log_factors])
+
+    def _integrate_polynomial_one_log_(self, polynomial_and_log_factor, **kwds):
         r"""
         Integrate ``polynomial * log(argument)^exponent`` over ``polyhedron``,
         where ``log_factor = (argument, exponent)``.
@@ -5552,16 +5553,29 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.simplex(2)
             sage: R.<x, y, z> = QQ[]
-            sage: P.integrate(x, _log_factor=(x, 1), measure='induced').radical_expression()  # indirect doctest
+            sage: def integrate(p, l, e):
+            ....:     return P.integrate(P._PolynomialAndLogFactors_(p, [(l, e)]),
+            ....:         measure='induced').radical_expression()  # indirect doctest
+            sage: integrate(x, x, 1)
             -5/12*sqrt(1/3)
 
         ::
 
             sage: S = PolynomialRing(QQ, 'x, y')
-            sage: P.integrate(R.gen(), _log_factor=(S.gen(), 1), measure='induced').radical_expression()  # indirect doctest
-            sage: P.integrate(S.gen(), _log_factor=(S.gen(), 1), measure='induced').radical_expression()  # indirect doctest
-            sage: P.integrate(x^2, _log_factor=(x^2, 1), measure='induced').radical_expression()  # indirect doctest
-            sage: P.integrate(y, _log_factor=(x, 1), measure='induced').radical_expression()  # indirect doctest
+            sage: integrate(S.gen(), S.gen(), 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of images must equal number of generators
+            sage: integrate(x^2, x^2, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot integrate (4/9*t1^2) * log(4/9*t1^2)
+            because 4/9*t1^2 has degree larger than 1
+            sage: integrate(y, x, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot integrate (1/2*t0 - 1/3*t1) * log(2/3*t1)
+            because 2/3*t1 to some power does not appear as factor
 
         Logging::
 
@@ -5574,7 +5588,9 @@ class Polyhedron_base(Element):
         logger = logging.getLogger(__name__ + '.integrate')
 
         polyhedron = self
-        log_argument, log_exponent = log_factor
+        polynomial = polynomial_and_log_factor.polynomial
+        assert len(polynomial_and_log_factor.log_factors) == 1
+        log_argument, log_exponent = polynomial_and_log_factor.log_factors[0]
         if log_exponent == 0:
             return self.integrate(polynomial, measure='ambient', **kwds)
         if log_exponent != 1:
@@ -5619,7 +5635,7 @@ class Polyhedron_base(Element):
                                  log_argument))
 
         if polynomial == 0 or log_argument == 0:
-            result = polynomial_ambient.parent().base_ring().zero()
+            result = polynomial.parent().base_ring().zero()
             logger.debug('= %s (zero function "ambient")', result)
             return result
 
@@ -5679,8 +5695,9 @@ class Polyhedron_base(Element):
         A = tuple((face, normal,
                   -normalize(normal)[i_log_variable]
                     * face.as_polyhedron().integrate(
-                        back(int_polynomial_forth) / log_coefficient,
-                        _log_factor=(log_argument, log_exponent),
+                        self._PolynomialAndLogFactors_(
+                            back(int_polynomial_forth) / log_coefficient,
+                            [(log_argument, log_exponent)]),
                         measure='induced',
                         **kwds))
                     for face, normal in polyhedron.surface_faces_and_normals())
