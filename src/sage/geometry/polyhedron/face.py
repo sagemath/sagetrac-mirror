@@ -512,3 +512,181 @@ class PolyhedronFace(SageObject):
         parent = P.parent()
         Vrep = (self.vertices(), self.rays(), self.lines())
         return P.__class__(parent, Vrep, None)
+
+    def normal_vector(self, algorithm='via_affine_hull', **kwds):
+        r"""
+        Compute the in-ward normal vector of this face of codimension 1.
+
+        INPUT:
+
+        - ``algorithm`` -- a string
+
+          The following algorithms are available:
+
+          * ``algorithm=via_affine_hull`` (default): Compute the normal vector by
+            doing an orthonormal projection on the affine hull. The resulting vector
+            will be normalized therefore.
+          * ``algorithm=via_equation_system``: Compute the normal vector by
+            solving a system of equations. This algorithm keeps rationality of the
+            coordinates and the resulting vector is not normalized.
+
+        OUTPUT:
+
+        A vector.
+
+        EXAMPLES::
+
+            sage: [(face, face.normal_vector(algorithm='via_equation_system'))
+            ....:  for face in polytopes.cube().faces(3-1)]
+            [(<0,1,2,3>, (2, 0, 0)),
+             (<0,1,4,5>, (0, 2, 0)),
+             (<0,2,4,6>, (0, 0, 2)),
+             (<1,3,5,7>, (0, 0, -2)),
+             (<2,3,6,7>, (0, -2, 0)),
+             (<4,5,6,7>, (-2, 0, 0))]
+            sage: [(face, face.normal_vector(algorithm='via_equation_system'))
+            ....:  for face in polytopes.simplex(2).faces(2-1)]
+            [(<0,1>, (2, -1, -1)),
+             (<0,2>, (-1, 2, -1)),
+             (<1,2>, (-1, -1, 2))]
+            sage: [(face, face.normal_vector(algorithm='via_equation_system'))
+            ....:  for face in polytopes.simplex(3).faces(3-1)]
+            [(<0,1,2>, (3, -1, -1, -1)),
+             (<0,1,3>, (-1, 3, -1, -1)),
+             (<0,2,3>, (-1, -1, 3, -1)),
+             (<1,2,3>, (-1, -1, -1, 3))]
+
+        ::
+
+            sage: [(face, face.normal_vector(algorithm='via_affine_hull'))
+            ....:  for face in polytopes.cube().faces(3-1)]
+            [(<0,1,2,3>, (1, 0, 0)),
+             (<0,1,4,5>, (0, 1, 0)),
+             (<0,2,4,6>, (0, 0, 1)),
+             (<1,3,5,7>, (0, 0, -1)),
+             (<2,3,6,7>, (0, -1, 0)),
+             (<4,5,6,7>, (-1, 0, 0))]
+            sage: [(face, face.normal_vector(algorithm='via_affine_hull'))
+            ....:  for face in polytopes.simplex(2).faces(2-1)]
+            [(<0,1>, (0.6666666666666667?, -0.3333333333333334?, -0.3333333333333334?)),
+             (<0,2>, (-0.3333333333333334?, 0.6666666666666667?, -0.3333333333333334?)),
+             (<1,2>, (-0.3333333333333334?, -0.3333333333333334?, 0.6666666666666667?))]
+            sage: [(face, face.normal_vector(algorithm='via_affine_hull'))
+            ....:  for face in polytopes.simplex(3).faces(3-1)]
+            [(<0,1,2>,
+              (0.750000000000000?, -0.2500000000000000?, -0.2500000000000000?, -0.2500000000000000?)),
+             (<0,1,3>,
+              (-0.2500000000000000?, 0.750000000000000?, -0.2500000000000000?, -0.2500000000000000?)),
+             (<0,2,3>,
+              (-0.2500000000000000?, -0.2500000000000000?, 0.750000000000000?, -0.2500000000000000?)),
+             (<1,2,3>,
+              (-0.2500000000000000?, -0.2500000000000000?, -0.2500000000000000?, 0.750000000000000?))]
+
+        TESTS::
+
+            sage: polytopes.cube().faces(3)[0].normal_vector()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: only normal vectors of faces with codimension 1 can be computed
+            sage: polytopes.cube().faces(1)[0].normal_vector()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: only normal vectors of faces with codimension 1 can be computed
+            sage: polytopes.cube().faces(0)[0].normal_vector()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: only normal vectors of faces with codimension 1 can be computed
+        """
+        d = self.polyhedron().dim()
+        if self.dim() != d-1:
+            raise RuntimeError('only normal vectors of faces with codimension 1 '
+                               'can be computed')
+
+        if algorithm == 'via_equation_system':
+            return self._normal_vector_via_equation_system_(**kwds)
+        elif algorithm == 'via_affine_hull':
+            return self._normal_vector_via_affine_hull_(**kwds)
+        else:
+            raise ValueError("unknown algorithm '{}'".format(algorithm))
+
+    def _normal_vector_via_equation_system_(self):
+        r"""
+        Compute the in-ward normal vector of this face of codimension 1 by
+        solving a system of equations.
+
+        See :meth:`normal_vector` for details.
+
+        OUTPUT:
+
+        A vector (rational if the input was rational).
+
+        TESTS::
+
+            sage: [(face, face.normal_vector(algorithm='via_equation_system'))
+            ....:  for face in polytopes.simplex(2).faces(2-1)]
+            [(<0,1>, (2, -1, -1)),
+             (<0,2>, (-1, 2, -1)),
+             (<1,2>, (-1, -1, 2))]
+        """
+        from sage.functions.other import ceil
+        from sage.matrix.constructor import Matrix
+        from sage.rings.rational_field import QQ
+
+        # preparation
+        polyhedron = self.polyhedron()
+        assert self.dim() == polyhedron.dim() - 1
+        V_vectors = polyhedron.parametric_form()[1]
+        V = Matrix(V_vectors).transpose()
+        r = ceil(2*polyhedron.radius())
+
+        # compute normal
+        face_polyhedron = self.as_polyhedron()
+        vectors = face_polyhedron.parametric_form()[1]
+        W = Matrix(len(vectors), self.ambient_dim(), vectors)
+        K = (W * V).right_kernel()
+        assert K.dimension() == 1
+        coefficients = K.gen()
+        assert coefficients != K.zero()
+        # we can now compute a normal vector
+        n = sum(c*v for c, v in zip(coefficients, V_vectors))
+
+        # determine the direction (in-/outward)
+        m = r*n
+        c = face_polyhedron.center()
+        while True:
+            if polyhedron.relative_interior_contains(c + m):
+                return n
+            if polyhedron.relative_interior_contains(c - m):
+                return -n
+            m = m / QQ(2)
+
+    def _normal_vector_via_affine_hull_(self):
+        r"""
+        Compute the in-ward normal vector of this face of codimension 1 by
+        doing an orthonormal projection on the affine hull.
+
+        OUTPUT:
+
+        A vector (normalized).
+
+        TESTS::
+
+            sage: [(face, face.normal_vector(algorithm='via_affine_hull'))
+            ....:  for face in polytopes.simplex(2).faces(2-1)]
+            [(<0,1>, (0.6666666666666667?, -0.3333333333333334?, -0.3333333333333334?)),
+             (<0,2>, (-0.3333333333333334?, 0.6666666666666667?, -0.3333333333333334?)),
+             (<1,2>, (-0.3333333333333334?, -0.3333333333333334?, 0.6666666666666667?))]
+        """
+        # preparation
+        polyhedron = self.polyhedron()
+        assert self.dim() == polyhedron.dim() - 1
+        A = polyhedron.affine_hull(orthonormal=True, extend=True, as_affine_map=True)[0].matrix()
+
+        def inequality(face):
+            for H in face.ambient_Hrepresentation():
+                if H.is_inequality():
+                    return H
+
+        # compute normal
+        T = A * A.transpose()
+        return T * inequality(self).vector()[1:]
