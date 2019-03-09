@@ -5304,6 +5304,9 @@ class Polyhedron_base(Element):
             sage: E((C*L).expand())
             -959/720
         """
+        import logging
+        logger = logging.getLogger(__name__ + '.integrate')
+
         from sage.structure.element import parent
         from sage.symbolic.ring import SymbolicRing
 
@@ -5362,13 +5365,19 @@ class Polyhedron_base(Element):
             polyhedron = affine_hull['polyhedron']
             coordinate_images = affine_hull['coordinate_images']
 
+            logger.info('projecting to affine hull')
+            logger.debug('coordinate images %s', coordinate_images)
+
             if isinstance(function, self._PolynomialAndLogFactors_):
                 hom = function.polynomial.parent().hom(coordinate_images)
                 function_in_affine_hull = function.hom_applied(hom)
+                function_in_affine_hull.verbose_integrate(polyhedron,
+                                                          name='induced', level='debug')
             else:
                 hom = function.parent().hom(coordinate_images)
                 function_in_affine_hull = hom(function)
-
+                self._PolynomialAndLogFactors_(function_in_affine_hull, []).verbose_integrate(
+                    polyhedron, name='induced', level='debug')
 
             value = polyhedron.integrate(function_in_affine_hull, measure='ambient',
                                          polynomial_ring=None, **kwds)
@@ -5381,7 +5390,9 @@ class Polyhedron_base(Element):
                     Adet = AA.coerce(Adet)
                 except TypeError:
                     pass
-                return value / sqrt(Adet)
+                normalization = sqrt(Adet) 
+                logger.debug('normalizing "induced" by dividing by %s', normalization)
+                return value / normalization
 
         else:
             raise ValueError('unknown measure "{}"'.format(measure))
@@ -5433,6 +5444,17 @@ class Polyhedron_base(Element):
                                for log_factor in self.log_factors])
 
         __str__ = __repr__
+
+        def verbose_integrate(self, polyhedron, name='', level='info'):
+            import logging
+            logger = logging.getLogger(__name__ + '.integrate')
+            logg = getattr(logger, level)
+            logg('integrating %sover',
+                 '"{}" '.format(name) if name else '')
+            logg('%s', polyhedron)
+            logg('with vertices %s',
+                 ', '.join(str(tuple(v)) for v in polyhedron.vertices()))
+            logg('the function %s', self)
 
         @staticmethod
         def convert(function, polynomial_ring=None):
@@ -5569,12 +5591,12 @@ class Polyhedron_base(Element):
             sage: integrate(x^2, x^2, 1)
             Traceback (most recent call last):
             ...
-            ValueError: cannot integrate (4/9*t1^2) * log(4/9*t1^2)
+            ValueError: cannot integrate (4/9*t1^2) * log(4/9*t1^2)^1
             because 4/9*t1^2 has degree larger than 1
             sage: integrate(y, x, 1)
             Traceback (most recent call last):
             ...
-            ValueError: cannot integrate (1/2*t0 - 1/3*t1) * log(2/3*t1)
+            ValueError: cannot integrate (1/2*t0 - 1/3*t1) * log(2/3*t1)^1
             because 2/3*t1 to some power does not appear as factor
 
         Logging::
@@ -5588,6 +5610,9 @@ class Polyhedron_base(Element):
         logger = logging.getLogger(__name__ + '.integrate')
 
         polyhedron = self
+        polynomial_and_log_factor.verbose_integrate(
+            polyhedron, name='with one logarithm', level='info')
+
         polynomial = polynomial_and_log_factor.polynomial
         assert len(polynomial_and_log_factor.log_factors) == 1
         log_argument, log_exponent = polynomial_and_log_factor.log_factors[0]
@@ -5607,32 +5632,14 @@ class Polyhedron_base(Element):
             raise TypeError('{} (the parent of {}) needs exactly {} '
                             'generators'.format(polyhedron.ambient_dim()))
 
-        def str_function(polynomial, log):
-            return '({}) * log({})'.format(polynomial, log)
-
-        def verbose_integrate(polyhedron, polynomial, log,
-                              name='', level='info'):
-            logg = getattr(logger, level)
-            logg('integrating %sover',
-                 '"{}" '.format(name) if name else '')
-            logg('%s', polyhedron)
-            logg('with vertices %s',
-                 ', '.join(str(tuple(v)) for v in polyhedron.vertices()))
-            logg('the function: %s', str_function(polynomial, log))
-
-        verbose_integrate(polyhedron, polynomial, log_argument,
-                          name='ambient', level='info')
-
         if log_argument.degree() > 1:
             raise ValueError('cannot integrate {} because '
                              '{} has degree larger than 1'.format(
-                                 str_function(polynomial, log_argument),
-                                 log_argument))
+                                 polynomial_and_log_factor, log_argument))
         if polynomial.mod(log_argument) != 0:
             raise ValueError('cannot integrate {} because '
                              '{} to some power does not appear as factor'.format(
-                                 str_function(polynomial, log_argument),
-                                 log_argument))
+                                 polynomial_and_log_factor, log_argument))
 
         if polynomial == 0 or log_argument == 0:
             result = polynomial.parent().base_ring().zero()
@@ -5642,8 +5649,7 @@ class Polyhedron_base(Element):
         if polyhedron.dimension() == 0:
             from sage.functions.log import log
             logger.debug('* now computing:')
-            verbose_integrate(polyhedron, polynomial, log_argument,
-                              level='debug')
+            polynomial_and_log_factor.verbose_integrate(polyhedron, level='debug')
             vertices = polyhedron.vertices()
             assert len(vertices) == 1
             vertex = tuple(vertices[0])
@@ -5669,7 +5675,8 @@ class Polyhedron_base(Element):
         assert (back * forth).is_identity()
         polynomial_forth = forth(polynomial)
         logger.debug('function "forth": %s',
-                      str_function(polynomial_forth, forth(log_argument)))
+                     self._PolynomialAndLogFactors_(polynomial_forth,
+                                                    [(forth(log_argument), 1)]))
 
         log_coefficient = b
         log_variable = u
@@ -5707,8 +5714,8 @@ class Polyhedron_base(Element):
                                  measure='ambient', **kwds)
 
         logger.debug('* now computing:')
-        verbose_integrate(polyhedron, polynomial, log_argument,
-                          name='by parts', level='debug')
+        polynomial_and_log_factor.verbose_integrate(polyhedron,
+                                                    name='by parts', level='debug')
 
         for face, normal, a in A:
             logger.debug('+ %s (parent %s)',
