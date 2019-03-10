@@ -2484,7 +2484,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             if not isinstance(action, Action):
                 raise TypeError("_get_action_ must return None or an Action")
 
-        self._action_hash.set(S, op, self_on_left, action)
+        #self._action_hash.set(S, op, self_on_left, action)
         return action
 
     cdef discover_action(self, S, op, bint self_on_left, self_el=None, S_el=None):
