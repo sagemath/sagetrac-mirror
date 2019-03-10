@@ -5221,7 +5221,7 @@ class Polyhedron_base(Element):
 
             sage: C = 1 + (s+m) * (m+2*l)
             sage: CL = (C*L).expand()
-            sage: (E(P, C^2 + 2*19/10*CL) + (19/10)^2 * ssl3) / (1-N)
+            sage: (E(P, C^2 + 2*19/10*CL) + (19/10)^2 * ssl3) / (1-N)  # long time
             -361/600*pi^2 + 2231/360
 
         Variance of the number of key-comparisons using dual-pivot quicksort
@@ -5233,7 +5233,7 @@ class Polyhedron_base(Element):
             sage: C_b = 2*s + 2*m + l
             sage: CL_a = (C_a*L).expand()
             sage: CL_b = (C_b*L).expand()
-            sage: (E(P_a, C_a^2 + 2*9/5*CL_a) + E(P_b, C_b^2 + 2*9/5*CL_b) + (9/5)^2 * ssl3) / (1-N)
+            sage: (E(P_a, C_a^2 + 2*9/5*CL_a) + E(P_b, C_b^2 + 2*9/5*CL_b) + (9/5)^2 * ssl3) / (1-N)  # long time
             -27/50*pi^2 + 3/10*log2 + 1609/300
             sage: _.parent()
             Multivariate Polynomial Ring in log2, pi over Algebraic Real Field
@@ -5245,7 +5245,7 @@ class Polyhedron_base(Element):
             sage: S_b = S_a + s/2 + m - l
             sage: SL_a = (S_a*L).expand()
             sage: SL_b = (S_b*L).expand()
-            sage: (E(P_a, S_a^2 + 2*3/4*SL_a) + E(P_b, S_b^2 + 2*3/4*SL_b) + (3/4)^2 * ssl3) / (1-N)
+            sage: (E(P_a, S_a^2 + 2*3/4*SL_a) + E(P_b, S_b^2 + 2*3/4*SL_b) + (3/4)^2 * ssl3) / (1-N)  # long time
             -3/32*pi^2 + 3/32*log2 + 47/48
             sage: _.parent()
             Multivariate Polynomial Ring in log2, pi over Algebraic Real Field
@@ -5333,7 +5333,7 @@ class Polyhedron_base(Element):
             229/90
             sage: E(L)
             -5/6
-            sage: E((C*L).expand())
+            sage: E((C*L).expand())  # long time
             -959/720
         """
         import logging
