@@ -5347,6 +5347,9 @@ class Polyhedron_base(Element):
                        self._PolynomialAndLogFactors_.convert(
                            function, polynomial_ring=polynomial_ring))
 
+        if polynomial_ring is not None:
+            function = polynomial_ring(function)
+
         if measure == 'ambient':
             if isinstance(function, self._PolynomialAndLogFactors_):
                 if not function.log_factors:
