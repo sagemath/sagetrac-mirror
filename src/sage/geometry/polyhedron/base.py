@@ -5072,8 +5072,15 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``function`` -- a multivariate polynomial or
-          a valid LattE description string for polynomials
+        - ``function`` -- one of the following:
+
+          * a multivariate polynomial,
+          * a valid LattE description string for polynomials, or
+          * a symbolic expression.
+
+          A symbolic expression may also contain logarithmic factors (with a polynomial
+          argument of degree at most `1`). If a symbolic expression is given,
+          ``polynomial_ring`` needs to be specified.
 
         - ``measure`` -- string, the measure to use
 
@@ -5085,8 +5092,15 @@ class Polyhedron_base(Element):
             without the normalization by `\sqrt{\det(A^\top A)}` (with
             `A` being the affine transformation matrix; see :meth:`affine_hull`).
 
-        - ``**kwds`` -- additional keyword arguments that
-          are passed to the engine
+        - ``polynomial_ring`` (default: ``None``) -- a multivariate polynomial ring
+
+          This is used for conversion when ``function`` is an symbolic expression.
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
+
+        - ``**kwds`` -- additional keyword arguments that are passed to the engine
 
         OUTPUT:
 
@@ -5449,11 +5463,39 @@ class Polyhedron_base(Element):
                          cdd=True, **kwds)
 
     class _PolynomialAndLogFactors_(object):
+        r"""
+        A simple data structure to store a polynomial times logarithmic factors.
+
+        INPUT:
+
+        - ``polynomial`` -- a multivariate polynomial
+
+        - ``log_factors`` -- a list of pairs ``(argument, exponent)`` representing
+          a factor ``log(argument)^exponent``.
+        """
         def __init__(self, polynomial, log_factors):
+            r"""
+            See class description for details.
+
+            TESTS::
+
+                sage: R.<x, y, z> = QQ[]
+                sage: polytopes.cube()._PolynomialAndLogFactors_(x^2 + y, [(z, 3)])
+                (x^2 + y) * log(z)^3
+            """
             self.polynomial = polynomial
             self.log_factors = log_factors
 
         def __repr__(self):
+            r"""
+            Return a representation string of this object.
+
+            TESTS::
+
+                sage: R.<x, y, z> = QQ[]
+                sage: polytopes.cube()._PolynomialAndLogFactors_(y, [(x, 3), (z, 1)])  # indirect doctest
+                (y) * log(x)^3 * log(z)^1
+            """
             return ' * '.join(['({})'.format(self.polynomial)] +
                               ['log({})^{}'.format(*log_factor)
                                for log_factor in self.log_factors])
@@ -5461,6 +5503,42 @@ class Polyhedron_base(Element):
         __str__ = __repr__
 
         def verbose_integrate(self, polyhedron, name='', level='info'):
+            r"""
+            Return a verbose output via Python's logging module.
+
+            INPUT:
+
+            - ``polyhedron`` -- a polyhedron
+
+            - ``name`` (default: ``''``) -- a string
+
+            - ``level`` (default: ``'info'``) -- a string representing one of Python's 
+              logging levels
+
+            OUTPUT:
+
+            None, but logging messages are generated.
+
+            TESTS::
+
+                sage: R.<x, y, z> = QQ[]
+                sage: P = polytopes.cube()
+                sage: f = P._PolynomialAndLogFactors_(y, [(x, 3), (z, 1)])
+                sage: import logging
+                sage: logging.basicConfig()
+                sage: logging.getLogger().setLevel(logging.DEBUG)
+                sage: f.verbose_integrate(P, name='test', level='debug')
+                DEBUG:sage.geometry.polyhedron.base.integrate:integrating
+                "test" over
+                DEBUG:sage.geometry.polyhedron.base.integrate:A 3-dimensional
+                polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+                DEBUG:sage.geometry.polyhedron.base.integrate:with vertices
+                (-1, -1, -1), (-1, -1, 1), (-1, 1, -1), (-1, 1, 1),
+                (1, -1, -1), (1, -1, 1), (1, 1, -1), (1, 1, 1)
+                DEBUG:sage.geometry.polyhedron.base.integrate:the function
+                (y) * log(x)^3 * log(z)^1
+                sage: logging.getLogger().setLevel(logging.WARN)
+            """
             import logging
             logger = logging.getLogger(__name__ + '.integrate')
             logg = getattr(logger, level)
@@ -5474,6 +5552,17 @@ class Polyhedron_base(Element):
         @staticmethod
         def convert(function, polynomial_ring=None):
             r"""
+            Extract polynomials and logarithms out of ``function``.
+
+            INPUT:
+
+            - ``function`` -- a SageMath object (e.g. a symbolic expression)
+
+            - ``polynomial_ring`` (default: ``None``) -- a multivariate polynomial ring
+
+            OUTPUT:
+
+            A list of ``_PolynomialAndLogFactors_`` objects.
 
             TESTS::
 
@@ -5577,6 +5666,25 @@ class Polyhedron_base(Element):
                 return [convert_summand(summand) for summand in summands]
 
         def hom_applied(self, hom):
+            r"""
+            Apply ``hom`` to this object.
+
+            INPUT:
+
+            - ``hom`` -- a homomorphism
+
+            OUTPUT:
+
+            A ``_PolynomialAndLogFactors_`` object.
+
+            TESTS::
+
+                sage: R.<x, y, z> = QQ[]
+                sage: P = polytopes.cube()
+                sage: f = P._PolynomialAndLogFactors_(y, [(x, 3), (z, 1)])
+                sage: f.hom_applied(R.hom([x^2, y^2, z^2]))
+                (y^2) * log(x^2)^3 * log(z^2)^1
+            """
             return self.__class__(hom(self.polynomial),
                                   [(hom(log_argument), log_exponent)
                                    for log_argument, log_exponent in self.log_factors])
@@ -5585,6 +5693,20 @@ class Polyhedron_base(Element):
         r"""
         Integrate ``polynomial * log(argument)^exponent`` over ``polyhedron``,
         where ``log_factor = (argument, exponent)``.
+
+        INPUT:
+
+        - ``polynomial_and_log_factor`` -- a ``_PolynomialAndLogFactors_`` object
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
+
+        - ``**kwds`` -- additional keyword arguments that are passed to the engine
+
+        OUTPUT:
+
+        The value of the integral.
 
         TESTS::
 
