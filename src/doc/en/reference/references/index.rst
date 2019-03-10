@@ -51,6 +51,13 @@ REFERENCES:
               Vertex Cover Problem: Theory and Experiments. *SIAM
               ALENEX/ANALCO* 2004: 62-69.
 
+.. [ADHKP2018] Martin Aumüller, Martin Dietzfelbinger, Clemens Heuberger,
+               Daniel Krenn, and Helmut Prodinger,
+               *Dual-Pivot Quicksort: Optimality, Analysis and Zeros of Associated Lattice Paths*.
+               Combinatorics, Probability and Computing, 2018.
+               :doi:`10.1017/S096354831800041X`.
+               :arxiv:`1611.00258`.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -2659,6 +2666,12 @@ REFERENCES:
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
 
+.. [NS2018] Ralph Neininger and Jasmin Straub,
+            *Probabilistic Analysis of the Dual-Pivot Quicksort "Count"*.
+            Proceedings of the Fifteenth Workshop on Analytic Algorithmics and
+            Combinatorics (ANALCO), 2018.
+            :doi:`10.1137/1.9781611975062.1`.
+
 .. [NZ1997] \T. Nakashima and A. Zelevinsky.
             Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.
             Adv. Math. **131**, pp. 253--278, 1997.
@@ -3462,6 +3475,11 @@ REFERENCES:
 .. [Wil2013] Harold Williams. *Q-systems, factorization dynamics, and the
              twist automorphism*. Int. Math. Res. Not. (2015) no. 22,
              12042--12069. :doi:`10.1093/imrn/rnv057`.
+
+.. [WNN2015] Sebastian Wild, Markus E. Nebel, and Ralph Neininger,
+             *Average Case and Distributional Analysis of Dual-Pivot Quicksort*.
+             ACM Transactions on Algorithms 11, 3, Article 22, 2015.
+             :doi:`10.1145/2629340`.
 
 .. [Wol1974] W. A. Wolovich. "Linear Multivariable Systems", Applied
              Mathematical Sciences (volume 11). Springer-Verlag New-York, 1974.
