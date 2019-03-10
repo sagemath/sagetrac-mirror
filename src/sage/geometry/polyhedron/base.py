@@ -5065,6 +5065,7 @@ class Polyhedron_base(Element):
 
     def integrate(self, function, measure='ambient',
                   polynomial_ring=None,
+                  log=None,
                   **kwds):
         r"""
         Return the integral of ``function`` over this polytope.
@@ -5178,15 +5179,28 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.simplex(2)
             sage: V = AA(P.volume(measure='induced'))
+
+            sage: LPR.<log2, pi> = AA[]
+            sage: def mylog(z):
+            ....:     if z == 1/2:
+            ....:         return -log2
+            ....:     return log(z)
+            sage: ssl3 = -1/12*pi^2 + 14/9
+
             sage: R.<s, m, l> = QQ[]
             sage: L = s*log(s) + m*log(m) + l*log(l)
             sage: def E(polyhedron, polynomial):
-            ....:     return (polyhedron.integrate(
+            ....:     value = polyhedron.integrate(
             ....:         polynomial, measure='induced',
-            ....:         polynomial_ring=R) / V).radical_expression()
+            ....:         polynomial_ring=R, log=mylog) / V
+            ....:     if value.parent() == AA:
+            ....:         value = LPR(value)
+            ....:     if value.parent() == LPR:
+            ....:         return value.map_coefficients(lambda c: c.radical_expression())
+            ....:     else:
+            ....:         return value
             sage: N = E(P, s^2 + m^2 + l^2); N
             1/2
-            sage: ssl3 = -1/12*pi^2 + 14/9
 
         Variance of the number of key-comparisons using dual-pivot quicksort
         with the Yaroslavskiy strategy (see [WNN2015]_)::
@@ -5206,7 +5220,9 @@ class Polyhedron_base(Element):
             sage: CL_a = (C_a*L).expand()
             sage: CL_b = (C_b*L).expand()
             sage: (E(P_a, C_a^2 + 2*9/5*CL_a) + E(P_b, C_b^2 + 2*9/5*CL_b) + (9/5)^2 * ssl3) / (1-N)
-            -27/50*pi^2 + 3/10*log(2) + 1609/300
+            -27/50*pi^2 + 3/10*log2 + 1609/300
+            sage: _.parent()
+            Multivariate Polynomial Ring in log2, pi over Algebraic Real Field
 
         Variance of the number of swaps using dual-pivot quicksort
         with the optimal partitioning strategy (see [WNN2015]_)::
@@ -5216,7 +5232,9 @@ class Polyhedron_base(Element):
             sage: SL_a = (S_a*L).expand()
             sage: SL_b = (S_b*L).expand()
             sage: (E(P_a, S_a^2 + 2*3/4*SL_a) + E(P_b, S_b^2 + 2*3/4*SL_b) + (3/4)^2 * ssl3) / (1-N)
-            -3/32*pi^2 + 3/32*log(2) + 47/48
+            -3/32*pi^2 + 3/32*log2 + 47/48
+            sage: _.parent()
+            Multivariate Polynomial Ring in log2, pi over Algebraic Real Field
 
         TESTS:
 
@@ -5323,14 +5341,8 @@ class Polyhedron_base(Element):
 
         function_parent = parent(function)
         if isinstance(function_parent, SymbolicRing):
-            def integrate(polynomial, log_factors):
-                return self.integrate(polynomial,
-                                      measure=measure,
-                                      polynomial_ring=None,
-                                      _log_factor=log_factor,
-                                      **kwds)
-
-            return sum(self.integrate(lf, measure=measure, polynomial_ring=None, **kwds)
+            return sum(self.integrate(lf, measure=measure,
+                                      polynomial_ring=None, log=log, **kwds)
                        for lf in
                        self._PolynomialAndLogFactors_.convert(
                            function, polynomial_ring=polynomial_ring))
@@ -5340,7 +5352,7 @@ class Polyhedron_base(Element):
                 if not function.log_factors:
                     return self._integrate_latte_(function.polynomial, **kwds)
                 elif len(function.log_factors) == 1:
-                    return self._integrate_polynomial_one_log_(function, **kwds)
+                    return self._integrate_polynomial_one_log_(function, log=log, **kwds)
                 else:
                     raise NotImplementedError(
                         'cannot integrate {} as it contains '
@@ -5353,7 +5365,7 @@ class Polyhedron_base(Element):
             # return with ambient measure
             if self.is_full_dimensional():
                 return self.integrate(function, measure='ambient',
-                                      polynomial_ring=None, **kwds)
+                                      polynomial_ring=None, log=log, **kwds)
 
             if isinstance(function, six.string_types):
                 raise NotImplementedError(
@@ -5380,7 +5392,7 @@ class Polyhedron_base(Element):
                     polyhedron, name='induced', level='debug')
 
             value = polyhedron.integrate(function_in_affine_hull, measure='ambient',
-                                         polynomial_ring=None, **kwds)
+                                         polynomial_ring=None, log=log, **kwds)
             if measure == 'induced_nonnormalized':
                 return value
             else:
@@ -5566,7 +5578,7 @@ class Polyhedron_base(Element):
                                   [(hom(log_argument), log_exponent)
                                    for log_argument, log_exponent in self.log_factors])
 
-    def _integrate_polynomial_one_log_(self, polynomial_and_log_factor, **kwds):
+    def _integrate_polynomial_one_log_(self, polynomial_and_log_factor, log=None, **kwds):
         r"""
         Integrate ``polynomial * log(argument)^exponent`` over ``polyhedron``,
         where ``log_factor = (argument, exponent)``.
@@ -5621,6 +5633,9 @@ class Polyhedron_base(Element):
         import logging
         logger = logging.getLogger(__name__ + '.integrate')
 
+        if log is None:
+            from sage.functions.log import log
+
         polyhedron = self
         polynomial_and_log_factor.verbose_integrate(
             polyhedron, name='with one logarithm', level='info')
@@ -5659,7 +5674,6 @@ class Polyhedron_base(Element):
             return result
 
         if polyhedron.dimension() == 0:
-            from sage.functions.log import log
             logger.debug('* now computing:')
             polynomial_and_log_factor.verbose_integrate(polyhedron, level='debug')
             vertices = polyhedron.vertices()
@@ -5718,12 +5732,12 @@ class Polyhedron_base(Element):
                             back(int_polynomial_forth) / log_coefficient,
                             [(log_argument, log_exponent)]),
                         measure='induced',
-                        **kwds))
+                        log=log, **kwds))
                   for face, normal in
                   ((face, face.normal_vector(algorithm='via_equation_system'))
                    for face in polyhedron.faces(polyhedron.dim() - 1)))
         B = polyhedron.integrate(back(int_polynomial_forth // log_variable),
-                                 measure='ambient', **kwds)
+                                 measure='ambient', log=log, **kwds)
 
         logger.debug('* now computing:')
         polynomial_and_log_factor.verbose_integrate(polyhedron,
