@@ -2417,7 +2417,8 @@ class GenusSymbol_global_ring(object):
             if local_symbols[0].prime() != 2:
                 raise ValueError("the first symbol must be 2-adic")
         if representative is not None:
-            representative = representative.change_ring(ZZ)
+            if representative.base_ring() != ZZ:
+                representative = matrix(ZZ,representative)
             representative.set_immutable()
         self._representative = representative
         self._signature = signature_pair
