@@ -2416,8 +2416,9 @@ class GenusSymbol_global_ring(object):
                 raise ValueError("the local symbols must be sorted by their primes")
             if local_symbols[0].prime() != 2:
                 raise ValueError("the first symbol must be 2-adic")
-
-
+        if representative is not None:
+            representative = representative.change_ring(ZZ)
+            representative.set_immutable()
         self._representative = representative
         self._signature = signature_pair
         self._local_symbols = local_symbols
@@ -3090,6 +3091,8 @@ class GenusSymbol_global_ring(object):
                 U = L.LLL_gram()
                 L = U.T * L * U
         assert Genus(L) == self
+        L = L.change_ring(ZZ)
+        L.set_immutable()
         self._representative = L
 
     def representatives(self, backend="sage", algorithm=None):
@@ -3153,7 +3156,7 @@ class GenusSymbol_global_ring(object):
                     e = ZZ(2)
                 if self.signature_pair()[0] == 0:
                     e *= ZZ(-1)
-                Q = QuadraticForm(e*self.representative())
+                Q = QuadraticForm(ZZ,e*self.representative())
                 seeds = [Q]
                 for p in self.spinor_generators(proper=False):
                     seeds.append(Q.p_neighbor(p))
