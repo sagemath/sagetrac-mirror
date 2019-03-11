@@ -12,7 +12,6 @@ Base class for elements of multivariate polynomial rings
 
 from __future__ import print_function, absolute_import
 
-#from cypari2.pari_instance cimport Pari
 from sage.libs.all import pari
 
 from sage.rings.integer cimport Integer
@@ -1457,6 +1456,13 @@ cdef class MPolynomial(CommutativeRingElement):
 
         TESTS:
 
+        With an optional algorithm::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = x^5*y+3*x^2*y^2-2*x+y-1
+            sage: f.discriminant(y, 'fricas')  # optional - fricas
+            x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
+
         Test polynomials over QQbar (:trac:`25265`)::
 
             sage: R.<x,y> = QQbar[]
@@ -1481,23 +1487,20 @@ cdef class MPolynomial(CommutativeRingElement):
             if base == ZZ or base == QQ:
                 algorithm = 'pari'
             else:
-                algorithm = 'singular'        
+                algorithm = 'singular'
 
         if algorithm not in ('pari', 'singular', 'fricas', 'flint'):
             raise ValueError('unknown algorithm')
 
         if algorithm == 'pari':
-            # why is this so slow for small polynomials ?
-            # pari = Pari()
             return self.parent()(pari(self).poldisc(pari(variable)))
 
         if algorithm == 'fricas':
-            # not yet tested
             from sage.interfaces.fricas import fricas
-            return self.parent(fricas(self).discriminant(variable))
+            return fricas(self).discriminant(variable).sage()
 
         if algorithm == "flint":
-            # requires a newer version of flint
+            # requires a newer version of flint > 2.5.2
             raise NotImplementedError
 
         # use singular otherwise
@@ -1514,7 +1517,9 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def macaulay_resultant(self, *args):
         r"""
-        This is an implementation of the Macaulay Resultant. It computes
+        Return the Macaulay resultant.
+
+        It computes
         the resultant of universal polynomials as well as polynomials
         with constant coefficients. This is a project done in
         sage days 55. It's based on the implementation in Maple by
@@ -1534,7 +1539,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         OUTPUT:
 
-        - the macaulay resultant
+        - the Macaulay resultant
 
         EXAMPLES:
 
