@@ -12,6 +12,9 @@ Base class for elements of multivariate polynomial rings
 
 from __future__ import print_function, absolute_import
 
+#from cypari2.pari_instance cimport Pari
+from sage.libs.all import pari
+
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.coerce cimport coercion_model
@@ -1408,24 +1411,29 @@ cdef class MPolynomial(CommutativeRingElement):
 
         return M
 
-    def discriminant(self,variable):
-        """
-        Returns the discriminant of self with respect to the given variable.
+    def discriminant(self, variable, algorithm=None):
+        r"""
+        Return the discriminant of ``self`` with respect to the given variable.
 
         INPUT:
 
-          - ``variable`` - The variable with respect to which we compute
-              the discriminant
+        - ``variable`` -- the variable with respect to which we compute
+          the discriminant
+
+        - ``algorithm`` -- optional, either ``'pari'``, ``'singular'``,
+          ``'flint'`` or ``'fricas'``
+
+        By default, Pari is used (:pari:`poldisc`) when the base ring
+        is `\ZZ` or `\QQ`, and Singular otherwise.
 
         OUTPUT:
 
-          - An element of the base ring of the polynomial ring.
-
+        - an element of the base ring of the polynomial ring
 
         EXAMPLES::
 
-            sage: R.<x,y,z>=QQ[]
-            sage: f=4*x*y^2 + 1/4*x*y*z + 3/2*x*z^2 - 1/2*z^2
+            sage: R.<x,y,z> = QQ[]
+            sage: f = 4*x*y^2 + 1/4*x*y*z + 3/2*x*z^2 - 1/2*z^2
             sage: f.discriminant(x)
             1
             sage: f.discriminant(y)
@@ -1436,35 +1444,69 @@ cdef class MPolynomial(CommutativeRingElement):
         Note that, unlike the univariate case, the result lives in
         the same ring as the polynomial::
 
-            sage: R.<x,y>=QQ[]
-            sage: f=x^5*y+3*x^2*y^2-2*x+y-1
+            sage: R.<x,y> = QQ[]
+            sage: f = x^5*y+3*x^2*y^2-2*x+y-1
             sage: f.discriminant(y)
+            x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
+            sage: f.discriminant(y, 'singular')
             x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
             sage: f.polynomial(y).discriminant()
             x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
-            sage: f.discriminant(y).parent()==f.polynomial(y).discriminant().parent()
+            sage: f.discriminant(y).parent() == f.polynomial(y).discriminant().parent()
             False
 
         TESTS:
 
         Test polynomials over QQbar (:trac:`25265`)::
 
-            sage: R.<x,y>=QQbar[]
-            sage: f=x^5*y+3*x^2*y^2-2*x+y-1
+            sage: R.<x,y> = QQbar[]
+            sage: f = x^5*y+3*x^2*y^2-2*x+y-1
             sage: f.discriminant(y)
             x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
 
+            sage: f.discriminant(x, algorithm='niet')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm
+
         AUTHOR:
-            Miguel Marco
+
+        Miguel Marco
         """
         if self.is_zero():
             return self.parent().zero()
+
+        if algorithm is None:
+            base = self.base_ring()
+            if base == ZZ or base == QQ:
+                algorithm = 'pari'
+            else:
+                algorithm = 'singular'        
+
+        if algorithm not in ('pari', 'singular', 'fricas', 'flint'):
+            raise ValueError('unknown algorithm')
+
+        if algorithm == 'pari':
+            # why is this so slow for small polynomials ?
+            # pari = Pari()
+            return self.parent()(pari(self).poldisc(pari(variable)))
+
+        if algorithm == 'fricas':
+            # not yet tested
+            from sage.interfaces.fricas import fricas
+            return self.parent(fricas(self).discriminant(variable))
+
+        if algorithm == "flint":
+            # requires a newer version of flint
+            raise NotImplementedError
+
+        # use singular otherwise
         n = self.degree(variable)
         d = self.derivative(variable)
         k = d.degree(variable)
 
         r = n % 4
-        u = -1 # (-1)**(n*(n-1)/2)
+        u = -1  # (-1)**(n*(n-1)/2)
         if r == 0 or r == 1:
             u = 1
         an = self.coefficient(variable**n)**(n - k - 2)
