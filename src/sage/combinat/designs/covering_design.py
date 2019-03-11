@@ -21,11 +21,11 @@ design from this database, we include extra information:
 REFERENCES:
 
 .. [1] La Jolla Covering Repository,
-  https://math.ccrwest.org/cover.html
+  http://ljcr.dmgordon.org/cover.html
 
 .. [2] Coverings,
   Daniel Gordon and Douglas Stinson,
-  https://math.ccrwest.org/gordon/hcd.pdf
+  https://drive.google.com/file/d/0B6s9_JNV1EjtUFd4MkhBc0hSdVU/view
   from the Handbook of Combinatorial Designs
 
 AUTHORS:
@@ -452,8 +452,10 @@ class CoveringDesign(SageObject):
 
 def best_known_covering_design_www(v, k, t, verbose=False):
     r"""
-    Gives the best known `(v,k,t)` covering design, using the database
-    available at `<https://math.ccrwest.org/cover.html>`_
+    Return the best known `(v, k, t)` covering design from an online database.
+
+    This uses the La Jolla Covering Repository, a database
+    available at `<http://ljcr.dmgordon.org/cover.html>`_
 
     INPUT:
 
@@ -469,8 +471,9 @@ def best_known_covering_design_www(v, k, t, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.covering_design import best_known_covering_design_www
-        sage: C = best_known_covering_design_www(7, 3, 2)   # optional - internet
+        sage: from sage.combinat.designs.covering_design import ( # optional - internet
+        ....:     best_known_covering_design_www)
+        sage: C = best_known_covering_design_www(7, 3, 2)  # optional - internet
         sage: print(C)                                     # optional - internet
         C(7,3,2) = 7
         Method: lex covering
@@ -490,6 +493,7 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     from six.moves.urllib.request import urlopen
 
     from sage.misc.sage_eval import sage_eval
+    from sage.cpython.string import bytes_to_str
 
     v = int(v)
     k = int(k)
@@ -497,11 +501,12 @@ def best_known_covering_design_www(v, k, t, verbose=False):
 
     param = ("?v=%s&k=%s&t=%s"%(v,k,t))
 
-    url = "https://math.ccrwest.org/cover/get_cover.php"+param
+    url = "http://ljcr.dmgordon.org/cover/get_cover.php" + param
     if verbose:
         print("Looking up the bounds at %s" % url)
+
     f = urlopen(url)
-    s = f.read()
+    s = bytes_to_str(f.read())
     f.close()
 
     if 'covering not in database' in s:   #not found
