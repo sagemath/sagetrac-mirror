@@ -5859,7 +5859,7 @@ class Polyhedron_base(Element):
                         measure='induced',
                         log=log, **kwds))
                   for face, normal in
-                  ((face, face.normal_vector(algorithm='via_equation_system'))
+                  ((face, face.normal_vector())
                    for face in polyhedron.faces(polyhedron.dim() - 1)))
         B = polyhedron.integrate(back(int_polynomial_forth // log_variable),
                                  measure='ambient', log=log, **kwds)
