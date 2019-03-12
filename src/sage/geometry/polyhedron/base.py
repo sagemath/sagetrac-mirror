@@ -5714,9 +5714,19 @@ class Polyhedron_base(Element):
             sage: R.<x, y, z> = QQ[]
             sage: def integrate(p, l, e):
             ....:     return P.integrate(P._PolynomialAndLogFactors_(p, [(l, e)]),
-            ....:         measure='induced').radical_expression()  # indirect doctest
-            sage: integrate(x, x, 1)
+            ....:         measure='induced')  # indirect doctest
+            sage: integrate(x, x, 1).radical_expression()
             -5/12*sqrt(1/3)
+            sage: integrate(x, R(2), 2)
+            0.2886751345948129?*log(2)^2
+            sage: integrate(x, x, 0).radical_expression()
+            1/2*sqrt(1/3)
+            sage: integrate(R(0), 0, 1)
+            0
+            sage: integrate(R(0), 42, 1)
+            0
+            sage: integrate(x, 42, 1)
+            0.2886751345948129?*log(42)
 
         ::
 
