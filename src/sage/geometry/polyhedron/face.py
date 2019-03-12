@@ -584,7 +584,7 @@ class PolyhedronFace(SageObject):
                 c.exactify()
                 try:
                     return QQ(c)
-                except ValueError, TypeError:
+                except (ValueError, TypeError):
                     return c
             T = T.apply_map(lambda c: exactify(c))
 
