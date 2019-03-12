@@ -3,7 +3,6 @@ SAGE_SPKG_CONFIGURE([gmp], [
     if test x"$with_mp" = xgmp; then
         sage_spkg_install_gmp=yes
     else
-        sage_spkg_freeze_gmp=yes
-        sage_spkg_freeze_mpir=yes
+        sage_spkg_install_gmp=no
     fi
 ])

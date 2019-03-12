@@ -218,22 +218,30 @@ endif
 #     $(3): package dependencies - not used, in fact
 define FROZEN_PACKAGE_templ
 $$(INST)/$(1)-$(2): $(3)
-	$(error $(1) must be installed by re-running ./configure --with... first)
+	@echo "***********************************************"
+	@echo " $(1) must be installed by re-running "
+	@echo ./configure '$(./config.status --config)' 
+	@echo "--with-X=$(1) first, where X=mp for $(1) gmp or mpir, and X=$(1) otherwise."
+	@echo "***********************************************"
 
 $(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
-	$(info nothing to uninstall, as $(1) comes from the system)
+	@echo "nothing to uninstall, as $(1) comes from the system."
 
 endef
 
-#################### TODO: fix these make rules.######################
-# this is commented out, and ./sage -i just errors out on frozen packages
-#
-#$(foreach pkgname, $(FROZEN_PACKAGES),\
-#	$(eval $(call FROZEN_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
-#	                                   $(call pkg_deps,$(pkgname)))))
+$(foreach pkgname, $(FROZEN_PACKAGES),\
+	$(eval $(call FROZEN_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
+	                                   $(call pkg_deps,$(pkgname)))))
 
+ifdef DEBUG_RULES
+$(info # Rules for frozen packages)
+$(foreach pkgname, $(FROZEN_PACKAGES),\
+	$(eval $(call FROZEN_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
+	                                   $(call pkg_deps,$(pkgname)))))
+
+endif
 
 # ================================ pip packages ===============================
 # Generate build rules for 'pip' packages; this template is used to generate
