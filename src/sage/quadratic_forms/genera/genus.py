@@ -2736,7 +2736,7 @@ class GenusSymbol_global_ring(object):
             if p.divides(self.determinant()):
                 continue
             g = Q(A.delta(p))
-            if g in U:
+            if g.gap() in U.gap(): # containment in sage is broken
                 continue
             else:
                 spinor_gens.append(p)
