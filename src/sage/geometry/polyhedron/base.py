@@ -5235,7 +5235,7 @@ class Polyhedron_base(Element):
             sage: CL_b = (C_b*L).expand()
             sage: (E(P_a, C_a^2 + 2*9/5*CL_a) + E(P_b, C_b^2 + 2*9/5*CL_b) + (9/5)^2 * ssl3) / (1-N)  # long time
             -27/50*pi^2 + 3/10*log2 + 1609/300
-            sage: _.parent()
+            sage: _.parent()  # long time
             Multivariate Polynomial Ring in log2, pi over Algebraic Real Field
 
         Variance of the number of swaps using dual-pivot quicksort
@@ -5247,7 +5247,7 @@ class Polyhedron_base(Element):
             sage: SL_b = (S_b*L).expand()
             sage: (E(P_a, S_a^2 + 2*3/4*SL_a) + E(P_b, S_b^2 + 2*3/4*SL_b) + (3/4)^2 * ssl3) / (1-N)  # long time
             -3/32*pi^2 + 3/32*log2 + 47/48
-            sage: _.parent()
+            sage: _.parent()  # long time
             Multivariate Polynomial Ring in log2, pi over Algebraic Real Field
 
         TESTS:
