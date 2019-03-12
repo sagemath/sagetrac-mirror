@@ -5778,11 +5778,6 @@ class Polyhedron_base(Element):
         polynomial = polynomial_and_log_factor.polynomial
         assert len(polynomial_and_log_factor.log_factors) == 1
         log_argument, log_exponent = polynomial_and_log_factor.log_factors[0]
-        if log_exponent == 0:
-            return self.integrate(polynomial, measure='ambient', **kwds)
-        if log_exponent != 1:
-            raise NotImplementedError('cannot compute powers of logarithms '
-                                      'larger than 1')
 
         if polynomial.parent() != log_argument.parent():
             raise TypeError('polynomial {} (parent {}) and '
@@ -5794,20 +5789,13 @@ class Polyhedron_base(Element):
             raise TypeError('{} (the parent of {}) needs exactly {} '
                             'generators'.format(polyhedron.ambient_dim()))
 
-        if log_argument.degree() > 1:
-            raise ValueError('cannot integrate {} because '
-                             '{} has degree larger than 1'.format(
-                                 polynomial_and_log_factor, log_argument))
-        if polynomial.mod(log_argument) != 0:
-            raise ValueError('cannot integrate {} because '
-                             '{} to some power does not appear as factor'.format(
-                                 polynomial_and_log_factor, log_argument))
-
-        if polynomial == 0 or log_argument == 0:
+        if log_exponent == 0:
+            return self.integrate(polynomial, measure='ambient', **kwds)
+        if polynomial == 0:
+            # this also covers log_argument == 0
             result = polynomial.parent().base_ring().zero()
             logger.debug('= %s (zero function "ambient")', result)
             return result
-
         if polyhedron.dimension() == 0:
             logger.debug('* now computing:')
             polynomial_and_log_factor.verbose_integrate(polyhedron, level='debug')
@@ -5818,9 +5806,25 @@ class Polyhedron_base(Element):
             if log_at_vertex == 0:
                 result = log_at_vertex
             else:
-                result = polynomial(vertex) * log(log_at_vertex)
+                result = polynomial(vertex) * log(log_at_vertex)**log_exponent
             logger.debug('= %s (zero dimensional polyhedron)', result)
             return result
+        if log_argument.is_constant():
+            # this means log_argument != 0 and polyhedron.dimension() > 0
+            return (log(log_argument.constant_coefficient())**log_exponent *
+                    self.integrate(polynomial, measure='ambient', **kwds))
+        if log_exponent != 1:
+            raise NotImplementedError('cannot compute powers of logarithms '
+                                      'larger than 1')
+
+        if log_argument.degree() > 1:
+            raise ValueError('cannot integrate {} because '
+                             '{} has degree larger than 1'.format(
+                                 polynomial_and_log_factor, log_argument))
+        if polynomial.mod(log_argument) != 0:
+            raise ValueError('cannot integrate {} because '
+                             '{} to some power does not appear as factor'.format(
+                                 polynomial_and_log_factor, log_argument))
 
         logger.debug('by multi-dimensional integration by parts')
 
