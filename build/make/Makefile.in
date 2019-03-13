@@ -219,9 +219,14 @@ endif
 define FROZEN_PACKAGE_templ
 $$(INST)/$(1)-$(2): $(3)
 	@echo "***********************************************"
-	@echo " $(1) must be installed by re-running "
-	@echo ./configure '$(./config.status --config)' 
-	@echo "--with-X=$(1) first, where X=mp for $(1) gmp or mpir, and X=$(1) otherwise."
+	@echo " before running ./sage -i/f $(1) please run"
+ifeq  ($(1),gmp)
+	   @echo "   ./configure <dollar sign>(./config.status --config) --with-mp=$(1)"
+else ifeq ($(1),mpir)
+	   @echo "   ./configure <dollar sign>(./config.status --config) --with-mp=$(1)"
+else
+	   @echo "   ./configure <dollar sign>(./config.status --config) --with-$(1)=install"
+endif
 	@echo "***********************************************"
 
 $(1): $$(INST)/$(1)-$(2)
