@@ -198,7 +198,11 @@ class Order(IntegralDomain):
             sage: R.fractional_ideal(2/3 + 7*a, a)
             Fractional ideal (1/3*a)
         """
-        return self.number_field().fractional_ideal(*args, **kwds)
+        if self.is_maximal:
+            return self.number_field().fractional_ideal(*args, **kwds)
+        else:
+            from sage.rings.number_field.order_ideal import OrderIdeal
+            return OrderIdeal(self, args, **kwds)
 
     def ideal(self, *args, **kwds):
         """
@@ -216,9 +220,7 @@ class Order(IntegralDomain):
             Fractional ideal (7)
             sage: R = K.order(4*a)
             sage: R.ideal(8)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ideals of non-maximal orders not yet supported.
+            Fractional ideal (8) of non-maximal order
 
         This function is called implicitly below::
 
@@ -232,9 +234,11 @@ class Order(IntegralDomain):
             sage: R.ideal(0)
             Ideal (0) of Number Field in a with defining polynomial x^2 + 2
         """
-        if not self.is_maximal():
-            raise NotImplementedError("ideals of non-maximal orders not yet supported.")
-        I = self.number_field().ideal(*args, **kwds)
+        if self.is_maximal():
+            I = self.number_field().ideal(*args, **kwds)
+        else:
+            from sage.rings.number_field.order_ideal import OrderIdeal
+            I = OrderIdeal(self, args, **kwds)
         if not I.is_integral():
             raise ValueError("ideal must be integral; use fractional_ideal to create a non-integral ideal.")
         return I

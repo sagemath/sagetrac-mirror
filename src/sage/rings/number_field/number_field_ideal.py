@@ -948,6 +948,8 @@ class NumberFieldIdeal(Ideal_generic):
         """
         Return True if this ideal is integral.
 
+        TODO: delete?
+
         EXAMPLES::
 
            sage: R.<x> = PolynomialRing(QQ)
