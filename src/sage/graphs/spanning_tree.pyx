@@ -68,7 +68,7 @@ from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     import time
-    #start_time=time.time() 
+    start_time=time.time() 
     r"""
     Minimum spanning tree using Kruskal's algorithm.
 
@@ -267,9 +267,12 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         Traceback (most recent call last):
         ...
         ValueError: The input G must be an undirected graph.
+    
     """
-    return  list(kruskal_iterator(G, wfunction=wfunction, check=check))
-    #print(time.time()-start_time)
+    A=list(kruskal_iterator(G, wfunction=wfunction, check=check))
+
+    print(time.time()-start_time)
+    return A     
     
 def kruskal_iterator(G,wfunction=None, bint check=False):
     """
@@ -319,7 +322,7 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
             sortedE_iter = g.edge_iterator()
     else:
         sortedE_iter = iter(sorted(g.edges(sort=False), key=wfunction))
-     
+    
     # Kruskal's algorithm
     cdef int m = g.order() - 1
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
@@ -327,6 +330,7 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
     while i < m:
         e = next(sortedE_iter)
         # acyclic test via union-find
+        print(e)
         u = union_find.find(e[0])
         v = union_find.find(e[1])
         if u != v:
@@ -392,7 +396,7 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
     
     """
-    #start_time=time.time()
+    start_time=time.time()
     cpdef list MST_E=[]
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
@@ -431,7 +435,7 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     
     partition(G_edges ,MST_E, union_find, wfunction = wfunction, check = check)
     
-    #print(time.time()-start_time)
+    print(time.time()-start_time)
     return MST_E
 
 
