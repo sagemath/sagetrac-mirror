@@ -1495,6 +1495,42 @@ def transitive_reduction_acyclic(G):
     reduced.add_edges(useful_edges)
     reduced.add_vertices(linear_extension)
 
-    binary_matrix_free(closure)
+    binary_matrix_free(closure), 
 
     return reduced
+def all_paths ( self, start, end):
+    if start not in self:
+        raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
+    if end not in self:
+        raise LookupError("end vertex ({0}) is not a vertex of the graph".format(end))
+
+    if self.is_directed():
+        iterator = self.neighbor_out_iterator
+    else:
+        iterator = self.neighbor_iterator
+
+    if start == end:
+        return [[start]]
+
+    cpdef list all_paths = []      # list of
+    cpdef list act_path = []       # the current path
+    cpdef list act_path_iter = []  # the neighbor/successor-iterators of the current path
+    done = False
+    s = start
+    while not done:
+        if s == end:    # if path completes, add to list
+            all_paths.append(act_path + [s])
+        else:
+            if s not in act_path:   # we want vertices just once in a path
+                act_path.append(s)  # extend current path
+                act_path_iter.append(iterator(s))  # save the state of the neighbor/successor-iterator of the current vertex
+        s = None
+        while (s is None) and not done:
+            try:
+                s = next(act_path_iter[-1])  # try to get the next neighbor/successor, ...
+            except (StopIteration):          # ... if there is none ...
+                act_path.pop()               # ... go one step back
+                act_path_iter.pop()
+            if not act_path:                 # there is no other vertex ...
+                done = True                  # ... so we are done
+    return all_paths

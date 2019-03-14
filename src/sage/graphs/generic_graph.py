@@ -15318,6 +15318,7 @@ class GenericGraph(GenericGraph_pyx):
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
         return all_paths
+        
 
 
     def triangles_count(self, algorithm=None):
