@@ -68,7 +68,7 @@ from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     import time
-    start_time=time.time() 
+    #start_time=time.time() 
     r"""
     Minimum spanning tree using Kruskal's algorithm.
 
@@ -268,9 +268,9 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ...
         ValueError: The input G must be an undirected graph.
     """
-    A= list(kruskal_iterator(G, wfunction=wfunction, check=check))
-    print(time.time()-start_time)
-    return A
+    return  list(kruskal_iterator(G, wfunction=wfunction, check=check))
+    #print(time.time()-start_time)
+    
 def kruskal_iterator(G,wfunction=None, bint check=False):
     """
     Return an iterator implementation of Kruskal algorithm.
@@ -338,10 +338,62 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
 cpdef filter_kruskal(G,wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
     import time
-    start_time=time.time()
+    r"""
+    Minimum spanning tree using Filter_Kruskal's algorithm.
+    This algorithm is different version of kruskal algorithm, where we don't sort 
+    the large dataset of edges, but we make partition of them and then use kruskal 
+    Algorithm on it.
+    This function assumes that we can only compute minimum spanning trees for
+    undirected graphs. Such graphs can be weighted or unweighted, and they can
+    have multiple edges (since we are computing the minimum spanning tree, only
+    the minimum weight among all `(u,v)`-edges is considered, for each pair
+    of vertices `u`, `v`).
+
+    INPUT:
+
+    - ``G`` -- an undirected graph.
+
+    - ``weight_function`` (function) - a function that inputs an edge ``e``
+      and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
+      and ``v`` are vertices, ``l`` is a label (that can be of any kind).
+      The ``weight_function`` can be used to transform the label into a
+      weight. In particular:
+
+      - if ``weight_function`` is not ``None``, the weight of an edge ``e``
+        is ``weight_function(e)``;
+
+      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+        (that is, ``g.weighted()==True``), the weight of an edge
+        ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
+        is: the ordering of labels relies on Python's operator ``<``;
+
+      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+        all weights to 1 (hence, the output can be any spanning tree).
+
+    - ``check`` -- Whether to first perform sanity checks on the input
+      graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
+      following sanity checks are first performed on ``G`` prior to running
+      Kruskal's algorithm on that input graph:
+
+      - Is ``G`` the null graph?
+      - Is ``G`` disconnected?
+      - Is ``G`` a tree?
+      - Does ``G`` have self-loops?
+      - Does ``G`` have multiple edges?
+    
+    Example:
+    The edges of a minimum spanning tree of ``G``, if one exists, otherwise
+    returns the empty list.
+    Output:
+    sage: from sage.graphs.spanning_tree import filter_kruskal
+    sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+    sage: G.weighted(True)
+    sage: E = filter_kruskal(G, check=True); E
+    [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
+    
+    """
+    #start_time=time.time()
     cpdef list MST_E=[]
-
-
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
     if check:
@@ -379,7 +431,7 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     
     partition(G_edges ,MST_E, union_find, wfunction = wfunction, check = check)
     
-    print(time.time()-start_time)
+    #print(time.time()-start_time)
     return MST_E
 
 
