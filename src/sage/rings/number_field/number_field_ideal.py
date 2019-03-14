@@ -49,7 +49,7 @@ import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 
-from sage.rings.ideal import Ideal_generic
+from sage.rings.number_field.order_ideal import OrderIdeal
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
@@ -63,7 +63,7 @@ QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
 
-class NumberFieldIdeal(Ideal_generic):
+class NumberFieldIdeal(OrderIdeal):
     """
     An ideal of a number field.
     """
@@ -134,7 +134,7 @@ class NumberFieldIdeal(Ideal_generic):
                 gens = [field(gens, check=False)]
         if len(gens)==0:
             raise ValueError("gens must have length at least 1 (zero ideal is not a fractional ideal)")
-        Ideal_generic.__init__(self, field, gens, coerce)
+        OrderIdeal.__init__(self, field.ring_of_integers(), gens, coerce)
         if field.absolute_degree() == 2:
             self.quadratic_form = self._quadratic_form
 
@@ -943,28 +943,6 @@ class NumberFieldIdeal(Ideal_generic):
         I = L.ideal(self._NumberFieldIdeal__elements_from_hnf(hnf))
         I.__pari_hnf = hnf
         return I
-
-    def is_integral(self):
-        """
-        Return True if this ideal is integral.
-
-        TODO: delete?
-
-        EXAMPLES::
-
-           sage: R.<x> = PolynomialRing(QQ)
-           sage: K.<a> = NumberField(x^5-x+1)
-           sage: K.ideal(a).is_integral()
-           True
-           sage: (K.ideal(1) / (3*a+1)).is_integral()
-           False
-        """
-        try:
-            return self.__is_integral
-        except AttributeError:
-            one = self.number_field().ideal(1)
-            self.__is_integral = all(a in one for a in self.integral_basis())
-            return self.__is_integral
 
     def is_maximal(self):
         """

@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from sage.misc.cachefunc import cached_method
 from sage.rings.ideal import Ideal_generic
 from sage.rings.all import ZZ
-from sage.rings.number_field.number_field_ideal import basis_to_module
+# from sage.rings.number_field.number_field_ideal import basis_to_module
 
 
 class OrderIdeal(Ideal_generic):
