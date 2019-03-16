@@ -69,6 +69,7 @@ from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 cpdef kruskal(G, wfunction=None, bint check=False):
     import time
     start_time=time.time() 
+    #print(1)
     r"""
     Minimum spanning tree using Kruskal's algorithm.
 
