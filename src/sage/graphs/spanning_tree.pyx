@@ -328,7 +328,6 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
     while i < m:
         e = next(sortedE_iter)
         # acyclic test via union-find
-        #print(e)
         u = union_find.find(e[0])
         v = union_find.find(e[1])
         if u != v:
@@ -497,7 +496,6 @@ def filter_kruskal_iterator(edgesOfGraph ,Num_V, MST_E ,union_find, wfunction=No
         v = union_find.find(e[1])
         if u != v:
             MST_E.append(e)
-            #print(e)
             # union the components by making one the parent of the other
             union_find.union(u, v) 
             if Num_V == len(MST_E):
