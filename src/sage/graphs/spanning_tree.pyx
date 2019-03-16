@@ -784,7 +784,7 @@ def random_spanning_tree(self, output_as_graph=False):
     from sage.graphs.graph import Graph
 
     cdef int N = self.order()
-(
+
     if not N or not self.is_connected():
         raise ValueError('works only for non-empty connected graphs')
 
