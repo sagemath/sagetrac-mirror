@@ -1149,7 +1149,8 @@ class ArithmeticSubgroup(Group):
             sage: Gamma(13).dimension_modular_forms(1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+            NotImplementedError: Computation of dimensions of weight 1 modular
+            forms spaces not implemented in general
 
             sage: Gamma0(32).dimension_modular_forms(2)
             8
