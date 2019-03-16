@@ -67,9 +67,6 @@ cimport cython
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 
 cpdef kruskal(G, wfunction=None, bint check=False):
-    import time
-    start_time=time.time() 
-    #print(1)
     r"""
     Minimum spanning tree using Kruskal's algorithm.
 
@@ -271,7 +268,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     
     """
     return list(kruskal_iterator(G, wfunction=wfunction, check=check))
-     
+
 def kruskal_iterator(G,wfunction=None, bint check=False):
     """
     Return an iterator implementation of Kruskal algorithm.
@@ -320,7 +317,7 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
             sortedE_iter = g.edge_iterator()
     else:
         sortedE_iter = iter(sorted(g.edges(sort=False), key=wfunction))
-    
+
     # Kruskal's algorithm
     cdef int m = g.order() - 1
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
@@ -335,9 +332,10 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
             yield e
             # union the components by making one the parent of the other
             union_find.union(u, v)
-     
+    
 cpdef filter_kruskal(G,wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
+    import time
     r"""
     Minimum spanning tree using Filter_Kruskal's algorithm.
     This algorithm is different version of kruskal algorithm, where we don't sort 
@@ -392,11 +390,15 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
     
     """
+    start_time=time.time()
+    cpdef list MST_E=[]
+
+
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
     if check:
         if not G.order():
-            return []
+            return MST_E
         if not G.is_connected():
             return 
         # G is now assumed to be a nonempty connected graph
@@ -411,9 +413,6 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
 
     #creating list of all edges 
     cpdef list edgesOfGraph=[]
-    #creating a list for storing Minimum spanning tree   
-    cpdef list MST_E=[]
-    #lsit of edges of input graph
     edgesOfGraph=list(g.edges())
     #Variable for Number of vertices in input Graph
     Num_V=g.order()    
@@ -421,14 +420,16 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
     
     partition(edgesOfGraph ,Num_V,MST_E,union_find, wfunction = wfunction, check = check)
-   
+    
+    print(time.time()-start_time)
     return MST_E
+
 
 cpdef partition(edgesOfGraph,Num_V, MST_E ,union_find, wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
     import random
     #If graph size is less than kruskal Threshold, then implement kruskal, here threshold is set to  1000 edges
-    if len(edgesOfGraph) < 1000:
+    if len(edgesOfGraph) < 10000:
         filter_kruskal_iterator(edgesOfGraph,Num_V,MST_E,union_find, wfunction=wfunction, check=False)
         return
     #If MSt has been converted Return     
@@ -455,11 +456,12 @@ cpdef partition(edgesOfGraph,Num_V, MST_E ,union_find, wfunction=None, bint chec
             else:
                 L2_Graph.append(Curr)
                 ch=1
+    
     #After the graph is divided in two parts we remove the unwanted edges by filter function
     L1_filter=filter(L1_Graph,union_find)
     if len(L1_filter) > 0:
        partition(L1_filter, Num_V, MST_E,union_find,wfunction=wfunction,check=check)
-    #Returning if we have got MST_E
+    #Checking if we have got the spanning tree 
     if Num_V == len(MST_E):
        return
     
@@ -480,15 +482,17 @@ cpdef filter(X,union_find):
             UD_edge.append(e)
     return UD_edge
 
+
 def filter_kruskal_iterator(edgesOfGraph ,Num_V, MST_E ,union_find, wfunction=None, bint check=False):
     # G is assumed to be connected, undirected, and with at least a vertex
     # We sort edges, as specified.
+    sortedE_iter = None
     if wfunction is None:
         from operator import itemgetter
-        edgesOfGraph=sorted(edgesOfGraph,key=itemgetter(2))    
+        sorted(edgesOfGraph, key=itemgetter(2))    
     else:
-        edgesOfGraph=sorted(edgesOfGraph, key=wfunction)
-    #print(edgesOfGraph)
+        sorted(edgesOfGraph, key=wfunction)
+    
     # Kruskal's algorithm
     for e in edgesOfGraph: 
         # acyclic test via union-find
@@ -500,7 +504,6 @@ def filter_kruskal_iterator(edgesOfGraph ,Num_V, MST_E ,union_find, wfunction=No
             union_find.union(u, v) 
             if Num_V == len(MST_E):
                 return
-
 cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     r"""
     Minimum spanning tree using Boruvka's algorithm.
@@ -809,4 +812,3 @@ def random_spanning_tree(self, output_as_graph=False):
 
     if not output_as_graph:
         return tree_edges
-    return Graph(tree_edges)

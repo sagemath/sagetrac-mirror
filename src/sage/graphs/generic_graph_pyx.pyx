@@ -1495,6 +1495,6 @@ def transitive_reduction_acyclic(G):
     reduced.add_edges(useful_edges)
     reduced.add_vertices(linear_extension)
 
-    binary_matrix_free(closure)
+    binary_matrix_free(closure), 
 
     return reduced
