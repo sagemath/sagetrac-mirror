@@ -484,6 +484,7 @@ AC_SUBST_FILE([SAGE_MAKE_DEPS])
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config])
+AC_CONFIG_FILES([src/doc/en/reference/index.rst])
 
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,
@@ -512,6 +513,10 @@ AC_CONFIG_COMMANDS(mkdirs,
         SAGE_SHARE="$SAGE_LOCAL/share"
         SAGE_INST="$SAGE_SPKG_INST"
     ])
+
+dnl used in index.rst of Reference Manual
+AC_SUBST([SAGE_DOC],[`pwd -P`/$SAGE_LOCAL/share/doc])
+AC_SUBST([SAGE_SHARE],[`pwd -P`/$SAGE_LOCAL/share])
 
 AC_OUTPUT()
 

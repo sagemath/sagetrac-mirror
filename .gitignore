@@ -15,6 +15,7 @@
 /configure
 
 /m4/sage_spkg_configures.m4
+/src/doc/en/reference/index.rst
 
 ###################
 # Temporary Files #

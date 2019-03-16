@@ -14,7 +14,7 @@ User Interface
 
 * :doc:`Command Line Interface (REPL) <repl/index>`
 * For the Jupyter notebook interface, visit `its documentation <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
-* For the legacy notebook interface, which is no longer actively maintained, visit the `source repository <https://github.com/sagemath/sagenb>`_.
+* The legacy notebook interface `SageNB <@SAGE_DOC@/sagenb/index.html>`_ (no longer actively maintained; `source repository <https://github.com/sagemath/sagenb>`_).
 
 Graphics
 ========
@@ -147,6 +147,19 @@ Interfaces
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Python technicalities <cpython/index>`
+
+Some external packages - work in progress
+-----------------------------------------
+
+An incomplete `list <@SAGE_DOC@>`_, e.g.
+
+* `NTL (a Tour) <@SAGE_DOC@/NTL/tour.html>`_
+* `PPL User manual <@SAGE_DOC@/ppl/ppl-user-1.2-html/index.html>`_
+
+More in `doc` directories of individual packages `in <@SAGE_SHARE@>`_, e.g.
+
+* `Singular User Manual <@SAGE_SHARE@/singular/html/index.htm>`_
+* `Introduction to Maxima <@SAGE_SHARE@/maxima/5.41.0/doc/html/intromax.html>`_
 
 General Information
 ===================
