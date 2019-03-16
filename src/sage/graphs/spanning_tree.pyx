@@ -270,11 +270,8 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ValueError: The input G must be an undirected graph.
     
     """
-    A=list(kruskal_iterator(G, wfunction=wfunction, check=check))
-
-    print(time.time()-start_time)
-    return A     
-    
+    return list(kruskal_iterator(G, wfunction=wfunction, check=check))
+     
 def kruskal_iterator(G,wfunction=None, bint check=False):
     """
     Return an iterator implementation of Kruskal algorithm.
@@ -331,7 +328,7 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
     while i < m:
         e = next(sortedE_iter)
         # acyclic test via union-find
-        print(e)
+        #print(e)
         u = union_find.find(e[0])
         v = union_find.find(e[1])
         if u != v:
@@ -339,10 +336,9 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
             yield e
             # union the components by making one the parent of the other
             union_find.union(u, v)
-    
+     
 cpdef filter_kruskal(G,wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
-    import time
     r"""
     Minimum spanning tree using Filter_Kruskal's algorithm.
     This algorithm is different version of kruskal algorithm, where we don't sort 
@@ -397,13 +393,11 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
     
     """
-    start_time=time.time()
-    cpdef list MST_E=[]
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
     if check:
         if not G.order():
-            return MST_E
+            return []
         if not G.is_connected():
             return 
         # G is now assumed to be a nonempty connected graph
@@ -416,41 +410,30 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     else:
         g = G
 
-
     #creating list of all edges 
-    cpdef list G_edges=[]
-    G_edges=list(g.edges())
-
-
-    #Global Variable for Number of vertices in input Graph 
-    global Num_V
-    Num_V=g.order()
-
-    #Global Variable for Number of vertices in Minimum Spanning tree 
-    global Cur_V
-    Cur_V=0
-    
-    
+    cpdef list edgesOfGraph=[]
+    #creating a list for storing Minimum spanning tree   
+    cpdef list MST_E=[]
+    #lsit of edges of input graph
+    edgesOfGraph=list(g.edges())
+    #Variable for Number of vertices in input Graph
+    Num_V=g.order()    
     #Making A union set
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
     
-    partition(G_edges ,MST_E, union_find, wfunction = wfunction, check = check)
-    
-    print(time.time()-start_time)
+    partition(edgesOfGraph ,Num_V,MST_E,union_find, wfunction = wfunction, check = check)
+   
     return MST_E
 
-
-cpdef partition(G_edges, MST_E ,union_find, wfunction=None, bint check=False):
+cpdef partition(edgesOfGraph,Num_V, MST_E ,union_find, wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
     import random
-    global Num_V,Cur_V
-
-    #If graph size is less than kruskal Threshold, then implement kruskal, here threshold is set to 1000 edges
-    if len(G_edges) < 10000:
-        filter_kruskal_iterator(G_edges,MST_E,union_find, wfunction=wfunction, check=False)
+    #If graph size is less than kruskal Threshold, then implement kruskal, here threshold is set to  1000 edges
+    if len(edgesOfGraph) < 1000:
+        filter_kruskal_iterator(edgesOfGraph,Num_V,MST_E,union_find, wfunction=wfunction, check=False)
         return
     #If MSt has been converted Return     
-    if Num_V == Cur_V:
+    if Num_V == len(MST_E):
         return
     
     #Creating two list to store the Either side of pivot as mention in psuedocode 
@@ -458,19 +441,10 @@ cpdef partition(G_edges, MST_E ,union_find, wfunction=None, bint check=False):
     cpdef list L2_Graph =[]
     
     #selecting random edge
-    rand_E=random.choice(G_edges)
-    
-    #iterator for Graph edges
-    itera= iter(G_edges)
-    
-   
-    cdef int i=0
+    rand_E=random.choice(edgesOfGraph)
     cdef int ch=0
     #use of ch is to equally divide the the edges that are equal to the pivot(Random) edge weight 
-    while i < len(G_edges):
-        
-        Curr=next(itera)
-        i+=1
+    for Curr in edgesOfGraph:
         if Curr[2] < rand_E[2]:
             L1_Graph.append(Curr)
         elif Curr[2] > rand_E[2]:
@@ -478,22 +452,21 @@ cpdef partition(G_edges, MST_E ,union_find, wfunction=None, bint check=False):
         else:
             if ch:
                 L1_Graph.append(Curr)
-                c=0
+                ch=0
             else:
                 L2_Graph.append(Curr)
                 ch=1
-    
     #After the graph is divided in two parts we remove the unwanted edges by filter function
     L1_filter=filter(L1_Graph,union_find)
     if len(L1_filter) > 0:
-       partition(L1_filter,MST_E,union_find,wfunction=wfunction,check=check)
-    
-    if Num_V == Cur_V:
+       partition(L1_filter, Num_V, MST_E,union_find,wfunction=wfunction,check=check)
+    #Returning if we have got MST_E
+    if Num_V == len(MST_E):
        return
     
     L2_filter=filter(L2_Graph,union_find)
     if len(L2_filter) > 0:
-        partition(L2_filter,MST_E,union_find, wfunction=wfunction,check=check)
+        partition(L2_filter,Num_V,MST_E,union_find, wfunction=wfunction,check=check)
     return
 
 cpdef filter(X,union_find):
@@ -501,54 +474,34 @@ cpdef filter(X,union_find):
     r""""This function removes the unwanted edges like the edges which will form cycle after addition and then returns the list of updated edge
     """ 
     cpdef list UD_edge=[]
-
-    itera=iter(X)
-
-    cdef int i=0
-    while i < len(X) :
-        i+=1
-        e=next(itera)
+    for e in X:
         u=union_find.find(e[0])
         v=union_find.find(e[1])
         if u!=v :
             UD_edge.append(e)
     return UD_edge
 
-
-def filter_kruskal_iterator(G_edges , MST_E ,union_find, wfunction=None, bint check=False):
-    global Num_V
-    global Cur_V
+def filter_kruskal_iterator(edgesOfGraph ,Num_V, MST_E ,union_find, wfunction=None, bint check=False):
     # G is assumed to be connected, undirected, and with at least a vertex
     # We sort edges, as specified.
-    sortedE_iter = None
     if wfunction is None:
         from operator import itemgetter
-        sortedE_iter = iter(sorted(G_edges, key=itemgetter(2)))
-        
+        edgesOfGraph=sorted(edgesOfGraph,key=itemgetter(2))    
     else:
-        sortedE_iter = iter(sorted(G_edges, key=wfunction))
-    
+        edgesOfGraph=sorted(edgesOfGraph, key=wfunction)
+    #print(edgesOfGraph)
     # Kruskal's algorithm
-    cdef int m = len(G_edges)
-    cdef int i = 0  # count the number of edges added so far
-    #print (g.edges())
-    while i < m:
-        i+=1
-        e = next(sortedE_iter)
+    for e in edgesOfGraph: 
         # acyclic test via union-find
         u = union_find.find(e[0])
         v = union_find.find(e[1])
         if u != v:
             MST_E.append(e)
-            Cur_V += 1
-            #print(z)
+            #print(e)
             # union the components by making one the parent of the other
             union_find.union(u, v) 
-            if Num_V == Cur_V:
+            if Num_V == len(MST_E):
                 return
-
-
-
 
 cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     r"""
