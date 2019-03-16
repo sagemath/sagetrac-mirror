@@ -15275,6 +15275,31 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             LookupError: end vertex (junk) is not a vertex of the graph
+
+        Distingusing between multiedged paths (see :trac:`27501`)::
+
+            sage: D = DiGraph({0:[1, 2, 1], 3:[0,0]}, multiedges=True)
+            sage: D.all_paths(3, 1)
+            [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
+
+            sage: g = Graph(multiedges=True)
+            sage: g.add_edge(0,1,1)
+            sage: g.add_edge(0,2,3)
+            sage: g.add_edge(1,4,3)
+            sage: g.add_edge(2,3,5)
+            sage: g.add_edge(2,4,15)
+            sage: g.add_edge(2,4,12)
+            sage: g.add_edge(4,5,7)
+            sage: g.add_edge(4,5,8)
+            sage: g.add_edge(5,6,2)
+            sage: g.all_paths(0,6)
+            [[0, 1, 4, 5, 6],
+             [0, 1, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6]]
+            
         """
         if start not in self:
             raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
@@ -15310,8 +15335,20 @@ class GenericGraph(GenericGraph_pyx):
                     act_path_iter.pop()
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
-        return all_paths
-
+        
+        if self.has_multiple_edges():
+            multiple_all_paths = []
+            for p in all_paths:
+                m = 1
+                for i,u in enumerate(p):
+                    if i < len(p) - 1:
+                        v = p[i+1]
+                        m = m * len(self.edge_boundary([u], [v]))
+                for _ in range(m):
+                    multiple_all_paths.append(p)
+            return multiple_all_paths        
+        else:        
+            return all_paths
 
     def triangles_count(self, algorithm=None):
         r"""
