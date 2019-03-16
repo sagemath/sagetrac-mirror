@@ -147,7 +147,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.clustering_coeff` | Return the clustering coefficient for each vertex in nbunch
     :meth:`~GenericGraph.cluster_transitivity` | Return the transitivity (fraction of transitive triangles) of the graph.
     :meth:`~GenericGraph.szeged_index` | Return the Szeged index of the graph.
-
+    :meth:`~GenericGraph.pagerank` | Return the PageRank of the nodes in the graph.
 
 **Automorphism group:**
 
@@ -407,7 +407,8 @@ Methods
 #                     2017-2018 Moritz Firsching <moritz@math.fu-berlin.de>
 #                     2018      Erik M. Bray <erik.bray@lri.fr>
 #                               Meghana M Reddy <mreddymeghana@gmail.com>
-#
+#                     2019      Rajat Mittal <rajat.mttl@gmail.com>
+#   
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
@@ -9393,6 +9394,136 @@ class GenericGraph(GenericGraph_pyx):
             p.solve(log=verbose)
             b = p.get_values(b)
             return [v for v in g if b[v] == 1]
+
+    def pagerank(self, alpha=0.85, personalization=None, by_weight=False, weight_function=None, dangling=None, implementation=None):
+        r"""
+        Return the PageRank of the nodes in the graph.
+
+        PageRank calculates the ranking of nodes in the graph G based
+        on the structure of the incoming links. It is popularly used to rank web pages.
+
+        See the :wikipedia:`PageRank` for more information.
+
+        INPUT:
+
+        - ``alpha`` -- float (default: ``0.85``); Damping parameter for PageRank.
+
+        - ``personalization`` -- dict (default: ``None``); The "personalization vector"
+          consisting of a dictionary with a
+          key for every graph node and nonzero personalization value for each node.
+          By default, a uniform distribution is used.
+        
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+        
+        - ``value_only`` -- boolean (default: ``False``); whether to only return
+          the cardinality of the computed dominating set, or to return its list
+          of vertices (default)
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``dangling`` -- dict (default: ``None``); The outedges to be assigned to any "dangling" nodes, i.e., nodes without
+          any outedges. The dict key is the node the outedge points to and the dict
+          value is the weight of that outedge. By default, dangling nodes are given
+          outedges according to the personalization vector (uniform if not
+          specified). This must be selected to result in an irreducible transition
+          matrix (see notes under google_matrix). It may be common to have the
+          dangling dict to be the same as the personalization dict.
+
+        - ``implementation`` -- string (default: ``None``); the implemetation to
+          use in computing PageRank of ``G``. The following
+          implementations are supported:
+
+          - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
+
+          - ``"Numpy"`` -- uses Numpy's PageRank algorithm implementation
+
+          - ``"Scipy"`` -- uses Scipy's PageRank algorithm implementation
+
+          - ``"Igraph"`` -- uses Igraph's PageRank algorithm implementation
+
+          - ``"None"`` -- uses best implementation available
+
+          Note that ``'networkx'`` does not support multigraphs.
+
+        OUTPUT: a dictionary containing the PageRank value of each node
+
+        EXAMPLES:
+
+        A basic illustration on a ``PappusGraph``::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.dominating_set(value_only=True)
+           5
+
+        If we build a graph from two disjoint stars, then link their centers we
+        will find a difference between the cardinality of an independent set and
+        a stable independent set::
+
+           sage: g = 2 * graphs.StarGraph(5)
+           sage: g.add_edge(0, 6)
+           sage: len(g.dominating_set())
+           2
+           sage: len(g.dominating_set(independent=True))
+           6
+
+        The total dominating set of the Petersen graph has cardinality 4::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.dominating_set(total=True, value_only=True)
+            4
+
+        The dominating set is calculated for both the directed and undirected
+        graphs (modification introduced in :trac:`17905`)::
+
+            sage: g = digraphs.Path(3)
+            sage: g.dominating_set(value_only=True)
+            2
+            sage: g = graphs.PathGraph(3)
+            sage: g.dominating_set(value_only=True)
+            1
+
+        .. SEEALSO:
+
+            * :wikipedia:`PageRank`
+
+        """
+        
+        if self.order() == 0:
+            return {}
+
+        if weight_function is not None:
+            by_weight = True
+
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+        
+        if by_weight:
+            self._check_weight_function(weight_function)
+
+        if implementation == 'NetworkX':
+            if self.has_multiple_edges():
+                raise ValueError("the 'networkx' implementation does not support Multigraphs")
+            import networkx
+            return networkx.pagerank(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+        elif implementation == 'Numpy':
+            import networkx
+            return networkx.pagerank_numpy(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+        elif  implementation == 'Scipy':
+            import networkx
+            return networkx.pagerank_scipy(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+        elif implementation == 'Igraph':
+            H = G.igraph_graph(edge_attrs={'weight': [weight_function(e) for e in self.edge_iterator]})
+            return networkx.pagerank_scipy(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+        else:
+            
+            
+
 
 
     ### Vertex handlers
