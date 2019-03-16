@@ -265,7 +265,6 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         Traceback (most recent call last):
         ...
         ValueError: The input G must be an undirected graph.
-    
     """
     return list(kruskal_iterator(G, wfunction=wfunction, check=check))
 
@@ -335,7 +334,6 @@ def kruskal_iterator(G,wfunction=None, bint check=False):
     
 cpdef filter_kruskal(G,wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
-    import time
     r"""
     Minimum spanning tree using Filter_Kruskal's algorithm.
     This algorithm is different version of kruskal algorithm, where we don't sort 
@@ -390,10 +388,7 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
     
     """
-    start_time=time.time()
     cpdef list MST_E=[]
-
-
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
     if check:
@@ -418,12 +413,9 @@ cpdef filter_kruskal(G,wfunction=None, bint check=False):
     Num_V=g.order()    
     #Making A union set
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
-    
-    partition(edgesOfGraph ,Num_V,MST_E,union_find, wfunction = wfunction, check = check)
-    
-    print(time.time()-start_time)
-    return MST_E
 
+    partition(edgesOfGraph,Num_V,MST_E,union_find, wfunction = wfunction, check = check)
+    return MST_E
 
 cpdef partition(edgesOfGraph,Num_V, MST_E ,union_find, wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
@@ -792,7 +784,7 @@ def random_spanning_tree(self, output_as_graph=False):
     from sage.graphs.graph import Graph
 
     cdef int N = self.order()
-
+(
     if not N or not self.is_connected():
         raise ValueError('works only for non-empty connected graphs')
 
@@ -812,3 +804,4 @@ def random_spanning_tree(self, output_as_graph=False):
 
     if not output_as_graph:
         return tree_edges
+    return Graph(tree_edges)
