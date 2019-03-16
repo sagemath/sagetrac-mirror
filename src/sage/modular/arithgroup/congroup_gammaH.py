@@ -1222,7 +1222,6 @@ class GammaH_class(CongruenceSubgroup):
             sage: GammaH(31, [7]).dimension_cusp_forms(1)
             1
         """
-        k = ZZ(k)
         if k != 1:
             return CongruenceSubgroup.dimension_cusp_forms(self, k)
         else:
@@ -1452,10 +1451,10 @@ def mumu(N):
     """
     if N < 1:
         raise ValueError("N must be at least 1")
-    p = 1
-    for _,r in factor(N):
+    p = ZZ.one()
+    for _, r in factor(N):
         if r > 2:
-            return ZZ(0)
+            return ZZ.zero()
         elif r == 1:
             p *= -2
     return ZZ(p)
