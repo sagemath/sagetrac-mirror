@@ -155,6 +155,7 @@ An incomplete `list <@SAGE_DOC@>`_, e.g.
 
 * `NTL (a Tour) <@SAGE_DOC@/NTL/tour.html>`_
 * `PPL User manual <@SAGE_DOC@/ppl/ppl-user-1.2-html/index.html>`_
+* `Python Wrapper for PPL (pplpy) <@SAGE_DOC@/pplpy/index.html>`_
 
 More in `doc` directories of individual packages `in <@SAGE_SHARE@>`_, e.g.
 
