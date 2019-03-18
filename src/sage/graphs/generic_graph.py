@@ -15217,8 +15217,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``end`` -- a vertex of a graph, where to end
 
-        EXAMPLES::
+        EXAMPLES:
 
+        Standard examples::
+        
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
             sage: eg1.all_paths(0,6)
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
@@ -15261,6 +15263,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: ug = dg.to_undirected()
             sage: sorted(ug.all_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
+
+        In case of multiple edges between the nodes, the path will be returned 
+        multiple times depending on the multiplicity of the edges in the path::
+
+            sage: g = Graph(multiedges=True)
+            sage: g.add_edge(0,3,1)
+            sage: g.add_edge(0,2,3)
+            sage: g.add_edge(0,1,3)
+            sage: g.add_edge(2,3,5)
+            sage: g.add_edge(2,3,15)
+            sage: g.add_edge(2,4,12)
+            sage: g.add_edge(3,5,7)
+            sage: g.all_paths(0,5)
+            [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]   
 
         TESTS:
 
