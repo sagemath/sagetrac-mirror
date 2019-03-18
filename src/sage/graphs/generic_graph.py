@@ -15311,6 +15311,14 @@ class GenericGraph(GenericGraph_pyx):
         else:
             iterator = self.neighbor_iterator
 
+        if self.has_multiple_edges():
+            edge_multiplicity = {}
+            for e in self.edges():
+                if (e[0], e[1]) in edge_multiplicity.keys():
+                    edge_multiplicity[(e[0], e[1])] += 1
+                else:
+                    edge_multiplicity[(e[0], e[1])] = 1
+
         if start == end:
             return [[start]]
 
@@ -15343,7 +15351,7 @@ class GenericGraph(GenericGraph_pyx):
                 for i,u in enumerate(p):
                     if i < len(p) - 1:
                         v = p[i+1]
-                        m = m * len(self.edge_boundary([u], [v]))
+                        m = m * edge_multiplicity[(u, v)]
                 for _ in range(m):
                     multiple_all_paths.append(p)
             return multiple_all_paths        
