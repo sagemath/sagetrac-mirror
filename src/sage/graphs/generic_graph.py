@@ -432,6 +432,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
+from sage.misc.misc_c import prod
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -15312,12 +15313,8 @@ class GenericGraph(GenericGraph_pyx):
             iterator = self.neighbor_iterator
 
         if self.has_multiple_edges():
-            edge_multiplicity = {}
-            for e in self.edges():
-                if (e[0], e[1]) in edge_multiplicity.keys():
-                    edge_multiplicity[(e[0], e[1])] += 1
-                else:
-                    edge_multiplicity[(e[0], e[1])] = 1
+            from collections import Counter
+            edge_multiplicity = Counter(self.edge_iterator(labels=False))
 
         if start == end:
             return [[start]]
@@ -15347,11 +15344,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.has_multiple_edges():
             multiple_all_paths = []
             for p in all_paths:
-                m = 1
-                for i,u in enumerate(p):
-                    if i < len(p) - 1:
-                        v = p[i+1]
-                        m = m * edge_multiplicity[(u, v)]
+                m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
                 for _ in range(m):
                     multiple_all_paths.append(p)
             return multiple_all_paths        
