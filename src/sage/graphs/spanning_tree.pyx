@@ -414,16 +414,19 @@ cpdef filter_kruskal(G, wfunction=None, bint check=False):
     Num_V = g.order()
     # Making A union set
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
-    cdef int count_edges = 0
-    return list(partition(edgesOfGraph, Num_V, count_edges, union_find, wfunction=wfunction, check=check))
+    # Global variable to count number of edges included in filter_MST
+    global count_edges
+    count_edges = 0
+    return list(partition(edgesOfGraph, Num_V, union_find, wfunction=wfunction, check=check))
 
 
-def partition(edgesOfGraph, Num_V, count_edges, union_find, wfunction=None, bint check=False):
+def partition(edgesOfGraph, Num_V, union_find, wfunction=None, bint check=False):
     import random
     from sage.graphs.graph import Graph
+    global count_edges
     # If graph size is less than kruskal Threshold, then implement kruskal, here threshold is set to  10000 edges
     if len(edgesOfGraph) < 10000:
-        yield from filter_kruskal_iterator(edgesOfGraph, Num_V, count_edges, union_find, wfunction=wfunction, check=False)
+        yield from filter_kruskal_iterator(edgesOfGraph, Num_V, union_find, wfunction=wfunction, check=False)
         return
 
     # Creating two list to store the Either side of pivot as mention in psuedocode
@@ -450,30 +453,29 @@ def partition(edgesOfGraph, Num_V, count_edges, union_find, wfunction=None, bint
     # After the graph is divided in two parts we remove the unwanted edges by filter function
     L1_filter = [e for e in L1_Graph if union_find.find(e[0]) != union_find.find(e[1])]
     if len(L1_filter) > 0:
-        yield from partition(L1_filter, Num_V, count_edges, union_find, wfunction=wfunction, check=check)
+        yield from partition(L1_filter, Num_V, union_find, wfunction=wfunction, check=check)
 
     # Checking if we have got the spanning tree
-    if Num_V == count_edges:
+    if Num_V == count_edges + 1:
         return
 
     L2_filter = [e for e in L2_Graph if union_find.find(e[0]) != union_find.find(e[1])]
     if len(L2_filter) > 0:
-        yield from partition(L2_filter, Num_V, count_edges, union_find, wfunction=wfunction, check=check)
+        yield from partition(L2_filter, Num_V, union_find, wfunction=wfunction, check=check)
         return
 
 
-def filter_kruskal_iterator(edgesOfGraph, Num_V, count_edges, union_find, wfunction=None, bint check=False):
+def filter_kruskal_iterator(edgesOfGraph, Num_V, union_find, wfunction=None, bint check=False):
     # G is assumed to be connected, undirected, and with at least a vertex
     # We sort edges, as specified.
+    global count_edges
     sortedE_iter = None
     if wfunction is None:
         from operator import itemgetter
         edgesOfGraph = sorted(edgesOfGraph, key=itemgetter(2))
     else:
         edgesOfGraph = sorted(edgesOfGraph, key=wfunction)
-
     # Kruskal's algorithm
-
     for e in edgesOfGraph:
         # acyclic test via union-find
         u = union_find.find(e[0])
@@ -483,7 +485,7 @@ def filter_kruskal_iterator(edgesOfGraph, Num_V, count_edges, union_find, wfunct
             count_edges += 1
             # union the components by making one the parent of the other
             union_find.union(u, v)
-            if Num_V == count_edges:
+            if Num_V == count_edges+1:
                 return
 
 
