@@ -433,6 +433,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.misc.misc_c import prod
+from sage.categories.cartesian_product.CartesianProductFunctor import cartesian_product
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -1208,10 +1209,10 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: g = Graph({0: [1, 2, 3], 2: [4]}, immutable=True)
-            sage: g.weighted(list(range(5)))
-            Traceback (most recent call last):
-            ...
+            sagsage.categories.cartesian_product.CartesianProductFunctor¶
+            sagsage.categories.cartesian_product.CartesianProductFunctor¶
+            Trasage.categories.cartesian_product.CartesianProductFunctor¶
+            ...sage.categories.cartesian_product.CartesianProductFunctor¶
             TypeError: This graph is immutable and can thus not be changed.
             Create a mutable copy, e.g., by `copy(g)`
             sage: h = copy(g)    # indirect doctest
@@ -15204,7 +15205,7 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Paths
 
-    def all_paths(self, start, end):
+    def all_paths(self, start, end, use_multiedges=False, report_edges=False, label=False):
         """
         Return the list of all paths between a pair of vertices.
 
@@ -15212,13 +15213,26 @@ class GenericGraph(GenericGraph_pyx):
         returned -- a list containing the 1-vertex, 0-edge path "``start``".
 
         If ``self`` has multiple edges, a path will be returned as many
-        times as the product of the multiplicity of the edges along that path.
+        times as the product of the multiplicity of the edges along that path 
+        depending on the value of the flag use_multiedges.
 
         INPUT:
 
         - ``start`` -- a vertex of a graph, where to start
 
         - ``end`` -- a vertex of a graph, where to end
+
+        - ``use_multiedges`` -- boolean (default: ``False``); if ``True``, then
+          multiple edges present between the nodes are taken into account for
+          finding all paths else these multiedges if present are ignored
+
+        - ``report_edges`` -- boolean (default: ``False``);  if ``True``, then 
+          edges are reported instead of vertices in the output else by default 
+          vertices are used to represent the path
+
+        - ``label`` -- boolean (default: ``False``);  if ``True``, 
+          ``report_edges`` is automatically set to ``True`` and labels are 
+          reported along with the edges
 
         EXAMPLES::
         
@@ -15330,7 +15344,18 @@ class GenericGraph(GenericGraph_pyx):
         else:
             iterator = self.neighbor_iterator
 
-        if self.has_multiple_edges():
+        if label:
+            report_edges = True
+        
+        if label:
+            my_dict = {}
+            for e in self.edge_iterator():
+                if (e[0], e[1]) in my_dict.keys():
+                    my_dict[(e[0], e[1])].append(e)
+                else:
+                    my_dict[(e[0], e[1])] = [e]
+
+        elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
             edge_multiplicity = Counter(self.edge_iterator(labels=False))
 
@@ -15359,7 +15384,25 @@ class GenericGraph(GenericGraph_pyx):
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
         
-        if self.has_multiple_edges():
+        if label:
+            path_with_labels = []
+            for p in all_paths:
+                path_with_labels.extend(CartesianProduct(my_dict[e] for e in zip(p[:-1], p[1:])))
+            return path_with_labels
+
+        if report_edges and use_multiedges and has_multiple_edges():
+            multiple_edge_paths = []
+            for p in all_paths:
+                m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
+                ep = zip(p[:-1], p[1:])
+                for _ in range(m):
+                    multiple_edge_paths.append(ep)
+            return multiple_edge_paths
+
+        if report_edges:
+            return [zip(p[:-1], p[1:]) for p in all_paths]
+
+        if use_multiedges and self.has_multiple_edges():
             multiple_all_paths = []
             for p in all_paths:
                 m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
