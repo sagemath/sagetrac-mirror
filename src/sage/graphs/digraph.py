@@ -166,7 +166,7 @@ from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
-
+from sage.misc.misc_c import prod
 
 class DiGraph(GenericGraph):
     r"""
@@ -2081,9 +2081,6 @@ class DiGraph(GenericGraph):
         Return an iterator over the paths of ``self`` starting with the
         given vertex.
 
-        If ``self`` has multiple edges, a path will be yielded as many
-        times as the product of the multiplicity of the edges along that path.
-
         INPUT:
 
         - ``vertex`` -- the starting vertex of the paths
@@ -2223,20 +2220,11 @@ class DiGraph(GenericGraph):
                             queue.append(path + [neighbor])
                         elif ( neighbor == path[0] and
                                neighbor in ending_vertices ):
-                            if self.has_multiple_edges():
-                                for _ in range(len(self.edge_boundary([path[-1]], [neighbor]))):
-                                    yield path + [neighbor]
-                            else:
-                                yield path + [neighbor]
-
+                            yield path + [neighbor]
                 else:
                     # Non-simple paths requested: we add all of them
                     for neighbor in self.neighbor_out_iterator(path[-1]):
-                        if self.has_multiple_edges():
-                            for _ in range(len(self.edge_boundary([path[-1]], [neighbor]))):
-                                queue.append(path + [neighbor])    
-                        else:
-                            queue.append(path + [neighbor])
+                        queue.append(path + [neighbor])
 
             if not queue:
                 break
@@ -2380,6 +2368,9 @@ class DiGraph(GenericGraph):
         vertex_iterators = {v: self._all_paths_iterator(v, ending_vertices=ending_vertices,
                                                             simple=simple, max_length=max_length,
                                                             trivial=trivial) for v in starting_vertices}
+        from collections import Counter
+        edge_multiplicity = Counter(self.edge_iterator(labels=False))
+
         paths = []
         for vi in vertex_iterators.values():
             try:
@@ -2394,7 +2385,9 @@ class DiGraph(GenericGraph):
         while paths:
             # We choose the shortest available path
             _, shortest_path = heappop(paths)
-            yield shortest_path
+            m = prod(edge_multiplicity[e] for e in zip(shortest_path[:-1], shortest_path[1:]))
+            for _ in range(m):
+                yield shortest_path
             # We update the path iterator to its next available path if it exists
             try:
                 path = next(vertex_iterators[shortest_path[0]])
