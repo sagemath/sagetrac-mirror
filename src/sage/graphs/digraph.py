@@ -2081,6 +2081,9 @@ class DiGraph(GenericGraph):
         Return an iterator over the paths of ``self`` starting with the
         given vertex.
 
+        If ``self`` has multiple edges, a path will be yielded as many
+        times as the product of the multiplicity of the edges along that path.
+
         INPUT:
 
         - ``vertex`` -- the starting vertex of the paths
@@ -2220,12 +2223,20 @@ class DiGraph(GenericGraph):
                             queue.append(path + [neighbor])
                         elif ( neighbor == path[0] and
                                neighbor in ending_vertices ):
-                            yield path + [neighbor]
+                            if self.has_multiple_edges():
+                                for _ in range(len(self.edge_boundary([path[-1]], [neighbor]))):
+                                    yield path + [neighbor]
+                            else:
+                                yield path + [neighbor]
 
                 else:
                     # Non-simple paths requested: we add all of them
                     for neighbor in self.neighbor_out_iterator(path[-1]):
-                        queue.append(path + [neighbor])
+                        if self.has_multiple_edges():
+                            for _ in range(len(self.edge_boundary([path[-1]], [neighbor]))):
+                                queue.append(path + [neighbor])    
+                        else:
+                            queue.append(path + [neighbor])
 
             if not queue:
                 break
@@ -2241,6 +2252,9 @@ class DiGraph(GenericGraph):
         Return an iterator over the paths of ``self``.
 
         The paths are enumerated in increasing length order.
+
+        If ``self`` has multiple edges, a path will be returned as many
+        times as the product of the multiplicity of the edges along that path.
 
         INPUT:
 
@@ -2398,6 +2412,9 @@ class DiGraph(GenericGraph):
         tail, i.e. every vertex in the path is entered at most once and exited
         at most once.
 
+        If ``self`` has multiple edges, a path will be returned as many
+        times as the product of the multiplicity of the edges along that path.
+
         INPUT:
 
         - ``starting_vertices`` -- list (default: ``None``); vertices from which
@@ -2456,6 +2473,35 @@ class DiGraph(GenericGraph):
              ['a', 'b', 'c', 'd']]
             sage: g.all_simple_paths(starting_vertices=['a'], trivial=False)
             [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
+
+        In Graphs with multieges, the paths will be returned multiple times
+        depending on the multiplicity of the edges in the paths::
+
+            sage: G = DiGraph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
+            sage: G.all_simple_paths(starting_vertices=[0], ending_vertices=[2])
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+
+        TESTS:
+
+        Distingusing between multiedged paths (see :trac:`27504`)::
+
+            sage: eg = DiGraph(multiedges=True)
+            sage: eg.add_edge(0,1,1)
+            sage: eg.add_edge(0,2,3)
+            sage: eg.add_edge(1,4,3)
+            sage: eg.add_edge(2,3,5)
+            sage: eg.add_edge(2,4,15)
+            sage: eg.add_edge(2,4,12)
+            sage: eg.add_edge(4,5,7)
+            sage: eg.add_edge(4,5,8)
+            sage: eg.add_edge(5,6,2)
+            sage: eg.all_simple_paths(starting_vertices=[0],ending_vertices=[6])
+            [[0, 1, 4, 5, 6],
+             [0, 1, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6]]
         """
         return list(self.all_paths_iterator(starting_vertices=starting_vertices,
                                                 ending_vertices=ending_vertices,
