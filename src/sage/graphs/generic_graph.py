@@ -15211,15 +15211,16 @@ class GenericGraph(GenericGraph_pyx):
         If ``start`` is the same vertex as ``end``, then ``[[start]]`` is
         returned -- a list containing the 1-vertex, 0-edge path "``start``".
 
+        If ``self`` has multiple edges, a path will be returned as many
+        times as the product of the multiplicity of the edges along that path.
+
         INPUT:
 
         - ``start`` -- a vertex of a graph, where to start
 
         - ``end`` -- a vertex of a graph, where to end
 
-        EXAMPLES:
-
-        Standard examples::
+        EXAMPLES::
         
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
             sage: eg1.all_paths(0,6)
@@ -15264,19 +15265,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: sorted(ug.all_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
 
-        In case of multiple edges between the nodes, the path will be returned 
-        multiple times depending on the multiplicity of the edges in the path::
+            sage: g = Graph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
+            sage: g.all_paths(0, 2)
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
 
-            sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0,3,1)
-            sage: g.add_edge(0,2,3)
-            sage: g.add_edge(0,1,3)
-            sage: g.add_edge(2,3,5)
-            sage: g.add_edge(2,3,15)
-            sage: g.add_edge(2,4,12)
-            sage: g.add_edge(3,5,7)
-            sage: g.all_paths(0,5)
-            [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]   
+            sage: dg = DiGraph({0:[1, 2, 1], 3:[0,0]}, multiedges=True)
+            sage: dg.all_paths(3, 1)
+            [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
 
         TESTS:
 
@@ -15295,9 +15290,16 @@ class GenericGraph(GenericGraph_pyx):
 
         Distingusing between multiedged paths (see :trac:`27501`)::
 
-            sage: D = DiGraph({0:[1, 2, 1], 3:[0,0]}, multiedges=True)
-            sage: D.all_paths(3, 1)
-            [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
+            sage: g = Graph(multiedges=True)
+            sage: g.add_edge(0,3,1)
+            sage: g.add_edge(0,2,3)
+            sage: g.add_edge(0,1,3)
+            sage: g.add_edge(2,3,5)
+            sage: g.add_edge(2,3,15)
+            sage: g.add_edge(2,4,12)
+            sage: g.add_edge(3,5,7)
+            sage: g.all_paths(0,5)
+            [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]
 
             sage: g = Graph(multiedges=True)
             sage: g.add_edge(0,1,1)
