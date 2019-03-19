@@ -433,10 +433,9 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.misc.misc_c import prod
-from sage.categories.cartesian_product.CartesianProductFunctor import cartesian_product
+from sage.categories.cartesian_product import cartesian_product
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
-
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -15287,6 +15286,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: dg.all_paths(3, 1)
             [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
 
+            sage: G = DiGraph(multiedges=True)
+            sage: G.add_edges([(0,1),(0,2),(0,2),(1,2),(1,2),(1,3),(3,5),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G.all_paths(0,3,report_edges=True,use_multiedges=True)
+            [[(0, 1), (1, 2), (2, 3)],
+             [(0, 1), (1, 2), (2, 3)],
+             [(0, 1), (1, 3)],
+             [(0, 2), (2, 3)],
+             [(0, 2), (2, 3)]]
+            sage: G.all_paths(0,3,use_multiedges=True) 
+            [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 3], [0, 2, 3], [0, 2, 3]]
+            sage:  G.all_paths(0,3,use_multiedges=True,label=True)
+            [((0, 1, None), (1, 2, None), (2, 3, None)),
+             ((0, 1, None), (1, 2, None), (2, 3, None)),
+             ((0, 1, None), (1, 3, None)),
+             ((0, 2, None), (2, 3, None)),
+             ((0, 2, None), (2, 3, None))]
+
         TESTS:
 
         Starting and ending at the same vertex (see :trac:`13006`)::
@@ -15354,6 +15370,8 @@ class GenericGraph(GenericGraph_pyx):
                     my_dict[(e[0], e[1])].append(e)
                 else:
                     my_dict[(e[0], e[1])] = [e]
+                if not self.is_directed():   
+                    my_dict[(e[1], e[0])] = my_dict[(e[0], e[1])]
 
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
@@ -15387,20 +15405,20 @@ class GenericGraph(GenericGraph_pyx):
         if label:
             path_with_labels = []
             for p in all_paths:
-                path_with_labels.extend(CartesianProduct(my_dict[e] for e in zip(p[:-1], p[1:])))
+                path_with_labels.extend(cartesian_product([my_dict[e] for e in zip(p[:-1], p[1:])]))
             return path_with_labels
 
-        if report_edges and use_multiedges and has_multiple_edges():
+        if report_edges and use_multiedges and self.has_multiple_edges():
             multiple_edge_paths = []
             for p in all_paths:
                 m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
-                ep = zip(p[:-1], p[1:])
+                ep = list(zip(p[:-1], p[1:]))
                 for _ in range(m):
                     multiple_edge_paths.append(ep)
             return multiple_edge_paths
 
         if report_edges:
-            return [zip(p[:-1], p[1:]) for p in all_paths]
+            return [list(zip(p[:-1], p[1:])) for p in all_paths]
 
         if use_multiedges and self.has_multiple_edges():
             multiple_all_paths = []
