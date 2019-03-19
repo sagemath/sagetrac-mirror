@@ -2211,7 +2211,11 @@ class DiGraph(GenericGraph):
                                 queue.append(path + [neighbor])
                         elif ( neighbor == path[0] and
                                neighbor in ending_vertices ):
-                            yield path + [neighbor]
+                            if self.has_multiple_edges():
+                                for _ in range(len(self.edge_boundary([path[-1]], [neighbor]))):
+                                    yield path + [neighbor]
+                            else:
+                                yield path + [neighbor]
 
                 else:
                     # Non-simple paths requested: we add all of them
