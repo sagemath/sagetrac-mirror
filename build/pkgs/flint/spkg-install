@@ -17,8 +17,8 @@ echo "Configuring FLINT."
     --disable-static \
     --prefix="$SAGE_LOCAL" \
     $SAGE_CONFIGURE_GMP \
-    --with-mpfr="$SAGE_LOCAL" \
     $SAGE_CONFIGURE_NTL \
+    $SAGE_CONFIGURE_MPFR \
     $FLINT_CONFIGURE || sdh_die "Error: Failed to configure FLINT."
 
 sdh_make verbose
