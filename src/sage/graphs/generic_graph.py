@@ -147,7 +147,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.clustering_coeff` | Return the clustering coefficient for each vertex in nbunch
     :meth:`~GenericGraph.cluster_transitivity` | Return the transitivity (fraction of transitive triangles) of the graph.
     :meth:`~GenericGraph.szeged_index` | Return the Szeged index of the graph.
-
+    :meth:`~GenericGraph.katz_centrality` | Return the katz centrality of the vertex u of the graph.
+    :meth:`~GenericGraph.katz_matrix` | Return the katz matrix of the graph.
 
 **Automorphism group:**
 
@@ -407,7 +408,7 @@ Methods
 #                     2017-2018 Moritz Firsching <moritz@math.fu-berlin.de>
 #                     2018      Erik M. Bray <erik.bray@lri.fr>
 #                               Meghana M Reddy <mreddymeghana@gmail.com>
-#
+#                     
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
@@ -432,10 +433,13 @@ from sage.misc.lazy_import import LazyImport
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from sage.misc.misc_c import prod
+from sage.matrix.constructor import matrix
+from sage.rings.rational_field import QQ
 from sage.categories.cartesian_product import cartesian_product
+from sage.misc.misc_c import prod
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
+
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -1208,10 +1212,10 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sagsage.categories.cartesian_product.CartesianProductFunctor¶
-            sagsage.categories.cartesian_product.CartesianProductFunctor¶
-            Trasage.categories.cartesian_product.CartesianProductFunctor¶
-            ...sage.categories.cartesian_product.CartesianProductFunctor¶
+            sage: g = Graph({0: [1, 2, 3], 2: [4]}, immutable=True)
+            sage: g.weighted(list(range(5)))
+            Traceback (most recent call last):
+            ...
             TypeError: This graph is immutable and can thus not be changed.
             Create a mutable copy, e.g., by `copy(g)`
             sage: h = copy(g)    # indirect doctest
@@ -2206,14 +2210,16 @@ class GenericGraph(GenericGraph_pyx):
         M = matrix(self.num_verts(), D, sparse=sparse)
         return M
 
-    def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, **kwds):
+    def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, signless=False, **kwds):
         r"""
         Return the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
-        The Kirchhoff matrix is defined to be `D - M`, where `D` is the diagonal
-        degree matrix (each diagonal entry is the degree of the corresponding
-        vertex), and `M` is the adjacency matrix.  If ``normalized`` is
-        ``True``, then the returned matrix is `D^{-1/2}(D-M)D^{-1/2}`.
+        The Kirchhoff matrix is defined to be `D + M` if signless and `D - M`
+        otherwise, where `D` is the diagonal degree matrix (each diagonal entry
+        is the degree of the corresponding vertex), and `M` is the adjacency
+        matrix.  If ``normalized`` is ``True``, then the returned matrix is
+        `D^{-1/2}(D+M)D^{-1/2}` if signless and `D^{-1/2}(D-M)D^{-1/2}`
+        otherwise.
 
         (In the special case of DiGraphs, `D` is defined as the diagonal
         in-degree matrix or diagonal out-degree matrix according to the value of
@@ -2239,20 +2245,26 @@ class GenericGraph(GenericGraph_pyx):
             the corresponding vertex
 
           - Else, each diagonal entry of `D` is equal to the out-degree of the
-            corresponding vertex.
+            corresponding vertex
 
           By default, ``indegree`` is set to ``True``
 
         - ``normalized`` -- boolean (default: ``False``);
 
-          - If ``True``, the returned matrix is `D^{-1/2}(D-M)D^{-1/2}`, a
-            normalized version of the Laplacian matrix.
-            More accurately, the normalizing matrix used is equal to `D^{-1/2}`
-            only for non-isolated vertices.  If vertex `i` is isolated, then
-            diagonal entry `i` in the matrix is 1, rather than a division by
-            zero.
+          - If ``True``, the returned matrix is `D^{-1/2}(D+M)D^{-1/2}` for
+            signless and `D^{-1/2}(D-M)D^{-1/2}` otherwise, a normalized
+            version of the Laplacian matrix. More accurately, the normalizing
+            matrix used is equal to `D^{-1/2}` only for non-isolated vertices.
+            If vertex `i` is isolated, then diagonal entry `i` in the matrix is 
+            1, rather than a division by zero
 
-          - Else, the matrix `D-M` is returned
+          - Else, the matrix `D+M` for signless and `D-M` otherwise is returned
+
+        - ``signless`` -- boolean (default: ``False``);
+
+          - If ``True``, `D+M` is used in calculation of Kirchhoff matrix
+
+          - Else, `D-M` is used in calculation of Kirchhoff matrix
 
         Note that any additional keywords will be passed on to either the
         ``adjacency_matrix`` or ``weighted_adjacency_matrix`` method.
@@ -2281,11 +2293,21 @@ class GenericGraph(GenericGraph_pyx):
             [-1/6*sqrt(3)*sqrt(2)                    1                 -1/2                    0]
             [-1/6*sqrt(3)*sqrt(2)                 -1/2                    1                    0]
             [        -1/3*sqrt(3)                    0                    0                    1]
+            sage: M = G.kirchhoff_matrix(weighted=True, signless=True); M
+            [8 1 3 4]
+            [1 3 2 0]
+            [3 2 5 0]
+            [4 0 0 4]
 
-            sage: Graph({0: [], 1: [2]}).laplacian_matrix(normalized=True)
+            sage: G = Graph({0: [], 1: [2]})
+            sage: G.laplacian_matrix(normalized=True)
             [ 0  0  0]
             [ 0  1 -1]
             [ 0 -1  1]
+            sage: G.laplacian_matrix(normalized=True,signless=True)
+            [0 0 0]
+            [0 1 1]
+            [0 1 1]
 
         A weighted directed graph with loops, changing the variable ``indegree`` ::
 
@@ -2356,10 +2378,15 @@ class GenericGraph(GenericGraph_pyx):
         if normalized:
             Dsqrt = diagonal_matrix([1 / sqrt(D[i,i]) if D[i,i] else 1 \
                                      for i in range(D.nrows())])
-            return Dsqrt * (D - M) * Dsqrt
+            if signless:
+                return Dsqrt * (D + M) * Dsqrt
+            else:
+                return Dsqrt * (D - M) * Dsqrt
         else:
-            return D - M
-
+            if signless:
+                return D + M
+            else:
+                return D - M
     laplacian_matrix = kirchhoff_matrix
 
     ### Attributes
@@ -9860,10 +9887,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.set_vertex(1, graphs.FlowerSnark())
             sage: T.get_vertex(1)
             Flower Snark: Graph on 20 vertices
+            sage: T.set_vertex(4, 'foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex (4) not in the graph
         """
         if hasattr(self, '_assoc') is False:
             self._assoc = {}
 
+        if not self.has_vertex(vertex):
+            raise ValueError('vertex (%s) not in the graph' % str(vertex))
+            
         self._assoc[vertex] = object
 
     def get_vertex(self, vertex):
@@ -12073,6 +12107,7 @@ class GenericGraph(GenericGraph_pyx):
         if edges is not None:
             edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
             edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
+
             edges_to_keep = []
             if self._directed:
                 for u, v, l in self.edge_iterator(vertices):
@@ -12284,7 +12319,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            This method does not take vertex/edge labels into account.
+            The vertex labels and the edge labels in the graph are ignored.
 
         .. SEEALSO::
 
@@ -12369,12 +12404,36 @@ class GenericGraph(GenericGraph_pyx):
             sage: k3.subgraph_search(p3, induced=True) is None
             True
 
+        If the graph has labels, the labels are just ignored::
+
+            sage: g.set_vertex(0, 'foo')
+            sage: c = g.subgraph_search(graphs.PathGraph(5))
+            sage: c.get_vertices()
+            {0: 'foo', 1: None, 2: None, 3: None, 4: None}
+
         TESTS:
 
         Inside of a small graph (:trac:`13906`)::
 
             sage: Graph(5).subgraph_search(Graph(1))
             Graph on 1 vertex
+
+        For labelled edges (:trac:`14999`)::
+
+            sage: G = graphs.CompleteGraph(10)
+            sage: C = G.subgraph_search(graphs.CycleGraph(4))
+            sage: C.size()
+            4
+            sage: C.edges()
+            [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
+
+            sage: for (u,v) in G.edges(labels=False): 
+            ....:     G.set_edge_label(u, v, u)
+
+            sage: C = G.subgraph_search(graphs.CycleGraph(4))
+            sage: C.edges()
+            [(0, 1, 0), (0, 3, 0), (1, 2, 1), (2, 3, 2)]
+
         """
         from sage.graphs.generic_graph_pyx import SubgraphSearch
         from sage.graphs.graph_generators import GraphGenerators
@@ -12398,7 +12457,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 Gcopy = copy(G)
                 Gcopy.relabel(g)
-                return self.subgraph(vertices=Gcopy, edges=Gcopy.edges(sort=False))
+                return self.subgraph(vertices=Gcopy, edges=Gcopy.edges(labels=False, sort=False))
 
         return None
 
@@ -12415,7 +12474,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            This method does not take vertex/edge labels into account.
+            The vertex labels and the edge labels in the graph are ignored.
 
         ALGORITHM:
 
@@ -12468,6 +12527,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.subgraph_search_count(graphs.EmptyGraph())
             1
 
+        If the graph has vertex labels or edge labels, the label is just ignored::
+
+            sage: g.set_vertex(0, 'foo')
+            sage: g.subgraph_search_count(graphs.PathGraph(5))
+            240
+
         TESTS:
 
         Inside of a small graph (:trac:`13906`)::
@@ -12503,7 +12568,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            This method does not take vertex/edge labels into account.
+            The vertex labels and the edge labels in the graph are ignored.
 
         ALGORITHM:
 
@@ -12533,6 +12598,18 @@ class GenericGraph(GenericGraph_pyx):
         Iterating through all the labelled `P_3` of `P_5`::
 
             sage: g = graphs.PathGraph(5)
+            sage: for p in g.subgraph_search_iterator(graphs.PathGraph(3)):
+            ....:     print(p)
+            [0, 1, 2]
+            [1, 2, 3]
+            [2, 1, 0]
+            [2, 3, 4]
+            [3, 2, 1]
+            [4, 3, 2]
+
+        If the graph has vertex labels or edge labels, the label is just ignored::
+
+            sage: g.set_vertex(0, 'foo')
             sage: for p in g.subgraph_search_iterator(graphs.PathGraph(3)):
             ....:     print(p)
             [0, 1, 2]
@@ -15212,7 +15289,7 @@ class GenericGraph(GenericGraph_pyx):
         returned -- a list containing the 1-vertex, 0-edge path "``start``".
 
         If ``self`` has multiple edges, a path will be returned as many
-        times as the product of the multiplicity of the edges along that path 
+        times as the product of the multiplicity of the edges along that path
         depending on the value of the flag use_multiedges.
 
         INPUT:
@@ -15225,12 +15302,12 @@ class GenericGraph(GenericGraph_pyx):
           multiple edges present between the nodes are taken into account for
           finding all paths else these multiedges if present are ignored
 
-        - ``report_edges`` -- boolean (default: ``False``);  if ``True``, then 
-          edges are reported instead of vertices in the output else by default 
-          vertices are used to represent the path
+        - ``report_edges`` -- boolean (default: ``False``);  if ``True``, then
+          edges are used instead of vertices in representing the path else by
+          default vertices are used to represent the path
 
-        - ``label`` -- boolean (default: ``False``);  if ``True``, 
-          ``report_edges`` is automatically set to ``True`` and labels are 
+        - ``label`` -- boolean (default: ``False``);  if ``True``,
+          ``report_edges`` is automatically set to ``True`` and labels are
           reported along with the edges
 
         EXAMPLES::
@@ -15279,24 +15356,26 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 1, 3], [0, 2, 3], [0, 3]]
 
             sage: g = Graph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
-            sage: g.all_paths(0, 2)
+            sage: g.all_paths(0, 2, use_multiedges=True)
             [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
 
-            sage: dg = DiGraph({0:[1, 2, 1], 3:[0,0]}, multiedges=True)
-            sage: dg.all_paths(3, 1)
+            sage: dg = DiGraph({0:[1, 2, 1], 3:[0, 0]}, multiedges=True)
+            sage: dg.all_paths(3, 1, use_multiedges=True)
             [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
 
             sage: G = DiGraph(multiedges=True)
-            sage: G.add_edges([(0,1),(0,2),(0,2),(1,2),(1,2),(1,3),(3,5),(3,5),(2,4),(2,3),(3,4),(4,5)])
-            sage: G.all_paths(0,3,report_edges=True,use_multiedges=True)
+            sage: G.add_edges([(0,1), (0,2), (0,2), (1,2), (1,2), (1,3), (3,5), (3,5), (2,4), (2,3), (3,4), (4,5)])
+            sage: G.all_paths(0, 3, report_edges=True, use_multiedges=True)
             [[(0, 1), (1, 2), (2, 3)],
              [(0, 1), (1, 2), (2, 3)],
              [(0, 1), (1, 3)],
              [(0, 2), (2, 3)],
              [(0, 2), (2, 3)]]
-            sage: G.all_paths(0,3,use_multiedges=True) 
+            sage: G.all_paths(0, 3, use_multiedges=True) 
             [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 3], [0, 2, 3], [0, 2, 3]]
-            sage:  G.all_paths(0,3,use_multiedges=True,label=True)
+            sage: G.all_paths(0, 3, report_edges=True)
+            [[(0, 1), (1, 2), (2, 3)], [(0, 1), (1, 3)], [(0, 2), (2, 3)]]
+            sage: G.all_paths(0, 3, use_multiedges=True, label=True)
             [((0, 1, None), (1, 2, None), (2, 3, None)),
              ((0, 1, None), (1, 2, None), (2, 3, None)),
              ((0, 1, None), (1, 3, None)),
@@ -15307,7 +15386,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Starting and ending at the same vertex (see :trac:`13006`)::
 
-            sage: graphs.CompleteGraph(4).all_paths(2,2)
+            sage: graphs.CompleteGraph(4).all_paths(2, 2)
             [[2]]
 
         Non-existing vertex as end vertex (see :trac:`24495`)::
@@ -15321,33 +15400,42 @@ class GenericGraph(GenericGraph_pyx):
         Distingusing between multiedged paths (see :trac:`27501`)::
 
             sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0,3,1)
-            sage: g.add_edge(0,2,3)
-            sage: g.add_edge(0,1,3)
-            sage: g.add_edge(2,3,5)
-            sage: g.add_edge(2,3,15)
-            sage: g.add_edge(2,4,12)
-            sage: g.add_edge(3,5,7)
-            sage: g.all_paths(0,5)
+            sage: g.add_edge(0, 3, 1)
+            sage: g.add_edge(0, 2, 3)
+            sage: g.add_edge(0, 1, 3)
+            sage: g.add_edge(2, 3, 5)
+            sage: g.add_edge(2, 3, 15)
+            sage: g.add_edge(2, 4, 12)
+            sage: g.add_edge(3, 5, 7)
+            sage: g.all_paths(0, 5, use_multiedges=True)
             [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]
 
             sage: g = Graph(multiedges=True)
-            sage: g.add_edge(0,1,1)
-            sage: g.add_edge(0,2,3)
-            sage: g.add_edge(1,4,3)
-            sage: g.add_edge(2,3,5)
-            sage: g.add_edge(2,4,15)
-            sage: g.add_edge(2,4,12)
-            sage: g.add_edge(4,5,7)
-            sage: g.add_edge(4,5,8)
-            sage: g.add_edge(5,6,2)
-            sage: g.all_paths(0,6)
+            sage: g.add_edge(0, 1, 1)
+            sage: g.add_edge(0, 2, 3)
+            sage: g.add_edge(1, 4, 3)
+            sage: g.add_edge(2, 3, 5)
+            sage: g.add_edge(2, 4, 15)
+            sage: g.add_edge(2, 4, 12)
+            sage: g.add_edge(4, 5, 7)
+            sage: g.add_edge(4, 5, 8)
+            sage: g.add_edge(5, 6, 2)
+            sage: g.all_paths(0, 6, use_multiedges=True)
             [[0, 1, 4, 5, 6],
              [0, 1, 4, 5, 6],
              [0, 2, 4, 5, 6],
              [0, 2, 4, 5, 6],
              [0, 2, 4, 5, 6],
              [0, 2, 4, 5, 6]]
+
+        Added reporting of edges (see :trac:`27501`)::
+
+            sage: G = DiGraph(multiedges=True)
+            sage: G.add_edges([(0,2), (0,3), (0,4), (1,2), (1,2), (1,5), (3,5), (3,5)])
+            sage: G.all_paths(0, 5, report_edges=True)
+            [[(0, 3), (3, 5)]]
+            sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
+            [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
             
         """
         if start not in self:
@@ -15408,27 +15496,23 @@ class GenericGraph(GenericGraph_pyx):
                 path_with_labels.extend(cartesian_product([my_dict[e] for e in zip(p[:-1], p[1:])]))
             return path_with_labels
 
-        if report_edges and use_multiedges and self.has_multiple_edges():
-            multiple_edge_paths = []
-            for p in all_paths:
-                m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
-                ep = list(zip(p[:-1], p[1:]))
-                for _ in range(m):
-                    multiple_edge_paths.append(ep)
-            return multiple_edge_paths
-
-        if report_edges:
-            return [list(zip(p[:-1], p[1:])) for p in all_paths]
-
         if use_multiedges and self.has_multiple_edges():
             multiple_all_paths = []
             for p in all_paths:
                 m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
+                if report_edges: 
+                    ep = list(zip(p[:-1], p[1:]))
                 for _ in range(m):
-                    multiple_all_paths.append(p)
-            return multiple_all_paths        
-        else:        
-            return all_paths
+                    if report_edges:
+                        multiple_all_paths.append(ep)
+                    else:
+                        multiple_all_paths.append(p)          
+            return multiple_all_paths
+
+        if report_edges:
+            return [list(zip(p[:-1], p[1:])) for p in all_paths]
+       
+        return all_paths    
 
     def triangles_count(self, algorithm=None):
         r"""
@@ -21777,7 +21861,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = G1.automorphism_group()
             sage: G.subgroups()
             [Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [()],
-            Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [(0,7)(1,4)(2,3)(6,8)]]
+             Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [(0,7)(1,4)(2,3)(6,8)]]
+
         """
         from sage.features.bliss import Bliss
         have_bliss = Bliss().is_present()
@@ -22872,6 +22957,227 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
 
+    def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
+        r"""
+        Return the Katz matrix of the graph.
+
+        Katz centrality of a node is a measure of centrality in a graph
+        network. Katz centrality computes the relative influence of a node
+        within a network. Connections made with distant neighbors are, however
+        penalized by an attenuation factor `\alpha`.
+
+        Adding the values in the Katz matrix of all columns in a particular row
+        gives the Katz centrality measure of the vertex represented by that
+        particular row.  Katz centrality measures influence by taking into
+        account the total number of walks between a pair of nodes.
+
+        See the :wikipedia:`Katz_centrality` for more information.
+
+        INPUT:
+
+        - ``alpha`` -- a nonnegative real number, must be less than the
+          reciprocal of the spectral radius of the graph (the maximum
+          absolute eigenvalue of the adjacency matrix)
+
+        - ``nonedgesonly`` -- boolean (default: ``True``); if ``True``, value
+          for each edge present in the graph is set to zero.
+
+        - ``vertices`` -- list (default: ``None``); the ordering of the
+          vertices defining how they should appear in the matrix. By default,
+          the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        OUTPUT: the Katz matrix of the graph with parameter alpha
+
+        EXAMPLES:
+
+        We find the Katz matrix of an undirected 4-cycle.  ::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: G.katz_matrix(1/20)
+            [1/198  5/99 1/198  5/99]
+            [ 5/99 1/198  5/99 1/198]
+            [1/198  5/99 1/198  5/99]
+            [ 5/99 1/198  5/99 1/198]
+
+        We find the Katz matrix of an undirected 4-cycle with all entries
+        other than those which correspond to non-edges zeroed out.  ::
+
+            sage: G.katz_matrix(1/20, True)
+            [    0     0 1/198     0]
+            [    0     0     0 1/198]
+            [1/198     0     0     0]
+            [    0     1/198 0     0]
+
+        This will give an error if alpha<=0 or alpha>=1/spectral_radius = 1/max
+        (A.eigenvalues()).
+
+        We find the Katz matrix in a fan on 6 vertices. ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.katz_matrix(1/10)
+            [   169/2256    545/4512      25/188    605/4512      25/188    545/4512    485/4512]
+            [   545/4512 7081/297792  4355/37224    229/9024   595/37224 4073/297792    109/9024]
+            [     25/188  4355/37224    172/4653      45/376    125/4653   595/37224       5/376]
+            [   605/4512    229/9024      45/376    337/9024      45/376    229/9024    121/9024]
+            [     25/188   595/37224    125/4653      45/376    172/4653  4355/37224       5/376]
+            [   545/4512 4073/297792   595/37224    229/9024  4355/37224 7081/297792    109/9024]
+            [   485/4512    109/9024       5/376    121/9024       5/376    109/9024     97/9024]
+
+        .. SEEALSO::
+
+            * :meth:`~katz_centrality`
+            * :wikipedia:`Katz_centrality`
+
+        TESTS::
+
+            sage: (graphs.CompleteGraph(4)).katz_matrix(1/4)
+            [3/5 4/5 4/5 4/5]
+            [4/5 3/5 4/5 4/5]
+            [4/5 4/5 3/5 4/5]
+            [4/5 4/5 4/5 3/5]
+            sage: (graphs.CompleteGraph(4)).katz_matrix(1/4, nonedgesonly=True)
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: (graphs.PathGraph(4)).katz_matrix(1/4, nonedgesonly=False)
+            [15/209 60/209 16/209  4/209]
+            [60/209 31/209 64/209 16/209]
+            [16/209 64/209 31/209 60/209]
+            [ 4/209 16/209 60/209 15/209]
+            sage: (graphs.PathGraph(4)).katz_matrix(1/4, nonedgesonly=True)
+            [     0      0 16/209  4/209]
+            [     0      0      0 16/209]
+            [16/209      0      0      0]
+            [ 4/209 16/209      0      0]
+        """
+        if alpha <= 0:
+            raise ValueError('the parameter alpha must be strictly positive')
+        
+        n = self.order()
+        if n == 0 :
+            raise ValueError('graph is empty')
+        if vertices is None:
+            vertices = self.vertices()
+        elif (len(vertices) != n or
+              set(vertices) != set(self)):
+            raise ValueError("``vertices`` must be a permutation of the vertices")
+
+        A = self.adjacency_matrix(vertices=vertices)
+
+        spectral_radius = max([abs(eigen) for eigen in A.eigenvalues()])
+
+        if spectral_radius == 0:
+            raise ValueError('the spectral radius of the graph must not be zero')
+        if alpha >= 1/spectral_radius:
+            raise ValueError('the parameter alpha must be less than the reciprocal of the spectral radius of the graph')
+
+        In = matrix.identity(n)
+        K =  (In - alpha * A.transpose()).inverse() - In
+        if nonedgesonly:
+            onesmat = matrix(QQ, n, n, lambda i, j: 1)
+            Missing = onesmat - A - In
+            return K.elementwise_product(Missing)
+        else:
+            return K
+
+    def katz_centrality(self, alpha , u=None):
+        r"""
+        Return the Katz centrality of vertex `u`.
+
+        Katz centrality of a node is a measure of centrality in a graph
+        network. Katz centrality computes the relative influence of a node
+        within a network. Connections made with distant neighbors are, however
+        penalized by an attenuation factor `\alpha`.
+
+        See the :wikipedia:`Katz_centrality` for more information.
+
+        INPUT:
+
+        - ``alpha`` -- a nonnegative real number, must be less than the
+          reciprocal of the spectral radius of the graph (the maximum absolute
+          eigenvalue of the adjacency matrix).
+
+        - ``u`` -- the vertex whose Katz centrality needs to be measured
+          (default: ``None``)
+
+        OUTPUT: a list containing the Katz centrality of each vertex if u=None
+        otherwise Katz centrality of the vertex u.
+
+        EXAMPLES:
+
+        We compute the Katz centrality of a 4-cycle (note that by symmetry,
+        all 4 vertices have the same centrality) ::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: G.katz_centrality(1/20)
+            {0: 1/9, 1: 1/9, 2: 1/9, 3: 1/9}
+
+        Note that in the below example the nodes having indegree `0` also have
+        the Katz centrality value as `0`, as these nodes are not influenced by
+        other nodes. ::
+
+            sage: G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]})
+            sage: G.katz_centrality(.85)
+            {1: 0.000000000000000,
+             2: 0.000000000000000,
+             3: 0.000000000000000,
+             4: 16.7319819819820,
+             5: 18.6846846846847,
+             6: 173.212076941807,
+             7: 0.000000000000000,
+             8: 18.6846846846847,
+             9: 0.000000000000000,
+             10: 20.9819819819820,
+             11: 202.778914049184}
+
+
+        .. SEEALSO::
+
+            * :meth:`~katz_matrix`
+            * :wikipedia:`Katz_centrality`
+
+        TESTS::
+
+            sage: graphs.PathGraph(3).katz_centrality(1/20)
+            {0: 11/199, 1: 21/199, 2: 11/199}
+            sage: graphs.PathGraph(4).katz_centrality(1/20)
+            {0: 21/379, 1: 41/379, 2: 41/379, 3: 21/379}
+            sage: graphs.PathGraph(3).katz_centrality(1/20,2)
+            11/199
+            sage: graphs.PathGraph(4).katz_centrality(1/20,3)
+            21/379
+            sage: (graphs.PathGraph(3) + graphs.PathGraph(4)).katz_centrality(1/20)
+            {0: 11/199, 1: 21/199, 2: 11/199, 3: 21/379, 4: 41/379, 5: 41/379, 6: 21/379}
+
+        """
+        n = self.order()
+        if n == 0:
+            raise ValueError('graph is empty')
+
+        if u and u not in self:
+            raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
+
+        if u:
+            if self.is_connected():
+                G = self
+            else:
+                G = self.subgraph(self.connected_component_containing_vertex(u, sort=False))
+            verts = list(G)
+            M = G.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
+            return sum(M[verts.index(u)])
+
+        if self.is_connected():
+            verts = list(self)
+            M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
+            return {u: sum(M[i]) for i, u in enumerate(verts)}
+        else:
+            K = {}
+            for g in self.connected_components_subgraphs():
+                verts = list(g)
+                M = g.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
+                K.update({u: sum(M[i]) for i, u in enumerate(verts)})
+            return K
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,
