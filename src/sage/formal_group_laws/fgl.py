@@ -34,12 +34,13 @@ class FPS:
         self.var = var                # String which represents the formal power series variables when the formal power series is viewed; default is 'x'
                                            # Note: if len(self.var) == self.n and self.var has no duplicate characters, then the variables will appear as
                                            # self.var[0], self.var[1], ..., self.var[n - 1] instead of the standard self.var + '0', ..., self.var + str(n - 1)
-        self.const = const            # Optional argument which keeps track of the formal power series's constant term
         self.children = children      # (Will only have a value other than None on internal calls of the constructor) Points to other FPS objects, which together
                                            # with self.operation define the formal power series under consideration
         self.operation = operation    # (Will only have a value other than None on internal calls of the constructor) self.operation is a list, the first member
                                            # of which is a string denoting the operation and which any additional members of are extra necessary data, i.e. the
                                            # index of the variable with respect to which one is differentiating
+	self.memoized_degree = 0
+	self.memoized_poly = None
 
     #Overide the repr function
     def __repr__(self):
@@ -90,7 +91,7 @@ class FPS:
 
     def inverse(self): # multiplicative inverse
         try:
-            unit = self.getConst().is_unit()
+            unit = self.view(0).is_unit()
         except NotImplementedError:
             unit = True
         if unit:
@@ -101,7 +102,7 @@ class FPS:
     def reversion(self): # compositional inverse
         if self.n != 1:
             raise ValueError("Cannot compute reversion: more than one variable")
-        poly = self.view(1)
+        poly = self.view(0)
         if poly[0] != 0:
             raise ValueError("Cannot compute reversion: constant term is nonzero")
         # should also check that poly[1] is a unit
@@ -140,8 +141,8 @@ class FPS:
 
         #Special Case for n = 1
         #See fast_comp below for more details of implementation 
-        if n = 1:
-            return self.fast_comp(seriesList[0])
+        #if n = 1:
+        #    return self.fast_comp(seriesList[0])
         sumdim = sum([i.n for i in seriesList])
         if positions == None: # default case is that each of the arguments' variables are independent
             positions = list(range(sumdim))
@@ -152,7 +153,7 @@ class FPS:
         for ps in seriesList:
             if self.ring != ps.ring:
                 raise ValueError("Different Rings")
-            if ps.getConst() != 0:
+            if ps.view(0)(*[0 for i in range(ps.n)]) != 0:
                 raise ValueError("Argument has non-zero constant coefficient")
         newdim = max(positions) + 1
         newTrees = []
@@ -191,31 +192,10 @@ class FPS:
             return FPS(self.ring, self.n, None, None, self.var, None, [self,ps], ["fast_o", 0])
 
 
-    #Return constant of the formal power series
-    def getConst(self):
-        if self.const == None:
-            if self.operation == None:
-                self.const = self.coeffs([0]*self.n)
-            elif self.operation[0] == '+':
-                self.const = self.children[0].getConst() + self.children[1].getConst()
-            elif self.operation[0] == '-':
-                self.const = self.children[0].getConst() - self.children[1].getConst()
-            elif self.operation[0] == '*':
-                self.const = self.children[0].getConst() * self.children[1].getConst()
-            elif self.operation[0] == 'inv':
-                self.const = self.children[0].getConst() **(-1)
-            elif self.operation[0] == 'rev':
-                self.const = 0
-            elif self.operation[0] == 'd/dx':
-                # TODO
-                self.const = self.view(0) # might need a typecast
-            elif self.operation[0] == 'inc':
-                self.const = self.children[0].getConst()
-            elif self.operation[0] == 'cb':
-                pass # TODO
-            elif self.operation[0] == 'o':
-                self.const = self.children[0].getConst() # all the other children should have const == 0
-        return self.const
+     # this function is deprecated since it is the same as .view(0)
+#    #Return constant of the formal power series
+#    def getConst(self):
+#	return self.view(0)
 
     #Depth-first Search to find the maximal index needed for the base IndRing for a given precision based on data on nodes, and the locations of derivatives and base changes
     #Derivative is the only implemented operation which requires a different level of precision for the children to get the correct precision for the parent
@@ -247,7 +227,7 @@ class FPS:
                         i += 1
                     t = self.operation[1].sstep(i)
             return t
-    def view_helper(self, prec, target_ring):
+    def view_helper(self, prec, target_ring, memoize=False):
         if self.children == None: # we are at a leaf node with a coefficient function
             H = PowerSeriesRing(self.ring.rings(target_ring), self.n, self.var)
             x = H.gens()
@@ -261,6 +241,8 @@ class FPS:
             #Push term through to target index in the IndRing
             for i in range(start_ring, target_ring):
                 poly = self.ring.homs(i)(poly)
+            #Make sure poly is actually a power series datatype
+            poly = poly*(x[0]**0)
             #Iterate over all degree lists whose sum is less than or equal to the prec
             #Terminates when degree list is all 0's except the last entry which is prec
             while degrees[-1] != prec:
@@ -400,6 +382,8 @@ class FPS:
                     for i in range(0, prec + 1):
                         if (x[0]**i in poly_coeffs.keys()):
                             poly2 += poly_coeffs[x[0]**i] * y[(self.operation[1])[0]]**i
+                    # make sure poly2 is indeed a power series (i.e. in case of degree = 0)
+                    poly2 *= y[0]**0
                     return poly2.add_bigoh(prec + 1)
                 K = PowerSeriesRing(self.ring.rings(self.ring_size(prec, 0)), self.n, 'zzz')
                 y = K.gens()
@@ -521,5 +505,4 @@ class UFGL(FPS):
         self.children = [rev, add]
         self.operation = ["fast_o", 0]
         self.var = 'x'
-        self.const = 0
 
