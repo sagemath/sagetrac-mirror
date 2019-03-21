@@ -294,6 +294,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Traceback (most recent call last):
         ...
         NotImplementedError: len() of an infinite set
+
+        sage: ZZ.is_finite()
+        False
+        sage: ZZ.cardinality()
+        +Infinity
     """
 
     def __init__(self):
@@ -587,11 +592,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         Note that the input *MUST* be an ``int``::
 
-            sage: a = 10000000000000000000000r
-            sage: type(a)
-            <type 'long'>
-            sage: f(a) # random
-            5
+            sage: a = 10000000000000000000000rL
+            sage: f(a)  # py2
+            Traceback (most recent call last):
+            ...
+            TypeError: must be a Python int object
         """
         if S is long:
             return sage.rings.integer.long_to_Z()
@@ -832,17 +837,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: ZZ.is_field()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Return ``False`` since the integers are an infinite ring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_finite()
             False
         """
         return False
@@ -1432,6 +1426,17 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'Integers'
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(ZZ)          # indirect doctest, optional - fricas
+            Integer
+        """
+        return 'Integer'
+
     def _magma_init_(self, magma):
         """
         Return a magma representation of ``self``.
@@ -1481,6 +1486,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             {atomic:ZZ}
         """
         return sib.name('ZZ')
+
+    def valuation(self, p):
+        r"""
+        Return the discrete valuation with uniformizer ``p``.
+
+        EXAMPLES::
+
+            sage: v = ZZ.valuation(3); v
+            3-adic valuation
+            sage: v(3)
+            1
+
+        .. SEEALSO::
+
+            :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`,
+            :meth:`RationalField.valuation() <sage.rings.rational_field.RationalField.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
 
 ZZ = IntegerRing_class()
 Z = ZZ

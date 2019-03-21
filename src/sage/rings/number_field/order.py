@@ -44,6 +44,8 @@ We compute a suborder, which has index a power of 17 in the maximal order::
 # ****************************************************************************
 from __future__ import absolute_import
 
+import six
+
 from sage.misc.cachefunc import cached_method
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
@@ -248,7 +250,7 @@ class Order(IntegralDomain):
             sage: Ok.has_coerce_map_from(ZZ)
             True
         """
-        return R is ZZ or R is int or R is long
+        return R is ZZ or R in six.integer_types
 
     def __mul__(self, right):
         """
@@ -922,8 +924,26 @@ class Order(IntegralDomain):
         """
         return not (self == other)
 
-    def random_element(self, *args, **kwds):
+    def __hash__(self):
         """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: L.<b> = NumberField(x^3 + 3)
+            sage: O1 = K.order(a)
+            sage: hash(O1) == hash(K.order(a))
+            True
+            sage: hash(O1) == hash(K.order(a^2))
+            False
+            sage: hash(O1) == hash(L.order(b))
+            False
+        """
+        return hash((self._K, self._module_rep))
+
+    def random_element(self, *args, **kwds):
+        r"""
         Return a random element of this order.
 
         INPUT:
@@ -1003,6 +1023,67 @@ class Order(IntegralDomain):
         """
         return self.number_field().absolute_degree()
 
+    def valuation(self, p):
+        r"""
+        Return the ``p``-adic valuation on this order.
+
+        EXAMPLES:
+
+        The valuation can be specified with an integer ``prime`` that is
+        completely ramified or unramified::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: O = K.order(2*a)
+            sage: valuations.pAdicValuation(O, 2)
+            2-adic valuation
+
+            sage: GaussianIntegers().valuation(2)
+            2-adic valuation
+
+        ::
+
+            sage: GaussianIntegers().valuation(3)
+            3-adic valuation
+
+        A ``prime`` that factors into pairwise distinct factors, results in an error::
+
+            sage: GaussianIntegers().valuation(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        The valuation can also be selected by giving a valuation on the base
+        ring that extends uniquely::
+
+            sage: CyclotomicField(5).ring_of_integers().valuation(ZZ.valuation(5))
+            5-adic valuation
+
+        When the extension is not unique, this does not work::
+
+            sage: GaussianIntegers().valuation(ZZ.valuation(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        If the fraction field is of the form `K[x]/(G)`, you can specify a
+        valuation by providing a discrete pseudo-valuation on `K[x]` which
+        sends `G` to infinity::
+
+            sage: R.<x> = QQ[]
+            sage: v = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 2, infinity))
+            sage: w = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 1/2, infinity))
+            sage: v == w
+            False
+
+        .. SEEALSO::
+
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
+
     def some_elements(self):
         """
         Return a list of elements of the given order.
@@ -1025,7 +1106,7 @@ class Order(IntegralDomain):
         TESTS:
 
         This also works for trivial extensions::
-        
+
             sage: R.<t> = QQ[]
             sage: K.<a> = QQ.extension(t); K
             Number Field in a with defining polynomial t
@@ -1245,7 +1326,7 @@ class AbsoluteOrder(Order):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
             sage: magma(K.maximal_order())  # optional - magma
             Equation Order with defining polynomial x^3 + 2 over its ground order
 
@@ -1255,7 +1336,7 @@ class AbsoluteOrder(Order):
             'Order([(_sage_[...]![1, 0, 0]),(_sage_[...]![0, 1, 0]),(_sage_[...]![0, 0, 1])])'
         """
         K = self.number_field()
-        v = [K(a)._magma_init_(magma) for a in self.gens()]
+        v = [K(a)._magma_init_(magma) for a in self.basis()]
         return 'Order([%s])'%(','.join(v))
 
     def discriminant(self):
@@ -1620,7 +1701,7 @@ class RelativeOrder(Order):
         return (RelativeOrder, (self.number_field(), self.absolute_order(), self._is_maximal, False))
 
     def basis(self):
-        """
+        r"""
         Return a basis for this order as `\ZZ`-module.
 
         EXAMPLES::
@@ -1857,7 +1938,6 @@ def absolute_order_from_ring_generators(gens, check_is_integral=True,
     if check_is_integral and not each_is_integral(gens):
         raise ValueError("each generator must be integral")
     gens = Sequence(gens)
-    K = gens.universe()
     n = [x.absolute_minpoly().degree() for x in gens]
     module_gens = monomials(gens, n)
     return absolute_order_from_module_generators(module_gens,
@@ -2062,7 +2142,7 @@ def relative_order_from_ring_generators(gens,
 
 
 def GaussianIntegers(names="I"):
-    """
+    r"""
     Return the ring of Gaussian integers, that is all complex numbers
     of the form `a + b I` with `a` and `b` integers and `I = \sqrt{-1}`.
 
@@ -2087,7 +2167,7 @@ def GaussianIntegers(names="I"):
 
 
 def EisensteinIntegers(names="omega"):
-    """
+    r"""
     Return the ring of Eisenstein integers, that is all complex numbers
     of the form `a + b \omega` with `a` and `b` integers and
     `omega = (-1 + \sqrt{-3})/2`.

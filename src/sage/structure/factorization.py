@@ -1125,8 +1125,11 @@ class Factorization(SageObject):
             return Factorization([])
         if self.is_commutative():
             return Factorization([(p, n*e) for p, e in self], unit=self.unit()**n, cr=self.__cr, sort=False, simplify=False)
-        from sage.groups.generic import power
-        return power(self, n, Factorization([]))
+        if n < 0:
+            self = ~self
+            n = -n
+        from sage.arith.power import generic_power
+        return generic_power(self, n)
 
     def __invert__(self):
         r"""
@@ -1296,9 +1299,8 @@ class Factorization(SageObject):
             -1 * 2^-3 * 5
             sage: F.is_integral()
             False
-
         """
-        return all([e >=0 for p,e in self.__x])
+        return all(e >= 0 for p, e in self.__x)
 
     def radical(self):
         """
@@ -1320,7 +1322,7 @@ class Factorization(SageObject):
             ...
             ValueError: All exponents in the factorization must be positive.
         """
-        if not all([e > 0 for p,e in self.__x]):
+        if not all(e > 0 for p, e in self.__x):
             raise ValueError("All exponents in the factorization must be positive.")
         return Factorization([(p,1) for p,e in self.__x], unit=self.unit().parent()(1), cr=self.__cr, sort=False, simplify=False)
 
@@ -1345,7 +1347,6 @@ class Factorization(SageObject):
             ...
             ValueError: All exponents in the factorization must be positive.
         """
-        if not all([e > 0 for p,e in self.__x]):
+        if not all(e > 0 for p, e in self.__x):
             raise ValueError("All exponents in the factorization must be positive.")
-        return prod([p for p,e in self.__x])
-
+        return prod([p for p, e in self.__x])

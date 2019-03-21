@@ -19,7 +19,7 @@ definitions, etc., are informed by how the corresponding objects are
 used in everyday mathematics.
 
 .. [1]
-   See http://www.sagemath.org/links-components.html for a full list
+   See https://www.sagemath.org/links-components.html for a full list
    of packages shipped with every copy of Sage
 
 To meet the goal of making Sage easy to read, maintain, and improve,
@@ -35,8 +35,8 @@ Python Code Style
 Follow the standard Python formatting rules when writing code for
 Sage, as explained at the following URLs:
 
-* http://www.python.org/dev/peps/pep-0008
-* http://www.python.org/dev/peps/pep-0257
+* :pep:`0008`
+* :pep:`0257`
 
 In particular,
 
@@ -206,7 +206,7 @@ The top of each Sage code file should follow this format::
     # it under the terms of the GNU General Public License as published by
     # the Free Software Foundation, either version 2 of the License, or
     # (at your option) any later version.
-    #                  http://www.gnu.org/licenses/
+    #                  https://www.gnu.org/licenses/
     # ****************************************************************************
 
 As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx``, which contains the
@@ -751,7 +751,7 @@ documentation for math blocks
        \begin{align}
           1+...+n &= n(n+1)/2\\
           &= O(n^2)\\
-       \end{tabular}
+       \end{align}
 
 .. MATH::
    :nowrap:
@@ -870,7 +870,7 @@ written.
       sage: print "not like that"
       Traceback (most recent call last):
       ...
-      SyntaxError: invalid syntax
+      SyntaxError: ...
       sage: print("but like this")
       but like this
 
@@ -1033,7 +1033,10 @@ framework. Here is a comprehensive list:
 
   - **internet:** For lines that require an internet connection::
 
-       sage: sloane_sequence(60843)       # optional - internet
+       sage: oeis(60843)                 # optional - internet
+       A060843: Busy Beaver problem: a(n) = maximal number of steps that an
+       n-state Turing machine can make on an initially blank tape before
+       eventually halting.
 
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
     instead: it is an alias for ``optional bug``. ::
@@ -1078,9 +1081,9 @@ framework. Here is a comprehensive list:
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: hash(-920390823904823094890238490238484)
-      -873977844            # 32-bit
-      6874330978542788722   # 64-bit
+      sage: hash(2^31 + 2^13)
+      -2147475456               # 32-bit
+      2147491840                # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not

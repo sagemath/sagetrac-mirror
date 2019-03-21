@@ -19,7 +19,7 @@ from cpython.object cimport Py_SIZE
 from cpython.int cimport PyInt_AS_LONG
 from cpython.long cimport PyLong_AsLong
 from cpython.number cimport PyNumber_Index, PyIndex_Check
-from cpython.longintrepr cimport PyLongObject, PyLong_SHIFT, digit
+from cpython.longintrepr cimport py_long, PyLong_SHIFT, digit
 
 from sage.libs.gmp.mpz cimport mpz_fits_slong_p, mpz_get_si
 from sage.rings.integer_fake cimport is_Integer, Integer_AS_MPZ
@@ -107,7 +107,7 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
       was raised calling ``__index__()``.
 
     - Other exceptions in ``__index__`` are simply propagated. This is
-      the only way how this function can raise an exception.
+      the only way this function can raise an exception.
 
     EXAMPLES:
 
@@ -196,9 +196,7 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
     """
     Part of ``integer_check_long`` in ``long.pxd``, checking only for
     Python objects of type ``int`` and ``long``. See that function for
-    documentation and tests. The only difference is that
-    ``integer_check_long_py`` leaves the value of ``*err`` unchanged
-    when returning ``False``.
+    documentation and tests.
     """
     if not isinstance(x, long):
         if isinstance(x, int):
@@ -206,10 +204,11 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
             value[0] = PyInt_AS_LONG(x)
             err[0] = 0
             return 1
+        err[0] = ERR_TYPE
         return 0
 
     # x is a Python "long" (called "int" on Python 3)
-    cdef const digit* D = (<PyLongObject*>x).ob_digit
+    cdef const digit* D = (<py_long>x).ob_digit
     cdef Py_ssize_t size = Py_SIZE(x)
 
     # We assume that PyLong_SHIFT is 15 on a 32-bit system and 30 on a
