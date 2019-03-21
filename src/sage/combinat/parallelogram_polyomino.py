@@ -2218,13 +2218,13 @@ class ParallelogramPolyomino(ClonableList):
             (3.000000, 1.000000);
 
         """
-        tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
         grid_height = self.height() + 1
-        drawing_tool = TikzPainter(
-            tikz_options,
-            XY=lambda v: [v[0], grid_height-1-v[1]]
-        )
+        tikz_options = deepcopy(self.get_tikz_options())
+        tikz_options['coordinate_transformation'] = lambda v: [
+            v[0], grid_height-1-v[1]
+        ]
+        drawing_tool = TikzPainter(tikz_options)
         res = ""
         if self.size() == 1:
             res += drawing_tool.draw_line([0, 0], [1, 0])
@@ -2315,12 +2315,12 @@ class ParallelogramPolyomino(ClonableList):
             (4.000000, 0.000000);
         """
         res = ""
-        tikz_options = self.get_tikz_options()
         grid_height = self.height() + 1
-        drawing_tool = TikzPainter(
-            tikz_options,
-            XY=lambda v: [v[0], grid_height-1-v[1]]
-        )
+        tikz_options = deepcopy( self.get_tikz_options() )
+        tikz_options['coordinate_transformation'] = lambda v: [
+            v[0], grid_height-1-v[1]
+        ]
+        drawing_tool = TikzPainter(tikz_options)
 
         def draw_bounce(direction, color):
             r"""
@@ -2413,14 +2413,14 @@ class ParallelogramPolyomino(ClonableList):
               \filldraw[color=black] (0.500000, 3.500000) circle (3.5pt);
         """
         res = ""
-        tikz_options = self.get_tikz_options()
         if self.size() == 1:
             return res
         grid_height = self.height() + 1
-        drawing_tool = TikzPainter(
-            tikz_options,
-            XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
-        )
+        tikz_options = deepcopy(self.get_tikz_options())
+        tikz_options['coordinate_transformation'] = lambda v: [
+            v[0] + .5, grid_height-1-v[1] - .5
+        ]
+        drawing_tool = TikzPainter(tikz_options)
         for node in self.get_BS_nodes():
             res += drawing_tool.draw_point([node[1], node[0]])
         res += drawing_tool.draw_point([0, 0])

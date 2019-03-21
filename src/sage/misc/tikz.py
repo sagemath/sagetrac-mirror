@@ -40,12 +40,14 @@ class TikzPainter:
         (-1.000000, -1.000000);'
 
         sage: fct = lambda vec: [2*vec[0], vec[1]]
-        sage: dt = TikzPainter(options=None, XY=fct)
+        sage: import copy
+        sage: opt = copy.deepcopy(TikzPainter.default_options)
+        sage: opt['coordinate_transformation'] = fct
+        sage: dt = TikzPainter(options=opt)
         sage: dt.draw_line([1, 1], [-1, -1])
         u'\n  \\draw[color=black, line width=1] (2.000000, 1.000000) --
         (-2.000000, -1.000000);'
 
-        sage: import copy
         sage: opt = copy.deepcopy(TikzPainter.default_options)
         sage: opt['mirror'] = [0,1]
         sage: dt = TikzPainter(opt)
@@ -53,9 +55,15 @@ class TikzPainter:
         u'\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) --
         (1.000000, -1.000000);'
     """
+    class identity_transformation:
+        def __call__(self,v):
+            return v
+        def __repr__(self):
+            return "lambda v : v"
     default_options = dict(
         scale=1, line_size=1, point_size=3.5, color_line='black',
-        color_point='black', translation=[0, 0], rotation=0, mirror=None
+        color_point='black', translation=[0, 0], rotation=0, mirror=None,
+        coordinate_transformation=identity_transformation()
     )
     r"""
     This is the default TIKZ options.
@@ -64,16 +72,13 @@ class TikzPainter:
     TIKZ code generation.
     """
 
-    def __init__(self, options=None, XY=lambda v: v):
+    def __init__(self, options=None):
         r"""
         Construct a drawing tools to produce some TIKZ drawing.
 
         INPUTS:
 
         - ``options`` -- drawing options
-
-        - ``XY`` -- A user function to convert vector in other vector.
-                  (default : identity function)
 
         EXAMPLES::
 
@@ -99,6 +104,7 @@ class TikzPainter:
             sage: TikzPainter.default_options
             {'color_line': u'black',
              'color_point': u'black',
+             'coordinate_transformation': lambda v : v,
              'line_size': 1,
              'mirror': None,
              'point_size': 3.5,
@@ -106,12 +112,16 @@ class TikzPainter:
              'scale': 1,
              'translation': [0, 0]}
         """
-        self._XY = lambda v: XY([float(v[0]), float(v[1])])
         def get_option( key, options ):
             if options is None or not key in options :
                 return TikzPainter.default_options[key]
             else:
                 return options[key]
+        ct = get_option('coordinate_transformation', options)
+        def XY(v):
+            v = ct(v)
+            return [float(v[0]), float(v[1])]
+        self._XY = XY
         self._translation = get_option('translation', options)
         self._mirror = get_option('mirror', options)
         self._rotation = get_option('rotation', options)
@@ -147,7 +157,10 @@ class TikzPainter:
             [1.0, 1.0]
 
             sage: fct = lambda vec: [2*vec[0], vec[1]]
-            sage: dt = TikzPainter(options=None, XY=fct)
+            sage: import copy
+            sage: opt = copy.deepcopy(TikzPainter.default_options)
+            sage: opt['coordinate_transformation'] = fct
+            sage: dt = TikzPainter(options=opt)
             sage: dt.XY([1, 1])
             [2.0, 1.0]
 
