@@ -78,3 +78,12 @@ if [ -n "$SAGE_MPC_PREFIX" ]; then
     # their ./configure scripts. Thus we deal with this just as with GMP above. 
     export SAGE_CONFIGURE_MPC="--with-mpc=$SAGE_MPC_PREFIX"
 fi
+
+# The FLINT case is very close to the MPFR case above
+# This is usually blank if the system FLINT is used, or $SAGE_LOCAL otherwise
+export SAGE_FLINT_PREFIX="@SAGE_FLINT_PREFIX@"
+if [ -n "$SAGE_FLINT_PREFIX" ]; then
+    # Some packages that depend on FLINT accept a --with-flint=<prefix> flag to
+    # their ./configure scripts. Thus we deal with this just as with GMP above. 
+    export SAGE_CONFIGURE_FLINT="--with-mpc=$SAGE_FLINT_PREFIX"
+fi
