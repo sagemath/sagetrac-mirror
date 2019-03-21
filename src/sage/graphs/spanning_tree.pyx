@@ -419,7 +419,7 @@ cpdef filter_kruskal(G, wfunction=None, bint check=False):
     return list(partition(edges, union_find, wfunction=wfunction, check=check))
 
 
-def partition(edges, union_find, wfunction=None, bint check=False):
+cdef partition(edges, union_find, wfunction=None, bint check=False):
     import random
     from sage.graphs.graph import Graph
 
