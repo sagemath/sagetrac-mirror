@@ -66,7 +66,6 @@ cimport cython
 
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 
-
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""
     Minimum spanning tree using Kruskal's algorithm.
@@ -290,7 +289,7 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
-        raise ValueError("The input G must be an undirected graph.")
+        raise ValueError("The input G must be an undirected graph")
 
     # sanity checks
     if check:
@@ -321,8 +320,8 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
 
     # Kruskal's algorithm
     cdef int m = g.order() - 1
-    cdef int i = 0  # count the number of edges added so far
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
+    cdef int i = 0  # count the number of edges added so far
     while i < m:
         e = next(sortedE_iter)
         # acyclic test via union-find
@@ -333,6 +332,161 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
             yield e
             # union the components by making one the parent of the other
             union_find.union(u, v)
+
+
+cpdef filter_kruskal(G, wfunction=None, bint check=False):
+    from sage.graphs.graph import Graph
+    r"""
+    Minimum spanning tree using Filter_Kruskal's algorithm.
+
+    This algorithm is different version of kruskal algorithm, where we don't sort
+    the large dataset of edges, but we make partition of them and then use kruskal
+    Algorithm on it.
+
+    This function assumes that we can only compute minimum spanning trees for
+    undirected graphs. Such graphs can be weighted or unweighted, and they can
+    have multiple edges (since we are computing the minimum spanning tree, only
+    the minimum weight among all `(u,v)`-edges is considered, for each pair
+    of vertices `u`, `v`).
+
+    INPUT:
+
+    - ``G`` -- an undirected graph.
+
+    - ``weight_function`` (function) - a function that inputs an edge ``e``
+      and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
+      and ``v`` are vertices, ``l`` is a label (that can be of any kind).
+      The ``weight_function`` can be used to transform the label into a
+      weight. In particular:
+
+      - if ``weight_function`` is not ``None``, the weight of an edge ``e``
+        is ``weight_function(e)``;
+
+      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+        (that is, ``g.weighted()==True``), the weight of an edge
+        ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
+        is: the ordering of labels relies on Python's operator ``<``;
+
+      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+        all weights to 1 (hence, the output can be any spanning tree).
+
+    - ``check`` -- Whether to first perform sanity checks on the input
+      graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
+      following sanity checks are first performed on ``G`` prior to running
+      Kruskal's algorithm on that input graph:
+
+      - Is ``G`` the null graph?
+      - Is ``G`` disconnected?
+      - Is ``G`` a tree?
+      - Does ``G`` have self-loops?
+      - Does ``G`` have multiple edges?
+
+    EXAMPLE:
+
+    The edges of a minimum spanning tree of ``G``, if one exists, otherwise
+    returns the empty list.
+
+        sage: from sage.graphs.spanning_tree import filter_kruskal
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: E = filter_kruskal(G, check=True); E
+        [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
+
+    """
+
+    if not isinstance(G, Graph):
+        raise ValueError("The input G must be an undirected graph")
+    if check:
+        if not G.order():
+            return []
+        if not G.is_connected():
+            return
+        # G is now assumed to be a nonempty connected graph
+        if G.num_verts() == G.num_edges() + 1:
+            # G is a tree
+            return list(G.edges(sort=False))
+
+        g = G.to_simple(to_undirected=False, keep_label='min')
+    else:
+        g = G
+
+    # creating list of all edges
+    cdef edges = list(g.edges(sort=False))
+
+    # Making a union set
+    cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
+
+    return list(partition(edges, union_find, wfunction=wfunction, check=check))
+
+
+def partition(edges, union_find, wfunction=None, bint check=False):
+    import random
+    from sage.graphs.graph import Graph
+ 
+    # If graph size is less than the kruskal Threshold, then we implement kruskal
+    # Here threshold is set to  10000 edges
+    if len(edges) < 10000:
+        yield from filter_kruskal_iterator(edges, union_find, wfunction=wfunction, check=False)
+        return
+    # Selecting a pivot(edge weight) at random
+    pivot = random.choice(edges)[2]
+ 
+    # Divide the list of edges accoring the pivot
+    # We use variable ch to equally divide edges with weight equal
+    # the to pivot
+    cdef list L1_Graph = []
+    cdef list L2_Graph = []
+    cdef int ch = 0
+   
+    for e in edges:
+        if e[2] < pivot[2]:
+            L1_Graph.append(e)
+        elif e[2] > pivot[2]:
+            L2_Graph.append(e)
+        else:
+            if ch:
+                L1_Graph.append(e)
+                ch = 0
+            else:
+                L2_Graph.append(e)
+                ch = 1
+
+    # After the graph is divided in two parts we remove the unwanted edges by filter function
+    L1_filter = [e for e in L1_Graph if union_find.find(e[0]) != union_find.find(e[1])]
+    if len(L1_filter) > 0:
+        yield from partition(L1_filter, union_find, wfunction=wfunction, check=check)
+
+    # Checking if we have got the spanning tree
+    if union_find.number_of_subsets() == 1:
+        return
+
+    L2_filter = [e for e in L2_Graph if union_find.find(e[0]) != union_find.find(e[1])]
+    if len(L2_filter) > 0:
+        yield from partition(L2_filter,  union_find, wfunction=wfunction, check=check)
+        return
+
+
+def filter_kruskal_iterator(edges, union_find, wfunction=None, bint check=False):
+    # G is assumed to be connected, undirected, and with at least a vertex
+    # We sort edges, as specified.
+  
+    sortedE_iter = None
+    if wfunction is None:
+        from operator import itemgetter
+        edges = sorted(edges, key=itemgetter(2))
+    else:
+        edges = sorted(edges, key=wfunction)
+    # Kruskal's algorithm
+    for e in edges:
+        # acyclic test via union-find
+        u = union_find.find(e[0])
+        v = union_find.find(e[1])
+        if u != v:
+            yield e
+            # union the components by making one the parent of the other
+            union_find.union(u, v)
+            if union_find.number_of_subsets() == 1:
+                return
 
 
 cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
@@ -380,7 +534,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
       connected, and has at least one vertex. Otherwise, you should set
       ``check=True`` to perform some sanity checks and preprocessing on the
       input graph.
-    
+
     - ``by_weight`` -- boolean (default: ``False``); whether to find MST by
       using weights of edges provided.  Default: ``by_weight=True``. If
       ``wfunction`` is given, MST is calculated using the weights of edges as
@@ -429,7 +583,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         []
 
     TESTS:
-    
+
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))
@@ -475,7 +629,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     # Boruvka's algorithm
 
-    # Store the list of active edges as (e, e_weight) in a list 
+    # Store the list of active edges as (e, e_weight) in a list
     if by_weight:
         if wfunction is None:
             if G.weighted():
@@ -491,7 +645,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     cdef DisjointSet_of_hashables partitions = DisjointSet_of_hashables(G.vertex_iterator())
     # a dictionary to store the least weight outgoing edge for each component
     cdef dict cheapest = {}
-    cdef list T = [] # stores the edges in minimum spanning tree
+    cdef list T = []  # stores the edges in minimum spanning tree
     cdef int numConComp = G.order()
     cdef int numConCompPrevIter = numConComp + 1
 
@@ -543,7 +697,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
 
-            if component1 != component2 :
+            if component1 != component2:
                 partitions.union(component1, component2)
                 T.append(e)
                 numConComp = numConComp - 1
