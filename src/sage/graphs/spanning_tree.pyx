@@ -422,22 +422,21 @@ cpdef filter_kruskal(G, wfunction=None, bint check=False):
 def partition(edges, union_find, wfunction=None, bint check=False):
     import random
     from sage.graphs.graph import Graph
- 
+
     # If graph size is less than the kruskal Threshold, then we implement kruskal
     # Here threshold is set to  10000 edges
     if len(edges) < 10000:
-        yield from filter_kruskal_iterator(edges, union_find, wfunction=wfunction, check=False)
-        return
+        return filter_kruskal_iterator(edges, union_find, wfunction=wfunction, check=False)
     # Selecting a pivot(edge weight) at random
     pivot = random.choice(edges)[2]
- 
+
     # Divide the list of edges accoring the pivot
     # We use variable ch to equally divide edges with weight equal
     # the to pivot
     cdef list L1_Graph = []
     cdef list L2_Graph = []
     cdef int ch = 0
-   
+
     for e in edges:
         if e[2] < pivot[2]:
             L1_Graph.append(e)
@@ -454,7 +453,7 @@ def partition(edges, union_find, wfunction=None, bint check=False):
     # After the graph is divided in two parts we remove the unwanted edges by filter function
     L1_filter = [e for e in L1_Graph if union_find.find(e[0]) != union_find.find(e[1])]
     if len(L1_filter) > 0:
-        yield from partition(L1_filter, union_find, wfunction=wfunction, check=check)
+        return partition(L1_filter, union_find, wfunction=wfunction, check=check)
 
     # Checking if we have got the spanning tree
     if union_find.number_of_subsets() == 1:
@@ -462,14 +461,12 @@ def partition(edges, union_find, wfunction=None, bint check=False):
 
     L2_filter = [e for e in L2_Graph if union_find.find(e[0]) != union_find.find(e[1])]
     if len(L2_filter) > 0:
-        yield from partition(L2_filter,  union_find, wfunction=wfunction, check=check)
-        return
+        return partition(L2_filter,  union_find, wfunction=wfunction, check=check)
 
 
 def filter_kruskal_iterator(edges, union_find, wfunction=None, bint check=False):
     # G is assumed to be connected, undirected, and with at least a vertex
     # We sort edges, as specified.
-  
     sortedE_iter = None
     if wfunction is None:
         from operator import itemgetter
