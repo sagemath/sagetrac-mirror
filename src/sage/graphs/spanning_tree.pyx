@@ -289,7 +289,7 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
-        raise ValueError("The input G must be an undirected graph")
+        raise ValueError("The input G must be an undirected graph.")
 
     # sanity checks
     if check:
@@ -627,7 +627,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
-        raise ValueError("The input graph must be an undirected graph")
+        raise ValueError("the input graph must be undirected")
 
     if G.order() <= 1:
         return []
