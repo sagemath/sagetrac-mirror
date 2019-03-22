@@ -66,7 +66,7 @@ cimport cython
 
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 
-cpdef kruskal(G, weight_function=None, bint check=False):
+cpdef kruskal(G, wfunction=None, bint check=False):
     r"""
     Minimum spanning tree using Kruskal's algorithm.
 
@@ -80,21 +80,21 @@ cpdef kruskal(G, weight_function=None, bint check=False):
 
     - ``G`` -- an undirected graph.
 
-    - ``weight_function`` function (default: ``None``) - a function that 
+    - ``wfunction`` function (default: ``None``) - a function that 
       inputs an edge ``e`` and outputs its weight. An edge has the form 
       ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is a label 
-      (that can be of any kind). The ``weight_function`` can be used to 
+      (that can be of any kind). The ``wfunction`` can be used to 
       transform the label into a weight. In particular:
 
-      - if ``weight_function`` is not ``None``, the weight of an edge ``e``
-        is ``weight_function(e)``;
+      - if ``wfunction`` is not ``None``, the weight of an edge ``e``
+        is ``wfunction(e)``;
 
-      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+      - if ``wfunction`` is ``None`` (default) and ``g`` is weighted
         (that is, ``g.weighted()==True``), the weight of an edge
         ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
         is: the ordering of labels relies on Python's operator ``<``;
 
-      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+      - if ``wfunction`` is ``None`` and ``g`` is not weighted, we set
         all weights to 1 (hence, the output can be any spanning tree).
 
     - ``check`` -- Whether to first perform sanity checks on the input
@@ -196,9 +196,9 @@ cpdef kruskal(G, weight_function=None, bint check=False):
         sage: weight = lambda e:3-e[0]-e[1]
         sage: sorted(kruskal(G, check=True))
         [(0, 1, 1), (1, 2, 1)]
-        sage: sorted(kruskal(G, weight_function=weight, check=True))
+        sage: sorted(kruskal(G, wfunction=weight, check=True))
         [(0, 2, 10), (1, 2, 1)]
-        sage: sorted(kruskal(G, weight_function=weight, check=False))
+        sage: sorted(kruskal(G, wfunction=weight, check=False))
         [(0, 2, 10), (1, 2, 1)]
 
     TESTS:
@@ -266,10 +266,10 @@ cpdef kruskal(G, weight_function=None, bint check=False):
         ...
         ValueError: The input G must be an undirected graph.
     """
-    return list(kruskal_iterator(G, weight_function=weight_function, check=check))
+    return list(kruskal_iterator(G, wfunction=wfunction, check=check))
 
 
-def kruskal_iterator(G, weight_function=None, bint check=False):
+def kruskal_iterator(G, wfunction=None, bint check=False):
     """
     Return an iterator implementation of Kruskal algorithm.
 
@@ -307,7 +307,7 @@ def kruskal_iterator(G, weight_function=None, bint check=False):
         g = G
 
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())   
-    yield from kruskal_iterator_from_edges(g.edges(sort=False), union_find, weight_function=weight_function)
+    yield from kruskal_iterator_from_edges(g.edges(sort=False), union_find, weight_function=wfunction)
 
 def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     r"""
@@ -503,7 +503,7 @@ def kruskal_iterator_from_edges(edges, union_find, weight_function=None):
                 return
 
 
-cpdef boruvka(G, weight_function=None, bint check=False, bint by_weight=True):
+cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     r"""
     Minimum spanning tree using Boruvka's algorithm.
 
@@ -517,21 +517,21 @@ cpdef boruvka(G, weight_function=None, bint check=False, bint by_weight=True):
 
     - ``G`` -- an undirected graph.
 
-    - ``weight_function`` -- weight function (default: ``None``); a function that
+    - ``wfunction`` -- weight function (default: ``None``); a function that
       inputs an edge ``e`` and outputs its weight. An edge has the form
       ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is a label (that
-      can be of any kind).  The ``weight_function`` can be used to transform the label
+      can be of any kind).  The ``wfunction`` can be used to transform the label
       into a weight. In particular:
 
-      - if ``weight_function`` is not ``None``, the weight of an edge ``e`` is
-        ``weight_function(e)``;
+      - if ``wfunction`` is not ``None``, the weight of an edge ``e`` is
+        ``wfunction(e)``;
 
-      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted (that is,
+      - if ``wfunction`` is ``None`` (default) and ``g`` is weighted (that is,
         ``g.weighted()==True``), the weight of an edge ``e=(u,v,l)`` is ``l``,
         independently on which kind of object ``l`` is: the ordering of labels
         relies on Python's operator ``<``;
 
-      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set all
+      - if ``wfunction`` is ``None`` and ``g`` is not weighted, we set all
         weights to 1 (hence, the output can be any spanning tree).
 
     - ``check`` -- boolean (default: ``False``); whether to first perform sanity
@@ -551,8 +551,8 @@ cpdef boruvka(G, weight_function=None, bint check=False, bint by_weight=True):
 
     - ``by_weight`` -- boolean (default: ``False``); whether to find MST by
       using weights of edges provided.  Default: ``by_weight=True``. If
-      ``weight_function`` is given, MST is calculated using the weights of edges as
-      per the function. If ``weight_function`` is ``None``, the weight of an edge
+      ``wfunction`` is given, MST is calculated using the weights of edges as
+      per the function. If ``wfunction`` is ``None``, the weight of an edge
       ``e=(u,v,l)`` is ``l`` if graph is weighted, or all edge weights are
       considered ``1`` if graph is unweighted. If we toggle ``by_weight=False``,
       all weights are considered as ``1`` and MST is calculated.
@@ -584,9 +584,9 @@ cpdef boruvka(G, weight_function=None, bint check=False, bint by_weight=True):
 
         sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
         sage: weight = lambda e:3-e[0]-e[1]
-        sage: boruvka(G, weight_function=lambda e:3-e[0]-e[1], by_weight=True)
+        sage: boruvka(G, wfunction=lambda e:3-e[0]-e[1], by_weight=True)
         [(0, 2, 10), (1, 2, 1)]
-        sage: boruvka(G, weight_function=lambda e:float(1/e[2]), by_weight=True)
+        sage: boruvka(G, wfunction=lambda e:float(1/e[2]), by_weight=True)
         [(0, 2, 10), (0, 1, 1)]
 
     An example of disconnected graph with ``check`` disabled::
@@ -645,13 +645,13 @@ cpdef boruvka(G, weight_function=None, bint check=False, bint by_weight=True):
 
     # Store the list of active edges as (e, e_weight) in a list
     if by_weight:
-        if weight_function is None:
+        if wfunction is None:
             if G.weighted():
                 edge_list = [(e, e[2]) for e in G.edge_iterator()]
             else:
                 edge_list = [(e, 1) for e in G.edge_iterator()]
         else:
-            edge_list = [(e, weight_function(e)) for e in G.edge_iterator()]
+            edge_list = [(e, wfunction(e)) for e in G.edge_iterator()]
     else:
         edge_list = [(e, 1) for e in G.edge_iterator()]
 
