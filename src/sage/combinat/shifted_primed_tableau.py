@@ -550,6 +550,26 @@ class ShiftedPrimedTableau(ClonableArray):
         L = [[None]*i + row for i, row in enumerate(self._repr_tab())]
         return tex_from_array(L)
 
+    def _sagetex_(self):
+        r"""
+        Return LaTex code for ``self`` for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: T = ShiftedPrimedTableaux([4,2])
+            sage: sagetex(T([[1,"2p",2,"3p"],[2,3]]))
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
+            \lr{ 1 }&\lr{ 2'}&\lr{ 2 }&\lr{ 3'}\\\cline{1-4}
+            &\lr{ 2 }&\lr{ 3 }\\\cline{2-3}
+            \end{array}$}
+            }
+        """
+        from sage.combinat.output import tex_from_array
+        L = [[None]*i + row for i, row in enumerate(self._repr_tab())]
+        return tex_from_array(L, with_double_hash=True)
+
     def max_entry(self):
         r"""
         Return the minimum unprimed letter `x > y` for all `y` in ``self``.

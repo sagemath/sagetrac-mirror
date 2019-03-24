@@ -149,6 +149,28 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
             return ' \otimes '.join(latex(c) for c in reversed(self))
         return ' \otimes '.join(latex(c) for c in self)
 
+    def _sagetex_(self):
+        r"""
+        Return latex code for ``self`` for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: C = crystals.Letters(["A",2])
+            sage: D = crystals.Tableaux(["A",2], shape=[2])
+            sage: E = crystals.TensorProduct(C,D)
+            sage: sagetex(E.module_generators[0])
+            1 \otimes {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{1}&\lr{1}\\\cline{1-2}
+            \end{array}$}
+            }
+        """
+        from sage.misc.sagetex import sagetex
+        if self._parent.options.convention == "Kashiwara":
+            return ' \otimes '.join(sagetex(c) for c in reversed(self))
+        return ' \otimes '.join(sagetex(c) for c in self)
+
     def _ascii_art_(self):
         """
         Return an ASCII art representation of ``self``.
@@ -905,6 +927,39 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
         T = Tableau(tab).conjugate()
         return tex_from_array([[letter._latex_() for letter in row] for row in T])
 
+    def _sagetex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: T = crystals.Tableaux(['A',3], shape = [4,2])
+            sage: t = T(rows=[[1,1,2,3],[2,3]])
+            sage: sagetex(t) # indirect doctest
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
+            \lr{1}&\lr{1}&\lr{2}&\lr{3}\\\cline{1-4}
+            \lr{2}&\lr{3}\\\cline{1-2}
+            \end{array}$}
+            }
+        """
+        from sage.combinat.output import tex_from_array
+        # Modified version of to_tableau() to have the entries be letters
+        #   rather than their values
+        if not self._list:
+            return "{\\emptyset}"
+
+        tab = [ [self[0]] ]
+        for i in range(1,len(self)):
+            if self[i-1] < self[i] or (self[i-1].value != 0 and self[i-1] == self[i]):
+                tab.append([self[i]])
+            else:
+                l = len(tab)-1
+                tab[l].append(self[i])
+        for x in tab:
+            x.reverse()
+        T = Tableau(tab).conjugate()
+        return tex_from_array([[letter._latex_() for letter in row] for row in T], with_double_hash=True)
+
     @cached_method
     def to_tableau(self):
         """
@@ -1389,6 +1444,25 @@ cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
             }
         """
         return self.to_tableau()._latex_()
+
+    def _sagetex_(self):
+        r"""
+        Return the latex code of ``self`` for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: c = C.an_element()
+            sage: sagetex(c)
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{-2}\\\cline{1-1}
+            \lr{-1}\\\cline{1-1}
+            \end{array}$}
+            }
+        """
+        return self.to_tableau()._sagetex_()
 
     @cached_method
     def to_tableau(self):
