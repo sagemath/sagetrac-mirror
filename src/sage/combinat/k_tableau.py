@@ -475,6 +475,40 @@ class WeakTableau_abstract(ClonableList):
         else:
             return "["+"".join(self[i]._latex_()+',' for i in range(len(self)-1))+self[len(self)-1]._latex_()+"]"
 
+    def _sagetex_(self):
+        r"""
+        Return a latex method for the tableau for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: t = WeakTableau([[None, 1, 1, 2, 2], [None, 2], [1]], 3)
+            sage: sagetex(t)
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{1-5}
+            \lr{}&\lr{1}&\lr{1}&\lr{2}&\lr{2}\\\cline{1-5}
+            \lr{}&\lr{2}\\\cline{1-2}
+            \lr{1}\\\cline{1-1}
+            \end{array}$}
+            }
+
+            sage: t = WeakTableau([[0,3],[2,1]], 3, inner_shape = [1,1], representation = 'factorized_permutation')
+            sage: sagetex(t)
+            [s_{0}s_{3},s_{2}s_{1}]
+        """
+        def chi(x):
+            if x is None:
+                return ""
+            if x in ZZ:
+                return x
+            return "%s"%x
+        if self.parent()._representation in ['core', 'bounded']:
+            t = [[chi(x) for x in row] for row in self]
+            from .output import tex_from_array
+            return tex_from_array(t, with_double_hash=True)
+        else:
+            return "["+"".join(self[i]._latex_()+',' for i in range(len(self)-1))+self[len(self)-1]._latex_()+"]"
+
     def representation(self, representation = 'core'):
         r"""
         Return the analogue of ``self`` in the specified representation.
@@ -3628,6 +3662,44 @@ class StrongTableau(ClonableList):
         T = [[chi(x) for x in row] for row in self.to_list()]
         from .output import tex_from_array
         return tex_from_array(T)
+
+    def _sagetex_(self):
+        r"""
+        Return a latex method for the tableau for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: T = StrongTableau( [[None, -1, -2, 3], [2, -3]], 2, weight=[2,1] )
+            sage: Tableaux.options(convention = "English")
+            sage: sagetex(T)
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
+            \lr{}&\lr{1^\ast}&\lr{1^\ast}&\lr{2}\\\cline{1-4}
+            \lr{1}&\lr{2^\ast}\\\cline{1-2}
+            \end{array}$}
+            }
+            sage: Tableaux.options(convention = "French")
+            sage: sagetex(T)
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\cline{1-2}
+            \lr{1}&\lr{2^\ast}\\\cline{1-4}
+            \lr{}&\lr{1^\ast}&\lr{1^\ast}&\lr{2}\\\cline{1-4}
+            \end{array}$}
+            }
+        """
+        def chi(x):
+            if x is None:
+                return ""
+            if x in ZZ:
+                s = "%s"%abs(x)
+                if x<0:
+                    s += "^\\ast"
+                return s
+            return "%s"%x
+        T = [[chi(x) for x in row] for row in self.to_list()]
+        from .output import tex_from_array
+        return tex_from_array(T, with_double_hash=True)
 
     def restrict( self, r ):
         r"""

@@ -167,6 +167,26 @@ class Core(CombinatorialElement):
         """
         return self.to_partition()._latex_()
 
+    def _sagetex_(self):
+        r"""
+        Output the LaTeX representation of this core as a partition for sagetex.
+
+        See the ``_sagetex_`` method of :class:`Partition`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: c = Core([2,1],4)
+            sage: sagetex(c)
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+        """
+        return self.to_partition()._sagetex_()
+
     def k(self):
         r"""
         Returns `k` of the `k`-core ``self``.

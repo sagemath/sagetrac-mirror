@@ -20,9 +20,9 @@ from sage.combinat.tableau import Tableaux
 
 # The tex macro used to latex individual cells in an array (as a template).
 # When using bar should be replaced by '|' or ''.
-lr_macro = Template(r'\def\lr#1{\multicolumn{1}{$bar@{\hspace{.6ex}}c@{\hspace{.6ex}}$bar}{\raisebox{-.3ex}{$$#1$$}}}')
+lr_macro = Template(r'\def\lr${hash}1{\multicolumn{1}{$bar@{\hspace{.6ex}}c@{\hspace{.6ex}}$bar}{\raisebox{-.3ex}{$$${hash}1$$}}}')
 
-def tex_from_array(array, with_lines=True):
+def tex_from_array(array, with_lines=True, with_double_hash=False):
     r"""
     Return a latex string for a two dimensional array of partition, composition or skew composition shape
 
@@ -170,14 +170,14 @@ def tex_from_array(array, with_lines=True):
         }
         sage: Tableaux.options._reset()
     """
-    lr=lr_macro.substitute(bar='|' if with_lines else '')
+    lr=lr_macro.substitute(bar='|' if with_lines else '', hash='##' if with_double_hash else '#')
     if Tableaux.options.convention == "English":
         return '{%s\n%s\n}' % (lr, tex_from_skew_array(array, with_lines))
     else:
         return '{%s\n%s\n}' % (lr, tex_from_skew_array(array[::-1], with_lines, align='t'))
 
 
-def tex_from_array_tuple(a_tuple, with_lines=True):
+def tex_from_array_tuple(a_tuple, with_lines=True, with_double_hash=False):
     r"""
     Return a latex string for a tuple of two dimensional array of partition,
     composition or skew composition shape.
@@ -239,7 +239,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
         \end{array}$}
         }
     """
-    lr=lr_macro.substitute(bar='|' if with_lines else '')
+    lr=lr_macro.substitute(bar='|' if with_lines else '', hash='##' if with_double_hash else '#')
     if Tableaux.options.convention == "English":
         return '{%s\n%s\n}' % (lr, ','.join(
             r'\emptyset' if comp==[] else tex_from_skew_array(comp, with_lines) for comp in a_tuple))

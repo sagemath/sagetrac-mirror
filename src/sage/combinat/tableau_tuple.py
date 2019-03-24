@@ -580,6 +580,61 @@ class TableauTuple(CombinatorialElement):
         from sage.combinat.output import tex_from_array_tuple
         return r'\Bigg( %s \Bigg)' % tex_from_array_tuple(self)
 
+    def _sagetex_(self):
+        r"""
+        Returns a LaTeX version of ``self`` for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: t=TableauTuple([ [[1,2],[3]], [], [[4,5],[6,7]] ])
+            sage: sagetex(t)    # indirect doctest
+            \Bigg( {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{1}&\lr{2}\\\cline{1-2}
+            \lr{3}\\\cline{1-1}
+            \end{array}$},\emptyset,\raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{4}&\lr{5}\\\cline{1-2}
+            \lr{6}&\lr{7}\\\cline{1-2}
+            \end{array}$}
+            } \Bigg)
+            sage: TableauTuples.options(convention="french")
+            sage: sagetex(t)    # indirect doctest
+            \Bigg( {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
+            \lr{3}\\\cline{1-2}
+            \lr{1}&\lr{2}\\\cline{1-2}
+            \end{array}$},\emptyset,\raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-2}
+            \lr{6}&\lr{7}\\\cline{1-2}
+            \lr{4}&\lr{5}\\\cline{1-2}
+            \end{array}$}
+            } \Bigg)
+            sage: TableauTuples.options._reset()
+        """
+        return self.parent().options._dispatch(self,'_sagetex_','sagetex')
+
+
+    def _sagetex_diagram(self):
+        r"""
+        Return a LaTeX representation of ``self`` as a Young diagram for sagetex.
+
+        EXAMPLES::
+
+            sage: t = TableauTuple([ [[1,2],[3]], [], [[4,5],[6,7]] ])
+            sage: print(t._sagetex_diagram())
+            \Bigg( {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{1}&\lr{2}\\\cline{1-2}
+            \lr{3}\\\cline{1-1}
+            \end{array}$},\emptyset,\raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{4}&\lr{5}\\\cline{1-2}
+            \lr{6}&\lr{7}\\\cline{1-2}
+            \end{array}$}
+            } \Bigg)
+        """
+        from sage.combinat.output import tex_from_array_tuple
+        return r'\Bigg( %s \Bigg)' % tex_from_array_tuple(self, with_double_hash=True)
+
 
     def components(self):
         """

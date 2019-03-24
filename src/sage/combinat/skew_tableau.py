@@ -320,6 +320,25 @@ class SkewTableau(ClonableList):
         from sage.combinat.output import tex_from_array
         return tex_from_array(self)
 
+    def _sagetex_(self):
+        r"""
+        Return a `\LaTeX` representation of ``self`` for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: sagetex(SkewTableau([[None,2,3],[None,4],[5]]))
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{2-3}
+            &\lr{2}&\lr{3}\\\cline{2-3}
+            &\lr{4}\\\cline{1-2}
+            \lr{5}\\\cline{1-1}
+            \end{array}$}
+            }
+        """
+        from sage.combinat.output import tex_from_array
+        return tex_from_array(self, with_double_hash=True)
+
     def outer_shape(self):
         """
         Return the outer shape of ``self``.

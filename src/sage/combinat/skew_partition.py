@@ -338,6 +338,110 @@ class SkewPartition(CombinatorialElement):
                 arr[i][j] = char
         return tex_from_array(arr)
 
+    def _sagetex_(self):
+        r"""
+        Return a `\LaTeX` representation of ``self`` for sagetex.
+
+        For more on the sagetex options, see
+        :obj:`SkewPartitions.options`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: s = SkewPartition([[5,4,3],[3,1,1]])
+            sage: sagetex(s)
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{4-5}
+            &&&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{2-5}
+            &\lr{\phantom{x}}&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{2-4}
+            &\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{2-3}
+            \end{array}$}
+            }
+        """
+        if getattr(self, '_sagetex_' +self.parent().options._value['sagetex'], None):
+            return self.parent().options._dispatch(self, '_sagetex_', 'sagetex')
+
+        # Default to latex if sagetex version doesn't exist
+        return self.parent().options._dispatch(self, '_latex_', 'sagetex')
+
+    def _sagetex_diagram(self):
+        r"""
+        Return a `\LaTeX` representation as a young diagram for sagetex.
+
+        EXAMPLES::
+
+            sage: print(SkewPartition([[5,4,3],[3,1,1]])._sagetex_diagram())
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{4-5}
+            &&&\lr{\ast}&\lr{\ast}\\\cline{2-5}
+            &\lr{\ast}&\lr{\ast}&\lr{\ast}\\\cline{2-4}
+            &\lr{\ast}&\lr{\ast}\\\cline{2-3}
+            \end{array}$}
+            }
+        """
+        if len(self._list) == 0:
+            return "{\\emptyset}"
+
+        char = self.parent().options.latex_diagram_str
+
+        from sage.combinat.output import tex_from_array
+        arr = [[char]*row_size for row_size in self[0]]
+        for i, skew_size in enumerate(self[1]): # This is always smaller by containment
+            for j in range(skew_size):
+                arr[i][j] = None
+        return tex_from_array(arr, with_double_hash=True)
+
+    def _sagetex_young_diagram(self):
+        r"""
+        Return a `\LaTeX` representation of ``self`` as a young diagram for sagetex.
+
+        EXAMPLES::
+
+            sage: print(SkewPartition([[5,4,3],[3,1,1]])._sagetex_young_diagram())
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{4-5}
+            &&&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{2-5}
+            &\lr{\phantom{x}}&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{2-4}
+            &\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{2-3}
+            \end{array}$}
+            }
+        """
+        if len(self._list) == 0:
+            return "{\\emptyset}"
+
+        from sage.combinat.output import tex_from_array
+        arr = [["\\phantom{x}"]*row_size for row_size in self[0]]
+        for i, skew_size in enumerate(self[1]): # This is always smaller by containment
+            for j in range(skew_size):
+                arr[i][j] = None
+        return tex_from_array(arr, with_double_hash=True)
+
+    def _sagetex_marked(self):
+        r"""
+        Return a `\LaTeX` representation as a marked partition for sagetex.
+
+        EXAMPLES::
+
+            sage: print(SkewPartition([[5,4,3],[3,1,1]])._sagetex_marked())
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{1-5}
+            \lr{X}&\lr{X}&\lr{X}&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-5}
+            \lr{X}&\lr{\phantom{x}}&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-4}
+            \lr{X}&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-3}
+            \end{array}$}
+            }
+        """
+        if len(self._list) == 0:
+            return "{\\emptyset}"
+
+        from sage.combinat.output import tex_from_array
+        char = self.parent().options.latex_marking_str
+        arr = [["\\phantom{x}"]*row_size for row_size in self[0]]
+        for i, skew_size in enumerate(self[1]): # This is always smaller by containment
+            for j in range(skew_size):
+                arr[i][j] = char
+        return tex_from_array(arr, with_double_hash=True)
+
     def __setstate__(self, state):
         r"""
         In order to maintain backwards compatibility and be able to unpickle
@@ -1357,6 +1461,13 @@ class SkewPartitions(UniqueRepresentation, Parent):
                    values=dict(diagram='latex as a skew Ferrers diagram',
                                young_diagram='latex as a skew Young diagram',
                                marked='latex as a partition where the skew shape is marked'),
+                   alias=dict(array="diagram", ferrers_diagram="diagram"),
+                   case_sensitive=False)
+        sagetex = dict(default="young_diagram",
+                   description='Specifies how skew partitions should be latexed for sagetex',
+                   values=dict(diagram='latex as a skew Ferrers diagram for sagetex',
+                               young_diagram='latex as a skew Young diagram for sagetex',
+                               marked='latex as a partition where the skew shape is marked for sagetex'),
                    alias=dict(array="diagram", ferrers_diagram="diagram"),
                    case_sensitive=False)
         diagram_str = dict(link_to=(Partitions.options,'diagram_str'))

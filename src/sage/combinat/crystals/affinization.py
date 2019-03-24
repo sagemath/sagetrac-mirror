@@ -157,6 +157,25 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
             from sage.misc.latex import latex
             return latex(self._b) + "({})".format(self._m)
 
+        def _sagetex_(self):
+            r"""
+            Return a LaTeX representation of ``self`` for sagetex.
+
+            EXAMPLES::
+
+                sage: from sage.misc.sagetex import sagetex
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
+                sage: sagetex(A.module_generators[0])
+                {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+                \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+                \lr{1}&\lr{1}\\\cline{1-2}
+                \lr{2}&\lr{2}\\\cline{1-2}
+                \end{array}$}
+                } (0)
+            """
+            from sage.misc.sagetex import sagetex
+            return sagetex(self._b) + "({})".format(self._m)
+
         def __hash__(self):
             r"""
             TESTS::

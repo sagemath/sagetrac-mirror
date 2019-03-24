@@ -967,6 +967,94 @@ class Partition(CombinatorialElement):
         return '%s' % ','.join('%s%s' % (M-m, '' if e==1 else '^{%s}'%e)
                                  for (m,e) in enumerate(exp) if e>0)
 
+    def _sagetex_(self):
+        r"""
+        Return a LaTeX version of ``self`` for sagetex.
+
+        For more on the latex options, see :meth:`Partitions.options`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: mu = Partition([2, 1])
+            sage: Partitions.options.sagetex='diagram'; sagetex(mu)       # indirect doctest
+            {\def\lr##1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
+            \lr{\ast}&\lr{\ast}\\
+            \lr{\ast}\\
+            \end{array}$}
+            }
+            sage: Partitions.options.sagetex='young_diagram'; sagetex(mu) # indirect doctest
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+            sage: Partitions.options.sagetex='exp_high'; sagetex(mu)      # indirect doctest
+            2,1
+            sage: Partitions.options(sagetex="young_diagram", convention="french")
+            sage: Partitions.options.sagetex='young_diagram'; sagetex(mu) # indirect doctest
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \end{array}$}
+            }
+
+            sage: Partitions.options._reset()
+        """
+        if getattr(self, '_sagetex_' +self.parent().options._value['sagetex'], None):
+            return self.parent().options._dispatch(self, '_sagetex_', 'sagetex')
+
+        # Default to latex if sagetex version doesn't exist
+        return self.parent().options._dispatch(self, '_latex_', 'sagetex')
+
+
+    def _sagetex_young_diagram(self):
+        r"""
+        LaTeX output as a Young diagram for sagetex.
+
+        EXAMPLES::
+
+            sage: print(Partition([2, 1])._sagetex_young_diagram())
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+            sage: print(Partition([])._sagetex_young_diagram())
+            {\emptyset}
+        """
+        if not self._list:
+            return "{\\emptyset}"
+
+        from sage.combinat.output import tex_from_array
+        return tex_from_array([ ["\\phantom{x}"]*row_size for row_size in self._list ], with_double_hash=True)
+
+    def _sagetex_diagram(self):
+        r"""
+        LaTeX output as a Ferrers' diagram.
+
+        EXAMPLES::
+
+            sage: print(Partition([2, 1])._sagetex_diagram())
+            {\def\lr##1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
+            \lr{\ast}&\lr{\ast}\\
+            \lr{\ast}\\
+            \end{array}$}
+            }
+            sage: print(Partition([])._sagetex_diagram())
+            {\emptyset}
+        """
+        if not self._list:
+            return "{\\emptyset}"
+        entry = self.parent().options("latex_diagram_str")
+        from sage.combinat.output import tex_from_array
+        return tex_from_array([ [entry]*row_size for row_size in self._list ], False, with_double_hash=True)
+
 
     def ferrers_diagram(self):
         r"""
@@ -5878,6 +5966,15 @@ class Partitions(UniqueRepresentation, Parent):
                    description='Specifies how partitions should be latexed',
                    values=dict(diagram='latex as a Ferrers diagram',
                                young_diagram='latex as a Young diagram',
+                               list='latex as a list',
+                               exp_high='latex as a list in exponential notation (highest first)',
+                               exp_low='as a list latex in exponential notation (lowest first)'),
+                   alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
+                   case_sensitive=False)
+        sagetex = dict(default="young_diagram",
+                   description='Specifies how partitions should be latexed',
+                   values=dict(diagram='latex as a Ferrers diagram for sagetex',
+                               young_diagram='latex as a Young diagram for sagetex',
                                list='latex as a list',
                                exp_high='latex as a list in exponential notation (highest first)',
                                exp_low='as a list latex in exponential notation (lowest first)'),

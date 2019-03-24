@@ -1109,6 +1109,25 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         from sage.combinat.output import tex_from_array
         return tex_from_array([[val._latex_() for val in row] for row in self.to_array()])
 
+    def _sagetex_(self):
+        r"""
+        Return a latex representation of ``self`` for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 3, model='KR')
+            sage: sagetex(KRT(3,2,4,2,4,3))
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
+            \lr{2}&\lr{2}&\lr{3}\\\cline{1-3}
+            \lr{3}&\lr{4}&\lr{4}\\\cline{1-3}
+            \end{array}$}
+            }
+        """
+        from sage.combinat.output import tex_from_array
+        return tex_from_array([[val._latex_() for val in row] for row in self.to_array()], with_double_hash=True)
+
     def _ascii_art_(self):
         r"""
         Return an ASCII art representation of ``self``.

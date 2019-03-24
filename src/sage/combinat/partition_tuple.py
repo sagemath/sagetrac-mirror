@@ -704,6 +704,87 @@ class PartitionTuple(CombinatorialElement):
         from sage.combinat.output import tex_from_array_tuple
         return tex_from_array_tuple([ [[entry]*row for row in mu] for mu in self._list ], with_lines=False)
 
+    def _sagetex_(self):
+        r"""
+        Returns a LaTeX version of ``self`` for sagetex.
+
+        For more on the latex options, see :meth:`Partitions.option`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: mu = PartitionTuple([[2, 1],[1,1,1]])
+            sage: PartitionTuples.options(sagetex='diagram'); sagetex(mu)       # indirect doctest
+            {\def\lr##1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
+            \lr{\ast}&\lr{\ast}\\
+            \lr{\ast}\\
+            \end{array}$},\raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\\
+            \lr{\ast}\\
+            \lr{\ast}\\
+            \lr{\ast}\\
+            \end{array}$}
+            }
+            sage: PartitionTuples.options(sagetex='exp_high'); sagetex(mu)      # indirect doctest
+            (2,1|1^{3})
+            sage: PartitionTuples.options(sagetex='young_diagram'); sagetex(mu) # indirect doctest
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$},\raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+
+            sage: PartitionTuples.options(sagetex="young_diagram", convention="french")
+            sage: PartitionTuples.options(sagetex='exp_high'); sagetex(mu)      # indirect doctest
+            (2,1|1^{3})
+            sage: PartitionTuples.options(sagetex='young_diagram'); sagetex(mu) # indirect doctest
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \end{array}$},\raisebox{-.6ex}{$\begin{array}[t]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+
+            sage: PartitionTuples.options._reset()
+        """
+        if getattr(self, '_sagetex_' +self.parent().options._value['sagetex'], None):
+            return self.parent().options._dispatch(self, '_sagetex_', 'sagetex')
+
+        # Default to latex if sagetex version doesn't exist
+        return self.parent().options._dispatch(self, '_latex_', 'sagetex')
+
+    def _sagetex_young_diagram(self):
+        """
+        LaTeX output as a Young diagram for sagetex.
+
+        EXAMPLES::
+
+            sage: mu = PartitionTuple([[2, 1],[1,1,1]])._sagetex_young_diagram()
+        """
+        from sage.combinat.output import tex_from_array_tuple
+        return tex_from_array_tuple([ [["\\phantom{x}"]*row for row in mu] for mu in self._list ], with_double_hash=True)
+
+    def _sagetex_diagram(self):
+        """
+        LaTeX output as a Ferrers' diagram for sagetex.
+
+        EXAMPLES::
+
+            sage: mu = PartitionTuple([[2, 1],[1,1,1]])._sagetex_diagram()
+        """
+        entry = self.parent().options("latex_diagram_str")
+        from sage.combinat.output import tex_from_array_tuple
+        return tex_from_array_tuple([ [[entry]*row for row in mu] for mu in self._list ], with_lines=False, with_double_hash=True)
+
     def _latex_list(self):
         """
         LaTeX output as a list.

@@ -752,6 +752,61 @@ class Tableau(ClonableList):
         from sage.combinat.output import tex_from_array
         return tex_from_array(self)
 
+    def _sagetex_(self):
+        r"""
+        Return a LaTeX version of ``self`` for sagetex.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sagetex import sagetex
+            sage: t = Tableau([[1,1,2],[2,3],[3]])
+            sage: sagetex(t)    # indirect doctest
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
+            \lr{1}&\lr{1}&\lr{2}\\\cline{1-3}
+            \lr{2}&\lr{3}\\\cline{1-2}
+            \lr{3}\\\cline{1-1}
+            \end{array}$}
+            }
+            sage: Tableaux.options.convention="french"
+            sage: sagetex(t)    # indirect doctest
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\cline{1-1}
+            \lr{3}\\\cline{1-2}
+            \lr{2}&\lr{3}\\\cline{1-3}
+            \lr{1}&\lr{1}&\lr{2}\\\cline{1-3}
+            \end{array}$}
+            }
+            sage: Tableaux.options._reset()
+        """
+        if getattr(self, '_sagetex_' +self.parent().options._value['sagetex'], None):
+            return self.parent().options._dispatch(self, '_sagetex_', 'sagetex')
+
+        # Default to latex if sagetex version doesn't exist
+        return self.parent().options._dispatch(self, '_latex_', 'sagetex')
+
+
+    def _sagetex_diagram(self):
+        r"""
+        Return a LaTeX representation of ``self`` as a Young diagram for sagetex.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,2],[2,3],[3]])
+            sage: print(t._sagetex_diagram())
+            {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
+            \lr{1}&\lr{1}&\lr{2}\\\cline{1-3}
+            \lr{2}&\lr{3}\\\cline{1-2}
+            \lr{3}\\\cline{1-1}
+            \end{array}$}
+            }
+        """
+        if len(self) == 0:
+            return "{\\emptyset}"
+        from sage.combinat.output import tex_from_array
+        return tex_from_array(self,with_double_hash=True)
+
     def __truediv__(self, t):
         """
         Return the skew tableau ``self``/``t``, where ``t`` is a partition
@@ -5547,6 +5602,11 @@ class Tableaux(UniqueRepresentation, Parent):
                                  compact='minimal length ascii art'),
                      case_sensitive=False)
         latex = dict(default="diagram",
+                   description='Controls the way in which tableaux are latexed',
+                   values=dict(list='as a list', diagram='as a Young diagram'),
+                   alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                   case_sensitive=False)
+        sagetex = dict(default="diagram",
                    description='Controls the way in which tableaux are latexed',
                    values=dict(list='as a list', diagram='as a Young diagram'),
                    alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
