@@ -2875,6 +2875,79 @@ class ANDescr(SageObject):
         else:
             return (n*n)._descr
 
+    class NoSqrtOfPositiveNumber(RuntimeError):
+        r"""
+        Exception raised by :meth:`arg_of_sqrt_of_positive_rational`.
+
+        TESTS::
+
+            sage: from sage.rings.qqbar import ANDescr
+            sage: ANDescr.arg_of_sqrt_of_positive_rational(sqrt(sqrt(AA(2))))
+            Traceback (most recent call last):
+            ...
+            NoSqrtOfPositiveNumber
+        """
+        pass
+
+    @classmethod
+    def arg_of_sqrt_of_positive_rational(cls, s):
+        r"""
+        Return the argument of the square root of
+        a positive rational algebraic number
+
+        INPUT:
+
+        - ``s`` -- an algebraic number
+
+        OUTPUT:
+
+        An algebraic real.
+
+        EXAMPLES::
+
+            sage: from sage.rings.qqbar import ANDescr
+            sage: a = ANDescr.arg_of_sqrt_of_positive_rational(sqrt(AA(2))); a
+            2
+            sage: a.parent()
+            Algebraic Real Field
+            sage: type(a._descr)
+            <class 'sage.rings.qqbar.ANRational'>
+
+        TESTS::
+
+            sage: ANDescr.arg_of_sqrt_of_positive_rational(AA(2))
+            Traceback (most recent call last):
+            ...
+            NoSqrtOfPositiveNumber
+            sage: x = polygen(AA)
+            sage: ANDescr.arg_of_sqrt_of_positive_rational(
+            ....:     AA.polynomial_root(x^2 - 1, RIF(0,2)))
+            1
+            sage: ANDescr.arg_of_sqrt_of_positive_rational(
+            ....:     AA.polynomial_root(x^2 - 1, RIF(0,2), multiplicity=2))
+            Traceback (most recent call last):
+            ...
+            NoSqrtOfPositiveNumber
+            sage: ANDescr.arg_of_sqrt_of_positive_rational(
+            ....:     AA.polynomial_root(x^2 + x - 1, RIF(0,1)))
+            Traceback (most recent call last):
+            ...
+            NoSqrtOfPositiveNumber
+        """
+        descr = s._descr
+        if isinstance(descr, ANRoot):
+            if descr._multiplicity == 1 and not descr._complex:
+                poly = descr._poly._poly
+                if poly.degree() == 2:
+                    a, b, c = poly.coefficients(sparse=False)
+                    if (isinstance(a._descr, ANRational)
+                        and isinstance(b._descr, ANRational)
+                        and isinstance(c._descr, ANRational)):
+                        ma = -a
+                        if c == 1 and b == 0 and ma > 0 and descr._interval > 0:
+                            return ma
+        raise cls.NoSqrtOfPositiveNumber()
+
 
 class AlgebraicNumber_base(sage.structure.element.FieldElement):
     r"""
