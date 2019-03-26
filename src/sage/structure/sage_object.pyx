@@ -981,7 +981,7 @@ cdef class SageObject:
         TESTS::
 
             sage: x.print_structure(print_object=True)  # indirect doctest
-            object x with parent/type Symbolic Ring
+            symbolic expression x
             * variable x
             sage: x.print_structure(print_object=False)  # indirect doctest
             * variable x
@@ -1034,7 +1034,7 @@ cdef class SageObject:
             (a, b)
             sage: c = ((a + b)^4).expand()
             sage: c.print_structure()
-            object a^4 + 4*a^3*b + 6*a^2*b^2 + 4*a*b^3 + b^4 with parent/type Symbolic Ring
+            symbolic expression a^4 + 4*a^3*b + 6*a^2*b^2 + 4*a*b^3 + b^4
             * operator <function add_vararg at 0x...>
             +-* operator <built-in function pow>
             | +-* variable a
@@ -1062,6 +1062,14 @@ cdef class SageObject:
             +-* operator <built-in function pow>
             | +-* variable b
             | +-* encapsulated integer 4
+
+            sage: (I*pi*e).print_structure()
+            symbolic expression I*pi*e
+            * operator <function mul_vararg at 0x7f4c03563f50>
+            +-* encapsulated object pi of type <class 'sage.symbolic.constants.Pi'>
+            +-* operator exp
+            | +-* encapsulated integer 1
+            +-* encapsulated object I with parent/type Number Field in I with defining polynomial x^2 + 1
 
         Some other elements::
 

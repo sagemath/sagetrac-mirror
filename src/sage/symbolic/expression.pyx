@@ -5774,6 +5774,32 @@ cdef class Expression(CommutativeRingElement):
         # self._gobj is either a symbol, constant or numeric
         return None
 
+    def _structure_str_oneline_(self):
+        r"""
+        Return a structural description string of this expression.
+
+        See :meth:`sage.structure.sage_object._structure_str_oneline_`
+        and :meth:`sage.structure.sage_object.print_structure` for details.
+
+        TESTS::
+
+            sage: x.print_structure()  # indirect doctest
+            symbolic expression x
+            * variable x
+            sage: SR.subring(no_variables=True).an_element().print_structure()  # indirect doctest
+            object I*pi*e with parent/type Symbolic Constants Subring
+            * operator <function mul_vararg at 0x...>
+            +-* encapsulated object pi of type <class 'sage.symbolic.constants.Pi'>
+            +-* operator exp
+            | +-* encapsulated integer 1
+            +-* encapsulated object I with parent/type Number Field in I with defining polynomial x^2 + 1
+        """
+        from .ring import SR
+        if self.parent() is SR:
+            return 'symbolic expression {}'.format(self)
+        else:
+            return super(Expression, self)._structure_str_oneline_()
+
     def _structure_(self):
         r"""
         Return a structural description of this symbolic expression.
@@ -5787,7 +5813,7 @@ cdef class Expression(CommutativeRingElement):
             sage: var('a, b')
             (a, b)
             sage: (a*b^4 - x).print_structure()
-            object a*b^4 - x with parent/type Symbolic Ring
+            symbolic expression a*b^4 - x
             * operator <function add_vararg at 0x...>
             +-* operator <function mul_vararg at 0x...>
             | +-* variable a
@@ -5797,6 +5823,12 @@ cdef class Expression(CommutativeRingElement):
             +-* operator <function mul_vararg at 0x...>
             | +-* variable x
             | +-* encapsulated integer -1
+
+        ::
+
+            sage: pi.print_structure()
+            symbolic expression pi
+            * encapsulated object pi of type <class 'sage.symbolic.constants.Pi'>
         """
         op = self.operator()
         if op is not None:
@@ -5806,7 +5838,11 @@ cdef class Expression(CommutativeRingElement):
         except TypeError:
             pass
         else:
-            return 'encapsulated {}'.format(pyo._structure_str_oneline_())
+            try:
+                pyostr = pyo._structure_str_oneline_()
+            except AttributeError:
+                pyostr = 'object {} of type {}'.format(pyo, type(pyo))
+            return 'encapsulated {}'.format(pyostr)
         if self.is_symbol():
             return 'variable {}'.format(self)
         return 'expression {}'.format(self)
