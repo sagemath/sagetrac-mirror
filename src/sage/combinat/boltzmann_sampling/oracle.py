@@ -31,15 +31,17 @@ class SimpleOracle:
     """Simple oracle for critical Boltzmann sampling based on iteration.
 
     EXAMPLES::
+        sage: from sage.combinat.boltzmann_sampling.grammar import *
+        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
 
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
         sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
         sage: oracle = SimpleOracle(g)
-        sage: oracle("z")
-        0.5  # abs tol 0.0001
-        sage: oracle("B")
-        2  # abs tol 0.0001
+        sage: oracle("z")  # abs tol 0.0001
+        0.25
+        sage: oracle("B")  # abs tol 0.0001
+        2
     """
 
     def __init__(
@@ -159,9 +161,14 @@ class OracleFromGeneratingFunctions:
           the variables from the first argument as named argument.
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.oracle import *
 
             sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
-            sage: OracleFromGeneratingFunctions({"z": 1/4}, {"B": B})
+            sage: oracle = OracleFromGeneratingFunctions({"z": 1/4}, {"B": B})
+            sage: oracle("z")  # abs tol 0.0000001
+            0.25
+            sage: oracle("B")  # abs tol 0.0000001
+            2
         """
         self.variables = variables
         self.gfs = gen_funs
@@ -169,7 +176,7 @@ class OracleFromGeneratingFunctions:
     def __call__(self, name):
         """Evaluate a rule at the computed main singularity."""
         if name in self.variables:
-            return self.variables[name]
+            return self.variables[name].n()
         elif name in self.gfs:
             return self.gfs[name](**self.variables).n()
         else:

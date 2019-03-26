@@ -14,9 +14,10 @@ AUTHORS:
 
 from functools import reduce
 from sage.all import latex, var, SR
+from sage.structure.sage_object import SageObject
 
 
-class Rule:
+class Rule(SageObject):
     """The super class of all grammar rules.
 
     Should not be instantiated directly.
@@ -42,22 +43,23 @@ class Atom(Rule):
         r"""Return the LaTeX representation of an atom.
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import Atom
 
             sage: z = Atom("z")
             sage: latex(z)
-            "z"
+            z
 
             sage: z = Atom("longname")
             sage: latex(z)
-            "\\textrm{longname}"
+            \textrm{longname}
 
             sage: z = Atom("z", size=4)
-            sage latex(z)
-            "z^4"
+            sage: latex(z)
+            z^4
 
             sage: x = Atom("x", size=0)
             sage: latex(x)
-            "x^0"
+            1
         """
         nice_name = self.name
         if len(self.name) != 1:
@@ -65,6 +67,8 @@ class Atom(Rule):
 
         if self.size == 1:
             return nice_name
+        elif self.size == 0:
+            return "1"
         else:
             return "{}^{}".format(nice_name, self.size)
 
@@ -99,6 +103,7 @@ class Ref(Rule):
         r"""Return the LaTeX representation of a non-terminal symbol.
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import Ref
 
             sage: latex(Ref("X"))
             X
@@ -143,6 +148,7 @@ class Union(Rule):
         - ``args`` -- list of strings or Rules; strings are interpreted as Refs
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: A, B, C = Ref("A"), Ref("B"), Ref("C")
             sage: Union(A, B, C)
@@ -168,6 +174,7 @@ class Union(Rule):
         """Return the LaTeX representation of a union.
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: A, B = Ref("A"), Ref("B")
             sage: latex(Union(A, B))
@@ -205,6 +212,7 @@ class Product(Rule):
         - ``args`` -- list of strings or Rules; strings are interpreted as Refs
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: A, B, C = Ref("A"), Ref("B"), Ref("C")
             sage: Product(A, B, C)
@@ -230,6 +238,7 @@ class Product(Rule):
         r"""Return the LaTeX representation of a product.
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: A, B = Ref("A"), Ref("B")
             sage: latex(Product(A, B))
@@ -257,7 +266,7 @@ class Product(Rule):
         return res
 
 
-class Grammar:
+class Grammar(SageObject):
     """Context free grammars."""
 
     def __init__(self, rules=None):
@@ -269,6 +278,7 @@ class Grammar:
           names) to Rules
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: z = Atom("z")
             sage: leaf = Atom("leaf", size=0)
@@ -281,8 +291,8 @@ class Grammar:
             sage: g.set_rule("D", Union(z, Product(z, "S", z)))
             sage: g.set_rule("S", Union(nil, Product("D", "S")))
             sage: g
-            D -> Union(z, Product(z, S, z))
             S -> Union(nil, Product(D, S))
+            D -> Union(z, Product(z, S, z))
         """
         self.rules = {}
         rules = rules or {}
@@ -301,6 +311,7 @@ class Grammar:
         - ``rule`` -- a Rule
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: g = Grammar()
             sage: g.set_rule("A", Union("B", "C"))
@@ -356,6 +367,7 @@ class Grammar:
         r"""Return a LaTeX representation of the grammar.
 
         EXAMPLES::
+            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: y, z = Atom("y"), Atom("z")
             sage: leaf = Atom("leaf", size=0)
@@ -363,25 +375,28 @@ class Grammar:
             ....:     "T": Union(leaf, Product(y, "T"), Product(z, "T", "T"))
             ....:  })
             sage: latex(g)
-            "T = (leaf + y \times T + z \times T \times T)"
+            T = 1 + y \times T + z \times T \times T
 
             sage: g = Grammar(rules={
-            ....:     "A": Ref("B")
+            ....:     "A": Ref("B"),
             ....:     "B": Product("C", "D")
             ....: })
             sage: latex(g)
-            "\begin{cases}\nA &= B \\\nB &= C \times D\n\end{cases}"
+            \begin{cases}
+            A &= B \\
+            B &= C \times D
+            \end{cases}
 
         """
         if len(self.rules) <= 1:
             (name, rule), = self.rules.items()
-            return "{} = {}".format(name, rule)
+            return "{} = {}".format(name, latex(rule))
         else:
             inside = " \\\\ \n".join(
                 "{} &= {}".format(name, latex(rule))
                 for name, rule in self.rules.items()
             )
-            return "\\begin{cases}\n{}\n\\end{cases}.".format(inside)
+            return "\\begin{{cases}}\n{}\n\\end{{cases}}".format(inside)
 
     def _repr_(self):
         return "\n".join(
