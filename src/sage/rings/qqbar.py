@@ -3909,6 +3909,27 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     _complex_mpfi_ = _real_mpfi_ = interval
 
+    def _structure_str_recursive_(self, print_object=True):
+        r"""
+        Return a structural description of this object and
+        its subobjects recursively.
+
+        See :meth:`sage.structure.sage_object._structure_str_recursive_` for details.
+
+        TESTS::
+
+            sage: sqrt(AA(3/4)).print_structure(print_object=True)  # indirect doctest
+            algebraic real 0.866025403784439?
+            * real root of x^2 - 3/4 in 0.8660254037844386468? with multiplicity 1
+            sage: sqrt(AA(3/4)).print_structure(print_object=False)  # indirect doctest
+            * real root of x^2 - 3/4 in 0.8660254037844386468? with multiplicity 1
+        """
+        result = []
+        if print_object:
+            result.append(self._structure_str_oneline_())
+        result.extend(self._descr._structure_str_recursive_(print_object=False))
+        return result
+
     def radical_expression(self):
         r"""
         Attempt to obtain a symbolic expression using radicals. If no
@@ -4520,6 +4541,21 @@ class AlgebraicNumber(AlgebraicNumber_base):
         if self == 1:
             return self
         raise TypeError("unsupported operand parent(s) for ^: '{0}' and '{0}'".format(self.parent()))
+
+    def _structure_str_oneline_(self):
+        r"""
+        Return a structural description string of this algebraic number.
+
+        See :meth:`sage.structure.sage_object._structure_str_oneline_`
+        and :meth:`sage.structure.sage_object.print_structure` for details.
+
+        TESTS::
+
+            sage: QQbar(42).print_structure()  # indirect doctest
+            algebraic number 42
+            * rational 42
+        """
+        return 'algebraic number {}'.format(self)
 
 
 class AlgebraicReal(AlgebraicNumber_base):
@@ -5231,6 +5267,21 @@ class AlgebraicReal(AlgebraicNumber_base):
 
         return field(mid)
 
+    def _structure_str_oneline_(self):
+        r"""
+        Return a structural description string of this algebraic real.
+
+        See :meth:`sage.structure.sage_object._structure_str_oneline_`
+        and :meth:`sage.structure.sage_object.print_structure` for details.
+
+        TESTS::
+
+            sage: AA(42).print_structure()  # indirect doctest
+            algebraic real 42
+            * rational 42
+        """
+        return 'algebraic real {}'.format(self)
+
 
 class AlgebraicNumberPowQQAction(Action):
     """
@@ -5483,6 +5534,20 @@ class ANRational(ANDescr):
             self._value = ZZ(x)
         else:
             raise TypeError("Illegal initializer for algebraic number rational")
+
+    def _structure_(self):
+        r"""
+        Return a structural description of this object.
+
+        See :meth:`sage.structure.sage_object._structure_` for details.
+
+        TESTS::
+
+            sage: AA(3/2).print_structure()  # indirect doctest
+            algebraic real 3/2
+            * rational 3/2
+        """
+        return 'rational {}'.format(self._value)
 
     def __reduce__(self):
         """
@@ -5997,6 +6062,22 @@ class ANRoot(ANDescr):
         self._complex = is_ComplexIntervalFieldElement(interval)
         self._complex_poly = poly.is_complex()
         self._interval = self.refine_interval(interval, 64)
+
+    def _structure_(self):
+        r"""
+        Return a structural description of this object.
+
+        See :meth:`sage.structure.sage_object._structure_` for details.
+
+        TESTS::
+
+            sage: sqrt(AA(3)).print_structure()  # indirect doctest
+            algebraic real 1.732050807568878?
+            * real root of x^2 - 3 in 1.7320508075688772935? with multiplicity 1
+        """
+        return '{} root of {} in {} with multiplicity {}'.format(
+            'complex' if self._complex else 'real',
+            self._poly, self._interval, self._multiplicity)
 
     def __reduce__(self):
         """
@@ -6690,6 +6771,22 @@ class ANExtensionElement(ANDescr):
         self._value = value
         self._exactly_real = not generator.is_complex()
 
+    def _structure_(self):
+        r"""
+        Return a structural description of this object.
+
+        See :meth:`sage.structure.sage_object._structure_` for details.
+
+        TESTS::
+
+            sage: a = sqrt(AA(3))
+            sage: a.exactify()
+            sage: a.print_structure()  # indirect doctest
+            algebraic real 1.732050807568878?
+            * extension element a where a^2 - 3 = 0 and a in 1.732050807568878?
+        """
+        return 'extension element {}'.format(self)
+
     def __reduce__(self):
         """
         Add customized pickling support.
@@ -7105,6 +7202,24 @@ class ANUnaryExpr(ANDescr):
         self._op = op
         self._complex = True
 
+    def _structure_(self):
+        r"""
+        Return a structural description of this object.
+
+        See :meth:`sage.structure.sage_object._structure_` for details.
+
+        TESTS::
+
+            sage: (-sqrt(AA(3))).print_structure()  # indirect doctest
+            algebraic real -1.732050807568878?
+            * unary operator -
+            +-* real root of x^2 - 3 in 1.7320508075688772935? with multiplicity 1
+            sage: (-AA(3/2)).print_structure()  # indirect doctest
+            algebraic real -3/2
+            * rational -3/2
+        """
+        return ('unary operator {}'.format(self._op), [self._arg._descr])
+
     def __reduce__(self):
         """
         Add customized pickling support.
@@ -7359,6 +7474,22 @@ class ANBinaryExpr(ANDescr):
         self._right = right
         self._op = op
         self._complex = True
+
+    def _structure_(self):
+        r"""
+        Return a structural description of this object.
+
+        See :meth:`sage.structure.sage_object._structure_` for details.
+
+        TESTS::
+
+            sage: (AA(3/2) + sqrt(AA(3))).print_structure()  # indirect doctest
+            algebraic real 3.232050807568878?
+            * binary operator <built-in function add>
+            +-* rational 3/2
+            +-* real root of x^2 - 3 in 1.7320508075688772935? with multiplicity 1
+        """
+        return ('binary operator {}'.format(self._op), [self._left._descr, self._right._descr])
 
     def __reduce__(self):
         """
