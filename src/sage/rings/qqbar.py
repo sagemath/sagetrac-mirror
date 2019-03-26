@@ -2875,6 +2875,51 @@ class ANDescr(SageObject):
         else:
             return (n*n)._descr
 
+    @classmethod
+    def _expanded_invert_(cls, arg, element):
+        r"""
+        Return inverted ``element`` expanded.
+
+        See also :meth:`AlgebraicNumber_base.expanded`.
+
+        INPUT:
+
+        - ``element`` -- an algebraic number
+          whose desciption (``_descr``) is this object
+
+        OUTPUT:
+
+        A list of tuples; see :meth:`AlgebraicNumber_base._expanded_`.
+
+        TESTS::
+
+            sage: (~sqrt(AA(3)))._expanded_()  # indirect doctest
+            [(1/3, 1.732050807568878?)]
+            sage: (1 / (sqrt(AA(3)) * sqrt(AA(2))))._expanded_()  # indirect doctest
+            [(1/6, 2.449489742783178?)]
+            sage: (1 / (4 * sqrt(AA(3)) * sqrt(AA(2))))._expanded_()  # indirect doctest
+            [(1/6, 1/4, 2.449489742783178?)]
+            sage: (1 / (sqrt(AA(3)) + sqrt(AA(2))))._expanded_()  # indirect doctest
+            [(0.3178372451957823?,)]
+        """
+        expanded = arg._expanded_()
+        if len(expanded) == 1:
+            rational = element.parent().one()
+            other = []
+            for f in expanded[0]:
+                # we do 1/sqrt(a) = sqrt(a)/a
+                try:
+                    a = cls.arg_of_sqrt_of_positive_rational(f)
+                except cls.NoSqrtOfPositiveNumber:
+                    other.append(~f)
+                else:
+                    rational *= ~a
+                    other.append(f)
+            return (rational,) + tuple(other)
+        else:
+            return (~element._expanded_sumup_(expanded,
+                                              element.parent().zero()),)
+
     class NoSqrtOfPositiveNumber(RuntimeError):
         r"""
         Exception raised by :meth:`arg_of_sqrt_of_positive_rational`.
