@@ -919,3 +919,215 @@ cdef class SageObject:
     def _pari_init_(self):
         from sage.interfaces.gp import gp
         return self._interface_init_(gp)
+
+    def _structure_(self):
+        r"""
+        Return a structural description of this object.
+
+        This is usually overridden if derived class contains substructures.
+
+        OUTPUT:
+
+        Either
+
+        - ``None`` or
+        - a pair ``(head, children)`` or
+        - only ``head`` (in which case ``children`` is assumed to be empty).
+
+        ``head`` is either a string or an object in which case
+        its representation string is used.
+
+        TESTS::
+
+        """
+        return None
+
+    def _structure_str_oneline_(self):
+        r"""
+        Return a representation of the non-disassembled object and its parent.
+
+        This is printed with :meth:`print_structure`
+        when ``print_object=True`` is set.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: (3/10).print_structure()  # indirect doctest
+            rational 3/10
+        """
+        from sage.structure.element import parent
+        return 'object {} with parent/type {}'.format(self, parent(self))
+
+    def _structure_str_recursive_(self, print_object=True):
+        r"""
+        Return a structural description of this object and
+        its subobjects recursively.
+
+        This is a helper method for :meth:`print_structure`.
+
+        INPUT:
+
+        - ``print_object`` (boolean, default ``True``) -- indicates
+          whether a representation of the non-disassembled object and its parent
+          is printed as first line.
+
+        OUTPUT:
+
+        A list of strings.
+
+        TESTS::
+
+            sage: x.print_structure(print_object=True)  # indirect doctest
+            object x with parent/type Symbolic Ring
+            * variable x
+            sage: x.print_structure(print_object=False)  # indirect doctest
+            * variable x
+        """
+        structure = self._structure_()
+        if structure is None:
+            head = None
+            children = []
+        elif isinstance(structure, tuple) and len(structure) == 2:
+            head, children = structure
+        else:
+            head = structure
+            children = []
+
+        lines = []
+        if print_object:
+            lines.append(self._structure_str_oneline_())
+        if head is not None:
+            lines.append('* {}'.format(head))
+        for child in children:
+            entries = ['| {}'.format(l)
+                       for l in child._structure_str_recursive_(print_object=False)]
+            if entries:
+                entries[0] = '+-' + entries[0][2:]
+            lines.extend(entries)
+        return lines
+
+    def print_structure(self, *args, **kwds):
+        r"""
+        Print the structure of this object.
+
+        "Structure" is meant as the internal representation of
+        an object (containing substructures).
+
+        INPUT:
+
+        - ``print_object`` (boolean, default ``True``) -- indicates
+          whether a representation of the non-disassembled object and its parent
+          is printed as first line.
+
+        OUTPUT:
+
+        None, but prints.
+
+        EXAMPLES:
+
+        Symbolic ring::
+
+            sage: var('a, b')
+            (a, b)
+            sage: c = ((a + b)^4).expand()
+            sage: c.print_structure()
+            object a^4 + 4*a^3*b + 6*a^2*b^2 + 4*a*b^3 + b^4 with parent/type Symbolic Ring
+            * operator <function add_vararg at 0x...>
+            +-* operator <built-in function pow>
+            | +-* variable a
+            | +-* encapsulated integer 4
+            +-* operator <function mul_vararg at 0x...>
+            | +-* operator <built-in function pow>
+            | | +-* variable a
+            | | +-* encapsulated integer 3
+            | +-* variable b
+            | +-* encapsulated integer 4
+            +-* operator <function mul_vararg at 0x...>
+            | +-* operator <built-in function pow>
+            | | +-* variable a
+            | | +-* encapsulated integer 2
+            | +-* operator <built-in function pow>
+            | | +-* variable b
+            | | +-* encapsulated integer 2
+            | +-* encapsulated integer 6
+            +-* operator <function mul_vararg at 0x...>
+            | +-* variable a
+            | +-* operator <built-in function pow>
+            | | +-* variable b
+            | | +-* encapsulated integer 3
+            | +-* encapsulated integer 4
+            +-* operator <built-in function pow>
+            | +-* variable b
+            | +-* encapsulated integer 4
+
+        Some other elements::
+
+            sage: 42.print_structure()
+            integer 42
+            sage: QQ(42).print_structure()
+            rational 42
+            sage: (3/10).print_structure()
+            rational 3/10
+            sage: X = PolynomialRing(QQ, 'X').gen()
+            sage: (X^2 - 1).print_structure()
+            object X^2 - 1 with parent/type Univariate Polynomial Ring in X over Rational Field
+
+        Algebraic numbers::
+
+            sage: rt2 = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: g = - (rt2 + rt3) * (rt2 - rt3) / (-AA(2/3))
+            sage: g.print_structure()
+            algebraic real -1.500000000000000?
+            * binary operator <built-in function truediv>
+            +-* binary operator <built-in function mul>
+            | +-* unary operator -
+            | | +-* binary operator <built-in function add>
+            | | | +-* real root of x^2 - 2 in 1.4142135623730950488? with multiplicity 1
+            | | | +-* real root of x^2 - 3 in 1.7320508075688772935? with multiplicity 1
+            | +-* binary operator <built-in function sub>
+            | | +-* real root of x^2 - 2 in 1.4142135623730950488? with multiplicity 1
+            | | +-* real root of x^2 - 3 in 1.7320508075688772935? with multiplicity 1
+            +-* rational -2/3
+
+        Implementing a new structure::
+
+            sage: class Base(SageObject):
+            ....:     pass
+            sage: class Operand(Base):
+            ....:     def __init__(self, operand):
+            ....:         self.operand = operand
+            ....:     def _repr_(self):
+            ....:         return '{}'.format(self.operand)
+            ....:     def _structure_(self):
+            ....:         return 'operand {}'.format(self.operand)
+            sage: class Plus(Base):
+            ....:     def __init__(self, left, right):
+            ....:         self.left = left
+            ....:         self.right = right
+            ....:     def _repr_(self):
+            ....:         return '({} + {})'.format(self.left, self.right)
+            ....:     def _structure_(self):
+            ....:         return ('operator +', [self.left, self.right])
+
+            sage: a = Operand('a')
+            sage: b = Operand('b')
+            sage: c = Plus(Plus(a, b), Plus(a, Plus(b, b)))
+            sage: c.print_structure()
+            object ((a + b) + (a + (b + b))) with parent/type <class '__main__.Plus'>
+            * operator +
+            +-* operator +
+            | +-* operand a
+            | +-* operand b
+            +-* operator +
+            | +-* operand a
+            | +-* operator +
+            | | +-* operand b
+            | | +-* operand b
+        """
+        structure = self._structure_str_recursive_(*args, **kwds)
+        if structure:
+            print('\n'.join(structure))
