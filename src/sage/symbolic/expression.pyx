@@ -5774,6 +5774,43 @@ cdef class Expression(CommutativeRingElement):
         # self._gobj is either a symbol, constant or numeric
         return None
 
+    def _structure_(self):
+        r"""
+        Return a structural description of this symbolic expression.
+
+        See :meth:`sage.structure.sage_object._structure_` for details
+        and :meth:`sage.structure.sage_object.print_structure`
+        for more examples.
+
+        TESTS::
+
+            sage: var('a, b')
+            (a, b)
+            sage: (a*b^4 - x).print_structure()
+            object a*b^4 - x with parent/type Symbolic Ring
+            * operator <function add_vararg at 0x...>
+            +-* operator <function mul_vararg at 0x...>
+            | +-* variable a
+            | +-* operator <built-in function pow>
+            | | +-* variable b
+            | | +-* encapsulated integer 4
+            +-* operator <function mul_vararg at 0x...>
+            | +-* variable x
+            | +-* encapsulated integer -1
+        """
+        op = self.operator()
+        if op is not None:
+            return ('operator {}'.format(op), self.operands())
+        try:
+            pyo = self.pyobject()
+        except TypeError:
+            pass
+        else:
+            return 'encapsulated {}'.format(pyo._structure_str_oneline_())
+        if self.is_symbol():
+            return 'variable {}'.format(self)
+        return 'expression {}'.format(self)
+
     def __index__(self):
         """
         EXAMPLES::
