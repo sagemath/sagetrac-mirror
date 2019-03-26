@@ -2173,6 +2173,22 @@ cdef class Rational(sage.structure.element.FieldElement):
         PyMem_Free(s)
         return k
 
+    def _structure_str_oneline_(self):
+        r"""
+        Return a structural description string of this rational.
+
+        See :meth:`sage.structure.sage_object._structure_str_oneline_`
+        and :meth:`sage.structure.sage_object.print_structure` for details.
+
+        TESTS::
+
+            sage: (4/7).print_structure()  # indirect doctest
+            rational 4/7
+            sage: QQ(42).print_structure()  # indirect doctest
+            rational 42
+        """
+        return 'rational {}'.format(self)
+
     def __float__(self):
         """
         Return floating point approximation to ``self`` as a Python float.

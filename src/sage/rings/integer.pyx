@@ -1154,6 +1154,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return int(self).__format__(*args,**kwargs)
 
+    def _structure_str_oneline_(self):
+        r"""
+        Return a structural description string of this integer.
+
+        See :meth:`sage.structure.sage_object._structure_str_oneline_`
+        and :meth:`sage.structure.sage_object.print_structure` for details.
+
+        TESTS::
+
+            sage: 42.print_structure()  # indirect doctest
+            integer 42
+        """
+        return 'integer {}'.format(self)
+
     def ordinal_str(self):
         """
         Returns a string representation of the ordinal associated to self.
