@@ -5656,6 +5656,29 @@ class ANRational(ANDescr):
         """
         return self
 
+    def _expanded_(self, element):
+        r"""
+        Return ``element`` expanded.
+
+        See also :meth:`AlgebraicNumber_base.expanded`.
+
+        INPUT:
+
+        - ``element`` -- an algebraic number
+          whose desciption (``_descr``) is this object
+
+        OUTPUT:
+
+        A list of tuples; see :meth:`AlgebraicNumber_base._expanded_`.
+
+        TESTS::
+
+            sage: a = AA(1/3)
+            sage: a._descr._expanded_(a)
+            [(1/3,)]
+        """
+        return [(element,)]
+
     def is_simple(self):
         """
         Checks whether this descriptor represents a value with the same
@@ -6701,6 +6724,29 @@ class ANRoot(ANDescr):
             new_poly = ((QQx_x - k * self_pol_sage)(red_back_a)/den)
             return ANExtensionElement(new_gen, new_poly)
 
+    def _expanded_(self, element):
+        r"""
+        Return ``element`` expanded.
+
+        See also :meth:`AlgebraicNumber_base.expanded`.
+
+        INPUT:
+
+        - ``element`` -- an algebraic number
+          whose desciption (``_descr``) is this object
+
+        OUTPUT:
+
+        A list of tuples; see :meth:`AlgebraicNumber_base._expanded_`.
+
+        TESTS::
+
+            sage: a = sqrt(AA(3))
+            sage: a._descr._expanded_(a)
+            [(1.732050807568878?,)]
+        """
+        return [(element,)]
+
     def _more_precision(self):
         """
         Recompute the interval enclosing this ``ANRoot`` object at higher
@@ -6937,6 +6983,30 @@ class ANExtensionElement(ANDescr):
             True
         """
         return self
+
+    def _expanded_(self, element):
+        r"""
+        Return ``element`` expanded.
+
+        See also :meth:`AlgebraicNumber_base.expanded`.
+
+        INPUT:
+
+        - ``element`` -- an algebraic number
+          whose desciption (``_descr``) is this object
+
+        OUTPUT:
+
+        A list of tuples; see :meth:`AlgebraicNumber_base._expanded_`.
+
+        TESTS::
+
+            sage: rt3 = sqrt(AA(3))
+            sage: rt3.exactify()
+            sage: rt3._descr._expanded_(rt3)
+            [(1.732050807568878?,)]
+        """
+        return [(element,)]
 
     def field_element_value(self):
         r"""
@@ -7418,6 +7488,51 @@ class ANUnaryExpr(ANDescr):
             arg.exactify()
             return arg._descr.conjugate(None)
 
+    def _expanded_(self, element):
+        r"""
+        Return ``element`` expanded.
+
+        See also :meth:`AlgebraicNumber_base.expanded`.
+
+        INPUT:
+
+        - ``element`` -- an algebraic number
+          whose desciption (``_descr``) is this object
+
+        OUTPUT:
+
+        A list of tuples; see :meth:`AlgebraicNumber_base._expanded_`.
+
+        TESTS::
+
+            sage: a = -(sqrt(AA(3)) + sqrt(AA(2)))
+            sage: a._descr._expanded_(a)
+            [(-1, 1.732050807568878?), (-1, 1.414213562373095?)]
+            sage: a = ~sqrt(AA(3))
+            sage: a._descr._expanded_(a)
+            [(1/3, 1.732050807568878?)]
+        """
+        assert element._descr is self
+        op = element._descr._op
+        arg = element._descr._arg
+
+        if op == '-':
+            mone = arg.parent()(-1)
+            def mul_rational_factor(a, f):
+                try:
+                    i = next(i for i, aa in enumerate(a)
+                             if isinstance(aa._descr, ANRational))
+                except StopIteration:
+                    return (f,) + a
+                else:
+                    return a[:i] + (a[i] * f,) + a[i+1:]
+            return [mul_rational_factor(a, mone) for a in arg._expanded_()]
+        elif op == '~':
+            return [self._expanded_invert_(arg, element)]
+        else:
+            return [(element,)]
+
+
 class ANBinaryExpr(ANDescr):
     def __init__(self, left, right, op):
         r"""
@@ -7632,6 +7747,116 @@ class ANBinaryExpr(ANDescr):
                 return ANExtensionElement(gen, value)
         finally:
             sys.setrecursionlimit(old_recursion_limit)
+
+    @classmethod
+    def _mul_simplify_(cls, left_factors, right_factors):
+        r"""
+        Return the product of the given factors
+        and simplifies if possible.
+
+        INPUT:
+
+        - ``left_factors``, ``right_factors`` -- tuples whose entries are
+          the individual factors to multiply
+
+        OUTPUT:
+
+        A tuple of factors.
+
+        TESTS::
+
+            sage: (sqrt(AA(3)) * sqrt(AA(2))).expanded()  # indirect doctest
+            2.449489742783178?
+
+            sage: from sage.rings.qqbar import ANBinaryExpr
+            sage: rt2 = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: ANBinaryExpr._mul_simplify_(
+            ....:     rt3._descr._expanded_(rt3)[0], rt2._descr._expanded_(rt2)[0])
+            (2.449489742783178?,)
+        """
+        class CannotCombine(RuntimeError):
+            pass
+
+        def combine_lr(l, r):
+            if isinstance(l._descr, ANRational) and isinstance(r._descr, ANRational):
+                return l * r
+            if isinstance(l._descr, ANRoot) and (r._descr, ANRoot):
+                try:
+                    al = cls.arg_of_sqrt_of_positive_rational(l)
+                    ar = cls.arg_of_sqrt_of_positive_rational(r)
+                except cls.NoSqrtOfPositiveNumber:
+                    pass
+                else:
+                    return (al * ar).sqrt()
+            raise CannotCombine
+
+        left_todo = dict(enumerate(left_factors))
+
+        def combine_r(r):
+            for i, l in tuple(left_todo.items()):
+                try:
+                    lr = combine_lr(l, r)
+                except CannotCombine:
+                    continue
+                else:
+                    del left_todo[i]
+                    return lr
+            return r
+
+        combined = tuple(combine_r(r) for r in right_factors)
+        return tuple(l for i, l in left_todo.items()) + combined
+
+    def _expanded_(self, element):
+        r"""
+        Return ``element`` expanded.
+
+        See also :meth:`AlgebraicNumber_base.expanded`.
+
+        INPUT:
+
+        - ``element`` -- an algebraic number
+          whose desciption (``_descr``) is this object
+
+        OUTPUT:
+
+        A list of tuples; see :meth:`AlgebraicNumber_base._expanded_`.
+
+        TESTS::
+
+            sage: a = sqrt(AA(3)) - sqrt(AA(2))
+            sage: a._descr._expanded_(a)
+            [(1.732050807568878?,), (-1, 1.414213562373095?)]
+            sage: a = sqrt(AA(3)) * sqrt(AA(2))
+            sage: a._descr._expanded_(a)
+            [(2.449489742783178?,)]
+
+        ::
+
+            sage: rt5 = sqrt(AA(5))
+            sage: b = -((AA(5/72) / rt5) / (rt5 * AA(1/24)))
+            sage: b.expanded()  # indirect doctest
+            -1/3
+        """
+        assert element._descr is self
+        op = element._descr._op
+        left = element._descr._left
+        right = element._descr._right
+
+        if op is operator.add:
+            return left._expanded_() + right._expanded_()
+        elif op is operator.sub:
+            return left._expanded_() + (-right)._expanded_()
+        elif op is operator.mul:
+            return [self._mul_simplify_(l, r)
+                    for l in left._expanded_() for r in right._expanded_()]
+        elif op is operator.truediv:
+            factor = self._expanded_invert_(right, element)
+            return [self._mul_simplify_(l, factor)
+                    for l in left._expanded_()]
+        else:
+            return [(element,)]
+
 
 # These are the functions used to add, subtract, multiply, and divide
 # algebraic numbers. Basically, we try to compute exactly if both
