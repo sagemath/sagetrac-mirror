@@ -1065,7 +1065,7 @@ cdef class SageObject:
 
             sage: (I*pi*e).print_structure()
             symbolic expression I*pi*e
-            * operator <function mul_vararg at 0x7f4c03563f50>
+            * operator <function mul_vararg at 0x...>
             +-* encapsulated object pi of type <class 'sage.symbolic.constants.Pi'>
             +-* operator exp
             | +-* encapsulated integer 1
