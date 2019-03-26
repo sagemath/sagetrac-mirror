@@ -2795,10 +2795,10 @@ class ANDescr(SageObject):
 
         EXAMPLES::
 
-            sage: a = sqrt(AA(2))
-            sage: a._descr.is_trivially_equal(a._descr)  # indirect doctest
+            sage: rt2 = sqrt(AA(2))
+            sage: rt2._descr.is_trivially_equal(rt2._descr)  # indirect doctest
             True
-            sage: a._descr.is_trivially_equal(AA(2/3)._descr)  # indirect doctest
+            sage: rt2._descr.is_trivially_equal(AA(2/3)._descr)  # indirect doctest
             False
         """
         if self is other:
@@ -3479,8 +3479,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: b = sqrt(AA(3))
-            sage: c = (b*b)
+            sage: rt3 = sqrt(AA(3))
+            sage: c = (rt3*rt3)
             sage: c.is_trivially_equal(AA(3))
             False
             sage: c.exactify()
@@ -3492,10 +3492,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         TESTS::
 
-            sage: a = sqrt(AA(2))
-            sage: a.is_trivially_equal(a)
+            sage: rt2 = sqrt(AA(2))
+            sage: rt2.is_trivially_equal(rt2)
             True
-            sage: a.is_trivially_equal(2/3)
+            sage: rt2.is_trivially_equal(2/3)
             False
 
             sage: sqrt(AA(5)).is_trivially_equal(sqrt(QQbar(5)))
@@ -5667,8 +5667,8 @@ class ANRational(ANDescr):
 
             sage: AA(2/5).is_trivially_equal(AA(2/5))  # indirect doctest
             True
-            sage: a = sqrt(AA(2))
-            sage: b = a*a
+            sage: rt2 = sqrt(AA(2))
+            sage: b = rt2*rt2
             sage: AA(2).is_trivially_equal(b)  # indirect doctest
             False
             sage: type(b._descr)
@@ -6290,14 +6290,14 @@ class ANRoot(ANDescr):
 
         EXAMPLES::
 
-            sage: a = sqrt(AA(2))
-            sage: b = sqrt(AA(3))
-            sage: c = sqrt(AA(2))
-            sage: a.is_trivially_equal(b)  # indirect doctest
+            sage: rt2a = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: rt2b = sqrt(AA(2))
+            sage: rt2a.is_trivially_equal(rt3)  # indirect doctest
             False
-            sage: a.is_trivially_equal(a)  # indirect doctest
+            sage: rt2a.is_trivially_equal(rt2a)  # indirect doctest
             True
-            sage: a.is_trivially_equal(c)  # indirect doctest
+            sage: rt2a.is_trivially_equal(rt2b)  # indirect doctest
             True
         """
         try:
