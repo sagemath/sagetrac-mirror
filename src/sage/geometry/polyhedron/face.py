@@ -557,6 +557,15 @@ class PolyhedronFace(SageObject):
             sage: [(face, face.normal_vector()) for face in P.faces(P.dim()-1)]
             [(<0,1>, (0, -1)), (<1,2>, (1, 0)), (<0,2>, (0, 1))]
 
+        Further examples::
+
+            sage: P = Polyhedron(vertices=[(0,0), (1,0), (sqrt(AA(2)),2), (1,1)],
+            ....:                base_ring=AA)
+            sage: [(face, face.normal_vector()) for face in P.faces(P.dim()-1)]
+            [(<0,1>, (0, 1/2)),
+             (<1,2>, (-1, 0.2071067811865476?)),
+             (<0,2>, (1, -0.7071067811865475?))]
+
         TESTS::
 
             sage: polytopes.cube().faces(3)[0].normal_vector()
