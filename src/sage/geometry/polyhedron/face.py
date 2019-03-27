@@ -568,8 +568,6 @@ class PolyhedronFace(SageObject):
             raise RuntimeError('only normal vectors of faces with codimension 1 '
                                'can be computed')
 
-        A = polyhedron.affine_hull(orthonormal=True, extend=True, as_affine_map=True)[0].matrix()
-
         def inequality(face):
             for H in face.ambient_Hrepresentation():
                 if H.is_inequality():
@@ -581,6 +579,9 @@ class PolyhedronFace(SageObject):
             from sage.rings.integer_ring import ZZ
             from sage.rings.qqbar import AA, QQbar
             from sage.rings.rational_field import QQ
+
+            A = polyhedron.affine_hull(orthonormal=True, extend=True,
+                                       as_affine_map=True)[0].matrix()
             T = A * A.transpose()
             if polyhedron.base_ring() in (ZZ, QQ) and T.base_ring() in (AA, QQbar):
                 def exactify(c):
