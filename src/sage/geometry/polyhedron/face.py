@@ -584,6 +584,12 @@ class PolyhedronFace(SageObject):
                                        as_affine_map=True)[0].matrix()
             T = A * A.transpose()
             if polyhedron.base_ring() in (ZZ, QQ) and T.base_ring() in (AA, QQbar):
+                # When the polyhedron is rational, then the entries of
+                # T will be rational as well. However A possibly
+                # contains square roots because of projecting to
+                # the affine hull orthnormally. Therefore, the entries
+                # of T will be in AA (or QQbar) but are indeed rational.
+                # We correct this below.
                 def exactify(c):
                     c.exactify()
                     try:
