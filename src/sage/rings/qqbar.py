@@ -3951,6 +3951,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: rt2b.simplify()
             sage: rt2b._exact_value()
             a where a^2 - 2 = 0 and a in 1.414213562373095?
+
+        .. SEEALSO::
+
+            :meth:`expand` and :meth:`expanded`,
+            :meth:`exactify`
         """
         self.exactify()
         od = self._descr
