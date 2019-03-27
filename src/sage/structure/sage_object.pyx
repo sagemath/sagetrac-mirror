@@ -1137,6 +1137,14 @@ cdef class SageObject:
             | +-* operator +
             | | +-* operand b
             | | +-* operand b
+
+        Parameters/options::
+
+            sage: I.print_structure(print_object=True)
+            symbolic expression I
+            * encapsulated object I with parent/type Number Field in I with defining polynomial x^2 + 1
+            sage: I.print_structure(print_object=False)
+            * encapsulated object I with parent/type Number Field in I with defining polynomial x^2 + 1
         """
         structure = self._structure_str_recursive_(*args, **kwds)
         if structure:
