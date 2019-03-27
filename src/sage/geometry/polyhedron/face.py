@@ -547,6 +547,16 @@ class PolyhedronFace(SageObject):
              (<0,2,3>, (-1/4, -1/4, 3/4, -1/4)),
              (<1,2,3>, (-1/4, -1/4, -1/4, 3/4))]
 
+        Unbounded polyhedra::
+
+            sage: P = Polyhedron(ieqs=[(0, 1, 1, 1, 1)])
+            sage: [(face, face.normal_vector()) for face in P.faces(P.dim()-1)]
+            [(<0,1,2,4>, (1, 1, 1, 1))]
+
+            sage: P = Polyhedron(ieqs=[(0, 0, 1), (0, 1, 0), (1, 0, -1)])
+            sage: [(face, face.normal_vector()) for face in P.faces(P.dim()-1)]
+            [(<0,1>, (0, -1)), (<1,2>, (1, 0)), (<0,2>, (0, 1))]
+
         TESTS::
 
             sage: polytopes.cube().faces(3)[0].normal_vector()
