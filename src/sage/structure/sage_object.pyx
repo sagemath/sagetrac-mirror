@@ -920,7 +920,7 @@ cdef class SageObject:
         from sage.interfaces.gp import gp
         return self._interface_init_(gp)
 
-    def _structure_(self):
+    def _substructure_(self):
         r"""
         Return a structural description of this object.
 
@@ -939,6 +939,8 @@ cdef class SageObject:
 
         TESTS::
 
+            sage: 42._substructure_() is None
+            True
         """
         return None
 
@@ -986,7 +988,7 @@ cdef class SageObject:
             sage: x.print_structure(print_object=False)  # indirect doctest
             * variable x
         """
-        structure = self._structure_()
+        structure = self._substructure_()
         if structure is None:
             head = None
             children = []
@@ -1110,7 +1112,7 @@ cdef class SageObject:
             ....:         self.operand = operand
             ....:     def _repr_(self):
             ....:         return '{}'.format(self.operand)
-            ....:     def _structure_(self):
+            ....:     def _substructure_(self):
             ....:         return 'operand {}'.format(self.operand)
             sage: class Plus(Base):
             ....:     def __init__(self, left, right):
@@ -1118,7 +1120,7 @@ cdef class SageObject:
             ....:         self.right = right
             ....:     def _repr_(self):
             ....:         return '({} + {})'.format(self.left, self.right)
-            ....:     def _structure_(self):
+            ....:     def _substructure_(self):
             ....:         return ('operator +', [self.left, self.right])
 
             sage: a = Operand('a')

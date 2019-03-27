@@ -5535,7 +5535,7 @@ class ANRational(ANDescr):
         else:
             raise TypeError("Illegal initializer for algebraic number rational")
 
-    def _structure_(self):
+    def _substructure_(self):
         r"""
         Return a structural description of this object.
 
@@ -6063,7 +6063,7 @@ class ANRoot(ANDescr):
         self._complex_poly = poly.is_complex()
         self._interval = self.refine_interval(interval, 64)
 
-    def _structure_(self):
+    def _substructure_(self):
         r"""
         Return a structural description of this object.
 
@@ -6771,7 +6771,7 @@ class ANExtensionElement(ANDescr):
         self._value = value
         self._exactly_real = not generator.is_complex()
 
-    def _structure_(self):
+    def _substructure_(self):
         r"""
         Return a structural description of this object.
 
@@ -7202,7 +7202,7 @@ class ANUnaryExpr(ANDescr):
         self._op = op
         self._complex = True
 
-    def _structure_(self):
+    def _substructure_(self):
         r"""
         Return a structural description of this object.
 
@@ -7475,7 +7475,7 @@ class ANBinaryExpr(ANDescr):
         self._op = op
         self._complex = True
 
-    def _structure_(self):
+    def _substructure_(self):
         r"""
         Return a structural description of this object.
 

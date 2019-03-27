@@ -5800,7 +5800,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             return super(Expression, self)._structure_str_oneline_()
 
-    def _structure_(self):
+    def _substructure_(self):
         r"""
         Return a structural description of this symbolic expression.
 
