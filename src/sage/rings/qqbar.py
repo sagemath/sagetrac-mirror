@@ -7260,11 +7260,6 @@ class ANExtensionElement(ANDescr):
             a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in 1.931851652578137?
             sage: rt2b._descr.simplify(rt2b)
             a where a^2 - 2 = 0 and a in 1.414213562373095?
-
-        .. SEEALSO::
-
-            :meth:`expand` and :meth:`expanded`,
-            :meth:`exactify`
         """
 
         if self.is_simple():
