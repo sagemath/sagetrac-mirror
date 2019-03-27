@@ -2768,6 +2768,45 @@ class ANDescr(SageObject):
         """
         return False
 
+    class _TriviallyEqualNoDecision_(RuntimeError):
+        r"""
+        Exception raised by :meth:`is_trivially_equal`.
+
+        TESTS::
+
+            sage: from sage.rings.qqbar import ANRoot
+            sage: super(ANRoot, sqrt(AA(2))._descr).is_trivially_equal(AA(sqrt(3))._descr)
+            Traceback (most recent call last):
+            ...
+            _TriviallyEqualNoDecision_
+        """
+        pass
+
+    def is_trivially_equal(self, other):
+        r"""
+        Check whether this object and ``other`` are equal by having
+        the same structure/description.
+
+        This method does not invoke (the possibly expensive) :meth:`exactify`.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ANDescr`
+
+        EXAMPLES::
+
+            sage: rt2 = sqrt(AA(2))
+            sage: rt2._descr.is_trivially_equal(rt2._descr)  # indirect doctest
+            True
+            sage: rt2._descr.is_trivially_equal(AA(2/3)._descr)  # indirect doctest
+            False
+        """
+        if self is other:
+            return True
+        if type(self) != type(other):
+            return False
+        raise self._TriviallyEqualNoDecision_()
+
     # Unitary operators: the second argument "n" is an AlgebraicNumber_base
     # wrapper around self.
 
@@ -3543,6 +3582,48 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             False
         """
         return self in ZZ
+
+    def is_trivially_equal(self, other):
+        r"""
+        Check whether this object and ``other`` are equal by having
+        the same structure/description.
+
+        This method does not invoke (the possibly expensive) :meth:`exactify`
+        or the coercion model.
+
+        INPUT:
+
+        - ``other`` -- an algebraic number
+
+        EXAMPLES::
+
+            sage: rt3 = sqrt(AA(3))
+            sage: c = (rt3*rt3)
+            sage: c.is_trivially_equal(AA(3))
+            False
+            sage: c.exactify()
+            sage: c.is_trivially_equal(AA(3))
+            True
+
+            sage: c.is_trivially_equal(3)
+            False
+
+        TESTS::
+
+            sage: rt2 = sqrt(AA(2))
+            sage: rt2.is_trivially_equal(rt2)
+            True
+            sage: rt2.is_trivially_equal(2/3)
+            False
+
+            sage: sqrt(AA(5)).is_trivially_equal(sqrt(QQbar(5)))
+            False
+        """
+        if self is other:
+            return True
+        if type(self) != type(other):
+            return False
+        return self._descr.is_trivially_equal(other._descr)
 
     def sqrt(self, all=False, extend=True):
         """
@@ -5851,6 +5932,34 @@ class ANRational(ANDescr):
         """
         return False
 
+    def is_trivially_equal(self, other):
+        r"""
+        Check whether this object and ``other`` are equal by having
+        the same structure/description.
+
+        This method does not invoke (the possibly expensive) :meth:`exactify`.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ANDescr`
+
+        EXAMPLES::
+
+            sage: AA(2/5).is_trivially_equal(AA(2/5))  # indirect doctest
+            True
+            sage: rt2 = sqrt(AA(2))
+            sage: b = rt2*rt2
+            sage: AA(2).is_trivially_equal(b)  # indirect doctest
+            False
+            sage: type(b._descr)
+            <class 'sage.rings.qqbar.ANBinaryExpr'>
+        """
+        try:
+            return super(ANRational, self).is_trivially_equal(other)
+        except self._TriviallyEqualNoDecision_:
+            pass
+        return self._value == other._value
+
     def exactify(self):
         r"""
         Calculate self exactly. Since self is a rational number, return self.
@@ -6392,6 +6501,113 @@ class ANRoot(ANDescr):
         else:
             good_intv = intv
         return (parent.polynomial_root(poly, sib(good_intv)), True)
+
+    def is_same_root(self, other):
+        r"""
+        Return whether ``other`` is the same root as this root.
+
+        INPUT:
+
+        - ``other`` -- a :class:`ANRoot`
+
+        EXAMPLES::
+
+            sage: sqrt(AA(3))._descr.is_same_root(sqrt(AA(3))._descr)
+            True
+
+        ::
+
+            sage: x = polygen(AA)
+            sage: ex = 160
+            sage: a = AA.polynomial_root((x-1)^2-1/10^ex, RIF(0,1))
+            sage: b = AA.polynomial_root((x-1)^2-1/10^ex, RIF(1,2))
+            sage: a, b
+            (1.000000000?, 1.000000001?)
+            sage: a._descr.is_same_root(b._descr)
+            False
+            sage: a._descr.is_same_root(a._descr)
+            True
+
+            sage: c = AA.polynomial_root((x-1)^2-1/10^ex, RIF(0,1))
+            sage: a._descr.is_same_root(c._descr)
+            True
+
+        TESTS::
+
+            sage: ex = 160
+            sage: a = AA.polynomial_root((x-1)^2-1/10^ex, RIF(0,1))
+            sage: b = AA.polynomial_root((x-1)^2-1/10^ex, RIF(1,2))
+            sage: a._descr._interval.prec(), b._descr._interval.prec()
+            (64, 64)
+            sage: a._descr.is_same_root(b._descr)
+            False
+            sage: a._descr._interval.prec(), b._descr._interval.prec()
+            (1024, 64)
+
+            sage: c = AA.polynomial_root((x-1)^2-1/10^ex, RIF(0,1))
+            sage: a._descr._interval.prec(), c._descr._interval.prec()
+            (1024, 64)
+            sage: a._descr._interval is c._descr._interval
+            False
+            sage: a._descr.is_same_root(c._descr)
+            True
+            sage: a._descr._interval is c._descr._interval
+            True
+
+            sage: d = AA.polynomial_root(x^2-1, RIF(0,2))
+            sage: a._descr.is_same_root(d._descr)
+            False
+
+            sage: a._descr.is_same_root(AA(2)._descr)
+            Traceback (most recent call last):
+            ...
+            TypeError: 2 is not of type ANRoot
+        """
+        if not isinstance(other, ANRoot):
+            raise TypeError('{} is not of type ANRoot'.format(other))
+        if not (self._poly._poly == other._poly._poly
+                and self._multiplicity == other._multiplicity
+                and self._complex == other._complex
+                and self._complex_poly == other._complex_poly):
+            return False
+        if self._interval is other._interval:
+            return True
+        while True:
+            if not self._interval.overlaps(other._interval):
+                return False
+            if self._interval in other._interval:
+                other._interval = self._interval
+                return True
+            self._more_precision()
+
+    def is_trivially_equal(self, other):
+        r"""
+        Check whether this object and ``other`` are equal by having
+        the same structure/description.
+
+        This method does not invoke (the possibly expensive) :meth:`exactify`.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ANDescr`
+
+        EXAMPLES::
+
+            sage: rt2a = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: rt2b = sqrt(AA(2))
+            sage: rt2a.is_trivially_equal(rt3)  # indirect doctest
+            False
+            sage: rt2a.is_trivially_equal(rt2a)  # indirect doctest
+            True
+            sage: rt2a.is_trivially_equal(rt2b)  # indirect doctest
+            True
+        """
+        try:
+            return super(ANRoot, self).is_trivially_equal(other)
+        except self._TriviallyEqualNoDecision_:
+            pass
+        return self.is_same_root(other)
 
     def is_complex(self):
         r"""
@@ -7164,6 +7380,38 @@ class ANExtensionElement(ANDescr):
             self._is_simple = (self.minpoly().degree() == self.generator().field().degree())
             return self._is_simple
 
+    def is_trivially_equal(self, other):
+        r"""
+        Check whether this object and ``other`` are equal by having
+        the same structure/description.
+
+        This method does not invoke (the possibly expensive) :meth:`exactify`.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ANDescr`
+
+        EXAMPLES::
+
+            sage: rt2 = AA(sqrt(2))
+            sage: rt2b = AA(sqrt(2))
+            sage: rt2.is_trivially_equal(rt2b)
+            True
+            sage: rt2.exactify()
+            sage: rt2.is_trivially_equal(rt2b)  # indirect doctest
+            False
+            sage: rt2b.exactify()
+            sage: rt2.is_trivially_equal(rt2b)  # indirect doctest
+            True
+        """
+        try:
+            return super(ANExtensionElement, self).is_trivially_equal(other)
+        except self._TriviallyEqualNoDecision_:
+            pass
+        return (self._generator._root.is_trivially_equal(other._generator._root)
+                and self._value == other._value
+                and self._exactly_real == other._exactly_real)
+
     def generator(self):
         r"""
         Return the :class:`~AlgebraicGenerator` object corresponding to self.
@@ -7573,6 +7821,31 @@ class ANUnaryExpr(ANDescr):
         """
         return self._complex
 
+    def is_trivially_equal(self, other):
+        r"""
+        Check whether this object and ``other`` are equal by having
+        the same structure/description.
+
+        This method does not invoke (the possibly expensive) :meth:`exactify`.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ANDescr`
+
+        EXAMPLES::
+
+            sage: a = sqrt(AA(2)) + sqrt(AA(3))
+            sage: (-a).is_trivially_equal(-a)  # indirect doctest
+            True
+        """
+        try:
+            return super(ANUnaryExpr, self).is_trivially_equal(other)
+        except self._TriviallyEqualNoDecision_:
+            pass
+        return (self._op == other._op
+                and self._complex == other._complex
+                and self._arg.is_trivially_equal(other._arg))
+
     def _interval_fast(self, prec):
         r"""
         Calculate an approximation to this ``ANUnaryExpr`` object in an interval field of precision ``prec``.
@@ -7890,6 +8163,41 @@ class ANBinaryExpr(ANDescr):
             True
         """
         return self._complex
+
+    def is_trivially_equal(self, other):
+        r"""
+        Check whether this object and ``other`` are equal by having
+        the same structure/description.
+
+        This method does not invoke (the possibly expensive) :meth:`exactify`.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ANDescr`
+
+        EXAMPLES::
+
+            sage: a = sqrt(AA(2)) + sqrt(AA(3))
+            sage: b = sqrt(AA(2)) + sqrt(AA(3))
+            sage: a.is_trivially_equal(b)  # indirect doctest
+            True
+
+        We support (simple) commutativity::
+
+            sage: c = sqrt(AA(3)) + sqrt(AA(2))
+            sage: a.is_trivially_equal(c)  # indirect doctest
+            True
+        """
+        try:
+            return super(ANBinaryExpr, self).is_trivially_equal(other)
+        except self._TriviallyEqualNoDecision_:
+            pass
+        return (self._op == other._op
+                and self._complex == other._complex
+                and (self._left.is_trivially_equal(other._left)
+                     and self._right.is_trivially_equal(other._right)
+                     or self._left.is_trivially_equal(other._right)
+                     and self._right.is_trivially_equal(other._left)))
 
     def _interval_fast(self, prec):
         r"""
