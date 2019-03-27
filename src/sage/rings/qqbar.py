@@ -3876,6 +3876,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         In contrast to :meth:`expand` (inplace pendant), this method
         does not have any side effects.
 
+        .. NOTE::
+
+            This method does not call (the possibly expensive) :meth:`exactify`.
+
         OUTPUT:
 
         An algebraic number.
