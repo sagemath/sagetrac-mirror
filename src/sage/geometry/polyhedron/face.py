@@ -578,10 +578,11 @@ class PolyhedronFace(SageObject):
         try:
             T = self._normal_AAt
         except AttributeError:
+            from sage.rings.integer_ring import ZZ
             from sage.rings.qqbar import AA, QQbar
             from sage.rings.rational_field import QQ
             T = A * A.transpose()
-            if T.base_ring() in (AA, QQbar):
+            if polyhedron.base_ring() in (ZZ, QQ) and T.base_ring() in (AA, QQbar):
                 def exactify(c):
                     c.exactify()
                     try:
