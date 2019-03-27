@@ -562,9 +562,6 @@ class PolyhedronFace(SageObject):
             ...
             RuntimeError: only normal vectors of faces with codimension 1 can be computed
         """
-        from sage.rings.qqbar import AA, QQbar
-        from sage.rings.rational_field import QQ
-
         polyhedron = self.polyhedron()
         d = polyhedron.dim()
         if self.dim() != d-1:
@@ -581,6 +578,8 @@ class PolyhedronFace(SageObject):
         try:
             T = self._normal_AAt
         except AttributeError:
+            from sage.rings.qqbar import AA, QQbar
+            from sage.rings.rational_field import QQ
             T = A * A.transpose()
             if T.base_ring() in (AA, QQbar):
                 def exactify(c):
