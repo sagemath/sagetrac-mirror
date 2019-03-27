@@ -3755,6 +3755,158 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         if isinstance(od, (ANRational, ANExtensionElement)): return
         self._set_descr(self._descr.exactify())
 
+    def expand(self):
+        r"""
+        Expand this algebraic number.
+
+        This expansion is done inplace, i.e., the internal representation
+        of the algebraic number changes. Therefore, calling this method
+        has side effects. (See also :meth:`exactify`.)
+
+        See :meth:`expanded` (non-inplace pendant) for more details and examples.
+
+        EXAMPLES::
+
+            sage: rt2 = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: a = (rt2 - rt3) * (rt2 + rt3); a
+            -1.000000000000000?
+            sage: a.expand()
+            sage: a
+            -1
+
+        .. SEEALSO::
+
+            :meth:`expanded` (non-inplace variant of this method),
+            :meth:`exactify`,
+            :meth:`simplify`
+        """
+        self._set_descr(self.expanded()._descr)
+
+    def expanded(self):
+        r"""
+        Return this algebraic number expanded.
+
+        In contrast to :meth:`expand` (inplace pendant), this method
+        does not have any side effects.
+
+        OUTPUT:
+
+        An algebraic number.
+
+        EXAMPLES::
+
+            sage: rt2 = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: ((rt2 - rt3) * (rt2 + rt3)).expanded()
+            -1
+            sage: ((1/rt2 - 1/rt3) * (1/rt2 + 1/rt3)).expanded()
+            1/6
+            sage: ((~rt2 - ~rt3) * (~rt2 + ~rt3)).expanded()
+            1/6
+
+        .. SEEALSO::
+
+            :meth:`expand` (inplace variant of this method),
+            :meth:`exactify`,
+            :meth:`simplify`
+        """
+        return self._expanded_sumup_(self._expanded_(), self.parent().zero())
+
+    @staticmethod
+    def _expanded_sumup_(expanded, zero):
+        r"""
+        Return the actual sum of ``expanded``.
+
+        INPUT:
+
+        - ``expanded`` -- a list of tuples, usually the output of
+          :meth:`AlgebraicNumber_base._expanded_` or any other variant of
+          this method.
+
+        - ``zero`` -- the algebraic number zero
+
+        OUTPUT:
+
+        An algebraic number.
+
+        TESTS::
+
+            sage: from sage.rings.qqbar import AlgebraicNumber_base
+            sage: rt2 = sqrt(AA(2))
+            sage: rt3 = sqrt(AA(3))
+            sage: AlgebraicNumber_base._expanded_sumup_(
+            ....:     [(AA(2), rt2), (rt3,), (AA(3/2),), (AA(2/3),)], AA.zero())
+            6.727144598981734?
+        """
+        from sage.misc.misc_c import prod
+        summands = tuple(prod(factors) for factors in expanded)
+        rationals = [s for s in summands if isinstance(s._descr, ANRational)]
+        nonrationals = [s for s in summands if not isinstance(s._descr, ANRational)]
+        # we check if there is at least one summand, because
+        # sum(..., zero) would return 0 plus the sum
+        if not rationals and not nonrationals:
+            return zero
+        return sum(rationals + nonrationals)
+
+    def _expanded_(self):
+        r"""
+        Return ``element`` expanded.
+
+        See also :meth:`AlgebraicNumber_base.expanded`.
+
+        INPUT:
+
+        - ``element`` -- an algebraic number
+          whose desciption (``_descr``) is this object
+
+        OUTPUT:
+
+        A list of tuples; see :meth:`AlgebraicNumber_base._expanded_`.
+
+        TESTS::
+
+            sage: rt2 = sqrt(AA(2))
+            sage: rt2.expanded().is_trivially_equal(rt2)
+            True
+        """
+        from sage.misc.misc_c import prod
+        zero = self.parent().zero()
+        one = self.parent().one()
+        result = self._descr._expanded_(self)
+        rational = zero
+        other = []
+        linear_combinations = []
+        for factors in result:
+            if all(isinstance(f._descr, ANRational) for f in factors):
+                rational += prod(factors)
+            elif len(factors) in (1, 2):
+                if len(factors) == 1:
+                    coefficient = self.parent().one()
+                    something = factors[0]
+                else:
+                    coefficient, something = factors
+                if isinstance(something._descr, ANRational):
+                    coefficient, something = (something, coefficient)
+                if isinstance(coefficient._descr, ANRational):
+                    for i, (c, s) in enumerate(linear_combinations):
+                        if something.is_trivially_equal(s):
+                            linear_combinations[i] = (coefficient + c, s)
+                            break
+                    else:
+                        linear_combinations.append((coefficient, something))
+                else:
+                    other.append(factors)
+            else:
+                other.append(factors)
+        linear_combinations = [((something,)
+                                if coefficient == one else
+                                (coefficient, something))
+                               for coefficient, something in linear_combinations
+                               if coefficient != zero]
+        return ([] if rational == zero else [(rational,)]) \
+            + linear_combinations + other
+
     def _set_descr(self, new_descr):
         """
         Set ``self._descr`` to ``new_descr``, and update
