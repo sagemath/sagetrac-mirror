@@ -15,7 +15,7 @@ from sage.rings.power_series_ring import *
 from sage.rings.finite_rings.finite_field_constructor import *
 from sage.arith.misc import *
 
-from fgl import *
+from formal_power_series import *
 
 print('1/(1-x) as a formal power series:')
 

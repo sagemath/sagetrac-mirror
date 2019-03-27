@@ -39,7 +39,7 @@ class FPS:
         self.operation = operation    # (Will only have a value other than None on internal calls of the constructor) self.operation is a list, the first member
                                            # of which is a string denoting the operation and which any additional members of are extra necessary data, i.e. the
                                            # index of the variable with respect to which one is differentiating
-	self.memoized_degree = 0
+	self.memoized_degree = None
 	self.memoized_poly = None
 
     #Overide the repr function
@@ -227,7 +227,7 @@ class FPS:
                         i += 1
                     t = self.operation[1].sstep(i)
             return t
-    def view_helper(self, prec, target_ring, memoize=False):
+    def view_helper(self, prec, target_ring):
         if self.children == None: # we are at a leaf node with a coefficient function
             H = PowerSeriesRing(self.ring.rings(target_ring), self.n, self.var)
             x = H.gens()
@@ -416,9 +416,21 @@ class FPS:
                     viewList.append(self.children[i].view_helper(prec - val + 1, target_ring))
                 return (outside_poly(*viewList)).add_bigoh(prec + 1)
 
-    def view(self, prec):
+    def clear_memoizatio(self):
+        self.memoized_degree = None
+        self.memoized_poly = None
+
+    def view(self, prec, memoize=True):
+	if self.memoized_degree is not None and prec <= self.memoized_degree:
+		return self.memoized_poly.add_bigoh(prec+1)
+
         target = self.ring_size(prec, 0)
-        return self.view_helper(prec, target)
+        poly = self.view_helper(prec, target)
+
+	if memoize and (self.memoized_degree is None or prec > self.memoized_degree):
+		self.memoized_degree = prec
+                self.memoized_poly = poly
+        return poly
 
 # convert multivariate polynomial to Formal Power Series represented in FPS class
 # Arguments:
@@ -505,4 +517,6 @@ class UFGL(FPS):
         self.children = [rev, add]
         self.operation = ["fast_o", 0]
         self.var = 'x'
+        self.memoized_degree = None
+        self.memoized_poly = None
 
