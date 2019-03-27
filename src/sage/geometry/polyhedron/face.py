@@ -578,14 +578,18 @@ class PolyhedronFace(SageObject):
                 if H.is_inequality():
                     return H
 
-        T = A * A.transpose()
-        if T.base_ring() in (AA, QQbar):
-            def exactify(c):
-                c.exactify()
-                try:
-                    return QQ(c)
-                except (ValueError, TypeError):
-                    return c
-            T = T.apply_map(lambda c: exactify(c))
+        try:
+            T = self._normal_AAt
+        except AttributeError:
+            T = A * A.transpose()
+            if T.base_ring() in (AA, QQbar):
+                def exactify(c):
+                    c.exactify()
+                    try:
+                        return QQ(c)
+                    except (ValueError, TypeError):
+                        return c
+                T = T.apply_map(lambda c: exactify(c))
+            self._normal_AAt = T
 
         return T * inequality(self).vector()[1:]
