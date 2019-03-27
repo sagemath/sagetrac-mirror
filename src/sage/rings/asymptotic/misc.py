@@ -24,10 +24,11 @@ Functions, Classes and Methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 
 def repr_short_to_parent(s):
@@ -117,19 +118,24 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
+    from sage.symbolic.ring import SR
+    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
+    from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is sage.rings.integer_ring.ZZ:
+        if P is ZZ:
             return 'ZZ'
-        elif P is sage.rings.rational_field.QQ:
+        elif P is QQ:
             return 'QQ'
-        elif P is sage.symbolic.ring.SR:
+        elif P is SR:
             return 'SR'
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
-    poly = sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P) or \
-           sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P)
+    poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
     from sage.rings import multi_power_series_ring
-    power = sage.rings.power_series_ring.is_PowerSeriesRing(P) or \
+    power = is_PowerSeriesRing(P) or \
             multi_power_series_ring.is_MPowerSeriesRing(P)
 
     if poly or power:
@@ -261,7 +267,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
     return tuple(strip(f) for f in factors)
 
 
-def repr_op(left, op, right=None):
+def repr_op(left, op, right=None, latex=False):
     r"""
     Create a string ``left op right`` with
     taking care of parentheses in its operands.
@@ -272,7 +278,10 @@ def repr_op(left, op, right=None):
 
     - ``op`` -- a string.
 
-    - ``right`` -- an alement.
+    - ``right`` -- an element.
+
+    - ``latex`` -- (default: ``False``) a boolean. If set, then
+      LaTeX-output is returned.
 
     OUTPUT:
 
@@ -290,6 +299,11 @@ def repr_op(left, op, right=None):
         '(a-b)^c'
         sage: repr_op('a+b', '^', 'c')
         '(a+b)^c'
+
+    ::
+
+        sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
+        \left(\frac{1}{2}\right)^c
     """
     left = str(left)
     right = str(right) if right is not None else ''
@@ -299,13 +313,15 @@ def repr_op(left, op, right=None):
             signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
-        if any(sig in s for sig in signals):
-            return '(%s)' % (s,)
+        if any(sig in s for sig in signals) or latex and s.startswith(r'\frac'):
+            if latex:
+                return r'\left({}\right)'.format(s)
+            else:
+                return '({})'.format(s)
         else:
             return s
 
-    return add_parentheses(left, op) + op +\
-        add_parentheses(right, op)
+    return add_parentheses(left, op) + op + add_parentheses(right, op)
 
 
 def combine_exceptions(e, *f):
@@ -383,37 +399,6 @@ def substitute_raise_exception(element, e):
     raise combine_exceptions(
         type(e)('Cannot substitute in %s in %s.' %
                 (element, element.parent())), e)
-
-
-def underlying_class(P):
-    r"""
-    Return the underlying class (class without the attached
-    categories) of the given instance.
-
-    OUTPUT:
-
-    A class.
-
-    EXAMPLES::
-
-        sage: from sage.rings.asymptotic.misc import underlying_class
-        sage: type(QQ)
-        <class 'sage.rings.rational_field.RationalField_with_category'>
-        sage: underlying_class(QQ)
-        <class 'sage.rings.rational_field.RationalField'>
-    """
-    cls = type(P)
-    if not hasattr(P, '_is_category_initialized') or not P._is_category_initialized():
-        return cls
-    from sage.structure.misc import is_extension_type
-    if is_extension_type(cls):
-        return cls
-
-    from sage.categories.sets_cat import Sets
-    Sets_parent_class = Sets().parent_class
-    while issubclass(cls, Sets_parent_class):
-        cls = cls.__base__
-    return cls
 
 
 def merge_overlapping(A, B, key=None):
@@ -508,7 +493,7 @@ def merge_overlapping(A, B, key=None):
     def find_overlapping_index(A, B):
         if len(B) > len(A) - 2:
             raise StopIteration
-        matches = iter(i for i in xrange(1, len(A) - len(B))
+        matches = iter(i for i in range(1, len(A) - len(B))
                        if A[i:i+len(B)] == B)
         return next(matches)
 
@@ -518,9 +503,9 @@ def merge_overlapping(A, B, key=None):
 
         Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
 
-        Adapted from http://stackoverflow.com/a/30056066/1052778.
+        Adapted from https://stackoverflow.com/a/30056066/1052778.
         """
-        matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
+        matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])
         return next(matches, 0)
 
@@ -593,7 +578,6 @@ class NotImplementedOZero(NotImplementedError):
         TESTS::
 
             sage: A = AsymptoticRing('n^ZZ', ZZ)
-            doctest:...: FutureWarning: ...
             sage: from sage.rings.asymptotic.misc import NotImplementedOZero
             sage: raise NotImplementedOZero(A)
             Traceback (most recent call last):
@@ -610,7 +594,7 @@ class NotImplementedOZero(NotImplementedError):
             NotImplementedOZero: The error term in the result is O(0)
             which means 0 for sufficiently large m.
         """
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         if isinstance(data, AsymptoticRing) or var is not None:
             if var is None:
                 var = ', '.join(str(g) for g in data.gens())

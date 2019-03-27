@@ -1,5 +1,9 @@
-# Utilities for Sage-mpmath interaction
-# Also patches some mpmath functions for speed
+"""
+Utilities for Sage-mpmath interaction
+
+Also patches some mpmath functions for speed
+"""
+from __future__ import print_function, absolute_import
 
 from sage.ext.stdsage cimport PY_NEW
 
@@ -8,12 +12,9 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.rings.complex_number cimport ComplexNumber
 from sage.structure.element cimport Element
 
-import sage.all
-
 from sage.libs.mpfr cimport *
 from sage.libs.gmp.all cimport *
 
-from sage.misc.lazy_import import lazy_import
 from sage.rings.complex_field import ComplexField
 from sage.rings.real_mpfr cimport RealField
 
@@ -73,7 +74,7 @@ cpdef isqrt(n):
     else:
         m = Integer(n)
     if mpz_sgn(m.value) < 0:
-        raise ValueError, "square root of negative integer not defined."
+        raise ValueError("square root of negative integer not defined.")
     y = PY_NEW(Integer)
     mpz_sqrt(y.value, m.value)
     return y
@@ -81,6 +82,7 @@ cpdef isqrt(n):
 cpdef from_man_exp(man, exp, long prec = 0, str rnd = 'd'):
     """
     Create normalized mpf value tuple from mantissa and exponent.
+
     With prec > 0, rounds the result in the desired direction
     if necessary.
 
@@ -292,13 +294,13 @@ def sage_to_mpmath(x, prec):
 
         sage: import sage.libs.mpmath.all as a
         sage: a.mp.dps = 15
-        sage: print a.sage_to_mpmath(2/3, 53)
+        sage: print(a.sage_to_mpmath(2/3, 53))
         0.666666666666667
-        sage: print a.sage_to_mpmath(2./3, 53)
+        sage: print(a.sage_to_mpmath(2./3, 53))
         0.666666666666667
-        sage: print a.sage_to_mpmath(3+4*I, 53)
+        sage: print(a.sage_to_mpmath(3+4*I, 53))
         (3.0 + 4.0j)
-        sage: print a.sage_to_mpmath(1+pi, 53)
+        sage: print(a.sage_to_mpmath(1+pi, 53))
         4.14159265358979
         sage: a.sage_to_mpmath(infinity, 53)
         mpf('+inf')
@@ -440,7 +442,7 @@ def call(func, *args, **kwargs):
         return y
     try:
         return parent(y)
-    except TypeError, error:
+    except TypeError as error:
         try:
             return parent.complex_field()(y)
         except AttributeError:

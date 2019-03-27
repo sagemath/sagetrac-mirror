@@ -134,7 +134,7 @@
 \\ Usual global variables
 \\ 
 
-global(DEBUGLEVEL_qfsolve);
+global(DEBUGLEVEL_qfsolve):small;
 
   DEBUGLEVEL_qfsolve = 0;
 
@@ -147,7 +147,7 @@ global(DEBUGLEVEL_qfsolve);
 \\          SCRIPT                             \\
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-{default_qfsolve(DEBUGLEVEL_qfsolve_val = 0) =
+{default_qfsolve(DEBUGLEVEL_qfsolve_val:small = 0) =
 
   DEBUGLEVEL_qfsolve = DEBUGLEVEL_qfsolve_val;
   print("  DEBUGLEVEL_qfsolve = ",DEBUGLEVEL_qfsolve);
@@ -853,9 +853,10 @@ addhelp(default_qfsolve,
 addhelp(qflllgram_indef,
   "qflllgram_indef(G,{c}): Solve or reduce the quadratic form G with integral coefficients. G might be definite or indefinite. This is an lll-type algorithm with a constant 1/4<c<=1.
   c is optional and the default is c=1.
-  The ouput is either a vectorv which is a solution of v~*G*v=0, or a 2-component vector [H,U], where U is a unimodular matrix such that H = U~*G*U is LLL-reduced.
+  The output is either a vectorv which is a solution of v~*G*v=0, or a 2-component vector [H,U], where U is a unimodular matrix such that H = U~*G*U is LLL-reduced.
   Example:
   gp > G=[1637490518557, -9118398255553, -17114399686722; -9118398255553, -40039266946520, 44178901566187; -17114399686722, 44178901566187, 150094052078168];
   gp > qflllgram_indef(G)
   %1 = [-24749181067550, 1904107022307, -3382470700136]~
 ");
+}

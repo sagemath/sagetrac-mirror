@@ -99,7 +99,7 @@ If the vertices along the path do not match, a value error is raised::
 The ``*`` operator is concatenation of paths. If the two paths do not compose,
 then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
 
-    sage: print p*q
+    sage: print(p*q)
     None
 
 Let us now construct a larger quiver::
@@ -134,7 +134,7 @@ The length of a path is the number of edges in that path::
 List index and slice notation can be used to access the edges in a path.
 QuiverPaths can also be iterated over.  Trivial paths have no elements::
 
-    sage: for x in p: print x
+    sage: for x in p: print(x)
     (1, 2, 'a')
     (2, 3, 'd')
     sage: triv[:]
@@ -447,9 +447,11 @@ the ``*`` operator::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.structure.factory import UniqueFactory
 from sage.modules.module import Module
-from sage.modules.module_element import ModuleElement
+from sage.structure.element import ModuleElement
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
 
@@ -1244,7 +1246,7 @@ class QuiverRepElement(ModuleElement):
         The support is the set of vertices to which a nonzero vector is
         associated.
 
-        OUTPUT
+        OUTPUT:
 
         - list, the support
 
@@ -2226,7 +2228,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             # element of a quotient of that module but not the other way
             # around.  So in order to pass a map to the quotient we need to
             # construct the quotient map for the domain so that we can take
-            # inverse images to lift elments.  As sage can coerce to a quotient
+            # inverse images to lift elements.  As sage can coerce to a quotient
             # this is easy, we just send generators to themselves and set the
             # domain to be the quotient.
 
@@ -2801,7 +2803,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
-                # Add an entry to the matrix coresponding to where the new path is found
+                # Add an entry to the matrix corresponding to where the new path is found
                 j = self._bases[e[1]].index(self._bases[e[0]][i]*arrow)
                 maps[e][i, j] = k.one()
 
@@ -3015,7 +3017,7 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
-                # Add an entry to the matrix coresponding to where the new path is found
+                # Add an entry to the matrix corresponding to where the new path is found
                 if self._bases[e[0]][i] % arrow in self._bases[e[1]]:
                     j = self._bases[e[1]].index(self._bases[e[0]][i] % arrow)
                     maps[e][i, j] = k.one()

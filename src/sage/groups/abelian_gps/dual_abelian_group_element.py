@@ -13,7 +13,7 @@ To obtain the dual group of a finite Abelian group, use the
     Dual of Abelian Group isomorphic to Z/2Z x Z/3Z x Z/5Z x Z/7Z x Z/8Z
     over Cyclotomic Field of order 840 and degree 192
 
-The elements of the dual group can be evaluated on elements of the orignial group::
+The elements of the dual group can be evaluated on elements of the original group::
 
     sage: a,b,c,d,e = F.gens()
     sage: A,B,C,D,E = Fd.gens()
@@ -53,6 +53,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import operator
 
@@ -152,24 +153,25 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
             -0.499999999999995 + 0.866025403784447*I
             sage: A(a*b)
             -1
+
+        TESTS::
+
+            sage: F = AbelianGroup(1, [7], names="a")
+            sage: a, = F.gens()
+            sage: Fd = F.dual_group(names="A", base_ring=GF(29))
+            sage: A, = Fd.gens()
+            sage: A(a)
+            16
         """
         F = self.parent().base_ring()
         expsX = self.exponents()
         expsg = g.exponents()
         order = self.parent().gens_orders()
         N = LCM(order)
-        if is_ComplexField(F):
-            from sage.symbolic.constants import pi
-            I = F.gen()
-            PI = F(pi)
-            ans = prod([(2*PI*I*expsX[i]*expsg[i]/order[i]).exp() for i in range(len(expsX))])
-            return ans
-        ans = F(1)  ## assumes F is the cyclotomic field
-        zeta = F.gen()
-        for i in range(len(expsX)):
-            order_noti = N/order[i]
-            ans = ans*zeta**(expsX[i]*expsg[i]*order_noti)
-        return ans
+        order_not = [N / o for o in order]
+        zeta = F.zeta(N)
+        return F.prod(zeta ** (expsX[i] * expsg[i] * order_not[i])
+                      for i in range(len(expsX)))
 
     def word_problem(self, words, display=True):
         """
@@ -233,9 +235,5 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
         if display:
             s = str(g)+" = "+add_strings(["("+str(words[LL2[i]-1])+")^"+str(LL1[i])+"*" for i in range(nn)])
             m = len(s)
-            print "      ",s[:m-1],"\n"
+            print("      ", s[:m-1], "\n")
         return [[words[LL2[i]-1],LL1[i]] for i in range(nn)]
-
-
-
-

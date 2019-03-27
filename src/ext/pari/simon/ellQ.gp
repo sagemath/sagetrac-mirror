@@ -162,7 +162,6 @@
 
 */
 
-{
 \\
 \\ Usual global variables
 \\
@@ -187,7 +186,6 @@ global(MAXPROB, LIMBIGPRIME):small;
   MAXPROB = 20;
   LIMBIGPRIME = 30; \\ for primes larger than this limit: use a probabilistic test
                     \\ LIMBIGPRIME = 0 means: only deterministic tests
-}
 
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\          SCRIPT                             \\
@@ -517,7 +515,7 @@ return(listpoints);
 {polrealrootsisolate(pol) =
 \\ pol is a squarefree polynomial in Z[x].
 \\ Returns a list of vectors [a,b] with a and b rationals
-\\ such that the intervals ]a,b] are disjoints and contain
+\\ such that the intervals ]a,b] are disjoint and contain
 \\ all the real roots of pol, and excatly one in each interval.
 my(st,a,res,ind,b,c,stab,stac);
 

@@ -22,11 +22,11 @@ AUTHORS:
     curve containing the points in the specified line which inturn uses
     ``scipy.interpolate.splprep`` and ``scipy.interpolate.splev``.  Then one
     can use sage's graphics primitives ``line``, ``point``, ``text`` and
-    ``points`` to produce graphics object containg points (ground set
+    ``points`` to produce graphics object containing points (ground set
     elements) and lines (for a rank 3 matroid, these are flats of rank 2 of
     size greater than equal to 3) of the geometric representation of the
     matroid. Loops and parallel elements are added as per conventions in
-    [Oxley] using function ``addlp``. The priority order for point placement
+    [Oxl2011]_ using function ``addlp``. The priority order for point placement
     methods used inside plot() and show() is as follows:
 
     1. User Specified points dictionary and lineorders
@@ -44,8 +44,8 @@ AUTHORS:
 REFERENCES
 ==========
 
-[Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University
-Press, 2011.
+- [Oxl2011]_ James Oxley, "Matroid Theory, Second Edition". Oxford University
+  Press, 2011.
 
 EXAMPLES::
 
@@ -69,7 +69,7 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
-
+from __future__ import print_function
 
 import scipy
 import scipy.interpolate
@@ -81,7 +81,7 @@ from sage.matroids.advanced import newlabel
 
 
 def it(M, B1, nB1, lps):
-    """
+    r"""
     Return points on and off the triangle and lines to be drawn for a rank 3
     matroid.
 
@@ -120,23 +120,21 @@ def it(M, B1, nB1, lps):
         sage: nB1=list(set(M.simplify().groundset())-set(B1))
         sage: pts,trilines,nontripts,curvedlines=mph.it(M,
         ....: B1,nB1,M.loops())
-        sage: print pts
+        sage: print(pts)
         {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0), 4: (0, 0), 5: (1, 2),
         6: (2, 0)}
-        sage: print trilines
+        sage: print(trilines)
         [[3, 4, 5], [2, 5, 6], [1, 4, 6]]
-        sage: print nontripts
+        sage: print(nontripts)
         [0]
-        sage: print curvedlines
+        sage: print(curvedlines)
         [[0, 1, 5], [0, 2, 4], [0, 3, 6], [1, 2, 3], [1, 4, 6], [2, 5, 6],
          [3, 4, 5]]
 
     .. NOTE::
 
-            This method does NOT do any checks.
-
+        This method does NOT do any checks.
     """
-
     tripts = [(0, 0), (1, 2), (2, 0)]
     pts = {}
     j = 0
@@ -201,7 +199,7 @@ def trigrid(tripts):
 
         sage: from sage.matroids import matroids_plot_helpers
         sage: points=matroids_plot_helpers.trigrid([[2,1],[4,5],[5,2]])
-        sage: print points
+        sage: print(points)
         [[3.6666666666666665, 2.6666666666666665],
          [3.222222222222222, 2.888888888888889],
          [4.222222222222222, 3.222222222222222],
@@ -241,7 +239,7 @@ def addnontripts(tripts_labels, nontripts_labels, ptsdict):
     OUTPUT:
 
     A dictionary containing ground set elements in ``tripts`` as keys and
-    their (x,y) position as values allong with all keys and respective values
+    their (x,y) position as values along with all keys and respective values
     in ``ptsdict``.
 
     EXAMPLES::
@@ -329,7 +327,7 @@ def createline(ptsdict, ll, lineorders2=None):
         sage: ptsdict={'a':(1,3),'b':(2,1),'c':(4,5),'d':(5,2)}
         sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,
         ....: ['a','b','c','d'])
-        sage: print [len(x),len(y),len(x_i),len(y_i)]
+        sage: [len(x), len(y), len(x_i), len(y_i)]
         [4, 4, 100, 100]
         sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         sage: G+=points(zip(x, y), color='black', size=300,zorder=2)
@@ -337,7 +335,7 @@ def createline(ptsdict, ll, lineorders2=None):
         sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,
         ....: ['a','b','c','d'],lineorders2=[['b','a','c','d'],
         ....: ['p','q','r','s']])
-        sage: print [len(x),len(y),len(x_i),len(y_i)]
+        sage: [len(x), len(y), len(x_i), len(y_i)]
         [4, 4, 100, 100]
         sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         sage: G+=points(zip(x, y), color='black', size=300,zorder=2)
@@ -391,7 +389,7 @@ def slp(M1, pos_dict=None, B=None):
       as keys. While simplifying the matroid, all except one element in a
       parallel class that is also specified in ``pos_dict`` will be retained.
     - ``B`` -- (optional) A basis of M1 that has been chosen for placement on
-      vertics of triangle.
+      vertices of triangle.
 
     OUTPUT:
 
@@ -412,7 +410,7 @@ def slp(M1, pos_dict=None, B=None):
         sage: M.is_simple()
         True
         sage: setprint([L,P])
-        [{7}, {8, 9, 10}]
+        [{10, 8, 9}, {7}]
         sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
         ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
         sage: posdict= {8: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),
@@ -421,7 +419,7 @@ def slp(M1, pos_dict=None, B=None):
         sage: M.is_simple()
         True
         sage: setprint([L,P])
-        [{7}, {0, 9, 10}]
+        [{0, 10, 9}, {7}]
 
     .. NOTE::
 
@@ -692,15 +690,13 @@ def posdict_is_sane(M1, pos_dict):
     pcls = list(set([frozenset(set(M1.closure([p])) - L) for p in list(P)]))
     for pcl in pcls:
         pcl_list = list(pcl)
-        if not any([x in pos_dict.keys() for x in pcl_list]):
+        if not any(x in pos_dict for x in pcl_list):
             return False
     allP = []
     for pcl in pcls:
             allP.extend(list(pcl))
-    if not all([x in pos_dict.keys()
-                for x in list(set(M1.groundset()) - (L | set(allP)))]):
-            return False
-    return True
+    return all(x in pos_dict
+               for x in list(set(M1.groundset()) - (L | set(allP))))
 
 
 def tracklims(lims, x_i=[], y_i=[]):
@@ -855,8 +851,8 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         ptsx, ptsy, x_i, y_i = createline(pts2, bline, lineorders1)
         lims = tracklims(lims, x_i, y_i)
         G += line(zip(x_i, y_i), color='black', thickness=3, zorder=1)
-        pels = [p for p in pts2.keys() if any([M1.rank([p, q]) == 1
-                for q in P])]
+        pels = [p for p in pts2
+                if any(M1.rank([p, q]) == 1 for q in P)]
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for k in allpts]
         ypts = [float(k[1]) for k in allpts]
@@ -891,8 +887,8 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 ptsx, ptsy, x_i, y_i = createline(pts2, ll, lineorders1)
                 lims = tracklims(lims, x_i, y_i)
                 G += line(zip(x_i, y_i), color='black', thickness=3, zorder=1)
-        pels = [p for p in pts2.keys() if any([M1.rank([p, q]) == 1
-                for q in P])]
+        pels = [p for p in pts2
+                if any(M1.rank([p, q]) == 1 for q in P)]
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for k in allpts]
         ypts = [float(k[1]) for k in allpts]

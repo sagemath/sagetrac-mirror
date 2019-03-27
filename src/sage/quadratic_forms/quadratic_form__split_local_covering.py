@@ -5,6 +5,7 @@ Split Local Covering
 ## Routines that look for a split local covering for a given quadratic ##
 ## form in 4 variables.                                                ##
 #########################################################################
+from __future__ import print_function
 
 from copy import deepcopy
 
@@ -14,7 +15,6 @@ from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor, is_Q
 from sage.rings.real_mpfr import RealField_class, RealField
 from sage.rings.real_double import RDF
 from sage.matrix.matrix_space import MatrixSpace
-#from sage.matrix.matrix import Matrix
 from sage.matrix.constructor import matrix
 from sage.functions.all import floor
 from sage.rings.integer_ring import ZZ
@@ -22,7 +22,7 @@ from sage.arith.all import GCD
 
 
 def cholesky_decomposition(self, bit_prec = 53):
-    """
+    r"""
     Give the Cholesky decomposition of this quadratic form `Q` as a real matrix
     of precision ``bit_prec``.
 
@@ -82,7 +82,6 @@ def cholesky_decomposition(self, bit_prec = 53):
         [ 1.00000000000000  1.00000000000000  1.50000000000000]
         [0.000000000000000  3.00000000000000 0.333333333333333]
         [0.000000000000000 0.000000000000000  3.41666666666667]
-
     """
 
     ## Check that the precision passed is allowed.
@@ -168,13 +167,13 @@ def vectors_by_length(self, bound):
     ::
 
         sage: Q = QuadraticForm(ZZ, 4, [1,1,1,1, 1,0,0, 1,0, 1])
-        sage: map(len, Q.vectors_by_length(2))
+        sage: list(map(len, Q.vectors_by_length(2)))
         [1, 12, 12]
 
     ::
 
         sage: Q = QuadraticForm(ZZ, 4, [1,-1,-1,-1, 1,0,0, 4,-3, 4])
-        sage: map(len, Q.vectors_by_length(3))
+        sage: list(map(len, Q.vectors_by_length(3)))
         [1, 3, 0, 3]
     """
     # pari uses eps = 1e-6 ; nothing bad should happen if eps is too big
@@ -259,8 +258,8 @@ def vectors_by_length(self, bound):
 
         ## SANITY CHECK: Roundoff Error is < 0.001
         if abs(Q_val_double -  Q_val) > 0.001:
-            print " x = ", x
-            print " Float = ", Q_val_double, "   Long = ", Q_val
+            print(" x = ", x)
+            print(" Float = ", Q_val_double, "   Long = ", Q_val)
             raise RuntimeError("The roundoff error is bigger than 0.001, so we should use more precision somewhere...")
 
         #print " Float = ", Q_val_double, "   Long = ", Q_val, "  XX "
@@ -390,7 +389,7 @@ def complementary_subform_to_vector(self, v):
         if Q1[0,i] != 0:
             done_flag = False
 
-    if done_flag == False:
+    if not done_flag:
         raise RuntimeError("There is a problem cancelling out the matrix entries! =O")
 
 
@@ -404,7 +403,7 @@ def split_local_cover(self):
     Tries to find subform of the given (positive definite quaternary)
     quadratic form Q of the form
 
-    .. math::
+    .. MATH::
 
         d*x^2 + T(y,z,w)
 

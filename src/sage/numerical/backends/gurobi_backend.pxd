@@ -5,7 +5,7 @@
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from generic_backend cimport GenericBackend
+from .generic_backend cimport GenericBackend
 
 
 cdef extern from "gurobi_c.h":
@@ -15,6 +15,8 @@ cdef extern from "gurobi_c.h":
          pass
 
      int GRBloadenv(GRBenv **, char *)
+     int GRBemptyenv(GRBenv **)
+     int GRBstartenv(GRBenv *)
      int GRBnewmodel(GRBenv *env, GRBmodel **modelP, char *Pname, int numvars, double *obj, double *lb, double *ub, char *vtype, char **varnames)
      GRBmodel * GRBcopymodel (GRBmodel *model)
 
@@ -68,7 +70,7 @@ cdef extern from "gurobi_c.h":
      int GRB_BINARY
      int GRB_CONTINUOUS
      int GRB_INTEGER
-     int GRB_INFINITY
+     double GRB_INFINITY
 
      char GRB_LESS_EQUAL
      char GRB_GREATER_EQUAL
@@ -96,7 +98,7 @@ cdef class GurobiBackend(GenericBackend):
     cdef GRBenv * env
     cdef GRBenv * env_master
     cdef GRBmodel * model
-    cpdef GurobiBackend copy(self)
+    cpdef __copy__(self)
 
     cdef int num_vars
 

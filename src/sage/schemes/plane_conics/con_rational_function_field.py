@@ -38,6 +38,8 @@ Points can be found using :meth:`has_rational_point`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division
+from __future__ import absolute_import
 
 from sage.rings.all import PolynomialRing
 from sage.matrix.constructor import diagonal_matrix, matrix, block_matrix
@@ -140,8 +142,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: R.<t> = F[]
             sage: C = Conic([1,i*t,-t^2+4])
             sage: C.has_rational_point(point = True)
-            verbose 0 (3369: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
-            ...
             (True, (-t - 2*i : -2*i : 1))
 
         It works on non-diagonal conics as well::
@@ -171,7 +171,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: c = -3*t2^4-4*t1*t2^3+8*t1^2*t2^2+16*t1^3-t2-48*t1^4
             sage: C = Conic([a,b,c])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             NotImplementedError: is_square() not implemented for elements of
@@ -191,7 +190,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: K = R.fraction_field()
             sage: C = Conic(K, [u, v, 1])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             NotImplementedError: has_rational_point not implemented for conics
@@ -205,7 +203,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: K.<t> = PolynomialRing(GF(7))
             sage: C = Conic([5*t^2+4, t^2+3*t+3, 6*t^2+3*t+2, 5*t^2+5, 4*t+3, 4*t^2+t+5])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             TypeError: self (=Scheme morphism:
@@ -240,7 +237,7 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             (True,
              ((-2/117*t^8 + 304/1053*t^7 + 40/117*t^6 - 1/27*t^5 - 110/351*t^4 - 2/195*t^3 + 11/351*t^2 + 1/117)/(t^4 + 2/39*t^3 + 4/117*t^2 + 2/39*t + 14/39) : -5/3*t^4 + 19*t^3 : 1))
         """
-        from constructor import Conic
+        from .constructor import Conic
         
         if read_cache:
             if self._rational_point is not None:
@@ -361,7 +358,7 @@ for function field of characteristic 2.")
         that `(x,y,z) \in F(t)` is a solution of the reduced conic if and only
         if `(\lambda x, \mu y, \nu z)` is a solution of `self`.
         
-        ALGORITMH:
+        ALGORITHM:
         
         The algorithm used is the algorithm ReduceConic in [HC2006]_.
         
@@ -403,16 +400,17 @@ for function field of characteristic 2.")
                 decom = x.squarefree_decomposition()
             except (NotImplementedError, AttributeError):
                 decom = x.factor()
-            x = decom.unit(); x2 = 1
+            x = decom.unit()
+            x2 = 1
             for factor in decom:
                 if factor[1] > 1:
                     if factor[1] % 2 == 0:
-                        x2 = x2 * factor[0] ** (factor[1] / 2)
+                        x2 *= factor[0] ** (factor[1] // 2)
                     else:
-                        x = x * factor[0]
-                        x2 = x2 * factor[0] ** ((factor[1]-1) / 2)
+                        x *= factor[0]
+                        x2 *= factor[0] ** ((factor[1] - 1) // 2)
                 else:
-                    x = x * factor[0]
+                    x *= factor[0]
             for j, y in enumerate(multipliers):
                 if j != i:
                     multipliers[j] = y * x2
@@ -423,7 +421,7 @@ for function field of characteristic 2.")
     def find_point(self, supports, roots, case, solution = 0):
         r"""
         Given a solubility certificate like in [HC2006]_, find a point on
-        ``self``. Assumes ``self`` is in reduced form (see [HC2006] for a
+        ``self``. Assumes ``self`` is in reduced form (see [HC2006]_ for a
         definition).
 
         If you don't have a solubility certificate and just want to find a
@@ -445,7 +443,7 @@ for function field of characteristic 2.")
         A point `(x,y,z) \in F(t)` of ``self``. Output is undefined when the
         input solubility certificate is incorrect.
 
-        ALGORITMH:
+        ALGORITHM:
         
         The algorithm used is the algorithm FindPoint in [HC2006]_, with
         a simplification from [ACKERMANS2016]_.

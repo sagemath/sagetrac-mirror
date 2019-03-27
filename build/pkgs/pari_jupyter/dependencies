@@ -1,1 +1,1 @@
-$(INST)/$(PARI) $(INST)/$(JUPYTER_CORE) | $(INST)/$(CYTHON)
+$(PYTHON) pari | pip cython notebook jupyter_core

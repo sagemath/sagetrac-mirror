@@ -11,28 +11,23 @@ AUTHOR:
 """
 
 #*****************************************************************************
-#     Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-cdef extern from "string.h":
-    char *strchr(char *str, int ch)
-
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *v, Py_ssize_t len)
-    int PyList_Append(object list, object item) except -1
+from libc.string cimport strchr
+from cpython.bytes cimport PyBytes_FromStringAndSize
+from cpython.list cimport PyList_Append
 
 import math
+
+from sage.cpython.string cimport str_to_bytes, bytes_to_str
 
 def foo(*args, **kwds):
     """
@@ -47,7 +42,7 @@ def foo(*args, **kwds):
     """
     return args, kwds
 
-fuction_map = {
+function_map = {
   'foo': foo,
   'sqrt': math.sqrt,
   'sin': math.sin,
@@ -170,6 +165,7 @@ cdef class Tokenizer:
             sage: Tokenizer("?$%").test()
             ['ERROR', 'ERROR', 'ERROR']
         """
+        s = str_to_bytes(s)
         self.pos = 0
         self.last_pos = 0
         self.s = s
@@ -433,7 +429,9 @@ cdef class Tokenizer:
             sage: t.last_token_string()
             '1e5'
         """
-        return PyString_FromStringAndSize(&self.s[self.last_pos], self.pos-self.last_pos)
+        s = PyBytes_FromStringAndSize(&self.s[self.last_pos],
+                                      self.pos - self.last_pos)
+        return bytes_to_str(s)
 
 
 cdef class Parser:
@@ -692,7 +690,7 @@ cdef class Parser:
 
 # eqn ::= expr op expr | expr
     cpdef p_eqn(self, Tokenizer tokens):
-        """
+        r"""
         Parse an equation or expression.
 
         This is the top-level node called by the \code{parse} function.

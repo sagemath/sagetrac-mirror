@@ -12,15 +12,14 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 import weakref
 
-from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer cimport Integer
 
-ZZ_sage = IntegerRing()
 
 
 cdef class ntl_ZZ_pContext_class(object):
@@ -90,7 +89,7 @@ cdef class ntl_ZZ_pContext_class(object):
             sage: c.modulus() == 10^30
             True
         """
-        return ZZ_sage(self.p)
+        return Integer(self.p)
 
 
     def restore(self):
@@ -141,5 +140,5 @@ def ntl_ZZ_pContext( v ):
     """
     v = ntl_ZZ(v)
     if (v < ntl_ZZ(2)):
-        raise ValueError, "%s is not a valid modulus."%v
+        raise ValueError("%s is not a valid modulus." % v)
     return (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(v)

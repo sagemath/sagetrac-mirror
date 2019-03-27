@@ -23,8 +23,6 @@ cdef extern from "coin/CoinPackedVectorBase.hpp":
 cdef extern from "coin/CoinPackedVector.hpp":
      cdef cppclass CoinPackedVector(CoinPackedVectorBase):
          void insert(float, float)
-     CoinPackedVector *new_CoinPackedVector "new CoinPackedVector" ()
-     void del_CoinPackedVector "delete" (CoinPackedVector *)
 
 cdef extern from "coin/CoinShallowPackedVector.hpp":
      cdef cppclass CoinShallowPackedVector:
@@ -32,23 +30,17 @@ cdef extern from "coin/CoinShallowPackedVector.hpp":
          int * getIndices ()
          double * getElements ()
          int getNumElements ()
-     CoinShallowPackedVector *new_CoinShallowPackedVector "new CoinShallowPackedVector" ()
-     void del_CoinShallowPackedVector "delete" (CoinShallowPackedVector *)
 
 cdef extern from "coin/CoinPackedMatrix.hpp":
      cdef cppclass CoinPackedMatrix:
          void setDimensions(int, int)
          void appendRow(CoinPackedVector)
          CoinShallowPackedVector getVector(int)
-     CoinPackedMatrix *new_CoinPackedMatrix "new CoinPackedMatrix" (bool, double, double)
-     void del_CoinPackedMatrix "delete" (CoinPackedMatrix *)
 
 cdef extern from "coin/CoinMessageHandler.hpp":
      cdef cppclass CoinMessageHandler:
          void setLogLevel (int)
          int LogLevel ()
-     CoinMessageHandler *new_CoinMessageHandler "new CoinMessageHandler" ()
-     void del_CoinMessageHandler "delete" (CoinMessageHandler *)
 
 
 cdef extern from "coin/OsiSolverParameters.hpp":
@@ -129,7 +121,7 @@ cdef extern from "coin/OsiSolverInterface.hpp":
         void getBInvARow(int row, double* z, double * slack)
         void getBInvACol(int col, double* vec)
 
-        # Get indicies of basic variables
+        # Get indices of basic variables
         void getBasics(int* index)
 
         # Get objective coefficients
@@ -169,9 +161,6 @@ cdef extern from "coin/CbcModel.hpp":
          CoinMessageHandler * messageHandler ()
      void CbcMain0(CbcModel m)
 
-     CbcModel *new_CbcModel "new CbcModel" ()
-     void del_CbcModel "delete" (CbcModel *)
-
 cdef extern from "coin/ClpSimplex.hpp":
     cdef cppclass ClpSimplex:
         void setNumberThreads(int)
@@ -197,7 +186,7 @@ cdef class CoinBackend(GenericBackend):
     cdef list col_names, row_names
     cdef str prob_name
 
-    cpdef CoinBackend copy(self)
+    cpdef __copy__(self)
     cpdef get_basis_status(self)
     cpdef int set_basis_status(self, list cstat, list rstat) except -1
     cpdef get_binva_row(self, int i)

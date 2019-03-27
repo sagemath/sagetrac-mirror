@@ -10,7 +10,7 @@ using monospace fonts. The difference is that one is restricted to
 7-bit ascii, the other uses all unicode code points.
 """
 
-#*******************************************************************************
+# ******************************************************************************
 #       Copyright (C) 2013 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -22,22 +22,25 @@ using monospace fonts. The difference is that one is restricted to
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#                  https://www.gnu.org/licenses/
+# ******************************************************************************
+from __future__ import print_function
 
-import os, sys
+import os
+import sys
 from sage.structure.sage_object import SageObject
 
 
 ################################################################################
-### Global variable use to compute the maximal length allows for ascii art
-### object.
+# Global variable use to compute the maximal length allows for ascii art
+# object.
 MAX_WIDTH = None
 ################################################################################
 
+
 class CharacterArt(SageObject):
 
-    def __init__(self, lines=[], breakpoints=[], baseline=None, atomic=None):
+    def __init__(self, lines=[], breakpoints=[], baseline=None):
         r"""
         Abstract base class for character art
 
@@ -69,9 +72,6 @@ class CharacterArt(SageObject):
              * *
             *****
         """
-        if atomic is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(18357, "the argument atomic is deprecated and will be ignored")
         self._matrix = lines
         self._breakpoints = breakpoints
         self._baseline = baseline if baseline is not None else 0
@@ -114,7 +114,7 @@ class CharacterArt(SageObject):
             sage: from sage.typeset.ascii_art import AsciiArt
             sage: p5 = AsciiArt(["  *  ", " * * ", "*****"])
             sage: for line in p5:
-            ....:     print line
+            ....:     print(line)
               *
              * *
             *****
@@ -143,11 +143,27 @@ class CharacterArt(SageObject):
             return self._split_repr_(hsize)
         #########
         output = ""
-        if len(self._matrix) > 0:
+        if self._matrix:
             for i in range(len(self._matrix) - 1):
                 output += self._matrix[i] + "\n"
             return output + self._matrix[len(self._matrix) - 1]
         return output
+
+    def __format__(self, fmt):
+        r"""
+        Format ``self``.
+
+        EXAMPLES::
+
+            sage: M = matrix([[1,2],[3,4]])
+            sage: format(ascii_art(M))
+            '[1 2]\n[3 4]'
+            sage: format(unicode_art(M))  # py2
+            u'\u239b1 2\u239e\n\u239d3 4\u23a0'
+            sage: format(unicode_art(M))  # py3
+            '\u239b1 2\u239e\n\u239d3 4\u23a0'
+        """
+        return format(self._string_type(self), fmt)
 
     def get_baseline(self):
         r"""
@@ -207,10 +223,10 @@ class CharacterArt(SageObject):
 
     def _isatty(self):
         """
-        Test whether stdout is a TTY
+        Test whether ``stdout`` is a TTY.
 
-        If this test succeeds, you can assume that stdout is directly
-        connected to a terminal. Otherwise you should treat stdout as
+        If this test succeeds, you can assume that ``stdout`` is directly
+        connected to a terminal. Otherwise you should treat ``stdout`` as
         being redirected to a file.
 
         OUTPUT:
@@ -245,7 +261,9 @@ class CharacterArt(SageObject):
         """
         if not self._isatty():
             return 80
-        import fcntl, termios, struct
+        import fcntl
+        import termios
+        import struct
         rc = fcntl.ioctl(int(0), termios.TIOCGWINSZ,
                          struct.pack('HHHH', sys.stdout.fileno(), 0, 0, 0))
         h, w, hp, wp = struct.unpack('HHHH', rc)
@@ -261,7 +279,7 @@ class CharacterArt(SageObject):
             sage: p3 = AsciiArt([" * ", "***"])
             sage: p5 = AsciiArt(["  *  ", " * * ", "*****"])
             sage: aa = ascii_art([p3, p5])
-            sage: print aa._split_repr_(10)
+            sage: print(aa._split_repr_(10))
             [
             [  *
             [ ***,
@@ -270,14 +288,15 @@ class CharacterArt(SageObject):
                * *  ]
               ***** ]
         """
-        f_split = self._breakpoints[0]; i = 1
+        f_split = self._breakpoints[0]
+        i = 1
         while i < len(self._breakpoints) and self._breakpoints[i] < size:
             f_split = self._breakpoints[i]
             i += 1
         if size <= f_split:
             import warnings
-            warnings.warn("the console size is smaller than the pretty" +
-                "representation of the object")
+            warnings.warn("the console size is smaller than the pretty "
+                          "representation of the object")
         top, bottom = self.split(f_split)
         return repr(top * self.empty()) + "\n" + repr(bottom)
 
@@ -301,11 +320,13 @@ class CharacterArt(SageObject):
               * *  ]
              ***** ]
         """
-        left = []; right = []
+        left = []
+        right = []
         for line in self:
             left.append(line[:pos])
             right.append(line[pos:])
-        l_bp = []; r_bp = []
+        l_bp = []
+        r_bp = []
         for bp in self._breakpoints:
             if bp < pos:
                 l_bp.append(bp)
@@ -622,7 +643,7 @@ class CharacterArt(SageObject):
                 #  |
                 if new_h - new_baseline > self._h - self._baseline:
                     for _ in range((new_h - new_baseline) - (self._h - self._baseline)):
-                        new_matrix.insert(0, " "  * self._l)
+                        new_matrix.insert(0, " " * self._l)
 
             # right treatement
             i = 0
@@ -634,16 +655,17 @@ class CharacterArt(SageObject):
                 # ||
                 # ||
                 # |
-                i = max(new_h - new_baseline - Nelt._h + Nelt._baseline , 0)
+                i = max(new_h - new_baseline - Nelt._h + Nelt._baseline, 0)
             for j in range(Nelt._h):
-                new_matrix[i+j] += Nelt._matrix[j]
+                new_matrix[i + j] += Nelt._matrix[j]
         else:
             for line in self._matrix:
                 new_matrix.append(line + " " * (self._l - len(line)))
             for i, line_i in enumerate(Nelt._matrix):
                 if i == len(new_matrix):
                     new_matrix.append(" " * self._l + line_i)
-                else: new_matrix[i] += line_i
+                else:
+                    new_matrix[i] += line_i
 
         # breakpoint
         new_breakpoints = list(self._breakpoints)

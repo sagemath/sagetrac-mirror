@@ -1,6 +1,12 @@
 r"""
 Class factories for Interval exchange transformations.
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 This library is designed for the usage and manipulation of interval
 exchange transformations and linear involutions. It defines specialized
 types of permutation (constructed using :meth:`iet.Permutation`) some
@@ -13,7 +19,33 @@ EXAMPLES:
 Creation of an interval exchange transformation::
 
     sage: T = iet.IntervalExchangeTransformation(('a b','b a'),(sqrt(2),1))
-    sage: print T
+    doctest:warning
+    ...
+    DeprecationWarning: IntervalExchangeTransformation is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+        sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
+    doctest:warning
+    ...
+    DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+        sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
+    sage: T
     Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
     a b
     b a
@@ -22,7 +54,7 @@ It can also be initialized using permutation (group theoretic ones)::
 
     sage: p = Permutation([3,2,1])
     sage: T = iet.IntervalExchangeTransformation(p, [1/3,2/3,1])
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, 2[ with permutation
     1 2 3
     3 2 1
@@ -33,7 +65,7 @@ iet.Permutation. For the creation of labelled permutations of interval exchange
 transformation::
 
     sage: p1 =  iet.Permutation('a b c', 'c b a')
-    sage: print p1
+    sage: p1
     a b c
     c b a
 
@@ -41,7 +73,7 @@ They can be used for initialization of an iet::
 
     sage: p = iet.Permutation('a b','b a')
     sage: T = iet.IntervalExchangeTransformation(p, [1,sqrt(2)])
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
     a b
     b a
@@ -49,27 +81,53 @@ They can be used for initialization of an iet::
 You can also, create labelled permutations of linear involutions::
 
     sage: p = iet.GeneralizedPermutation('a a b', 'b c c')
-    sage: print p
+    doctest:warning
+    ...
+    DeprecationWarning: GeneralizedPermutation is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+        sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
+    sage: p
     a a b
     b c c
 
 Sometimes it's more easy to deal with reduced permutations::
 
     sage: p = iet.Permutation('a b c', 'c b a', reduced = True)
-    sage: print p
+    sage: p
     a b c
     c b a
 
 Permutations with flips::
 
     sage: p1 = iet.Permutation('a b c', 'c b a', flips = ['a','c'])
-    sage: print p1
+    sage: p1
     -a  b -c
     -c  b -a
 
 Creation of Rauzy diagrams::
 
     sage: r = iet.RauzyDiagram('a b c', 'c b a')
+    doctest:warning
+    ...
+    DeprecationWarning: RauzyDiagram is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+        sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
 
 Reduced Rauzy diagrams are constructed using the same arguments than for
 permutations::
@@ -81,7 +139,7 @@ permutations::
     sage: r_red.cardinality()
     4
 
-By defaut, Rauzy diagram are generated by induction on the right. You can use
+By default, Rauzy diagrams are generated by induction on the right. You can use
 several options to enlarge (or restrict) the diagram (try help(iet.RauzyDiagram) for
 more precisions)::
 
@@ -109,26 +167,17 @@ of the corresponding matrix::
 
 REFERENCES:
 
-.. [BL08] Corentin Boissy and Erwan Lanneau, "Dynamics and geometry of the
-  Rauzy-Veech induction for quadratic differentials" (arxiv:0710.5614) to appear
-  in Ergodic Theory and Dynamical Systems
+- [BL2008]_
 
-.. [DN90] Claude Danthony and Arnaldo Nogueira "Measured foliations on
-  nonorientable surfaces", Annales scientifiques de l'Ecole Normale
-  Superieure, Ser. 4, 23, no. 3 (1990) p 469-494
+- [DN1990]_
 
-.. [N85] Arnaldo Nogueira, "Almost all Interval Exchange Transformations with
-  Flips are Nonergodic" (Ergod. Th. & Dyn. Systems, Vol 5., (1985), 257-271
+- [Nog1985]_
 
-.. [R79] Gerard Rauzy, "Echanges d'intervalles et transformations induites",
-  Acta Arith. 34, no. 3, 203-212, 1980
+- [Rau1979]_
 
-.. [V78] William Veech, "Interval exchange transformations", J. Analyse Math.
-  33, 222-272
+- [Vee1978]_
 
-.. [Z] Anton Zorich, "Generalized Permutation software"
-  (http://perso.univ-rennes1.fr/anton.zorich)
-
+- [Zor]_
 
 AUTHORS:
 
@@ -141,7 +190,11 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from template import PermutationIET, PermutationLI
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
+
+from .template import PermutationIET, PermutationLI
 
 def _two_lists(a):
     r"""
@@ -197,7 +250,7 @@ def _two_lists(a):
             res[1] = a[1].split()
 
     elif isinstance(a, Permutation):
-        res[0] = range(1,len(a)+1)
+        res[0] = list(range(1,len(a)+1))
         res[1] = [a[i] for i in range(len(a))]
 
     elif not hasattr(a,'__len__'):
@@ -209,7 +262,7 @@ def _two_lists(a):
     elif len(a) == 1:
         a = a[0]
         if isinstance(a, Permutation):
-            res[0] = range(1,len(a)+1)
+            res[0] = list(range(1,len(a)+1))
             res[1] = [a[i] for i in range(len(a))]
 
         elif isinstance(a, (list,tuple)):
@@ -239,7 +292,7 @@ def Permutation(*args,**kargs):
 
     Those permutations are the combinatoric part of an interval exchange
     transformation (IET). The combinatorial study of those objects starts with
-    Gerard Rauzy [R79]_ and William Veech [V78]_.
+    Gerard Rauzy [Rau1979]_ and William Veech [Vee1978]_.
 
     The combinatoric part of interval exchange transformation can be taken
     independently from its dynamical origin. It has an important link with
@@ -335,13 +388,16 @@ def Permutation(*args,**kargs):
         ...
         ValueError: letters must appear once in each interval
     """
-    from labelled import LabelledPermutation
-    from labelled import LabelledPermutationIET
-    from labelled import FlippedLabelledPermutationIET
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("Permutation")
 
-    from reduced import ReducedPermutation
-    from reduced import ReducedPermutationIET
-    from reduced import FlippedReducedPermutationIET
+    from .labelled import LabelledPermutation
+    from .labelled import LabelledPermutationIET
+    from .labelled import FlippedLabelledPermutationIET
+
+    from .reduced import ReducedPermutation
+    from .reduced import ReducedPermutationIET
+    from .reduced import FlippedReducedPermutationIET
 
     if 'reduced' not in kargs :
         reduction = None
@@ -424,15 +480,15 @@ def GeneralizedPermutation(*args,**kargs):
     Returns a permutation of an interval exchange transformation.
 
     Those permutations are the combinatoric part of linear involutions and were
-    introduced by Danthony-Nogueira [DN90]_. The full combinatoric study and
+    introduced by Danthony-Nogueira [DN1990]_. The full combinatoric study and
     precise links with strata of quadratic differentials was achieved few years
-    later by Boissy-Lanneau [BL08]_.
+    later by Boissy-Lanneau [BL2008]_.
 
     INPUT:
 
     - ``intervals`` - strings, list, tuples
 
-    - ``reduced`` - boolean (defaut: False) specifies reduction. False means
+    - ``reduced`` - boolean (default: False) specifies reduction. False means
       labelled permutation and True means reduced permutation.
 
     - ``flips`` -  iterable (default: None) the letters which correspond to
@@ -486,13 +542,16 @@ def GeneralizedPermutation(*args,**kargs):
         ...
         ValueError: Letters must reappear twice
     """
-    from labelled import LabelledPermutation
-    from labelled import LabelledPermutationLI
-    from labelled import FlippedLabelledPermutationLI
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("GeneralizedPermutation")
 
-    from reduced import ReducedPermutation
-    from reduced import ReducedPermutationLI
-    from reduced import FlippedReducedPermutationLI
+    from .labelled import LabelledPermutation
+    from .labelled import LabelledPermutationLI
+    from .labelled import FlippedLabelledPermutationLI
+
+    from .reduced import ReducedPermutation
+    from .reduced import ReducedPermutationLI
+    from .reduced import FlippedReducedPermutationLI
 
     if 'reduced' not in kargs :
         reduction = None
@@ -630,12 +689,29 @@ def Permutations_iterator(nintervals=None, irreducible=True,
     Generates all reduced permutations with given number of intervals::
 
         sage: P = iet.Permutations_iterator(nintervals=2,alphabet="ab",reduced=True)
-        sage: for p in P: print p, "\n* *"
+        doctest:warning
+        ...
+        DeprecationWarning: iet_Permutations_iterator is deprecated and will be removed from Sage.
+        You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+        If you do not have write access to the Sage installation you can
+        alternatively do
+            sage -pip install surface_dynamics --user
+        The package surface_dynamics subsumes all flat surface related
+        computation that are currently available in Sage. See more
+        information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+        See http://trac.sagemath.org/20695 for details.
+        sage: for p in P:
+        ....:     print(p)
+        ....:     print("* *")
         a b
         b a
         * *
         sage: P = iet.Permutations_iterator(nintervals=3,alphabet="abc",reduced=True)
-        sage: for p in P: print p, "\n* * *"
+        sage: for p in P:
+        ....:     print(p)
+        ....:     print("* * *")
         a b c
         b c a
         * * *
@@ -657,8 +733,11 @@ def Permutations_iterator(nintervals=None, irreducible=True,
         ...
         ValueError: You must specify a length with infinite alphabet
     """
-    from labelled import LabelledPermutationsIET_iterator
-    from reduced import ReducedPermutationsIET_iterator
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("iet_Permutations_iterator")
+
+    from .labelled import LabelledPermutationsIET_iterator
+    from .reduced import ReducedPermutationsIET_iterator
     from sage.combinat.words.alphabet import Alphabet
     from sage.rings.infinity import Infinity
 
@@ -672,7 +751,7 @@ def Permutations_iterator(nintervals=None, irreducible=True,
             nintervals = alphabet.cardinality()
 
     elif alphabet is None:
-            alphabet = range(1, nintervals+1)
+            alphabet = list(range(1, nintervals + 1))
 
     if reduced:
         return ReducedPermutationsIET_iterator(nintervals,
@@ -693,7 +772,7 @@ def RauzyDiagram(*args, **kargs):
     interval exchange transformation). The edges correspond to the action of the
     different operations considered.
 
-    It first appeard in the original article of Rauzy [R79]_.
+    It first appeared in the original article of Rauzy [Rau1979]_.
 
     INPUT:
 
@@ -739,24 +818,24 @@ def RauzyDiagram(*args, **kargs):
     Using Rauzy diagrams and path in Rauzy diagrams::
 
         sage: r = iet.RauzyDiagram('a b c', 'c b a')
-        sage: print r
+        sage: r
         Rauzy diagram with 3 permutations
         sage: p = iet.Permutation('a b c','c b a')
         sage: p in r
         True
         sage: g0 = r.path(p, 'top', 'bottom','top')
         sage: g1 = r.path(p, 'bottom', 'top', 'bottom')
-        sage: print g0.is_loop(), g1.is_loop()
-        True True
-        sage: print g0.is_full(), g1.is_full()
-        False False
+        sage: g0.is_loop(), g1.is_loop()
+        (True, True)
+        sage: g0.is_full(), g1.is_full()
+        (False, False)
         sage: g = g0 + g1
         sage: g
         Path of length 6 in a Rauzy diagram
-        sage: print g.is_loop(), g.is_full()
-        True True
+        sage: g.is_loop(), g.is_full()
+        (True, True)
         sage: m = g.matrix()
-        sage: print m
+        sage: m
         [1 1 1]
         [2 4 1]
         [2 3 2]
@@ -771,7 +850,7 @@ def RauzyDiagram(*args, **kargs):
 
         sage: v = m.eigenvectors_right()[-1][1][0]
         sage: T = iet.IntervalExchangeTransformation(p, v).normalize()
-        sage: print T
+        sage: T
         Interval exchange transformation of [0, 1[ with permutation
         a b c
         c b a
@@ -789,6 +868,9 @@ def RauzyDiagram(*args, **kargs):
         sage: w2[:20] == w1
         True
     """
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("RauzyDiagram")
+
     if 'reduced' not in kargs:
         kargs['reduced'] = False
     if 'flips' not in kargs:
@@ -822,7 +904,7 @@ def RauzyDiagram(*args, **kargs):
 
 #TODO
 # def GeneralizedPermutation_iterator():
-#     print "gpi"
+
 
 def IntervalExchangeTransformation(permutation=None, lengths=None):
     """
@@ -893,15 +975,18 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,'rho',2])
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (='rho') into a real number
+        TypeError: unable to convert 'rho' to a float
         sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,-2,2])
         Traceback (most recent call last):
         ...
         ValueError: lengths must be positive
     """
-    from iet import IntervalExchangeTransformation as _IET
-    from labelled import LabelledPermutationIET
-    from template import FlippedPermutation
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("IntervalExchangeTransformation")
+
+    from .iet import IntervalExchangeTransformation as _IET
+    from .labelled import LabelledPermutationIET
+    from .template import FlippedPermutation
 
     if isinstance(permutation, FlippedPermutation):
         raise TypeError("flips are not yet implemented")
@@ -926,7 +1011,7 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         try:
             y = float(x)
         except ValueError:
-            raise TypeError("unable to convert x (='%s') into a real number" % (str(x)))
+            raise TypeError("unable to convert {!r} to a float".format(x))
 
         if y <= 0:
             raise ValueError("lengths must be positive")

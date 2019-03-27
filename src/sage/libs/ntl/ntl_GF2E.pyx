@@ -14,17 +14,19 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import absolute_import, division
 
-include "sage/ext/interrupt.pxi"
+from sage.ext.cplusplus cimport ccrepr
+
 include 'misc.pxi'
 include 'decl.pxi'
 
-from ntl_ZZ cimport ntl_ZZ
-from ntl_GF2 cimport ntl_GF2
-from ntl_GF2X cimport ntl_GF2X
-from ntl_GF2EContext cimport ntl_GF2EContext_class
-from ntl_GF2EContext import ntl_GF2EContext
+from cpython.object cimport Py_EQ, Py_NE
+from .ntl_ZZ cimport ntl_ZZ
+from .ntl_GF2 cimport ntl_GF2
+from .ntl_GF2X cimport ntl_GF2X
+from .ntl_GF2EContext cimport ntl_GF2EContext_class
+from .ntl_GF2EContext import ntl_GF2EContext
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -105,7 +107,7 @@ cdef class ntl_GF2E(object):
             [1]
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus when creating a GF2E."
+            raise ValueError("You must specify a modulus when creating a GF2E.")
 
         cdef ntl_GF2X _x
 
@@ -187,7 +189,7 @@ cdef class ntl_GF2E(object):
             [1 1 0 1]
         """
         self.c.restore_c()
-        return GF2E_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __copy__(self):
         """
@@ -217,7 +219,7 @@ cdef class ntl_GF2E(object):
         if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
-            raise ValueError, "You can not perform arithmetic with elements in different fields."
+            raise ValueError("You can not perform arithmetic with elements in different fields.")
         r = self._new()
         GF2E_mul(r.x, self.x, (<ntl_GF2E>other).x)
         return r
@@ -234,7 +236,7 @@ cdef class ntl_GF2E(object):
         if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
-            raise ValueError, "You can not perform arithmetic with elements in different fields."
+            raise ValueError("You can not perform arithmetic with elements in different fields.")
         r = self._new()
         GF2E_sub(r.x, self.x, (<ntl_GF2E>other).x)
         return r
@@ -251,7 +253,7 @@ cdef class ntl_GF2E(object):
         if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
-            raise ValueError, "You can not perform arithmetic with elements in different fields."
+            raise ValueError("You can not perform arithmetic with elements in different fields.")
         r = self._new()
         GF2E_add(r.x, self.x, (<ntl_GF2E>other).x)
         return r
@@ -268,7 +270,7 @@ cdef class ntl_GF2E(object):
         if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
-            raise ValueError, "You can not perform arithmetic with elements in different fields."
+            raise ValueError("You can not perform arithmetic with elements in different fields.")
         r = self._new()
         GF2E_div(r.x, self.x, (<ntl_GF2E>other).x)
         return r
@@ -379,7 +381,7 @@ cdef class ntl_GF2E(object):
         """
         Returns a ntl.GF2X copy of this element.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: a = ntl.GF2E('0x1c', ctx)
             sage: a.rep()
@@ -432,7 +434,7 @@ cdef class ntl_GF2E(object):
         OUTPUT:
             FiniteFieldElement over k
 
-        EXAMPLE:
+        EXAMPLES:
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: e = ntl.GF2E([0,1], ctx)
             sage: a = e._sage_(); a

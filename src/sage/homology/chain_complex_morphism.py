@@ -19,9 +19,9 @@ EXAMPLES::
     Minimal triangulation of the 1-sphere
     sage: C = S.chain_complex()
     sage: C.differential()
-    {0: [], 1: [ 1  1  0]
-    [ 0 -1 -1]
-    [-1  0  1], 2: []}
+    {0: [], 1: [-1 -1  0]
+     [ 1  0 -1]
+     [ 0  1  1], 2: []}
     sage: f = {0:zero_matrix(ZZ,3,3),1:zero_matrix(ZZ,3,3)}
     sage: G = Hom(C,C)
     sage: x = G(f)
@@ -94,9 +94,9 @@ class ChainComplexMorphism(Morphism):
             Minimal triangulation of the 1-sphere
             sage: C = S.chain_complex()
             sage: C.differential()
-            {0: [], 1: [ 1  1  0]
-            [ 0 -1 -1]
-            [-1  0  1], 2: []}
+            {0: [], 1: [-1 -1  0]
+             [ 1  0 -1]
+             [ 0  1  1], 2: []}
             sage: f = {0:zero_matrix(ZZ,3,3),1:zero_matrix(ZZ,3,3)}
             sage: G = Hom(C,C)
             sage: x = G(f)
@@ -140,7 +140,7 @@ class ChainComplexMorphism(Morphism):
             raise ValueError('degree of differential does not match')
             
         from sage.misc.misc import uniq
-        degrees = uniq(C.differential().keys() + D.differential().keys())
+        degrees = uniq(list(C.differential()) + list(D.differential()))
         initial_matrices = dict(matrices)
         matrices = dict()
         for i in degrees:

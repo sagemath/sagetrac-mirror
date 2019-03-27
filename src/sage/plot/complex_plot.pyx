@@ -16,17 +16,17 @@ Complex Plots
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 # TODO: use NumPy buffers and complex fast_callable (when supported)
-
-include "sage/ext/interrupt.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 cimport numpy as cnumpy
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
 from sage.rings.complex_double cimport ComplexDoubleElement
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from libc.math cimport hypot, atan2, atan, log, sqrt
 
@@ -61,9 +61,9 @@ cdef inline double mag_to_lightness(double r):
 
         sage: from sage.plot.complex_plot import complex_to_rgb
         sage: complex_to_rgb([[0, 1, 10]])
-        array([[[ 0.        ,  0.        ,  0.        ],
-                [ 0.77172568,  0.        ,  0.        ],
-                [ 1.        ,  0.22134776,  0.22134776]]])
+        array([[[0.        , 0.        , 0.        ],
+                [0.77172568, 0.        , 0.        ],
+                [1.        , 0.22134776, 0.22134776]]])
     """
     return atan(log(sqrt(r)+1)) * (4/PI) - 1
 
@@ -82,13 +82,13 @@ def complex_to_rgb(z_values):
 
         sage: from sage.plot.complex_plot import complex_to_rgb
         sage: complex_to_rgb([[0, 1, 1000]])
-        array([[[ 0.        ,  0.        ,  0.        ],
-                [ 0.77172568,  0.        ,  0.        ],
-                [ 1.        ,  0.64421177,  0.64421177]]])
+        array([[[0.        , 0.        , 0.        ],
+                [0.77172568, 0.        , 0.        ],
+                [1.        , 0.64421177, 0.64421177]]])
         sage: complex_to_rgb([[0, 1j, 1000j]])
-        array([[[ 0.        ,  0.        ,  0.        ],
-                [ 0.38586284,  0.77172568,  0.        ],
-                [ 0.82210588,  1.        ,  0.64421177]]])
+        array([[[0.        , 0.        , 0.        ],
+                [0.38586284, 0.77172568, 0.        ],
+                [0.82210588, 1.        , 0.64421177]]])
     """
     import numpy
     cdef unsigned int i, j, imax, jmax
@@ -275,20 +275,36 @@ def complex_plot(f, xrange, yrange, **options):
         sage: complex_plot(sqrt(x), (-5, 5), (-5, 5))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(complex_plot(sqrt(x), (-5, 5), (-5, 5)))
+
     ::
 
         sage: complex_plot(sin(x), (-5, 5), (-5, 5))
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(sin(x), (-5, 5), (-5, 5)))
 
     ::
 
         sage: complex_plot(log(x), (-10, 10), (-10, 10))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(complex_plot(log(x), (-10, 10), (-10, 10)))
+
     ::
 
         sage: complex_plot(exp(x), (-10, 10), (-10, 10))
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(exp(x), (-10, 10), (-10, 10)))
 
     A function with some nice zeros and a pole::
 
@@ -296,15 +312,28 @@ def complex_plot(f, xrange, yrange, **options):
         sage: complex_plot(f, (-3, 3), (-3, 3))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3)))
+
     Here is the identity, useful for seeing what values map to what colors::
 
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(complex_plot(lambda z: z, (-3, 3), (-3, 3)))
+
     The Riemann Zeta function::
 
         sage: complex_plot(zeta, (-30,30), (-30,30))
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(zeta, (-30,30), (-30,30)))
 
     Extra options will get passed on to show(), as long as they are valid::
 

@@ -1,6 +1,8 @@
 """
 Lazy format strings
 """
+from __future__ import print_function
+
 
 class LazyFormat(str):
     """
@@ -103,18 +105,18 @@ class LazyFormat(str):
         TESTS::
 
             sage: from sage.misc.lazy_format import LazyFormat
-            sage: form = LazyFormat("<%s>");
+            sage: form = LazyFormat("<%s>")
             sage: form
             unbound LazyFormat("<%s>")
-            sage: print form
+            sage: print(form)
             unbound LazyFormat("<%s>")
             sage: form%"toto"
             <toto>
-            sage: print form%"toto"
+            sage: print(form % "toto")
             <toto>
-            sage: print str(form%"toto")
+            sage: print(str(form % "toto"))
             <toto>
-            sage: print (form%"toto").__repr__()
+            sage: print((form % "toto").__repr__())
             <toto>
         """
         try:

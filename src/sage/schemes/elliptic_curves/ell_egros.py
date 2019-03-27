@@ -1,5 +1,5 @@
 r"""
-Elliptic curves with prescribed good reduction.
+Elliptic curves with prescribed good reduction
 
 Construction of elliptic curves with good reduction outside a finite
 set of primes
@@ -71,6 +71,7 @@ required have conductors 13068 and 52272 so are in the database)::
 AUTHORS:
 
 - John Cremona (6 April 2009): initial version (over `\QQ` only).
+
 """
 
 #*****************************************************************************
@@ -87,11 +88,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
 from sage.misc.all import prod
 from sage.misc.all import xmrange
 from sage.rings.all import QQ
-from constructor import EllipticCurve, EllipticCurve_from_j
+from .constructor import EllipticCurve, EllipticCurve_from_j
 
 
 def is_possible_j(j, S=[]):
@@ -122,30 +124,32 @@ def is_possible_j(j, S=[]):
             and (j-1728).prime_to_S_part(S).abs().is_square())
 
 
-def curve_cmp(E1, E2):
+def curve_key(E1):
     r"""
-    Comparison function for elliptic curves over `\QQ`.
+    Comparison key for elliptic curves over `\QQ`.
 
-    Order by label if in the database, else first by conductor, then
-    by c_invariants.
+    The key is a tuple:
+
+    - if the curve is in the database: (conductor, 0, label, number)
+
+    - otherwise: (conductor, 1, a_invariants)
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.ell_egros import curve_key
+        sage: E = EllipticCurve_from_j(1728)
+        sage: curve_key(E)
+        (32, 0, 0, 2)
+        sage: E = EllipticCurve_from_j(1729)
+        sage: curve_key(E)
+        (2989441, 1, (1, 0, 0, -36, -1))
     """
-    t = cmp(E1.conductor(), E2.conductor())
-    if t:
-        return t
-
-    # Now they have the same conductor
     try:
         from sage.databases.cremona import parse_cremona_label, class_to_int
-        k1 = parse_cremona_label(E1.label())
-        k2 = parse_cremona_label(E2.label())
-        t = cmp(class_to_int(k1[1]),class_to_int(k2[1]))
-        if t:
-            return t
-        return cmp(k1[2], k2[2])
-    except RuntimeError: # if not in database, label() will fail
-        pass
-
-    return cmp(E1.ainvs(),E2.ainvs())
+        N, l, k = parse_cremona_label(E1.label())
+        return (N, 0, class_to_int(l), k)
+    except LookupError:
+        return (E1.conductor(), 1, E1.ainvs())
 
 
 def egros_from_j_1728(S=[]):
@@ -189,7 +193,7 @@ def egros_from_j_1728(S=[]):
         Eu = EllipticCurve([0,0,0,u,0]).minimal_model()
         if Eu.has_good_reduction_outside_S(S):
             Elist += [Eu]
-    Elist.sort(cmp=curve_cmp)
+    Elist.sort(key=curve_key)
     return Elist
 
 
@@ -237,7 +241,7 @@ def egros_from_j_0(S=[]):
         Eu = EllipticCurve([0,0,0,0,u]).minimal_model()
         if Eu.has_good_reduction_outside_S(S):
             Elist += [Eu]
-    Elist.sort(cmp=curve_cmp)
+    Elist.sort(key=curve_key)
     return Elist
 
 
@@ -293,7 +297,7 @@ def egros_from_j(j,S=[]):
         if Eu.has_good_reduction_outside_S(S):
             Elist += [Eu]
 
-    Elist.sort(cmp=curve_cmp)
+    Elist.sort(key=curve_key)
     return Elist
 
 
@@ -338,7 +342,7 @@ def egros_from_jlist(jlist,S=[]):
         (0, 0, 1, 0, -61)]
     """
     elist = sum([egros_from_j(j,S) for j in jlist],[])
-    elist.sort(cmp=curve_cmp)
+    elist.sort(key=curve_key)
     return elist
 
 
@@ -385,7 +389,7 @@ def egros_get_j(S=[], proof=None, verbose=False):
         83
 
     """
-    if not all([p.is_prime() for p in S]):
+    if not all(p.is_prime() for p in S):
         raise ValueError("Elements of S must be prime.")
 
         if proof is None:
@@ -399,26 +403,23 @@ def egros_get_j(S=[], proof=None, verbose=False):
 
     SS = [-1] + S
 
-    jlist=[]
-    wcount=0
+    jlist = []
+    wcount = 0
     nw = 6**len(S) * 2
 
     if verbose:
-        print "Finding possible j invariants for S = ",S
-        print "Using ", nw, " twists of base curve"
+        print("Finding possible j invariants for S = ", S)
+        print("Using ", nw, " twists of base curve")
         sys.stdout.flush()
 
     for ei in xmrange([6]*len(S) + [2]):
         w = prod([p**e for p,e in zip(reversed(SS),ei)],QQ(1))
         wcount+=1
         if verbose:
-            print "Curve #",wcount, "/",nw,":";
-            print "w = ",w,"=",w.factor()
+            print("Curve #", wcount, "/", nw, ":")
+            print("w = ", w, "=", w.factor())
             sys.stdout.flush()
         a6 = -1728*w
-        d2 = 0
-        d3 = 0
-        u0 = (2**d2)*(3**d3)
         E = EllipticCurve([0,0,0,0,a6])
         # This curve may not be minimal at 2 or 3, but the
         # S-integral_points function requires minimality at primes in
@@ -432,17 +433,17 @@ def egros_get_j(S=[], proof=None, verbose=False):
         try:
             pts = E23.S_integral_points(S,proof=proof)
         except RuntimeError:
-            pts=[]
-            print "Failed to find S-integral points on ",E23.ainvs()
+            pts = []
+            print("Failed to find S-integral points on ", E23.ainvs())
             if proof:
                 if verbose:
-                    print "--trying again with proof=False"
+                    print("--trying again with proof=False")
                     sys.stdout.flush()
                 pts = E23.S_integral_points(S,proof=False)
                 if verbose:
-                    print "--done"
+                    print("--done")
         if verbose:
-            print len(pts), " S-integral points: ",pts
+            print(len(pts), " S-integral points: ", pts)
             sys.stdout.flush()
         for P in pts:
             P = urst(P)
@@ -453,11 +454,11 @@ def egros_get_j(S=[], proof=None, verbose=False):
             if is_possible_j(j,S):
                 if not j in jlist:
                     if verbose:
-                        print "Adding possible j = ",j
+                        print("Adding possible j = ", j)
                         sys.stdout.flush()
                     jlist += [j]
             else:
                 if True: #verbose:
-                    print "Discarding illegal j = ",j
+                    print("Discarding illegal j = ", j)
                     sys.stdout.flush()
     return sorted(jlist, key=lambda j: j.height())

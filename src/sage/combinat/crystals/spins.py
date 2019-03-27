@@ -39,8 +39,8 @@ representing the elements of the spin crystal by sequences of signs
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
-from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.classical_crystals import ClassicalCrystals
@@ -323,7 +323,7 @@ class Spin(LetterTuple):
 
             sage: C = crystals.Spins(['B',3])
             sage: b = C([1,1,-1])
-            sage: print b._repr_diagram()
+            sage: print(b._repr_diagram())
             +
             +
             -
@@ -343,7 +343,7 @@ class Spin(LetterTuple):
             +
             -
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def _latex_(self):
         r"""
@@ -353,7 +353,7 @@ class Spin(LetterTuple):
 
             sage: C = crystals.Spins(['B',3])
             sage: b = C([1,1,-1])
-            sage: print b._latex_()
+            sage: print(b._latex_())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
             \lr{-}\\\cline{1-1}

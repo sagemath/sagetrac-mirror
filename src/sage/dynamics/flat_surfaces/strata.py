@@ -1,6 +1,12 @@
 r"""
 Strata of differentials on Riemann surfaces
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 The space of Abelian (or quadratic) differentials is stratified by the
 degrees of the zeroes (and simple poles for quadratic
 differentials). Each stratum has one, two or three connected
@@ -11,42 +17,25 @@ a stratum (which corresponds to the SAGE object
 :class:`~sage.dynamics.flat_surfaces.strata.AbelianStratum`).
 
 The work for Abelian differentials was done by Maxim Kontsevich and Anton
-Zorich in [KonZor03]_ and for quadratic differentials by Erwan Lanneau in
-[Lan08]_. Zorich gave an algorithm to pass from a connected component of a
+Zorich in [KZ2003]_ and for quadratic differentials by Erwan Lanneau in
+[Lan2008]_. Zorich gave an algorithm to pass from a connected component of a
 stratum to the associated Rauzy class (for both interval exchange
-transformations and linear involutions) in [Zor08]_ and is implemented for
+transformations and linear involutions) in [Zor2008]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
 - for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.representative`
-- for hyperellitic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
+- for hyperelliptic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
 - for non hyperelliptic component, the algorithm is the same as for connected
   component
 - for odd component :meth:`~OddConnectedComponentOfAbelianStratum.representative`
 - for even component :meth:`~EvenConnectedComponentOfAbelianStratum.representative`
 
 The inverse operation (pass from an interval exchange transformation to
-the connected component) is partially written in [KonZor03]_ and
+the connected component) is partially written in [KZ2003]_ and
 simply named here
 :meth:`~sage.dynamics.interval_exchanges.template.PermutationIET.connected_component`.
 
-All the code here was first available on Mathematica [ZS]_.
-
-REFERENCES:
-
-.. [KonZor03] M. Kontsevich, A. Zorich "Connected components of the moduli space
-   of Abelian differentials with prescripebd singularities" Invent. math. 153,
-   631-678 (2003)
-
-.. [Lan08] E. Lanneau "Connected components of the strata of the moduli spaces
-   of quadratic differentials", Annales sci. de l'ENS, serie 4, fascicule 1,
-   41, 1-56 (2008)
-
-.. [Zor08] A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
-   Abelian and quadratic differentials", Journal of Modern Dynamics, vol. 2,
-   no 1, 139-185 (2008) (http://www.math.psu.edu/jmd)
-
-.. [ZS] Anton Zorich, "Generalized Permutation software"
-   (http://perso.univ-rennes1.fr/anton.zorich/Software/software_en.html)
+All the code here was first available on Mathematica [Zor]_.
 
 .. NOTE::
 
@@ -62,21 +51,34 @@ EXAMPLES:
 Construction of a stratum from a list of singularity degrees::
 
     sage: a = AbelianStratum(1,1)
-    sage: print a
+    doctest:warning
+    ...
+    DeprecationWarning: AbelianStratum is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+    sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+    sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+    http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
+    sage: a
     H(1, 1)
-    sage: print a.genus()
+    sage: a.genus()
     2
-    sage: print a.nintervals()
+    sage: a.nintervals()
     5
 
 ::
 
     sage: a = AbelianStratum(4,3,2,1)
-    sage: print a
+    sage: a
     H(4, 3, 2, 1)
-    sage: print a.genus()
+    sage: a.genus()
     6
-    sage: print a.nintervals()
+    sage: a.nintervals()
     15
 
 By convention, the degrees are always written in decreasing order::
@@ -108,7 +110,20 @@ Get a list of strata with constraints on genus or on the number of intervals
 of a representative::
 
     sage: for a in AbelianStrata(genus=3):
-    ....:     print a
+    ....:     print(a)
+    doctest:warning
+    ...
+    DeprecationWarning: AbelianStrata is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+        sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
     H(4)
     H(3, 1)
     H(2, 2)
@@ -118,7 +133,7 @@ of a representative::
 ::
 
     sage: for a in AbelianStrata(nintervals=5):
-    ....:     print a
+    ....:     print(a)
     H^out(0, 2)
     H^out(2, 0)
     H^out(1, 1)
@@ -127,7 +142,7 @@ of a representative::
 ::
 
     sage: for a in AbelianStrata(genus=2, nintervals=5):
-    ....:     print a
+    ....:     print(a)
     H^out(0, 2)
     H^out(2, 0)
     H^out(1, 1)
@@ -135,17 +150,18 @@ of a representative::
 Obtains the connected components of a stratum::
 
     sage: a = AbelianStratum(0)
-    sage: print a.connected_components()
+    sage: a.connected_components()
     [H_hyp(0)]
 
 ::
 
     sage: a = AbelianStratum(6)
     sage: cc = a.connected_components()
-    sage: print cc
+    sage: cc
     [H_hyp(6), H_odd(6), H_even(6)]
     sage: for c in cc:
-    ....:     print c, "\n", c.representative(alphabet=range(1,9))
+    ....:     print(c)
+    ....:     print(c.representative(alphabet=range(1,9)))
     H_hyp(6)
     1 2 3 4 5 6 7 8
     8 7 6 5 4 3 2 1
@@ -159,10 +175,10 @@ Obtains the connected components of a stratum::
 ::
 
     sage: a = AbelianStratum(1, 1, 1, 1)
-    sage: print a.connected_components()
+    sage: a.connected_components()
     [H_c(1, 1, 1, 1)]
     sage: c = a.connected_components()[0]
-    sage: print c.representative(alphabet="abcdefghi")
+    sage: print(c.representative(alphabet="abcdefghi"))
     a b c d e f g h i
     e d c f i h g b a
 
@@ -171,30 +187,30 @@ corresponds to the first singularity degree::
 
     sage: a = AbelianStratum(4, 2, marked_separatrix='out')
     sage: b = AbelianStratum(2, 4, marked_separatrix='out')
-    sage: print a == b
+    sage: a == b
     False
-    sage: print a, ":", a.connected_components()
-    H^out(4, 2) : [H_odd^out(4, 2), H_even^out(4, 2)]
-    sage: print b, ":", b.connected_components()
-    H^out(2, 4) : [H_odd^out(2, 4), H_even^out(2, 4)]
+    sage: a, a.connected_components()
+    (H^out(4, 2), [H_odd^out(4, 2), H_even^out(4, 2)])
+    sage: b, b.connected_components()
+    (H^out(2, 4), [H_odd^out(2, 4), H_even^out(2, 4)])
     sage: a_odd, a_even = a.connected_components()
     sage: b_odd, b_even = b.connected_components()
 
 The representatives are hence different::
 
-    sage: print a_odd.representative(alphabet=range(1,10))
+    sage: a_odd.representative(alphabet=range(1,10))
     1 2 3 4 5 6 7 8 9
     4 3 6 5 7 9 8 2 1
-    sage: print b_odd.representative(alphabet=range(1,10))
+    sage: b_odd.representative(alphabet=range(1,10))
     1 2 3 4 5 6 7 8 9
     4 3 5 7 6 9 8 2 1
 
 ::
 
-    sage: print a_even.representative(alphabet=range(1,10))
+    sage: a_even.representative(alphabet=range(1,10))
     1 2 3 4 5 6 7 8 9
     6 5 4 3 7 9 8 2 1
-    sage: print b_even.representative(alphabet=range(1,10))
+    sage: b_even.representative(alphabet=range(1,10))
     1 2 3 4 5 6 7 8 9
     7 6 5 4 3 9 8 2 1
 
@@ -203,35 +219,35 @@ Rauzy diagrams from the classification of strata::
 
     sage: a = AbelianStrata(nintervals=4)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
-    ....:     print c, ":", i
+    ....:     print("{} : {}".format(c, i))
     H_hyp^out(2) : 7
     H_hyp^out(0, 0, 0) : 6
-    sage: print sum(n)
+    sage: sum(n)
     13
 
 ::
 
     sage: a = AbelianStrata(nintervals=5)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
-    ....:     print c, ":", i
+    ....:     print("{} : {}".format(c, i))
     H_hyp^out(0, 2) : 11
     H_hyp^out(2, 0) : 35
     H_hyp^out(1, 1) : 15
     H_hyp^out(0, 0, 0, 0) : 10
-    sage: print sum(n)
+    sage: sum(n)
     71
 
 ::
 
     sage: a = AbelianStrata(nintervals=6)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
-    ....:     print c, ":", i
+    ....:     print("{} : {}".format(c, i))
     H_hyp^out(4) : 31
     H_odd^out(4) : 134
     H_hyp^out(0, 2, 0) : 66
@@ -239,7 +255,7 @@ Rauzy diagrams from the classification of strata::
     H_hyp^out(0, 1, 1) : 20
     H_hyp^out(1, 1, 0) : 90
     H_hyp^out(0, 0, 0, 0, 0) : 15
-    sage: print sum(n)
+    sage: sum(n)
     461
 """
 #*****************************************************************************
@@ -248,7 +264,10 @@ Rauzy diagrams from the classification of strata::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six.moves import range
 
+from sage.structure.richcmp import richcmp_method, rich_to_bool, op_EQ, op_NE
 from sage.structure.sage_object import SageObject
 
 from sage.combinat.combinat import CombinatorialClass
@@ -256,7 +275,6 @@ from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.combinat.partition import Partitions
 
 from sage.rings.integer import Integer
-from sage.rings.rational import Rational
 
 
 def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
@@ -276,18 +294,18 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
 
     Abelian strata with a given genus::
 
-        sage: for s in AbelianStrata(genus=1): print s
+        sage: for s in AbelianStrata(genus=1): print(s)
         H(0)
 
     ::
 
-        sage: for s in AbelianStrata(genus=2): print s
+        sage: for s in AbelianStrata(genus=2): print(s)
         H(2)
         H(1, 1)
 
     ::
 
-        sage: for s in AbelianStrata(genus=3): print s
+        sage: for s in AbelianStrata(genus=3): print(s)
         H(4)
         H(3, 1)
         H(2, 2)
@@ -296,7 +314,7 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
 
     ::
 
-        sage: for s in AbelianStrata(genus=4): print s
+        sage: for s in AbelianStrata(genus=4): print(s)
         H(6)
         H(5, 1)
         H(4, 2)
@@ -311,23 +329,23 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
 
     Abelian strata with a given number of intervals::
 
-        sage: for s in AbelianStrata(nintervals=2): print s
+        sage: for s in AbelianStrata(nintervals=2): print(s)
         H^out(0)
 
     ::
 
-        sage: for s in AbelianStrata(nintervals=3): print s
+        sage: for s in AbelianStrata(nintervals=3): print(s)
         H^out(0, 0)
 
     ::
 
-        sage: for s in AbelianStrata(nintervals=4): print s
+        sage: for s in AbelianStrata(nintervals=4): print(s)
         H^out(2)
         H^out(0, 0, 0)
 
     ::
 
-        sage: for s in AbelianStrata(nintervals=5): print s
+        sage: for s in AbelianStrata(nintervals=5): print(s)
         H^out(0, 2)
         H^out(2, 0)
         H^out(1, 1)
@@ -335,12 +353,12 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
 
     Abelian strata with both constraints::
 
-        sage: for s in AbelianStrata(genus=2, nintervals=4): print s
+        sage: for s in AbelianStrata(genus=2, nintervals=4): print(s)
         H^out(2)
 
     ::
 
-        sage: for s in AbelianStrata(genus=5, nintervals=12): print s
+        sage: for s in AbelianStrata(genus=5, nintervals=12): print(s)
         H^out(8, 0, 0)
         H^out(0, 8, 0)
         H^out(0, 7, 1)
@@ -367,6 +385,9 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
         H^out(2, 3, 3)
         H^out(3, 3, 2)
     """
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("AbelianStrata")
+
     if genus is None:
         if nintervals is None:
             return AbelianStrata_all()
@@ -524,7 +545,7 @@ class AbelianStrata_d(CombinatorialClass):
         r"""
         TESTS::
 
-            sage: for a in AbelianStrata(nintervals=4): print a
+            sage: for a in AbelianStrata(nintervals=4): print(a)
             H^out(2)
             H^out(0, 0, 0)
         """
@@ -605,7 +626,7 @@ class AbelianStrata_gd(CombinatorialClass):
         if self._marked_separatrix == 'no':
             return "Abelian strata of genus %d surfaces and %d intervals" % (self._genus, self._nintervals)
         elif self._marked_separatrix == 'in':
-            return "Abelian strata of genus %d surfaces and %d intervals and a marked incoming ihorizontal separatrix" % (self._genus, self._nintervals)
+            return "Abelian strata of genus %d surfaces and %d intervals and a marked incoming horizontal separatrix" % (self._genus, self._nintervals)
         else:
             return "Abelian strata of genus %d surfaces and %d intervals and a marked outgoing horizontal separatrix" % (self._genus, self._nintervals)
 
@@ -667,6 +688,7 @@ class AbelianStrata_all(InfiniteAbstractCombinatorialClass):
         return AbelianStrata_g(g)
 
 
+@richcmp_method
 class AbelianStratum(SageObject):
     """
     Stratum of Abelian differentials.
@@ -679,7 +701,7 @@ class AbelianStratum(SageObject):
     :meth:`sage.dynamics.interval_exchanges.template.Permutation.symmetric`
     operation of Boissy-Lanneau).
 
-    When you want to specify a marked separatrix, the degree on which it is is
+    When you want to specify a marked separatrix, the degree on which it is
     the first term of your degrees list.
 
     INPUT:
@@ -692,7 +714,7 @@ class AbelianStratum(SageObject):
     Creation of an Abelian stratum and get its connected components::
 
         sage: a = AbelianStratum(2, 2)
-        sage: print a
+        sage: a
         H(2, 2)
         sage: a.connected_components()
         [H_hyp(2, 2), H_odd(2, 2)]
@@ -702,10 +724,10 @@ class AbelianStratum(SageObject):
     ::
 
         sage: a = AbelianStratum(4,2,marked_separatrix='in')
-        sage: print a
+        sage: a
         H^in(4, 2)
         sage: b = AbelianStratum(2,4,marked_separatrix='in')
-        sage: print b
+        sage: b
         H^in(2, 4)
         sage: a == b
         False
@@ -713,10 +735,10 @@ class AbelianStratum(SageObject):
     ::
 
         sage: a = AbelianStratum(4,2,marked_separatrix='out')
-        sage: print a
+        sage: a
         H^out(4, 2)
         sage: b = AbelianStratum(2,4,marked_separatrix='out')
-        sage: print b
+        sage: b
         H^out(2, 4)
         sage: a == b
         False
@@ -725,16 +747,16 @@ class AbelianStratum(SageObject):
 
         sage: a = AbelianStratum(2,2)
         sage: a_hyp, a_odd = a.connected_components()
-        sage: print a_hyp.representative()
+        sage: a_hyp.representative()
         1 2 3 4 5 6 7
         7 6 5 4 3 2 1
-        sage: print a_odd.representative()
+        sage: a_odd.representative()
         0 1 2 3 4 5 6
         3 2 4 6 5 1 0
 
     You can choose the alphabet::
 
-        sage: print a_odd.representative(alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        sage: a_odd.representative(alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         A B C D E F G
         D C E G F B A
 
@@ -765,6 +787,9 @@ class AbelianStratum(SageObject):
             ...
             ValueError: marked_separatrix must be one of 'no', 'in', 'out'
         """
+        from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+        surface_dynamics_deprecation("AbelianStratum")
+
         if l == ():
             pass
 
@@ -860,9 +885,13 @@ class AbelianStratum(SageObject):
                     '^' + self._marked_separatrix +
                     "(" + str(self._zeroes)[1:-1] + ")")
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        TESTS:
+        The order is given by the natural:
+
+        self < other iff adherance(self) c adherance(other)
+
+        TESTS::
 
             sage: a = AbelianStratum(1,3)
             sage: b = AbelianStratum(3,1)
@@ -887,23 +916,7 @@ class AbelianStratum(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: the right member must be a stratum
-        """
-        if type(self) is not type(other):
-            raise TypeError("the right member must be a stratum")
 
-        return (self._marked_separatrix == other._marked_separatrix and
-                self._zeroes == other._zeroes)
-
-    def __ne__(self, other):
-        r"""
-        TESTS::
-
-            sage: a = AbelianStratum(1,3)
-            sage: b = AbelianStratum(3,1)
-            sage: c = AbelianStratum(1,3,marked_separatrix='out')
-            sage: d = AbelianStratum(3,1,marked_separatrix='out')
-            sage: e = AbelianStratum(1,3,marked_separatrix='in')
-            sage: f = AbelianStratum(3,1,marked_separatrix='in')
             sage: a != b  # no difference for unmarked
             False
             sage: c != d  # difference for out mark
@@ -920,20 +933,6 @@ class AbelianStratum(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: the right member must be a stratum
-        """
-        if type(self) is not type(other):
-            raise TypeError("the right member must be a stratum")
-
-        return (self._marked_separatrix != other._marked_separatrix or
-                self._zeroes != other._zeroes)
-
-    def __cmp__(self, other):
-        r"""
-        The order is given by the natural:
-
-        self < other iff adherance(self) c adherance(other)
-
-        TESTS::
 
             sage: a3 = AbelianStratum(3,2,1)
             sage: a3_out = AbelianStratum(3,2,1,marked_separatrix='out')
@@ -945,15 +944,22 @@ class AbelianStratum(SageObject):
             sage: a3_out == a3_in
             False
         """
-        if (type(self) is not type(other) or
-            self._marked_separatrix != other._marked_separatrix):
+        if type(self) is not type(other):
+            raise TypeError("the right member must be a stratum")
+
+        if op == op_EQ or op == op_NE:
+            z_eq = self._zeroes == other._zeroes
+            ms_eq = self._marked_separatrix == other._marked_separatrix
+            return (z_eq and ms_eq) == (op == op_EQ)
+
+        if self._marked_separatrix != other._marked_separatrix:
             raise TypeError("the other must be a stratum with same marking")
 
         if self._zeroes < other._zeroes:
-            return 1
+            return rich_to_bool(op, 1)
         elif self._zeroes > other._zeroes:
-            return -1
-        return 0
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
     def connected_components(self):
         """
@@ -1063,6 +1069,7 @@ class AbelianStratum(SageObject):
         return 2 * self.genus() + len(self._zeroes) - 1
 
 
+@richcmp_method
 class ConnectedComponentOfAbelianStratum(SageObject):
     r"""
     Connected component of Abelian stratum.
@@ -1229,6 +1236,19 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
+            doctest:warning
+            ...
+            DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+                sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+                sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+                http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: c = p.connected_component()
             sage: c.parent()
             H(0)
@@ -1240,7 +1260,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         INPUT:
 
@@ -1259,10 +1279,10 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         ::
 
             sage: c = AbelianStratum(1,1,1,1).connected_components()[0]
-            sage: print c
+            sage: c
             H_c(1, 1, 1, 1)
             sage: p = c.representative(alphabet=range(9))
-            sage: print p
+            sage: p
             0 1 2 3 4 5 6 7 8
             4 3 2 5 8 7 6 1 0
             sage: p.connected_component()
@@ -1272,7 +1292,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         zeroes = [x for x in self._parent._zeroes if x > 0]
         n = self._parent._zeroes.count(0)
 
-        l0 = range(0, 4*g-3)
+        l0 = list(range(4 * g - 3))
         l1 = [4, 3, 2]
         for k in range(5, 4*g-6, 4):
             l1 += [k, k+3, k+2, k+1]
@@ -1286,7 +1306,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             k += 2
 
         if n != 0:
-            interval = range(4*g-3, 4*g-3+n)
+            interval = list(range(4 * g - 3, 4 * g - 3 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(4)
@@ -1382,7 +1402,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         """
         return self.representative(reduced=reduced).rauzy_diagram()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         TESTS::
 
@@ -1405,21 +1425,17 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             sage: c2_hyp != c2_odd
             True
             sage: c1 == True
-            Traceback (most recent call last):
-            ...
-            TypeError: other must be a connected component
+            False
         """
-        if not isinstance(other, CCA):
-            raise TypeError("other must be a connected component")
+        if not isinstance(other, CCA) or type(self) != type(other):
+            return NotImplemented
 
-        if type(self) is type(other):
-            if self._parent._zeroes > other._parent._zeroes:
-                return 1
-            elif self._parent._zeroes < other._parent._zeroes:
-                return -1
-            return 0
+        if self._parent._zeroes < other._parent._zeroes:
+            return rich_to_bool(op, 1)
+        elif self._parent._zeroes > other._parent._zeroes:
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
-        return cmp(type(self), type(other))
 
 CCA = ConnectedComponentOfAbelianStratum
 
@@ -1439,14 +1455,14 @@ class HypConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         INPUT:
 
-        - ``reduced`` - boolean (defaut: ``True``): whether you obtain
+        - ``reduced`` - boolean (default: ``True``): whether you obtain
           a reduced or labelled permutation
 
-        - ``alphabet`` - alphabet or ``None`` (defaut: ``None``):
+        - ``alphabet`` - alphabet or ``None`` (default: ``None``):
           whether you want to specify an alphabet for your
           representative
 
@@ -1512,13 +1528,13 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l0 = [0, 1, 2]
                 l1 = [2, 1, 0]
             else:
-                l0 = range(1, n+2)
-                l1 = [n+1] + range(1, n+1)
+                l0 = list(range(1, n + 2))
+                l1 = [n + 1] + list(range(1, n + 1))
 
         elif m == 1:  # H(2g-2,0^n) or H(0,2g-2,0^(n-1))
-            l0 = range(1, 2*g+1)
-            l1 = range(2*g, 0, -1)
-            interval = range(2*g+1, 2*g+n+1)
+            l0 = list(range(1, 2*g+1))
+            l1 = list(range(2*g, 0, -1))
+            interval = list(range(2*g+1, 2*g+n+1))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1528,9 +1544,9 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l1[1:1] = interval
 
         else:  # H(g-1,g-1,0^n) or H(0,g-1,g-1,0^(n-1))
-            l0 = range(1, 2*g+2)
-            l1 = range(2*g+1, 0, -1)
-            interval = range(2*g+2, 2*g+n+2)
+            l0 = list(range(1, 2*g+2))
+            l1 = list(range(2*g+1, 0, -1))
+            interval = list(range(2*g+2, 2*g+n+2))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1582,7 +1598,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         EXAMPLES:
 
@@ -1614,7 +1630,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [6, 5, 4, 3, 2, 7, 9, 8]
         for k in range(10, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1630,7 +1646,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
 
         # if there are marked points we transform 0 in [3g-2, 3g-3, ...]
         if n != 0:
-            interval = range(3*g-2, 3*g - 2 + n)
+            interval = list(range(3*g-2, 3*g - 2 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(6)
@@ -1670,21 +1686,21 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         EXAMPLES:
 
         ::
 
             sage: a = AbelianStratum(6).connected_components()[1]
-            sage: print a.representative(alphabet=range(8))
+            sage: a.representative(alphabet=range(8))
             0 1 2 3 4 5 6 7
             3 2 5 4 7 6 1 0
 
         ::
 
             sage: a = AbelianStratum(4,4).connected_components()[1]
-            sage: print a.representative(alphabet=range(11))
+            sage: a.representative(alphabet=range(11))
             0 1 2 3 4 5 6 7 8 9 10
             3 2 5 4 6 8 7 10 9 1 0
         """
@@ -1693,7 +1709,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [3, 2]
         for k in range(4, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1709,7 +1725,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
 
         # marked points
         if n != 0:
-            interval = range(3*g-2, 3*g-2+n)
+            interval = list(range(3*g-2, 3*g-2+n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(3)

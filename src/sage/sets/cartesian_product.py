@@ -13,12 +13,11 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import itertools
+from __future__ import print_function
 
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
-from sage.misc.misc_c import prod
 
 from sage.categories.sets_cat import Sets
 
@@ -26,8 +25,6 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapperCheckWrappedClass
 
-from sage.rings.integer_ring import ZZ
-from sage.rings.infinity import Infinity
 
 class CartesianProduct(UniqueRepresentation, Parent):
     """
@@ -49,7 +46,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             and Category of Cartesian products of monoids
             and Category of Cartesian products of finite enumerated sets
 
-    .. automethod:: _cartesian_product_of_elements
+    .. automethod:: CartesianProduct._cartesian_product_of_elements
     """
     def __init__(self, sets, category, flatten=False):
         r"""
@@ -115,11 +112,12 @@ class CartesianProduct(UniqueRepresentation, Parent):
             ...
             ValueError: (1, 3, 4) should be of length 2
         """
+        from builtins import zip
         x = tuple(x)
         if len(x) != len(self._sets):
             raise ValueError(
                 "{} should be of length {}".format(x, len(self._sets)))
-        x = tuple(c(xx) for c,xx in itertools.izip(self._sets,x))
+        x = tuple(c(xx) for c, xx in zip(self._sets, x))
         return self.element_class(self, x)
 
     def _repr_(self):
@@ -137,7 +135,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = cartesian_product([range(5), range(5)])
+            sage: C = cartesian_product([list(range(5)), list(range(5))])
             sage: (1, 1) in C
             True
             sage: (1, 6) in C
@@ -232,7 +230,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             This is meant as a fast low-level method. In particular,
             no coercion is attempted. When coercion or sanity checks
             are desirable, please use instead ``self(elements)`` or
-            ``self._element_constructor(elements)``.
+            ``self._element_constructor_(elements)``.
 
         EXAMPLES::
 
@@ -334,12 +332,25 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: c = C.an_element(); c
                 (47, 42, 1)
                 sage: for i in c:
-                ....:     print i
+                ....:     print(i)
                 47
                 42
                 1
             """
             return iter(self.value)
+
+        def __len__(self):
+            r"""
+            Return the number of factors in the cartesian product from which ``self`` comes.
+
+            EXAMPLES::
+
+                sage: C = cartesian_product([ZZ, QQ, CC])
+                sage: e = C.random_element()
+                sage: len(e)
+                3
+            """
+            return len(self.value)
 
         def cartesian_factors(self):
             r"""
@@ -351,7 +362,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: A((1, 1.23)).cartesian_factors()
                 (1, 1.23000000000000)
                 sage: type(_)
-                <type 'tuple'>
+                <... 'tuple'>
             """
             return self.value
 

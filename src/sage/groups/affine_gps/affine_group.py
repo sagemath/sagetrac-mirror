@@ -57,7 +57,7 @@ class AffineGroup(UniqueRepresentation, Group):
         x \mapsto A x + b.
 
     We can also represent affine transformations as linear transformations by
-    considering `\dim(V) + 1` dimensonal space. We take the affine
+    considering `\dim(V) + 1` dimensional space. We take the affine
     transformation `(A, b)` to
 
     .. MATH::
@@ -93,7 +93,7 @@ class AffineGroup(UniqueRepresentation, Group):
         space. If an integer is given, it must be a prime power and
         the corresponding finite field is constructed.
 
-      * ``var`` -- (Defalut: ``'a'``) Keyword argument to specify the finite
+      * ``var`` -- (default: ``'a'``) Keyword argument to specify the finite
         field generator name in the case where ``ring`` is a prime power.
 
     EXAMPLES::
@@ -351,7 +351,7 @@ class AffineGroup(UniqueRepresentation, Group):
         return MatrixSpace(self.base_ring(), dp, dp)
 
     def linear(self, A):
-        """
+        r"""
         Construct the general linear transformation by ``A``.
 
         INPUT:
@@ -374,7 +374,7 @@ class AffineGroup(UniqueRepresentation, Group):
         return self.element_class(self, A, self.vector_space().zero(), check=True, convert=False)
 
     def translation(self, b):
-        """
+        r"""
         Construct the translation by ``b``.
 
         INPUT:

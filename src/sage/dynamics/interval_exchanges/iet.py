@@ -1,7 +1,13 @@
 r"""
 Interval Exchange Transformations and Linear Involution
 
-An interval exchage transformation is a map defined on an interval (see
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
+An interval exchange transformation is a map defined on an interval (see
 help(iet.IntervalExchangeTransformation) for a more complete help.
 
 EXAMPLES:
@@ -9,7 +15,33 @@ EXAMPLES:
 Initialization of a simple iet with integer lengths::
 
     sage: T = iet.IntervalExchangeTransformation(Permutation([3,2,1]), [3,1,2])
-    sage: print T
+    doctest:warning
+    ...
+    DeprecationWarning: IntervalExchangeTransformation is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+    sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+    sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+    http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
+    doctest:warning
+    ...
+    DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+    sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+    sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+    http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
+    sage: T
     Interval exchange transformation of [0, 6[ with permutation
     1 2 3
     3 2 1
@@ -18,13 +50,13 @@ Rotation corresponds to iet with two intervals::
 
     sage: p = iet.Permutation('a b', 'b a')
     sage: T = iet.IntervalExchangeTransformation(p, [1, (sqrt(5)-1)/2])
-    sage: print T.in_which_interval(0)
+    sage: print(T.in_which_interval(0))
     a
-    sage: print T.in_which_interval(T(0))
+    sage: print(T.in_which_interval(T(0)))
     a
-    sage: print T.in_which_interval(T(T(0)))
+    sage: print(T.in_which_interval(T(T(0))))
     b
-    sage: print T.in_which_interval(T(T(T(0))))
+    sage: print(T.in_which_interval(T(T(T(0)))))
     a
 
 There are two plotting methods for iet::
@@ -42,10 +74,13 @@ There are two plotting methods for iet::
     sage: T.plot_function()
     Graphics object consisting of 3 graphics primitives
 """
+from __future__ import print_function, absolute_import
+
 from copy import copy
 from sage.structure.sage_object import SageObject
 
-from template import side_conversion, interval_conversion
+from .template import side_conversion, interval_conversion
+
 
 class IntervalExchangeTransformation(SageObject):
     r"""
@@ -91,7 +126,7 @@ class IntervalExchangeTransformation(SageObject):
         sage: iet.IntervalExchangeTransformation(('a b','b a'),['e','f'])
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (='e') into a real number
+        TypeError: unable to convert 'e' to a float
 
     The value for the lengths must be positive::
 
@@ -108,13 +143,13 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``lengths`` - the list of lengths
 
-        TEST::
+        TESTS::
 
             sage: p=iet.IntervalExchangeTransformation(('a','a'),[1])
             sage: p == loads(dumps(p))
             True
         """
-        from labelled import LabelledPermutationIET
+        from .labelled import LabelledPermutationIET
         if permutation is None or lengths is None:
             self._permutation = LabelledPermutationIET()
             self._lengths = []
@@ -203,7 +238,7 @@ class IntervalExchangeTransformation(SageObject):
            sage: s = t.normalize('bla')
            Traceback (most recent call last):
            ...
-           TypeError: unable to convert total (='bla') into a real number
+           TypeError: unable to convert 'bla' to a float
            sage: s = t.normalize(-691)
            Traceback (most recent call last):
            ...
@@ -212,8 +247,7 @@ class IntervalExchangeTransformation(SageObject):
         try:
             float(total)
         except ValueError:
-            raise TypeError("unable to convert total (='%s') into a real number"
-                            % (str(total)))
+            raise TypeError("unable to convert {!r} to a float".format(total))
 
         if total <= 0:
             raise ValueError("the total length must be positive")
@@ -412,7 +446,7 @@ class IntervalExchangeTransformation(SageObject):
                self.length() == other.length()):
             raise ValueError("self and other are not IET of the same length")
 
-        from labelled import LabelledPermutationIET
+        from .labelled import LabelledPermutationIET
 
         other_sg = other.range_singularities()[1:]
         self_sg = self.domain_singularities()[1:]
@@ -523,7 +557,7 @@ class IntervalExchangeTransformation(SageObject):
 
         label -- a label corresponding to an interval
 
-        TEST:
+        TESTS:
 
         ::
 
@@ -587,7 +621,7 @@ class IntervalExchangeTransformation(SageObject):
         list -- two lists of positive numbers which corresponds to extremities
             of subintervals
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = iet.IntervalExchangeTransformation(('a b','b a'),[1/2,3/2])
             sage: t.singularities()
@@ -711,7 +745,7 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``side`` - must be 0 or -1 (no verification)
 
-        TEST::
+        TESTS::
 
             sage: t = iet.IntervalExchangeTransformation(('a b c','c b a'),[1,1,3])
             sage: t
@@ -795,7 +829,7 @@ class IntervalExchangeTransformation(SageObject):
             Graphics object consisting of 4 graphics primitives
         """
         from sage.plot.all import Graphics
-        from sage.plot.plot import line2d
+        from sage.plot.line import line2d
 
         G = Graphics()
         l = self.singularities()
@@ -823,9 +857,9 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``position`` - a 2-uple of the position
 
-        - ``horizontal_alignment`` - left (defaut), center or right
+        - ``horizontal_alignment`` - left (default), center or right
 
-        - ``labels`` - boolean (defaut: True)
+        - ``labels`` - boolean (default: True)
 
         - ``fontsize`` - the size of the label
 
@@ -841,8 +875,8 @@ class IntervalExchangeTransformation(SageObject):
             Graphics object consisting of 8 graphics primitives
         """
         from sage.plot.all import Graphics
-        from sage.plot.plot import line2d
-        from sage.plot.plot import text
+        from sage.plot.line import line2d
+        from sage.plot.text import text
         from sage.plot.colors import rainbow
 
         G = Graphics()

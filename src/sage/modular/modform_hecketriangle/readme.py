@@ -37,7 +37,7 @@ Hecke triangle groups and elements:
       sage: G.is_arithmetic()
       False
       sage: G.dvalue()
-      e^(2*euler_gamma - 2*sqrt(6)*pi/(sqrt(3) + 3) + psi(19/24) + psi(17/24))
+      e^(2*euler_gamma - 4*pi/(sqrt(6) + sqrt(2)) + psi(19/24) + psi(17/24))
       sage: AA(G.lam())
       1.9318516525781...?
 
@@ -107,7 +107,7 @@ Hecke triangle groups and elements:
   An element can be represented in several ways:
 
   - As a matrix over the base ring (default)
-  - As a product of the generatos ``S`` and ``T``
+  - As a product of the generators ``S`` and ``T``
   - As a product of basic blocks conjugated by some element
 
   EXAMPLES::
@@ -216,14 +216,14 @@ Hecke triangle groups and elements:
       sage: G = HeckeTriangleGroup(n=7)
       sage: A = -G.V(2)*G.V(3)^(-2)
 
-      sage: print A.string_repr("default")
+      sage: print(A.string_repr("default"))
       [               lam         -lam^2 + 1]
       [       2*lam^2 - 1 -2*lam^2 - lam + 2]
-      sage: print A.string_repr("basic")
+      sage: print(A.string_repr("basic"))
       S*T^(-2)*S*T^(-1)*S*T^(-1)
-      sage: print A.string_repr("block")
+      sage: print(A.string_repr("block"))
       -(-S*T^(-1)*S) * (V(3)) * (-S*T^(-1)*S)^(-1)
-      sage: print A.string_repr("conj")
+      sage: print(A.string_repr("conj"))
       [-V(3)]
       sage: A.trace()
       -2*lam^2 + 2
@@ -248,7 +248,7 @@ Hecke triangle groups and elements:
   Note that for hyperbolic (and parabolic) fixed points there is a
   1-1 correspondence with primitive hyperbolic/parabolic group
   elements (at least if ``n < infinity``). The group action on
-  fixed points resp. on matrices is compatible with this correpondence.
+  fixed points resp. on matrices is compatible with this correspondence.
 
   EXAMPLES::
 
@@ -259,7 +259,7 @@ Hecke triangle groups and elements:
       sage: A.fixed_points()
       (1/2*e, -1/2*e)
       sage: A.fixed_points(embedded=True)
-      (1*I, -1*I)
+      (I, -I)
 
       sage: A = G.U()
       sage: A.fixed_points()
@@ -376,7 +376,7 @@ Hecke triangle groups and elements:
       sage: el.is_hecke_symmetric()
       False
       sage: (el.simple_fixed_point_set(), el.inverse().simple_fixed_point_set())
-      ({1/2*e, (-1/2*lam + 1/2)*e}, {(1/2*lam - 1/2)*e, -1/2*e})
+      ({1/2*e, (-1/2*lam + 1/2)*e}, {-1/2*e, (1/2*lam - 1/2)*e})
       sage: el = G.V(2)*G.V(3)
       sage: el.is_hecke_symmetric()
       True
@@ -552,7 +552,7 @@ Hecke triangle groups and elements:
       sage: uniq([v.is_reduced() for v in R])    # long time
       [True]
       sage: R = G.simple_elements(7*G.lam() + 6)
-      sage: for v in R: print v.string_repr("default")
+      sage: for v in R: print(v.string_repr("default"))
       [lam + 2     lam]
       [    lam       1]
       [      1     lam]
@@ -930,7 +930,7 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: L.taylor_series(1, 3)
       -0.0304484570583... - 0.0504570844798...*z - 0.0350657360354...*z^2 + O(z^3)
       sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-      sage: abs(L(10) - sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)) < 10^(-7)
+      sage: abs(L(10) - sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)) < 10^(-7)
       True
 
       sage: L = ModularForms(n=6, k=6, ep=-1).E6().lseries(num_prec=200)

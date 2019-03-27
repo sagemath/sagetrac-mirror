@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""
+r"""
 The ``pretty_print`` command.
 
 Works similar to the ``print`` function, except that it always tries
@@ -41,7 +41,7 @@ from sage.repl.rich_output import get_display_manager
 class SequencePrettyPrinter(SageObject):
 
     def __init__(self, *args, **kwds):
-        """
+        r"""
         Pretty Printer for Muliple Arguments.
 
         INPUT/OUTPUT:
@@ -210,30 +210,14 @@ def pretty_print(*args, **kwds):
         sage: pretty_print(LatexExpr(r"\frac{x^2 + 1}{x - 2}"))
         <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{x^2 + 1}{x - 2}</script></html>
 
-    Iterators and generators are unwrapped::
-
-        sage: iterator = iter(range(3));  iterator
-        <listiterator object at 0x...>
-        sage: pretty_print(iterator)
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}0 1 2</script></html>
-
     TESTS::
 
         sage: plt = plot(sin)
         sage: pretty_print(plt)             # graphics output
-        sage: pretty_print(ZZ, 123, plt)    # latex output
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z} 123 \verb|Graphics|\phantom{\verb!x!}\verb|object|\phantom{\verb!x!}\verb|consisting|\phantom{\verb!x!}\verb|of|\phantom{\verb!x!}\verb|1|\phantom{\verb!x!}\verb|graphics|\phantom{\verb!x!}\verb|primitive|</script></html>
+        sage: pretty_print(ZZ, 123, plt)    # optional - latex 
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z} 123 %% Creator: Matplotlib, PGF backend...</script></html>
         sage: pretty_print(plt, plt)        # graphics output
     """
-    if len(args) == 1 and isinstance(args[0], (types.GeneratorType, collections.Iterator)):
-        args = tuple(args[0])
-
-    # Support deprecation trac #18292
-    if len(args) == 1:
-        import sage.misc.html
-        if sage.misc.html.WarnIfNotPrinted.skip_pretty_print(args[0]):
-            return
-
     dm = get_display_manager()
     old_preferences_text = dm.preferences.text
     try:
@@ -250,7 +234,7 @@ def pretty_print(*args, **kwds):
     
 
 def show(*args, **kwds):
-    """
+    r"""
     Alias for ``pretty_print``
 
     This function is an alias for :meth:`pretty_print`.

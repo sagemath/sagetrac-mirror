@@ -12,12 +12,15 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
+
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -96,21 +99,20 @@ cdef class ntl_ZZ_p(object):
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus when creating a ZZ_p."
+            raise ValueError("You must specify a modulus when creating a ZZ_p.")
 
         #self.c.restore_c()  ## The context was restored in __new__
 
         cdef ZZ_c temp, num, den
         cdef long failed
         if v is not None:
-            sig_on()
             if isinstance(v, ntl_ZZ_p):
                 self.x = (<ntl_ZZ_p>v).x
-            elif PyInt_Check(v):
-                self.x = int_to_ZZ_p(v)
-            elif PyLong_Check(v):
+            elif isinstance(v, long):
                 PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_p(temp)
+            elif isinstance(v, int):
+                self.x = int_to_ZZ_p(v)
             elif isinstance(v, Integer):
                 (<Integer>v)._to_ZZ(&temp)
                 self.x = ZZ_to_ZZ_p(temp)
@@ -119,9 +121,7 @@ cdef class ntl_ZZ_p(object):
                 (<Integer>v.denominator())._to_ZZ(&den)
                 ZZ_p_div(self.x, ZZ_to_ZZ_p(num), ZZ_to_ZZ_p(den))
             else:
-                v = str(v)
-                ZZ_p_from_str(&self.x, v)
-            sig_off()
+                ccreadstr(self.x, str(v))
 
     def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
@@ -187,7 +187,7 @@ cdef class ntl_ZZ_p(object):
             '7'
         """
         self.c.restore_c()
-        return ZZ_p_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __richcmp__(ntl_ZZ_p self, other, int op):
         r"""
@@ -244,7 +244,7 @@ cdef class ntl_ZZ_p(object):
         if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         y = other
         self.c.restore_c()
         ZZ_p_mul(r.x, self.x, y.x)
@@ -262,7 +262,7 @@ cdef class ntl_ZZ_p(object):
         if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_p r = self._new()
         self.c.restore_c()
         ZZ_p_sub(r.x, self.x, (<ntl_ZZ_p>other).x)
@@ -280,7 +280,7 @@ cdef class ntl_ZZ_p(object):
         if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,modulus=self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         y = other
         sig_on()
         self.c.restore_c()
@@ -325,7 +325,7 @@ cdef class ntl_ZZ_p(object):
             sage: x.__int__()
             3
             sage: type(x.__int__())
-            <type 'int'>
+            <... 'int'>
         """
         return self.get_as_int()
 
@@ -347,10 +347,10 @@ cdef class ntl_ZZ_p(object):
             sage: c = ntl.ZZ_pContext(20)
             sage: x = ntl.ZZ_p(42,modulus=c)
             sage: i = x._get_as_int_doctest()
-            sage: print i
+            sage: i
             2
-            sage: print type(i)
-            <type 'int'>
+            sage: type(i)
+            <... 'int'>
         """
         self.c.restore_c()
         return self.get_as_int()
