@@ -17,8 +17,6 @@ Format.
 from __future__ import (
     division, absolute_import, print_function, unicode_literals
 )
-# from sage.functions.trig import cos, sin
-#from sage.functions.other import sqrt
 from math import cos, sin, sqrt
 
 
@@ -39,10 +37,10 @@ class TikzPainter:
         u'\n  \\draw[color=black, line width=1] (1.000000, 1.000000) --
         (-1.000000, -1.000000);'
 
-        sage: fct = lambda vec: [2*vec[0], vec[1]]
+        sage: coordinate_transformation = lambda vec: [2*vec[0], vec[1]]
         sage: import copy
         sage: opt = copy.deepcopy(TikzPainter.default_options)
-        sage: opt['coordinate_transformation'] = fct
+        sage: opt['coordinate_transformation'] = coordinate_transformation
         sage: dt = TikzPainter(options=opt)
         sage: dt.draw_line([1, 1], [-1, -1])
         u'\n  \\draw[color=black, line width=1] (2.000000, 1.000000) --
@@ -56,10 +54,12 @@ class TikzPainter:
         (1.000000, -1.000000);'
     """
     class identity_transformation:
-        def __call__(self,v):
+        def __call__(self, v):
             return v
+
         def __repr__(self):
             return "lambda v : v"
+
     default_options = dict(
         scale=1, line_size=1, point_size=3.5, color_line='black',
         color_point='black', translation=[0, 0], rotation=0, mirror=None,
@@ -112,12 +112,13 @@ class TikzPainter:
              'scale': 1,
              'translation': [0, 0]}
         """
-        def get_option( key, options ):
-            if options is None or not key in options :
+        def get_option(key, options):
+            if options is None or key not in options:
                 return TikzPainter.default_options[key]
             else:
                 return options[key]
         ct = get_option('coordinate_transformation', options)
+
         def XY(v):
             v = ct(v)
             return [float(v[0]), float(v[1])]
@@ -137,10 +138,10 @@ class TikzPainter:
         drawing option of ``TikzPainter``.
 
         The transformation is the composition of rotation, mirror, translation
-        and XY user function.
+        and _XY user function.
 
-        First we apply XY function, then the translation, then the mirror and
-        finaly the rotation.
+        First we apply the _XY user function, then the the rotation, then the
+        mirror and finaly the translation.
 
         INPUT:
 
@@ -156,10 +157,10 @@ class TikzPainter:
             sage: dt.XY([1, 1])
             [1.0, 1.0]
 
-            sage: fct = lambda vec: [2*vec[0], vec[1]]
+            sage: coordinate_transformation = lambda vec: [2*vec[0], vec[1]]
             sage: import copy
             sage: opt = copy.deepcopy(TikzPainter.default_options)
-            sage: opt['coordinate_transformation'] = fct
+            sage: opt['coordinate_transformation'] = coordinate_transformation
             sage: dt = TikzPainter(options=opt)
             sage: dt.XY([1, 1])
             [2.0, 1.0]
@@ -170,6 +171,43 @@ class TikzPainter:
             sage: dt = TikzPainter(opt)
             sage: dt.XY([1, 1])
             [-1.0, 1.0]
+
+
+        TESTS::
+            sage: import copy
+            sage: opt = copy.deepcopy(TikzPainter.default_options)
+            sage: opt['mirror'] = [1, 1]
+            sage: dt = TikzPainter(opt)
+            sage: dt.XY([0, 0])
+            [0.0, 0.0]
+            sage: res = dt.XY([1, 0])
+            sage: abs(res[0]) < 0.0001
+            True
+            sage: abs(res[1] - 1.0) < 0.0001
+            True
+
+            sage: import copy
+            sage: opt = copy.deepcopy(TikzPainter.default_options)
+            sage: opt['mirror'] = [1, 1]
+            sage: opt['rotation'] = pi/4
+            sage: opt['translation'] = [2.0, -3.0]
+            sage: dt = TikzPainter(opt)
+            sage: res = dt.XY([0, 0])
+            sage: abs(res[0] - 2.0) < 0.0001
+            True
+            sage: abs(res[1] - (-3.0)) < 0.0001
+            True
+            sage: res = dt.XY([1, 0])
+            sage: v = float( sqrt(2)/2 )
+            sage: abs(res[0] - (2+v)) < 0.0001
+            True
+            sage: abs(res[1] - (-3+v)) < 0.0001
+            True
+            sage: res = dt.XY([0, 1])
+            sage: abs(res[0] - (2+v)) < 0.0001
+            True
+            sage: abs(res[1] - (-3-v)) < 0.0001
+            True
         """
         def translate(pos, v):
             r"""
@@ -251,7 +289,6 @@ class TikzPainter:
                 sp*axe[0] + sn*axe[1],
                 sp*axe[1] - sn*axe[0]
             ]
-        # TODO : MAKE tests with roatations AND translation ! 
         return translate(
             mirror(
                 rotate(

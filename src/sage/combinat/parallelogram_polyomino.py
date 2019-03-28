@@ -188,8 +188,10 @@ class LocalOptions:
 
         options.sort()
         width = 1 + max(len(key) for key in options)
-        txt = '\n'.join('  - {:{}} {}'.format(key + ':', width, pprint.pformat(self[key]))
-                        for key in options)
+        txt = '\n'.join(
+            '  - {:{}} {}'.format(key + ':', width, pprint.pformat(self[key]))
+            for key in options
+        )
         return 'Current options for {}\n{}'.format(self._name, txt)
 
     def __setitem__(self, key, value):
@@ -560,7 +562,6 @@ EXAMPLES::
      'scale': 1,
      'translation': [0, 0]}
 """
-
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -2316,7 +2317,7 @@ class ParallelogramPolyomino(ClonableList):
         """
         res = ""
         grid_height = self.height() + 1
-        tikz_options = deepcopy( self.get_tikz_options() )
+        tikz_options = deepcopy(self.get_tikz_options())
         tikz_options['coordinate_transformation'] = lambda v: [
             v[0], grid_height-1-v[1]
         ]
@@ -2510,7 +2511,9 @@ class ParallelogramPolyomino(ClonableList):
                 return [h, w]
         return None
 
-    def get_node_position_from_box(self, box_position, direction, nb_crossed_nodes=[0]):
+    def get_node_position_from_box(
+        self, box_position, direction, nb_crossed_nodes=[0]
+    ):
         r"""
         This function starts from a cell inside a parallelogram polyomino and
         a direction.
