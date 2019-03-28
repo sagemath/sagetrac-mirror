@@ -1147,6 +1147,10 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             TypeError: unsupported operand parent(s) for +: 'Multivariate Polynomial Ring in x, y, z over Integer Ring' and 'Multivariate Polynomial Ring in y, s over Rational Field'
             sage: R = PolynomialRing(ZZ, 'x', 500)
             sage: S = PolynomialRing(GF(5), 'x', 200)
+            sage: R.gen(0) + S.gen(0)  # not tested (see #27364)
+            2*x0
+            sage: R = PolynomialRing(ZZ, 'x', 150)
+            sage: S = PolynomialRing(GF(5), 'x', 100)
             sage: R.gen(0) + S.gen(0)
             2*x0
         """
