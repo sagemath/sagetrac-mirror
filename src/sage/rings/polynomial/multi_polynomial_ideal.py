@@ -3829,13 +3829,21 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         TESTS:
 
-        Check :trac:`27328`::
+        Check that caching works properly (:trac:`27328`)::
 
             sage: R.<a,b> = QQ[]
             sage: I = R.ideal([a^2-a, b^2-b, a+b])
             sage: GB1 = I.groebner_basis(algorithm='libsingular:slimgb')
             sage: GB2 = I.groebner_basis()
             sage: GB1 is GB2
+            True
+
+            sage: I.groebner_basis(deg_bound=2) is GB1
+            False
+
+            sage: J = R.ideal([a+b, a-b])
+            sage: GB1 = J.groebner_basis()
+            sage: J.groebner_basis(algorithm='libsingular:groebner') is GB1
             True
 
         ALGORITHM:
@@ -3881,8 +3889,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+        # if we already have computed some groebner basis, then we use it
         if not algorithm and self.groebner_basis.cache:
-            return next(itervalues(self.groebner_basis.cache))
+            cached_key, gb = next(iteritems(self.groebner_basis.cache))
+            self_key = self.groebner_basis.get_key(algorithm='', **kwds)
+            # we compare keys except for the algorithm attribute
+            if (self_key[0][1:] == cached_key[0][1:]
+                and self_key[1] == cached_key[1]):
+                return gb
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
@@ -3900,9 +3914,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if not algorithm:
             try:
                 gb = self._groebner_basis_libsingular("groebner", **kwds)
+                algorithm = 'libsingular:groebner'
             except (TypeError, NameError): # conversion to Singular not supported
                 try:
                     gb = self._groebner_basis_singular("groebner", **kwds)
+                    algorithm = 'singular:groebner'
                 except (TypeError, NameError, NotImplementedError): # conversion to Singular not supported
                     R = self.ring()
                     B = R.base_ring()
@@ -3918,7 +3934,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                             # with one variable and then go back.
                             Rt = PolynomialRing(B, 't', 1)
                             It = Rt.ideal([Rt(g) for g in self.gens()])
-                            gb = [R(g) for g in It.groebner_basis(algorithm=algorithm, **kwds)]
+                            gb = [R(g) for g in It.groebner_basis(algorithm='', **kwds)]
                     elif (R.term_order().is_global()
                           and is_IntegerModRing(B)
                           and not B.is_field()):
@@ -3929,9 +3945,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                         I = R_ZZ.ideal([R_ZZ(f) for f in self.gens()] + [R_ZZ(ch)])
                         gb_ZZ = toy_d_basis.d_basis(I, **kwds)
                         gb = [r for r in (R(f) for f in gb_ZZ) if r]
+                        algorithm = 'toy:d_basis'
                     elif R.term_order().is_global():
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
                         gb = toy_buchberger.buchberger_improved(self, **kwds)
+                        algorithm = 'toy:buchberger2'
                     else:
                         raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
@@ -3981,6 +3999,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 gb = [f % gb[-1] for f in gb[:-1]] + [gb[-1]]
 
         gb = PolynomialSequence(self.ring(), gb, immutable=True)
+
+        # we manually set the cache for the case when algorithm
+        # changed (e.g. for calling with algorithm='')
+        self.groebner_basis.set_cache(gb, algorithm=algorithm, **kwds)
+
         return gb
 
     def change_ring(self, P):
