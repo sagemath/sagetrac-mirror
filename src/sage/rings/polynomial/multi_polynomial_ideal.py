@@ -525,11 +525,11 @@ class MPolynomialIdeal_singular_base_repr:
         import sage.libs.singular.function_factory
         groebner = sage.libs.singular.function_factory.ff.groebner
 
-        if get_verbose()>=2:
-            opt['prot'] = True
         for name, value in iteritems(kwds):
             if value is not None:
                 opt[name] = value
+        if get_verbose() >= 2:
+            opt['prot'] = True
 
         if algorithm == "std":
             S = std_libsingular(self)
