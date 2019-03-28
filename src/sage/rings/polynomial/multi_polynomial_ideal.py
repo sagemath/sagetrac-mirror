@@ -3493,7 +3493,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                                         symmetry=symmetry, verbose=verbose)
 
     @cached_method(do_pickle=True)
-    def groebner_basis(self, algorithm='', deg_bound=None, mult_bound=None, prot=False, **kwds):
+    def groebner_basis(self, algorithm='', **kwds):
         r"""
         Return the reduced Groebner basis of this ideal.
 
@@ -3900,10 +3900,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         if not algorithm:
             try:
-                gb = self._groebner_basis_libsingular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, **kwds)
+                gb = self._groebner_basis_libsingular("groebner", **kwds)
             except (TypeError, NameError): # conversion to Singular not supported
                 try:
-                    gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, **kwds)
+                    gb = self._groebner_basis_singular("groebner", **kwds)
                 except (TypeError, NameError, NotImplementedError): # conversion to Singular not supported
                     R = self.ring()
                     B = R.base_ring()
@@ -3919,10 +3919,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                             # with one variable and then go back.
                             Rt = PolynomialRing(B, 't', 1)
                             It = Rt.ideal([Rt(g) for g in self.gens()])
-                            gb = [R(g) for g in It.groebner_basis(
-                                algorithm=algorithm,
-                                deg_bound=deg_bound, mult_bound=mult_bound,
-                                prot=prot, **kwds)]
+                            gb = [R(g) for g in It.groebner_basis(algorithm=algorithm, **kwds)]
                     elif (R.term_order().is_global()
                           and is_IntegerModRing(B)
                           and not B.is_field()):
@@ -3940,15 +3937,16 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                         raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
         elif algorithm.startswith('singular:'):
-            gb = self._groebner_basis_singular(algorithm[9:], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, **kwds)
+            gb = self._groebner_basis_singular(algorithm[9:], **kwds)
         elif algorithm.startswith('libsingular:'):
-            if prot == "sage":
+            if kwds.get('prot') == "sage":
                 warn("The libsingular interface does not support prot='sage', reverting to 'prot=True'.")
-            gb = self._groebner_basis_libsingular(algorithm[len('libsingular:'):], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, **kwds)
+                kwds['prot'] = True
+            gb = self._groebner_basis_libsingular(algorithm[len('libsingular:'):], **kwds)
         elif algorithm == 'macaulay2:gb':
             gb = self._groebner_basis_macaulay2(**kwds)
         elif algorithm == 'magma:GroebnerBasis':
-            gb = self._groebner_basis_magma(prot=prot, deg_bound=deg_bound, **kwds)
+            gb = self._groebner_basis_magma(**kwds)
         elif algorithm == 'toy:buchberger':
             gb = toy_buchberger.buchberger(self, **kwds)
         elif algorithm == 'toy:buchberger2':
@@ -3965,7 +3963,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 raise NameError("Algorithm '%s' unknown."%algorithm)
         elif algorithm == 'giac:gbasis':
             from sage.libs.giac import groebner_basis as groebner_basis_libgiac
-            gb = groebner_basis_libgiac(self, prot=prot, **kwds)
+            gb = groebner_basis_libgiac(self, **kwds)
 
         else:
             raise NameError("Algorithm '%s' unknown."%algorithm)
