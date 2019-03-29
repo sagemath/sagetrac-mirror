@@ -1792,17 +1792,6 @@ cdef class CachedMethodCaller(CachedFunction):
 
         EXAMPLES::
 
-            sage: P.<a,b,c,d> = QQ[]
-            sage: I = P*[a,b]
-            sage: I.groebner_basis()
-            [a, b]
-            sage: I.groebner_basis._instance_call() is I.groebner_basis()
-            False
-            sage: I.groebner_basis._instance_call() == I.groebner_basis()
-            True
-
-        ::
-
             sage: class Foo(object):
             ....:     def __init__(self, x):
             ....:         self._x = x
