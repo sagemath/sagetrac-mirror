@@ -133,7 +133,17 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         in_sdist=yes
         ;;
     optional)
-        if test -f $SAGE_SPKG_INST/$SPKG_NAME-*; then
+        stampfile="`ls -1 $SAGE_SPKG_INST/$SPKG_NAME-* 2>/dev/null`"
+        if test `echo "$stampfile" | wc -l` -gt 1; then
+            AC_MSG_ERROR(m4_normalize([
+                multiple installation records for $SPKG_NAME at
+                m4_newline($stampfile)
+                m4_newline(only one should exist so please delete one or both
+                files and re-configure)
+            ]))
+        fi
+
+        if test -f "$stampfile"; then
             SAGE_OPTIONAL_INSTALLED_PACKAGES+="    $SPKG_NAME \\"$'\n'
         fi;
         ;;
