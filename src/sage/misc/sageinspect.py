@@ -1449,8 +1449,8 @@ def sage_getargspec(obj):
         ArgSpec(args=['self', 'i'], varargs=None, keywords=None, defaults=(0,))
         sage: I = P*[x,y]
         sage: sage_getargspec(I.groebner_basis)
-        ArgSpec(args=['self', 'algorithm', 'deg_bound', 'mult_bound', 'prot'],
-        varargs='args', keywords='kwds', defaults=('', None, None, False))
+        ArgSpec(args=['self', 'algorithm'], varargs=None, keywords='kwds',
+        defaults=('',))
         sage: cython("cpdef int foo(x,y) except -1: return 1")
         sage: sage_getargspec(foo)
         ArgSpec(args=['x', 'y'], varargs=None, keywords=None, defaults=None)

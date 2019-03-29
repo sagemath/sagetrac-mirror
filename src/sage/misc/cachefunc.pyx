@@ -946,9 +946,8 @@ cdef class CachedFunction(object):
             sage: I = P*[x,y]
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(I.groebner_basis)   # indirect doctest
-            ArgSpec(args=['self', 'algorithm', 'deg_bound', 'mult_bound', 'prot'],
-            varargs='args', keywords='kwds', defaults=('', None, None,
-            False))
+            ArgSpec(args=['self', 'algorithm'], varargs=None, keywords='kwds',
+            defaults=('',))
 
         """
         return sage_getargspec(self.f)
@@ -1590,7 +1589,11 @@ class CachedMethodPickle(object):
             sage: K.groebner_basis
             Pickle of the cached method "groebner_basis"
             sage: K.groebner_basis.cache
-            {(('', None, None, False), ()):
+            {(('',), ()):
+            [y^5*z^3 - 1/4*x^2*z^6 + 1/2*x*y*z^6 + 1/4*y^2*z^6,
+             x^2*y*z^3 - x*y^2*z^3 + 2*y^3*z^3 + z^6,
+             x*y^3 + y^4 + x*z^3, x^3 + y^3 + z^3],
+            (('libsingular:groebner',), ()):
             [y^5*z^3 - 1/4*x^2*z^6 + 1/2*x*y*z^6 + 1/4*y^2*z^6,
              x^2*y*z^3 - x*y^2*z^3 + 2*y^3*z^3 + z^6,
              x*y^3 + y^4 + x*z^3, x^3 + y^3 + z^3]}
