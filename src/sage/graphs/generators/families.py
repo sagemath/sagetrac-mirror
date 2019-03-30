@@ -2135,7 +2135,7 @@ def PaleyGraph(q):
         raise ValueError("parameter q must be a prime power")
     if not mod(q, 4) == 1:
         raise ValueError("parameter q must be congruent to 1 mod 4")
-    g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
+    g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()], format='rule',
                   loops=False, name="Paley graph with parameter {}".format(q))
     return g
 
@@ -3166,7 +3166,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     Supplying ``G`` and ``L`` (constructed from the automorphism group of ``G``). ::
 
         sage: G = graphs.PaleyGraph(9)
-        sage: a = G.automorphism_group()
+        sage: a = G.automorphism_group(partition=[sorted(G)])
         sage: it = (x for x in a.normal_subgroups() if x.order() == 9)
         sage: subg = next(iter(it))
         sage: r = [matrix(libgap.PermutationMat(libgap(z), 9).sage())
