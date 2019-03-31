@@ -9447,18 +9447,19 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the PageRank of the nodes in the graph.
 
-        PageRank calculates the ranking of nodes in the graph G based
-        on the structure of the incoming links. It is popularly used to rank web pages.
+        PageRank calculates the ranking of nodes in the graph G based on the 
+        structure of the incoming links. It is popularly used to rank web pages.
 
         See the :wikipedia:`PageRank` for more information.
 
         INPUT:
 
-        - ``alpha`` -- float (default: ``0.85``); Damping parameter for PageRank.
+        - ``alpha`` -- float (default: ``0.85``); Damping parameter for
+          PageRank.
 
-        - ``personalization`` -- dict (default: ``None``); The "personalization vector"
-          consisting of a dictionary with a
-          key for every graph node and nonzero personalization value for each node.
+        - ``personalization`` -- dict (default: ``None``); The "personalization 
+          vector" consisting of a dictionary with a key for every graph node 
+          and nonzero personalization value for each node.
           By default, a uniform distribution is used.
         
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
@@ -9474,17 +9475,18 @@ class GenericGraph(GenericGraph_pyx):
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
           weight.
 
-        - ``dangling`` -- dict (default: ``None``); The outedges to be assigned to any "dangling" nodes, i.e., nodes without
-          any outedges. The dict key is the node the outedge points to and the dict
-          value is the weight of that outedge. By default, dangling nodes are given
-          outedges according to the personalization vector (uniform if not
-          specified). This must be selected to result in an irreducible transition
-          matrix (see notes under google_matrix). It may be common to have the
-          dangling dict to be the same as the personalization dict.
+        - ``dangling`` -- dict (default: ``None``); The outedges to be assigned
+          to any "dangling" nodes, i.e., nodes without any outedges. The dict   
+          key is the node the outedge points to and the dict value is the       
+          weight of that outedge. By default, dangling nodes are given outedges
+          according to the personalization vector (uniform if not specified).   
+          This must be selected to result in an irreducible transition matrix. 
+          It may be common to have the dangling dict to be the same as the 
+          personalization dict.
 
         - ``implementation`` -- string (default: ``None``); the implemetation to
-          use in computing PageRank of ``G``. The following
-          implementations are supported:
+          use in computing PageRank of ``G``. The following implementations are 
+          supported:
 
           - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
 
@@ -9500,47 +9502,57 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT: a dictionary containing the PageRank value of each node
 
-        EXAMPLES:
+        EXAMPLES::
 
-        A basic illustration on a ``PappusGraph``::
-
-           sage: g = graphs.PappusGraph()
-           sage: g.dominating_set(value_only=True)
-           5
-
-        If we build a graph from two disjoint stars, then link their centers we
-        will find a difference between the cardinality of an independent set and
-        a stable independent set::
-
-           sage: g = 2 * graphs.StarGraph(5)
-           sage: g.add_edge(0, 6)
-           sage: len(g.dominating_set())
-           2
-           sage: len(g.dominating_set(independent=True))
-           6
-
-        The total dominating set of the Petersen graph has cardinality 4::
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.dominating_set(total=True, value_only=True)
-            4
-
-        The dominating set is calculated for both the directed and undirected
-        graphs (modification introduced in :trac:`17905`)::
-
-            sage: g = digraphs.Path(3)
-            sage: g.dominating_set(value_only=True)
-            2
-            sage: g = graphs.PathGraph(3)
-            sage: g.dominating_set(value_only=True)
-            1
-
+            sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
+            sage: G.pagerank(implementation="NetworkX")
+            {1: 0.16112205885619568,
+             2: 0.16195310432472196,
+             3: 0.16112205885619568,
+             4: 0.2375,
+             5: 0.17775588228760858,
+             6: 0.10054689567527803}
+            sage: G.pagerank(implementation="NetworkX", by_weight=True)
+            {1: 0.16459583718588988,
+             2: 0.1397792859515451,
+             3: 0.165398401843396,
+             4: 0.3063198690713852,
+             5: 0.17000576097071404,
+             6: 0.053900844977069616}
+            sage: G.pagerank(implementation="Numpy")
+            {1: 0.16112198303979114,
+             2: 0.16195368558382248,
+             3: 0.16112198303979122,
+             4: 0.2375000000000002,
+             5: 0.17775603392041756,
+             6: 0.10054631441617742}
+            sage: G.pagerank(implementation="Numpy", by_weight=True)
+            {1: 0.16459613361799788,
+             2: 0.13977926864974763,
+             3: 0.1653988472578896,
+             4: 0.3063198780991534,
+             5: 0.17000501912411242,
+             6: 0.053900853251099105}
+            sage: G.pagerank(implementation="Scipy")
+            {1: 0.16112205885619563,
+             2: 0.1619531043247219,
+             3: 0.16112205885619563,
+             4: 0.2374999999999999,
+             5: 0.17775588228760858,
+             6: 0.100546895675278}
+            sage: G.pagerank(implementation="Scipy", by_weight=True)
+            {1: 0.16459583718588994,
+             2: 0.13977928595154515,
+             3: 0.16539840184339605,
+             4: 0.3063198690713853,
+             5: 0.1700057609707141,
+             6: 0.05390084497706962}
+        
         .. SEEALSO:
 
             * :wikipedia:`PageRank`
 
-        """
-        
+        """        
         if self.order() == 0:
             return {}
 
@@ -9556,23 +9568,58 @@ class GenericGraph(GenericGraph_pyx):
 
         if implementation == 'NetworkX':
             if self.has_multiple_edges():
-                raise ValueError("the 'networkx' implementation does not support Multigraphs")
+                raise ValueError("the 'networkx' implementation does not support multigraphs")
             import networkx
-            return networkx.pagerank(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+            if by_weight:
+                return networkx.pagerank(self.networkx_graph
+                       (weight_function=weight_function), alpha=alpha, 
+                       personalization=personalization, weight='weight', 
+                       dangling=dangling)
+            else:
+                return networkx.pagerank(self.networkx_graph(), alpha=alpha, 
+                personalization=personalization, weight=None, dangling=dangling)
         elif implementation == 'Numpy':
             import networkx
-            return networkx.pagerank_numpy(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+            if by_weight:
+                return networkx.pagerank_numpy(self.networkx_graph
+                       (weight_function=weight_function), alpha=alpha, 
+                       personalization=personalization, weight='weight', 
+                       dangling=dangling)
+            else:
+                return networkx.pagerank_numpy(self.networkx_graph(), 
+                       alpha=alpha, personalization=personalization,  
+                       weight=None, dangling=dangling)
         elif  implementation == 'Scipy':
             import networkx
-            return networkx.pagerank_scipy(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+            if by_weight:
+                return networkx.pagerank_scipy(self.networkx_graph
+                       (weight_function=weight_function), alpha=alpha, 
+                       personalization=personalization, weight='weight', 
+                       dangling=dangling)
+            else:
+                return networkx.pagerank_scipy(self.networkx_graph(), 
+                       alpha=alpha, personalization=personalization, 
+                       weight=None, dangling=dangling)
         elif implementation == 'Igraph':
-            H = G.igraph_graph(edge_attrs={'weight': [weight_function(e) for e in self.edge_iterator]})
-            return networkx.pagerank_scipy(self.networkx_graph(), alpha=alpha, personalization=personalization, weight=weight, dangling=dangling)
+            import igraph
+            if by_weight:
+                I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
+                                                  for e in self.edge_iterator]})
+                return I.pagerank(damping=alpha, weight='weight')
+            else:
+                I = G.igraph_graph()
+                return I.pagerank(damping=alpha)
         else:
-            
-            
-
-
+            import networkx
+            if by_weight:
+                return networkx.pagerank_numpy(self.networkx_graph
+                       (weight_function=weight_function), alpha=alpha, 
+                       personalization=personalization, weight='weight', 
+                       dangling=dangling)
+            else:
+                return networkx.pagerank_numpy(self.networkx_graph(), 
+                       alpha=alpha, personalization=personalization,  
+                       weight=None, dangling=dangling)
 
     ### Vertex handlers
 
