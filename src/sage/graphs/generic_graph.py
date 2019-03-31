@@ -9555,8 +9555,6 @@ class GenericGraph(GenericGraph_pyx):
              0.17775603392041744,
              0.10054631441617742]
 
-
-
         .. SEEALSO:
 
             * :wikipedia:`PageRank`
