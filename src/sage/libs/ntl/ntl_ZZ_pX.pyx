@@ -315,7 +315,7 @@ cdef class ntl_ZZ_pX(object):
         EXAMPLES::
 
             sage: c = ntl.ZZ_pContext(20)
-            sage: ntl.ZZ_pX(range(5),c) + ntl.ZZ_pX(range(6),c)
+            sage: ntl.ZZ_pX(list(range(5)),c) + ntl.ZZ_pX(list(range(6)),c)
             [0 2 4 6 8 5]
         """
         if self.c is not other.c:
@@ -332,7 +332,7 @@ cdef class ntl_ZZ_pX(object):
         EXAMPLES::
 
             sage: c = ntl.ZZ_pContext(20)
-            sage: ntl.ZZ_pX(range(5),c) - ntl.ZZ_pX(range(6),c)
+            sage: ntl.ZZ_pX(list(range(5)),c) - ntl.ZZ_pX(list(range(6)),c)
             [0 0 0 0 0 15]
         """
         if self.c is not other.c:
@@ -349,8 +349,8 @@ cdef class ntl_ZZ_pX(object):
         EXAMPLES::
 
             sage: c1 = ntl.ZZ_pContext(20)
-            sage: alpha = ntl.ZZ_pX(range(5), c1)
-            sage: beta = ntl.ZZ_pX(range(6), c1)
+            sage: alpha = ntl.ZZ_pX(list(range(5)), c1)
+            sage: beta = ntl.ZZ_pX(list(range(6)), c1)
             sage: alpha * beta
             [0 0 1 4 10 0 10 14 11]
             sage: c2 = ntl.ZZ_pContext(ntl.ZZ(5))  # we can mix up the moduli
@@ -384,7 +384,7 @@ cdef class ntl_ZZ_pX(object):
             sage: ntl.ZZ_pX([1,2,3],c) * ntl.ZZ_pX([4,5],c)
             [4 13 5 15]
 
-            sage: f = ntl.ZZ_pX(range(10), c); g = ntl.ZZ_pX([-1,0,1], c)
+            sage: f = ntl.ZZ_pX(list(range(10)), c); g = ntl.ZZ_pX([-1,0,1], c)
             sage: f/g
             Traceback (most recent call last):
             ...
@@ -420,7 +420,7 @@ cdef class ntl_ZZ_pX(object):
             sage: f = ntl.ZZ_pX([2,4,6], c); g = ntl.ZZ_pX([2], c)
             sage: f % g   # 0
             []
-            sage: f = ntl.ZZ_pX(range(10), c); g = ntl.ZZ_pX([-1,0,1], c)
+            sage: f = ntl.ZZ_pX(list(range(10)), c); g = ntl.ZZ_pX([-1,0,1], c)
             sage: f % g
             [3 8]
 
@@ -448,7 +448,7 @@ cdef class ntl_ZZ_pX(object):
         EXAMPLES::
 
             sage: c = ntl.ZZ_pContext(17)
-            sage: f = ntl.ZZ_pX(range(10), c); g = ntl.ZZ_pX([-1,0,1], c)
+            sage: f = ntl.ZZ_pX(list(range(10)), c); g = ntl.ZZ_pX([-1,0,1], c)
             sage: q, r = f.quo_rem(g)
             sage: q, r
             ([3 7 1 4 14 16 8 9], [3 8])
@@ -756,7 +756,7 @@ cdef class ntl_ZZ_pX(object):
             sage: f = ntl.ZZ_pX([5,0,1],c)
             sage: f.degree()
             2
-            sage: f = ntl.ZZ_pX(range(100),c)
+            sage: f = ntl.ZZ_pX(list(range(100)),c)
             sage: f.degree()
             99
             sage: f = ntl.ZZ_pX([], c)
