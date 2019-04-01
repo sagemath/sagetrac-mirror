@@ -370,7 +370,7 @@ cdef class Graphics3d(SageObject):
 
         options = self._process_viewing_options(kwds)
         # Threejs specific options
-        options.setdefault('axes_labels', ['x','y','z'])
+        options.setdefault('axes_labels', ['x', 'y', 'z'])
         options.setdefault('decimals', 2)
         options.setdefault('online', False)
         # Normalization of options values for proper JSONing
@@ -382,42 +382,49 @@ cdef class Graphics3d(SageObject):
 
         scripts = get_display_manager().threejs_scripts(options['online'])
 
-        b = self.bounding_box()
-        bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
-                 b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
+        bbox = self.bounding_box()
+        bounds = json.dumps([
+            {'x': b[0], 'y': b[1], 'z': b[2]} for b in bbox
+        ], sort_keys=True)
 
-        lights = '[{{"x":-5, "y":3, "z":0, "color":"{}", "parent":"camera"}}]'.format(
-                 Color(.5,.5,.5).html_color())
-        ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
+        light_color = Color(0.5, 0.5, 0.5)
+        lights = json.dumps([
+            {'x': -5, 'y': 3, 'z': 0,
+             'color': light_color.html_color(),
+             'parent': 'camera'}
+        ], sort_keys=True)
+
+        ambient = json.dumps({'color': light_color.html_color()})
 
         points, lines, texts = [], [], []
+
         if not hasattr(self, 'all'):
             self += Graphics3d()
+
         for p in self.flatten().all:
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = float(p._extra_kwds.get('opacity', 1))
-                points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
-                              json.dumps(p.loc), p.size, color, opacity))
+                points.append({'point': p.loc, 'size': p.size,
+                               'color': color, 'opacity': opacity})
+
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = float(p._extra_kwds.get('opacity', 1))
                 thickness = p._extra_kwds.get('thickness', 1)
-                lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
-                             json.dumps(p.points), color, opacity, thickness))
-            if hasattr(p, '_trans'):
-                if hasattr(p.all[0], 'string'):
-                    m = p.get_transformation().get_matrix()
-                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                lines.append({'points': p.points, 'color': color,
+                              'opacity': opacity, 'linewidth': thickness})
 
-        points = '[' + ','.join(points) + ']'
-        lines = '[' + ','.join(lines) + ']'
-        texts = '[' + ','.join(texts) + ']'
+            if hasattr(p, '_trans') and hasattr(p.all[0], 'string'):
+                m = p.get_transformation().get_matrix()
+                texts.append({'text': p.all[0].string,
+                              'x': m[0, 3], 'y': m[1, 3], 'z': m[2, 3]})
 
         surfaces = self.json_repr(self.default_render_params())
         surfaces = flatten_list(surfaces)
-        surfaces = '[' + ','.join(surfaces) + ']'
+        # This is already a list of JSONified strings, so we do a little
+        # manually formatting to convert it to a JSON list
+        surfaces = '[{}]'.format(', '.join(surfaces))
 
         with open(os.path.join(
                 SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
@@ -430,10 +437,10 @@ cdef class Graphics3d(SageObject):
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_AMBIENT', ambient)
-        html = html.replace('SAGE_TEXTS', str(texts))
-        html = html.replace('SAGE_POINTS', str(points))
-        html = html.replace('SAGE_LINES', str(lines))
-        html = html.replace('SAGE_SURFACES', str(surfaces))
+        html = html.replace('SAGE_TEXTS', json.dumps(texts))
+        html = html.replace('SAGE_POINTS', json.dumps(points))
+        html = html.replace('SAGE_LINES', json.dumps(lines))
+        html = html.replace('SAGE_SURFACES', surfaces)
 
         return OutputSceneThreejs(html);
 
