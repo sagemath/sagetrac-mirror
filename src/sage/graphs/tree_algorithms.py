@@ -1,4 +1,4 @@
-def tree_diameter(G, endpoints=false, path=false):
+def tree_diameter(G, endpoints=False, path=False):
     u = next(G.vertex_iterator())
     path_lengths = G.shortest_path_lengths(u, algorithm='BFS')
     from operator import itemgetter
@@ -14,14 +14,33 @@ def tree_diameter(G, endpoints=false, path=false):
         return (dist, dpath)
     return (dist, (u, v), dpath)
 
-def tree_centre(G):
-    (dist, dpath) = tree_diameter(G, path = 'true')
+def tree_center(G):
+    (dist, dpath) = tree_diameter(G, path = True)
     if dist%2 == 1:
         return (dpath[dist//2], dpath[dist//2+1])
     else:
         return (dpath[dist//2],)
 
-def dfs(u, G):
+def generateCertificate(g, h, children1, children2, subLabel1, subLabel2):
+    st1 = []
+    st2 = []
+    cert = dict()
+    st1.append(g)
+    st2.append(h)
+    while st1 and st2:
+        x = st1[-1]
+        y = st2[-1]
+        cert[x] = y
+        st1.pop()
+        st2.pop()
+        children1[x].sort(key=lambda z: subLabel1[z])
+        children2[y].sort(key=lambda z: subLabel2[z])
+        for i in range(len(children1[x])):
+            st1.append(children1[x][i])
+            st2.append(children2[y][i])
+    return cert
+
+def tree_dfs(u, G):
     neighbours = G.neighbor_iterator
     stack = [u]
     diameter = tree_diameter(G)
@@ -48,11 +67,11 @@ def dfs(u, G):
                 L[dis[x]].append(x)
     return (level, L, par, children)
 
-def rooted_tree_isomorphism(G, H, r1, r2):
-    (h1, L1, par1, children1) = dfs(r1, G)
-    (h2, L2, par2, children2) = dfs(r2, H)
+def rooted_tree_isomorphism(G, H, gc, hc, certificate=False):
+    (h1, L1, par1, children1) = tree_dfs(gc, G)
+    (h2, L2, par2, children2) = tree_dfs(hc, H)
     if h1 != h2:
-        return false
+        return (False, None)
     h = h1 = h2
     label1 = dict()
     subLabel1 = dict()
@@ -60,7 +79,7 @@ def rooted_tree_isomorphism(G, H, r1, r2):
     subLabel2 = dict()
     for i in range(0,h):
         if len(L1[i]) != len(L2[i]):
-            return false
+            return (False, None)
     for x in G.vertex_iterator():
         subLabel1[x] = []
     for x in H.vertex_iterator():
@@ -72,12 +91,12 @@ def rooted_tree_isomorphism(G, H, r1, r2):
             subLabel1[par1[y]].append(label1[y])
         for y in L2[i+1]:
             subLabel2[par2[y]].append(label2[y])
-        L1[i] = sorted(L1[i], key=lambda x: subLabel1[x])
-        L2[i] = sorted(L2[i], key=lambda x: subLabel2[x])
+        L1[i].sort(key=lambda x: subLabel1[x])
+        L2[i].sort(key=lambda x: subLabel2[x])
         cnt = 0
         for j in range(len(L1[i])):
             if subLabel1[L1[i][j]] != subLabel2[L2[i][j]]:
-                return false
+                return (False, None)
         c = 0
         label1[L1[i][0]] = label2[L2[i][0]] = 0
         for j in range(1, len(L1[i])):
@@ -85,18 +104,20 @@ def rooted_tree_isomorphism(G, H, r1, r2):
                 c = c+1
             label1[L1[i][j]] = c
             label2[L2[i][j]] = c
-    if subLabel1[r1] != subLabel2[r2]:
-        return false
-    return true
+    if subLabel1[gc] != subLabel2[hc]:
+        return (False, None)
+    if certificate:
+        return (True, generateCertificate(gc, hc, children1, children2, subLabel1, subLabel2))
+    return (True, None)
 
-def tree_isomorphism(G, H):
-    gc = tree_centre(G)
-    hc = tree_centre(H)
+def tree_isomorphism(G, H, certificate):
+    gc = tree_center(G)
+    hc = tree_center(H)
     if len(gc) != len(hc):
-        return false
+        return (False, None) if certificate else False
     for p in gc:
         for q in hc:
-            f = rooted_tree_isomorphism(G, H, p, q)
-            if f:
-                return f
-    return false
+            f = rooted_tree_isomorphism(G, H, p, q, certificate)
+            if f[0]:
+                return f if certificate else True
+    return (False, None) if certificate else False

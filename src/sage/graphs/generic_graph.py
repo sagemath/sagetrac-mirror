@@ -22394,6 +22394,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return False
 
+        if self.is_tree() and other.is_tree() and not edge_labels:
+            from sage.graphs.tree_algorithms import tree_isomorphism
+            return tree_isomorphism(self, other, certificate)
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
 
         self_vertices = list(self)
