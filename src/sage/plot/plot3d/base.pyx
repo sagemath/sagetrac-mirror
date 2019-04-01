@@ -35,6 +35,7 @@ from __future__ import print_function, absolute_import
 from cpython.list cimport *
 from cpython.object cimport PyObject
 
+import json
 import os
 import sys
 import zipfile
@@ -362,6 +363,11 @@ cdef class Graphics3d(SageObject):
             sage: sphere(online=True)._rich_repr_threejs()
             OutputSceneThreejs container
         """
+        from sage.repl.rich_output import get_display_manager
+        from sage.repl.rich_output.output_catalog import OutputSceneThreejs
+        from sage.plot.colors import Color
+        from sage.env import SAGE_EXTCODE
+
         options = self._process_viewing_options(kwds)
         # Threejs specific options
         options.setdefault('axes_labels', ['x','y','z'])
@@ -374,19 +380,16 @@ cdef class Graphics3d(SageObject):
         if not options['frame']:
             options['axes_labels'] = False
 
-        from sage.repl.rich_output import get_display_manager
         scripts = get_display_manager().threejs_scripts(options['online'])
 
         b = self.bounding_box()
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
 
-        from sage.plot.colors import Color
         lights = '[{{"x":-5, "y":3, "z":0, "color":"{}", "parent":"camera"}}]'.format(
                  Color(.5,.5,.5).html_color())
         ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
-        import json
         points, lines, texts = [], [], []
         if not hasattr(self, 'all'):
             self += Graphics3d()
@@ -416,7 +419,6 @@ cdef class Graphics3d(SageObject):
         surfaces = flatten_list(surfaces)
         surfaces = '[' + ','.join(surfaces) + ']'
 
-        from sage.env import SAGE_EXTCODE
         with open(os.path.join(
                 SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
             html = f.read()
@@ -433,7 +435,6 @@ cdef class Graphics3d(SageObject):
         html = html.replace('SAGE_LINES', str(lines))
         html = html.replace('SAGE_SURFACES', str(surfaces))
 
-        from sage.repl.rich_output.output_catalog import OutputSceneThreejs
         return OutputSceneThreejs(html);
 
     def __str__(self):
