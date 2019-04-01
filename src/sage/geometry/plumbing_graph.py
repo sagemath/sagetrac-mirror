@@ -419,11 +419,12 @@ class PlumbingGraph():
 
     def add_bamboo(self, x, j=None, r=0):
         r"""
-        Create a bamboo in the graph. A bamboo is a string of rational (g=0)
-        vertices. If the vertex j is specified, then this
-        vertex is connected to the first vertex in the bamboo, otherwise the
-        bamboo becomes a connected component. The function returns the last
-        vertex in the bamboo.
+        Create a bamboo in the graph.
+
+        A bamboo is a string of rational (g=0) vertices. If the vertex
+        j is specified, then this vertex is connected to the first
+        vertex in the bamboo, otherwise the bamboo becomes a connected
+        component. The function returns the last vertex in the bamboo.
         
         INPUT:
         
@@ -812,7 +813,7 @@ class PlumbingGraph():
         
         M = MatrixSpace(ZZ, n,n) 
         I  = copy(M.zero_matrix())
-        for i in range(0,n):
+        for i in range(n):
             I[i,i] += self.mb[V[i]]
         for e in self.edges:
             L = list(self.adj[e])
@@ -2143,9 +2144,9 @@ class PlumbingGraph():
             k = 2*g + (d-1) - len(self.components())
         if g < 0:
             k = -g + (d-1) - len(self.components())
-        for a in range(0,k):
+        for a in range(k):
             self.add_bamboo(0)
-        for a in range(0,r):
+        for a in range(r):
             self.add_bamboo(0,r=1)
 
     def R6_candidate(self, j):
