@@ -437,7 +437,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         imgs = [Gamma.prod([Gamma.embed(det=ds[1][0], spin=ds[1][1], p=ds[0])
                             for ds in det_spin[f]])
                 for f in self.gens()]
-        return self.hom([codom(g) for g in imgs],codom)
+        return self.hom([codom(g) for g in imgs],codom,check=False)
 
 def _compute_gens(T):
     r"""
