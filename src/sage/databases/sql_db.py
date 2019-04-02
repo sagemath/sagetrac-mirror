@@ -463,8 +463,8 @@ class SQLQuery(SageObject):
         if query_dict:
             skel = database.__skeleton__
             if query_dict['table_name'] not in skel:
-                raise ValueError("Database has no table" \
-                    + str(query_dict['table_name']) + ".")
+                raise ValueError("Database has no table %s"
+                    % query_dict['table_name'])
             table_name = query_dict['table_name']
             if query_dict['display_cols'] is not None:
                 for column in query_dict['display_cols']:
@@ -1397,8 +1397,8 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot add table to a read only database.')
         if table_name in self.__skeleton__:
-            raise ValueError('Database already has a table named' \
-                + '%s.'%table_name)
+            raise ValueError('database already has a table named %s'
+                %table_name)
         if table_name.find(' ') != -1:
             raise ValueError('Table names cannot contain spaces.')
         if table_name.upper() in sqlite_keywords:
