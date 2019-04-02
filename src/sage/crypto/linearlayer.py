@@ -21,7 +21,8 @@ EXAMPLES::
     sage: from sage.crypto.linearlayer import LinearLayer
     doctest:warning
     ...
-    FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    FutureWarning: This class/method/function is marked as experimental. It,
+    its functionality or its interface might change without a formal deprecation.
     See https://trac.sagemath.org/25735 for details.
     sage: id = LinearLayer.new(identity_matrix(GF(2), 2)); id
     LinearLayer of dimension 2 x 2 represented as
@@ -53,7 +54,7 @@ import sys
 
 def _branch_number(mtr):
     """
-    Computes the branch number of the given matrix
+    Comput the branch number of the given matrix
 
     EXAMPLES::
 
@@ -66,14 +67,15 @@ def _branch_number(mtr):
 
     F = mtr.base_ring()
     n = mtr.nrows()
-    I = identity_matrix(F, n)
-    generator_matrix = Matrix(F, [list(a) + list(b) for a, b in zip(I, mtr)])
+    id = identity_matrix(F, n)
+    generator_matrix = Matrix(F, [list(a) + list(b) for a, b in zip(id, mtr)])
     return LinearCode(generator_matrix).minimum_distance()
 
 
 def _ff_elem_to_binary(elem):
     """
-    Converts a finite field element to the binary matrix carrying out the according multiplication
+    Convert a finite field element to a binary matrix carrying out the according
+    multiplication
 
     EXAMPLES::
 
@@ -101,7 +103,8 @@ def _ff_elem_to_binary(elem):
 
 def _ff_matrix_to_binary(mtr):
     """
-    Converts a matrix over a finite field to the binary matrix carrying out the according multiplication
+    Convert a matrix over a finite field to a binary matrix carrying out the
+    according multiplication
 
     EXAMPLES::
 
@@ -124,11 +127,12 @@ def _ff_matrix_to_binary(mtr):
 
 def _column_linear_layer(Ls):
     """
-    Return the linear layer that applies a given linear layer ``L`` to ``ncols`` in parallel.
+    Return the linear layer that applies a given linear layer ``L`` to ``ncols``
+    in parallel.
 
     The most common application for this is, to build the matrix that applies the
-    AES MixColumns linear layer to each column of a state, while the state is represented
-    as a vector.
+    AES MixColumns linear layer to each column of a state, while the state is
+    represented as a vector.
 
     EXAMPLES::
 
@@ -156,12 +160,13 @@ def _column_linear_layer(Ls):
 
 class LinearLayer:
     r"""
-    Many modern block cipher constructions in symmetric cryptography use linear layers
-    as one of their basic building blocks. A linear layer is typically used to spread
-    locally diffused bits over the whole state of the block cipher. As linear layers
-    are, well, linear, and operate on bits, nibbles, or bytes, we can represent it as
-    a matrix over `\GF(2)^n`, `\GF(2^4)^n`, or `\GF(2^8)^n`. Application of the linear
-    layer to x then just corresponds to left multiplication of this matrix: `A \cdot x`.
+    Many modern block cipher constructions in symmetric cryptography use linear
+    layers as one of their basic building blocks. A linear layer is typically
+    used to spread locally diffused bits over the whole state of the block cipher.
+    As linear layers are, well, linear, and operate on bits, nibbles, or bytes, we
+    can represent it as a matrix over `\GF(2)^n`, `\GF(2^4)^n`, or `\GF(2^8)^n`.
+    Application of the linear layer to x then just corresponds to left
+    multiplication of this matrix: `A \cdot x`.
 
     EXAMPLES:
 
@@ -181,7 +186,8 @@ class LinearLayer:
         sage: from sage.crypto.linearlayer import linearlayers
         sage: linearlayers['PRESENT']
         LinearLayer of dimension 64 x 64 represented as
-        64 x 64 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
+        64 x 64 dense matrix over Finite Field of size 2 (use the '.str()' method
+        to see the entries)
         sage: linearlayers['PRESENT'].is_permutation()
         True
     """
@@ -224,7 +230,7 @@ class LinearLayer:
 
     def _latex_(self):
         r"""
-        Returns a `LaTeX` version of the operation table as a string,
+        Return a `LaTeX` version of the operation table as a string,
         using a `LaTeX` ``array`` environment.
 
         EXAMPLES::
@@ -251,9 +257,11 @@ class LinearLayer:
             sage: from sage.crypto.linearlayer import linearlayers
             sage: print("%s" % (linearlayers['PRESENT'],))
             LinearLayer of dimension 64 x 64 represented as
-            [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+             0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             ...
-            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+             0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
         """
         return "LinearLayer of dimension %d x %d represented as\n%s" \
                % (self.dimensions() + (self.matrix().str(),))
@@ -271,14 +279,15 @@ class LinearLayer:
             sage: from sage.crypto.linearlayer import linearlayers
             sage: linearlayers['PRESENT']  # indirect doctest
             LinearLayer of dimension 64 x 64 represented as
-            64 x 64 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
+            64 x 64 dense matrix over Finite Field of size 2 (use the '.str()'
+            method to see the entries)
         """
         return "LinearLayer of dimension %d x %d represented as\n%s" \
                % (self.dimensions() + (self.matrix().__repr__(),))
 
     def matrix(self):
         """
-        Returns the matrix representing this linear layer
+        Return the matrix representing this linear layer
 
         EXAMPLES::
 
@@ -295,7 +304,8 @@ class LinearLayer:
 
     def binary_matrix(self):
         """
-        Returns the matrix representing this linear layer in it's binary representation
+        Return the matrix representing this linear layer in it's binary
+        representation
 
         EXAMPLES::
 
@@ -341,12 +351,14 @@ class LinearLayer:
             sage: L([0]*(L.ncols()+1))
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply LinearLayer to provided element, dimension mismatch
+            TypeError: Cannot apply LinearLayer to provided element, dimension
+            mismatch
 
             sage: L([0, 1/2, 1])
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply LinearLayer to provided element [0, 1/2, 1], conversion to vector failed
+            TypeError: Cannot apply LinearLayer to provided element [0, 1/2, 1],
+            conversion to vector failed
 
             sage: L("failure")
             Traceback (most recent call last):
@@ -361,23 +373,27 @@ class LinearLayer:
 
         elif isinstance(x, tuple):
             if len(x) != self.ncols():
-                raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch")
+                raise TypeError("Cannot apply LinearLayer to provided element, "
+                                "dimension mismatch")
 
             try:
                 x = vector(self.matrix().base_ring(), x)
             except (TypeError, ZeroDivisionError):
-                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed" % (x,))
+                raise TypeError("Cannot apply LinearLayer to provided element %r, "
+                                "conversion to vector failed" % (x,))
 
             return tuple(self * x)
 
         elif isinstance(x, list):
             if len(x) != self.ncols():
-                raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch")
+                raise TypeError("Cannot apply LinearLayer to provided element, "
+                                "dimension mismatch")
 
             try:
                 x = vector(self.base_ring(), x)
             except (TypeError, ZeroDivisionError):
-                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed" % (x,))
+                raise TypeError("Cannot apply LinearLayer to provided element %r, "
+                                "conversion to vector failed" % (x,))
 
             return list(self * x)
 
@@ -389,7 +405,8 @@ class LinearLayer:
 
     def is_permutation(self):
         r"""
-        Check if the linear layer is a permutation, i.e., if the representing matrix is a permutation.
+        Check if the linear layer is a permutation, i.e., if the representing
+        matrix is a permutation.
 
         EXAMPLES::
 
@@ -398,7 +415,8 @@ class LinearLayer:
             sage: L1.is_permutation()
             True
 
-            sage: L2 = LinearLayer.new(Matrix(GF(2), [[0,1,1,0], [1,0,0,0], [0,1,0,0], [0,0,0,1]]))
+            sage: L2 = LinearLayer.new(Matrix(GF(2), [[0,1,1,0], [1,0,0,0],
+            ....:                                     [0,1,0,0], [0,0,0,1]]))
             sage: L2.is_permutation()
             False
 
@@ -426,9 +444,9 @@ class LinearLayer:
 
         return True
 
-    def naive_xor_count(self, algorithm="naive"):
+    def xor_count(self, algorithm="naive"):
         """
-        Counts the number of xor operations needed for a naive implementation
+        Count the number of xor operations needed for a naive implementation
 
         INPUT:
 
@@ -440,18 +458,18 @@ class LinearLayer:
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import PRESENT
-            sage: PRESENT.naive_xor_count()
+            sage: PRESENT.xor_count()
             0
 
             sage: from sage.crypto.linearlayer import AES
-            sage: AES.naive_xor_count() / 4  # four parallel applications of MC
+            sage: AES.xor_count() / 4  # four parallel applications of MC
             152
         """
         avail_algs = ["naive"]
         if algorithm not in avail_algs:
             raise TypeError("algorithm must be one of %s" % avail_algs)
 
-        if algorithm is "naive":
+        if algorithm == "naive":
             mtr = self.binary_matrix()
             n, m = mtr.dimensions()
             return mtr.density() * n * m - n
@@ -459,7 +477,7 @@ class LinearLayer:
     @cached_method
     def differential_branch_number(self):
         """
-        Computes the differential branch number of the linear layer
+        Compute the differential branch number of the linear layer
 
         EXAMPLES::
 
@@ -474,7 +492,7 @@ class LinearLayer:
     @cached_method
     def linear_branch_number(self):
         """
-        Computes the linear branch number of the linear layer
+        Compute the linear branch number of the linear layer
 
         EXAMPLES::
 
@@ -567,8 +585,9 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
         perm_sr = Permutation(map(lambda x: 1+list(x).index(1), self._sr.columns()))
         n, m = self.dimensions()
         degree = self.base_ring().degree()
-        return "AES like LinearLayer of dimension %d x %d represented by ShiftRows\n%s\nand MixColumns\n%s" \
-               % (n*degree, m*degree, perm_sr, self._mc)
+        return ("AES like LinearLayer of dimension %d x %d represented by "
+                "ShiftRows\n%s\nand MixColumns\n%s" \
+                % (n*degree, m*degree, perm_sr, self._mc))
 
     @cached_method
     def differential_branch_number(self):
@@ -603,19 +622,24 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
 Left_ShiftRows = Permutation([1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12])
 Right_ShiftRows = Permutation([1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3, 16, 13, 10, 7, 4])
 
-_AES_irreducible_polynomial = PolynomialRing(GF(2), name="alpha")("alpha^8 + alpha^4 + alpha^3 + alpha + 1")
+_AES_irreducible_polynomial = PolynomialRing(GF(2), name="a")("a^8 + a^4 + a^3 + a + 1")
 _AES_field = GF(2**8, name="x", modulus=_AES_irreducible_polynomial)
 AES_ShiftRows = Left_ShiftRows
-AES_MixColumns = Matrix(_AES_field, 4, 4, map(_AES_field.fetch_int, [2, 3, 1, 1, 1, 2, 3, 1, 1, 1, 2, 3, 3, 1, 1, 2]))
+AES_MixColumns = Matrix(_AES_field, 4, 4,
+    map(_AES_field.fetch_int, [2, 3, 1, 1, 1, 2, 3, 1, 1, 1, 2, 3, 3, 1, 1, 2]))
 AES = AESLikeLinearLayer.new(AES_ShiftRows, AES_MixColumns)
 
-Midori_ShuffelCells = Permutation([1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9])
-Midori_MixColumns = Matrix(GF(2**4), [[0, 1, 1, 1], [1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]])
+Midori_ShuffelCells = Permutation([1, 11, 6, 16, 15, 5, 12, 2,
+                                   10, 4, 13, 7, 8, 14, 3, 9])
+Midori_MixColumns = Matrix(GF(2**4),
+    [[0, 1, 1, 1], [1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]])
 Midori = AESLikeLinearLayer.new(Midori_ShuffelCells, Midori_MixColumns)
 
 SKINNY_ShiftRows = Right_ShiftRows
-SKINNY_4_MixColumns = Matrix(GF(2**4), [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
-SKINNY_8_MixColumns = Matrix(GF(2**8), [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
+SKINNY_4_MixColumns = Matrix(GF(2**4),
+    [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
+SKINNY_8_MixColumns = Matrix(GF(2**8),
+    [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
 SKINNY_4 = AESLikeLinearLayer.new(SKINNY_ShiftRows, SKINNY_4_MixColumns)
 SKINNY_8 = AESLikeLinearLayer.new(SKINNY_ShiftRows, SKINNY_8_MixColumns)
 
@@ -668,6 +692,7 @@ def smallscale_present_linearlayer(nsboxes=16):
     m = Matrix(GF(2), [present_llayer(nsboxes, ei)
                        for ei in VectorSpace(GF(2), 4*nsboxes).basis()])
     return LinearLayer.new(m)
+
 
 PRESENT = smallscale_present_linearlayer(nsboxes=16)
 
