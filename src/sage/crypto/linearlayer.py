@@ -164,7 +164,7 @@ class LinearLayer:
     layers as one of their basic building blocks. A linear layer is typically
     used to spread locally diffused bits over the whole state of the block cipher.
     As linear layers are, well, linear, and operate on bits, nibbles, or bytes, we
-    can represent it as a matrix over `\GF(2)^n`, `\GF(2^4)^n`, or `\GF(2^8)^n`.
+    can represent it as a matrix over `\GF{2}^n`, `\GF{2^4}^n`, or `\GF{2^8}^n`.
     Application of the linear layer to x then just corresponds to left
     multiplication of this matrix: `A \cdot x`.
 
