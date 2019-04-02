@@ -44,6 +44,8 @@ from functools import reduce
 from random import randint
 from six.moves import cStringIO as StringIO
 
+import jinja2
+
 from sage.misc.misc import sage_makedirs
 from sage.misc.temporary_file import tmp_filename
 from sage.env import SAGE_LOCAL
@@ -66,6 +68,10 @@ from libc.math cimport INFINITY
 
 default_texture = Texture()
 pi = RDF.pi()
+
+
+_jinja2_env = None
+
 
 cdef class Graphics3d(SageObject):
     """
@@ -383,18 +389,16 @@ cdef class Graphics3d(SageObject):
         scripts = get_display_manager().threejs_scripts(options['online'])
 
         bbox = self.bounding_box()
-        bounds = json.dumps([
-            {'x': b[0], 'y': b[1], 'z': b[2]} for b in bbox
-        ], sort_keys=True)
+        bounds = [{'x': b[0], 'y': b[1], 'z': b[2]} for b in bbox]
 
         light_color = Color(0.5, 0.5, 0.5)
-        lights = json.dumps([
+        lights = [
             {'x': -5, 'y': 3, 'z': 0,
              'color': light_color.html_color(),
              'parent': 'camera'}
-        ], sort_keys=True)
+        ]
 
-        ambient = json.dumps({'color': light_color.html_color()})
+        ambient = {'color': light_color.html_color()}
 
         points, lines, texts = [], [], []
 
@@ -426,21 +430,28 @@ cdef class Graphics3d(SageObject):
         # manually formatting to convert it to a JSON list
         surfaces = '[{}]'.format(', '.join(surfaces))
 
-        with open(os.path.join(
-                SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
-            html = f.read()
-
-        html = html.replace('SAGE_SCRIPTS', scripts)
         js_options = dict((key, options[key]) for key in
             ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame'])
-        html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
-        html = html.replace('SAGE_BOUNDS', bounds)
-        html = html.replace('SAGE_LIGHTS', lights)
-        html = html.replace('SAGE_AMBIENT', ambient)
-        html = html.replace('SAGE_TEXTS', json.dumps(texts))
-        html = html.replace('SAGE_POINTS', json.dumps(points))
-        html = html.replace('SAGE_LINES', json.dumps(lines))
-        html = html.replace('SAGE_SURFACES', surfaces)
+
+        global _jinja2_env
+        if _jinja2_env is None:
+            # Lazily instantiate the jinja2 Environment
+            _jinja2_env = jinja2.Environment(
+                loader=jinja2.FileSystemLoader(
+                    os.path.join(SAGE_EXTCODE, 'threejs')))
+
+        templ = _jinja2_env.get_template('threejs_template.html')
+        html = templ.render(
+                SAGE_SCRIPTS=scripts,
+                SAGE_OPTIONS=json.dumps(js_options),
+                SAGE_BOUNDS=json.dumps(bounds, sort_keys=True),
+                SAGE_LIGHTS=json.dumps(lights, sort_keys=True),
+                SAGE_AMBIENT=json.dumps(ambient),
+                SAGE_TEXTS=json.dumps(texts),
+                SAGE_POINTS=json.dumps(points),
+                SAGE_LINES=json.dumps(lines),
+                SAGE_SURFACES=surfaces
+        )
 
         return OutputSceneThreejs(html);
 

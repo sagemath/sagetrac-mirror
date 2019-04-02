@@ -12,7 +12,7 @@
 </head>
 
 <body>
-SAGE_SCRIPTS
+{{ SAGE_SCRIPTS }}
 <script>
 
     var scene = new THREE.Scene();
@@ -22,13 +22,13 @@ SAGE_SCRIPTS
     renderer.setClearColor( 0xffffff, 1 );
     document.body.appendChild( renderer.domElement );
 
-    var options = SAGE_OPTIONS;
+    var options = {{ SAGE_OPTIONS }};
 
     // When animations are supported by the viewer, the value 'false'
     // will be replaced with an option set in Python by the user
     var animate = false; // options.animate;
 
-    var b = SAGE_BOUNDS; // bounds
+    var b = {{ SAGE_BOUNDS }}; // bounds
 
     if ( b[0].x === b[1].x ) {
         b[0].x -= 1;
@@ -120,7 +120,7 @@ SAGE_SCRIPTS
     camera.up.set( 0, 0, 1 );
     camera.position.set( a[0]*(xMid+xRange), a[1]*(yMid+yRange), a[2]*(zMid+zRange) );
 
-    var lights = SAGE_LIGHTS;
+    var lights = {{ SAGE_LIGHTS }};
     for ( var i=0 ; i < lights.length ; i++ ) {
         var light = new THREE.DirectionalLight( lights[i].color, 1 );
         light.position.set( a[0]*lights[i].x, a[1]*lights[i].y, a[2]*lights[i].z );
@@ -132,7 +132,7 @@ SAGE_SCRIPTS
     }
     scene.add( camera );
 
-    var ambient = SAGE_AMBIENT;
+    var ambient = {{ SAGE_AMBIENT }};
     scene.add( new THREE.AmbientLight( ambient.color, 1 ) );
 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -148,11 +148,11 @@ SAGE_SCRIPTS
         
     } );
 
-    var texts = SAGE_TEXTS;
+    var texts = {{ SAGE_TEXTS }};
     for ( var i=0 ; i < texts.length ; i++ )
         addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z );
 
-    var points = SAGE_POINTS;
+    var points = {{ SAGE_POINTS }};
     for ( var i=0 ; i < points.length ; i++ ) addPoint( points[i] );
 
     function addPoint( json ) {
@@ -183,7 +183,7 @@ SAGE_SCRIPTS
         scene.add( mesh );
     }
 
-    var lines = SAGE_LINES;
+    var lines = {{ SAGE_LINES }};
     for ( var i=0 ; i < lines.length ; i++ ) addLine( lines[i] );
 
     function addLine( json ) {
@@ -205,7 +205,7 @@ SAGE_SCRIPTS
         scene.add( mesh );
     }
 
-    var surfaces = SAGE_SURFACES;
+    var surfaces = {{ SAGE_SURFACES }};
     for ( var i=0 ; i < surfaces.length ; i++ ) addSurface( surfaces[i] );
 
     function addSurface( json ) {
