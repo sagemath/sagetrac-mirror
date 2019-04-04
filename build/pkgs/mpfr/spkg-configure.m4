@@ -14,10 +14,17 @@ dnl Just part the options here
             AC_MSG_ERROR([allowed values for --with-mpfr are system and install]);;
     esac
     
+    AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
     case "$with_mpfr" in
         system)
+	  AC_MSG_CHECKING([Installing gmp/mpir? ])
+          if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
+	       AC_MSG_RESULT([Yes. Install mpfr as well.])
+               sage_spkg_install_mpfr=yes
+          else
+	    AC_MSG_RESULT([No.])
             AC_CHECK_HEADER(mpfr.h, [], [sage_spkg_install_mpfr=yes])
-        dnl mpfr_free_pool appeared in r11922 (Dec 2017) on MPFR svn 
+           dnl mpfr_free_pool appeared in r11922 (Dec 2017) on MPFR svn
             AC_SEARCH_LIBS([mpfr_free_pool], [mpfr], [break], [sage_spkg_install_mpfr=yes])
 
             if test x$sage_spkg_install_mpfr = xyes; then
@@ -38,7 +45,8 @@ dnl Just part the options here
                AC_SUBST(SAGE_MPFR_PREFIX, [''])
                AC_MSG_RESULT([using mpfr library from the system])
             fi
-            ;;
+          fi
+          ;;
         install)
             sage_spkg_install_mpfr=yes
             AC_SUBST(SAGE_MPFR_PREFIX, ['$SAGE_LOCAL'])
