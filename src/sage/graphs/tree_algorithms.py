@@ -1,78 +1,130 @@
-def tree_diameter(G, endpoints=False, path=False):
+def tree_diameter(G, endpoints=False, path=False, by_weight=False):
     """
-    Returns diameter of unweighted tree.
-    Input:
+    Returns diameter of unweighted tree. It first chooses some random
+    vertex x and find the most distant vertex from x, u. Now, the diameter
+    is the longest path from u to any other vertex v.
+
+    INPUT:
 
     - ``G`` -- graph
 
-    - ``endpoints`` -- boolean(default: ``False``); whether to return
+    - ``endpoints`` -- boolean (default: ``False``); whether to return
     enpoints of diameter or not
 
-    - ``path`` -- boolean(default: ``False``); whether to return the
+    - ``path`` -- boolean (default: ``False``); whether to return the
     diameter path
+
+    - ``by_weight`` -- boolean (default: ``False``); whether to find the
+    diameter by considering weights of edges or not
 
     EXAMPLES::
 
         sage: from sage.graphs.tree_algorithms import tree_diameter
-        sage: G = Graph([(1,2),(2,3),(3,4)])
+        sage: G = Graph([(1, 2), (2, 3), (3, 4)])
         sage: tree_diameter(G)
         3
 
-        sage: G = Graph([('a','b'),('b','c'),('c','d')])
+        sage: G = Graph([('a', 'b'), ('b', 'c'), ('c', 'd')])
         sage: tree_diameter(G)
         3
 
-        sage: G = Graph([(1,2),(2,3),(2,4)])
+        sage: G = Graph([(1, 2), (2, 3), (2, 4)])
         sage: tree_diameter(G)
         2
 
-        sage: G = Graph([(1,2),(2,3),(2,4)])
+        sage: G = Graph([(1, 2), (2, 3), (2, 4), (4,5)])
         sage: tree_diameter(G, endpoints=True, path=True)
-        (2, (3, 1), [3, 2, 1])
+        (3, (5, 3), [5, 4, 2, 3])
 
-        sage: G = Graph([('a','b'),('b','c'),('c','d')])
+        sage: G = Graph([('a', 'b'), ('b', 'c'), ('c', 'd')])
         sage: tree_diameter(G, endpoints=True, path=True)
         (3, ('d', 'a'), ['d', 'c', 'b', 'a'])
 
+        sage: G = Graph([(1, 2, 10), (1, 3, 3), (1, 4, 20)])
+        sage: tree_diameter(G, path=True,endpoints=True, by_weight=True)
+        (30, (4, 2), [4, 1, 2])
+
     """
-    u = next(G.vertex_iterator())
-    path_lengths = G.shortest_path_lengths(u, algorithm='BFS')
-    from operator import itemgetter
-    u = max(path_lengths.iteritems(), key=itemgetter(1))[0]
-    path_lengths = G.shortest_path_lengths(u, algorithm='BFS')
-    (v, dist) = max(path_lengths.iteritems(), key=itemgetter(1))
+    if not G.is_tree():
+        raise ValueError("tree_diameter() only works on trees")
+
+    if not G.order():
+        if endpoints and path:
+            return (0, (None,None), None)
+        if endpoints:
+            return (0, (None,None))
+        if path:
+            return (0, None)
+
+    x = next(G.vertex_iterator())
+    path_lengths = {}
+    u = None
+    dist = None
+
+    if by_weight:
+        path_lengths = G.shortest_path_lengths(x, algorithm='Dijkstra_Boost', by_weight=True)
+        from operator import itemgetter
+        u = max(path_lengths.iteritems(), key=itemgetter(1))[0]
+    else:
+        path_lengths = G.breadth_first_search(x, report_distance=True)
+        for (u,dist) in path_lengths:
+            pass
+
+    v = None
+
+    if by_weight:
+        path_lengths = G.shortest_path_lengths(u, algorithm='Dijkstra_Boost', by_weight=True)
+        from operator import itemgetter
+        (v, dist) = max(path_lengths.iteritems(), key=itemgetter(1))
+    else:
+        path_lengths = G.breadth_first_search(u, report_distance=True)
+        for (v, dist) in path_lengths:
+            pass
+
     if not endpoints and not path:
         return dist
+
     if endpoints and not path:
         return (dist, (u, v))
+
     dpath = G.shortest_path(u,v,algorithm='BFS')
+
     if not endpoints and path:
         return (dist, dpath)
+
     return (dist, (u, v), dpath)
 
 def tree_center(G):
     """
-    Return center of the given tree(G).
+    Return center of the given tree (G). Center is the mid point of
+    diameter. If length of diameter is even, there are two centers else
+    one.
 
-    Input:
+    INPUT:
 
     - ``G`` -- graph
 
     EXAMPLES::
 
         sage: from sage.graphs.tree_algorithms import tree_center
-        sage: G = Graph([('a','b'),('b','c'),('c','d')])
+        sage: G = Graph([('a', 'b'), ('b', 'c'), ('c', 'd')])
         sage: tree_center(G)
         ('c', 'b')
 
-        sage: G = Graph([(1,2),(2,3),(2,4)])
+        sage: G = Graph([(1, 2), (2, 3), (2, 4)])
         sage: tree_center(G)
         (2,)
 
     """
+
+    if not G.is_tree():
+        raise ValueError("tree_center() only works on trees")
+
     (dist, dpath) = tree_diameter(G, path = True)
+
     if dist%2 == 1:
         return (dpath[dist//2], dpath[dist//2+1])
+
     else:
         return (dpath[dist//2],)
 
@@ -80,7 +132,7 @@ def generateCertificate(g, h, children1, children2, subLabel1, subLabel2):
     """
     Returns the certificate for isomorphic rooted trees.
 
-    Input:
+    INPUT:
 
     - ``g`` -- vertex; root of the first tree
 
@@ -104,6 +156,7 @@ def generateCertificate(g, h, children1, children2, subLabel1, subLabel2):
     cert = dict()
     st1.append(g)
     st2.append(h)
+
     while st1 and st2:
         x = st1[-1]
         y = st2[-1]
@@ -115,6 +168,7 @@ def generateCertificate(g, h, children1, children2, subLabel1, subLabel2):
         for i in range(len(children1[x])):
             st1.append(children1[x][i])
             st2.append(children2[y][i])
+
     return cert
 
 def tree_dfs(u, G):
@@ -123,13 +177,13 @@ def tree_dfs(u, G):
     parent of each vertex and children of each vertex after doing dfs on
     the given tree ``G``.
 
-    Input:
+    INPUT:
 
     - ``u`` -- vertex; vertex from which dfs is performed(or root of tree)
 
     - ``G`` -- graph
 
-    Output:
+    OUTPUT:
 
     - ``level`` -- integer; number of levels in tree
 
@@ -156,6 +210,7 @@ def tree_dfs(u, G):
     dis = dict()
     dis[u] = 0
     level = 0
+
     while stack:
         v = stack[-1]
         stack.pop()
@@ -167,6 +222,7 @@ def tree_dfs(u, G):
                 dis[x] = dis[v]+1
                 level = max(level,dis[x])
                 L[dis[x]].append(x)
+
     return (level, L, par, children)
 
 def rooted_tree_isomorphism(G, H, gc, hc, certificate=False):
@@ -174,7 +230,7 @@ def rooted_tree_isomorphism(G, H, gc, hc, certificate=False):
     Returns if rooted tree G(root gc) is isomorphic to rooted
     tree(root hc).
 
-    Input:
+    INPUT:
 
     - ``G`` -- graph
 
@@ -184,25 +240,34 @@ def rooted_tree_isomorphism(G, H, gc, hc, certificate=False):
 
     - ``hc`` -- vertex; root of H
 
+    - ``certificate`` -- boolean (default: False); whether to return the
+    certificate or not
+
     """
     (h1, L1, par1, children1) = tree_dfs(gc, G)
     (h2, L2, par2, children2) = tree_dfs(hc, H)
+
     if h1 != h2:
         return (False, None)
+
     h = h1 = h2
     label1 = dict()
     subLabel1 = dict()
     label2 = dict()
     subLabel2 = dict()
+
     for i in range(0,h):
         if len(L1[i]) != len(L2[i]):
             return (False, None)
+
     for x in G.vertex_iterator():
         subLabel1[x] = []
     for x in H.vertex_iterator():
         subLabel2[x] = []
+
     for i in range(len(L1[h])):
         label1[L1[h][i]] = label2[L2[h][i]] = 0
+
     for i in range(h-1,0,-1):
         for y in L1[i+1]:
             subLabel1[par1[y]].append(label1[y])
@@ -220,18 +285,22 @@ def rooted_tree_isomorphism(G, H, gc, hc, certificate=False):
                 c = c+1
             label1[L1[i][j]] = c
             label2[L2[i][j]] = c
+
     if subLabel1[gc] != subLabel2[hc]:
         return (False, None)
+
     if certificate:
         return (True, generateCertificate(gc, hc, children1, children2, subLabel1, subLabel2))
+
     return (True, None)
 
 def tree_isomorphism(G, H, certificate=False):
     """
     Returns if trees ``G`` and ``H`` are isomorphic with certificate in
-    O(n log n)
+    O(n log n). It first roots both trees by their centers (all cases),
+    then check for rooted tree isomorphism.
 
-    Input:
+    INPUT:
 
     - ``G`` -- graph
 
@@ -243,24 +312,32 @@ def tree_isomorphism(G, H, certificate=False):
     EXAMPLES::
 
         sage: from sage.graphs.tree_algorithms import tree_isomorphism
-        sage: G = Graph([(1,2),(2,3),(2,4)])
-        sage: H = Graph([(2,3),(3,4),(3,1)])
+        sage: G = Graph([(1, 2), (2, 3), (2, 4)])
+        sage: H = Graph([(2, 3), (3, 4), (3, 1)])
         sage: tree_isomorphism(G,H,certificate=True)
         (True, {1: 1, 2: 3, 3: 2, 4: 4})
 
-        sage: G = Graph([(1,2),(2,3),(2,4)])
-        sage: H = Graph([(2,3),(3,4),(4,1)])
+        sage: G = Graph([(1, 2), (2, 3), (2, 4)])
+        sage: H = Graph([(2, 3), (3, 4), (4, 1)])
         sage: tree_isomorphism(G,H,certificate=True)
         (False, None)
 
     """
+
+    if not G.is_tree() or not H.is_tree():
+        raise ValueError("tree_isomorphism() only works on trees")
+
+
     gc = tree_center(G)
     hc = tree_center(H)
+
     if len(gc) != len(hc):
         return (False, None) if certificate else False
+
     for p in gc:
         for q in hc:
             f = rooted_tree_isomorphism(G, H, p, q, certificate)
             if f[0]:
                 return f if certificate else True
+
     return (False, None) if certificate else False
