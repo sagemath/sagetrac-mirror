@@ -30,6 +30,9 @@ class TikzPainter:
     With that classes you can use options to set up drawing informations.
     Then the class will produce a drawing by using those informations.
 
+    For more information about avalaible default option, see
+    (:attr:`default_options`)
+
     EXAMPLES::
 
         sage: dt = TikzPainter()
@@ -61,7 +64,7 @@ class TikzPainter:
             return "lambda v : v"
 
     default_options = dict(
-        scale=1, line_size=1, point_size=3.5, color_line='black',
+        scale=1, line_width=1, point_size=3.5, color_line='black',
         color_point='black', translation=[0, 0], rotation=0, mirror=None,
         coordinate_transformation=identity_transformation()
     )
@@ -70,6 +73,27 @@ class TikzPainter:
 
     This option is used to configurate element of a drawing to allow
     TIKZ code generation.
+
+    The avalaible options are :
+
+    - ``color_line`` -- the color of all the lines
+
+    - ``line_width`` -- the width of all the lines
+
+    - ``point_size`` -- the size of all the points
+
+    - ``color_point`` -- the color of all the points
+
+    - ``scale`` -- the color of all the lines (see :meth:`XY`)
+
+    - ``translation`` -- the vector of the translation (see :meth:`XY`)
+
+    - ``rotation`` -- the angle in radians of the roatation (see :meth:`XY`)
+
+    - ``mirror`` -- the vector of the line for the mirror transformation
+      (see :meth:`XY`)
+
+    - ``coordinate_transformation`` -- the user transformation (see :meth:`XY`)
     """
 
     def __init__(self, options=None):
@@ -95,7 +119,7 @@ class TikzPainter:
             u'\n  \\draw[color=black, line width=1] (-1.000000, 1.000000) --
             (1.000000, -1.000000);'
 
-            sage: opt = dict(scale=3, line_size=2)
+            sage: opt = dict(scale=3, line_width=2)
             sage: dt = TikzPainter(opt)
             sage: dt.draw_line([1, 1], [-1, -1])
             u'\n  \\draw[color=black, line width=2] (3.000000, 3.000000) --
@@ -105,7 +129,7 @@ class TikzPainter:
             {'color_line': u'black',
              'color_point': u'black',
              'coordinate_transformation': lambda v : v,
-             'line_size': 1,
+             'line_width': 1,
              'mirror': None,
              'point_size': 3.5,
              'rotation': 0,
@@ -127,7 +151,7 @@ class TikzPainter:
         self._mirror = get_option('mirror', options)
         self._rotation = get_option('rotation', options)
         self._color_line = get_option('color_line', options)
-        self._line_size = get_option('line_size', options)
+        self._line_width = get_option('line_width', options)
         self._point_size = get_option('point_size', options)
         self._color_point = get_option('color_point', options)
         self._scale = get_option('scale', options)
@@ -137,11 +161,11 @@ class TikzPainter:
         This function give the image of v by some transformation given by the
         drawing option of ``TikzPainter``.
 
-        The transformation is the composition of rotation, mirror, translation
-        and _XY user function.
+        The transformation is the composition of scale, rotation, mirror,
+        translation and _XY user functions.
 
-        First we apply the _XY user function, then the the rotation, then the
-        mirror and finaly the translation.
+        First we apply the _XY user function, the the scale function, then the
+        the rotation, then the mirror and finaly the translation.
 
         INPUT:
 
@@ -336,7 +360,7 @@ class TikzPainter:
         if color is None:
             color = self._color_line
         if size is None:
-            size = self._line_size
+            size = self._line_width
         [x1, y1] = self.XY(v1)
         [x2, y2] = self.XY(v2)
         return "\n  \\draw[color=%s, line width=%s] (%f, %f) -- (%f, %f);" % (

@@ -463,7 +463,7 @@ class LocalOptions:
         return f(*get_values, **set_values)
 
 default_tikz_options = dict(
-    scale=1, line_size=1, point_size=3.5, color_line='black',
+    scale=1, line_width=1, point_size=3.5, color_line='black',
     color_point='black', color_bounce_0='red', color_bounce_1='blue',
     translation=[0, 0], rotation=0, mirror=None
 )
@@ -487,7 +487,7 @@ ParallelogramPolyominoesOptions = LocalOptions(
         checker=lambda x: Set(x.keys()).issubset(
             Set(
                 [
-                    'scale', 'line_size', 'point_size',
+                    'scale', 'line_width', 'point_size',
                     'color_line', 'color_point', 'translation', 'mirror',
                     'rotation', 'color_bounce_0', 'color_bounce_1',
                 ]
@@ -555,7 +555,7 @@ EXAMPLES::
      'color_bounce_1': u'blue',
      'color_line': u'black',
      'color_point': u'black',
-     'line_size': 1,
+     'line_width': 1,
      'mirror': None,
      'point_size': 3.5,
      'rotation': 0,
@@ -1235,12 +1235,14 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.get_options()
             Current options for ParallelogramPolyominoes_size
               - display:            u'list'
-              - drawing_components: {'bounce_0': False, 'bounce_1': False, 'diagram': True, 'tree': False}
+              - drawing_components: {'bounce_0': False, 'bounce_1': False,
+                'diagram': True, 'tree': False}
               - latex:              u'drawing'
               - tikz_options:       {'color_bounce_0': u'red',
-                'color_bounce_1': u'blue', 'color_line': u'black', 'color_point': u'black',
-                'line_size': 1, 'mirror': None, 'point_size': 3.5,
-                'rotation': 0, 'scale': 1, 'translation': [0, 0]}
+                'color_bounce_1': u'blue', 'color_line': u'black',
+                'color_point': u'black', 'line_width': 1, 'mirror': None,
+                'point_size': 3.5, 'rotation': 0, 'scale': 1,
+                'translation': [0, 0]}
         """
         if self._options is None:
             return self.parent().get_options()
@@ -2175,7 +2177,7 @@ class ParallelogramPolyomino(ClonableList):
              'color_bounce_1': u'blue',
              'color_line': u'black',
              'color_point': u'black',
-             'line_size': 1,
+             'line_width': 1,
              'mirror': None,
              'point_size': 3.5,
              'rotation': 0,
@@ -2345,7 +2347,7 @@ class ParallelogramPolyomino(ClonableList):
                 res += drawing_tool.draw_line(
                     [old[1], old[0]], [pos[1], pos[0]],
                     color=color,
-                    size=2*tikz_options['line_size'] + increase_size_line,
+                    size=2*tikz_options['line_width'] + increase_size_line,
                 )
                 old[0], old[1] = pos
                 direction = 1-direction

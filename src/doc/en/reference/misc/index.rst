@@ -195,6 +195,7 @@ LaTeX
    sagetex
    sage/misc/latex
    sage/misc/latex_macros
+   sage/misc/tikz
 
 Saving and Loading Sage Objects
 -------------------------------
