@@ -4,6 +4,8 @@ def tree_diameter(G, endpoints=False, path=False, by_weight=False):
     vertex x and find the most distant vertex from x, u. Now, the diameter
     is the longest path from u to any other vertex v.
 
+    It works only on non-negative weighted trees.
+
     INPUT:
 
     - ``G`` -- graph
@@ -15,7 +17,7 @@ def tree_diameter(G, endpoints=False, path=False, by_weight=False):
     diameter path
 
     - ``by_weight`` -- boolean (default: ``False``); whether to find the
-    diameter by considering weights of edges or not
+    diameter by considering edge weights or not
 
     EXAMPLES::
 
@@ -41,7 +43,7 @@ def tree_diameter(G, endpoints=False, path=False, by_weight=False):
         (3, ('d', 'a'), ['d', 'c', 'b', 'a'])
 
         sage: G = Graph([(1, 2, 10), (1, 3, 3), (1, 4, 20)])
-        sage: tree_diameter(G, path=True,endpoints=True, by_weight=True)
+        sage: tree_diameter(G, path=True, endpoints=True, by_weight=True)
         (30, (4, 2), [4, 1, 2])
 
     """
@@ -94,15 +96,20 @@ def tree_diameter(G, endpoints=False, path=False, by_weight=False):
 
     return (dist, (u, v), dpath)
 
-def tree_center(G):
+def tree_center(G, by_weight=False):
     """
     Return center of the given tree (G). Center is the mid point of
-    diameter. If length of diameter is even, there are two centers else
-    one.
+    diameter. Center of tree always lies on its diameter. For unweighted
+    tree, it is the mid vertex of diameter.
+
+    It works only on positive weighted trees.
 
     INPUT:
 
     - ``G`` -- graph
+
+    - ``by_weight`` -- boolean (default: False); whether to find center by
+    considering edge weights or not
 
     EXAMPLES::
 
@@ -115,10 +122,36 @@ def tree_center(G):
         sage: tree_center(G)
         (2,)
 
+        sage: G = Graph([(1, 2, 2), (2, 3, 2), (3, 4, 3), (4, 5, 10)])
+        sage: tree_center(G, by_weight=True)
+        (4,)
+
     """
 
     if not G.is_tree():
         raise ValueError("tree_center() only works on trees")
+
+    if not G.order():
+        return (None,)
+
+    if by_weight:
+        for edge in G.edge_iterator():
+            if edge[2] <= 0:
+                raise ValueError("tree has non-positive weights")
+        (dist, endpoints, dpath) = tree_diameter(G, path=True, endpoints=True, by_weight=True)
+        spaths = G.shortest_path_lengths(endpoints[0], algorithm='Dijkstra_Boost', by_weight=True)
+        center = None
+        rad = dist+1
+        for x in dpath:
+            m = max(spaths[x], dist - spaths[x])
+            if m<rad:
+                rad = m
+                center = (x,)
+            elif m == rad:
+                rad = m
+                center = (center[0], x)
+        return center
+
 
     (dist, dpath) = tree_diameter(G, path = True)
 
@@ -306,7 +339,7 @@ def tree_isomorphism(G, H, certificate=False):
 
     - ``H`` -- graph
 
-    - ``certificate`` -- boolean(default: False); True if certificate has
+    - ``certificate`` -- boolean (default: False); True if certificate has
     to be returned else False
 
     EXAMPLES::
