@@ -83,6 +83,7 @@ import operator
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
+from sage.misc.latex import latex
 
 from sage.interfaces.kash import kash, KashElement
 
@@ -938,6 +939,52 @@ class FunctionField_polymod_kash(FunctionField_polymod):
             if place.degree() == degree:
                 yield place
 
+from sage.rings.laurent_series_ring import LaurentSeriesRing
+from sage.rings.laurent_series_ring_element import LaurentSeries
+from sage.rings.infinity import Infinity
+
+class LaurentSeriesDifferential(LaurentSeries):
+    """
+    A slight variant on LaurentSeries that prints the series in brackets
+    followed by a differential.
+
+    No attempt is made to enforce consistency of operations, i.e, you
+    can just add this to a normal LaurentSeries and the differential will
+    disappear.
+    """
+    def _repr_(self):
+        differential = "d" + self.variable()
+        if self == 1:
+            return differential
+        if (self.prec() == Infinity) and (len(self.coefficients()) == 1):
+            return super(LaurentSeriesDifferential, self)._repr_() + " " + differential
+        return "[" + super(LaurentSeriesDifferential, self)._repr_() + "] " + differential
+
+    def _latex_(self, **kwds):
+        differential = "d" + latex(self.parent().gen(0))
+        if self == 1:
+            return differential
+        if (self.prec() == Infinity) and (len(self.coefficients()) == 1):
+            return super(LaurentSeriesDifferential, self)._latex_(**kwds) + "\\," + differential
+
+        # Sizing the brackets is problematic if there are alignment
+        # characters in the LaTeX, because we can't match the brackets
+        # across multiple cells in a table.  In this case, we put a
+        # non-aligned version of the LaTeX in a "vphantom" to size
+        # the brackets correctly.
+        #
+        # https://www.giss.nasa.gov/tools/latex/ltx-403.html
+
+        latex_series = super(LaurentSeriesDifferential, self)._latex_(**kwds)
+        if kwds.pop('table', None):
+            latex_series_no_alignment = super(LaurentSeriesDifferential, self)._latex_(**kwds)
+        else:
+            latex_series_no_alignment = latex_series_no_alignment
+        if latex_series == latex_series_no_alignment:
+            return "\\left[" + latex_series + "\\right]\\," + differential
+        else:
+            return "\\left[\\vphantom{{{0}}}\\right.{1}\\left.\\vphantom{{{0}}}\\right]\\,".format(latex_series_no_alignment, latex_series) + differential
+
 class FunctionFieldCompletion_kash(FunctionFieldCompletion):
     """
     Completions on kash function fields.  Currently only supports
@@ -1008,7 +1055,6 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
               To:   Laurent Series Ring in s over Algebraic Field
 
         """
-        from sage.rings.laurent_series_ring import LaurentSeriesRing
 
         if name is None:
             name = 's' # default
@@ -1197,7 +1243,7 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         st = self._expand(t, max(prec-vf,vt)+1) # t's series
         sdt = st.derivative()                 # dt's series
         sf = self._expand(f._f, prec-(vt-1))  # f's series
-        return sf * sdt
+        return LaurentSeriesDifferential(sf.parent(), sf * sdt)
 
     def default_precision(self):
         """
