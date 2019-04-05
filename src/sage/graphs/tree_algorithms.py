@@ -1,6 +1,6 @@
 def tree_diameter(G, endpoints=False, path=False, by_weight=False):
     """
-    Returns diameter of unweighted tree. It first chooses some random
+    Return the diameter of unweighted tree. It first chooses some random
     vertex x and find the most distant vertex from x, u. Now, the diameter
     is the longest path from u to any other vertex v.
 
@@ -98,7 +98,7 @@ def tree_diameter(G, endpoints=False, path=False, by_weight=False):
 
 def tree_center(G, by_weight=False):
     """
-    Return center of the given tree (G). Center is the mid point of
+    Return the center(s) of the given tree (G). Center is the mid point of
     diameter. Center of tree always lies on its diameter. For unweighted
     tree, it is the mid vertex of diameter.
 
@@ -163,7 +163,7 @@ def tree_center(G, by_weight=False):
 
 def generateCertificate(g, h, children1, children2, subLabel1, subLabel2):
     """
-    Returns the certificate for isomorphic rooted trees.
+    Return the certificate for isomorphic rooted trees.
 
     INPUT:
 
@@ -206,7 +206,7 @@ def generateCertificate(g, h, children1, children2, subLabel1, subLabel2):
 
 def tree_dfs(u, G):
     """
-    Returns a tuple containing number of levels, vertices in each level,
+    Return a tuple containing number of levels, vertices in each level,
     parent of each vertex and children of each vertex after doing dfs on
     the given tree ``G``.
 
@@ -260,7 +260,7 @@ def tree_dfs(u, G):
 
 def rooted_tree_isomorphism(G, H, gc, hc, certificate=False):
     """
-    Returns if rooted tree G(root gc) is isomorphic to rooted
+    Return if rooted tree G(root gc) is isomorphic to rooted
     tree(root hc).
 
     INPUT:
@@ -329,7 +329,7 @@ def rooted_tree_isomorphism(G, H, gc, hc, certificate=False):
 
 def tree_isomorphism(G, H, certificate=False):
     """
-    Returns if trees ``G`` and ``H`` are isomorphic with certificate in
+    Return if trees ``G`` and ``H`` are isomorphic with certificate in
     O(n log n). It first roots both trees by their centers (all cases),
     then check for rooted tree isomorphism.
 
