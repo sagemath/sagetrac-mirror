@@ -422,3 +422,54 @@ def moving_average(v, n):
         s += v[i] - v[i-n]
         ans.append(s/nn)
     return ans
+
+def median_of_medians( A, i ): 
+    """
+    Return the i'th smallest integer in the array 
+    
+    INPUT:
+
+        - `A` -- a list
+
+        - `i` -- the position of element that is required in a sorted list of A
+
+    OUTPUT:
+
+        - i'th smallest element
+
+    EXAMPLES::
+ 
+        sage: median_of_medians([1..10], 1)
+        2
+        sage: median_of_medians([1..10], 5)
+        6
+        sage: median_of_medians([1], 0)
+        1
+        sage: median_of_medians([1..10], 10)
+        Traceback (most recent call last)
+        ...
+        ValueError: i must be less than size of the list
+    """   
+    if(len(A)<=i):
+        raise ValueError("i must be less than size of the list") 
+    t = len(A)
+    # Variable to divide the element in group 1000
+    items_per_column=1000
+
+    # if A is a small list with less than items_per_column items, then:
+    if(t <= items_per_column):
+        return sorted(A)[i]
+    else:
+        # partition A into columns of items_per_column items each to find their median.
+        B = [ median_of_medians(k, (len(k) - 1)/2) for k in [A[j:(j + items_per_column)] for j in range(0,len(A),items_per_column)]]
+        M = median_of_medians(B, (len(B) - 1)/2)
+
+        # split A into 3 parts by M, { < M }, { == M }, and { > M }
+        P1 = [ j for j in A if j < M ]
+        if(i < len(P1)):
+            return median_of_medians( P1, i)
+        P3 = [ j for j in A if j > M ]
+        L3 = len(P3)
+        if(i < (t - L3)):
+            return M
+        return median_of_medians( P3, i - (t - L3))
