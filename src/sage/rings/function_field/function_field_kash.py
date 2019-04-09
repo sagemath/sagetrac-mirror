@@ -65,7 +65,7 @@ EXAMPLES::
     sage: m(x/y)
     1/2*s^-1 + 1/2*s + O(s^20)
     sage: m(x/y*x.differential())
-    2*I + 6*I*s^2 + 10*I*s^4 + 14*I*s^6 + 18*I*s^8 + 22*I*s^10 + 26*I*s^12 + 30*I*s^14 + 34*I*s^16 + 38*I*s^18 + O(s^20)
+    [2*I + 6*I*s^2 + 10*I*s^4 + 14*I*s^6 + 18*I*s^8 + 22*I*s^10 + 26*I*s^12 + 30*I*s^14 + 34*I*s^16 + 38*I*s^18 + O(s^20)] ds
     sage: pl2 = D.support()[1]
     sage: m2 = F.completion(pl2)
     sage: m2(x)
@@ -73,9 +73,9 @@ EXAMPLES::
     sage: m2(x/y)
     s - 1/4*s^3 + 1/16*s^5 - 1/64*s^7 + 1/256*s^9 - 1/1024*s^11 + 1/4096*s^13 - 1/16384*s^15 + 1/65536*s^17 - 1/262144*s^19 + O(s^20)
     sage: m2(x.differential())
-    1 + 3/4*s^2 + 5/16*s^4 + 7/64*s^6 + 9/256*s^8 + 11/1024*s^10 + 13/4096*s^12 + 15/16384*s^14 + 17/65536*s^16 + 19/262144*s^18 + O(s^20)
+    [1 + 3/4*s^2 + 5/16*s^4 + 7/64*s^6 + 9/256*s^8 + 11/1024*s^10 + 13/4096*s^12 + 15/16384*s^14 + 17/65536*s^16 + 19/262144*s^18 + O(s^20)] ds
     sage: m2(x * x.differential())
-    s + s^3 + 9/16*s^5 + 1/4*s^7 + 25/256*s^9 + 9/256*s^11 + 49/4096*s^13 + 1/256*s^15 + 81/65536*s^17 + 25/65536*s^19 + O(s^20)
+    [s + s^3 + 9/16*s^5 + 1/4*s^7 + 25/256*s^9 + 9/256*s^11 + 49/4096*s^13 + 1/256*s^15 + 81/65536*s^17 + 25/65536*s^19 + O(s^20)] ds
 """
 
 import itertools
@@ -1219,11 +1219,11 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
             sage: pl = D.support()[0]
             sage: m = F.completion(pl)
             sage: m(x.differential())
-            4*I*s + 8*I*s^3 + 12*I*s^5 + 16*I*s^7 + 20*I*s^9 + 24*I*s^11 + 28*I*s^13 + 32*I*s^15 + 36*I*s^17 + 40*I*s^19 + O(s^20)
+            [4*I*s + 8*I*s^3 + 12*I*s^5 + 16*I*s^7 + 20*I*s^9 + 24*I*s^11 + 28*I*s^13 + 32*I*s^15 + 36*I*s^17 + 40*I*s^19 + O(s^20)] ds
             sage: m(x/y)
             1/2*s^-1 + 1/2*s + O(s^20)
             sage: m(x/y*x.differential())
-            2*I + 6*I*s^2 + 10*I*s^4 + 14*I*s^6 + 18*I*s^8 + 22*I*s^10 + 26*I*s^12 + 30*I*s^14 + 34*I*s^16 + 38*I*s^18 + O(s^20)
+            [2*I + 6*I*s^2 + 10*I*s^4 + 14*I*s^6 + 18*I*s^8 + 22*I*s^10 + 26*I*s^12 + 30*I*s^14 + 34*I*s^16 + 38*I*s^18 + O(s^20)] ds
 
             sage: K.<x> = FunctionField(QQbar, implementation='kash')
             sage: L.<y> = K[]
@@ -1231,7 +1231,7 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
             sage: pl = y.divisor().support()[1]
             sage: m = F.completion(pl, prec=1)
             sage: m(y*x.differential())
-            O(s^1)
+            [O(s^1)] ds
 
         """
         if prec is None:
