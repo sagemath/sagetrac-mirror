@@ -1995,11 +1995,27 @@ class FunctionFieldPlace_kash(FunctionFieldPlace):
         - ``field`` -- function field
 
         - ``arg`` -- prime ideal associated with the place, or a kash place
+
+        .. TESTS::
+
+            Check that when creating Sage places from kash places, we set
+            ``order`` correctly.  Otherwise, the divisor below isn't
+            calculated correctly.
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash');
+            sage: L.<Y> = R[];
+            sage: F.<y> = R.extension(Y^4 - (x^2+1)^3);
+            sage: (1/y * x.differential()).divisor()      # indirect doctest
+            0
+
         """
 
         if isinstance(arg, KashElement):
             ideal = arg.Ideal()
-            order = field.maximal_order()
+            if arg.IsFinite():
+                order = field.maximal_order()
+            else:
+                order = field.maximal_order_infinite()
             prime = FunctionFieldIdeal_kash(order, order.kash().CoerceIdeal(ideal))
             self._kash_ = arg
         else:
