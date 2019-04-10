@@ -1,4 +1,4 @@
-import formal_power_series
+from formal_power_series import *
 import indring
 
 
@@ -27,6 +27,11 @@ class FormalGroupLaw(FPS):
         self.children = children
         self.operation = operation
         self.var = var
+	self.memoized_degree = None
+	self.memoized_poly = None
+
+    def __repr__(self):
+        return "some Formal Group Law"
 
     # i-series, aka n-series
     # returns a power series in one variable
@@ -67,6 +72,26 @@ class FormalGroupLaw(FPS):
 
     def forget(self):
         return FPS(self.ring, self.n, self.b_func, self.coeffs, self.var, self.children, self.operation)
+
+    def log(self):
+        # logarithm: find  (d/dy F(x, y)) evaluated at y = 0 and return the integral of this dx.
+
+        # differentiate with respect to y
+        derivative = self.derive(1)
+        # evaluate by setting y = 0
+        
+        evaluated = derivative([linear(self.ring), zero(self.ring, 2, "xy")], [0, 0, 1, 1])
+        # multiplicative inverse
+        inverted = evaluated.inverse()
+        # integrate with respect to x
+        integrated = inverted.integrate(0)
+        return integrated
+
+def zero (ring, n, var):
+    return FPS(ring, n, lambda l: 0, lambda n: 1, var)
+
+def linear(ring):
+    return FPS(ring, 2,lambda l: 1 if l == [1,0] else 0, lambda n: 1, "xy")
 
 def ptypical(p, gen = "hazelwinkel"):
     if gen == "hazelwinkel":
@@ -115,10 +140,6 @@ def ptypical(p, gen = "hazelwinkel"):
 def grouplaw(ps):
     if ps.n != 2:
         raise ValueError("Wrong number of variables for FormalGroupLaw: " + str(ps.n))
-    print(ps.getConst())
-    print(ps.getConst() == 0)
-    #if ps.getConst() != 0:
-        #raise ValueError("Nonzero constant term")
     
     # check that ps.view(1) == x+y
     poly = ps.view(1).polynomial()
@@ -151,7 +172,6 @@ after_conj = rev([intermediate])
 print("after_conj", after_conj.view(4))
 conj = basic.conjugate(ps)
 conj.view(4)
-print(conj.getConst() == 0)
 
 
 print('it has run.')
@@ -181,4 +201,3 @@ print("H is a homomorphism that sends all of the ci's in the Lazard ring to 1")
 H = IndRingHom(Lazard, Integer_Ring, lazard_to_integers_f)
 h = f.change_base(H)
 print("h", h.view(3))
-print("h const", h.getConst())

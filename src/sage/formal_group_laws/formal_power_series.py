@@ -44,7 +44,7 @@ class FPS:
 
     #Overide the repr function
     def __repr__(self):
-        return "Formal Power Series in " + str(self.n) + " variables over " + repr(self.ring)
+        return "Formal Power Series with variables " + str(self.var)
 
     def __add__(self, ps): # addition operator
         if self.ring != ps.ring:
@@ -149,7 +149,7 @@ class FPS:
         if len(seriesList) != self.n:
             raise ValueError("Improper number of arguments")
         if len(positions) != sumdim:
-            raise ValueError("Improper number of positions given")
+            raise ValueError("Improper number of positions given (expected {n}".format(n=sumdim))
         for ps in seriesList:
             if self.ring != ps.ring:
                 raise ValueError("Different Rings")
@@ -191,6 +191,13 @@ class FPS:
         else:
             return FPS(self.ring, self.n, None, None, self.var, None, [self,ps], ["fast_o", 0])
 
+    #Integrate with respect to a variable
+    #i is the position of that variable in a list
+    def integrate(self, i):
+        return FPS(self.ring, self.n, None, None, self.var, None, [self], ["igt", i])
+        #return self
+
+
 
      # this function is deprecated since it is the same as .view(0)
 #    #Return constant of the formal power series
@@ -203,13 +210,18 @@ class FPS:
     def ring_size(self, prec, derivative_counter):
         #Is a leaf in this case
         if self.children == None:
+            #This is the case when someone has integrated a lot but is not asking for much precision
+            if prec + derivative_counter < 0:
+                return 0
             return self.b_func(prec + derivative_counter)
         #Is an operation
         else:
-            #derivative_counter keeps track of how many derivatives been taken
+            #derivative_counter keeps track of how many derivatives/integrations have been taken
             new_counter = derivative_counter
             if self.operation[0] == "d/dx":
                 new_counter += 1
+            if self.operation[0] == "igt":
+                new_counter -= 1
             #Check children and take max of all of them
             t = 0
             for child in self.children:
@@ -371,6 +383,7 @@ class FPS:
                             element = self.operation[1].codomain.homs(i)(element)
                         t = t + term*element
                     return t.add_bigoh(prec +1)
+
             elif self.operation[0] == "inc":
                 if(self.children[0].n == 1):
                     poly = self.children[0].view_helper(prec, target_ring)
@@ -415,6 +428,15 @@ class FPS:
                 for i in range(1, len(self.children)):
                     viewList.append(self.children[i].view_helper(prec - val + 1, target_ring))
                 return (outside_poly(*viewList)).add_bigoh(prec + 1)
+            elif self.operation[0] == "igt":
+                ps = self.children[0].view_helper(prec - 1, target_ring)
+                if ps == 0:
+                    return ps
+                else:
+                    A = ps.parent()
+                    poly = ps.polynomial()
+                    integrand = poly.integral(poly.parent().gens()[self.operation[1]])
+                    return A(integrand).add_bigoh(prec+1)
 
     def clear_memoizatio(self):
         self.memoized_degree = None
@@ -503,6 +525,8 @@ class UFGL(FPS):
             return ans
         ring = Rational_Lazard
         logarithm = FPS(ring, 1, log_coeffs)
+        print("log: ")
+        print(logarithm.view(12))
         log1 = logarithm.include([0], 2)
         log2 = logarithm.include([1], 2)
         add = log1 + log2
