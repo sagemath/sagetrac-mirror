@@ -835,7 +835,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         D = self.kash().DifferentDivisor()
         support = D.Support()
         data = {FunctionFieldPlace_kash(self, place) : D.Valuation(place).sage() for place in support}
-        return FunctionFieldDivisor(self, data)
+        return FunctionFieldDivisor(self.divisor_group(), data)
 
     def completion(self, place, name=None, prec=None, uvar=None):
         """
