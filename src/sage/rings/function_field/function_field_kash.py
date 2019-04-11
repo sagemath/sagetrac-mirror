@@ -1237,7 +1237,7 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         if prec is None:
             prec = self._precision
 
-        t = f._field.base_field().gen()       # all differentials construction w.r.t this differential
+        t = self.domain().base_field().gen()  # all differentials construction w.r.t this differential
         vt = t.valuation(self._place)         # t's valuation
         vf = f._f.valuation(self._place)      # f's valuation
         st = self._expand(t, max(prec-vf,vt)+1) # t's series
