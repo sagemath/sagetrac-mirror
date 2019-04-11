@@ -5,6 +5,9 @@ AUTHORS:
 
 - David Kohel (2006): initial version
 
+- Sorina Ionica, Elisa Lorenzo Garcia, Anna Somoza (2017-01-11): Added
+  functionality for genus 3.
+
 - Anna Somoza (2019-04): dynamic class creation
 
 """
@@ -24,6 +27,7 @@ from .hyperelliptic_finite_field import HyperellipticCurve_finite_field
 from .hyperelliptic_rational_field import HyperellipticCurve_rational_field
 from .hyperelliptic_padic_field import HyperellipticCurve_padic_field
 from .hyperelliptic_g2 import HyperellipticCurve_g2
+from .hyperelliptic_g3 import HyperellipticCurve_g3
 
 from sage.rings.padics.all import is_pAdicField
 from sage.rings.rational_field import is_RationalField
@@ -228,7 +232,7 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     supercls = []
     cls_name = []
     
-    genus_class = {2:HyperellipticCurve_g2}
+    genus_class = {2:HyperellipticCurve_g2, 3:HyperellipticCurve_g3}
     if g in genus_class.keys():
         supercls.append(genus_class[g])
     cls_name.append("g"+str(g))

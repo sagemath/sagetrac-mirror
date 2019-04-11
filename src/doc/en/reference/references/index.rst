@@ -3491,6 +3491,9 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
+.. [Sh1967] \T. Shioda. *On the graded ring of invariants of binary octavics* in
+            American J. of Math., 89(4):1022-1046, 1967.
+
 .. [SHET2018] \O. Seker, P. Heggernes, T. Ekim, and Z. Caner Taskin.
               *Generation of random chordal graphs using subtrees of a tree*,
               :arxiv:`1810.13326v1`.

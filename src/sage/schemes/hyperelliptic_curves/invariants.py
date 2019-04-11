@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Compute invariants of quintics and sextics via 'Ueberschiebung'
+Compute invariants of genus 2 and 3 hyperelliptic curves via 'Ueberschiebung'.
 
 .. TODO::
 
@@ -8,10 +8,11 @@ Compute invariants of quintics and sextics via 'Ueberschiebung'
 
     * Cardona-Quer and additional invariants for classifying automorphism groups.
 
-AUTHOR:
+AUTHORS:
 
-- Nick Alexander
-
+- Nick Alexander: Initial version
+- Sorina Ionica, Elisa Lorenzo Garcia, Anna Somoza (2017-01-11): Added
+  functionality for genus 3.
 """
 from sage.rings.all import ZZ
 from sage.rings.all import PolynomialRing
@@ -369,6 +370,12 @@ def absolute_igusa_invariants_kohel(f):
 
     `f` may be homogeneous in two variables or inhomogeneous in one.
 
+    REFERENCES:
+
+    .. [K] Kohel, David.  ECHIDNA: Databases for Elliptic Curves
+       and Higher Dimensional Analogues.
+       Available at http://echidna.maths.usyd.edu.au/~kohel/dbs/
+
     EXAMPLES::
 
         sage: R.<x> = QQ[]
@@ -397,3 +404,47 @@ def absolute_igusa_invariants_kohel(f):
     i2 = I2**3*I4/I10
     i3 = I2**2*I6/I10
     return (i1, i2, i3)
+
+def shioda_invariants(f):
+    r"""
+    Given a octavic form `f`, return the 9 Shioda invariants, [Sh1967]_.
+
+    `f` may be homogeneous in two variables or inhomogeneous in one.
+
+    EXAMPLES::
+
+        sage: R.<x> = QQ[]
+        sage: f = x^7 - x^4 + 3
+        sage: from sage.schemes.hyperelliptic_curves.invariants import shioda_invariants
+        sage: shioda_invariants(f)
+        [1/70,  -9/34300,  1/57624,  -1/672280,  1/33882912,  333534899/6324810240,
+        2334744453/1033052339200,  333534907/1859494210560,  778248143/101239129241600]
+        sage: R.<x,y> = QQ[]
+        sage: shioda_invariants(x^8 + 3*x^2*y^6 + 2*x*y^7 + y^8)
+        [2,  81/392,  2/3,  27/196,  -2/9,  -47/1568,  -174401/4609920,  17/1344,
+        703679/55319040]
+    """
+    F = f
+    if f.parent().ngens() == 1:
+        f = PolynomialRing(f.parent().base_ring(), 1, f.parent().variable_name())(f)
+        x1, x2 = f.homogenize().parent().gens()
+        F = sum([ f[i]*x1**i*x2**(8-i) for i in range(9)])
+    H = Ueberschiebung(F,F,2)
+    g = Ueberschiebung(F,F,4)
+    k = Ueberschiebung(F,F,6)
+    h = Ueberschiebung(k,k,2)
+    m = Ueberschiebung(F,k,4)
+    n = Ueberschiebung(F,h,4)
+    p = Ueberschiebung(g,k,4)
+    q = Ueberschiebung(g,h,4)
+    J2 = Ueberschiebung(F,F,8)
+    J3 = Ueberschiebung(F,g,8)
+    J4 = Ueberschiebung(k,k,4)
+    J5 = Ueberschiebung(m,k,4)
+    J6 = Ueberschiebung(k,h,4)
+    J7 = Ueberschiebung(m,h,4)
+    J8 = Ueberschiebung(p,h,4)
+    J9 = Ueberschiebung(n,h,4)
+    J10 = Ueberschiebung(q,h,4)
+    JI = [J2,J3,J4,J5,J6,J7,J8,J9,J10]
+    return [j.constant_coefficient() for j in JI]
