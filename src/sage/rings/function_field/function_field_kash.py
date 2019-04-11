@@ -877,6 +877,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
             2*I*s + 2*I*s^3 + 2*I*s^5 + 2*I*s^7 + 2*I*s^9 + O(s^10)
 
             sage: I = sqrt(QQbar(-1))
+            sage: QQbar.options.display_format = 'radical'
             sage: m2 = F.completion(p, uvar=(x-I))
             Traceback (most recent call last):
             ...
