@@ -17,64 +17,64 @@ objects if the kash_constant_field has changed.
 
 EXAMPLES::
 
-    sage: F.<x> = FunctionField(QQ, implementation='kash')
-    sage: R.<Y> = F[]
-    sage: L.<y> = F.extension(Y^2 - x^8 - 1)
-    sage: O = L.maximal_order()
-    sage: I = O.ideal(x, y-1)
-    sage: P = I.place()
-    sage: D = P.divisor()
-    sage: D.basis_function_space()
+    sage: F.<x> = FunctionField(QQ, implementation='kash')    # optional - kash
+    sage: R.<Y> = F[]                                         # optional - kash
+    sage: L.<y> = F.extension(Y^2 - x^8 - 1)                  # optional - kash
+    sage: O = L.maximal_order()                               # optional - kash
+    sage: I = O.ideal(x, y-1)                                 # optional - kash
+    sage: P = I.place()                                       # optional - kash
+    sage: D = P.divisor()                                     # optional - kash
+    sage: D.basis_function_space()                            # optional - kash
     [1]
-    sage: (2*D).basis_function_space()
+    sage: (2*D).basis_function_space()                        # optional - kash
     [1]
-    sage: (3*D).basis_function_space()
+    sage: (3*D).basis_function_space()                        # optional - kash
     [1]
-    sage: (4*D).basis_function_space()
+    sage: (4*D).basis_function_space()                        # optional - kash
     [1, 1/x^4*y + 1/x^4]
 
 
-    sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K)
-    sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-    sage: O = F.maximal_order()
-    sage: I = O.ideal(y)
-    sage: I.divisor()
+    sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K) # optional - kash
+    sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)            # optional - kash
+    sage: O = F.maximal_order()                               # optional - kash
+    sage: I = O.ideal(y)                                      # optional - kash
+    sage: I.divisor()                                         # optional - kash
     2*Place (x, (1/(x^3 + x^2 + x))*y^2)
      + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
 
-    sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-    sage: L.<y> = K.extension(Y^2+Y+x+1/x)
-    sage: O = L.maximal_order()
-    sage: I = O.ideal(y)
-    sage: I.divisor()
+    sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+    sage: L.<y> = K.extension(Y^2+Y+x+1/x)                    # optional - kash
+    sage: O = L.maximal_order()                               # optional - kash
+    sage: I = O.ideal(y)                                      # optional - kash
+    sage: I.divisor()                                         # optional - kash
     - Place (x, x*y)
      + Place (x^2 + 1, x*y)
 
-    sage: R.<x> = FunctionField(QQbar, implementation='kash')
-    sage: L.<y> = R[]
-    sage: F.<y> = R.extension(y^2 - (x^2+1))
-    sage: D = (x/y).divisor()
-    sage: D
+    sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+    sage: L.<y> = R[]                                         # optional - kash
+    sage: F.<y> = R.extension(y^2 - (x^2+1))                  # optional - kash
+    sage: D = (x/y).divisor()                                 # optional - kash
+    sage: D                                                   # optional - kash
     - Place (x - I, y)
      + Place (x, y + x - 1)
      + Place (x, y + x + 1)
      - Place (x + I, y)
-    sage: D2 = (x/y*x.differential()).divisor()
-    sage: pl1 = D.support()[0]
-    sage: m = F.completion(pl1)
-    sage: m(x/y)
+    sage: D2 = (x/y*x.differential()).divisor()               # optional - kash
+    sage: pl1 = D.support()[0]                                # optional - kash
+    sage: m = F.completion(pl1)                               # optional - kash
+    sage: m(x/y)                                              # optional - kash
     1/2*s^-1 + 1/2*s + O(s^20)
-    sage: m(x/y*x.differential())
+    sage: m(x/y*x.differential())                             # optional - kash
     [2*I + 6*I*s^2 + 10*I*s^4 + 14*I*s^6 + 18*I*s^8 + 22*I*s^10 + 26*I*s^12 + 30*I*s^14 + 34*I*s^16 + 38*I*s^18 + O(s^20)] ds
-    sage: pl2 = D.support()[1]
-    sage: m2 = F.completion(pl2)
-    sage: m2(x)
+    sage: pl2 = D.support()[1]                                # optional - kash
+    sage: m2 = F.completion(pl2)                              # optional - kash
+    sage: m2(x)                                               # optional - kash
     s + 1/4*s^3 + 1/16*s^5 + 1/64*s^7 + 1/256*s^9 + 1/1024*s^11 + 1/4096*s^13 + 1/16384*s^15 + 1/65536*s^17 + 1/262144*s^19 + O(s^20)
-    sage: m2(x/y)
+    sage: m2(x/y)                                             # optional - kash
     s - 1/4*s^3 + 1/16*s^5 - 1/64*s^7 + 1/256*s^9 - 1/1024*s^11 + 1/4096*s^13 - 1/16384*s^15 + 1/65536*s^17 - 1/262144*s^19 + O(s^20)
-    sage: m2(x.differential())
+    sage: m2(x.differential())                                # optional - kash
     [1 + 3/4*s^2 + 5/16*s^4 + 7/64*s^6 + 9/256*s^8 + 11/1024*s^10 + 13/4096*s^12 + 15/16384*s^14 + 17/65536*s^16 + 19/262144*s^18 + O(s^20)] ds
-    sage: m2(x * x.differential())
+    sage: m2(x * x.differential())                            # optional - kash
     [s + s^3 + 9/16*s^5 + 1/4*s^7 + 25/256*s^9 + 9/256*s^11 + 49/4096*s^13 + 1/256*s^15 + 81/65536*s^17 + 25/65536*s^19 + O(s^20)] ds
 """
 
@@ -120,31 +120,31 @@ class RationalFunctionField_kash(RationalFunctionField):
 
     EXAMPLES::
 
-        sage: K.<t> = FunctionField(QQ, implementation='kash'); K
+        sage: K.<t> = FunctionField(QQ, implementation='kash'); K # optional - kash
         Rational function field in t over Rational Field
-        sage: K.gen()
+        sage: K.gen()                                         # optional - kash
         t
-        sage: 1/t + t^3 + 5
+        sage: 1/t + t^3 + 5                                   # optional - kash
         (t^4 + 5*t + 1)/t
 
     There are various ways to get at the underlying fields and rings
     associated to a rational function field::
 
-        sage: K.<t> = FunctionField(QQ, implementation='kash')
-        sage: K.base_field()
+        sage: K.<t> = FunctionField(QQ, implementation='kash') # optional - kash
+        sage: K.base_field()                                  # optional - kash
         Rational function field in t over Rational Field
-        sage: K.field()
+        sage: K.field()                                       # optional - kash
         Fraction Field of Univariate Polynomial Ring in t over Rational Field
-        sage: K.constant_field()
+        sage: K.constant_field()                              # optional - kash
         Rational Field
-        sage: K.maximal_order()
+        sage: K.maximal_order()                               # optional - kash
         Maximal order of Rational function field in t over Rational Field
 
     We define a morphism::
 
-        sage: K.<t> = FunctionField(QQ, implementation='kash')
-        sage: L = FunctionField(QQ, 'tbar') # give variable name as second input
-        sage: K.hom(L.gen())
+        sage: K.<t> = FunctionField(QQ, implementation='kash') # optional - kash
+        sage: L = FunctionField(QQ, 'tbar')                   # give variable name as second input, optional - kash
+        sage: K.hom(L.gen())                                  # optional - kash
         Function Field morphism:
           From: Rational function field in t over Rational Field
           To:   Rational function field in tbar over Rational Field
@@ -152,27 +152,27 @@ class RationalFunctionField_kash(RationalFunctionField):
 
     Here's a calculation over a number field::
 
-        sage: R.<x> = FunctionField(QQ, implementation='kash')
-        sage: L.<y> = R[]
-        sage: F.<y> = R.extension(y^2 - (x^2+1))
-        sage: (y/x).divisor()
+        sage: R.<x> = FunctionField(QQ, implementation='kash') # optional - kash
+        sage: L.<y> = R[]                                     # optional - kash
+        sage: F.<y> = R.extension(y^2 - (x^2+1))              # optional - kash
+        sage: (y/x).divisor()                                 # optional - kash
         - Place (x, y + x - 1)
          - Place (x, y + x + 1)
          + Place (x^2 + 1, y)
 
-        sage: A.<z> = QQ[]
-        sage: NF.<i> = NumberField(z^2+1)
-        sage: R.<x> = FunctionField(NF, implementation='kash')
-        sage: L.<y> = R[]
-        sage: F.<y> = R.extension(y^2 - (x^2+1))
+        sage: A.<z> = QQ[]                                    # optional - kash
+        sage: NF.<i> = NumberField(z^2+1)                     # optional - kash
+        sage: R.<x> = FunctionField(NF, implementation='kash') # optional - kash
+        sage: L.<y> = R[]                                     # optional - kash
+        sage: F.<y> = R.extension(y^2 - (x^2+1))              # optional - kash
 
-        sage: (x/y*x.differential()).divisor()
+        sage: (x/y*x.differential()).divisor()                # optional - kash
         -2*Place (1/x, 1/x*y + (-x + 1)/x)
          - 2*Place (1/x, 1/x*y + (x + 1)/x)
          + Place (x, y + x - 1)
          + Place (x, y + x + 1)
 
-        sage: (x/y).divisor()
+        sage: (x/y).divisor()                                 # optional - kash
         - Place (x - i, y)
          + Place (x, y + x - 1)
          + Place (x, y + x + 1)
@@ -180,10 +180,10 @@ class RationalFunctionField_kash(RationalFunctionField):
 
     We try the same calculation over QQbar::
 
-        sage: R.<x> = FunctionField(QQbar, implementation='kash')
-        sage: L.<y> = R[]
-        sage: F.<y> = R.extension(y^2 - (x^2+1))
-        sage: (y/x).divisor()
+        sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+        sage: L.<y> = R[]                                     # optional - kash
+        sage: F.<y> = R.extension(y^2 - (x^2+1))              # optional - kash
+        sage: (y/x).divisor()                                 # optional - kash
         Place (x - I, y)
          - Place (x, y + x - 1)
          - Place (x, y + x + 1)
@@ -204,16 +204,16 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         EXAMPLES::
 
-            sage: K.<t> = FunctionField(QQ, implementation='kash'); K
+            sage: K.<t> = FunctionField(QQ, implementation='kash'); K # optional - kash
             Rational function field in t over Rational Field
-            sage: K.category()
+            sage: K.category()                                # optional - kash
             Category of function fields
-            sage: FunctionField(QQ[I], 'alpha', implementation='kash')   # not implemented
+            sage: FunctionField(QQ[I], 'alpha', implementation='kash')   # not implemented, optional - kash
             Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1
 
         Must be over a field::
 
-            sage: FunctionField(ZZ, 't')
+            sage: FunctionField(ZZ, 't')                      # optional - kash
             Traceback (most recent call last):
             ...
             TypeError: constant_field must be a field
@@ -271,14 +271,14 @@ class RationalFunctionField_kash(RationalFunctionField):
         basis_function_space() creates an ideal(1), which broke this code before it
         checked if g was a FunctionFieldElement before calling g.parent()
 
-            sage: F.<x> = FunctionField(QQbar, implementation='kash')
-            sage: R.<Y> = F[]
-            sage: L.<y> = F.extension(Y^2 - x^8 - 1)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(x, y-1)
-            sage: P = I.place()
-            sage: D = P.divisor()
-            sage: D.basis_function_space()
+            sage: F.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: R.<Y> = F[]                                 # optional - kash
+            sage: L.<y> = F.extension(Y^2 - x^8 - 1)          # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x, y-1)                         # optional - kash
+            sage: P = I.place()                               # optional - kash
+            sage: D = P.divisor()                             # optional - kash
+            sage: D.basis_function_space()                    # optional - kash
             [1]
 
         """
@@ -388,19 +388,19 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[]
-            sage: K.extension(y^5 - x^3 - 3*x + x*y)
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[] # optional - kash
+            sage: K.extension(y^5 - x^3 - 3*x + x*y)          # optional - kash
             Function field in y defined by y^5 + x*y - x^3 - 3*x
 
         A nonintegral defining polynomial::
 
-            sage: K.<t> = FunctionField(QQ, implementation='kash'); R.<y> = K[]
-            sage: K.extension(y^3 + (1/t)*y + t^3/(t+1))
+            sage: K.<t> = FunctionField(QQ, implementation='kash'); R.<y> = K[] # optional - kash
+            sage: K.extension(y^3 + (1/t)*y + t^3/(t+1))      # optional - kash
             Function field in y defined by y^3 + 1/t*y + t^3/(t + 1)
 
         The defining polynomial need not be monic or integral::
 
-            sage: K.extension(t*y^3 + (1/t)*y + t^3/(t+1))
+            sage: K.extension(t*y^3 + (1/t)*y + t^3/(t+1))    # optional - kash
             Function field in y defined by t*y^3 + 1/t*y + t^3/(t + 1)
         """
         from . import constructor
@@ -413,8 +413,8 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         EXAMPLES::
 
-            sage: K.<t> = FunctionField(QQ, implementation='kash')
-            sage: K.place_set()
+            sage: K.<t> = FunctionField(QQ, implementation='kash') # optional - kash
+            sage: K.place_set()                               # optional - kash
             Set of places of Rational function field in t over Rational Field
         """
         from .place import PlaceSet
@@ -427,13 +427,13 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(5), implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: L.space_of_differentials()
+            sage: K.<x> = FunctionField(GF(5), implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2)) # optional - kash
+            sage: L.space_of_differentials()                  # optional - kash
             Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
 
-            sage: K.<t> = FunctionField(QQ, implementation='kash')
-            sage: K.space_of_differentials()
+            sage: K.<t> = FunctionField(QQ, implementation='kash') # optional - kash
+            sage: K.space_of_differentials()                  # optional - kash
             Space of differentials of Rational function field in t over Rational Field
         """
         return DifferentialsSpace_kash(self)
@@ -509,17 +509,17 @@ class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 - (x^2+1))
-            sage: pl = F.maximal_order().ideal(x-QQbar(sqrt(-1)),y).place()
-            sage: pl
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 - (x^2+1))          # optional - kash
+            sage: pl = F.maximal_order().ideal(x-QQbar(sqrt(-1)),y).place() # optional - kash
+            sage: pl                                          # optional - kash
             Place (x - I, y)
-            sage: x.valuation(pl)
+            sage: x.valuation(pl)                             # optional - kash
             0
-            sage: y.valuation(pl)
+            sage: y.valuation(pl)                             # optional - kash
             1
-            sage: (x-QQbar(sqrt(-1))).valuation(pl)
+            sage: (x-QQbar(sqrt(-1))).valuation(pl)           # optional - kash
             2
         """
         prime = place.prime_ideal()
@@ -562,38 +562,38 @@ class FunctionField_polymod_kash(FunctionField_polymod):
     We make a function field defined by a degree 5 polynomial over the
     rational function field over the rational numbers::
 
-        sage: K.<x> = FunctionField(QQ, implementation='kash')
-        sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x)); L
+        sage: K.<x> = FunctionField(QQ, implementation='kash') # optional - kash
+        sage: R.<y> = K[]                                     # optional - kash
+        sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x)); L # optional - kash
         Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
 
     We next make a function field over the above nontrivial function
     field L::
 
-        sage: S.<z> = L[]
-        sage: M.<z> = L.extension(z^2 + y*z + y); M     # not tested
+        sage: S.<z> = L[]                                     # optional - kash
+        sage: M.<z> = L.extension(z^2 + y*z + y); M           # not tested, optional - kash
         Function field in z defined by z^2 + y*z + y
-        sage: 1/z                                       # not tested
+        sage: 1/z                                             # not tested, optional - kash
         ((x/(-x^4 - 1))*y^4 - 2*x^2/(-x^4 - 1))*z - 1
-        sage: z * (1/z)                                 # not tested
+        sage: z * (1/z)                                       # not tested, optional - kash
         1
 
     We drill down the tower of function fields::
 
-        sage: M.base_field()                            # not tested
+        sage: M.base_field()                                  # not tested, optional - kash
         Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
-        sage: M.base_field().base_field()               # not tested
+        sage: M.base_field().base_field()                     # not tested, optional - kash
         Rational function field in x over Rational Field
-        sage: M.base_field().base_field().constant_field() # not tested
+        sage: M.base_field().base_field().constant_field()    # not tested, optional - kash
         Rational Field
-        sage: M.constant_base_field()                   # not tested
+        sage: M.constant_base_field()                         # not tested, optional - kash
         Rational Field
 
     The polynomial must be irreducible::
 
-        sage: K.<x>=FunctionField(QQ, implementation='kash')
-        sage: R.<y> = K[]
-        sage: L.<y>=K.extension(x^2-y^2)
+        sage: K.<x>=FunctionField(QQ, implementation='kash')  # optional - kash
+        sage: R.<y> = K[]                                     # optional - kash
+        sage: L.<y>=K.extension(x^2-y^2)                      # optional - kash
         Traceback (most recent call last):
         ...
         ValueError: The polynomial must be irreducible
@@ -617,32 +617,32 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         We create an extension of a function field::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[]
-            sage: L = K.extension(y^5 - x^3 - 3*x + x*y); L
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[] # optional - kash
+            sage: L = K.extension(y^5 - x^3 - 3*x + x*y); L   # optional - kash
             Function field in y defined by y^5 + x*y - x^3 - 3*x
 
         Note the type::
 
-            sage: type(L)
+            sage: type(L)                                     # optional - kash
             <class 'sage.rings.function_field.function_field_kash.FunctionField_polymod_kash_with_category'>
 
         We can set the variable name, which doesn't have to be y::
 
-            sage: L.<w> = K.extension(y^5 - x^3 - 3*x + x*y); L
+            sage: L.<w> = K.extension(y^5 - x^3 - 3*x + x*y); L # optional - kash
             Function field in w defined by w^5 + x*w - x^3 - 3*x
 
         TESTS:
 
         Test that :trac:`17033` is fixed::
 
-            sage: K.<t> = FunctionField(QQ)
-            sage: R.<x> = QQ[]
-            sage: M.<z> = K.extension(x^7-x-t)  # not tested
-            sage: M(x)                          # not tested
+            sage: K.<t> = FunctionField(QQ)                   # optional - kash
+            sage: R.<x> = QQ[]                                # optional - kash
+            sage: M.<z> = K.extension(x^7-x-t)                # not tested, optional - kash
+            sage: M(x)                                        # not tested, optional - kash
             z
-            sage: M('z')                        # not tested
+            sage: M('z')                                      # not tested, optional - kash
             z
-            sage: M('x')                        # not tested
+            sage: M('x')                                      # not tested, optional - kash
             Traceback (most recent call last):
             ...
             TypeError: unable to evaluate 'x' in Fraction Field of Univariate
@@ -734,9 +734,9 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: L.place_set()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: L.place_set()                               # optional - kash
             Set of places of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
         from .place import PlaceSet
@@ -749,13 +749,13 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(5), implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: L.space_of_differentials()
+            sage: K.<x> = FunctionField(GF(5), implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2)) # optional - kash
+            sage: L.space_of_differentials()                  # optional - kash
             Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
 
-            sage: K.<t> = FunctionField(QQ, implementation='kash')
-            sage: K.space_of_differentials()
+            sage: K.<t> = FunctionField(QQ, implementation='kash') # optional - kash
+            sage: K.space_of_differentials()                  # optional - kash
             Space of differentials of Rational function field in t over Rational Field
         """
         return DifferentialsSpace_kash(self)
@@ -767,9 +767,9 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: L.divisor_group()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2)) # optional - kash
+            sage: L.divisor_group()                           # optional - kash
             Divisor group of Function field in y defined by y^3 + (-x^3 + 1)/(x^3 - 2)
         """
         from .divisor import DivisorGroup
@@ -782,18 +782,18 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash');
-            sage: R.<t> = PolynomialRing(K);
-            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18);
-            sage: O = F.maximal_order()
-            sage: O.basis()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); # optional - kash
+            sage: R.<t> = PolynomialRing(K);                  # optional - kash
+            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18); # optional - kash
+            sage: O = F.maximal_order()                       # optional - kash
+            sage: O.basis()                                   # optional - kash
             (1, 1/x^4*y, 1/x^9*y^2, 1/x^13*y^3)
 
-            sage: K.<x> = FunctionField(GF(2), implementation='kash');
-            sage: R.<t> = PolynomialRing(K);
-            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18);
-            sage: O = F.maximal_order()
-            sage: O.basis()
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); # optional - kash
+            sage: R.<t> = PolynomialRing(K);                  # optional - kash
+            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18); # optional - kash
+            sage: O = F.maximal_order()                       # optional - kash
+            sage: O.basis()                                   # optional - kash
             (1, 1/x^4*y, 1/x^11*y^2 + 1/x^2, 1/x^15*y^3 + 1/x^6*y)
 
         The basis of the maximal order *always* starts with 1. This is assumed
@@ -808,14 +808,14 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: F.maximal_order_infinite()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[] # optional - kash
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2) # optional - kash
+            sage: F.maximal_order_infinite()                  # optional - kash
             Maximal infinite order of Function field in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: L.maximal_order_infinite()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: L.maximal_order_infinite()                  # optional - kash
             Maximal infinite order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
         return FunctionFieldMaximalOrderInfinite_kash(self)
@@ -826,9 +826,9 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2), implementation='kash'); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: F.different()
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); R.<t> = PolynomialRing(K) # optional - kash
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)    # optional - kash
+            sage: F.different()                               # optional - kash
             2*Place (x, (1/(x^3 + x^2 + x))*y^2)
              + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
         """
@@ -861,35 +861,35 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 - (x^2+1))
-            sage: D = (y/x).divisor()
-            sage: p = D.support()[0]
-            sage: m = F.completion(p)
-            sage: m
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 - (x^2+1))          # optional - kash
+            sage: D = (y/x).divisor()                         # optional - kash
+            sage: p = D.support()[0]                          # optional - kash
+            sage: m = F.completion(p)                         # optional - kash
+            sage: m                                           # optional - kash
             Completion map:
               From: Function field in y defined by y^2 - x^2 - 1
               To:   Laurent Series Ring in s over Algebraic Field
-            sage: m(x, 10)
+            sage: m(x, 10)                                    # optional - kash
             I + 2*I*s^2 + 2*I*s^4 + 2*I*s^6 + 2*I*s^8 + O(s^10)
-            sage: m(y, 10)
+            sage: m(y, 10)                                    # optional - kash
             2*I*s + 2*I*s^3 + 2*I*s^5 + 2*I*s^7 + 2*I*s^9 + O(s^10)
 
-            sage: I = sqrt(QQbar(-1))
-            sage: QQbar.options.display_format = 'radical'
-            sage: m2 = F.completion(p, uvar=(x-I))
+            sage: I = sqrt(QQbar(-1))                         # optional - kash
+            sage: QQbar.options.display_format = 'radical'    # optional - kash
+            sage: m2 = F.completion(p, uvar=(x-I))            # optional - kash
             Traceback (most recent call last):
             ...
             ValueError: x - I is not a uniformizing variable at Place (x - I, y)
-            sage: m2 = F.completion(p, uvar=SR(x-I)^(1/3))
+            sage: m2 = F.completion(p, uvar=SR(x-I)^(1/3))    # optional - kash
             Traceback (most recent call last):
             ...
             ValueError: (x - I)^(1/3) is not a uniformizing variable at Place (x - I, y)
-            sage: m2 = F.completion(p, uvar=sqrt(x-I))
-            sage: m2(x, 10)
+            sage: m2 = F.completion(p, uvar=sqrt(x-I))        # optional - kash
+            sage: m2(x, 10)                                   # optional - kash
             I + s^2
-            sage: m2(y, 10)
+            sage: m2(y, 10)                                   # optional - kash
             (I + 1)*s + (-1/4*I + 1/4)*s^3 + (1/32*I + 1/32)*s^5 + (1/128*I - 1/128)*s^7 + (-5/2048*I - 5/2048)*s^9 + O(s^10)
 
         .. TODO:
@@ -908,11 +908,11 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: F.<a>=GF(2)
-            sage: K.<x>=FunctionField(F)
-            sage: R.<t>=PolynomialRing(K)
-            sage: L.<y>=K.extension(t^4+t-x^5)
-            sage: L.places_infinite(1)
+            sage: F.<a>=GF(2)                                 # optional - kash
+            sage: K.<x>=FunctionField(F)                      # optional - kash
+            sage: R.<t>=PolynomialRing(K)                     # optional - kash
+            sage: L.<y>=K.extension(t^4+t-x^5)                # optional - kash
+            sage: L.places_infinite(1)                        # optional - kash
             [Place (1/x, 1/x^4*y^3)]
         """
         return [place for place in self._places_infinite(degree)]
@@ -927,11 +927,11 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         EXAMPLES::
 
-            sage: F.<a>=GF(2)
-            sage: K.<x>=FunctionField(F)
-            sage: R.<t>=PolynomialRing(K)
-            sage: L.<y>=K.extension(t^4+t-x^5)
-            sage: L._places_infinite(1)
+            sage: F.<a>=GF(2)                                 # optional - kash
+            sage: K.<x>=FunctionField(F)                      # optional - kash
+            sage: R.<t>=PolynomialRing(K)                     # optional - kash
+            sage: L.<y>=K.extension(t^4+t-x^5)                # optional - kash
+            sage: L._places_infinite(1)                       # optional - kash
             <generator object ...>
         """
         Oinf = self.maximal_order_infinite()
@@ -993,36 +993,36 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
     EXAMPLES::
 
-        sage: R.<x> = FunctionField(QQbar, implementation='kash')
-        sage: L.<y> = R[]
-        sage: F.<y> = R.extension(y^2 - (x^2+1))
-        sage: D = (y/x).divisor()
-        sage: p = D.support()[0]
-        sage: m = F.completion(p)
-        sage: m
+        sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+        sage: L.<y> = R[]                                     # optional - kash
+        sage: F.<y> = R.extension(y^2 - (x^2+1))              # optional - kash
+        sage: D = (y/x).divisor()                             # optional - kash
+        sage: p = D.support()[0]                              # optional - kash
+        sage: m = F.completion(p)                             # optional - kash
+        sage: m                                               # optional - kash
         Completion map:
           From: Function field in y defined by y^2 - x^2 - 1
           To:   Laurent Series Ring in s over Algebraic Field
-        sage: m(x)
+        sage: m(x)                                            # optional - kash
         I + 2*I*s^2 + 2*I*s^4 + 2*I*s^6 + 2*I*s^8 + 2*I*s^10 + 2*I*s^12 + 2*I*s^14 + 2*I*s^16 + 2*I*s^18 + O(s^20)
-        sage: m(y)
+        sage: m(y)                                            # optional - kash
         2*I*s + 2*I*s^3 + 2*I*s^5 + 2*I*s^7 + 2*I*s^9 + 2*I*s^11 + 2*I*s^13 + 2*I*s^15 + 2*I*s^17 + 2*I*s^19 + O(s^20)
-        sage: m(x*y) == m(x) * m(y)
+        sage: m(x*y) == m(x) * m(y)                           # optional - kash
         True
-        sage: m(x+y) == m(x) + m(y)
+        sage: m(x+y) == m(x) + m(y)                           # optional - kash
         True
-        sage: m(y)^2 == m(x)^2 + 1
+        sage: m(y)^2 == m(x)^2 + 1                            # optional - kash
         True
 
     The variable name of the series can be supplied, as can the default precision.
 
-        sage: p2 = D.support()[1]
-        sage: p2
+        sage: p2 = D.support()[1]                             # optional - kash
+        sage: p2                                              # optional - kash
         Place (x, y + x - 1)
-        sage: m2 = F.completion(p2, 't', prec=10)
-        sage: m2(x)
+        sage: m2 = F.completion(p2, 't', prec=10)             # optional - kash
+        sage: m2(x)                                           # optional - kash
         t + 1/4*t^3 + 1/16*t^5 + 1/64*t^7 + 1/256*t^9 + O(t^10)
-        sage: m2(y)
+        sage: m2(y)                                           # optional - kash
         1 + 1/2*t^2 + 1/8*t^4 + 1/32*t^6 + 1/128*t^8 + O(t^10)
     """
     def __init__(self, field, place, name=None, prec=None, uvar=None):
@@ -1044,13 +1044,13 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 - (x^2+1))
-            sage: D = (y/x).divisor()
-            sage: p = D.support()[0]
-            sage: m = F.completion(p)
-            sage: m
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 - (x^2+1))          # optional - kash
+            sage: D = (y/x).divisor()                         # optional - kash
+            sage: p = D.support()[0]                          # optional - kash
+            sage: m = F.completion(p)                         # optional - kash
+            sage: m                                           # optional - kash
             Completion map:
               From: Function field in y defined by y^2 - x^2 - 1
               To:   Laurent Series Ring in s over Algebraic Field
@@ -1096,17 +1096,17 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
-            sage: D = (x*y).divisor()
-            sage: p = D.support()[2]
-            sage: m = F.completion(p, prec=10)
-            sage: m
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)      # optional - kash
+            sage: D = (x*y).divisor()                         # optional - kash
+            sage: p = D.support()[2]                          # optional - kash
+            sage: m = F.completion(p, prec=10)                # optional - kash
+            sage: m                                           # optional - kash
             Completion map:
               From: Function field in y defined by y^2 + y + (x^2 + 1)/x
               To:   Laurent Series Ring in s over Algebraic Field
-            sage: m(x)
+            sage: m(x)                                        # optional - kash
             -s^2 - s^3 - s^4 - s^5 - 2*s^6 - 4*s^7 - 7*s^8 - 11*s^9 + O(s^10)
         """
         return self._expand(f, prec=None)
@@ -1117,13 +1117,13 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
-            sage: D = (x*y).divisor()
-            sage: p = D.support()[2]
-            sage: m = F.completion(p)
-            sage: m(x+y, 10)  # indirect doctest
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)      # optional - kash
+            sage: D = (x*y).divisor()                         # optional - kash
+            sage: p = D.support()[2]                          # optional - kash
+            sage: m = F.completion(p)                         # optional - kash
+            sage: m(x+y, 10)                                  # indirect doctest, optional - kash
             -s^-1 - s^2 - s^3 - s^4 - s^5 - 2*s^6 - 4*s^7 - 7*s^8 - 11*s^9 + O(s^10)
         """
         return self._expand(f, *args, **kwds)
@@ -1151,13 +1151,13 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
-            sage: D = (x*y).divisor()
-            sage: p = D.support()[2]
-            sage: m = F.completion(p)
-            sage: m(x, 10)  # indirect doctest
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)      # optional - kash
+            sage: D = (x*y).divisor()                         # optional - kash
+            sage: p = D.support()[2]                          # optional - kash
+            sage: m = F.completion(p)                         # optional - kash
+            sage: m(x, 10)                                    # indirect doctest, optional - kash
             -s^2 - s^3 - s^4 - s^5 - 2*s^6 - 4*s^7 - 7*s^8 - 11*s^9 + O(s^10)
         """
         if prec is None:
@@ -1208,30 +1208,30 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 - (x^2+1))
-            sage: D = (x/y).divisor()
-            sage: D
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 - (x^2+1))          # optional - kash
+            sage: D = (x/y).divisor()                         # optional - kash
+            sage: D                                           # optional - kash
             - Place (x - I, y)
              + Place (x, y + x - 1)
              + Place (x, y + x + 1)
              - Place (x + I, y)
-            sage: pl = D.support()[0]
-            sage: m = F.completion(pl)
-            sage: m(x.differential())
+            sage: pl = D.support()[0]                         # optional - kash
+            sage: m = F.completion(pl)                        # optional - kash
+            sage: m(x.differential())                         # optional - kash
             [4*I*s + 8*I*s^3 + 12*I*s^5 + 16*I*s^7 + 20*I*s^9 + 24*I*s^11 + 28*I*s^13 + 32*I*s^15 + 36*I*s^17 + 40*I*s^19 + O(s^20)] ds
-            sage: m(x/y)
+            sage: m(x/y)                                      # optional - kash
             1/2*s^-1 + 1/2*s + O(s^20)
-            sage: m(x/y*x.differential())
+            sage: m(x/y*x.differential())                     # optional - kash
             [2*I + 6*I*s^2 + 10*I*s^4 + 14*I*s^6 + 18*I*s^8 + 22*I*s^10 + 26*I*s^12 + 30*I*s^14 + 34*I*s^16 + 38*I*s^18 + O(s^20)] ds
 
-            sage: K.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = K[]
-            sage: F.<y> = K.extension(y^2-x+1)
-            sage: pl = y.divisor().support()[1]
-            sage: m = F.completion(pl, prec=1)
-            sage: m(y*x.differential())
+            sage: K.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = K[]                                 # optional - kash
+            sage: F.<y> = K.extension(y^2-x+1)                # optional - kash
+            sage: pl = y.divisor().support()[1]               # optional - kash
+            sage: m = F.completion(pl, prec=1)                # optional - kash
+            sage: m(y*x.differential())                       # optional - kash
             [O(s^1)] ds
 
         """
@@ -1252,13 +1252,13 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
 
         EXAMPLES::
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash')
-            sage: L.<y> = R[]
-            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
-            sage: D = (x*y).divisor()
-            sage: p = D.support()[2]
-            sage: m = F.completion(p)
-            sage: m.default_precision()
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)      # optional - kash
+            sage: D = (x*y).divisor()                         # optional - kash
+            sage: p = D.support()[2]                          # optional - kash
+            sage: m = F.completion(p)                         # optional - kash
+            sage: m.default_precision()                       # optional - kash
             20
         """
         return self._precision
@@ -1279,9 +1279,9 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
 
         EXAMPLES::
 
-            sage: K.<t> = FunctionField(QQ, implementation='kash'); K
+            sage: K.<t> = FunctionField(QQ, implementation='kash'); K # optional - kash
             Rational function field in t over Rational Field
-            sage: R = K.maximal_order(); R
+            sage: R = K.maximal_order(); R                    # optional - kash
             Maximal order of Rational function field in t over Rational Field
         """
 
@@ -1304,26 +1304,26 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2-x*Y+x^2+1)
-            sage: O = L.maximal_order()
-            sage: y in O
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2-x*Y+x^2+1)          # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: y in O                                      # optional - kash
             True
-            sage: 1/y in O
+            sage: 1/y in O                                    # optional - kash
             False
-            sage: x in O
+            sage: x in O                                      # optional - kash
             True
-            sage: 1/x in O
+            sage: 1/x in O                                    # optional - kash
             False
-            sage: L.<y>=K.extension(Y^2+Y+x+1/x)
-            sage: O = L.maximal_order()
-            sage: 1 in O
+            sage: L.<y>=K.extension(Y^2+Y+x+1/x)              # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: 1 in O                                      # optional - kash
             True
-            sage: y in O
+            sage: y in O                                      # optional - kash
             False
-            sage: x*y in O
+            sage: x*y in O                                    # optional - kash
             True
-            sage: x^2*y in O
+            sage: x^2*y in O                                  # optional - kash
             True
         """
         field = self.function_field()
@@ -1347,10 +1347,10 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[]
-            sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
-            sage: O = L.equation_order()
-            sage: O.polynomial()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[] # optional - kash
+            sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)    # optional - kash
+            sage: O = L.equation_order()                      # optional - kash
+            sage: O.polynomial()                              # optional - kash
             y^4 + x*y + 4*x + 1
         """
         return self._field.polynomial()
@@ -1361,10 +1361,10 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[]
-            sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
-            sage: O = L.equation_order()
-            sage: O.basis()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[] # optional - kash
+            sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)    # optional - kash
+            sage: O = L.equation_order()                      # optional - kash
+            sage: O.basis()                                   # optional - kash
             (1, y, y^2, y^3)
         """
 
@@ -1381,37 +1381,37 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
 
         EXAMPLES::
 
-            sage: K.<y> = FunctionField(QQ, implementation='kash')
-            sage: O = K.maximal_order()
-            sage: O.ideal(y)
+            sage: K.<y> = FunctionField(QQ, implementation='kash') # optional - kash
+            sage: O = K.maximal_order()                       # optional - kash
+            sage: O.ideal(y)                                  # optional - kash
             Ideal (y) of Maximal order of Rational function field in y over Rational Field
-            sage: O.ideal([y,1/y]) == O.ideal(y,1/y) # multiple generators may be given as a list
+            sage: O.ideal([y,1/y]) == O.ideal(y,1/y)          # multiple generators may be given as a list, optional - kash
             True
 
         A fractional ideal of a nontrivial extension::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[]
-            sage: O = K.maximal_order()
-            sage: I = O.ideal(x^2-4)
-            sage: L.<y> = K.extension(y^2 - x^3 - 1)
-            sage: S = L.equation_order()
-            sage: S.ideal(1/y)
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[] # optional - kash
+            sage: O = K.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x^2-4)                          # optional - kash
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)          # optional - kash
+            sage: S = L.equation_order()                      # optional - kash
+            sage: S.ideal(1/y)                                # optional - kash
             Ideal (1, (-1/(x^3 + 1))*y) of Order in Function field in y defined by y^2 - x^3 - 1
-            sage: I2 = S.ideal(x^2-4); I2
+            sage: I2 = S.ideal(x^2-4); I2                     # optional - kash
             Ideal (x^2 - 4, (x^2 - 4)*y) of Order in Function field in y defined by y^2 - x^3 - 1
-            sage: I2 == S.ideal(I)
+            sage: I2 == S.ideal(I)                            # optional - kash
             True
 
-            sage: K.<x> = FunctionField(GF(7), implementation='kash'); R.<y> = K[]
-            sage: O = K.maximal_order()
-            sage: I = O.ideal(x^2-4)
-            sage: L.<y> = K.extension(y^2 - x^3 - 1)
-            sage: S = L.equation_order()
-            sage: S.ideal(1/y)
+            sage: K.<x> = FunctionField(GF(7), implementation='kash'); R.<y> = K[] # optional - kash
+            sage: O = K.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x^2-4)                          # optional - kash
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)          # optional - kash
+            sage: S = L.equation_order()                      # optional - kash
+            sage: S.ideal(1/y)                                # optional - kash
             Ideal (1, (6/(x^3 + 1))*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
-            sage: I2 = S.ideal(x^2-4); I2
+            sage: I2 = S.ideal(x^2-4); I2                     # optional - kash
             Ideal (x^2 + 3, (x^2 + 3)*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
-            sage: I2 == S.ideal(I)
+            sage: I2 == S.ideal(I)                            # optional - kash
             True
         """
 
@@ -1432,9 +1432,9 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
 
         EXAMPLES::
 
-            sage: K.<t> = FunctionField(QQ, implementation='kash'); K
+            sage: K.<t> = FunctionField(QQ, implementation='kash'); K # optional - kash
             Rational function field in t over Rational Field
-            sage: R = K.maximal_order_infinite(); R
+            sage: R = K.maximal_order_infinite(); R           # optional - kash
             Maximal infinite order of Rational function field in t over Rational Field
         """
 
@@ -1453,18 +1453,18 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.basis()
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: Oinf = L.maximal_order_infinite()           # optional - kash
+            sage: Oinf.basis()                                # optional - kash
             (1, 1/x*y)
-            sage: 1 in Oinf
+            sage: 1 in Oinf                                   # optional - kash
             True
-            sage: 1/x*y in Oinf
+            sage: 1/x*y in Oinf                               # optional - kash
             True
-            sage: x*y in Oinf
+            sage: x*y in Oinf                                 # optional - kash
             False
-            sage: 1/x in Oinf
+            sage: 1/x in Oinf                                 # optional - kash
             True
         """
         if not f.parent() is self.function_field():
@@ -1482,28 +1482,28 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[]
-            sage: L.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.basis()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[] # optional - kash
+            sage: L.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2) # optional - kash
+            sage: Oinf = L.maximal_order_infinite()           # optional - kash
+            sage: Oinf.basis()                                # optional - kash
             (1, 1/x^2*y, 1/x^4*y^2)
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.basis()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: Oinf = L.maximal_order_infinite()           # optional - kash
+            sage: Oinf.basis()                                # optional - kash
             (1, 1/x*y)
 
-            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<t> = K[]
-            sage: L.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.basis()    # not tested - kash returns a different (but equivalent) basis
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<t> = K[] # optional - kash
+            sage: L.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2) # optional - kash
+            sage: Oinf = L.maximal_order_infinite()           # optional - kash
+            sage: Oinf.basis()                                # not tested - kash returns a different (but equivalent) basis, optional - kash
             (1, 1/x^2*y, 1/x^4*y^2)
 
-            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.basis()
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: Oinf = L.maximal_order_infinite()           # optional - kash
+            sage: Oinf.basis()                                # optional - kash
             (1, 1/x*y)
         """
 
@@ -1519,17 +1519,17 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: Oinf = F.maximal_order_infinite()
-            sage: I = Oinf.ideal(x,y); I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[] # optional - kash
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2) # optional - kash
+            sage: Oinf = F.maximal_order_infinite()           # optional - kash
+            sage: I = Oinf.ideal(x,y); I                      # optional - kash
             Ideal (x, y) of Maximal infinite order of Function field
             in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: I = Oinf.ideal(x,y); I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: Oinf = L.maximal_order_infinite()           # optional - kash
+            sage: I = Oinf.ideal(x,y); I                      # optional - kash
             Ideal (x, y) of Maximal infinite order of Function field
             in y defined by y^2 + y + (x^2 + 1)/x
         """
@@ -1543,19 +1543,19 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: Oinf = F.maximal_order_infinite()
-            sage: Oinf.decomposition()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[] # optional - kash
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2) # optional - kash
+            sage: Oinf = F.maximal_order_infinite()           # optional - kash
+            sage: Oinf.decomposition()                        # optional - kash
             [(Ideal (1/x, 1/x^2*y - 1) of Maximal infinite order
              of Function field in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2, 1, 1),
              (Ideal (1/x, 1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order
              of Function field in y defined by y^3 - x^6 - 2*x^5 - 3*x^4 - 2*x^3 - x^2, 2, 1)]
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.decomposition()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: Oinf = L.maximal_order_infinite()           # optional - kash
+            sage: Oinf.decomposition()                        # optional - kash
             [(Ideal (1/x, 1/x*y) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x, 1, 2)]
         """
@@ -1617,26 +1617,26 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(1/y)
-            sage: I == I + I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)        # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(1/y)                            # optional - kash
+            sage: I == I + I                                  # optional - kash
             True
-            sage: I == I * I
+            sage: I == I * I                                  # optional - kash
             False
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(1/y)
-            sage: I == I + I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(1/y)                            # optional - kash
+            sage: I == I + I                                  # optional - kash
             True
-            sage: I == I * I
+            sage: I == I * I                                  # optional - kash
             False
-            sage: I < I * I
+            sage: I < I * I                                   # optional - kash
             True
-            sage: I > I * I
+            sage: I > I * I                                   # optional - kash
             False
         """
 
@@ -1654,30 +1654,30 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3 - 1)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal([y]); I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3 - 1)          # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal([y]); I                         # optional - kash
             Ideal (y) of Maximal order of Function field in y
             defined by y^2 - x^3 - 1
-            sage: x * y in I
+            sage: x * y in I                                  # optional - kash
             True
-            sage: y / x in I
+            sage: y / x in I                                  # optional - kash
             False
-            sage: y^2 - 2 in I
+            sage: y^2 - 2 in I                                # optional - kash
             False
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal([y]); I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal([y]); I                         # optional - kash
             Ideal (y) of Maximal order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
-            sage: x * y in I
+            sage: x * y in I                                  # optional - kash
             True
-            sage: y / x in I
+            sage: y / x in I                                  # optional - kash
             False
-            sage: y^2 - 2 in I
+            sage: y^2 - 2 in I                                # optional - kash
             False
         """
         kashx = self._ring._field.to_kash(x)
@@ -1688,28 +1688,28 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
         Return the inverse fractional ideal of the ideal.
 
         EXAMPLES::
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3 - 1)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: ~I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3 - 1)          # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: ~I                                          # optional - kash
             Ideal (1, (1/(x^3 + 1))*y) of Maximal order of Function field in y defined by y^2 - x^3 - 1
-            sage: I^(-1)
+            sage: I^(-1)                                      # optional - kash
             Ideal (1, (1/(x^3 + 1))*y) of Maximal order of Function field in y defined by y^2 - x^3 - 1
-            sage: ~I * I
+            sage: ~I * I                                      # optional - kash
             Ideal (1) of Maximal order of Function field in y defined by y^2 - x^3 - 1
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y>=K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: ~I
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y>=K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: ~I                                          # optional - kash
             Ideal (x, (x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
             of Function field in y defined by y^2 + y + (x^2 + 1)/x
-            sage: I^(-1)
+            sage: I^(-1)                                      # optional - kash
             Ideal (x, (x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
             of Function field in y defined by y^2 + y + (x^2 + 1)/x
-            sage: ~I * I
+            sage: ~I * I                                      # optional - kash
             Ideal (1) of Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
 
@@ -1721,19 +1721,19 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: J = O.ideal(x+y)
-            sage: I + J
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)        # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: J = O.ideal(x+y)                            # optional - kash
+            sage: I + J                                       # optional - kash
             Ideal (x, y) of Maximal order of Function field in y defined by y^2 - x^3*y - x
 
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: J = O.ideal(x+y)
-            sage: I + J
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: J = O.ideal(x+y)                            # optional - kash
+            sage: I + J                                       # optional - kash
             Ideal (1, y) of Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
 
@@ -1745,20 +1745,20 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: J = O.ideal(x+y)
-            sage: I * J
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)        # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: J = O.ideal(x+y)                            # optional - kash
+            sage: I * J                                       # optional - kash
             Ideal (x^4 + x^2 - x, x*y + x^2) of Maximal order
             of Function field in y defined by y^2 - x^3*y - x
 
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: J = O.ideal(x+y)
-            sage: I * J
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: J = O.ideal(x+y)                            # optional - kash
+            sage: I * J                                       # optional - kash
             Ideal ((x^5 + x^3 + x^2 + 1)/x,
                    y + (1/2*x^4 + 1/2*x^3 + x^2 + 1/2*x + 1/2)/x)
                 of Maximal order of Function field in y
@@ -1768,32 +1768,32 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         Verify the examples using Sage's standard ideal operations::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: J = O.ideal(x+y)
-            sage: IJ = I * J
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)        # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: J = O.ideal(x+y)                            # optional - kash
+            sage: IJ = I * J                                  # optional - kash
 
-            sage: R = PolynomialRing(QQ, K.gens() + L.gens())
-            sage: Q = R.quo(L.polynomial())
-            sage: I1 = ideal(Q(g*b) for g in I.gens() for b in O.basis())
-            sage: J1 = ideal(Q(g*b) for g in J.gens() for b in O.basis())
-            sage: IJ = ideal(Q(g*b) for g in (IJ).gens() for b in O.basis())
-            sage: I1 * J1 == IJ
+            sage: R = PolynomialRing(QQ, K.gens() + L.gens()) # optional - kash
+            sage: Q = R.quo(L.polynomial())                   # optional - kash
+            sage: I1 = ideal(Q(g*b) for g in I.gens() for b in O.basis()) # optional - kash
+            sage: J1 = ideal(Q(g*b) for g in J.gens() for b in O.basis()) # optional - kash
+            sage: IJ = ideal(Q(g*b) for g in (IJ).gens() for b in O.basis()) # optional - kash
+            sage: I1 * J1 == IJ                               # optional - kash
             True
 
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: J = O.ideal(x+y)
-            sage: IJ = I * J
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: J = O.ideal(x+y)                            # optional - kash
+            sage: IJ = I * J                                  # optional - kash
 
-            sage: Q = R.quo(L.polynomial().numerator())
-            sage: I1 = ideal(Q(g*b*x) for g in I.gens() for b in O.basis())
-            sage: J1 = ideal(Q(g*b) for g in J.gens() for b in O.basis())
-            sage: IJ = ideal(Q(g*b*x) for g in (IJ).gens() for b in O.basis())
-            sage: I1 * J1 == IJ
+            sage: Q = R.quo(L.polynomial().numerator())       # optional - kash
+            sage: I1 = ideal(Q(g*b*x) for g in I.gens() for b in O.basis()) # optional - kash
+            sage: J1 = ideal(Q(g*b) for g in J.gens() for b in O.basis()) # optional - kash
+            sage: IJ = ideal(Q(g*b*x) for g in (IJ).gens() for b in O.basis()) # optional - kash
+            sage: I1 * J1 == IJ                               # optional - kash
             True
         """
 
@@ -1805,13 +1805,13 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x^3 - 1)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y/(y+1))
-            sage: d = I.denominator(); d
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); R.<y> = K[] # optional - kash
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)          # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y/(y+1))                        # optional - kash
+            sage: d = I.denominator(); d                      # optional - kash
             x^3
-            sage: d in O
+            sage: d in O                                      # optional - kash
             True
         """
         return self.kash().Denominator().sage(self._ring._field.reverse_map)
@@ -1822,18 +1822,18 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I == I.factor().prod()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K) # optional - kash
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)    # optional - kash
+            sage: O = F.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: I == I.factor().prod()                      # optional - kash
             True
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I == I.factor().prod()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: I == I.factor().prod()                      # optional - kash
             True
         """
         factors = self._factor()
@@ -1846,11 +1846,11 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[]
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I == I.factor().prod()  # indirect doctest
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = K[] # optional - kash
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)    # optional - kash
+            sage: O = F.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: I == I.factor().prod()                      # indirect doctest, optional - kash
             True
         """
         factors = []
@@ -1867,17 +1867,17 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(x+y)
-            sage: I.gens()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)        # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x+y)                            # optional - kash
+            sage: I.gens()                                    # optional - kash
             (y + x,)
 
-            sage: L.<y> = K.extension(Y^2 +Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(x+y)
-            sage: I.gens()
+            sage: L.<y> = K.extension(Y^2 +Y + x + 1/x)       # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x+y)                            # optional - kash
+            sage: I.gens()                                    # optional - kash
             (y + x,)
         """
         return self._gens
@@ -1889,17 +1889,17 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(x+y)
-            sage: I.gens_over_base()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)        # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x+y)                            # optional - kash
+            sage: I.gens_over_base()                          # optional - kash
             (x^4 + x^2 - x, y + x)
 
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(x+y)
-            sage: I.gens_over_base()
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x+y)                            # optional - kash
+            sage: I.gens_over_base()                          # optional - kash
             (x^3 + 1, y + x)
         """
         return tuple(self.kash().Basis().sage(self._ring._field.reverse_map))
@@ -1913,22 +1913,22 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I.is_prime()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K) # optional - kash
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)    # optional - kash
+            sage: O = F.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: I.is_prime()                                # optional - kash
             False
-            sage: [f.is_prime() for f,_ in I.factor()]
+            sage: [f.is_prime() for f,_ in I.factor()]        # optional - kash
             [True, True]
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I.is_prime()
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: I.is_prime()                                # optional - kash
             False
-            sage: [f.is_prime() for f,_ in I.factor()]
+            sage: [f.is_prime() for f,_ in I.factor()]        # optional - kash
             [True, True]
         """
 
@@ -1940,19 +1940,19 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(y)
-            sage: [f.place() for f,_ in I.factor()]
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K) # optional - kash
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)    # optional - kash
+            sage: O = F.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: [f.place() for f,_ in I.factor()]           # optional - kash
             [Place (x, (1/(x^3 + x^2 + x))*y^2),
              Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)]
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: [f.place() for f,_ in I.factor()]
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[] # optional - kash
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)      # optional - kash
+            sage: O = L.maximal_order()                       # optional - kash
+            sage: I = O.ideal(y)                              # optional - kash
+            sage: [f.place() for f,_ in I.factor()]           # optional - kash
             [Place (x, x*y), Place (x^2 + 1, x*y)]
         """
         if not self.is_prime():
@@ -1969,10 +1969,10 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         EXAMPLES::
 
-            sage: F.<x> = FunctionField(QQ, implementation='kash')
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(x^2*(x^2+x+1)^3)
-            sage: [f.valuation(I) for f,_ in I.factor()]
+            sage: F.<x> = FunctionField(QQ, implementation='kash') # optional - kash
+            sage: O = F.maximal_order()                       # optional - kash
+            sage: I = O.ideal(x^2*(x^2+x+1)^3)                # optional - kash
+            sage: [f.valuation(I) for f,_ in I.factor()]      # optional - kash
             [2, 3]
         """
         if not self.is_prime():
@@ -2002,10 +2002,10 @@ class FunctionFieldPlace_kash(FunctionFieldPlace):
             ``order`` correctly.  Otherwise, the divisor below isn't
             calculated correctly.
 
-            sage: R.<x> = FunctionField(QQbar, implementation='kash');
-            sage: L.<Y> = R[];
-            sage: F.<y> = R.extension(Y^4 - (x^2+1)^3);
-            sage: (1/y * x.differential()).divisor()      # indirect doctest
+            sage: R.<x> = FunctionField(QQbar, implementation='kash'); # optional - kash
+            sage: L.<Y> = R[];                                # optional - kash
+            sage: F.<y> = R.extension(Y^4 - (x^2+1)^3);       # optional - kash
+            sage: (1/y * x.differential()).divisor()          # indirect doctest, optional - kash
             0
 
         """
