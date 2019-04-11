@@ -18,7 +18,7 @@ from . import hyperelliptic_generic
 from . import invariants
 
 
-class HyperellipticCurve_g3_generic(hyperelliptic_generic.HyperellipticCurve_generic):
+class HyperellipticCurve_g3(hyperelliptic_generic.HyperellipticCurve_generic):
     def shioda_invariants(self):
         r"""
         Return the Shioda invariants `(J2, J3, J4, J5, J6, J7, J8, J9, J10)` of Shioda, [Sh1967]_.

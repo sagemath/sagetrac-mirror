@@ -157,6 +157,7 @@ Hyperelliptic curves
    sage/schemes/hyperelliptic_curves/jacobian_morphism
 
    sage/schemes/hyperelliptic_curves/hyperelliptic_g2
+   sage/schemes/hyperelliptic_curves/hyperelliptic_g3
    sage/schemes/hyperelliptic_curves/invariants
    sage/schemes/hyperelliptic_curves/kummer_surface
 
