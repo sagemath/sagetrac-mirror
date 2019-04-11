@@ -47,7 +47,7 @@ EXAMPLES::
     sage: O = L.maximal_order()
     sage: I = O.ideal(y)
     sage: I.divisor()
-    -1*Place (x, x*y)
+    - Place (x, x*y)
      + Place (x^2 + 1, x*y)
 
     sage: R.<x> = FunctionField(QQbar, implementation='kash')
@@ -55,7 +55,7 @@ EXAMPLES::
     sage: F.<y> = R.extension(y^2 - (x^2+1))
     sage: D = (x/y).divisor()
     sage: D
-    -1*Place (x - I, y)
+    - Place (x - I, y)
      + Place (x, y + x - 1)
      + Place (x, y + x + 1)
      - Place (x + I, y)
@@ -156,7 +156,7 @@ class RationalFunctionField_kash(RationalFunctionField):
         sage: L.<y> = R[]
         sage: F.<y> = R.extension(y^2 - (x^2+1))
         sage: (y/x).divisor()
-        -1*Place (x, y + x - 1)
+        - Place (x, y + x - 1)
          - Place (x, y + x + 1)
          + Place (x^2 + 1, y)
 
@@ -173,7 +173,7 @@ class RationalFunctionField_kash(RationalFunctionField):
          + Place (x, y + x + 1)
 
         sage: (x/y).divisor()
-        -1*Place (x - i, y)
+        - Place (x - i, y)
          + Place (x, y + x - 1)
          + Place (x, y + x + 1)
          - Place (x + i, y)
@@ -1212,7 +1212,7 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
             sage: F.<y> = R.extension(y^2 - (x^2+1))
             sage: D = (x/y).divisor()
             sage: D
-            -1*Place (x - I, y)
+            - Place (x - I, y)
              + Place (x, y + x - 1)
              + Place (x, y + x + 1)
              - Place (x + I, y)
