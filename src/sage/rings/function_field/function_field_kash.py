@@ -143,7 +143,7 @@ class RationalFunctionField_kash(RationalFunctionField):
     We define a morphism::
 
         sage: K.<t> = FunctionField(QQ, implementation='kash') # optional - kash
-        sage: L = FunctionField(QQ, 'tbar')                   # give variable name as second input, optional - kash
+        sage: L = FunctionField(QQ, 'tbar', implementation='kash') # give variable name as second input, optional - kash
         sage: K.hom(L.gen())                                  # optional - kash
         Function Field morphism:
           From: Rational function field in t over Rational Field
@@ -213,7 +213,7 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         Must be over a field::
 
-            sage: FunctionField(ZZ, 't')                      # optional - kash
+            sage: FunctionField(ZZ, 't', implementation='kash') # optional - kash
             Traceback (most recent call last):
             ...
             TypeError: constant_field must be a field
@@ -571,22 +571,22 @@ class FunctionField_polymod_kash(FunctionField_polymod):
     field L::
 
         sage: S.<z> = L[]                                     # optional - kash
-        sage: M.<z> = L.extension(z^2 + y*z + y); M           # not tested, optional - kash
+        sage: M.<z> = L.extension(z^2 + y*z + y); M           # optional - kash
         Function field in z defined by z^2 + y*z + y
-        sage: 1/z                                             # not tested, optional - kash
-        ((x/(-x^4 - 1))*y^4 - 2*x^2/(-x^4 - 1))*z - 1
-        sage: z * (1/z)                                       # not tested, optional - kash
+        sage: 1/z                                             # optional - kash
+        ((-x/(x^4 + 1))*y^4 + 2*x^2/(x^4 + 1))*z - 1
+        sage: z * (1/z)                                       # optional - kash
         1
 
     We drill down the tower of function fields::
 
-        sage: M.base_field()                                  # not tested, optional - kash
+        sage: M.base_field()                                  # optional - kash
         Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
-        sage: M.base_field().base_field()                     # not tested, optional - kash
+        sage: M.base_field().base_field()                     # optional - kash
         Rational function field in x over Rational Field
-        sage: M.base_field().base_field().constant_field()    # not tested, optional - kash
+        sage: M.base_field().base_field().constant_field()    # optional - kash
         Rational Field
-        sage: M.constant_base_field()                         # not tested, optional - kash
+        sage: M.constant_base_field()                         # optional - kash
         Rational Field
 
     The polynomial must be irreducible::
@@ -635,14 +635,14 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         Test that :trac:`17033` is fixed::
 
-            sage: K.<t> = FunctionField(QQ)                   # optional - kash
+            sage: K.<t> = FunctionField(QQ, implementation='kash') # optional - kash
             sage: R.<x> = QQ[]                                # optional - kash
-            sage: M.<z> = K.extension(x^7-x-t)                # not tested, optional - kash
-            sage: M(x)                                        # not tested, optional - kash
+            sage: M.<z> = K.extension(x^7-x-t)                # optional - kash
+            sage: M(x)                                        # optional - kash
             z
-            sage: M('z')                                      # not tested, optional - kash
+            sage: M('z')                                      # optional - kash
             z
-            sage: M('x')                                      # not tested, optional - kash
+            sage: M('x')                                      # optional - kash
             Traceback (most recent call last):
             ...
             TypeError: unable to evaluate 'x' in Fraction Field of Univariate
@@ -909,7 +909,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         EXAMPLES::
 
             sage: F.<a>=GF(2)                                 # optional - kash
-            sage: K.<x>=FunctionField(F)                      # optional - kash
+            sage: K.<x>=FunctionField(F, implementation='kash') # optional - kash
             sage: R.<t>=PolynomialRing(K)                     # optional - kash
             sage: L.<y>=K.extension(t^4+t-x^5)                # optional - kash
             sage: L.places_infinite(1)                        # optional - kash
@@ -928,7 +928,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         EXAMPLES::
 
             sage: F.<a>=GF(2)                                 # optional - kash
-            sage: K.<x>=FunctionField(F)                      # optional - kash
+            sage: K.<x>=FunctionField(F, implementation='kash') # optional - kash
             sage: R.<t>=PolynomialRing(K)                     # optional - kash
             sage: L.<y>=K.extension(t^4+t-x^5)                # optional - kash
             sage: L._places_infinite(1)                       # optional - kash
@@ -1497,7 +1497,7 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
             sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<t> = K[] # optional - kash
             sage: L.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2) # optional - kash
             sage: Oinf = L.maximal_order_infinite()           # optional - kash
-            sage: Oinf.basis()                                # not tested - kash returns a different (but equivalent) basis, optional - kash
+            sage: Oinf.basis()                                # not tested - kash returns a different (but equivalent) basis
             (1, 1/x^2*y, 1/x^4*y^2)
 
             sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[] # optional - kash
