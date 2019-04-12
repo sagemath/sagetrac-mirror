@@ -450,14 +450,14 @@ def median_of_medians(A, i):
         ...
         ValueError: i must be less than size of the list
     """
-    if(len(A) <= i):
+    if len(A) <= i:
         raise ValueError("i must be less than size of the list")
     t = len(A)
     # Variable to divide the element in group 1000
     items_per_column = 1000
 
     # if A is a small list with less than items_per_column items, then:
-    if(t <= items_per_column):
+    if t <= items_per_column:
         return sorted(A)[i]
     else:
         # partition A into columns of 1000 items each to find their median.
@@ -466,10 +466,10 @@ def median_of_medians(A, i):
 
         # split A into 3 parts by M, { < M}, { == M }, and { > M }
         P1 = [j for j in A if j < M]
-        if(i < len(P1)):
+        if i < len(P1):
             return median_of_medians(P1, i)
         P3 = [j for j in A if j > M]
         L3 = len(P3)
-        if(i < (t - L3)):
+        if i < (t - L3):
             return M
         return median_of_medians(P3, i - (t - L3))
