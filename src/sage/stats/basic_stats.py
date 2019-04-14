@@ -423,7 +423,7 @@ def moving_average(v, n):
         ans.append(s/nn)
     return ans
 
-def median_of_medians(A, i):
+def i_smallest(A,i):
     """
     Return the i'th smallest integer in the array
 
@@ -439,37 +439,21 @@ def median_of_medians(A, i):
 
     EXAMPLES::
 
-        sage: median_of_medians([1..10], 1)
-        2
-        sage: median_of_medians([1..10], 5)
-        6
-        sage: median_of_medians([1], 0)
+        sage: i_smallest([1..10], 1)
         1
-        sage: median_of_medians([1..10], 10)
+        sage: i_smallest([1..10], 5)
+        5
+        sage: i_smallest([1], 1)
+        1
+        sage: i_smallest([1..10], 11)
         Traceback (most recent call last)
         ...
         ValueError: i must be less than size of the list
     """
-    if len(A) <= i:
+    from numpy import partition
+    if len(A) < i:
         raise ValueError("i must be less than size of the list")
-    t = len(A)
-    # Variable to divide the element in group 1000
-    items_per_column = 1000
-
-    # if A is a small list with less than items_per_column items, then:
-    if t <= items_per_column:
-        return sorted(A)[i]
-    else:
-        # partition A into columns of 1000 items each to find their median.
-        B = [median_of_medians(k, (len(k) - 1)/2) for k in [A[j:(j + items_per_column)] for j in range(0, len(A), items_per_column)]]
-        M = median_of_medians(B, (len(B) - 1)/2)
-
-        # split A into 3 parts by M, { < M}, { == M }, and { > M }
-        P1 = [j for j in A if j < M]
-        if i < len(P1):
-            return median_of_medians(P1, i)
-        P3 = [j for j in A if j > M]
-        L3 = len(P3)
-        if i < (t - L3):
-            return M
-        return median_of_medians(P3, i - (t - L3))
+  
+    k = partition(A, i)[:i].tolist() 
+    return k[i-1]
+   
