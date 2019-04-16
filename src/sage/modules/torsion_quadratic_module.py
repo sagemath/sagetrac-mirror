@@ -1536,7 +1536,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         return stab
 
     def subgroup_representatives(self, H, G, algorithm="hulpke", return_stabilizers=False,
-                                 order=None, max_order=None, g=None):
+                                 order=None, max_order=None, g=None,backend=None):
         r"""
         Return representatives of the subgroups of `H` modulo the action of `G`.
 
@@ -1565,6 +1565,10 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         if max_order is None:
             max_order = self.cardinality()
+        if H.cardinality() == 1:
+            return [[H,G]]
+        if G.cardinality() == 1:
+            backend=None
         A = G.domain()
         Hgap = A.subgroup([A(self(h)) for h in H.gens()]).gap()
         from sage.libs.gap.libgap import libgap
@@ -1583,11 +1587,23 @@ class TorsionQuadraticModule(FGP_Module_class):
         elif algorithm =="elementary abelian":
             if not H.invariants()[-1].is_prime():
                 raise ValueError("")
-            from sage.env import SAGE_EXTCODE
-            gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
-            libgap.Read(gapcode)
-            subgroup_reps = libgap.function_factory("SubgroupRepresentatives_elementary_equiv")
-            subgroup_reps = [dict(S) for S in subgroup_reps(Hgap, G, order, g)]
+            if backend is not None:
+                from sage.rings.all import GF,ZZ
+                # we continue with magma
+                G0 = H.orthogonal_group()
+                G = G0.subgroup(G.gens())
+                p = H.invariants()[0]
+                gens = [i.matrix().change_ring(GF(p)) for i in G.gens()]
+                orb, stab = OrbitsOfSpaces(gens,order.valuation(p),magm=backend,g=G0(g).matrix())
+                stab = [G.subgroup(s) for s in stab]
+                orb= [self.submodule([H.linear_combination_of_smith_form_gens(r) for r in v.change_ring(ZZ)]) for v in orb]
+                return [[orb[k],stab[k]] for k in range(len(orb))]
+            else:
+                from sage.env import SAGE_EXTCODE
+                gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+                libgap.Read(gapcode)
+                subgroup_reps = libgap.function_factory("SubgroupRepresentatives_elementary_equiv")
+                subgroup_reps = [dict(S) for S in subgroup_reps(Hgap, G, order, g.gap())]
         else:
             raise ValueError("not a valid algorithm")
         # convert back to sage
@@ -1602,7 +1618,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         #subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
         return subgroup_reps
 
-    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, glue_valuation):
+    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, glue_valuation, magm=None):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
@@ -1613,7 +1629,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         - ``H1``, ``H2`` -- subgroups of ``self``, ``other``
         - ``G1``, ``G2`` -- subgroups of ``self``, ``other``
         - ``h1``, ``h2`` -- elements in the center of ``G1``, ``G2``
-        - ``g`` -- non negative integer; the glue order `p^g`
+        - ``magma`` - a magma instance
+
 
         EXAMPLES::
 
@@ -1657,12 +1674,14 @@ class TorsionQuadraticModule(FGP_Module_class):
         p = p1
 
         glue_order = p**glue_valuation
-
+        backend = None
+        if H1.cardinality() > 2**5 or H2.cardinality() > 2**5:
+            backend = magm
         # these may not be invariant subspaces!!! ---> crap
-        subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian",
-                                              return_stabilizers=True, order=glue_order, g=h1.gap())
-        subs2 = other.subgroup_representatives(H2, G2, algorithm="elementary abelian",
-                                               return_stabilizers=True, order=glue_order, g=h2.gap())
+        subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian", backend=backend,
+                                              return_stabilizers=True, order=glue_order, g=h1)
+        subs2 = other.subgroup_representatives(H2, G2, algorithm="elementary abelian", backend=backend,
+                                               return_stabilizers=True, order=glue_order, g=h2)
         subs1 = [[_normalize(s[0].twist(-1)),s[0],s[1]] for s in subs1]
         subs2 = [[_normalize(s[0]),s[0],s[1]] for s in subs2]
 
@@ -2060,3 +2079,32 @@ def direct_sum_embed(D, i1, i2, OD, G1, G2):
         gensG2_imgs.append(f)
     embed2 = G2.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G2.gens()], gensG2_imgs)
     return embed1, embed2
+
+
+def OrbitsOfSpaces(gens,k,magm, g=None):
+    r"""
+    a list of matrices over a finite field
+    """
+    m = magm
+    degree = gens[0].ncols()
+    field =  gens[0].base_ring()
+    GL = m.GeneralLinearGroup(degree,field)
+    G = GL.sub(gens)
+    orb = m.OrbitsOfSpaces(G,k)
+    # we also want the stabilisers
+    stab = [m.Stabiliser(G,v[2]) for v in orb]
+
+    orb_sage = [v[2].BasisMatrix().sage() for v in orb]
+    stab_sage = [[i.Matrix().sage() for i in s.gens()] for s in stab]
+    if g is not None:
+        orb1 = []
+        stab1 = []
+        for k in range(len(orb_sage)):
+            v = orb_sage[k]
+            #take only g-stable subspaces
+            if v.hermite_form() == (v*g).hermite_form():
+                orb1.append(v)
+                stab1.append(stab_sage[k])
+        orb_sage = orb1
+        stab_sage = stab1
+    return orb_sage,stab_sage
