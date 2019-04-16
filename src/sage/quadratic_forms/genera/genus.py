@@ -3096,15 +3096,16 @@ class GenusSymbol_global_ring(object):
         L.set_immutable()
         self._representative = L
 
-    def representatives(self, backend="sage", algorithm=None):
+    def representatives(self, backend="sage", algorithm=None,idle=False):
         r"""
         Return a list of representatives for the classes in this genus
         """
         from copy import copy
-        try:
-            return copy(self._representatives)
-        except AttributeError:
-            pass
+        if type(idle) is bool:
+            try:
+                return copy(self._representatives)
+            except AttributeError:
+                pass
         n = self.dimension()
         representatives = []
         if self.rank()==0:
@@ -3178,7 +3179,11 @@ class GenusSymbol_global_ring(object):
                     det = self.determinant()
                     while p.divides(det):
                         p = P.next(p)
-                    representatives = neighbor_iteration(seeds, p, mass=Q.conway_mass(), algorithm=algorithm)
+                    if not type(idle) is bool:
+                        idle = idle*(e/2)
+                        if idle.denominator()!=1:
+                            return []
+                    representatives = neighbor_iteration(seeds, p, mass=Q.conway_mass(), algorithm=algorithm, idle=idle)
                 representatives = [g.Hessian_matrix() for g in representatives]
                 representatives = [(g/e).change_ring(ZZ) for g in representatives]
             # recompute using magma for debugging
@@ -3189,7 +3194,7 @@ class GenusSymbol_global_ring(object):
         for g in representatives:
             g.set_immutable()
         self._representatives = representatives
-        assert len(representatives) > 0, self
+        #assert len(representatives) > 0, self
         return copy(representatives)
 
 

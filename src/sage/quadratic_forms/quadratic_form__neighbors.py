@@ -288,7 +288,7 @@ def find_p_neighbor_from_vec(self, p, v):
 
 
 def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
-                       algorithm=None, max_random_trys=1000, verbose=False):
+                       algorithm=None, max_random_trys=1000, verbose=False,idle=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -358,6 +358,12 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
         raise ValueError("unknown algorithm")
     from copy import copy
     waiting_list = copy(seeds)
+    if not type(idle) is bool:
+        for Q in seeds:
+            sv = Q.short_vector_list_up_to_length(idle+1,True)
+            if len(sv[-1]) == 0:
+                return []
+
     isom_classes = []
     mass_count = QQ(0)
     n_isom_classes = ZZ(0)
@@ -366,8 +372,11 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
         Q = waiting_list.pop()
         for v in p_divisible_vectors(Q):
             Q_neighbor = Q.neighbor_from_vec(p, v)
+            Q_neighbor = Q_neighbor.lll()
+            if not type(idle) is bool:
+                if len(Q_neighbor.short_vector_list_up_to_length(idle+1,True)[-1]) == 0:
+                    return []
             if not any(Q_neighbor.is_globally_equivalent_to(S) for S in isom_classes):
-                Q_neighbor = Q_neighbor.lll()
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
                 n_isom_classes += 1
@@ -375,7 +384,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
                 if verbose:
                     print(mass-mass_count)
                     print(len(waiting_list))
-                if mass_count == mass and  n_isom_classes >= max_classes:
+                if mass_count == mass:
                     break
 
     if len(isom_classes) >= max_classes:
