@@ -49,3 +49,4 @@ if [ -n "$SAGE_GMP_PREFIX" ]; then
     # --with-gmp without an argument is actually a bug)
     export SAGE_CONFIGURE_GMP="--with-gmp=$SAGE_GMP_PREFIX"
 fi
+export SAGE_FREETYPE_PREFIX=@SAGE_FREETYPE_PREFIX@
