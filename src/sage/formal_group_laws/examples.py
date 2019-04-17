@@ -16,6 +16,7 @@ from sage.rings.finite_rings.finite_field_constructor import *
 from sage.arith.misc import *
 
 from formal_power_series import *
+from formal_group_law import *
 
 print('1/(1-x) as a formal power series:')
 
@@ -291,3 +292,9 @@ spacing()
 ufgl = UFGL()
 print("Universal formal group law (first 7 coefficients):")
 print(ufgl.view(7))
+
+spacing()
+
+# log of a fgl
+print("We can take the logarithm of a Formal Group Law:")
+print(grouplaw(ufgl).log().view(10))
