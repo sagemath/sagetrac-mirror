@@ -1581,9 +1581,14 @@ cdef class RealDoubleElement(FieldElement):
             sage: int(RDF(10e15))
             10000000000000000L                   # 32-bit
             10000000000000000                    # 64-bit
-            sage: long(RDF(2^100)) == 2^100
+            sage: long(RDF(2^100)) == 2^100 # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             True
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(self._value)
 
     def _complex_mpfr_field_(self, CC):

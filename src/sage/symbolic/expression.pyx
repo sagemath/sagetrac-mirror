@@ -1130,9 +1130,14 @@ cdef class Expression(CommutativeRingElement):
         """
         EXAMPLES::
 
-            sage: long(sin(2)*100)
+            sage: long(sin(2)*100) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             90L
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(int(self))
 
     def _rational_(self):

@@ -67,13 +67,18 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         TESTS::
 
-            sage: long(RR['x,y'](0)) # indirect doctest
+            sage: long(RR['x,y'](0)) # indirect doctest py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             0L
-            sage: long(ZZ['x,y'].gen(0))
+            sage: long(ZZ['x,y'].gen(0)) # py2
             Traceback (most recent call last):
             ...
             TypeError: unable to convert non-constant polynomial x to an integer
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         if self.degree() <= 0:
             return long(self.constant_coefficient())
         raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")

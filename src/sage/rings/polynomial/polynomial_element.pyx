@@ -1623,11 +1623,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<x> = ZZ[]
             sage: f = x - 902384
-            sage: long(f)
+            sage: long(f) # py2
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(R(939392920202))
+            sage: long(R(939392920202)) # py2
             939392920202L
         """
         if self.degree() > 0:

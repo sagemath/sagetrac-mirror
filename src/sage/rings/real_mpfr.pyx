@@ -719,7 +719,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         TESTS::
 
-            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
+            sage: 1.0 - ZZ(1) - int(1) - 1 - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
             -6.00000000000000
             sage: R = RR['x']   # Hold reference to avoid garbage collection, see Trac #24709
             sage: R.get_action(ZZ)
@@ -3105,9 +3105,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: long(RR(pi))
+            sage: long(RR(pi)) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             3L
         """
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         if not mpfr_number_p(self.value):
             raise ValueError('Cannot convert infinity or NaN to Python long')
 

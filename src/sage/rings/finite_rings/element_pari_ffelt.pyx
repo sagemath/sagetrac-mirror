@@ -132,7 +132,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: K.<a> = FiniteField(7^20, impl='pari_ffelt')
         sage: K(int(8))
         1
-        sage: K(long(-2^300))
+        sage: K(long(-2^300)) # py2
         6
 
     ::
@@ -1173,9 +1173,14 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
             sage: k.<a> = GF(3^17, impl='pari_ffelt')
             sage: b = k(2)
-            sage: long(b)
+            sage: long(b) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             2L
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(self.lift())
 
     def __float__(self):

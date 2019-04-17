@@ -347,7 +347,7 @@ cdef class Cache_givaro(SageObject):
             1
             sage: k(int(2^100))
             1
-            sage: k(long(2^100))
+            sage: k(long(2^100)) # py2
             1
             sage: k(-2^100)
             2

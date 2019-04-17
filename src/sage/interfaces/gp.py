@@ -143,6 +143,7 @@ from __future__ import absolute_import
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
+from sage.misc.superseded import deprecation
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
 import sage.rings.complex_field
@@ -940,9 +941,13 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: long(gp(10))
+            sage: long(gp(10)) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             10L
         """
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(str(self))
 
     def __float__(self):

@@ -858,7 +858,7 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: long(foo)
+            sage: long(foo) # py2
             10L
         """
         return long(self.get_object())

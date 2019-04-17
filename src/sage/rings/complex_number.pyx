@@ -1117,14 +1117,18 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: a = ComplexNumber(2,1)
-            sage: long(a)
+            sage: long(a) # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()
+            sage: a.__long__() # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
+
+        .. NOTE::
+
+            This should be deprecated.
         """
         raise TypeError("can't convert complex to long; use long(abs(z))")
 

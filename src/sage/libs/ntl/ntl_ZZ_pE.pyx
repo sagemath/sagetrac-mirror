@@ -77,7 +77,7 @@ cdef class ntl_ZZ_pE(object):
             [1 3]
             sage: c.ZZ_pE(Integer(95413094))
             [7]
-            sage: c.ZZ_pE(long(223895239852389582988))
+            sage: c.ZZ_pE(long(223895239852389582988)) # py2
             [5]
             sage: c.ZZ_pE('[1]')
             [1]

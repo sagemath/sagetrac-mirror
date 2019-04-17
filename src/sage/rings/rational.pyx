@@ -382,7 +382,7 @@ def is_Rational(x):
         True
         sage: is_Rational(int(2))
         False
-        sage: is_Rational(long(2))
+        sage: is_Rational(long(2)) # py2
         False
         sage: is_Rational('5')
         False
@@ -3009,10 +3009,14 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: long(7/3)
+            sage: long(7/3) # py2
             2L
-            sage: long(-7/3)
+            sage: long(-7/3) # py2
             -2L
+
+        .. NOTE::
+
+            This should be deprecated.
         """
         cdef mpz_t x
         if mpz_cmp_si(mpq_denref(self.value),1) != 0:
@@ -4253,9 +4257,11 @@ cdef class long_to_Q(Morphism):
         EXAMPLES::
 
             sage: f = sage.rings.rational.long_to_Q()
-            sage: f(long(4)) # indirect doctest
+            sage: f(long(4)) # indirect doctest py2
             4
-            sage: f(long(4^100))
+            sage: f(long(4^100)) # py2
+            1606938044258990275541962092341162602522202993782792835301376
+            sage: f(4^100) # py3
             1606938044258990275541962092341162602522202993782792835301376
         """
 

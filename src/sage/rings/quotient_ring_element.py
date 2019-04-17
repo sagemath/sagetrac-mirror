@@ -16,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+from sage.misc.superseded import deprecation
 from sage.structure.element import RingElement
 from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.interfaces.singular import singular as singular_default
@@ -518,9 +518,13 @@ class QuotientRingElement(RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category.element_class'>
-            sage: long(S(-3))            # indirect doctest
+            sage: long(S(-3))            # indirect doctest py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             -3L
         """
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(self.lift())
 
     def __neg__(self):

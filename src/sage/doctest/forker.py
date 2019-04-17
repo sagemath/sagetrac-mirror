@@ -2377,20 +2377,11 @@ class DocTestTask(object):
         sage: sorted(results.keys())
         ['cputime', 'err', 'failures', 'optionals', 'tests', 'walltime', 'walltime_skips']
     """
-
-    if six.PY2:
-        extra_globals = {}
-    else:
-        extra_globals = {'long': int}
+    extra_globals = {}
     """
     Extra objects to place in the global namespace in which tests are run.
     Normally this should be empty but there are special cases where it may
     be useful.
-
-    In particular, on Python 3 add ``long`` as an alias for ``int`` so that
-    tests that use the ``long`` built-in (of which there are many) still pass.
-    We do this so that the test suite can run on Python 3 while Python 2 is
-    still the default.
     """
 
     def __init__(self, source):

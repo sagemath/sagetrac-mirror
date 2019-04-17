@@ -768,11 +768,16 @@ cdef class FractionFieldElement(FieldElement):
         EXAMPLES::
 
             sage: K.<x> = Frac(QQ['x'])
-            sage: long(K(3))
+            sage: long(K(3)) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             3L
-            sage: long(K(3/5))
+            sage: long(K(3/5)) # py2
             0L
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(int(self))
 
     def __pow__(self, right, dummy):

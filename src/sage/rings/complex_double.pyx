@@ -398,7 +398,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
             sage: CDF(1) + RR(1)
             2.0
-            sage: CDF.0 - CC(1) - long(1) - RR(1) - QQbar(1)
+            sage: CDF.0 - CC(1) - ZZ(1) - RR(1) - QQbar(1)
             -4.0 + 1.0*I
             sage: CDF.has_coerce_map_from(ComplexField(20))
             False
@@ -938,8 +938,14 @@ cdef class ComplexDoubleElement(FieldElement):
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
-            sage: long(abs(CDF(1,1)))
+            sage: long(abs(CDF(1,1))) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             1L
+
+        .. NOTE::
+
+            This should be deprecated.
         """
         raise TypeError("can't convert complex to long; use long(abs(z))")
 

@@ -48,6 +48,7 @@ from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
 from sage.misc.fast_methods import WithEqualityById
+from sage.misc.superseded import deprecation
 from sage.docs.instancedoc import instancedoc
 
 
@@ -1302,9 +1303,13 @@ class InterfaceElement(Element):
         EXAMPLES::
 
             sage: m = maxima('1')
-            sage: long(m)
+            sage: long(m) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             1L
         """
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(repr(self))
 
     def __float__(self):

@@ -1429,10 +1429,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: long(CIF(1,1))
+            sage: long(CIF(1,1)) # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex interval to long
+
+        .. NOTE::
+
+            This should be deprecated.
         """
         raise TypeError("can't convert complex interval to long")
 

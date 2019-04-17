@@ -78,10 +78,10 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     EXAMPLES::
 
-        sage: a = long(901824309821093821093812093810928309183091832091)
-        sage: b = QQ(a); b
+        sage: a = long(901824309821093821093812093810928309183091832091) # py2
+        sage: b = QQ(a); b # py2
         901824309821093821093812093810928309183091832091
-        sage: QQ(b)
+        sage: QQ(b) # py2
         901824309821093821093812093810928309183091832091
         sage: QQ(int(93820984323))
         93820984323

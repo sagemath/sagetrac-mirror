@@ -1799,9 +1799,14 @@ cdef class mpf_base(mpnumber):
             sage: from mpmath import mpf
             sage: from sage.libs.mpmath.ext_main import mpf_base
             sage: class X(mpf_base): _mpf_ = mpf(3.25)._mpf_
-            sage: long(X())
+            sage: long(X()) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             3L
-        """
+         """
+        from sage.misc.superseded import deprecation
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         return long(self.__int__())
 
     def __float__(self):

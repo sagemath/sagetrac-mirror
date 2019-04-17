@@ -269,15 +269,20 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         EXAMPLES::
 
             sage: A.<i,j,k> = QuaternionAlgebra(-1,-2)
-            sage: long(A(-3))
+            sage: long(A(-3)) # py2
+            doctest:...: DeprecationWarning: use of long is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27696 for details.
             -3L
-            sage: long(A(-3/2))
+            sage: long(A(-3/2)) # py2
             -1L
-            sage: long(-3 + i)
+            sage: long(-3 + i) # py2
             Traceback (most recent call last):
             ...
             TypeError
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27696, 'use of long is deprecated, since long() will no '
+                    'longer be supported in Python 3')
         if self.is_constant():
             return long(self[0])
         raise TypeError

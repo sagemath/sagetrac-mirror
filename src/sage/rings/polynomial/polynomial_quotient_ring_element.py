@@ -410,7 +410,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
-            sage: long(S(10))
+            sage: long(S(10)) # py2
             10L
             sage: long(a)  # py2
             Traceback (most recent call last):

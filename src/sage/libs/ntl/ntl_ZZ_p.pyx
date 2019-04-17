@@ -92,7 +92,7 @@ cdef class ntl_ZZ_p(object):
             1
             sage: ntl.ZZ_p(Integer(95413094), c)
             7
-            sage: ntl.ZZ_p(long(223895239852389582988), c)
+            sage: ntl.ZZ_p(long(223895239852389582988), c) # py2
             5
             sage: ntl.ZZ_p('-1', c)
             10

@@ -2576,14 +2576,14 @@ cdef class NumberFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(K(1234))
+            sage: long(K(1234)) # py2
             1234L
 
         The value does not have to be preserved, in the case of fractions.
 
         ::
 
-            sage: long(K(393/29))
+            sage: long(K(393/29)) # py2
             13L
         """
         return long(self.polynomial())
