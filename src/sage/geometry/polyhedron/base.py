@@ -500,7 +500,6 @@ class Polyhedron_base(Element):
             elif base_ring is not RDF:
                 raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
-        x = None
         try:
             vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
