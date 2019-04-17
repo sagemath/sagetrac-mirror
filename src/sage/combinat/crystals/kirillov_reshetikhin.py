@@ -4,7 +4,7 @@ Kirillov-Reshetikhin Crystals
 
 # ****************************************************************************
 #       Copyright (C) 2009       Anne Schilling <anne at math.ucdavis.edu>
-#                     2014-2018  Travis Scrimshaw <tcscrims at gmail.com>
+#                     2014-2019  Travis Scrimshaw <tcscrims at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -30,7 +30,7 @@ from sage.categories.crystals import CrystalMorphism
 from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 from sage.categories.homset import Hom
 from sage.categories.map import Map
-from sage.rings.integer import Integer
+from sage.rings.integer import Integer, ZZ
 from sage.rings.rational_field import QQ
 from sage.combinat.crystals.affine import (AffineCrystalFromClassical,
                                            AffineCrystalFromClassicalElement,
@@ -398,6 +398,10 @@ def KashiwaraNakashimaTableaux(cartan_type, r, s):
             return KR_type_E6(ct, r, s)
         elif ct == CartanType(['E',7,1]) and r in [7]:
             return KR_type_E7(ct, r, s)
+        elif ct.type() == 'G':
+            if r == 2:
+                return KR_type_G2(ct, s)
+            raise NotImplementedError
         else:
             raise NotImplementedError
     else:
@@ -3440,6 +3444,319 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             s = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
             return self.parent()._s - s + max(self._A)
 
+class KR_type_G2(KirillovReshetikhinGenericCrystal):
+    r"""
+    Class of Kirillov-Reshetikhin crystals `B^{2,s}` of type `G_2^{(1)}`.
+
+    The crystal structure was defined in Section 3 of [MMO10]_ using
+    the coordinate representation.
+    """
+    def __init__(self, ct, s):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 2)
+            sage: TestSuite(K).run()
+        """
+        KirillovReshetikhinGenericCrystal.__init__(self, ct, 2, s)
+        # Internally, we scale the coordinate representation by 3 times
+        #   to remove all fractions.
+        # The comments on each line correspond to the image of the column
+        #   under the virtualization map.
+        V = ZZ**6
+        self._to_coords = {
+            ( 2, 1): V((3, 0, 0, 0, 0, 0)),  # 111
+            ( 3, 1): V((0, 3, 0, 0, 0, 0)),  # 222
+            ( 3, 2): V((0, 2, 2, 0, 0, 0)),  # 223
+            ( 0, 2): V((0, 1, 4, 0, 0, 0)),  # 233
+            (-3, 2): V((0, 0, 6, 0, 0, 0)),  # 333
+            ( 0, 3): V((0, 1, 1, 3, 0, 0)),  # 20-3
+            (-3, 3): V((0, 0, 3, 3, 0, 0)),  # 30-3
+            ( 0, 0): V((0, 1, 1, 1, 1, 0)),  # 20-2
+            (-2, 3): V((0, 0, 0, 6, 0, 0)),  # -3-3-3
+            (-3, 0): V((0, 0, 3, 1, 1, 0)),  # 30-2
+            (-2, 0): V((0, 0, 0, 4, 1, 0)),  # -3-3-2
+            (-2,-3): V((0, 0, 0, 2, 2, 0)),  # -3-2-2
+            (-1,-3): V((0, 0, 0, 0, 3, 0)),  # -2-2-2
+            (-1,-2): V((0, 0, 0, 0, 0, 3)),  # -1-1-1
+        }
+
+    def classical_decomposition(self):
+        """
+        Return the classical decomposition of ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 5)
+            sage: K.classical_decomposition()
+            The crystal of tableaux of type ['G', 2]
+             and shape(s) [[], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5]]
+        """
+        sh = [Partition([j,j]) for j in range(self._s+1)]
+        return CrystalOfTableaux(self.cartan_type().classical(), shapes=sh)
+
+    def from_coordinates(self, coords):
+        r"""
+        Return an element of ``self`` from the coordinates ``coords``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 5)
+            sage: all(K.from_coordinates(b.coordinates()) == b for b in K)
+            True
+        """
+        C = self.classical_decomposition()
+        if not sum(coords): # Special empty element (i.e. the unique element of B(0))
+            return self.element_class(self, C.module_generators[0])
+
+        L = C.letters
+        # The comments on each line correspond to the image of the column
+        #   under the virtualization map.
+        lst = [L(2), L(1)] * (coords[0] // 3)  # 111
+        lst.extend([L(3), L(1)] * (coords[1] // 3))  # 222
+
+        if coords[1] % 3 == 1:  # We must have either 233, 20-2, or 20-3
+            if coords[2] == 1:
+                if coords[3] == 1:
+                    lst.extend([L(0), L(0)])  # 20-2
+                else:
+                    lst.extend([L(0), L(3)])  # 20-3
+                    lst.extend([L(-2), L(3)] * ((coords[3]-3) // 6))  # -3-3-3
+                    if coords[4] % 3 == 2:
+                        lst.extend([L(-2), L(-3)])  # -3-2-2
+                    elif coords[4] % 3 == 1:
+                        lst.extend([L(-2), L(0)])  # -3-3-2
+            else:
+                lst.extend([L(0), L(2)])  # 233
+                lst.extend([L(-3), L(2)] * ((coords[2]-4) // 6))  # 333
+                if coords[3] == 1:
+                    lst.extend([L(-3), L(0)])  # 30-2
+                else:
+                    if coords[2] % 2:
+                        lst.extend([L(-3), L(3)])  # 30-3
+                        lst.extend([L(-2), L(3)] * ((coords[3]-3) // 6))  # -3-3-3
+                    else:
+                        lst.extend([L(-2), L(3)] * (coords[3] // 6))  # -3-3-3
+                    if coords[4] % 3 == 2:
+                        lst.extend([L(-2), L(-3)])  # -3-2-2
+                    elif coords[4] % 3 == 1:
+                        lst.extend([L(-2), L(0)])  # -3-3-2
+
+        else:  # There is either 0 or 2 extra 2's to incorporate
+            if coords[1] % 3 == 2:
+                lst.extend([L(3), L(2)])  # 223
+            if coords[4] % 3 == 1 and coords[3] == 1:
+                lst.extend([L(-3), L(2)] * ((coords[2]-3) // 6))  # 333
+                lst.extend([L(-3), L(0)])  # 30-2
+            else:
+                lst.extend([L(-3), L(2)] * (coords[2] // 6))  # 333
+                if coords[2] % 2:
+                    lst.extend([L(-3), L(3)])  # 30-3
+                    lst.extend([L(-2), L(3)] * ((coords[3]-3) // 6))  # -3-3-3
+                else:
+                    lst.extend([L(-2), L(3)] * (coords[3] // 6))  # -3-3-3
+                if coords[4] % 3 == 2:
+                    lst.extend([L(-2), L(-3)])  # -3-2-2
+                elif coords[4] % 3 == 1:
+                    lst.extend([L(-2), L(0)])  # -3-3-2
+
+        lst.extend([L(-1), L(-3)] * (coords[4] // 3))  # -2-2-2
+        lst.extend([L(-1), L(-2)] * (coords[5] // 3))  # -1-1-1
+
+        return self.element_class(self, C(*lst))
+
+    class Element(KirillovReshetikhinGenericCrystalElement):
+        @cached_method
+        def coordinates(self):
+            """
+            Return ``self`` as coordinates.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 1)
+                sage: [b.coordinates() for b in K]
+                [(0, 0, 0, 0, 0, 0),
+                 (3, 0, 0, 0, 0, 0),
+                 (0, 3, 0, 0, 0, 0),
+                 (0, 2, 2, 0, 0, 0),
+                 (0, 1, 4, 0, 0, 0),
+                 (0, 0, 6, 0, 0, 0),
+                 (0, 0, 3, 3, 0, 0),
+                 (0, 0, 0, 6, 0, 0),
+                 (0, 0, 0, 4, 1, 0),
+                 (0, 0, 0, 2, 2, 0),
+                 (0, 0, 0, 0, 3, 0),
+                 (0, 0, 0, 0, 0, 3),
+                 (0, 1, 1, 3, 0, 0),
+                 (0, 1, 1, 1, 1, 0),
+                 (0, 0, 3, 1, 1, 0)]
+            """
+            to_coords = self.parent()._to_coords
+            lst = list(self.value)
+            cols = [(lst[2*i].value,lst[2*i+1].value) for i in range(len(lst)//2)]
+            V = ZZ**6
+            return tuple(V.sum(to_coords[C] for C in cols))
+
+        @lazy_attribute
+        def _A(self):
+            r"""
+            Compute the vector `A = (0, z_1, z_1 + z_2, z_1 + z_2 + 3 z_4,
+            z_1 + z_2 + z_3 + 3 z_4, 2 z_1 + z_2 + z_3 + 3 z_4)`, where
+            `z_1 = \bar{x}_1 - x_1`, `z_2 = \bar{x}_2 - \bar{x}_3`,
+            `z_3 = x_3 - x_2`, and `z_4 = (\bar{x}_3 - x_3) / 2`.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 1)
+                sage: [mg._A for mg in K.module_generators]
+                [(0, 0, 0, 0, 0, 0), (0, -3, -3, -3, -3, -6)]
+            """
+            coords = self.coordinates()
+            z = [coords[-1] - coords[0], coords[-2] - coords[-3],
+                 coords[2] - coords[1], (coords[-3] - coords[2]) // 2]
+            return (0, z[0], z[0] + z[1], z[0] + z[1] + 3*z[3],
+                    sum(z) + 2*z[3], sum(z) + z[0] + 2*z[3])
+
+        def e0(self):
+            r"""
+            Return the action of `e_0` on ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 1)
+                sage: ascii_art([b.e0() for b in K[:6]])
+                [  -2         3    0   -3   -3 ]
+                [  -1,   -,  -2,  -2,  -2,  -1 ]
+                sage: all(b.e0() is None for b in K[6:])
+                True
+            """
+            A = self._A
+            c = list(self.coordinates())
+            M = max(A)
+            if A[5] == M:
+                if c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5] == 3*self.parent()._s:
+                    return None
+                c[5] += 3
+                return self.parent().from_coordinates(c)
+            if A[4] == M:
+                c[0] -= 3
+                c[2] += 3
+                c[3] += 3
+                return self.parent().from_coordinates(c)
+            if A[3] == M:
+                c[1] -= 3
+                c[3] += 6
+                return self.parent().from_coordinates(c)
+            if A[2] == M:
+                z4 = (c[-3] - c[2]) // 2
+                if z4 == -1:
+                    c[1] -= 2
+                    c[2] -= 2
+                    c[3] += 4
+                    c[4] += 1
+                elif z4 == -2:
+                    c[1] -= 1
+                    c[2] -= 4
+                    c[3] += 2
+                    c[4] += 2
+                else:
+                    c[2] -= 6
+                    c[4] += 3
+                return self.parent().from_coordinates(c)
+            if A[1] == M:
+                c[2] -= 3
+                c[3] -= 3
+                c[5] += 3
+                return self.parent().from_coordinates(c)
+            if A[0] == M:
+                c[0] -= 3
+                return self.parent().from_coordinates(c)
+
+        def f0(self):
+            r"""
+            Return the action of `f_0` on ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 1)
+                sage: K[0].f0()
+                [[1], [2]]
+                sage: ascii_art([b.f0() for b in K[6:]])
+                [         1    2    2    2                        ]
+                [ None,   3,   3,   0,  -3,   -, None, None, None ]
+            """
+            A = self._A
+            c = list(self.coordinates())
+            M = max(A)
+            if A[0] == M:
+                if c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5] == 3*self.parent()._s:
+                    return None
+                c[0] += 3
+                return self.parent().from_coordinates(c)
+            if A[1] == M:
+                c[2] += 3
+                c[3] += 3
+                c[5] -= 3
+                return self.parent().from_coordinates(c)
+            if A[2] == M:
+                c[2] += 6
+                c[4] -= 3
+                return self.parent().from_coordinates(c)
+            if A[3] == M:
+                z4 = (c[-3] - c[2]) // 2
+                if z4 == 1:
+                    c[1] += 1
+                    c[2] += 4
+                    c[3] -= 2
+                    c[4] -= 2
+                elif z4 == 2:
+                    c[1] += 2
+                    c[2] += 2
+                    c[3] -= 4
+                    c[4] -= 1
+                else:
+                    c[1] += 3
+                    c[3] -= 6
+                return self.parent().from_coordinates(c)
+            if A[4] == M:
+                c[0] += 3
+                c[2] -= 3
+                c[3] -= 3
+                return self.parent().from_coordinates(c)
+            if A[5] == M:
+                c[5] -= 3
+                return self.parent().from_coordinates(c)
+
+        def epsilon0(self):
+            r"""
+            Return `\varepsilon_0` of ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 5)
+                sage: [mg.epsilon0() for mg in K.module_generators]
+                [5, 6, 7, 8, 9, 10]
+            """
+            c = self.coordinates()
+            z = [c[-1] - c[0], c[-2] - c[-3], c[2] - c[1], (c[-3] - c[2]) // 2]
+            sb = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
+            return self.parent()._s + (max(self._A) - sb - (2*z[0] + z[1] + z[2] + 3*z[3])) // 3
+
+        def phi0(self):
+            r"""
+            Return `\varphi_0` of ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['G',2,1], 2, 5)
+                sage: [mg.phi0() for mg in K.module_generators]
+                [5, 4, 3, 2, 1, 0]
+            """
+            c = self.coordinates()
+            sb = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
+            return self.parent()._s + (max(self._A) - sb) // 3
 
 class CrystalOfTableaux_E7(CrystalOfTableaux):
     r"""
