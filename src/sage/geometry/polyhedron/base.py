@@ -2689,20 +2689,20 @@ class Polyhedron_base(Element):
 
     def is_pyramid(self, certificate=False):
         """
-        Test weather the polytope is a pyramid over one of its facets.
+        Test whether the polytope is a pyramid over one of its facets.
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) boolean; specifies weather
-          to return a facet over which the polytope is a pyramid, if found
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+          to return a vertex of the polytope which is the apex of a pyramid,
+          if found
 
         OUTPUT:
 
         If ``certificate`` is ``True``, returns a tuple containing:
 
         1. Boolean.
-        2. List of the vertices of a facet over which the polytope is a
-           pyramid  or ``None``.
+        2. The apex of the pyramid or ``None``.
 
         If ``certificate`` is ``False`` returns:
 
@@ -2714,22 +2714,18 @@ class Polyhedron_base(Element):
             sage: P.is_pyramid()
             True
             sage: P.is_pyramid(certificate=True)
-            (True,
-             [A vertex at (0, 0, 0, 1),
-              A vertex at (0, 0, 1, 0),
-              A vertex at (0, 1, 0, 0)])
+            (True, A vertex at (1, 0, 0, 0))
             sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
             sage: egyptian_pyramid.is_pyramid()
             True
             sage: Q = polytopes.octahedron()
             sage: Q.is_pyramid()
             False
-
         """
         if not self.is_compact():
             raise NotImplementedError("The polyhedron has to be compact.")
 
-        ## Find a facet that contains all the vertices but one.
+        # Find a facet that contains all the vertices but one.
         n = self.n_vertices()
         I = self.incidence_matrix()
         facets = [column.nonzero_positions() for column in I.columns()]
@@ -2737,7 +2733,8 @@ class Polyhedron_base(Element):
             if len(facet) == n-1:
                 if certificate:
                     V = self.vertices()
-                    return (True, [V[i] for i in facet])
+                    apex = [V[i] for i in range(n) if i not in facet][0]
+                    return (True, apex)
                 return True
         if certificate:
             return (False, None)
@@ -2745,12 +2742,12 @@ class Polyhedron_base(Element):
 
     def is_bipyramid(self, certificate=False):
         """
-        Test weather the polytope is combinatorially equivalent to a
+        Test whether the polytope is combinatorially equivalent to a
         bipyramid over some polytope.
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) boolean; specifies weather
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether
           to return two vertices of the polytope which are the apices of a
           bipyramid, if found
 
@@ -2832,12 +2829,12 @@ class Polyhedron_base(Element):
 
     def is_prism(self, certificate=False):
         """
-        Test weather the polytope is combinatorially equivalent to a prism of
+        Test whether the polytope is combinatorially equivalent to a prism of
         some polytope.
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) boolean; specifies weather
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether
           to return two facets of the polytope which are the bases of a prism,
           if found
 
