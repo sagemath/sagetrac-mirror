@@ -19,7 +19,12 @@ dnl Just part the options here
     
     case "$with_ntl" in
         system)
-dnl           LB_CHECK_NTL(10.3, [sage_spkg_install_ntl=no], [sage_spkg_install_ntl=yes])
+        AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
+        AC_MSG_CHECKING([Installing gmp/mpir? ])
+        if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
+            AC_MSG_RESULT([Yes. Install ntl as well.])
+            sage_spkg_install_ntl=yes
+        else
             AC_CHECK_HEADER([NTL/ZZ.h], [], [sage_spkg_install_ntl=yes])
             AC_LINK_IFELSE([
 	     AC_LANG_PROGRAM([[#include <NTL/ZZ.h>]],
@@ -40,7 +45,8 @@ dnl           LB_CHECK_NTL(10.3, [sage_spkg_install_ntl=no], [sage_spkg_install_
                AC_SUBST(SAGE_NTL_PREFIX, [''])
                AC_MSG_RESULT([using ntl library from the system])
             fi
-            ;;
+        fi
+        ;;
         install)
             sage_spkg_install_ntl=yes
             AC_SUBST(SAGE_NTL_PREFIX, ['$SAGE_LOCAL'])
