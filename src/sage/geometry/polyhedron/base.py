@@ -2776,7 +2776,6 @@ class Polyhedron_base(Element):
             sage: R = Q.bipyramid()
             sage: R.is_bipyramid(certificate=True)
             (True, [A vertex at (-1, 3, 13, 63), A vertex at (1, 3, 13, 63)])
-
         """
         if not self.is_compact():
             raise NotImplementedError("The polyhedron has to be compact.")
@@ -2788,7 +2787,7 @@ class Polyhedron_base(Element):
                 return (False, None)
             return False
 
-        # Find tow vertices ``vertex1`` and ``vertex2`` such that one of them
+        # Find two vertices ``vertex1`` and ``vertex2`` such that one of them
         # lies on exactly half of the facets, and the other one lies on
         # exactly the other half. Then check that for each vertex other than
         # ``vertex1`` and ``vertex2``, half of the facets it lies on contains
@@ -2887,7 +2886,6 @@ class Polyhedron_base(Element):
                A vertex at (0, 5, 25, 125),
                A vertex at (0, 6, 36, 216),
                A vertex at (0, 7, 49, 343)]])
-
         """
         if not self.is_compact():
             raise NotImplementedError("The polyhedron has to be compact.")
@@ -2899,7 +2897,7 @@ class Polyhedron_base(Element):
                 return (False, None)
             return False
 
-        # Find tow facets ``facet1`` and ``facet2`` such that one of them
+        # Find two facets ``facet1`` and ``facet2`` such that one of them
         # contains exactly half of the vertices, and the other one contains
         # exactly the other half. Then check that each facet other than
         # ``facet1`` and ``facet2`` has half of its vertices on ``facet1``
