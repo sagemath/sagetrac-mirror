@@ -254,7 +254,8 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     cls_name = ["HyperellipticCurve"]
 
     genus_classes = {
-        2 :  HyperellipticCurve_g2}
+        2 :  HyperellipticCurve_g2,
+        3 :  HyperellipticCurve_g3}
 
     fields = [
         ("FiniteField", is_FiniteField, HyperellipticCurve_finite_field),

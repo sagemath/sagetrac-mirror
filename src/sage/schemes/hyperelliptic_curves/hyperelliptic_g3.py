@@ -48,7 +48,20 @@ class HyperellipticCurve_g3(hyperelliptic_generic.HyperellipticCurve_generic):
             -1832866169368/12353145, -4626584012971696/3026520525, 1415110141852160/363182463,
             713601762721839616/17795940687]
 
+        TESTS:
 
+        Check that the inheritance is correct::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^7 - x^4 + 3
+            sage: C = HyperellipticCurve(f)
+            sage: type(C).mro()
+            [<class 'sage.schemes.hyperelliptic_curves.constructor.HyperellipticCurve_g3_RationalField_with_category'>,
+             <class 'sage.schemes.hyperelliptic_curves.constructor.HyperellipticCurve_g3_RationalField'>,
+             <class 'sage.schemes.hyperelliptic_curves.hyperelliptic_g3.HyperellipticCurve_g3'>,
+             <class 'sage.schemes.hyperelliptic_curves.hyperelliptic_rational_field.HyperellipticCurve_rational_field'>,
+             <class 'sage.schemes.hyperelliptic_curves.hyperelliptic_generic.HyperellipticCurve_generic'>,
+             ...]
         """
         f, h = self.hyperelliptic_polynomials()
         return invariants.shioda_invariants(4*f + h**2)
