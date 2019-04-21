@@ -3693,7 +3693,15 @@ class Tableau(ClonableList):
             True
             sage: t.right_key_tableau() == t
             True
+
+        We check that the empty tableau, which is a key tableau, yields itself::
+
+            sage: Tableau([]).right_key_tableau()
+            []
+
         """
+        if not self:
+            return self
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
 
@@ -3754,7 +3762,15 @@ class Tableau(ClonableList):
             True
             sage: t.left_key_tableau() == t
             True
+
+        We check that the empty tableau, which is a key tableau, yields itself::
+
+            sage: Tableau([]).left_key_tableau()
+            []
+
         """
+        if not self:
+            return self
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
         key[0] = list(cols_list[0])
@@ -9466,9 +9482,3 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_n',  S
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_p',  SemistandardTableaux_shape)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu',  SemistandardTableaux_size_weight)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu',  SemistandardTableaux_shape_weight)
-
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
-
