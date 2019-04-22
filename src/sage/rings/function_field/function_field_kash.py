@@ -17,6 +17,10 @@ objects if the kash_constant_field has changed.
 
 EXAMPLES::
 
+    # silences warnings about toy Buchberger implementation due to our use
+    # of variety() and dimension() on ideals over QQbar
+    sage: set_verbose(-1)                                     # optional - kash
+
     sage: F.<x> = FunctionField(QQ, implementation='kash')    # optional - kash
     sage: R.<Y> = F[]                                         # optional - kash
     sage: L.<y> = F.extension(Y^2 - x^8 - 1)                  # optional - kash
@@ -95,6 +99,7 @@ from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.number_field.number_field_base import NumberField
 from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
+from sage.rings.ideal import Ideal
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -283,24 +288,61 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         """
 
-        # XXX - should also be able to factor polynomials in the extension function field C(x,y)
-
         algebraics = []
         if self.working_constant_field != QQ:
             algebraics.append(self.working_constant_field.gen())
 
         if isinstance(arg, FunctionFieldDivisor):
-            arg = itertools.chain.from_iterable([pls.prime_ideal().gens() for pls in arg.support()])
+            ideals = [pls.prime_ideal().gens() for pls in arg.support()]
+        else:
+            ideals = [arg]
 
-        for g in arg:
-            if isinstance(g, FunctionFieldElement) and g.parent() is self:
-                for r,m in g.element().numerator().change_ring(QQbar).roots():
-                    algebraics.append(r)
+        # We've now got a list of ideals, each specified as a list of
+        # generators.  For zero-dimensional ideals, we find their
+        # solution points and extend working_constant_field enough to
+        # express their coordinates.  For higher dimensional ideals,
+        # we currently do nothing, though I'm not sure that's right.
+
+        # Function field ideals are not polynomial ideals, so we can't
+        # just form the generators into an ideal; they have to be
+        # converted into a polynomial ring, using our numerator()
+        # function.
+
+        # _to_bivariate_polynomial() doesn't work on polynomials over
+        # the underlying function field, only on polynomials in the
+        # extension.  Also, ideal(1) needs to be converted to
+        # ideal(Integer(1)), or it will fail.
+
+        from sage.rings.integer import Integer
+
+        def numerator(x):
+            if isinstance(x, int):
+                return Integer(x)
+            elif not isinstance(x, FunctionFieldElement):
+                return x
+            elif x.parent() is self:
+                return x.numerator()
+            else:
+                return self._to_bivariate_polynomial(x)[0]
+
+        from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+
+        for I in ideals:
+            I = Ideal(map(numerator, I))
+            if isinstance(I.ring(), PolynomialRing_general):
+                # univariate case - ideals over univariate rings don't
+                # implement dimension() or variety()
+                algebraics.extend(I.gen().roots(multiplicities=False))
+            elif isinstance(I.ring(), MPolynomialRing_base):
+                if I.dimension() == 0:
+                    for point in I.variety():
+                        algebraics.extend(point.values())
 
         (constant_field, new_algebraics, nftoQQbar) = number_field_elements_from_algebraics(algebraics)
 
-        # If we decided to expand our number field, then redo the divisor
-        # computation in a new function field
+        # If we decided to expand our number field, then duplicate constant_field,
+        # but with an embedding attached, and set it as our new working constant field.
 
         if constant_field.degree() != self.working_constant_field.degree():
             import sage.rings.number_field.number_field as number_field
