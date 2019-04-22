@@ -622,12 +622,12 @@ def solve(f, *args, **kwds):
        some solutions of trigonometric equations are lost).
 
     - ``algorithm`` - string (default: 'maxima'); to use SymPy's
-       solvers set this to 'sympy'. Note that SymPy is always used
-       for diophantine equations.
+      solvers set this to 'sympy'. Note that SymPy is always used
+      for diophantine equations.
 
     - ``domain`` - string (default: 'complex'); setting this to 'real'
-       changes the way SymPy solves single equations; inequalities
-       are always solvedin the real domain.
+      changes the way SymPy solves single equations; inequalities
+      are always solved in the real domain.
 
     EXAMPLES::
 
@@ -916,7 +916,6 @@ def solve(f, *args, **kwds):
         sage: solve(sinh(x) - 2*cosh(x),x,algorithm='sympy')
         ConditionSet(x, Eq((-exp(2*x) - 3)*exp(-x)/2, 0), Reals)
         sage: solve(2*sin(x) - 2*sin(2*x), x,algorithm='sympy')
-        ...
         [ImageSet(Lambda(_n, 2*_n*pi), Integers),
          ImageSet(Lambda(_n, 2*_n*pi + pi), Integers),
          ImageSet(Lambda(_n, 2*_n*pi + 5*pi/3), Integers),
@@ -1146,6 +1145,7 @@ def solve(f, *args, **kwds):
     else:
         return sol_list
 
+
 def _solve_expression(f, x, explicit_solutions, multiplicities,
                      to_poly_solve, solution_dict, algorithm, domain):
     """
@@ -1153,7 +1153,7 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
 
     .. NOTE::
 
-        This is an auxillery function only meant to be called
+        This is an auxiliary function only meant to be called
         from :func:`solve`.
 
     TESTS:
