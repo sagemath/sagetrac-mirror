@@ -477,15 +477,52 @@ class FunctionFieldDifferential_kash(FunctionFieldDifferential_global):
             discard any positive places to get the divisor of poles,
             then extend the constant field so that all of of those places
             factor, then repeat the calculation for the final result.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y>=K[] # optional - kash
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)            # optional - kash
+            sage: w = (1/y) * y.differential()                # optional - kash
+            sage: w.divisor_of_poles()                        # optional - kash
+            Place (1/x, -1/x^3*y^2 + 1/x)
+             + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
+             + Place (x, y)
+
+            sage: R.<x> = FunctionField(QQ, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: root = x^4+4*x^3+2*x^2+1                    # optional - kash
+            sage: F.<y> = R.extension(y^2 - root)             # optional - kash
+            sage: num = 6*x^2 + 5*x +7                        # optional - kash
+            sage: den = 2*x^6 + 8*x^5 + 3*x^4 + - 4*x^3 - 1   # optional - kash
+            sage: integrand = y*num/den * x.differential();   # optional - kash
+            sage: integrand.divisor_of_poles()                # optional - kash
+            Place (x^2 - 1/2, y - 2*x - 1/2)
+             + Place (x^2 - 1/2, y + 2*x + 1/2)
+
+            sage: QQbar.options.display_format = 'radical'    # optional - kash
+            sage: R.<x> = FunctionField(QQbar, implementation='kash') # optional - kash
+            sage: L.<y> = R[]                                 # optional - kash
+            sage: root = x^4+4*x^3+2*x^2+1                    # optional - kash
+            sage: F.<y> = R.extension(y^2 - root)             # optional - kash
+            sage: num = 6*x^2 + 5*x +7                        # optional - kash
+            sage: den = 2*x^6 + 8*x^5 + 3*x^4 + - 4*x^3 - 1   # optional - kash
+            sage: integrand = y*num/den * x.differential();   # optional - kash
+            sage: integrand.divisor_of_poles()                # optional - kash
+            Place (x - 1/2*sqrt(2), y - sqrt(2) - 1/2)
+             + Place (x - 1/2*sqrt(2), y + sqrt(2) + 1/2)
+             + Place (x + 1/2*sqrt(2), y - sqrt(2) + 1/2)
+             + Place (x + 1/2*sqrt(2), y + sqrt(2) - 1/2)
+
         """
         from .divisor import FunctionFieldDivisor
-        F = self._field
+        F = self.base_ring()
         x = F.base_field().gen()
         D = self._f._divisor() + (-2) * F(x)._divisor_of_poles() + F.different()
         D = FunctionFieldDivisor(D.parent().function_field(), {p:-m for p,m in D.list() if m < 0})
-        F.base_field()._extend_constant_field(D)
-        D = self._f._divisor() + (-2) * F(x)._divisor_of_poles() + F.different()
-        D = FunctionFieldDivisor(D.parent().function_field(), {p:-m for p,m in D.list() if m < 0})
+        if F.constant_base_field() is QQbar:
+            F.base_field()._extend_constant_field(D)
+            D = self._f._divisor() + (-2) * F(x)._divisor_of_poles() + F.different()
+            D = FunctionFieldDivisor(D.parent().function_field(), {p:-m for p,m in D.list() if m < 0})
         return D
 
     def residue(self, place):
