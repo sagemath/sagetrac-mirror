@@ -1,0 +1,14 @@
+diff -u /Users/mkoeppe/s/sage/sage-rebasing/local/var/tmp/sage/build/flint-2.5.2\+trunk-2018-09-18-e12c83de3e100a113dbc030894d89f67dfe83cd4/src/Makefile.in /Users/mkoeppe/s/sage/sage-rebasing/local/var/tmp/sage/build/flint-2.5.2\+trunk-2018-09-18-e12c83de3e100a113dbc030894d89f67dfe83cd4/src/Makefile.in.new
+--- a/Makefile.in	2019-04-23 04:03:20.000000000 +0200
++++ b/Makefile.in	2019-04-23 04:08:48.000000000 +0200
+@@ -211,7 +211,7 @@
+ 	cp flintxx/*.h "$(DESTDIR)$(PREFIX)/include/flint/flintxx"
+ 	cp *xx.h "$(DESTDIR)$(PREFIX)/include/flint"
+ 	$(AT)if [ "$(OS)" = "Darwin" ]; then \
+-		install_name_tool -id "$(DESTDIR)$(PREFIX)/$(LIBDIR)/$(FLINT_LIB)" "$(DESTDIR)$(PREFIX)/$(LIBDIR)/$(FLINT_LIBNAME)"; \
++		install_name_tool -id "$(PREFIX)/$(LIBDIR)/$(FLINT_LIB)" "$(DESTDIR)$(PREFIX)/$(LIBDIR)/$(FLINT_LIBNAME)"; \
+ 	fi
+ 
+ build:
+
+
