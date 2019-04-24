@@ -170,7 +170,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 
 init_code = ['besselexpand : true', 'display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)', 'load(diag)']
+            'load(diag)']
 
 
 # Turn off the prompt labels, since computing them *very
@@ -716,84 +716,12 @@ class MaximaLib(MaximaAbstract):
             sage: assumptions()  # Check the assumptions really were forgotten
             []
 
-        Make sure the abs_integrate package is being used,
-        :trac:`11483`. The following are examples from the Maxima
-        abs_integrate documentation::
-
-            sage: integrate(abs(x), x)
-            1/2*x*abs(x)
-
-        ::
-
-            sage: integrate(sgn(x) - sgn(1-x), x)
-            abs(x - 1) + abs(x)
-
-        This is a known bug in Sage symbolic limits code, see
-        :trac:`17892` and https://sourceforge.net/p/maxima/bugs/3237/ ::
-
-            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6) # not tested -- known bug
-            log(11) + log(2)
-
-        ::
-
-            sage: integrate(1/(1 + abs(x)), x)
-            1/2*(log(x + 1) + log(-x + 1))*sgn(x) + 1/2*log(x + 1) - 1/2*log(-x + 1)
-
-        ::
-
-            sage: integrate(cos(x + abs(x)), x)
-            -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
-
-        The last example relies on the following simplification::
-
-            sage: maxima("realpart(signum(x))")
-            signum(x)
-
-        An example from sage-support thread e641001f8b8d1129::
-
-            sage: f = e^(-x^2/2)/sqrt(2*pi) * sgn(x-1)
-            sage: integrate(f, x, -Infinity, Infinity)
-            -erf(1/2*sqrt(2))
-
-        From :trac:`8624`::
-
-            sage: integral(abs(cos(x))*sin(x),(x,pi/2,pi))
-            1/2
-
-        ::
-
-            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()
-            1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
-
-        And :trac:`11594`::
-
-            sage: integrate(abs(x^2 - 1), x, -2, 2)
-            4
-
         This definite integral returned zero (incorrectly) in at least
         Maxima 5.23. The correct answer is now given (:trac:`11591`)::
 
             sage: f = (x^2)*exp(x) / (1+exp(x))^2
             sage: integrate(f, (x, -infinity, infinity))
             1/3*pi^2
-
-        Sometimes one needs different simplification settings, such as
-        ``radexpand``, to compute an integral (see :trac:`10955`)::
-
-            sage: f = sqrt(x + 1/x^2)
-            sage: maxima = sage.calculus.calculus.maxima
-            sage: maxima('radexpand')
-            true
-            sage: integrate(f, x)
-            integrate(sqrt(x + 1/x^2), x)
-            sage: maxima('radexpand: all')
-            all
-            sage: g = integrate(f, x); g
-            2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
-            sage: (f - g.diff(x)).canonicalize_radical()
-            0
-            sage: maxima('radexpand: true')
-            true
 
         The following integral was computed incorrectly in versions of
         Maxima before 5.27 (see :trac:`12947`)::

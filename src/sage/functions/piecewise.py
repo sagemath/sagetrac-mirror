@@ -200,6 +200,7 @@ class PiecewiseFunction(BuiltinFunction):
             sage: p = piecewise([((-2, 0), -x), ([0, 4], x)], var=x)
             sage: p.subs(x=-1)
             1
+<<<<<<< HEAD
             sage: (10+p).subs(x=-1)
             11
             sage: p.subs(x=pi)
@@ -226,6 +227,227 @@ class PiecewiseFunction(BuiltinFunction):
             if hasattr(point, 'pyobject'):
                 # unwrap any numeric values
                 point = point.pyobject()
+=======
+            sage: f(5/2)
+            e^(5/2)
+            sage: f(5/2).n()
+            12.1824939607035
+            sage: f(1)
+            1/2
+        """
+        #x0 = QQ(x0) ## does not allow for evaluation at pi
+        n = self.length()
+        endpts = self.end_points()
+        for i in range(1,n):
+            if x0 == endpts[i]:
+                return (self.functions()[i-1](x0) + self.functions()[i](x0))/2
+        if x0 == endpts[0]:
+            return self.functions()[0](x0)
+        if x0 == endpts[n]:
+            return self.functions()[n-1](x0)
+        for i in range(n):
+            if endpts[i] < x0 < endpts[i+1]:
+                return self.functions()[i](x0)
+        raise ValueError("Value not defined outside of domain.")
+
+    def which_function(self,x0):
+        """
+        Returns the function piece used to evaluate self at x0.
+
+        EXAMPLES::
+
+            sage: f1(z) = z
+            sage: f2(x) = 1-x
+            sage: f3(y) = exp(y)
+            sage: f4(t) = sin(2*t)
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.which_function(3/2)
+            x |--> -x + 1
+        """
+        for (a,b), f in self.list():
+            if a <= x0 <= b:
+                return f
+        raise ValueError("Function not defined outside of domain.")
+
+    def default_variable(self):
+        r"""
+        Return the default variable. The default variable is defined as the
+        first variable in the first piece that has a variable. If no pieces have
+        a variable (each piece is a constant value), `x` is returned.
+
+        The result is cached.
+
+        AUTHOR: Paul Butler
+
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 5*x
+            sage: p = Piecewise([[(0,1),f1],[(1,4),f2]])
+            sage: p.default_variable()
+            x
+
+            sage: f1 = 3*var('y')
+            sage: p = Piecewise([[(0,1),4],[(1,4),f1]])
+            sage: p.default_variable()
+            y
+
+        """
+        try:
+            return self.__default_variable
+        except AttributeError:
+            pass
+        for _, fun in self._list:
+            try:
+                fun = SR(fun)
+                if fun.variables():
+                    v = fun.variables()[0]
+                    self.__default_variable = v
+                    return v
+            except TypeError:
+                # pass if fun is lambda function
+                pass
+        # default to x
+        v = SR.var('x')
+        self.__default_value = v
+        return v
+
+    def integral(self, x=None, a=None, b=None, definite=False):
+        r"""
+        By default, returns the indefinite integral of the function.
+        If definite=True is given, returns the definite integral.
+
+        AUTHOR:
+
+        - Paul Butler
+
+        EXAMPLES::
+
+            sage: f1(x) = 1-x
+            sage: f = Piecewise([[(0,1),1],[(1,2),f1]])
+            sage: f.integral(definite=True)
+            1/2
+
+        ::
+
+            sage: f1(x) = -1
+            sage: f2(x) = 2
+            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f.integral(definite=True)
+            1/2*pi
+
+            sage: f1(x) = 2
+            sage: f2(x) = 3 - x
+            sage: f = Piecewise([[(-2, 0), f1], [(0, 3), f2]])
+            sage: f.integral()
+            Piecewise defined function with 2 parts, [[(-2, 0), x |--> 2*x + 4], [(0, 3), x |--> -1/2*x^2 + 3*x + 4]]
+
+            sage: f1(y) = -1
+            sage: f2(y) = y + 3
+            sage: f3(y) = -y - 1
+            sage: f4(y) = y^2 - 1
+            sage: f5(y) = 3
+            sage: f = Piecewise([[(-4,-3),f1],[(-3,-2),f2],[(-2,0),f3],[(0,2),f4],[(2,3),f5]])
+            sage: F = f.integral(y)
+            sage: F
+            Piecewise defined function with 5 parts, [[(-4, -3), y |--> -y - 4], [(-3, -2), y |--> 1/2*y^2 + 3*y + 7/2], [(-2, 0), y |--> -1/2*y^2 - y - 1/2], [(0, 2), y |--> 1/3*y^3 - y - 1/2], [(2, 3), y |--> 3*y - 35/6]]
+
+        Ensure results are consistent with FTC::
+
+            sage: F(-3) - F(-4)
+            -1
+            sage: F(-1) - F(-3)
+            1
+            sage: F(2) - F(0)
+            2/3
+            sage: f.integral(y, 0, 2)
+            2/3
+            sage: F(3) - F(-4)
+            19/6
+            sage: f.integral(y, -4, 3)
+            19/6
+            sage: f.integral(definite=True)
+            19/6
+
+        ::
+
+            sage: f1(y) = (y+3)^2
+            sage: f2(y) = y+3
+            sage: f3(y) = 3
+            sage: f = Piecewise([[(-infinity, -3), f1], [(-3, 0), f2], [(0, infinity), f3]])
+            sage: f.integral()
+            Piecewise defined function with 3 parts, [[(-Infinity, -3), y |--> 1/3*y^3 + 3*y^2 + 9*y + 9], [(-3, 0), y |--> 1/2*y^2 + 3*y + 9/2], [(0, +Infinity), y |--> 3*y + 9/2]]
+
+        ::
+
+            sage: f = Piecewise([((0, 5), cos(x))])
+            sage: f.integral()
+            Piecewise defined function with 1 parts, [[(0, 5), x |--> sin(x)]]
+
+
+        TESTS:
+
+        Verify that piecewise integrals of zero work (trac #10841)::
+
+            sage: f0(x) = 0
+            sage: f = Piecewise([[(0,1),f0]])
+            sage: f.integral(x,0,1)
+            0
+            sage: f = Piecewise([[(0,1), 0]])
+            sage: f.integral(x,0,1)
+            0
+            sage: f = Piecewise([[(0,1), SR(0)]])
+            sage: f.integral(x,0,1)
+            0
+
+        """
+        if a is not None and b is not None:
+            F = self.integral(x)
+            return F(b) - F(a)
+
+        if a is not None or b is not None:
+            raise TypeError('only one endpoint given')
+
+        area = 0 # cumulative definite integral of parts to the left of the current interval
+        integrand_pieces = sorted(self.list())
+        new_pieces = []
+
+        if x is None:
+            x = self.default_variable()
+
+        # The integral is computed by iterating over the pieces in order.
+        # The definite integral for each piece is calculated and accumulated in `area`.
+        # Thus at any time, `area` represents the definite integral of all the pieces
+        # encountered so far. The indefinite integral of each piece is also calculated,
+        # and the `area` before each piece is added to the piece.
+        #
+        # If a definite integral is requested, `area` is returned.
+        # Otherwise, a piecewise function is constructed from the indefinite integrals
+        # and returned.
+        #
+        # An exception is made if integral is called on a piecewise function
+        # that starts at -infinity. In this case, we do not try to calculate the
+        # definite integral of the first piece, and the value of `area` remains 0
+        # after the first piece.
+
+        for (start, end), fun in integrand_pieces:
+            fun = SR(fun)
+            if start == -infinity and not definite:
+                fun_integrated = fun.integral(x, end, x)
+            else:
+                try:
+                    assume(start < x)
+                except ValueError: # Assumption is redundant
+                    pass
+                fun_integrated = fun.integral(x, start, x) + area
+                forget(start < x)
+                if definite or end != infinity:
+                    area += fun.integral(x, start, end)
+            new_pieces.append([(start, end), SR(fun_integrated).function(x)])
+
+        if definite:
+            return SR(area)
+>>>>>>> 1993a28f9ea2dec2cfb255fddee6f01939f69372
         else:
             raise ValueError('substituting the piecewise variable must result in real number')
 
