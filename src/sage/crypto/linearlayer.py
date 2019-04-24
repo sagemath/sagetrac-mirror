@@ -1,13 +1,35 @@
 r"""
 Linear layer Representation
 
-Linear layers play an important role in block cipher designs, especially in
-substitution-permutation-networks (SPNs).
+Many modern block cipher constructions in symmetric cryptography use linear
+layers as one of their basic building blocks. A linear layer is typically
+used to spread locally diffused bits over the whole state of the block cipher.
+As linear layers are, well, linear, and typically operate on bits, nibbles,
+or bytes, we can represent it as a matrix over `\GF{2}`, `\GF{2^4}`, or
+`\GF{2^8}`. Application of the linear layer to x then just corresponds to
+left multiplication of this matrix: `A \cdot x`. This generic linear layer
+behaviour is implemented in the generic
+:class:`~sage.crypto.linearlayer.LinearLayer` class.
+In order to allow the interchangeable use of a linear layer object and a
+matrix, and to inherit the according methods from the matrix class, the
+linear layer class inherits from the according matrix class, that is either
+Matrix_mod2_dense or Matrix_gf2e_dense. For implementation reasons a linear
+layer has thus be initialised using the
+LinearLayer.:attr:`~sage.crypto.linearlayer.LinearLayer.new()` method.
 
-Available classes are the generic ``LinearLayer`` and ``AESLikeLinearLayer``.
+A more specific form of linear layers is the one used in the design of the
+AES, see [DR2002]_, and afterwards used in many other designs. The state
+in an "AES-like" cipher is organised as a (square) matrix, and "AES-like
+linear layers" are of the form `\mathrm{MC} \circ \mathrm{SC}`, where
+`\mathrm{SC}` is the so called ShuffleCell permutation, that is a permutation
+of the cells (the state-matrix entries), and `\mathrm{MC}` is the so called
+MixColumns operation that operates on the columns of the state-matrix.
+The :class:`~sage.crypto.linearlayer.AESLikeLinearLayer` class' method
+AESLikeLinearLayer.:attr:`~sage.crypto.linearlayer.AESLikeLinearLayer.new()`
+takes these two as an input to construct the according linear layer object.
 
 Apart from that, there are also linear layers available which are used in the
-literature, either in  the dictionary linearlayers, or as a seperate object.
+literature, either in the dictionary `linearlayers`, or as a separate object.
 This module provides the following linear layers:
 
     - AES ([DR2002]_)
@@ -28,6 +50,31 @@ EXAMPLES::
     LinearLayer of dimension 2 x 2 represented as
     [1 0]
     [0 1]
+
+The AES design uses a left rotation by `i` positions for the `i`-th row of the
+state-matrix as the ShuffleCell part::
+
+    sage: from sage.crypto.linearlayer import AESLikeLinearLayer
+    sage: from sage.crypto.linearlayer import Left_ShiftRows
+    sage: left_sc = AESLikeLinearLayer.new(sc=Left_ShiftRows, mc=identity_matrix(GF(2^8), 4))
+    sage: left_sc
+    AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
+    [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
+    and MixColumns
+    [1 0 0 0]
+    [0 1 0 0]
+    [0 0 1 0]
+    [0 0 0 1]
+    sage: m = matrix(GF(2^8), 4, 4, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0]); m
+    [1 0 0 0]
+    [1 0 0 0]
+    [1 0 0 0]
+    [1 0 0 0]
+    sage: left_sc(m)
+    [1 0 0 0]
+    [0 0 0 1]
+    [0 0 1 0]
+    [0 1 0 0]
 
 AUTHORS:
 
@@ -138,7 +185,7 @@ def _column_linear_layer(Ls):
 
         sage: from sage.crypto.linearlayer import Midori
         sage: Midori  # indirect doctest
-        AES like LinearLayer of dimension 64 x 64 represented by ShiftRows
+        AES like LinearLayer of dimension 64 x 64 represented by ShuffleCells
         [1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9]
         and MixColumns
         [0 1 1 1]
@@ -160,13 +207,6 @@ def _column_linear_layer(Ls):
 
 class LinearLayer:
     r"""
-    Many modern block cipher constructions in symmetric cryptography use linear
-    layers as one of their basic building blocks. A linear layer is typically
-    used to spread locally diffused bits over the whole state of the block cipher.
-    As linear layers are, well, linear, and operate on bits, nibbles, or bytes, we
-    can represent it as a matrix over `\GF{2}^n`, `\GF{2^4}^n`, or `\GF{2^8}^n`.
-    Application of the linear layer to x then just corresponds to left
-    multiplication of this matrix: `A \cdot x`.
 
     EXAMPLES:
 
@@ -181,6 +221,23 @@ class LinearLayer:
         sage: id.is_permutation()
         True
 
+    Calling a LinearLayer object applies the corresponding linear layer to the
+    output::
+
+        sage: from sage.crypto.linearlayer import LinearLayer
+        sage: L = LinearLayer.new(Matrix(GF(2), [[0,1,0],[1,0,1]]))
+        sage: L(3)
+        3
+
+        sage: L((0, 1, 1))
+        (1, 1)
+
+        sage: L([0, 1, 1])
+        [1, 1]
+
+        sage: L(vector(GF(2), [0, 1, 1]))
+        (1, 1)
+
     A list (dictionary) of linear layers used in the literature is also available::
 
         sage: from sage.crypto.linearlayer import linearlayers
@@ -190,6 +247,8 @@ class LinearLayer:
         to see the entries)
         sage: linearlayers['PRESENT'].is_permutation()
         True
+
+    .. automethod:: __call__
     """
     @staticmethod
     @experimental(25735)
@@ -507,17 +566,17 @@ class LinearLayer:
 
 class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
     r"""
-    An AES like linear layer consists of ShiftRows and MixColumns matrices,
+    An AES like linear layer consists of ShuffleCells and MixColumns matrices,
     corresponding to the linear layer structure used in the AES.
 
-    Here, ShiftRows is either a Permutation object, or a permutation matrix,
+    Here, ShuffleCells is either a Permutation object, or a permutation matrix,
     and MixColumns any arbitrary matrix.
 
     EXAMPLES::
 
         sage: from sage.crypto.linearlayer import linearlayers
         sage: linearlayers['AES']
-        AES like LinearLayer of dimension 128 x 128 represented by ShiftRows
+        AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
         [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
         and MixColumns
         [    x x + 1     1     1]
@@ -527,42 +586,42 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
     """
     @staticmethod
     @experimental(25735)
-    def new(sr, mc, apply_columns=True):
+    def new(sc, mc, apply_columns=True):
         """
         Construct an AES linear layer for a given matrix `L` of dimension m x n.
 
         INPUT:
 
-        - ``ShiftRows`` - a permutation or matrix representing the shift rows part
-        - ``MixColumns`` - a matrix representing the mix columns part
+        - ``sc`` - a permutation or matrix representing the ShuffleCells part
+        - ``mc`` - a matrix representing the MixColumns part
         - ``apply_columns`` - Bool; wether to apply MixColumns column-wise (default)
             or row-wise
 
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import linearlayers
-            sage: linearlayers['AES']
-            AES like LinearLayer of dimension 128 x 128 represented by ShiftRows
-            [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
+            sage: linearlayers['SKINNY_4']
+            AES like LinearLayer of dimension 64 x 64 represented by ShuffleCells
+            [1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3, 16, 13, 10, 7, 4]
             and MixColumns
-            [    x x + 1     1     1]
-            [    1     x x + 1     1]
-            [    1     1     x x + 1]
-            [x + 1     1     1     x]
+            [1 0 1 1]
+            [1 0 0 0]
+            [0 1 1 0]
+            [1 0 1 0]
         """
         K = mc.base_ring()
         if not (K.characteristic() == 2 and K.degree() >= 2):
             raise NotImplementedError
 
-        if isinstance(sr, Permutation):
-            sr = Matrix(K, sr.to_matrix())
+        if isinstance(sc, Permutation):
+            sc = Matrix(K, sc.to_matrix())
 
-        m = Matrix(K, _column_linear_layer([mc]*mc.ncols()))*sr
+        m = Matrix(K, _column_linear_layer([mc]*mc.ncols()))*sc
         if not apply_columns:
             raise NotImplementedError
 
         ll = AESLikeLinearLayer(m.parent(), m)
-        ll._sr = sr
+        ll._sc = sc
         ll._mc = mc
 
         return ll
@@ -573,7 +632,7 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
 
             sage: from sage.crypto.linearlayer import Midori
             sage: Midori  # indirect doctest
-            AES like LinearLayer of dimension 64 x 64 represented by ShiftRows
+            AES like LinearLayer of dimension 64 x 64 represented by ShuffleCells
             [1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9]
             and MixColumns
             [0 1 1 1]
@@ -581,13 +640,13 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
             [1 1 0 1]
             [1 1 1 0]
         """
-        # convert ShiftRows permutation matrix to a permutation object
-        perm_sr = Permutation(map(lambda x: 1+list(x).index(1), self._sr.columns()))
+        # convert ShuffleCells permutation matrix to a permutation object
+        perm_sc = Permutation(map(lambda x: 1+list(x).index(1), self._sc.columns()))
         n, m = self.dimensions()
         degree = self.base_ring().degree()
         return ("AES like LinearLayer of dimension %d x %d represented by "
-                "ShiftRows\n%s\nand MixColumns\n%s" \
-                % (n*degree, m*degree, perm_sr, self._mc))
+                "ShuffleCells\n%s\nand MixColumns\n%s" \
+                % (n*degree, m*degree, perm_sc, self._mc))
 
     @cached_method
     def differential_branch_number(self):
@@ -648,8 +707,6 @@ def smallscale_present_linearlayer(nsboxes=16):
     """
     The matrix representing SmallPRESENT with nsboxes many S-boxes.
 
-    Original PRESENT corresponds to nsboxes=16.
-
     INPUT:
 
     - ``nsboxes`` - integer, number of sboxes the linear layer operates on
@@ -677,9 +734,13 @@ def smallscale_present_linearlayer(nsboxes=16):
         [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
 
+    Original PRESENT corresponds to nsboxes=16::
+
+        sage: from sage.crypto.linearlayer import PRESENT
+        sage: smallscale_present_linearlayer(16) == PRESENT
+        True
     """
     from sage.modules.free_module import VectorSpace
-    from sage.modules.free_module_element import vector
 
     def present_llayer(n, x):
         dim = 4*n
