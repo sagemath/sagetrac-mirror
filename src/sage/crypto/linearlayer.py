@@ -15,7 +15,7 @@ matrix, and to inherit the according methods from the matrix class, the
 linear layer class inherits from the according matrix class, that is either
 Matrix_mod2_dense or Matrix_gf2e_dense. For implementation reasons a linear
 layer has thus be initialised using the
-LinearLayer.:attr:`~sage.crypto.linearlayer.LinearLayer.new()` method.
+LinearLayer :attr:`~sage.crypto.linearlayer.LinearLayer.new()` method.
 
 A more specific form of linear layers is the one used in the design of the
 AES, see [DR2002]_, and afterwards used in many other designs. The state
@@ -25,11 +25,11 @@ linear layers" are of the form `\mathrm{MC} \circ \mathrm{SC}`, where
 of the cells (the state-matrix entries), and `\mathrm{MC}` is the so called
 MixColumns operation that operates on the columns of the state-matrix.
 The :class:`~sage.crypto.linearlayer.AESLikeLinearLayer` class' method
-AESLikeLinearLayer.:attr:`~sage.crypto.linearlayer.AESLikeLinearLayer.new()`
+AESLikeLinearLayer :attr:`~sage.crypto.linearlayer.AESLikeLinearLayer.new()`
 takes these two as an input to construct the according linear layer object.
 
 Apart from that, there are also linear layers available which are used in the
-literature, either in the dictionary `linearlayers`, or as a separate object.
+literature, either in the dictionary linearlayers, or as a separate object.
 This module provides the following linear layers:
 
     - AES ([DR2002]_)
