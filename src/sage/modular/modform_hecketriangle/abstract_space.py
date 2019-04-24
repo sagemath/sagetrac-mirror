@@ -17,6 +17,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from functools import reduce
 from sage.symbolic.all import i
 from sage.rings.all import ZZ, QQ, infinity, AlgebraicField
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
