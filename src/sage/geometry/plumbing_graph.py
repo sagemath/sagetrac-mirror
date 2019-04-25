@@ -3849,7 +3849,7 @@ class PlumbingGraph():
             self.delete_component(i)
             if not s%2:
                 self.add_vertex(e, 1, 0)
-            if s%2:
+            else:
                 self.add_vertex(e, -2, 0)
         
         # c
