@@ -459,7 +459,16 @@ class SQLQuery(SageObject):
               else:
                   self.__param_tuple__ = tuple()
               return
+        '''
+        Test that :trac:27562 is fixed::
+        sage: D = SQLDatabase()
+        sage: r = SQLQuery(D, {'simon':'example_table', 'display_cols':['a1'], 'expression':['b2','<=', 3]})
+        ValueError: Database has no table simon.
+        sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
+        sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
+        ValueError: Database already has a table named simon.
 
+        '''
         if query_dict:
             skel = database.__skeleton__
             if query_dict['table_name'] not in skel:
