@@ -165,8 +165,9 @@ class LSeriesDerivative(object):
     def __init__(self, lseries, k):
         """
         INPUT:
-            - lseries -- any LSeries object (derives from LseriesAbstract)
-            - k -- positive integer
+
+        - lseries -- any LSeries object (derives from LseriesAbstract)
+        - k -- positive integer
         """
         k = ZZ(k)
         if k <= 0:
@@ -472,7 +473,7 @@ class LSeriesAbstract(object):
         valid = False
         try:
             old = [(k, getattr(self, k)) for k in kwds.keys()]
-            for k, v in kwds.iteritems():
+            for k, v in kwds.items():
                 setattr(self, k, v)
             self._function.clear_cache()
             self._function(prec=prec)
@@ -664,7 +665,8 @@ class LSeriesAbstract(object):
         WARNING: These are not just the poles of self.
 
         OUTPUT:
-             - list of numbers
+
+        - list of numbers
 
         EXAMPLES::
 
@@ -1021,11 +1023,13 @@ class LSeriesAbstract(object):
         self._base_field.  The result is cached.
 
         INPUT:
-            - a prime P of the ring of integers of the base_field
-            - prec -- None or positive integer (bits of precision)
+
+        - a prime P of the ring of integers of the base_field
+        - prec -- None or positive integer (bits of precision)
 
         OUTPUT:
-            - a polynomial, e.g., something like "1-a*T+p*T^2".
+
+        - a polynomial, e.g., something like "1-a*T+p*T^2".
 
         EXAMPLES:
 
@@ -1077,8 +1081,9 @@ class LSeriesAbstract(object):
         overload this class.
 
         INPUT:
-            - ``bound`` -- integer
-            - ``prec`` -- integer
+
+        - ``bound`` -- integer
+        - ``prec`` -- integer
 
         EXAMPLES::
 
@@ -1093,7 +1098,8 @@ class LSeriesAbstract(object):
         Return the primes of the ring of integers of the base field above the integer p.
 
         INPUT:
-            - p -- prime integer (no type checking necessarily done)
+
+        - p -- prime integer (no type checking necessarily done)
 
         EXAMPLES::
 
@@ -1120,7 +1126,8 @@ class LSeriesAbstract(object):
         as 32-bit real numbers.
 
         INPUT:
-             - n -- nonnegative integer
+
+        - n -- nonnegative integer
 
         EXAMPLES::
 
@@ -1150,7 +1157,8 @@ class LSeriesAbstract(object):
         to avoid having `v[n-1] = a_n`.
 
         INPUT:
-            - ``bound`` -- nonnegative integer
+
+        - ``bound`` -- nonnegative integer
 
         EXAMPLES::
 
@@ -1164,7 +1172,8 @@ class LSeriesAbstract(object):
             sage: L.anlist(30)
             [0, 1, 0, 0, -2, -1, 0, 0, 0, -4, 0, 3, 0, 0, 0, 0, 0, 0, 0, 5, 2, 0, 0, 0, 0, -4, 0, 0, 0, 11, 0]
         """
-        # First check if we know anlist to infinite bit precision up to given bound:
+        # First check if we know anlist to infinite bit precision up
+        # to given bound:
         if len(self._anlist[None]) > bound:
             if prec is None:
                 # request it to infinite precision
@@ -1176,7 +1185,7 @@ class LSeriesAbstract(object):
 
         if prec is not None:
             # check if numerically computed already to at least this precision
-            t = [z for z in self._anlist.iteritems()
+            t = [z for z in self._anlist.items()
                  if z[0] >= prec and len(z[1]) > bound]
             if t:
                 C = ComplexField(prec)
@@ -1207,9 +1216,10 @@ class LSeriesAbstract(object):
         Iterator over possible anlists, given LF, bound, and prec.
 
         INPUT:
-            - ``LF`` -- list of pairs (p, [local factors (or lists of them) at primes over p])
-            - ``bound`` -- positive integer
-            - ``prec`` -- positive integer (bits of precision)
+
+        - ``LF`` -- list of pairs (p, [local factors (or lists of them) at primes over p])
+        - ``bound`` -- positive integer
+        - ``prec`` -- positive integer (bits of precision)
         """
         coefficients = [0, 1] + [0] * (bound - 1)
 
@@ -1312,7 +1322,8 @@ class LSeriesAbstract(object):
         Return the k-th derivative of self.
 
         INPUT:
-            - k -- (default: 1) nonnegative integer
+
+        - k -- (default: 1) nonnegative integer
 
         EXAMPLES::
 
@@ -1370,10 +1381,11 @@ class LSeriesAbstract(object):
         center is not specified it defaults to weight / 2.
 
         INPUT:
-            - ``center`` -- None or number that coerces to the complex numbers
-            - ``degree`` -- integer
-            - ``variable`` -- string or symbolic variable
-            - ``prec`` -- positive integer (floating point bits of precision)
+
+        - ``center`` -- None or number that coerces to the complex numbers
+        - ``degree`` -- integer
+        - ``variable`` -- string or symbolic variable
+        - ``prec`` -- positive integer (floating point bits of precision)
 
         EXAMPLES:::
 
@@ -1541,11 +1553,12 @@ class LSeriesProduct(object):
     def __init__(self, F):
         """
         INPUT:
-            - `F` -- list of pairs (L,e) where L is an L-function and e is a nonzero integer.
+
+        - `F` -- list of pairs (L,e) where L is an L-function and e is a nonzero integer.
         """
         if not isinstance(F, Factorization):
             F = Factorization(F)
-        F.sort(key=lambda L: (L._conductor, L._weight))
+        F.sort(key=lambda L: (L[0]._conductor, L[0]._weight))
         if len(F) == 0:
             raise ValueError("product must be nonempty")
         self._factorization = F
@@ -1559,7 +1572,7 @@ class LSeriesProduct(object):
 
     def is_selfdual(self):
         """
-        Return True if every factor of self is self dual; otherwise, return False.
+        Return whether every factor of self is self dual.
 
         EXAMPLES::
 
@@ -2114,17 +2127,18 @@ class LSeriesModularSymbolsNewformGamma0(LSeriesModularSymbolsAbstract):
     def __init__(self, M, conjugate=0, check=True, epsilon=None):
         """
         INPUT:
-            - M -- a simple, new, cuspidal modular symbols space with
-              sign 1
-            - conjugate -- (default: 0), integer between 0 and dim(M)-1
-            - check -- (default: True), if True, checks that M is
-              simple, new, cuspidal, which can take a very long time,
-              depending on how M was defined
-            - epsilon -- (default: None), if not None, should be the sign
-              in the functional equation, which is -1 or 1.  If this is
-              None, then epsilon is computed by computing the sign of
-              the main Atkin-Lehner operator on M.  If you have a faster
-              way to determine epsilon, use it.
+
+        - M -- a simple, new, cuspidal modular symbols space with
+          sign 1
+        - conjugate -- (default: 0), integer between 0 and dim(M)-1
+        - check -- (default: True), if True, checks that M is
+          simple, new, cuspidal, which can take a very long time,
+          depending on how M was defined
+        - epsilon -- (default: None), if not None, should be the sign
+          in the functional equation, which is -1 or 1.  If this is
+          None, then epsilon is computed by computing the sign of
+          the main Atkin-Lehner operator on M.  If you have a faster
+          way to determine epsilon, use it.
 
         EXAMPLES::
 
@@ -2232,15 +2246,15 @@ class LSeriesModularSymbolsNewformCharacter(LSeriesModularSymbolsAbstract):
 
 def _new_modsym_space_with_multiplicity(M):
     """
-    Returns a simple new modular symbols space N and an integer d such
-    that M is isomorphic to `N^d` as a module over the anemic Hecke
-    algebra.
+    Return a simple new modular symbols space N and an integer d such
+    that M is isomorphic to `N^d` as a module over the anemic Hecke algebra.
 
     INPUT:
-        - M -- a sign=1 modular simple space for the full Hecke
-          algebra (including primes dividing the level) that can't be
-          decomposed further by the Hecke operators.  None of the
-          conditions on M are explicitly checked.
+
+    - M -- a sign=1 modular simple space for the full Hecke
+      algebra (including primes dividing the level) that cannot be
+      decomposed further by the Hecke operators.  None of the
+      conditions on M are explicitly checked.
 
     OUTPUT:
 
@@ -2348,11 +2362,12 @@ class LSeriesTwist(LSeriesAbstract):
     def __init__(self, L, chi, conductor=None, epsilon=None, prec=53):
         """
         INPUT:
-            - `L` -- an L-series
-            - ``chi`` -- a character of the base field of L
-            - ``conductor`` -- None, or a list of conductors to try
-            - ``prec`` -- precision to use when trying conductors, if
-              conductor is a list
+
+        - `L` -- an L-series
+        - ``chi`` -- a character of the base field of L
+        - ``conductor`` -- None, or a list of conductors to try
+        - ``prec`` -- precision to use when trying conductors, if
+          conductor is a list
         """
         self._L = L
         self._chi = chi
