@@ -63,6 +63,7 @@ from sage.lfunctions.eulerprod_fast import extend_multiplicatively_generic
 
 I = sqrt(-1)
 
+
 def prec(s):
     """
     Return precision of s, if it has a precision attribute.  Otherwise
@@ -81,6 +82,7 @@ def prec(s):
     if hasattr(s, 'prec'):
         return s.prec()
     return 53
+
 
 def norm(a):
     """
@@ -108,12 +110,12 @@ def norm(a):
 
 def tiny(prec):
     """
-    Return a number that we consider tiny to the given precision prec
+    Return a number that we consider tiny to the given precision ``prec``
     in bits.   This is used in various places as "zero" to the given
     precision for various checks, e.g., of correctness of the
     functional equation.
     """
-    return max(1e-8, 1.0/2**(prec-1))
+    return max(1e-8, 1.0 / 2**(prec - 1))
 
 
 def prime_below(P):
@@ -231,8 +233,8 @@ class LSeriesDerivative(object):
         elif k == 3:
             kth = 'Third'
         else:
-            kth = '%s-th'%k
-        return "%s derivative of %s"%(kth, self._lseries)
+            kth = '%s-th' % k
+        return "%s derivative of %s" % (kth, self._lseries)
 
     def derivative(self, k=1):
         """
@@ -259,6 +261,7 @@ class LSeriesDerivative(object):
         if k == 0:
             return self
         return LSeriesDerivative(self._lseries, self._k + k)
+
 
 class LSeriesParentClass(Parent):
     def __contains__(self, x):
@@ -423,7 +426,7 @@ class LSeriesAbstract(object):
             sage: L
             Euler Product L-series with conductor 1, Hodge numbers [0], weight 1, epsilon 1, poles [1], residues [-1] over Rational Field
         """
-        self._anlist = {None:[]}
+        self._anlist = {None: []}
 
         (self._conductor, self._hodge_numbers, self._weight, self._epsilon,
          self._poles, self._residues, self._base_field, self._is_selfdual) = (
@@ -445,19 +448,20 @@ class LSeriesAbstract(object):
         v = []
         if isinstance(conductor, list):
             v.append('_conductor')
-        if len(hodge_numbers)>0 and isinstance(hodge_numbers[0], list):
+        if hodge_numbers and isinstance(hodge_numbers[0], list):
             v.append('_hodge_numbers')
         if isinstance(weight, list):
             v.append('_weight')
-        if len(poles) > 0 and isinstance(poles[0], list):
+        if poles and isinstance(poles[0], list):
             v.append('_poles')
         if isinstance(epsilon, list):
             v.append('_epsilon')
 
-        if len(v) > 0:
+        if v:
             found_params = False
-            for X in cartesian_product_iterator([getattr(self, attr) for attr in v]):
-                kwds = dict((v[i],X[i]) for i in range(len(v)))
+            for X in cartesian_product_iterator([getattr(self, attr)
+                                                 for attr in v]):
+                kwds = dict((v[i], X[i]) for i in range(len(v)))
                 if self._is_valid_parameters(prec=prec, save=True, **kwds):
                     found_params = True
                     break
@@ -468,7 +472,7 @@ class LSeriesAbstract(object):
         valid = False
         try:
             old = [(k, getattr(self, k)) for k in kwds.keys()]
-            for k,v in kwds.iteritems():
+            for k, v in kwds.iteritems():
                 setattr(self, k, v)
             self._function.clear_cache()
             self._function(prec=prec)
@@ -828,8 +832,10 @@ class LSeriesAbstract(object):
             sage: abs(L.epsilon(150))
             1.0000000000000000000000000000000000000000000
         """
-        if self._epsilon == 'solve' or (
-                  hasattr(self._epsilon, 'prec') and (prec is None or self._epsilon.prec() < prec)):
+        if self._epsilon == 'solve':
+            return 'solve'
+        if (hasattr(self._epsilon, 'prec') and (prec is None or
+                                                self._epsilon.prec() < prec)):
             return 'solve'
         if prec is not None:
             C = ComplexField(prec)
@@ -902,17 +908,20 @@ class LSeriesAbstract(object):
         n = len(self.hodge_numbers())
         d = self.base_field().degree()
         assert n % d == 0, "degree of base field must divide the number of Hodge numbers"
-        return n//d
+        return n // d
 
     def twist(self, chi, conductor=None, epsilon=None, prec=53):
         r"""
         Return the quadratic twist of this L-series by the character chi, which
-        must be a character of self.base_field().   Thus chi should take as input
+        must be a character of self.base_field().
+
+        Thus chi should take as input
         prime ideals (or primes) of the ring of integers of the base field, and
         output something that can be coerced to the complex numbers.
 
         INPUT:
-            - `\chi` -- 1-dimensional character
+
+        - `\chi` -- 1-dimensional character
 
         EXAMPLES::
 
@@ -1055,8 +1064,9 @@ class LSeriesAbstract(object):
             sage: L.__repr__()
             'Euler Product L-series with conductor 1, Hodge numbers [0], weight 1, epsilon 1, poles [1], residues [-1] over Rational Field'
         """
-        return "Euler Product L-series with conductor %s, Hodge numbers %s, weight %s, epsilon %s, poles %s, residues %s over %s"%(
-            self._conductor, self._hodge_numbers, self._weight, self.epsilon(), self._poles, self._residues, self._base_field)
+        return "Euler Product L-series with conductor %s, Hodge numbers %s, weight %s, epsilon %s, poles %s, residues %s over %s" % (
+            self._conductor, self._hodge_numbers, self._weight,
+            self.epsilon(), self._poles, self._residues, self._base_field)
 
     def _precompute_local_factors(self, bound, prec):
         """
@@ -1158,7 +1168,7 @@ class LSeriesAbstract(object):
         if len(self._anlist[None]) > bound:
             if prec is None:
                 # request it to infinite precision
-                return self._anlist[None][:bound+1]
+                return self._anlist[None][:bound + 1]
             else:
                 # finite precision request
                 C = ComplexField(prec)
@@ -1166,15 +1176,16 @@ class LSeriesAbstract(object):
 
         if prec is not None:
             # check if numerically computed already to at least this precision
-            t = [z for z in self._anlist.iteritems() if z[0] >= prec and len(z[1]) > bound]
-            if len(t) > 0:
+            t = [z for z in self._anlist.iteritems()
+                 if z[0] >= prec and len(z[1]) > bound]
+            if t:
                 C = ComplexField(prec)
-                return [C(a) for a in t[0][1][:bound+1]]
+                return [C(a) for a in t[0][1][:bound + 1]]
 
-        self._precompute_local_factors(bound+1, prec=prec)
+        self._precompute_local_factors(bound + 1, prec=prec)
         compute_anlist_multiple = False
         LF = []
-        for p in prime_range(bound+1):
+        for p in prime_range(bound + 1):
             lf = []
             for P in self._primes_above(p):
                 if norm(P) <= bound:
@@ -1200,7 +1211,7 @@ class LSeriesAbstract(object):
             - ``bound`` -- positive integer
             - ``prec`` -- positive integer (bits of precision)
         """
-        coefficients = [0,1] + [0]*(bound-1)
+        coefficients = [0, 1] + [0] * (bound - 1)
 
         for i, (p, v) in enumerate(LF):
             if len(v) > 0:
@@ -1220,7 +1231,7 @@ class LSeriesAbstract(object):
                     return
                 # Not several factors -- just compute the a_{p^r} up to the required bound:
                 f = prod(v)
-                accuracy_p = int(math.floor(math.log(bound)/math.log(p))) + 1
+                accuracy_p = int(math.floor(math.log(bound) / math.log(p))) + 1
                 T = f.parent().gen()
                 series_p = (f + O(T**accuracy_p))**(-1)
                 for j in range(1, accuracy_p):
@@ -1246,7 +1257,7 @@ class LSeriesAbstract(object):
         """
         s = R.var('s')
         a = self.anlist(bound, prec)
-        return sum(a[n]/n**s for n in range(1,bound+1))
+        return sum(a[n] / n**s for n in range(1, bound + 1))
 
     def __call__(self, s):
         """
@@ -1378,7 +1389,7 @@ class LSeriesAbstract(object):
 
         """
         if center is None:
-            center = ComplexField(prec)(self._weight)/2
+            center = ComplexField(prec)(self._weight) / 2
         return self._function(prec).taylor_series(center, degree, variable)
 
     def analytic_rank(self, tiny=1e-8, prec=53):
@@ -1412,9 +1423,13 @@ class LSeriesAbstract(object):
             eps = 'X'
         else:
             eps = epsilon
-        return Dokchitser(conductor = self.conductor(), gammaV = self.hodge_numbers(), weight = self.weight(),
-                       eps = eps, poles = self.poles(), residues = self.residues(),
-                       prec = prec)
+        return Dokchitser(conductor=self.conductor(),
+                          gammaV=self.hodge_numbers(),
+                          weight=self.weight(),
+                          eps=eps,
+                          poles=self.poles(),
+                          residues=self.residues(),
+                          prec=prec)
 
     def number_of_coefficients(self, prec=53, T=1.2):
         """
@@ -1424,7 +1439,8 @@ class LSeriesAbstract(object):
         equation test pass with the given value of T.
 
         INPUT:
-            - prec -- integer
+
+        - prec -- integer
 
         EXAMPLES::
 
@@ -1445,7 +1461,7 @@ class LSeriesAbstract(object):
         # Find out how many coefficients of the Dirichlet series are needed
         # to compute to the requested precision.
         n = L.num_coeffs(T=T)
-        #if n >= 500:   # TODO: for debugging only -- remove later
+        # if n >= 500:   # TODO: for debugging only -- remove later
         #    print "num coeffs =", n
 
         # Compute the Dirichlet series coefficients
@@ -1461,12 +1477,12 @@ class LSeriesAbstract(object):
         for coeffs in coeff_lists:
             # Define a string that when evaluated in PARI defines a function
             # a(k), which returns the Dirichlet coefficient a_k.
-            s = 'v=[%s]; a(k)=v[k];'%','.join([str(z) if isinstance(z, (int,Integer)) else z._pari_init_() for z in coeffs[1:]])
+            s = 'v=[%s]; a(k)=v[k];' % ','.join(str(z) if isinstance(z, (int, Integer)) else z._pari_init_() for z in coeffs[1:])
 
             # Tell the L-series / PARI about the coefficients.
 
             if self.is_selfdual():
-                L.init_coeffs('a(k)', pari_precode = s)
+                L.init_coeffs('a(k)', pari_precode=s)
             else:
                 # Have to directly call gp_eval, since case of functional equation having two different
                 # (conjugate) L-functions isn't supported in Dokchitser class (yet).
@@ -1477,7 +1493,7 @@ class LSeriesAbstract(object):
             if epsilon == 'solve':
                 cmd = "sgneq = Vec(checkfeq()); sgn = -sgneq[2]/sgneq[1]; sgn"
                 epsilon = ComplexField(prec)(L._gp_eval(cmd))
-                if abs(abs(epsilon)-1) > tiny0:
+                if abs(abs(epsilon) - 1) > tiny0:
                     raise RuntimeError("unable to determine epsilon from functional equation working to precision %s, since we get epsilon=%s, which is not sufficiently close to 1" % (prec, epsilon))
                 # 1, -1 are two common special cases, where it is clear what the
                 # infinite precision version is.
@@ -1540,7 +1556,7 @@ class LSeriesProduct(object):
 
     def __ne__(self, right):
         return not(self == right)
-    
+
     def is_selfdual(self):
         """
         Return True if every factor of self is self dual; otherwise, return False.
@@ -1559,17 +1575,14 @@ class LSeriesProduct(object):
             sage: (L2*L2).is_selfdual()
             False
         """
-        is_selfdual = set(L.is_selfdual() for L,e in self._factorization)
-        if len(is_selfdual) > 1:
-            return False
-        else:
-            return list(is_selfdual)[0]
+        return all(L.is_selfdual() for L, _ in self._factorization)
 
     def conductor(self):
         """
-        Return the conductor of this product, which we define to be
-        the product with multiplicities of the conductors of the
-        factors of self.
+        Return the conductor of this product.
+
+        We define the conductor to be the product with multiplicities
+        of the conductors of the factors of ``self``.
 
         EXAMPLES::
 
@@ -1621,7 +1634,7 @@ class LSeriesProduct(object):
 
     def __mul__(self, right):
         if isinstance(right, LSeriesAbstract):
-            return LSeriesProduct(self._factorization * Factorization([(right,1)]))
+            return LSeriesProduct(self._factorization * Factorization([(right, 1)]))
         elif isinstance(right, LSeriesProduct):
             return LSeriesProduct(self._factorization * right._factorization)
         else:
@@ -1629,7 +1642,7 @@ class LSeriesProduct(object):
 
     def __div__(self, right):
         if isinstance(right, LSeriesAbstract):
-            return LSeriesProduct(self._factorization * Factorization([(right,-1)]))
+            return LSeriesProduct(self._factorization * Factorization([(right, -1)]))
         elif isinstance(right, LSeriesProduct):
             return LSeriesProduct(self._factorization / right._factorization)
         raise TypeError
@@ -1646,10 +1659,10 @@ class LSeriesProduct(object):
         """
 
     def degree(self):
-        return sum(e*L.degree() for L,e in self._factorization)
+        return sum(e * L.degree() for L, e in self._factorization)
 
     def local_factor(self, P, prec=None):
-        return prod(L.local_factor(P,prec)**e for L,e in self._factorization)
+        return prod(L.local_factor(P, prec)**e for L, e in self._factorization)
 
     def __getitem__(self, *args, **kwds):
         return self._factorization.__getitem__(*args, **kwds)
@@ -1683,17 +1696,18 @@ class LSeriesProduct(object):
             11.237843 - 17.508629*w + 21.688182*w^2 - 24.044641*w^3 + O(w^4)
 
         """
-        return prod(L.taylor_series(center, degree, variable, prec)**e for L,e in self._factorization)
+        return prod(L.taylor_series(center, degree, variable, prec)**e
+                    for L, e in self._factorization)
 
     def analytic_rank(self, prec=53):
         """
         Return sum of the order of vanishing counted with
-        multiplicities of each factors at their center point.
+        multiplicities of each factor at their center point.
 
         WARNING: The analytic rank is computed numerically, so is
         definitely not provably correct.
 
-        EXAMPLES::
+        EXAMPLES:
 
         We compute the analytic rank of the non-simple 32-dimensional modular abelian variety `J_0(389)`.
 
@@ -1723,14 +1737,15 @@ class LSeriesProduct(object):
             sage: 2*1 + 2 + 3 + 6
             13
         """
-        return sum(e*L.analytic_rank(prec=prec) for L,e in self._factorization)
+        return sum(e * L.analytic_rank(prec=prec)
+                   for L, e in self._factorization)
 
     def weight(self):
         """
         Return the weight of this L-series, which is the sum of the weights
         of the factors counted with multiplicity.
         """
-        return sum(e*L.weight() for L,e in self._factorization)
+        return sum(e * L.weight() for L, e in self._factorization)
 
     @cached_method
     def _function(self, prec=53):
@@ -1763,8 +1778,9 @@ class LSeriesZeta(LSeriesAbstract):
         [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     """
     def __init__(self):
-        LSeriesAbstract.__init__(self, conductor=1, hodge_numbers=[0], weight=1, epsilon=1,
-                                 poles=[0,1], residues=[9,8], base_field=QQ)
+        LSeriesAbstract.__init__(self, conductor=1, hodge_numbers=[0],
+                                 weight=1, epsilon=1,
+                                 poles=[0, 1], residues=[9, 8], base_field=QQ)
         T = ZZ['T'].gen()
         self._lf = 1 - T
 
@@ -1788,7 +1804,8 @@ class LSeriesDelta(LSeriesAbstract):
         True
     """
     def __init__(self):
-        LSeriesAbstract.__init__(self, conductor=1, hodge_numbers=[0,1], weight=12, epsilon=1,
+        LSeriesAbstract.__init__(self, conductor=1, hodge_numbers=[0, 1],
+                                 weight=12, epsilon=1,
                                  poles=[], residues=[], base_field=QQ)
         self._T = ZZ['T'].gen()
         self._lf = {}
@@ -1821,7 +1838,7 @@ class LSeriesDelta(LSeriesAbstract):
             return self._lf[P]
         except KeyError:
             pass
-        self._precompute_local_factors(P+1)
+        self._precompute_local_factors(P + 1)
         return self._lf[P]
 
     def _precompute_local_factors(self, bound, prec=None):
@@ -1842,8 +1859,8 @@ class LSeriesDelta(LSeriesAbstract):
         T2 = T**2
         f = delta_qexp(bound)
         for p in prime_range(bound):
-            if not self._lf.has_key(p):
-                self._lf[p] = 1 - f[p]*T + (p**11)*T2
+            if p not in self._lf:
+                self._lf[p] = 1 - f[p] * T + (p**11) * T2
 
     def __repr__(self):
         return "L-function associated to Ramanujan's Delta (a weight 12 cusp form)"
@@ -1863,9 +1880,15 @@ class LSeriesEllipticCurve(LSeriesAbstract):
         K = E.base_field()
         d = K.degree()
         self._N = E.conductor()
-        LSeriesAbstract.__init__(self, conductor = norm(self._N) * K.discriminant()**2,
-                                 hodge_numbers = [0]*d+[1]*d, weight = 2, epsilon = [1,-1],
-                                 poles = [], residues=[], base_field = K, prec=prec)
+        LSeriesAbstract.__init__(self,
+                                 conductor=norm(self._N) * K.discriminant()**2,
+                                 hodge_numbers=[0] * d + [1] * d,
+                                 weight=2,
+                                 epsilon=[1, -1],
+                                 poles=[],
+                                 residues=[],
+                                 base_field=K,
+                                 prec=prec)
 
     def elliptic_curve(self):
         return self._E
@@ -1881,10 +1904,10 @@ class LSeriesEllipticCurve(LSeriesAbstract):
         f = ZZ(q).ord(p)
         if P.divides(self._N):
             a = self._E.local_data(P).bad_reduction_type()
-            return 1 - a*(T**f)
+            return 1 - a * (T**f)
         else:
             a = q + 1 - self._E.reduction(P).count_points()
-            return 1 - a*(T**f) + q*(T**(2*f))
+            return 1 - a * (T**f) + q * (T**(2 * f))
 
 
 class LSeriesEllipticCurveQQ(LSeriesEllipticCurve):
@@ -1895,7 +1918,7 @@ class LSeriesEllipticCurveQQ(LSeriesEllipticCurve):
         self._lf = {}
         self._T = ZZ['T'].gen()
         LSeriesAbstract.__init__(self, conductor=self._N,
-                                 hodge_numbers=[0,1], weight=2,
+                                 hodge_numbers=[0, 1], weight=2,
                                  epsilon=E.root_number(),
                                  poles=[], residues=[], base_field=QQ)
 
@@ -1903,26 +1926,27 @@ class LSeriesEllipticCurveQQ(LSeriesEllipticCurve):
         a = self._E.ap(p)
         T = self._T
         if self._N % p == 0:
-            if self._N%(p*p) == 0:
+            if self._N % (p * p) == 0:
                 return T.parent()(1)
             else:
-                return 1 - a*T
+                return 1 - a * T
         else:
-            return 1 - a*T + p*T*T
+            return 1 - a * T + p * T * T
 
     def _precompute_local_factors(self, bound, prec=None):
         for p in primes(bound):
-            if not self._lf.has_key(p):
+            if p not in self._lf:
                 self._lf[p] = self._lf0(p)
 
     def _local_factor(self, P, prec):
-        if self._lf.has_key(P):
+        if P in self._lf:
             return self._lf[P]
         else:
             return self._lf0(P)
 
     def _primes_above(self, p):
         return [p]
+
 
 class LSeriesDedekindZeta(LSeriesAbstract):
     """
@@ -1948,21 +1972,21 @@ class LSeriesDedekindZeta(LSeriesAbstract):
         d = K.degree()
         sigma = K.signature()[1]
         LSeriesAbstract.__init__(self,
-                                 conductor = abs(K.discriminant()),
-                                 hodge_numbers = [0]*(d-sigma) + [1]*sigma,
-                                 weight = 1,
-                                 epsilon = 1,
-                                 poles = [1],
-                                 residues = 'automatic',
-                                 base_field = K,
-                                 is_selfdual = True)
+                                 conductor=abs(K.discriminant()),
+                                 hodge_numbers=[0] * (d - sigma) + [1] * sigma,
+                                 weight=1,
+                                 epsilon=1,
+                                 poles=[1],
+                                 residues='automatic',
+                                 base_field=K,
+                                 is_selfdual=True)
         self._T = ZZ['T'].gen()
 
     def number_field(self):
         return self._K
 
     def __repr__(self):
-        return "Dedekind Zeta function of %s"%self._K
+        return "Dedekind Zeta function of %s" % self._K
 
     def _local_factor(self, P, prec):
         T = self._T
@@ -1985,14 +2009,14 @@ class LSeriesDirichletCharacter(LSeriesAbstract):
         if chi.base_ring().characteristic() != 0:
             raise ValueError("base ring must have characteristic 0")
         self._chi = chi
-        LSeriesAbstract.__init__(self, conductor = chi.conductor(),
-                                 hodge_numbers = [1] if chi.is_odd() else [0],
-                                 weight = 1,
-                                 epsilon = None,
-                                 poles = [],  # since primitive
-                                 residues = [],  # since primitive
-                                 base_field = QQ,
-                                 is_selfdual = chi.order() <= 2)
+        LSeriesAbstract.__init__(self, conductor=chi.conductor(),
+                                 hodge_numbers=[1] if chi.is_odd() else [0],
+                                 weight=1,
+                                 epsilon=None,
+                                 poles=[],  # since primitive
+                                 residues=[],  # since primitive
+                                 base_field=QQ,
+                                 is_selfdual=chi.order() <= 2)
         self._T = ZZ['T'].gen()
 
     def __repr__(self):
@@ -2003,7 +2027,7 @@ class LSeriesDirichletCharacter(LSeriesAbstract):
             sage: L.__repr__()
             'L-series attached to Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1'
         """
-        return "L-series attached to %s"%self._chi
+        return "L-series attached to %s" % self._chi
 
     def character(self):
         return self._chi
@@ -2018,13 +2042,14 @@ class LSeriesDirichletCharacter(LSeriesAbstract):
             x = C(chi.modulus()).sqrt() / chi.gauss_sum_numerical(prec=prec)
             if chi.is_odd():
                 x *= C.gen()
-            return 1/x
+            return 1 / x
 
     def _local_factor(self, P, prec):
         a = self._chi(P)
         if prec is not None:
             a = ComplexField(prec)(a)
-        return 1 - a*self._T
+        return 1 - a * self._T
+
 
 class LSeriesModularSymbolsAbstract(LSeriesAbstract):
     def modular_symbols(self):
@@ -2040,17 +2065,18 @@ class LSeriesModularSymbolsAbstract(LSeriesAbstract):
             sage: LSeries(f).__repr__()
             'L-series of a degree 2 newform of level 43 and weight 2'
         """
-        return "L-series of a degree %s newform of level %s and weight %s"%(self._M.dimension(), self._M.level(), self._M.weight())
+        return "L-series of a degree %s newform of level %s and weight %s" % (self._M.dimension(), self._M.level(), self._M.weight())
 
     def _precompute_local_factors(self, bound, prec):
-        primes = [p for p in prime_range(bound) if not self._lf.has_key(p) or self._lf[p][0] < prec]
+        primes = [p for p in prime_range(bound)
+                  if p not in self._lf or self._lf[p][0] < prec]
         self._do_precompute(primes, prec)
 
     def _do_precompute(self, primes, prec):
         E, v = self._M.compact_system_of_eigenvalues(primes)
         if prec == 53:
             C = CDF
-        elif prec is None or prec==oo:
+        elif prec is None or prec == oo:
             if v.base_ring() == QQ:
                 C = QQ
             else:
@@ -2061,24 +2087,26 @@ class LSeriesModularSymbolsAbstract(LSeriesAbstract):
         phi = v.base_ring().embeddings(C)[self._conjugate]
         v = vector(C, [phi(a) for a in v])
         aplist = E.change_ring(C) * v
-        T = C['T'].gen(); T2 = T**2
+        T = C['T'].gen()
+        T2 = T**2
         chi = self._M.character()
         k = self.weight()
         for i in range(len(primes)):
             p = primes[i]
             s = chi(p)
-            if s != 0: s *= p**(k-1)
-            F = 1 - aplist[i]*T + s*T2
+            if s != 0:
+                s *= p**(k - 1)
+            F = 1 - aplist[i] * T + s * T2
             self._lf[p] = (prec, F)
 
     def _local_factor(self, P, prec):
         # TODO: ugly -- get rid of all "prec=None" in whole program -- always use oo.
         if prec is None:
             prec = oo
-        if self._lf.has_key(P) and self._lf[P][0] >= prec:
+        if P in self._lf and self._lf[P][0] >= prec:
             return self._lf[P][1]
         else:
-            self._do_precompute([P],prec)
+            self._do_precompute([P], prec)
             return self._lf[P][1]
 
 
@@ -2135,7 +2163,7 @@ class LSeriesModularSymbolsNewformGamma0(LSeriesModularSymbolsAbstract):
             w = M.atkin_lehner_operator(N).matrix()
             if w not in [-1, 1]:
                 raise ValueError("modular symbols space must have constant Atkin-Lehner operator")
-            epsilon = (-1)**(k/2) * w[0,0]
+            epsilon = (-1)**(k / 2) * w[0, 0]
 
         conjugate = ZZ(conjugate)
         if conjugate < 0 or conjugate >= M.dimension():
@@ -2144,13 +2172,14 @@ class LSeriesModularSymbolsNewformGamma0(LSeriesModularSymbolsAbstract):
         self._lf = {}
 
         LSeriesAbstract.__init__(self,
-                                 conductor = N,
-                                 hodge_numbers = [0,1],
-                                 weight = k,
-                                 epsilon = epsilon,
-                                 poles = [],  # since primitive
-                                 residues = [],  # since primitive
-                                 base_field = QQ)
+                                 conductor=N,
+                                 hodge_numbers=[0, 1],
+                                 weight=k,
+                                 epsilon=epsilon,
+                                 poles=[],  # since primitive
+                                 residues=[],  # since primitive
+                                 base_field=QQ)
+
 
 def _is_valid_modsym_space(M):
     if not is_ModularSymbolsSpace(M):
@@ -2185,20 +2214,21 @@ class LSeriesModularSymbolsNewformCharacter(LSeriesModularSymbolsAbstract):
         k = M.weight()
         conjugate = ZZ(conjugate)
         if conjugate < 0 or conjugate >= M.dimension():
-            raise ValueError("conjugate must a nonnegative integer less than the dimension")
+            raise ValueError("conjugate must a nonnegative integer "
+                             "less than the dimension")
         self._conjugate = conjugate
 
-
         LSeriesAbstract.__init__(self,
-                                 conductor = N,
-                                 hodge_numbers = [0,1],
-                                 weight = k,
-                                 epsilon = epsilon,
-                                 poles = [],  # since primitive
-                                 residues = [],  # since primitive
-                                 base_field = QQ,
-                                 is_selfdual = chi.order() <= 2)
+                                 conductor=N,
+                                 hodge_numbers=[0, 1],
+                                 weight=k,
+                                 epsilon=epsilon,
+                                 poles=[],  # since primitive
+                                 residues=[],  # since primitive
+                                 base_field=QQ,
+                                 is_selfdual=chi.order() <= 2)
         self._lf = {}
+
 
 def _new_modsym_space_with_multiplicity(M):
     """
@@ -2249,7 +2279,7 @@ class LSeriesModularSymbolsMotive(LSeriesProduct):
             for X in _new_modsym_space_with_multiplicity(A):
                 N, d = X
                 for i in range(N.dimension()):
-                    F.append((LSeriesModularSymbolsNewform(N,i), d))
+                    F.append((LSeriesModularSymbolsNewform(N, i), d))
         LSeriesProduct.__init__(self, F)
 
     def modular_symbols(self):
@@ -2308,7 +2338,7 @@ class LSeriesModularAbelianVariety(LSeriesProduct):
         return self._A
 
     def __repr__(self):
-        return "L-series attached to %s"%self._A
+        return "L-series attached to %s" % self._A
 
 
 class LSeriesTwist(LSeriesAbstract):
@@ -2345,7 +2375,8 @@ class LSeriesTwist(LSeriesAbstract):
                 # TODO: improve this using the theorem stated
                 # on page 1 of http://wstein.org/papers/padictwist/
                 #
-                conductor = [smallest*d for d in divisors(biggest//smallest)]
+                conductor = [smallest * d
+                             for d in divisors(biggest // smallest)]
             else:
                 conductor = A * (B**L.degree())
         hodge_numbers = L.hodge_numbers()
@@ -2362,10 +2393,11 @@ class LSeriesTwist(LSeriesAbstract):
             else:
                 epsilon = 'solve'
         is_selfdual = L.is_selfdual()
-        poles = [] # ???  TODO -- no clue here.
+        poles = []  # ???  TODO -- no clue here.
         residues = 'automatic'
         base_field = L.base_field()
-        LSeriesAbstract.__init__(self, conductor, hodge_numbers, weight, epsilon,
+        LSeriesAbstract.__init__(self, conductor, hodge_numbers,
+                                 weight, epsilon,
                                  poles, residues, base_field, is_selfdual, prec)
 
     def _local_factor(self, P, prec):
@@ -2375,7 +2407,7 @@ class LSeriesTwist(LSeriesAbstract):
         c = chi(P)
         if prec is not None:
             c = ComplexField(prec)(c)
-        return L0(c*T)
+        return L0(c * T)
 
     def __repr__(self):
         return "Twist of %s by %s" % (self._L, self._chi)
@@ -2471,6 +2503,7 @@ def LSeries(X, *args, **kwds):
     L = _lseries(X, *args, **kwds)
     L._X = X
     return L
+
 
 def _lseries(X, *args, **kwds):
     """
