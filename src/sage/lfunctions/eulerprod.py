@@ -182,7 +182,7 @@ class LSeriesDerivative(object):
 
     def __ne__(self, right):
         return not(self == right)
-
+    
     def __call__(self, s):
         """
         Return the value of this derivative at s, which must coerce to a
@@ -506,6 +506,11 @@ class LSeriesAbstract(Element):
     def __ne__(self, right):
         return not(self == right)
     
+    def __hash__(self):
+        return hash(tuple(getattr(self, a)()
+                          for a in ['degree', 'weight', 'conductor',
+                                    'epsilon', 'base_field']))
+
     def parent(self):
         """
         Return parent of this L-series, which is the collection of all
