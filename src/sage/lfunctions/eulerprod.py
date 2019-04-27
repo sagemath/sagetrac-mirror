@@ -58,6 +58,7 @@ from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 from sage.structure.factorization import Factorization
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.categories.monoids import Monoids
 import sage.modular.modform.element
 
 from sage.lfunctions.eulerprod_fast import extend_multiplicatively_generic
@@ -266,6 +267,9 @@ class LSeriesDerivative(object):
 
 
 class LSeriesParentClass(Parent):
+    def __init__(self):
+        Parent.__init__(self, category=Monoids().Commutative())
+    
     def __contains__(self, x):
         return isinstance(x, (LSeriesAbstract, LSeriesProduct))
 
@@ -471,6 +475,7 @@ class LSeriesAbstract(Element):
                     break
             if not found_params:
                 raise RuntimeError("no choice of values for %s works" % (', '.join(v)))
+        Element.__init__(self, LSeriesParent)
 
     def _is_valid_parameters(self, prec=53, save=True, **kwds):
         valid = False
@@ -551,7 +556,7 @@ class LSeriesAbstract(Element):
         """
         return LSeriesProduct([(self, ZZ(n))])
 
-    def __mul__(self, right):
+    def _mul_(self, right):
         """
         Multiply two L-series, or an L-series times a formal product of L-series.
 
@@ -570,7 +575,7 @@ class LSeriesAbstract(Element):
             return right * self
         raise TypeError
 
-    def __div__(self, right):
+    def _div_(self, right):
         """
         Divide two L-series or formal L-series products.
 
@@ -843,8 +848,7 @@ class LSeriesAbstract(Element):
         """
         if self._epsilon == 'solve':
             return 'solve'
-        if (hasattr(self._epsilon, 'prec') and (prec is oo or
-                                                self._epsilon.prec() < prec)):
+        if hasattr(self._epsilon, 'prec') and self._epsilon.prec() < prec:
             return 'solve'
         if prec is not oo:
             C = ComplexField(prec)
@@ -886,8 +890,11 @@ class LSeriesAbstract(Element):
     @cached_method
     def degree(self):
         """
-        Return the degree of this L-function, which is by definition the number of Gamma
-        factors (e.g., the number of Hodge numbers) divided by the degree of the base field.
+        Return the degree of this L-function.
+
+        This is by definition the number of Gamma factors (e.g., the
+        number of Hodge numbers) divided by the degree of the base
+        field.
 
         EXAMPLES::
 
@@ -899,8 +906,9 @@ class LSeriesAbstract(Element):
             sage: LSeries(EllipticCurve('11a')).degree()
             2
 
-        The L-series attached to this modular symbols space of dimension 2 is a product
-        of 2 degree 2 L-series, hence has degree 4::
+        The L-series attached to this modular symbols space of
+        dimension 2 is a product of 2 degree 2 L-series, hence has
+        degree 4::
 
             sage: M = ModularSymbols(43,2,sign=1).cuspidal_subspace()[1]; M.dimension()
             2
@@ -924,9 +932,9 @@ class LSeriesAbstract(Element):
         Return the quadratic twist of this L-series by the character chi, which
         must be a character of self.base_field().
 
-        Thus chi should take as input
-        prime ideals (or primes) of the ring of integers of the base field, and
-        output something that can be coerced to the complex numbers.
+        Thus chi should take as input prime ideals (or primes) of the
+        ring of integers of the base field, and output something that
+        can be coerced to the complex numbers.
 
         INPUT:
 
@@ -1560,7 +1568,7 @@ class LSeriesProductEvaluator(object):
         return prod(f(s)**e for f, e in v)
 
 
-class LSeriesProduct(object):
+class LSeriesProduct(Element):
     """
     A formal product of L-series.
     """
@@ -1576,6 +1584,7 @@ class LSeriesProduct(object):
         if len(F) == 0:
             raise ValueError("product must be nonempty")
         self._factorization = F
+        Element.__init__(self, LSeriesParent)
 
     def __eq__(self, right):
         # TODO: make work even if right not a product
@@ -1659,7 +1668,7 @@ class LSeriesProduct(object):
         """
         return LSeriesProduct(self._factorization**ZZ(n))
 
-    def __mul__(self, right):
+    def _mul_(self, right):
         if isinstance(right, LSeriesAbstract):
             return LSeriesProduct(self._factorization * Factorization([(right, 1)]))
         elif isinstance(right, LSeriesProduct):
@@ -1667,7 +1676,7 @@ class LSeriesProduct(object):
         else:
             raise TypeError
 
-    def __div__(self, right):
+    def _div_(self, right):
         if isinstance(right, LSeriesAbstract):
             return LSeriesProduct(self._factorization * Factorization([(right, -1)]))
         elif isinstance(right, LSeriesProduct):
