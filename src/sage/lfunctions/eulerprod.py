@@ -2,9 +2,11 @@
 General L-series
 
 AUTHOR:
-    - William Stein
 
-TODO:
+- William Stein
+
+.. TODO::
+
     - Symmetric powers (and modular degree -- see trac 9758)
     - Triple product L-functions: Gross-Kudla, Zhang, etc -- see the code in triple_prod/triple.py
     - Support L-calc L-function
@@ -15,7 +17,7 @@ TODO:
     - Inverse of number_of_coefficients function.
 """
 
-#################################################################################
+################################################################################
 #
 # (c) Copyright 2011 William Stein
 #
@@ -25,36 +27,37 @@ TODO:
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 2 of the License, or
 #  (at your option) any later version.
-# 
+#
 #  SAGE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#################################################################################
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+################################################################################
 
-import copy, math, types
-
-from sage.structure.parent import Parent
+import copy
+import math
+import types
 
 from sage.all import prime_range, cached_method, sqrt, SR, vector
-from sage.rings.rational_field import is_RationalField
-from sage.rings.all import ZZ, Integer, QQ, O, ComplexField, CDF, primes, infinity as oo
-from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
-from sage.misc.all import prod
-from sage.modular.abvar.abvar import is_ModularAbelianVariety
-from sage.modular.dirichlet import is_DirichletCharacter
+from sage.arith.misc import divisors, primes
 from sage.lfunctions.dokchitser import Dokchitser
-from sage.modular.modsym.space import is_ModularSymbolsSpace
-from sage.modular.abvar.abvar import is_ModularAbelianVariety
-from sage.rings.number_field.number_field_base import is_NumberField
-import sage.modular.modform.element
-from sage.modular.all import Newform
-from sage.structure.factorization import Factorization
+from sage.misc.all import prod
 from sage.misc.mrange import cartesian_product_iterator
+from sage.modular.abvar.abvar import is_ModularAbelianVariety
+from sage.modular.all import Newform
+from sage.modular.dirichlet import is_DirichletCharacter
+from sage.modular.modsym.space import is_ModularSymbolsSpace
+from sage.rings.all import ZZ, Integer, QQ, O, ComplexField, CDF, infinity as oo
+from sage.rings.number_field.number_field_base import is_NumberField
+from sage.rings.rational_field import is_RationalField
+from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+from sage.structure.factorization import Factorization
+from sage.structure.parent import Parent
+import sage.modular.modform.element
 
 from sage.lfunctions.eulerprod_fast import extend_multiplicatively_generic
 
@@ -73,7 +76,7 @@ def prec(s):
         sage: prec(RealField(125)(1))
         125
         sage: prec(1/3)
-        53    
+        53
     """
     if hasattr(s, 'prec'):
         return s.prec()
@@ -102,6 +105,7 @@ def norm(a):
     except AttributeError:
         return a
 
+
 def tiny(prec):
     """
     Return a number that we consider tiny to the given precision prec
@@ -111,10 +115,11 @@ def tiny(prec):
     """
     return max(1e-8, 1.0/2**(prec-1))
 
+
 def prime_below(P):
     """
     Return the prime in ZZ below the prime P (or element of QQ).
-    
+
     EXAMPLES::
 
         sage: from sage.lfunctions.eulerprod import prime_below
@@ -163,12 +168,15 @@ class LSeriesDerivative(object):
         """
         k = ZZ(k)
         if k <= 0:
-            raise ValueError, "k must be a positive integer"
+            raise ValueError("k must be a positive integer")
         self._lseries = lseries
         self._k = k
 
-    def __cmp__(self, right):
-        return cmp((self._lseries,self._k), (right._lseries, right._k))
+    def __eq__(self, right):
+        return (self._lseries, self._k) == (right._lseries, right._k)
+
+    def __ne__(self, right):
+        return not(self == right)
 
     def __call__(self, s):
         """
@@ -213,7 +221,7 @@ class LSeriesDerivative(object):
             sage: L.derivative(4).__repr__()
             "4-th derivative of L-function associated to Ramanujan's Delta (a weight 12 cusp form)"
             sage: L.derivative(2011).__repr__()
-            "2011-th derivative of L-function associated to Ramanujan's Delta (a weight 12 cusp form)"        
+            "2011-th derivative of L-function associated to Ramanujan's Delta (a weight 12 cusp form)"
         """
         k = self._k
         if k == 1:
@@ -229,7 +237,7 @@ class LSeriesDerivative(object):
     def derivative(self, k=1):
         """
         Return the k-th derivative of this derivative object.
-        
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
@@ -246,7 +254,7 @@ class LSeriesDerivative(object):
             Second derivative of L-series of a degree 2 newform of level 43 and weight 2
             sage: L1.derivative(3)
             4-th derivative of L-series of a degree 2 newform of level 43 and weight 2
-        
+
         """
         if k == 0:
             return self
@@ -255,7 +263,7 @@ class LSeriesDerivative(object):
 class LSeriesParentClass(Parent):
     def __contains__(self, x):
         return isinstance(x, (LSeriesAbstract, LSeriesProduct))
-        
+
     def __call__(self, x):
         """
         EXAMPLES::
@@ -274,7 +282,7 @@ class LSeriesParentClass(Parent):
 
         You can make the L-series attached to an object by coercing
         that object into the parent::
-            
+
             sage: P(EllipticCurve('11a'))
             L-series of Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
 
@@ -312,7 +320,7 @@ class LSeriesParentClass(Parent):
             'All L-series objects and their products'
         """
         return "All L-series objects and their products"
-    
+
     def __cmp__(self, right):
         """
         Returns equality if right is an instance of
@@ -321,26 +329,23 @@ class LSeriesParentClass(Parent):
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeriesParent, LSeriesParentClass
-            sage: cmp(LSeriesParent, LSeriesParentClass())
-            0
-            sage: cmp(LSeriesParent, 7) != 0
-            True
-            sage: cmp(7, LSeriesParent) == -cmp(LSeriesParent, 7)
+            sage: LSeriesParent == LSeriesParentClass()
             True
         """
         if isinstance(right, LSeriesParentClass):
-            return 0
-        return cmp(id(self), id(right))
+            return True
+        return False
 
 
 LSeriesParent = LSeriesParentClass()
+
 
 class LSeriesAbstract(object):
     r"""
     L-series defined by an Euler product.
 
     The parameters that define the 'shape' of the L-series are:
-    
+
              conductor, hodge_numbers, weight, epsilon, poles, base_field
 
     Let gamma(s) = prod( Gamma((s+h)/2) for h in hodge_numbers ).
@@ -358,11 +363,11 @@ class LSeriesAbstract(object):
     some Galois representation.  This class automatically computes the
     Dirichlet series coefficients `a_n` from the local factors of the
     `L`-function.
-    
+
     The derived class may optionally -- and purely as an optimization
     -- define a method self._precompute_local_factors(bound,
     prec=None), which is typically called before
-    
+
         [_local_factor(P) for P with norm(P) < bound]
 
     is called in the course of various computations.
@@ -393,8 +398,8 @@ class LSeriesAbstract(object):
             - ``is_selfdual`` -- bool (default: True)
             - ``prec`` -- integer (default: 53); precision to use when trying to figure
               out parameters using the functional equation
-            
-        
+
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeriesAbstract
@@ -448,7 +453,7 @@ class LSeriesAbstract(object):
             v.append('_poles')
         if isinstance(epsilon, list):
             v.append('_epsilon')
-            
+
         if len(v) > 0:
             found_params = False
             for X in cartesian_product_iterator([getattr(self, attr) for attr in v]):
@@ -457,7 +462,7 @@ class LSeriesAbstract(object):
                     found_params = True
                     break
             if not found_params:
-                raise RuntimeError, "no choice of values for %s works"%(', '.join(v))
+                raise RuntimeError("no choice of values for %s works" % (', '.join(v)))
 
     def _is_valid_parameters(self, prec=53, save=True, **kwds):
         valid = False
@@ -478,17 +483,12 @@ class LSeriesAbstract(object):
                     setattr(self, k, v)
             return valid
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         if self is right:
-            return 0
-        for a in ['degree', 'weight', 'conductor', 'epsilon', 'base_field']:
-            c = cmp(getattr(self, a)(), getattr(right, a)())
-            if c: return c
-        c = cmp(type(self), type(right))
-        return self._cmp(right)
-
-    def _cmp(self, right):
-        raise TypeError
+            return True
+        return all(getattr(self, a)() == getattr(right, a)()
+                   for a in ['degree', 'weight', 'conductor',
+                             'epsilon', 'base_field'])
 
     def parent(self):
         """
@@ -512,7 +512,7 @@ class LSeriesAbstract(object):
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
-            sage: L = LSeries('delta');  
+            sage: L = LSeries('delta');
             sage: L3 = L^3; L3
             (L-function associated to Ramanujan's Delta (a weight 12 cusp form))^3
             sage: L3(1)
@@ -530,7 +530,7 @@ class LSeriesAbstract(object):
             19052.321147176093380952680193
             sage: L(RealField(100)(1))^(-3)
             19052.321147176093380952680193
-        
+
         Special case -- 0th power -- is not allowed::
 
             sage: L^0
@@ -559,7 +559,7 @@ class LSeriesAbstract(object):
         elif isinstance(right, LSeriesProduct):
             return right * self
         raise TypeError
-    
+
     def __div__(self, right):
         """
         Divide two L-series or formal L-series products.
@@ -631,9 +631,9 @@ class LSeriesAbstract(object):
     def weight(self):
         """
         Return the weight of this L-series.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: LSeries('zeta').weight()
             1
@@ -661,7 +661,7 @@ class LSeriesAbstract(object):
 
         OUTPUT:
              - list of numbers
-        
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
@@ -671,11 +671,11 @@ class LSeriesAbstract(object):
             []
         """
         return list(self._poles)
-    
+
     def residues(self, prec=None):
         """
         Residues of the *completed* L-function at each pole.
-        
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
@@ -695,12 +695,12 @@ class LSeriesAbstract(object):
             Dedekind Zeta function of Number Field in a with defining polynomial x^2 + 1
 
         If you just call residues you get back that they are automatically computed::
-        
+
             sage: L.residues()
             'automatic'
 
         But if you call with a specific precision, they are computed using that precision::
-        
+
             sage: L.residues(prec=53)
             [-0.886226925452758]
             sage: L.residues(prec=200)
@@ -752,17 +752,17 @@ class LSeriesAbstract(object):
         In this example, the epsilon factor is computed when the curve
         is created. The prec parameter determines the floating point precision
         used in computing the epsilon factor::
-        
+
             sage: L = LSeries(EllipticCurve('11a3').base_extend(QQ[sqrt(2)]), prec=5); L.epsilon()
             -1
 
         Here is extra confirmation that the rank is really odd over the quadratic field::
-        
+
             sage: EllipticCurve('11a').quadratic_twist(2).rank()
             1
 
         We can compute with the L-series too::
-        
+
             sage: L(RealField(5)(2))
             0.53
 
@@ -799,31 +799,31 @@ class LSeriesAbstract(object):
             RuntimeError: unable to determine epsilon from functional equation working to precision 53, since we get epsilon=0.806362085925390 - 0.00491051026156280*I, which is not sufficiently close to 1
 
         However, when we evaluate to 100 bits of precision it works::
-        
+
             sage: L(RealField(100)(0))
             0.00000000000000000000000000000
 
         The epsilon factor is *not* known to infinite precision::
-            
-            sage: L.epsilon() 
+
+            sage: L.epsilon()
             'solve'
 
         But it is now known to 100 bits of precision, and here it is::
-        
-            sage: L.epsilon(100) 
+
+            sage: L.epsilon(100)
             0.42563106101692403875896879406 - 0.90489678963824790765479396740*I
 
         When we try to compute to higher precision, again Sage solves for the epsilon factor
         numerically::
-            
+
             sage: L(RealField(150)(1))
             0.26128389551787271923496480408992971337929665 - 0.29870133769674001421149135036267324347896657*I
 
         And now it is known to 150 bits of precision.  Notice that
         this is consistent with the value found above, and has
         absolute value (very close to) 1.
-        
-            sage: L.epsilon(150) 
+
+            sage: L.epsilon(150)
             0.42563106101692403875896879406038776338921622 - 0.90489678963824790765479396740501409301704122*I
             sage: abs(L.epsilon(150))
             1.0000000000000000000000000000000000000000000
@@ -845,7 +845,7 @@ class LSeriesAbstract(object):
         EXAMPLES::
 
         Many L-series are self dual::
-        
+
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: LSeries('zeta').is_selfdual()
             True
@@ -855,14 +855,14 @@ class LSeriesAbstract(object):
             True
 
         Nonquadratic characters have non-self dual L-series::
-        
+
             sage: LSeries(DirichletGroup(7).0).is_selfdual()
             False
             sage: LSeries(kronecker_character(7)).is_selfdual()
             True
 
         Newforms with non-quadratic characters also have non-self dual L-seris::
-            
+
             sage: L = LSeries(Newforms(DirichletGroup(7).0, 5, names='a')[0]); L.is_selfdual()
             False
         """
@@ -895,7 +895,7 @@ class LSeriesAbstract(object):
             (L-series of a degree 2 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2)
             sage: L.degree()
             4
-            
+
             sage: x = var('x'); K.<a> = NumberField(x^2-x-1); LSeries(EllipticCurve([0,-a,a,0,0])).degree()
             2
         """
@@ -995,13 +995,13 @@ class LSeriesAbstract(object):
             RuntimeError: invalid L-series parameters: functional equation not satisfied
 
         This is because the local factor is wrong::
-        
-            sage: Lt.local_factor(3) 
+
+            sage: Lt.local_factor(3)
             1
             sage: L.local_factor(3)
             3*T^2 + T + 1
-            
-        
+
+
         """
         return LSeriesTwist(self, chi=chi, conductor=conductor, epsilon=epsilon, prec=prec)
 
@@ -1010,11 +1010,11 @@ class LSeriesAbstract(object):
         """
         Return the local factor of the L-function at the prime P of
         self._base_field.  The result is cached.
-        
+
         INPUT:
             - a prime P of the ring of integers of the base_field
             - prec -- None or positive integer (bits of precision)
-            
+
         OUTPUT:
             - a polynomial, e.g., something like "1-a*T+p*T^2".
 
@@ -1044,12 +1044,12 @@ class LSeriesAbstract(object):
             ...
             NotImplementedError: must be implemented in the derived class
         """
-        raise NotImplementedError, "must be implemented in the derived class"
+        raise NotImplementedError("must be implemented in the derived class")
 
     def __repr__(self):
         """
         EXAMPLES::
-        
+
             sage: from sage.lfunctions.eulerprod import LSeriesAbstract
             sage: L = LSeriesAbstract(conductor=1, hodge_numbers=[0], weight=1, epsilon=1, poles=[1], residues=[-1], base_field=QQ)
             sage: L.__repr__()
@@ -1113,7 +1113,7 @@ class LSeriesAbstract(object):
              - n -- nonnegative integer
 
         EXAMPLES::
-        
+
         """
         return self._lcalc().zeros(n)
 
@@ -1141,7 +1141,7 @@ class LSeriesAbstract(object):
 
         INPUT:
             - ``bound`` -- nonnegative integer
-        
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries; L = LSeries('zeta')
@@ -1183,7 +1183,7 @@ class LSeriesAbstract(object):
                         compute_anlist_multiple = True
                     lf.append(F)
             LF.append((p, lf))
-                        
+
         coefficients = self._compute_anlist(LF, bound, prec)
         if not compute_anlist_multiple:
             coefficients = list(coefficients)[0]
@@ -1200,12 +1200,11 @@ class LSeriesAbstract(object):
             - ``bound`` -- positive integer
             - ``prec`` -- positive integer (bits of precision)
         """
-        K = self._base_field
         coefficients = [0,1] + [0]*(bound-1)
-        
+
         for i, (p, v) in enumerate(LF):
             if len(v) > 0:
-                # Check for the possibility of several different 
+                # Check for the possibility of several different
                 # choices of Euler factor at a given prime.   If this happens,
                 # we switch gears.
                 some_list = False
@@ -1226,7 +1225,7 @@ class LSeriesAbstract(object):
                 series_p = (f + O(T**accuracy_p))**(-1)
                 for j in range(1, accuracy_p):
                     coefficients[p**j] = series_p[j]
-                    
+
         # fill in non-prime power coefficients
         extend_multiplicatively_generic(coefficients)
         yield list(coefficients)
@@ -1237,7 +1236,7 @@ class LSeriesAbstract(object):
         terms up to `n^s` where n=bound.
 
         EXAMPLES::
-        
+
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: L = LSeries(EllipticCurve('37a'))
             sage: SR(L)
@@ -1294,7 +1293,7 @@ class LSeriesAbstract(object):
             ZeroDivisionError: pole at 1
         """
         if s in self._poles:
-            raise ZeroDivisionError, "pole at %s"%s
+            raise ZeroDivisionError("pole at %s" % s)
         return self._function(prec(s))(s)
 
     def derivative(self, k=1):
@@ -1305,7 +1304,7 @@ class LSeriesAbstract(object):
             - k -- (default: 1) nonnegative integer
 
         EXAMPLES::
-        
+
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: L = LSeries('zeta')
             sage: L.derivative()
@@ -1313,7 +1312,7 @@ class LSeriesAbstract(object):
 
         We numerically approximate the derivative at two points and compare
         with evaluating the derivative object::
-        
+
             sage: eps=1e-10;  (L(2+eps) - L(2))/eps
             -0.937547817159157
             sage: Lp = L.derivative(); Lp(2)
@@ -1322,9 +1321,9 @@ class LSeriesAbstract(object):
             0.0624900131640516 + 0.489033813444451*I
             sage: Lp(2+I)
             0.0624900021906470 + 0.489033591679899*I
-        
+
         Higher derivatives::
-        
+
             sage: L.derivative(2)
             Second derivative of Riemann Zeta function viewed as an L-series
             sage: L.derivative(2)(2)
@@ -1337,12 +1336,12 @@ class LSeriesAbstract(object):
             5-th derivative of Riemann Zeta function viewed as an L-series
 
         Derivative of derivative::
-        
+
             sage: L.derivative().derivative()
             Second derivative of Riemann Zeta function viewed as an L-series
 
         Using the derivative function in Sage works::
-        
+
             sage: derivative(L)
             First derivative of Riemann Zeta function viewed as an L-series
             sage: derivative(L,2)
@@ -1376,7 +1375,7 @@ class LSeriesAbstract(object):
             1.6449341 - 0.93754825*t + 0.99464012*t^2 - 1.0000243*t^3 + O(t^4)
             sage: RealField(30)(zeta(2))
             1.6449341
-             
+
         """
         if center is None:
             center = ComplexField(prec)(self._weight)/2
@@ -1426,10 +1425,10 @@ class LSeriesAbstract(object):
 
         INPUT:
             - prec -- integer
-        
+
         EXAMPLES::
 
-            sage: from sage.lfunctions.eulerprod import LSeries        
+            sage: from sage.lfunctions.eulerprod import LSeries
             sage: L = LSeries(DirichletGroup(5).0)
             sage: L.number_of_coefficients(20)
             8
@@ -1442,7 +1441,7 @@ class LSeriesAbstract(object):
 
     def _dokchitser(self, prec, epsilon, T=1.2):
         L = self._dokchitser_unitialized(prec, epsilon)
-        
+
         # Find out how many coefficients of the Dirichlet series are needed
         # to compute to the requested precision.
         n = L.num_coeffs(T=T)
@@ -1462,7 +1461,7 @@ class LSeriesAbstract(object):
         for coeffs in coeff_lists:
             # Define a string that when evaluated in PARI defines a function
             # a(k), which returns the Dirichlet coefficient a_k.
-            s = 'v=[%s]; a(k)=v[k];'%','.join([str(z) if isinstance(z, (int,long,Integer)) else z._pari_init_() for z in coeffs[1:]])
+            s = 'v=[%s]; a(k)=v[k];'%','.join([str(z) if isinstance(z, (int,Integer)) else z._pari_init_() for z in coeffs[1:]])
 
             # Tell the L-series / PARI about the coefficients.
 
@@ -1479,7 +1478,7 @@ class LSeriesAbstract(object):
                 cmd = "sgneq = Vec(checkfeq()); sgn = -sgneq[2]/sgneq[1]; sgn"
                 epsilon = ComplexField(prec)(L._gp_eval(cmd))
                 if abs(abs(epsilon)-1) > tiny0:
-                    raise RuntimeError, "unable to determine epsilon from functional equation working to precision %s, since we get epsilon=%s, which is not sufficiently close to 1"%(prec, epsilon)
+                    raise RuntimeError("unable to determine epsilon from functional equation working to precision %s, since we get epsilon=%s, which is not sufficiently close to 1" % (prec, epsilon))
                 # 1, -1 are two common special cases, where it is clear what the
                 # infinite precision version is.
                 if epsilon == 1:
@@ -1496,12 +1495,13 @@ class LSeriesAbstract(object):
                 return L
             else:
                 pass
-            
+
         # They all failed.
-        raise RuntimeError, "invalid L-series parameters: functional equation not satisfied"
+        raise RuntimeError("invalid L-series parameters: functional equation not satisfied")
 
     def check_functional_equation(self, T, prec=53):
         return self._function(prec=prec).check_functional_equation(T)
+
 
 class LSeriesProductEvaluator(object):
     def __init__(self, factorization, prec):
@@ -1512,9 +1512,11 @@ class LSeriesProductEvaluator(object):
         try:
             v = self._functions
         except AttributeError:
-            self._functions = [(L._function(self._prec),e) for L,e in self._factorization]
+            self._functions = [(L._function(self._prec), e)
+                               for L, e in self._factorization]
             v = self._functions
-        return prod(f(s)**e for f,e in v)
+        return prod(f(s)**e for f, e in v)
+
 
 class LSeriesProduct(object):
     """
@@ -1527,19 +1529,22 @@ class LSeriesProduct(object):
         """
         if not isinstance(F, Factorization):
             F = Factorization(F)
-        F.sort(cmp)
+        F.sort(key=lambda L: (L._conductor, L._weight))
         if len(F) == 0:
-            raise ValueError, "product must be nonempty"
+            raise ValueError("product must be nonempty")
         self._factorization = F
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         # TODO: make work even if right not a product
-        return cmp(self._factorization, right._factorization)
+        return self._factorization == right._factorization
 
+    def __ne__(self, right):
+        return not(self == right)
+    
     def is_selfdual(self):
         """
         Return True if every factor of self is self dual; otherwise, return False.
-        
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
@@ -1593,7 +1598,7 @@ class LSeriesProduct(object):
     def __pow__(self, n):
         """
         Return the n-th power of this formal L-series product, where n can be any integer.
-        
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
@@ -1631,7 +1636,7 @@ class LSeriesProduct(object):
 
     def parent(self):
         return LSeriesParent
-    
+
     def factor(self):
         return self._factorization
 
@@ -1676,10 +1681,10 @@ class LSeriesProduct(object):
             11.237843 - 17.508629*w + 21.688182*w^2 - 24.044641*w^3 + O(w^4)
             sage: L1.taylor_series(2, 4, 'w', 30) / L2.taylor_series(2, 4, 'w', 30)
             11.237843 - 17.508629*w + 21.688182*w^2 - 24.044641*w^3 + O(w^4)
-            
+
         """
         return prod(L.taylor_series(center, degree, variable, prec)**e for L,e in self._factorization)
-        
+
     def analytic_rank(self, prec=53):
         """
         Return sum of the order of vanishing counted with
@@ -1698,7 +1703,7 @@ class LSeriesProduct(object):
             L-series attached to Modular Symbols subspace of dimension 32 of Modular Symbols space of dimension 33 for Gamma_0(389) of weight 2 with sign 1 over Rational Field
 
         We first attempt computation of the analytic rank with the default of 53 bits precision::
-        
+
             sage: L.analytic_rank()
             Traceback (most recent call last):
             ...
@@ -1735,8 +1740,8 @@ class LSeriesProduct(object):
         computation of Taylor series.
         """
         return LSeriesProductEvaluator(self._factorization, prec)
-        
-        
+
+
 class LSeriesZeta(LSeriesAbstract):
     """
     EXAMPLES::
@@ -1755,7 +1760,7 @@ class LSeriesZeta(LSeriesAbstract):
         sage: L.local_factor(5)
         -T + 1
         sage: L.anlist(30)
-        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]        
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     """
     def __init__(self):
         LSeriesAbstract.__init__(self, conductor=1, hodge_numbers=[0], weight=1, epsilon=1,
@@ -1763,15 +1768,13 @@ class LSeriesZeta(LSeriesAbstract):
         T = ZZ['T'].gen()
         self._lf = 1 - T
 
-    def _cmp(self, right):
-        return 0
-
     def _local_factor(self, P, prec):
         return self._lf
 
     def __repr__(self):
         return "Riemann Zeta function viewed as an L-series"
-    
+
+
 class LSeriesDelta(LSeriesAbstract):
     """
     EXAMPLES::
@@ -1801,7 +1804,7 @@ class LSeriesDelta(LSeriesAbstract):
             285311670611*T^2 - 534612*T + 1
 
         The representation is reducible modulo 691::
-        
+
             sage: L.local_factor(2).factor_mod(691)
             (666) * (T + 387) * (T + 690)
             sage: L.local_factor(3).factor_mod(691)
@@ -1824,7 +1827,7 @@ class LSeriesDelta(LSeriesAbstract):
     def _precompute_local_factors(self, bound, prec=None):
         """
         Precompute local factors up to the given bound.
-        
+
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeriesDelta; L = LSeriesDelta()
@@ -1845,10 +1848,7 @@ class LSeriesDelta(LSeriesAbstract):
     def __repr__(self):
         return "L-function associated to Ramanujan's Delta (a weight 12 cusp form)"
 
-    def _cmp(self, right):
-        return 0
 
-                 
 class LSeriesEllipticCurve(LSeriesAbstract):
     def __init__(self, E, prec=53):
         """
@@ -1870,11 +1870,8 @@ class LSeriesEllipticCurve(LSeriesAbstract):
     def elliptic_curve(self):
         return self._E
 
-    def _cmp(self, right):
-        return cmp(self.elliptic_curve(), right.elliptic_curve())
-
     def __repr__(self):
-        return "L-series of %s"%self.elliptic_curve()
+        return "L-series of %s" % self.elliptic_curve()
 
     def _local_factor(self, P, prec):
         R = ZZ['T']
@@ -1889,23 +1886,23 @@ class LSeriesEllipticCurve(LSeriesAbstract):
             a = q + 1 - self._E.reduction(P).count_points()
             return 1 - a*(T**f) + q*(T**(2*f))
 
-        
+
 class LSeriesEllipticCurveQQ(LSeriesEllipticCurve):
     def __init__(self, E):
         E = E.global_minimal_model()
         self._E = E
-        K = E.base_field()
         self._N = E.conductor()
         self._lf = {}
         self._T = ZZ['T'].gen()
-        LSeriesAbstract.__init__(self, conductor = self._N,
-                                 hodge_numbers = [0,1], weight = 2, epsilon = E.root_number(),
-                                 poles = [], residues=[], base_field = QQ)
+        LSeriesAbstract.__init__(self, conductor=self._N,
+                                 hodge_numbers=[0,1], weight=2,
+                                 epsilon=E.root_number(),
+                                 poles=[], residues=[], base_field=QQ)
 
     def _lf0(self, p):
         a = self._E.ap(p)
         T = self._T
-        if self._N%p == 0:
+        if self._N % p == 0:
             if self._N%(p*p) == 0:
                 return T.parent()(1)
             else:
@@ -1961,35 +1958,32 @@ class LSeriesDedekindZeta(LSeriesAbstract):
                                  is_selfdual = True)
         self._T = ZZ['T'].gen()
 
-    def _cmp(self, right):
-        return cmp(self.number_field(), right.number_field())
-
     def number_field(self):
         return self._K
-    
+
     def __repr__(self):
         return "Dedekind Zeta function of %s"%self._K
 
     def _local_factor(self, P, prec):
         T = self._T
         return 1 - T**P.residue_class_degree()
-    
+
 
 class LSeriesDirichletCharacter(LSeriesAbstract):
     """
     EXAMPLES::
-    
+
         sage: from sage.lfunctions.eulerprod import LSeries;  L = LSeries(DirichletGroup(5).0)
         sage: L(3)
         0.988191681624057 + 0.0891051883457395*I
     """
     def __init__(self, chi):
         if not chi.is_primitive():
-            raise NotImplementedError, "chi must be primitive"
+            raise NotImplementedError("chi must be primitive")
         if chi.is_trivial():
-            raise NotImplementedError, "chi must be nontrivial"
+            raise NotImplementedError("chi must be nontrivial")
         if chi.base_ring().characteristic() != 0:
-            raise ValueError, "base ring must have characteristic 0"
+            raise ValueError("base ring must have characteristic 0")
         self._chi = chi
         LSeriesAbstract.__init__(self, conductor = chi.conductor(),
                                  hodge_numbers = [1] if chi.is_odd() else [0],
@@ -2000,9 +1994,6 @@ class LSeriesDirichletCharacter(LSeriesAbstract):
                                  base_field = QQ,
                                  is_selfdual = chi.order() <= 2)
         self._T = ZZ['T'].gen()
-
-    def _cmp(self, right):
-        return cmp(self.character(), right.character())
 
     def __repr__(self):
         """
@@ -2028,7 +2019,7 @@ class LSeriesDirichletCharacter(LSeriesAbstract):
             if chi.is_odd():
                 x *= C.gen()
             return 1/x
-        
+
     def _local_factor(self, P, prec):
         a = self._chi(P)
         if prec is not None:
@@ -2036,12 +2027,9 @@ class LSeriesDirichletCharacter(LSeriesAbstract):
         return 1 - a*self._T
 
 class LSeriesModularSymbolsAbstract(LSeriesAbstract):
-    def _cmp(self, right):
-        return cmp(self.modular_symbols(), right.modular_symbols())
-        
     def modular_symbols(self):
         return self._M
-    
+
     def __repr__(self):
         """
         EXAMPLES::
@@ -2053,7 +2041,7 @@ class LSeriesModularSymbolsAbstract(LSeriesAbstract):
             'L-series of a degree 2 newform of level 43 and weight 2'
         """
         return "L-series of a degree %s newform of level %s and weight %s"%(self._M.dimension(), self._M.level(), self._M.weight())
-    
+
     def _precompute_local_factors(self, bound, prec):
         primes = [p for p in prime_range(bound) if not self._lf.has_key(p) or self._lf[p][0] < prec]
         self._do_precompute(primes, prec)
@@ -2069,7 +2057,7 @@ class LSeriesModularSymbolsAbstract(LSeriesAbstract):
                 C = CDF
         else:
             C = ComplexField(prec)
-            
+
         phi = v.base_ring().embeddings(C)[self._conjugate]
         v = vector(C, [phi(a) for a in v])
         aplist = E.change_ring(C) * v
@@ -2082,20 +2070,19 @@ class LSeriesModularSymbolsAbstract(LSeriesAbstract):
             if s != 0: s *= p**(k-1)
             F = 1 - aplist[i]*T + s*T2
             self._lf[p] = (prec, F)
-        
+
     def _local_factor(self, P, prec):
         # TODO: ugly -- get rid of all "prec=None" in whole program -- always use oo.
-        if prec is None: prec = oo
+        if prec is None:
+            prec = oo
         if self._lf.has_key(P) and self._lf[P][0] >= prec:
             return self._lf[P][1]
         else:
             self._do_precompute([P],prec)
-            return self._lf[P][1]            
+            return self._lf[P][1]
+
 
 class LSeriesModularSymbolsNewformGamma0(LSeriesModularSymbolsAbstract):
-    def _cmp(self, right):
-        return cmp((self._M, self._conjugate), (right._M, right._conjugate))
-
     def __init__(self, M, conjugate=0, check=True, epsilon=None):
         """
         INPUT:
@@ -2128,34 +2115,34 @@ class LSeriesModularSymbolsNewformGamma0(LSeriesModularSymbolsAbstract):
             0.921328017272472 + 0.492443075089339*z - 0.391019352704047*z^2 + 0.113271812405127*z^3 + 0.0213067052584679*z^4 - 0.0344198080536274*z^5 + O(z^6)
         """
         if M.dimension() == 0:
-            raise ValueError, "modular symbols space must positive dimension"
+            raise ValueError("modular symbols space must positive dimension")
         chi = M.character()
         if chi is None or not chi.is_trivial():
-            raise ValueError, "modular symbols space must have trivial character"
+            raise ValueError("modular symbols space must have trivial character")
         self._M = M
         N = M.level()
 
         if check:
             if not M.is_simple():
-                raise ValueError, "modular symbols space must be simple"
+                raise ValueError("modular symbols space must be simple")
             if not M.is_new():
-                raise ValueError, "modular symbols space must be new"
+                raise ValueError("modular symbols space must be new")
             if not M.is_cuspidal():
-                raise ValueError, "modular symbols space must be cuspidal"
+                raise ValueError("modular symbols space must be cuspidal")
 
         k = M.weight()
         if epsilon is None:
             w = M.atkin_lehner_operator(N).matrix()
             if w not in [-1, 1]:
-                raise ValueError, "modular symbols space must have constant Atkin-Lehner operator"
+                raise ValueError("modular symbols space must have constant Atkin-Lehner operator")
             epsilon = (-1)**(k/2) * w[0,0]
 
         conjugate = ZZ(conjugate)
         if conjugate < 0 or conjugate >= M.dimension():
-            raise ValueError, "conjugate must a nonnegative integer less than the dimension"
+            raise ValueError("conjugate must a nonnegative integer less than the dimension")
         self._conjugate = conjugate
         self._lf = {}
-        
+
         LSeriesAbstract.__init__(self,
                                  conductor = N,
                                  hodge_numbers = [0,1],
@@ -2167,23 +2154,20 @@ class LSeriesModularSymbolsNewformGamma0(LSeriesModularSymbolsAbstract):
 
 def _is_valid_modsym_space(M):
     if not is_ModularSymbolsSpace(M):
-        raise TypeError, "must be a modular symbols space"
+        raise TypeError("must be a modular symbols space")
     if M.dimension() == 0:
-        raise ValueError, "modular symbols space must positive dimension"
+        raise ValueError("modular symbols space must positive dimension")
     if M.character() is None:
-        raise ValueError, "modular symbols space must have associated character"
+        raise ValueError("modular symbols space must have associated character")
     if not M.is_simple():
-        raise ValueError, "modular symbols space must be simple"
+        raise ValueError("modular symbols space must be simple")
     if not M.is_new():
-        raise ValueError, "modular symbols space must be new"
+        raise ValueError("modular symbols space must be new")
     if not M.is_cuspidal():
-        raise ValueError, "modular symbols space must be cuspidal"
-    
+        raise ValueError("modular symbols space must be cuspidal")
+
 
 class LSeriesModularSymbolsNewformCharacter(LSeriesModularSymbolsAbstract):
-    def _cmp(self, right):
-        return cmp((self._M, self._conjugate), (right._M, right._conjugate))
-    
     def __init__(self, M, conjugate=0):
         _is_valid_modsym_space(M)
         chi = M.character()
@@ -2197,11 +2181,11 @@ class LSeriesModularSymbolsNewformCharacter(LSeriesModularSymbolsAbstract):
         # That said, this seems hard to compute, so we just solve using the
         # functional equation.
         epsilon = 'solve'
-        
+
         k = M.weight()
         conjugate = ZZ(conjugate)
         if conjugate < 0 or conjugate >= M.dimension():
-            raise ValueError, "conjugate must a nonnegative integer less than the dimension"
+            raise ValueError("conjugate must a nonnegative integer less than the dimension")
         self._conjugate = conjugate
 
 
@@ -2221,20 +2205,22 @@ def _new_modsym_space_with_multiplicity(M):
     Returns a simple new modular symbols space N and an integer d such
     that M is isomorphic to `N^d` as a module over the anemic Hecke
     algebra.
-    
+
     INPUT:
         - M -- a sign=1 modular simple space for the full Hecke
           algebra (including primes dividing the level) that can't be
           decomposed further by the Hecke operators.  None of the
           conditions on M are explicitly checked.
-        
+
     OUTPUT:
-        - N -- a simple new modular symbols space
-        - d -- a positive integer
+
+    - N -- a simple new modular symbols space
+    - d -- a positive integer
     """
     if M.is_new():
-        return [(M,1)]
+        return [(M, 1)]
     raise NotImplementedError
+
 
 def LSeriesModularSymbolsNewform(M, i=0):
     chi = M.character()
@@ -2245,6 +2231,7 @@ def LSeriesModularSymbolsNewform(M, i=0):
     else:
         return LSeriesModularSymbolsNewformCharacter(M, i)
 
+
 class LSeriesModularSymbolsMotive(LSeriesProduct):
     """
     The product of L-series attached to the modular symbols space M.
@@ -2252,7 +2239,7 @@ class LSeriesModularSymbolsMotive(LSeriesProduct):
     def __init__(self, M):
         self._M = M
         if not is_ModularSymbolsSpace(M):
-            raise TypeError, "X must be a modular symbols space or have a modular symbols method"
+            raise TypeError("X must be a modular symbols space or have a modular symbols method")
         self._M = M
         D = M.decomposition()
         for A in D:
@@ -2261,17 +2248,17 @@ class LSeriesModularSymbolsMotive(LSeriesProduct):
         for A in D:
             for X in _new_modsym_space_with_multiplicity(A):
                 N, d = X
-                chi = N.character()
                 for i in range(N.dimension()):
-                    F.append( (LSeriesModularSymbolsNewform(N,i), d))
+                    F.append((LSeriesModularSymbolsNewform(N,i), d))
         LSeriesProduct.__init__(self, F)
 
     def modular_symbols(self):
         return self._M
 
     def __repr__(self):
-        return "L-series attached to %s"%self._M
-    
+        return "L-series attached to %s" % self._M
+
+
 class LSeriesModularAbelianVariety(LSeriesProduct):
     """
     The product of L-series attached to the modular abelian variety A.
@@ -2289,12 +2276,12 @@ class LSeriesModularAbelianVariety(LSeriesProduct):
         0.25072 + 0.59559*z + 0.15099*z^2 - 0.35984*z^3 + 0.056934*z^4 + 0.17184*z^5 + O(z^6)
 
     Independent check of L(1)::
-    
+
         sage: prod(EllipticCurve(lbl).lseries()(1) for lbl in ['54a', '54b', '27a', '27a'])
         0.250717238804658
 
     Different check that totally avoids using Dokchitser::
-    
+
         sage: prod(EllipticCurve(lbl).lseries().at1(prec=53)[0] for lbl in ['54a', '54b', '27a', '27a'])
         0.250848605530185
     """
@@ -2314,7 +2301,7 @@ class LSeriesModularAbelianVariety(LSeriesProduct):
             else:
                 F *= L
         if F is None:
-            raise ValueError, "abelian variety must have positive dimension"
+            raise ValueError("abelian variety must have positive dimension")
         LSeriesProduct.__init__(self, F.factor())
 
     def abelian_variety(self):
@@ -2341,8 +2328,8 @@ class LSeriesTwist(LSeriesAbstract):
         self._chi = chi
 
         if not chi.is_primitive():
-            raise ValueError, "character must be primitive"
-        
+            raise ValueError("character must be primitive")
+
         A = ZZ(L.conductor())
         B = chi.conductor()
         if conductor is None:
@@ -2391,16 +2378,14 @@ class LSeriesTwist(LSeriesAbstract):
         return L0(c*T)
 
     def __repr__(self):
-        return "Twist of %s by %s"%(self._L, self._chi)
-
-    def _cmp(self, right):
-        return cmp((self._L, self._chi), (right._L, right._chi))
+        return "Twist of %s by %s" % (self._L, self._chi)
 
     def untwisted_lseries(self):
         return self._L
 
     def twist_character(self):
         return self._chi
+
 
 def LSeries(X, *args, **kwds):
     """
@@ -2424,7 +2409,7 @@ def LSeries(X, *args, **kwds):
         sage: L = LSeries(K); L
         Dedekind Zeta function of Number Field in a with defining polynomial x^2 + 1
         sage: L(2)
-        1.50670300992299        
+        1.50670300992299
 
         sage: K.zeta_coefficients(100) == L.anlist(100)[1:]
         True
@@ -2437,7 +2422,7 @@ def LSeries(X, *args, **kwds):
         sage: L.factor()[1][0](1)
         0.921328017272472
         sage: L._X
-        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field        
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
         sage: L = LSeries(ModularSymbols(DirichletGroup(13).0^2, weight=2,sign=1).cuspidal_subspace())
         sage: L(1)
         0.298115272465799 - 0.0402203326076733*I
@@ -2447,14 +2432,14 @@ def LSeries(X, *args, **kwds):
         sage: L = LSeries(J0(33)); L
         L-series attached to Abelian variety J0(33) of dimension 3
         sage: L.factor()
-        (L-series of a degree 1 newform of level 11 and weight 2)^2 * (L-series of a degree 1 newform of level 33 and weight 2)        
+        (L-series of a degree 1 newform of level 11 and weight 2)^2 * (L-series of a degree 1 newform of level 33 and weight 2)
         sage: L.local_factor(2, prec=oo)
         8*T^6 + 12*T^5 + 12*T^4 + 8*T^3 + 6*T^2 + 3*T + 1
         sage: L(1)
         0.0481553138900504
 
     We check the above computation of L(1) via independent methods (and implementations)::
-    
+
         sage: prod(EllipticCurve(lbl).lseries().at1(prec=53)[0] for lbl in ['11a', '11a', '33a'])
         0.0481135342926321
         sage: prod(EllipticCurve(lbl).lseries()(1) for lbl in ['11a', '11a', '33a'])
@@ -2470,7 +2455,7 @@ def LSeries(X, *args, **kwds):
         sage: L.taylor_series()
         0.000000000000000 + 0.196399786632435*z + 0.314922741074845*z^2 - 0.0797083673829092*z^3 - 0.161630566287135*z^4 + 0.123939472976207*z^5 + O(z^6)
         sage: L.factor()
-        (L-series of a degree 1 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2)        
+        (L-series of a degree 1 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2)
         sage: L.analytic_rank()
         1
         sage: D = ModularSymbols(43,sign=1).cuspidal_subspace().decomposition()
@@ -2497,7 +2482,7 @@ def _lseries(X, *args, **kwds):
             return LSeriesEllipticCurveQQ(X, *args, **kwds)
         else:
             return LSeriesEllipticCurve(X)
-        
+
     if is_DirichletCharacter(X):
         if X.is_trivial() and X.is_primitive():
             return LSeriesZeta(*args, **kwds)
@@ -2522,9 +2507,9 @@ def _lseries(X, *args, **kwds):
         elif y == 'delta':
             return LSeriesDelta(*args, **kwds)
         else:
-            raise ValueError, 'unknown L-series "%s"'%y
+            raise ValueError('unknown L-series "%s"' % y)
 
     if is_ModularAbelianVariety(X):
         return LSeriesModularAbelianVariety(X, *args, **kwds)
-        
+
     raise NotImplementedError

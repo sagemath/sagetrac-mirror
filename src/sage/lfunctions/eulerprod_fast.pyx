@@ -1,7 +1,7 @@
-
 from sage.stats.intlist cimport IntList
 
 from sage.all import prime_range
+
 
 def prime_powers_intlist(Py_ssize_t B):
     """
@@ -11,10 +11,10 @@ def prime_powers_intlist(Py_ssize_t B):
 
     INPUT:
 
-        - B -- positive integer
+    - B -- positive integer
 
     EXAMPLES::
-    
+
         sage: from sage.lfunctions.eulerprod_fast import prime_powers_intlist
         sage: prime_powers_intlist(10)
         ([1, 2, 4, 8, 3, 9, 5, 7], [1, 2, 2, 2, 3, 3, 5, 7])
@@ -28,7 +28,7 @@ def prime_powers_intlist(Py_ssize_t B):
         True
     """
     v = prime_range(B, py_ints=True)
-    cdef IntList w = IntList(len(v)*2), w0 = IntList(len(v)*2)
+    cdef IntList w = IntList(len(v) * 2), w0 = IntList(len(v) * 2)
     w[0] = 1
     w0[0] = 1
     # Now fill in prime powers
@@ -44,18 +44,21 @@ def prime_powers_intlist(Py_ssize_t B):
             i += 1
     return w[:i], w0[:i]
 
+
 def extend_multiplicatively(IntList a):
     """
     Given an IntList a such that the a[p^r] is filled in, for all
     prime powers p^r, fill in all the other a[n] multiplicatively.
 
     INPUT:
-        - a -- IntList with prime-power-index entries set; all other
-          entries are ignored
+
+    - a -- IntList with prime-power-index entries set; all other
+      entries are ignored
 
     OUTPUT:
-        - the input object a is modified to have all entries set
-          via multiplicativity.
+
+    - the input object a is modified to have all entries set
+      via multiplicativity.
 
     EXAMPLES::
 
@@ -77,13 +80,13 @@ def extend_multiplicatively(IntList a):
     cdef IntList known = IntList(B)
     for i in range(len(P)):
         known._values[P[i]] = 1
-        
+
     cdef int k, pp, p, n
     # fill in the multiples of pp = prime power
     for i in range(len(P)):
         pp = P._values[i]; p = P0._values[i]
         k = 2
-        n = k*pp
+        n = k * pp
         while n < B:
             # only consider n exactly divisible by pp
             if k % p and known._values[k]:
@@ -91,20 +94,22 @@ def extend_multiplicatively(IntList a):
                 known._values[n] = 1
             n += pp
             k += 1
-        
-        
+
+
 def extend_multiplicatively_generic(list a):
     """
     Given a list a of numbers such that the a[p^r] is filled in, for
     all prime powers p^r, fill in all the other a[n] multiplicatively.
 
     INPUT:
-        - a -- list with prime-power-index entries set; all other
-          entries are ignored
+
+    - a -- list with prime-power-index entries set; all other
+      entries are ignored
 
     OUTPUT:
-        - the input object a is modified to have all entries set
-          via multiplicativity.
+
+    - the input object a is modified to have all entries set
+      via multiplicativity.
 
     EXAMPLES::
 
@@ -117,9 +122,8 @@ def extend_multiplicatively_generic(list a):
         sage: list(an) == E.anlist(len(an))[:len(an)]
         True
 
-
     A test using large integers::
-    
+
         sage: v = [0, 1, 2**100, 3**100, 4, 5, 0]
         sage: extend_multiplicatively_generic(v)
         sage: v
@@ -144,13 +148,14 @@ def extend_multiplicatively_generic(list a):
     cdef IntList known = IntList(B)
     for i in range(len(P)):
         known._values[P[i]] = 1
-        
+
     cdef int k, pp, p, n
     # fill in the multiples of pp = prime power
     for i in range(len(P)):
-        pp = P._values[i]; p = P0._values[i]
+        pp = P._values[i]
+        p = P0._values[i]
         k = 2
-        n = k*pp
+        n = k * pp
         while n < B:
             # only consider n exactly divisible by pp
             if k % p and known._values[k]:
@@ -158,6 +163,3 @@ def extend_multiplicatively_generic(list a):
                 known._values[n] = 1
             n += pp
             k += 1
-    
-    
-    
