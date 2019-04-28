@@ -506,23 +506,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                                                            codomain=self),
                                      position=1)
 
-    def raise_to_operad_on_basis(self, t):
-        """
-        Put canonical labels on a tree in the Pre-Lie operad.
-
-        This means here a labelling by consecutive integers starting at 1.
-
-        The result is an element of the pre-Lie operad.
-
-        EXAMPLES::
-
-            sage: A = algebras.FreePreLie(QQ, 'ab')
-            sage: LT = A.basis().keys()
-            sage: A.raise_to_operad_on_basis(LT([LT([],'b')], label='a'))
-            B[1[2[]]]
-        """
-        return self._operad.basis()[t.canonical_labelling()]
-
     # after this line : coercion
 
     def _element_constructor_(self, x):
