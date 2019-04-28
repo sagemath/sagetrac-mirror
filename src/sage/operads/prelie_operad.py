@@ -16,7 +16,7 @@ AUTHORS:
 # ****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.functions.other import factorial
-from sage.categories.all import OperadsWithBasis,
+from sage.categories.all import OperadsWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.rooted_tree import LabelledRootedTrees
 from sage.categories.cartesian_product import cartesian_product

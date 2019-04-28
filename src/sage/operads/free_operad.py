@@ -170,7 +170,8 @@ class FreeOperad(CombinatorialFreeModule):
             2*B[a[b[]]]
         """
         if fun is None:
-            fun = lambda st: getattr(cod, st)
+            def fun(st):
+                return getattr(cod, st)
         if len(t) == 0:
             return cod.one(t.label())
         res = fun(t.label())

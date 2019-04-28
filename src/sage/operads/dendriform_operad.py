@@ -42,7 +42,8 @@ class DendriformOperad(CombinatorialFreeModule):
             sage: x.compose(y, 'v')
             B[i[u[., .], j[., .]]]
         """
-        key = lambda t: (t.to_dyck_word(), t.labels())
+        def key(t):
+            return (t.to_dyck_word(), t.labels())
         CombinatorialFreeModule.__init__(self, R, LabelledBinaryTrees(),
                                          category=OperadsWithBasis(R),
                                          sorting_key=key)
