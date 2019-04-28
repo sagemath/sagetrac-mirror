@@ -18,7 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 
-from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
+from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
 
 
@@ -82,6 +82,11 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         Traceback (most recent call last):
         ...
         ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        sage: Polyhedra(QQ[I], 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid base ring: Number Field in I with defining polynomial x^2 + 1 cannot be coerced to a real field
+
     """
     if backend is None:
         if base_ring is ZZ or base_ring is QQ:
@@ -92,11 +97,12 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
             # TODO: find a more robust way of checking that the coefficients are indeed
             # real numbers
             if not RDF.has_coerce_map_from(base_ring):
-                raise ValueError("invalid base ring")
+                raise ValueError("invalid base ring: {} cannot be coerced to a real field".format(base_ring))
             backend = 'field'
         else:
             raise ValueError("no appropriate backend for computations with {}".format(base_ring))
 
+    from sage.symbolic.ring import SR
     if backend == 'ppl' and base_ring is QQ:
         return Polyhedra_QQ_ppl(base_ring, ambient_dim, backend)
     elif backend == 'ppl' and base_ring is ZZ:
@@ -105,6 +111,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         return Polyhedra_QQ_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'normaliz' and base_ring is ZZ:
         return Polyhedra_ZZ_normaliz(base_ring, ambient_dim, backend)
+    elif backend == 'normaliz' and (base_ring is SR or base_ring.is_exact()):
+        return Polyhedra_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'cdd' and base_ring in (ZZ, QQ):
         return Polyhedra_QQ_cdd(QQ, ambient_dim, backend)
     elif backend == 'cdd' and base_ring is RDF:
@@ -931,7 +939,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
 from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd, Polyhedron_RDF_cdd
 from sage.geometry.polyhedron.backend_ppl import Polyhedron_ZZ_ppl, Polyhedron_QQ_ppl
-from sage.geometry.polyhedron.backend_normaliz import Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
+from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz, Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
 from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
 from sage.geometry.polyhedron.backend_field import Polyhedron_field
 
@@ -952,6 +960,9 @@ class Polyhedra_QQ_cdd(Polyhedra_base):
 
 class Polyhedra_RDF_cdd(Polyhedra_base):
     Element = Polyhedron_RDF_cdd
+
+class Polyhedra_normaliz(Polyhedra_base):
+    Element = Polyhedron_normaliz
 
 class Polyhedra_polymake(Polyhedra_base):
     Element = Polyhedron_polymake
