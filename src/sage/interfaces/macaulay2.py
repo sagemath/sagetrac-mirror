@@ -294,6 +294,31 @@ class Macaulay2(ExtraTabCompletion, Expect):
         # parasitic output
         self.eval("restart")
 
+    def set_seed(self, seed=None):
+        r"""
+        Set the seed for Macaulay2 interpreter.
+
+        INPUT:
+
+        - ``seed`` -- number (default: ``None``). If ``None``, it
+          is set to a random number.
+
+        OUTPUT: the new seed
+
+        EXAMPLES::
+
+            sage: m = Macaulay2()                     # optional - macaulay2
+            sage: m.set_seed(123456)                  # optional - macaulay2
+            123456
+            sage: [m.random(100) for _ in range(11)]  # optional - macaulay2
+            [8, 29, 5, 22, 4, 32, 35, 57, 3, 95, 36]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval('setRandomSeed(%d)' % seed)
+        self._seed = seed
+        return seed
+
     def get(self, var):
         """
         Get the value of the variable var.
