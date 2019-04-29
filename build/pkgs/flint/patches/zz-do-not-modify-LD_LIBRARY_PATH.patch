@@ -1,0 +1,26 @@
+From 4e88de9554dd871c302aa9dbc4ac20752def8a0a Mon Sep 17 00:00:00 2001
+From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+Date: Mon, 29 Apr 2019 20:12:45 +0200
+Subject: [PATCH 2/2] do not modify LD_LIBRARY_PATH
+
+---
+ Makefile.in | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index 09272096c..72a89731d 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -1,9 +1,3 @@
+-ifdef $(DLPATH)
+-  $(DLPATH):=$($(DLPATH)):$(DLPATH_ADD)
+-else
+-  $(DLPATH):=$(DLPATH_ADD)
+-endif
+-
+ LIBDIR=lib
+ 
+ QUIET_CC  = @echo '   ' CC  ' ' $@;
+-- 
+2.19.0
+
