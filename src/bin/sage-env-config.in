@@ -76,7 +76,7 @@ if [ -n "$SAGE_NTL_PREFIX" ]; then
     # generally necessary, but when using the NTL package installed in
     # SAGE_LOCAL it is useful to pass it.
     export SAGE_CONFIGURE_NTL="--with-ntl=$SAGE_NTL_PREFIX"
-if
+fi
 # The MPFR case is very close to the GMP case above
 # This is usually blank if the system MPFR is used, or $SAGE_LOCAL otherwise
 export SAGE_MPFR_PREFIX="@SAGE_MPFR_PREFIX@"
