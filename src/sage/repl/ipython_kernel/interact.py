@@ -6,21 +6,19 @@ some customizations for Sage.
 
 TESTS:
 
-We need to setup a proper test environment for widgets::
+A fake ``@interact`` allowing to run interacts without displaying them::
 
-    sage: from ipywidgets.widgets.tests.utils import setup_test_comm
-    sage: setup_test_comm()
+    sage: from sage.repl.ipython_kernel.interact import interact_test as interact
 
 EXAMPLES::
 
-    sage: from sage.repl.ipython_kernel.interact import interact
     sage: @interact
-    ....: def f(x=(0,10)):
-    ....:     pass
-    Interactive function <function f at ...> with 1 widget
-      x: IntSlider(value=5, description=u'x', max=10)
-    sage: f.widget.children
-    (IntSlider(value=5, description=u'x', max=10), Output())
+    ....: def _(A=matrix(QQ,3,3,range(9)), v=matrix(QQ,3,1,range(3))):
+    ....:     try:
+    ....:         x = A \ v
+    ....:         print("%s %s = %s" % (A, x, v))
+    ....:     except Exception:
+    ....:         print("There is no solution to %s x = %s" % (A, v))
 """
 
 # ****************************************************************************
@@ -259,3 +257,40 @@ class sage_interactive(interactive):
 
 # @interact decorator
 interact = sage_interactive.factory()
+
+
+def interact_test(func):
+    """
+    Run function ``func`` as interact once with default arguments.
+
+    INPUT:
+
+    - ``func`` -- a function which would typically be decorated by
+      ``@interact``
+
+    OUTPUT: same as ``interact(func)``: ``func`` with an additional
+    attribute ``.widget`` which is the interactive widget.
+
+    The result of running ``func`` is displayed, not returned.
+    The interactive widget is not displayed.
+
+    EXAMPLES::
+
+        sage: from sage.repl.ipython_kernel.interact import interact_test
+        sage: @interact_test
+        ....: def f(x=(0,10)):
+        ....:     return x
+        5
+        sage: f.widget
+        Interactive function <function f at ...> with 1 widget
+          x: IntSlider(value=5, description=u'x', max=10)
+    """
+    from ipywidgets.widgets.tests.utils import setup_test_comm
+    setup_test_comm()
+
+    w = interact.widget(func)
+    # Clearing output sends control characters, disable that
+    w.clear_output = False
+    w.update()
+    func.widget = w
+    return func
