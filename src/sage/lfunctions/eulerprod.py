@@ -8,12 +8,15 @@ AUTHOR:
 .. TODO::
 
     - Symmetric powers (and modular degree -- see trac 9758)
-    - Triple product L-functions: Gross-Kudla, Zhang, etc -- see the code in triple_prod/triple.py
+    - Triple product L-functions: Gross-Kudla, Zhang, etc -- see the
+      code in triple_prod/triple.py
     - Support L-calc L-function
-    - Make it so we use exactly one GP session for *all* of the Dokchitser L-functions
+    - Make it so we use exactly one GP session for *all* of the
+      Dokchitser L-functions
     - Tensor products
     - Genus 2 curves, via smalljac and genus2reduction
-    - Fast L-series of elliptic curves over number fields (not just sqrt(5)), via smalljac
+    - Fast L-series of elliptic curves over number fields (not just
+      sqrt(5)), via smalljac
     - Inverse of number_of_coefficients function.
 """
 
@@ -152,15 +155,18 @@ class LSeriesDerivative(object):
         sage: from sage.lfunctions.eulerprod import LSeries
         sage: L = LSeries('delta')
         sage: L.derivative()
-        First derivative of L-function associated to Ramanujan's Delta (a weight 12 cusp form)
+        First derivative of L-function associated to Ramanujan's Delta
+        (a weight 12 cusp form)
         sage: L.derivative()(11/2)
         0.125386233743526
 
-    We directly create an instance of the class (users shouldn't need to do this)::
+    We directly create an instance of the class (users should not need
+    to do this)::
 
         sage: from sage.lfunctions.eulerprod import LSeriesDerivative
         sage: Ld = LSeriesDerivative(L, 2); Ld
-        Second derivative of L-function associated to Ramanujan's Delta (a weight 12 cusp form)
+        Second derivative of L-function associated to Ramanujan's Delta
+        (a weight 12 cusp form)
         sage: type(Ld)
         <class 'sage.lfunctions.eulerprod.LSeriesDerivative'>
     """
@@ -182,7 +188,7 @@ class LSeriesDerivative(object):
 
     def __ne__(self, right):
         return not(self == right)
-    
+
     def __call__(self, s):
         """
         Return the value of this derivative at s, which must coerce to a
@@ -254,12 +260,14 @@ class LSeriesDerivative(object):
             sage: L(1)
             0.620539857407845
             sage: L = LSeries(f); L1 = L.derivative(); L1
-            First derivative of L-series of a degree 2 newform of level 43 and weight 2
+            First derivative of L-series of a degree 2 newform of level 43
+            and weight 2
             sage: L1.derivative()
-            Second derivative of L-series of a degree 2 newform of level 43 and weight 2
+            Second derivative of L-series of a degree 2 newform of level 43
+            and weight 2
             sage: L1.derivative(3)
-            4-th derivative of L-series of a degree 2 newform of level 43 and weight 2
-
+            4-th derivative of L-series of a degree 2 newform of level 43
+            and weight 2
         """
         if k == 0:
             return self
@@ -269,7 +277,7 @@ class LSeriesDerivative(object):
 class LSeriesParentClass(Parent):
     def __init__(self):
         Parent.__init__(self, category=Monoids().Commutative())
-    
+
     def __contains__(self, x):
         return isinstance(x, (LSeriesAbstract, LSeriesProduct))
 
@@ -399,22 +407,26 @@ class LSeriesAbstract(Element):
               positive real numbers); if the conductor is a list, then
               each conductor is tried in order (to the precision prec
               below) until we find one that works.
-            - ``hodge_numbers`` -- list of numbers (in a subring of the complex numbers)
+            - ``hodge_numbers`` -- list of numbers (in a subring of
+              the complex numbers)
             - ``weight`` -- number (in a subset of the positive real numbers)
             - ``epsilon`` -- number (in a subring of the complex numbers)
-            - ``poles`` -- list of numbers (in subring of complex numbers); poles of the *completed* L-function
-            - ``residues`` -- list of residues at each pole given in poles or string "automatic"
+            - ``poles`` -- list of numbers (in subring of complex
+              numbers); poles of the *completed* L-function
+            - ``residues`` -- list of residues at each pole given in
+              poles or string "automatic"
             - ``base_field`` -- QQ or a number field; local L-factors
               correspond to nonzero prime ideals of this field.
             - ``is_selfdual`` -- bool (default: True)
-            - ``prec`` -- integer (default: 53); precision to use when trying to figure
-              out parameters using the functional equation
-
+            - ``prec`` -- integer (default: 53); precision to use when
+              trying to figure out parameters using the functional
+              equation
 
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeriesAbstract
-            sage: L = LSeriesAbstract(conductor=1, hodge_numbers=[0], weight=1, epsilon=1, poles=[1], residues=[-1], base_field=QQ)
+            sage: L = LSeriesAbstract(conductor=1, hodge_numbers=[0], weight=1,
+            ....:     epsilon=1, poles=[1], residues=[-1], base_field=QQ)
             sage: type(L)
             <class 'sage.lfunctions.eulerprod.LSeriesAbstract'>
             sage: L._conductor
@@ -432,7 +444,8 @@ class LSeriesAbstract(Element):
             sage: L._base_field
             Rational Field
             sage: L
-            Euler Product L-series with conductor 1, Hodge numbers [0], weight 1, epsilon 1, poles [1], residues [-1] over Rational Field
+            Euler Product L-series with conductor 1, Hodge numbers [0],
+            weight 1, epsilon 1, poles [1], residues [-1] over Rational Field
         """
         self._anlist = {oo: []}
 
@@ -505,7 +518,7 @@ class LSeriesAbstract(Element):
 
     def __ne__(self, right):
         return not(self == right)
-    
+
     def __hash__(self):
         return hash(tuple(getattr(self, a)()
                           for a in ['degree', 'weight', 'conductor',
@@ -535,7 +548,8 @@ class LSeriesAbstract(Element):
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: L = LSeries('delta');
             sage: L3 = L^3; L3
-            (L-function associated to Ramanujan's Delta (a weight 12 cusp form))^3
+            (L-function associated to Ramanujan's Delta
+            (a weight 12 cusp form))^3
             sage: L3(1)
             0.0000524870430366548
             sage: L(1)^3
@@ -563,16 +577,19 @@ class LSeriesAbstract(Element):
 
     def _mul_(self, right):
         """
-        Multiply two L-series, or an L-series times a formal product of L-series.
+        Multiply two L-series, or an L-series times a formal product
+        of L-series.
 
         EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: d = LSeries('delta'); z = LSeries('zeta')
             sage: d * z
-            (Riemann Zeta function viewed as an L-series) * (L-function associated to Ramanujan's Delta (a weight 12 cusp form))
+            (Riemann Zeta function viewed as an L-series) *
+            (L-function associated to Ramanujan's Delta (a weight 12 cusp form))
             sage: d * (d * z)
-            (Riemann Zeta function viewed as an L-series) * (L-function associated to Ramanujan's Delta (a weight 12 cusp form))^2
+            (Riemann Zeta function viewed as an L-series) *
+            (L-function associated to Ramanujan's Delta (a weight 12 cusp form))^2
         """
         if isinstance(right, LSeriesAbstract):
             return LSeriesProduct([(self, 1), (right, 1)])
@@ -589,14 +606,17 @@ class LSeriesAbstract(Element):
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: d = LSeries('delta'); z = LSeries('zeta')
             sage: d / z
-            (Riemann Zeta function viewed as an L-series)^-1 * (L-function associated to Ramanujan's Delta (a weight 12 cusp form))
+            (Riemann Zeta function viewed as an L-series)^-1 *
+            (L-function associated to Ramanujan's Delta (a weight 12 cusp form))
             sage: d / (z^3)
-            (Riemann Zeta function viewed as an L-series)^-3 * (L-function associated to Ramanujan's Delta (a weight 12 cusp form))
+            (Riemann Zeta function viewed as an L-series)^-3 *
+            (L-function associated to Ramanujan's Delta (a weight 12 cusp form))
         """
         if isinstance(right, LSeriesAbstract):
             return LSeriesProduct([(self, 1), (right, -1)])
         elif isinstance(right, LSeriesProduct):
-            return LSeriesProduct(Factorization([(self, 1)]) / right._factorization)
+            F = Factorization([(self, 1)]) / right._factorization
+            return LSeriesProduct(F)
         raise TypeError
 
     def conductor(self):
@@ -711,18 +731,22 @@ class LSeriesAbstract(Element):
             sage: LSeries('zeta').residues()
             [9, 8]
 
-        The residues of the Dedekind Zeta function of a field are dynamically computed::
+        The residues of the Dedekind Zeta function of a field are
+        dynamically computed::
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: L = LSeries(K); L
-            Dedekind Zeta function of Number Field in a with defining polynomial x^2 + 1
+            Dedekind Zeta function of Number Field in a
+            with defining polynomial x^2 + 1
 
-        If you just call residues you get back that they are automatically computed::
+        If you just call residues you get back that they are
+        automatically computed::
 
             sage: L.residues()
             'automatic'
 
-        But if you call with a specific precision, they are computed using that precision::
+        But if you call with a specific precision, they are computed
+        using that precision::
 
             sage: L.residues(prec=53)
             [-0.886226925452758]
@@ -734,7 +758,8 @@ class LSeriesAbstract(Element):
                 return self._residues
             else:
                 C = ComplexField(prec)
-                return [C(a) for a in self._function(prec=prec).gp()('Lresidues')]
+                return [C(a)
+                        for a in self._function(prec=prec).gp()('Lresidues')]
         else:
             return list(self._residues)
 
@@ -779,7 +804,8 @@ class LSeriesAbstract(Element):
             sage: L = LSeries(EllipticCurve('11a3').base_extend(QQ[sqrt(2)]), prec=5); L.epsilon()
             -1
 
-        Here is extra confirmation that the rank is really odd over the quadratic field::
+        Here is extra confirmation that the rank is really odd over
+        the quadratic field::
 
             sage: EllipticCurve('11a').quadratic_twist(2).rank()
             1
@@ -836,8 +862,8 @@ class LSeriesAbstract(Element):
             sage: L.epsilon(100)
             0.42563106101692403875896879406 - 0.90489678963824790765479396740*I
 
-        When we try to compute to higher precision, again Sage solves for the epsilon factor
-        numerically::
+        When we try to compute to higher precision, again Sage solves
+        for the epsilon factor numerically::
 
             sage: L(RealField(150)(1))
             0.26128389551787271923496480408992971337929665 - 0.29870133769674001421149135036267324347896657*I
@@ -887,7 +913,8 @@ class LSeriesAbstract(Element):
 
         Newforms with non-quadratic characters also have non-self dual L-seris::
 
-            sage: L = LSeries(Newforms(DirichletGroup(7).0, 5, names='a')[0]); L.is_selfdual()
+            sage: L = LSeries(Newforms(DirichletGroup(7).0, 5, names='a')[0])
+            sage: L.is_selfdual()
             False
         """
         return self._is_selfdual
@@ -920,11 +947,13 @@ class LSeriesAbstract(Element):
             sage: L = LSeries(M); L
             L-series attached to Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
             sage: L.factor()
-            (L-series of a degree 2 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2)
+            (L-series of a degree 2 newform of level 43 and weight 2) *
+            (L-series of a degree 2 newform of level 43 and weight 2)
             sage: L.degree()
             4
 
-            sage: x = var('x'); K.<a> = NumberField(x^2-x-1); LSeries(EllipticCurve([0,-a,a,0,0])).degree()
+            sage: x = var('x'); K.<a> = NumberField(x^2-x-1)
+            sage: LSeries(EllipticCurve([0,-a,a,0,0])).degree()
             2
         """
         n = len(self.hodge_numbers())
@@ -1031,10 +1060,9 @@ class LSeriesAbstract(Element):
             1
             sage: L.local_factor(3)
             3*T^2 + T + 1
-
-
         """
-        return LSeriesTwist(self, chi=chi, conductor=conductor, epsilon=epsilon, prec=prec)
+        return LSeriesTwist(self, chi=chi, conductor=conductor,
+                            epsilon=epsilon, prec=prec)
 
     @cached_method
     def local_factor(self, P, prec=oo):
@@ -1414,7 +1442,7 @@ class LSeriesAbstract(Element):
         - ``variable`` -- string or symbolic variable
         - ``prec`` -- positive integer (floating point bits of precision)
 
-        EXAMPLES:::
+        EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries; L = LSeries('zeta')
             sage: L.taylor_series()
@@ -1719,7 +1747,9 @@ class LSeriesProduct(Element):
 
     def taylor_series(self, center=None, degree=6, variable='z', prec=53):
         """
-        EXAMPLE::
+        Return the Taylor series of self.
+
+        EXAMPLES::
 
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: L1 = LSeries('zeta'); L2 = LSeries('delta')
@@ -1870,7 +1900,7 @@ class LSeriesDelta(LSeriesAbstract):
             sage: L.local_factor(11).factor_mod(691)
             (468) * (T + 471) * (T + 690)
 
-        ... because of the 691 here::
+        because of the 691 here::
 
             sage: bernoulli(12)
             -691/2730

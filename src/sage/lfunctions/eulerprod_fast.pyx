@@ -65,8 +65,7 @@ def extend_multiplicatively(IntList a):
         sage: from sage.lfunctions.eulerprod_fast import extend_multiplicatively
         sage: B = 10^5; E = EllipticCurve('389a'); an = stats.IntList(B)
         sage: for pp in prime_powers(B):
-        ...     an[pp] = E.an(pp)
-        ...
+        ....:     an[pp] = E.an(pp)
         sage: extend_multiplicatively(an)
         sage: list(an) == E.anlist(len(an))[:len(an)]
         True
@@ -116,8 +115,7 @@ def extend_multiplicatively_generic(list a):
         sage: from sage.lfunctions.eulerprod_fast import extend_multiplicatively_generic
         sage: B = 10^5; E = EllipticCurve('389a'); an = [0]*B
         sage: for pp in prime_powers(B):
-        ...     an[pp] = E.an(pp)
-        ...
+        ....:     an[pp] = E.an(pp)
         sage: extend_multiplicatively_generic(an)
         sage: list(an) == E.anlist(len(an))[:len(an)]
         True
