@@ -51,12 +51,25 @@ EXAMPLES::
     [1 0]
     [0 1]
 
+Importing an existing linear layer, for example the one of AES::
+
+    sage: from sage.crypto.linearlayer import AES
+    sage: AES
+    AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
+    [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
+    and MixColumns
+    [2 3 1 1]
+    [1 2 3 1]
+    [1 1 2 3]
+    [3 1 1 2]
+
 The AES design uses a left rotation by `i` positions for the `i`-th row of the
 state-matrix as the ShuffleCell part::
 
     sage: from sage.crypto.linearlayer import AESLikeLinearLayer
     sage: from sage.crypto.linearlayer import Left_ShiftRows
-    sage: left_sc = AESLikeLinearLayer.new(sc=Left_ShiftRows, mc=identity_matrix(GF(2^8), 4))
+    sage: F256 = GF(2^8, repr="int")
+    sage: left_sc = AESLikeLinearLayer.new(sc=Left_ShiftRows, mc=identity_matrix(F256, 4))
     sage: left_sc
     AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
     [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
@@ -65,7 +78,7 @@ state-matrix as the ShuffleCell part::
     [0 1 0 0]
     [0 0 1 0]
     [0 0 0 1]
-    sage: m = matrix(GF(2^8), 4, 4, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0]); m
+    sage: m = matrix(GF(2^8, repr="int"), 4, 4, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0]); m
     [1 0 0 0]
     [1 0 0 0]
     [1 0 0 0]
@@ -127,7 +140,7 @@ def _ff_elem_to_binary(elem):
     EXAMPLES::
 
         sage: from sage.crypto.linearlayer import LinearLayer
-        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
+        sage: L = LinearLayer.new(Matrix(GF(2^4, repr="int"), [[1]]))
         sage: L.binary_matrix() # indirect doctest
         [1 0 0 0]
         [0 1 0 0]
@@ -156,7 +169,7 @@ def _ff_matrix_to_binary(mtr):
     EXAMPLES::
 
         sage: from sage.crypto.linearlayer import LinearLayer
-        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
+        sage: L = LinearLayer.new(Matrix(GF(2^4, repr="int"), [[1]]))
         sage: L.binary_matrix() # indirect doctest
         [1 0 0 0]
         [0 1 0 0]
@@ -579,10 +592,10 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
         AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
         [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
         and MixColumns
-        [    x x + 1     1     1]
-        [    1     x x + 1     1]
-        [    1     1     x x + 1]
-        [x + 1     1     1     x]
+        [2 3 1 1]
+        [1 2 3 1]
+        [1 1 2 3]
+        [3 1 1 2]
     """
     @staticmethod
     @experimental(25735)
@@ -682,7 +695,7 @@ Left_ShiftRows = Permutation([1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7,
 Right_ShiftRows = Permutation([1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3, 16, 13, 10, 7, 4])
 
 _AES_irreducible_polynomial = PolynomialRing(GF(2), name="a")("a^8 + a^4 + a^3 + a + 1")
-_AES_field = GF(2**8, name="x", modulus=_AES_irreducible_polynomial)
+_AES_field = GF(2**8, name="x", modulus=_AES_irreducible_polynomial, repr="int")
 AES_ShiftRows = Left_ShiftRows
 AES_MixColumns = Matrix(_AES_field, 4, 4,
     map(_AES_field.fetch_int, [2, 3, 1, 1, 1, 2, 3, 1, 1, 1, 2, 3, 3, 1, 1, 2]))
@@ -690,14 +703,14 @@ AES = AESLikeLinearLayer.new(AES_ShiftRows, AES_MixColumns)
 
 Midori_ShuffelCells = Permutation([1, 11, 6, 16, 15, 5, 12, 2,
                                    10, 4, 13, 7, 8, 14, 3, 9])
-Midori_MixColumns = Matrix(GF(2**4),
+Midori_MixColumns = Matrix(GF(2**4, repr="int"),
     [[0, 1, 1, 1], [1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]])
 Midori = AESLikeLinearLayer.new(Midori_ShuffelCells, Midori_MixColumns)
 
 SKINNY_ShiftRows = Right_ShiftRows
-SKINNY_4_MixColumns = Matrix(GF(2**4),
+SKINNY_4_MixColumns = Matrix(GF(2**4, repr="int"),
     [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
-SKINNY_8_MixColumns = Matrix(GF(2**8),
+SKINNY_8_MixColumns = Matrix(GF(2**8, repr="int"),
     [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
 SKINNY_4 = AESLikeLinearLayer.new(SKINNY_ShiftRows, SKINNY_4_MixColumns)
 SKINNY_8 = AESLikeLinearLayer.new(SKINNY_ShiftRows, SKINNY_8_MixColumns)
