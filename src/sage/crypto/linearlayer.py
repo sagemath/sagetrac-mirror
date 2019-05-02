@@ -65,6 +65,32 @@ Importing an existing linear layer, for example the one of AES::
     [1 1 2 3]
     [3 1 1 2]
 
+The AES design uses a left rotation by `i` positions for the `i`-th row of the
+state-matrix as the ShuffleCell part::
+
+    sage: from sage.crypto.linearlayer import AESLikeLinearLayer
+    sage: from sage.crypto.linearlayer import Left_ShiftRows
+    sage: F256 = GF(2^8, repr="int")
+    sage: left_sc = AESLikeLinearLayer.new(sc=Left_ShiftRows, mc=identity_matrix(F256, 4))
+    sage: left_sc
+    AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
+    [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
+    and MixColumns
+    [1 0 0 0]
+    [0 1 0 0]
+    [0 0 1 0]
+    [0 0 0 1]
+    sage: m = matrix(GF(2^8, repr="int"), 4, 4, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0]); m
+    [1 0 0 0]
+    [1 0 0 0]
+    [1 0 0 0]
+    [1 0 0 0]
+    sage: left_sc(m)
+    [1 0 0 0]
+    [0 0 0 1]
+    [0 0 1 0]
+    [0 1 0 0]
+
 AUTHORS:
 
 - Friedrich Wiemer (2018-07-02): initial version
@@ -781,6 +807,44 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
             v = s.list()
 
         return vector(self.base_ring(), v)
+
+    def __call__(self, x):
+        """
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import AESLikeLinearLayer
+            sage: from sage.crypto.linearlayer import Left_ShiftRows
+            sage: F256 = GF(2^8, repr="int")
+            sage: left_sc = AESLikeLinearLayer.new(sc=Left_ShiftRows, mc=identity_matrix(F256, 4))
+            sage: left_sc
+            AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
+            [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
+            and MixColumns
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            sage: m = matrix(GF(2^8, repr="int"), 4, 4, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0]); m
+            [1 0 0 0]
+            [1 0 0 0]
+            [1 0 0 0]
+            [1 0 0 0]
+            sage: left_sc(m)
+            [1 0 0 0]
+            [0 0 0 1]
+            [0 0 1 0]
+            [0 1 0 0]
+        """
+        from sage.matrix.matrix_gf2e_dense import Matrix_gf2e_dense
+
+        # TODO: how to call the LinearLayer.__call__ method without creating
+        #       a new LinearLayer object?
+        if isinstance(x, Matrix_gf2e_dense):
+            y = LinearLayer.new(self.matrix())(self.state_to_vector(x))
+            return self.vector_to_state(y)
+        else:
+            return LinearLayer.new(self.matrix())(x)
 
 
 Left_ShiftRows = Permutation([1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12])
