@@ -65,32 +65,6 @@ Importing an existing linear layer, for example the one of AES::
     [1 1 2 3]
     [3 1 1 2]
 
-The AES design uses a left rotation by `i` positions for the `i`-th row of the
-state-matrix as the ShuffleCell part::
-
-    sage: from sage.crypto.linearlayer import AESLikeLinearLayer
-    sage: from sage.crypto.linearlayer import Left_ShiftRows
-    sage: F256 = GF(2^8, repr="int")
-    sage: left_sc = AESLikeLinearLayer.new(sc=Left_ShiftRows, mc=identity_matrix(F256, 4))
-    sage: left_sc
-    AES like LinearLayer of dimension 128 x 128 represented by ShuffleCells
-    [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
-    and MixColumns
-    [1 0 0 0]
-    [0 1 0 0]
-    [0 0 1 0]
-    [0 0 0 1]
-    sage: m = matrix(GF(2^8, repr="int"), 4, 4, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0]); m
-    [1 0 0 0]
-    [1 0 0 0]
-    [1 0 0 0]
-    [1 0 0 0]
-    sage: left_sc(m)
-    [1 0 0 0]
-    [0 0 0 1]
-    [0 0 1 0]
-    [0 1 0 0]
-
 AUTHORS:
 
 - Friedrich Wiemer (2018-07-02): initial version
@@ -110,6 +84,8 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.misc.superseded import experimental
+
+from sage.structure.sage_object import SageObject
 
 import sys
 
@@ -220,7 +196,7 @@ def _column_linear_layer(Ls):
     return LinearLayer.new(block_matrix(F, n, m, blockmtrs))
 
 
-class LinearLayer:
+class LinearLayer(SageObject):
     r"""
 
     EXAMPLES:
@@ -648,6 +624,7 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
         ll = AESLikeLinearLayer(m.parent(), m)
         ll._sc = sc
         ll._mc = mc
+        ll._apply_columns = apply_columns
 
         return ll
 
@@ -701,6 +678,109 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
         M = self._mc
         M = M.transpose()
         return _branch_number(M)
+
+    def vector_to_state(self, v, column_wise=None):
+        """
+        Converts the given vector ``v`` to a state matrix.
+
+        INPUT:
+
+            - ``v`` -- a vector
+            - ``column_wise -- Bool; wether to fill the state matrix column
+                wise, or row wise (defaults to ``apply_columns`` initialised
+                value)
+
+        The state's dimension is `n \\times m` where the number of rows `n` is
+        determined by the MixColumn matrix and the number of columns `m` is the
+        length of the ShuffleCell permutation (or equivalently the dimension of
+        its matrix) divided by the number of rows.
+
+        By default the state matrix is filled column wise, if the MixColumn
+        matrix is also applied column wise, but this can also be controlled
+        with the ``column_wise`` flag.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import AES
+            sage: F = AES.base_ring()
+            sage: v = vector(F, map(F.fetch_int, [0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15]))
+            sage: AES.vector_to_state(v)
+            [ 0  4  8 12]
+            [ 1  5  9 13]
+            [ 2  6 10 14]
+            [ 3  7 11 15]
+
+            sage: AES.vector_to_state(v) == AES.vector_to_state(v, column_wise=True)
+            True
+
+            sage: AES.vector_to_state(v, column_wise=False)
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            [12 13 14 15]
+
+            sage: AES.state_to_vector(AES.vector_to_state(v)) == v
+            True
+
+            sage: AES.state_to_vector(AES.vector_to_state(v, column_wise=False), column_wise=False) == v
+            True
+        """
+        from sage.matrix.special import column_matrix
+
+        if column_wise is None:
+            column_wise = self._apply_columns
+
+        n = self._mc.nrows()
+        m = self._sc.nrows() / n
+
+        if column_wise:
+            state = column_matrix(self.base_ring(), m, n, list(v))
+        else:
+            state = Matrix(self.base_ring(), n, m, list(v))
+
+        return state
+
+    def state_to_vector(self, s, column_wise=None):
+        """
+        Converts the given state matrix ``s`` to a vector.
+
+        INPUT:
+
+            - ``s`` -- a matrix
+            - ``column_wise -- Bool; wether to fill the state matrix column
+                wise, or row wise (defaults to ``apply_columns`` initialised
+                value)
+
+        By default the vector is filled column wise from the state matrix, if
+        the MixColumn matrix is also applied column wise, but this can also be
+        controlled with the ``column_wise`` flag.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import AES
+            sage: F = AES.base_ring()
+            sage: s = Matrix(F, 4, 4, map(F.fetch_int, [0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15]))
+            sage: AES.state_to_vector(s.transpose())
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+            sage: AES.state_to_vector(s, column_wise=False)
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+            sage: AES.vector_to_state(AES.state_to_vector(s)) == s
+            True
+
+            sage: AES.vector_to_state(AES.state_to_vector(s, column_wise=False), column_wise=False) == s
+            True
+        """
+        if column_wise is None:
+            column_wise = self._apply_columns
+
+        if column_wise:
+            v = s.transpose().list()
+        else:
+            v = s.list()
+
+        return vector(self.base_ring(), v)
 
 
 Left_ShiftRows = Permutation([1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12])
