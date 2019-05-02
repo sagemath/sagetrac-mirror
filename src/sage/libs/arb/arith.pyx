@@ -12,7 +12,7 @@ Arithmetic functions using the arb library
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ..flint.types cimport ulong
+from ..flint.types cimport fulong
 from ..flint.fmpq cimport fmpq_t, fmpq_init, fmpq_clear, fmpq_get_mpq
 from .bernoulli cimport bernoulli_fmpq_ui
 from .acb_modular cimport acb_modular_hilbert_class_poly
@@ -48,7 +48,7 @@ def bernoulli(n):
         ...
         OverflowError: can't convert negative value to mp_limb_t
     """
-    cdef ulong i = n
+    cdef fulong i = n
     cdef Rational q = <Rational>Rational.__new__(Rational)
     cdef fmpq_t x
     fmpq_init(x)

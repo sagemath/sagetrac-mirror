@@ -4,28 +4,28 @@ from libc.stdio cimport FILE
 from sage.libs.gmp.types cimport mpz_t
 from sage.libs.flint.types cimport *
 
-cdef extern from "flint/fmpz.h":
+cdef extern from "flint_wrap.h":
     # Memory management
     void fmpz_init(fmpz_t)
-    void fmpz_init2(fmpz_t, ulong limbs)
+    void fmpz_init2(fmpz_t, fulong limbs)
 
     void fmpz_clear(fmpz_t)
 
     void fmpz_init_set(fmpz_t, fmpz_t)
-    void fmpz_init_set_ui(fmpz_t, ulong)
+    void fmpz_init_set_ui(fmpz_t, fulong)
 
     # Conversion
     void fmpz_set(fmpz_t f, fmpz_t g)
-    void fmpz_set_ui(fmpz_t, ulong)
-    void fmpz_neg_ui(fmpz_t, ulong)
-    ulong fmpz_get_ui(fmpz_t)
+    void fmpz_set_ui(fmpz_t, fulong)
+    void fmpz_neg_ui(fmpz_t, fulong)
+    fulong fmpz_get_ui(fmpz_t)
 
-    void fmpz_set_si(fmpz_t, slong)
-    slong fmpz_get_si(fmpz_t)
+    void fmpz_set_si(fmpz_t, fslong)
+    fslong fmpz_get_si(fmpz_t)
 
     void fmpz_set_d(fmpz_t, double)
     double fmpz_get_d(fmpz_t)
-    double fmpz_get_d_2exp(slong *, fmpz_t)
+    double fmpz_get_d_2exp(fslong *, fmpz_t)
 
     void fmpz_set_mpz(fmpz_t, mpz_t)
     void fmpz_get_mpz(mpz_t, fmpz_t)
@@ -47,8 +47,8 @@ cdef extern from "flint/fmpz.h":
     int fmpz_fits_si(fmpz_t f)
     void fmpz_zero(fmpz_t f)
     void fmpz_one(fmpz_t f)
-    void fmpz_setbit(fmpz_t f, ulong i)
-    int fmpz_tstbit(fmpz_t f, ulong i)
+    void fmpz_setbit(fmpz_t f, fulong i)
+    int fmpz_tstbit(fmpz_t f, fulong i)
 
     # Input and output
     int fmpz_read(fmpz_t)
@@ -63,15 +63,15 @@ cdef extern from "flint/fmpz.h":
 
     # Comparison
     int fmpz_cmp(fmpz_t, fmpz_t)
-    int fmpz_cmp_ui(fmpz_t, ulong)
-    int fmpz_cmp_si(fmpz_t, slong)
+    int fmpz_cmp_ui(fmpz_t, fulong)
+    int fmpz_cmp_si(fmpz_t, fslong)
 
     int fmpz_sgn(fmpz_t f)
     int fmpz_cmpabs(fmpz_t, fmpz_t)
 
     int fmpz_equal(fmpz_t, fmpz_t)
-    int fmpz_equal_ui(fmpz_t, ulong)
-    int fmpz_equal_si(fmpz_t, slong)
+    int fmpz_equal_ui(fmpz_t, fulong)
+    int fmpz_equal_si(fmpz_t, fslong)
 
     int fmpz_is_zero(fmpz_t)
     int fmpz_is_one(fmpz_t)
@@ -84,64 +84,64 @@ cdef extern from "flint/fmpz.h":
     void fmpz_abs(fmpz_t, fmpz_t)
 
     void fmpz_add(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_add_ui(fmpz_t, fmpz_t, ulong)
+    void fmpz_add_ui(fmpz_t, fmpz_t, fulong)
 
     void fmpz_sub(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_sub_ui(fmpz_t, fmpz_t, ulong)
+    void fmpz_sub_ui(fmpz_t, fmpz_t, fulong)
 
     void fmpz_mul(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_mul_ui(fmpz_t, fmpz_t, ulong)
-    void fmpz_mul_si(fmpz_t, fmpz_t, slong)
-    void fmpz_mul2_uiui(fmpz_t, fmpz_t, ulong, ulong)
-    void fmpz_mul_2exp(fmpz_t, fmpz_t, ulong)
+    void fmpz_mul_ui(fmpz_t, fmpz_t, fulong)
+    void fmpz_mul_si(fmpz_t, fmpz_t, fslong)
+    void fmpz_mul2_uiui(fmpz_t, fmpz_t, fulong, fulong)
+    void fmpz_mul_2exp(fmpz_t, fmpz_t, fulong)
 
     void fmpz_addmul(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_addmul_ui(fmpz_t, fmpz_t, ulong)
+    void fmpz_addmul_ui(fmpz_t, fmpz_t, fulong)
 
     void fmpz_submul(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_submul_ui(fmpz_t, fmpz_t, ulong)
+    void fmpz_submul_ui(fmpz_t, fmpz_t, fulong)
 
     void fmpz_cdiv_q(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_cdiv_q_ui(fmpz_t, fmpz_t, ulong)
-    void fmpz_cdiv_q_si(fmpz_t, fmpz_t, slong)
-    void fmpz_cdiv_q_2exp(fmpz_t, fmpz_t, ulong)
+    void fmpz_cdiv_q_ui(fmpz_t, fmpz_t, fulong)
+    void fmpz_cdiv_q_si(fmpz_t, fmpz_t, fslong)
+    void fmpz_cdiv_q_2exp(fmpz_t, fmpz_t, fulong)
 
     void fmpz_fdiv_q(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_fdiv_q_ui(fmpz_t, fmpz_t, ulong)
-    void fmpz_fdiv_q_si(fmpz_t, fmpz_t, slong)
-    void fmpz_fdiv_q_2exp(fmpz_t, fmpz_t, ulong)
+    void fmpz_fdiv_q_ui(fmpz_t, fmpz_t, fulong)
+    void fmpz_fdiv_q_si(fmpz_t, fmpz_t, fslong)
+    void fmpz_fdiv_q_2exp(fmpz_t, fmpz_t, fulong)
 
-    ulong fmpz_fdiv_ui(fmpz_t, ulong)
+    fulong fmpz_fdiv_ui(fmpz_t, fulong)
 
     void fmpz_fdiv_r(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_fdiv_r_2exp(fmpz_t, fmpz_t, ulong)
+    void fmpz_fdiv_r_2exp(fmpz_t, fmpz_t, fulong)
 
     void fmpz_fdiv_qr(fmpz_t, fmpz_t, fmpz_t, fmpz_t)
     void fmpz_fdiv_qr_preinvn(fmpz_t f, fmpz_t s, fmpz_t g,
             fmpz_t h, fmpz_preinvn_t inv)
 
     void fmpz_tdiv_q(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_tdiv_q_ui(fmpz_t, fmpz_t, ulong)
-    void fmpz_tdiv_q_si(fmpz_t, fmpz_t, slong)
-    void fmpz_tdiv_q_2exp(fmpz_t, fmpz_t, ulong)
+    void fmpz_tdiv_q_ui(fmpz_t, fmpz_t, fulong)
+    void fmpz_tdiv_q_si(fmpz_t, fmpz_t, fslong)
+    void fmpz_tdiv_q_2exp(fmpz_t, fmpz_t, fulong)
 
-    ulong fmpz_tdiv_ui(fmpz_t, ulong)
+    fulong fmpz_tdiv_ui(fmpz_t, fulong)
 
     void fmpz_tdiv_qr(fmpz_t, fmpz_t, fmpz_t, fmpz_t)
 
     void fmpz_divexact(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_divexact_ui(fmpz_t, fmpz_t, ulong)
-    void fmpz_divexact_si(fmpz_t, fmpz_t, slong)
-    void fmpz_divexact2_uiui(fmpz_t, fmpz_t, ulong, ulong)
+    void fmpz_divexact_ui(fmpz_t, fmpz_t, fulong)
+    void fmpz_divexact_si(fmpz_t, fmpz_t, fslong)
+    void fmpz_divexact2_uiui(fmpz_t, fmpz_t, fulong, fulong)
 
-    void fmpz_mul_tdiv_q_2exp(fmpz_t, fmpz_t, fmpz_t, ulong)
-    void fmpz_mul_si_tdiv_q_2exp(fmpz_t, fmpz_t, slong, ulong)
+    void fmpz_mul_tdiv_q_2exp(fmpz_t, fmpz_t, fmpz_t, fulong)
+    void fmpz_mul_si_tdiv_q_2exp(fmpz_t, fmpz_t, fslong, fulong)
 
     int fmpz_divisible(fmpz_t, fmpz_t)
-    int fmpz_divisible_si(fmpz_t, slong)
+    int fmpz_divisible_si(fmpz_t, fslong)
 
     void fmpz_mod(fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_mod_ui(fmpz_t, fmpz_t, ulong)
+    void fmpz_mod_ui(fmpz_t, fmpz_t, fulong)
     void fmpz_negmod(fmpz_t r, fmpz_t a, fmpz_t mod)
 
     void fmpz_gcd(fmpz_t f, fmpz_t g, fmpz_t h)
@@ -158,16 +158,16 @@ cdef extern from "flint/fmpz.h":
 
     void fmpz_fdiv_preinvn(fmpz_t, fmpz_t, fmpz_t, fmpz_t, fmpz_preinvn_t)
 
-    void fmpz_pow_ui(fmpz_t, fmpz_t, ulong)
+    void fmpz_pow_ui(fmpz_t, fmpz_t, fulong)
 
     void fmpz_powm(fmpz_t, fmpz_t, fmpz_t, fmpz_t)
-    void fmpz_powm_ui(fmpz_t, fmpz_t, ulong, ulong)
+    void fmpz_powm_ui(fmpz_t, fmpz_t, fulong, fulong)
 
-    slong fmpz_clog(fmpz_t, fmpz_t)
-    slong fmpz_clog_ui(fmpz_t, ulong)
+    fslong fmpz_clog(fmpz_t, fmpz_t)
+    fslong fmpz_clog_ui(fmpz_t, fulong)
 
-    slong fmpz_flog(fmpz_t, fmpz_t)
-    slong fmpz_flog_ui(fmpz_t, ulong)
+    fslong fmpz_flog(fmpz_t, fmpz_t)
+    fslong fmpz_flog_ui(fmpz_t, fulong)
 
     double fmpz_dlog(fmpz_t)
 
@@ -177,13 +177,13 @@ cdef extern from "flint/fmpz.h":
     void fmpz_sqrt(fmpz_t, fmpz_t)
     void fmpz_sqrtrem(fmpz_t, fmpz_t, fmpz_t)
 
-    void fmpz_root(fmpz_t, fmpz_t, slong)
+    void fmpz_root(fmpz_t, fmpz_t, fslong)
 
-    void fmpz_fac_ui(fmpz_t, ulong)
-    void fmpz_fib_ui(fmpz_t, ulong)
-    void fmpz_bin_uiui(fmpz_t, ulong, ulong)
-    void fmpz_rfac_ui(fmpz_t, fmpz_t, ulong)
-    void fmpz_rfac_uiui(fmpz_t, ulong, ulong)
+    void fmpz_fac_ui(fmpz_t, fulong)
+    void fmpz_fib_ui(fmpz_t, fulong)
+    void fmpz_bin_uiui(fmpz_t, fulong, fulong)
+    void fmpz_rfac_ui(fmpz_t, fmpz_t, fulong)
+    void fmpz_rfac_uiui(fmpz_t, fulong, fulong)
 
     # Random Generators
     void fmpz_randbits(fmpz_t f, flint_rand_t state, mp_bitcnt_t bits)

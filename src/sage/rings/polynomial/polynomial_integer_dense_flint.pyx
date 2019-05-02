@@ -1383,7 +1383,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             True
         """
         cdef Polynomial_integer_dense_flint Q = self._new(), R = self._new(), _B = B
-        cdef ulong d
+        cdef fulong d
         fmpz_poly_pseudo_divrem(Q.__poly, R.__poly, &d, self.__poly, _B.__poly)
         return Q, R, Integer(d)
 

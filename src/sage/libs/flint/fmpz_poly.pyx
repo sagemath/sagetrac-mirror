@@ -369,13 +369,13 @@ cdef class Fmpz_poly(SageObject):
         return res
 
     def pseudo_div(self, Fmpz_poly other):
-        cdef ulong d
+        cdef fulong d
         cdef Fmpz_poly Q = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
         fmpz_poly_pseudo_div(Q.poly, &d, self.poly, other.poly)
         return Q, d
 
     def pseudo_div_rem(self, Fmpz_poly other):
-        cdef ulong d
+        cdef fulong d
         cdef Fmpz_poly Q = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
         cdef Fmpz_poly R = <Fmpz_poly>Fmpz_poly.__new__(Fmpz_poly)
         fmpz_poly_pseudo_divrem(Q.poly, R.poly, &d, self.poly, other.poly)

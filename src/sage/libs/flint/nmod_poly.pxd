@@ -1,9 +1,11 @@
 # distutils: libraries = flint
+# distutils: depends = flint/nmod_poly.h
 
 from sage.libs.gmp.types cimport *
 from sage.libs.flint.types cimport *
 
-cdef extern from "flint/nmod_poly.h":
+# cdef extern from "flint/nmod_poly.h"
+cdef extern from "flint_wrap.h":
     # Memory management
     cdef void nmod_poly_init(nmod_poly_t poly, mp_limb_t n)
     cdef void nmod_poly_init_preinv(nmod_poly_t poly, mp_limb_t n, mp_limb_t ninv)
@@ -49,7 +51,7 @@ cdef extern from "flint/nmod_poly.h":
     # Powering
     cdef void nmod_poly_pow(nmod_poly_t res, nmod_poly_t poly, unsigned long e)
     cdef void nmod_poly_pow_trunc(nmod_poly_t res, nmod_poly_t poly, unsigned long e, long trunc)
-    cdef void nmod_poly_powmod_ui_binexp(nmod_poly_t res, const nmod_poly_t poly, ulong e, const nmod_poly_t f)
+    cdef void nmod_poly_powmod_ui_binexp(nmod_poly_t res, const nmod_poly_t poly, fulong e, const nmod_poly_t f)
 
     # Inflation and deflation
     cdef unsigned long nmod_poly_deflation(nmod_poly_t input)

@@ -1,30 +1,32 @@
 # distutils: libraries = flint
+# distutils: depends = flint/fmpz_poly.h
 
 from libc.stdio cimport FILE
 from sage.libs.gmp.types cimport mpz_t
 from sage.libs.flint.types cimport *
 
-cdef extern from "flint/fmpz_poly.h":
+# cdef extern from "flint/fmpz_poly.h"
+cdef extern from "flint_wrap.h":
     # Memory management
     void fmpz_poly_init(fmpz_poly_t)
-    void fmpz_poly_init2(fmpz_poly_t, slong)
+    void fmpz_poly_init2(fmpz_poly_t, fslong)
 
-    void fmpz_poly_realloc(fmpz_poly_t, slong)
+    void fmpz_poly_realloc(fmpz_poly_t, fslong)
     void _fmpz_poly_set_length(fmpz_poly_t, long)
 
-    void fmpz_poly_fit_length(fmpz_poly_t, slong)
+    void fmpz_poly_fit_length(fmpz_poly_t, fslong)
 
     void fmpz_poly_clear(fmpz_poly_t)
     void _fmpz_poly_normalise(fmpz_poly_t)
 
     # Polynomial parameters
-    slong fmpz_poly_length(const fmpz_poly_t)
-    slong fmpz_poly_degree(const fmpz_poly_t)
+    fslong fmpz_poly_length(const fmpz_poly_t)
+    fslong fmpz_poly_degree(const fmpz_poly_t)
 
     # Assignment and basic manipulation
     void fmpz_poly_set(fmpz_poly_t, const fmpz_poly_t)
-    void fmpz_poly_set_ui(fmpz_poly_t, ulong)
-    void fmpz_poly_set_si(fmpz_poly_t, slong)
+    void fmpz_poly_set_ui(fmpz_poly_t, fulong)
+    void fmpz_poly_set_si(fmpz_poly_t, fslong)
     void fmpz_poly_set_fmpz(fmpz_poly_t, const fmpz_t)
     void fmpz_poly_set_mpz(fmpz_poly_t, const mpz_t)
     int fmpz_poly_set_str(fmpz_poly_t, const char *)
@@ -35,23 +37,23 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_zero(fmpz_poly_t)
     void fmpz_poly_one(fmpz_poly_t)
 
-    void fmpz_poly_zero_coeffs(fmpz_poly_t, slong, slong)
+    void fmpz_poly_zero_coeffs(fmpz_poly_t, fslong, fslong)
 
-    void fmpz_poly_reverse(fmpz_poly_t, const fmpz_poly_t, slong)
+    void fmpz_poly_reverse(fmpz_poly_t, const fmpz_poly_t, fslong)
 
-    void fmpz_poly_truncate(fmpz_poly_t, slong)
+    void fmpz_poly_truncate(fmpz_poly_t, fslong)
 
     # Getting and setting coefficients
-    void fmpz_poly_get_coeff_fmpz(fmpz_t, const fmpz_poly_t, slong)
-    slong fmpz_poly_get_coeff_si(const fmpz_poly_t, slong)
-    ulong fmpz_poly_get_coeff_ui(const fmpz_poly_t, slong)
+    void fmpz_poly_get_coeff_fmpz(fmpz_t, const fmpz_poly_t, fslong)
+    fslong fmpz_poly_get_coeff_si(const fmpz_poly_t, fslong)
+    fulong fmpz_poly_get_coeff_ui(const fmpz_poly_t, fslong)
 
-    fmpz *fmpz_poly_get_coeff_ptr(const fmpz_poly_t, slong)
+    fmpz *fmpz_poly_get_coeff_ptr(const fmpz_poly_t, fslong)
     fmpz *fmpz_poly_lead(const fmpz_poly_t)
 
-    void fmpz_poly_set_coeff_fmpz(fmpz_poly_t, slong, const fmpz_t)
-    void fmpz_poly_set_coeff_si(fmpz_poly_t, slong, slong)
-    void fmpz_poly_set_coeff_ui(fmpz_poly_t, slong, ulong)
+    void fmpz_poly_set_coeff_fmpz(fmpz_poly_t, fslong, const fmpz_t)
+    void fmpz_poly_set_coeff_si(fmpz_poly_t, fslong, fslong)
+    void fmpz_poly_set_coeff_ui(fmpz_poly_t, fslong, fulong)
 
     # Comparison
     int fmpz_poly_equal(const fmpz_poly_t, const fmpz_poly_t)
@@ -69,9 +71,9 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_scalar_mul_fmpz(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_t)
     void fmpz_poly_scalar_mul_mpz(fmpz_poly_t, const fmpz_poly_t, const mpz_t)
-    void fmpz_poly_scalar_mul_si(fmpz_poly_t, const fmpz_poly_t, slong)
-    void fmpz_poly_scalar_mul_ui(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_scalar_mul_2exp(fmpz_poly_t, const fmpz_poly_t, ulong)
+    void fmpz_poly_scalar_mul_si(fmpz_poly_t, const fmpz_poly_t, fslong)
+    void fmpz_poly_scalar_mul_ui(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_scalar_mul_2exp(fmpz_poly_t, const fmpz_poly_t, fulong)
 
     void fmpz_poly_scalar_addmul_fmpz(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_t)
@@ -80,20 +82,20 @@ cdef extern from "flint/fmpz_poly.h":
 
     void fmpz_poly_scalar_fdiv_fmpz(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_t)
-    void fmpz_poly_scalar_fdiv_si(fmpz_poly_t, const fmpz_poly_t, slong)
-    void fmpz_poly_scalar_fdiv_ui(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_scalar_fdiv_2exp(fmpz_poly_t, const fmpz_poly_t, ulong)
+    void fmpz_poly_scalar_fdiv_si(fmpz_poly_t, const fmpz_poly_t, fslong)
+    void fmpz_poly_scalar_fdiv_ui(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_scalar_fdiv_2exp(fmpz_poly_t, const fmpz_poly_t, fulong)
 
     void fmpz_poly_scalar_tdiv_fmpz(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_t)
-    void fmpz_poly_scalar_tdiv_si(fmpz_poly_t, const fmpz_poly_t, slong)
-    void fmpz_poly_scalar_tdiv_ui(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_scalar_tdiv_2exp(fmpz_poly_t, const fmpz_poly_t, ulong)
+    void fmpz_poly_scalar_tdiv_si(fmpz_poly_t, const fmpz_poly_t, fslong)
+    void fmpz_poly_scalar_tdiv_ui(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_scalar_tdiv_2exp(fmpz_poly_t, const fmpz_poly_t, fulong)
 
     void fmpz_poly_scalar_divexact_fmpz(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_t)
-    void fmpz_poly_scalar_divexact_si(fmpz_poly_t, const fmpz_poly_t, slong)
-    void fmpz_poly_scalar_divexact_ui(fmpz_poly_t, const fmpz_poly_t, ulong)
+    void fmpz_poly_scalar_divexact_si(fmpz_poly_t, const fmpz_poly_t, fslong)
+    void fmpz_poly_scalar_divexact_ui(fmpz_poly_t, const fmpz_poly_t, fulong)
 
     void fmpz_poly_scalar_mod_fmpz(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_t)
@@ -104,61 +106,61 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_mul_classical(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_mullow_classical(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
     void fmpz_poly_mulhigh_classical(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
     void fmpz_poly_mulmid_classical(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
 
     void fmpz_poly_mul_karatsuba(
             fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_mullow_karatsuba_n(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
     void fmpz_poly_mulhigh_karatsuba_n(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
 
     void fmpz_poly_mul_KS(fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_mullow_KS(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
 
     void fmpz_poly_mul_SS(fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_mullow_SS(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
 
     void fmpz_poly_mul(fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_mullow(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
     void fmpz_poly_mulhigh(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
 
     # Squaring
     void fmpz_poly_sqr(fmpz_poly_t, const fmpz_poly_t)
 
     void fmpz_poly_sqr_classical(fmpz_poly_t, const fmpz_poly_t)
-    void fmpz_poly_sqrlow_classical(fmpz_poly_t, const fmpz_poly_t, slong)
+    void fmpz_poly_sqrlow_classical(fmpz_poly_t, const fmpz_poly_t, fslong)
 
     void fmpz_poly_sqr_karatsuba(fmpz_poly_t, const fmpz_poly_t)
-    void fmpz_poly_sqrlow_karatsuba_n(fmpz_poly_t, const fmpz_poly_t, slong)
+    void fmpz_poly_sqrlow_karatsuba_n(fmpz_poly_t, const fmpz_poly_t, fslong)
 
     void fmpz_poly_sqr_KS(fmpz_poly_t, const fmpz_poly_t)
-    void fmpz_poly_sqrlow_KS(fmpz_poly_t, const fmpz_poly_t, slong)
+    void fmpz_poly_sqrlow_KS(fmpz_poly_t, const fmpz_poly_t, fslong)
 
     # Powering
-    void fmpz_poly_pow_multinomial(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_pow_binomial(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_pow_addchains(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_pow_binexp(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_pow_small(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_pow(fmpz_poly_t, const fmpz_poly_t, ulong)
-    void fmpz_poly_pow_trunc(fmpz_poly_t, const fmpz_poly_t, ulong, slong)
+    void fmpz_poly_pow_multinomial(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_pow_binomial(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_pow_addchains(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_pow_binexp(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_pow_small(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_pow(fmpz_poly_t, const fmpz_poly_t, fulong)
+    void fmpz_poly_pow_trunc(fmpz_poly_t, const fmpz_poly_t, fulong, fslong)
 
     # Shifting
-    void fmpz_poly_shift_left(fmpz_poly_t, const fmpz_poly_t, slong)
-    void fmpz_poly_shift_right(fmpz_poly_t, const fmpz_poly_t, slong)
+    void fmpz_poly_shift_left(fmpz_poly_t, const fmpz_poly_t, fslong)
+    void fmpz_poly_shift_right(fmpz_poly_t, const fmpz_poly_t, fslong)
 
     # Bit sizes and norms
-    ulong fmpz_poly_max_limbs(const fmpz_poly_t)
-    slong fmpz_poly_max_bits(const fmpz_poly_t)
+    fulong fmpz_poly_max_limbs(const fmpz_poly_t)
+    fslong fmpz_poly_max_bits(const fmpz_poly_t)
     void fmpz_poly_height(fmpz_t, const fmpz_poly_t)
     void fmpz_poly_2norm(fmpz_t, const fmpz_poly_t)
 
@@ -217,26 +219,26 @@ cdef extern from "flint/fmpz_poly.h":
                     const fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
 
     # Power series division
-    void fmpz_poly_inv_series_newton(fmpz_poly_t, const fmpz_poly_t, slong)
-    void fmpz_poly_inv_series(fmpz_poly_t, const fmpz_poly_t, slong)
+    void fmpz_poly_inv_series_newton(fmpz_poly_t, const fmpz_poly_t, fslong)
+    void fmpz_poly_inv_series(fmpz_poly_t, const fmpz_poly_t, fslong)
     void fmpz_poly_div_series(
-            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
+            fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, fslong)
 
     # Pseudo division
     void fmpz_poly_pseudo_divrem_basecase(
             fmpz_poly_t, fmpz_poly_t,
-                    ulong *, const fmpz_poly_t, const fmpz_poly_t)
+                    fulong *, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_pseudo_divrem_divconquer(
             fmpz_poly_t, fmpz_poly_t,
-                    ulong *, const fmpz_poly_t, const fmpz_poly_t)
+                    fulong *, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_pseudo_divrem(
             fmpz_poly_t, fmpz_poly_t,
-                    ulong *, const fmpz_poly_t, const fmpz_poly_t)
+                    fulong *, const fmpz_poly_t, const fmpz_poly_t)
 
     void fmpz_poly_pseudo_div(
-            fmpz_poly_t, ulong *, const fmpz_poly_t, const fmpz_poly_t)
+            fmpz_poly_t, fulong *, const fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_pseudo_rem(
-            fmpz_poly_t, ulong *, const fmpz_poly_t, const fmpz_poly_t)
+            fmpz_poly_t, fulong *, const fmpz_poly_t, const fmpz_poly_t)
 
     void fmpz_poly_pseudo_divrem_cohen(
             fmpz_poly_t, fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t)
@@ -312,8 +314,8 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_scalar_mul_mpz(fmpz_poly_t, const fmpz_poly_t, const mpz_t)
     void fmpz_poly_scalar_divexact_mpz(fmpz_poly_t, const fmpz_poly_t, const mpz_t)
     void fmpz_poly_scalar_fdiv_mpz(fmpz_poly_t, const fmpz_poly_t, const mpz_t)
-    void fmpz_poly_set_coeff_mpz(fmpz_poly_t, slong, const mpz_t)
-    void fmpz_poly_get_coeff_mpz(mpz_t, const fmpz_poly_t, slong)
+    void fmpz_poly_set_coeff_mpz(fmpz_poly_t, fslong, const mpz_t)
+    void fmpz_poly_get_coeff_mpz(mpz_t, const fmpz_poly_t, fslong)
 
 
 # Wrapper Cython class
