@@ -38,7 +38,9 @@ This module provides the following linear layers:
     - SKINNY_4, SKINNY_8 ([BJKLMPSSS2016]_)
     - PRESENT (and SmallScalePRESENT) ([BKLPPRSV2007]_)
 
-EXAMPLES::
+EXAMPLES:
+
+Creating a new linear layer::
 
     sage: from sage.crypto.linearlayer import LinearLayer
     doctest:warning
@@ -364,9 +366,13 @@ class LinearLayer:
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
+            sage: F16 = GF(2^4, repr="int")
+            sage: L = LinearLayer.new(Matrix(F16, 4, 4, map(F16.fetch_int, [0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15])))
             sage: L.matrix()
-            [1]
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            [12 13 14 15]
             sage: type(L.matrix()) != type(L)
             True
             sage: type(L.matrix())
@@ -382,12 +388,18 @@ class LinearLayer:
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
+            sage: F16 = GF(2^4, repr="int")
+            sage: L = LinearLayer.new(Matrix(F16, 2, 2, map(F16.fetch_int, [0,1, 2,3])))
             sage: L.binary_matrix()
-            [1 0 0 0]
-            [0 1 0 0]
-            [0 0 1 0]
-            [0 0 0 1]
+            [0 0 0 0|1 0 0 0]
+            [0 0 0 0|0 1 0 0]
+            [0 0 0 0|0 0 1 0]
+            [0 0 0 0|0 0 0 1]
+            [-------+-------]
+            [0 0 0 1|1 0 0 1]
+            [1 0 0 1|1 1 0 1]
+            [0 1 0 0|0 1 1 0]
+            [0 0 1 0|0 0 1 1]
         """
         if self.base_ring() is GF(2):
             return self._matrix_()
