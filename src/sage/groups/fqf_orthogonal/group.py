@@ -153,7 +153,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             raise ValueError("invariants of the abelian group do not match")
         gens = [ambient(g) for g in gens]
         self._invariant_form = fqf
-        AbelianGroupAutomorphismGroup_subgroup.__init__(self, ambient, gens)
+        AbelianGroupAutomorphismGroup_subgroup.__init__(self, ambient, gens,check=check)
         if check:
             for g in self.gens():
                 if not self._preserves_form(g):

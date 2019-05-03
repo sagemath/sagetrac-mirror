@@ -1591,12 +1591,12 @@ class TorsionQuadraticModule(FGP_Module_class):
                 from sage.rings.all import GF,ZZ
                 # we continue with magma
                 G0 = H.orthogonal_group()
-                G = G0.subgroup(G.gens())
+                action_hom = G.hom(G.gens(),codomain=G0,check=False)
                 p = H.invariants()[0]
-                gens = [i.matrix().change_ring(GF(p)) for i in G.gens()]
+                gens = [i.matrix().change_ring(GF(p)) for i in action_hom.image(G).gens()]
                 orb, stab = OrbitsOfSpaces(gens,order.valuation(p),magm=backend,g=G0(g).matrix())
-                stab = [G.subgroup(s) for s in stab]
-                orb= [self.submodule([H.linear_combination_of_smith_form_gens(r) for r in v.change_ring(ZZ)]) for v in orb]
+                stab = [action_hom.preimage(G0.subgroup(s)) for s in stab]
+                orb = [self.submodule([H.linear_combination_of_smith_form_gens(r) for r in v.change_ring(ZZ)]) for v in orb]
                 return [[orb[k],stab[k]] for k in range(len(orb))]
             else:
                 from sage.env import SAGE_EXTCODE
@@ -1618,7 +1618,228 @@ class TorsionQuadraticModule(FGP_Module_class):
         #subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
         return subgroup_reps
 
-    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, glue_valuation, magm=None):
+    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, glue_valuation, magma=None, H10=None, H20=None,target_genus=None):
+        r"""
+        Return all totally isotropic subgroups `S` of `H1 + H2` such that
+        ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
+        G of the orthogonal group of self
+
+        Input:
+
+        - ``H1``, ``H2`` -- subgroups of ``self``, ``other``
+        - ``H10``, ``H20`` -- (default: ``None``) subgroups of ``H10<H1``, ``H20<H2``
+        - ``G1``, ``G2`` -- subgroups of the orthogonal group of ``self``
+          and ``other`` preserving ``Hi`` and ``Hi0``
+        - ``h1``, ``h2`` -- elements in the center of ``G1``, ``G2``
+        - ``magma`` - a magma instance
+        - ``target_genus`` -- (default: ``None``) a genus
+
+        OUTPUT:
+
+        A list consisting of pairs (H,G) where
+        H is a totally isotropic subgroup of H1 + H2 such that H \cap Hi = \empty
+        and Hi0 < projection_i(H)
+        and G is a group of isometries on H^\perp/H
+
+
+        EXAMPLES::
+
+            sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
+            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
+            sage: q, fs , fo = q1.direct_sum(q2)
+            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
+        """
+        h1 = G1.subgroup([h1]).gen(0)
+        h2 = G2.subgroup([h2]).gen(0)
+        if not h1 in G1:#.center():
+            raise ValueError()
+        if not h2 in G2:#.center():
+            raise ValueError()
+        glue_valuation = ZZ(glue_valuation)
+        if not glue_valuation >= 0:
+            raise ValueError()
+        D, i1, i2, iV1, iV2 = self.direct_sum(other,return_more=True)
+
+        from sage.libs.gap.libgap import libgap
+        from sage.env import SAGE_EXTCODE
+        gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+        libgap.Read(gapcode)
+        OnSubgroups = libgap.function_factory("OnSubgroups")
+        OD =  D.orthogonal_group(gens=())
+        primitive_extensions = []
+        if glue_valuation == 0:
+            OD = D.orthogonal_group()
+            embedG1, embedG2 = direct_sum_embed(D, i1, i2, OD, G1, G2)
+            gens = embedG1.Image(G1.gap()).GeneratorsOfGroup()
+            gens = gens.Concatenation(embedG2.Image(G2.gap()).GeneratorsOfGroup())
+            return [[D.submodule([]),OD.subgroup(gens)]]
+        if H1.cardinality()==1 or H2.cardinality()==1:
+            return []
+        p1 = H1.invariants()[-1]
+        p2 = H2.invariants()[-1]
+        if p1 != p2:
+            raise ValueError("invariants do not match")
+        if not p1.is_prime():
+            raise ValueError("not a prime number")
+        p = p1
+
+        glue_order = p**glue_valuation
+        backend = None
+        if H1.cardinality() > 2**5 or H2.cardinality() > 2**5:
+            backend = magma
+        # these may not be invariant subspaces!!! ---> crap
+        # uhm really?
+        subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian", backend=backend,
+                                              return_stabilizers=True, order=glue_order, g=h1)
+        subs2 = other.subgroup_representatives(H2, G2, algorithm="elementary abelian", backend=backend,
+                                               return_stabilizers=True, order=glue_order, g=h2)
+
+        # make sure they contain Hi0
+        # TODO: use this fact for the computation of the subspace representatives
+        # compute in Hi/Hi0
+        if H10 is not None:
+            subs1 = [s for s in subs1 if H10<=s[0]]
+        if H20 is not None:
+            subs2 = [s for s in subs2 if H20<=s[0]]
+
+        subs1 = [[_normalize(s[0].twist(-1)),s[0],s[1]] for s in subs1]
+        subs2 = [[_normalize(s[0]),s[0],s[1]] for s in subs2]
+
+
+        G12 = G1.gap().DirectProduct(G2.gap())
+        embG1 = G12.Embedding(1)
+        embG2 = G12.Embedding(2)
+        D1 = G1.one().gap().Source()
+        D2 = G2.one().gap().Source()
+        D12 = D1.DirectProduct(D2)
+        embD1 = D12.Embedding(1)
+        embD2 = D12.Embedding(2)
+        projD1 = D12.Projection(1)
+        projD2 = D12.Projection(2)
+
+        Dg = OD.domain()
+        imgs = [Dg(
+                  i1(self.linear_combination_of_smith_form_gens((G1.domain()(projD1.Image(d))).exponents()))
+                 +i2(other.linear_combination_of_smith_form_gens((G2.domain()(projD2.Image(d))).exponents()))
+                 ).gap() for d in D12.GeneratorsOfGroup()]
+
+        D12toDg = D12.GroupHomomorphismByImages(Dg.gap(),imgs)
+        InducedAut = ("""InducedAut:=function(iso,aut)
+        local f,g,emb1,emb2,proj1,proj2,aut1,aut2,MyImage;
+        f:=Range(iso);
+        g:=Source(iso);
+        emb1 :=Embedding(g,1);
+        emb2 :=Embedding(g,2);
+        proj1:=Projection(g,1);
+        proj2:=Projection(g,2);
+        aut1:=proj1*aut[1]*emb1;
+        aut2:=proj2*aut[2]*emb2;
+        MyImage:=function(aut,x)
+              return Image(aut1,x)*Image(aut2,x);
+              end;
+        aut:= GroupHomomorphismByImagesNC(f,f,
+           GeneratorsOfGroup(f),
+           List(GeneratorsOfGroup(f), function(i)
+                  return
+                   Image(iso,
+                     MyImage(aut,PreImagesRepresentative(iso,i)
+                       ) );
+                end ));
+        SetIsInjective( aut, true );
+        SetIsSurjective( aut, true );
+        return aut;
+        end;""")
+        InducedAut = libgap.function_factory(InducedAut)
+
+        for S1 in subs1:
+            S1n, S1, stab1 = S1
+            O1 = S1.orthogonal_group()
+            act1 = stab1.hom([O1(x) for x in stab1.gens()],codomain=O1,check=True)
+            im1 = act1.image(stab1)
+            ker1 = [embG1.Image(k.gap()) for k in act1.kernel().gens()]
+            n = len(S1.gens())
+            for S2 in subs2:
+                S2n, S2, stab2 = S2
+                q1 = S1n.gram_matrix_quadratic()
+                q2 = S2n.gram_matrix_quadratic()
+                if q1 != q2:
+                    continue
+                # there is a glue map
+                O2 = S2.orthogonal_group()
+
+                act2 = stab2.hom([O2(x) for x in stab2.gens()],codomain=O2,check=True)
+                im2 = act2.image(stab2)
+                ker2 = [embG2.Image(k.gap()) for k in act2.kernel().gens()]
+
+
+                A1 = O1.domain()
+                A2 = O2.domain()
+                gens1 = [A1(g).gap() for g in S1n.gens()]
+                gens2 = [A2(g).gap() for g in S2n.gens()]
+
+                phi = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
+
+                h1_on_S2 = phi.InducedAutomorphism(O1(h1).gap())
+                h2_on_S2 = O2(h2).gap()
+                if not O2.gap().IsConjugate(h1_on_S2, h2_on_S2):
+                    # this glue map cannot be modified to be equivariant
+                    continue
+                else:
+                    # make it equivariant
+                    g0 = O2.gap().RepresentativeAction(h1_on_S2, h2_on_S2)
+                    phi = phi*g0
+                h1_on_S2 = phi.InducedAutomorphism(O1(h1).gap())
+                assert h1_on_S2 == h2_on_S2
+                center = O2.gap().Centraliser(h2_on_S2)
+
+                stab1phi= [phi.InducedAutomorphism(O1(g).gap()) for g in stab1.gens()]
+                stab1phi = center.Subgroup(stab1phi)
+
+                stab2c = O2.subgroup(stab2.gens())
+                reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
+                for g in reps:
+                    g = g[0]
+                    phig = phi*g
+                    g0g = O2(g0*g)
+                    # graph of phig
+                    gens = [i1(S1n.gen(k)) + i2(S2n.gen(k)*g0g) for k in range(n)]
+
+                    ext = D.submodule(gens)
+                    perp = D.orthogonal_submodule_to(ext)
+                    disc = perp/ext
+                    if target_genus is not None:
+                        ext_genus = ext.W().overlattice([x.lift() for x in ext.gens()]).genus()
+                        if ext_genus != target_genus:
+                            continue
+                    ###############################
+                    # we also need the stabiliser in S1 x S2
+                    # of the graph of phi
+                    # this is done by hand to avoid an
+                    # expensive stabilizer computation
+                    im2_phi = O1.subgroup([phig*g1.gap()*phig.Inverse()
+                                            for g1 in im2.gens()])
+                    im = im1.subgroup(im1.intersection(im2_phi).gap().SmallGeneratingSet())
+                    stab = [(act1.lift(x),
+                             act2.lift(im2(phig.Inverse()*x.gap()*phig)))
+                            for x in im.gens()]
+                    stab = [embG1.Image(x[0].gap())*embG2.Image(x[1].gap())
+                            for x in stab]
+                    stab += ker1
+                    stab += ker2   # tends to generate a huge group
+
+                    # convert to sage
+                    stab = [InducedAut(D12toDg,s) for s in stab]
+                    stab = [matrix(
+                            [disc(D.linear_combination_of_smith_form_gens(Dg(s.Image(Dg(D(x)).gap())).exponents()))
+                                    for x in disc.gens()])
+                            for s in stab]   # slow
+                    stab = disc.orthogonal_group(tuple(stab))  # less huge
+                    primitive_extensions.append([ext, stab])
+        return primitive_extensions
+
+
+
+    def all_primitive_prime_equiv_old(self, other, H1, H2, G1, G2, h1, h2, glue_valuation, magma=None):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
@@ -1676,7 +1897,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         glue_order = p**glue_valuation
         backend = None
         if H1.cardinality() > 2**5 or H2.cardinality() > 2**5:
-            backend = magm
+            backend = magma
         # these may not be invariant subspaces!!! ---> crap
         subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian", backend=backend,
                                               return_stabilizers=True, order=glue_order, g=h1)
@@ -1729,7 +1950,6 @@ class TorsionQuadraticModule(FGP_Module_class):
 
                 stab2c = O2.subgroup(stab2.gens())
                 reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
-
                 for g in reps:
                     g = g[0]
                     # phig = phi*g0*g
@@ -1747,6 +1967,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                     ##############################
                     primitive_extensions.append([ext, OD.subgroup(stab)])
         return primitive_extensions
+
 
 
     def all_primitive(self, other, H1, H2, G1, G2, h1=None, h2=None, glue_order=None):
@@ -2043,7 +2264,7 @@ def _normalize(D):
     # translate all others to the kernel of q
     return D.submodule_with_gens(gens)
 
-def direct_sum_embed(D, i1, i2, OD, G1, G2):
+def direct_sum_embed(D, i1, i2, OD, G1, G2,as_hom=True):
     r"""
 
     EXAMPLES::
@@ -2063,23 +2284,31 @@ def direct_sum_embed(D, i1, i2, OD, G1, G2):
 
     n1 = len(i1.image().gens())
     n2 = len(i2.image().gens())
+    if as_hom:
+        G1g = G1.gens()
+        G2g = G2.gens()
+    else:
+        G1g = G1
+        G2g = G2
+
     gensG1_imgs = []
-    for f in G1.gens():
+    for f in G1g:
         imgs = [Dgap(i1(a*f)).gap() for a in i1.domain().gens()]
         imgs += direct_sum_gens[n1:]
         f = Dgap.gap().GroupHomomorphismByImages(Dgap.gap(), direct_sum_gens, imgs)
         gensG1_imgs.append(f)
-    embed1 = G1.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G1.gens()], gensG1_imgs)
 
     gensG2_imgs = []
-    for f in G2.gens():
+    for f in G2g:
         imgs = [Dgap(i2(a*f)).gap() for a in i2.domain().gens()]
         imgs = direct_sum_gens[:n1] + imgs
         f = Dgap.gap().GroupHomomorphismByImages(Dgap.gap(), direct_sum_gens, imgs)
         gensG2_imgs.append(f)
-    embed2 = G2.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G2.gens()], gensG2_imgs)
-    return embed1, embed2
-
+    if as_hom:
+        embed1 = G1.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G1.gens()], gensG1_imgs)
+        embed2 = G2.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G2.gens()], gensG2_imgs)
+        return embed1, embed2
+    return gensG1_imgs, gensG2_imgs
 
 def OrbitsOfSpaces(gens,k,magm, g=None):
     r"""

@@ -27,10 +27,13 @@ from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
+from bisect import bisect
 from copy import copy, deepcopy
 from sage.misc.misc import verbose
 from sage.interfaces.gp import gp
 from sage.libs.pari import pari
+from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+from sage.misc.cachefunc import cached_method
 
 def M_p(species, p):
     r"""
@@ -76,14 +79,6 @@ def M_p(species, p):
     if n % 2 == 0:
         mp *= ZZ(1) - species.sign() * p**(-s)
     return QQ(1) / mp
-
-def my_zeta(s,D, max_terms=40000):
-    r"""
-    """
-    from sage.all import RR
-    D = ZZ(D)
-    return RR.sum(D.jacobi(m)/RR(m)**s for m in range(1,max_terms,2))
-
 
 def genera(sig_pair, determinant, max_scale=None, even=False):
     r"""
@@ -168,7 +163,7 @@ def genera(sig_pair, determinant, max_scale=None, even=False):
     genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
     return(genera)
 
-all_genera_by_det=genera
+all_genera_by_det = genera
 
 def _local_genera(p, rank, det_val, max_scale, even):
     r"""
@@ -497,7 +492,7 @@ def is_GlobalGenus(G):
             if (a*b).kronecker(p) != 1:
                 verbose(mesg="False in (%s*%s).kronecker(%s)"%(a,b,p), level=2)
                 return False
-            oddity -= loc.excess()
+            oddity -= loc.oddity()
         else:
             if a.kronecker(p) != b:
                 verbose(mesg="False in %s.kronecker(%s) != *%s"%(a,p,b), level=2)
@@ -1357,8 +1352,21 @@ class Genus_Symbol_p_adic_ring(object):
 
 
         """
+        prime = ZZ(prime)
+        if prime == 2:
+            l = 5
+        else:
+            l = 3
         if check:
-           pass
+            if not prime.is_prime():
+                raise ValueError()
+            if not type(symbol) is list:
+                raise TypeError('symbol must be a list')
+            if not all(len(s)==l for s in symbol):
+                raise ValueError('not a valid symbol')
+        if len(symbol)==0:
+            symbol = [l*[0]]
+            symbol[0][2] = 1
         self._prime = ZZ(prime)
         self._symbol = symbol
         self._canonical_symbol = None
@@ -1581,6 +1589,10 @@ class Genus_Symbol_p_adic_ring(object):
     #def len(self):
     #    return len(self._symbol)
     ## ------------------------------------------------------
+
+    @cached_method
+    def _nonsquare(self):
+        return _min_nonsquare(self._prime).lift()
 
     def automorphous_numbers(self):
         r"""
@@ -1848,13 +1860,19 @@ class Genus_Symbol_p_adic_ring(object):
         G = matrix.block_diagonal(G)
         # check calculation
         if check:
-            symG = p_adic_symbol(G, p, symbol[-1][0])
-            assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
+            symG = LocalGenusSymbol(G, p)
+            assert symG == self, "oops"
         return G.change_ring(ZZ)
 
     def mass(self):
         r"""
         Returns the local mass of this form as defined by Conway.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([1,3,9]))
+            sage: G.local_symbols(3).mass()
+            9/8
         """
         if self.dimension() <= 1:
             raise ValueError("the dimension must be at least 2")
@@ -1891,6 +1909,14 @@ class Genus_Symbol_p_adic_ring(object):
 
     def _standard_mass(self):
         r"""
+        Return the standard p-mass of this local genus.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([1,3,9]))
+            sage: g3 = G.local_symbols(3)
+            sage: g3._standard_mass()
+            9/16
         """
         from sage.arith.misc import fundamental_discriminant
         from sage.quadratic_forms.extras import least_quadratic_nonresidue
@@ -1911,6 +1937,14 @@ class Genus_Symbol_p_adic_ring(object):
 
     def _species_list(self):
         r"""
+        Return the species list.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([1,3,27]))
+            sage: g3 = G.local_symbols(3)
+            sage: g3._species_list()
+            [1, 1, 1]
         """
         p = self.prime()
         species_list = []
@@ -2004,7 +2038,7 @@ class Genus_Symbol_p_adic_ring(object):
         sym = self.symbol_tuple_list()[0]
         return sym[0] > 0 or sym[3]==0
 
-    def symbol_tuple_list(self):
+    def symbol_tuple_list(self,scale_valuation=None):
         r"""
         Return a copy of the underlying list of lists of integers
         defining the genus symbol.
@@ -2036,7 +2070,154 @@ class Genus_Symbol_p_adic_ring(object):
             sage: type(G2.symbol_tuple_list())
             <... 'list'>
         """
-        return deepcopy(self._symbol)
+        sym = self._symbol
+        if scale_valuation is None:
+            return deepcopy(sym)
+        for s in sym:
+            if s[0] == scale_valuation:
+                return copy(s)
+        if self.prime() != 2:
+            return [scale_valuation,0,1]
+        else:
+            return [scale_valuation,0,1,0,0]
+
+    symbol = symbol_tuple_list
+
+    def space(self):
+        p = self.prime()
+
+
+        return SpaceSymbol_local(
+            field=QQ,
+            place=self.prime(),
+            rank=self.rank(),
+            det=self.determinant(),
+            excess=self.excess()
+            )
+
+    def represents(self,other):
+        r"""
+        Return if self is represents other.
+
+        WARNING:
+
+        For p == 2 the statement of O Meara is wrong.
+        """
+        self, other = other, self
+        if self.prime() != other.prime():
+            raise ValueError("different primes")
+        p = self.prime()
+        s1 = self.symbol_tuple_list()
+        s2 = other.symbol_tuple_list()
+        level = max(s1[-1][0],s2[-1][0])
+        #notation
+        def delta(pgenus,i):
+            # O'Meara pp.
+            if pgenus.symbol(i+1)[3]==1:
+                return ZZ(2)**(i+1)
+            if pgenus.symbol(i+2)[3]==1:
+                return ZZ(2)**(i+2)
+            return ZZ(0)
+
+        genus1 = self
+        genus2 = other
+        gen1 = []
+        gen2 = []
+
+        for i in range(level+3):
+            g1 = [s for s in s1 if s[0]<=i]
+            g2 = [s for s in s2 if s[0]<=i]
+            gen1.append(Genus_Symbol_p_adic_ring(p,g1))
+            gen2.append(Genus_Symbol_p_adic_ring(p,g2))
+            if p!=2 and not gen1[i].space()<=gen2[i].space():
+                return False
+
+        if p != 2:
+            return True
+
+        # additional conditions for p==2
+        for i in range(level+1):
+            d = QQ(gen1[i].det()*gen2[i].det())
+            # Lower Type following O'Meara Page 858
+            # (7)
+            if gen1[i].rank() > gen2[i].rank():
+                return False
+            # (8)
+            if gen1[i].rank() == gen2[i].rank():
+                if d.valuation(2)%2!=0:
+                    return False
+            # (9)
+            if gen1[i].rank() == gen2[i].rank():
+                l = delta(genus1,i)
+                r = delta(genus2,i).gcd(2**(i+2))
+                if not r.divides(l):
+                    return False
+                l = delta(genus2,i-1)
+                r = delta(genus1,i-1).gcd(2**(i+1))
+                if not r.divides(l):
+                    return False
+            v = d.valuation(2)
+            cond = (gen1[i].rank() + 1 == gen2[i].rank()
+                    and gen1[i].rank()>0
+                   )
+            # (10)
+            if cond and (i+1-v) % 2 == 0:
+                l = delta(genus2,i-1)
+                r = delta(genus1,i-1).gcd(2**(i+1))
+                if not r.divides(l):
+                    return False
+            # (11)
+            if cond and (i-v) % 2 == 0:
+                l = delta(genus1,i)
+                r = delta(genus2,i).gcd(2**(i+2))
+                if not r.divides(l):
+                    return False
+
+        gen2_round = []
+        for i in range(level+3):
+            g2 = [s for s in s2 if s[0]<i or s[0]==i and s[3]==1]
+            gen2_round.append(Genus_Symbol_p_adic_ring(p,g2))
+
+        gen1_square = []
+        for i in range(level+1):
+            g1 = [s for s in s1 if s[0]<=i or s[0]==i+1 and s[3]==0]
+            gen1_square.append(Genus_Symbol_p_adic_ring(p,g1))
+
+        FH = LocalGenusSymbol(matrix(QQ,2,[0,1,1,0]),p).space()
+        for i in range(level+1):
+            # I
+            d = delta(genus2,i)
+            L = gen2_round[i+2].space()-gen1_square[i].space()
+            if not any(u*d<=L for u in [1,3,5,7]):
+                return False
+            # II
+            d = delta(genus1,i)
+            L = gen2_round[i+2].space()-gen1_square[i].space()
+            if not any(u*d<=L for u in [1,3,5,7]):
+                return False
+            # III
+            S1 = gen2_round[i+2].space()
+            S2 = gen1_square[i].space()
+            if  S1 - S2 == FH:
+                if not 2*delta(genus1,i).valuation(2) <= delta(genus1,i).valuation(2) + delta(genus2,i).valuation(2):
+                    return False
+            # IV
+            ti1 = LocalGenusSymbol(matrix([2**i]),p).space()
+            ti2 = LocalGenusSymbol(matrix([5*2**i]),p).space()
+            S = (ti1 + gen2_round[i+1].space())-gen1[i].space()
+            if not (ti1<=S or ti2<=S):
+                return False
+            # V
+            # I do not understand this condition
+            # the reason is that
+            # (ti1 + gen2_round[i+1])-gen1_square[i]
+            # can have negative dimension
+            # even if l = L .... and surely
+            # L is represented by itsself
+            # S = (ti1 + gen2[i+1].space())-gen1_square[i].space()
+            # if not (ti1<=S or ti2<=S):
+            #    return False
+        return True
 
     def number_of_blocks(self):
         r"""
@@ -2070,7 +2251,7 @@ class Genus_Symbol_p_adic_ring(object):
 
     def determinant(self):
         r"""
-        Returns the (`p`-part of the) determinant (square-class) of the
+        Returns the determinant (square-class) of the
         Hessian matrix of the quadratic form (given by regarding the
         integral symmetric matrix which generated this genus symbol as
         the Gram matrix of `Q`) associated to this local genus symbol.
@@ -2089,17 +2270,22 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
             Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.determinant()
-            128
+            384
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
             Genus symbol at 3:     1^3 3^-1
             sage: G3.determinant()
-            3
+            6
         """
         p = self._prime
-        return prod([ p**(s[0]*s[1]) for s in self._symbol ])
+        e = prod(s[2] for s in self._symbol)
+        if p == 2:
+            e = e % 8
+        elif e==-1:
+            e = self._nonsquare()
+        return e*prod([ p**(s[0]*s[1]) for s in self._symbol ])
 
     det = determinant
 
@@ -2186,8 +2372,12 @@ class Genus_Symbol_p_adic_ring(object):
     def excess(self):
         r"""
         Returns the p-excess of the quadratic form whose Hessian
-        matrix is the symmetric matrix A.  When p = 2 the p-excess is
+        matrix is the symmetric matrix A.
+
+        When p = 2 the p-excess is
         called the oddity.
+        The p-excess is allways even and is divisible by 4 if
+        p is congruent 1 mod 4.
 
         .. WARNING::
 
@@ -2210,7 +2400,7 @@ class Genus_Symbol_p_adic_ring(object):
 
             sage: AC = diagonal_matrix(ZZ, [1,3,-3])
             sage: p=2; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
-            1
+            2
             sage: p=3; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
             0
             sage: p=5; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
@@ -2220,9 +2410,9 @@ class Genus_Symbol_p_adic_ring(object):
             sage: p=11; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
             0
 
-            sage: AC = 2 * diagonal_matrix(ZZ, [1,3,-3])
+            sage: AC = diagonal_matrix(ZZ, [2,6,-6])
             sage: p=2; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
-            1
+            2
             sage: p=3; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
             0
             sage: p=5; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
@@ -2232,7 +2422,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: p=11; Genus_Symbol_p_adic_ring(p, p_adic_symbol(AC, p, 2)).excess()
             0
 
-            sage: A = 2*diagonal_matrix(ZZ, [1,2,3,4])
+            sage: A = diagonal_matrix(ZZ, [2,4,6,8])
             sage: p=2; Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)).excess()
             2
             sage: p=3; Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)).excess()
@@ -2247,25 +2437,76 @@ class Genus_Symbol_p_adic_ring(object):
         """
         p = self._prime
         if self._prime == 2:
-           k = 0
-           for s in self._symbol:
-               if s[0]%2 == 1 and s[2] in (3,5):
-                   k += 1
-           return Integer(sum([ s[4] for s in self._symbol ]) + 4*k).mod(8)
+            return self.dimension() - self.oddity()
+        k = 0
+        for s in self._symbol:
+            if s[0]%2 == 1 and s[2] == -1:
+                k += 1
+        return Integer(sum([ s[1]*(p**s[0]-1) for s in self._symbol ]) + 4*k).mod(8)
+
+    def signature(self):
+        r"""
+        Return the p-signature of this p-adic form.
+
+        EXAMPLES::
+
+            sage: A = matrix.diagonal([1,2,3])
+            sage: g = Genus(A)
+            sage: g.local_symbols(2)
+            Genus symbol at 2:    [1^-2 2^1]_5
+            sage: g.local_symbols(2).signature()
+            5
+            sage: g.local_symbols(3)
+            Genus symbol at 3:     1^-2 3^1
+            sage: g.local_symbols(3).signature()
+            1
+        """
+        if self._prime == 2:
+            return self.oddity()
         else:
-           k = 0
-           for s in self._symbol:
-               if s[0]%2 == 1 and s[2] == -1:
-                   k += 1
-           return Integer(sum([ s[1]*(p**s[0]-1) for s in self._symbol ]) + 4*k).mod(8)
+            return self.dimension() - self.excess()
+
+    def oddity(self):
+        r"""
+        Return the oddity of this even form.
+
+        The oddity is also called the 2-signature
+
+        EXAMPLES::
+
+            sage: A = matrix.diagonal([1,2,3])
+            sage: g = Genus(A)
+            sage: g.local_symbols(2)
+            Genus symbol at 2:    [1^-2 2^1]_5
+        """
+        p = self._prime
+        if p != 2:
+            raise ValueError('the oddity is only defined for p=2')
+        k = 0
+        for s in self._symbol:
+            if s[0]%2 == 1 and s[2] in (3,5):
+                k += 1
+        return Integer(sum([ s[4] for s in self._symbol ]) + 4*k).mod(8)
 
     def scale(self):
         r"""
         Return the scale of this local genus.
 
+        Let `L` be a lattice with bilinear form `b`.
+        The scale of `(L,b)` is defined as the ideal
+        `b(L,L)`.
+
         OUTPUT:
 
         an integer
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([2,4,18]))
+            sage: G.local_symbols(2).scale()
+            2
+            sage: G.local_symbols(3).scale()
+            1
         """
         if self.rank()==0:
             return ZZ(0)
@@ -2273,7 +2514,21 @@ class Genus_Symbol_p_adic_ring(object):
 
     def norm(self):
         r"""
-        """
+        Return the norm of this local genus.
+
+        Let `L` be a lattice with bilinear form `b`.
+        The scale of `(L,b)` is defined as the ideal
+        generated by `\{b(x,x) | x \in L\}`.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([2,4,18]))
+            sage: G.local_symbols(2).norm()
+            2
+            sage: G = Genus(matrix(ZZ,2,[0,1,1,0]))
+            sage: G.local_symbols(2).norm()
+            2
+            """
         if self.rank()==0:
             return ZZ(0)
         p = self.prime()
@@ -2286,6 +2541,12 @@ class Genus_Symbol_p_adic_ring(object):
     def level(self):
         r"""
         Return the maximal scale of a jordan component.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([2,4,18]))
+            sage: G.local_symbols(2).level()
+            4
         """
         if self.rank()==0:
             return ZZ(1)
@@ -2765,7 +3026,6 @@ class GenusSymbol_global_ring(object):
         G = self.representative()
         d = self.dimension()
         V = ZZ**d
-        det = self.determinant()
         # TODO:
         # this is a potential bottleneck
         # find a more clever way
@@ -2824,7 +3084,7 @@ class GenusSymbol_global_ring(object):
             -24
         """
         p, n = self.signature_pair()
-        return (-1)**n*prod([ G.determinant() for G in self._local_symbols ])
+        return (-1)**n*prod([ G.prime()**sum(s[0]*s[1] for s in G._symbol) for G in self._local_symbols ])
 
     det = determinant
 
@@ -2844,6 +3104,21 @@ class GenusSymbol_global_ring(object):
 
     rank = dimension
     dim = dimension
+
+    def represents(self,other):
+        p1, m1 = self.signature_pair()
+        p2, m2 = other.signature_pair()
+        if not p1>=p2 and m1>=m2:
+            return False
+        primes = [s.prime() for s in self.local_symbols()]
+        primes += [s.prime() for s in other.local_symbols()
+                   if s.prime() not in primes]
+        for p in primes:
+            sp = self.local_symbols(p)
+            op = other.local_symbols(p)
+            if not sp.represents(op):
+                   return False
+        return True
 
     def discriminant_form(self):
         r"""
@@ -2939,7 +3214,31 @@ class GenusSymbol_global_ring(object):
 
     def rational_representative(self):
         r"""
+        Return a representative of the rational
+        bilinear form defined by this genus.
 
+        OUTPUT:
+
+        A diagonal_matrix.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: G = genera((8,0),1)[0]
+            sage: G
+            Genus of
+            None
+            Signature:  (8, 0)
+            Genus symbol at 2:    1^8
+            sage: G.rational_representative()
+            [1 0 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0]
+            [0 0 0 0 1 0 0 0]
+            [0 0 0 0 0 2 0 0]
+            [0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 2]
         """
         from sage.quadratic_forms.all import QuadraticForm
         sminus = self.signature_pair_of_matrix()[1]
@@ -2955,6 +3254,11 @@ class GenusSymbol_global_ring(object):
 
     def _standard_mass(self):
         r"""
+        Return the standard mass of this genus.
+
+        EXAMPLES::
+
+            sage:
         """
         from sage.functions.gamma import gamma
         from sage.functions.transcendental import zeta
@@ -2977,11 +3281,37 @@ class GenusSymbol_global_ring(object):
         return std
 
 
-    def mass(self, algorithm='sage'):
+    def mass(self, backend='sage'):
         r"""
         Return the mass of this genus.
+
+        The genus must be definite.
+        Let ` L_1, ... L_n` be a list of representatives of this
+        genus. Its mass is defined to be
+
+        MATH::
+
+            \sum_i 1 / |O(L_i)|
+
+        INPUT:
+
+        - ``backend`` -- default: ``'sage'``, or `'magma'`
+
+        OUTPUT:
+
+        a rational number
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: G = genera((8,0),1,even=True)[0]
+            sage: G.mass()
+            1/696729600
         """
-        if algorithm == 'sage':
+        pos, neg = self.signature_pair()
+        if pos * neg != 0:
+            raise ValueError("Genus must be definite.")
+        if backend == 'sage':
             from sage.functions.gamma import gamma
             from sage.symbolic.constants import pi
             n = self.dimension()
@@ -2989,13 +3319,18 @@ class GenusSymbol_global_ring(object):
             for sym in self._local_symbols:
                 mass *= sym.mass()/sym._standard_mass()
             return QQ(mass.canonicalize_radical())
-        if algorithm == 'magma':
+        elif backend == 'magma':
             from sage.interfaces.magma import Magma
             magma = Magma()
             magma.set_server_and_command(command="magma")
-            L = magma(self.representative())
+            e = 1 # lattices in magma are positive definite
+            if neg !=0:
+                e = -1
+            L = magma(e*self.representative())
             L = L.LatticeWithGram()
             return QQ(L.Mass())
+        else:
+            raise ValueError("Unknown algorithm: %s"%backend)
 
     def representative(self):
         r"""
@@ -3018,6 +3353,16 @@ class GenusSymbol_global_ring(object):
 
     def level(self):
         r"""
+        Return the level of this genus.
+
+        This is the denominator of the inverse gram matrix
+        of a representative.
+
+        EXAMPLES::
+
+            sage: G = Genus(matrix.diagonal([2,4,18]))
+            sage: G.level()
+            36
         """
         return prod(sym.level() for sym in self.local_symbols())
 
@@ -3025,35 +3370,48 @@ class GenusSymbol_global_ring(object):
         r"""
         Return the scale of this genus.
 
+        Let `L` be a lattice with bilinear form `b`.
+        The scale of `(L,b)` is defined as the ideal
+        `b(L,L)`.
+
         OUTPUT:
 
         an integer
 
         EXAMPLES::
 
-            sage:
+            sage: G = Genus(matrix.diagonal([2,4,18]))
+            sage: G.scale()
+            2
         """
         return prod([s.scale() for s in self.local_symbols()])
 
     def norm(self):
         r"""
-        Return the scale of this genus.
+        Return the norm of this genus.
 
-        OUTPUT:
-
-        an integer
+        Let `L` be a lattice with bilinear form `b`.
+        The scale of `(L,b)` is defined as the ideal
+        generated by `\{b(x,x) | x \in L\}`.
 
         EXAMPLES::
 
-            sage:
+            sage: G = Genus(matrix.diagonal([6,4,18]))
+            sage: G.norm()
+            2
+            sage: G = Genus(matrix(ZZ,2,[0,1,1,0]))
+            sage: G.norm()
+            2
         """
         return prod([s.norm() for s in self.local_symbols()])
 
     def _compute_representative(self, LLL=True):
         r"""
-        Return a representative of this genus.
+        Compute a representative of this genus and cache it.
 
+        INPUT:
 
+        - ``LLL`` -- boolean (default: ``True``); whether or not to LLL reduce
         """
         from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
         even = self.is_even()
@@ -3099,6 +3457,36 @@ class GenusSymbol_global_ring(object):
     def representatives(self, backend="sage", algorithm=None):
         r"""
         Return a list of representatives for the classes in this genus
+
+        INPUT:
+
+        - ``backend`` -- (default:``'sage'``))
+        - ``algorithm`` -- (default:``None``)
+
+        OUTPUT:
+
+        - a list of gram matrices
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: G = Genus(matrix.diagonal([1,1,7]))
+            sage: G.representatives()
+            [
+            [1 0 0]  [1 0 0]
+            [0 2 1]  [0 1 0]
+            [0 1 4], [0 0 7]
+            ]
+
+        Indefinite genera work as well::
+
+            sage: G = Genus(matrix(ZZ,3,[6,3,0,3,6,0,0,0,2]))
+            sage: G.representatives()
+            [
+            [2 0 0]  [ 2 -1  0]
+            [0 6 3]  [-1  2  0]
+            [0 3 6], [ 0  0 18]
+            ]
         """
         from copy import copy
         try:
@@ -3192,7 +3580,155 @@ class GenusSymbol_global_ring(object):
         assert len(representatives) > 0, self
         return copy(representatives)
 
+class SpaceSymbol_global(object):
+    def __init__(self, field, local_symbols):
+        self._field = field
+        self._local_symbols = local_symbols
 
+    def __eq__(self,other):
+        if self._field != other._field:
+            raise ValueError('quadratic spaces over different fields do not compare')
+        raise NotImplementedError()
+
+    def representative(self):
+        raise NotImplementedError()
+
+class SpaceSymbol_local(object):
+    def __init__(self, field, place, rank, det, excess):
+        if field is not QQ:
+            raise NotImplementedError('TODO: change the excess for the witt invariant. ')
+        det = field(det)
+        v, u = det.val_unit(place)
+        det = QQ(place)**(v%2)
+        if place == 2:
+            det *= u % 8
+        else:
+            det *= u % place
+        self._field = field
+        self._place = place
+        self._rank = ZZ(rank)
+        self._det = det
+        self._excess = ZZ(excess).mod(8)
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if self._field != other._field:
+            raise ValueError('quadratic spaces over different fields do not compare')
+        if self._place != other._place:
+            raise ValueError('different places')
+        if self._rank != other._rank:
+            return False
+        d = self._det*other._det
+        p = self._place
+        if not d.is_padic_square(p):
+            return False
+        if self._excess!=other._excess:
+            return False
+        return True
+
+    def __add__(self,other):
+        if not self._field == other._field:
+            raise ValueError()
+        if not self._place == other._place:
+            raise ValueError()
+        rank = self._rank + other._rank
+        det = self._det * other._det
+        excess = self._excess + other._excess
+        return SpaceSymbol_local(
+            field=self._field,
+            place=self._place,
+            rank=rank,
+            det=det,
+            excess=excess
+            )
+
+    def __sub__(self,other):
+        if not self._field == other._field:
+            raise ValueError()
+        if not self._place == other._place:
+            raise ValueError()
+        rank = self._rank - other._rank
+        det = self._det * other._det
+        excess = self._excess - other._excess
+        return SpaceSymbol_local(
+            field=self._field,
+            place=self._place,
+            rank=rank,
+            det=det,
+            excess=excess
+            )
+
+    def __ge__(self,other):
+        return self.represents(other)
+    def __le__(self,other):
+        return other.__ge__(self)
+    def __lt__(self, other):
+        return self <= other and not self==other
+    def __gt__(self, other):
+        return self >= other and not self==other
+    def __neq__(self,other):
+        return not self==other
+
+    def __repr__(self):
+        return "p: %s, rk: %s, det: %s, excess: %s"%(self._place,self._rank,self._det,self._excess)
+
+    def determinant(self):
+        return self._det
+
+    det = determinant
+
+    def rank(self):
+        return self._rank
+
+    def excess(self):
+        return self._excess
+
+    def hasse_invariant(self):
+        r"""
+        Return Cassel's hasse invariant.
+        """
+        if self.rank() > 0:
+            g = matrix.diagonal([self.det()]+(self.rank()-1)*[1])
+        else:
+            g = matrix([])
+        p = self._place
+        from sage.quadratic_forms.all import QuadraticForm
+        qf = QuadraticForm(QQ,2*g)
+        hasse1 = qf.hasse_invariant(p)
+        std = LocalGenusSymbol(g,self.prime())
+        if std.excess() == self.excess():
+            return hasse1
+        else:
+            return -hasse1
+
+    def represents(self,other):
+        r"""
+        Return if self represents other.
+        """
+        if not type(other) is SpaceSymbol_local:
+            if other == 0:
+                return True
+            other = LocalGenusSymbol(matrix(self._field,[other]),self._place).space()
+        if self._place != other._place:
+            raise ValueError("different place")
+        p = self._place
+        if other.rank() > self.rank():
+            return False
+
+        K = self._field
+
+        d = K(self._det * other._det)
+        if self._rank == other._rank:
+            return self==other
+        if other._rank+1 == self._rank:
+            rk1 = LocalGenusSymbol(matrix([d]),p).space()
+            return other + rk1 == self
+        if (other.rank()+2 == self.rank()
+             and (-d).is_padic_square(p,check=False)):
+            rk2 = LocalGenusSymbol(matrix(QQ,2,[0,1,1,0]),p).space()
+            return other + rk2 == self
+        return True
 
 
 def rational_qf_from_invariants(m, det, P, sminus):
@@ -3213,7 +3749,9 @@ def rational_qf_from_invariants(m, det, P, sminus):
 
     - a symmetric matrix; the gram matrix
 
+    EXAMPLES::
 
+        sage:
     """
     from sage.arith.misc import hilbert_symbol
     from sage.rings.infinity import Infinity
@@ -3376,7 +3914,6 @@ def _gram_from_jordan_block(p, block, discr_form=False):
         [  0   0 1/2   0]
         [  0   0   0 1/2]
     """
-    from sage.quadratic_forms.genera.normal_form import _min_nonsquare
     scale = block[0]
     rk = block[1]
     det = block[2]
