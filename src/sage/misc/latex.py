@@ -965,6 +965,13 @@ class Latex(LatexCall):
         \text{\texttt{hello}}
         sage: LatexExpr(r"\frac{x^2 - 1}{x + 1} = x - 1")
         \frac{x^2 - 1}{x + 1} = x - 1
+        sage: latex(Tableau([[1,2]]))
+        {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+        \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+        \lr{1}&\lr{2}\\\cline{1-2}
+        \end{array}$}
+        }
+
 
     LaTeX expressions can be added; note that a space is automatically
     inserted::

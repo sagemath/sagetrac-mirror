@@ -37,6 +37,10 @@ def has_sagetex_attr(x):
     Return ``True`` if ``x`` has a ``_sagetex_`` attribute, except if ``x``
     is a ``type``, in which case return ``False``.
 
+    INPUT:
+
+    - ``x`` -- a Sage object
+
     EXAMPLES::
 
         sage: from sage.misc.sagetex import has_sagetex_attr
@@ -150,6 +154,13 @@ class Sagetex(SagetexCall, Latex):
         \text{\texttt{hello}}
         sage: SagetexExpr(r"\frac{x^2 - 1}{x + 1} = x - 1")
         \frac{x^2 - 1}{x + 1} = x - 1
+        sage: sagetex(Tableau([[1,2]]))
+        {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
+        \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+        \lr{1}&\lr{2}\\\cline{1-2}
+        \end{array}$}
+        }
+
 
     LaTeX expressions can be added; note that a space is automatically
     inserted::
