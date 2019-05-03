@@ -27,7 +27,6 @@ AUTHORS:
 
 
 from sage.misc.latex import LatexExpr
-from sage.misc.latex import has_latex_attr
 from sage.misc.latex import LatexCall
 from sage.misc.latex import Latex
 
