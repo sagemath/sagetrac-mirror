@@ -8061,7 +8061,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         # iterate until we reach the last tableau which is
         # filled with the row indices.
-        last_tableau = sum([[row]*l for (row,l) in enumerate(pi)], [])
+        last_tableau = sum([[crow]*l for (crow,l) in enumerate(pi)], [])
 
         #Convert the tableau to "vector format"
         #tableau_vector[i] is the row that number i

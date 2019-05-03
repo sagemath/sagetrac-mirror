@@ -714,7 +714,7 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
                 temp_list.append(val - j)
             tableau.append(temp_list)
 
-        return self.element_class(self, [self.letters(x) for x in flatten(tableau)])
+        return self.element_class(self, [self.letters(k) for k in flatten(tableau)])
 
     def _build_module_generators(self):
         """
@@ -936,7 +936,7 @@ class KRTableauxTypeBox(KRTableauxTypeVertical):
                 temp_list.append(val - j)
             tableau.append(temp_list)
 
-        return self.element_class(self, [self.letters(x) for x in flatten(tableau)])
+        return self.element_class(self, [self.letters(k) for k in flatten(tableau)])
 
     def _build_module_generators(self):
         """
