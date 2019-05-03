@@ -19,6 +19,7 @@ echo "Configuring FLINT."
     $SAGE_CONFIGURE_GMP \
     $SAGE_CONFIGURE_MPFR \
     --with-ntl="$SAGE_NTL_PREFIX" \
+    --disable-tls \
     $FLINT_CONFIGURE || sdh_die "Error: Failed to configure FLINT."
 
 sdh_make verbose
