@@ -1264,6 +1264,7 @@ class GlobalOptions(object):
               - display:           list
               - latex:             young_diagram
               - latex_diagram_str: \ast
+              - sagetex:           young_diagram
             sage: Partitions.options.convention="French"
             sage: pickle = dumps(Partitions.options)
             sage: Partitions.options._reset()        # reset options
@@ -1274,6 +1275,7 @@ class GlobalOptions(object):
               - display:           list
               - latex:             young_diagram
               - latex_diagram_str: \ast
+              - sagetex:           young_diagram
             sage: Partitions.options._reset()
         """
         # open the options for the corresponding "parent" and copy all of

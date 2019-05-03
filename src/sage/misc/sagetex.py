@@ -59,7 +59,7 @@ def has_sagetex_attr(x):
         sage: T._sagetex_()
         Traceback (most recent call last):
         ...
-        TypeError: descriptor '_sagetex_' of 'sage.matrix.matrix0.Matrix' object needs an argument
+        AttributeError: type object 'sage.matrix.matrix_integer_dense.Matrix_integer_de' has no attribute '_sagetex_'
         sage: has_sagetex_attr(T)
         False
     """
@@ -106,6 +106,7 @@ class SagetexCall:
 
         EXAMPLES::
 
+            sage: from sage.misc.sagetex import sagetex
             sage: sagetex(Integer(3))  # indirect doctest
             3
             sage: sagetex(1==0)
@@ -125,19 +126,7 @@ class Sagetex(SagetexCall, Latex):
     r"""nodetex
     Enter, e.g.,
 
-    ::
-
-        %latex
-        The equation $y^2 = x^3 + x$ defines an elliptic curve.
-        We have $2006 = \sage{factor(2006)}$.
-
-    in an input cell in the notebook to get a typeset version. Use
-    ``%latex_debug`` to get debugging output.
-
-    Use ``sagetex(...)`` to typeset a Sage object.  Use :class:`SagetexExpr`
-    to typeset LaTeX code that you create by hand.
-
-    Use ``%slide`` instead to typeset slides.
+    Use ``sagetex(...)`` to typeset a Sage object.
 
     .. WARNING::
 
@@ -146,27 +135,19 @@ class Sagetex(SagetexCall, Latex):
 
     EXAMPLES::
 
+        sage: from sage.misc.sagetex import sagetex
         sage: sagetex(x^20 + 1)
         x^{20} + 1
         sage: sagetex(FiniteField(25,'a'))
         \Bold{F}_{5^{2}}
         sage: sagetex("hello")
         \text{\texttt{hello}}
-        sage: SagetexExpr(r"\frac{x^2 - 1}{x + 1} = x - 1")
-        \frac{x^2 - 1}{x + 1} = x - 1
         sage: sagetex(Tableau([[1,2]]))
         {\def\lr##1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$##1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
         \lr{1}&\lr{2}\\\cline{1-2}
         \end{array}$}
         }
-
-
-    LaTeX expressions can be added; note that a space is automatically
-    inserted::
-
-        sage: SagetexExpr(r"y \neq") + latex(x^20 + 1)
-        y \neq x^{20} + 1
     """
     pass
 
