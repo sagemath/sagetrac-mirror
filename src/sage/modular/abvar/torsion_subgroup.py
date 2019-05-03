@@ -92,14 +92,14 @@ from __future__ import absolute_import
 
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.modular.abvar.torsion_point import TorsionPoint
-from sage.modules.module            import Module
-from .finite_subgroup                import FiniteSubgroup
-from sage.rings.all                 import ZZ, QQ
-from sage.sets.primes               import Primes
-from sage.modular.arithgroup.all    import is_Gamma0, is_Gamma1
-from sage.all                       import divisors, gcd, prime_range
-from sage.modular.dirichlet         import DirichletGroup
-from sage.misc.misc_c               import prod
+from sage.modules.module import Module
+from .finite_subgroup import FiniteSubgroup
+from sage.rings.all import ZZ, QQ
+from sage.sets.primes import Primes
+from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1
+from sage.all import divisors, gcd, prime_range
+from sage.modular.dirichlet import DirichletGroup
+from sage.misc.misc_c import prod
 
 
 @richcmp_method
@@ -107,6 +107,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
     """
     The torsion subgroup of a modular abelian variety.
     """
+
     def __init__(self, abvar):
         """
         Create the torsion subgroup.
@@ -218,7 +219,8 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             n = O[0]
             self._order = n
             return n
-        raise RuntimeError("Unable to compute order of torsion subgroup (it is in %s)"%O)
+        raise RuntimeError(
+            "Unable to compute order of torsion subgroup (it is in %s)" % O)
 
     def lattice(self):
         """
@@ -268,7 +270,9 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         if R.order() == self.multiple_of_order():
             return R.lattice()
         else:
-            raise NotImplementedError("unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)")
+            raise NotImplementedError(
+                "unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)"
+            )
 
     def possible_orders(self, proof=True):
         """
@@ -310,7 +314,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         N = A.level()
         # return the order of the cuspidal subgroup in the J0(p) case
         if A.is_J0() and N.is_prime():
-            self._possible_orders = [QQ((A.level()-1)/12).numerator()]
+            self._possible_orders = [QQ((A.level() - 1) / 12).numerator()]
             self._possible_orders_proof_false = self._possible_orders
             return self._possible_orders
 
@@ -322,17 +326,21 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         # the conjectural J1(p) case
         if not proof and A.is_J1() and N.is_prime():
-            epsilons = [epsilon for epsilon in DirichletGroup(N)
-                        if not epsilon.is_trivial() and epsilon.is_even()]
+            epsilons = [
+                epsilon for epsilon in DirichletGroup(N)
+                if not epsilon.is_trivial() and epsilon.is_even()
+            ]
             bernoullis = [epsilon.bernoulli(2) for epsilon in epsilons]
-            self._possible_orders_proof_false = [ZZ(N/(2**(N-3))*prod(bernoullis))]
+            self._possible_orders_proof_false = [
+                ZZ(N / (2**(N - 3)) * prod(bernoullis))
+            ]
             return self._possible_orders_proof_false
 
         u = self.multiple_of_order()
         l = self.divisor_of_order()
 
         assert u % l == 0
-        O = [l * d for d in divisors(u//l)]
+        O = [l * d for d in divisors(u // l)]
         self._possible_orders = O
         if u == l:
             self._possible_orders_proof_false = O
@@ -379,7 +387,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         # return the order of the cuspidal subgroup in the J0(p) case
         if A.is_J0() and N.is_prime():
-            self._divisor_of_order = QQ((A.level()-1)/12).numerator()
+            self._divisor_of_order = QQ((A.level() - 1) / 12).numerator()
             return self._divisor_of_order
 
         # The elliptic curve case
@@ -389,10 +397,12 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         # The J1(p) case
         if A.is_J1() and N.is_prime():
-            epsilons = [epsilon for epsilon in DirichletGroup(N)
-                        if not epsilon.is_trivial() and epsilon.is_even()]
+            epsilons = [
+                epsilon for epsilon in DirichletGroup(N)
+                if not epsilon.is_trivial() and epsilon.is_even()
+            ]
             bernoullis = [epsilon.bernoulli(2) for epsilon in epsilons]
-            self._divisor_of_order = ZZ(N/(2**(N-3))*prod(bernoullis))
+            self._divisor_of_order = ZZ(N / (2**(N - 3)) * prod(bernoullis))
             return self._divisor_of_order
 
         # The Gamma0 case
@@ -454,7 +464,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         # return the order of the cuspidal subgroup in the J0(p) case
         if A.is_J0() and N.is_prime():
-            self._multiple_of_order = QQ((A.level()-1)/12).numerator()
+            self._multiple_of_order = QQ((A.level() - 1) / 12).numerator()
             self._multiple_of_order_proof_false = self._multiple_of_order
             return self._multiple_of_order
 
@@ -466,10 +476,13 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         # The conjectural J1(p) case
         if not proof and A.is_J1() and N.is_prime():
-            epsilons = [epsilon for epsilon in DirichletGroup(N)
-                        if not epsilon.is_trivial() and epsilon.is_even()]
+            epsilons = [
+                epsilon for epsilon in DirichletGroup(N)
+                if not epsilon.is_trivial() and epsilon.is_even()
+            ]
             bernoullis = [epsilon.bernoulli(2) for epsilon in epsilons]
-            self._multiple_of_order_proof_false = ZZ(N/(2**(N-3))*prod(bernoullis))
+            self._multiple_of_order_proof_false = ZZ(N / (2**(N - 3)) *
+                                                     prod(bernoullis))
             return self._multiple_of_order_proof_false
 
         # The Gamma0 and Gamma1 case
@@ -577,7 +590,8 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             self.__multiple_of_order_using_frobp = T
             return T
         if not all((is_Gamma0(G) or is_Gamma1(G) for G in A.groups())):
-            raise NotImplementedError("torsion multiple only implemented for Gamma0 and Gamma1")
+            raise NotImplementedError(
+                "torsion multiple only implemented for Gamma0 and Gamma1")
 
         bnd = ZZ(0)
         N = A.level()
@@ -585,24 +599,23 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         if maxp is None:
             X = Primes()
         else:
-            X = prime_range(maxp+1)
+            X = prime_range(maxp + 1)
         for p in X:
-            if (2*N) % p == 0:
+            if (2 * N) % p == 0:
                 continue
 
             if (len(A.groups()) == 1 and is_Gamma0(A.groups()[0])):
                 f = A.hecke_polynomial(p)
-                b = ZZ(f(p+1))
+                b = ZZ(f(p + 1))
             else:
                 from .constructor import AbelianVariety
-                D = [AbelianVariety(f) for f in
-                     A.newform_decomposition('a')]
+                D = [AbelianVariety(f) for f in A.newform_decomposition('a')]
                 b = 1
                 for simple in D:
                     G = simple.newform_level()[1]
                     if is_Gamma0(G):
                         f = simple.hecke_polynomial(p)
-                        b *= ZZ(f(p+1))
+                        b *= ZZ(f(p + 1))
                     else:
                         f = simple.newform('a')
                         Kf = f.base_ring()
@@ -617,13 +630,14 @@ class RationalTorsionSubgroup(FiniteSubgroup):
                             to_Lf = Lf.structure()[1]
 
                             name = Kf._names[0]
-                            ap = to_Lf(f.modular_symbols(1).eigenvalue(p, name))
+                            ap = to_Lf(
+                                f.modular_symbols(1).eigenvalue(p, name))
 
                             G_ps = ap.matrix().charpoly()
-                            b *= ZZ(Qe(G_ps(1 + to_Lf(eps(p))*p)).norm())
+                            b *= ZZ(Qe(G_ps(1 + to_Lf(eps(p)) * p)).norm())
                         else:
                             ap = f.modular_symbols(1).eigenvalue(p)
-                            b *= ZZ(1 + eps(p)*p - ap)
+                            b *= ZZ(1 + eps(p) * p - ap)
 
             if bnd == 0:
                 bnd = b
@@ -696,7 +710,7 @@ class QQbarTorsionSubgroup(Module):
             sage: J0(23).qbar_torsion_subgroup()._repr_()
             'Group of all torsion points in QQbar on Abelian variety J0(23) of dimension 2'
         """
-        return 'Group of all torsion points in QQbar on %s'%self.__abvar
+        return 'Group of all torsion points in QQbar on %s' % self.__abvar
 
     def field_of_definition(self):
         """

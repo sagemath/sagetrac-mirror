@@ -63,12 +63,14 @@ from .abvar import sqrt_poly
 
 # TODO: we will probably also need homology that is *not* a Hecke module.
 
+
 @richcmp_method
 class Homology(HeckeModule_free_module):
     """
     A homology group of an abelian variety, equipped with a Hecke
     action.
     """
+
     def hecke_polynomial(self, n, var='x'):
         """
         Return the n-th Hecke polynomial in the given variable.
@@ -101,6 +103,7 @@ class Homology_abvar(Homology):
     """
     The homology of a modular abelian variety.
     """
+
     def __init__(self, abvar, base):
         """
         This is an abstract base class, so it is called implicitly in the
@@ -120,8 +123,7 @@ class Homology_abvar(Homology):
         """
         if not isinstance(base, CommutativeRing):
             raise TypeError("base ring must be a commutative ring")
-        HeckeModule_free_module.__init__(
-            self, base, abvar.level(), weight=2)
+        HeckeModule_free_module.__init__(self, base, abvar.level(), weight=2)
         self.__abvar = abvar
 
     def __richcmp__(self, other, op):
@@ -343,6 +345,7 @@ class IntegralHomology(Homology_abvar):
     The integral homology `H_1(A,\ZZ)` of a modular
     abelian variety.
     """
+
     def __init__(self, abvar):
         """
         Create the integral homology of a modular abelian variety.
@@ -376,7 +379,7 @@ class IntegralHomology(Homology_abvar):
             sage: J0(23).integral_homology()._repr_()
             'Integral Homology of Abelian variety J0(23) of dimension 2'
         """
-        return "Integral Homology of %s"%self.abelian_variety()
+        return "Integral Homology of %s" % self.abelian_variety()
 
     def hecke_matrix(self, n):
         """
@@ -415,11 +418,13 @@ class IntegralHomology(Homology_abvar):
         f = (M.hecke_polynomial(n, var)**2).change_ring(ZZ)
         return f
 
+
 class RationalHomology(Homology_abvar):
     r"""
     The rational homology `H_1(A,\QQ)` of a modular
     abelian variety.
     """
+
     def __init__(self, abvar):
         """
         Create the rational homology of a modular abelian variety.
@@ -451,7 +456,7 @@ class RationalHomology(Homology_abvar):
             sage: J0(23).rational_homology()._repr_()
             'Rational Homology of Abelian variety J0(23) of dimension 2'
         """
-        return "Rational Homology of %s"%self.abelian_variety()
+        return "Rational Homology of %s" % self.abelian_variety()
 
     def hecke_matrix(self, n):
         """
@@ -505,6 +510,7 @@ class Homology_over_base(Homology_abvar):
     commutative ring (not `\ZZ` or
     `\QQ`).
     """
+
     def __init__(self, abvar, base_ring):
         r"""
         Called when creating homology with coefficients not
@@ -542,7 +548,8 @@ class Homology_over_base(Homology_abvar):
             sage: H._repr_()
             'Homology with coefficients in Finite Field of size 5 of Abelian variety J0(23) of dimension 2'
         """
-        return "Homology with coefficients in %s of %s"%(self.base_ring(), self.abelian_variety())
+        return "Homology with coefficients in %s of %s" % (
+            self.base_ring(), self.abelian_variety())
 
     def hecke_matrix(self, n):
         """
@@ -560,13 +567,15 @@ class Homology_over_base(Homology_abvar):
             Finite Field of size 3
         """
         n = Integer(n)
-        return self.abelian_variety()._integral_hecke_matrix(n).change_ring(self.base_ring())
+        return self.abelian_variety()._integral_hecke_matrix(n).change_ring(
+            self.base_ring())
 
 
 class Homology_submodule(Homology):
     """
     A submodule of the homology of a modular abelian variety.
     """
+
     def __init__(self, ambient, submodule):
         """
         Create a submodule of the homology of a modular abelian variety.
@@ -593,7 +602,8 @@ class Homology_submodule(Homology):
             True
         """
         if not isinstance(ambient, Homology_abvar):
-            raise TypeError("ambient must be the homology of a modular abelian variety")
+            raise TypeError(
+                "ambient must be the homology of a modular abelian variety")
         self.__ambient = ambient
         #try:
         #    if not submodule.is_submodule(ambient):
@@ -601,8 +611,10 @@ class Homology_submodule(Homology):
         #except AttributeError:
         submodule = ambient.free_module().submodule(submodule)
         self.__submodule = submodule
-        HeckeModule_free_module.__init__(
-            self, ambient.base_ring(), ambient.level(), weight=2)
+        HeckeModule_free_module.__init__(self,
+                                         ambient.base_ring(),
+                                         ambient.level(),
+                                         weight=2)
 
     def _repr_(self):
         """
@@ -749,5 +761,3 @@ class Homology_submodule(Homology):
             [2, 4]
         """
         return self.__submodule.rank()
-
-

@@ -25,6 +25,7 @@ from . import abvar
 
 _cache = {}
 
+
 def _get(key):
     """
     Returns the cached abelian variety with given key. This is used
@@ -52,6 +53,7 @@ def _get(key):
         if z is not None:
             return z
     raise ValueError("element not in cache")
+
 
 def _saved(key, J):
     """
@@ -97,13 +99,14 @@ def J0(N):
         sage: J0(33) is J0(33)
         True
     """
-    key = 'J0(%s)'%N
+    key = 'J0(%s)' % N
     try:
         return _get(key)
     except ValueError:
         from sage.modular.arithgroup.all import Gamma0
         J = Gamma0(N).modular_abelian_variety()
         return _saved(key, J)
+
 
 def J1(N):
     """
@@ -115,12 +118,13 @@ def J1(N):
         sage: J1(389)
         Abelian variety J1(389) of dimension 6112
     """
-    key = 'J1(%s)'%N
+    key = 'J1(%s)' % N
     try:
         return _get(key)
     except ValueError:
         from sage.modular.arithgroup.all import Gamma1
         return _saved(key, Gamma1(N).modular_abelian_variety())
+
 
 def JH(N, H):
     """
@@ -132,12 +136,13 @@ def JH(N, H):
         sage: JH(389,[16])
         Abelian variety JH(389,[16]) of dimension 64
     """
-    key = 'JH(%s,%s)'%(N,H)
+    key = 'JH(%s,%s)' % (N, H)
     try:
         return _get(key)
     except ValueError:
         from sage.modular.arithgroup.all import GammaH
         return _saved(key, GammaH(N, H).modular_abelian_variety())
+
 
 def AbelianVariety(X):
     """
@@ -172,7 +177,7 @@ def AbelianVariety(X):
         ...
         TypeError: X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups
     """
-    if isinstance(X, integer_types + (Integer,)):
+    if isinstance(X, integer_types + (Integer, )):
         X = Gamma0(X)
     if is_CongruenceSubgroup(X):
         X = X.modular_symbols().cuspidal_submodule()
@@ -186,7 +191,10 @@ def AbelianVariety(X):
     if is_ModularSymbolsSpace(X):
         return abvar.ModularAbelianVariety_modsym(X)
 
-    if isinstance(X, (tuple,list)) and all(is_CongruenceSubgroup(G) for G in X):
+    if isinstance(X,
+                  (tuple, list)) and all(is_CongruenceSubgroup(G) for G in X):
         return abvar.ModularAbelianVariety(X)
 
-    raise TypeError("X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups")
+    raise TypeError(
+        "X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups"
+    )

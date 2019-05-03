@@ -48,6 +48,7 @@ import sage.matrix.matrix_space as matrix_space
 
 from .finite_subgroup import TorsionPoint
 
+
 class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
     A morphism between modular abelian varieties. EXAMPLES::
@@ -182,7 +183,6 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             self.__cokernel = C
             return C
 
-
     def kernel(self):
         """
         Return the kernel of this morphism.
@@ -228,7 +228,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         # saturation of L.
         X = A.solve_left(Lsat.basis_matrix())
         D = self.domain()
-        V = (A.kernel().basis_matrix() * D.vector_space().basis_matrix()).row_module()
+        V = (A.kernel().basis_matrix() *
+             D.vector_space().basis_matrix()).row_module()
         Lambda = V.intersection(D._ambient_lattice())
         from .abvar import ModularAbelianVariety
         abvar = ModularAbelianVariety(D.groups(), Lambda, D.base_ring())
@@ -243,7 +244,6 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         K = D.finite_subgroup(lattice, field_of_definition=field_of_definition)
 
         return K, abvar
-
 
     def factor_out_component_group(self):
         r"""
@@ -284,7 +284,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             L = A.image()
             # Saturate the image of the matrix corresponding to self.
             Lsat = L.saturation()
-            if L == Lsat: # easy case
+            if L == Lsat:  # easy case
                 self.__factor_out = self
                 return self
             # Now find a matrix whose rows map exactly onto the
@@ -306,10 +306,11 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             #     R/L' = (M+L')/L' = M/(L'/\M) = M/Lsat
             # which is torsion free!
 
-            Q      = self.codomain()
-            M      = Q.lattice()
-            one_over_n = ZZ(1)/n
-            Lprime = (one_over_n * self.matrix() * M.basis_matrix()).row_module(ZZ)
+            Q = self.codomain()
+            M = Q.lattice()
+            one_over_n = ZZ(1) / n
+            Lprime = (one_over_n * self.matrix() *
+                      M.basis_matrix()).row_module(ZZ)
 
             # This R is a lattice in the ambient space for B.
             R = Lprime + M
@@ -321,7 +322,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             # to the basis for R instead of the basis for M.  Each row
             # of A is written in terms of M, but needs to be in terms
             # of R's basis, which contains M with finite index.
-            change_basis_from_M_to_R = R.basis_matrix().solve_left(M.basis_matrix())
+            change_basis_from_M_to_R = R.basis_matrix().solve_left(
+                M.basis_matrix())
             matrix = one_over_n * A * change_basis_from_M_to_R
 
             # Finally
@@ -504,7 +506,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
              [(0, 0, 0, 0, 0, 0, 0, 0)],
              [(0, 0, 0, 0, 0, 0, 0, 0)]]
         """
-        v = x._relative_element() * self.matrix() * self.codomain().lattice().basis_matrix()
+        v = x._relative_element() * self.matrix() * self.codomain().lattice(
+        ).basis_matrix()
         T = self.codomain().qbar_torsion_subgroup()
         return T(v)
 
@@ -541,10 +544,12 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: phi._image_of_finite_subgroup(J0(11).rational_torsion_subgroup())
             Finite subgroup with invariants [5] over QQ of Abelian variety J0(22) of dimension 2
         """
-        B = G._relative_basis_matrix() * self.restrict_domain(G.abelian_variety()).matrix() * self.codomain().lattice().basis_matrix()
+        B = G._relative_basis_matrix() * self.restrict_domain(
+            G.abelian_variety()).matrix() * self.codomain().lattice(
+            ).basis_matrix()
         lattice = B.row_module(ZZ)
-        return self.codomain().finite_subgroup(lattice,
-                             field_of_definition = G.field_of_definition())
+        return self.codomain().finite_subgroup(
+            lattice, field_of_definition=G.field_of_definition())
 
     def _image_of_abvar(self, A):
         """
@@ -600,7 +605,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
                 raise ValueError("A must be an abelian subvariety of self.")
             # Write the vector space corresponding to A in terms of self's
             # vector space, then take the image under self.
-            B = D.vector_space().coordinate_module(A.vector_space()).basis_matrix() * self.matrix()
+            B = D.vector_space().coordinate_module(
+                A.vector_space()).basis_matrix() * self.matrix()
 
         V = (B * C.vector_space().basis_matrix()).row_module(QQ)
 
@@ -610,7 +616,6 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
 
 class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
-
     def restrict_domain(self, sub):
         """
         Restrict self to the subvariety sub of self.domain().
@@ -652,10 +657,12 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
 
         L = self.domain().lattice()
         B = sub.lattice().basis()
-        ims = sum([ (L(b)*self.matrix()).list() for b in B], [])
-        MS = matrix_space.MatrixSpace(self.base_ring(), len(B), self.codomain().rank())
+        ims = sum([(L(b) * self.matrix()).list() for b in B], [])
+        MS = matrix_space.MatrixSpace(self.base_ring(), len(B),
+                                      self.codomain().rank())
         H = sub.Hom(self.codomain(), self.category_for())
         return H(MS(ims))
+
 
 class DegeneracyMap(Morphism):
     def __init__(self, parent, A, t):
@@ -712,12 +719,15 @@ class DegeneracyMap(Morphism):
             sage: J0(22).degeneracy_map(44)._repr_()
             'Degeneracy map from Abelian variety J0(22) of dimension 2 to Abelian variety J0(44) of dimension 4 defined by [1]'
         """
-        return "Degeneracy map from %s to %s defined by %s"%(self.domain(), self.codomain(), self._t)
+        return "Degeneracy map from %s to %s defined by %s" % (
+            self.domain(), self.codomain(), self._t)
+
 
 class HeckeOperator(Morphism):
     """
     A Hecke operator acting on a modular abelian variety.
     """
+
     def __init__(self, abvar, n):
         """
         Create the Hecke operator of index `n` acting on the
@@ -747,7 +757,8 @@ class HeckeOperator(Morphism):
             raise TypeError("abvar must be a modular abelian variety")
         self.__abvar = abvar
         self.__n = n
-        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar.Hom(abvar))
+        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(
+            self, abvar.Hom(abvar))
 
     def _repr_(self):
         """
@@ -759,7 +770,7 @@ class HeckeOperator(Morphism):
             sage: J.hecke_operator(2)._repr_()
             'Hecke operator T_2 on Abelian variety J0(37) of dimension 2'
         """
-        return "Hecke operator T_%s on %s"%(self.__n, self.__abvar)
+        return "Hecke operator T_%s on %s" % (self.__n, self.__abvar)
 
     def index(self):
         """
@@ -839,7 +850,8 @@ class HeckeOperator(Morphism):
             sage: t2.characteristic_polynomial('y')
             y^2 - 2
         """
-        return self.__abvar.rational_homology().hecke_polynomial(self.__n, var).change_ring(ZZ)
+        return self.__abvar.rational_homology().hecke_polynomial(
+            self.__n, var).change_ring(ZZ)
 
     def charpoly(self, var='x'):
         r"""

@@ -183,7 +183,6 @@ from sage.categories.homset import HomsetWithBase
 from sage.structure.all import parent
 from sage.misc.lazy_attribute import lazy_attribute
 
-
 from . import morphism
 
 import sage.rings.integer_ring
@@ -196,11 +195,13 @@ from sage.structure.element import is_Matrix
 
 ZZ = sage.rings.integer_ring.ZZ
 
+
 class Homspace(HomsetWithBase):
     """
     A space of homomorphisms between two modular abelian varieties.
     """
     Element = morphism.Morphism
+
     def __init__(self, domain, codomain, cat):
         """
         Create a homspace.
@@ -251,7 +252,8 @@ class Homspace(HomsetWithBase):
             TypeError: the identity map is only defined for endomorphisms
         """
         if self.domain() is not self.codomain():
-            raise TypeError("the identity map is only defined for endomorphisms")
+            raise TypeError(
+                "the identity map is only defined for endomorphisms")
         M = self.matrix_space().one()
         return self.element_class(self, M)
 
@@ -271,7 +273,8 @@ class Homspace(HomsetWithBase):
             sage: Hom(J0(11), J0(22))._matrix_space
             Full MatrixSpace of 2 by 4 dense matrices over Integer Ring
         """
-        return MatrixSpace(ZZ,2*self.domain().dimension(), 2*self.codomain().dimension())
+        return MatrixSpace(ZZ, 2 * self.domain().dimension(),
+                           2 * self.codomain().dimension())
 
     def _element_constructor_from_element_class(self, *args, **keywords):
         """
@@ -347,14 +350,16 @@ class Homspace(HomsetWithBase):
         if isinstance(M, morphism.Morphism):
             if M.parent() is self:
                 return M
-            elif M.domain() == self.domain() and M.codomain() == self.codomain():
+            elif M.domain() == self.domain() and M.codomain() == self.codomain(
+            ):
                 M = M.matrix()
             else:
                 raise ValueError("cannot convert %s into %s" % (M, self))
         elif is_Matrix(M):
             if M.base_ring() != ZZ:
                 M = M.change_ring(ZZ)
-            if M.nrows() != 2*self.domain().dimension() or M.ncols() != 2*self.codomain().dimension():
+            if M.nrows() != 2 * self.domain().dimension() or M.ncols(
+            ) != 2 * self.codomain().dimension():
                 raise TypeError("matrix has wrong dimension")
         elif self.matrix_space().has_coerce_map_from(parent(M)):
             M = self.matrix_space()(M)
@@ -468,8 +473,8 @@ class Homspace(HomsetWithBase):
             [ 0  1 -3  1  1  1 -1  0]
         """
         self.calculate_generators()
-        V = ZZ**(4*self.domain().dimension() * self.codomain().dimension())
-        return V.submodule([ V(m.matrix().list()) for m in self.gens() ])
+        V = ZZ**(4 * self.domain().dimension() * self.codomain().dimension())
+        return V.submodule([V(m.matrix().list()) for m in self.gens()])
 
     def gen(self, i=0):
         """
@@ -494,7 +499,7 @@ class Homspace(HomsetWithBase):
         """
         self.calculate_generators()
         if i > self.ngens():
-            raise ValueError("self only has %s generators"%self.ngens())
+            raise ValueError("self only has %s generators" % self.ngens())
         return self.element_class(self, self._gens[i])
 
     def ngens(self):
@@ -529,7 +534,8 @@ class Homspace(HomsetWithBase):
             return self._gen_morphisms
         except AttributeError:
             self.calculate_generators()
-            self._gen_morphisms = tuple([self.gen(i) for i in range(self.ngens())])
+            self._gen_morphisms = tuple(
+                [self.gen(i) for i in range(self.ngens())])
             return self._gen_morphisms
 
     def matrix_space(self):
@@ -559,8 +565,9 @@ class Homspace(HomsetWithBase):
         if self._gens is not None:
             return
 
-        if (self.domain() == self.codomain()) and (self.domain().dimension() == 1):
-            self._gens = tuple([ identity_matrix(ZZ,2) ])
+        if (self.domain() == self.codomain()) and (
+                self.domain().dimension() == 1):
+            self._gens = tuple([identity_matrix(ZZ, 2)])
             return
 
         phi = self.domain()._isogeny_to_product_of_powers()
@@ -572,10 +579,10 @@ class Homspace(HomsetWithBase):
         M = phi.matrix()
         Mt = psi.complementary_isogeny().matrix()
 
-        R = ZZ**(4*self.domain().dimension()*self.codomain().dimension())
-        gens = R.submodule([ (M*self._get_matrix(g)*Mt).list()
-                             for g in im_gens ]).saturation().basis()
-        self._gens = tuple([ self._get_matrix(g) for g in gens ])
+        R = ZZ**(4 * self.domain().dimension() * self.codomain().dimension())
+        gens = R.submodule([(M * self._get_matrix(g) * Mt).list()
+                            for g in im_gens]).saturation().basis()
+        self._gens = tuple([self._get_matrix(g) for g in gens])
 
     def _calculate_product_gens(self):
         """
@@ -617,15 +624,18 @@ class Homspace(HomsetWithBase):
             else:
                 # Handle the case of A, B simple powers
                 gens = []
-                phi_matrix = Afactors[0]._isogeny_to_product_of_simples().matrix()
-                psi_t_matrix = Bfactors[0]._isogeny_to_product_of_simples().complementary_isogeny().matrix()
+                phi_matrix = Afactors[0]._isogeny_to_product_of_simples(
+                ).matrix()
+                psi_t_matrix = Bfactors[0]._isogeny_to_product_of_simples(
+                ).complementary_isogeny().matrix()
                 for i in range(len(Asimples)):
                     for j in range(len(Bsimples)):
                         hom_gens = Asimples[i].Hom(Bsimples[j]).gens()
                         for sub_gen in hom_gens:
                             sub_mat = sub_gen.matrix()
                             M = copy(self.matrix_space().zero_matrix())
-                            M.set_block(sub_mat.nrows()*i, sub_mat.ncols()*j, sub_mat)
+                            M.set_block(sub_mat.nrows() * i,
+                                        sub_mat.ncols() * j, sub_mat)
                             gens.append(phi_matrix * M * psi_t_matrix)
 
         else:
@@ -644,8 +654,7 @@ class Homspace(HomsetWithBase):
                             sub_mat = sub_gen.matrix()
                             M = copy(self.matrix_space().zero_matrix())
                             M.set_block(cur_row - sub_mat.nrows(),
-                                        cur_col - sub_mat.ncols(),
-                                        sub_mat)
+                                        cur_col - sub_mat.ncols(), sub_mat)
                             gens.append(M)
 
         return gens
@@ -736,13 +745,13 @@ class Homspace(HomsetWithBase):
         Mf = f.matrix()
         Mg = g.matrix()
 
-        return [ Mf * self._get_matrix(e) * Mg for e in ls ]
+        return [Mf * self._get_matrix(e) * Mg for e in ls]
+
 
 # NOTE/WARNING/TODO:  Below in the __init__, etc. we do *not* check
 # that the input gens are give something that spans a sub*ring*, as apposed
 # to just a subgroup.
 class EndomorphismSubring(Homspace, Ring):
-
     def __init__(self, A, gens=None, category=None):
         """
         A subring of the endomorphism ring.
@@ -810,7 +819,7 @@ class EndomorphismSubring(Homspace, Ring):
         if gens is None:
             self._gens = None
         else:
-            self._gens = tuple([ self._get_matrix(g) for g in gens ])
+            self._gens = tuple([self._get_matrix(g) for g in gens])
         self._is_full_ring = gens is None
 
     def _repr_(self):
@@ -869,9 +878,13 @@ class EndomorphismSubring(Homspace, Ring):
         """
         if check:
             if not isinstance(other, EndomorphismSubring):
-                raise ValueError("other must be a subring of an endomorphism ring of an abelian variety.")
+                raise ValueError(
+                    "other must be a subring of an endomorphism ring of an abelian variety."
+                )
             if not (self.abelian_variety() == other.abelian_variety()):
-                raise ValueError("self and other must be endomorphisms of the same abelian variety")
+                raise ValueError(
+                    "self and other must be endomorphisms of the same abelian variety"
+                )
 
         M = self.free_module()
         N = other.free_module()
@@ -892,8 +905,8 @@ class EndomorphismSubring(Homspace, Ring):
         """
         A = self.abelian_variety()
         d = A.dimension()
-        M = ZZ**(4*d**2)
-        gens = [ x.matrix().list() for x in self.gens() ]
+        M = ZZ**(4 * d**2)
+        gens = [x.matrix().list() for x in self.gens()]
         R = M.submodule(gens)
         return R.index_in_saturation()
 
@@ -924,8 +937,8 @@ class EndomorphismSubring(Homspace, Ring):
             2
         """
         g = self.gens()
-        M = Matrix(ZZ,len(g), [ (g[i]*g[j]).trace()
-                                for i in range(len(g)) for j in range(len(g)) ])
+        M = Matrix(ZZ, len(g), [(g[i] * g[j]).trace() for i in range(len(g))
+                                for j in range(len(g))])
         return M.determinant()
 
     def image_of_hecke_algebra(self, check_every=1):
@@ -989,24 +1002,19 @@ class EndomorphismSubring(Homspace, Ring):
         M = A.modular_symbols()
 
         d = A.dimension()
-        EndVecZ = ZZ**(4*d**2)
+        EndVecZ = ZZ**(4 * d**2)
 
         if d == 1:
-            self.__hecke_algebra_image = EndomorphismSubring(A, [[1,0,0,1]])
+            self.__hecke_algebra_image = EndomorphismSubring(A, [[1, 0, 0, 1]])
             return self.__hecke_algebra_image
 
         V = EndVecZ.submodule([A.hecke_operator(1).matrix().list()])
 
-        for n in range(2,M.sturm_bound()+1):
-            if (check_every > 0 and
-                    n % check_every == 0 and
-                    V.dimension() == d and
-                    V.index_in_saturation() == 1):
+        for n in range(2, M.sturm_bound() + 1):
+            if (check_every > 0 and n % check_every == 0 and V.dimension() == d
+                    and V.index_in_saturation() == 1):
                 break
-            V += EndVecZ.submodule([ A.hecke_operator(n).matrix().list() ])
+            V += EndVecZ.submodule([A.hecke_operator(n).matrix().list()])
 
         self.__hecke_algebra_image = EndomorphismSubring(A, V.basis())
         return self.__hecke_algebra_image
-
-
-

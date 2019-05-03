@@ -204,7 +204,8 @@ class FiniteSubgroup(Module):
         try:
             return self.__relative_basis_matrix
         except AttributeError:
-            M = self.__abvar.lattice().coordinate_module(self.lattice()).basis_matrix()
+            M = self.__abvar.lattice().coordinate_module(
+                self.lattice()).basis_matrix()
             self.__relative_basis_matrix = M
             return M
 
@@ -307,15 +308,19 @@ class FiniteSubgroup(Module):
         A = self.abelian_variety()
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
-            raise ValueError("self and other must be in the same ambient Jacobian")
-        K = coercion_model.common_parent(self.field_of_definition(), other.field_of_definition())
+            raise ValueError(
+                "self and other must be in the same ambient Jacobian")
+        K = coercion_model.common_parent(self.field_of_definition(),
+                                         other.field_of_definition())
         lattice = self.lattice() + other.lattice()
         if A != B:
             C = A + B
             lattice += C.lattice()
             return FiniteSubgroup_lattice(C, lattice, field_of_definition=K)
         else:
-            return FiniteSubgroup_lattice(self.abelian_variety(), lattice, field_of_definition=K)
+            return FiniteSubgroup_lattice(self.abelian_variety(),
+                                          lattice,
+                                          field_of_definition=K)
 
     def exponent(self):
         """
@@ -396,18 +401,22 @@ class FiniteSubgroup(Module):
         if is_ModularAbelianVariety(other):
             amb = other
             B = other
-            M = B.lattice().scale(Integer(1)/self.exponent())
-            K = coercion_model.common_parent(self.field_of_definition(), other.base_field())
+            M = B.lattice().scale(Integer(1) / self.exponent())
+            K = coercion_model.common_parent(self.field_of_definition(),
+                                             other.base_field())
         else:
             amb = A
             if not isinstance(other, FiniteSubgroup):
                 raise TypeError("only intersection with a finite subgroup or "
-                        "modular abelian variety is defined")
+                                "modular abelian variety is defined")
             B = other.abelian_variety()
             if A.ambient_variety() != B.ambient_variety():
-                raise TypeError("finite subgroups must be in the same ambient product Jacobian")
+                raise TypeError(
+                    "finite subgroups must be in the same ambient product Jacobian"
+                )
             M = other.lattice()
-            K = coercion_model.common_parent(self.field_of_definition(), other.field_of_definition())
+            K = coercion_model.common_parent(self.field_of_definition(),
+                                             other.field_of_definition())
 
         L = self.lattice()
         if A != B:
@@ -459,8 +468,10 @@ class FiniteSubgroup(Module):
             22500000000
         """
         lattice = self.lattice().scale(right)
-        return FiniteSubgroup_lattice(self.abelian_variety(), lattice,
-                                      field_of_definition = self.field_of_definition())
+        return FiniteSubgroup_lattice(
+            self.abelian_variety(),
+            lattice,
+            field_of_definition=self.field_of_definition())
 
     def __rmul__(self, left):
         """
@@ -526,7 +537,8 @@ class FiniteSubgroup(Module):
             field = "QQ"
         else:
             field = str(K)
-        return "Finite subgroup %sover %s of %s"%(self._invariants_repr(), field, self.__abvar)
+        return "Finite subgroup %sover %s of %s" % (self._invariants_repr(),
+                                                    field, self.__abvar)
 
     def _invariants_repr(self):
         """
@@ -541,7 +553,7 @@ class FiniteSubgroup(Module):
             sage: J0(42).cuspidal_subgroup()._invariants_repr()
             'with invariants [2, 2, 12, 48] '
         """
-        return 'with invariants %s '%(self.invariants(), )
+        return 'with invariants %s ' % (self.invariants(), )
 
     def order(self):
         """
@@ -586,7 +598,10 @@ class FiniteSubgroup(Module):
         except AttributeError:
             pass
 
-        B = [self.element_class(self, v) for v in self.lattice().basis() if v.denominator() > 1]
+        B = [
+            self.element_class(self, v) for v in self.lattice().basis()
+            if v.denominator() > 1
+        ]
         self.__gens = Sequence(B, immutable=True)
         return self.__gens
 
@@ -753,7 +768,9 @@ class FiniteSubgroup(Module):
             raise TypeError("gens must be a list or tuple")
         A = self.abelian_variety()
         lattice = A._ambient_lattice().span([self(g).element() for g in gens])
-        return FiniteSubgroup_lattice(self.abelian_variety(), lattice, field_of_definition=QQbar)
+        return FiniteSubgroup_lattice(self.abelian_variety(),
+                                      lattice,
+                                      field_of_definition=QQbar)
 
     def invariants(self):
         r"""
@@ -849,7 +866,9 @@ class FiniteSubgroup_lattice(FiniteSubgroup):
             if not abvar.lattice().is_submodule(lattice):
                 lattice += abvar.lattice()
             if lattice.rank() != abvar.lattice().rank():
-                raise ValueError("lattice must contain the lattice of abvar with finite index")
+                raise ValueError(
+                    "lattice must contain the lattice of abvar with finite index"
+                )
         FiniteSubgroup.__init__(self, abvar, field_of_definition)
         self.__lattice = lattice
 
