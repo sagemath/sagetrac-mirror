@@ -2451,9 +2451,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             raise ValueError("p must be prime")
         if not self.is_simple():
             from .constructor import AbelianVariety
-            decomp = [
-                AbelianVariety(f) for f in self.newform_decomposition('a')
-            ]
+            decomp = [AbelianVariety(f)
+                      for f in self.newform_decomposition('a')]
             return prod((s.frobenius_polynomial(p) for s in decomp))
         f = self.newform('a')
         Kf = f.base_ring()
