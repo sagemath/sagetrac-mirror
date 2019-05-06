@@ -350,16 +350,16 @@ class Homspace(HomsetWithBase):
         if isinstance(M, morphism.Morphism):
             if M.parent() is self:
                 return M
-            elif M.domain() == self.domain() and M.codomain() == self.codomain(
-            ):
+            elif M.domain() == self.domain() and \
+                    M.codomain() == self.codomain():
                 M = M.matrix()
             else:
                 raise ValueError("cannot convert %s into %s" % (M, self))
         elif is_Matrix(M):
             if M.base_ring() != ZZ:
                 M = M.change_ring(ZZ)
-            if M.nrows() != 2 * self.domain().dimension() or M.ncols(
-            ) != 2 * self.codomain().dimension():
+            if M.nrows() != 2 * self.domain().dimension() or \
+                    M.ncols() != 2 * self.codomain().dimension():
                 raise TypeError("matrix has wrong dimension")
         elif self.matrix_space().has_coerce_map_from(parent(M)):
             M = self.matrix_space()(M)
@@ -565,8 +565,8 @@ class Homspace(HomsetWithBase):
         if self._gens is not None:
             return
 
-        if (self.domain() == self.codomain()) and (
-                self.domain().dimension() == 1):
+        if (self.domain() == self.codomain()) and \
+                (self.domain().dimension() == 1):
             self._gens = tuple([identity_matrix(ZZ, 2)])
             return
 
@@ -624,10 +624,11 @@ class Homspace(HomsetWithBase):
             else:
                 # Handle the case of A, B simple powers
                 gens = []
-                phi_matrix = Afactors[0]._isogeny_to_product_of_simples(
-                ).matrix()
-                psi_t_matrix = Bfactors[0]._isogeny_to_product_of_simples(
-                ).complementary_isogeny().matrix()
+                phi_matrix = Afactors[0] \
+                    ._isogeny_to_product_of_simples().matrix()
+                psi_t_matrix = Bfactors[0] \
+                    ._isogeny_to_product_of_simples() \
+                    .complementary_isogeny().matrix()
                 for i in range(len(Asimples)):
                     for j in range(len(Bsimples)):
                         hom_gens = Asimples[i].Hom(Bsimples[j]).gens()

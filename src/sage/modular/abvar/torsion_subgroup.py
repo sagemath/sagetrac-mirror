@@ -271,7 +271,8 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             return R.lattice()
         else:
             raise NotImplementedError(
-                "unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)"
+                "unable to compute the rational torsion subgroup in this case"
+                " (there is no known general algorithm yet)"
             )
 
     def possible_orders(self, proof=True):

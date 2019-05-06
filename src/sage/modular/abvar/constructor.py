@@ -196,5 +196,6 @@ def AbelianVariety(X):
         return abvar.ModularAbelianVariety(X)
 
     raise TypeError(
-        "X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups"
+        "X must be an integer, string, newform, modsym space, "
+        "congruence subgroup or tuple of congruence subgroups"
     )

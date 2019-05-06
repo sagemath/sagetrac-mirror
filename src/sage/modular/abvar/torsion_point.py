@@ -231,8 +231,8 @@ class TorsionPoint(ModuleElement):
         """
         A = self.parent().abelian_variety()
         from sage.rings.all import QQ
-        if self.__element.change_ring(QQ) - right.__element.change_ring(
-                QQ) in A.lattice():
+        if self.__element.change_ring(QQ) - \
+                right.__element.change_ring(QQ) in A.lattice():
             return rich_to_bool(op, 0)
         return richcmp(self.__element, right.__element, op)
 
@@ -274,5 +274,5 @@ class TorsionPoint(ModuleElement):
         """
         # check=False prevents testing that the element is really in
         # the lattice, not just in the corresponding QQ-vector space.
-        return self.parent().abelian_variety().lattice().coordinate_vector(
-            self.__element, check=False)
+        return self.parent().abelian_variety().lattice() \
+            .coordinate_vector(self.__element, check=False)

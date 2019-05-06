@@ -322,8 +322,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             # to the basis for R instead of the basis for M.  Each row
             # of A is written in terms of M, but needs to be in terms
             # of R's basis, which contains M with finite index.
-            change_basis_from_M_to_R = R.basis_matrix().solve_left(
-                M.basis_matrix())
+            change_basis_from_M_to_R = R.basis_matrix() \
+                .solve_left(M.basis_matrix())
             matrix = one_over_n * A * change_basis_from_M_to_R
 
             # Finally
@@ -506,8 +506,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
              [(0, 0, 0, 0, 0, 0, 0, 0)],
              [(0, 0, 0, 0, 0, 0, 0, 0)]]
         """
-        v = x._relative_element() * self.matrix() * self.codomain().lattice(
-        ).basis_matrix()
+        v = x._relative_element() * self.matrix() \
+            * self.codomain().lattice().basis_matrix()
         T = self.codomain().qbar_torsion_subgroup()
         return T(v)
 
@@ -544,12 +544,13 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: phi._image_of_finite_subgroup(J0(11).rational_torsion_subgroup())
             Finite subgroup with invariants [5] over QQ of Abelian variety J0(22) of dimension 2
         """
-        B = G._relative_basis_matrix() * self.restrict_domain(
-            G.abelian_variety()).matrix() * self.codomain().lattice(
-            ).basis_matrix()
+        B = G._relative_basis_matrix() * \
+            self.restrict_domain(G.abelian_variety()).matrix() * \
+            self.codomain().lattice().basis_matrix()
         lattice = B.row_module(ZZ)
-        return self.codomain().finite_subgroup(
-            lattice, field_of_definition=G.field_of_definition())
+        return self.codomain() \
+            .finite_subgroup(lattice,
+                             field_of_definition=G.field_of_definition())
 
     def _image_of_abvar(self, A):
         """

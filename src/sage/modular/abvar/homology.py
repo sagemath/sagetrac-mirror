@@ -567,8 +567,8 @@ class Homology_over_base(Homology_abvar):
             Finite Field of size 3
         """
         n = Integer(n)
-        return self.abelian_variety()._integral_hecke_matrix(n).change_ring(
-            self.base_ring())
+        return self.abelian_variety()._integral_hecke_matrix(n)\
+            .change_ring(self.base_ring())
 
 
 class Homology_submodule(Homology):

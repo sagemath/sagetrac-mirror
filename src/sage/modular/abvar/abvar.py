@@ -454,8 +454,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: (J0(11) * J0(33))._repr_()
             'Abelian variety J0(11) x J0(33) of dimension 4'
         """
-        field = '' if self.base_field(
-        ) == QQ else ' over %s' % self.base_field()
+        if self.base_field() == QQ:
+            field = ''
+        else:
+            field = ' over %s' % self.base_field()
+
         #if self.newform_level(none_if_not_known=True) is None:
         simple = self.is_simple(none_if_not_known=True)
         if simple and self.dimension() > 0:
@@ -838,8 +841,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             return False
         if self.groups() != other.groups():
             return False
-        if not self.is_subvariety_of_ambient_jacobian(
-        ) or not other.is_subvariety_of_ambient_jacobian():
+        if not (self.is_subvariety_of_ambient_jacobian()
+                and other.is_subvariety_of_ambient_jacobian()):
             return False
         return True
 
@@ -1291,9 +1294,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if other.abelian_variety() != self:
                 other = self.finite_subgroup(other)
             return self._quotient_by_finite_subgroup(other)
-        elif isinstance(
-                other,
-                ModularAbelianVariety_abstract) and other.is_subvariety(self):
+        elif isinstance(other, ModularAbelianVariety_abstract) and \
+                other.is_subvariety(self):
             return self._quotient_by_abelian_subvariety(other)
         else:
             raise TypeError("other must be a subgroup or abelian subvariety")
@@ -1379,8 +1381,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                     "each t must divide the quotient of the levels")
 
         ls = [
-            self.groups()[i].modular_abelian_variety().degeneracy_map(
-                M_ls[i], t_ls[i]).matrix() for i in range(length)
+            self.groups()[i].modular_abelian_variety().
+            degeneracy_map(M_ls[i], t_ls[i]).matrix()
+            for i in range(length)
         ]
 
         new_codomain = prod([
@@ -2302,8 +2305,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             [ 0  0  0  0 -1 -1]
         """
         if not self.is_ambient():
-            return self.ambient_variety(
-            )._ambient_hecke_matrix_on_modular_symbols(n)
+            return self.ambient_variety(). \
+                    _ambient_hecke_matrix_on_modular_symbols(n)
         try:
             return self.__ambient_hecke_matrix_on_modular_symbols[n]
         except AttributeError:
@@ -2940,7 +2943,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         the kernel of $J_0(N) \rightarrow J_1(N)$ under the natural map.
         Here we compute the Shimura subgroup as the kernel of
         $J_0(N) \rightarrow J_0(Np)$ where the map is the difference between the
-        two degeneracy maps.
+        two degeneracy maps for $p$ coprime to $N$.
 
         EXAMPLES::
 
@@ -2965,14 +2968,17 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         N = self.level()
         J = self.ambient_variety()
+
         for p in prime_range(100):
             if N % p != 0:
                 break
         phi = J.degeneracy_map(N * p, 1)
         phip = J.degeneracy_map(N * p, p)
         SIG = (phi - phip).kernel()
-        assert SIG[1].dimension(
-        ) == 0, "The intersection should have dimension 0"
+
+        if SIG[1].dimension() > 1:
+            RuntimeError("intersection has positive dim; "
+                         "this should never happen")
 
         return self.intersection(SIG[0])
 
@@ -3034,8 +3040,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if self.is_ambient():
                 T = self._ambient_cuspidal_subgroup(rational_only=True)
             else:
-                T = self.ambient_variety().rational_cusp_subgroup(
-                ).intersection(self)
+                T = self.ambient_variety().rational_cusp_subgroup() \
+                        .intersection(self)
             self._rational_cusp_subgroup = T
             return T
 
@@ -3097,8 +3103,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if self.is_ambient():
                 T = self._ambient_cuspidal_subgroup(rational_subgroup=True)
             else:
-                T = self.ambient_variety().rational_cuspidal_subgroup(
-                ).intersection(self)
+                T = self.ambient_variety().rational_cuspidal_subgroup(). \
+                    intersection(self)
+
             self._rational_cuspidal_subgroup = T
             return T
 
@@ -3471,9 +3478,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                             is_simple = True
                         else:
                             is_simple = None
-                        lattice = matrix(QQ, L.nrows(), i).augment(L).augment(
-                            matrix(QQ, L.nrows(),
-                                   n - i - L.ncols())).row_module(ZZ)
+                        lattice = matrix(QQ, L.nrows(), i) \
+                            .augment(L) \
+                            .augment(matrix(QQ, L.nrows(), n - i - L.ncols()))\
+                            .row_module(ZZ)
                         D.append(
                             ModularAbelianVariety(
                                 G,
@@ -4119,8 +4127,8 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
             if lattice.degree() != 2 * n:
                 raise ValueError("lattice must have degree 2*n (=%s)" %
                                  (2 * n))
-            if not lattice.saturation().is_submodule(
-                    lattice):  # potentially expensive
+            # potentially expensive
+            if not lattice.saturation().is_submodule(lattice):
                 raise ValueError("lattice must be full")
         self.__lattice = lattice
 
@@ -4677,8 +4685,8 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
                 for N in reversed(divisors(M)):
                     if N > 1:
                         isogeny_number = 0
-                        A = amb.modular_symbols_of_level(
-                            N).cuspidal_subspace().new_subspace()
+                        A = amb.modular_symbols_of_level(N) \
+                            .cuspidal_subspace().new_subspace()
                         if bound is None:
                             X = factor_new_space(A)
                         else:
@@ -4866,8 +4874,8 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         #        * Phi_X = #coker(alpha)
         #        * m_X = #(alpha(X)/alpha(X[I]))
         alphaX = alpha.row_module()
-        Phi_X_invariants = alphaX.basis_matrix().change_ring(
-            ZZ).elementary_divisors()
+        Phi_X_invariants = alphaX.basis_matrix() \
+            .change_ring(ZZ).elementary_divisors()
         Phi_X = prod(Phi_X_invariants + [Integer(1)])
 
         W = alphaX.span([b * monodromy for b in XI_ZZ.basis()], ZZ)
@@ -5026,8 +5034,8 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
                     if n <= 1:
                         div = 2**n
                     else:
-                        phi_X_invs = self._invariants_of_image_of_component_group_of_J0(
-                            p)
+                        phi_X_invs = self \
+                            ._invariants_of_image_of_component_group_of_J0(p)
                         m = max(1, len([z for z in phi_X_invs if z % 2 == 0]))
                         div = 2**m
                     mul = 2**n
@@ -5217,6 +5225,7 @@ def factor_new_space(M):
     """
     t = None
     p = 2
+    # this random algorithm should always work
     for i in range(200):
         t, p = random_hecke_operator(M, t, p)
         f = t.charpoly()
@@ -5228,8 +5237,7 @@ def factor_new_space(M):
         if cube_free:
             return t.decomposition()
         t, p = random_hecke_operator(M, t, p)
-    raise RuntimeError("unable to factor new space -- this should not happen"
-                       )  # should never happen
+    raise RuntimeError("unable to factor new space -- this should not happen")
 
 
 def factor_modsym_space_new_factors(M):
@@ -5325,14 +5333,14 @@ def simple_factorization_of_modsym_space(M, simple=True):
                 d = A.dimension()
                 if simple:
                     for i in range(len(T)):
-                        V = ims[i].matrix_from_rows(range(j,
-                                                          j + d)).row_module()
+                        V = ims[i].matrix_from_rows(range(j, j + d)) \
+                            .row_module()
                         W = M.submodule(V, check=False)
                         D.append((A.level(), isog, T[i], W))
                 else:
-                    V = sum(ims[i].matrix_from_rows(range(j, j +
-                                                          d)).row_module()
-                            for i in range(len(T)))
+                    V = sum(
+                        ims[i].matrix_from_rows(range(j, j + d)).row_module()
+                        for i in range(len(T)))
                     W = M.submodule(V, check=False)
                     D.append((A.level(), isog, None, W))
                 j += d

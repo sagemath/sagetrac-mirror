@@ -204,8 +204,8 @@ class FiniteSubgroup(Module):
         try:
             return self.__relative_basis_matrix
         except AttributeError:
-            M = self.__abvar.lattice().coordinate_module(
-                self.lattice()).basis_matrix()
+            M = self.__abvar.lattice()\
+                .coordinate_module(self.lattice()).basis_matrix()
             self.__relative_basis_matrix = M
             return M
 
