@@ -20,7 +20,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.geometry.polyhedron.backend_ppl import Polyhedron_QQ_ppl
-from sage.geometry.polyhedron.parent import Polyhedra_QQ_ppl
+from sage.geometry.polyhedron.backend_normaliz import Polyhedron_QQ_normaliz
+from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd
+from sage.geometry.polyhedron.backend_field import Polyhedron_field
+from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
+from sage.geometry.polyhedron.parent import Polyhedra_base, Polyhedra_QQ_ppl, Polyhedra_QQ_normaliz, Polyhedra_QQ_cdd, Polyhedra_polymake, Polyhedra_field
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.modules.free_module_element import vector
 from sage.rings.all import QQ
@@ -124,9 +128,9 @@ def Associahedron(cartan_type, backend=None):
     return parent(cartan_type)
 
 
-class Associahedron_class(Polyhedron_QQ_ppl):
+class Associahedron_class_base():
     r"""
-    The Python class of an associahedron
+    The base class of the Python class of an associahedron
 
     You should use the :func:`Associahedron` convenience function to
     construct associahedra from the Cartan type.
@@ -181,10 +185,62 @@ class Associahedron_class(Polyhedron_QQ_ppl):
         return tuple(root_space.from_vector(vector(V))
                      for V in self.vertex_generator())
 
+class Associahedron_class_ppl(Associahedron_class_base, Polyhedron_QQ_ppl):
+    pass
 
-class Associahedra(Polyhedra_QQ_ppl):
+class Associahedron_class_normaliz(Associahedron_class_base, Polyhedron_QQ_normaliz):
+    pass
+
+class Associahedron_class_cdd(Associahedron_class_base, Polyhedron_QQ_cdd):
+    pass
+
+class Associahedron_class_polymake(Associahedron_class_base, Polyhedron_polymake):
+    pass
+
+class Associahedron_class_field(Associahedron_class_base, Polyhedron_field):
+    pass
+
+
+def Associahedra(base_ring, ambient_dim, backend=None):
+    r"""
+    Construct a parent class of Associahedra according to ``backend``.
+
+    TESTS::
+
+        sage: from sage.combinat.root_system.associahedron import Associahedra
+        sage: Associahedra(QQ, 4, 'ppl').parent()
+        <class 'sage.combinat.root_system.associahedron.Associahedra_ppl_with_category'>
+        sage: Associahedra(QQ, 4, 'normaliz').parent() # optional - pynormaliz
+        <class 'sage.combinat.root_system.associahedron.Associahedra_normaliz_with_category'>
+        sage: Associahedra(QQ, 4, 'polymake').parent() # optional - polymake
+        <class 'sage.combinat.root_system.associahedron.Associahedra_polymake_with_category'>
+        sage: Associahedra(QQ, 4, 'field').parent()
+        <class 'sage.combinat.root_system.associahedron.Associahedra_field_with_category'>
+        sage: Associahedra(QQ, 4, 'cdd').parent()
+        <class 'sage.combinat.root_system.associahedron.Associahedra_cdd_with_category'>
+
+    .. SEEALSO::
+
+        :class:`Associahedra_base`.
     """
-    Parent of Associahedra of specified dimension
+    if not base_ring is QQ:
+        raise NotImplementedError("base ring must be QQ")
+    if backend == 'ppl':
+        return Associahedra_ppl(base_ring, ambient_dim, backend)
+    elif backend == 'normaliz':
+        return Associahedra_normaliz(base_ring, ambient_dim, backend)
+    elif backend == 'cdd':
+        return Associahedra_cdd(QQ, ambient_dim, backend)
+    elif backend == 'polymake':
+        return Associahedra_polymake(base_ring.fraction_field(), ambient_dim, backend)
+    elif backend == 'field':
+        return Associahedra_field(base_ring, ambient_dim, backend)
+    else:
+        raise ValueError("Unknown backend")
+
+class Associahedra_base:
+    """
+    Base class of parent of Associahedra of specified dimension
 
     EXAMPLES::
 
@@ -192,7 +248,7 @@ class Associahedra(Polyhedra_QQ_ppl):
         sage: parent = Associahedra(QQ,2,'ppl');  parent
         Polyhedra in QQ^2
         sage: type(parent)
-        <class 'sage.combinat.root_system.associahedron.Associahedra_with_category'>
+        <class 'sage.combinat.root_system.associahedron.Associahedra_ppl_with_category'>
         sage: parent(['A',2])
         Generalized associahedron of type ['A', 2] with 5 vertices
 
@@ -205,7 +261,6 @@ class Associahedra(Polyhedra_QQ_ppl):
         ...
         ValueError: V-representation data requires a list of length ambient_dim
     """
-    Element = Associahedron_class
 
     def _element_constructor_(self, cartan_type, **kwds):
         """
@@ -244,6 +299,86 @@ class Associahedra(Polyhedra_QQ_ppl):
             c = rhocheck.coefficient(orbit[0].leading_support())
             for beta in orbit:
                 inequalities.append([c] + [beta.coefficient(i) for i in I])
-        associahedron = super(Associahedra, self)._element_constructor_(None, [inequalities, []])
+        associahedron = self._poly_super()._element_constructor_(None, [inequalities, []])
         associahedron._cartan_type = cartan_type
         return associahedron
+
+class Associahedra_ppl(Associahedra_base, Polyhedra_QQ_ppl):
+    Element = Associahedron_class_ppl
+    def _poly_super(self):
+        r"""
+        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl`.
+
+        TESTS::
+
+            sage: from sage.combinat.root_system.associahedron import Associahedra
+            sage: parent = Associahedra(QQ,2,'ppl')
+            sage: parent._poly_super()
+            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl'>,
+                    Polyhedra in QQ^2>
+        """
+        return super(Polyhedra_QQ_ppl, self)
+
+class Associahedra_normaliz(Associahedra_base, Polyhedra_QQ_normaliz):
+    Element = Associahedron_class_normaliz
+    def _poly_super(self):
+        r"""
+        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_QQ_normaliz`.
+
+        TESTS::
+
+            sage: from sage.combinat.root_system.associahedron import Associahedra
+            sage: parent = Associahedra(QQ,2,'normaliz')
+            sage: parent._poly_super()
+            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_normaliz'>,
+                    Polyhedra in QQ^2>
+        """
+        return super(Polyhedra_QQ_normaliz, self)
+
+class Associahedra_cdd(Associahedra_base, Polyhedra_QQ_cdd):
+    Element = Associahedron_class_cdd
+    def _poly_super(self):
+        r"""
+        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_QQ_cdd`.
+
+        TESTS::
+
+            sage: from sage.combinat.root_system.associahedron import Associahedra
+            sage: parent = Associahedra(QQ,2,'cdd')
+            sage: parent._poly_super()
+            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_cdd'>,
+                    Polyhedra in QQ^2>
+        """
+        return super(Polyhedra_QQ_cdd, self)
+
+class Associahedra_polymake(Associahedra_base, Polyhedra_polymake):
+    Element = Associahedron_class_polymake
+    def _poly_super(self):
+        r"""
+        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_polymake`.
+
+        TESTS::
+
+            sage: from sage.combinat.root_system.associahedron import Associahedra
+            sage: parent = Associahedra(QQ,2,'polymake')
+            sage: parent._poly_super()
+            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_polymake'>,
+                    Polyhedra in QQ^2>
+        """
+        return super(Polyhedra_polymake, self)
+
+class Associahedra_field(Associahedra_base, Polyhedra_field):
+    Element = Associahedron_class_field
+    def _poly_super(self):
+        r"""
+        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_field`.
+
+        TESTS::
+
+            sage: from sage.combinat.root_system.associahedron import Associahedra
+            sage: parent = Associahedra(QQ,2,'field')
+            sage: parent._poly_super()
+            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_field'>,
+                    Polyhedra in QQ^2>
+        """
+        return super(Polyhedra_field, self)
