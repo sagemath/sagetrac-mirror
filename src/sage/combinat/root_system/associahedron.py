@@ -45,7 +45,7 @@ def Associahedron(cartan_type, backend=None):
     INPUT:
 
         - ``cartan_type`` -- a cartan type according to
-          :class:`sage.combinat.root_system.cartan_type.CartanTypeFactor`
+          :class:`sage.combinat.root_system.cartan_type.CartanTypeFactory`
 
         - ``backend`` -- string or ``None`` (default). The backend to use.
           See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
