@@ -2149,7 +2149,7 @@ class DiGraph(GenericGraph):
 
         - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
           is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.  
+          along with its edge labels are used to represent the path.
 
         - ``data`` -- dictionary (default: ``None``); optional parameter to
           pass information about edge multiplicities of the graph, if ``None``
@@ -2565,7 +2565,7 @@ class DiGraph(GenericGraph):
             from collections import Counter
             edge_multiplicity = Counter(self.edge_iterator(labels=False))
             data = edge_multiplicity
-   
+
         # We create one paths iterator per vertex
         # This is necessary if we want to iterate over paths
         # with increasing length
@@ -3708,7 +3708,7 @@ class DiGraph(GenericGraph):
 
         return g
 
-    def flow_polytope(self, edges=None, ends=None):
+    def flow_polytope(self, edges=None, ends=None, backend=None):
         r"""
         Return the flow polytope of a digraph.
 
@@ -3755,6 +3755,9 @@ class DiGraph(GenericGraph):
 
         - ``ends`` -- (optional, default: ``(self.sources(), self.sinks())``) a
           pair `(S, T)` of an iterable `S` and an iterable `T`.
+
+        - ``backend`` -- string or ``None`` (default). The backend to use.
+          See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`.
 
         .. NOTE::
 
@@ -3882,7 +3885,7 @@ class DiGraph(GenericGraph):
             eq = [const] + eq
             eqs.append(eq)
 
-        return Polyhedron(ieqs=ineqs, eqns=eqs)
+        return Polyhedron(ieqs=ineqs, eqns=eqs, backend=backend)
 
     def is_tournament(self):
         r"""
