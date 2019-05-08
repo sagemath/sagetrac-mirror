@@ -1,19 +1,4 @@
 SAGE_SPKG_CONFIGURE([mpfr], [
-    AC_ARG_WITH([mpfr],
-    [AS_HELP_STRING([--with-mpfr=system],
-        [use the system MPFR, if possible (default)])]
-    [AS_HELP_STRING([--with-mpfr=install],
-        [use the Sage SPKG for MPFR])])
-
-dnl Just part the options here
-    case "$with_mpfr" in
-        system) ;;
-        install) ;;
-        "") with_mpfr=system;;
-        *)
-            AC_MSG_ERROR([allowed values for --with-mpfr are system and install]);;
-    esac
-    
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
     case "$with_mpfr" in
         system)
