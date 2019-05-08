@@ -603,6 +603,16 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: a *directed* igraph graph was expected. To build an undirected graph, call the Graph constructor
+
+        Vertex labels are retained in the graph (:trac:`14708`)::
+
+            sage: g = DiGraph()
+            sage: g.add_vertex(0)
+            sage: g.set_vertex(0, 'foo')
+            sage: g.get_vertices()
+            {0: 'foo'}
+            sage: DiGraph(g).get_vertices()
+            {0: 'foo'}
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -758,6 +768,7 @@ class DiGraph(GenericGraph):
             if data.get_pos() is not None:
                 pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
+            self.set_vertices(data.get_vertices())
             self.add_edges(data.edge_iterator())
             self.name(data.name())
         elif format == 'rule':
@@ -1058,6 +1069,16 @@ class DiGraph(GenericGraph):
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
             <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
+
+        Vertex labels will be retained (:trac:`14708`)::
+
+            sage: D.set_vertex(0, 'foo')
+            sage: G = D.to_undirected()
+            sage: D.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+            sage: G.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+
         """
         if sparse is not None:
             if data_structure is not None:
@@ -1084,6 +1105,7 @@ class DiGraph(GenericGraph):
                                     else "sparse")) # we need a mutable copy first
 
         G.add_vertices(self.vertex_iterator())
+        G.set_vertices(self.get_vertices())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
             G._embedding = copy(self._embedding)
@@ -1661,7 +1683,7 @@ class DiGraph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # Variables are binary, and their coefficient in the objective is
-            # the number of occurence of the corresponding edge, so 1 if the
+            # the number of occurrences of the corresponding edge, so 1 if the
             # graph is simple
             p.set_objective( p.sum(b[u,v] for u,v in self.edge_iterator(labels=False)))
 
@@ -2127,7 +2149,7 @@ class DiGraph(GenericGraph):
 
         - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
           is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.  
+          along with its edge labels are used to represent the path.
 
         - ``data`` -- dictionary (default: ``None``); optional parameter to
           pass information about edge multiplicities of the graph, if ``None``
@@ -2543,7 +2565,7 @@ class DiGraph(GenericGraph):
             from collections import Counter
             edge_multiplicity = Counter(self.edge_iterator(labels=False))
             data = edge_multiplicity
-   
+
         # We create one paths iterator per vertex
         # This is necessary if we want to iterate over paths
         # with increasing length
@@ -3686,7 +3708,7 @@ class DiGraph(GenericGraph):
 
         return g
 
-    def flow_polytope(self, edges=None, ends=None):
+    def flow_polytope(self, edges=None, ends=None, backend=None):
         r"""
         Return the flow polytope of a digraph.
 
@@ -3733,6 +3755,9 @@ class DiGraph(GenericGraph):
 
         - ``ends`` -- (optional, default: ``(self.sources(), self.sinks())``) a
           pair `(S, T)` of an iterable `S` and an iterable `T`.
+
+        - ``backend`` -- string or ``None`` (default). The backend to use.
+          See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`.
 
         .. NOTE::
 
@@ -3860,7 +3885,7 @@ class DiGraph(GenericGraph):
             eq = [const] + eq
             eqs.append(eq)
 
-        return Polyhedron(ieqs=ineqs, eqns=eqs)
+        return Polyhedron(ieqs=ineqs, eqns=eqs, backend=backend)
 
     def is_tournament(self):
         r"""

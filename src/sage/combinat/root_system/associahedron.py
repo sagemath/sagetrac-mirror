@@ -26,7 +26,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import QQ
 
 
-def Associahedron(cartan_type):
+def Associahedron(cartan_type, backend=None):
     r"""
     Construct an associahedron.
 
@@ -41,6 +41,15 @@ def Associahedron(cartan_type):
     A polytopal realization of the associahedron can be found in [CFZ2002]_. The
     implementation is based on [CFZ2002]_, Theorem 1.5, Remark 1.6, and Corollary
     1.9.
+
+    INPUT:
+
+        - ``cartan_type`` -- a cartan type according to
+          :class:`sage.combinat.root_system.cartan_type.CartanTypeFactory`
+
+        - ``backend`` -- string or ``None`` (default). The backend to use.
+          See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
+          If ``None``, then ``backend='ppl'`` is used
 
     EXAMPLES::
 
@@ -100,9 +109,18 @@ def Associahedron(cartan_type):
         (1, 42, 84, 56, 14, 1)
         sage: polytopes.associahedron(['B',4]).f_vector()
         (1, 70, 140, 90, 20, 1)
+
+        sage: p1 = polytopes.associahedron(['A',4], backend='normaliz')   # optional - pynormaliz
+        sage: TestSuite(p1).run(skip='_test_pickling')                    # optional - pynormaliz
+        sage: p2 = polytopes.associahedron(['A',4], backend='cdd')
+        sage: TestSuite(p2).run()
+        sage: p3 = polytopes.associahedron(['A',4], backend='field')
+        sage: TestSuite(p3).run()
     """
+    if backend is None:
+        backend = 'ppl'
     cartan_type = CartanType(cartan_type)
-    parent = Associahedra(QQ, cartan_type.rank(), 'ppl')
+    parent = Associahedra(QQ, cartan_type.rank(), backend)
     return parent(cartan_type)
 
 
