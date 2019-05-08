@@ -49,6 +49,7 @@ def Associahedron(cartan_type, backend=None):
 
         - ``backend`` -- string or ``None`` (default). The backend to use.
           See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
+          If ``None``, then ``backend='ppl'`` is used
 
     EXAMPLES::
 
