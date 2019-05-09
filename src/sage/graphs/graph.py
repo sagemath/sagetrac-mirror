@@ -4835,8 +4835,58 @@ class Graph(GenericGraph):
     
     @doc_index("Leftovers")
     def fractional_clique_number(self, solver='PPL', verbose=0, only_maximal=True, check_components=True, check_bipartite=True):
-        from sage.graphs.graph_coloring import fractional_chromatic_number
-        return fractional_chromatic_number(self, solver, verbose, only_maximal, check_components, check_bipartite)
+        r"""
+        Return the fractional clique number of the graph.
+
+        A fractional clique is a nonnegative weight function on the vertices of a
+        graph such that the sum of the weights over any independent set is at most
+        1. The fractional clique number is the largest total weight of a fractional
+        clique, which is equal to the fractional chromatic number by LP-duality.
+
+        ALGORITHM:
+
+        The fractional clique number is computed via the Linear Program for 
+        fractional chromatic number, see :meth:`fractional_chromatic_number <sage.graphs.graph_coloring.fractional_chromatic_number>`
+
+        INPUT:
+
+        - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP)
+            solver to be used. If set to ``None``, the default one is used. For
+            more information on LP solvers and which default solver is used, see
+            the method
+            :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+            of the class
+            :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+            .. NOTE::
+
+                The default solver used here is ``"PPL"`` which provides exact
+                results, i.e. a rational number, although this may be slower that
+                using other solvers.
+
+        - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
+            the LP solver.
+            
+        - ``only_maximal`` -- boolean (default: `True`); flag determining whether
+            the variables of the LP are maximal independent sets (the alternative 
+            is to consider all independent sets).
+
+        - ``check_components`` -- boolean (default: `True`); flag determining 
+            whether the method is called on each connected component of G.
+
+        - ``check_bipartite`` -- boolean (default: `True`); flag determining 
+            whether the graph is checked for bipartiteness. If the graph is 
+            bipartite then we can avoid creating and solving the LP.
+
+        EXAMPLES:
+
+        The fractional clique number of a `C_7` is `7/3`::
+
+            sage: g = graphs.CycleGraph(7)
+            sage: g.fractional_clique_number()
+            7/3
+        """
+        return self.fractional_chromatic_number(solver, verbose, only_maximal, check_components, check_bipartite)
     
     @doc_index("Leftovers")
     def maximum_average_degree(self, value_only=True, solver=None, verbose=0):
