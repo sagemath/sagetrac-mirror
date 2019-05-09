@@ -199,7 +199,7 @@ def list_packages(*pkg_types, **opts):
          'type': 'standard'}
 
         sage: L = list_packages('pip', local=True)  # optional - build
-        sage: L['beautifulsoup']
+        sage: L['beautifulsoup']                    # optional - build
         {'installed': ...,
          'installed_version': ...,
          'remote_version': None,
@@ -365,7 +365,7 @@ def package_versions(package_type, local=False):
         sage: std = package_versions('standard', local=True)  # optional - build
         sage: 'gap' in std  # optional - build
         True
-        sage: std['zn_poly']  # random
+        sage: std['zn_poly'] # optional - build # random
         ('0.9.p12', '0.9.p12')
     """
     return {pkg['name']: (pkg['installed_version'], pkg['remote_version']) for pkg in list_packages(package_type, local=local).values()}
