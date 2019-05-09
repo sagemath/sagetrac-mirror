@@ -10,14 +10,14 @@ Besides the name giving polyhedral fans this application covers a few
 other big objects and related functions. An overview can be found in the
 `documentation <https://polymake.org/release_docs/latest/fan.html>`__ or
 the `interactive
-help <https://polymake.org/doku.php/tutorial/intro_tutorial#getting_help>`__.
+help <https://polymake.org/doku.php/user_guide/intro_tutorial#getting_help>`__.
 
-However, his tutorial focuses on
+However, this tutorial focuses on
 `PolyhedralFan <https://polymake.org/release_docs/latest/fan.html#fan__PolyhedralFan__27>`__
 objects. Subdivisions have their own tutorial
-`here <https://polymake.org/doku.php/tutorial/regular_subdivisions>`__
+`here <https://polymake.org/doku.php/user_guide/tutorials/regular_subdivisions>`__
 and some notes on polyhedral complexes can be found
-`here <https://polymake.org/doku.php/tutorial/pcom>`__.
+`here <https://polymake.org/doku.php/user_guide/tutorials/pcom>`__.
 
 Most of the following code snippets will only work in your polymake
 shell after switching to the application ``fan`` with the command
@@ -57,12 +57,6 @@ of input cones are, however, implicitly included. Indeed, for our fan
 ::
 
     polymake> print $f->CONES;
-    polymake: used package cdd
-      cddlib
-      Implementation of the double description method of Motzkin et al.
-      Copyright by Komei Fukuda.
-      http://www.ifor.math.ethz.ch/~fukuda/cdd_home/cdd.html
-    
     <{0}
     {1}
     {2}
@@ -73,6 +67,28 @@ of input cones are, however, implicitly included. Indeed, for our fan
     {2 3}
     {0 3}
     >
+
+
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package lrs
+      Implementation of the reverse search algorithm of Avis and Fukuda.
+      Copyright by David Avis.
+      http://cgm.cs.mcgill.ca/~avis/C/lrs.html
+    
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
 
 
 
@@ -146,6 +162,7 @@ The following properties give rise to a dual description:
 
 
 
+
 Where ``FACET_NORMALS`` is an array of row vectors, the facet normals of
 all maximal cones. Incidence relations between them are stored in the
 sparse matrix ``MAXIMAL_CONES_FACETS``. Each row corresponds to a
@@ -159,9 +176,9 @@ The dual description requires additional information on the linear span
 of each maximal cone. This is stored in ``LINEAR_SPAN_NORMALS`` and
 ``MAXIMAL_CONES_LINEAR_SPAN_NORMALS``. An empty index set in the latter
 corresponds to a full dimensional maximal cone. Check out the
-`documentation </release_docs/latest/fan.html#fan__MAXIMAL_CONES_LINEAR_SPAN_NORMALS__172>`__
+`documentation <https://polymake.org/release_docs/latest/fan.html#fan__MAXIMAL_CONES_LINEAR_SPAN_NORMALS__172>`__
 for more informations. All maximal cones in ``$f`` are full dimensional,
-hence ``LINEAR_SPAN_NORMALS`` is empty and treated like a false:
+hence ``LINEAR_SPAN_NORMALS`` is empty:
 
 
 ::
@@ -174,6 +191,7 @@ hence ``LINEAR_SPAN_NORMALS`` is empty and treated like a false:
     {}
     {}
     {}
+
 
 
 
@@ -207,6 +225,7 @@ satisfies the intersection property.
 
 
 
+
 Construction from other objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -232,10 +251,11 @@ properties:
     polymake> foreach my $prop (qw(regular pure complete full_dim)) {
     ........>     print ucfirst($prop),": ", $nf->give(uc($prop)),"\n";
     ........> }
-    Regular: 1
-    Pure: 1
-    Complete: 1
-    Full_dim: 1
+    Regular: true
+    Pure: true
+    Complete: true
+    Full_dim: true
+
 
 
 
@@ -294,105 +314,8 @@ correspond to any cone.
 ::
 
     polymake> svg($nf2skel->HASSE_DIAGRAM->VISUAL);
-    polymake: used package SVG
-       Generated using the Perl SVG Module
-       by Ronan Oger
+    requires PDFLaTeX and a PDF viewer;
+    please specify the output File option or call reconfigure("common::pdfviewer.rules");
 
 
-
-
-.. raw:: html
-
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
-    <svg height="841pt" id="document" viewBox="0 -824 570 824" width="595pt" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    	<title id="document_title">unnamed</title>
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="297.5" x2="470.561224489796" y1="-66.5" y2="-302.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="297.5" x2="124.438775510204" y1="-66.5" y2="-302.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="297.5" x2="265.776596945832" y1="-66.5" y2="-302.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="297.5" x2="351.581632653061" y1="-66.5" y2="-302.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="297.5" x2="319.132653061225" y1="-66.5" y2="-302.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="297.5" x2="243.418367346939" y1="-66.5" y2="-302.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="470.561224489796" x2="452.083333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="470.561224489796" x2="540.416666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="470.561224489796" x2="496.25" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="470.561224489796" x2="407.916666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="124.438775510204" x2="98.75" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="124.438775510204" x2="187.083333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="124.438775510204" x2="142.916666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="124.438775510204" x2="54.5833333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="265.776596945832" x2="452.083333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="265.776596945832" x2="98.75" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="265.776596945832" x2="275.416666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="265.776596945832" x2="231.25" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="351.581632653061" x2="540.416666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="351.581632653061" x2="187.083333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="351.581632653061" x2="363.75" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="351.581632653061" x2="319.583333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="319.132653061225" x2="496.25" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="319.132653061225" x2="142.916666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="319.132653061225" x2="275.416666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="319.132653061225" x2="363.75" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="243.418367346939" x2="407.916666666667" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="243.418367346939" x2="54.5833333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="243.418367346939" x2="231.25" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="243.418367346939" x2="319.583333333333" y1="-302.5" y2="-538.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="452.083333333333" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="540.416666666667" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="496.25" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="407.916666666667" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="98.75" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="187.083333333333" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="142.916666666667" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="54.5833333333333" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="275.416666666667" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="231.25" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="363.75" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<line stroke="rgb(0,0,0)" stroke-width="1" x1="319.583333333333" x2="297.5" y1="-538.5" y2="-774.5" />
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="14.52" x="290.24" y="-74.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="297.5" y="-64"> </text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="9.76" x="465.681224489796" y="-310.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="470.561224489796" y="-300">0</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="9.76" x="119.558775510204" y="-310.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="124.438775510204" y="-300">1</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="9.76" x="260.896596945832" y="-310.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="265.776596945832" y="-300">2</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="9.76" x="346.701632653061" y="-310.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="351.581632653061" y="-300">3</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="9.76" x="314.252653061225" y="-310.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="319.132653061225" y="-300">4</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="9.76" x="238.538367346939" y="-310.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="243.418367346939" y="-300">5</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="442.443333333333" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="452.083333333333" y="-536">0 2</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="530.776666666667" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="540.416666666667" y="-536">0 3</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="486.61" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="496.25" y="-536">0 4</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="398.276666666667" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="407.916666666667" y="-536">0 5</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="89.11" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="98.75" y="-536">1 2</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="177.443333333333" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="187.083333333333" y="-536">1 3</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="133.276666666667" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="142.916666666667" y="-536">1 4</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="44.9433333333333" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="54.5833333333333" y="-536">1 5</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="265.776666666667" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="275.416666666667" y="-536">2 4</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="221.61" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="231.25" y="-536">2 5</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="354.11" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="363.75" y="-536">3 4</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(255,255,255); stroke: rgb(0,0,0); stroke-width: 1" width="19.28" x="309.943333333333" y="-546.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="319.583333333333" y="-536">3 5</text>
-    	<rect height="13.5" rx="0" ry="0" style="fill: rgb(0,0,0); stroke: rgb(0,0,0); stroke-width: 1" width="14.52" x="290.24" y="-782.5" />
-    	<text font-family="Times-Roman" font-size="10" text-anchor="middle" x="297.5" y="-772"> </text>
-    	<!-- 
-    	Generated using the Perl SVG Module V2.64
-    	by Ronan Oger
-    	Info: http://www.roitsystems.com/
-     -->
-    </svg
 

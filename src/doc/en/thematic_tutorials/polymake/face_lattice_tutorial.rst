@@ -28,8 +28,23 @@ to work with this in polymake. Let’s start simple.
     {0 4}
     {0 1}
     {0 1 2 3 4}
-    
 
+
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
 
 
 
@@ -48,9 +63,7 @@ command lists just the 1-dimensional faces.
 ::
 
     polymake> print map { $p->HASSE_DIAGRAM->FACES->[$_] } @{$p->HASSE_DIAGRAM->nodes_of_dim(1)};
-    {2 3}{3 4}{0 4}{0 1}{1 2}
-    
-
+    {1 2}{2 3}{3 4}{0 4}{0 1}
 
 
 
@@ -67,8 +80,6 @@ uses the rank which is one more than the dimension.
     ........> $HD_partial = lower_hasse_diagram($c->VERTICES_IN_FACETS,3);
     ........> print $HD_partial->INVERSE_RANK_MAP;
     {(0 (0 0)) (1 (1 256)) (2 (257 1280)) (3 (1281 3072)) (4 (3073 3073))}
-    
-
 
 
 
@@ -81,8 +92,6 @@ pairs indicating the start-node and end-node for each rank.
 
     polymake> print map { $HD_partial->nodes_of_rank($_)->size," " } (1..3);
     256 1024 1792 
-    
-
 
 
 
@@ -140,9 +149,7 @@ VERTICES_IN_FACETS is known already.
 
     polymake> $HD_partial = lower_hasse_diagram($p->VERTICES_IN_FACETS,3);
     ........> print map { $HD_partial->nodes_of_rank($_)->size," " } (1..3);
-    100 2004 10638 
-    
-
+    100 1965 10402 
 
 
 

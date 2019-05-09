@@ -6,9 +6,6 @@
 Tutorial on Polytopes
 =====================
 
-**This tutorial is also available as a {{ :tutorial:apps_polytope.ipynb
-\|jupyter notebook}} for polymake 3.1.**
-
 A *polytope* is the convex hull of finitely many points in some
 Euclidean space. Equivalently, a polytope is the bounded intersection of
 finitely many affine halfspaces. ``polymake`` can deal with polytopes in
@@ -22,7 +19,7 @@ program) have a look at our HowTo on `loading data <data>`__ in
 The second part demonstrates some of the tool ``polymake`` provides for
 handling polytopes by examining a small example. For a complete list of
 properties of polytopes and functions that ``polymake`` provides, see
-the `polytope documentation <reldocs%3E3.0/polytope.html>`__.
+the `polytope documentation <reldocs%3Elatest/polytope.html>`__.
 
 Constructing a polytope from scratch
 ------------------------------------
@@ -32,7 +29,7 @@ V-Description
 
 To define a polytope as the convex hull of finitely many points, you can
 pass a matrix of coordinates to the constructor. Since ``polymake`` uses
-`homogeneous coordinates <tutorial/coordinates>`__, you need to set the
+`homogeneous coordinates <coordinates>`__, you need to set the
 additional coordinate x0 to 1.
 
 
@@ -100,8 +97,8 @@ It is also possible to define a polytope as an intersection of finitely
 many halfspaces, i.e., a matrix of inequalities.
 
 An inequality a0 + a1 x1 + … + ad xd >= 0 is encoded as a row vector
-(a0,a1,…,ad), see also `Coordinates for
-Polyhedra <tutorial/coordinates>`__. Here is an example:
+(a0,a1,…,ad), see also `Coordinates for Polyhedra <coordinates>`__. Here
+is an example:
 
 
 ::
@@ -214,8 +211,9 @@ A Neighborly Cubical Polytope
 
 ``polymake`` provides a variety of standard polytope constructions and
 transformations. This example construction introduces some of them.
-Check out the `documentation </release_docs/3.0/polytope>`__ for a
-comprehensive list.
+Check out the
+`documentation <https://polymake.org/release_docs/latest/polytope.html>`__
+for a comprehensive list.
 
 The goal is to construct a 4-dimensional cubical polytope which has the
 same graph as the 5-dimensional cube. It is an example of a *neighborly

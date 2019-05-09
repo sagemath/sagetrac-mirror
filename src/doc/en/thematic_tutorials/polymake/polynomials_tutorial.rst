@@ -7,7 +7,7 @@ A short note on variable naming up front: You can alter the settings for
 the names that are used for polynomial variables in parsing them from
 strings or for pretty-printing using the ``set_var_names`` or
 ``local_var_names`` functions. Refer to their
-`documentation <https///polymake.org/release_docs/master/common.html#common__set_var_names__239>`__
+`documentation <https://polymake.org/release_docs/master/common.html#common__set_var_names__239>`__
 for defaults and usage information. To restore the default settings to
 your ``customize.pl``, type this:
 
@@ -23,7 +23,7 @@ Constructors
 ^^^^^^^^^^^^
 
 The easiest way to create a simple
-`Polynomial <https///polymake.org/release_docs/master/common.html#common__Polynomial__339>`__
+`Polynomial <https://polymake.org/release_docs/master/common.html#common__Polynomial__339>`__
 object is through a string:
 
 
@@ -42,14 +42,12 @@ coefficients and a matrix of exponents:
     ........> $p2 = new Polynomial($coeff, $exp);
     ........> print $p2;
     -5*x_0^8*x_1^3 + 9*x_1^4
-    
-
 
 
 
 
 There is a seperate type for univariate polynomials, called
-`UniPolynomial <https///polymake.org/release_docs/master/common.html#common__UniPolynomial__342>`__.
+`UniPolynomial <https://polymake.org/release_docs/master/common.html#common__UniPolynomial__342>`__.
 
 
 ::
@@ -67,8 +65,6 @@ polynomials…).
     polymake> $pp = new UniPolynomial<UniPolynomial<Rational,Int>,Rational>("(4x^2+5)y3/2 - 5/3x4y2/3");
     ........> print $pp;
     (4*x^2 + 5)*y^3/2 + (-5/3*x^4)*y^2/3
-    
-
 
 
 
@@ -84,8 +80,6 @@ polynomials of matching type.
 
     polymake> print $p + ($p^2);
     9*x_1^2 + 6*x_1*x_2^5 + 27*x_1 + x_2^10 + 9*x_2^5 + 20
-    
-
 
 
 
@@ -100,8 +94,6 @@ because of the lower precedence of the “^” operator…
 
     polymake> print $p + $p^2;
     36*x_1^2 + 24*x_1*x_2^5 + 96*x_1 + 4*x_2^10 + 32*x_2^5 + 64
-    
-
 
 
 
@@ -113,8 +105,6 @@ For UniPolynomials, we even have polynome division:
 
     polymake> print (($up^2)/$up);
     (2*x^2 + 3*x + 4)/(1)
-    
-
 
 
 
@@ -138,19 +128,32 @@ hull of the exponent vectors of all terms).
 
 
 
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
+
+
+
+
 ::
 
     polymake> print equal_polyhedra($np,minkowski_sum(newton($p),newton($p+$p)));
-    1
-    
+    true
 
 
 
 
-
-The final “1” means “true”: The Newton polytope of the product of two
-polynomials always equals the Minkowski sum of the Newton polytopes of
-the factors.
+The Newton polytope of the product of two polynomials always equals the
+Minkowski sum of the Newton polytopes of the factors.
 
 
 Example: Toric Degeneration
@@ -183,9 +186,7 @@ homogenizing coordinate. The output in our example looks like this:
 ::
 
     polymake> print $p;
-    1/3*s^3*x2 -1/2*s^2*x1
-    
-
+    1/3*x_0^3*x_2 -1/2*x_0^2*x_1
 
 
 
@@ -227,7 +228,7 @@ Evaluate a puiseux fraction at `2^6`:
 ::
 
     polymake> print $f->evaluate(2,6);
-    3
+    32776
 
 
 
@@ -244,7 +245,7 @@ correspondingly overloads the operators ``<``, ``>``, ``<=``, ``>=``:
 
     polymake> $g = new PuiseuxFraction<Min>(3*($x^(3/2)));
     ........> print $f>$g;
-    1
+    true
 
 
 
@@ -261,9 +262,6 @@ family of 3 dimensional Klee-Minty cubes:
 
     polymake> $k = klee_minty_cube(3, $f);
     ........> print "facets:\n", $k->FACETS, "\nvolume:\n", $k->VOLUME;
-    polymake: used package tosimplex
-      Dual simplex algorithm implemented by Thomas Opfer
-    
     facets:
     (0) (1) (0) (0)
     (1) (- 1) (0) (0)
@@ -284,7 +282,21 @@ You can even check for (combinatorial) isomorphy:
 ::
 
     polymake> print isomorphic($k, cube(3));
-    1
+    true
+
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package nauty
+      Computation of automorphism groups of graphs.
+      Copyright by Brendan McKay and Adolfo Piperno.
+      http://pallini.di.uniroma1.it/
+    </pre>
+    </details>
 
 
 
@@ -299,6 +311,19 @@ and consult:
     polymake> $l = goldfarb_sit(3, $g, 1/2);
     ........> print $l->LP->MAXIMAL_VALUE;
     (1)
+
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package tosimplex
+      Dual simplex algorithm implemented by Thomas Opfer
+    
+    </pre>
+    </details>
 
 
 

@@ -10,13 +10,13 @@ General Remarks
 ~~~~~~~~~~~~~~~
 
 The general semantics of a `big
-object <https///polymake.org/doku.php/howto/lingo#big_object>`__ in
+object <https://polymake.org/doku.php/user_guide/lingo#big_object>`__ in
 polymake is as follows: a list of properties describes an equivalence
 class of mathematical objects. Often this equivalence class consists of
 a single element, but this is not necessary.
 
 As an example an object of class
-`Polytope <https///polymake.org/release_docs/latest/polytope.html#polytope__Polytope__9>`__
+`Polytope <https://polymake.org/release_docs/latest/polytope.html#polytope__Polytope__9>`__
 defined by ``VERTICES`` gives such a single element equivalence class. A
 typical example of a class with several elements is a polytope given
 combinatorially, in terms of ``VERTICES_IN_FACETS``. An extreme case
@@ -50,7 +50,14 @@ can use the ``properties`` method.
     polymake> $p->properties;
     name: p
     type: Polytope<Rational>
-        
+    
+    POINTS
+    1 2
+    1 3
+    
+    
+    CONE_AMBIENT_DIM
+    2
 
 
 
@@ -84,9 +91,7 @@ Being non-empty is recorded in the property ``FEASIBLE``. This is
 ::
 
     polymake> print cube(3)->FEASIBLE;
-    1
-    
-
+    true
 
 
 
@@ -136,6 +141,10 @@ polytope is required to have ``VERTICES`` and ``FACETS`` empty.
 
     polymake> $e = new Polytope(POINTS=>[]);
     ........> print $e->FEASIBLE;
+    false
+
+
+
 
 
 
@@ -143,12 +152,6 @@ polytope is required to have ``VERTICES`` and ``FACETS`` empty.
 ::
 
     polymake> print $e->FACETS;
-     
-    
-
-
-
-
 
 This is totally different from having ``VERTICES`` or ``FACETS``
 undefined (see above).
@@ -157,13 +160,6 @@ undefined (see above).
 ::
 
     polymake> $nc = new Polytope(VERTICES_IN_FACETS => cube(2)->VERTICES_IN_FACETS);
-     polytope > print $nc->FACETS;
-    polymake:  WARNING: available properties insufficient to compute 'FACETS'
-    
-
-
-
-
 
 Zero-dimensional polytopes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,7 +179,6 @@ vertex and one facet (the far hyperplane).
 
     polymake> print $z->FACETS;
     1 0 0
-    
 
 
 
@@ -197,7 +192,6 @@ that the single vertex does *not* lie on the single facet.
 
     polymake> print $z->VERTICES_IN_FACETS;
     {}
-    
 
 
 
@@ -209,9 +203,7 @@ Such a polytope is both simple and simplicial, i.e. it is a simplex.
 ::
 
     polymake> print $z->SIMPLICIAL,",",$z->SIMPLE;
-    1,1
-    
-
+    true,true
 
 
 

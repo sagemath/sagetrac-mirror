@@ -25,8 +25,7 @@ article <http://www.ams.org/journals/bull/2009-46-02/S0273-0979-09-01249-X/>`__
 for a deeper survey of the topic.
 
 To use the function, one has to switch to the ``topaz`` application. See
-this `tutorial <topaz_tutorial>`__ for a general introduction to
-``topaz``.
+this `tutorial <apps_topaz>`__ for a general introduction to ``topaz``.
 
 
 ::
@@ -101,7 +100,6 @@ You can print the boundary matrix for each frame and dimension:
     polymake> print $F->boundary_matrix(1,1);     # print dimension 1 matrix of frame 1
     1 -1 0
     0 1 -1
-    
 
 
 
@@ -117,8 +115,6 @@ index.
 
     polymake> print $F->cells;
     (0,0,1) (0,0,2) (1,0,3) (1,1,0) (1,1,2) (2,0,0) (2,1,1)
-    
-
 
 
 
@@ -135,29 +131,11 @@ matrices. To construct the same filtration as above:
 
     polymake> $C = new Array<Cell>(7);
     ........> $C->[0] = new Cell(0,0,1);
-            $C->[1] = new Cell(0,0,2);
-            $C->[2] = new Cell(1,0,3);
-            $C->[3] = new Cell(1,1,0);
-            $C->[4] = new Cell(1,1,2);
-            $C->[5] = new Cell(2,0,0);
-            $C->[6] = new Cell(2,1,1);
-            
-
-
-
-
 
 ::
 
     polymake> $bd = new Array<SparseMatrix<Rational>>(3);
     ........> $bd->[0] = new SparseMatrix<Rational>([1],[1],[1],[1]);
-            $bd->[1] = new SparseMatrix<Rational>([0,1,-1,0],[0,1,0,-1],[0,0,1,-1]);
-            $bd->[2] = new SparseMatrix<Rational>();
-        
-
-
-
-
 
 ::
 
@@ -180,6 +158,23 @@ six random points in 5-space using the euclidean metric:
 
     polymake> $S = polytope::rand_sphere(5,6)->VERTICES;
     ........> $P = $S->minor(All,sequence(1,5));     # dehomogenize
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
+
+
+
 
 
 

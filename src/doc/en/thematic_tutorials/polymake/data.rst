@@ -28,6 +28,8 @@ To store polymake objects use the command
 
     polymake> save($p,"myPolyObject.poly");
 
+This silently overwrites existing files.
+
 polymake objects that are stored in polymake’s own XML file format can
 be loaded via
 
@@ -37,8 +39,9 @@ be loaded via
     polymake> $p=load("myPolyObject.poly");
 
 If you did not start ``polymake`` in the directory containing your
-object, it is necessary to add the relative path, e.g.
-$p=load(“MyFolder/myPolyObject.poly”);
+object, it is necessary to add the relative or absolute path, e.g.
+$p=load(“MyFolder/myPolyObject.poly”); TAB completion like in a usual
+UNIX shell supports you in navigating through the file system.
 
 **Note:** If you load a polymake object and compute new properties,
 these properties will automatically be added to the original XML-file at
@@ -49,20 +52,25 @@ the end of the session. You can suppress this with the command
 
     polymake> $p->dont_save;
 
-called prior to leaving the session (but after the last compuation with
+called prior to leaving the session (but after the last computation with
 $p).
 
-Handling complex data types
----------------------------
+If you want to store a collection of objects into a single file, there
+is an `extra tutorial <.tarballs>`__ for you. ## Handling complex data
+types
 
-It is also possible to store complex data structures in XML format via
-``save_data``, e.g.
+Apart from the full objects, you can also persistently store arbitrary
+data structures like matrices or graphs in XML format via ``save_data``,
+e.g.
 
 
 ::
 
     polymake> $s=new Set<Int>(1,2,3,4);
-    ........> save_data($s,"mySet.poly");
+    ........> save_data($s, "mySet.poly", "My very own set.");
+
+The description text is optional; it can be an arbitrary text, even
+stretching over several lines.
 
 To load such files just type
 
@@ -70,6 +78,28 @@ To load such files just type
 ::
 
     polymake> $s=load_data("mySet.poly");
+
+Saving visualized objects
+-------------------------
+
+Furthermore, most visualization methods provide an option to save the
+visualized object in a suitable format. Consult the `F1
+help <:user_guide:intro_tutorial#getting_help>`__ for information on the
+file format and further options.
+
+To save the cube visualized via JReality in a new file called
+``mycube.bsh``, do this:
+
+::
+
+   jreality(cube(3)->VISUAL,File=>"mycube");
+
+To save the cube as a TiKz file named ``mycube.tikz`` that you can
+e.g. import in a LaTeX document, do this instead:
+
+::
+
+   tikz(cube(3)->VISUAL,File=>"mycube");
 
 Handling arbitrary files
 ------------------------
@@ -98,9 +128,9 @@ To read this file try the following:
     ........> }
     ........> close(INPUT);
 
- is a perl input iterator reading the file line by line. Variable ``$_``
-refers to the current line within this loop; it has a plain string
-value.
+``<INPUT>`` is a perl input iterator reading the file line by line.
+Variable ``$_`` refers to the current line within this loop; it has a
+plain string value.
 
 A reasonable task could be to store the points from the file as a
 matrix. This can be done immediately, because the matrix constructor

@@ -3,11 +3,11 @@
 .. default-role:: math
 
 
-General chain complexes intopaz======
-=====================================
+General chain complexes in topaz
+================================
 
 Apart from being capable of computing integer homology of simplicial
-complexes (see this `tutorial <topaz_tutorial>`__ for an introduction),
+complexes (see this `tutorial <apps_topaz>`__ for an introduction),
 ``polymake`` is able to handle general chain complexes and compute
 homology for coefficients from different domains. When experimenting in
 the interactive shell, switch to the topology application first:
@@ -56,7 +56,6 @@ You can access the data stored in the object like this:
     (15) (2 -1) (11 1) (13 1)
     (15) (8 1) (12 -1) (14 1)
     (15) (9 -1) (13 1) (14 1)
-    
 
 
 
@@ -76,7 +75,6 @@ the interactive shell and then pressing F1.
     ({} 1)
     ({(2 1)} 0)
     ({} 0)
-    
 
 
 
@@ -105,7 +103,6 @@ modules as well.
     (({} 0)
     <>
     )
-    
 
 
 

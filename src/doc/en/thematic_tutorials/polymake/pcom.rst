@@ -32,8 +32,23 @@ the ``MAXIMAL_POLYTOPES``.
     polymake> print $pc1->MAXIMAL_POLYTOPES;
     {0 1 2}
     {2 3}
-    
 
+
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
 
 
 

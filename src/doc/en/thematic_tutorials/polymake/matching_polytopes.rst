@@ -15,11 +15,6 @@ First we construct a graph, the complete graph on four nodes:
 ::
 
     polymake> $K4=new props::Graph(4);
-    >
-
-
-
-
 
 ::
 
@@ -66,7 +61,6 @@ Now we can construct the node-edge-incidence matrix of our graph ``K4``:
     1 0 0 1 1 0
     0 1 0 1 0 1
     0 0 1 0 1 1
-    
 
 
 
@@ -151,6 +145,23 @@ The matching polytope of ``K4`` is the integer hull of ``P``:
 
     polymake> $P_I=new Polytope<Rational>(POINTS=>$P->LATTICE_POINTS);
 
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
+
+
+
+
 We can analyse some elementary properties of ``P_I`` …
 
 
@@ -167,7 +178,6 @@ We can analyse some elementary properties of ``P_I`` …
     1 0 1 0 0 1 0
     1 1 0 0 0 0 0
     1 1 0 0 0 0 1
-        
 
 
 
@@ -190,7 +200,6 @@ We can analyse some elementary properties of ``P_I`` …
     0 0 1 0 0 0 0
     0 0 0 0 1 0 0
     0 0 0 1 0 0 0
-        
 
 
 
@@ -200,8 +209,6 @@ We can analyse some elementary properties of ``P_I`` …
 
     polymake> print $P_I->N_FACETS;
     14
-    
-
 
 
 
@@ -227,7 +234,6 @@ polytope ``P``:
     1 1 0 0 0 0 1
     1 0 1 0 0 1 0
     1 0 0 1 1 0 0
-        
 
 
 
@@ -237,8 +243,6 @@ polytope ``P``:
 
     polymake> print $P->VOLUME;
     1/72
-        
-
 
 
 
@@ -247,8 +251,6 @@ polytope ``P``:
 
     polymake> print $P_I->VOLUME;
     1/90
-    
-
 
 
 
@@ -263,8 +265,6 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
     polymake> print $P_I->AMBIENT_DIM, " ", $P_I->DIM;
     6 6
-        
-
 
 
 
@@ -273,8 +273,6 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
     polymake> print $P_I->F_VECTOR;
     10 39 78 86 51 14
-        
-
 
 
 
@@ -283,8 +281,6 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
     polymake> print $P_I->FACET_SIZES;
     8 8 6 6 6 6 6 6 6 6 8 8 8 8
-        
-
 
 
 
@@ -300,8 +296,6 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
     polymake> print $facet0->AMBIENT_DIM, " ", $facet0->DIM;
     6 5
-        
-
 
 
 
@@ -318,7 +312,6 @@ Next we analyse the combinatorics of ``P_I``: |{{
     6:0 1 2 3 4 7
     7:0 1 3 5 6 7
     8:0 1 2 5 6 7
-        
 
 
 

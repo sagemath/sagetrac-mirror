@@ -26,7 +26,7 @@ General properties of groups
 
 We start with the description of permutation groups in ``polymake``. An
 object of type
-`Group <https///polymake.org/release_docs/latest/group.html#group__Group__5>`__
+`Group <https://polymake.org/release_docs/latest/group.html#group__Group__5>`__
 records the abstract properties of the groups that do not depend on any
 particular representation, which essentially are just the ``ORDER``,
 ``CHARACTER_TABLE``, and ``CONJUGACY_CLASS_SIZES``. Moreover, a
@@ -36,12 +36,12 @@ that encodes permutations of indices. If the Group object is contained
 inside a ``Cone``, ``Polytope``, ``PointConfiguration``, or
 ``VectorConfiguration``, it may be encoded more specifically as a
 ``RAY_ACTION``, ``FACET_ACTION``, etc. See the
-`documentation <https///polymake.org/doku.php/release_docs/latest/group.html>`__
+`documentation <https://polymake.org/release_docs/latest/group.html>`__
 for more information on the action types.
 
 In order to access the complete set of functions dealing with groups,
 you should switch to the corresponding
-`application <howto/lingo#%20application>`__.
+`application <:user_guide:lingo#%20application>`__.
 
 
 ::
@@ -143,7 +143,7 @@ action. In the following example we create a symmetric group of degree
 
 Of course, there is a user function for creating symmetric groups given
 the degree, as well as for several other standard constructions. See the
-`docs <https///polymake.org/release_docs/latest/group.html#group__Producing_a_group__15>`__
+`docs <https://polymake.org/release_docs/latest/group.html#group__Producing_a_group__15>`__
 for a comprehensive list.
 
 
@@ -265,12 +265,12 @@ Polytopes
 There is more than one way to associate a group with any given polytope,
 depending on which kind of structural information you want to preserve.
 You can find some functions concerning symmetry groups of polytopes
-`here <https///polymake.org/release_docs/latest/polytope.html#polytope__Symmetry__36>`__.
+`here <https://polymake.org/release_docs/latest/polytope.html#polytope__Symmetry__36>`__.
 It is possibile to attach the group objects described above to polytopes
 or cones by using the property ``GROUP``. As there are many possible
 groups that operate on a polytope, the property can contain multiple
 subobjects; see
-`here <https///polymake.org/doku.php/scripting/start#multiple_subobjects>`__
+`here <https://polymake.org/doku.php/scripting/start#multiple_subobjects>`__
 for information on how to handle those.
 
 One interesting group is the group of *combinatorial* automorphisms, the
@@ -369,7 +369,7 @@ tuple of points:
 
 
 See `the
-documentation <https///polymake.org/release_docs/latest/polytope.html#polytope__orbit_polytope__319>`__
+documentation <https://polymake.org/release_docs/latest/polytope.html#polytope__orbit_polytope__319>`__
 for more options.
 
 Quotient spaces
@@ -380,7 +380,7 @@ points on the boundary of a fundamental region. Polymake can do this in
 the case where the fundamental region is a convex polytope. For example,
 a cylinder is obtained by identifying opposite sides of a square, and
 the
-`quarter_turn_manifold() <https///polymake.org/release_docs/latest/polytope.html#polytope__quarter_turn_manifold__238>`__
+`quarter_turn_manifold() <https://polymake.org/release_docs/latest/polytope.html#polytope__quarter_turn_manifold__238>`__
 (see
 `here <http://www.math.cornell.edu/~dwh/books/eg99/Ch20/Ch20.html>`__)
 is obtained from the boundary of a 3-dimensional cube by identifying
@@ -461,7 +461,7 @@ barycentric subdivision by asking for the property SIMPLICIAL_COMPLEX:
 
 An easy way to make projective spaces is to identify opposite faces in a
 centrally symmetric polytope, using the function
-`cs_quotient() <https///polymake.org/release_docs/latest/polytope.html#polytope__cs_quotient__239>`__.
+`cs_quotient() <https://polymake.org/release_docs/latest/polytope.html#polytope__cs_quotient__239>`__.
 For example, to calculate the homology of real 3-dimensional projective
 space \**RP3, write
 
@@ -481,7 +481,7 @@ space \**RP3, write
 
 
 As another example, the `Davis
-Manifold <https///people.math.osu.edu/davis.12/old_papers/4-mfld.pdf>`__
+Manifold <https://people.math.osu.edu/davis.12/old_papers/4-mfld.pdf>`__
 is a 4-dimensional hyperbolic manifold obtained by identifying opposite
 vertices of a 120-cell:
 
@@ -499,10 +499,15 @@ vertices of a 120-cell:
 
 Calculating the homology takes a little bit longer:
 
-polytope > print $m->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->F_VECTOR; 94321
-1146960 3644640 4320000 1728000 polytope > print
-$m->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->HOMOLOGY; ({} 0) ({(2 1)} 0) ({}
-0) ({(2 1)} 0) ({} 0)
+polytope > print $m->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->F_VECTOR;
+ 94321 1146960 3644640 4320000 1728000
+polytope > print $m->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->HOMOLOGY;
+ ({} 0)
+ ({(2 1)} 0)
+ ({} 0)
+ ({(2 1)} 0)
+ ({} 0)
+
 
 Matrix groups
 -------------

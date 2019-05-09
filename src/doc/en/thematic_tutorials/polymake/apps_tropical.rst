@@ -109,17 +109,17 @@ Homogeneous and extended coordinates
 ------------------------------------
 
 All higher tropical objects (trop. polytopes, cycles, …) live in the
-*tropical projective torus*
-`\mathbb R^n/\mathbb R\mathbf 1\cong \mathbb R^{n-1}`, i.e. they
-are defined in (tropically) homogeneous coorditates, and points are
-given via their unique representative whose first entry is `0`
-(e.g. `(1,2,3)` becomes `(0,1,2)` etc.).
+*tropical projective torus* $
+:raw-latex:`\mathbb `R\ :sup:`n/:raw-latex:`\mathbb `R:raw-latex:`\mathbf `1:raw-latex:`\cong `:raw-latex:`\mathbb `R`\ {n-1}$,
+i.e. they are defined in (tropically) homogeneous coorditates, and
+points are given via their unique representative whose first entry is
+`0` (e.g. `(1,2,3)` becomes `(0,1,2)` etc.).
 
 At the same time many properties (e.g. ``VERTICES``) expect coordinates
 to be “extended” with an additional leading entry, which signals whether
 the vector should be interpreted as a conventional point in the torus
-(leading entry `\mathbf 1`), or as a ray/direction/“point at
-infinity” (leading entry `\mathbf 0`). You can read
+(leading entry $ :raw-latex:`\mathbf `1$), or as a ray/direction/“point
+at infinity” (leading entry $ :raw-latex:`\mathbf `0$). You can read
 `here <coordinates.ipynb>`__ for how this makes sense, or just think of
 the leading entry as purely symbolic.
 
@@ -147,12 +147,13 @@ where ``matrix`` is a list of vectors that you want to (de)homogenize,
 ``has_leading coordinate`` is a boolean indicating whether we are
 dealing with extended coordinates (i.e. vectors have an additional
 leading coordinate), and ``chart`` is the index of the coordinate that
-is set to `0` when identifying
-`\mathbb R^n/\mathbb R\mathbf 1` with `\mathbb R^{n-1}`
-(i.e. homogenizing works by simply adding a `0` entry at index
-``chart``, dehomogenizing works by taking the representative whose entry
-at position ``chart`` is `0`, and then deleting that entry), all
-while ignoring the first entry if ``has_leading_coordinate`` is ``1``.
+is set to `0` when identifying $
+:raw-latex:`\mathbb `R^n/:raw-latex:`\mathbb `R:raw-latex:`\mathbf `1$
+with $ :raw-latex:`\mathbb `R^{n-1}$ (i.e. homogenizing works by simply
+adding a `0` entry at index ``chart``, dehomogenizing works by
+taking the representative whose entry at position ``chart`` is
+`0`, and then deleting that entry), all while ignoring the first
+entry if ``has_leading_coordinate`` is ``1``.
 
 Some examples:
 
@@ -334,8 +335,8 @@ Basic examples
 ^^^^^^^^^^^^^^
 
 
-Computing the divisor of a tropical polynomial in `\mathbb R^n`
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Computing the divisor of a tropical polynomial in $ :raw-latex:`\mathbb `R^n$
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 
 ::
@@ -345,7 +346,7 @@ Computing the divisor of a tropical polynomial in `\mathbb R^n`
     ........> $div->VISUAL;
 
 Here, ``projective_torus`` creates the tropical projective 3-torus (aka
-`\mathbb R^3`) as a tropical fan with weight 1.
+$ :raw-latex:`\mathbb `R^3$) as a tropical fan with weight 1.
 
 
 Visualizing a curve in a tropical surface

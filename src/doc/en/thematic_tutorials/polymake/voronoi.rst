@@ -30,7 +30,6 @@ derived from ``Polytope``. That’s why they have ``VERTICES``,
     1 0 2 1
     2 2 2 1
     1 0 0 0
-        
 
 
 
@@ -45,8 +44,23 @@ derived from ``Polytope``. That’s why they have ``VERTICES``,
     0 -1 0 2
     0 0 -1 2
     1 -1/2 0 -1
-    
 
+
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
 
 
 

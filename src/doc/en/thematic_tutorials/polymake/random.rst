@@ -18,9 +18,23 @@ in 3-space.
 
     polymake> $p1=rand_sphere(3,100);
     ........> print $p1->SIMPLICIAL;
-    1
-    
+    true
 
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
 
 
 
@@ -38,9 +52,7 @@ Random polytopes with are neither simplicial nor simple
     ........> $p2=polarize($p1);
     ........> $p3=new Polytope(POINTS=>rand_vert($p2->VERTICES,$n));
     ........> print $p3->SIMPLICIAL, " ", $p3->SIMPLE, "\n", $p3->F_VECTOR;
-    0 0
-    30 166 264 128
-    
-
+    false false
+    30 163 256 123
 
 

@@ -6,8 +6,8 @@
 Polytopes and Linear Maps
 -------------------------
 
-polymake works with `homogeneous coordinates <tutorial/coordinates>`__,
-which is why *projective* linear transformations are natural to apply to
+polymake works with `homogeneous coordinates <coordinates>`__, which is
+why *projective* linear transformations are natural to apply to
 polytopes. Affine transformations are a special case. By the way, a
 *transformation* is always bijective, by definition.
 
@@ -35,7 +35,6 @@ We start out with a regular 3-cube …
     1 1 -1 1
     1 -1 1 1
     1 1 1 1
-    
 
 
 
@@ -69,7 +68,6 @@ We start out with a regular 3-cube …
     1 2 -3 4
     1 -2 3 4
     1 2 3 4
-    
 
 
 
@@ -95,7 +93,6 @@ the VERTICES but also on the FACETS (if available).
     1 0 -1 0
     1 0 0 1
     1 0 0 -1
-        
 
 
 
@@ -110,7 +107,6 @@ the VERTICES but also on the FACETS (if available).
     1 0 -1/3 0
     1 0 0 1/4
     1 0 0 -1/4
-    
 
 
 
@@ -154,12 +150,27 @@ To produce the image the following command works:
 ::
 
     polymake> print $ca->VERTICES;
-    1 -1 -1 0
     1 1 -1 0
-    1 -1 1 0
     1 1 1 0
-    
+    1 -1 -1 0
+    1 -1 1 0
 
+
+
+
+
+.. raw:: html
+
+    <details><summary><pre style="display:inline"><small>Click here for additional output</small></pre></summary>
+    <pre>
+    polymake: used package cdd
+      cddlib
+      Implementation of the double description method of Motzkin et al.
+      Copyright by Komei Fukuda.
+      http://www-oldurls.inf.ethz.ch/personal/fukudak/cdd_home/
+    
+    </pre>
+    </details>
 
 
 
@@ -177,3 +188,5 @@ Special Examples of Linear Maps to Apply
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [to be continued]
+
+

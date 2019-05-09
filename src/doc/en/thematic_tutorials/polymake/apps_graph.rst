@@ -172,11 +172,11 @@ It is also legal to copy all adjacent nodes to an array as in:
 
    @x = @{$g->adjacent_nodes(0)};
 
-Subsequently, the individial neighbors can be accessed at random, for
-instance, as ``$x[1]``. However, for technical reasons too difficult to
-explain here, it is *not* legal to write ``$g->adjacent_nodes(0)->[1]``!
-Usually it is preferred to avoid copying; so use constructions like
-``foreach`` and ``map`` if possible.
+Subsequently, the individial neighbors can be accessed, for instance, as
+``$x[1]``. However, for technical reasons too difficult to explain here,
+it is *not* legal to write ``$g->adjacent_nodes(0)->[1]``! Usually it is
+preferred to avoid copying; so use constructions like ``foreach`` and
+``map`` if possible.
 
 Defining a Graph from Scratch
 -----------------------------
@@ -309,8 +309,9 @@ opposite orientations.
 
 
 
-Here is an example of an undirected graph property which does not make
-sense for directed graphs.
+Some properties of graphs do not make sense for directed graph. Here is
+an example of an undirected graph property which does not make sense for
+directed graphs.
 
 
 ::
