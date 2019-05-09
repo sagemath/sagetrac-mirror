@@ -48,12 +48,12 @@ def Associahedron(cartan_type, backend=None):
 
     INPUT:
 
-        - ``cartan_type`` -- a cartan type according to
-          :class:`sage.combinat.root_system.cartan_type.CartanTypeFactory`
+    - ``cartan_type`` -- a cartan type according to
+      :class:`sage.combinat.root_system.cartan_type.CartanTypeFactory`
 
-        - ``backend`` -- string or ``None`` (default). The backend to use.
-          See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
-          If ``None``, then ``backend='ppl'`` is used
+    - ``backend`` -- string or ``None`` (default). The backend to use.
+      See :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
+      If ``None``, then ``backend='ppl'`` is used
 
     EXAMPLES::
 
@@ -128,7 +128,7 @@ def Associahedron(cartan_type, backend=None):
     return parent(cartan_type)
 
 
-class Associahedron_class_base():
+class Associahedron_class_base(object):
     r"""
     The base class of the Python class of an associahedron
 
@@ -238,7 +238,7 @@ def Associahedra(base_ring, ambient_dim, backend=None):
     else:
         raise ValueError("Unknown backend")
 
-class Associahedra_base:
+class Associahedra_base(object):
     """
     Base class of parent of Associahedra of specified dimension
 
@@ -299,86 +299,21 @@ class Associahedra_base:
             c = rhocheck.coefficient(orbit[0].leading_support())
             for beta in orbit:
                 inequalities.append([c] + [beta.coefficient(i) for i in I])
-        associahedron = self._poly_super()._element_constructor_(None, [inequalities, []])
+        associahedron = super(Associahedra_base, self)._element_constructor_(None, [inequalities, []])
         associahedron._cartan_type = cartan_type
         return associahedron
 
 class Associahedra_ppl(Associahedra_base, Polyhedra_QQ_ppl):
     Element = Associahedron_class_ppl
-    def _poly_super(self):
-        r"""
-        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl`.
-
-        TESTS::
-
-            sage: from sage.combinat.root_system.associahedron import Associahedra
-            sage: parent = Associahedra(QQ,2,'ppl')
-            sage: parent._poly_super()
-            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl'>,
-                    Polyhedra in QQ^2>
-        """
-        return super(Polyhedra_QQ_ppl, self)
 
 class Associahedra_normaliz(Associahedra_base, Polyhedra_QQ_normaliz):
     Element = Associahedron_class_normaliz
-    def _poly_super(self):
-        r"""
-        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_QQ_normaliz`.
-
-        TESTS::
-
-            sage: from sage.combinat.root_system.associahedron import Associahedra
-            sage: parent = Associahedra(QQ,2,'normaliz')
-            sage: parent._poly_super()
-            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_normaliz'>,
-                    Polyhedra in QQ^2>
-        """
-        return super(Polyhedra_QQ_normaliz, self)
 
 class Associahedra_cdd(Associahedra_base, Polyhedra_QQ_cdd):
     Element = Associahedron_class_cdd
-    def _poly_super(self):
-        r"""
-        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_QQ_cdd`.
-
-        TESTS::
-
-            sage: from sage.combinat.root_system.associahedron import Associahedra
-            sage: parent = Associahedra(QQ,2,'cdd')
-            sage: parent._poly_super()
-            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_cdd'>,
-                    Polyhedra in QQ^2>
-        """
-        return super(Polyhedra_QQ_cdd, self)
 
 class Associahedra_polymake(Associahedra_base, Polyhedra_polymake):
     Element = Associahedron_class_polymake
-    def _poly_super(self):
-        r"""
-        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_polymake`.
-
-        TESTS::
-
-            sage: from sage.combinat.root_system.associahedron import Associahedra
-            sage: parent = Associahedra(QQ,2,'polymake')
-            sage: parent._poly_super()
-            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_polymake'>,
-                    Polyhedra in QQ^2>
-        """
-        return super(Polyhedra_polymake, self)
 
 class Associahedra_field(Associahedra_base, Polyhedra_field):
     Element = Associahedron_class_field
-    def _poly_super(self):
-        r"""
-        Access underlying methods from :class:`sage.geometry.polyhedron.parent.Polyhedra_field`.
-
-        TESTS::
-
-            sage: from sage.combinat.root_system.associahedron import Associahedra
-            sage: parent = Associahedra(QQ,2,'field')
-            sage: parent._poly_super()
-            <super: <class 'sage.geometry.polyhedron.parent.Polyhedra_field'>,
-                    Polyhedra in QQ^2>
-        """
-        return super(Polyhedra_field, self)
