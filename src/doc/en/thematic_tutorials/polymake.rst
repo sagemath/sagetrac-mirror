@@ -13,25 +13,33 @@
      sage-ipynb2rst-polymake $a $SAGE_ROOT/src/doc/en/thematic_tutorials/polymake/`basename $a .ipynb`.rst;
    done
 
+   The following toctree must be updated manually.
+
 .. toctree::
    :maxdepth: 1
 
    polymake/apps_fan
+   polymake/apps_fulton
    polymake/apps_graph
    polymake/apps_group
    polymake/apps_matroid
    polymake/apps_polytope
+   polymake/apps_topaz
    polymake/apps_tropical
+   polymake/aut_of_graphs
+   polymake/caratheodory
    polymake/chain_complex_homology
    polymake/coordinates
    polymake/data
    polymake/face_lattice_tutorial
+   polymake/hyperbolic_surface_tutorial
    polymake/ilp_and_hilbertbases
    polymake/intro_tutorial
    polymake/lattice_polytopes_tutorial
    polymake/legacy
    polymake/matching_polytopes
    polymake/matrix_classes
+   polymake/optimization
    polymake/pcom
    polymake/persistent_homology
    polymake/polynomials_tutorial
