@@ -12,6 +12,7 @@
    for a in *.ipynb; do
      sage-ipynb2rst-polymake $a $SAGE_ROOT/src/doc/en/thematic_tutorials/polymake/`basename $a .ipynb`.rst;
    done
+   rm $SAGE_ROOT/src/doc/en/thematic_tutorials/polymake/perl_intro.rst
 
    The following toctree must be updated manually.
 
