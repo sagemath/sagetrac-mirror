@@ -428,7 +428,7 @@ Functions and methods
 # import from Python standard library
 
 # import from Sage library
-from . import graph
+from sage.graphs import graph
 import sage.graphs.strongly_regular_db
 
 

@@ -4832,11 +4832,6 @@ class Graph(GenericGraph):
 
         # Accomplished !
         return obj
-
-    @doc_index("Leftovers")
-    def fractional_chromatic_number(self, solver='PPL', verbose=0, only_maximal=True, check_components=True, check_bipartite=True):
-        from sage.graphs.graph_coloring import fractional_chromatic_number
-        return fractional_chromatic_number(self, solver, verbose, only_maximal, check_components, check_bipartite)
     
     @doc_index("Leftovers")
     def fractional_clique_number(self, solver='PPL', verbose=0, only_maximal=True, check_components=True, check_bipartite=True):
@@ -8753,6 +8748,7 @@ class Graph(GenericGraph):
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
+    from sage.graphs.graph_coloring import fractional_chromatic_number
 
 
 _additional_categories = {
@@ -8778,7 +8774,8 @@ _additional_categories = {
     "random_orientation"        : "Connectivity, orientations, trees",
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
-    "spqr_tree"                 : "Connectivity, orientations, trees"
+    "spqr_tree"                 : "Connectivity, orientations, trees",
+    "fractional_chromatic_number" : "Leftovers"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

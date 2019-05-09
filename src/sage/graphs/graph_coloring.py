@@ -59,7 +59,6 @@ from six.moves import range
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
-from .graph_generators import GraphGenerators
 
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.numerical.mip import MIPSolverException
@@ -1314,7 +1313,8 @@ def round_robin(n):
     def my_mod(x, y):
         return x - y * (x // y)
     if not n % 2:
-        g = GraphGenerators().CompleteGraph(n)
+        from sage.graphs.generators.basic import CompleteGraph
+        g = CompleteGraph(n)
         for i in range(n - 1):
             g.set_edge_label(n - 1, i, i)
             for j in range(1, (n - 1) // 2 + 1):
@@ -1802,8 +1802,9 @@ class Test:
             sage: from sage.graphs.graph_coloring import Test
             sage: Test().random_all_graph_colorings(1)
         """
+        from sage.graphs.generators.random import RandomGNP
         for _ in range(tests):
-            G = GraphGenerators().RandomGNP(10, .5)
+            G = RandomGNP(10, .5)
             Q = G.chromatic_polynomial()
             chi = G.chromatic_number()
 
