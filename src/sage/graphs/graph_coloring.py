@@ -17,7 +17,7 @@ do :
     :meth:`numbers_of_colorings` | Compute the number of colorings of a graph
     :meth:`chromatic_number` | Return the chromatic number of the graph
     :meth:`vertex_coloring` | Compute vertex colorings and chromatic numbers
-
+    :meth:`fractional_chromatic_number` | Return the fractional chromatic number of the graph
 
 **Other colorings**
 
@@ -605,6 +605,117 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
             return dict(zip(rainbow(len(classes)), classes))
         else:
             return classes
+
+def fractional_chromatic_number(g, solver='PPL', verbose=0, only_maximal=True, check_components=True, check_bipartite=True):
+    r"""
+    Return the fractional chromatic number of the graph.
+
+    The fractional coloring is a relaxed version of vertex coloring with 
+    several equivalent definitions, such as the optimum value in a 
+    linear relaxation of the integer program that gives the usual 
+    chromatic number. It is also equal to the fractional clique number 
+    by LP-duality.
+
+    ALGORITHM:
+
+    The fractional chromatic number is computed via the usual Linear 
+    Program. The LP solved by sage is essentially,
+
+    .. MATH::
+
+        \mbox{Minimize : }&\sum_{I\in \mathcal{I}(G)} x_{I}\\
+        \mbox{Such that : }&\\
+        &\forall v\in V(G), \sum_{I\in \mathcal{I}(G),\, v\in I}x_{v}\geq 1\\
+        &\forall I\in \mathcal{I}(G), x_{I} \geq 0
+    
+    except as (optional) optimisations we only consider a variable for 
+    each maximal independent set, only construct the LP for connected 
+    components of G (and output the maximum), and avoid using the LP if
+    G is bipartite (as then the output must be 1 or 2).
+    
+    .. NOTE::
+    
+        Computing the fractional chromatic number can be very slow. Since the 
+        variables of the LP are independent sets, in general the LP has size 
+        exponential in the order of the graph. In the current implementation 
+        a list of all (maximal, depending on parameters) independent sets is 
+        created and stored, which can be both slow and memory-hungry.
+
+    INPUT:
+
+    - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP)
+        solver to be used. If set to ``None``, the default one is used. For
+        more information on LP solvers and which default solver is used, see
+        the method
+        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        of the class
+        :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        .. NOTE::
+
+            The default solver used here is ``"PPL"`` which provides exact
+            results, i.e. a rational number, although this may be slower that
+            using other solvers.
+
+    - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
+        the LP solver.
+        
+    - ``only_maximal`` -- boolean (default: `True`); flag determining whether
+        the variables of the LP are maximal independent sets (the alternative 
+        is to consider all independent sets).
+
+    - ``check_components`` -- boolean (default: `True`); flag determining 
+        whether the method is called on each connected component of G.
+
+    - ``check_bipartite`` -- boolean (default: `True`); flag determining 
+        whether the graph is checked for bipartiteness. If the graph is 
+        bipartite then we can avoid creating and solving the LP.
+
+    EXAMPLES:
+
+    The fractional chromatic number of a `C_5` is `5/2`::
+
+        sage: g = graphs.CycleGraph(5)
+        sage: g.fractional_chromatic_number()
+        5/2
+    """
+    g._scream_if_not_simple()
+
+    if not g.order():
+        return 0
+    if not g.size():
+        return 1
+    if check_bipartite and g.is_bipartite():
+        # at this point we've already ascertained g.size() > 0
+        # so g contains a clique of size at least 2
+        return 2
+    if check_components:
+        return max(fractional_chromatic_number(h, solver, verbose, 
+                                only_maximal, False, check_bipartite)
+                   for h in g.connected_components_subgraphs())
+
+    from sage.numerical.mip import MixedIntegerLinearProgram
+    from sage.graphs.independent_sets import IndependentSets
+    
+    Is = [frozenset(I) for I in IndependentSets(g, maximal=only_maximal)]
+    
+    # Initialize LP for fractional chromatic number, we want to 
+    # minimize the total weight
+    p = MixedIntegerLinearProgram(solver=solver, maximization=False)
+
+    # One nonnegative variable per maximal independent set
+    w = p.new_variable(nonnegative=True)
+
+    # the objective is the sum of weights of the independent sets
+    p.set_objective(p.sum(w[I] for I in Is))
+
+    # such that each vertex gets total weight at least 1
+    for v in g.vertex_iterator():
+        p.add_constraint(p.sum(w[I] for I in Is if v in I), min=1)
+
+    obj = p.solve(log=verbose)
+        
+    return obj
 
 def grundy_coloring(g, k, value_only=True, solver=None, verbose=0):
     r"""

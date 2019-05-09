@@ -4834,6 +4834,16 @@ class Graph(GenericGraph):
         return obj
 
     @doc_index("Leftovers")
+    def fractional_chromatic_number(self, solver='PPL', verbose=0, only_maximal=True, check_components=True, check_bipartite=True):
+        from sage.graphs.graph_coloring import fractional_chromatic_number
+        return fractional_chromatic_number(self, solver, verbose, only_maximal, check_components, check_bipartite)
+    
+    @doc_index("Leftovers")
+    def fractional_clique_number(self, solver='PPL', verbose=0, only_maximal=True, check_components=True, check_bipartite=True):
+        from sage.graphs.graph_coloring import fractional_chromatic_number
+        return fractional_chromatic_number(self, solver, verbose, only_maximal, check_components, check_bipartite)
+    
+    @doc_index("Leftovers")
     def maximum_average_degree(self, value_only=True, solver=None, verbose=0):
         r"""
         Return the Maximum Average Degree (MAD) of the current graph.
