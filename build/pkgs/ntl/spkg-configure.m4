@@ -8,8 +8,8 @@ SAGE_SPKG_CONFIGURE([ntl], [
         AC_MSG_RESULT([no])
     fi
 
-    m4_pushdef(SAGE_NTL_VERSION_MAJOR, [3])
-    m4_pushdef(SAGE_NTL_VERSION_MINOR, [10])
+    m4_pushdef(SAGE_NTL_VERSION_MAJOR, [10])
+    m4_pushdef(SAGE_NTL_VERSION_MINOR, [3])
 
     if test x$sage_spkg_install_ntl != xyes; then
         AC_CHECK_HEADER([NTL/ZZ.h], [], [sage_spkg_install_ntl=yes])
