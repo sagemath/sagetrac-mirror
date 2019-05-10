@@ -20,15 +20,15 @@ SAGE_SPKG_CONFIGURE([ntl], [
     if test x$sage_spkg_install_gf2x != xyes; then
         AC_CHECK_HEADER([NTL/ZZ.h], [], [sage_spkg_install_ntl=yes])
         AC_LINK_IFELSE([
-	        AC_LANG_PROGRAM([[#include <NTL/ZZ.h>]],
+            AC_LANG_PROGRAM([[#include <NTL/ZZ.h>]],
                             [[NTL::ZZ a;]]
             )], [], [sage_spkg_install_ntl=yes])
-	    AC_RUN_IFELSE([
-	        AC_LANG_PROGRAM(
+        AC_RUN_IFELSE([
+            AC_LANG_PROGRAM(
             [[#include <NTL/version.h>]],
-	        [[if (NTL_MAJOR_VERSION<$ntl_major_ver) return 1; \
+            [[if (NTL_MAJOR_VERSION<$ntl_major_ver) return 1; \
               if (NTL_MINOR_VERSION<$ntl_minor_ver) return 1; \
-			  return 0;]]
+              return 0;]]
             )], [],  [sage_spkg_install_ntl=yes])
     fi
 ], [], [], [
