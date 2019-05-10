@@ -211,7 +211,7 @@ cdef class ListOfAllFaces:
                 # We already have the coatoms.
                 d = face_iter.next_dimension()
             while (d < self.dimension):
-                self._add_face(d, face_iter.face)
+                self._add_face(d, face_iter.structure.face)
                 d = face_iter.next_dimension()
 
         # Sorting the faces, except for coatoms.

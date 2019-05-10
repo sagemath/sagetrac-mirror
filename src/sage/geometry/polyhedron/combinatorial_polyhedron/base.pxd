@@ -2,7 +2,7 @@ cimport cython
 from libc.stdint                cimport uint64_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
-from .face_iterator             cimport FaceIterator, CombinatorialFace
+from .face_iterator             cimport FaceIterator, CombinatorialFace, iter_struct
 from .list_of_faces             cimport ListOfFaces
 from .list_of_all_faces         cimport ListOfAllFaces
 

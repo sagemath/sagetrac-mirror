@@ -7,7 +7,7 @@ cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
     cdef const size_t chunksize
     cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
-                           size_t face_length)
+                           size_t face_length) nogil
 #    Return ``A & ~B == 0``.
 #    A is not subset of B, iff there is a vertex in A, which is not in B.
 #    ``face_length`` is the length of A and B in terms of uint64_t.
@@ -49,14 +49,14 @@ cdef extern from "bit_vector_operations.cc":
 #                We obtain exactly the facets of ``faces[n_faces-1]`` that we have
 #                not visited yet.
 
-    cdef size_t count_atoms(uint64_t *A, size_t face_length)
+    cdef size_t count_atoms(uint64_t *A, size_t face_length) nogil
 #        Return the number of atoms/vertices in A.
 #        This is the number of set bits in A.
 #        ``face_length`` is the length of A in terms of uint64_t.
 
     cdef size_t bit_repr_to_coatom_repr(
             uint64_t *face, uint64_t **coatoms, size_t n_coatoms,
-            size_t face_length, size_t *output)
+            size_t face_length, size_t *output) nogil
 #        Write the coatom-representation of face in output. Return length.
 #        ``face_length`` is the length of ``face`` and ``coatoms[i]``
 #        in terms of uint64_t.

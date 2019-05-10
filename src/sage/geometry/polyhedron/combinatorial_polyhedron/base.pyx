@@ -101,6 +101,8 @@ from .conversions \
 
 from sage.rings.integer cimport smallInteger
 from cysignals.signals cimport sig_check, sig_block, sig_unblock
+from cysignals.memory cimport sig_free, sig_calloc
+from .parallel cimport parallel_f_vector
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -1501,7 +1503,14 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             # In this case the dual approach is faster.
             dual = True
-        cdef FaceIterator face_iter = self._face_iter(dual, -2)
+        cdef iter_struct **iters = <iter_struct**> sig_calloc(8, sizeof(iter_struct*))
+        cdef FaceIterator some_iter
+
+        a = tuple( self._face_iter(dual, -2) for _ in range(8))
+        for i in range(8):
+            some_iter = a[i]
+            iters[i] = &(some_iter.structure)
+
 
         cdef int dim = self.dimension()
         cdef int d  # dimension of the current face of the iterator
@@ -1512,14 +1521,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_vector[0] = 1         # Face iterator will only visit proper faces.
         f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
 
-        # For each face in the iterator, add `1` to the corresponding entry in
-        # ``f_vector``.
-        if self._n_facets > 0 and dim > 0:
-            d = face_iter.next_dimension()
-            while (d < dim):
-                sig_check()
-                f_vector[d+1] += 1
-                d = face_iter.next_dimension()
+        parallel_f_vector(iters, f_vector)
 
         # Copy ``f_vector``.
         if dual:
@@ -1529,6 +1531,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
         else:
             self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
+        sig_free(iters)
 
     cdef int _compute_edges(self, dual) except -1:
         r"""
