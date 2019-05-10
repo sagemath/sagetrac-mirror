@@ -1,6 +1,5 @@
 SAGE_SPKG_CONFIGURE([ntl], [
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_GF2X])
     AC_MSG_CHECKING([installing gmp/mpir? ])
     if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
         AC_MSG_RESULT([yes; install ntl as well])
@@ -9,15 +8,8 @@ SAGE_SPKG_CONFIGURE([ntl], [
         AC_MSG_RESULT([no])
     fi
 
-    AC_MSG_CHECKING([installing gf2x? ])
-    if test x$sage_spkg_install_gf2x = xyes; then
-        AC_MSG_RESULT([yes; install ntl as well])
-        sage_spkg_install_ntl=yes
-    else
-        AC_MSG_RESULT([no])
-    fi
 
-    if test x$sage_spkg_install_gf2x != xyes; then
+    if test x$sage_spkg_install_ntl != xyes; then
         AC_CHECK_HEADER([NTL/ZZ.h], [], [sage_spkg_install_ntl=yes])
         AC_LINK_IFELSE([
             AC_LANG_PROGRAM([[#include <NTL/ZZ.h>]],
