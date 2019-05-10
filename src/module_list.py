@@ -294,26 +294,45 @@ ext_modules = [
               language="c++"),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.base',
+              extra_link_args=["-fopenmp"],
+              #extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-march=native"],
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
+              #extra_link_args=["-fopenmp"],
+              #extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-march=native"],
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.cc',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
               language = "c++",
+              #extra_link_args=["-fopenmp"],
               extra_compile_args=["-march=native"]),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
+              #extra_link_args=["-fopenmp"],
+              #extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-march=native"],
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces',
+              #extra_link_args=["-fopenmp"],
+              #extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-march=native"],
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_all_faces.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face',
+              #extra_link_args=["-fopenmp"],
+              #extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-march=native"],
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
+              #extra_link_args=["-fopenmp"],
+              #extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-march=native"],
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
 
     ################################
