@@ -8,21 +8,34 @@ SAGE_SPKG_CONFIGURE([ntl], [
         AC_MSG_RESULT([no])
     fi
 
+    m4_pushdef(SAGE_NTL_VERSION_MAJOR, [3])
+    m4_pushdef(SAGE_NTL_VERSION_MINOR, [10])
 
     if test x$sage_spkg_install_ntl != xyes; then
         AC_CHECK_HEADER([NTL/ZZ.h], [], [sage_spkg_install_ntl=yes])
+        AC_MSG_CHECKING([whether we can link a program using NTL])
         AC_LINK_IFELSE([
             AC_LANG_PROGRAM([[#include <NTL/ZZ.h>]],
                             [[NTL::ZZ a;]]
-            )], [], [sage_spkg_install_ntl=yes])
+            )], [AC_MSG_RESULT([yes])], [
+            AC_MSG_RESULT([no]); sage_spkg_install_ntl=yes
+        ])
+        AC_MSG_CHECKING([NTL version >= ]SAGE_NTL_VERSION_MAJOR[.]SAGE_NTL_VERSION_MINOR)
         AC_RUN_IFELSE([
             AC_LANG_PROGRAM(
-            [[#include <NTL/version.h>]],
-            [[if (NTL_MAJOR_VERSION<$ntl_major_ver) return 1; \
-              if (NTL_MINOR_VERSION<$ntl_minor_ver) return 1; \
-              return 0;]]
-            )], [],  [sage_spkg_install_ntl=yes])
+            [[#include <NTL/version.h>
+              #include <stdio.h>
+            ]], [[
+              printf("%s\n", NTL_VERSION);
+              if (NTL_MAJOR_VERSION >]] SAGE_NTL_VERSION_MAJOR[[) return 0;
+              else if (NTL_MAJOR_VERSION ==]] SAGE_NTL_VERSION_MAJOR[[ &&
+                       NTL_MINOR_VERSION >=]] SAGE_NTL_VERSION_MINOR[[) return 0;
+              else return 1;
+            ]])], [], [sage_spkg_install_ntl=yes])
     fi
+
+    m4_popdef([SAGE_NTL_VERSION_MAJOR])
+    m4_popdef([SAGE_NTL_VERSION_MINOR])
 ], [], [], [
     if test x$sage_spkg_install_ntl = xyes; then
         AC_SUBST(SAGE_NTL_PREFIX, ['$SAGE_LOCAL'])
