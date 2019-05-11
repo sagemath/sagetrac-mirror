@@ -120,6 +120,18 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(FreeModule(QQ,1), FreeModule(ZZ,1))
         Set of Morphisms from Vector space of dimension 1 over Rational Field to Ambient free module of rank 1 over the principal ideal domain Integer Ring in Category of commutative additive groups
 
+    ``X`` and ``Y`` can be vector spaces over different fields (:trac:`1947`)::
+
+        sage: HH = Hom(QQ^3, RR^2); HH
+        Set of Morphisms (Linear Transformations) from Vector space of dimension 3 over Rational Field to Vector space of dimension 2 over Real Field with 53 bits of precision
+        sage: HH([[1,2],[3,4],[5,6]])
+        Vector space morphism represented by the matrix:
+        [1.00000000000000 2.00000000000000]
+        [3.00000000000000 4.00000000000000]
+        [5.00000000000000 6.00000000000000]
+        Domain: Vector space of dimension 3 over Rational Field
+        Codomain: Vector space of dimension 2 over Real Field with 53 bits of precision
+
     Here, we test against a memory leak that has been fixed at :trac:`11521` by
     using a weak cache::
 
