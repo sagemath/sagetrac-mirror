@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# creates the tarball and updates the package
+set -e
+
+TEMP_PERL_LOCAL_LIB_ROOT=temp-perl-local-lib
+PARTIAL_CPAN_MIRROR=cpan
+
+#cpanm --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $PARTIAL_CPAN_MIRROR XML::Writer XML::LibXML XML::LibXSLT File::Slurp JSON SVG MongoDB
+VERSION=`date +%Y-%m-%d`
+tar cf upstream/perl_cpan_polymake_prereq-$VERSION.tar.gz $PARTIAL_CPAN_MIRROR
+
+#./sage -package create perl_cpan_polymake_prereq --version $VERSION --tarball perl_cpan_polymake_prereq-VERSION.tar.gz --type experimental
+./sage -package update perl_cpan_polymake_prereq $VERSION
