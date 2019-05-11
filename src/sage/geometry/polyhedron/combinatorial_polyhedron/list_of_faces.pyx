@@ -254,34 +254,46 @@ cdef class ListOfFaces:
 
             :meth:`compute_dimension`
         """
-        if n_faces == 0:
-            raise TypeError("wrong usage of ``compute_dimension_loop``,\n" +
-                            "at least one face needed.")
-
-        if n_faces == 1:
-            # We expect the face to be the empty polyhedron.
-            # Possibly it contains more than one vertex/rays/lines.
-            # The dimension of a polyhedron with this face as only facet is
-            # the number of atoms it contains.
-            return count_atoms(faces[0], face_length)
-
-        # ``maybe_newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
-        # It needs to be allcoated to store those faces.
+        cdef MemoryAllocator newfaces_mem = MemoryAllocator()
+        cdef size_t depth = 0
         cdef ListOfFaces maybe_newfaces_mem = ListOfFaces(n_faces, face_length*64)
         cdef uint64_t **maybe_newfaces = maybe_newfaces_mem.data
-
-        # ``newfaces`` point to the actual facets of ``faces[n_faces -1]``.
-        cdef MemoryAllocator newfaces_mem = MemoryAllocator()
+        cdef ListOfFaces next_maybe_newfaces_mem = ListOfFaces(n_faces, face_length*64)
+        cdef uint64_t **next_maybe_newfaces = maybe_newfaces_mem.data
+        cdef uint64_t ** holder
         cdef uint64_t **newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
-
-        # Calculating ``maybe_newfaces`` and ``newfaces``
-        # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
+        cdef uint64_t **next_newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
         cdef size_t new_n_faces
-        sig_on()
-        new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
-                                      newfaces, NULL, 0, face_length)
-        sig_off()
+        while True:
 
-        # compute the dimension of the polyhedron,
-        # by calculating dimension of one of its faces.
-        return self.compute_dimension_loop(newfaces, new_n_faces, face_length) + 1
+            if n_faces == 0:
+                raise TypeError("wrong usage of ``compute_dimension_loop``,\n" +
+                                "at least one face needed.")
+
+            if n_faces == 1:
+                # We expect the face to be the empty polyhedron.
+                # Possibly it contains more than one vertex/rays/lines.
+                # The dimension of a polyhedron with this face as only facet is
+                # the number of atoms it contains.
+                return count_atoms(faces[0], face_length) + depth
+
+            # ``maybe_newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
+            # It needs to be allcoated to store those faces.
+
+            # ``newfaces`` point to the actual facets of ``faces[n_faces -1]``.
+
+            # Calculating ``maybe_newfaces`` and ``newfaces``
+            # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
+            sig_on()
+            new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
+                                          newfaces, NULL, 0, face_length)
+            sig_off()
+            faces = newfaces
+            newfaces = next_newfaces
+            holder = maybe_newfaces
+            maybe_newfaces = next_maybe_newfaces
+            maybe_newfaces = holder
+            n_faces = new_n_faces
+            depth += 1
+
+
