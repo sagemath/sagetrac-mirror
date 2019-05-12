@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: extra_compile_args = "-march=native"
 r"""
 FaceIterator
 

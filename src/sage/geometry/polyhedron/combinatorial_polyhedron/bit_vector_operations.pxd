@@ -1,4 +1,5 @@
 # distutils: language = c++
+# distutils: extra_compile_args = "-march=native"
 
 cimport cython
 from libc.stdint                cimport uint64_t
