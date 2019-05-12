@@ -4038,7 +4038,6 @@ class Graph(GenericGraph):
         from sage.graphs.graph_coloring import edge_coloring
         return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
 
-
     @doc_index("Algorithmically hard stuff")
     def chromatic_number(self, algorithm="DLX", solver=None, verbose=0):
         r"""
@@ -4594,7 +4593,6 @@ class Graph(GenericGraph):
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
 
-
     @doc_index("Algorithmically hard stuff")
     def has_homomorphism_to(self, H, core=False, solver=None, verbose=0):
         r"""
@@ -4703,137 +4701,7 @@ class Graph(GenericGraph):
         except MIPSolverException:
             return False
 
-    @doc_index("Leftovers")
-    def fractional_chromatic_index(self, solver="PPL", verbose_constraints=False, verbose=0):
-        r"""
-        Return the fractional chromatic index of the graph.
-
-        The fractional chromatic index is a relaxed version of edge-coloring. An
-        edge coloring of a graph being actually a covering of its edges into the
-        smallest possible number of matchings, the fractional chromatic index of
-        a graph `G` is the smallest real value `\chi_f(G)` such that there
-        exists a list of matchings `M_1, ..., M_k` of `G` and coefficients
-        `\alpha_1, ..., \alpha_k` with the property that each edge is covered by
-        the matchings in the following relaxed way
-
-        .. MATH::
-
-            \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1
-
-        For more information, see the :wikipedia:`Fractional_coloring`.
-
-        ALGORITHM:
-
-        The fractional chromatic index is computed through Linear Programming
-        through its dual. The LP solved by sage is actually:
-
-        .. MATH::
-
-            \mbox{Maximize : }&\sum_{e\in E(G)} r_{e}\\
-            \mbox{Such that : }&\\
-            &\forall M\text{ matching }\subseteq G, \sum_{e\in M}r_{v}\leq 1\\
-
-        INPUT:
-
-        - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
-
-          .. NOTE::
-
-              The default solver used here is ``"PPL"`` which provides exact
-              results, i.e. a rational number, although this may be slower that
-              using other solvers. Be aware that this method may loop endlessly
-              when using some non exact solvers as reported in :trac:`23658` and
-              :trac:`23798`.
-
-        - ``verbose_constraints`` -- boolean (default: ``False``); whether to
-          display which constraints are being generated.
-
-        - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
-          the LP solver.
-
-        EXAMPLES:
-
-        The fractional chromatic index of a `C_5` is `5/2`::
-
-            sage: g = graphs.CycleGraph(5)
-            sage: g.fractional_chromatic_index()
-            5/2
-
-        TESTS:
-
-        Issue reported in :trac:`23658` and :trac:`23798` with non exact
-        solvers::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
-            3.0
-            sage: g.fractional_chromatic_index(solver='PPL')
-            3
-        """
-        self._scream_if_not_simple()
-
-        if not self.order():
-            return 0
-        if not self.size():
-            return 1
-
-        from sage.numerical.mip import MixedIntegerLinearProgram
-
-        # Initialize LP for maximum weight matching
-        M = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
-
-        # One variable per edge
-        b = M.new_variable(binary=True, nonnegative=True)
-
-        # We want to select at most one incident edge per vertex (matching)
-        for u in self:
-            M.add_constraint(M.sum(b[frozenset(e)] for e in self.edges_incident(u, labels=0)), max=1)
-
-        #
-        # Initialize LP for fractional chromatic number
-        p = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
-
-        # One variable per edge
-        r = p.new_variable(nonnegative=True)
-
-        # We want to maximize the sum of weights on the edges
-        p.set_objective(p.sum(r[frozenset(e)] for e in self.edge_iterator(labels=False)))
-
-        # Each edge being by itself a matching, its weight can not be more than
-        # 1
-        for e in self.edge_iterator(labels=False):
-            p.add_constraint(r[frozenset(e)], max=1)
-
-        obj = p.solve(log=verbose)
-
-        while True:
-
-            # Update the weights of edges for the matching problem
-            M.set_objective(M.sum(p.get_values(r[frozenset(e)]) * b[frozenset(e)] for e in self.edge_iterator(labels=0)))
-
-            # If the maximum matching has weight at most 1, we are done !
-            if M.solve(log=verbose) <= 1:
-                break
-
-            # Otherwise, we add a new constraint
-            matching = [e for e in self.edge_iterator(labels=0) if M.get_values(b[frozenset(e)]) == 1]
-            p.add_constraint(p.sum(r[frozenset(e)] for e in matching), max=1)
-            if verbose_constraints:
-                print("Adding a constraint on matching : {}".format(matching))
-
-            # And solve again
-            obj = p.solve(log=verbose)
-
-        # Accomplished !
-        return obj
-    
-    @doc_index("Leftovers")
+    @doc_index("Clique-related methods")
     def fractional_clique_number(self, solver='PPL', verbose=0, only_maximal=True, check_components=True, check_bipartite=True):
         r"""
         Return the fractional clique number of the graph.
@@ -8799,7 +8667,7 @@ class Graph(GenericGraph):
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
     from sage.graphs.graph_coloring import fractional_chromatic_number
-
+    from sage.graphs.graph_coloring import fractional_chromatic_index
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -8825,7 +8693,8 @@ _additional_categories = {
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
     "spqr_tree"                 : "Connectivity, orientations, trees",
-    "fractional_chromatic_number" : "Leftovers"
+    "fractional_chromatic_number" : "Algorithmically hard stuff",
+    "fractional_chromatic_index" : "Leftovers"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))
