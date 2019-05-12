@@ -3967,7 +3967,7 @@ class Graph(GenericGraph):
 
         return left, right
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_index(self, solver=None, verbose=0):
         r"""
         Return the chromatic index of the graph.
@@ -4038,7 +4038,7 @@ class Graph(GenericGraph):
         from sage.graphs.graph_coloring import edge_coloring
         return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_number(self, algorithm="DLX", solver=None, verbose=0):
         r"""
         Return the minimal number of colors needed to color the vertices of the
@@ -4153,7 +4153,7 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.")
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def coloring(self, algorithm="DLX", hex_colors=False, solver=None, verbose=0):
         r"""
         Return the first (optimal) proper vertex-coloring found.
@@ -4231,7 +4231,7 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_symmetric_function(self, R=None):
         r"""
         Return the chromatic symmetric function of ``self``.
@@ -4305,7 +4305,7 @@ class Graph(GenericGraph):
             ret += (-1)**len(F) * p[la]
         return ret
 
-    @doc_index("Algorithmically hard stuff")
+    @doc_index("Coloring")
     def chromatic_quasisymmetric_function(self, t=None, R=None):
         r"""
         Return the chromatic quasisymmetric function of ``self``.
@@ -8674,7 +8674,7 @@ _additional_categories = {
     "is_long_antihole_free"     : "Graph properties",
     "is_weakly_chordal"         : "Graph properties",
     "is_asteroidal_triple_free" : "Graph properties",
-    "chromatic_polynomial"      : "Algorithmically hard stuff",
+    "chromatic_polynomial"      : "Coloring",
     "rank_decomposition"        : "Algorithmically hard stuff",
     "pathwidth"                 : "Algorithmically hard stuff",
     "matching_polynomial"       : "Algorithmically hard stuff",
@@ -8693,8 +8693,8 @@ _additional_categories = {
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
     "spqr_tree"                 : "Connectivity, orientations, trees",
-    "fractional_chromatic_number" : "Algorithmically hard stuff",
-    "fractional_chromatic_index" : "Leftovers"
+    "fractional_chromatic_number" : "Coloring",
+    "fractional_chromatic_index" : "Coloring"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))
