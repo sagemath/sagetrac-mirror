@@ -2585,7 +2585,7 @@ cdef class NumberFieldElement(FieldElement):
 
         ::
 
-            sage: long(K(393/29))
+            sage: long(K(393/29)) # py2
             13L
         """
         return long(self.polynomial())

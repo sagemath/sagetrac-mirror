@@ -5656,7 +5656,7 @@ class ANRational(ANDescr):
 
             sage: polygen(QQbar) / int(3)
             1/3*x
-            sage: QQbar(int(7)) / QQbar(long(2))
+            sage: QQbar(int(7)) / QQbar(long(2)) # py2
             7/2
         """
         if isinstance(x, (sage.rings.integer.Integer,

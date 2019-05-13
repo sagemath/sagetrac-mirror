@@ -132,7 +132,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: K.<a> = FiniteField(7^20, impl='pari_ffelt')
         sage: K(int(8))
         1
-        sage: K(long(-2^300))
+        sage: K(long(-2^300)) # py2
         6
 
     ::

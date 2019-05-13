@@ -209,7 +209,7 @@ cpdef py_scalar_to_element(x):
         sage: x = py_scalar_to_element(int(42))
         sage: x, parent(x)
         (42, Integer Ring)
-        sage: x = py_scalar_to_element(long(42))
+        sage: x = py_scalar_to_element(long(42)) # py2
         sage: x, parent(x)
         (42, Integer Ring)
         sage: x = py_scalar_to_element(float(42))
@@ -250,7 +250,8 @@ cpdef py_scalar_to_element(x):
     Test compatibility with :func:`py_scalar_parent`::
 
         sage: from sage.structure.coerce import py_scalar_parent
-        sage: elt = [True, int(42), long(42), float(42), complex(42)]
+        sage: elt = [True, int(42), long(42), float(42), complex(42)] # py2
+        sage: elt = [True, int(42), float(42), complex(42)] # py3
         sage: for x in elt:
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
 
@@ -322,7 +323,7 @@ cpdef bint parent_is_integers(P) except -1:
         sage: from sage.structure.coerce import parent_is_integers
         sage: parent_is_integers(int)
         True
-        sage: parent_is_integers(long)
+        sage: parent_is_integers(long) # py2
         True
         sage: parent_is_integers(float)
         False

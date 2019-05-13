@@ -1102,7 +1102,7 @@ cdef bint py_is_integer(x):
 
         sage: py_is_integer(1r)
         True
-        sage: py_is_integer(long(1))
+        sage: py_is_integer(long(1)) # py2
         True
         sage: py_is_integer(3^57)
         True
@@ -1308,7 +1308,7 @@ def py_is_cinteger_for_doctest(x):
         sage: from sage.libs.pynac.pynac import py_is_cinteger_for_doctest
         sage: py_is_cinteger_for_doctest(1)
         True
-        sage: py_is_cinteger_for_doctest(long(-3))
+        sage: py_is_cinteger_for_doctest(long(-3)) # py2
         True
         sage: py_is_cinteger_for_doctest(I.pyobject())
         True
@@ -1706,11 +1706,11 @@ cdef py_log(x):
         3.141592653589793j
         sage: py_log(int(1))
         0.0
-        sage: py_log(long(1))
+        sage: py_log(long(1)) # py2
         0.0
         sage: py_log(int(0))
         -inf
-        sage: py_log(long(0))
+        sage: py_log(long(0)) # py2
         -inf
         sage: py_log(complex(0))
         -inf

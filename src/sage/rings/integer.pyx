@@ -375,7 +375,7 @@ def is_Integer(x):
         False
         sage: is_Integer(int(2))
         False
-        sage: is_Integer(long(2))
+        sage: is_Integer(long(2)) # py2
         False
         sage: is_Integer('5')
         False
@@ -491,10 +491,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         EXAMPLES::
 
-            sage: a = long(-901824309821093821093812093810928309183091832091)
-            sage: b = ZZ(a); b
+            sage: a = long(-901824309821093821093812093810928309183091832091) # py2
+            sage: b = ZZ(a); b # py2
             -901824309821093821093812093810928309183091832091
-            sage: ZZ(b)
+            sage: ZZ(b) # py2
             -901824309821093821093812093810928309183091832091
             sage: ZZ('-901824309821093821093812093810928309183091832091')
             -901824309821093821093812093810928309183091832091
@@ -562,13 +562,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: class MyInt(int):
             ....:     pass
-            sage: class MyLong(long):
+            sage: class MyLong(long): # py2
             ....:     pass
             sage: class MyFloat(float):
             ....:     pass
             sage: ZZ(MyInt(3))
             3
-            sage: ZZ(MyLong(4))
+            sage: ZZ(MyLong(4)) # py2
             4
             sage: ZZ(MyFloat(5))
             5
@@ -1218,7 +1218,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             10
             sage: print(Integer(16938402384092843092843098243).hex())
             36bb1e3929d1a8fe2802f083
-            sage: print(hex(long(16938402384092843092843098243)))
+            sage: print(hex(long(16938402384092843092843098243))) # py2
             0x36bb1e3929d1a8fe2802f083L
 
         TESTS::
@@ -3525,16 +3525,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES::
 
             sage: n = 9023408290348092849023849820934820938490234290
-            sage: long(n)
+            sage: long(n) # py2
             9023408290348092849023849820934820938490234290L
-            sage: long(-n)
+            sage: long(-n) # py2
             -9023408290348092849023849820934820938490234290L
             sage: n = 920938
-            sage: long(n)
+            sage: long(n) # py2
             920938L
             sage: n.__long__()  # py2
             920938L
-            sage: long(-1), long(0), long(1)
+            sage: long(-1), long(0), long(1) # py2
             (-1L, 0L, 1L)
         """
         return mpz_get_pylong(self.value)
@@ -3590,7 +3590,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = -920390823904823094890238490238484; n.__hash__()
             -873977844            # 32-bit
             6874330978542788722   # 64-bit
-            sage: hash(long(n))
+            sage: hash(long(n)) # py2
             -873977844            # 32-bit
             6874330978542788722   # 64-bit
 
@@ -3599,22 +3599,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: hash(-1), hash(0), hash(1)
             (-2, 0, 1)
             sage: n = 2^31 + 2^63 + 2^95 + 2^127 + 2^128*(2^32-2)
-            sage: hash(n) == hash(long(n))
+            sage: hash(n) == hash(long(n)) # py2
             True
-            sage: hash(n-1) == hash(long(n-1))
+            sage: hash(n-1) == hash(long(n-1)) # py2
             True
-            sage: hash(-n) == hash(long(-n))
+            sage: hash(-n) == hash(long(-n)) # py2
             True
-            sage: hash(1-n) == hash(long(1-n))
+            sage: hash(1-n) == hash(long(1-n)) # py2
             True
             sage: n = 2^63 + 2^127 + 2^191 + 2^255 + 2^256*(2^64-2)
-            sage: hash(n) == hash(long(n))
+            sage: hash(n) == hash(long(n)) # py2
             True
-            sage: hash(n-1) == hash(long(n-1))
+            sage: hash(n-1) == hash(long(n-1)) # py2
             True
-            sage: hash(-n) == hash(long(-n))
+            sage: hash(-n) == hash(long(-n)) # py2
             True
-            sage: hash(1-n) == hash(long(1-n))
+            sage: hash(1-n) == hash(long(1-n)) # py2
             True
 
         These tests come from :trac:`4957`::
@@ -7172,13 +7172,13 @@ cdef class long_to_Z(Morphism):
     """
     EXAMPLES::
 
-        sage: f = ZZ.coerce_map_from(long); f
+        sage: f = ZZ.coerce_map_from(long); f # py2
         Native morphism:
           From: Set of Python objects of class 'long'
           To:   Integer Ring
-        sage: f(1rL)
+        sage: f(1rL) # py2
         1
-        sage: f(-10000000000000000000001r)
+        sage: f(-10000000000000000000001r) # py2
         -10000000000000000000001
     """
     def __init__(self):

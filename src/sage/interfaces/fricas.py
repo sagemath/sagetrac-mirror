@@ -999,7 +999,7 @@ class FriCASElement(ExpectElement):
         """
         TESTS::
 
-            sage: long(fricas('1'))                                             # optional - fricas
+            sage: long(fricas('1'))                                             # optional - fricas py2
             1L
         """
         return long(self.sage())

@@ -63,7 +63,7 @@ cdef class ntl_ZZ(object):
             12
             sage: ntl.ZZ(Integer(95413094))
             95413094
-            sage: ntl.ZZ(long(223895239852389582983))
+            sage: ntl.ZZ(long(223895239852389582983)) # py2
             223895239852389582983
             sage: ntl.ZZ('-1')
             -1
