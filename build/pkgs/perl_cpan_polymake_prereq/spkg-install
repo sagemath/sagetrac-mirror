@@ -1,5 +1,2 @@
 PARTIAL_CPAN_MIRROR=`pwd`/src/sagepan
-# --skip-satisfied skips installing a module if ANY version of it is installed already.
-# This avoids installing packages provided by the system's perl installation.
-# For instance, on macOS, some versions of the xml perl libraries are provided.
-perl src/cpanm --from="$PARTIAL_CPAN_MIRROR" --local-lib "$SAGE_LOCAL" --skip-satisfied XML::LibXML XML::Writer XML::LibXSLT File::Slurp JSON SVG MongoDB
+perl src/cpanm --from="$PARTIAL_CPAN_MIRROR" --local-lib "$SAGE_LOCAL" --installdeps .
