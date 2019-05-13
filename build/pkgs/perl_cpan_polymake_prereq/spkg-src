@@ -25,6 +25,6 @@ curl -L https://cpanmin.us/ -o cpanm
 chmod +x cpanm
 
 VERSION=`date +%Y-%m-%d`
-tar cf upstream/perl_cpan_polymake_prereq-$VERSION.tar.gz  cpanm $PARTIAL_CPAN_MIRROR
+tar cfz upstream/perl_cpan_polymake_prereq-$VERSION.tar.gz  cpanm $PARTIAL_CPAN_MIRROR
 
 ./sage -package update perl_cpan_polymake_prereq $VERSION
