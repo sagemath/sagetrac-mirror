@@ -40,20 +40,21 @@ class FormalGroupLaw(FPS):
         # f(x, f(x, f(x, f(x, ... f(x, x)))))
         # f.series(1) = f(X, X)
         # f(x, f.iseries(-1)) == 1
-        def twovar(i, X):
-            if i == 0:
-                return X
-            if i <= -1:
-                pass
-                i *= -1 ## probably wrong
-            if i == 1:
-                return self(X, X)
-            elif i > 1:
-                return self(X, twovar(i-1, X))
-        Xcoeffs = lambda l: int(l == [1, 0])
-        X = FPS(self.ring, 2, Xcoeffs, self.b_func, self.var)
-        ps = twovar(i, X)
-        return ps.include([0], 2)
+	zero = FPS(self.ring, 1, lambda n: 0, self.b_func)
+        def twovar(i, poly):
+            if i < 0:
+                # maybe define this someday, inverse of x in a FGL
+                raise ValueError("i must be positive")
+            elif i == 0:
+                return zero
+            elif i == 1:
+                return poly
+            else:
+                return self([poly, twovar(i-1, poly)]).include([0,0], 1, "x")
+        Xcoeffs = lambda l: 1 if l == [1] else 0
+        x_lin = FPS(self.ring, 1, Xcoeffs, lambda l: 1)
+        ps = twovar(i, x_lin)
+        return ps
     # conjugate takes some f in R[[z]] and a FGL G(x, y) in R[[x,y]] and conjugates G wrt f:
     # G.conjugate(f) = f^(-1) (G(f(x), f(y)))
     # where f^(-1) is the compositional inverse (reversion).
@@ -64,10 +65,7 @@ class FormalGroupLaw(FPS):
         intermediate = self.__call__(seriesList = [f, f])
         #test = grouplaw(intermediate)
         ps = frev([intermediate])
-        print("debugconj")
-        print("var: ", intermediate.var)
         ps.view(4)
-        print("postview")
         return grouplaw(ps)
 
     def forget(self):
@@ -95,7 +93,6 @@ def linear(ring):
 
 def ptypical(p, gen = "hazelwinkel"):
     if gen == "hazelwinkel":
-        print("DebugHZ")
         def L(n):
             if n == 0:
                 return 1
@@ -109,7 +106,6 @@ def ptypical(p, gen = "hazelwinkel"):
                     nx /= p
                     prev.append(nx)
                 return prev[-1]
-        print("DBG1")
         def logcoeffs(l):
             n = l[0]
             k = 0
@@ -120,17 +116,14 @@ def ptypical(p, gen = "hazelwinkel"):
                 return L(k)
             else:
                 return 0
-        print("DBG2")
         def discretelog(n):
             x = 0
             while n > 1:
                 x += 1
                 n //= p
             return x
-        print("DEBUGA")
         lazard = IndRing('lazard')
         logr = FPS(ring = lazard, n = 1, coeffs = logcoeffs, b_func = discretelog, var = 'XY')
-        print("DEBUGB")
         addition = FormalGroupLaw(ring = lazard, coeffs = lambda l: int(l == [0,1] or l == [1,0]), b_func = lambda n: 0)
         return addition.conjugate(logr)
     elif gen == 'araki':
@@ -155,49 +148,48 @@ def grouplaw(ps):
 # print("debug1")
 # hz = ptypical(p=2)
 # hz.view(3)
-print("4:20")
 
 rationals = IndRing(QQ)
-basic = FormalGroupLaw(rationals, lambda l: int(l in [[0,1], [1,0], [1,1]]))
-basic.view(4)
-
-ps = FPS(rationals, 1, lambda l: int(l[0] in [1, 2]), lambda n: n)
-ps.view(4)
-
-rev = ps.reversion()
-print("rev", rev.view(4))
-intermediate = basic([ps, ps])
-print("intermediate", intermediate.view(4))
-after_conj = rev([intermediate])
-print("after_conj", after_conj.view(4))
-conj = basic.conjugate(ps)
-conj.view(4)
-
-
-print('it has run.')
+#basic = FormalGroupLaw(rationals, lambda l: int(l in [[0,1], [1,0], [1,1]]))
+#basic.view(4)
+#
+#ps = FPS(rationals, 1, lambda l: int(l[0] in [1, 2]), lambda n: n)
+#ps.view(4)
+#
+#rev = ps.reversion()
+#print("rev", rev.view(4))
+#intermediate = basic([ps, ps])
+#print("intermediate", intermediate.view(4))
+#after_conj = rev([intermediate])
+#print("after_conj", after_conj.view(4))
+#conj = basic.conjugate(ps)
+#conj.view(4)
+#
+#
+#print('it has run.')
 
 #Example Coefficient function
 def universal_identity(natural):
     return natural
 Lazard = IndRing('lazard')
 Integer_Ring = IndRing(ZZ)
-def f_coeffs(powers):
-    n = powers[0] + powers[1]
-    R = PolynomialRing(ZZ, n, 'U')
-    U = R.gens()
-    if n == 0:
-        return 2
-    return (powers[0]*U[0] + powers[1]*U[-1])
-
-f = FPS(Lazard, 2, f_coeffs, universal_identity)
-print("f:",f.view(3))
-def lazard_to_integers_f(n):
-    ring = PolynomialRing(ZZ, n, 'U')
-    eval_list = [2]*(n)
-    hom = ring.hom(eval_list, ZZ)
-    return hom
-
-print("H is a homomorphism that sends all of the ci's in the Lazard ring to 1")
-H = IndRingHom(Lazard, Integer_Ring, lazard_to_integers_f)
-h = f.change_base(H)
-print("h", h.view(3))
+#def f_coeffs(powers):
+#    n = powers[0] + powers[1]
+#    R = PolynomialRing(ZZ, n, 'U')
+#    U = R.gens()
+#    if n == 0:
+#        return 2
+#    return (powers[0]*U[0] + powers[1]*U[-1])
+#
+#f = FPS(Lazard, 2, f_coeffs, universal_identity)
+#print("f:",f.view(3))
+#def lazard_to_integers_f(n):
+#    ring = PolynomialRing(ZZ, n, 'U')
+#    eval_list = [2]*(n)
+#    hom = ring.hom(eval_list, ZZ)
+#    return hom
+#
+#print("H is a homomorphism that sends all of the ci's in the Lazard ring to 1")
+#H = IndRingHom(Lazard, Integer_Ring, lazard_to_integers_f)
+#h = f.change_base(H)
+#print("h", h.view(3))

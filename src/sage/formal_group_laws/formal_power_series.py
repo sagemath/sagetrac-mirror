@@ -44,7 +44,7 @@ class FPS:
 
     #Overide the repr function
     def __repr__(self):
-        return "Formal Power Series with variables " + str(self.var)
+        return "Formal Power Series with " + str(self.n) + " variables: " + str(self.var)
 
     def __add__(self, ps): # addition operator
         if self.ring != ps.ring:
@@ -55,6 +55,12 @@ class FPS:
             raise ValueError("Different variables")
         else:
             return FPS(self.ring, self.n, None, None, self.var, None, [self,ps], ["+"])
+
+    def divide_by_gen(self, n): # only works in one-variable case. divides by x**n
+        # test if possible:
+        if self.view(n-1) != 0:
+            raise ValueError("Cannot divide by x**{}".format(n))
+        return FPS(self.ring, self.n, None, None, self.var, None, [self], ["divide_by_gen", n])
 
     def __sub__(self, ps): # subtraction operator
         if self.ring != ps.ring:
@@ -81,13 +87,13 @@ class FPS:
 
     #Returns self raised to the power e
     def __pow__(self, e):
-        
         if e < 0:
             pow = self.inverse()
             if e < -1:
                 pow = pow**(-e)
             return pow
         return FPS(self.ring, self.n, None, None, self.var, None, [self], ["pow", e])
+
 
     def inverse(self): # multiplicative inverse
         try:
@@ -116,6 +122,7 @@ class FPS:
         # g is a list representing a function which takes self.children[0].n arguments to range((new self.n))
         # m is the new self.n
         # the optional newVar argument renames the power series variables
+	# example: if ps has two variables x0, x1 then ps.include([2,0], 3) turns ps into a series in x0, x1, x2. x0 is mapped to x2 and x1 is mapped to x0.
         if newVar == None:
             newVar = self.var
         return FPS(self.ring, m, None, None, newVar, None, [self], ["inc", g])
@@ -197,13 +204,6 @@ class FPS:
         return FPS(self.ring, self.n, None, None, self.var, None, [self], ["igt", i])
         #return self
 
-
-
-     # this function is deprecated since it is the same as .view(0)
-#    #Return constant of the formal power series
-#    def getConst(self):
-#	return self.view(0)
-
     #Depth-first Search to find the maximal index needed for the base IndRing for a given precision based on data on nodes, and the locations of derivatives and base changes
     #Derivative is the only implemented operation which requires a different level of precision for the children to get the correct precision for the parent
     #Change base has some weirdness due to the rstep and sstep functions if they are not the identity.
@@ -213,7 +213,7 @@ class FPS:
             #This is the case when someone has integrated a lot but is not asking for much precision
             if prec + derivative_counter < 0:
                 return 0
-            return self.b_func(prec + derivative_counter)
+            return prec+derivative_counter if self.b_func is None else self.b_func(prec + derivative_counter)
         #Is an operation
         else:
             #derivative_counter keeps track of how many derivatives/integrations have been taken
@@ -328,12 +328,14 @@ class FPS:
                 current_power = inside_poly
                 total_poly = outside_poly[0]
                 if prec == 0:
-                    return total_poly
+		    H = PowerSeriesRing(self.ring.rings(target_ring), self.n, self.var)
+		    x = H.gens()
+                    return total_poly*(x[0]**0)
                 for i in range(1, prec + 1):
                     total_poly += (outside_poly[i] * current_power)
                     if i < prec:
                         current_power = fast_mult_pow(inside_poly, current_power, prec)
-                return total_poly
+	        return total_poly
 
 
             elif self.operation[0] == "pow":
@@ -385,6 +387,7 @@ class FPS:
                     return t.add_bigoh(prec +1)
 
             elif self.operation[0] == "inc":
+                print("BEGINNING INC VIEW")
                 if(self.children[0].n == 1):
                     poly = self.children[0].view_helper(prec, target_ring)
                     H = poly.parent()
@@ -397,20 +400,37 @@ class FPS:
                             poly2 += poly_coeffs[x[0]**i] * y[(self.operation[1])[0]]**i
                     # make sure poly2 is indeed a power series (i.e. in case of degree = 0)
                     poly2 *= y[0]**0
-                    return poly2.add_bigoh(prec + 1)
+                    print("return with n==1 INC VIEW")
+		    print(type(poly2))
+                    return poly2.add_bigoh(prec+1)
+		print("n IS NOT 1")
                 K = PowerSeriesRing(self.ring.rings(self.ring_size(prec, 0)), self.n, 'zzz')
                 y = K.gens()
+                print("y is {}".format(y))
                 H = PowerSeriesRing(self.ring.rings(self.ring_size(prec, 0)), self.children[0].n, self.var)
                 x = H.gens()
+                print("x is {}".format(x))
                 image = []
                 for i in range(len(self.operation[1])):
                     image += [y[(self.operation[1])[i]]]
+                print("image = ", image)
+                print("x = ", x)
                 phi = Hom(H, K)(image)
-                poly = phi((self.children[0]).view_helper(prec, target_ring))
+                poly = self.children[0].view_helper(prec, target_ring)
+		print("its definitely the poly thing, {} of type {}".format(poly, type(poly)))
+                if poly == 0:
+                    H = PowerSeriesRing(self.ring.rings(self.ring_size(prec, 0)), self.n, self.var)
+                    x = H.gens()
+                    return (0 * x[0]**0).add_bigoh(prec +1)
+		    
+                poly = phi(poly)
+                print("poly is {}".format(poly))
                 # can discard H now
                 H = PowerSeriesRing(self.ring.rings(self.ring_size(prec, 0)), self.n, self.var)
                 x = H.gens()
+                print("x with new H is {}".format(x))
                 id = Hom(K, H)(x)
+                print("return with n=!=1 INC VIEW")
                 return id(poly)
             elif self.operation[0] == "o":
                 if self.children[0].n == 1:
@@ -419,7 +439,7 @@ class FPS:
                     H = old_series.parent()
                     inside_poly = (old_series.polynomial())
                     comp_poly = outside_poly(inside_poly)
-                    new_series = H(comp_poly).add_bigoh(prec + 1)
+                    new_series = (H(comp_poly)).add_bigoh(prec + 1)
                     return new_series
                 outside_poly = self.children[0].view_helper(prec, target_ring)
                 #Can reduce precision needed for the inside power series based on the valuation of the outside power series disregarding the constant term
@@ -437,6 +457,10 @@ class FPS:
                     poly = ps.polynomial()
                     integrand = poly.integral(poly.parent().gens()[self.operation[1]])
                     return A(integrand).add_bigoh(prec+1)
+            elif self.operation[0] == "divide_by_gen":
+                n = self.operation[1]
+                # this does NOT work
+                return (self.children[0].view_helper(prec+n, target_ring).shift(-n).add_bigoh(prec + 1 + n))
 
     def clear_memoizatio(self):
         self.memoized_degree = None
@@ -512,7 +536,7 @@ class UFGL(FPS):
                     return 1
                 if d == None:
                     d = n
-                R = PolynomialRing(QQ, d, 'U')
+                R = Rational_Lazard.rings(d)
                 U = R.gens()
                 ans = U[n - 1]
                 div = (divisors(n))[1:-1]
@@ -525,8 +549,8 @@ class UFGL(FPS):
             return ans
         ring = Rational_Lazard
         logarithm = FPS(ring, 1, log_coeffs)
-        print("log: ")
-        print(logarithm.view(12))
+        #print("log: ")
+        #print(logarithm.view(12))
         log1 = logarithm.include([0], 2)
         log2 = logarithm.include([1], 2)
         add = log1 + log2
