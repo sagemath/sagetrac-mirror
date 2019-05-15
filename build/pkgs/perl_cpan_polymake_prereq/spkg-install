@@ -1,0 +1,2 @@
+PARTIAL_CPAN_MIRROR=`pwd`/src/sagepan
+perl src/cpanm --from="$PARTIAL_CPAN_MIRROR" --local-lib "$SAGE_LOCAL" --installdeps .

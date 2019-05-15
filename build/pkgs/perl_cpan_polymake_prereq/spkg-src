@@ -1,0 +1,30 @@
+#!/bin/sh
+# Invoke from SAGE_ROOT.
+# creates the tarball and updates the package
+set -e
+
+TEMP_PERL_LOCAL_LIB_ROOT=temp-perl-local-lib
+PARTIAL_CPAN_MIRROR=sagepan
+
+cpanm --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $PARTIAL_CPAN_MIRROR XML::Writer XML::LibXML XML::LibXSLT File::Slurp JSON SVG MongoDB
+
+cpan-mirror-tiny -b $PARTIAL_CPAN_MIRROR gen-index
+
+# https://stackoverflow.com/questions/5566982/cpanminiinject-doesnt-update-03modlist-data-gz
+cat > $PARTIAL_CPAN_MIRROR/modules/03modlist.data <<'EOF'
+package CPAN::Modulelist;
+sub data { my $result = {} }
+$CPAN::Modulelist::cols = [];
+$CPAN::Modulelist::data = [];
+EOF
+rm -f $PARTIAL_CPAN_MIRROR/modules/03modlist.data.gz
+gzip $PARTIAL_CPAN_MIRROR/modules/03modlist.data
+
+# Get the self-contained cpanm Perl script
+curl -L https://cpanmin.us/ -o cpanm
+chmod +x cpanm
+
+VERSION=`date +%Y-%m-%d`
+tar cfz upstream/perl_cpan_polymake_prereq-$VERSION.tar.gz  cpanm $PARTIAL_CPAN_MIRROR
+
+./sage -package update perl_cpan_polymake_prereq $VERSION

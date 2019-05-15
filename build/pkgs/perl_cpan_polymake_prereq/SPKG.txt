@@ -1,0 +1,10 @@
+= perl_cpan_polymake_prereq =
+
+== Description ==
+
+A partial mirror of CPAN containing all Perl packages
+that are prerequisites for polymake.
+
+== License ==
+
+Various free software licenses
