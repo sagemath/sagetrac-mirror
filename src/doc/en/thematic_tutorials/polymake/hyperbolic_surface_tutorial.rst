@@ -45,15 +45,19 @@ Example 1: hyperbolic sphere with three cusps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'fan';
-    ........> application 'topaz';
+    polymake> application 'topaz';
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $S3 = new Array<Array<Int>>([[1,0,2,5],[2,1,4,1],[0,2,0,3]]);
-    ........> $s = new HyperbolicSurface(DCEL_DATA=>$S3,PENNER_COORDINATES=>[1,1,1]);
+    polymake> $s = new HyperbolicSurface(DCEL_DATA=>$S3,PENNER_COORDINATES=>[1,1,1]);
 
 In this example the doubly connected edge list looks like this:
 |Paper.Skizzen.2%281%29.png|
@@ -67,10 +71,12 @@ computed as follows.
 .. |Paper.Skizzen.2%281%29.png| image:: attachment:Paper.Skizzen.2%281%29.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = $s->SECONDARY_FAN;
-    ........> $f->properties;
+    polymake> $f->properties;
     type: PolyhedralFan<Rational>
     
     RAYS
@@ -108,7 +114,9 @@ computed as follows.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f->VISUAL;
 
@@ -1541,7 +1549,9 @@ computed as follows.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s->properties;
     name: s
@@ -1587,7 +1597,9 @@ on the surface. This is done by choosing two rational numbers.
 Continuing with the above example, lets look at the following.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s = new HyperbolicSurface(DCEL_DATA=>$S3,PENNER_COORDINATES=>[1,1,1],SPECIAL_POINT=>[1,0]);
 
@@ -1597,7 +1609,9 @@ the depth of the (covering) triangles that are summed over in the
 definition of the GKZ vectors.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $s->GKZ_VECTORS(3);
     1 33346854621/25672050625 33346854621/25672050625 19782163/27238250
@@ -1613,10 +1627,12 @@ The secondary polyhedron can be computed similarly using the function
 ``secondary_polyhedron``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = secondary_polyhedron($s,10);
-    ........> $p->properties;
+    polymake> $p->properties;
     name: p
     type: Polytope<Float>
     
@@ -1646,7 +1662,9 @@ The secondary polyhedron can be computed similarly using the function
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->VISUAL(FacetColor=>'255 180 80');
 
@@ -2839,10 +2857,12 @@ The secondary polyhedron can be computed similarly using the function
 We may look at the GKZ domes of the individual Delaunay triangulations.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d0 = $s->gkz_dome(0,5);
-    ........> $d0->VISUAL(FacetColor=>'80 180 255');
+    polymake> $d0->VISUAL(FacetColor=>'80 180 255');
 
 
 .. raw:: html
@@ -9658,10 +9678,12 @@ We may look at the GKZ domes of the individual Delaunay triangulations.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d1 = $s->gkz_dome(1,5);
-    ........> $d1->VISUAL(FacetColor=>'80 180 255');
+    polymake> $d1->VISUAL(FacetColor=>'80 180 255');
 
 
 .. raw:: html
@@ -16481,10 +16503,12 @@ Example 2: a hyperbolic torus with three cusps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $T3 = new Array<Array<Int>>([[1,0,2,17],[2,1,4,14],[0,2,0,6],[1,2,8,16],[0,1,5,10],[2,1,12,1],[0,2,9,3],[0,1,13,7],[0,2,15,11]]);
-    ........> $s = new HyperbolicSurface(DCEL_DATA=>$T3, PENNER_COORDINATES=>[2,1,1,1,1,1,1,1,1], SPECIAL_POINT=>[1,0]);
+    polymake> $s = new HyperbolicSurface(DCEL_DATA=>$T3, PENNER_COORDINATES=>[2,1,1,1,1,1,1,1,1], SPECIAL_POINT=>[1,0]);
 
 .. figure:: attachment:Paper.Skizzen.3%281%29.png
    :alt: Paper.Skizzen.3%281%29.png
@@ -16492,10 +16516,12 @@ Example 2: a hyperbolic torus with three cusps
    Paper.Skizzen.3%281%29.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = $s->SECONDARY_FAN;
-    ........> $f->VISUAL;
+    polymake> $f->VISUAL;
 
 
 .. raw:: html
@@ -18795,7 +18821,9 @@ Example 2: a hyperbolic torus with three cusps
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s->properties;
     name: s
@@ -18842,10 +18870,12 @@ Example 2: a hyperbolic torus with three cusps
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = secondary_polyhedron($s,7);
-    ........> $p->VISUAL(FacetColor=>'255 180 80');
+    polymake> $p->VISUAL(FacetColor=>'255 180 80');
 
 
 .. raw:: html
@@ -20209,10 +20239,12 @@ Example 2: a hyperbolic torus with three cusps
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d0 = $s->gkz_dome(0,5);
-    ........> $d0->VISUAL(FacetColor=>'80 180 255');
+    polymake> $d0->VISUAL(FacetColor=>'80 180 255');
 
 
 .. raw:: html
@@ -27028,11 +27060,13 @@ Example 2: a hyperbolic torus with three cusps
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s = new HyperbolicSurface(DCEL_DATA=>$T3, PENNER_COORDINATES=>[2,1,1,1,1,1,1,1,1], SPECIAL_POINT=>[new Rational(1.5196714),new Rational(-0.5773503)]);
-    ........> $p = secondary_polyhedron($s,7);
-    ........> $p->VISUAL(FacetColor=>'255 180 80');
+    polymake> $p = secondary_polyhedron($s,7);
+    polymake> $p->VISUAL(FacetColor=>'255 180 80');
 
 
 .. raw:: html
@@ -28396,10 +28430,12 @@ Example 2: a hyperbolic torus with three cusps
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d0 = $s->gkz_dome(0,5);
-    ........> $d0->VISUAL(FacetColor=>'80 180 255');
+    polymake> $d0->VISUAL(FacetColor=>'80 180 255');
 
 
 .. raw:: html
@@ -35222,50 +35258,58 @@ More examples can be studied via the following:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> # a torus with two cusps (6 edges)
-    ........> $T2 = new Array<Array<Int>>([[0,0,6,5],[0,0,1,10],[0,0,8,2],[1,0,11,4],[1,0,7,3],[1,0,9,0]]);
-    ........> 
-    ........> # a sphere with four cusps (6 edges)
-    ........> $S4 = new Array<Array<Int>>([[1,0,2,6],[2,1,4,9],[0,2,0,11],[3,0,8,5],[1,3,1,10],[2,3,3,7]]);
-    ........> 
-    ........> # a double torus with two cusps (12 edges)
-    ........> $DT2 = new Array<Array<Int>>([[0,0,8,10],[0,0,12,14],[0,0,16,18],[0,0,20,22],[1,0,23,2],[1,0,13,3],[1,0,9,1],[1,0,11,4],[1,0,15,6],[1,0,21,7],[1,0,17,5],[1,0,19,0]]);
+    polymake> $T2 = new Array<Array<Int>>([[0,0,6,5],[0,0,1,10],[0,0,8,2],[1,0,11,4],[1,0,7,3],[1,0,9,0]]);
+    polymake> 
+    polymake> # a sphere with four cusps (6 edges)
+    polymake> $S4 = new Array<Array<Int>>([[1,0,2,6],[2,1,4,9],[0,2,0,11],[3,0,8,5],[1,3,1,10],[2,3,3,7]]);
+    polymake> 
+    polymake> # a double torus with two cusps (12 edges)
+    polymake> $DT2 = new Array<Array<Int>>([[0,0,8,10],[0,0,12,14],[0,0,16,18],[0,0,20,22],[1,0,23,2],[1,0,13,3],[1,0,9,1],[1,0,11,4],[1,0,15,6],[1,0,21,7],[1,0,17,5],[1,0,19,0]]);
 
 To study 4-dim. secondary fans the following method is useful. It
 intersects the secondary fan with the 3-dim. standard simplex.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> sub norm($){
-    ........>    my $B = new Matrix(shift);
-    ........>    for (my $i = 0; $i < $B->rows(); ++$i) {
-    ........>       my $sum = 0;
-    ........>       for (my $j = 1; $j < $B->cols(); ++$j) {
-    ........>          $sum = $sum + $B->elem($i,$j);
-    ........>       }
-    ........>       $x = 1/$sum;
-    ........>       $B->row($i) = $x * $B->row($i);
-    ........>    }
-    ........>    return $B;
-    ........> }
+    polymake>    my $B = new Matrix(shift);
+    polymake>    for (my $i = 0; $i < $B->rows(); ++$i) {
+    polymake>       my $sum = 0;
+    polymake>       for (my $j = 1; $j < $B->cols(); ++$j) {
+    polymake>          $sum = $sum + $B->elem($i,$j);
+    polymake>       }
+    polymake>       $x = 1/$sum;
+    polymake>       $B->row($i) = $x * $B->row($i);
+    polymake>    }
+    polymake>    return $B;
+    polymake> }
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s = new HyperbolicSurface(DCEL_DATA=>$S4,PENNER_COORDINATES=>[1,1,1,1,1,1],SPECIAL_POINT=>[1,0]);
-    ........> $f = $s->SECONDARY_FAN;
-    ........> $v = ones_vector | $f->RAYS;
-    ........> $a = norm($v);
-    ........> $b = $a->minor(All,~[0]);
-    ........> $c = ones_vector | $b;
+    polymake> $f = $s->SECONDARY_FAN;
+    polymake> $v = ones_vector | $f->RAYS;
+    polymake> $a = norm($v);
+    polymake> $b = $a->minor(All,~[0]);
+    polymake> $c = ones_vector | $b;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $q = new fan::PolyhedralComplex(POINTS=>$c,INPUT_POLYTOPES=>rows($f->MAXIMAL_CONES));
-    ........> $pro = fan::project_full($q);
-    ........> $pro->VISUAL;
+    polymake> $pro = fan::project_full($q);
+    polymake> $pro->VISUAL;
 
 
 .. raw:: html

@@ -19,7 +19,9 @@ corresponding application by typing the following in the ``polymake``
 shell:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'tropical';
 
@@ -55,26 +57,34 @@ You can create an element of the tropical semiring (over the rationals)
 simply by writing something like this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $a = new TropicalNumber<Max>(4);
-    ........> $b = new TropicalNumber<Min>(4);
-    ........> $c = new TropicalNumber<Min>("inf");
+    polymake> $b = new TropicalNumber<Min>(4);
+    polymake> $c = new TropicalNumber<Min>("inf");
 
 You can now do basic arithmetic - that is **tropical** addition and
 multiplication with these. Note that tropical numbers with different
 tropical additions don’t mix!
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $a * $a;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $b + $c*$b;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> # print $a + $b; # this won't work!
 
@@ -82,17 +92,23 @@ Tropical vector/matrix arithmetics also work - you can even ask for the
 tropical determinant!
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $m = new Matrix<TropicalNumber<Max>>([[0,1,2],[0,"-inf",3],[0,0,"-inf"]]);
-    ........> $v = new Vector<TropicalNumber<Max>>(1,1,2);
-    ........> print $m + $m;
+    polymake> $v = new Vector<TropicalNumber<Max>>(1,1,2);
+    polymake> print $m + $m;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $m * $v;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print tdet($m);
 
@@ -100,10 +116,12 @@ Finally, you can also create tropical polynomials. This can be done with
 the special toTropicalPolynomial parser:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $q = toTropicalPolynomial("min(2a,b+c)");
-    ........> print $q;
+    polymake> print $q;
 
 Homogeneous and extended coordinates
 ------------------------------------
@@ -158,19 +176,27 @@ entry if ``has_leading_coordinate`` is ``1``.
 Some examples:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print thomog([[1,3,4],[0,5,6]]);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print thomog([[2,3,4]], 1, 0);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print tdehomog([[1,3,4,5]]);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print tdehomog([[2,3,4,5]], 1, 0);
 
@@ -193,24 +219,34 @@ projective torus into covector cells (see the
 the different coordinates):
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c = new Polytope<Min>(POINTS=>[[0,0,0],[0,1,1],[0,2,1]]);
-    ........> print $c->VERTICES;
+    polymake> print $c->VERTICES;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($c->PSEUDOVERTICES);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $c->MAXIMAL_COVECTOR_CELLS; #Sets of PSEUDOVERTICES. They are maximal cells of the induced subdivision of the torus.
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $c->POLYTOPE_MAXIMAL_COVECTOR_CELLS;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c->VISUAL_SUBDIVISION;
 
@@ -220,13 +256,17 @@ following will give you those structures as ``fan::PolyhedralComplex``
 objects in *affine* coordinates:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $t = $c->torus_subdivision_as_complex;
-    ........> $p = $c->polytope_subdivision_as_complex;
-    ........> print $p->VERTICES;
+    polymake> $p = $c->polytope_subdivision_as_complex;
+    polymake> print $p->VERTICES;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->MAXIMAL_POLYTOPES;
 
@@ -242,10 +282,12 @@ documentation <http://polymake.org/release_docs/snapshot/tropical.html>`__.
 You can visualize the covector lattice with
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c->TORUS_COVECTOR_DECOMPOSITION->VISUAL;
-    ........> $c->POLYTOPE_COVECTOR_DECOMPOSITION->VISUAL;
+    polymake> $c->POLYTOPE_COVECTOR_DECOMPOSITION->VISUAL;
 
 Each node in the lattice is a cell of the subdivision. The top row
 describes the vertices and rays of the subdivision. The bottom row is
@@ -266,7 +308,9 @@ specifying its vertices and maximal cells (and possibly a lineality
 space). The only additional data are the weights on the maximal cells.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $x = new Cycle<Max>(PROJECTIVE_VERTICES=>[[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,-1]],MAXIMAL_POLYTOPES=>[[0,1],[0,2],[0,3]],WEIGHTS=>[1,1,1]);
 
@@ -288,7 +332,9 @@ There is a convenience function that does this for you. The following
 creates the excact same cycle as above:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $x = new Cycle<Max>(VERTICES=>thomog([[1,0,0],[0,1,1],[0,-1,0],[0,0,-1]]),MAXIMAL_POLYTOPES=>[[0,1],[0,2],[0,3]],WEIGHTS=>[1,1,1]);
 
@@ -296,7 +342,9 @@ One can now ask for basic properties of the cycle, e.g., if it’s
 balanced:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print is_balanced($x);
 
@@ -309,16 +357,22 @@ hypersurfaces of *homogeneous* tropical polynomials. The following
 creates the standard tropical min-line in the plane:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $H = new Hypersurface<Min>(POLYNOMIAL=>toTropicalPolynomial("min(a,b,c)"));
-    ........> print $H->VERTICES;
+    polymake> print $H->VERTICES;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $H->MAXIMAL_POLYTOPES;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $H->WEIGHTS;
 
@@ -339,11 +393,13 @@ Computing the divisor of a tropical polynomial in $ :raw-latex:`\mathbb `R^n$
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = toTropicalPolynomial("max(0,x,y,z)");
-    ........> $div = divisor(projective_torus<Max>(3), rational_fct_from_affine_numerator($f));
-    ........> $div->VISUAL;
+    polymake> $div = divisor(projective_torus<Max>(3), rational_fct_from_affine_numerator($f));
+    polymake> $div->VISUAL;
 
 Here, ``projective_torus`` creates the tropical projective 3-torus (aka
 $ :raw-latex:`\mathbb `R^3$) as a tropical fan with weight 1.
@@ -355,7 +411,9 @@ Visualizing a curve in a tropical surface
 Let’s create the standard tropical hyperplane in 3-space:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $l = uniform_linear_space<Min>(3,2);
 
@@ -363,7 +421,9 @@ Furthermore, we compute a curve as the divisor of a rational function on
 ``$l``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $div = divisor($l, rational_fct_from_affine_numerator(toTropicalPolynomial("min(3x+4,x-y-z,y+z+3)")));
 
@@ -374,11 +434,15 @@ same bounding box (we don’t want the curve to continue “beyond the
 surface”).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $l->bounding_box(1);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $div->bounding_box(1);
 
@@ -388,7 +452,9 @@ is larger, so we want to take this one. ``compose`` is used to visualize
 several objects at the same time:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> compose($l->VISUAL(VertexStyle=>"hidden",BoundingMode=>"absolute",BoundingBox=>$div->bounding_box(1)), $div->VISUAL(VertexStyle=>"hidden",EdgeColor=>"red", BoundingMode=>"absolute",BoundingBox=>$div->bounding_box(1)));
 
@@ -396,10 +462,12 @@ Alternatively, we could simply specify an explicit bounding box to make
 the surface look more symmetric:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $m = new Matrix<Rational>([[-5,-5,-5],[5,5,5]]);
-    ........> compose($l->VISUAL(VertexStyle=>"hidden",BoundingMode=>"absolute",BoundingBox=>$m), $div->VISUAL(VertexStyle=>"hidden",EdgeColor=>"red",BoundingMode=>"absolute",BoundingBox=>$m));
+    polymake> compose($l->VISUAL(VertexStyle=>"hidden",BoundingMode=>"absolute",BoundingBox=>$m), $div->VISUAL(VertexStyle=>"hidden",EdgeColor=>"red",BoundingMode=>"absolute",BoundingBox=>$m));
 
 Creation functions for commonly used tropical cycles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -468,7 +536,9 @@ tropical addition, e.g. the product of two uniform linear spaces could
 be computed via:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = cartesian_product(uniform_linear_space<Max>(3,2), uniform_linear_space<Max>(3,1));
 
@@ -524,10 +594,12 @@ complex contain one of the LOCAL_RESTRICTION cones.
 This way a bounded complex can also be made “balanced”:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $w = new Cycle<Max>(VERTICES=>thomog([[1,0],[1,-1],[1,1]]),MAXIMAL_POLYTOPES=>[[0,1],[0,2]],WEIGHTS=>[1,1],LOCAL_RESTRICTION=>[[0]]);
-    ........> print $w->IS_BALANCED;
+    polymake> print $w->IS_BALANCED;
 
 The above example describes the bounded line segment
 `[-1,1] \in \mathbb R`, subdivided at 0. Since we restrict
@@ -554,17 +626,19 @@ complex.
 Some examples:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $x = uniform_linear_space<Max>(3, 2);
-    ........> $x1 = local_restrict($x, new IncidenceMatrix([[0],[2,3]])); 
-    ........>      #The tropical hyperplane, locally around the 0-th ray and the maximal cone spanned by rays 2 and 3.
-    ........>      #As a set this can be interpreted as the union of an open neighborhood of ray 0 and the interior of the maximal       
-    ........>      #cone <2,3>
-    ........> $x2 = local_vertex($x, 0); #An open neighborhood of ray 0.
-    ........> $x3 = local_codim_one($x, 0); #An open neighborhood of the codimension one face no. 0 (which is a ray)
-    ........> $x4 = local_point($x, new Vector<Rational>([1,0,1,1,0]));
-    ........>      #Refines the surface such that it contains the point (0,1,1,0), then takes an open neighborhood of that
+    polymake> $x1 = local_restrict($x, new IncidenceMatrix([[0],[2,3]])); 
+    polymake>      #The tropical hyperplane, locally around the 0-th ray and the maximal cone spanned by rays 2 and 3.
+    polymake>      #As a set this can be interpreted as the union of an open neighborhood of ray 0 and the interior of the maximal       
+    polymake>      #cone <2,3>
+    polymake> $x2 = local_vertex($x, 0); #An open neighborhood of ray 0.
+    polymake> $x3 = local_codim_one($x, 0); #An open neighborhood of the codimension one face no. 0 (which is a ray)
+    polymake> $x4 = local_point($x, new Vector<Rational>([1,0,1,1,0]));
+    polymake>      #Refines the surface such that it contains the point (0,1,1,0), then takes an open neighborhood of that
 
 For details see the internal documentation of these functions.
 
@@ -577,6 +651,8 @@ the same complex without the LOCAL_RESTRICTION, you can call its user
 method delocalize(), e.g.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $y = $x->delocalize();

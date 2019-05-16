@@ -20,7 +20,9 @@ can either start ``polymake`` with the option ``-A topaz``,
 or, if you’ve already started ``polymake``, type
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'topaz';
 
@@ -39,10 +41,12 @@ For example, you can specify some faces of the complex. You can pass
 them as an ``Array< Set<Int> >``, or ``Array< Array<Int> >``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> # $s = new SimplicialComplex(INPUT_FACES=>[new Set(0), new Set(0,1), new Set(1,2,3)]);
-    ........> $s = new SimplicialComplex(INPUT_FACES=>[[0],[0,1],[1,2,3]]);
+    polymake> $s = new SimplicialComplex(INPUT_FACES=>[[0],[0,1],[1,2,3]]);
 
 |{{ :tutorial:small_complex.png?400|}}| As you can see, redundancies are
 allowed – ``[0]`` is not a facet of the complex, and thus not necessary
@@ -52,7 +56,9 @@ this:
 .. |{{ :tutorial:small_complex.png?400|}}| image:: attachment:small_complex.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $s->FACETS;
     {0 1}
@@ -70,7 +76,9 @@ in that case the vertices must be numbered increasingly starting with
 Take a look at your complex using
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s->VISUAL;
 
@@ -85,7 +93,9 @@ with their rank in the face lattice, do this:
 .. |{{:tutorial:face_lattice.png?200 \|}}| image:: attachment:face_lattice.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $s->HASSE_DIAGRAM->DECORATION;
     ({-1} 4)
@@ -111,7 +121,9 @@ The ``{-1}``-node is a dummy representing the whole complex. the
 representation, try the visualization:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s->VISUAL_FACE_LATTICE;
 
@@ -124,7 +136,9 @@ documentation <https://polymake.org/release_docs/latest/topaz.html>`__).
 An example is the torus client:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $t = torus();
 
@@ -132,7 +146,9 @@ Of course, ``polymake`` can compute the reduced integer homology groups
 of a simplicial complex, so we can convice ourselves this is a torus:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $t->MANIFOLD;
     1
@@ -141,7 +157,9 @@ of a simplicial complex, so we can convice ourselves this is a torus:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $t->HOMOLOGY;
     ({} 0)
@@ -161,7 +179,9 @@ entry denotes the Betti number. The empty curly braces indicate that
 corresponding dimensions):
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_numbered( real_projective_plane()->HOMOLOGY );
     0:{} 0
@@ -184,10 +204,12 @@ its boundary. For example, this produces a triangulation of the
 `2`-sphere:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $bs = simplex(3)->BOUNDARY;
-    ........> print $bs->SPHERE;
+    polymake> print $bs->SPHERE;
     1
     
 
@@ -203,11 +225,13 @@ The triangulation of a polytope is a simplicial complex, too. The
 ``cube`` client from the ``polytope`` application to demonstrate:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c = polytope::cube(3);
-    ........> $tc = $c->TRIANGULATION;
-    ........> print $tc->FACETS;
+    polymake> $tc = $c->TRIANGULATION;
+    polymake> print $tc->FACETS;
     {0 1 2 4}
     {1 2 3 4}
     {1 3 4 5}
@@ -233,18 +257,22 @@ You can pass the coordinates to the constructor. Take care to choose an
 embedding without crossings!
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s = new GeometricSimplicialComplex(INPUT_FACES=>[[0],[0,1],[1,2,3]], COORDINATES=>[[1,0],[1,1],[0,2],[2,2]]);
 
 Some clients produce complexes with geometric realization…
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $b = ball(3);
-    ........> # print a dense representation of the sparse matrix
-    ........> print dense( $b->COORDINATES );
+    polymake> # print a dense representation of the sparse matrix
+    polymake> print dense( $b->COORDINATES );
     0 0 0
     1 0 0
     0 1 0
@@ -259,7 +287,9 @@ Some clients produce complexes with geometric realization…
 decide whether to invest the extra computing time.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $bs = barycentric_subdivision($b,geometric_realization=>1);
 
@@ -274,7 +304,9 @@ Visualization of simplicial complexes uses the ``VISUAL`` property.
 Check out
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> help 'objects/SimplicialComplex/methods/Visualization/VISUAL';
 
@@ -292,7 +324,9 @@ guaranteed to result in an intersection-free visualization.
 .. |{{ :tutorial:ball_triang.png?300|}}| image:: attachment:ball_triang.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $bs->VISUAL;
 
@@ -308,10 +342,12 @@ facet of ``$bs`` in pink, do this:
 .. |{{:tutorial:ball_triang_pink.png?250 \|}}| image:: attachment:ball_triang_pink.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $a = new Array<Set<Int>>(1); $a->[0] = $bs->FACETS->[4];
-    ........> $bs->VISUAL->FACES($a, FacetColor => 'pink');
+    polymake> $bs->VISUAL->FACES($a, FacetColor => 'pink');
 
 The same can be used for the visualization of the face lattice. As an
 example, we have a look at a ``morse matching`` of the Klein bottle with
@@ -319,10 +355,12 @@ its associated critical faces. In order to see the arrowheads in the
 picture clearly, you ought to use graphviz or svg to vizualize it.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $k =  klein_bottle();
-    ........> graphviz($k->VISUAL_FACE_LATTICE->MORSE_MATCHING->FACES($k->MORSE_MATCHING->CRITICAL_FACES));
+    polymake> graphviz($k->VISUAL_FACE_LATTICE->MORSE_MATCHING->FACES($k->MORSE_MATCHING->CRITICAL_FACES));
 
 |{{ :tutorial:kb_mm_faces.gif?400|}}| Here the matching of faces is
 denoted by reversed red arrows and the critical faces are marked red.
@@ -336,7 +374,9 @@ coordinates by using ``VISUAL_GRAPH``, ``VISUAL_DUAL_GRAPH``, or
 .. |{{ :tutorial:kb_mm_faces.gif?400|}}| image:: attachment:kb_mm_faces.gif
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> polytope::cube(3)->TRIANGULATION->VISUAL_MIXED_GRAPH;
 

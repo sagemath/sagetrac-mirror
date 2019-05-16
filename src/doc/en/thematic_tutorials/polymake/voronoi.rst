@@ -10,17 +10,21 @@ Voronoi diagrams are constructed from their sites (given in homogeneous
 coordinates).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $VD = new VoronoiPolyhedron(SITES=>[[1,1,1],[1,0,1],[1,-1,1],[1,1,-1],[1,0,-1],[1,-1,-1]]);
-    ........> $VD->VISUAL_VORONOI;
+    polymake> $VD->VISUAL_VORONOI;
 
 Actually, via lifting to the standard paraboloid, Voronoi diagrams are
 derived from ``Polytope``. That’s why they have ``VERTICES``,
 ``FACETS``, and such.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $VD->FACETS;
     2 -2 -2 1
@@ -35,7 +39,9 @@ derived from ``Polytope``. That’s why they have ``VERTICES``,
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $VD->VERTICES;
     0 0 1 2

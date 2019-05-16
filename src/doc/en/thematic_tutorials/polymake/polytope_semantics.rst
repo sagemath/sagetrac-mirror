@@ -38,14 +38,18 @@ To view the list properties that currently constitute your object, you
 can use the ``properties`` method.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new Polytope(POINTS=>[[1,2],[1,3]]);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->properties;
     name: p
@@ -88,7 +92,9 @@ Being non-empty is recorded in the property ``FEASIBLE``. This is
 ``true`` if and only if the polytope is not empty.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print cube(3)->FEASIBLE;
     true
@@ -137,10 +143,12 @@ An empty polytope is recognized by ``FEASIBLE == false``. Such a
 polytope is required to have ``VERTICES`` and ``FACETS`` empty.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $e = new Polytope(POINTS=>[]);
-    ........> print $e->FEASIBLE;
+    polymake> print $e->FEASIBLE;
     false
 
 
@@ -149,7 +157,9 @@ polytope is required to have ``VERTICES`` and ``FACETS`` empty.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $e->FACETS;
 
@@ -157,7 +167,9 @@ This is totally different from having ``VERTICES`` or ``FACETS``
 undefined (see above).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $nc = new Polytope(VERTICES_IN_FACETS => cube(2)->VERTICES_IN_FACETS);
 
@@ -168,14 +180,18 @@ A zero-dimensional polytope is a single point. In our model it has one
 vertex and one facet (the far hyperplane).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $z = new Polytope(POINTS=>[[1,2,3]]);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $z->FACETS;
     1 0 0
@@ -188,7 +204,9 @@ vertex and one facet (the far hyperplane).
 that the single vertex does *not* lie on the single facet.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $z->VERTICES_IN_FACETS;
     {}
@@ -200,7 +218,9 @@ that the single vertex does *not* lie on the single facet.
 Such a polytope is both simple and simplicial, i.e. it is a simplex.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $z->SIMPLICIAL,",",$z->SIMPLE;
     true,true
@@ -214,7 +234,9 @@ Zero-dimensional fans
 A zero-dimensional fan can e.g. be defined via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = new fan::PolyhedralFan(RAYS=>[], MAXIMAL_CONES=>[[]]);
 

@@ -81,14 +81,18 @@ Now assume that this example is contained in file ``c3t.lp``. We create
 a polytope from the file via:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f=lp2poly('files/optimization/c3t.lp');
 
 The polytope ``$f`` is coded via floating point numbers:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->type->full_name;
     Polytope<Rational>
@@ -99,7 +103,9 @@ The polytope ``$f`` is coded via floating point numbers:
 We convert it to a rational polytope via:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new Polytope<Rational>($f);
 
@@ -121,7 +127,9 @@ Assuming that we are given the above example in variable ``$p``, the
 linear objective can be accessed via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LP->LINEAR_OBJECTIVE;
     0 1 1 1
@@ -135,7 +143,9 @@ are 1 for all three variables (and there is an offset of 0).
 Now, we can solve the corresponding linear program via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LP->MAXIMAL_VALUE;
     2
@@ -147,7 +157,9 @@ Thus, the maximal value that we can obtain via the above linear
 objective function is 2. We can also get an optimal vertex via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LP->MAXIMAL_VERTEX;
     1 0 1 1
@@ -159,7 +171,9 @@ This vertex corresponds to setting ``x1=0, x2=1, x3=1``. The optimal
 face can also be computed:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LP->MAXIMAL_FACE;
     {4 5 6}
@@ -177,7 +191,9 @@ The directed graph obtained by directing the graph of the polytope in
 the direction of increasing objective function can be obtained via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->VISUAL->DIRECTED_GRAPH;
 
@@ -1343,7 +1359,9 @@ the direction of increasing objective function can be obtained via
 The minimal and maximal faces can be visualized via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->VISUAL->MIN_MAX_FACE;
 
@@ -2558,17 +2576,21 @@ We assume that the above information is contained in the file
 form, as explained above:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f=lp2poly('files/optimization/stab.lp');
-    ........> $p = new Polytope<Rational>($f);
+    polymake> $p = new Polytope<Rational>($f);
 
 We are now interested in all feasible solutions to the above problem,
 i.e., all assignments of 0 or 1 to the variables such that the above
 inequalities are satisfied. These feasible points can be computed via:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->LATTICE_POINTS;
 
@@ -2579,7 +2601,9 @@ via points for which the convex hull is taken. This can be done as
 follows:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s=new Polytope(POINTS=>$p->LATTICE_POINTS, COORDINATE_LABELS=>$p->COORDINATE_LABELS);
 
@@ -2589,7 +2613,9 @@ new polytope.
 Now, the facets of the new polytope can be computed and listed via:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print_constraints($s);
     Facets:
@@ -2680,10 +2706,12 @@ We now assume that the example is contained in the file ``unbounded.lp``
 and proceed as above
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = lp2poly('files/optimization/unbounded.lp');
-    ........> $pin = new Polytope<Rational>($f);
+    polymake> $pin = new Polytope<Rational>($f);
 
 The visualization in the picture can be generated with ``$pin->VISUAL``.
 The lattice points can be shown with ``$pin->VISUAL->LATTICE_COLORED``.
@@ -2691,7 +2719,9 @@ The lattice points can be shown with ``$pin->VISUAL->LATTICE_COLORED``.
 We now extract the rays of the recession cone
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $rays = $pin->VERTICES->minor($pin->FAR_FACE, All);
 
@@ -2701,7 +2731,9 @@ computation. The set ``FAR_FACE`` contains the indices of all vertices
 that are unbounded. The result is:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $rays;
     0 1 1/2
@@ -2718,18 +2750,20 @@ for each ray ``r`` (scaled to be integral). This can be done with the
 following code (possibly easier):
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $zero = unit_vector<Rational>($pin->DIM + 1, 0);
-    ........> $B = new Polytope<Rational>(POINTS=>$zero);
-    ........> foreach my $r (@$rays)
-    ........> {
-    ........>     $M = new Matrix<Rational>(primitive($r));
-    ........>     $M->[0]->[0] = 1;
-    ........>     $M = $M / $zero;
-    ........>     $ptemp = new Polytope<Rational>(POINTS=>$M);
-    ........>     $B = minkowski_sum($B, $ptemp);
-    ........> }
+    polymake> $B = new Polytope<Rational>(POINTS=>$zero);
+    polymake> foreach my $r (@$rays)
+    polymake> {
+    polymake>     $M = new Matrix<Rational>(primitive($r));
+    polymake>     $M->[0]->[0] = 1;
+    polymake>     $M = $M / $zero;
+    polymake>     $ptemp = new Polytope<Rational>(POINTS=>$M);
+    polymake>     $B = minkowski_sum($B, $ptemp);
+    polymake> }
 
 The code first generates a polytope ``B`` consisting of 0 only. It then
 takes each ray ``r`` in turn and creates ``[0,r]``. It then takes the
@@ -2740,15 +2774,19 @@ The next step is to obtain the bounded part ``Q`` of ``P``, by first
 extracting the bounded vertices and the creating a new polytope:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $Qpoints = $pin->VERTICES->minor($pin->BOUNDED_VERTICES, All);
-    ........> $Q = new Polytope<Rational>(POINTS=>$Qpoints);
+    polymake> $Q = new Polytope<Rational>(POINTS=>$Qpoints);
 
 The two polytopes are now combined:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = minkowski_sum($Q, $B);
 
@@ -2756,10 +2794,12 @@ We now generate the lattice points (as in the bounded part) and add the
 rays from above:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $latticemat = new Matrix<Rational>($p->LATTICE_POINTS);
-    ........> $newpoints = new Matrix<Rational>($latticemat / $rays);
+    polymake> $newpoints = new Matrix<Rational>($latticemat / $rays);
 
 Here, ``newpoints`` is a matrix that contains all lattice points in
 ``Q`` and the rays from above.
@@ -2767,14 +2807,18 @@ Here, ``newpoints`` is a matrix that contains all lattice points in
 Finally, the polytope we are interested in is:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $q = new Polytope(POINTS=>$newpoints, COORDINATE_LABELS=>$pin->COORDINATE_LABELS);
 
 The facets can be viewed as usual:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print_constraints($q);
     Facets:
@@ -2833,26 +2877,32 @@ while ``s1`` and ``s2`` are continuous variables. Assuming the data is
 contained in the file ``mip.lp``, we proceed as follows:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $m=lp2poly('files/optimization/mip.lp');
-    ........> $p = new Polytope<Rational>($m);
+    polymake> $p = new Polytope<Rational>($m);
 
 We project the polyhedron in ``$p`` to the third and fourth variables as
 follows:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $q=projection($p, [3,4]);
 
 We now construct the convex hull of all feasible points as above:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s=new Polytope(POINTS=>$q->LATTICE_POINTS);
-    ........> print_constraints($s);
+    polymake> print_constraints($s);
     Facets:
     0: -x1 >= -1
     1: -x2 >= -1
@@ -2894,14 +2944,18 @@ Example: Explicit Matrix
 In a first example, we directly create an integral matrix
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M=new Matrix<Integer>([[1,1,0,0],[1,0,1,0],[1,0,0,1]]);
 
 The total unimodularity of this matrix can be checked as follows:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print totally_unimodular($M);
     true
@@ -2918,10 +2972,12 @@ In the second example, we reuse the file ``c3t`` from the example above.
 We read it into polymake:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f=lp2poly('files/optimization/c3t.lp');
-    ........> $p = new Polytope<Rational>($f);
+    polymake> $p = new Polytope<Rational>($f);
 
 We now want to check whether the constraint matrix defined by the
 inequalities is totally unimodular (note that there are no equations in
@@ -2929,10 +2985,12 @@ this example). Thus we first extract the inequality matrix without the
 first column (as an integer matrix) and then perform the test:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $A = new Matrix<Integer>($p->INEQUALITIES->minor(All, ~[0]));
-    ........> print totally_unimodular($A);
+    polymake> print totally_unimodular($A);
     true
 
 
@@ -2985,19 +3043,23 @@ Let us test whether the inequality system of this example is TDI. Thus,
 we first load the data as usual:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = lp2poly('files/optimization/stab.lp');
-    ........> $p = new Polytope<Rational>($f);
+    polymake> $p = new Polytope<Rational>($f);
 
 We now extract the corresponding inequality system and check it for
 TDIness:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M = new Matrix<Rational>($p->INEQUALITIES);
-    ........> print totally_dual_integral($M);
+    polymake> print totally_dual_integral($M);
     false
 
 
@@ -3024,10 +3086,12 @@ coefficients. Consequently, let us construct a TDI-system for this
 polytope:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $q = make_totally_dual_integral($p);
-    ........> print_constraints($q);
+    polymake> print_constraints($q);
     Inequalities:
     0: x5 >= 0
     1: x4 >= 0
@@ -3052,10 +3116,12 @@ from general theory that the polytope would be integral as well). The
 result is now TDI:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $N = new Matrix<Rational>($q->INEQUALITIES);
-    ........> print totally_dual_integral($N);
+    polymake> print totally_dual_integral($N);
     true
 
 
@@ -3103,10 +3169,12 @@ We first consider the polytope from the stable set problem from above:
 As before we read in the file using ``lp2poly``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = lp2poly('files/optimization/stab.lp');
-    ........> $p = new Polytope<Rational>($f);
+    polymake> $p = new Polytope<Rational>($f);
 
 The Chvátal-Gomory closure of a polytope can be computed with the
 function ``gc_closure``. The function takes a full-dimensional polytope
@@ -3115,10 +3183,12 @@ defining the closure in the property ``INEQUALITIES``. For our example,
 we obtain:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g = gc_closure($p);
-    ........> print print_constraints($g);
+    polymake> print print_constraints($g);
     Inequalities:
     0: x5 >= 0
     1: x4 >= 0
@@ -3141,7 +3211,9 @@ we obtain:
 Let us check whether the resulting polytope is integral:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->LATTICE;
     true
@@ -3162,13 +3234,15 @@ It can be shown that such a polytope has rank at least log(d) - 1, see
 our example, we use d = 4:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M = new Matrix<Rational>([[1,0,0,0,0],[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1],[1,1/2,1/2,1/2,1/2]]);
-    ........> $t = new Polytope<Rational>(POINTS => $M);
-    ........> $t1 = gc_closure($t);
-    ........> $t1->FACETS;
-    ........> print_constraints($t1);
+    polymake> $t = new Polytope<Rational>(POINTS => $M);
+    polymake> $t1 = gc_closure($t);
+    polymake> $t1->FACETS;
+    polymake> print_constraints($t1);
     Facets:
     0: x4 >= 0
     1: x3 >= 0
@@ -3184,7 +3258,9 @@ our example, we use d = 4:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $t1->LATTICE;
     false
@@ -3196,10 +3272,12 @@ Thus, one round was not enough to produce an integral polytope. Indeed,
 the vertices are
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $t1->VERTICES;
-    ........> print $t1->VERTICES;
+    polymake> print $t1->VERTICES;
     1 1 0 0 0
     1 0 0 0 0
     1 1/3 1/3 1/3 1/3
@@ -3214,11 +3292,13 @@ the vertices are
 However, one more round is enough:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $t2 = gc_closure($t1);
-    ........> $t2->FACETS;
-    ........> print_constraints($t2);
+    polymake> $t2->FACETS;
+    polymake> print_constraints($t2);
     Facets:
     0: x4 >= 0
     1: x3 >= 0
@@ -3231,7 +3311,9 @@ However, one more round is enough:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $t2->LATTICE;
     true
@@ -3292,7 +3374,9 @@ need to check whether parts are empty.
    }
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> script("files/optimization/lpclosure.pl");
 
@@ -3302,11 +3386,13 @@ Lift-and-Project Closure - Example 1
 For our well known stable set example, we get the following:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $q = lpclosure($p);
-    ........> $q->FACETS;
-    ........> print_constraints($q);
+    polymake> $q->FACETS;
+    polymake> print_constraints($q);
     Facets:
     0: -x1 - x2 >= -1
     1: x3 >= 0
@@ -3334,13 +3420,15 @@ Lift-and-Project Closure - Example 2
 Let us now consider the same example as for CG-closures:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M = new Matrix<Rational>([[1,0,0,0,0],[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1],[1,1/2,1/2,1/2,1/2]]);
-    ........> $p = new Polytope<Rational>(POINTS => $M);
-    ........> $q = lpclosure($p);
-    ........> $q->FACETS;
-    ........> print_constraints($q);
+    polymake> $p = new Polytope<Rational>(POINTS => $M);
+    polymake> $q = lpclosure($p);
+    polymake> $q->FACETS;
+    polymake> print_constraints($q);
     Facets:
     0: x1 >= 0
     1: x4 >= 0

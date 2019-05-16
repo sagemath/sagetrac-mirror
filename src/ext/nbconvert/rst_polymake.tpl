@@ -16,9 +16,11 @@
 
 {% block input scoped%}
 {%- if cell.source.strip() -%}
-::
+.. link
 
-{{ cell.source | add_prompts(first='polymake> ', cont='........> ') | indent}}
+.. CODE-BLOCK:: perl
+
+{{ cell.source | add_prompts(first='polymake> ', cont='polymake> ') | indent}}
 {%- endif -%}
 {%- endblock input -%}
 

@@ -11,7 +11,9 @@ available. To make ``matroid`` your current application start
 ``polymake`` with the option ``-A matroid`` or use the context switch
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application "matroid";
 
@@ -26,7 +28,9 @@ rationals. The matroid is defined by the linear dependence among subsets
 of these vectors.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M=new Matroid(VECTORS=>[[1,0,0],[1,0,1],[1,1,0],[1,0,2]]);
 
@@ -34,14 +38,18 @@ If ``matroid`` is not your default application you have to qualify
 ``Matroid`` as in:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M=new matroid::Matroid(VECTORS=>[[1,0,0],[1,0,1],[1,1,0],[1,0,2]]);
 
 Output of basic statistics.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->N_BASES, " ", $M->N_ELEMENTS, " ", $M->RANK;
     3 4 3
@@ -56,7 +64,9 @@ are encoded as sets of these ordinal numbers.
 .. |{{ :tutorial:matroid_lattice_of_flats_example.png?nolink&200|}}| image:: attachment:matroid_lattice_of_flats_example.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->BASES;
     {0 1 2}
@@ -70,7 +80,9 @@ are encoded as sets of these ordinal numbers.
 Similarly you can compute the circuits and cocircuits.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->CIRCUITS;
     {0 1 3}
@@ -79,7 +91,9 @@ Similarly you can compute the circuits and cocircuits.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->COCIRCUITS;
     {2}
@@ -94,18 +108,22 @@ Similarly you can compute the circuits and cocircuits.
 You can also compute other properties, like
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->PAVING?"1":"0", " ",
-    ........> $M->BINARY?"1":"0", " ",
-    ........> $M->SERIES_PARALLEL?"1":"0", " ",
-    ........> $M->CONNECTED?"1":"0";
+    polymake> $M->BINARY?"1":"0", " ",
+    polymake> $M->SERIES_PARALLEL?"1":"0", " ",
+    polymake> $M->CONNECTED?"1":"0";
     1 1 0 0
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->CONNECTED_COMPONENTS;
     {0 1 3}
@@ -115,7 +133,9 @@ You can also compute other properties, like
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->TUTTE_POLYNOMIAL;
     x_0^3 + x_0^2 + x_0*x_1
@@ -126,16 +146,20 @@ You can also compute other properties, like
 Even the lattice of flats could be computed and visualised.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $lattice=$M->LATTICE_OF_FLATS;
-    ........> foreach (@{$lattice->nodes_of_rank(2)}){print $lattice->FACES->[$_]," "};
+    polymake> foreach (@{$lattice->nodes_of_rank(2)}){print $lattice->FACES->[$_]," "};
     {0 2} {0 1 3} {1 2} {2 3} 
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->MATROID_HYPERPLANES;
     {0 1 3}
@@ -147,7 +171,9 @@ Even the lattice of flats could be computed and visualised.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M->LATTICE_OF_FLATS->VISUAL;
 
@@ -161,7 +187,9 @@ polytope*. The matroid polytope of the matroid ``$M`` is a subobject
 ``POLYTOPE`` of type \`polytope::Polytope.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->POLYTOPE->VERTICES;
     1 1 1 1 0
@@ -172,7 +200,9 @@ polytope*. The matroid polytope of the matroid ``$M`` is a subobject
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $M->POLYTOPE->F_VECTOR;
     3 3
@@ -205,14 +235,18 @@ coordinates. Hence this matroid is defined by the relation of affine
 dependence.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $C=new Matroid(VECTORS=>polytope::cube(3)->VERTICES);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $C->N_BASES;
     58
@@ -226,14 +260,18 @@ than one way to encode a graph in ``polymake``. Read the `tutorial on
 graphs <apps_graph>`__ for details.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $G=matroid_from_graph(polytope::cube(3)->GRAPH);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $G->N_BASES;
     384
@@ -244,15 +282,19 @@ graphs <apps_graph>`__ for details.
 It is also possible to derive a new matroid from others.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> # The arguments are two matroids and for each matroid a basepoint. The basepoints will be identified. 
-    ........> $se=series_extension(uniform_matroid(2,3),0,uniform_matroid(1,3),0);
+    polymake> $se=series_extension(uniform_matroid(2,3),0,uniform_matroid(1,3),0);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print deletion($se,4)->VECTORS;
     1 0 0
@@ -264,14 +306,18 @@ It is also possible to derive a new matroid from others.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $pe=parallel_extension(uniform_matroid(1,3),0,uniform_matroid(2,3),0);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print dual(contraction($pe,4))->VECTORS;
     1 1 1
@@ -283,7 +329,9 @@ It is also possible to derive a new matroid from others.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print projective_plane(3)->N_BASES;
     234
@@ -291,7 +339,9 @@ It is also possible to derive a new matroid from others.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print fano_matroid()->N_BASES;
     28
@@ -299,7 +349,9 @@ It is also possible to derive a new matroid from others.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print direct_sum(projective_plane(3),fano_matroid())->N_BASES," = 234*28";
     6552 = 234*28
@@ -307,7 +359,9 @@ It is also possible to derive a new matroid from others.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print two_sum(uniform_matroid(2,4),0,uniform_matroid(2,4),0)->CIRCUITS;
     {0 1 2}
@@ -333,18 +387,24 @@ simplest matroid that cannot be constructed from a vector configuration
 (over a field with a characteristic other than two).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $a=new Array<Set<Int>>([0,1,5],[1,2,6],[0,2,3],[1,3,4],[2,4,5],[3,5,6],[0,4,6]);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $m=new Matroid(NON_BASES=>$a,N_ELEMENTS=>7);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $m->COCIRCUITS;
     {0 1 2 4}

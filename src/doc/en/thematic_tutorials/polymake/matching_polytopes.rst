@@ -12,17 +12,21 @@ matching polytopes.
 First we construct a graph, the complete graph on four nodes:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $K4=new props::Graph(4);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> for (my $i=0; $i<4; ++$i) {
-    ........>   for (my $j=$i+1; $j<4; ++$j) {
-    ........>     $K4->edge($i,$j);
-    ........>   }
-    ........> }
+    polymake>   for (my $j=$i+1; $j<4; ++$j) {
+    polymake>     $K4->edge($i,$j);
+    polymake>   }
+    polymake> }
 
 (See also the `Tutorial on Graphs <apps_graph>`__ for more on the
 construction of graphs.)
@@ -32,31 +36,35 @@ the latest release of ``polymake`` does not yet support this, we have to
 write the function ourselves:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> sub node_edge_incidences {
-    ........>     my $g=shift;
-    ........>    my $A=new Matrix<Int>($g->nodes, $g->edges);
-    ........>     my $k=0;
-    ........>    for (my $i=0; $i<$g->nodes-1; ++$i) {
-    ........>        foreach (@{$g->adjacent_nodes($i)}) {
-    ........>            if ($_>$i) {
-    ........>                $A->[$i]->[$k]=1;
-    ........>                $A->[$_]->[$k]=1;
-    ........>                ++$k;
-    ........>            }
-    ........>        }
-    ........>    }
-    ........>    return $A;
-    ........> }
+    polymake>     my $g=shift;
+    polymake>    my $A=new Matrix<Int>($g->nodes, $g->edges);
+    polymake>     my $k=0;
+    polymake>    for (my $i=0; $i<$g->nodes-1; ++$i) {
+    polymake>        foreach (@{$g->adjacent_nodes($i)}) {
+    polymake>            if ($_>$i) {
+    polymake>                $A->[$i]->[$k]=1;
+    polymake>                $A->[$_]->[$k]=1;
+    polymake>                ++$k;
+    polymake>            }
+    polymake>        }
+    polymake>    }
+    polymake>    return $A;
+    polymake> }
 
 Now we can construct the node-edge-incidence matrix of our graph ``K4``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $A=node_edge_incidences($K4);
-    ........> print $A;
+    polymake> print $A;
     1 1 1 0 0 0
     1 0 0 1 1 0
     0 1 0 1 0 1
@@ -82,10 +90,12 @@ upper part for the nonnegativity constraints xe
 0 …
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $I=new Matrix<Int>([[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,1,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1]]);
-    ........> $Block1=new Matrix<Int>(new Vector<Int>([0,0,0,0,0,0]) | $I);
+    polymake> $Block1=new Matrix<Int>(new Vector<Int>([0,0,0,0,0,0]) | $I);
 
 … and a lower part for the constraints
 
@@ -126,22 +136,28 @@ e xe
 V, where the sum is over all edges e containing v:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $Block2=new Matrix<Int>(new Vector<Int>([1,1,1,1]) | -$A);
 
 Now we can put both parts together and define the polytope:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $Ineqs=new Matrix<Rational>($Block1 / $Block2);
-    ........> $P=new Polytope<Rational>(INEQUALITIES=>$Ineqs);
+    polymake> $P=new Polytope<Rational>(INEQUALITIES=>$Ineqs);
 
 The matching polytope of ``K4`` is the integer hull of ``P``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $P_I=new Polytope<Rational>(POINTS=>$P->LATTICE_POINTS);
 
@@ -165,7 +181,9 @@ The matching polytope of ``K4`` is the integer hull of ``P``:
 We can analyse some elementary properties of ``P_I`` …
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P_I->POINTS;
     1 0 0 0 0 0 0
@@ -183,7 +201,9 @@ We can analyse some elementary properties of ``P_I`` …
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P_I->FACETS;
     0 0 0 0 0 0 1
@@ -205,7 +225,9 @@ We can analyse some elementary properties of ``P_I`` …
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P_I->N_FACETS;
     14
@@ -217,7 +239,9 @@ We can analyse some elementary properties of ``P_I`` …
 polytope ``P``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P->VERTICES;
     1 0 0 0 1 0 0
@@ -239,7 +263,9 @@ polytope ``P``:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P->VOLUME;
     1/72
@@ -247,7 +273,9 @@ polytope ``P``:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P_I->VOLUME;
     1/90
@@ -261,7 +289,9 @@ Next we analyse the combinatorics of ``P_I``: |{{
 .. |{{ :tutorial:ilp:gale.png?300|The Gale diagram of ``facet0``}}| image:: attachment:gale.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P_I->AMBIENT_DIM, " ", $P_I->DIM;
     6 6
@@ -269,7 +299,9 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P_I->F_VECTOR;
     10 39 78 86 51 14
@@ -277,7 +309,9 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $P_I->FACET_SIZES;
     8 8 6 6 6 6 6 6 6 6 8 8 8 8
@@ -285,14 +319,18 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $facet0=facet($P_I,0);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $facet0->AMBIENT_DIM, " ", $facet0->DIM;
     6 5
@@ -300,7 +338,9 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($facet0->VERTICES_IN_FACETS);
     0:0 1 2 3 4 5 6
@@ -317,7 +357,9 @@ Next we analyse the combinatorics of ``P_I``: |{{
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $facet0->GALE;
 

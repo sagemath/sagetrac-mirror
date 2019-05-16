@@ -13,7 +13,9 @@ homology for coefficients from different domains. When experimenting in
 the interactive shell, switch to the topology application first:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'topaz';
 
@@ -26,12 +28,14 @@ of the real projective plane. You can then construct a general chain
 complex from it like this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $bd1 = real_projective_plane()->boundary_matrix(1);
-    ........> $bd2 = real_projective_plane()->boundary_matrix(2);
-    ........> $a = new Array<SparseMatrix<Integer>>($bd1,$bd2);   # omit the trivial zeroth differential
-    ........> $cc = new ChainComplex<SparseMatrix<Integer>>($a,1);
+    polymake> $bd2 = real_projective_plane()->boundary_matrix(2);
+    polymake> $a = new Array<SparseMatrix<Integer>>($bd1,$bd2);   # omit the trivial zeroth differential
+    polymake> $cc = new ChainComplex<SparseMatrix<Integer>>($a,1);
 
 The template parameter of ``ChainComplex`` denotes the type of the
 boundary matrices. It defaults to \`SparseMatrix, as this allows
@@ -43,7 +47,9 @@ successive maps compose to the zero map).
 You can access the data stored in the object like this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $cc->boundary_matrix(2);
     (15) (0 1) (1 -1) (2 1)
@@ -69,7 +75,9 @@ You can access the documentation by typing the name of the function in
 the interactive shell and then pressing F1.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print homology($cc,0);
     ({} 1)
@@ -89,7 +97,9 @@ There is an extra function for computing the generators of the homology
 modules as well.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print homology_and_cycles($cc,0);
     (({} 1)

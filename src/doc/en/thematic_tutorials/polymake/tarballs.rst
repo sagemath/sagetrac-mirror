@@ -15,7 +15,9 @@ The necessary functions for this are contained in the script “tarballs”
 that you can load into your polymake session by calling
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> script("tarballs");
 
@@ -28,12 +30,14 @@ Here is a simple example, where we create an array @a containing a cube
 and a simplex and save this to a file.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> @a = ();
-    ........> $a[0] = cube(3);
-    ........> $a[1] = simplex(3);
-    ........> pack_tarball("simple_polytopes.tgz",@a);
+    polymake> $a[0] = cube(3);
+    polymake> $a[1] = simplex(3);
+    polymake> pack_tarball("simple_polytopes.tgz",@a);
 
 This creates a file ``simple_polytopes.tgz`` in the current directory
 that is a tarred (and gzipped) archive containing two polymake files.
@@ -52,11 +56,13 @@ If you want to get more descriptive names for your polymake files then
 you have to set a name for each polytope first.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $a[0]->name = "my_cube";
-    ........> $a[1]->name = "my_simplex";
-    ........> pack_tarball("simple_polytopes.tgz",@a);
+    polymake> $a[1]->name = "my_simplex";
+    polymake> pack_tarball("simple_polytopes.tgz",@a);
 
 sets the names of the files in the tarball to ``my_cube.poly`` and
 ``my_simplex.poly``:
@@ -75,10 +81,12 @@ You can restore your saved array by using the function
 ``unpack_tarball``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> @a=unpack_tarball("simple_polytopes.tgz");
-    ........> print $a[0]->name;
+    polymake> print $a[0]->name;
     my_cube
     
 
@@ -90,10 +98,12 @@ If you just want a specific polytope from your tarball, then you can
 supply its name in the command:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> @a=unpack_tarball("simple_polytopes.tgz","my_simplex.poly");
-    ........> print $a[0]->name;
+    polymake> print $a[0]->name;
     my_simplex
     
 

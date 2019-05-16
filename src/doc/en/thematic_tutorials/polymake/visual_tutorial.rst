@@ -17,7 +17,9 @@ using the ``VISUAL`` method that visualizable objects provide. For
 example, you can look at the 3-simplex by doing this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> simplex(3)->VISUAL;
 
@@ -1133,7 +1135,9 @@ build-in help system. To obtain the visualization possibilities for,
 e.g., Polytopes in application ``polytope``, type:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> help 'objects/Polytope/methods/Visualization';
      These methods are for visualization.
@@ -1156,7 +1160,9 @@ Most visualization methods provide a variety of parameters. Get a list
 for the method of yout choice (here: ``VISUAL``) by typing
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> help 'objects/Polytope/methods/Visualization/VISUAL';
     VISUAL(Options) -> Visual::Polytope
@@ -1313,7 +1319,9 @@ individually.
 *VertexColor* attribute of the *VISUAL* method:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> simplex(3)->VISUAL(VertexColor=> '0 100 200');
 
@@ -2416,7 +2424,9 @@ vertex index.
 attribute, you can pass an array of colors:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> simplex(3)->VISUAL(VertexColor=>['red','green','blue','yellow']);
 
@@ -3549,7 +3559,9 @@ B, C, and D we just pass the array ``["A", "B", "C", "D"]`` to the
 *VertexLabels* attribute:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> simplex(3)->VISUAL(VertexLabels=>["A", "B", "C", "D"]);
 
@@ -4644,7 +4656,9 @@ If you want to set only one label for example, you can do so by passing
 the empty string ``""`` for the other vertices:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> simplex(3)->VISUAL(VertexLabels=>["", "", "My favorite vertex", ""]);
 
@@ -5741,10 +5755,12 @@ label the vertices by their coordinates, we can use the following
 commands:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $tet = simplex(3);
-    ........> $tet->VISUAL(VertexLabels=> sub { my $i = shift; return $tet->VERTICES->[$i]; });
+    polymake> $tet->VISUAL(VertexLabels=> sub { my $i = shift; return $tet->VERTICES->[$i]; });
 
 
 .. raw:: html
@@ -6836,7 +6852,9 @@ commands:
 If you prefer dehomogenized float coordinates, then you need to use:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $tet->VISUAL(VertexLabels=> sub { my $i = shift; return convert_to<Float>(dehomogenize($tet->VERTICES->[$i]));});
 
@@ -6857,7 +6875,9 @@ value or use an array or a function to specify individual sizes.
 number larger than 1 to the *VertexThickness*
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> simplex(3)->VISUAL(VertexThickness=>2);
 
@@ -6871,7 +6891,9 @@ also specify individual sizes using an array:
 .. |{{ :tutorial:visual_sizes_single2.png?300 }}| image:: attachment:visual_sizes_single2.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> simplex(3)->VISUAL(VertexThickness=>[1,2,3,4]);
 
@@ -6885,7 +6907,9 @@ the vertex depending on the vertex index. The following example sets the
 size of the odd vertices to 1 and the sizes of the even vertices to 2:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> cube(3)->VISUAL(VertexThickness=> sub { my $i = shift; if($i%2 == 0) { return 2; } else {return 1;} });
 
@@ -6898,7 +6922,9 @@ If you do not want to display the vertices at all, you can use the
 *VertexStyle* attribute and set it to ``hidden``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> cube(3)->VISUAL(VertexStyle=>"hidden");
 
@@ -6914,11 +6940,13 @@ The following sequence creates a 0/1-cube and a translate. The final
 command triggers the joint visualization of both.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c1=cube(3,0);
-    ........> $c2=transform($c1,new Matrix<Rational>([[1,-1,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]));
-    ........> compose($c1->VISUAL,$c2->VISUAL);
+    polymake> $c2=transform($c1,new Matrix<Rational>([[1,-1,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]));
+    polymake> compose($c1->VISUAL,$c2->VISUAL);
 
 If ``JavaView`` is used for visualization then
 ``Method:Effect:Explode Group of Geometries...`` allows to show an
@@ -6945,10 +6973,12 @@ sophisticated. There is a interface from polymake to Sketch.
    :::perl
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $my_polytope = cube(3);
-    ........> sketch($my_polytope->VISUAL,File=>"myfile.sketch");
+    polymake> sketch($my_polytope->VISUAL,File=>"myfile.sketch");
 
 When you downloaded the Sketch interpreter
 (`link <http://sketch4latex.sourceforge.net/>`__) you can use it to
@@ -6969,7 +6999,9 @@ TikZ interface via:
    :::perl
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> tikz($my_polytope->VISUAL,File=>"myfile.tikz");
 

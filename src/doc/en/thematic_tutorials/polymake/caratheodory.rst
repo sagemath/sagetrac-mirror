@@ -19,24 +19,28 @@ six dimensions which is due to:
 The rows of this matrix describe a cone *C*:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M = new Matrix<Rational>([[0,1,0,0,0,0],
-    ........> [0,0,1,0,0,0],
-    ........> [0,0,0,1,0,0],
-    ........> [0,0,0,0,1,0],
-    ........> [0,0,0,0,0,1],
-    ........> [1,0,2,1,1,2],
-    ........> [1,2,0,2,1,1],
-    ........> [1,1,2,0,2,1],
-    ........> [1,1,1,2,0,2],
-    ........> [1,2,1,1,2,0]]);
-    ........> $C=new Polytope<Rational>(POINTS=>$M);
+    polymake> [0,0,1,0,0,0],
+    polymake> [0,0,0,1,0,0],
+    polymake> [0,0,0,0,1,0],
+    polymake> [0,0,0,0,0,1],
+    polymake> [1,0,2,1,1,2],
+    polymake> [1,2,0,2,1,1],
+    polymake> [1,1,2,0,2,1],
+    polymake> [1,1,1,2,0,2],
+    polymake> [1,2,1,1,2,0]]);
+    polymake> $C=new Polytope<Rational>(POINTS=>$M);
 
 From
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $C->HILBERT_BASIS;
     0 0 0 0 0 1
@@ -61,10 +65,12 @@ we consider one particular point *x*. The output of the second command
 of *C*.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $x=new Vector<Rational>([9,13,13,13,13,13]);
-    ........> print $C->FACETS * $x;
+    polymake> print $C->FACETS * $x;
     8 15 19/2 19/2 17 13 17 13 9 13 13 17 8 19/2 13 17 15 19/2 15 15 19/2 17 11 15 8 8 8
     
 
@@ -79,14 +85,16 @@ shows that each such linear combination requires at least one negative
 or one non-integral coefficient.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> foreach (@{all_subsets_of_k(range(0,9),6)}) {
-    ........>   $B = $M->minor($_,All);
-    ........>   if (det($B)) {
-    ........>     print lin_solve(transpose($B),$x), "\n";
-    ........>   }
-    ........> }
+    polymake>   $B = $M->minor($_,All);
+    polymake>   if (det($B)) {
+    polymake>     print lin_solve(transpose($B),$x), "\n";
+    polymake>   }
+    polymake> }
 
 This means that *x* cannot be represented as a non-negative linear
 combination of any six of the given generators of *C*.
@@ -103,24 +111,30 @@ The following is taken from
    Hagenberg, Austria, 2009, pp. 493-504.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $C->N_VERTICES, " ", $C->DIM;
-    ........> print rows_labeled($C->VERTICES_IN_FACETS);
+    polymake> print rows_labeled($C->VERTICES_IN_FACETS);
 
 There are two disjoint facets covering all the vertices. Beware the
 numbering of facets depends on the convex hull algorithm employed.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $C->VERTICES_IN_FACETS->[8];
-    ........> print $C->VERTICES_IN_FACETS->[22];
+    polymake> print $C->VERTICES_IN_FACETS->[22];
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($M);
 
@@ -128,16 +142,20 @@ Here is another polytope which is somewhat similar but not quite the
 same.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $cross5=cross(5);
-    ........> print isomorphic($C,$cross5);
-    ........> print isomorphic($C->GRAPH->ADJACENCY,$cross5->GRAPH->ADJACENCY);
+    polymake> print isomorphic($C,$cross5);
+    polymake> print isomorphic($C->GRAPH->ADJACENCY,$cross5->GRAPH->ADJACENCY);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $cross5->F_VECTOR - $C->F_VECTOR;
 
@@ -145,31 +163,37 @@ Look at two facets of the five-dimensional cross polytope and their
 positions in the dual graph.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $cross5->VERTICES_IN_FACETS->[12];
-    ........> print $cross5->VERTICES_IN_FACETS->[13];
-    ........> print rows_labeled($cross5->DUAL_GRAPH->ADJACENCY);
+    polymake> print $cross5->VERTICES_IN_FACETS->[13];
+    polymake> print rows_labeled($cross5->DUAL_GRAPH->ADJACENCY);
 
 Now we construct a new graph by manipulating the dual graph of the cross
 polytope by contracting a perfect matching.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g=new props::Graph($cross5->DUAL_GRAPH->ADJACENCY);
-    ........> $g->contract_edge(12,13);
-    ........> $g->contract_edge(24,26);
-    ........> $g->contract_edge(17,21);
-    ........> $g->contract_edge(3,11);
-    ........> $g->contract_edge(6,22);
-    ........> $g->squeeze;
+    polymake> $g->contract_edge(12,13);
+    polymake> $g->contract_edge(24,26);
+    polymake> $g->contract_edge(17,21);
+    polymake> $g->contract_edge(3,11);
+    polymake> $g->contract_edge(6,22);
+    polymake> $g->squeeze;
 
 The last command renumbers the nodes sequentially, starting from 0. This
 is necessary to render the graph a valid object.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print isomorphic($C->DUAL_GRAPH->ADJACENCY,$g);
 

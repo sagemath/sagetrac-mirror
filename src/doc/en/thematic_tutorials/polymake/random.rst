@@ -14,10 +14,12 @@ on the unit sphere. The following chooses 100 points on the units sphere
 in 3-space.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p1=rand_sphere(3,100);
-    ........> print $p1->SIMPLICIAL;
+    polymake> print $p1->SIMPLICIAL;
     true
 
 
@@ -45,13 +47,15 @@ Random polytopes with are neither simplicial nor simple
 -------------------------------------------------------
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> ($d,$m,$n) = (4,50,30);
-    ........> $p1=rand_sphere($d,$m);
-    ........> $p2=polarize($p1);
-    ........> $p3=new Polytope(POINTS=>rand_vert($p2->VERTICES,$n));
-    ........> print $p3->SIMPLICIAL, " ", $p3->SIMPLE, "\n", $p3->F_VECTOR;
+    polymake> $p1=rand_sphere($d,$m);
+    polymake> $p2=polarize($p1);
+    polymake> $p3=new Polytope(POINTS=>rand_vert($p2->VERTICES,$n));
+    polymake> print $p3->SIMPLICIAL, " ", $p3->SIMPLE, "\n", $p3->F_VECTOR;
     false false
     30 163 256 123
 

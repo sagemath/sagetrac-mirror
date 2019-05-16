@@ -44,7 +44,9 @@ you should switch to the corresponding
 `application <:user_guide:lingo#%20application>`__.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application "group";
 
@@ -68,7 +70,9 @@ representations of the entries of the character table, as ``polymake``
 currently cannot work with arbitrary cyclotomic integers.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print dihedral_group(20)->CHARACTER_TABLE;
     1 1 1 1 1 1 1 1
@@ -85,7 +89,9 @@ currently cannot work with arbitrary cyclotomic integers.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print dihedral_group(22)->CHARACTER_TABLE;
     1 1 1 1 1 1 1
@@ -122,11 +128,13 @@ action. In the following example we create a symmetric group of degree
 3, and then compute its order.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new PermutationAction(GENERATORS => [[1,0,2],[0,2,1]]);
-    ........> $g = new Group(PERMUTATION_ACTION => $p);
-    ........> print $g->ORDER;
+    polymake> $g = new Group(PERMUTATION_ACTION => $p);
+    polymake> print $g->ORDER;
     polymake: used package permlib
       A callable C++ library for permutation computations. 
       Written by Thomas Rehn.
@@ -147,10 +155,12 @@ the degree, as well as for several other standard constructions. See the
 for a comprehensive list.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $h = symmetric_group(3);
-    ........> print $h->PERMUTATION_ACTION->GENERATORS;
+    polymake> print $h->PERMUTATION_ACTION->GENERATORS;
     1 0 2
     0 2 1
     
@@ -165,10 +175,12 @@ Properties of permutation actions
 We can compute some interesting properties of a PermutationAction:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new PermutationAction(GENERATORS => [[1,0,2],[0,2,1]]);
-    ........> print all_group_elements($p);
+    polymake> print all_group_elements($p);
     0 1 2
     0 2 1
     1 0 2
@@ -185,18 +197,22 @@ There also exist basic functions to compute orbits and stabilizers, for
 instance:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new PermutationAction(GENERATORS => [[1,0,2],[0,2,1]]);
-    ........> $s = stabilizer_of_set($p,new Set<Int>(1,2));
-    ........> print $s->PERMUTATION_ACTION->GENERATORS;
+    polymake> $s = stabilizer_of_set($p,new Set<Int>(1,2));
+    polymake> print $s->PERMUTATION_ACTION->GENERATORS;
     0 2 1
 
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $s->PERMUTATION_ACTION->ORBITS;
     {0}
@@ -226,10 +242,12 @@ between the notation in ``polymake`` and the 1-based cyclic notation as
 used, for instance, in GAP are also available:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new PermutationAction(GENERATORS=>[[1,0,2],[0,2,1]]);
-    ........> print action_to_cyclic_notation($p);
+    polymake> print action_to_cyclic_notation($p);
     (1,2),
     (2,3)
 
@@ -237,10 +255,12 @@ used, for instance, in GAP are also available:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $AGL_1_5 = group_from_cyclic_notation1("(2,3,4,5), (1,2,3,5,4)");
-    ........> print $AGL_1_5->PERMUTATION_ACTION->GENERATORS;
+    polymake> print $AGL_1_5->PERMUTATION_ACTION->GENERATORS;
     0 2 3 4 1
     1 2 4 0 3
     
@@ -255,7 +275,9 @@ Symmetry groups of polymake objects
 We switch to the polytope application for the following section:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'polytope';
 
@@ -279,11 +301,13 @@ is atomic and coatomic this group coincides with group of (bipartite)
 graph automorphisms of the vertex/facet incidences.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c = cube(3);
-    ........> $aut = automorphisms($c->VERTICES_IN_FACETS);
-    ........> print $aut;
+    polymake> $aut = automorphisms($c->VERTICES_IN_FACETS);
+    polymake> print $aut;
     (<0 1 4 5 2 3> <0 1 4 5 2 3 6 7>)
     (<2 3 0 1 4 5> <0 2 1 3 4 6 5 7>)
     (<1 0 2 3 4 5> <1 0 3 2 5 4 7 6>)
@@ -302,19 +326,23 @@ does not necessarily output a minimal representation.
 Let’s wrap some of this information up in a Group object:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> @g = map { $_->first } @{$aut};
-    ........> $fperm = new group::PermutationAction(GENERATORS=>\@g);
-    ........> $g = new group::Group(FACETS_ACTION=>$fperm);           # note how we use the FACETS_ACTION property this time
-    ........> $g->name = "fullCombinatorialGroupOnFacets";            # is is advisable to give multiple objects a meaningful name
-    ........> $c->add("GROUP",$g);
+    polymake> $fperm = new group::PermutationAction(GENERATORS=>\@g);
+    polymake> $g = new group::Group(FACETS_ACTION=>$fperm);           # note how we use the FACETS_ACTION property this time
+    polymake> $g->name = "fullCombinatorialGroupOnFacets";            # is is advisable to give multiple objects a meaningful name
+    polymake> $c->add("GROUP",$g);
 
 Now we can, e.g., compute the generators of the action on the vertices
 from the action on the facets:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $c->GROUP->VERTICES_ACTION->GENERATORS;
     0 1 4 5 2 3 6 7
@@ -336,10 +364,12 @@ the following creates a cube, but with the action on the facets already
 attached:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $cg = cube(3,group=>1);
-    ........> print $cg->GROUP->FACETS_ACTION->GENERATORS;
+    polymake> print $cg->GROUP->FACETS_ACTION->GENERATORS;
     1 0 2 3 4 5
     2 3 0 1 4 5
     0 1 4 5 2 3
@@ -357,10 +387,12 @@ Given a group with either a ``COORDINATE_ACTION`` or a
 tuple of points:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $cg = cube(3,group=>1);
-    ........> print orbit_polytope(new Matrix([[1,1,2,1],[1,5/2,1,0]]), $cg->GROUP->MATRIX_ACTION)->N_VERTICES;
+    polymake> print orbit_polytope(new Matrix([[1,1,2,1],[1,5/2,1,0]]), $cg->GROUP->MATRIX_ACTION)->N_VERTICES;
     48
     
 
@@ -390,17 +422,21 @@ For example, to obtain a topological space homeomorphic to a cylinder,
 type
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = cylinder_2();
-    ........> print $p->QUOTIENT_SPACE->IDENTIFICATION_ACTION->GENERATORS;
+    polymake> print $p->QUOTIENT_SPACE->IDENTIFICATION_ACTION->GENERATORS;
     2 3 0 1
 
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->QUOTIENT_SPACE->IDENTIFICATION_ACTION->ORBITS;
     {0 2}
@@ -410,7 +446,9 @@ type
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->QUOTIENT_SPACE->FACES;
     {{0} {1}}
@@ -421,7 +459,9 @@ type
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->QUOTIENT_SPACE->F_VECTOR;
     2 3 1
@@ -438,7 +478,9 @@ without identifications among the vertices, you can calculate the second
 barycentric subdivision by asking for the property SIMPLICIAL_COMPLEX:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->F_VECTOR;
     26 72 48
@@ -447,7 +489,9 @@ barycentric subdivision by asking for the property SIMPLICIAL_COMPLEX:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->HOMOLOGY;
     ({} 0)
@@ -466,10 +510,12 @@ For example, to calculate the homology of real 3-dimensional projective
 space \**RP3, write
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $m = cs_quotient(cube(3));
-    ........> print $m->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->HOMOLOGY;
+    polymake> print $m->QUOTIENT_SPACE->SIMPLICIAL_COMPLEX->HOMOLOGY;
     ({} 0)
     ({(2 1)} 0)
     ({} 0)
@@ -486,10 +532,12 @@ is a 4-dimensional hyperbolic manifold obtained by identifying opposite
 vertices of a 120-cell:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $m=davis_manifold();
-    ........> print $m->QUOTIENT_SPACE->F_VECTOR;
+    polymake> print $m->QUOTIENT_SPACE->F_VECTOR;
     300 600 360 60 1
     
 
@@ -515,7 +563,9 @@ Matrix groups
 Let’s switch back to ``group``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'group';
 
@@ -526,10 +576,12 @@ a ``MATRIX_ACTION`` is to convert a permutation action on the vertices
 of a polytope:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d = polytope::dodecahedron();
-    ........> $d->GROUP->properties();
+    polymake> $d->GROUP->properties();
     type: Group as Polytope<QuadraticExtension<Rational>>::GROUP
         
 
@@ -543,14 +595,18 @@ of a polytope:
    type: PermutationAction<Int, Rational>
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d->GROUP->MATRIX_ACTION;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $d->GROUP->MATRIX_ACTION->GENERATORS;
     <1 0 0 0
@@ -593,21 +649,27 @@ Once you have a matrix group, you may calculate the orbit of an
 arbitrary vector under it:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s = symmetric_group(3); 
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $a = $s->REGULAR_REPRESENTATION;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print orbit($a->GENERATORS, new Vector([1,2,3]));
     {<3 2 1> <1 2 3> <2 1 3> <1 3 2> <3 1 2> <2 3 1>}
@@ -633,21 +695,27 @@ You can calculate the polynomials left invariant by the matrices sending
 the vertices of a dodecahedron into each other as follows:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d = polytope::dodecahedron();
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $d->GROUP->MATRIX_ACTION;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print join "\n", @{invariant_polynomials($d->GROUP->MATRIX_ACTION, 5)};
     x_0^2 + x_1^2 + x_2^2
@@ -681,7 +749,9 @@ for the rest of these computations the ``CHARACTER_TABLE`` must be
 known:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $d->GROUP->MATRIX_ACTION->CHARACTER;
     -2 0 2 1 4 1 1/2-1/2r5 3/2-1/2r5 1/2+1/2r5 3/2+1/2r5
@@ -703,14 +773,18 @@ It does work, for instance, for the symmetric group of order 5! (in
 fact, up to order 7!):
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s=symmetric_group(5);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $s->CHARACTER_TABLE;
     1 -1 1 1 -1 -1 1
@@ -726,14 +800,18 @@ fact, up to order 7!):
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s->REGULAR_REPRESENTATION;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $s->REGULAR_REPRESENTATION->CHARACTER;
     5 3 1 2 0 1 0
@@ -743,7 +821,9 @@ fact, up to order 7!):
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print irreducible_decomposition($s->REGULAR_REPRESENTATION->CHARACTER,$s);
     0 0 0 0 0 1 1
@@ -759,7 +839,9 @@ two lines of the character table. The first entries there, 4 and 1, say
 that these components should have dimensions 4 and 1, respectively:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print isotypic_basis($s, $s->REGULAR_REPRESENTATION, 5);
     4/5 -1/5 -1/5 -1/5 -1/5
@@ -772,7 +854,9 @@ that these components should have dimensions 4 and 1, respectively:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print isotypic_basis($s, $s->REGULAR_REPRESENTATION, 6);
     1/5 1/5 1/5 1/5 1/5

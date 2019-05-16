@@ -64,14 +64,18 @@ directions. The distinction between these comes from our choice of the
 homogenizing coordinate.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p=new Polytope(POINTS=>[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]);
 
 This lists the facet coordinates.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->FACETS;
     1 0 0 0
@@ -110,7 +114,9 @@ inequality gives a non-negative value. (Use the command
 Clearly, the polyhedron is unbounded.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->BOUNDED;
     false
@@ -121,7 +127,9 @@ Clearly, the polyhedron is unbounded.
 Yet, the combinatorial data describe a 3-simplex.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->VERTICES_IN_FACETS;
     {1 2 3}
@@ -136,7 +144,9 @@ Yet, the combinatorial data describe a 3-simplex.
 The rays span the *face at infinity*.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->FAR_FACE;          
     {1 2 3}
@@ -148,7 +158,9 @@ By the way, unbounded polyhedra can be visualized just like bounded
 ones. ``polymake`` automatically chooses a bounding box.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->VISUAL;
 

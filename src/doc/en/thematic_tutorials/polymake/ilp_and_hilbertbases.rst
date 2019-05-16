@@ -12,25 +12,29 @@ A first example
 First we will construct a new rational polytope:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p=new Polytope<Rational>;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->POINTS=<<".";
-    ........> 1 0 0 0
-    ........> 1 1 0 0
-    ........> 1 0 1 0
-    ........> 1 1 1 0
-    ........> 1 0 0 1
-    ........> 1 1 0 1
-    ........> 1 0 1 1
-    ........> 1 1 1 1
-    ........> .
+    polymake> 1 0 0 0
+    polymake> 1 1 0 0
+    polymake> 1 0 1 0
+    polymake> 1 1 1 0
+    polymake> 1 0 0 1
+    polymake> 1 1 0 1
+    polymake> 1 0 1 1
+    polymake> 1 1 1 1
+    polymake> .
 
 Note that points in ``polymake`` are always given in homogenous
 coordinates. I.e., the point (a,b,c) in R3 is represented as ``1 a b c``
@@ -40,7 +44,9 @@ Now we can examine some properties of ``$p``. For instance we can
 determine the number of facets or whether ``$p`` is simple:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->N_FACETS;
     6
@@ -69,7 +75,9 @@ determine the number of facets or whether ``$p`` is simple:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->SIMPLE;
     true
@@ -82,7 +90,9 @@ cube. So there would have been an easier way to create it using the
 client ``cube``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c = cube(3,0);
 
@@ -92,7 +102,9 @@ documentation <http://wwwopt.mathematik.tu-darmstadt.de/polymake_doku/2.9.8/>`__
 And we can also verify that the two polytopes are actually equal:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print equal_polyhedra($p,$c);
     true
@@ -110,14 +122,18 @@ hull of 20 randomly chosen points on the 2-dimensional sphere. |{{
 .. |{{ :tutorial:ilp:rand_sphere.png?200|}}| image:: attachment:rand_sphere.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $rs = rand_sphere(3,20);
 
 ``polymake`` can of course visualise this polytope:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $rs->VISUAL;
 
@@ -1583,21 +1599,27 @@ create a new polytope by specifying its vertices.
    {{ :tutorial:ilp:rand_sphere_lattice.png?200|}}
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $lambda=2;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s=new Matrix<Rational>([[1,0,0,0],[0,$lambda,0,0],[0,0,$lambda,0],[0,0,0,$lambda]]);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $s;
     1 0 0 0
@@ -1609,7 +1631,9 @@ create a new polytope by specifying its vertices.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $scaled_rs=new Polytope<Rational>(VERTICES=>($rs->VERTICES * $s), LINEALITY_SPACE=>[]);
 
@@ -1617,7 +1641,9 @@ create a new polytope by specifying its vertices.
 points:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $scaled_rs->VISUAL->LATTICE_COLORED;
 
@@ -3055,14 +3081,18 @@ Now will construct the integer hull of ``$scaled_rs`` and visualise it:
    {{ :tutorial:ilp:ilp_lattice.png?200|}}
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $integer_hull=new Polytope<Rational>(POINTS=>$scaled_rs->LATTICE_POINTS);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $integer_hull->VISUAL->LATTICE_COLORED;
 
@@ -4278,7 +4308,9 @@ length d+1, d being the dimension of the space. The vector [c0,c1, …,
 cd] corresponds to the linear objective c0 + c1x1 + … + cdxd.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $objective=new LinearProgram<Rational>(LINEAR_OBJECTIVE=>[0,1,1,1]);
 
@@ -4286,7 +4318,9 @@ Then we define a new polytope, which is a copy of our old one
 (``$inter_hull``) with the LP as an additional property.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $ilp=new Polytope<Rational>(VERTICES=>$integer_hull->VERTICES, LP=>$objective);
 
@@ -4299,7 +4333,9 @@ And now we can perform some computations:
 .. |{{ :tutorial:ilp:ilp_max_face.png?200|}}| image:: attachment:ilp_max_face.png
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ilp->LP->MAXIMAL_VALUE;
     3
@@ -4307,7 +4343,9 @@ And now we can perform some computations:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ilp->LP->MAXIMAL_FACE;
     {11}
@@ -4315,7 +4353,9 @@ And now we can perform some computations:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $ilp->VISUAL->MIN_MAX_FACE;
 
@@ -5548,7 +5588,9 @@ results may vary if we perform the same computations another time on a
 different random polytope.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ilp->VERTICES;
     1 -1 -1 0
@@ -5576,7 +5618,9 @@ the cone spanned by ``$ilp``. Notice that this requires normaliz or 4ti2
 to be installed in order to work.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ilp->HILBERT_BASIS;
     1 -1 -1 0

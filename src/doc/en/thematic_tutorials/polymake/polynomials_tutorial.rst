@@ -12,7 +12,9 @@ for defaults and usage information. To restore the default settings to
 your ``customize.pl``, type this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> reset_custom %polynomial_var_names;
 
@@ -27,7 +29,9 @@ The easiest way to create a simple
 object is through a string:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new Polynomial("4 + 3x_1 + x_2^5");
 
@@ -35,12 +39,14 @@ Sometimes it’s convenient to use the constructor that takes a vector of
 coefficients and a matrix of exponents:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $coeff = new Vector([9,-5]);
-    ........> $exp = new Matrix<Int>([[0,4],[8,3]]);
-    ........> $p2 = new Polynomial($coeff, $exp);
-    ........> print $p2;
+    polymake> $exp = new Matrix<Int>([[0,4],[8,3]]);
+    polymake> $p2 = new Polynomial($coeff, $exp);
+    polymake> print $p2;
     -5*x_0^8*x_1^3 + 9*x_1^4
 
 
@@ -50,7 +56,9 @@ There is a seperate type for univariate polynomials, called
 `UniPolynomial <https://polymake.org/release_docs/master/common.html#common__UniPolynomial__342>`__.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $up = new UniPolynomial("3x + 2x^2 + 4");
 
@@ -60,10 +68,12 @@ exponents. You can even have polynomials of polynomials (of
 polynomials…).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $pp = new UniPolynomial<UniPolynomial<Rational,Int>,Rational>("(4x^2+5)y3/2 - 5/3x4y2/3");
-    ........> print $pp;
+    polymake> print $pp;
     (4*x^2 + 5)*y^3/2 + (-5/3*x^4)*y^2/3
 
 
@@ -76,7 +86,9 @@ The standard arithmetic functions “+”, “-”, "\*“,”^" are defined for
 polynomials of matching type.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p + ($p^2);
     9*x_1^2 + 6*x_1*x_2^5 + 27*x_1 + x_2^10 + 9*x_2^5 + 20
@@ -90,7 +102,9 @@ first sight. For example, as above, you always have to write “($p^2)”
 because of the lower precedence of the “^” operator…
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p + $p^2;
     36*x_1^2 + 24*x_1*x_2^5 + 96*x_1 + 4*x_2^10 + 32*x_2^5 + 64
@@ -101,7 +115,9 @@ because of the lower precedence of the “^” operator…
 For UniPolynomials, we even have polynome division:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print (($up^2)/$up);
     (2*x^2 + 3*x + 4)/(1)
@@ -116,10 +132,12 @@ Here is one way to produce polytopes from polynomials (as the convex
 hull of the exponent vectors of all terms).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $np = newton($p*($p+$p));
-    ........> print $np->VERTICES;
+    polymake> print $np->VERTICES;
     1 0 0 0
     1 0 2 0
     1 0 0 10
@@ -144,7 +162,9 @@ hull of the exponent vectors of all terms).
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print equal_polyhedra($np,minkowski_sum(newton($p),newton($p+$p)));
     true
@@ -164,17 +184,21 @@ the toric deformation with respect to a point configuration and a height
 function. This is the input data:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $points = new Matrix<Int>([1,0],[0,1]);
-    ........> $height = new Vector<Int>([2,3]);
-    ........> $coefficients = new Vector<Rational>([-1/2,1/3]);
+    polymake> $height = new Vector<Int>([2,3]);
+    polymake> $coefficients = new Vector<Rational>([-1/2,1/3]);
 
 The following is generic (assuming that the dimensions of the objects
 above match).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = new Polynomial($coefficients,$height|$points);
 
@@ -183,7 +207,9 @@ applied, e.g., to the VERTICES of a polytope do not forget to strip the
 homogenizing coordinate. The output in our example looks like this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p;
     1/3*x_0^3*x_2 -1/2*x_0^2*x_1
@@ -202,10 +228,12 @@ ordinary monomial, and then use that to define a new ``PuiseuxFraction``
 object:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $x = monomials<Rational,Rational>(1); # create a list of `1` monomial, with `Rational` coefficients and `Rational` exponents
-    ........> $f = new PuiseuxFraction<Min>(2*($x^(1/3)) + ($x^(5/2)));
+    polymake> $f = new PuiseuxFraction<Min>(2*($x^(1/3)) + ($x^(5/2)));
 
 If you have the common denominator of all exponents at hand you could
 also intermediately set ``$x = $x^(1/N)`` to save yourself some work.
@@ -214,7 +242,9 @@ also intermediately set ``$x = $x^(1/N)`` to save yourself some work.
 We can compute the valuation of a puiseux fraction:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->val;
     1/3
@@ -225,7 +255,9 @@ We can compute the valuation of a puiseux fraction:
 Evaluate a puiseux fraction at `2^6`:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->evaluate(2,6);
     32776
@@ -241,10 +273,12 @@ coefficients (see the above mentioned paper for detals) - polymake
 correspondingly overloads the operators ``<``, ``>``, ``<=``, ``>=``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g = new PuiseuxFraction<Min>(3*($x^(3/2)));
-    ........> print $f>$g;
+    polymake> print $f>$g;
     true
 
 
@@ -258,10 +292,12 @@ One usage example is parametrized polyhedra. As an example we compute a
 family of 3 dimensional Klee-Minty cubes:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $k = klee_minty_cube(3, $f);
-    ........> print "facets:\n", $k->FACETS, "\nvolume:\n", $k->VOLUME;
+    polymake> print "facets:\n", $k->FACETS, "\nvolume:\n", $k->VOLUME;
     facets:
     (0) (1) (0) (0)
     (1) (- 1) (0) (0)
@@ -279,7 +315,9 @@ family of 3 dimensional Klee-Minty cubes:
 You can even check for (combinatorial) isomorphy:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print isomorphic($k, cube(3));
     true
@@ -306,10 +344,12 @@ As another example related to linear optimization we compute a family of
 and consult:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $l = goldfarb_sit(3, $g, 1/2);
-    ........> print $l->LP->MAXIMAL_VALUE;
+    polymake> print $l->LP->MAXIMAL_VALUE;
     (1)
 
 
@@ -328,7 +368,9 @@ and consult:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $l->LP->MAXIMAL_VERTEX;
     (1) (0) (0) (1)
@@ -336,7 +378,9 @@ and consult:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $l->VOLUME;
     (27/8*x^9/2 -81/4*x^6 + 243/8*x^15/2)

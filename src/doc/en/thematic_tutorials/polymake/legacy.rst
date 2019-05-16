@@ -19,21 +19,27 @@ to `GMP <http://www.swox.com/gmp/>`__ ``polymake`` can also become your
 favorite programmable pocket calculator:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = new Integer(1);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> for (my $i = new Integer(100); $i>0; --$i) { $f *= $i; }
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f;
     93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
@@ -47,14 +53,18 @@ The input of large integer and rational numbers was kind of subtle in
 the past, but now (since version 2.11) it has become quite intuitive:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $bignum=93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $bignum;
     93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
@@ -64,14 +74,18 @@ the past, but now (since version 2.11) it has become quite intuitive:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $ratnum=123456/789012;
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ratnum;
     10288/65751

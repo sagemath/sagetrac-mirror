@@ -17,14 +17,18 @@ Transformations
 We start out with a regular 3-cube …
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c=cube(3);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $c->VERTICES;
     1 -1 -1 -1
@@ -43,21 +47,27 @@ We start out with a regular 3-cube …
 … and a homethetic image:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $T=new Matrix<Rational>([[1,0,0,0],[0,2,0,0],[0,0,3,0],[0,0,0,4]]);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $ct=transform($c,$T);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ct->VERTICES;
     1 -2 -3 -4
@@ -84,7 +94,9 @@ The purpose of the function transform used above is not only to work on
 the VERTICES but also on the FACETS (if available).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $c->FACETS;
     1 1 0 0
@@ -98,7 +110,9 @@ the VERTICES but also on the FACETS (if available).
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ct->FACETS;
     1 1/2 0 0
@@ -123,7 +137,9 @@ which is not bijective. An interesting case are projections, for
 instance, onto a coordinate subspace.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $A=new Matrix<Rational>([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,0]]);
 
@@ -140,14 +156,18 @@ with this situation as the linear map given by A is not invertible.
 To produce the image the following command works:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $ca=new Polytope<Rational>(POINTS=>$c->VERTICES*$A);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $ca->VERTICES;
     1 1 -1 0

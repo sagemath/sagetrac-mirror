@@ -17,12 +17,14 @@ example to get an idea of the mathematical backround). Let us look at an
 example on how to create a regular subdivision.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M = new Matrix<Rational>([[1,0,0],[1,2,0],[1,1,1],[1,0,2],[1,2,2],[1,1,3]]);
-    ........> $w = new Vector<Rational>([0,0,1,0,0,3]);
-    ........> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
-    ........> print $S->MAXIMAL_CELLS;
+    polymake> $w = new Vector<Rational>([0,0,1,0,0,3]);
+    polymake> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
+    polymake> print $S->MAXIMAL_CELLS;
     {3 4 5}
     {0 1 3 4}
 
@@ -65,7 +67,9 @@ We may visualize the regular subdivision if it is at most
 three-dimensional.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $S->VISUAL;
 
@@ -1322,11 +1326,13 @@ contain the point 2. We may change the lifting function by giving point
 2 height ``0`` as well:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $w = new Vector<Rational>([0,0,0,0,0,3]);
-    ........> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
-    ........> print $S->MAXIMAL_CELLS;
+    polymake> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
+    polymake> print $S->MAXIMAL_CELLS;
     {3 4 5}
     {0 1 2 3 4}
 
@@ -1340,7 +1346,9 @@ contain the point 2. We may change the lifting function by giving point
    {3 4 5}
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $S->VISUAL;
 
@@ -2586,11 +2594,13 @@ Changing the height of point 2 again to ``-1`` the subdivision should
 become a triangulation of the point set.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $w = new Vector<Rational>([0,0,-1,0,0,3]);
-    ........> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
-    ........> print $S->MAXIMAL_CELLS;
+    polymake> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
+    polymake> print $S->MAXIMAL_CELLS;
     {0 1 2}
     {0 2 3}
     {2 3 4}
@@ -2610,7 +2620,9 @@ become a triangulation of the point set.
    {3 4 5}
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $S->VISUAL;
 
@@ -4094,7 +4106,9 @@ weights in the third example above are generic, so they define a
 simplicial complex.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $SC = new topaz::GeometricSimplicialComplex(COORDINATES=>$M, INPUT_FACES=>regular_subdivision($M,$w));
 
@@ -4104,7 +4118,9 @@ respecting the weights ``w``. Now we can ask for many other properties,
 e.g.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $SC->F_VECTOR;
     6 10 5
@@ -4112,7 +4128,9 @@ e.g.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $SC->H_VECTOR;
     1 3 1 0
@@ -4132,13 +4150,15 @@ Object has its underlying ``PolyhedralComplex`` as a property this can
 be done simply by:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $M = new Matrix<Rational>([[1,0,0,0],[1,0,1,0],[1,1,0,0],[1,1,1,0],[1,0,0,1],[1,1,0,1],[1,0,1,1],[1,1,1,1],[1,0,0,2]]);
-    ........> $w = new Vector<Rational>([1,0,0,1,0,1,1,0,1]);
-    ........> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
-    ........> $PC = $S->POLYHEDRAL_COMPLEX;
-    ........> print $PC->MAXIMAL_POLYTOPES;
+    polymake> $w = new Vector<Rational>([1,0,0,1,0,1,1,0,1]);
+    polymake> $S = new fan::SubdivisionOfPoints(POINTS=>$M,WEIGHTS=>$w);
+    polymake> $PC = $S->POLYHEDRAL_COMPLEX;
+    polymake> print $PC->MAXIMAL_POLYTOPES;
     {0 1 2 4}
     {1 2 4 7}
     {1 4 6 7 8}
@@ -4161,7 +4181,9 @@ As with an simplicial complex you can do some computation with it. For
 example:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $PC->F_VECTOR;
     9 20 17 5
@@ -4169,7 +4191,9 @@ example:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $PC->SIMPLICIAL;
     false
@@ -4180,7 +4204,9 @@ example:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $PC->VISUAL;
 
@@ -5684,10 +5710,12 @@ vertices of the *(d,n)*-hypersimplex induces a particularly interesting
 kind of regular subdivision. The example below is for *d=2* and *n=4*.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p=new Vector<Rational>([1,0,0,0,0,0]);
-    ........> $msd=regular_subdivision(hypersimplex(2,4)->VERTICES,$p);
+    polymake> $msd=regular_subdivision(hypersimplex(2,4)->VERTICES,$p);
 
 Each cell of this subdivision is a *matroid polytope*, that is, the
 convex hull of characteristic vectors of the bases of some matroid on
@@ -5696,7 +5724,9 @@ be listed in lexicographical ordering. With this extra knowledge we can
 cook up suitable labels for pretty-printing the maximal cells.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($msd,undef,["12","13","14","23","24","34"]);
     0:13 14 23 24 34
@@ -5724,16 +5754,20 @@ Let us look at the following regular subdivision (using homogeneous
 coordinates):
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $points = new Matrix([[1,2,0],[1,0,2],[1,-2,0],[1,0,-2],[1,1,0],[1,0,1],[1,-1,0],[1,0,-1]]);
-    ........> $cells = new Array<Set<Int>>([[0,1,4,5],[0,3,4,7],[2,3,6,7],[1,2,5,6],[4,5,6,7]]);
-    ........> $S = new fan::SubdivisionOfPoints(POINTS=>$points, MAXIMAL_CELLS=>$cells);
+    polymake> $cells = new Array<Set<Int>>([[0,1,4,5],[0,3,4,7],[2,3,6,7],[1,2,5,6],[4,5,6,7]]);
+    polymake> $S = new fan::SubdivisionOfPoints(POINTS=>$points, MAXIMAL_CELLS=>$cells);
 
 we can visualize the subdivision with the following command:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $S->VISUAL;
 
@@ -7240,16 +7274,20 @@ induce this subdivision. This can be achieved by using the method
 ``secondary_cone``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $sc = $S->secondary_cone();
-    ........> print $sc->DIM;
+    polymake> print $sc->DIM;
     4
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $sc->RAYS;
     1 1 1 1 0 0 0 0
@@ -7258,7 +7296,9 @@ induce this subdivision. This can be achieved by using the method
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $sc->LINEALITY_SPACE;
     3/2 3/2 -1/2 -1/2 1 1 0 0
@@ -7285,14 +7325,18 @@ inner square is the fifth one (but since polymake starts counting at
 zero, it has number 4).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $sc_fixed = $S->secondary_cone(lift_face_to_zero=>4);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $sc_fixed->DIM;
     1
@@ -7300,7 +7344,9 @@ zero, it has number 4).
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $sc_fixed->RAYS;
     1 1 1 1 0 0 0 0
@@ -7309,7 +7355,9 @@ zero, it has number 4).
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $sc_fixed->LINEALITY_SPACE;
 
@@ -7330,7 +7378,9 @@ your subdivision. Let us check if our subdivision of the example above
 is regular.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print is_regular($points, $cells);
     1 <0 0 1 1 0 0 1/2 1/2>
@@ -7338,14 +7388,18 @@ is regular.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $lambda = new Vector("0 0 1 1 0 0 1/2 1/2");
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print regular_subdivision($points, $lambda);
     {4 5 6 7}
@@ -7364,11 +7418,13 @@ started with. Now let us see what happens if we use a subdivision which
 is not regular. We use the same points as above but different cells.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $nreg_cells = new Array<Set<Int>>([[0,1,5],[0,4,5],[0,3,4],[3,4,7],[2,3,7],[2,6,7],[1,2,6],[1,5,6],[4,5,6,7]]);
-    ........> $nreg_pc = new fan::PolyhedralComplex(POINTS=>$points, INPUT_POLYTOPES=>$nreg_cells);
-    ........> $nreg_pc->VISUAL;
+    polymake> $nreg_pc = new fan::PolyhedralComplex(POINTS=>$points, INPUT_POLYTOPES=>$nreg_cells);
+    polymake> $nreg_pc->VISUAL;
 
 
 .. raw:: html
@@ -8939,7 +8995,9 @@ argument we can see that this subdivision is indeed not regular. How
 does polymake feel about this?
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print is_regular($points, $nreg_cells);
     0 <>
@@ -8954,11 +9012,13 @@ the given cells. What happens if we ask for the secondary cone of that
 subdivision?
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $nreg_sub = new fan::SubdivisionOfPoints(POINTS=>$points, MAXIMAL_CELLS=>$nreg_cells);
-    ........> $nreg_sc = $nreg_sub->secondary_cone();
-    ........> print $nreg_sc->DIM;
+    polymake> $nreg_sc = $nreg_sub->secondary_cone();
+    polymake> print $nreg_sc->DIM;
     4
 
 
@@ -8969,7 +9029,9 @@ This might be weird at first. Although our subdivision is not regular
 secondary cone seems to be 4 dimensional. Let us investigate.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $nreg_sc->RAYS;
     1 1 1 1 0 0 0 0
@@ -8978,7 +9040,9 @@ secondary cone seems to be 4 dimensional. Let us investigate.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $nreg_sc->LINEALITY_SPACE;
     3/2 3/2 -1/2 -1/2 1 1 0 0

@@ -17,14 +17,18 @@ Handling polymake objects
 Let us take this nice example object:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = cube(3);
 
 To store polymake objects use the command
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> save($p,"myPolyObject.poly");
 
@@ -34,7 +38,9 @@ polymake objects that are stored in polymake’s own XML file format can
 be loaded via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p=load("myPolyObject.poly");
 
@@ -48,7 +54,9 @@ these properties will automatically be added to the original XML-file at
 the end of the session. You can suppress this with the command
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->dont_save;
 
@@ -64,10 +72,12 @@ data structures like matrices or graphs in XML format via ``save_data``,
 e.g.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s=new Set<Int>(1,2,3,4);
-    ........> save_data($s, "mySet.poly", "My very own set.");
+    polymake> save_data($s, "mySet.poly", "My very own set.");
 
 The description text is optional; it can be an arbitrary text, even
 stretching over several lines.
@@ -75,7 +85,9 @@ stretching over several lines.
 To load such files just type
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s=load_data("mySet.poly");
 
@@ -113,20 +125,24 @@ looks like this: 1 0 0 0 1 1 0 0 1 0 1 0 1 1 1 0 1 0 0 1 1 1 0 1 1 0 1 1
 1 1 1 1 For the sake of the example, let’s create this file:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> open(my $f, '> points.txt'); print $f "1 0 0 0\n1 1 0 0\n1 0 1 0\n1 1 1 0\n1 0 0 1\n1 1 0 1\n1 0 1 1\n1 1 1 1\n"; close $f;
 
 To read this file try the following:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> open(INPUT, "< points.txt");
-    ........> while(<INPUT>){
-    ........>   print $_;
-    ........> }
-    ........> close(INPUT);
+    polymake> while(<INPUT>){
+    polymake>   print $_;
+    polymake> }
+    polymake> close(INPUT);
 
 ``<INPUT>`` is a perl input iterator reading the file line by line.
 Variable ``$_`` refers to the current line within this loop; it has a
@@ -137,10 +153,12 @@ matrix. This can be done immediately, because the matrix constructor
 called with a list of values interprets each value as a matrix line:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> open(INPUT, "< points.txt");
-    ........> $matrix=new Matrix<Rational>(<INPUT>);
-    ........> close(INPUT);
+    polymake> $matrix=new Matrix<Rational>(<INPUT>);
+    polymake> close(INPUT);
 
 

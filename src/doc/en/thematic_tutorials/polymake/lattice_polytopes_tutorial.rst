@@ -61,7 +61,9 @@ coordinates +1 and -1. So we start ``polymake`` at the command line and
 assign a cube to the variable $p.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p=cube(3);
 
@@ -70,7 +72,9 @@ answer is of course already known, as the cube has one relative interior
 integral point per non-empty face. So we expect to get the answer 27.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->N_LATTICE_POINTS;
     27
@@ -94,7 +98,9 @@ for us. For our next computations we are only interested in the integral
 points in the interior of the cube, so we ask for
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->INTERIOR_LATTICE_POINTS;
     1 0 0 0
@@ -118,7 +124,9 @@ You can also ask for the HILBERT_BASIS, though in the case of a cube the
 result is not so exciting:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->HILBERT_BASIS;
     1 -1 -1 -1
@@ -183,7 +191,9 @@ that have non-integral vertex coordinates. We can let ``polymake`` check
 that our cube is indeed a polytope with integral vertices.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LATTICE;
     true
@@ -206,7 +216,9 @@ case the object will automatically get the specialization
 ``Polytope::Lattice``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->REFLEXIVE;
     true
@@ -221,7 +233,9 @@ polytope. here is an example: The toric variety defined by our cube is
 ``polymake``, we can just ask for this property in the following way.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->SMOOTH;
     true
@@ -235,7 +249,9 @@ In ``polymake`` you can obtain the coefficients of this polynomial
 (starting with the constant coefficient).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->EHRHART_POLYNOMIAL;
     8*x^3 + 12*x^2 + 6*x + 1
@@ -250,7 +266,9 @@ Some coefficients of this polynomial have a geometric interpretation.
 E.g., the highest coefficient is the Euclidean volume of the polytope.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->VOLUME;
     8
@@ -263,7 +281,9 @@ lattice points can be written as the quotient of a polynomial h(t) by
 (1-t)d+1, and this polynomial has non-negative integral coefficients.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->H_STAR_VECTOR;
     1 23 23 1
@@ -271,7 +291,9 @@ lattice points can be written as the quotient of a polynomial h(t) by
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LATTICE_DEGREE;
     3
@@ -279,7 +301,9 @@ lattice points can be written as the quotient of a polynomial h(t) by
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LATTICE_CODEGREE;
     1
@@ -298,7 +322,9 @@ We can obtain the volume of our polytope also from the
 of the polytope, which is d! times its Euclidean volume.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->LATTICE_VOLUME;
     48
@@ -309,7 +335,9 @@ of the polytope, which is d! times its Euclidean volume.
 Let us look at a different example:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $q=new Polytope(INEQUALITIES=>[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]);
 
@@ -317,7 +345,9 @@ This actually defines a lattice polytope, which we can see from the list
 of vertices:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $q->VERTICES;
     1 3 1 7
@@ -358,7 +388,9 @@ polytope Q is *normal* if every lattice point in the k-th dilate of Q is
 the sum of k lattice points in Q. You can check this property via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $q->NORMAL;
     false
@@ -373,7 +405,9 @@ height one and the coning over it has all its generators in height one.
 The property HILBERT_BASIS computes these generators:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $q->HILBERT_BASIS;
     1 2 0 3
@@ -396,7 +430,9 @@ affine toric variety, and the above tells us that this variety is not
 normal. Yet, it is very ample, as we can check with
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $q->VERY_AMPLE;
     true
@@ -408,7 +444,9 @@ Now assume we are particularly interested in the third facet of Q. We
 can pick this via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f=facet($q,2);
 
@@ -416,7 +454,9 @@ Recall that indexes in ``polymake`` start at 0, so the third facet has
 index 2. This is again a very ample polytope:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->VERY_AMPLE;
     true
@@ -430,7 +470,9 @@ the minimum over the maximal distance of a facet to any other vertex.
 ``polymake`` knows how to compute this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> #print $f->FACET_WIDTH;
 
@@ -441,10 +483,12 @@ space as $q, but has one dimension less. We can remedy this by applying
 the following:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g=ambient_lattice_normalization($f);
-    ........> print $g->FACET_WIDTH;
+    polymake> print $g->FACET_WIDTH;
     1
 
 
@@ -461,10 +505,12 @@ The sum of the entries of each vertex is odd, so the lattice spannd by
 the vertices is a sublattice of the integer lattice:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $cr=vertex_lattice_normalization($p);
-    ........> print $cr->VERTICES;
+    polymake> print $cr->VERTICES;
     (4) (0 1)
     1 1 0 0
     1 0 1 0
@@ -504,14 +550,18 @@ extensions. We start by defining a fan. We’ll make our live easy and
 take the normal fan of our cube:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application "fan";
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = normal_fan($p);
-    ........> print $f->SMOOTH_FAN;
+    polymake> print $f->SMOOTH_FAN;
     true
 
 
@@ -525,7 +575,9 @@ properties based on this. Any smooth variety is Gorenstein, so we expect
 the following:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->GORENSTEIN;
     true
@@ -537,7 +589,9 @@ Similarly, we could check for Q-Gorensteinness with ``Q_GORENSTEIN``. It
 is also a complete fan:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->COMPLETE;
     true
@@ -551,10 +605,12 @@ normal fans are complete. You can also check standard features of fans,
 like their rays. Let us do this for the normal fan of our other example:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g=normal_fan($q);
-    ........> print $g->RAYS;
+    polymake> print $g->RAYS;
     -1 0 1/4
     0 -1 1/4
     1 0 0
@@ -572,7 +628,9 @@ This is not what we wanted. We would like to see the minimal lattice
 generators of the rays. We can fix this using
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print primitive($g->RAYS);
     -4 0 1
@@ -595,7 +653,9 @@ in a new variable. The fan `g` is not smooth, but still
 Gorenstein:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->SMOOTH_FAN;
     false
@@ -603,7 +663,9 @@ Gorenstein:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->GORENSTEIN;
     true
@@ -614,7 +676,9 @@ Gorenstein:
 You can also access the maximal cones of the fan via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->MAXIMAL_CONES;
     {0 1 6 7}
@@ -635,7 +699,9 @@ be interested in the walls, i.e. the codimension 2 faces of the fan.
 Here is one way to get them
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_numbered($g->HASSE_DIAGRAM->FACES);
     0:-1
@@ -675,7 +741,9 @@ Here is one way to get them
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->HASSE_DIAGRAM->nodes_of_dim($g->DIM-2);
     {23 24 25 26 27 28 29 30}
@@ -688,7 +756,9 @@ codimension 2 faces in the list of all faces given before. There is a
 more concise way to list those, using some simple perl programming:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print map($g->HASSE_DIAGRAM->FACES->[$_], @{$g->HASSE_DIAGRAM->nodes_of_dim($g->DIM-2)});
     {0}{1}{7}{6}{4}{2}{3}{5}
@@ -706,7 +776,9 @@ made with ```javaview`` <http://www.javaview.de>`__, but
 which is bundled with ``polymake``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->VISUAL->LATTICE_COLORED;
 
@@ -1934,11 +2006,15 @@ time, if 0, then all credits are suppressed (but you can find them in
 the file afterwards).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $Verbose::external=1;
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->EHRHART_POLYNOMIAL;
     8*x^3 + 12*x^2 + 6*x + 1
@@ -1957,7 +2033,9 @@ N_LATTICE_POINTS, LATTICE_POINTS, HILBERT_BASIS or EHRHART_POLYNOMIAL.
 (Or ``prefer_now`` just for the next computation)
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print cube(2)->N_LATTICE_POINTS;
     9
@@ -1965,16 +2043,20 @@ N_LATTICE_POINTS, LATTICE_POINTS, HILBERT_BASIS or EHRHART_POLYNOMIAL.
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> prefer_now "libnormaliz";
-    ........> print cube(2)->N_LATTICE_POINTS;
+    polymake> print cube(2)->N_LATTICE_POINTS;
     9
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print cube(2)->EHRHART_POLYNOMIAL;
     4*x^2 + 4*x + 1

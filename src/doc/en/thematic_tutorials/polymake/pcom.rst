@@ -10,7 +10,9 @@ Polyhedral complexes are contained in the application ``fan``, so you
 hanve to switch application to access the full functionality.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application "fan";
 
@@ -19,7 +21,9 @@ array of input points and a list of polytopes represented as an array of
 arrays of point indices.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $pc1 = new PolyhedralComplex(POINTS=>[[1,0,0],[1,0,1],[1,1,0],[1,1,1]],INPUT_POLYTOPES=>[[0,1,2],[2,3],[1]]);
 
@@ -27,7 +31,9 @@ Since some of the input polytopes may be redundant, you should ask for
 the ``MAXIMAL_POLYTOPES``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $pc1->MAXIMAL_POLYTOPES;
     {0 1 2}
@@ -64,10 +70,12 @@ complexes. In polymake they are objects of type ``SimplicialComplex``
 convert them as follows:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c=cube(3);
-    ........> $triangulation=new PolyhedralComplex(VERTICES=>$c->VERTICES,MAXIMAL_POLYTOPES=>$c->TRIANGULATION->FACETS);
+    polymake> $triangulation=new PolyhedralComplex(VERTICES=>$c->VERTICES,MAXIMAL_POLYTOPES=>$c->TRIANGULATION->FACETS);
 
 Voronoi Diagrams and regular subdivisions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

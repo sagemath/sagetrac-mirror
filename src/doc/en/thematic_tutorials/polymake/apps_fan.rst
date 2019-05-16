@@ -23,7 +23,9 @@ Most of the following code snippets will only work in your polymake
 shell after switching to the application ``fan`` with the command
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'fan';
 
@@ -37,7 +39,9 @@ A primal description containing rays and rays-cones incidence relations
 can be passed to the constructor like this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $f = new PolyhedralFan(INPUT_RAYS=>[[1,0],[0,1],[-1,0],[0,-1],[2,0]], INPUT_CONES=>[[0,1,4],[1,2],[2,3],[3,0],[0]]);
 
@@ -54,7 +58,9 @@ of input cones are, however, implicitly included. Indeed, for our fan
 ``$f`` we obtain:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->CONES;
     <{0}
@@ -107,11 +113,13 @@ and
 are giving a **non-redundant** primal description:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($f->RAYS),"\n";
-    ........> print $f->MAXIMAL_CONES,"\n";
-    ........> print "lineality dimensions: ", $f->LINEALITY_SPACE->rows() ."x". $f->LINEALITY_SPACE->cols();
+    polymake> print $f->MAXIMAL_CONES,"\n";
+    polymake> print "lineality dimensions: ", $f->LINEALITY_SPACE->rows() ."x". $f->LINEALITY_SPACE->cols();
     0:1 0
     1:0 1
     2:-1 0
@@ -147,10 +155,12 @@ The dual description
 The following properties give rise to a dual description:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($f->FACET_NORMALS),"\n";
-    ........> print rows_labeled($f->MAXIMAL_CONES_FACETS);
+    polymake> print rows_labeled($f->MAXIMAL_CONES_FACETS);
     0:1 0
     1:0 1
     
@@ -181,10 +191,12 @@ for more informations. All maximal cones in ``$f`` are full dimensional,
 hence ``LINEAR_SPAN_NORMALS`` is empty:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $f->LINEAR_SPAN_NORMALS->rows."\n\n";
-    ........> print $f->MAXIMAL_CONES_LINEAR_SPAN_NORMALS;
+    polymake> print $f->MAXIMAL_CONES_LINEAR_SPAN_NORMALS;
     0
     
     {}
@@ -203,10 +215,12 @@ As an example one can extract the second and fourth maximal cone of
 ``$f``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c1 = $f->cone(1);
-    ........> $c3 = $f->cone(3);
+    polymake> $c3 = $f->cone(3);
 
 and pass them to the user method
 `check_fan_objects <https://polymake.org/release_docs/latest/fan.html#fan__check_fan_objects__54>`__,
@@ -215,10 +229,12 @@ the set of provided cones defines a valid polyhedral fan, id est
 satisfies the intersection property.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $checkedfan = check_fan_objects($c1,$c3);
-    ........> print $checkedfan->MAXIMAL_CONES;
+    polymake> print $checkedfan->MAXIMAL_CONES;
     {0 1}
     {2 3}
 
@@ -238,7 +254,9 @@ The inner normal fan of a polytope can be produced with this client. For
 example the normal fan of the 3-dimensional +/-1 cube:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $nf = normal_fan(cube(3));
 
@@ -246,11 +264,13 @@ Normal fans of bounded feasible polytopes always satisfy the following
 properties:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> foreach my $prop (qw(regular pure complete full_dim)) {
-    ........>     print ucfirst($prop),": ", $nf->give(uc($prop)),"\n";
-    ........> }
+    polymake>     print ucfirst($prop),": ", $nf->give(uc($prop)),"\n";
+    polymake> }
     Regular: true
     Pure: true
     Complete: true
@@ -273,10 +293,12 @@ is not centered you have to pass such a point as a second argument (in
 homogeneous coordinates). For example:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $v = new Vector([1,0,0,1/2]);
-    ........> $ff = face_fan(cross(3), $v);
+    polymake> $ff = face_fan(cross(3), $v);
 
 `k_skeleton <https://polymake.org/release_docs/latest/fan.html#fan__k_skeleton__46>`__
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -286,7 +308,9 @@ a certain dimension. As an example we construct the skeleton of ``$nf``
 with `k=2`:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $nf2skel = k_skeleton($nf,2);
 
@@ -294,10 +318,12 @@ By taking a look at the f-vectors one can see that the latter has no
 cones of dimension 3.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print "normal fan: ",$nf->F_VECTOR,"\n";
-    ........> print "skeleton:   ",$nf2skel->F_VECTOR;
+    polymake> print "skeleton:   ",$nf2skel->F_VECTOR;
     normal fan: 6 12 8
     skeleton:   6 12
 
@@ -311,7 +337,9 @@ artifical node at the top which is marked in black and does not
 correspond to any cone.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> svg($nf2skel->HASSE_DIAGRAM->VISUAL);
     requires PDFLaTeX and a PDF viewer;

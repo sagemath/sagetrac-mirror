@@ -13,10 +13,12 @@ Let’s look at the graph of a square. Since a square is a 2-cube, we can
 create the polytope and look at its graph:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c=cube(2);
-    ........> $c->GRAPH->VISUAL;
+    polymake> $c->GRAPH->VISUAL;
 
 
 .. raw:: html
@@ -1084,7 +1086,9 @@ object refering to the ``C++`` class named ``Graph`` (see the `tutorial
 on graphs <apps_graph>`__ for more details):
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g=new props::Graph($c->GRAPH->ADJACENCY);
 
@@ -1094,7 +1098,9 @@ complete adjacency information you can print ``$c->GRAPH->ADJACENCY`` or
 just the props::Graph object ``$g``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($g);
     0:1 2
@@ -1110,7 +1116,9 @@ Now, we compute the generators of the automorphism group of this graph
 (see the `tutorial on groups <apps_group>`__ for more info):
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $aut=automorphisms($g);
 
@@ -1132,7 +1140,9 @@ Now, we compute the generators of the automorphism group of this graph
 In this case, the automorphism group has two generators:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $aut;
     0 2 1 3
@@ -1151,16 +1161,20 @@ In order to be able to work with the group, we create a new Group
 object, which lives in the application ``group``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $action = new group::PermutationAction(GENERATORS => $aut);
-    ........> $autgroup = new group::Group(PERMUTATION_ACTION => $action);
+    polymake> $autgroup = new group::Group(PERMUTATION_ACTION => $action);
 
 Now we can ask for basic properties of the group, e.g., the number of
 elements:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $autgroup->ORDER;
     8
@@ -1189,15 +1203,19 @@ which is the stabilizer of the given set. In the first case, we just fix
 the index 0:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s0=new Set<Int>(0);
-    ........> $stab0=group::stabilizer_of_set($action,$s0);
+    polymake> $stab0=group::stabilizer_of_set($action,$s0);
 
 We learn that the node 0 is only fixed by the permutation ``0 2 1 3``:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $stab0->ORDER;
     2
@@ -1205,7 +1223,9 @@ We learn that the node 0 is only fixed by the permutation ``0 2 1 3``:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $stab0->PERMUTATION_ACTION->GENERATORS;
     0 2 1 3
@@ -1218,15 +1238,19 @@ In the second case, we look at the subgroup which leaves the set
 ``{1,2}`` invariant:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $s12=new Set<Int>(1,2);
-    ........> $stab12=group::stabilizer_of_set($action,$s12);
+    polymake> $stab12=group::stabilizer_of_set($action,$s12);
 
 Now, we obtain a group of order 4:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $stab12->ORDER;
     4
@@ -1234,7 +1258,9 @@ Now, we obtain a group of order 4:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $stab12->PERMUTATION_ACTION->GENERATORS;
     3 1 2 0
@@ -1248,7 +1274,9 @@ Finally, we compute the orbits of the indices under the three different
 groups:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $stab0->PERMUTATION_ACTION->ORBITS;
     {0}
@@ -1259,7 +1287,9 @@ groups:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $stab12->PERMUTATION_ACTION->ORBITS;
     {0 3}
@@ -1269,7 +1299,9 @@ groups:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $autgroup->PERMUTATION_ACTION->ORBITS;
     {0 1 2 3}

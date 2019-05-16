@@ -28,7 +28,9 @@ To use the function, one has to switch to the ``topaz`` application. See
 this `tutorial <apps_topaz>`__ for a general introduction to ``topaz``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application 'topaz';
 
@@ -56,17 +58,21 @@ one). Consider this small three-frame example filtration:
 You can construct it in ``polymake`` like this:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $S = new SimplicialComplex(FACETS=>[[0,1],[0,2],[1,2],[3]]);
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $HD = $S->HASSE_DIAGRAM;              # Hasse diagram of the last frame
-    ........> print rows_numbered($HD->FACES);      # check indexing
+    polymake> print rows_numbered($HD->FACES);      # check indexing
     0:-1
     1:0 1
     2:0 2
@@ -81,21 +87,27 @@ You can construct it in ``polymake`` like this:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $a = new Array<Int>(1,2,1,2,0,0,1);   # assign degrees to the simplices ([0,1] gets degree 1, [0,2] degree 2 etc)
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $F = new Filtration<SparseMatrix<Rational>>($HD,$a);
 
 You can print the boundary matrix for each frame and dimension:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $F->boundary_matrix(1,1);     # print dimension 1 matrix of frame 1
     1 -1 0
@@ -111,7 +123,9 @@ each representing one cell with degree, dimension and boundary matrix
 index.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $F->cells;
     (0,0,1) (0,0,2) (1,0,3) (1,1,0) (1,1,2) (2,0,0) (2,1,1)
@@ -127,17 +141,23 @@ of cells, together with an array of matrices to be used as boundary
 matrices. To construct the same filtration as above:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $C = new Array<Cell>(7);
-    ........> $C->[0] = new Cell(0,0,1);
+    polymake> $C->[0] = new Cell(0,0,1);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $bd = new Array<SparseMatrix<Rational>>(3);
-    ........> $bd->[0] = new SparseMatrix<Rational>([1],[1],[1],[1]);
+    polymake> $bd->[0] = new SparseMatrix<Rational>([1],[1],[1],[1]);
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $F = new Filtration<SparseMatrix<Rational>>($C,$bd);
 
@@ -154,10 +174,12 @@ space). The following computes the four-skeleton of the VR-filtration of
 six random points in 5-space using the euclidean metric:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $S = polytope::rand_sphere(5,6)->VERTICES;
-    ........> $P = $S->minor(All,sequence(1,5));     # dehomogenize
+    polymake> $P = $S->minor(All,sequence(1,5));     # dehomogenize
 
 
 .. raw:: html
@@ -179,30 +201,38 @@ six random points in 5-space using the euclidean metric:
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> sub dist($){                          # define euclidean metric
-    ........> my $v = $_[0] - $_[1];
-    ........> return sqrt(new Float($v*$v));};
+    polymake> my $v = $_[0] - $_[1];
+    polymake> return sqrt(new Float($v*$v));};
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $D = distance_matrix($P,\&dist);       # conmpute distance matrix of the point set
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $a = new Array<Int>(6);               #zero array -- all points get degree 0
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $F = vietoris_rips_filtration<Rational>($D,$a,0.1,4);
 

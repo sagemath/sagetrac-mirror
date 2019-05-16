@@ -20,10 +20,12 @@ Coming from polytopes the first situation in which a graph occurs is the
 vertex-edge graph of such a polytope.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p=rand_sphere(3,20);
-    ........> print $p->GRAPH->N_NODES;
+    polymake> print $p->GRAPH->N_NODES;
     20
     
 
@@ -55,7 +57,9 @@ based on a pseudo-physical model (described in `this
 paper <http://front.math.ucdavis.edu/0711.2397>`__).
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $p->DIAMETER;
     4
@@ -64,7 +68,9 @@ paper <http://front.math.ucdavis.edu/0711.2397>`__).
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p->VISUAL;
 
@@ -94,11 +100,13 @@ the method ``edge`` creates an edge if it did not exist before. The
 output is the ordered list of neighbors per node.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g=new props::Graph(5);                      
-    ........> for (my $i=0; $i<5; ++$i) { $g->edge($i,($i+1)%5) };
-    ........> print $g;
+    polymake> for (my $i=0; $i<5; ++$i) { $g->edge($i,($i+1)%5) };
+    polymake> print $g;
     {1 4}               
     {0 2}               
     {1 3}               
@@ -115,7 +123,9 @@ output refers to which node. If an array of labels is given this could
 also be used instead of the numbers which are the default.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($g);
     0:1 4                             
@@ -134,18 +144,22 @@ There are other ways to change such a graph. Contracting the edge
 destroyed.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g->delete_edge(0,1);
-    ........> $g->contract_edge(2,3);
-    ........> $g->squeeze();
+    polymake> $g->contract_edge(2,3);
+    polymake> $g->squeeze();
 
 However, most of our graph algorithms expect a graph with consecutively
 numbered nodes. The function ``squeeze`` takes care of a proper
 renumbering, but this takes linear time in the number of nodes.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print rows_labeled($g);
     0:4
@@ -192,14 +206,18 @@ again the above example of a 5-cycle C5 with consecutively numbered
 nodes. Then one can define C5 by
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> application "graph";
 
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g=new objects::Graph(ADJACENCY=>[[1,4],[0,2],[1,3],[2,4],[0,3]]);
 
@@ -212,7 +230,9 @@ The list of edges of the graph is induced by the adjacency matrix
 can get an explicit list of the edges with the user function ``EDGES``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->EDGES;
     {0 1}
@@ -235,7 +255,9 @@ provides a way to create a graph from a list of edges. The same 5-cycle
 as above could also be defined via
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake>  $g=graph_from_edges([[0,1],[1,2],[2,3],[0,4],[3,4]]);
 
@@ -243,7 +265,9 @@ The order of the edges, and the order of the nodes for each edge in a
 undirected case, is not important. We can check the adjacency matrix,
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->ADJACENCY;
     {1 4}
@@ -261,7 +285,9 @@ and continue to work with the graph by e.g. checking its ``DIAMETER``,
 ``BIPARTITE``-ness or other properties:
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->DIAMETER;
     2
@@ -270,7 +296,9 @@ and continue to work with the graph by e.g. checking its ``DIAMETER``,
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->BIPARTITE;
     0
@@ -279,7 +307,9 @@ and continue to work with the graph by e.g. checking its ``DIAMETER``,
 
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print $g->MAX_CLIQUES;
     {{0 1} {0 4} {1 2} {2 3} {3 4}}
@@ -298,10 +328,12 @@ expected. A directed graph may have two arcs between any two nodes with
 opposite orientations.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $g=new objects::Graph<Directed>(ADJACENCY=>[[1],[2],[3],[2,4],[0]]);
-    ........> print $g->DIAMETER;
+    polymake> print $g->DIAMETER;
     4
     
 
@@ -314,7 +346,9 @@ an example of an undirected graph property which does not make sense for
 directed graphs.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> #print $g->MAX_CLIQUES;
 
@@ -334,7 +368,9 @@ Depending on the configuration it typically uses ``JReality`` or
 visualization via ``Graphviz``.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> graphviz($g->VISUAL);
 

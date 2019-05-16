@@ -11,11 +11,13 @@ combinatorial information about a polytope. Here we want to explore how
 to work with this in polymake. Let’s start simple.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p = n_gon(5);
-    ........> $HD = $p->HASSE_DIAGRAM;       
-    ........> print $HD->FACES;
+    polymake> $HD = $p->HASSE_DIAGRAM;       
+    polymake> print $HD->FACES;
     {}
     {0}
     {1}
@@ -60,7 +62,9 @@ Very often just a part of the face lattice is interesting. The following
 command lists just the 1-dimensional faces.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print map { $p->HASSE_DIAGRAM->FACES->[$_] } @{$p->HASSE_DIAGRAM->nodes_of_dim(1)};
     {1 2}{2 3}{3 4}{0 4}{0 1}
@@ -74,11 +78,13 @@ compute only a part. The following computes the 2-skeleton of an
 uses the rank which is one more than the dimension.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $c=cube(8);
-    ........> $HD_partial = lower_hasse_diagram($c->VERTICES_IN_FACETS,3);
-    ........> print $HD_partial->INVERSE_RANK_MAP;
+    polymake> $HD_partial = lower_hasse_diagram($c->VERTICES_IN_FACETS,3);
+    polymake> print $HD_partial->INVERSE_RANK_MAP;
     {(0 (0 0)) (1 (1 256)) (2 (257 1280)) (3 (1281 3072)) (4 (3073 3073))}
 
 
@@ -88,7 +94,9 @@ Instead of listing all those thousands of faces here we give only the
 pairs indicating the start-node and end-node for each rank.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> print map { $HD_partial->nodes_of_rank($_)->size," " } (1..3);
     256 1024 1792 
@@ -111,10 +119,12 @@ computation. This can be triggered like this. Intentionally, there is no
 output.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $p=rand_sphere(6,100); 
-    ........> $p->VERTICES_IN_FACETS;
+    polymake> $p->VERTICES_IN_FACETS;
 
 Notice that this takes a couple of seconds with the default convex hull
 code (via cdd), even on a large machine; and the reason is that the
@@ -122,7 +132,9 @@ double description method employed is not best possible for this kind of
 input. You can speed up *this* computation as follows.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> prefer_now "beneath_beyond"; $p->VERTICES_IN_FACETS;
 
@@ -145,10 +157,12 @@ The subsequent second stage looks as above; but the difference is that
 VERTICES_IN_FACETS is known already.
 
 
-::
+.. link
+
+.. CODE-BLOCK:: perl
 
     polymake> $HD_partial = lower_hasse_diagram($p->VERTICES_IN_FACETS,3);
-    ........> print map { $HD_partial->nodes_of_rank($_)->size," " } (1..3);
+    polymake> print map { $HD_partial->nodes_of_rank($_)->size," " } (1..3);
     100 1965 10402 
 
 
