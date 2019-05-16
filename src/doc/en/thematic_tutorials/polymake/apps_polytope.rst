@@ -33,25 +33,81 @@ pass a matrix of coordinates to the constructor. Since ``polymake`` uses
 additional coordinate x0 to 1.
 
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> $p = new Polytope(POINTS=>[[1,-1,-1],[1,1,-1],[1,-1,1],[1,1,1],[1,0,0]]);
+
+.. end of output
+
+In Sage::
+
+  sage: p = polymake.new_object("Polytope", POINTS=[[1,-1,-1],[1,1,-1],[1,-1,1],[1,1,1],[1,0,0]])
+
+The result in SageMath is an interface object representing the
+Polymake object.  It is not "converted":
+
+.. link
+
+::
+
+  sage: p
+  Polytope<Rational>[SAGE...]
 
 The ``POINTS`` can be any set of coordinates, they are not required to
 be irredundant nor vertices of their convex hull. To compute the actual
 vertices of our polytope, we do this:
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print $p->VERTICES;
     1 -1 -1
     1 1 -1
     1 -1 1
     1 1 1
-    
 
+.. end of output
 
+.. link
+
+In Sage::
+
+  sage: p.VERTICES
+  1 -1 -1
+  1 1 -1
+  1 -1 1
+  1 1 1
+
+What is this?
+
+.. link
+
+::
+
+  sage: V = _
+  sage: type(V)
+  <class 'sage.interfaces.polymake.PolymakeElement'>
+
+Can convert to a Python list of interface elements:
+
+.. link
+
+::
+
+  sage: list(V)
+  [1 -1 -1, 1 1 -1, 1 -1 1, 1 1 1]
+
+Or to a Python list of lists of Sage integers:
+
+.. link
+
+::
+
+  sage: [ list(ZZ(x) for x in v) for v in V ]
+  [[1, -1, -1], [1, 1, -1], [1, -1, 1], [1, 1, 1]]
+
+Back to the polymake tutorial.
 
 
 
@@ -59,17 +115,28 @@ You can also add a lineality space via the input property
 ``INPUT_LINEALITY``.
 
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> $p2 = new Polytope(POINTS=>[[1,-1,-1],[1,1,-1],[1,-1,1],[1,1,1],[1,0,0]],INPUT_LINEALITY=>[[0,1,0]]);
+
+.. end of output
+
+In Sage::
+
+  sage: p2 = polymake.new_object("Polytope", POINTS=[[1,-1,-1],[1,1,-1],[1,-1,1],[1,1,1],[1,0,0]], INPUT_LINEALITY=[[0,1,0]])
 
 To take a look at what that thing looks like, you can use the ``VISUAL``
 method:
 
-
-::
+.. CODE-BLOCK:: perl
 
     polymake> $p2->VISUAL;
+
+.. end of output
+
+In Sage::
+
+  sage: p2.VISUAL()   # not tested
 
 See `here <visual_tutorial#application%20polytope>`__ for details on
 visualizing polytopes.
@@ -86,9 +153,15 @@ with the properties ``VERTICES`` / ``LINEALITY_SPACE``. Furthermore, the
 ``VERTICES`` is used:
 
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> $p3 = new Polytope<Rational>(VERTICES=>[[1,-1,-1],[1,1,-1],[1,-1,1],[1,1,1]], LINEALITY_SPACE=>[]);
+
+.. end of output
+
+In Sage::
+
+  sage: p3 = polymake.new_object("Polytope<Rational>", VERTICES=[[1,-1,-1],[1,1,-1],[1,-1,1],[1,1,1]], LINEALITY_SPACE=[])
 
 H-Description
 ~~~~~~~~~~~~~
@@ -101,15 +174,24 @@ An inequality a0 + a1 x1 + … + ad xd >= 0 is encoded as a row vector
 is an example:
 
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> $p4 = new Polytope(INEQUALITIES=>[[1,1,0],[1,0,1],[1,-1,0],[1,0,-1],[17,1,1]]);
+
+.. end of output
+
+In Sage:
+
+::
+
+   sage: p4 = polymake.new_object("Polytope", INEQUALITIES=[[1,1,0],[1,0,1],[1,-1,0],[1,0,-1],[17,1,1]])
 
 To display the inequalities in a nice way, use the ``print_constraints``
 method.
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print_constraints($p4->INEQUALITIES);
     0: x1 >= -1
@@ -117,48 +199,58 @@ method.
     2: -x1 >= -1
     3: -x2 >= -1
     4: x1 + x2 >= -17
-    
 
+.. end of output
 
+.. link
 
+In Sage::
 
+   sage: polymake.print_constraints(p4.INEQUALITIES)
+   0: x1 >= -1
+   1: x2 >= -1
+   2: -x1 >= -1
+   3: -x2 >= -1
+   4: x1 + x2 >= -17
 
-The last inequality means 17+x1+x2
+.. link
 
-.. raw:: html
+The last inequality means `17+x_1+x_2 \geq 0`, hence it does not
+represent a facet of the polytope. If you want to
+take a look at the actual facets, do this:
 
-   <html>
+.. link
 
-≥
-
-.. raw:: html
-
-   </html>
-
-0, hence it does not represent a facet of the polytope. If you want to
-take a look at the acutal facets, do this:
-
-
-::
+.. CODE-BLOCK:: perl
 
     polymake> print $p4->FACETS;
     1 1 0
     1 0 1
     1 -1 0
     1 0 -1
-    
 
+.. end of output
 
+.. link
 
+In Sage::
 
+   sage: p4.FACETS
+   1 1 0
+   1 0 1
+   1 -1 0
+   1 0 -1
 
 If your polytope lies in an affine subspace then you can specify its
 equations via the input property ``EQUATIONS``.
 
-
 ::
 
     polymake> $p5 = new Polytope(INEQUALITIES=>[[1,1,0,0],[1,0,1,0],[1,-1,0,0],[1,0,-1,0]],EQUATIONS=>[[0,0,0,1],[0,0,0,2]]);
+
+In Sage::
+
+  sage: p5 = polymake.new_object("Polytope", INEQUALITIES=[[1,1,0,0],[1,0,1,0],[1,-1,0,0],[1,0,-1,0]],EQUATIONS=[[0,0,0,1],[0,0,0,2]])
 
 Again, if you are sure that all your inequalities are facets, you can
 use the properties ``FACETS`` and ``AFFINE_HULL`` instead. Note that
@@ -180,31 +272,32 @@ double description
 use by using the ``prefer`` command:
 
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> prefer "lrs";                              # use lrs until revoked by another 'prefer' or 'reset_preference "lrs"'
-    ........> $p = new Polytope(POINTS=>[[1,1],[1,0]]);
-
-
-
-
-::
-
+    polymake> $p = new Polytope(POINTS=>[[1,1],[1,0]]);
     polymake> print $p->FACETS;
     polymake: used package lrs
       Implementation of the reverse search algorithm of Avis and Fukuda.
       Copyright by David Avis.
       http://cgm.cs.mcgill.ca/~avis/lrs.html
-        
-
-
-
-
-
-::
-
    1 -1
    0 1
+
+In Sage::
+
+  sage: polymake.prefer('"lrs"') # Note double quoting to represent Perl strings
+  sage: p = polymake.new_object("Polytope", POINTS=[[1,1],[1,0]])
+  sage: p.FACETS
+  used package lrs
+  Implementation of the reverse search algorithm of Avis and Fukuda.
+  Copyright by David Avis.
+  http://cgm.cs.mcgill.ca/~avis/lrs.html
+  1 -1
+  0 1
+  sage: polymake.reset_preference('"lrs"')
+  100000004
+
 
 A Neighborly Cubical Polytope
 -----------------------------
@@ -226,48 +319,71 @@ cubical* polytope as constructed in
 This is the entire construction in a few lines of ``polymake`` code:
 
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> $c1 = cube(2);
-    ........> $c2 = cube(2,2);
-    ........> $p1x2 = product($c1,$c2);
-    ........> $p2x1 = product($c2,$c1);
-    ........> $nc = conv($p1x2,$p2x1);
+    polymake> $c2 = cube(2,2);
+    polymake> $p1x2 = product($c1,$c2);
+    polymake> $p2x1 = product($c2,$c1);
+    polymake> $nc = conv($p1x2,$p2x1);
+
+.. end of output
+
+In SageMath::
+
+  sage: c1 = polymake.cube(2)
+  sage: c2 = polymake.cube(2,2)
+  sage: p1x2 = polymake.product(c1, c2)
+  sage: p2x1 = polymake.product(c2, c1)
+  sage: nc = polymake.conv(p1x2, p2x1)
 
 Let us examine more closely what this is about. First we constructed a
 square ``$c1`` via calling the function ``cube``. The only parameter
 ``2`` is the dimension of the cube to be constructed. It is not obvious
 how the coordinates are chosen; so let us check.
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print $c1->VERTICES;
     1 -1 -1
     1 1 -1
     1 -1 1
     1 1 1
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: c1.VERTICES
+  1 -1 -1
+  1 1 -1
+  1 -1 1
+  1 1 1
 
 The four vertices are listed line by line in homogeneous coordinates,
 where the homogenizing coordinate is the leading one. As shown the
 vertices correspond to the four choices of ``+/-1`` in two positions. So
 the area of this square equals four, which is verified as follows:
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print $c1->VOLUME;
     4
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: c1.VOLUME
+  4
 
 Here the volume is the Euclidean volume of the ambient space. Hence the
 volume of a polytope which is not full-dimensional is always zero.
@@ -284,25 +400,25 @@ product of the two squares. Clearly, this is a four-dimensional polytope
 which is combinatorially (even affinely) equivalent to a cube, but not
 congruent. This is easy to verify:
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print isomorphic($p1x2,cube(4));
     1
-
-
-
-
-
-::
-
     polymake> print congruent($p1x2,cube(4));
     0
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: bool(polymake.isomorphic(p1x2,polymake.cube(4)))
+  True
+  sage: bool(polymake.congruent(p1x2,polymake.cube(4)))
+  False
 
 Both return values are boolean, represented by the numbers ``1`` and
 ``0``, respectively. This questions are decided via a reduction to a
@@ -315,25 +431,25 @@ factors in the call of the function ``product``. Let us compare the
 first vertices of the two products. One can see how the coordinates are
 induced by the ordering of the factors.
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print $p1x2->VERTICES->[0];
     1 -1 -1 -2 -2
-
-
-
-
-
-::
-
     polymake> print $p2x1->VERTICES->[0];
     1 -2 -2 -1 -1
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: p1x2.VERTICES[0]
+  1 -1 -1 -2 -2
+  sage: p2x1.VERTICES[0]
+  1 -2 -2 -1 -1
 
 In fact, one of these two products is obtained from the other by
 exchanging coordinate directions. Thats is to say, they are congruent
@@ -341,16 +457,21 @@ but distinct as subsets of Euclidean 4-space. This is why taking their
 joint convex hull yields something interesting. Let us explore what kind
 of polytope we got.
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print $nc->SIMPLE, " ", $nc->SIMPLICIAL;
     0 0
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: nc.SIMPLE, nc.SIMPLICIAL
+  (false, false)
 
 This says the polytope is neither simple nor simplicial. A good idea
 then is to look at the f-vector. Beware, however, this usually requires
@@ -358,54 +479,68 @@ to build the entire face lattice of the polytope, which is extremely
 costly. Therefore this is computationally infeasible for most
 high-dimensional polytopes.
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print $nc->F_VECTOR;
     32 80 72 24
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: nc.F_VECTOR
+  32 80 72 24
 
 This is a first hint that our initial claim is indeed valid. The
 polytope constructed has 32 vertices and 80 = 32*5/2 edges, as many as
 the 5-dimensional cube:
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print cube(5)->F_VECTOR;
     32 80 80 40 10
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: polymake.cube(5).F_VECTOR
+  32 80 80 40 10
 
 What is left is to check whether the vertex-edge graphs of the two
 polytopes actually are the same, and if all proper faces are
 combinatorially equivalent to cubes.
 
+.. link
 
-::
+.. CODE-BLOCK:: perl
 
     polymake> print isomorphic($nc->GRAPH->ADJACENCY,cube(5)->GRAPH->ADJACENCY);
     1
-
-
-
-
-
-::
-
     polymake> print $nc->CUBICAL;
     1
-    
 
+.. end of output
 
+.. link
 
+In SageMath::
 
+  sage: bool(polymake.isomorphic(nc.GRAPH.ADJACENCY, polymake.cube(5).GRAPH.ADJACENCY))
+  used package bliss
+  Computation of automorphism groups of graphs.
+  Copyright by Tommi Junttila and Petteri Kaski.
+  http://www.tcs.hut.fi/Software/bliss/
+  True
+  sage: bool(nc.CUBICAL)
+  True
 
 See the `tutorial on graphs <apps_graph>`__ for more on that subject.
