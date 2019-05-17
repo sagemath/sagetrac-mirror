@@ -1,13 +1,46 @@
-#!/bin/sh
+#!/bin/bash
 # Invoke from SAGE_ROOT.
-# creates the tarball and updates the package
+# creates the tarball and updates the package.
+# Needs Perl package CPAN::Mirror::Tiny.
 set -e
 
-TEMP_PERL_LOCAL_LIB_ROOT=temp-perl-local-lib
+if [ ! -x sage ]; then
+    echo "Invoke this script from SAGE_ROOT"
+    exit 1
+fi
+
+SAGE_ROOT=`pwd`
+
+mkdir -p upstream/perl_cpan_polymake_prereq
+cd upstream/perl_cpan_polymake_prereq
+
+TEMP_PERL_LOCAL_LIB_ROOT=`pwd`/temp-perl-local-lib
 PARTIAL_CPAN_MIRROR=sagepan
+ABS_PARTIAL_CPAN_MIRROR=`pwd`/$PARTIAL_CPAN_MIRROR
 
-cpanm --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $PARTIAL_CPAN_MIRROR XML::Writer XML::LibXML XML::LibXSLT File::Slurp JSON SVG MongoDB
+# Get the self-contained cpanm Perl script
+curl -L https://cpanmin.us/ -o cpanm
+chmod +x cpanm
+CPANM=`pwd`/cpanm
 
+# Make sure we are not influenced by local::lib stuff
+SAVE_PERL5LIB=$PERL5LIB
+unset PERL5LIB
+unset PERL_LOCAL_LIB_ROOT
+unset PERL_MB_OPT
+unset PERL_MM_OPT
+# No options for cpanm
+unset PERL_CPANM_OPT
+# Make sure we are not influenced by stuff in ~/.cpanm
+export PERL_CPANM_HOME=`pwd`/cpanm_home
+
+# We get a specific version of Module::Runtime because a newer one is
+# incompatible with Moose from the perl 5.18 distribution on macOS.
+# http://blogs.perl.org/users/ovid/2014/02/moose-dying-with-invalid-version-format-version-required.html
+$CPANM --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $ABS_PARTIAL_CPAN_MIRROR Module::Runtime@0.013
+(cd $SAGE_ROOT/build/pkgs/perl_cpan_polymake_prereq && $CPANM --verbose --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $ABS_PARTIAL_CPAN_MIRROR --installdeps . )
+
+export PERL5LIB=$SAVE_PERL5LIB
 cpan-mirror-tiny -b $PARTIAL_CPAN_MIRROR gen-index
 
 # https://stackoverflow.com/questions/5566982/cpanminiinject-doesnt-update-03modlist-data-gz
@@ -20,11 +53,7 @@ EOF
 rm -f $PARTIAL_CPAN_MIRROR/modules/03modlist.data.gz
 gzip $PARTIAL_CPAN_MIRROR/modules/03modlist.data
 
-# Get the self-contained cpanm Perl script
-curl -L https://cpanmin.us/ -o cpanm
-chmod +x cpanm
-
 VERSION=`date +%Y-%m-%d`
-tar cfz upstream/perl_cpan_polymake_prereq-$VERSION.tar.gz  cpanm $PARTIAL_CPAN_MIRROR
+tar cfz $SAGE_ROOT/upstream/perl_cpan_polymake_prereq-$VERSION.tar.gz --exclude=.cache cpanm $PARTIAL_CPAN_MIRROR
 
-./sage -package update perl_cpan_polymake_prereq $VERSION
+$SAGE_ROOT/sage -package update perl_cpan_polymake_prereq $VERSION
