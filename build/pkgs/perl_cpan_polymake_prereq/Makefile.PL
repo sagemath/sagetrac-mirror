@@ -6,10 +6,8 @@ WriteMakefile
 (
   'NAME' => 'Polymake',
   'VERSION' => '0',
-  'PREREQ_PM' => {
-      'Types::Standard' => 0,
-          'Type::Library' => 0,
-          'XML::LibXML' => 0,
+ 'PREREQ_PM' => {
+     'XML::LibXML' => 0,
           'XML::Writer' => 0,
           'XML::LibXSLT' => 0,
           'File::Slurp' => 0,

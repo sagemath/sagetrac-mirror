@@ -34,10 +34,6 @@ unset PERL_CPANM_OPT
 # Make sure we are not influenced by stuff in ~/.cpanm
 export PERL_CPANM_HOME=`pwd`/cpanm_home
 
-# We get a specific version of Module::Runtime because a newer one is
-# incompatible with Moose from the perl 5.18 distribution on macOS.
-# http://blogs.perl.org/users/ovid/2014/02/moose-dying-with-invalid-version-format-version-required.html
-$CPANM --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $ABS_PARTIAL_CPAN_MIRROR Module::Runtime@0.013
 (cd $SAGE_ROOT/build/pkgs/perl_cpan_polymake_prereq && $CPANM --verbose --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $ABS_PARTIAL_CPAN_MIRROR --installdeps . )
 
 export PERL5LIB=$SAVE_PERL5LIB
