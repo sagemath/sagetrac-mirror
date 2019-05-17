@@ -429,7 +429,6 @@ def shioda_invariants(f):
         f = PolynomialRing(f.parent().base_ring(), 1, f.parent().variable_name())(f)
         x1, x2 = f.homogenize().parent().gens()
         F = sum([ f[i]*x1**i*x2**(8-i) for i in range(9)])
-    H = Ueberschiebung(F,F,2)
     g = Ueberschiebung(F,F,4)
     k = Ueberschiebung(F,F,6)
     h = Ueberschiebung(k,k,2)
