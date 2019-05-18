@@ -1,15 +1,16 @@
-# coding: utf-8
 """
 Various implementations of oracles for Boltzmann sampling.
 
-Oracles are used to get (potentially approximate) evaluations of generating
-functions. In the case when those generating functions are defined by a
-functionnal equation but no closed form is known, they include some mecanics to
-approximate them.
+Oracles are used to get (often approximate) values of generating functions.
+Thanks to the symbolic method, functionnal equations can be derived from
+grammar specifications. This module implements some mechanics to approximate
+genrating functions based on these equations.
 
-TODO:
-- brief summary of the available oracles
-- sources
+Currently two oracles are implemented:
+- ``SimpleOracle`` implements approximation by simple iteration of the
+  equations.
+- ``OracleFromFunctions`` wraps an generating function given in the form of
+  a python ore sage function as an oracle.
 
 AUTHORS:
 - Matthieu Dien (2019): initial version
@@ -141,7 +142,7 @@ class SimpleOracle:
         self.grammar.annotate(self)
 
 
-class OracleFromGeneratingFunctions:
+class OracleFromFunctions:
     """Wrapper for generating functions when they are known.
 
     In the case where the generating functions of all symbols in the grammar
@@ -164,7 +165,7 @@ class OracleFromGeneratingFunctions:
             sage: from sage.combinat.boltzmann_sampling.oracle import *
 
             sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
-            sage: oracle = OracleFromGeneratingFunctions({"z": 1/4}, {"B": B})
+            sage: oracle = OracleFromFunctions({"z": 1/4}, {"B": B})
             sage: oracle("z")  # abs tol 0.0000001
             0.25
             sage: oracle("B")  # abs tol 0.0000001

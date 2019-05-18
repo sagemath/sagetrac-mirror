@@ -1,11 +1,33 @@
-# coding: utf-8
 """
-An implementation of context-free grammars for Boltmann generation.
+Context-free grammars for Boltzmann generation.
 
-TODO:
-- deeper explanations
-- example: binary trees
-- example: multi line grammar
+Grammars use the basic operators of the symbolic method of analytic
+combinatorics (currently ``+``, ``*`` and atoms) to specify unlabelled
+combinatorial classes. For instance, binary tree can be specified by
+``B = leaf + Z * B * B`` which, using the syntax implemented in this module,
+looks like:
+
+EXAMPLES::
+
+    sage: from sage.combinat.boltzmann_sampling.grammar import *
+    sage: z = Atom("z")
+    sage: leaf = Atom("leaf", size=0)
+    sage: bintree = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
+
+Grammars are not limited to a single rule:
+
+EXAMPLES::
+
+    sage: from sage.combinat.boltzmann_sampling.grammar import *
+    sage: z = Atom("z")
+    sage: leaf = Atom("leaf", size=0)
+    sage: planetree = Grammar(rules={
+    ....:     "T": Product(z, "S"),
+    ....:     "S": Union(leaf, Product("T", "S")),
+    ....: })
+
+
+Note that at the moment, we only support unlabelled classes.
 
 AUTHORS:
 - Matthieu Dien (2019): initial version
