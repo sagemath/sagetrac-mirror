@@ -38,7 +38,10 @@ for stage in $SAGE_ROOT/build/pkgs/perl_cpan_polymake_prereq/stage* ; do
     (cd $stage && $CPANM --verbose --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --save-dists $ABS_PARTIAL_CPAN_MIRROR --installdeps . )
 done
 
-export PERL5LIB=$SAVE_PERL5LIB
+export PERL5LIB=$SAVE_PERL5LIB   # to get cpan-mirror-tiny
+# Add modules that would otherwise be missing on some linux systems
+cpan-mirror-tiny -b $PARTIAL_CPAN_MIRROR inject cpan:CPAN::Meta::Requirements cpan:ExtUtils::CBuilder cpan:IPC::Cmd cpan:Locale::Maketext::Simple cpan:Module::CoreList cpan:Module::Load cpan:Module::Load::Conditional cpan:Params::Check cpan:Perl::OSType cpan:version
+
 cpan-mirror-tiny -b $PARTIAL_CPAN_MIRROR gen-index
 
 # https://stackoverflow.com/questions/5566982/cpanminiinject-doesnt-update-03modlist-data-gz
