@@ -6,5 +6,6 @@ export PERL_CPANM_HOME=`pwd`/src/cpanm_home
 unset PERL_MB_OPT
 unset PERL_MM_OPT
 unset LD     # This is set in sage to 'ld' and causes Moose installation to fail in the configuration phase.
-(cd stage1 && perl "$CPANM" --verbose --from="$PARTIAL_CPAN_MIRROR" --local-lib "$SAGE_LOCAL" --installdeps . ) || exit 1
-perl "$CPANM" --verbose --from="$PARTIAL_CPAN_MIRROR" --local-lib "$SAGE_LOCAL" --installdeps .
+for stage in stage*; do
+    (cd $stage && perl "$CPANM" --verbose --from="$PARTIAL_CPAN_MIRROR" --local-lib "$SAGE_LOCAL" --installdeps . ) || exit 1
+done

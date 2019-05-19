@@ -34,7 +34,9 @@ unset PERL_CPANM_OPT
 # Make sure we are not influenced by stuff in ~/.cpanm
 export PERL_CPANM_HOME=`pwd`/cpanm_home
 
-(cd $SAGE_ROOT/build/pkgs/perl_cpan_polymake_prereq && $CPANM --verbose --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --exclude-vendor --save-dists $ABS_PARTIAL_CPAN_MIRROR --installdeps . )
+for stage in $SAGE_ROOT/build/pkgs/perl_cpan_polymake_prereq/stage* ; do
+    (cd $stage && $CPANM --verbose --local-lib-contained $TEMP_PERL_LOCAL_LIB_ROOT --save-dists $ABS_PARTIAL_CPAN_MIRROR --installdeps . )
+done
 
 export PERL5LIB=$SAVE_PERL5LIB
 cpan-mirror-tiny -b $PARTIAL_CPAN_MIRROR gen-index
