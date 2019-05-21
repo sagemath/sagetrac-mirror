@@ -13,7 +13,7 @@ dnl Just part the options here
         *)
             AC_MSG_ERROR([allowed values for --with-flint are system and install]);;
     esac
-   
+
     case "$with_flint" in
         system)
                AC_CHECK_HEADER(flint/flint.h, [
