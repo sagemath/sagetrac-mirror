@@ -37,7 +37,6 @@ fi
 
 sdh_make_install PREFIX="$SAGE_LOCAL" NO_STATIC=1 $OPENBLAS_CONFIGURE
 cd ..
-./write_pc_file.py
 
 # OpenBLAS's Makefile has a bug w.r.t. calling install_name_tool when
 # DESTDIR is set.  It should *not* include the DESTDIR in the library's
