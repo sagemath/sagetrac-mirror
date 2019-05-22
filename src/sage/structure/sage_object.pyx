@@ -320,6 +320,24 @@ cdef class SageObject:
         lines = [unicode(z) for z in self._ascii_art_()]
         return UnicodeArt(lines)
 
+    def _repr_latex_(self):
+        r"""
+        Allow rich display in the Jupyter notebook.
+
+        TESTS::
+
+            sage: f = sin(x^2)
+            sage: f._repr_latex_()
+            '$\\sin\\left(x^{2}\\right)$'
+            sage: p = Parent()  # no _latex_() method
+            sage: p._repr_latex_()
+
+        """
+        from sage.misc.latex import latex
+        if not hasattr(self, '_latex_'):
+            return None
+        return '$' + str(latex(self)) + '$'
+
     def __hash__(self):
         r"""
         Not implemented: mutable objects inherit from this class
