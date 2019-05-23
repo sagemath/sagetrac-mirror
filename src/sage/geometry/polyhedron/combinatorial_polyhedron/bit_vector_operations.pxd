@@ -16,7 +16,7 @@ cdef extern from "bit_vector_operations.cc":
     cdef size_t get_next_level(
         uint64_t **faces, const size_t n_faces, uint64_t **nextfaces,
         uint64_t **nextfaces2, uint64_t **visited_all,
-        size_t n_visited_all, size_t face_length) nogil
+        size_t n_visited_all, size_t face_length, int *is_not_newface) nogil
 #        Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
 #        that are not contained in a face of ``visited_all``.
 

@@ -266,6 +266,7 @@ cdef class ListOfFaces:
         cdef uint64_t **newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
         cdef uint64_t **next_newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
         cdef size_t new_n_faces
+        cdef int *is_not_newface = <int*> newfaces_mem.allocarray(n_faces, sizeof(int))
         while True:
 
             if n_faces == 0:
@@ -288,7 +289,7 @@ cdef class ListOfFaces:
             # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
             sig_on()
             new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
-                                          newfaces, NULL, 0, face_length)
+                                          newfaces, NULL, 0, face_length, is_not_newface)
             sig_off()
             faces = newfaces
             newfaces = next_newfaces

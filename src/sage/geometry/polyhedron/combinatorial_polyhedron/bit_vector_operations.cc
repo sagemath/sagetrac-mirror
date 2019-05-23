@@ -36,7 +36,7 @@ using namespace std;
     // defined in `#else`
     // (intrinsics defined in immintrin.h)
     const size_t chunksize = 256;
-    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+    inline bool is_subset(const uint64_t *A, const uint64_t *B, const size_t face_length){
         // A & ~B == 0
         // Return 1 if A is a subset of B, otherwise returns 0.
 
@@ -44,15 +44,14 @@ using namespace std;
         // which is not in B
         // `face_length` is the length of A and B in terms of uint64_t
         // Note that A,B need to be 32-Byte-aligned
-        size_t i;
-        for (i = 0; i < face_length; i += 4){
+        for (size_t i = 0; i < face_length; i += 4){
             __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
             __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
             if (!_mm256_testc_si256(b, a)){ //need to be opposite order !!
-                return 0;
+                return false;
             }
         }
-        return 1;
+        return true;
     }
 
 #elif __SSE4_1__
@@ -105,8 +104,8 @@ using namespace std;
     // 256-bit commands, those operations are equivalent to the operations
     // defined in `#else`
     // intrinsics defined in immintrin.h
-    inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
-                             size_t face_length){
+    inline void intersection(const uint64_t *A, const uint64_t *B, uint64_t *C, \
+                             const size_t face_length){
         // C = A & B
         // Set C to be the intersection of A and B.
         // ``face_length`` is the length of A, B and C in terms of ``uint64_t``.
@@ -190,15 +189,13 @@ using namespace std;
 size_t get_next_level(\
         uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
-        size_t n_visited_all, size_t face_length){
+        size_t n_visited_all, size_t face_length, int *is_not_newface){
     /*
     Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
     that are not contained in a face of ``visited_all``.
 
     INPUT:
 
-    - ``maybe_newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
-      needs to be ``chunksize``-Bit aligned
     - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
     - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
     - ``face_length`` -- length of the faces
@@ -232,14 +229,16 @@ size_t get_next_level(\
     }
 
     // We keep track, which face in ``maybe_newfaces`` is a new face.
-    int *is_not_newface = new int[n_faces -1]();
+    //bool *is_not_newface = new bool[n_faces -1]();
 
     // For each face we will Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
+        is_not_newface[j] = 0;
         // Step 2a:
+        //size_t k = minimal_test[j];
         for(size_t k = 0; k < j; k++){
             // Testing if maybe_newfaces[j] is contained in different nextface.
-            if(is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
+            if((!is_not_newface[k]) && is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
                 // If so, it is not inclusion-maximal and hence not of codimension 1.
                 is_not_newface[j] = 1;
                 break;
@@ -251,14 +250,15 @@ size_t get_next_level(\
         }
 
         // Step 2b:
+        //size_t k = minimal_test[j];
         for(size_t k = j+1; k < n_faces-1; k++){
             // Testing if maybe_newfaces[j] is contained in different nextface.
-            if(is_subset(maybe_newfaces[j],maybe_newfaces[k], face_length)){
+            if(is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
                 // If so, it is not inclusion-maximal and hence not of codimension 1.
                 is_not_newface[j] = 1;
-            break;
+                break;
+                }
             }
-        }
         if (is_not_newface[j]) {
             // No further tests needed, if it is not of codimension 1.
             continue;
@@ -287,7 +287,6 @@ size_t get_next_level(\
         newfaces[n_newfaces] = maybe_newfaces[j];
         n_newfaces++;
     }
-    delete[] is_not_newface;
     return n_newfaces;
 }
 

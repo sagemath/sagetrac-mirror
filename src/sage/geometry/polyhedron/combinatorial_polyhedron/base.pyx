@@ -285,6 +285,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             # input is ``Polyhedron``
             Vrepr = data.Vrepresentation()
             facets = tuple(inequality for inequality in data.Hrepresentation())
+            self._dimension = data.dimension()
 
             if not data.is_compact():
                 self._unbounded = True

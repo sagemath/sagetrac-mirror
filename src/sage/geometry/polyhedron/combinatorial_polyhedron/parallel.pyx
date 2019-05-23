@@ -4,15 +4,16 @@ from libc.stdlib cimport calloc, free, malloc
 from cython.parallel cimport threadid, prange, parallel
 from libc.stdint                cimport uint64_t
 from .bit_vector_operations cimport get_next_level
+from cysignals.signals      cimport sig_check, sig_on, sig_off
 
 cimport openmp
 
-cdef size_t rec_depth = 1
+cdef size_t rec_depth = 2
 
 #cdef extern from "<omp.h>":
 #    extern int omp_get_thread_num() nogil
 
-cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector) nogil:
+cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector) nogil except -1:
     cdef size_t **shared_f = <size_t **> calloc(8, sizeof(size_t*))
     cdef int dimension = face_iter[0][0].dimension
     cdef size_t i
@@ -47,7 +48,7 @@ cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector) nogil:
     free(shared_f)
 
 
-cdef void partial_f(iter_struct *face_iter, size_t *f_vector, size_t i) nogil:
+cdef int partial_f(iter_struct *face_iter, size_t *f_vector, size_t i) nogil except -1:
     prepare_partial_iter(face_iter, i, f_vector)
     cdef int d, dimension = face_iter[0].dimension
     cdef size_t j
@@ -55,7 +56,6 @@ cdef void partial_f(iter_struct *face_iter, size_t *f_vector, size_t i) nogil:
     while d < dimension -rec_depth:
         f_vector[d + 1] += 1
         d = next_dimension(face_iter)
-
 
 
 cdef inline int next_face_loop(iter_struct *face_iter) nogil except -1:
@@ -117,7 +117,7 @@ cdef inline int next_face_loop(iter_struct *face_iter) nogil except -1:
     newfacescounter = get_next_level(
         faces, n_faces + 1, face_iter[0].maybe_newfaces[face_iter[0].current_dimension-1],
         face_iter[0].newfaces[face_iter[0].current_dimension-1],
-        face_iter[0].visited_all, n_visited_all, face_iter[0].face_length)
+        face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface)
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.
@@ -163,6 +163,7 @@ cdef inline int next_dimension(iter_struct *face_iter) nogil except -1:
     """
     cdef int dim = face_iter[0].max_dimension
     while (not next_face_loop(&face_iter[0])) and (face_iter[0].current_dimension < dim):
+        #sig_check()  # too slow, comment out for benchmarking
         pass
     face_iter[0]._index += 1
     return face_iter[0].current_dimension
@@ -178,23 +179,22 @@ cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f
     face_iter[0].lowest_dimension = face_iter[0].n_lines
 
 
-
-
-
     face_iter[0].n_visited_all[dimension -1] = 0
     face_iter[0].n_newfaces[dimension - 1] = face_iter[0].n_coatoms
     cdef size_t rec
     cdef size_t current_i
     cdef int d
     for rec in range(rec_depth):
+        #with gil:
+        #    print i
         current_i = i//(face_iter[0].n_coatoms ** (rec_depth - rec - 1))
         i = i%(face_iter[0].n_coatoms ** (rec_depth - rec - 1))
+        if current_i >= face_iter[0].n_newfaces[dimension-rec-1]:
+            face_iter[0].current_dimension = face_iter[0].dimension -1
+            face_iter[0].n_newfaces[dimension - rec - 1] = 0
+            return 0
         if i == 0:
             f_vector[dimension - rec] += 1
-        if current_i >= face_iter[0].n_newfaces[dimension-rec-1]:
-            face_iter[0].current_dimension = face_iter[0].dimension
-            face_iter[0].n_newfaces[dimension - 1] = 0
-            return 0
 
         k = face_iter[0].n_visited_all[dimension - rec-1]
         for j in range(face_iter[0].n_newfaces[dimension-rec-1]-current_i,face_iter[0].n_newfaces[dimension-rec-1]):

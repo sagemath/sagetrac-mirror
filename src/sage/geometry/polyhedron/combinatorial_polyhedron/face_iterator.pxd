@@ -55,6 +55,7 @@ cdef struct iter_struct:
     # The number of elements in newfaces[current_dimension],
     # that have not been visited yet.
     size_t yet_to_visit
+    int *is_not_newface
 
 cdef inline int next_face_loop(iter_struct *face_iter) nogil except -1
 cdef inline int ignore_subfaces(iter_struct *face_iter) nogil except -1
