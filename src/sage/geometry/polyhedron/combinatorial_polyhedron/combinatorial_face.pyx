@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: extra_compile_args = "-march=native"
 r"""
 CombinatorialFace
 
@@ -94,6 +96,7 @@ from .bit_vector_operations cimport count_atoms, bit_repr_to_coatom_repr
 from .list_of_all_faces     cimport ListOfAllFaces
 from .face_iterator         cimport iter_struct
 from libc.string            cimport memcpy
+
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython

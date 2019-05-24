@@ -176,7 +176,7 @@ from libc.string            cimport memcpy
 from cysignals.signals      cimport sig_check, sig_on, sig_off
 from .conversions           cimport bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron
-from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr
+from .bit_vector_operations                  cimport get_next_level, count_atoms, bit_repr_to_coatom_repr
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython

@@ -295,15 +295,10 @@ ext_modules = [
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.base',
               language = "c++",
-              extra_link_args=["-mpopcnt", "-mavx", "-mavx2", "-O3"],
-              extra_compile_args=["-mpopcnt", "-mavx", "-mavx2", "-O3"],
+              extra_link_args=["-fopenmp", "-mpopcnt", "-mavx", "-mavx2", "-O3"],
+              extra_compile_args=["-fopenmp","-mpopcnt", "-mavx", "-mavx2", "-O3"],
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
 
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.parallel',
-              language = "c++",
-              extra_link_args=["-fopenmp", "-mpopcnt", "-mavx", "-mavx2", "-O3"],
-              extra_compile_args=["-fopenmp", "-mpopcnt", "-mavx", "-mavx2", "-O3"],
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/parallel.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
               language = "c++",

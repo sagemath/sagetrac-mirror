@@ -11,6 +11,7 @@
 */
 #include <cstdint>
 #include <cstdio>
+#include <omp.h>
 using namespace std;
 
 #if __AVX__
@@ -24,6 +25,10 @@ using namespace std;
     #include <immintrin.h>
 #endif
 
+size_t rec_depth = 2;
+
+#define N_THREADS 8
+size_t n_threads = N_THREADS;
 
 // As of now, 512bit does not have something like _mm256_testc_si256,
 // which is the bottle neck of the algorithm,
@@ -59,7 +64,7 @@ using namespace std;
     // defined in `#else`
     // (intrinsics defined in smmintrin.h and emmintrin.h)
     const size_t chunksize = 128;
-    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+    inline bool is_subset(uint64_t *A, uint64_t *B, size_t face_length){
         // A & ~B == 0
         // Return 1 if A is a subset of B, otherwise returns 0.
 
@@ -72,16 +77,16 @@ using namespace std;
             __m128i a = _mm_load_si128((const __m128i*)&A[i]);
             __m128i b = _mm_load_si128((const __m128i*)&B[i]);
             if (!_mm_testc_si128(b, a)){ //need to be opposite order !!
-                return 0;
+                return false;
             }
         }
-        return 1;
+        return true;
     }
 
 #else
     // no intrinsics
     const size_t chunksize = 64;
-    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+    inline bool is_subset(uint64_t *A, uint64_t *B, size_t face_length){
         // A & ~B == 0
         // Return 1 if A is a subset of B, otherwise returns 0.
 
@@ -91,10 +96,10 @@ using namespace std;
         size_t i;
         for (i = 0; i < face_length; i++){
             if (A[i] & ~B[i]){
-                return 0;
+                return false;
             }
         }
-        return 1;
+        return true;
     }
 
 #endif
@@ -186,7 +191,7 @@ using namespace std;
 
 #endif
 
-size_t get_next_level(\
+inline size_t get_next_level(\
         uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
         size_t n_visited_all, size_t face_length, int *is_not_newface){
@@ -309,4 +314,234 @@ size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
         }
     }
     return count_length;
+}
+struct iter_struct{
+    int dual;               // # if 1, then iterate over dual Polyhedron
+    uint64_t *face;         //     # the current face of the iterator
+    size_t *atom_repr;      //    # a place where atom-representaion of face will be stored
+    size_t *coatom_repr;    //    # a place where coatom-representaion of face will be stored
+    int current_dimension;  //    # dimension of current face, dual dimension if ``dual``
+    int dimension;          //     # dimension of the polyhedron
+    int n_lines;            //     # ``_n_lines`` of ``CombinatorialPolyhedron``
+    int output_dimension;   //     # only faces of this (dual?) dimension are considered
+    int lowest_dimension;   //     # don't consider faces below this (dual?) dimension
+    int max_dimension;
+    size_t face_length;     //     # stores length of the faces in terms of uint64_t
+    size_t _index, n_coatoms;
+
+    uint64_t **visited_all;
+    size_t *n_visited_all;
+
+    uint64_t ***maybe_newfaces;
+
+    uint64_t ***newfaces;
+    size_t *n_newfaces; // # number of newfaces for each dimension
+    int *first_time;
+    size_t yet_to_visit;
+    int *is_not_newface;
+};
+
+inline size_t myPow(size_t x, size_t p){
+      if (p == 0) return 1;
+        if (p == 1) return x;
+
+          size_t tmp = myPow(x, p/2);
+            if (p%2 == 0) return tmp * tmp;
+              else return x * tmp * tmp;
+}
+
+inline int next_face_loop(iter_struct *face_iter){
+    //Getting ``[faces, n_faces, n_visited_all]`` according to dimension.
+    uint64_t **faces = face_iter[0].newfaces[face_iter[0].current_dimension];
+    size_t n_faces = face_iter[0].n_newfaces[face_iter[0].current_dimension];
+    size_t n_visited_all = face_iter[0].n_visited_all[face_iter[0].current_dimension];
+
+    if((face_iter[0].output_dimension > -2) && (face_iter[0].output_dimension != face_iter[0].current_dimension)){
+        //If only a specific dimension was requested (i.e. ``face_iter[0].output_dimension > -2``),
+        //then we will not yield faces in other dimension.
+        face_iter[0].yet_to_visit = 0;
+    }
+
+    if (face_iter[0].yet_to_visit){
+        // Set ``face`` to the next face.
+        face_iter[0].yet_to_visit -= 1;
+        face_iter[0].face = faces[face_iter[0].yet_to_visit];
+        return 1;
+    }
+
+    if (face_iter[0].current_dimension <= face_iter[0].lowest_dimension){
+        // We will not yield the empty face.
+        // We will not yield below requested dimension.
+        face_iter[0].current_dimension += 1;
+        return 0;
+    }
+
+    if (n_faces <= 1){
+        // There will be no more faces from intersections.
+        face_iter[0].current_dimension += 1;
+        return 0;
+    }
+
+    // We will visit the last face now.
+    face_iter[0].n_newfaces[face_iter[0].current_dimension] -= 1;
+    n_faces -= 1;
+
+    if (!face_iter[0].first_time[face_iter[0].current_dimension]){
+        // In this case there exists ``faces[n_faces + 1]``, of which we
+        // have visited all faces, but which was not added to
+        // ``visited_all`` yet.
+        face_iter[0].visited_all[n_visited_all] = faces[n_faces + 1];
+        face_iter[0].n_visited_all[face_iter[0].current_dimension] += 1;
+        n_visited_all = face_iter[0].n_visited_all[face_iter[0].current_dimension];
+    } else {
+        // Once we have visited all faces of ``faces[n_faces]``, we want
+        // to add it to ``visited_all``.
+        face_iter[0].first_time[face_iter[0].current_dimension] = 0;
+    }
+
+    // Get the faces of codimension 1 contained in ``faces[n_faces]``,
+    // which we have not yet visited.
+    size_t newfacescounter;
+
+    newfacescounter = get_next_level( \
+        faces, n_faces + 1, face_iter[0].maybe_newfaces[face_iter[0].current_dimension-1], \
+        face_iter[0].newfaces[face_iter[0].current_dimension-1],\
+        face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface);
+
+    if (newfacescounter){
+        // ``faces[n_faces]`` contains new faces.
+        // We will visted them on next call, starting with codimension 1.
+
+        // Setting the variables correclty for next call of ``next_face_loop``.
+        face_iter[0].current_dimension -= 1;
+        face_iter[0].first_time[face_iter[0].current_dimension] = 1;
+        face_iter[0].n_newfaces[face_iter[0].current_dimension] = newfacescounter;
+        face_iter[0].n_visited_all[face_iter[0].current_dimension] = n_visited_all;
+        face_iter[0].yet_to_visit = newfacescounter;
+        return 0;
+    } else {
+        //  ``faces[n_faces]`` contains no new faces.
+        //  Hence there is no need to add it to ``visited_all``.
+        //  NOTE:
+        //      For the methods ``ignore_subfaces`` and ``ignore_supfaces``
+        //      this step needs to be done, as ``faces[n_faces]`` might
+        //      have been added manually to ``visited_all``.
+        //      So this step is required to respect boundaries of ``visited_all``.
+        face_iter[0].first_time[face_iter[0].current_dimension] = 1;
+        return 0;
+    }
+}
+
+inline int next_dimension(iter_struct *face_iter){
+    // Set attribute ``face`` to the next face and return the dimension.
+
+    // Will return the dimension of the polyhedron on failure.
+
+    // The function calls :meth:`FaceIterator.next_face_loop` until a new
+    // face is set or until the iterator is consumed.
+
+    // .. NOTE::
+
+    //     The face_iterator can be prevented from visiting any subfaces
+    //     (or supfaces in dual mode) as in :meth:`FaceIterator.ignore_subfaces`
+    //     and :meth`FaceIterator.ignore_supfaces`.
+
+    //     Those methods add the current face to ``visited_all`` before
+    //     visiting sub-/supfaces instead of after. One cannot arbitralily
+    //     add faces to ``visited_all``, as visited_all has a maximal length.
+    int dim = face_iter[0].max_dimension;
+    while (!next_face_loop(&face_iter[0]) && (face_iter[0].current_dimension < dim)){}
+    face_iter[0]._index += 1;
+    return face_iter[0].current_dimension;
+}
+//#cdef extern from "<omp.h>":
+//#    extern int omp_get_thread_num() nogil
+
+
+
+
+
+inline void prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vector){
+    // r"""
+    // Prepares the face iterator to not visit the fatets 0,...,-1
+    // """
+    size_t j, k;
+    int dimension = face_iter[0].dimension;
+    face_iter[0].face = NULL;
+    face_iter[0].current_dimension = dimension -1;
+    face_iter[0].lowest_dimension = face_iter[0].n_lines;
+
+
+    face_iter[0].n_visited_all[dimension -1] = 0;
+    face_iter[0].n_newfaces[dimension - 1] = face_iter[0].n_coatoms;
+    size_t rec;
+    size_t current_i;
+    int d;
+    for(size_t rec = 0; rec < rec_depth; rec++){
+        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)));
+        i = i%(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)));
+        if(current_i >= face_iter[0].n_newfaces[dimension-rec-1]){
+            face_iter[0].current_dimension = face_iter[0].dimension -1;
+            face_iter[0].n_newfaces[dimension - rec - 1] = 0;
+            return;
+        }
+        if(i == 0)
+            f_vector[dimension - rec] += 1;
+
+        k = face_iter[0].n_visited_all[dimension - rec-1];
+        for(j = face_iter[0].n_newfaces[dimension-rec-1]-current_i; j < face_iter[0].n_newfaces[dimension-rec-1]; j++){
+           face_iter[0].visited_all[k] = face_iter[0].newfaces[dimension -rec-1][j];
+           k += 1;
+        }
+        face_iter[0].n_visited_all[dimension - rec-1] += current_i;
+
+        face_iter[0].n_newfaces[dimension - rec-1] -= current_i;
+        face_iter[0].first_time[dimension - rec-1] = 1;
+        face_iter[0].yet_to_visit = 0;
+        face_iter[0].max_dimension = dimension - rec -1;
+        if(rec < rec_depth -1){
+            d = next_dimension(face_iter);
+            face_iter[0].yet_to_visit = 0;
+        }
+    }
+}
+
+inline void partial_f(iter_struct *face_iter, size_t *f_vector, size_t i){
+    prepare_partial_iter(face_iter, i, f_vector);
+    int d, dimension = face_iter[0].dimension;
+    size_t j;
+    d = next_dimension(face_iter);
+    while (d < dimension -rec_depth){
+        f_vector[d + 1] += 1;
+        d = next_dimension(face_iter);
+    }
+}
+
+void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t recursion_depth){
+    rec_depth = recursion_depth;
+    size_t **shared_f = new size_t *[n_threads]();
+    int dimension = face_iter[0][0].dimension;
+    int j;
+
+    for(size_t i = 0; i < n_threads; i++){
+        shared_f[i] = new size_t[dimension + 2]();
+    }
+    size_t n_faces = face_iter[0][0].n_coatoms;
+
+    //iter_struct *my_iter;
+    //size_t *my_f;
+    //for l in prange(0, n_faces ** rec_depth, num_threads=8, schedule='dynamic', chunksize=1):
+    #pragma omp parallel for num_threads(N_THREADS) schedule(dynamic, 1)
+    for(size_t l = 0; l < myPow(n_faces,rec_depth); l++){
+        //partial_f(face_iter[openmp.omp_get_thread_num()], shared_f[openmp.omp_get_thread_num()], l)
+        partial_f(face_iter[omp_get_thread_num()], shared_f[omp_get_thread_num()], l);
+    }
+
+    for(size_t i = 0; i < 8; i ++){
+        for(int j = 0; j < dimension + 2; j++){
+            f_vector[j] += shared_f[i][j];
+        }
+        delete[] shared_f[i];
+    }
+    delete[] shared_f;
 }

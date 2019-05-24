@@ -1,10 +1,12 @@
 # distutils: language = c++
 # distutils: extra_compile_args = "-march=native"
+## distutils: sources = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc, sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.h
 cimport cython
 from libc.stdint                cimport uint64_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
-from .face_iterator             cimport FaceIterator, CombinatorialFace, iter_struct
+from .face_iterator             cimport FaceIterator, CombinatorialFace
+from .bit_vector_operations                cimport iter_struct
 from .list_of_faces             cimport ListOfFaces
 from .list_of_all_faces         cimport ListOfAllFaces
 
@@ -47,7 +49,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _mem_tuple
 
     cdef FaceIterator _face_iter(self, bint dual, int dimension)
-    cdef int _compute_f_vector(self) except -1
+    cdef int _compute_f_vector(self, size_t parallelization_depth) except -1
     cdef int _compute_edges(self, dual) except -1
     cdef int _compute_ridges(self, dual) except -1
     cdef int _compute_face_lattice_incidences(self) except -1
+

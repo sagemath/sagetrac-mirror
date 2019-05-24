@@ -82,7 +82,8 @@ from __future__ import absolute_import, division
 from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
-from .bit_vector_operations cimport chunksize, get_next_level, count_atoms
+from libc.stdint                cimport uint64_t
+from .bit_vector_operations              cimport count_atoms, get_next_level, chunksize
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython

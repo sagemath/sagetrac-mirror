@@ -71,7 +71,8 @@ from libc.string            cimport memcmp, memcpy, memset
 from .conversions           cimport Vrepr_list_to_bit_repr, bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
-from .bit_vector_operations cimport intersection, bit_repr_to_coatom_repr
+from .bit_vector_operations                  cimport intersection, bit_repr_to_coatom_repr
+
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
