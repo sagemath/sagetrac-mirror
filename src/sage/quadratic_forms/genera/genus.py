@@ -2208,15 +2208,15 @@ class Genus_Symbol_p_adic_ring(object):
             if not (ti1<=S or ti2<=S):
                 return False
             # V
-            # I do not understand this condition
+            # there is a typo in O'Meara
             # the reason is that
             # (ti1 + gen2_round[i+1])-gen1_square[i]
             # can have negative dimension
             # even if l = L .... and surely
             # L is represented by itsself
-            # S = (ti1 + gen2[i+1].space())-gen1_square[i].space()
-            # if not (ti1<=S or ti2<=S):
-            #    return False
+            S = (ti1 + gen2[i+1].space())-gen1_square[i].space()
+            if not (ti1<=S or ti2<=S):
+                return False
         return True
 
     def number_of_blocks(self):
@@ -3454,7 +3454,7 @@ class GenusSymbol_global_ring(object):
         L.set_immutable()
         self._representative = L
 
-    def representatives(self, backend="sage", algorithm=None):
+    def representatives(self, backend='sage', algorithm=None):
         r"""
         Return a list of representatives for the classes in this genus
 
@@ -3495,8 +3495,10 @@ class GenusSymbol_global_ring(object):
             pass
         n = self.dimension()
         representatives = []
-        if self.rank()==0:
+        if n==0:
             return [self.representative()]
+        if n>8 and prod(self.signature_pair_of_matrix())==0:
+            backend = 'magma'
         if backend == "magma":
             from sage.interfaces.magma import Magma
             magma = Magma()

@@ -913,7 +913,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             []
         """
         from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-        D = TorsionQuadraticModule(self.dual_lattice(), self)
+        D = TorsionQuadraticModule(self.dual_lattice(), self, modulus=ZZ(1), check=False)
         d = D.annihilator().gen()
         a = d.prime_to_m_part(s)
         Dp_gens = [a*g for g in D.gens()]
