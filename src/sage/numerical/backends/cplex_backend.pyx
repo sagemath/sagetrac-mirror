@@ -1590,14 +1590,24 @@ cdef class CPLEXBackend(GenericBackend):
         cdef char * strv
 
         # Specific action for log file
+        cdef FILE *ff
         if name.lower() == "logfile":
             if value is None: # Return logfile name
                 return self._logfilename
             elif not value:   # Close current logfile and disable logs
-                check( CPXsetlogfilename(self.env, NULL, NULL) )
+                if CPX_VERSION >= 12090000:
+                    check( CPXsetlogfilename(self.env, NULL, NULL) )
+                else:
+                    check( CPXsetlogfile(self.env, NULL) )
                 self._logfilename = ''
             else:             # Set log file to logfilename
-                check( CPXsetlogfilename(self.env, str_to_bytes(value), "a") )
+                if CPX_VERSION >= 12090000:
+                    check( CPXsetlogfilename(self.env, str_to_bytes(value), "a") )
+                else:
+                    ff = fopen(str_to_bytes(value), "a")
+                    if not ff:
+                        raise ValueError("Unable to append file {}.".format(value))
+                    check( CPXsetlogfile(self.env, ff) )
                 self._logfilename = value
             return
 

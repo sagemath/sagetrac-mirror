@@ -1,4 +1,5 @@
 import os
+import subprocess
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
 
@@ -1031,7 +1032,12 @@ ext_modules = [
               ["sage/numerical/backends/cplex_backend.pyx"],
               libraries = ["cplex"],
               condition = os.path.isfile(SAGE_INC + "/cplex.h") and
-                  os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
+                  os.path.isfile(SAGE_INC + "/cpxconst.h") and
+                  os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a"),
+              define_macros = [('CPXVERSION', subprocess.check_output(" grep '#define CPX_VERSION ' $SAGE_LOCAL/include/cpxconst.h | grep -o -E '[0-9]+' ", shell=True).strip() if os.path.exists(SAGE_INC + '/cpxconst.h') else '0')],
+              #define_macros = [('CPXVERSION', '12080000')],
+              extra_compile_args = ["-DCPXVERSION=12080000"]),
+
 
     OptionalExtension("sage.numerical.backends.coin_backend",
               ["sage/numerical/backends/coin_backend.pyx"],

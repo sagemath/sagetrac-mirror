@@ -204,9 +204,6 @@ cdef extern from "cplex.h":
      # sets the value of a string parameter
      int CPXsetstrparam(c_cpxlp * env, int paramid, char * value)
 
-     # sets the log file
-     int CPXsetlogfilename(c_cpxlp *env, char *filename, char *mode)
-
      # CONSTANTS
      int CPX_ON = 1
      int CPX_PARAM_SCRIND = 1035
@@ -217,7 +214,27 @@ cdef extern from "cplex.h":
      int CPX_MAX = -1
      int CPX_MIN = 1
 
+
+IF CPXVERSION >= 12090000:
+    cdef extern from "cplex.h":
+        # sets the log filename
+        int CPXsetlogfilename(c_cpxlp *env, char *filename, char *mode)
+
+    def CPXsetlogfile(c_cpxlp *env, FILE *f):
+        pass
+
+ELSE:
+    cdef extern from "cplex.h":
+        # sets the log stream file
+        int CPXsetlogfile(c_cpxlp *env, FILE *f)
+
+    def CPXsetlogfilename(c_cpxlp *env, char *filename, char *mode):
+        pass
+
+
 cdef extern from "cpxconst.h":
+
+     int CPX_VERSION
 
      # Solution quality
      #
@@ -243,4 +260,3 @@ cdef extern from "cpxconst.h":
      int CPXMIP_INFEASIBLE
      int CPXMIP_UNBOUNDED
      int CPXMIP_INForUNBD
-
