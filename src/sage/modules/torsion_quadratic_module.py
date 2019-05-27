@@ -61,6 +61,15 @@ def TorsionQuadraticForm(q):
         Finite quadratic module over Integer Ring with invariants (12,)
         Gram matrix of the quadratic form with values in Q/Z:
         [7/12]
+
+    TESTS::
+
+        sage: TorsionQuadraticForm(matrix.diagonal([3/8,3/8,3/4]))
+        Finite quadratic module over Integer Ring with invariants (4, 8, 8)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [3/4   0   0]
+        [  0 3/8   0]
+        [  0   0 3/8]
     """
     q = matrix(QQ, q)
     if q.nrows() != q.ncols():
@@ -588,6 +597,12 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Return the genus defined by ``self`` and the ``signature_pair``.
 
+        If no such genus exists, raise a ``ValueError``.
+
+        REFERENCES:
+
+        [Nik1977]_ Corollary 1.9.4 and 1.16.3.
+
         EXAMPLES::
 
             sage: L = IntegralLattice("D4").direct_sum(IntegralLattice("A2"))
@@ -602,8 +617,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: genus == L.genus()
             True
 
-        Let `H` be an even unimodular lattice of signature `(9, 1)` and suppose
-        that `D4` is primitively embedded in `H`. We compute the discriminant
+        Let `H` be an even unimodular lattice of signature `(9, 1)`.
+        Then `L = D_4 + A_2` is primitively embedded in `H`. We compute the discriminant
         form of the orthogonal complement of `L` in `H`::
 
             sage: DK = D.twist(-1)
@@ -623,7 +638,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             Genus symbol at 2:    1^2:2^-2
             Genus symbol at 3:     1^-3 3^1
 
-        We can also compute the discriminant group of an odd lattice::
+        We can also compute the genus of an odd lattice
+        from its discriminant form::
 
             sage: L = IntegralLattice(matrix.diagonal(range(1,5)))
             sage: D = L.discriminant_group()
@@ -640,27 +656,38 @@ class TorsionQuadraticModule(FGP_Module_class):
             True
             sage: D.genus((1,0))
             Traceback (most recent call last):
-            TypeError: all local symbols must be of the same dimension
-        """
-        #if not self.is_genus((signature_pair)):
-        #    raise ValueError("this signature=%s and torsion quadratic form do define a genus"%signature_pair)
+            ...
+            ValueError: this discriminant form and signature do not define a genus
+
+        A systematic test of lattices of small ranks and determinants::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: signatures = [(1,0),(1,1),(1,2),(3,0),(0,4)]
+            sage: dets = range(1,33)
+            sage: genera = flatten([genera(s, d, even=False) for d in dets for s in signatures])    # long time
+            sage: all(g == g.discriminant_form().genus(g.signature_pair()) for g in genera)  # long time
+            True
+            """
         from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,
-                                                    GenusSymbol_global_ring,
-                                                    p_adic_symbol,
-                                                    is_GlobalGenus,
-                                                    _blocks)
+                                                       GenusSymbol_global_ring,
+                                                       p_adic_symbol,
+                                                       is_GlobalGenus,
+                                                       _blocks)
         from sage.misc.misc_c import prod
         s_plus = signature_pair[0]
         s_minus = signature_pair[1]
         rank = s_plus + s_minus
-        D = self.cardinality()
-        determinant = (-1)**s_minus * D
+        if len(self.invariants()) > rank:
+            raise ValueError("this discriminant form and " +
+                             "signature do not define a genus")
+        disc = self.cardinality()
+        determinant = (-1)**s_minus * disc
         local_symbols = []
-        for p in (2*D).prime_divisors():
+        for p in (2*disc).prime_divisors():
             D = self.primary_part(p)
             if len(D.invariants()) != 0:
                 G_p = D.gram_matrix_quadratic().inverse()
-                # get rid of denominators without changeing the local equivalence class
+                # get rid of denominators without changing the local equivalence class
                 G_p *= G_p.denominator()**2
                 G_p = G_p.change_ring(ZZ)
                 local_symbol = p_adic_symbol(G_p, p, D.invariants()[-1].valuation(p))
@@ -721,7 +748,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                           and (b[2] - d) % 4 == 0
                           and (b[4] - t) % 4 == 0
                           and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
-                          ]
+                         ]
         elif self.value_module_qf().n == 2:
             # the form is even
             block0 = [b for b in _blocks(sym2[0]) if b[3] == 0]
@@ -739,7 +766,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                           and (b[2] - d) % 4 == 0
                           and (b[4] - t) % 4 == 0
                           and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
-                          ]
+                         ]
             # this is completely determined
             block2 = [sym2[2]]
         else:
@@ -765,8 +792,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                         local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
                         genus = GenusSymbol_global_ring(signature_pair, local_symbols)
                         return genus
-        else:
-            raise ValueError("this discriminant form and signature do not define a genus")
+        raise ValueError("this discriminant form and signature do not define a genus")
 
     @cached_method
     def is_degenerate(self):

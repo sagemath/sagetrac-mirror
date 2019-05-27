@@ -90,7 +90,7 @@ def IntegralLattice(data, basis=None):
     - ``data`` -- can be one of the following:
 
       * a symmetric matrix over the rationals -- the inner product matrix
-      * an integer -- the dimension for a euclidian lattice
+      * an integer -- the dimension for an Euclidean lattice
       * a symmetric Cartan type or anything recognized by
         :class:`CartanMatrix` (see also
         :mod:`Cartan types <sage.combinat.root_system.cartan_type>`)
@@ -127,7 +127,7 @@ def IntegralLattice(data, basis=None):
         [ 2  1]
         [ 1 -2]
 
-    We can define a Euclidian lattice just by its dimension::
+    We can define an Euclidean lattice just by its dimension::
 
         sage: IntegralLattice(3)
         Lattice of degree 3 and rank 3 over Integer Ring
@@ -140,7 +140,7 @@ def IntegralLattice(data, basis=None):
         [0 1 0]
         [0 0 1]
 
-    Here is an example of the `A_2` root lattice in Euclidian space::
+    Here is an example of the `A_2` root lattice in Euclidean space::
 
         sage: basis = Matrix([[1,-1,0], [0,1,-1]])
         sage: A2 = IntegralLattice(3, basis)
@@ -1326,21 +1326,19 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         if self.degree() == 0:
             raise NotImplementedError("the degree must be at least 1")
         if gens is None:
-            gens = []
-            gens_gram = []
             # Compute transformation matrix to the ambient module.
             L = self.overlattice(self.ambient_module().gens())
             Orthogonal = L.orthogonal_complement(self)
             B = self.basis_matrix().stack(Orthogonal.basis_matrix())
             identity = matrix.identity(Orthogonal.rank())
             if self.rank() == 0:
-                pass
+                gens_gram = []
             elif sig[1]==0 or sig[0]==0: #definite
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 is_finite = True
                 if sig[0] == 0: #negative definite
                     q = QuadraticForm(ZZ, -2*self.gram_matrix())
-                else:    # positve definite
+                else:  # positive definite
                     q = QuadraticForm(ZZ, 2*self.gram_matrix())
                 gens_gram = [g.matrix().T for g in q.automorphism_group().gens()]
             elif self.rank() == 2: # indefinite rank 2:
@@ -1354,6 +1352,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                     "for orthogonal groups over definite lattices.")
 
             # We continue g as identity on the orthogonal complement.
+            gens = []
             for g in gens_gram:
                 g = matrix.block_diagonal([g, identity])
                 g = B.inverse()*g*B

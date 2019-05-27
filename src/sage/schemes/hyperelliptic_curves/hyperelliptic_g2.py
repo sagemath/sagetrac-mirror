@@ -13,7 +13,7 @@ from . import jacobian_g2
 from . import invariants
 
 
-class HyperellipticCurve_g2_generic(hyperelliptic_generic.HyperellipticCurve_generic):
+class HyperellipticCurve_g2(hyperelliptic_generic.HyperellipticCurve_generic):
     def is_odd_degree(self):
         """
         Return ``True`` if the curve is an odd degree model.
@@ -74,7 +74,7 @@ class HyperellipticCurve_g2_generic(hyperelliptic_generic.HyperellipticCurve_gen
 
     def clebsch_invariants(self):
         r"""
-        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [MJ1991]_.
+        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [Mes1991]_.
 
         .. SEEALSO::
 
@@ -182,7 +182,7 @@ class HyperellipticCurve_g2_generic(hyperelliptic_generic.HyperellipticCurve_gen
 
     def clebsch_invariants(self):
         r"""
-        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [MJ1991]_.
+        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [Mes1991]_.
 
         .. SEEALSO::
 
