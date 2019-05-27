@@ -49,7 +49,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _mem_tuple
 
     cdef FaceIterator _face_iter(self, bint dual, int dimension)
-    cdef int _compute_f_vector(self, size_t parallelization_depth) except -1
+    cdef int _compute_f_vector(self, size_t n_threads, size_t parallelization_depth) except -1
     cdef int _compute_edges(self, dual) except -1
     cdef int _compute_ridges(self, dual) except -1
     cdef int _compute_face_lattice_incidences(self) except -1

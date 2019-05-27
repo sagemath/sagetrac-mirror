@@ -104,7 +104,7 @@ from .conversions \
 from sage.rings.integer cimport smallInteger
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_block, sig_unblock
 from cysignals.memory cimport sig_free, sig_calloc
-from .bit_vector_operations cimport parallel_f_vector, n_threads
+from .bit_vector_operations cimport parallel_f_vector
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -1102,7 +1102,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return Graph(self.ridges(names=names), format="list_of_edges")
 
-    def f_vector(self, parallelization_depth=2):
+    def f_vector(self, n_threads=1, parallelization_depth=0):
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
@@ -1167,7 +1167,7 @@ cdef class CombinatorialPolyhedron(SageObject):
              1)
         """
         if not self._f_vector:
-            self._compute_f_vector(parallelization_depth)
+            self._compute_f_vector(n_threads, parallelization_depth)
         if not self._f_vector:
             raise ValueError("could not determine f_vector")
         return self._f_vector
@@ -1490,7 +1490,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Let ``_all_faces`` determine Vrepresentation.
         return self._all_faces.get_face(dim, newindex)
 
-    cdef int _compute_f_vector(self, size_t parallelization_depth) except -1:
+    cdef int _compute_f_vector(self, size_t n_threads, size_t parallelization_depth) except -1:
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
@@ -1500,6 +1500,17 @@ cdef class CombinatorialPolyhedron(SageObject):
             return 0  # There is no need to recompute the f_vector.
 
         cdef bint dual
+        cdef int dim = self.dimension()
+        if dim//2 < parallelization_depth:
+            # make sure we do not parallelize more than possible
+            parallelization_depth = dim//2
+
+        if parallelization_depth == 0:
+            n_threads = 1
+        elif n_threads > self._n_facets*parallelization_depth:
+            # make sure the requested number of threads is reasonable
+            n_threads = self._n_facets*parallelization_depth
+
         if self._unbounded or self._n_facets <= self._length_Vrepr:
             # In this case the non-dual approach is faster..
             dual = False
@@ -1515,7 +1526,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             iters[i] = &(some_iter.structure)
 
 
-        cdef int dim = self.dimension()
         cdef int d  # dimension of the current face of the iterator
         cdef MemoryAllocator mem = MemoryAllocator()
 
@@ -1525,7 +1535,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
 
         sig_on()
-        parallel_f_vector(iters, f_vector, parallelization_depth)
+        parallel_f_vector(iters, f_vector, n_threads, parallelization_depth)
         sig_off()
 
         # Copy ``f_vector``.

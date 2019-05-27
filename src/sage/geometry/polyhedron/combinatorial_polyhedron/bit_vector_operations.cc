@@ -27,9 +27,6 @@ using namespace std;
 
 size_t rec_depth = 2;
 
-#define N_THREADS 8
-size_t n_threads = N_THREADS;
-
 // As of now, 512bit does not have something like _mm256_testc_si256,
 // which is the bottle neck of the algorithm,
 // so it does not make sense to implement it.
@@ -517,8 +514,9 @@ inline void partial_f(iter_struct *face_iter, size_t *f_vector, size_t i){
     }
 }
 
-void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t recursion_depth){
+void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth){
     rec_depth = recursion_depth;
+    omp_set_num_threads(n_threads);
     size_t **shared_f = new size_t *[n_threads]();
     int dimension = face_iter[0][0].dimension;
     int j;
@@ -530,14 +528,14 @@ void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t recursi
 
     //iter_struct *my_iter;
     //size_t *my_f;
-    //for l in prange(0, n_faces ** rec_depth, num_threads=8, schedule='dynamic', chunksize=1):
-    #pragma omp parallel for num_threads(N_THREADS) schedule(dynamic, 1)
+    //for l in prange(0, n_faces ** rec_depth, schedule='dynamic', chunksize=1):
+    #pragma omp parallel for shared(face_iter, shared_f) schedule(dynamic, 1)
     for(size_t l = 0; l < myPow(n_faces,rec_depth); l++){
         //partial_f(face_iter[openmp.omp_get_thread_num()], shared_f[openmp.omp_get_thread_num()], l)
         partial_f(face_iter[omp_get_thread_num()], shared_f[omp_get_thread_num()], l);
     }
 
-    for(size_t i = 0; i < 8; i ++){
+    for(size_t i = 0; i < n_threads; i ++){
         for(int j = 0; j < dimension + 2; j++){
             f_vector[j] += shared_f[i][j];
         }

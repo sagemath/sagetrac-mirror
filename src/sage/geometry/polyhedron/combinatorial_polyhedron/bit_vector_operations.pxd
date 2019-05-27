@@ -61,8 +61,7 @@ cdef extern from "bit_vector_operations.cc":
 #        ``face_length`` is the length of ``face`` and ``coatoms[i]``
 #        in terms of uint64_t.
 #        ``n_coatoms`` length of ``coatoms``.
-    cdef size_t n_threads;
-    cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t recursion_depth) nogil
+    cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) nogil
     cdef struct iter_struct:
         bint dual                  # if 1, then iterate over dual Polyhedron
         uint64_t *face             # the current face of the iterator
