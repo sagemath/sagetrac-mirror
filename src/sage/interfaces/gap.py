@@ -202,7 +202,7 @@ WORKSPACE = gap_workspace_file()
 
 first_try = True
 
-gap_cmd = "gap -r"
+gap_cmd = "gap"
 if platform.processor() == 'ia64' and os.path.exists('/usr/bin/prctl'):
     # suppress unaligned access to 0x..., ip=0x... warnings
     gap_cmd = 'prctl --unaligned=silent ' + gap_cmd
