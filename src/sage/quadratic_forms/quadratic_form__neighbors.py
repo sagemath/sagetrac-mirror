@@ -181,8 +181,7 @@ def neighbor_from_vec(self, p, y, odd=False):
     assert B.det().abs() == 1
     QF = self.parent()
     Gnew = (B*G*B.T).change_ring(ZZ)
-    return QuadraticForm(Gnew)
-    return QF(self.base_ring(), Gnew)
+    return QF(Gnew)
 
 
 def p_neighbor(self, p):

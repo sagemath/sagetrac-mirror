@@ -750,9 +750,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         s = ""
         if self.is_sparse():
-            s = "Sparse lattice "
+            s += "Sparse lattice "
         else:
-            s = "Lattice "
+            s += "Lattice "
         s += "of degree %s and rank %s over %s\n"%(
               self.degree(), self.rank(), self.base_ring())
         if self.basis_matrix() == 1:
