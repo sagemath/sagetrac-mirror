@@ -589,6 +589,7 @@ def SChainComplex (kchcm, start = 0, end = 15):
     OUTPUT:
         
     - A ChainComplex 
+
     EXAMPLES::
     
         sage: from sage.interfaces.kenzo import KChainComplex, SChainComplex    # optional - kenzo
@@ -620,6 +621,7 @@ def SAbstractSimplex(KAbSm, dim):
     OUTPUT:
         
     - An AbstractSimplex.
+
     EXAMPLES::
     
         sage: from sage.interfaces.kenzo import SAbstractSimplex    # optional - kenzo
@@ -650,6 +652,7 @@ def KAbstractSimplex(SAbSm):
     OUTPUT:
         
     - An abstract simplex of Kenzo.
+
     EXAMPLES::
     
         sage: from sage.interfaces.kenzo import KAbstractSimplex, SAbstractSimplex    # optional - kenzo
@@ -672,6 +675,7 @@ def KFiniteSimplicialSet(ssimpset):
     OUTPUT:
         
     - A finite simplicial set of Kenzo.
+
     EXAMPLES::
     
         sage: from sage.interfaces.kenzo import KFiniteSimplicialSet    # optional - kenzo
@@ -724,6 +728,7 @@ def SFiniteSimplicialSet(ksimpset, limit):
     OUTPUT:
         
     - A finite SimplicialSet.
+
     EXAMPLES::
     
         sage: from sage.interfaces.kenzo import KFiniteSimplicialSet, SFiniteSimplicialSet, Sphere    # optional - kenzo
