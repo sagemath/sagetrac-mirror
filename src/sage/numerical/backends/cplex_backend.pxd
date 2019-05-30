@@ -220,7 +220,7 @@ IF CPXVERSION >= 12090000:
         # sets the log filename
         int CPXsetlogfilename(c_cpxlp *env, char *filename, char *mode)
 
-    def CPXsetlogfile(c_cpxlp *env, FILE *f):
+    cdef inline CPXsetlogfile(c_cpxlp *env, FILE *f):
         pass
 
 ELSE:
@@ -228,7 +228,7 @@ ELSE:
         # sets the log stream file
         int CPXsetlogfile(c_cpxlp *env, FILE *f)
 
-    def CPXsetlogfilename(c_cpxlp *env, char *filename, char *mode):
+    cdef inline CPXsetlogfilename(c_cpxlp *env, char *filename, char *mode):
         pass
 
 
