@@ -47,7 +47,7 @@ def differential_operator(f, g, k):
     r"""
     Return the differential operator `(f g)_k` symbolically in the polynomial ring in ``dfdx, dfdy, dgdx, dgdy``.
 
-    This is defined by Mestre on p 315 [MJ1991]_:
+    This is defined by Mestre on p 315 [Mes1991]_:
 
     .. MATH::
 
@@ -115,7 +115,7 @@ def Ueberschiebung(f, g, k):
     r"""
     Return the differential operator `(f g)_k`.
 
-    This is defined by Mestre on page 315 [MJ1991]_:
+    This is defined by Mestre on page 315 [Mes1991]_:
 
     .. MATH::
 
@@ -141,7 +141,7 @@ def Ueberschiebung(f, g, k):
 
 def ubs(f):
     r"""
-    Given a sextic form `f`, return a dictionary of the invariants of Mestre, p 317 [MJ1991]_.
+    Given a sextic form `f`, return a dictionary of the invariants of Mestre, p 317 [Mes1991]_.
 
     `f` may be homogeneous in two variables or inhomogeneous in one.
 
@@ -261,7 +261,7 @@ def igusa_to_clebsch(I2, I4, I6, I10):
 def clebsch_invariants(f):
     r"""
     Given a sextic form `f`, return the Clebsch invariants `(A, B, C, D)` of
-    Mestre, p 317, [MJ1991]_.
+    Mestre, p 317, [Mes1991]_.
 
     `f` may be homogeneous in two variables or inhomogeneous in one.
 

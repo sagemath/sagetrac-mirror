@@ -1737,7 +1737,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         # convenient for internal purposes.
         if "_ray_to_cones_tuple" not in self.__dict__:
             ray_to_cones = []
-            for ray in self.rays():
+            for _ in self.rays():
                 ray_to_cones.append([])
             for k, cone in enumerate(self):
                 for j in cone.ambient_ray_indices():
@@ -3348,7 +3348,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             0
 
         where the leftmost non-zero entry is in degree `0` and the
-        rightmost entry in degree `d`. See [Klyachko]_, eq. (3.2). This
+        rightmost entry in degree `d`. See [Kly1990]_, eq. (3.2). This
         complex computes the homology of `|\Sigma|\subset N_\RR` with
         arbitrary support,
 
