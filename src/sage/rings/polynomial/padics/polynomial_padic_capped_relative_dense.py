@@ -1,13 +1,13 @@
 """
 p-adic Capped Relative Dense Polynomials
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+import six
 from six.moves import range
 
 import sage.rings.polynomial.polynomial_element_generic
@@ -21,7 +21,6 @@ import sage.rings.padics.precision_error as precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
 from sage.structure.element import coerce_binop
-import six
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
@@ -99,7 +98,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                 p = parentbr.prime()
                 self._relprecs = [c.valuation(p) + parentbr.precision_cap() for c in x.list()]
                 self._comp_valaddeds()
-                self._normalized = len(self._valaddeds) == 0 or (min(self._valaddeds) == 0)
+                self._normalized = not self._valaddeds or (min(self._valaddeds) == 0)
                 self._list = None
                 if not absprec is infinity or not relprec is infinity:
                     self._adjust_prec_info(absprec, relprec)
@@ -109,7 +108,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                 check = False
         elif isinstance(x, dict):
             zero = parentbr.zero()
-            n = max(x.keys()) if x else 0
+            n = max(x) if x else 0
             v = [zero] * (n + 1)
             for i, z in six.iteritems(x):
                 v[i] = z
@@ -219,13 +218,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
                      + [self.base_ring()(0, absprec = self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
-        while len(self._list) > 0 and self._list[-1]._is_exact_zero():
+        while self._list and self._list[-1]._is_exact_zero():
             self._list.pop()
 
     def _comp_valaddeds(self):
         self._valaddeds = []
-        for i in range(self._poly.degree() + 1):
-            tmp = self._poly.list()[i].valuation(self.parent().base_ring().prime())
+        polylist = self._poly.list()
+        pri = self.parent().base_ring().prime()
+        for i, pli in enumerate(polylist):
+            tmp = pli.valuation(pri)
             if tmp is infinity or tmp > self._relprecs[i]:
                 self._valaddeds.append(self._relprecs[i])
             else:
@@ -544,7 +545,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         self._normalize()
         right._normalize()
         zzpoly = self._poly * right._poly
-        if len(self._relprecs) == 0 or len(right._relprecs) == 0:
+        if not self._relprecs or not right._relprecs:
             return self.parent()(0)
         n = Integer(len(self._relprecs) + len(right._relprecs) - 1).exact_log(2) + 1
         precpoly1 = self._getprecpoly(n) * right._getvalpoly(n)
