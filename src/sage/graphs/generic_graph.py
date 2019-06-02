@@ -14513,6 +14513,107 @@ class GenericGraph(GenericGraph_pyx):
                                             weight_function=weight_function,
                                             check_weight=check_weight)[0]
 
+    def minimum_eccentricity_vertex_selection(self, func, ranking=None):
+        """
+        Returns the vertex with minimum eccentricity with respect to the given
+        user_defined function ``func``, alobg with the lower bounds of
+        eccentricity and the lower certificates of the vertices.
+
+        Acts as a certificate when computing the eccentricity of the node
+        in the ``certificate`` mode.
+
+        A certificate is a piece of information that assists in finding the solution.
+
+        INPUT:
+
+        - ``func`` -- the function with respect to which the minimum eccentricity
+          of a vertex is calculated.
+
+        - ``ranking`` -- function or a list (default: ``None``); the order of
+          the vertices. Used for breaking ties among nodes at the same distance
+          while calculating the antipode of a vertex.
+ 
+        OUTPUT:
+
+        - The vertex with minimum eccentricity
+
+        - ``lower_bound`` --  The lower bound values of the eccentricities of
+          all the vertices.
+
+        - ``lower_certificate`` -- The certificate which is essential in calculation
+          of eccentricity values of the vertices.
+        """
+
+        if ranking is None:
+            rank = lambda x: self.vertices().index(x)
+        elif type(ranking) is list:
+            rank = lambda x: ranking.index(x)
+        else:
+            rank = ranking
+
+        lower_certificate = set()
+        V = self.vertices()
+
+        import numpy as np
+        lower_bound = np.zeros(len(V))
+
+        def get_antipode(e, dist, rank):
+            a = np.where(dist==e)[0]
+            return a[np.argmax([rank(V[v]) for v in a])]
+
+        def get_path_lengths(v):
+            dist_from_v_dict = self.shortest_path_lengths(V[v])
+            dist_from_v_list = np.full(len(V), np.inf)
+            for u in dist_from_v_dict:
+                dist_from_v_list[rank(u)] = dist_from_v_dict[u]
+            return dist_from_v_list
+
+        while(True):
+            u = np.argmin([func(v, lower_bound[rank(v)]) for v in V])
+            dist_from_u = get_path_lengths(u)
+            e = np.max(dist_from_u)
+
+            if lower_bound[u] == e:
+                return V[u], lower_bound, lower_certificate
+
+            antipode = get_antipode(e, dist_from_u, rank)
+            dist_from_antipode = get_path_lengths(antipode)
+            lower_certificate.add(V[antipode])
+
+            lower_bound = np.maximum(lower_bound, dist_from_antipode)
+
+    def minimum_eccentricity_selection(self, func, ranking=None):
+        """
+        Returns the minimum eccentricity value with respect to the given
+        user_defined function ``func``.
+
+        INPUT:
+
+        - ``func`` -- the function with respect to which the minimum eccentricity
+          of a vertex is calculated.
+
+        - ``ranking`` -- function or a list (default: ``None``); the order of
+          the vertices. Used for breaking ties among nodes at the same distance
+          while calculating the antipode of a vertex.
+ 
+        OUTPUT:
+
+        - The value of the minimum eccentricity in the graph.
+        """
+
+        if ranking is None:
+            rank = lambda x: self.vertices().index(x)
+        elif type(ranking) is list:
+            rank = lambda x: ranking.index(x)
+        else:
+            rank = ranking
+
+        V = self.vertices()
+
+        u, lower_bound, _ = self.minimum_eccentricity_vertex_selection(func, ranking=ranking)
+        return func(u, lower_bound[rank(V[u])])
+
+
     def eccentricity(self, v=None, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True, dist_dict=None,
                      with_labels=False):
@@ -14662,6 +14763,10 @@ class GenericGraph(GenericGraph_pyx):
             def weight_function(e):
                 return e[2]
 
+        if algorithm == 'certificate':
+            eccentricity, _, _ = self.eccentricity_with_certificates()
+            return eccentricity
+
         if algorithm is None:
             if dist_dict is not None:
                 algorithm = 'From_Dictionary'
@@ -14735,6 +14840,64 @@ class GenericGraph(GenericGraph_pyx):
                 return v
             return [ecc[u] for u in v]
 
+    def eccentricity_with_certificates(self, ranking=None):
+        """
+        Return the eccentricity of all the vertices in the graph, along with
+        the tight upper and lower certificates.
+
+        Certificates can be used to derive additional information along with
+        the eccentricity values.
+
+        INPUT:
+
+        - ``ranking`` -- function or a list (default: ``None``); the order of
+          the vertices. Used for breaking ties among nodes at the same distance
+          while calculating the antipode of a vertex.
+ 
+        OUTPUT:
+
+        - The vertex with minimum eccentricity
+
+        - ``lower_certificate`` --  
+
+        - ``upper_certificate`` -- 
+        """
+
+        if ranking is None:
+            rank = lambda x: self.vertices().index(x)
+        elif type(ranking) is list:
+            rank = lambda x: ranking.index(x)
+        else:
+            rank = ranking
+
+        V = self.vertices()
+
+        import numpy as np
+        upper_bound = np.full(len(V), np.inf)
+
+        upper_certificate = set()
+
+        def get_path_lengths(v):
+            dist_from_v_dict = self.shortest_path_lengths(v)
+            dist_from_v_list = np.full(len(V), np.inf)
+            for u in dist_from_v_dict:
+                dist_from_v_list[rank(u)] = dist_from_v_dict[u]
+            return dist_from_v_list
+
+        def ecc_untight(v, l):
+            return l if l < upper_bound[rank(v)] else np.inf
+            
+        
+        while self.minimum_eccentricity_selection(ecc_untight) < np.inf:
+            u, lower_bound, lower_certificate = self.minimum_eccentricity_vertex_selection(ecc_untight)
+            dist_from_u = get_path_lengths(u)
+            ecc = np.max(dist_from_u)
+            upper_certificate.add(u)
+
+            upper_bound = np.minimum(upper_bound, dist_from_u + np.full(len(V), ecc))
+        
+        return upper_bound, lower_certificate, upper_certificate
+
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
         r"""
@@ -14791,6 +14954,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not self.order():
             raise ValueError("radius is not defined for the empty graph")
+
+        if algorithm == 'certificate':
+            func = lambda v, l: l
+            return self.minimum_eccentricity_selection(func=func)
 
         return min(self.eccentricity(v=list(self), by_weight=by_weight,
                                      weight_function=weight_function,
@@ -14973,6 +15140,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.center()
             [0]
         """
+        if algorithm == 'certificate':
+            func = lambda v, l: l
+            center, _, _ = self.minimum_eccentricity_vertex_selection(func=func)
+            return center
+
         ecc = self.eccentricity(v=list(self), by_weight=by_weight,
                                 weight_function=weight_function,
                                 algorithm=algorithm,
