@@ -508,7 +508,8 @@ inline void partial_f(iter_struct *face_iter, size_t *f_vector, size_t i){
     int d, dimension = face_iter[0].dimension;
     size_t j;
     d = next_dimension(face_iter);
-    while (d < dimension -rec_depth){
+    int rec_depth2 = rec_depth;
+    while (d < dimension -rec_depth2){
         f_vector[d + 1] += 1;
         d = next_dimension(face_iter);
     }

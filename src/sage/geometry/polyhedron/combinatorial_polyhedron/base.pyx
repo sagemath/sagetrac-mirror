@@ -805,7 +805,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         # on input, so that pickle/unpickle by :meth:`reduce` works.
         # Every facet knows its index by the facet representation.
         face_iter = self.face_iter(self.dimension() - 1, dual=False)
-        facets = [None] * self._n_facets
+        cdef size_t i
+        facets = list(None for i in range(self._n_facets))
+        cdef CombinatorialFace face
         for face in face_iter:
             index = face.Hrepr(names=False)[0]
             verts = face.Vrepr(names=names)
@@ -1501,7 +1503,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         cdef bint dual
         cdef int dim = self.dimension()
-        if dim//2 < parallelization_depth:
+        cdef int parallelization_depth2 = parallelization_depth
+        if dim//2 < parallelization_depth2:
             # make sure we do not parallelize more than possible
             parallelization_depth = dim//2
 
@@ -1521,6 +1524,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef FaceIterator some_iter
 
         a = tuple( self._face_iter(dual, -2) for _ in range(n_threads))
+        cdef size_t i
         for i in range(n_threads):
             some_iter = a[i]
             iters[i] = &(some_iter.structure)
