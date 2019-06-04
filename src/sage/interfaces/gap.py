@@ -150,6 +150,12 @@ Use this code to change which GAP interpreter is run. E.g.,
        import sage.interfaces.gap
        sage.interfaces.gap.gap_cmd = "/usr/local/bin/gap"
 
+Disabling the use of ~/.gap - no personal packages or settings used.
+
+::
+       import sage.interfaces.gap
+       sage.interfaces.gap.no_dotgap = True
+
 AUTHORS:
 
 - David Joyner and William Stein: initial version(s)
@@ -1117,6 +1123,7 @@ class Gap(Gap_generic):
     def __init__(self, max_workspace_size=None,
                  maxread=None, script_subdirectory=None,
                  use_workspace_cache=True,
+                 no_dotgap=False,
                  server=None,
                  server_tmpdir=None,
                  logfile=None,
@@ -1144,6 +1151,9 @@ class Gap(Gap_generic):
         cmd += ' -s ' + str(max_workspace_size)
         cmd += ' -m 64m '   # attempt at a workaround for http://tracker.gap-system.org/issues/224
         cmd += ' ' + os.path.join(SAGE_EXTCODE, 'gap', 'sage.g')
+        # -r: Run in safe mode where ~/.gap content is ignored
+        if no_dotgap:
+            cmd += ' -r '
         Expect.__init__(self,
                         name='gap',
                         prompt='gap> ',
