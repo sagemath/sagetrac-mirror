@@ -1122,13 +1122,33 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             sage: tuple(kRegularSequenceSpace(2, ZZ).some_elements())
             (2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...,
-             2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...,
-             2-regular sequence 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
-             2-regular sequence -2, -4, 4, -8, -4, 8, 8, -16, 4, -8, ...,
-             2-regular sequence 1, 2, 2, 4, 2, 2, 4, 8, 2, 2, ...,
-             2-regular sequence 2, 11, 14, 20, 17, 23, 23, 29, 20, 26, ...,
-             ...
-             2-regular sequence 1, 10, 10, 100, 10, 10, 100, 1000, 10, 10, ...)
+             2-regular sequence 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, -1, 0, 0, 1, -2, -1, ...,
+             2-regular sequence 2, -1, 0, 0, 0, -1, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, 5, 0, 0, 1, -33, 5, ...,
+             2-regular sequence -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence -59, -20, 0, -20, 0, 0, 0, -20, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, -10, 0, 0, 1, -60, -10, ...,
+             2-regular sequence 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 142, -30, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, 44, 0, 0, 1, -1375, 44, ...,
+             2-regular sequence -25, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence -275, -50, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, -36, 0, 0, 1, -432, -36, ...,
+             2-regular sequence 46, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 478, 66, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, 178, 0, 0, 1, -15288, 178, ...,
+             2-regular sequence -70, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence -756, -91, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, -88, 0, 0, 1, -1760, -88, ...,
+             2-regular sequence 108, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 1132, 112, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, 500, 0, 0, 1, -91260, 500, ...,
+             2-regular sequence -150, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence -1608, -144, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 1, 1, 0, 1, -175, 0, 0, 1, -5250, -175, ...,
+             2-regular sequence 210, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...,
+             2-regular sequence 2210, 170, 0, 0, 0, 0, 0, 0, 0, 0, ...)
         """
         return super(kRegularSequenceSpace, self).some_elements(heal=True)
 
