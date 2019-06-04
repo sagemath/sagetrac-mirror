@@ -790,6 +790,3 @@ def SFiniteSimplicialSet(ksimpset, limit):
 
 
 
-
-
-
