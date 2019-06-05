@@ -477,7 +477,8 @@ inline void prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vec
     for(size_t rec = 0; rec < rec_depth; rec++){
         current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)));
         i = i%(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)));
-        if(current_i >= face_iter[0].n_newfaces[dimension-rec-1]){
+        int rec2 = rec;
+        if((face_iter[0].current_dimension != dimension - rec2 - 1) || (current_i >= face_iter[0].n_newfaces[dimension-rec-1])){
             face_iter[0].current_dimension = face_iter[0].dimension -1;
             face_iter[0].n_newfaces[dimension - rec - 1] = 0;
             return;
