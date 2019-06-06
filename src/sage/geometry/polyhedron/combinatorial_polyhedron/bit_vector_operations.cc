@@ -12,6 +12,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <omp.h>
+#include <vector>
+#include <numeric>      // std::iota
+#include <algorithm>    // std::sort
 using namespace std;
 
 #if __AVX__
@@ -188,6 +191,11 @@ size_t rec_depth = 2;
 
 #endif
 
+typedef std::pair<int,size_t> mypair;
+
+bool compare_pairs ( const mypair& l, const mypair& r)
+       { return l.first > r.first; }
+
 inline size_t get_next_level(\
         uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
@@ -225,6 +233,7 @@ inline size_t get_next_level(\
             not visited yet.
     */
 
+    int *is_newface = is_not_newface;
     // Step 1:
     for (size_t j = 0; j < n_faces - 1; j++){
         intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
@@ -235,18 +244,18 @@ inline size_t get_next_level(\
 
     // For each face we will Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
-        is_not_newface[j] = 0;
+        is_newface[j] = 1;
         // Step 2a:
         //size_t k = minimal_test[j];
         for(size_t k = 0; k < j; k++){
             // Testing if maybe_newfaces[j] is contained in different nextface.
-            if((!is_not_newface[k]) && is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
+            if((is_newface[k]) && is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
                 // If so, it is not inclusion-maximal and hence not of codimension 1.
-                is_not_newface[j] = 1;
+                is_newface[j] = 0;
                 break;
                 }
             }
-        if (is_not_newface[j]) {
+        if (!is_newface[j]) {
             // No further tests needed, if it is not of codimension 1.
             continue;
         }
@@ -257,11 +266,11 @@ inline size_t get_next_level(\
             // Testing if maybe_newfaces[j] is contained in different nextface.
             if(is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
                 // If so, it is not inclusion-maximal and hence not of codimension 1.
-                is_not_newface[j] = 1;
+                is_newface[j] = 0;
                 break;
                 }
             }
-        if (is_not_newface[j]) {
+        if (!is_newface[j]) {
             // No further tests needed, if it is not of codimension 1.
             continue;
         }
@@ -272,7 +281,7 @@ inline size_t get_next_level(\
             // we have already completely visited.
             if(is_subset(maybe_newfaces[j], visited_all[k], face_length)){
                 // If so, we don't want to revisit.
-                is_not_newface[j] = 1;
+                is_newface[j] = 0;
                 break;
             }
         }
@@ -280,15 +289,40 @@ inline size_t get_next_level(\
 
     // Set ``newfaces`` to point to the correct ones.
     size_t n_newfaces = 0;  // length of newfaces2
+    std::vector<mypair> idx(n_faces-1);
     for (size_t j = 0; j < n_faces -1; j++){
-        if (is_not_newface[j]) {
+        if (is_newface[j]) {
+            is_newface[j] = count_atoms(maybe_newfaces[j], face_length) + 1;
+        }
+        idx[j].first =  is_newface[j];
+        idx[j].second = j;
+    }
+    sort(idx.begin(), idx.end(), compare_pairs);
+
+    //for (size_t j = 0; j < n_faces-1; j++){
+    //for (size_t index = n_faces - 2; index >= 0; index--){
+    //for (size_t index = 0; index< n_faces-1; index++){
+    for (size_t j = 0; j < n_faces-1; j++){
+        newfaces[j] = maybe_newfaces[idx[j].second];
+        if (idx[j].first)
+            n_newfaces++;
+    }
+    for (size_t j = 0; j < n_faces-1; j++){
+        maybe_newfaces[j] = newfaces[j];
+    }
+    /*
+    for (std::vector<mypair>::iterator it=idx.begin(); it!=idx.end(); ++it){
+        j = (*it.second);
+        maybe_newfaces[j] = (*it).second;
+        if (!(*it).first) {
             // Not a new face of codimension 1.
             continue;
         }
         // It is a new face of codimension 1.
-        newfaces[n_newfaces] = maybe_newfaces[j];
+        newfaces[n_newfaces] = (*it).second;
         n_newfaces++;
     }
+    */
     return n_newfaces;
 }
 
