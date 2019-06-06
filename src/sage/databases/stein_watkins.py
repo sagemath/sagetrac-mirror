@@ -19,7 +19,7 @@ time, using the command
 This database covers a wide range of conductors, but unlike the
 :mod:`Cremona database <sage.databases.cremona>`, this database need not list
 all curves of a given conductor. It lists the curves whose coefficients are not
-"too large" (see [SteinWatkins]_).
+"too large" (see [SW2002]_).
 
 
 -  The command ``SteinWatkinsAllData(n)`` returns an iterator over the curves
@@ -115,11 +115,7 @@ prime conductor::
 
 REFERENCE:
 
-.. [SteinWatkins] William Stein and Mark Watkins, *A database of elliptic
-   curves---first report*. In *Algorithmic number theory (ANTS V), Sydney,
-   2002*, Lecture Notes in Computer Science 2369, Springer, 2002, p267--275.
-   http://modular.math.washington.edu/papers/stein-watkins/
-
+- [SW2002]_
 """
 
 #*****************************************************************************
@@ -283,7 +279,7 @@ class SteinWatkinsAllData:
         Iterate through the curve classes, but grouped into lists by
         level.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: d = SteinWatkinsAllData(1)
             sage: E = d.iter_levels()
@@ -304,7 +300,7 @@ class SteinWatkinsAllData:
             except StopIteration:
                 if C != []:
                     yield C
-                raise StopIteration
+                return
             if E.conductor != N:
                 if C != []:
                     yield C

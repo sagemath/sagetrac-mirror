@@ -13,28 +13,14 @@ least)... it does !
 
 The constructions have been implemented while reading two papers simultaneously,
 for one of them sometimes provides the informations that the other one does
-not. The first one is Haim Hanani's original paper [Hanani60]_, and the other
+not. The first one is Haim Hanani's original paper [Han1960]_, and the other
 one is a paper from Horan and Hurlbert which goes through all constructions
-[HH12]_.
+[HH2012]_.
 
 It can be used through the ``designs`` object::
 
     sage: designs.steiner_quadruple_system(8)
     Incidence structure with 8 points and 14 blocks
-
-REFERENCES:
-
-.. [Hanani60] Haim Hanani,
-  On quadruple systems,
-  pages 145--157, vol. 12,
-  Canadian Journal of Mathematics,
-  1960
-  http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
-
-.. [HH12] Victoria Horan and Glenn Hurlbert,
-  Overlap Cycles for Steiner Quadruple Systems,
-  2012,
-  http://arxiv.org/abs/1204.3215
 
 AUTHORS:
 
@@ -68,7 +54,7 @@ This function redistributes its work among 6 constructions :
 
 It also defines two specific Steiner Quadruple Systems that the constructions
 require, i.e. `SQS_{14}` and `SQS_{38}` as well as the systems of pairs
-`P_{\alpha}(m)` and `\overline P_{\alpha}(m)` (see [Hanani60]_).
+`P_{\alpha}(m)` and `\overline P_{\alpha}(m)` (see [Han1960]_).
 
 Functions
 ---------
@@ -480,7 +466,7 @@ def relabel_system(B):
 
     - ``B`` -- a list of 4-uples on `0,...,n-1`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import relabel_system
         sage: SQS8 = designs.steiner_quadruple_system(8)
@@ -512,9 +498,9 @@ def P(alpha, m):
     r"""
     Return the collection of pairs `P_{\alpha}(m)`
 
-    For more information on this system, see [Hanani60]_.
+    For more information on this system, see [Han1960]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import P
         sage: P(3,4)
@@ -555,7 +541,7 @@ def _missing_pair(n,l):
     r"""
     Return the smallest `(x,x+1)` that is not contained in `l`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import _missing_pair
         sage: _missing_pair(6, [(0,1), (4,5)])
@@ -574,9 +560,9 @@ def barP(eps, m):
     r"""
     Return the collection of pairs `\overline P_{\alpha}(m)`
 
-    For more information on this system, see [Hanani60]_.
+    For more information on this system, see [Han1960]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import barP
         sage: barP(3,4)
@@ -589,9 +575,9 @@ def barP_system(m):
     r"""
     Return the 1-factorization of `K_{2m}` `\overline P(m)`
 
-    For more information on this system, see [Hanani60]_.
+    For more information on this system, see [Han1960]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import barP_system
         sage: barP_system(3)
@@ -769,7 +755,7 @@ def _SQS14():
 
     Obtained from the La Jolla Covering Repository.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import _SQS14
         sage: sqs14 = IncidenceStructure(_SQS14())
@@ -802,7 +788,7 @@ def _SQS38():
 
     Obtained from the La Jolla Covering Repository.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import _SQS38
         sage: sqs38 = IncidenceStructure(_SQS38())

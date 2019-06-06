@@ -8,13 +8,6 @@ terms of generators and relations is found. The method used is geometric,
 constructing a nice fundamental domain for `\Gamma_0(N)` and reading the
 relevant Manin relations off of that picture. The algorithm follows [PS2011]_.
 
-REFERENCES:
-
-.. [PS2011] R. Pollack, and G. Stevens.
-   *Overconvergent modular symbols and p-adic L-functions.*
-   Annales scientifiques de l'Ecole normale superieure.
-   Vol. 44. No. 1. Elsevier, 2011.
-
 AUTHORS:
 
 - Robert Pollack, Jonathan Hanke (2012): initial version
@@ -29,8 +22,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import iteritems
+
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
@@ -822,7 +816,7 @@ class ManinRelations(PollackStevensModularDomain):
             ## interior path on either of the last two cusps
 
             for s in range(r + 2, len(cusps)):
-            ## s is in the index of the cusp on the the right of the path
+            ## s is in the index of the cusp on the right of the path
                 cusp1 = cusps[r]
                 cusp2 = cusps[s]
                 if self.is_unimodular_path(cusp1, cusp2):
@@ -1522,7 +1516,7 @@ class ManinRelations(PollackStevensModularDomain):
     def prep_hecke_on_gen_list(self, l, gen, modulus=None):
         r"""
         Return the precomputation to compute `T_l` in a way that
-        speeds up the hecke calculation.
+        speeds up the Hecke calculation.
 
         Namely, returns a list of the form [h,A].
 
@@ -1546,7 +1540,7 @@ class ManinRelations(PollackStevensModularDomain):
             4
         """
         ans = []
-        for h, vh in self.prep_hecke_on_gen(l, gen, modulus=modulus).iteritems():
+        for h, vh in iteritems(self.prep_hecke_on_gen(l, gen, modulus=modulus)):
             ans.extend([(h, v) for v in vh])
         return ans
 

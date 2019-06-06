@@ -9,16 +9,6 @@ More information can be found in [LLMS2006]_ .
 
 .. SEEALSO:: :meth:`sage.combinat.k_tableau.StrongTableau`, :meth:`sage.combinat.k_tableau.WeakTableau`
 
-REFERENCES:
-
-.. [LLMS2006] \T. Lam, L. Lapointe, J. Morse, M. Shimozono,
-   Affine insertion and Pieri rules for the affine Grassmannian,
-   Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
-
-.. [LLMSSZ2013] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
-   `k`-Schur functions and affine Schubert calculus,
-   preprint :arXiv:`1301.3569`
-
 Authors:
 
 - Anne Schilling and Mike Zabrocki (2013): initial version
@@ -40,6 +30,7 @@ Authors:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 from __future__ import print_function, absolute_import
+from six import add_metaclass, iteritems
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -193,7 +184,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
         sage: t = WeakTableau([[2,0],[3,2],[1,0]], 3, representation = "bla")
         Traceback (most recent call last):
         ...
-        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permuation'
+        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permutation'
     """
     if representation == "core":
         return WeakTableau_core(t, k)
@@ -202,7 +193,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableau_factorized_permutation(t, k, inner_shape = inner_shape)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 def WeakTableaux(k, shape , weight, representation = "core"):
     r"""
@@ -266,15 +257,14 @@ def WeakTableaux(k, shape , weight, representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableaux_factorized_permutation(k, shape, weight)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 #Abstract class for the elements of weak tableau
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class WeakTableau_abstract(ClonableList):
     r"""
     Abstract class for the various element classes of WeakTableau.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     def shape(self):
         r"""
         Return the shape of ``self``.
@@ -1027,7 +1017,8 @@ class WeakTableau_core(WeakTableau_abstract):
             r = self[0].count(1) - i - 1
             for v in range(1,mu[i]):
                 D = self.dictionary_of_coordinates_at_residues(v+1)
-                new_D = {a:b for (a,b) in D.iteritems() if all(x not in already_used for x in b)}
+                new_D = {a: b for (a, b) in iteritems(D)
+                         if all(x not in already_used for x in b)}
                 r = (r - min([self.k+1 - (x-r)%(self.k+1) for x in new_D]))%(self.k+1)
                 standard_cells.append(new_D[r][-1])
                 already_used += new_D[r]
@@ -1822,14 +1813,12 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             sage: WeakTableau_factorized_permutation.straighten_input([W.an_element(),W.an_element()], 3)
             Traceback (most recent call last):
             ...
-            ValueError: a matrix from Full MatrixSpace of 5 by 5 dense matrices over Rational Field cannot be converted to a matrix in Full MatrixSpace of 4 by 4 dense matrices over Rational Field!
+            ValueError: inconsistent number of rows: should be 4 but got 5
         """
         W = WeylGroup(['A', k, 1], prefix='s')
         if len(t) > 0:
             if isinstance(t[0], list) or isinstance(t[0], tuple):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
-            elif t[0] not in W:
-                raise ValueError("The input must be a list of reduced words or Weyl group elements")
             else:
                 w_tuple = tuple(W(r) for r in t)
         else:
@@ -2214,6 +2203,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
 
 ######## END weak tableaux BEGIN strong tableaux
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class StrongTableau(ClonableList):
     r"""
     A (standard) strong `k`-tableau is a (saturated) chain in Bruhat order.
@@ -2333,8 +2323,6 @@ class StrongTableau(ClonableList):
         self._tableau = T
         ClonableList.__init__(self, parent, T)
 
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, T, k, weight=None):
         r"""
@@ -2382,7 +2370,7 @@ class StrongTableau(ClonableList):
         if isinstance(T, cls):
             return T
         outer_shape = Core([len(t) for t in T], k+1)
-        inner_shape = Core([x for x in [row.count(None) for row in T] if x>0], k+1)
+        inner_shape = Core([x for x in [row.count(None) for row in T] if x], k+1)
         Te = [v for row in T for v in row if v is not None]+[0]
         count_marks = tuple(Te.count(-(i+1)) for i in range(-min(Te)))
         if not all( v==1 for v in count_marks ):
@@ -3675,7 +3663,7 @@ class StrongTableau(ClonableList):
             []
         """
         rr = sum(self.weight()[:r])
-        rest_tab = [y for y in ([x for x in row if x is None or abs(x)<=rr] for row in self.to_standard_list()) if len(y)>0]
+        rest_tab = [y for y in ([x for x in row if x is None or abs(x)<=rr] for row in self.to_standard_list()) if y]
         new_parent = StrongTableaux( self.k, (Core([len(x) for x in rest_tab], self.k+1), self.inner_shape()), self.weight()[:r] )
         return new_parent(rest_tab)
 
@@ -3721,7 +3709,7 @@ class StrongTableau(ClonableList):
         Action of transposition ``tij`` on ``self`` by adding marked ribbons.
 
         Computes the left action of the transposition ``tij`` on the tableau.
-        If ``tij`` acting on the element of the affine grassmannian raises the length by 1,
+        If ``tij`` acting on the element of the affine Grassmannian raises the length by 1,
         then this function will add a cell to the standard tableau.
 
         INPUT:
@@ -4163,7 +4151,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
                         yield TT
 
     @classmethod
-    def marked_given_unmarked_and_weight_iterator( cls, unmarkedT, k, weight ):
+    def marked_given_unmarked_and_weight_iterator(cls, unmarkedT, k, weight):
         r"""
         An iterator generating strong marked tableaux from an unmarked strong tableau.
 
@@ -4209,15 +4197,15 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: list(StrongTableaux.marked_given_unmarked_and_weight_iterator([], 4, weight=[]))
             [[]]
         """
-        td = StrongTableaux.cells_head_dictionary( unmarkedT )
-        if td == {}: # the tableau is empty
-            yield StrongTableau( unmarkedT, k, [] )
+        td = StrongTableaux.cells_head_dictionary(unmarkedT)
+        if td == {}:  # the tableau is empty
+            yield StrongTableau(unmarkedT, k, [])
         else:
             import itertools
             dsc = Composition(weight).descents()
-            for m in itertools.product(*td.values()):
+            for m in itertools.product(*[td[key] for key in sorted(td)]):
                 if all(((m[i][1]-m[i][0]<m[i+1][1]-m[i+1][0]) or (i in dsc)) for i in range(len(m)-1)):
-                   yield StrongTableaux.add_marking( unmarkedT, m, k, weight )
+                   yield StrongTableaux.add_marking(unmarkedT, m, k, weight)
 
     @classmethod
     def add_marking( cls, unmarkedT, marking, k, weight ):
@@ -4551,7 +4539,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
     @classmethod
     def transpositions_to_standard_strong( self, transeq, k, emptyTableau=[] ):
         """
-        Return a strong tableau correponding to a sequence of transpositions.
+        Return a strong tableau corresponding to a sequence of transpositions.
 
         This method returns the action by left multiplication on the empty strong tableau
         by transpositions specified by ``transeq``.
@@ -4651,4 +4639,6 @@ def intermediate_shapes(t):
 
 # Deprecations from trac:18555. July 2016
 from sage.misc.superseded import deprecated_function_alias
+
+
 StrongTableaux.global_options = deprecated_function_alias(18555, StrongTableaux.options)

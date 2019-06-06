@@ -100,9 +100,12 @@ methods ``product_on_basis``, ``one_basis``, ``_repr_`` and
 ask the category (TODO: find a slicker idiom for this)::
 
     sage: from sage.misc.abstract_method import abstract_methods_of_class
-    sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class)
+    sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class) # py2
     {'optional': ['_add_', '_mul_'],
      'required': ['__nonzero__', 'monomial_coefficients']}
+    sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class) # py3
+    {'optional': ['_add_', '_mul_'],
+     'required': ['__bool__', 'monomial_coefficients']}
     sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).parent_class)
     {'optional': ['one_basis', 'product_on_basis'], 'required': ['__contains__']}
 
@@ -198,6 +201,7 @@ Ok, let's run the tests::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -207,6 +211,7 @@ Ok, let's run the tests::
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -610,7 +615,7 @@ Here is a brief template highlighting the overall structure::
         def __init__(self, R, ...):
             category = Algebras(R).Commutative()
             Parent.__init__(self, category=category.WithRealizations())
-            # attribute initalization, construction of the morphisms
+            # attribute initialization, construction of the morphisms
             # between the bases, ...
 
         class Bases(Category_realization_of_parent):

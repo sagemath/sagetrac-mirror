@@ -18,7 +18,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 
 class PrimeNumbers(UniqueRepresentation, Parent):
-    """
+    r"""
     An example of parent in the category of sets: the set of prime numbers.
 
     The elements are represented as plain integers in `\ZZ` (facade
@@ -64,6 +64,7 @@ class PrimeNumbers(UniqueRepresentation, Parent):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -73,6 +74,7 @@ class PrimeNumbers(UniqueRepresentation, Parent):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -354,6 +356,7 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -362,6 +365,7 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -554,7 +558,7 @@ class PrimeNumbers_Wrapper(PrimeNumbers_Abstract):
 
 #*************************************************************************#
 class PrimeNumbers_Facade(PrimeNumbers_Abstract):
-    """
+    r"""
     An example of parent in the category of sets: the set of prime numbers.
 
     In this alternative implementation, the elements are represented
@@ -635,6 +639,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -644,6 +649,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass

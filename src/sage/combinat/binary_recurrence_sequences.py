@@ -45,13 +45,7 @@ AUTHORS:
 
 -Isabel Vogt (2013): initial version
 
-REFERENCES:
-
-    .. [SV13] Silliman and Vogt. "Powers in Lucas Sequences via Galois Representations." Proceedings of the American Mathematical Society, 2013. :arxiv:`1307.5078v2`
-
-    .. [BMS06] Bugeaud, Mignotte, and Siksek. "Classical and modular approaches to exponential Diophantine equations: I. Fibonacci and Lucas perfect powers." Annals of Math, 2006.
-
-    .. [SS] Shorey and Stewart. "On the Diophantine equation a x^{2t} + b x^t y + c y^2 = d and pure powers in recurrence sequences." Mathematica Scandinavica, 1983.
+See [SV2013]_, [BMS2006]_, and [SS1983]_.
 """
 
 #****************************************************************************#
@@ -374,7 +368,7 @@ class BinaryRecurrenceSequence(SageObject):
         Return the period of the binary recurrence sequence modulo
         an integer ``m``.
 
-        If `n_1` is congruent to `n_2` modulu ``period(m)``, then `u_{n_1}` is
+        If `n_1` is congruent to `n_2` modulo ``period(m)``, then `u_{n_1}` is
         is congruent to `u_{n_2}` modulo ``m``.
 
         INPUT:
@@ -388,7 +382,7 @@ class BinaryRecurrenceSequence(SageObject):
         EXAMPLES:
 
         If `p = \\pm 1 \\mod 5`, then the period of the Fibonacci sequence
-        mod `p` is `p-1` (c.f. Lemma 3.3 of [BMS06]).
+        mod `p` is `p-1` (c.f. Lemma 3.3 of [BMS2006]_).
 
         ::
 
@@ -451,7 +445,7 @@ class BinaryRecurrenceSequence(SageObject):
                     p1fac = list((p-1).factor())
 
                     #The order of any matrix in GL_2(F_p) either divides p(p-1) or (p-1)(p+1).
-                    #The order divides p-1 if it is diagaonalizable.  In any case, det(F^(p-1))=1,
+                    #The order divides p-1 if it is diagonalizable.  In any case, det(F^(p-1))=1,
                     #so if tr(F^(p-1)) = 2, then it must be triangular of the form [[1,a],[0,1]].
                     #The order of the subgroup of matrices of this form is p, so the order must divide
                     #p(p-1) -- in fact it must be a multiple of p.  If this is not the case, then the
@@ -503,7 +497,7 @@ class BinaryRecurrenceSequence(SageObject):
                             n = b
                     perp = n
 
-                #Now compute the period mod p^e by steping up by multiples of p
+                #Now compute the period mod p^e by stepping up by multiples of p
                 F = A.change_ring(Integers(p**e))
                 v = w.change_ring(Integers(p**e))
                 FF = F**perp
@@ -534,7 +528,7 @@ class BinaryRecurrenceSequence(SageObject):
 
         Let `u_n` be a binary recurrence sequence.  A ``p`` th power in `u_n` is a solution
         to `u_n = y^p` for some integer `y`.  There are only finitely many ``p`` th powers in
-        any recurrence sequence [SS].
+        any recurrence sequence [SS1983]_.
 
         INPUT:
 
@@ -549,7 +543,7 @@ class BinaryRecurrenceSequence(SageObject):
         EXAMPLES::
 
             sage: R = BinaryRecurrenceSequence(1,1)        #the Fibonacci sequence
-            sage: R.pthpowers(2, 10**30)        # long time (7 seconds) -- in fact these are all squares, c.f. [BMS06]
+            sage: R.pthpowers(2, 10**30)        # long time (7 seconds) -- in fact these are all squares, c.f. [BMS2006]_
             [0, 1, 2, 12]
 
             sage: S = BinaryRecurrenceSequence(8,1) #a Lucas sequence
@@ -560,7 +554,7 @@ class BinaryRecurrenceSequence(SageObject):
             sage: Q.pthpowers(11,10**30)          # long time (7.5 seconds)
             [1]
 
-        If the sequence is degenerate, and there are are no ``p`` th powers, returns `[]`.  Otherwise, if
+        If the sequence is degenerate, and there are no ``p`` th powers, returns `[]`.  Otherwise, if
         there are many ``p`` th powers, raises ``ValueError``.
 
         ::
@@ -649,7 +643,7 @@ class BinaryRecurrenceSequence(SageObject):
         #Thus, given such an `\\ell`, we get a set of necessary congruences for the index modulo the
         #the period of the sequence mod `\\ell`.  Then we intersect these congruences for many primes
         #to get a tight list modulo a growing modulus.  In order to keep this step manageable, we
-        #only use primes `\\ell` that are have particularly smooth periods.
+        #only use primes `\\ell` that have particularly smooth periods.
 
         #Some congruences in the list will remain as the modulus grows.  If a congruence remains through
         #7 rounds of increasing the modulus, then we check if this corresponds to a perfect power (if
@@ -950,7 +944,7 @@ def _next_good_prime(p, R, qq, patience, qqold):
 
                     N = _goodness(R._ell, R, p)
 
-                    #proceed only if R._ell statisfies the goodness requirements
+                    #proceed only if R._ell satisfies the goodness requirements
                     if qqold < N <= qq:
                         return R._ell
 
@@ -964,8 +958,7 @@ def _next_good_prime(p, R, qq, patience, qqold):
         return False
 
 
-def _is_p_power_mod(a,p,N):
-
+def _is_p_power_mod(a, p, N):
     """
     Determine if ``a`` is a ``p`` th power modulo ``N``.
 

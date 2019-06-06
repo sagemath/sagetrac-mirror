@@ -26,7 +26,7 @@ Multivariate Polynomials
    :maxdepth: 2
 
    polynomial_rings_multivar
-   sage/rings/invariant_theory
+   invariant_theory
    polynomial_rings_toy_implementations
 
 Skew Polynomials
@@ -57,6 +57,7 @@ Laurent Polynomials
 
    sage/rings/polynomial/laurent_polynomial_ring
    sage/rings/polynomial/laurent_polynomial
+   sage/rings/polynomial/omega
 
 Infinite Polynomial Rings
 -------------------------
