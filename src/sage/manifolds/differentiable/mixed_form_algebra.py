@@ -234,6 +234,9 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
                     latex_name = latex(comp)
         return self.element_class(self, comp_list, name, latex_name)
 
+    def is_field(self):
+        return False
+
     def _an_element_(self):
         r"""
         Construct some (unnamed) mixed form.
