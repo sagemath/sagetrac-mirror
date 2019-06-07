@@ -3388,7 +3388,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
                 voisins_in[u] = restricted_embedding[u][1:]
             else:
                 voisins_in[u] = list(restricted_embedding[u])
-            voisins_in[u].reverse()  # pour les avoir dans le bon sens
+            voisins_in[u].reverse()  # To have them in the right order
 
         graph0.set_embedding(restricted_embedding)
 
@@ -3465,8 +3465,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
     def le(self, el1, el2):
         r"""
-        Poset stucture on the set of interval-posets through interval
+        Poset structure on the set of interval-posets through interval
         containment.
+
+        This is not the most natural partial order.
 
         Return whether the interval represented by ``el1`` is contained in
         the interval represented by ``el2``.
