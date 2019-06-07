@@ -307,22 +307,27 @@ inline size_t get_next_level(\
         if (idx[j].first)
             n_newfaces++;
     }
+
     for (size_t j = 0; j < n_faces-1; j++){
         maybe_newfaces[j] = newfaces[j];
     }
+
+
     /*
-    for (std::vector<mypair>::iterator it=idx.begin(); it!=idx.end(); ++it){
-        j = (*it.second);
-        maybe_newfaces[j] = (*it).second;
-        if (!(*it).first) {
+    n_newfaces = 0;
+    for (size_t j = 0; j < n_faces-1; j++){
+    //for (std::vector<mypair>::iterator it=idx.begin(); it!=idx.end(); ++it){
+        //j = (*it.second);
+        if (!is_newface[j]) {
             // Not a new face of codimension 1.
             continue;
         }
         // It is a new face of codimension 1.
-        newfaces[n_newfaces] = (*it).second;
+        newfaces[n_newfaces] = maybe_newfaces[j];
         n_newfaces++;
     }
     */
+
     return n_newfaces;
 }
 
