@@ -1489,7 +1489,7 @@ class Polytopes():
         Unfortunately, no polyhedra backend supports the construction of the
         snub dodecahedron at the moment::
 
-            sage: sd = polytopes.snub_dodecahedron()
+            sage: sd = polytopes.snub_dodecahedron()  # py2
             sage: sd.f_vector() # not tested
             (1, 60, 150, 92, 1)
             sage: sd.base_ring() # not tested
