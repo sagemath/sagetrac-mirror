@@ -289,6 +289,7 @@ inline size_t get_next_level(\
 
     // Set ``newfaces`` to point to the correct ones.
     size_t n_newfaces = 0;  // length of newfaces2
+    /*
     std::vector<mypair> idx(n_faces-1);
     for (size_t j = 0; j < n_faces -1; j++){
         if (is_newface[j]) {
@@ -298,22 +299,26 @@ inline size_t get_next_level(\
         idx[j].second = j;
     }
     sort(idx.begin(), idx.end(), compare_pairs);
+    */
 
     //for (size_t j = 0; j < n_faces-1; j++){
     //for (size_t index = n_faces - 2; index >= 0; index--){
     //for (size_t index = 0; index< n_faces-1; index++){
+    /*
     for (size_t j = 0; j < n_faces-1; j++){
         newfaces[j] = maybe_newfaces[idx[j].second];
         if (idx[j].first)
             n_newfaces++;
     }
+    */
 
+    /*
     for (size_t j = 0; j < n_faces-1; j++){
         maybe_newfaces[j] = newfaces[j];
     }
+    */
 
 
-    /*
     n_newfaces = 0;
     for (size_t j = 0; j < n_faces-1; j++){
     //for (std::vector<mypair>::iterator it=idx.begin(); it!=idx.end(); ++it){
@@ -326,7 +331,7 @@ inline size_t get_next_level(\
         newfaces[n_newfaces] = maybe_newfaces[j];
         n_newfaces++;
     }
-    */
+
 
     return n_newfaces;
 }
