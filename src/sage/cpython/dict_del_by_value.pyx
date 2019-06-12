@@ -432,10 +432,10 @@ def test_del_dictitem_by_exact_value(D, value, h):
     exist in the dictionary::
 
         sage: D = {1: ZZ}
-        sage: test_del_dictitem_by_exact_value(D, ZZ, 2)
+        sage: test_del_dictitem_by_exact_value(D, ZZ, hash(2))
         sage: D
         {1: Integer Ring}
-        sage: test_del_dictitem_by_exact_value(D, QQ, 1)
+        sage: test_del_dictitem_by_exact_value(D, QQ, hash(1))
         sage: D
         {1: Integer Ring}
     """
