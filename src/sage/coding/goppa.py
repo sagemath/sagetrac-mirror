@@ -11,6 +11,11 @@ def _columnize(element):
 
 class GoppaCode(AbstractLinearCode):
     """Implementation of Goppa codes, a generalization of narrow-sense BCH codes.
+    These codes are defined by a generating polynomial g over a finite field F_p^m,
+    and a defining set L of elements from F_p^m, which are not roots of g. The number
+    of defining elements determines the length of the code.
+
+    In the binary case, the minimum distance is 2*t + 1, where t is the degree of g.
 
     INPUTS:
 
@@ -45,10 +50,10 @@ class GoppaCode(AbstractLinearCode):
         super(GoppaCode, self).__init__(self._field, self._length, "GoppaEncoder", "Syndrome")
 
         if not generating_pol.is_monic():
-            raise ValueError("generating_pol must be monic")
+            raise ValueError("generating polynomial must be monic")
         F = self._field
         if (not F.is_field() or not F.is_finite()):
-            raise ValueError("generating_pol must be defined over a finite field")
+            raise ValueError("generating polynomial must be defined over a finite field")
         for a in defining_set:
             if generating_pol(a) == 0:
                 raise ValueError("Defining elements cannot be roots of generating polynomial")
@@ -252,7 +257,7 @@ class GoppaCodeEncoder(Encoder):
     def generator_matrix(self):
         """Returns a generator matrix for 'self'.
 
-        Dimension of resulting matrix is d * n?
+        Dimension of resulting matrix is dimension * length.
 
 
         EXAMPLES::

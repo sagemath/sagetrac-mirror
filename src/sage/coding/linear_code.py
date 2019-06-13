@@ -393,6 +393,22 @@ class AbstractLinearCode(Module):
         A lot of methods of the abstract class rely on the knowledge of a generator matrix.
         It is thus strongly recommended to set an encoder with a generator matrix implemented
         as a default encoder.
+
+        TESTS:
+
+        This class uses the following experimental feature:
+        :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+        This test block is here only to trigger the experimental warning so it does not
+        interferes with doctests::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fqm.<aa> = GF(16)
+            sage: Fq.<a> = GF(4)
+            sage: RelativeFiniteFieldExtension(Fqm, Fq)
+            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/20284 for details.
+            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -1704,7 +1720,7 @@ class AbstractLinearCode(Module):
 
     def juxtapose(self, other):
         """
-        Returns the code obtained by juxtaposing 'self' and 'other'. 
+        Returns the code obtained by juxtaposing 'self' and 'other'.
 
         The two codes must have equal dimension.
 
@@ -1715,7 +1731,7 @@ class AbstractLinearCode(Module):
            sage: C2
            [14, 4] linear code over GF(2)
 
-        """   
+        """
         G1 = self.generator_matrix()
         G2 = other.generator_matrix()
         G = G1.augment(G2)
@@ -1733,8 +1749,8 @@ class AbstractLinearCode(Module):
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: D = C1.u_u_plus_v_code(C2)
             sage: D
-            [14, 8] linear code over GF(2)    
-          
+            [14, 8] linear code over GF(2)
+
         """
         F = self.base_ring()
         G1 = self.generator_matrix()
@@ -1753,6 +1769,27 @@ class AbstractLinearCode(Module):
         Combines 'self' with 'other' to give the tensor product code.
 
         If 'self' is a [n1, k1, d1] code and 'other' is a [n2, k2, d2] code, theproduct is a [n1*n2, k1*k2, d1*d2] code.
+
+        The two codes have to be over the same field.
+
+            EXAMPLES::
+
+                sage: C = codes.HammingCode(GF(2), 3)
+                sage: C
+                [7, 4] Hamming Code over GF(2)
+                sage: D = codes.ReedMullerCode(GF(2), 2, 2)
+                sage: D
+                Binary Reed-Muller Code of order 2 and number of variables 2
+                sage: A = C.product_code(D)
+                sage: A
+                [28, 16] linear code over GF(2)
+                sage: A.length() == C.length()*D.length()
+                True
+                sage: A.dimension() == C.dimension()*D.dimension()
+                True
+                sage: A.minimum_distance() == C.minimum_distance()*D.minimum_distance()
+                True
+                
         """
         G1 = self.generator_matrix()
         G2 = other.generator_matrix()
@@ -1799,11 +1836,11 @@ class AbstractLinearCode(Module):
         for r in G2.rows():
             if r not in left.row_space():
                 left = left.stack(r)
- 
+
         Ga = aux.generator_matrix()
         na = aux.length()
         ka = aux.dimension()
- 
+
         F = self.base_field()
         MS = MatrixSpace(F,k-ka,na)
         Z = MS(0)
