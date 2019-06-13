@@ -431,7 +431,7 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
 
 class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
-    """
+    r"""
     Set of rational points of a toric variety.
 
     You should not use this class directly. Instead, use the
@@ -546,13 +546,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
 
         ALGORITHM:
 
-        Uses the formula in Fulton [F]_, section 4.5.
-
-        REFERENCES:
-
-        ..  [F]
-            Fulton, W., "Introduction to Toric Varieties",
-            Princeton University Press, 1993.
+        Uses the formula in Fulton [Ful1993]_, section 4.5.
 
         AUTHORS:
 

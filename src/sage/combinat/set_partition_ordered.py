@@ -49,9 +49,10 @@ import sage.combinat.permutation as permutation
 from functools import reduce
 from sage.categories.cartesian_product import cartesian_product
 
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
-    """
+    r"""
     An ordered partition of a set.
 
     An ordered set partition `p` of a set `s` is a list of pairwise
@@ -230,7 +231,7 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: s.check()
         """
-        assert self in self.parent()
+        assert self in self.parent(), "%s not in %s" % (self, self.parent())
 
     def _hash_(self):
         """
@@ -349,7 +350,7 @@ class OrderedSetPartition(ClonableArray):
         return OrderedSetPartitions()(sum((list(i) for i in osps), []))
 
     def reversed(self):
-        """
+        r"""
         Return the reversal of the ordered set partition ``self``.
 
         The *reversal* of an ordered set partition
@@ -371,7 +372,7 @@ class OrderedSetPartition(ClonableArray):
         return par(list(reversed(list(self))))
 
     def complement(self):
-        """
+        r"""
         Return the complement of the ordered set partition ``self``.
 
         This assumes that ``self`` is an ordered set partition of
@@ -666,7 +667,7 @@ class OrderedSetPartition(ClonableArray):
 
 
     def is_strongly_finer(self, co2):
-        """
+        r"""
         Return ``True`` if the ordered set partition ``self`` is strongly
         finer than the ordered set partition ``co2``; otherwise, return
         ``False``.
@@ -770,7 +771,7 @@ class OrderedSetPartition(ClonableArray):
         # We can fatten each of the ordered set partitions setcomps
         # arbitrarily, and then concatenate the results.
         fattenings = [list(subcomp.fatter()) for subcomp in subcomps]
-        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(g) for g in fattening], []))
+        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(gg) for gg in fattening], []))
             for fattening in cartesian_product(fattenings)])
 
     @combinatorial_map(name='to packed word')
@@ -852,22 +853,25 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: OS = OrderedSetPartitions("cat"); OS
+        sage: OS = OrderedSetPartitions("cat")
+        sage: OS # py2
         Ordered set partitions of {'a', 'c', 't'}
-        sage: OS.list()
-        [[{'a'}, {'c'}, {'t'}],
-         [{'a'}, {'t'}, {'c'}],
-         [{'c'}, {'a'}, {'t'}],
-         [{'t'}, {'a'}, {'c'}],
-         [{'c'}, {'t'}, {'a'}],
-         [{'t'}, {'c'}, {'a'}],
-         [{'a'}, {'c', 't'}],
-         [{'c'}, {'a', 't'}],
-         [{'t'}, {'a', 'c'}],
+        sage: OS # py3 random
+        Ordered set partitions of {'a', 't', 'c'}
+        sage: sorted(OS.list(), key=str)
+        [[{'a', 'c', 't'}],
          [{'a', 'c'}, {'t'}],
          [{'a', 't'}, {'c'}],
+         [{'a'}, {'c', 't'}],
+         [{'a'}, {'c'}, {'t'}],
+         [{'a'}, {'t'}, {'c'}],
          [{'c', 't'}, {'a'}],
-         [{'a', 'c', 't'}]]
+         [{'c'}, {'a', 't'}],
+         [{'c'}, {'a'}, {'t'}],
+         [{'c'}, {'t'}, {'a'}],
+         [{'t'}, {'a', 'c'}],
+         [{'t'}, {'a'}, {'c'}],
+         [{'t'}, {'c'}, {'a'}]]
     """
     @staticmethod
     def __classcall_private__(cls, s=None, c=None):
@@ -936,6 +940,14 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             sage: OS = OrderedSetPartitions([1,2,3,4])
             sage: all(sp in OS for sp in OS)
             True
+            sage: [[1,2], [], [3,4]] in OS
+            False
+            sage: [Set([1,2]), Set([3,4])] in OS
+            True
+            sage: [set([1,2]), set([3,4])] in OS
+            Traceback (most recent call last):
+            ...
+            TypeError: X (=...1, 2...) must be a Set
         """
         #x must be a list
         if not isinstance(x, (OrderedSetPartition, list, tuple)):
@@ -947,10 +959,10 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             return False
 
         #Check to make sure each element of the list
-        #is a set
+        #is a nonempty set
         u = Set([])
         for s in x:
-            if not isinstance(s, (set, frozenset, Set_generic)):
+            if not s or not isinstance(s, (set, frozenset, Set_generic)):
                 return False
             u = u.union(s)
 
@@ -1064,7 +1076,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
             True
             sage: OS.cardinality()
             14
-            sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
+            sage: len([x for x in OrderedSetPartitions([1,2,3,4]) if x in OS])
             14
         """
         return OrderedSetPartitions.__contains__(self, x) and len(x) == self.n
@@ -1138,7 +1150,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4], [2,1,1])
             Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 1, 1]
         """
-        return "Ordered set partitions of %s into parts of size %s"%(Set(self._set), self.c)
+        return "Ordered set partitions of %s into parts of size %s" % (Set(self._set), self.c)
 
     def __contains__(self, x):
         """
@@ -1149,10 +1161,10 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             True
             sage: OS.cardinality()
             12
-            sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
+            sage: len([x for x in OrderedSetPartitions([1,2,3,4]) if x in OS])
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and [len(_) for _ in x] == self.c
+        return OrderedSetPartitions.__contains__(self, x) and [len(z) for z in x] == self.c
 
     def cardinality(self):
         r"""
@@ -1296,11 +1308,15 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             sage: AOS = OrderedSetPartitions()
             sage: all(sp in AOS for sp in OS)
             True
-            sage: [[1,3],[4],[5,2]] in AOS
+            sage: AOS.__contains__([[1,3], [4], [5,2]])
             True
-            sage: [[1,4],[3]] in AOS
+            sage: AOS.__contains__([Set([1,3]), Set([4]), Set([5,2])])
+            True
+            sage: [Set([1,4]), Set([3])] in AOS
             False
-            sage: [[1,3],[4,2],[2,5]] in AOS
+            sage: [Set([1,3]), Set([4,2]), Set([2,5])] in AOS
+            False
+            sage: [Set([1,2]), Set()] in AOS
             False
         """
         if isinstance(x, OrderedSetPartition):
@@ -1313,10 +1329,10 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         if not isinstance(x, (list, tuple)):
             return False
 
-        # Check to make sure each element of the list is a set
-        if any(not isinstance(s, (set, frozenset, list, tuple, Set_generic))
-               for s in x):
+        # Check to make sure each element of the list is a nonempty set
+        if not all(s and isinstance(s, (set, frozenset, list, tuple, Set_generic)) for s in x):
             return False
+
         if not all(isinstance(s, (set, frozenset, Set_generic)) or len(s) == len(set(s)) for s in x):
             return False
         X = set(reduce(lambda A,B: A.union(B), x, set()))

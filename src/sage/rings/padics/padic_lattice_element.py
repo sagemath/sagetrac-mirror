@@ -15,13 +15,22 @@ tests because they take a few minutes as of mid 2018, see :trac:`25431`::
     See http://trac.sagemath.org/23505 for details.
     sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
 
-    sage: R = ZpLF(2)
+    sage: R = ZpLF(2) # py2
+    sage: R = ZpLF(2) # py3
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/23505 for details.
     sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
 
-    sage: R = QpLC(2)
+    sage: R = QpLC(2) # py2
+    sage: R = QpLC(2) # py3
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/23505 for details.
     sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
 
-    sage: R = QpLF(2)
+    sage: R = QpLF(2) # py2
+    sage: R = QpLF(2) # py3
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/23505 for details.
     sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
 """
 
@@ -693,6 +702,34 @@ class pAdicLatticeElement(pAdicGenericElement):
         dx = [  [self, self._parent._approx_minusone/(x_self*x_self)] ]
         return self.__class__(self._parent.fraction_field(), x, dx=dx, check=False)
 
+    def _quo_rem(self, other):
+        """
+        Quotient with remainder.
+
+        EXAMPLES::
+
+            sage: R = ZpLC(2)
+            sage: a = R(373286)
+            sage: b = R(12685856)
+            sage: q,r = a.quo_rem(b); q, r
+            (1 + 2^8 + 2^12 + 2^15 + O(2^16), 2 + 2^2 + O(2^21))
+            sage: q*b+r == a
+            True
+            sage: q,r = b.quo_rem(a); q, r
+            (2^4 + 2^5 + 2^7 + 2^10 + 2^14 + 2^15 + 2^16 + 2^17 + O(2^24), O(2^40))
+            sage: q*a == b
+            True
+        """
+        if other.is_zero():
+            # We use ZeroDivisionError since _test_quo_rem expects it.
+            raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
+        if other.valuation() > self.precision_absolute():
+            raise PrecisionError
+        q, r = self._value._quo_rem(other._value)
+        rem = self.__class__(self._parent, r, check=False)
+        quo = self.parent()((self - rem) / other)
+        return quo, rem
+
     def add_bigoh(self, prec):
         r"""
         Return a new element with absolute precision decreased to
@@ -763,8 +800,8 @@ class pAdicLatticeElement(pAdicGenericElement):
         with the same parent.
 
         When ``infer_precision`` is set to ``False``, the precision on the
-        newly created variable is independant as if the variable were created
-        by hand by setting independantly the value of the absolute precision.
+        newly created variable is independent as if the variable were created
+        by hand by setting independently the value of the absolute precision.
         In particular, if ``self`` used to share diffused digits of precision 
         with other variables, they are not preserved.
 
@@ -881,7 +918,7 @@ class pAdicLatticeElement(pAdicGenericElement):
         its absolute precision.
         If a rational is returned, its denominator will be a power of `p`.
 
-        EXAMPLES:
+        EXAMPLES::
 
            sage: R = ZpLC(7)
            sage: a = R(8); a.lift()

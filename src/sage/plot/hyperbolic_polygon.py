@@ -20,7 +20,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 
@@ -31,7 +31,7 @@ from sage.rings.all import CC
 
 class HyperbolicPolygon(BezierPath):
     """
-    Primitive class for hyberbolic polygon type.
+    Primitive class for hyperbolic polygon type.
 
     See ``hyperbolic_polygon?`` for information about plotting a hyperbolic
     polygon in the complex plane.
@@ -178,7 +178,7 @@ def hyperbolic_polygon(pts, **options):
 
 
 def hyperbolic_triangle(a, b, c, **options):
-    """
+    r"""
     Return a hyperbolic triangle in the hyperbolic plane with vertices ``(a,b,c)``.
 
     Type ``?hyperbolic_polygon`` to see all options.
