@@ -1144,11 +1144,21 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         # References: Sage #5986, file sage/misc/nested_class.py
         if ret:
             name = getattr(self.object, '__name__', False)
+            qualname = getattr(self.object, '__qualname__', name)
             module = getattr(self.object, '__module__', False)
             if name and module:
-                self.doc_as_attr = (self.objpath != name.split('.') and
-                                    self.object is getattr(sys.modules[module],
-                                                           name, None))
+                # Walk the standard attribute lookup path for this object
+                # to ensure that its qualname really is sane and not something
+                # arbitrary assigned to it
+                qualname_parts = qualname.split('.')
+                mod = sys.modules[module]
+                cls = getattr(mod, qualname_parts[0], None)
+                for part in qualname_parts[1:]:
+                    if cls is None:
+                        break
+                    cls = getattr(cls, part, None)
+                self.doc_as_attr = (self.objpath != qualname_parts and
+                                    self.object is cls)
             else:
                 self.doc_as_attr = True
         return ret
