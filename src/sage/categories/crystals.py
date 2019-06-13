@@ -2066,6 +2066,8 @@ class CrystalMorphismByGenerators(CrystalMorphism):
                 gens = on_gens.keys()
             else:
                 gens = parent.domain().module_generators
+
+        gens = sorted(gens, key=str) if isinstance(on_gens, dict) else gens
         self._gens = tuple(gens)
 
         # Make sure on_gens is a function
