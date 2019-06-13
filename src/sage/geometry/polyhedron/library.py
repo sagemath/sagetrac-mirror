@@ -1216,7 +1216,7 @@ class Polytopes():
             doctest:warning
             ...
             UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
-            sage: td.f_vector()
+            sage: td.f_vector() # random
             Traceback (most recent call last):
             ...
             KeyError: ...
@@ -1999,7 +1999,7 @@ class Polytopes():
             sage: K = QuadraticField(2, 'sqrt2')
             sage: sqrt2 = K.gen()
             sage: polytopes.parallelotope([ (1,sqrt2), (1,-1) ])
-            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining 
+            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining
             polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as the convex hull of 4 vertices
         """
         from sage.modules.free_module_element import vector

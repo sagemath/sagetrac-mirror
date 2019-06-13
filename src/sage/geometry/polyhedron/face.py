@@ -10,27 +10,27 @@ the faces in a particular dimension, use the
     sage: P.faces(3)
     (A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 6 vertices,)
     sage: [f.ambient_V_indices() for f in P.faces(2)]
-    [(0, 1, 2),
-     (0, 1, 3),
-     (0, 2, 4),
-     (0, 3, 4),
-     (3, 4, 5),
+    [(3, 4, 5),
      (2, 4, 5),
      (1, 3, 5),
-     (1, 2, 5)]
+     (1, 2, 5),
+     (0, 3, 4),
+     (0, 2, 4),
+     (0, 1, 3),
+     (0, 1, 2)]
     sage: [f.ambient_V_indices() for f in P.faces(1)]
-    [(0, 1),
-     (0, 2),
-     (1, 2),
-     (0, 3),
-     (1, 3),
-     (0, 4),
-     (2, 4),
-     (3, 4),
-     (2, 5),
+    [(4, 5),
      (3, 5),
-     (4, 5),
-     (1, 5)]
+     (2, 5),
+     (1, 5),
+     (3, 4),
+     (2, 4),
+     (0, 4),
+     (1, 3),
+     (0, 3),
+     (1, 2),
+     (0, 2),
+     (0, 1)]
 
 or :meth:`~sage.geometry.polyhedron.base.face_lattice` to get the
 whole face lattice as a poset::
@@ -42,7 +42,7 @@ The faces are printed in shorthand notation where each integer is the
 index of a vertex/ray/line in the same order as the containing
 Polyhedron's :meth:`~sage.geometry.polyhedron.base.Vrepresentation` ::
 
-    sage: face = P.faces(1)[3];  face
+    sage: face = P.faces(1)[8];  face
     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
     sage: face.ambient_V_indices()
     (0, 3)
@@ -79,6 +79,7 @@ from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
+from sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face import CombinatorialFace
 
 
 
@@ -175,7 +176,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: triangle = Polyhedron(vertices=[[1,0],[0,1],[1,1]])
-            sage: face = triangle.faces(1)[0]
+            sage: face = triangle.faces(1)[2]
             sage: for v in face.vertex_generator(): print(v)
             A vertex at (0, 1)
             A vertex at (1, 0)
@@ -198,7 +199,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: triangle = Polyhedron(vertices=[[1,0],[0,1],[1,1]])
-            sage: face = triangle.faces(1)[0]
+            sage: face = triangle.faces(1)[2]
             sage: face.vertices()
             (A vertex at (0, 1), A vertex at (1, 0))
         """
@@ -229,7 +230,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: pi = Polyhedron(ieqs = [[1,1,0],[1,0,1]])
-            sage: face = pi.faces(1)[0]
+            sage: face = pi.faces(1)[1]
             sage: next(face.ray_generator())
             A ray in the direction (1, 0)
         """
@@ -249,7 +250,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,1],[0,0,1,0],[1,1,0,0]])
-            sage: face = p.faces(2)[0]
+            sage: face = p.faces(2)[2]
             sage: face.rays()
             (A ray in the direction (1, 0, 0), A ray in the direction (0, 1, 0))
         """
@@ -341,10 +342,10 @@ class PolyhedronFace(SageObject):
             sage: square = polytopes.hypercube(2)
             sage: f = square.faces(1)
             sage: matrix(4,4, lambda i,j: ZZ(f[i] <= f[j]))
+            [1 1 0 0]
+            [0 1 0 0]
+            [1 1 1 0]
             [1 1 1 1]
-            [0 1 1 1]
-            [0 0 1 1]
-            [0 0 0 1]
             sage: matrix(4,4, lambda i,j: ZZ(f[i] == f[j])) == 1
             True
         """
@@ -504,18 +505,18 @@ class PolyhedronFace(SageObject):
             sage: Q = polytopes.cross_polytope(3)
             sage: F = Q.faces(1)
             sage: [f.ambient_H_indices() for f in F]
-            [(1, 2),
-             (2, 3),
-             (2, 7),
-             (0, 1),
-             (1, 6),
-             (0, 3),
-             (3, 4),
-             (0, 5),
-             (4, 7),
+            [(4, 5),
              (5, 6),
-             (4, 5),
-             (6, 7)]
+             (4, 7),
+             (6, 7),
+             (0, 5),
+             (3, 4),
+             (0, 3),
+             (1, 6),
+             (0, 1),
+             (2, 7),
+             (2, 3),
+             (1, 2)]
         """
         return self._ambient_Hrepresentation_indices
 
@@ -535,12 +536,12 @@ class PolyhedronFace(SageObject):
             sage: P = polytopes.cube()
             sage: F = P.faces(2)
             sage: [f.ambient_V_indices() for f in F]
-            [(0, 1, 2, 3),
-             (0, 1, 4, 5),
+            [(0, 1, 4, 5),
              (0, 2, 4, 6),
-             (1, 3, 5, 7),
+             (0, 1, 2, 3),
+             (4, 5, 6, 7),
              (2, 3, 6, 7),
-             (4, 5, 6, 7)]
+             (1, 3, 5, 7)]
         """
         return self._ambient_Vrepresentation_indices
 
@@ -665,3 +666,10 @@ class PolyhedronFace(SageObject):
         parent = P.parent()
         Vrep = (self.vertices(), self.rays(), self.lines())
         return P.__class__(parent, Vrep, None)
+
+def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
+    V_indices = combinatorial_face.Vrepr(names=False)
+    n_equations = polyhedron.n_equations()
+    H_indices = tuple(range(n_equations))
+    H_indices += tuple(x+n_equations for x in combinatorial_face.Hrepr(names=False))
+    return PolyhedronFace(polyhedron, V_indices, H_indices)

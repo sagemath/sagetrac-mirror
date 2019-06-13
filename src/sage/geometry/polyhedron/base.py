@@ -21,7 +21,7 @@ import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
 
-from sage.misc.all import cached_method, prod
+from sage.misc.all import cached_method, prod, lazy_import
 from sage.misc.randstate import current_randstate
 
 from sage.rings.all import QQ, ZZ, AA
@@ -33,6 +33,8 @@ from sage.functions.other import sqrt, floor, ceil, binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
+lazy_import('sage.geometry.polyhedron.face' , 'combinatorial_face_to_polyhedral_face')
+lazy_import('sage.geometry.polyhedron.face' , 'PolyhedronFace')
 
 from .constructor import Polyhedron
 
@@ -296,8 +298,6 @@ class Polyhedron_base(Element):
             [1 1 0]
 
         """
-        # TODO: This implementation computes the whole face lattice,
-        # which is much more information than necessary.
         M = matrix(ZZ, self.n_facets(), self.n_facets(), 0)
         codim = self.ambient_dim()-self.dim()
 
@@ -3828,13 +3828,13 @@ class Polyhedron_base(Element):
             sage: vertex_trunc1.f_vector()
             (1, 10, 15, 7, 1)
             sage: tuple(f.ambient_V_indices() for f in vertex_trunc1.faces(2))
-            ((0, 1, 2, 3),
+            ((4, 5, 6, 7, 9),
+             (0, 3, 4, 8, 9),
+             (0, 1, 6, 7, 8),
+             (7, 8, 9),
              (2, 3, 4, 5),
              (1, 2, 5, 6),
-             (0, 1, 6, 7, 8),
-             (4, 5, 6, 7, 9),
-             (7, 8, 9),
-             (0, 3, 4, 8, 9))
+             (0, 1, 2, 3))
             sage: vertex_trunc1.vertices()
             (A vertex at (1, -1, -1),
              A vertex at (1, 1, -1),
@@ -3850,13 +3850,13 @@ class Polyhedron_base(Element):
             sage: vertex_trunc2.f_vector()
             (1, 10, 15, 7, 1)
             sage: tuple(f.ambient_V_indices() for f in vertex_trunc2.faces(2))
-            ((0, 1, 2, 3),
+            ((4, 5, 6, 7, 9),
+             (0, 3, 4, 8, 9),
+             (0, 1, 6, 7, 8),
+             (7, 8, 9),
              (2, 3, 4, 5),
              (1, 2, 5, 6),
-             (0, 1, 6, 7, 8),
-             (4, 5, 6, 7, 9),
-             (7, 8, 9),
-             (0, 3, 4, 8, 9))
+             (0, 1, 2, 3))
             sage: vertex_trunc2.vertices()
             (A vertex at (1, -1, -1),
              A vertex at (1, 1, -1),
@@ -3880,18 +3880,18 @@ class Polyhedron_base(Element):
              A vertex at (-0.4, -1.0, -1.0),
              A vertex at (-1.0, -0.4, -1.0),
              A vertex at (-1.0, -1.0, -0.4))
-            sage: edge_trunc = Cube.face_truncation(Cube.faces(1)[0])
+            sage: edge_trunc = Cube.face_truncation(Cube.faces(1)[1])
             sage: edge_trunc.f_vector()
             (1, 10, 15, 7, 1)
             sage: tuple(f.ambient_V_indices() for f in edge_trunc.faces(2))
-            ((0, 1, 2, 3),
-             (1, 2, 4, 5),
-             (4, 5, 6, 7),
+            ((4, 5, 6, 7),
+             (0, 3, 8, 9),
              (0, 1, 5, 6, 8),
-             (2, 3, 4, 7, 9),
              (6, 7, 8, 9),
-             (0, 3, 8, 9))
-             sage: face_trunc = Cube.face_truncation(Cube.faces(2)[0])
+             (2, 3, 4, 7, 9),
+             (1, 2, 4, 5),
+             (0, 1, 2, 3))
+             sage: face_trunc = Cube.face_truncation(Cube.faces(2)[2])
              sage: face_trunc.vertices()
              (A vertex at (1, -1, -1),
               A vertex at (1, 1, -1),
@@ -4000,17 +4000,17 @@ class Polyhedron_base(Element):
 
             sage: Q = Polyhedron(vertices=[[0,1],[1,0]],rays=[[1,1]])
             sage: E = Q.faces(1)
-            sage: Q.stack(E[0],1/2).Vrepresentation()
+            sage: Q.stack(E[1],1/2).Vrepresentation()
             (A vertex at (0, 1),
              A vertex at (0, 2),
              A vertex at (1, 0),
              A ray in the direction (1, 1))
-            sage: Q.stack(E[1],1/2).Vrepresentation()
+            sage: Q.stack(E[2],1/2).Vrepresentation()
             (A vertex at (0, 0),
              A vertex at (0, 1),
              A vertex at (1, 0),
              A ray in the direction (1, 1))
-            sage: Q.stack(E[2],1/2).Vrepresentation()
+            sage: Q.stack(E[0],1/2).Vrepresentation()
             (A vertex at (0, 1),
              A vertex at (1, 0),
              A ray in the direction (1, 1),
@@ -4335,6 +4335,11 @@ class Polyhedron_base(Element):
         return PolyhedronFace(self, Vindices, Hindices)
 
     @cached_method
+    def combinatorial_polyhedron(self):
+        from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
+        return CombinatorialPolyhedron(self)
+
+    @cached_method
     def face_lattice(self):
         """
         Return the face-lattice poset.
@@ -4502,6 +4507,11 @@ class Polyhedron_base(Element):
         return lattice_from_incidences(atoms_incidences, coatoms_incidences,
              face_constructor=face_constructor, required_atoms=atoms_vertices)
 
+    def face_iter(self, dimension=None, dual=None):
+        it = self.combinatorial_polyhedron().face_iter(dimension=dimension, dual=dual)
+        for face in it:
+            yield combinatorial_face_to_polyhedral_face(self, face)
+
     def faces(self, face_dimension):
         """
         Return the faces of given dimension
@@ -4525,16 +4535,16 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.hypercube(4)
             sage: list(f.ambient_V_indices() for f in p.faces(3))
-            [(0, 1, 2, 3, 4, 5, 6, 7),
-             (0, 1, 2, 3, 8, 9, 10, 11),
+            [(0, 2, 4, 6, 8, 10, 12, 14),
              (0, 1, 4, 5, 8, 9, 12, 13),
-             (0, 2, 4, 6, 8, 10, 12, 14),
+             (0, 1, 2, 3, 8, 9, 10, 11),
+             (0, 1, 2, 3, 4, 5, 6, 7),
+             (1, 3, 5, 7, 9, 11, 13, 15),
              (2, 3, 6, 7, 10, 11, 14, 15),
-             (8, 9, 10, 11, 12, 13, 14, 15),
              (4, 5, 6, 7, 12, 13, 14, 15),
-             (1, 3, 5, 7, 9, 11, 13, 15)]
+             (8, 9, 10, 11, 12, 13, 14, 15)]
 
-            sage: face = p.faces(3)[0]
+            sage: face = p.faces(3)[3]
             sage: face.ambient_Hrepresentation()
             (An inequality (1, 0, 0, 0) x + 1 >= 0,)
             sage: face.vertices()
@@ -4556,6 +4566,15 @@ class Polyhedron_base(Element):
             sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()],
             ....:    [get_idx(_) for _ in face.ambient_Hrepresentation()])
             ....:   for face in p.faces(3) ]
+            [([0, 2, 4, 6, 8, 10, 12, 14], [7]),
+             ([0, 1, 4, 5, 8, 9, 12, 13], [6]),
+             ([0, 1, 2, 3, 8, 9, 10, 11], [5]),
+             ([0, 1, 2, 3, 4, 5, 6, 7], [4]),
+             ([1, 3, 5, 7, 9, 11, 13, 15], [3]),
+             ([2, 3, 6, 7, 10, 11, 14, 15], [2]),
+             ([4, 5, 6, 7, 12, 13, 14, 15], [1]),
+             ([8, 9, 10, 11, 12, 13, 14, 15], [0])]
+
             [([0, 1, 2, 3, 4, 5, 6, 7], [4]),
              ([0, 1, 2, 3, 8, 9, 10, 11], [5]),
              ([0, 1, 4, 5, 8, 9, 12, 13], [6]),
@@ -4579,14 +4598,16 @@ class Polyhedron_base(Element):
             sage: pr.faces(0)
             ()
             sage: pr.faces(-1)
-            ()
+            (A -1-dimensional face of a Polyhedron in QQ^3,)
         """
-        fl = self.face_lattice().level_sets()
-        codim = self.dim() - face_dimension
-        index = len(fl) - 1 - codim
-        if index >= len(fl) or index < 1:
-            return tuple()
-        return tuple(fl[index])
+        if face_dimension in range(self.dimension()):
+            return tuple(self.face_iter(face_dimension))
+        elif face_dimension == -1:
+            return (PolyhedronFace(self, (), range(self.n_Hrepresentation())),)
+        elif face_dimension == self.dimension():
+            return (PolyhedronFace(self, range(self.n_Vrepresentation()), range(self.n_equations())),)
+        else:
+            return ()
 
     @cached_method
     def f_vector(self):
@@ -4605,7 +4626,21 @@ class Polyhedron_base(Element):
             sage: p.f_vector()
             (1, 7, 12, 7, 1)
         """
-        return vector(ZZ, [len(x) for x in self.face_lattice().level_sets()])
+        return vector(ZZ, self.combinatorial_polyhedron().f_vector())
+
+    def _vertex_graph_edges(self):
+        if self.is_compact():
+            return self.combinatorial_polyhedron().edges()
+        elif self.n_lines() == 0:
+            edges = self.combinatorial_polyhedron().edges()
+            edges_with_vertices = tuple(x for x in edges
+                                        if x[0].is_vertex() and x[1].is_vertex())
+            return edges_with_vertices
+        else:
+            n_lines = self.n_lines()
+            edges = tuple(x.vertices() for x in self.faces(n_lines + 1))
+            edges_with_vertices = tuple(x for x in edges if len(x) == 2)
+            return edges_with_vertices
 
     def vertex_graph(self):
         """
@@ -4623,36 +4658,12 @@ class Polyhedron_base(Element):
             sage: s4.is_eulerian()
             True
         """
-        from itertools import combinations
-        inequalities = self.inequalities()
-        vertices     = self.vertices()
-
-        # Associated to 'v' the inequalities in contact with v
-        vertex_ineq_incidence = [frozenset([i for i, ineq in enumerate(inequalities) if self._is_zero(ineq.eval(v))])
-                                 for i, v in enumerate(vertices)]
-
-        # the dual incidence structure
-        ineq_vertex_incidence = [set() for _ in range(len(inequalities))]
-        for v, ineq_list in enumerate(vertex_ineq_incidence):
-            for ineq in ineq_list:
-                ineq_vertex_incidence[ineq].add(v)
-
-        n = len(vertices)
-
-        pairs = []
-        for i, j in combinations(range(n), 2):
-            common_ineq = vertex_ineq_incidence[i] & vertex_ineq_incidence[j]
-            if not common_ineq:  # or len(common_ineq) < d-2:
-                continue
-
-            if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
-                pairs.append((i, j))
-
-        from sage.graphs.graph import Graph
-        g = Graph()
-        g.add_vertices(vertices)
-        g.add_edges((vertices[i], vertices[j]) for i, j in pairs)
-        return g
+        if self.n_vertices() == 1:
+            G = Graph()
+            G.add_vertices(self.vertices())
+            return G
+        edges = self._vertex_graph_edges()
+        return Graph(data=edges, format='list_of_edges')
 
     graph = vertex_graph
 
@@ -4719,11 +4730,16 @@ class Polyhedron_base(Element):
             f = -f
         from sage.graphs.digraph import DiGraph
         dg = DiGraph()
-        for j in range(self.n_vertices()):
-            vj = self.Vrepresentation(j)
-            for vi in vj.neighbors():
-                if orientation_check(vj.vector() - vi.vector()):
-                    dg.add_edge(vi, vj)
+        if self.n_vertices() == 1:
+            dg.add_vertices(self.vertices())
+            return dg
+
+        edges = self._vertex_graph_edges()
+        for edge in edges:
+            if orientation_check(edge[1].vector() - edge[0].vector()):
+                dg.add_edge(edge[0], edge[1])
+            if orientation_check(edge[0].vector() - edge[1].vector()):
+                dg.add_edge(edge[1], edge[0])
         return dg
 
     def polar(self):
@@ -5280,7 +5296,7 @@ class Polyhedron_base(Element):
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 6 vertices
             sage: edge = S.faces(1)[2].as_polyhedron()
             sage: edge.vertices()
-            (A vertex at (0.866025403784439?, 1/2), A vertex at (0, 1))
+            (A vertex at (0, -1), A vertex at (-0.866025403784439?, -1/2))
             sage: edge.volume()
             0
             sage: edge.volume(measure='induced')
@@ -5796,7 +5812,8 @@ class Polyhedron_base(Element):
             return self.dim() + 1
         else:
             k = 1
-            while len(self.faces(k)) == binomial(self.n_vertices(), k + 1):
+            f_vector = self.f_vector()
+            while f_vector[k+1] == binomial(self.n_vertices(), k + 1):
                 k += 1
             return k
 
@@ -5849,7 +5866,8 @@ class Polyhedron_base(Element):
         """
         if k is None:
             k = self.dim() // 2
-        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1)
+        f_vector = self.f_vector()
+        return all(f_vector[i+1] == binomial(self.n_vertices(), i + 1)
                    for i in range(1, k))
 
     @cached_method
@@ -6931,7 +6949,7 @@ class Polyhedron_base(Element):
             sage: T = polytopes.simplex(3)
             sage: T = T.face_truncation(T.faces(0)[0])
             sage: T = T.face_truncation(T.faces(0)[0])
-            sage: T = T.face_truncation(T.faces(0)[1])
+            sage: T = T.face_truncation(T.faces(0)[2])
             sage: T.is_combinatorially_isomorphic(S)
             False
             sage: T.f_vector(), S.f_vector()
