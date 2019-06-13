@@ -1691,7 +1691,8 @@ class AbstractLinearCode(Module):
 
     def direct_sum(self, other):
         """
-        Returns the code given by the direct sum of the codes ``self`` an ``other``, which must be linear codes defined over the same base ring.
+        Returns the code given by the direct sum of the codes ``self`` and
+         ``other``, which must be linear codes defined over the same base ring.
 
         EXAMPLES::
 
@@ -1739,9 +1740,13 @@ class AbstractLinearCode(Module):
 
     def u_u_plus_v_code(self, other):
         """
-        Returns the code obtained through (u|u+v) construction with 'self' as u and 'other' as v.
+        Returns the code obtained through (u|u+v) construction with 'self' as u
+        and 'other' as v.
 
-        u and v must have equal lengths. When u is a [n, k1, d1] code and v is a [n, k2, d2] code this returns a [2n, k1+k2, d] code, where d=min(2d1,d2)
+        u and v must have equal lengths.
+
+        When u is a [n, k1, d1] code and v is a [n, k2, d2] code this returns
+        a [2n, k1+k2, d] code, where d=min(2d1,d2)
 
         EXAMPLES::
 
@@ -1768,7 +1773,8 @@ class AbstractLinearCode(Module):
         """
         Combines 'self' with 'other' to give the tensor product code.
 
-        If 'self' is a [n1, k1, d1] code and 'other' is a [n2, k2, d2] code, theproduct is a [n1*n2, k1*k2, d1*d2] code.
+        If 'self' is a [n1, k1, d1] code and 'other' is a [n2, k2, d2] code,
+        the product is a [n1*n2, k1*k2, d1*d2] code.
 
         The two codes have to be over the same field.
 
@@ -1789,7 +1795,7 @@ class AbstractLinearCode(Module):
                 True
                 sage: A.minimum_distance() == C.minimum_distance()*D.minimum_distance()
                 True
-                
+
         """
         G1 = self.generator_matrix()
         G2 = other.generator_matrix()
@@ -1800,7 +1806,13 @@ class AbstractLinearCode(Module):
         """
         Construction X applied to C1='self', C2='other' and Ca='aux'.
 
-        'Other' must be a subcode of 'self'. If C1 is a [n, k1, d1] linear code and C2 is a [n, k2, d2] linear code, then k1 > k2 and d1 < d2. Ca must be a [na, ka, da] linear code such that ka + k2 == k1 and da + d1 <= d2. The method will then return a [n+na, k1, da+d1] linear code.
+        'Other' must be a subcode of 'self'.
+
+        If C1 is a [n, k1, d1] linear code and C2 is a [n, k2, d2] linear code,
+        then k1 > k2 and d1 < d2. Ca must be a [na, ka, da] linear code,
+        such that ka + k2 == k1 and da + d1 <= d2.
+
+        The method will then return a [n+na, k1, da+d1] linear code.
 
             EXAMPLES::
 

@@ -11,16 +11,16 @@ def _columnize(element):
 
 class GoppaCode(AbstractLinearCode):
     """Implementation of Goppa codes, a generalization of narrow-sense BCH codes.
-    These codes are defined by a generating polynomial g over a finite field F_p^m,
-    and a defining set L of elements from F_p^m, which are not roots of g. The number
-    of defining elements determines the length of the code.
+    These codes are defined by a generating polynomial g over a finite field
+    F_p^m, and a defining set L of elements from F_p^m, which are not roots of g.
+    The number of defining elements determines the length of the code.
 
-    In the binary case, the minimum distance is 2*t + 1, where t is the degree of g.
+    In binary cases, the minimum distance is 2*t + 1, where t is the degree of g.
 
     INPUTS:
 
-    -generating_pol -- a monic polynomial with coefficients in a finite field F_p^m,
-    the code is defined over F_p, p must be a prime number
+    -generating_pol -- a monic polynomial with coefficients in a finite field
+    F_p^m, the code is defined over F_p, p must be a prime number
 
     -defining_set -- a set of elements of F_p^m that are not roots of g,
     its cardinality is the length of the code
@@ -124,8 +124,8 @@ class GoppaCode(AbstractLinearCode):
         -h[i] is the inverse of g(D[i])
         -D[i] is the ith element of the defining set
 
-        In the resulting d * n matrix we interpret each entry as an m-column vector
-        and return a dm * n matrix.
+        In the resulting d * n matrix we interpret each entry as an m-column
+        vector and return a dm * n matrix.
 
 
         EXAMPLES::
@@ -217,7 +217,9 @@ class GoppaCode(AbstractLinearCode):
         return m
 
     def distance_bound(self):
-        """Estimates a lower bound for the minimun distance of the code using the degree of g.
+        """Estimates a lower bound for the minimun distance of the code using
+        the degree of g.
+
         Min distance is guarenteed to be larger or equal to this bound.
 
         EXAMPLES::
