@@ -539,7 +539,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             phi = R.hom([S.gen(0), 1], S)
             return phi(F)
         else:
-            S = S.change_ring(F.base_ring())
             R = F.numerator().parent()
             phi = R.hom([S.gen(0), 1], S)
             return phi(F.numerator())/phi(F.denominator())
