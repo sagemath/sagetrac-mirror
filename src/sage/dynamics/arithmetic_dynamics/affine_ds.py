@@ -439,6 +439,17 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         of the polynomial. Otherwise a fraction field element of the
         coordinate ring of the polynomial.
 
+        TESTS::
+
+            sage: R.<c> = QQ[]
+            sage: Pc.<x,y> = ProjectiveSpace(R, 1)
+            sage: f = DynamicalSystem([x^2 + c*y^2, y^2], domain=Pc)
+            sage: new_fixed=2
+            sage: m = matrix(FractionField(f.base_ring()), 2, 2,[(new_fixed - 1)/new_fixed, 0, -1/new_fixed, 1])
+            sage: F=f.conjugate(m)
+            sage: F.dehomogenize(1).dynatomic_polynomial(2)
+            (1/4*c + 1/4)*x^2 + (-c - 1/2)*x + c + 1
+
         EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
@@ -523,10 +534,12 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             u = var(self.domain().coordinate_ring().variable_name())
             return F.subs({F.variables()[0]:u,F.variables()[1]:1})
         elif T(F.denominator()).degree() == 0:
+            S = S.change_ring(F.base_ring())
             R = F.parent()
             phi = R.hom([S.gen(0), 1], S)
             return phi(F)
         else:
+            S = S.change_ring(F.base_ring())
             R = F.numerator().parent()
             phi = R.hom([S.gen(0), 1], S)
             return phi(F.numerator())/phi(F.denominator())
