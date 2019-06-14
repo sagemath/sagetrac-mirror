@@ -4340,7 +4340,7 @@ class Polyhedron_base(Element):
         return CombinatorialPolyhedron(self)
 
     @cached_method
-    def face_lattice(self):
+    def face_lattice(self, labels=True):
         """
         Return the face-lattice poset.
 
@@ -4403,10 +4403,10 @@ class Polyhedron_base(Element):
 
             sage: square = polytopes.hypercube(2)
             sage: fl = square.face_lattice();fl
-            Finite lattice containing 10 elements with distinguished linear extension
-            sage: list(f.ambient_V_indices() for f in fl)
-            [(), (0,), (1,), (2,), (3,), (0, 1), (0, 2), (2, 3), (1, 3), (0, 1, 2, 3)]
-            sage: poset_element = fl[6]
+            Finite lattice containing 10 elements
+            sage: sorted(list(f.ambient_V_indices() for f in fl))
+            [(), (0,), (0, 1), (0, 1, 2, 3), (0, 2), (1,), (1, 3), (2,), (2, 3), (3,)]
+            sage: poset_element = sorted(fl)[4]
             sage: a_face = poset_element
             sage: a_face
             A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 2 vertices
@@ -4473,39 +4473,16 @@ class Polyhedron_base(Element):
             sage: [[ls.ambient_V_indices() for ls in lss] for lss in Polyhedron(lines=[(1,0)], vertices=[(0,0)]).face_lattice().level_sets()]
             [[()], [(0, 1)]]
         """
-        coatom_to_Hindex = [ h.index() for h in self.inequality_generator() ]
-        Hindex_to_coatom = [None] * self.n_Hrepresentation()
-        for i in range(len(coatom_to_Hindex)):
-            Hindex_to_coatom[ coatom_to_Hindex[i] ] = i
+        unlabeled = self.combinatorial_polyhedron().face_lattice()
+        if labels:
+            combinatorial_face_meth = self.combinatorial_polyhedron().face_by_face_lattice_index
 
-        atom_to_Vindex = [ v.index() for v in self.Vrep_generator() if not v.is_line() ]
-        Vindex_to_atom = [None] * self.n_Vrepresentation()
-        for i in range(len(atom_to_Vindex)):
-                        Vindex_to_atom[ atom_to_Vindex[i] ] = i
+            def label_func(i):
+                return combinatorial_face_to_polyhedral_face(self, combinatorial_face_meth(i))
 
-        atoms_incidences   = [ tuple([ Hindex_to_coatom[h.index()]
-                                       for h in v.incident() if h.is_inequality() ])
-                               for v in self.Vrepresentation() if not v.is_line() ]
-
-        coatoms_incidences = [ tuple([ Vindex_to_atom[v.index()]
-                                       for v in h.incident() if not v.is_line() ])
-                               for h in self.Hrepresentation() if h.is_inequality() ]
-
-        atoms_vertices = [ Vindex_to_atom[v.index()] for v in self.vertex_generator() ]
-        equations = [ e.index() for e in self.equation_generator() ]
-        lines     = [ l.index() for l in self.line_generator() ]
-
-        def face_constructor(atoms, coatoms):
-            if len(atoms) == 0:
-                Vindices = ()
-            else:
-                Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))
-            Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
-            return self._make_polyhedron_face(Vindices, Hindices)
-
-        from sage.geometry.hasse_diagram import lattice_from_incidences
-        return lattice_from_incidences(atoms_incidences, coatoms_incidences,
-             face_constructor=face_constructor, required_atoms=atoms_vertices)
+            return unlabeled.relabel(label_func)
+        else:
+            return unlabeled
 
     def face_iter(self, dimension=None, dual=None):
         it = self.combinatorial_polyhedron().face_iter(dimension=dimension, dual=dual)
