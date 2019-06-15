@@ -497,14 +497,15 @@ class SpecializationMorphism(Morphism):
                 applicable_vars = {key: val for key,val in D.items() if key not in flat.gens()}
                 if len(applicable_vars) != 0:
                     # Coerce the generators to be in the right ring
+                    # This un-does changing the domain of D to be homogenous
                     tmp = {}
                     for var, val in applicable_vars.items():
-                        for gen in field_over.gens():
-                            if str(var) == str(gen):
+                        for gstr, gen in field_over.gens_dict_recursive().items():
+                            if str(var) == gstr:
                                 tmp[gen] = val
                                 break
                         else:
-                            raise NameError("argument " + str(var) + " is not a generator")
+                            raise NameError("argument " + str(var) + " is not a generator anywhere in polynomial tower")
                     applicable_vars = tmp
                     self._sub_specialization = SpecializationMorphism(field_over, applicable_vars)
                 break
