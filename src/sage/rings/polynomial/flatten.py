@@ -486,7 +486,6 @@ class SpecializationMorphism(Morphism):
 
         # Change domain of D to "flat" and ensure that the values lie
         # in the base ring.
-        print(base)
         D = {phi(k): base(D[k]) for k in D}
 
         # Construct unflattened codomain R
@@ -496,7 +495,18 @@ class SpecializationMorphism(Morphism):
             if is_FractionField(R):
                 field_over = R.base()
                 applicable_vars = {key: val for key,val in D.items() if key not in flat.gens()}
-                self._sub_specialization = SpecializationMorphism(field_over, applicable_vars)
+                if len(applicable_vars) != 0:
+                    # Coerce the generators to be in the right ring
+                    tmp = {}
+                    for var, val in applicable_vars.items():
+                        for gen in field_over.gens():
+                            if str(var) == str(gen):
+                                tmp[gen] = val
+                                break
+                        else:
+                            raise NameError("argument " + str(var) + " is not a generator")
+                    applicable_vars = tmp
+                    self._sub_specialization = SpecializationMorphism(field_over, applicable_vars)
                 break
             old = R.gens()
             new = [t for t in old if t not in D]
@@ -553,5 +563,5 @@ class SpecializationMorphism(Morphism):
                 numerator = self._sub_specialization._call_(coefficient.numerator())
                 denominator = self._sub_specialization._call_(coefficient.denominator())
                 tmp[exponent] = numerator / denominator
-            flat = flat.codomain()(tmp)
+            flat = flat.parent()(tmp)
         return self._eval_morph(flat)
