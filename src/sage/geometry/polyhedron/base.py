@@ -2781,9 +2781,37 @@ class Polyhedron_base(Element):
             sage: R = Q.bipyramid()
             sage: R.is_bipyramid(certificate=True)
             (True, [A vertex at (-1, 3, 13, 63), A vertex at (1, 3, 13, 63)])
+
+        TESTS::
+
+            sage: P = polytopes.permutahedron(4).bipyramid()
+            sage: P.is_bipyramid()
+            True
+
+            sage: P = polytopes.cube()
+            sage: P.is_bipyramid()
+            False
+
+            sage: P = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
+            sage: P.is_bipyramid()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polyhedron has to be compact
+
+        ALGORITHM:
+
+        Assume all faces of a polyhedron to be given as lists of vertices.
+
+        A polytope is a bipyramid with apexes `v`, `w` if and only if for each
+        proper face `v \in F` there exists a face `G` with
+        `G \setminus \{w\} = F \setminus \{v\}`
+        and vice versa (for each proper face
+        `w \in F` there exists ...).
+
+        To check this property it suffices to check for all facets of the polyhedron.
         """
         if not self.is_compact():
-            raise NotImplementedError("The polyhedron has to be compact.")
+            raise NotImplementedError("polyhedron has to be compact")
 
         from sage.misc.functional import is_odd
         m = self.n_facets()
@@ -2792,35 +2820,40 @@ class Polyhedron_base(Element):
                 return (False, None)
             return False
 
+        I = self.incidence_matrix()
+
+        if self.n_equations():
+            # Remove equations from incidence matrix,
+            # such this is the vertex-facet-incidences matrix.
+            I1 = I.transpose()
+            I2 = I1[[i for i in range(self.n_Hrepresentation())
+                     if not self.Hrepresentation()[i].is_equation()]]
+            I = I2.transpose()
+
+        facets = [set(column.nonzero_positions()) for column in I.columns()]
+        vertices = [set(row.nonzero_positions()) for row in I.rows()]
+
         # Find two vertices ``vertex1`` and ``vertex2`` such that one of them
         # lies on exactly half of the facets, and the other one lies on
-        # exactly the other half. Then check that for each vertex other than
-        # ``vertex1`` and ``vertex2``, half of the facets it lies on contains
-        # ``vertex1`` and the other half contains ``vertex2``.
-        from copy import copy
-        I = self.incidence_matrix()
-        vertices = [row.nonzero_positions() for row in I.rows()]
+        # exactly the other half.
         for i in range(len(vertices)):
             vertex1 = vertices[i]
             if len(vertex1) == m/2:
                 for j in range(i, len(vertices)):
                     vertex2 = vertices[j]
                     if len(vertex2) == m/2:
-                        vertices1and2 = vertex1 + vertex2
-                        vertices1and2.sort()
-                        if vertices1and2 == list(range(m)):
-                            remaining_vertices = copy(vertices)
-                            remaining_vertices.remove(vertex1)
-                            remaining_vertices.remove(vertex2)
-                            validity = []
-                            for v in remaining_vertices:
-                                v_int_vertex1 = [x for x in v if x in vertex1]
-                                v_int_vertex2 = [x for x in v if x in vertex2]
-                                if len(v_int_vertex1) == len(v_int_vertex2):
-                                    validity.append(True)
-                                else:
-                                    validity.append(False)
-                            if all(validity):
+                        vertices1and2 = vertex1.union(vertex2)
+                        if len(vertices1and2) == m:
+                            # We have found two candidates for apexes.
+
+                            # Remove from each facet ``i`` resp. ``j``.
+                            test_facets = set(frozenset(facet.difference({i,j}))
+                                              for facet in facets)
+                            if len(test_facets) == m/2:
+                                # For each `F` containing `i` there is
+                                # `G` containing `j` such that
+                                # `F \setminus \{i\} =  G \setminus \{j\}
+                                # and vice versa.
                                 if certificate:
                                     V = self.vertices()
                                     return (True, [V[i], V[j]])
@@ -2891,9 +2924,29 @@ class Polyhedron_base(Element):
                A vertex at (0, 5, 25, 125),
                A vertex at (0, 6, 36, 216),
                A vertex at (0, 7, 49, 343)]])
+
+        TESTS::
+
+            sage: P = polytopes.cross_polytope(5)
+            sage: P.is_prism()
+            False
+
+            sage: P = polytopes.permutahedron(4).prism()
+            sage: P.is_prism()
+            True
+
+            sage: P = Polyhedron(vertices=[[0,1], [1,0]], rays=[[1,1]])
+            sage: P.is_prism()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polyhedron has to be compact
+
+        ALGORITHM:
+
+        See :meth:`Polyhedron_base.is_bipyramid`.
         """
         if not self.is_compact():
-            raise NotImplementedError("The polyhedron has to be compact.")
+            raise NotImplementedError("polyhedron has to be compact")
 
         from sage.misc.functional import is_odd
         n = self.n_vertices()
@@ -2902,35 +2955,42 @@ class Polyhedron_base(Element):
                 return (False, None)
             return False
 
+        I = self.incidence_matrix()
+
+        if self.n_equations():
+            # Remove equations from incidence matrix,
+            # such this is the vertex-facet-incidences matrix.
+            I1 = I.transpose()
+            I2 = I1[[i for i in range(self.n_Hrepresentation())
+                     if not self.Hrepresentation()[i].is_equation()]]
+            I = I2.transpose()
+
+        vertices = [set(row.nonzero_positions()) for row in I.rows()]
+        facets = [set(column.nonzero_positions()) for column in I.columns()]
+
         # Find two facets ``facet1`` and ``facet2`` such that one of them
         # contains exactly half of the vertices, and the other one contains
-        # exactly the other half. Then check that each facet other than
-        # ``facet1`` and ``facet2`` has half of its vertices on ``facet1``
-        # and the other half on ``facet2``.
-        from copy import copy
-        I = self.incidence_matrix()
-        facets = [column.nonzero_positions() for column in I.columns()]
+        # exactly the other half.
         for i in range(len(facets)):
             facet1 = facets[i]
             if len(facet1) == n/2:
                 for j in range(i, len(facets)):
                     facet2 = facets[j]
                     if len(facet2) == n/2:
-                        facets1and2 = facet1 + facet2
-                        facets1and2.sort()
-                        if facets1and2 == list(range(n)):
-                            remaining_facets = copy(facets)
-                            remaining_facets.remove(facet1)
-                            remaining_facets.remove(facet2)
-                            validity = []
-                            for F in remaining_facets:
-                                F_int_facet1 = [x for x in F if x in facet1]
-                                F_int_facet2 = [x for x in F if x in facet2]
-                                if len(F_int_facet1) == len(F_int_facet2):
-                                    validity.append(True)
-                                else:
-                                    validity.append(False)
-                            if all(validity):
+                        facets1and2 = facet1.union(facet2)
+                        if len(facets1and2) == n:
+                            # We have found two candidates for base faces.
+
+                            # The vertices are given as list of facets they are contained in.
+                            # Remove from each vertex ``i`` resp. ``j``.
+                            test_vertices = set(frozenset(vertex.difference({i,j}))
+                                                for vertex in vertices)
+                            if len(test_vertices) == n/2:
+                                # For each vertex containing `i` there is
+                                # another one contained in `j`
+                                # and vice versa.
+                                # Other than `i` and `j` both are contained in
+                                # exactly the same facets.
                                 if certificate:
                                     V = self.vertices()
                                     facet1_vertices = [V[i] for i in facet1]
