@@ -500,7 +500,6 @@ class Polyhedron_base(Element):
             elif base_ring is not RDF:
                 raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
-        x = None
         try:
             vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
@@ -2691,6 +2690,257 @@ class Polyhedron_base(Element):
         return all(len([vertex for vertex in facet.incident()]) == d
                    for facet in self.Hrepresentation()
                    if not facet.is_equation())
+
+    def is_pyramid(self, certificate=False):
+        """
+        Test whether the polytope is a pyramid over one of its facets.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+          to return a vertex of the polytope which is the apex of a pyramid,
+          if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. The apex of the pyramid or ``None``.
+
+        If ``certificate`` is ``False`` returns:
+
+        - Boolean.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex(3)
+            sage: P.is_pyramid()
+            True
+            sage: P.is_pyramid(certificate=True)
+            (True, A vertex at (1, 0, 0, 0))
+            sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
+            sage: egyptian_pyramid.is_pyramid()
+            True
+            sage: Q = polytopes.octahedron()
+            sage: Q.is_pyramid()
+            False
+        """
+        if not self.is_compact():
+            raise NotImplementedError("The polyhedron has to be compact.")
+
+        # Find a facet that contains all the vertices but one.
+        n = self.n_vertices()
+        I = self.incidence_matrix()
+        facets = [column.nonzero_positions() for column in I.columns()]
+        for facet in facets:
+            if len(facet) == n-1:
+                if certificate:
+                    V = self.vertices()
+                    apex = [V[i] for i in range(n) if i not in facet][0]
+                    return (True, apex)
+                return True
+        if certificate:
+            return (False, None)
+        return False
+
+    def is_bipyramid(self, certificate=False):
+        """
+        Test whether the polytope is combinatorially equivalent to a
+        bipyramid over some polytope.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+          to return two vertices of the polytope which are the apices of a
+          bipyramid, if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. ``None`` or a tuple containing:
+            a. The first apex.
+            b. The second apex.
+
+        If ``certificate`` is ``False`` returns:
+
+        - Boolean.
+
+        EXAMPLES::
+
+            sage: P = polytopes.octahedron()
+            sage: P.is_bipyramid()
+            True
+            sage: P.is_bipyramid(certificate=True)
+            (True, [A vertex at (-1, 0, 0), A vertex at (1, 0, 0)])
+            sage: Q = polytopes.cyclic_polytope(3,7)
+            sage: Q.is_bipyramid()
+            False
+            sage: R = Q.bipyramid()
+            sage: R.is_bipyramid(certificate=True)
+            (True, [A vertex at (-1, 3, 13, 63), A vertex at (1, 3, 13, 63)])
+        """
+        if not self.is_compact():
+            raise NotImplementedError("The polyhedron has to be compact.")
+
+        from sage.misc.functional import is_odd
+        m = self.n_facets()
+        if is_odd(m):
+            if certificate:
+                return (False, None)
+            return False
+
+        # Find two vertices ``vertex1`` and ``vertex2`` such that one of them
+        # lies on exactly half of the facets, and the other one lies on
+        # exactly the other half. Then check that for each vertex other than
+        # ``vertex1`` and ``vertex2``, half of the facets it lies on contains
+        # ``vertex1`` and the other half contains ``vertex2``.
+        from copy import copy
+        I = self.incidence_matrix()
+        vertices = [row.nonzero_positions() for row in I.rows()]
+        for i in range(len(vertices)):
+            vertex1 = vertices[i]
+            if len(vertex1) == m/2:
+                for j in range(i, len(vertices)):
+                    vertex2 = vertices[j]
+                    if len(vertex2) == m/2:
+                        vertices1and2 = vertex1 + vertex2
+                        vertices1and2.sort()
+                        if vertices1and2 == list(range(m)):
+                            remaining_vertices = copy(vertices)
+                            remaining_vertices.remove(vertex1)
+                            remaining_vertices.remove(vertex2)
+                            validity = []
+                            for v in remaining_vertices:
+                                v_int_vertex1 = [x for x in v if x in vertex1]
+                                v_int_vertex2 = [x for x in v if x in vertex2]
+                                if len(v_int_vertex1) == len(v_int_vertex2):
+                                    validity.append(True)
+                                else:
+                                    validity.append(False)
+                            if all(validity):
+                                if certificate:
+                                    V = self.vertices()
+                                    return (True, [V[i], V[j]])
+                                return True
+
+        if certificate:
+            return (False, None)
+        return False
+
+    def is_prism(self, certificate=False):
+        """
+        Test whether the polytope is combinatorially equivalent to a prism of
+        some polytope.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+          to return two facets of the polytope which are the bases of a prism,
+          if found
+
+        OUTPUT:
+
+        If ``certificate`` is ``True``, returns a tuple containing:
+
+        1. Boolean.
+        2. ``None`` or a tuple containing:
+            a. List of the vertices of the first base facet.
+            b. List of the vertices of the second base facet.
+
+        If ``certificate`` is ``False`` returns:
+
+        - Boolean.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.is_prism()
+            True
+            sage: P.is_prism(certificate=True)
+            (True,
+             [[A vertex at (-1, -1, 1),
+               A vertex at (-1, 1, 1),
+               A vertex at (1, -1, 1),
+               A vertex at (1, 1, 1)],
+              [A vertex at (-1, -1, -1),
+               A vertex at (-1, 1, -1),
+               A vertex at (1, -1, -1),
+               A vertex at (1, 1, -1)]])
+            sage: Q = polytopes.cyclic_polytope(3,8)
+            sage: Q.is_prism()
+            False
+            sage: R = Q.prism()
+            sage: R.is_prism(certificate=True)
+            (True,
+             [[A vertex at (1, 0, 0, 0),
+               A vertex at (1, 1, 1, 1),
+               A vertex at (1, 2, 4, 8),
+               A vertex at (1, 3, 9, 27),
+               A vertex at (1, 4, 16, 64),
+               A vertex at (1, 5, 25, 125),
+               A vertex at (1, 6, 36, 216),
+               A vertex at (1, 7, 49, 343)],
+              [A vertex at (0, 0, 0, 0),
+               A vertex at (0, 1, 1, 1),
+               A vertex at (0, 2, 4, 8),
+               A vertex at (0, 3, 9, 27),
+               A vertex at (0, 4, 16, 64),
+               A vertex at (0, 5, 25, 125),
+               A vertex at (0, 6, 36, 216),
+               A vertex at (0, 7, 49, 343)]])
+        """
+        if not self.is_compact():
+            raise NotImplementedError("The polyhedron has to be compact.")
+
+        from sage.misc.functional import is_odd
+        n = self.n_vertices()
+        if is_odd(n):
+            if certificate:
+                return (False, None)
+            return False
+
+        # Find two facets ``facet1`` and ``facet2`` such that one of them
+        # contains exactly half of the vertices, and the other one contains
+        # exactly the other half. Then check that each facet other than
+        # ``facet1`` and ``facet2`` has half of its vertices on ``facet1``
+        # and the other half on ``facet2``.
+        from copy import copy
+        I = self.incidence_matrix()
+        facets = [column.nonzero_positions() for column in I.columns()]
+        for i in range(len(facets)):
+            facet1 = facets[i]
+            if len(facet1) == n/2:
+                for j in range(i, len(facets)):
+                    facet2 = facets[j]
+                    if len(facet2) == n/2:
+                        facets1and2 = facet1 + facet2
+                        facets1and2.sort()
+                        if facets1and2 == list(range(n)):
+                            remaining_facets = copy(facets)
+                            remaining_facets.remove(facet1)
+                            remaining_facets.remove(facet2)
+                            validity = []
+                            for F in remaining_facets:
+                                F_int_facet1 = [x for x in F if x in facet1]
+                                F_int_facet2 = [x for x in F if x in facet2]
+                                if len(F_int_facet1) == len(F_int_facet2):
+                                    validity.append(True)
+                                else:
+                                    validity.append(False)
+                            if all(validity):
+                                if certificate:
+                                    V = self.vertices()
+                                    facet1_vertices = [V[i] for i in facet1]
+                                    facet2_vertices = [V[i] for i in facet2]
+                                    return (True, [facet1_vertices, facet2_vertices])
+                                return True
+
+        if certificate:
+            return (False, None)
+        return False
 
     def hyperplane_arrangement(self):
         """
