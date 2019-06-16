@@ -43,6 +43,8 @@ from .polynomial_ring_constructor import PolynomialRing
 from .polynomial_ring import is_PolynomialRing
 from .multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.fraction_field import is_FractionField
+from sage.rings.fraction_field_element import FractionFieldElement
+from sage.rings.polynomial.polydict import ETuple
 
 class FlatteningMorphism(Morphism):
     r"""
@@ -599,6 +601,10 @@ class SpecializationMorphism(Morphism):
             # in the flattened polynomial
             tmp = {}
             for exponent, coefficient in flat.dict().items():
+                # Fix the type of exponent from (a,) to a
+                #     (necessary for R(tmp) later)
+                if isinstance(exponent, ETuple) and len(exponent) == 1:
+                    exponent = exponent[0]
                 # Coefficient should be a fraction
                 numerator = self._sub_specialization._call_(coefficient.numerator())
                 denominator = self._sub_specialization._call_(coefficient.denominator())
@@ -610,3 +616,26 @@ class SpecializationMorphism(Morphism):
             R = ring_constructor(fraction_type)
             flat = R(tmp)
         return self._eval_morph(flat)
+
+class FractionalSpecializationMorphism(Morphism):
+    """
+    A specialization morphism for fraction field elements. Useful
+    for if you have a fraction field at the top of a polynomial
+    chain, and want to specialize
+    """
+    def __init__(self, domain, D):
+
+        if not is_FractionField(domain):
+            raise TypeError("domain must be a fractional field")
+        self._specialization = SpecializationMorphism(domain.base(), D)
+        self._repr_type_str = 'Fractional Specialization'
+        Morphism.__init__(self, domain, self._specialization.codomain().fraction_field())
+    
+    def _call_(self, p):
+
+        if not isinstance(p, FractionFieldElement):
+            raise TypeError("p must be a fractional field element")
+        numerator = self._specialization._call_(p.numerator())
+        denominator = self._specialization._call_(p.denominator())
+        return numerator / denominator
+        
