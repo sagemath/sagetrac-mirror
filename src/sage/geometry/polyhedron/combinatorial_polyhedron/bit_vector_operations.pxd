@@ -3,6 +3,8 @@
 
 cimport cython
 from libc.stdint                cimport uint64_t
+from libcpp.pair cimport pair as cpair
+from libcpp.utility             cimport pair
 
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
@@ -12,10 +14,13 @@ cdef extern from "bit_vector_operations.cc":
 #    A is not subset of B, iff there is a vertex in A, which is not in B.
 #    ``face_length`` is the length of A and B in terms of uint64_t.
 
+
+    ctypedef cpair[int,size_t] mypair
+
     cdef size_t get_next_level(
         uint64_t **faces, const size_t n_faces, uint64_t **nextfaces,
         uint64_t **nextfaces2, uint64_t **visited_all,
-        size_t n_visited_all, size_t face_length, int *is_not_newface) nogil
+        size_t n_visited_all, size_t face_length, int *is_not_newface, mypair *sorting_array) nogil
 #        Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
 #        that are not contained in a face of ``visited_all``.
 
@@ -111,3 +116,5 @@ cdef extern from "bit_vector_operations.cc":
         # that have not been visited yet.
         size_t yet_to_visit
         int *is_not_newface
+        mypair *sorting_array
+        int **is_simplex

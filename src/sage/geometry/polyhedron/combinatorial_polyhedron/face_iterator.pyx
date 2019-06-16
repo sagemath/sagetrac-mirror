@@ -176,7 +176,7 @@ from libc.string            cimport memcpy
 from cysignals.signals      cimport sig_check, sig_on, sig_off
 from .conversions           cimport bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron
-from .bit_vector_operations                  cimport get_next_level, count_atoms, bit_repr_to_coatom_repr
+from .bit_vector_operations                  cimport get_next_level, count_atoms, bit_repr_to_coatom_repr, mypair
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -245,7 +245,7 @@ cdef inline int next_face_loop(iter_struct *face_iter) nogil except -1:
     newfacescounter = get_next_level(
         faces, n_faces + 1, face_iter[0].maybe_newfaces[face_iter[0].current_dimension-1],
         face_iter[0].newfaces[face_iter[0].current_dimension-1],
-        face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface)
+        face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface, face_iter[0].sorting_array)
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.
@@ -786,6 +786,11 @@ cdef class FaceIterator(SageObject):
         self.structure.first_time = first_time
         self.structure.yet_to_visit = yet_to_visit
         self.structure.is_not_newface = <int*> self._mem.allocarray(self.coatoms.n_faces, sizeof(int))
+        self.structure.sorting_array = <mypair*> self._mem.allocarray(self.coatoms.n_faces, sizeof(mypair))
+        self.structure.is_simplex = <int**> self._mem.allocarray(dimension, sizeof(int *))
+        for i in range(dimension):
+            self.structure.is_simplex[i] = <int*> self._mem.calloc(self.coatoms.n_faces, sizeof(int))
+
 
     def _repr_(self):
         r"""

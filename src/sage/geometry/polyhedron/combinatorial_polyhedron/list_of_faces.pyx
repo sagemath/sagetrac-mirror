@@ -83,7 +83,7 @@ from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
 from libc.stdint                cimport uint64_t
-from .bit_vector_operations              cimport count_atoms, get_next_level, chunksize
+from .bit_vector_operations              cimport count_atoms, get_next_level, chunksize, mypair
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -268,6 +268,7 @@ cdef class ListOfFaces:
         cdef uint64_t **next_newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
         cdef size_t new_n_faces
         cdef int *is_not_newface = <int*> newfaces_mem.allocarray(n_faces, sizeof(int))
+        cdef mypair *sorting_array = <mypair*> newfaces_mem.allocarray(n_faces, sizeof(mypair))
         while True:
 
             if n_faces == 0:
@@ -290,7 +291,7 @@ cdef class ListOfFaces:
             # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
             sig_on()
             new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
-                                          newfaces, NULL, 0, face_length, is_not_newface)
+                                          newfaces, NULL, 0, face_length, is_not_newface, sorting_array)
             sig_off()
             faces = newfaces
             newfaces = next_newfaces

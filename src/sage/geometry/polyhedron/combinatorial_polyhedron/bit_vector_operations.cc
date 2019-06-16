@@ -12,8 +12,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <omp.h>
-#include <vector>
-#include <numeric>      // std::iota
 #include <algorithm>    // std::sort
 using namespace std;
 
@@ -115,8 +113,7 @@ size_t rec_depth = 2;
         // Set C to be the intersection of A and B.
         // ``face_length`` is the length of A, B and C in terms of ``uint64_t``.
         // Note that A,B,C need to be 32-Byte-aligned
-        size_t i;
-        for (i = 0; i < face_length; i += 4){
+        for (size_t i = 0; i < face_length; i += 4){
             __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
             __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
             __m256i c = _mm256_and_si256(a, b);
@@ -199,7 +196,7 @@ bool compare_pairs ( const mypair& l, const mypair& r)
 inline size_t get_next_level(\
         uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
-        size_t n_visited_all, size_t face_length, int *is_not_newface){
+        size_t n_visited_all, size_t face_length, int *is_not_newface, mypair *sorting_array){
     /*
     Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
     that are not contained in a face of ``visited_all``.
@@ -235,8 +232,9 @@ inline size_t get_next_level(\
 
     int *is_newface = is_not_newface;
     // Step 1:
+    uint64_t *face_to_intersect = faces[n_faces -1];
     for (size_t j = 0; j < n_faces - 1; j++){
-        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
+        intersection(faces[j], face_to_intersect, maybe_newfaces[j], face_length);
     }
 
     // We keep track, which face in ``maybe_newfaces`` is a new face.
@@ -289,8 +287,8 @@ inline size_t get_next_level(\
 
     // Set ``newfaces`` to point to the correct ones.
     size_t n_newfaces = 0;  // length of newfaces2
-    /*
-    std::vector<mypair> idx(n_faces-1);
+    mypair *idx = sorting_array;
+    //mypair *idx = new mypair[n_faces-1];
     for (size_t j = 0; j < n_faces -1; j++){
         if (is_newface[j]) {
             is_newface[j] = count_atoms(maybe_newfaces[j], face_length) + 1;
@@ -298,31 +296,169 @@ inline size_t get_next_level(\
         idx[j].first =  is_newface[j];
         idx[j].second = j;
     }
-    sort(idx.begin(), idx.end(), compare_pairs);
-    */
+    sort(idx, idx + n_faces - 1, compare_pairs);
 
     //for (size_t j = 0; j < n_faces-1; j++){
     //for (size_t index = n_faces - 2; index >= 0; index--){
     //for (size_t index = 0; index< n_faces-1; index++){
+    for (size_t j = 0; j < n_faces-1; j++){
+        newfaces[j] = maybe_newfaces[idx[j].second];
+        is_newface[j] = idx[j].first;
+        if (idx[j].first)
+            n_newfaces++;
+    }
+
+    for (size_t j = 0; j < n_faces-1; j++){
+        maybe_newfaces[j] = newfaces[j];
+    }
+
     /*
+    n_newfaces = 0;
+    //for (size_t j = 0; j < n_faces-1; j++){
+    for (std::vector<mypair>::iterator it=idx.begin(); it!=idx.end(); ++it){
+        size_t j = (*it).second;
+        if (!is_newface[j]) {
+            // Not a new face of codimension 1.
+            continue;
+        }
+        // It is a new face of codimension 1.
+        newfaces[n_newfaces] = maybe_newfaces[j];
+        n_newfaces++;
+    }
+    */
+
+
+    return n_newfaces;
+}
+
+
+inline size_t get_next_level_simplex(\
+        uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **newfaces, uint64_t **visited_all, \
+        size_t n_visited_all, size_t face_length, int *is_not_newface, mypair *sorting_array){
+    /*
+    Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
+    that are not contained in a face of ``visited_all``.
+
+    INPUT:
+
+    - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
+    - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
+    - ``face_length`` -- length of the faces
+
+    OUTPUT:
+
+    - return number of ``newfaces``
+    - set ``newfaces`` to point to the new faces
+
+    ALGORITHM:
+
+    To get all facets of ``faces[n_faces-1]``, we would have to:
+    - Intersect the first ``n_faces-1`` faces of ``faces`` with the last face.
+    - Add all the intersection of ``visited_all`` with the last face
+    - Out of both the inclusion-maximal ones are of codimension one, i.e. facets.
+
+    As we have visited all faces of ``visited_all``, we alter the algorithm
+    to not revisit:
+    Step 1: Intersect the first ``n_faces-1`` faces of ``faces`` with the last face.
+    Step 2: Out of thosse the inclusion-maximal ones are some of the facets.
+            At least we obtain all of those, that we have not already visited.
+            Maybe, we get some more.
+    Step 3: Only keep those that we have not already visited.
+            We obtain exactly the facets of ``faces[n_faces-1]`` that we have
+            not visited yet.
+    */
+
+    int *is_newface = is_not_newface;
+    // Step 1:
+    for (size_t j = 0; j < n_faces - 1; j++){
+        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
+    }
+
+    // We keep track, which face in ``maybe_newfaces`` is a new face.
+    //bool *is_not_newface = new bool[n_faces -1]();
+
+    // For each face we will Step 2 and Step 3.
+    for (size_t j = 0; j < n_faces-1; j++){
+        is_newface[j] = 1;
+        // Step 2a:
+        //size_t k = minimal_test[j];
+
+        // If the common parent is simplex, it can never happen, that anyone is not inclusion maximal
+        /*
+        for(size_t k = 0; k < j; k++){
+            // Testing if maybe_newfaces[j] is contained in different nextface.
+            if((is_newface[k]) && is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
+                // If so, it is not inclusion-maximal and hence not of codimension 1.
+                is_newface[j] = 0;
+                break;
+                }
+            }
+        if (!is_newface[j]) {
+            // No further tests needed, if it is not of codimension 1.
+            continue;
+        }
+
+        // Step 2b:
+        //size_t k = minimal_test[j];
+        for(size_t k = j+1; k < n_faces-1; k++){
+            // Testing if maybe_newfaces[j] is contained in different nextface.
+            if(is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
+                // If so, it is not inclusion-maximal and hence not of codimension 1.
+                is_newface[j] = 0;
+                break;
+                }
+            }
+        if (!is_newface[j]) {
+            // No further tests needed, if it is not of codimension 1.
+            continue;
+        }
+        */
+
+        // Step 3:
+        for (size_t k = 0; k < n_visited_all; k++){
+            // Testing if maybe_newfaces[j] is contained in one,
+            // we have already completely visited.
+            if(is_subset(maybe_newfaces[j], visited_all[k], face_length)){
+                // If so, we don't want to revisit.
+                is_newface[j] = 0;
+                break;
+            }
+        }
+    }
+
+    /*
+    // Set ``newfaces`` to point to the correct ones.
+    size_t n_newfaces = 0;  // length of newfaces2
+    mypair *idx = sorting_array;
+    //mypair *idx = new mypair[n_faces-1];
+    for (size_t j = 0; j < n_faces -1; j++){
+        if (is_newface[j]) {
+            is_newface[j] = count_atoms(maybe_newfaces[j], face_length) + 1;
+        }
+        idx[j].first =  is_newface[j];
+        idx[j].second = j;
+    }
+    sort(idx, idx + n_faces - 1, compare_pairs);
+
+    //for (size_t j = 0; j < n_faces-1; j++){
+    //for (size_t index = n_faces - 2; index >= 0; index--){
+    //for (size_t index = 0; index< n_faces-1; index++){
     for (size_t j = 0; j < n_faces-1; j++){
         newfaces[j] = maybe_newfaces[idx[j].second];
         if (idx[j].first)
             n_newfaces++;
     }
-    */
 
-    /*
     for (size_t j = 0; j < n_faces-1; j++){
         maybe_newfaces[j] = newfaces[j];
     }
+
     */
-
-
-    n_newfaces = 0;
+    size_t n_newfaces = 0;
     for (size_t j = 0; j < n_faces-1; j++){
     //for (std::vector<mypair>::iterator it=idx.begin(); it!=idx.end(); ++it){
-        //j = (*it.second);
+        //size_t j = (*it).second;
         if (!is_newface[j]) {
             // Not a new face of codimension 1.
             continue;
@@ -380,6 +516,8 @@ struct iter_struct{
     int *first_time;
     size_t yet_to_visit;
     int *is_not_newface;
+    mypair *sorting_array;
+    int **is_simplex;
 };
 
 inline size_t myPow(size_t x, size_t p){
@@ -447,7 +585,40 @@ inline int next_face_loop(iter_struct *face_iter){
     newfacescounter = get_next_level( \
         faces, n_faces + 1, face_iter[0].maybe_newfaces[face_iter[0].current_dimension-1], \
         face_iter[0].newfaces[face_iter[0].current_dimension-1],\
-        face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface);
+        face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface, face_iter[0].sorting_array);
+    /*
+    if (face_iter[0].is_simplex[face_iter[0].current_dimension][n_faces] < 2){
+        newfacescounter = get_next_level( \
+            faces, n_faces + 1, face_iter[0].maybe_newfaces[face_iter[0].current_dimension-1], \
+            face_iter[0].newfaces[face_iter[0].current_dimension-1],\
+            face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface, face_iter[0].sorting_array);
+    } else {
+
+        // all the newfaces are actually children of a simplex, so no need to check for inclusion maximal
+        newfacescounter = get_next_level_simplex( \
+            faces, n_faces + 1, face_iter[0].maybe_newfaces[face_iter[0].current_dimension-1], \
+            face_iter[0].newfaces[face_iter[0].current_dimension-1],\
+            face_iter[0].visited_all, n_visited_all, face_iter[0].face_length, face_iter[0].is_not_newface, face_iter[0].sorting_array);
+    }
+
+    int previous = face_iter[0].is_simplex[face_iter[0].current_dimension][n_faces] == 2;
+    if (previous == 0){
+        for(size_t i=0; i< newfacescounter; i++){
+            int n_atoms = face_iter[0].is_not_newface[i] - 1;
+            if (n_atoms != face_iter[0].current_dimension){
+                // the face is not simplex
+                face_iter[0].is_simplex[face_iter[0].current_dimension -1][i] = 0;
+            }
+            else {
+                face_iter[0].is_simplex[face_iter[0].current_dimension -1][i] = 1;
+            }
+        }
+    } else {
+        for(size_t i=0; i< newfacescounter; i++){
+            face_iter[0].is_simplex[face_iter[0].current_dimension -1][i] = previous + 1;
+        }
+    }
+    */
 
     if (newfacescounter){
         // ``faces[n_faces]`` contains new faces.
@@ -497,8 +668,6 @@ inline int next_dimension(iter_struct *face_iter){
 }
 //#cdef extern from "<omp.h>":
 //#    extern int omp_get_thread_num() nogil
-
-
 
 
 
