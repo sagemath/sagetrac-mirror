@@ -497,7 +497,7 @@ class SpecializationMorphism(Morphism):
         R = domain
         while is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
             if is_FractionField(R):
-                # If we hit a fraction field, set _sub_specialization and exit the loop
+                # We've hit base_ring, so set _sub_specialization and exit the loop
                 field_over = R.base()
                 applicable_vars = {key: val for key,val in D.items() if key not in flat.gens()}
                 # If there are any variables in D to set in _sub_specialization
@@ -515,6 +515,7 @@ class SpecializationMorphism(Morphism):
                     applicable_vars = tmp
                     self._sub_specialization = SpecializationMorphism(field_over, applicable_vars)
                 break
+            # We're still in the polynomials, so keep track of the tower
             old = R.gens()
             new = [t for t in old if t not in D]
             force_multivariate = ((len(old) == 1) and is_MPolynomialRing(R))
@@ -522,13 +523,16 @@ class SpecializationMorphism(Morphism):
             R = R.base_ring()
         
         if self._sub_specialization:
+            # The sub_specialization range will be different
+            # if it applied some variables from D
             R = self._sub_specialization.codomain().fraction_field()
 
         # Construct unflattening map psi (only defined on the variables
         # of "flat" which are not involved in D)
-        # Reconstruct the proper domain of this morphism
-        new_domain = R
         psi = dict()
+        # Reconstruct the proper domain of this morphism
+        # based on the sub_specialization domains
+        new_domain = R
         for new, force_multivariate, old in reversed(new_vars):
             if self._sub_specialization:
                 if force_multivariate:
@@ -545,8 +549,8 @@ class SpecializationMorphism(Morphism):
             # Map variables in "new" to R
             psi.update(zip([phi(w) for w in new], R.gens()))
 
-        # Fix domain issues for eval_morph
-        # (note: _flattening_morph is alright)
+        # Fix domain of eval_morph
+        # (note: phi's domain is correct)
         if self._sub_specialization:
             phi_prime = FlatteningMorphism(new_domain)
             flat_old = flat
@@ -563,6 +567,8 @@ class SpecializationMorphism(Morphism):
                 vals.append(R.coerce(D[t]))
             else:
                 if flat_old:
+                    # Make sure keys are in a consistent domain
+                    # or else they won't match exactly
                     vals.append(psi[flat_old(t)])
                 else:
                     vals.append(psi[t])
@@ -597,10 +603,10 @@ class SpecializationMorphism(Morphism):
                 numerator = self._sub_specialization._call_(coefficient.numerator())
                 denominator = self._sub_specialization._call_(coefficient.denominator())
                 tmp[exponent] = numerator / denominator
+            # tmp's parent should be the same construction as flat
+            # but with the fraction field of the numerator's field
             ring_constructor = flat.parent().construction()[0]
             fraction_type = self._sub_specialization.codomain().fraction_field()
             R = ring_constructor(fraction_type)
             flat = R(tmp)
-        # print("\n\n\ndomain:", self._eval_morph.domain(), "\n\ncodomain: ", self._eval_morph.codomain(), "\n\nflat: ", flat.parent())
-        # print("\n\n\n")
         return self._eval_morph(flat)
