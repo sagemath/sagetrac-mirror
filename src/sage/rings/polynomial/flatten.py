@@ -505,7 +505,7 @@ class SpecializationMorphism(Morphism):
                 # If there are any variables in D to set in _sub_specialization
                 if len(applicable_vars) != 0:
                     # Coerce the generators to be in the right ring
-                    # This un-does changing the domain of D to be homogenous
+                    # This un-does changing the domain of D to be in the flat base ring
                     tmp = {}
                     for var, val in applicable_vars.items():
                         for gstr, gen in field_over.gens_dict_recursive().items():
@@ -515,7 +515,7 @@ class SpecializationMorphism(Morphism):
                         else:
                             raise NameError("argument " + str(var) + " is not a generator anywhere in the polynomial tower")
                     applicable_vars = tmp
-                    self._sub_specialization = SpecializationMorphism(field_over, applicable_vars)
+                    self._sub_specialization = FractionalSpecializationMorphism(R, applicable_vars)
                 break
             # We're still in the polynomials, so keep track of the tower
             old = R.gens()
@@ -560,7 +560,8 @@ class SpecializationMorphism(Morphism):
             base_prime = flat.base_ring()
             D = {phi(k): base_prime(D[k]) for k in D}
         else:
-            flat_old = None
+            # The bottom of our tower hasn't changed
+            flat_old = lambda x: x
 
         # Compose D with psi
         vals = []
@@ -568,12 +569,9 @@ class SpecializationMorphism(Morphism):
             if t in D:
                 vals.append(R.coerce(D[t]))
             else:
-                if flat_old:
-                    # Make sure keys are in a consistent domain
-                    # or else they won't match exactly
-                    vals.append(psi[flat_old(t)])
-                else:
-                    vals.append(psi[t])
+                # Make sure keys are in the old domain
+                # or else they won't match exactly
+                vals.append(psi[flat_old(t)])
 
         self._flattening_morph = phi
         self._eval_morph = flat.hom(vals, R)
@@ -606,25 +604,23 @@ class SpecializationMorphism(Morphism):
                 if isinstance(exponent, ETuple) and len(exponent) == 1:
                     exponent = exponent[0]
                 # Coefficient should be a fraction
-                numerator = self._sub_specialization._call_(coefficient.numerator())
-                denominator = self._sub_specialization._call_(coefficient.denominator())
-                tmp[exponent] = numerator / denominator
+                tmp[exponent] = self._sub_specialization._call_(coefficient)
             # tmp's parent should be the same construction as flat
-            # but with the fraction field of the numerator's field
+            # but over _sub_specialization's codomain
             ring_constructor = flat.parent().construction()[0]
-            fraction_type = self._sub_specialization.codomain().fraction_field()
+            fraction_type = self._sub_specialization.codomain()
             R = ring_constructor(fraction_type)
             flat = R(tmp)
         return self._eval_morph(flat)
 
 class FractionalSpecializationMorphism(Morphism):
     """
-    A specialization morphism for fraction field elements. Useful
-    for if you have a fraction field at the top of a polynomial
-    chain, and want to specialize
+    A specialization morphism for fraction fields over (stacked) polynomial rings
     """
     def __init__(self, domain, D):
-
+        """
+        Initialize the morphism with a domain and dictionary of specializations
+        """
         if not is_FractionField(domain):
             raise TypeError("domain must be a fractional field")
         self._specialization = SpecializationMorphism(domain.base(), D)
@@ -632,7 +628,9 @@ class FractionalSpecializationMorphism(Morphism):
         Morphism.__init__(self, domain, self._specialization.codomain().fraction_field())
     
     def _call_(self, p):
-
+        """
+        Call the morphism 
+        """
         if not isinstance(p, FractionFieldElement):
             raise TypeError("p must be a fractional field element")
         numerator = self._specialization._call_(p.numerator())
