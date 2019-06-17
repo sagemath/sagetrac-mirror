@@ -538,9 +538,9 @@ class SpecializationMorphism(Morphism):
         for new, force_multivariate, old in reversed(new_vars):
             if self._sub_specialization:
                 if force_multivariate:
-                    new_domain = PolynomialRing(R, old, len(old))
+                    new_domain = PolynomialRing(new_domain, old, len(old))
                 else:
-                    new_domain = PolynomialRing(R, old)
+                    new_domain = PolynomialRing(new_domain, old)
             if not new:
                 continue
             var_names = [str(var) for var in new]
