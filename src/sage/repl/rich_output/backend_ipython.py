@@ -512,8 +512,8 @@ class BackendIPythonNotebook(BackendIPython):
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputHtml):
-            return ({u'text/html':  rich_output.html.get(),
-                     u'text/plain': plain_text.text.get(),
+            return ({u'text/html':  rich_output.html.get_unicode(),
+                     u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputImagePng):
             return ({u'image/png':  rich_output.png.get(),
@@ -521,7 +521,7 @@ class BackendIPythonNotebook(BackendIPython):
             }, {})
         elif isinstance(rich_output, OutputImageGif):
             return ({u'text/html':  rich_output.html_fragment(),
-                     u'text/plain': plain_text.text.get(),
+                     u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputImageJpg):
             return ({u'image/jpeg':  rich_output.jpg.get(),
@@ -542,7 +542,7 @@ class BackendIPythonNotebook(BackendIPython):
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputSceneThreejs):
-            escaped_html = rich_output.html.get().replace('"', '&quot;')
+            escaped_html = rich_output.html.get_unicode().replace('"', '&quot;')
             iframe = IFRAME_TEMPLATE.format(
                 escaped_html=escaped_html,
                 width='100%',
