@@ -1,17 +1,15 @@
 r"""
 Super algebras with basis
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from sage.categories.super_modules import SuperModulesCategory
-from sage.categories.algebras import Algebras
-from sage.categories.modules import Modules
 from sage.categories.tensor import TensorProductsCategory, tensor
+
 
 class SuperAlgebrasWithBasis(SuperModulesCategory):
     """

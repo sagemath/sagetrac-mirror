@@ -1,17 +1,17 @@
 r"""
 Super modules with basis
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from sage.categories.super_modules import SuperModulesCategory
 
+
 class SuperModulesWithBasis(SuperModulesCategory):
-    """
+    r"""
     The category of super modules with a distinguished basis.
 
     An `R`-*super module with a distinguished basis* is an

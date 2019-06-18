@@ -585,7 +585,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             False
         """
         from sage.arith.all import is_prime
-        from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
         from sage.categories.super_hopf_algebras_with_basis import SuperHopfAlgebrasWithBasis
         from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets

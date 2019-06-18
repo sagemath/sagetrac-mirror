@@ -1518,7 +1518,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         return term
 
     def _ascii_art_term(self, m):
-        """
+        r"""
         Return ascii art for the basis element indexed by ``m``.
 
         EXAMPLES::
