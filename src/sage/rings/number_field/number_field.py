@@ -1675,6 +1675,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if x.type() in ["t_INT", "t_FRAC"]:
                 pass
             elif x.type() == "t_POL":
+                if len(x.variables()) > 1:
+                    raise TypeError("%s is not a univariate PARI polynomial")
+                
                 # We consider x as a polynomial in the standard
                 # generator of the PARI number field, and convert it
                 # to a polynomial in the Sage generator.
