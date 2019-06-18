@@ -401,7 +401,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 else:
                     raise NotImplementedError
 
-            def product_on_basis(self, t1, t2):
+            def product_on_basis(self, t0, t1):
                 """
                 The product of the algebra on the basis, as per
                 ``AlgebrasWithBasis.ParentMethods.product_on_basis``.
@@ -429,7 +429,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 TODO: optimize this implementation!
                 """
-                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self._sets, t1, t2)) ) #.
+                return tensor((module.monomial(x0)*module.monomial(x1)
+                               for (module, x0, x1) in zip(self._sets, t0, t1)))
 
         class ElementMethods:
             """

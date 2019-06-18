@@ -1479,12 +1479,10 @@ class ExteriorAlgebra(CliffordAlgebra):
             Category of finite dimensional super hopf algebras with basis
              over Rational Field
             sage: TestSuite(E).run()
+            sage: TestSuite(ExteriorAlgebra(GF(3), ['a', 'b'])).run()
         """
         cat = HopfAlgebrasWithBasis(R).Super().FiniteDimensional()
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, category=cat)
-        # TestSuite will fail if the HopfAlgebra classes will ever have tests for
-        # the coproduct being an algebra morphism -- since this is really a
-        # Hopf superalgebra, not a Hopf algebra.
 
     def _repr_(self):
         r"""
