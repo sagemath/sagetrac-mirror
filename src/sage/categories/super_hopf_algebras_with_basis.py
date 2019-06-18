@@ -29,6 +29,13 @@ class SuperHopfAlgebrasWithBasis(SuperModulesCategory):
         sage: TestSuite(C).run()
     """
     def extra_super_categories(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.categories.super_hopf_algebras_with_basis import SuperHopfAlgebrasWithBasis
+            sage: SuperHopfAlgebrasWithBasis(QQ).extra_super_categories()
+            [Category of graded hopf algebras with basis over Rational Field]
+        """
         return [self.base_category().Graded()]
 
     class ParentMethods:
