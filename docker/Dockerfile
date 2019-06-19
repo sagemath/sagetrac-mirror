@@ -167,6 +167,8 @@ ARG MAKEOPTS="-j2"
 ENV MAKEOPTS $MAKEOPTS
 ARG SAGE_NUM_THREADS="2"
 ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS
+RUN make configure
+RUN ./configure --with-python=3
 RUN make build
 
 ################################################################################
