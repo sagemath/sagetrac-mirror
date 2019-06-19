@@ -79,6 +79,28 @@ before_script:
 services:
 - docker:18.05.0-ce-dind
 
+# Build Sage and its documentation.
+# The build starts from the build artifacts of DEFAULT_ARTIFACT_BASE which is
+# usually much faster than building from a clean checkout of Sage.
+build-from-latest: &build
+  stage: build
+  artifacts:
+    when: always
+    paths:
+    - gitlab-build-docker.log
+    expire_in: 1 month
+  script:
+    - apk --update add coreutils
+    # The output of the build can get larger than gitlab.com's limit; only print the first 3MB (and the last 80 lines.)
+    - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
+    - .ci/push-gitlab.sh sagemath-dev
+    - .ci/push-gitlab.sh sagemath
+  except:
+    - master
+    - develop
+    - u/slelievre/t-28013-py3-docker-images
+    - tags
+
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes several hours. You probably want to run this on your own
 # gitlab-runner and increase the standard GitLab time limit for CI runs.
@@ -90,6 +112,12 @@ build-from-clean:
   << : *build
   variables:
     ARTIFACT_BASE: "source-clean"
+  only:
+    - master
+    - develop
+    - u/slelievre/t-28013-py3-docker-images
+    - tags
+  except: []
   tags:
     # 60 GB of HDD are available
     - big
