@@ -98,7 +98,7 @@ build-from-latest: &build
   except:
     - master
     - develop
-    - u/slelievre/t-28013-py3-docker-images
+    - public/t-28013-py3-docker-images
     - tags
 
 # Build Sage and its documentation from a clean checkout of Sage.
@@ -115,7 +115,7 @@ build-from-clean:
   only:
     - master
     - develop
-    - u/slelievre/t-28013-py3-docker-images
+    - public/t-28013-py3-docker-images
     - tags
   except: []
   tags:
