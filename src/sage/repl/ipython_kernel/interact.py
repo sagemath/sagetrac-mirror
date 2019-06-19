@@ -35,7 +35,11 @@ EXAMPLES::
 
 from ipywidgets.widgets import SelectionSlider, ValueWidget, ToggleButtons
 from ipywidgets.widgets.interaction import interactive, signature
-from collections import Iterable, Iterator, OrderedDict
+from collections import OrderedDict
+try:
+    from collections.abc import Iterable, Iterator
+except ImportError:
+    from collections import Iterable, Iterator
 from .widgets import EvalText, SageColorPicker
 from .widgets_sagenb import input_grid
 from sage.structure.element import parent

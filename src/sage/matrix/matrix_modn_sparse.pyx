@@ -80,7 +80,10 @@ TESTS::
 
 from __future__ import absolute_import
 
-from collections import Iterator, Sequence
+try:
+    from collections.abc import Iterator, Sequence
+except ImportError:
+    from collections import Iterator, Sequence
 
 from libc.stdint cimport uint64_t
 from libc.limits cimport UINT_MAX

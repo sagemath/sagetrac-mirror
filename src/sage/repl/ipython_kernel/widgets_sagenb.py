@@ -35,7 +35,10 @@ from .widgets import (TransformText, TransformTextarea,
         TransformFloatSlider, TransformFloatRangeSlider,
         EvalText, EvalTextarea, SageColorPicker, Grid)
 from ipywidgets.widgets.interaction import _get_min_max_value
-from collections import Iterable, Sequence
+try:
+    from collections.abc import Iterable, Sequence
+except ImportError:
+    from collections import Iterable, Sequence
 from numbers import Integral, Rational, Real
 
 from sage.structure.all import parent

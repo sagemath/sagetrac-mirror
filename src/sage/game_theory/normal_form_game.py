@@ -630,7 +630,10 @@ AUTHOR:
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-from collections import MutableMapping
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 from itertools import product
 from .parser import Parser
 from sage.misc.latex import latex

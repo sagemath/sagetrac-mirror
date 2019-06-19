@@ -29,7 +29,10 @@ from __future__ import absolute_import
 
 from cysignals.memory cimport check_calloc, sig_free
 
-from collections import Iterator, Sequence
+try:
+    from collections.abc import Iterator, Sequence
+except ImportError:
+    from collections import Iterator, Sequence
 
 from cpython.int cimport PyInt_FromLong
 
