@@ -2,35 +2,35 @@
 Context-free grammars for Boltzmann generation.
 
 Grammars use the basic operators of the symbolic method of analytic
-combinatorics (currently ``+``, ``*`` and atoms) to specify unlabelled
-combinatorial classes. For instance, binary tree can be specified by
-``B = leaf + Z * B * B`` which, using the syntax implemented in this module,
-looks like:
+combinatorics to specify labelled or unlabelled combinatorial classes. For
+instance, binary tree can be specified by ``B = leaf + Z * B * B`` which, using
+the syntax implemented in this module, looks like:
 
-EXAMPLES::
+EXAMPLE::
 
-    sage: from sage.combinat.boltzmann_sampling.grammar import *
     sage: z = Atom("z")
     sage: leaf = Atom("leaf", size=0)
-    sage: bintree = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
+    sage: Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
+    B -> Union(leaf, Product(z, B, B))
 
 Grammars are not limited to a single rule:
 
-EXAMPLES::
+EXAMPLE::
 
-    sage: from sage.combinat.boltzmann_sampling.grammar import *
     sage: z = Atom("z")
     sage: leaf = Atom("leaf", size=0)
-    sage: planetree = Grammar(rules={
+    sage: Grammar(rules={
     ....:     "T": Product(z, "S"),
     ....:     "S": Union(leaf, Product("T", "S")),
     ....: })
+    S -> Union(leaf, Product(T, S))
+    T -> Product(z, S)
 
-
-Note that at the moment, we only support unlabelled classes.
 
 AUTHORS:
+
 - Matthieu Dien (2019): initial version
+
 - Martin Pépin (2019): initial version
 """
 
@@ -47,7 +47,22 @@ class Rule(SageObject):
 
 
 class Atom(Rule):
-    """Grammar atoms (terminal symbols)."""
+    """Terminal symbol of a grammar.
+
+    EXAMPLES::
+
+        sage: z = Atom("z")
+        sage: z
+        z
+
+        sage: z = Atom("z", size=4)
+        sage: z
+        z^4
+
+        sage: x = Atom("x", size=0)
+        sage: x
+        x^0
+    """
 
     def __init__(self, name, size=1):
         """Create an Atom.
@@ -65,7 +80,6 @@ class Atom(Rule):
         r"""Return the LaTeX representation of an atom.
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import Atom
 
             sage: z = Atom("z")
             sage: latex(z)
@@ -95,8 +109,10 @@ class Atom(Rule):
             return "{}^{}".format(nice_name, self.size)
 
     def _repr_(self):
-        # XXX. shall it be copy-pastable?
-        return self.name
+        if self.size != 1:
+            return "{}^{}".format(self.name, self.size)
+        else:
+            return self.name
 
     def _to_combsys(self):
         if self.size > 0:
@@ -106,10 +122,11 @@ class Atom(Rule):
 
 
 class Ref(Rule):
-    """References to non terminal symbols.
+    """Non terminal symbols of a grammar.
 
-    Instances of this class reprensent recursive references to non-terminal
-    symbols inside grammar rules.
+    Instances of this class represent recursive references to non-terminal
+    symbols inside grammar rules. In general you should not use this class
+    directly.
     """
 
     def __init__(self, name):
@@ -125,7 +142,6 @@ class Ref(Rule):
         r"""Return the LaTeX representation of a non-terminal symbol.
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import Ref
 
             sage: latex(Ref("X"))
             X
@@ -156,10 +172,17 @@ def _to_rule(r):
 class Union(Rule):
     """Union of two or more rules.
 
-    Union(A, B, C) corresponds to the following grammar in BNF syntax:
-    _ ::= A
-        | B
-        | C
+    D = Union(A, B, C) corresponds to the following grammar in BNF syntax:
+    ``D ::= A | B | C``
+
+    EXAMPLES::
+
+        sage: Union("A", "B", "C")
+        Union(A, B, C)
+
+        sage: z = Atom("z")
+        sage: Union(z, "A")
+        Union(z, A)
     """
 
     def __init__(self, *args):
@@ -168,17 +191,6 @@ class Union(Rule):
         INPUT:
 
         - ``args`` -- list of strings or Rules; strings are interpreted as Refs
-
-        EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import *
-
-            sage: A, B, C = Ref("A"), Ref("B"), Ref("C")
-            sage: Union(A, B, C)
-            Union(A, B, C)
-
-            sage: z = Atom("z")
-            sage: Union(z, "A")
-            Union(z, A)
         """
         if len(args) < 2:
             if len(args) == 0:
@@ -196,7 +208,6 @@ class Union(Rule):
         """Return the LaTeX representation of a union.
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: A, B = Ref("A"), Ref("B")
             sage: latex(Union(A, B))
@@ -224,6 +235,15 @@ class Product(Rule):
 
     Product(A, B, C) corresponds to the following grammar in BNF syntax:
     x ::= A × B × C
+
+    EXAMPLES::
+
+        sage: Product("A", "B", "C")
+        Product(A, B, C)
+
+        sage: z = Atom("z")
+        sage: Product(z, "A")
+        Product(z, A)
     """
 
     def __init__(self, *args):
@@ -232,17 +252,6 @@ class Product(Rule):
         INPUT:
 
         - ``args`` -- list of strings or Rules; strings are interpreted as Refs
-
-        EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import *
-
-            sage: A, B, C = Ref("A"), Ref("B"), Ref("C")
-            sage: Product(A, B, C)
-            Product(A, B, C)
-
-            sage: z = Atom("z")
-            sage: Product(z, "A")
-            Product(z, A)
         """
         if len(args) < 2:
             if len(args) == 0:
@@ -260,7 +269,6 @@ class Product(Rule):
         r"""Return the LaTeX representation of a product.
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: A, B = Ref("A"), Ref("B")
             sage: latex(Product(A, B))
@@ -292,7 +300,7 @@ class Grammar(SageObject):
     """Context free grammars."""
 
     def __init__(self, rules=None, labelled=False):
-        """Create a grammar.
+        r"""Create a grammar.
 
         INPUT:
 
@@ -301,25 +309,25 @@ class Grammar(SageObject):
 
         - ``labelled`` (default: False) -- whether the atoms of the grammar are
           labelled or not. In the labelled case, the generator module will draw
-          objects according to the labelled distribution (i.e. P_x[a] =
-          x^|a|/(|a|!A(x))). At the moment, we do not support mixing labelled
-          and unlabelled atoms in a grammar.
+          objects according to the labelled distribution (i.e.
+          `P_x[a] = \frac{x^{|a|}{|a|!A(x)}`).
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: z = Atom("z")
-            sage: leaf = Atom("leaf", size=0)
-            sage: Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
-            B -> Union(leaf, Product(z, B, B))
+            sage: eps = Atom("eps", size=0)
 
-            sage: z = Atom("z")
-            sage: nil = Atom("nil", size=0)
+            sage: Grammar(rules={"S": Union(eps, Product(z, "S"))})
+            S -> Union(eps, Product(z, S))
+
+            sage: Grammar(rules={"B": Union(eps, Product(z, "B", "B"))})
+            B -> Union(eps, Product(z, B, B))
+
             sage: g = Grammar()
             sage: g.set_rule("D", Union(z, Product(z, "S", z)))
-            sage: g.set_rule("S", Union(nil, Product("D", "S")))
+            sage: g.set_rule("S", Union(eps, Product("D", "S")))
             sage: g
-            S -> Union(nil, Product(D, S))
+            S -> Union(eps, Product(D, S))
             D -> Union(z, Product(z, S, z))
         """
         self.rules = {}
@@ -338,8 +346,7 @@ class Grammar(SageObject):
 
         - ``rule`` -- a Rule
 
-        EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import *
+        EXAMPLES:
 
             sage: g = Grammar()
             sage: g.set_rule("A", Union("B", "C"))
@@ -395,7 +402,6 @@ class Grammar(SageObject):
         r"""Return a LaTeX representation of the grammar.
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.grammar import *
 
             sage: y, z = Atom("y"), Atom("z")
             sage: leaf = Atom("leaf", size=0)

@@ -3,14 +3,15 @@ r"""Boltzmann generator for Context-free grammars.
 
 This module provides functions for generating combinatorial objects (i.e.
 objects described by a combinatorial specification, see
-:ref:`sage.combinat.bolzmann_sampling.grammar`) according to the Boltzmann
+:mod:`sage.combinat.boltzmann_sampling.grammar`) according to the Boltzmann
 distribution.
 
 Given an unlabelled combinatorial class A, the Boltzmann distribution of
-parameter x is such that an object of size n is drawn with the probability ``x^n
-/ A(x)`` where ``A(x)`` denotes the ordinary generating function of A. For
-labelled classes, this probability is set to ``x^n / (n! * A(x))`` where A(x)
-denotes the exponential generating function of A. See [DuFlLoSc04] for details.
+parameter `x` is such that an object of size n is drawn with the probability
+`\frac{x^n}{A(x)}` where `A(x)` denotes the ordinary generating function of A.
+For labelled classes, this probability is set to `\frac{x^n}{n!A(x)}` where
+`A(x)` denotes the exponential generating function of A. See [DuFlLoSc04] for
+details.
 
 By default, the objects produced by the generator are nested tuples of strings
 (the atoms). For instance ``('z', ('z', 'e', 'e'), ('z', 'e', 'e'))`` is a
@@ -22,22 +23,23 @@ generation. For instance, in order to generate Dyck words using the grammar for
 binary trees, one can use a builder that return ``""`` for each leaf ``"(" +
 left child + ")" + right child`` for each node. The builders will receive a
 tuple for each product, a string for each atom and builders for unions should be
-computed using the ``UnionBuilder`` helper. See the example below for the case
-of Dyck words.
+computed using the :func:`UnionBuilder` helper. See the example below for the
+case of Dyck words.
 
 EXAMPLES::
 
-    sage: from sage.combinat.boltzmann_sampling.grammar import *
-    sage: from sage.combinat.boltzmann_sampling.generator import *
     sage: leaf = Atom("e", size=0)
     sage: z = Atom("z")
     sage: grammar = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
     sage: generator = Generator(grammar)
+
     sage: def leaf_builder(_):
     ....:     return ""
+
     sage: def node_builder(tuple):
     ....:     _, left, right = tuple
     ....:     return "(" + left + ")" + right
+
     sage: generator.set_builder("B", UnionBuilder(leaf_builder, node_builder))
     sage: dyck_word, _ = generator.gen("B", (10, 20))
     sage: dyck_word  # random
@@ -49,23 +51,24 @@ the tree.
 
 EXAMPLES::
 
-    sage: from sage.combinat.boltzmann_sampling.grammar import *
-    sage: from sage.combinat.boltzmann_sampling.generator import *
     sage: leaf = Atom("e", size=0)
     sage: z = Atom("z")
     sage: grammar = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
     sage: generator = Generator(grammar)
+
     sage: def leaf_height(_):
     ....:     return 0
+
     sage: def node_height(tuple):
     ....:     _, left, right = tuple
     ....:     return 1 + max(left, right)
+
     sage: generator.set_builder("B", UnionBuilder(leaf_height, node_height))
     sage: height, _ = generator.gen("B", (10, 20))
     sage: height  # random
     6
 
-REFERENCES::
+REFERENCES:
 
 .. [DuFlLoSc04] Philippe Duchon, Philippe Flajolet, Guy Louchard, and Gilles
    Schaeffer. 2004. Boltzmann Samplers for the Random Generation of
@@ -177,6 +180,7 @@ cdef c_generate(int id, float weight, rules, builders, randstate rstate):
     generated = []
     cdef list todo = [(REF, weight, id)]
     cdef float r = 0.
+
     while todo:
         type, weight, args = todo.pop()
         if type == REF:
@@ -217,8 +221,9 @@ cdef c_generate(int id, float weight, rules, builders, randstate rstate):
     obj, = generated
     return obj
 
-
 cdef c_gen(int id, float weight, rules, int size_min, int size_max, int max_retry, builders):
+    """Search for a tree in a given size window. Wrapper around c_simulate and
+    c_generate."""
     cdef int nb_rejections = 0
     cdef int cumulative_rejected_size = 0
     cdef int size = -1
@@ -259,23 +264,26 @@ cdef inline identity(x):
     return x
 
 def UnionBuilder(*builders):
-    """"Helper for computing the builder of a union out of the builders of
-    its components. For instance, in order to compute the height of a binary
-    tree on the fly:
+    """Helper for computing the builder of a union out of the builders of its
+    components in Boltzmann samplers. For instance, in order to compute the
+    height of a binary tree on the fly:
 
     EXAMPLES::
 
         sage: # Grammar: B = Union(leaf, Product(z, B, B))
-        sage: from sage.combinat.boltzmann_sampling.generator import UnionBuilder
+
         sage: def leaf_builder(_):
         ....:     return 0
+
         sage: def node_builder(tuple):
         ....:     _, left, right = tuple
         ....:     return 1 + max(left, right)
+
         sage: builder = UnionBuilder(leaf_builder, node_builder)
         sage: choice_number = 0
         sage: builder((choice_number, "leaf"))
         0
+
         sage: choice_number = 1
         sage: builder((choice_number, ('z', 37, 23)))
         38
@@ -293,7 +301,9 @@ cdef inline ProductBuilder(builders):
     return build
 
 cdef make_default_builder(rule):
-    """Generate the default builders for a rule"""
+    """Generate the default builders for a rule.
+
+    For use with Boltzmann samplers :mod:`sage.combinat.boltzmann_sampling`"""
     type, __, args = rule
     if type == REF:
         return identity
@@ -312,9 +322,10 @@ class Generator:
     def __init__(self, grammar, oracle=None):
         """Make a Generator out of a grammar.
 
-        INPUT::
+        INPUT:
 
         - ``grammar`` -- a combinatorial grammar
+
         - ``oracle`` (default: None) -- an oracle for the grammar. If not
           supplied, a default generic oracle is automatically generated.
         """
@@ -338,9 +349,10 @@ class Generator:
     def set_builder(self, non_terminal, func):
         """Set the builder for a non-terminal symbol.
 
-        INPUT::
+        INPUT:
 
         - ``non_terminal`` -- string, the name of the non-terminal symbol
+
         - ``func`` -- function, the builder
         """
         symbol_id = self.name_to_id[non_terminal]
@@ -349,7 +361,7 @@ class Generator:
     def get_builder(self, non_terminal):
         """Retrieve the current builder for a non-terminal symbol.
 
-        INPUT::
+        INPUT:
 
         - ``non_terminal`` -- string, the name of the non-terminal symbol
         """
@@ -359,13 +371,15 @@ class Generator:
     def gen(self, name, window, max_retry=2000):
         """Generate a term of the grammar in a given size window.
 
-        INPUT::
+        INPUT:
 
         - ``name`` -- string, the name of the symbol of the grammar you want to
           generate
+
         - ``window`` -- pair of integers, the size of the generated object will
           be greater than the first component of the window and lower than the
           second component
+
         - ``max_retry`` (default: 2000) -- integer, maximum number of attempts.
           If no object in the size window is found in less that ``max_retry``
           attempts, the generator returns None

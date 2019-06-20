@@ -1,5 +1,5 @@
 """
-Various implementations of oracles for Boltzmann sampling.
+Various oracle implementations for Boltzmann sampling.
 
 Oracles are used to get (often approximate) values of generating functions.
 Thanks to the symbolic method, functionnal equations can be derived from
@@ -7,10 +7,12 @@ grammar specifications. This module implements some mechanics to approximate
 genrating functions based on these equations.
 
 Currently two oracles are implemented:
-- ``SimpleOracle`` implements approximation by simple iteration of the
+
+- :class:`SimpleOracle` implements approximation by simple iteration of the
   equations.
-- ``OracleFromFunctions`` wraps an generating function given in the form of
-  a python ore sage function as an oracle.
+
+- :class:`OracleFromFunctions` wraps an generating function given in the form
+  of a python ore sage function as an oracle.
 
 AUTHORS:
 - Matthieu Dien (2019): initial version
@@ -32,8 +34,6 @@ class SimpleOracle:
     """Simple oracle for critical Boltzmann sampling based on iteration.
 
     EXAMPLES::
-        sage: from sage.combinat.boltzmann_sampling.grammar import *
-        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
 
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
@@ -41,6 +41,7 @@ class SimpleOracle:
         sage: oracle = SimpleOracle(g)
         sage: oracle("z")  # abs tol 0.0001
         0.25
+
         sage: oracle("B")  # abs tol 0.0001
         2
     """
@@ -122,8 +123,6 @@ class SimpleOracle:
     def _compute_weights(self):
         self.weights = self._find_singularity()
 
-    # XXX. No _latex_ method, is this a problem?
-
     def _repr_(self):
         return "SimpleOracle for {}".format(latex(self.grammar))
 
@@ -162,12 +161,12 @@ class OracleFromFunctions:
           the variables from the first argument as named argument.
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.oracle import *
 
             sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
             sage: oracle = OracleFromFunctions({"z": 1/4}, {"B": B})
             sage: oracle("z")  # abs tol 0.0000001
             0.25
+
             sage: oracle("B")  # abs tol 0.0000001
             2
         """
