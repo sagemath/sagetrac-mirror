@@ -34,7 +34,6 @@ AUTHORS:
 - Martin Pépin (2019): initial version
 """
 
-from functools import reduce
 from sage.all import latex, var, SR
 from sage.structure.sage_object import SageObject
 
@@ -52,16 +51,10 @@ class Atom(Rule):
     EXAMPLES::
 
         sage: z = Atom("z")
-        sage: z
-        z
 
         sage: z = Atom("z", size=4)
-        sage: z
-        z^4
 
         sage: x = Atom("x", size=0)
-        sage: x
-        x^0
     """
 
     def __init__(self, name, size=1):
@@ -109,10 +102,7 @@ class Atom(Rule):
             return "{}^{}".format(nice_name, self.size)
 
     def _repr_(self):
-        if self.size != 1:
-            return "{}^{}".format(self.name, self.size)
-        else:
-            return self.name
+        return self.name
 
     def combsys(self):
         if self.size > 0:
