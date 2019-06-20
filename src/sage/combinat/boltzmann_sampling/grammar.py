@@ -291,13 +291,19 @@ class Product(Rule):
 class Grammar(SageObject):
     """Context free grammars."""
 
-    def __init__(self, rules=None):
+    def __init__(self, rules=None, labelled=False):
         """Create a grammar.
 
         INPUT:
 
-        - ``rules`` (default: None)-- dictionary mapping strings (non-terminal
+        - ``rules`` (default: None) -- dictionary mapping strings (non-terminal
           names) to Rules
+
+        - ``labelled`` (default: False) -- whether the atoms of the grammar are
+          labelled or not. In the labelled case, the generator module will draw
+          objects according to the labelled distribution (i.e. P_x[a] =
+          x^|a|/(|a|!A(x))). At the moment, we do not support mixing labelled
+          and unlabelled atoms in a grammar.
 
         EXAMPLES::
             sage: from sage.combinat.boltzmann_sampling.grammar import *
