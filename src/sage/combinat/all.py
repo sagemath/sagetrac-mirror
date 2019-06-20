@@ -177,6 +177,9 @@ from .q_analogues import gaussian_binomial, q_binomial
 
 from .species.all import *
 
+# Boltzmann sampling
+from .boltzmann_sampling.all import *
+
 lazy_import('sage.combinat.kazhdan_lusztig', 'KazhdanLusztigPolynomial')
 
 lazy_import('sage.combinat.degree_sequences', 'DegreeSequences')

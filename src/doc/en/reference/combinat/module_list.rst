@@ -25,6 +25,10 @@ Comprehensive Module list
     sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
+    sage/combinat/boltzmann_sampling/__init__
+    sage/combinat/boltzmann_sampling/generator
+    sage/combinat/boltzmann_sampling/grammar
+    sage/combinat/boltzmann_sampling/oracle
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
     sage/combinat/chas/__init__

@@ -1,5 +1,5 @@
 """
-Various implementations of oracles for Boltzmann sampling.
+Various oracle implementations for Boltzmann sampling.
 
 Oracles are used to get (often approximate) values of generating functions.
 Thanks to the symbolic method, functionnal equations can be derived from
@@ -7,10 +7,12 @@ grammar specifications. This module implements some mechanics to approximate
 genrating functions based on these equations.
 
 Currently two oracles are implemented:
-- ``SimpleOracle`` implements approximation by simple iteration of the
+
+- :class:`SimpleOracle` implements approximation by simple iteration of the
   equations.
-- ``OracleFromFunctions`` wraps an generating function given in the form of
-  a python ore sage function as an oracle.
+
+- :class:`OracleFromFunctions` wraps an generating function given in the form
+  of a python ore sage function as an oracle.
 
 AUTHORS:
 - Matthieu Dien (2019): initial version
@@ -18,7 +20,8 @@ AUTHORS:
 """
 
 from sage.structure.sage_object import SageObject
-from sage.all import SR, latex, oo, ceil, log, var, RR, vector
+from sage.rings.infinity import Infinity as oo
+from sage.all import SR, latex, ceil, log, var, RR, vector
 
 def oracle(sys, **kargs):
     if isinstance(sys, Grammar):
@@ -31,8 +34,6 @@ class SimpleOracle(SageObject):
     """Simple oracle for critical Boltzmann sampling based on iteration.
 
     EXAMPLES::
-        sage: from sage.combinat.boltzmann_sampling.grammar import *
-        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
 
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
@@ -40,6 +41,7 @@ class SimpleOracle(SageObject):
         sage: oracle = SimpleOracle(g)
         sage: oracle.eval_rule("z", {"z":1/4}) # abs tol 0.01
         0.25
+
         sage: oracle.eval_rule("B", {"z":1/4}) # abs tol 0.01
         2
     """
@@ -88,9 +90,7 @@ def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., diverg
     The algorithm proceed by dichotomic search. The divergence parameter allows
     to decide of the divergence of system.
 
-    EXAMPLES::
-        sage: from sage.combinat.boltzmann_sampling.grammar import *
-        sage: from sage.combinat.boltzmann_sampling.oracle import *
+    EXAMPLE::
 
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
@@ -134,12 +134,12 @@ class OracleFromFunctions(SageObject):
           the variables from the first argument as named argument.
 
         EXAMPLES::
-            sage: from sage.combinat.boltzmann_sampling.oracle import *
 
             sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
             sage: oracle = OracleFromFunctions({"z": z, "B": B})
             sage: oracle.eval_rule("z", {"z":1/4})
             1/4
+
             sage: oracle.eval_rule("B", {"z":1/4})
             2
         """
