@@ -117,4 +117,4 @@ cdef extern from "bit_vector_operations.cc":
         size_t yet_to_visit
         int *is_not_newface
         mypair *sorting_array
-        int **is_simplex
+        size_t *current_stadium

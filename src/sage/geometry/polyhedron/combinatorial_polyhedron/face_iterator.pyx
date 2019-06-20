@@ -787,10 +787,7 @@ cdef class FaceIterator(SageObject):
         self.structure.yet_to_visit = yet_to_visit
         self.structure.is_not_newface = <int*> self._mem.allocarray(self.coatoms.n_faces, sizeof(int))
         self.structure.sorting_array = <mypair*> self._mem.allocarray(self.coatoms.n_faces, sizeof(mypair))
-        self.structure.is_simplex = <int**> self._mem.allocarray(dimension, sizeof(int *))
-        for i in range(dimension):
-            self.structure.is_simplex[i] = <int*> self._mem.calloc(self.coatoms.n_faces, sizeof(int))
-
+        self.structure.current_stadium = <size_t*> self._mem.calloc(dimension, sizeof(size_t))
 
     def _repr_(self):
         r"""
