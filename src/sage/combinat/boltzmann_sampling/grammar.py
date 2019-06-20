@@ -98,11 +98,11 @@ class Atom(Rule):
         # XXX. shall it be copy-pastable?
         return self.name
 
-    def _to_combsys(self):
+    def combsys(self):
         if self.size > 0:
-            return var("_var_" + self.name) ** self.size
+            return var(self.name) ** self.size
         else:
-            return var("_eps_" + self.name)
+            return SR(1)
 
 
 class Ref(Rule):
@@ -142,7 +142,7 @@ class Ref(Rule):
         # shall it be copy-pastable?
         return self.name
 
-    def _to_combsys(self):
+    def combsys(self):
         return var(self.name)
 
 
@@ -212,10 +212,10 @@ class Union(Rule):
         # shall it be copy-pastable?
         return "Union({})".format(", ".join(map(repr, self.args)))
 
-    def _to_combsys(self):
+    def combsys(self):
         res = SR(0)
         for rule in self.args:
-            res += rule._to_combsys()
+            res += rule.combsys()
         return res
 
 
@@ -281,10 +281,10 @@ class Product(Rule):
         # shall it be copy-pastable?
         return "Product({})".format(", ".join(map(repr, self.args)))
 
-    def _to_combsys(self):
+    def combsys(self):
         res = SR(1)
         for rule in self.args:
-            res *= rule._to_combsys()
+            res *= rule.combsys()
         return res
 
 
@@ -343,48 +343,6 @@ class Grammar(SageObject):
         rule = _to_rule(rule)
         self.rules[name] = rule
 
-    def _annotate_rule(self, name, oracle):
-        todo = [self.rules[name]]
-        while todo:
-            rule = todo.pop()
-            if isinstance(rule, Ref):
-                rule.weight = oracle(rule.name)
-            elif isinstance(rule, Atom):
-                rule.weight = oracle(rule.name)
-            elif isinstance(rule, Product):
-                if hasattr(rule.args[0], "weight"):
-                    rule.weight = reduce(
-                        lambda a, b: a * b,
-                        (arg.weight for arg in rule.args),
-                        1.0,
-                    )
-                else:
-                    todo.append(rule)
-                    todo += rule.args
-            elif isinstance(rule, Union):
-                if hasattr(rule.args[0], "weight"):
-                    rule.weight = sum((arg.weight for arg in rule.args))
-                else:
-                    todo.append(rule)
-                    todo += rule.args
-            else:
-                assert False
-
-    def annotate(self, oracle):
-        """Compute the weight of each symbol, rule and subrules in the grammar.
-
-        By weight we mean the values of the generating series of each of these
-        expressions. For non-terminal symbols and atoms, the oracle given as
-        an argument is used to guess the weight. The weight of the other terms
-        are computed using the symbolic method.
-
-        INPUT:
-
-        - ``oracle`` -- a callable mapping strings to numbers
-        """
-        for name in self.rules:
-            self._annotate_rule(name, oracle)
-
     def _latex_(self):
         r"""Return a LaTeX representation of the grammar.
 
@@ -426,7 +384,5 @@ class Grammar(SageObject):
             for non_terminal, expr in self.rules.items()
         )
 
-    def _to_combsys(self):
-        return {
-            var(name): rule._to_combsys() for name, rule in self.rules.items()
-        }
+    def combsys(self):
+        return {name : rule.combsys() for name, rule in self.rules.items()}

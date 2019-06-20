@@ -17,18 +17,17 @@ AUTHORS:
 - Martin Pépin (2019): initial version
 """
 
-from sage.all import SR, latex
+from sage.structure.sage_object import SageObject
+from sage.all import SR, latex, oo, ceil, log, var, RR, vector
+
+def oracle(sys, **kargs):
+    if isinstance(sys, Grammar):
+        return SimpleOracle(sys, **kargs)
+    elif isinstance(sys, dict):
+        return OracleFromFunctions(sys, **kargs)
 
 
-def _maximum_norm(y):
-    return max(map(abs, y))
-
-
-def _dict_diff(y, yp):
-    return {k: y[k] - yp[k] for k in y.keys()}
-
-
-class SimpleOracle:
+class SimpleOracle(SageObject):
     """Simple oracle for critical Boltzmann sampling based on iteration.
 
     EXAMPLES::
@@ -39,117 +38,90 @@ class SimpleOracle:
         sage: z = Atom("z")
         sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
         sage: oracle = SimpleOracle(g)
-        sage: oracle("z")  # abs tol 0.0001
+        sage: oracle.eval_rule("z", {"z":1/4}) # abs tol 0.01
         0.25
-        sage: oracle("B")  # abs tol 0.0001
+        sage: oracle.eval_rule("B", {"z":1/4}) # abs tol 0.01
         2
     """
 
-    def __init__(
-        self, grammar, zstart=0, zmin=0.0, zmax=1.0, e1=0.0001, e2=0.0001
-    ):
+    def __init__(self, grammar, precision=1e-6):
         """Create an oracle and annotate a grammar with the computed weights.
 
         INPUT:
 
         - ``grammar`` -- a Grammar
 
-        - ``zstart`` -- number (default: 0); where to start the iteration
-
-        - ``zmax`` -- number (default: 0); an upper bound on the singularity
-
-        - ``zmin`` -- number (default: 0); a lower bound on the singularity
-
-        - ``e1`` -- number (default: 0.001); TODO: explain
-
-        - ``e2`` -- number (default: 0.002); TODO: explain
+        - ``precision`` -- number (default: 1e-6); TODO: explain
         """
-        self.zstart = zstart
-        self.zmin = zmin
-        self.zmax = zmax
-        self.e1 = e1
-        self.e2 = e2
+        self.precision = precision
 
-        self.grammar = grammar
-        self.z = SR.symbol()
-        self.combsys = self._normalize_combsys(grammar._to_combsys())
-        self.weights = None
-        self._compute_weights()
-        self._register_in_grammar()
+        self.combsys = grammar.combsys()
+        
+        # non terminal names of the grammar i.e. combinatorial classes
+        self.non_terminals = set(self.combsys.keys())
+        # terminal names of the grammar i.e. atoms
+        self.terminals = {str(var) for expr in self.combsys.values()
+                          for var in expr.variables()
+                          if str(var) not in self.non_terminals}
+        # all atoms are represented by the same variable 
+        self.combsys.update({v : var(v) for v in self.terminals})
 
-    def _normalize_combsys(self, combsys):
-        cs = dict(combsys)
-        variables = [v for x in cs.values() for v in x.variables()]
-        for v in variables:
-            if str(v)[:5] == "_var_":
-                cs[v] = self.z
-            if str(v)[:5] == "_eps_":
-                cs[v] = SR(1)
+    def eval_combsys(self, z):
+        values = {k : RR(0) for k in self.non_terminals}
+        values.update(z)
+        new_values = {k : RR(self.combsys[k].subs(**values)) for k in values.keys()}
+        
+        while vector((values[k] - new_values[k] for k in values.keys())).norm(oo) > self.precision :
+            values = new_values
+            new_values = {k : RR(self.combsys[k].subs(**values)) for k in values.keys()}
+        return new_values
 
-        cs[self.z] = self.z
-        return cs
-
-    def _eval_combsys(self, z):
-        y = {k: 0 for k in self.combsys.keys()}
-        y[self.z] = z
-        yp = {k: v.subs(y) for k, v in self.combsys.items()}
-        yp = {k: v.subs(yp) for k, v in self.combsys.items()}
-
-        while _maximum_norm(_dict_diff(y, yp)) > self.e2:
-            y = yp
-            yp = {k: v.subs(y) for k, v in self.combsys.items()}
-        return yp
-
-    def _diverge(self, y):
-        return any(x < 0 or x > 1 / self.e1 for x in y)
-
-    def _find_singularity(self):
-        zstart = self.zstart
-        zmax = self.zmax
-        zmin = self.zmin
-
-        while zmax - zmin > self.e1:
-            y = self._eval_combsys(zstart)
-            if self._diverge(y):
-                zmax = zstart
-                zstart = (zmin + zstart) / 2
-            else:
-                zmin = zstart
-                zstart = (zmax + zstart) / 2
-
-        return self._eval_combsys(zstart)
-
-    def _compute_weights(self):
-        self.weights = self._find_singularity()
-
-    # XXX. No _latex_ method, is this a problem?
-
+    def eval_rule(self, name, z):
+        values = self.eval_combsys(z)
+        return values[name]
+    
     def _repr_(self):
-        return "SimpleOracle for {}".format(latex(self.grammar))
+        return "SimpleOracle for {}".format(latex(self.combsys))
 
-    def __call__(self, rule):
-        """Evaluate a rule at the computed main singularity."""
-        if SR(rule) in self.weights:
-            return self.weights[SR(rule)]
-        elif SR("_var_" + rule) in self.weights:
-            return self.weights[SR("_var_" + rule)]
-        elif SR("_eps_" + rule) in self.weights:
-            return self.weights[SR("_eps_" + rule)]
+def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., divergence=1e3):
+    """Given an oracle for a combinatorial system try to find the singularity.
+    The algorithm proceed by dichotomic search. The divergence parameter allows
+    to decide of the divergence of system.
+
+    EXAMPLES::
+        sage: from sage.combinat.boltzmann_sampling.grammar import *
+        sage: from sage.combinat.boltzmann_sampling.oracle import *
+
+        sage: leaf = Atom("leaf", size=0)
+        sage: z = Atom("z")
+        sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
+        sage: oracle = SimpleOracle(g)
+        sage: find_singularity(oracle)["z"] # abs tol 1e-6
+        0.25
+    """
+    
+    y = None
+    while zmax - zmin > precision:
+        y = oracle.eval_combsys({v : zstart for v in oracle.terminals})
+        if any((x < 0 or x > divergence for x in y.values())) :
+            zmax = zstart
+            zstart = (zmin + zstart) / 2
         else:
-            raise KeyError(rule)
+            zmin = zstart
+            zstart = (zmax + zstart) / 2
 
-    def _register_in_grammar(self):
-        self.grammar.annotate(self)
+    return oracle.eval_combsys({v : zmin for v in oracle.terminals})
 
 
-class OracleFromFunctions:
+
+class OracleFromFunctions(SageObject):
     """Wrapper for generating functions when they are known.
 
     In the case where the generating functions of all symbols in the grammar
     are knwon, this class wraps them as an oracle.
     """
 
-    def __init__(self, variables, gen_funs):
+    def __init__(self, sys, precision=oo):
         """Wrap generating functions as an oracle.
 
         INPUT:
@@ -165,20 +137,24 @@ class OracleFromFunctions:
             sage: from sage.combinat.boltzmann_sampling.oracle import *
 
             sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
-            sage: oracle = OracleFromFunctions({"z": 1/4}, {"B": B})
-            sage: oracle("z")  # abs tol 0.0000001
-            0.25
-            sage: oracle("B")  # abs tol 0.0000001
+            sage: oracle = OracleFromFunctions({"z": z, "B": B})
+            sage: oracle.eval_rule("z", {"z":1/4})
+            1/4
+            sage: oracle.eval_rule("B", {"z":1/4})
             2
         """
-        self.variables = variables
-        self.gfs = gen_funs
-
-    def __call__(self, name):
-        """Evaluate a rule at the computed main singularity."""
-        if name in self.variables:
-            return self.variables[name].n()
-        elif name in self.gfs:
-            return self.gfs[name](**self.variables).n()
+        self.sys = sys
+        self.precision = precision
+        
+        # Scalar field
+        self.SF = None
+        if precision == oo:
+            self.SF = SR
         else:
-            raise ValueError("Unknown name {}".format(name))
+            self.SF = RR
+
+    def eval_combsys(self, z):
+        return {k : self.eval_rule(k, z) for k in self.sys.keys()}
+
+    def eval_rule(self, name, z):
+        return self.SF(self.sys[name].subs(**z))
