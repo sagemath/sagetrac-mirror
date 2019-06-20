@@ -683,6 +683,8 @@ inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vect
     size_t rec;
     int d;
     int dimension = face_iter[0].dimension;
+    int add_a_face = 1;
+    face_iter[0].face = NULL;
     if((current_i != face_iter[0].current_stadium[0])){
         face_iter[0].face = NULL;
         face_iter[0].current_dimension = dimension -1;
@@ -693,18 +695,20 @@ inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vect
         face_iter[0].n_newfaces[dimension - 1] = face_iter[0].n_coatoms;
         face_iter[0].current_stadium[0] = 0;
         face_iter[0].first_time[dimension - 1] = 1;
+        add_a_face = 0;
     }
     for(size_t rec = 0; rec < rec_depth; rec++){
         current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)));
         i = i%(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)));
         int rec2 = rec;
-        if((current_i != face_iter[0].current_stadium[rec]) || (face_iter[0].current_dimension >= dimension - rec2 - 1) || (rec ==  rec_depth -1)){
-            if(!face_iter[0].first_time[dimension - rec-1]){
+        if((current_i != face_iter[0].current_stadium[rec]) || (face_iter[0].current_dimension >= dimension - rec2 - 1) || (rec == rec_depth -1)){
+            if((rec == rec_depth - 1) && (add_a_face) && (rec > 0)){
                 face_iter[0].n_newfaces[dimension-rec-1] += 1;
             }
-            if((face_iter[0].current_dimension != dimension - rec2 - 1) || (current_i >= face_iter[0].n_newfaces[dimension-rec-1] + face_iter[0].current_stadium[rec])){
+            if((face_iter[0].current_dimension > dimension - rec2 - 1) || (current_i >= face_iter[0].n_newfaces[dimension-rec-1] + face_iter[0].current_stadium[rec])){
                 return 0;
             }
+            face_iter[0].current_dimension = dimension - rec2 - 1;
             if(i == 0)
                 f_vector[dimension - rec] += 1;
 
@@ -715,15 +719,20 @@ inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vect
                k += 1;
             }
             face_iter[0].n_visited_all[dimension - rec-1] += missing_faces;
+            face_iter[0].current_stadium[rec] = current_i;
+            face_iter[0].current_stadium[rec+1] = 0;
 
             face_iter[0].n_newfaces[dimension - rec-1] -= missing_faces;
             face_iter[0].first_time[dimension - rec-1] = 1;
             face_iter[0].yet_to_visit = 0;
             face_iter[0].max_dimension = dimension - rec -1;
+            add_a_face = 0;
             if(rec < rec_depth -1){
+                size_t old_number = face_iter[0].n_newfaces[dimension-rec-1];
                 d = next_dimension(face_iter);
+                face_iter[0].n_newfaces[dimension-rec-1] = old_number;
+                face_iter[0].first_time[dimension - rec-1] = 1;
                 face_iter[0].yet_to_visit = 0;
-                face_iter[0].current_stadium[rec + 1] = 0;
             }
         }
     }
