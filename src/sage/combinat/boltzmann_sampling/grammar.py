@@ -320,6 +320,7 @@ class Grammar(SageObject):
             S -> Union(eps, Product(D, S))
             D -> Union(z, Product(z, S, z))
         """
+        self.labelled = labelled
         self.rules = {}
         rules = rules or {}
         for name, rule in rules.items():

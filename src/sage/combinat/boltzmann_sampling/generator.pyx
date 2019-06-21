@@ -93,7 +93,8 @@ ctypedef enum options:
     PRODUCT,
     TUPLE,
     FUNCTION,
-    WRAP_CHOICE
+    WRAP_CHOICE,
+    WRAPPED_CHOICE
 
 # ---
 # Preprocessing
@@ -270,8 +271,8 @@ cdef labelling(tree, builders, randstate rstate):
         (type, content, size), bag = todo.pop()
         if type == REF:
             rule_id, children = content
-            todo.append((FUNCTION, rule_id, size))
-            todo.append(children)
+            todo.append(((FUNCTION, rule_id, size), None))
+            todo.append((children, bag))
         elif type == ATOM:
             name = content
             assert len(bag) == size
@@ -279,8 +280,8 @@ cdef labelling(tree, builders, randstate rstate):
         elif type == PRODUCT:
             sizes = [tree_size(t) for t in content]
             bags = shuffle(bag, sizes, size, rstate)
-            todo.append((TUPLE, len(content), size))
-            for i in range(len(content)):
+            todo.append(((TUPLE, len(content), size), None))
+            for i in range(len(content) - 1, -1, -1):
                 todo.append((content[i], bags[i]))
         elif type == TUPLE:
             nargs = content
@@ -291,11 +292,19 @@ cdef labelling(tree, builders, randstate rstate):
             func = builders[content]
             x = generated.pop()
             generated.append(func(x))
+        elif type == WRAPPED_CHOICE:
+            (index, tree) = content
+            todo.append(((WRAP_CHOICE, index, size), None))
+            todo.append((tree, bag))
+        elif type == WRAP_CHOICE:
+            index = content
+            x = generated.pop()
+            generated.append((index, x))
 
     tree, = generated
     return tree
 
-cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builders):
+cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builders, size_builders=None):
     """Search for a tree in a given size window. Wrapper around c_simulate and
     c_generate."""
     cdef int nb_rejections = 0
@@ -322,7 +331,15 @@ cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builder
 
     # Reset the random generator to the state it was just before the simulation
     gmp_randinit_set(rstate.gmp_state, gmp_state)
-    obj = c_generate(first_rule, rules, builders, rstate)
+    if size_builders is not None:
+        # Labelled grammar
+        obj = c_generate(first_rule, rules, size_builders, rstate)
+        __, __, id = first_rule
+        __, __, size = obj
+        tree = (REF, (id, obj), size)
+        obj = labelling(tree, builders, rstate)
+    else:
+        obj = c_generate(first_rule, rules, builders, rstate)
     statistics = {
         "size": size,
         "nb_rejections": nb_rejections,
@@ -385,7 +402,8 @@ cdef make_default_builder(rule):
     if isinstance(rule, Ref):
         return identity
     elif isinstance(rule, Atom):
-        return first
+        # return first
+        return identity
     elif isinstance(rule, Union):
         subbuilders = [make_default_builder(component) for component in rule.args]
         return UnionBuilder(*subbuilders)
@@ -414,6 +432,14 @@ cdef size_product_builder(builders):
         return (PRODUCT, t, size)
     return build
 
+cdef size_union_builder(builders):
+    def build(obj):
+        index, content = obj
+        builder = builders[index]
+        content = builder(content)
+        return (WRAPPED_CHOICE, (index, content), content[2])
+    return build
+
 cdef size_builder(name_to_id, rule):
     if isinstance(rule, Ref):
         return size_ref_builder(name_to_id[rule.name])
@@ -421,7 +447,7 @@ cdef size_builder(name_to_id, rule):
         return size_atom_builder
     elif isinstance(rule, Union):
         subbuilders = [size_builder(name_to_id, component) for component in rule.args]
-        return UnionBuilder(*subbuilders)
+        return size_union_builder(subbuilders)
     elif isinstance(rule, Product):
         subbuilders = [size_builder(name_to_id, component) for component in rule.args]
         return size_product_builder(subbuilders)
@@ -461,6 +487,11 @@ class Generator:
             make_default_builder(self.grammar.rules[self.id_to_name[id]])
             for id in range(len(self.id_to_name))
         ]
+        if self.grammar.labelled:
+            self.size_builders = [
+                size_builder(self.name_to_id, self.grammar.rules[self.id_to_name[id]])
+                for id in range(len(self.id_to_name))
+            ]
 
     def set_builder(self, non_terminal, func):
         """Set the builder for a non-terminal symbol.
@@ -544,5 +575,6 @@ class Generator:
             size_max,
             max_retry,
             self.builders,
+            size_builders=(self.size_builders if self.grammar.labelled else None)
         )
         return obj, statistics
