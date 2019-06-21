@@ -24,7 +24,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.rings.infinity import Infinity as oo
-from sage.all import SR, latex, ceil, log, var, RR, vector
+from sage.all import SR, var, RR, vector
 from .grammar import Grammar
 
 
@@ -54,7 +54,7 @@ class SimpleOracle(SageObject):
     """Simple oracle for critical Boltzmann sampling based on iteration.
 
     EXAMPLES::
-        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
+
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
         sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
@@ -89,7 +89,7 @@ class SimpleOracle(SageObject):
                           for var in expr.variables()
                           if str(var) not in self.non_terminals}
         # all atoms are represented by the same variable
-        self.combsys.update({v : var(v) for v in self.terminals})
+        self.combsys.update({v: var(v) for v in self.terminals})
 
     def eval_combsys(self, z):
         """Compute a numerical evaluation of the combinatorial system
@@ -103,7 +103,7 @@ class SimpleOracle(SageObject):
         OUTPUT: a dictionary associating symbols of the grammar
         to value of their generating functions at the input point.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: leaf = Atom("leaf", size=0)
             sage: z = Atom("z")
@@ -123,13 +123,15 @@ class SimpleOracle(SageObject):
         return new_values
 
     def eval_rule(self, name, z):
-        """Compute a numerical evaluation of the grammar rule ``name`` at a given point ``z``.
+        """Compute a numerical evaluation of the grammar rule ``name`` at a
+        given point ``z``.
 
         INPUT:
 
         - ``name`` -- a string corresponding to a grammar non-terminal symbol
 
-        - ``z`` -- a dictionary from string (name of the variables) to numerical value
+        - ``z`` -- a dictionary from string (name of the variables) to
+          numerical value
         """
 
         values = self.eval_combsys(z)
@@ -147,7 +149,6 @@ def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., diverg
 
     EXAMPLE::
 
-        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
         sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
@@ -184,11 +185,11 @@ class OracleFromFunctions(SageObject):
         - ``sys`` -- dictionary mapping strings (non-terminal names) to
           functions (their generating series).
 
-        - ``precision_ring`` -- do the computation in the given ring (default: Symbolic Ring)
+        - ``precision_ring`` -- do the computation in the given ring (default:
+          Symbolic Ring)
 
         EXAMPLES::
 
-            sage: from sage.combinat.boltzmann_sampling.oracle import OracleFromFunctions
             sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
             sage: oracle = OracleFromFunctions({"z": z, "B": B})
             sage: oracle.eval_rule("z", {"z":1/4})
@@ -222,7 +223,8 @@ class OracleFromFunctions(SageObject):
 
         - ``name`` -- a string corresponding to a grammar non-terminal symbol
 
-        - ``z`` -- a dictionary from string (name of the variables) to numerical value
+        - ``z`` -- a dictionary from string (name of the variables) to
+          numerical value
         """
 
         return self.precision_ring(self.sys[name].subs(**z))
