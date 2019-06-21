@@ -1783,7 +1783,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
               To:   Complex Lazy Field
               Defn: a -> 0.2327856159383841? + 0.7925519925154479?*I
         """
-        return copy(self._embedding) # It might be overkill to make a copy here
+        return self._embedding  # before trac 28036, we made a copy here
 
     cpdef _generic_coerce_map(self, S):
         r"""
