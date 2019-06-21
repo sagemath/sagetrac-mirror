@@ -29,9 +29,11 @@ from .grammar import Grammar
 
 
 def oracle(sys, **kargs):
-    """Build different oracle given different inputs
+    """Build different oracles given different inputs
 
     EXAMPLES::
+
+        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle, OracleFromFunctions
 
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
@@ -54,6 +56,8 @@ class SimpleOracle(SageObject):
     """Simple oracle for critical Boltzmann sampling based on iteration.
 
     EXAMPLES::
+
+        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
 
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
@@ -149,6 +153,8 @@ def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., diverg
 
     EXAMPLE::
 
+        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
+
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
         sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
@@ -189,6 +195,8 @@ class OracleFromFunctions(SageObject):
           Symbolic Ring)
 
         EXAMPLES::
+
+            sage: from sage.combinat.boltzmann_sampling.oracle import OracleFromFunctions
 
             sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
             sage: oracle = OracleFromFunctions({"z": z, "B": B})

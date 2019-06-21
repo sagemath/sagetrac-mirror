@@ -186,9 +186,6 @@ cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
 # Actual generation
 # ---
 
-cdef inline wrap_choice(float weight, int id):
-    return (WRAP_CHOICE, weight, id)
-
 cdef c_generate(first_rule, rules, builders, randstate rstate):
     generated = []
     cdef list todo = [first_rule]
@@ -201,8 +198,8 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
             todo.append((FUNCTION, weight, symbol))
             todo.append(rules[symbol])
         elif type == ATOM:
-            atom_name, __ = args
-            generated.append(atom_name)
+            (name, size) = args
+            generated.append((name, size))
         elif type == UNION:
             r = rstate.c_rand_double() * weight
             for i in range(len(args)):
@@ -210,7 +207,7 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
                 __, arg_weight, __ = arg
                 r -= arg_weight
                 if r <= 0:
-                    todo.append(wrap_choice(arg_weight, i))
+                    todo.append((WRAP_CHOICE, arg_weight, i))
                     todo.append(arg)
                     break
         elif type == PRODUCT:
