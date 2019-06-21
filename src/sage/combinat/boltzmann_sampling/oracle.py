@@ -21,9 +21,26 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.rings.infinity import Infinity as oo
-from sage.all import SR, latex, ceil, log, var, RR, vector
+from sage.all import SR, latex, var, RR, vector
+
+from .grammar import Grammar
+
 
 def oracle(sys, **kargs):
+    """TODO: document.
+
+    EXAMPLES::
+
+        sage: z = Atom("z")
+        sage: eps = Atom("eps", size=0)
+        sage: grammar = Grammar(rules={"B": Union(eps, Product(z, "B", "B"))})
+
+        sage: # Build a sampler from a grammar
+        sage: oracle(grammar)
+
+        sage: # Build a sampler from a dictionary of function
+        sage: oracle({"B": lambda z: (1 - sqrt(1 - 4 * z)) / (2 * z)})
+    """
     if isinstance(sys, Grammar):
         return SimpleOracle(sys, **kargs)
     elif isinstance(sys, dict):
@@ -58,35 +75,37 @@ class SimpleOracle(SageObject):
         self.precision = precision
 
         self.combsys = grammar.combsys()
-        
+
         # non terminal names of the grammar i.e. combinatorial classes
         self.non_terminals = set(self.combsys.keys())
         # terminal names of the grammar i.e. atoms
         self.terminals = {str(var) for expr in self.combsys.values()
                           for var in expr.variables()
                           if str(var) not in self.non_terminals}
-        # all atoms are represented by the same variable 
+        # all atoms are represented by the same variable
         self.combsys.update({v : var(v) for v in self.terminals})
 
     def eval_combsys(self, z):
-        values = {k : RR(0) for k in self.non_terminals}
+        values = {k: RR(0) for k in self.non_terminals}
         values.update(z)
-        new_values = {k : RR(self.combsys[k].subs(**values)) for k in values.keys()}
-        
-        while vector((values[k] - new_values[k] for k in values.keys())).norm(oo) > self.precision :
+        new_values = {k: RR(self.combsys[k].subs(**values)) for k in values.keys()}
+
+        while vector((values[k] - new_values[k] for k in values.keys())).norm(oo) > self.precision:
             values = new_values
-            new_values = {k : RR(self.combsys[k].subs(**values)) for k in values.keys()}
+            new_values = {k: RR(self.combsys[k].subs(**values)) for k in values.keys()}
         return new_values
 
     def eval_rule(self, name, z):
         values = self.eval_combsys(z)
         return values[name]
-    
+
     def _repr_(self):
         return "SimpleOracle for {}".format(latex(self.combsys))
 
+
 def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., divergence=1e3):
     """Given an oracle for a combinatorial system try to find the singularity.
+
     The algorithm proceed by dichotomic search. The divergence parameter allows
     to decide of the divergence of system.
 
@@ -99,19 +118,18 @@ def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., diverg
         sage: find_singularity(oracle)["z"] # abs tol 1e-6
         0.25
     """
-    
+
     y = None
     while zmax - zmin > precision:
-        y = oracle.eval_combsys({v : zstart for v in oracle.terminals})
-        if any((x < 0 or x > divergence for x in y.values())) :
+        y = oracle.eval_combsys({v: zstart for v in oracle.terminals})
+        if any((x < 0 or x > divergence for x in y.values())):
             zmax = zstart
             zstart = (zmin + zstart) / 2
         else:
             zmin = zstart
             zstart = (zmax + zstart) / 2
 
-    return oracle.eval_combsys({v : zmin for v in oracle.terminals})
-
+    return oracle.eval_combsys({v: zmin for v in oracle.terminals})
 
 
 class OracleFromFunctions(SageObject):
@@ -145,7 +163,7 @@ class OracleFromFunctions(SageObject):
         """
         self.sys = sys
         self.precision = precision
-        
+
         # Scalar field
         self.SF = None
         if precision == oo:
@@ -154,7 +172,7 @@ class OracleFromFunctions(SageObject):
             self.SF = RR
 
     def eval_combsys(self, z):
-        return {k : self.eval_rule(k, z) for k in self.sys.keys()}
+        return {k: self.eval_rule(k, z) for k in self.sys.keys()}
 
     def eval_rule(self, name, z):
         return self.SF(self.sys[name].subs(**z))

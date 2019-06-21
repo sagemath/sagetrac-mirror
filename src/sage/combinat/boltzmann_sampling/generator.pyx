@@ -76,11 +76,15 @@ REFERENCES:
    DOI=http://dx.doi.org/10.1017/S0963548304006315
 """
 
+from functools import reduce
+
 from sage.libs.gmp.random cimport gmp_randinit_set, gmp_randinit_default
 from sage.libs.gmp.types cimport gmp_randstate_t
 from sage.misc.randstate cimport randstate, current_randstate
+
 from .grammar import Atom, Product, Ref, Union
-from .oracle import SimpleOracle
+from .oracle import SimpleOracle, find_singularity
+
 
 ctypedef enum options:
     REF,
@@ -101,28 +105,41 @@ ctypedef enum options:
 # original names.
 # All of this is hidden from the user.
 
-cdef _map_all_names_to_ids_expr(name_to_id, expr):
-    """Recursively transform an expression into a triple of the form
+cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
+    """Recursively transform an expression into a tuples of the form
     (RULE_TYPE, weight, args) where:
-    - RULE_TYPE is of the values of the options enum (see above)
-    - weight is the value of the generating function of the expression
-    - args is auxilliary information (the name of an atom, the terms of an
+    - RULE_TYPE encodes the type of the expression [ATOM|REF|PRODUCT|...]
+    - weight is the value of the gerating function of this expression
+    - args is auxilliary information (the name of an atom, the components of an
       union, ...)
     """
     if isinstance(expr, Ref):
-        return (REF, expr.weight, name_to_id[expr.name])
+        return (REF, weights[expr.name], name_to_id[expr.name])
     elif isinstance(expr, Atom):
-        return (ATOM, expr.weight, (expr.name, expr.size))
+        weight = 1. if expr.size == 0 else weights[expr.name]
+        return (ATOM, weight, (expr.name, expr.size))
     elif isinstance(expr, Union):
-        args = tuple((_map_all_names_to_ids_expr(name_to_id, arg) for arg in expr.args))
-        return (UNION, expr.weight, args)
+        args = tuple((_map_all_names_to_ids_expr(name_to_id, weights, arg) for arg in expr.args))
+        total_weight = sum([w for (__, w, __) in args])
+        return (UNION, total_weight, args)
     elif isinstance(expr, Product):
-        args = tuple((_map_all_names_to_ids_expr(name_to_id, arg) for arg in expr.args))
-        return (PRODUCT, expr.weight, args)
+        args = tuple((_map_all_names_to_ids_expr(name_to_id, weights, arg) for arg in expr.args))
+        total_weight = reduce(
+            lambda x, y: x * y,
+            [w for (__, w, __) in args],
+            1.
+        )
+        return (PRODUCT, total_weight, args)
+
+cdef _map_all_names_to_ids_system(name_to_id, id_to_name, weights, rules):
+    return [
+        _map_all_names_to_ids_expr(name_to_id, weights, rules[id_to_name[i]])
+        for i in range(len(name_to_id))
+    ]
 
 cdef _map_all_names_to_ids(rules):
     """Assign an integer (identifier) to each symbol in the grammar and compute
-    two dictionnaries:
+    two dictionaries:
     - one that maps the names to their identifiers
     - one that maps the identifier to the original names
     """
@@ -131,19 +148,15 @@ cdef _map_all_names_to_ids(rules):
     for i, name in enumerate(rules.keys()):
         name_to_id[name] = i
         id_to_name[i] = name
-    rules = [
-        _map_all_names_to_ids_expr(name_to_id, rules[id_to_name[i]])
-        for i in range(len(name_to_id))
-    ]
-    return name_to_id, id_to_name, rules
+    return name_to_id, id_to_name
 
 # ---
 # Simulation phase
 # ---
 
-cdef int c_simulate(int id, float weight, int size_max, flat_rules, randstate rstate):
+cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
     cdef int size = 0
-    cdef list todo = [(REF, weight, id)]
+    cdef list todo = [first_rule]
     cdef float r = 0.
 
     while todo:
@@ -176,9 +189,9 @@ cdef int c_simulate(int id, float weight, int size_max, flat_rules, randstate rs
 cdef inline wrap_choice(float weight, int id):
     return (WRAP_CHOICE, weight, id)
 
-cdef c_generate(int id, float weight, rules, builders, randstate rstate):
+cdef c_generate(first_rule, rules, builders, randstate rstate):
     generated = []
-    cdef list todo = [(REF, weight, id)]
+    cdef list todo = [first_rule]
     cdef float r = 0.
 
     while todo:
@@ -221,7 +234,7 @@ cdef c_generate(int id, float weight, rules, builders, randstate rstate):
     obj, = generated
     return obj
 
-cdef c_gen(int id, float weight, rules, int size_min, int size_max, int max_retry, builders):
+cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builders):
     """Search for a tree in a given size window. Wrapper around c_simulate and
     c_generate."""
     cdef int nb_rejections = 0
@@ -236,7 +249,7 @@ cdef c_gen(int id, float weight, rules, int size_min, int size_max, int max_retr
     while nb_rejections < max_retry:
         # save the random generator's state
         gmp_randinit_set(gmp_state, rstate.gmp_state)
-        size = c_simulate(id, weight, size_max, rules, rstate)
+        size = c_simulate(first_rule, size_max, rules, rstate)
         if size <= size_max and size >= size_min:
             break
         else:
@@ -248,7 +261,7 @@ cdef c_gen(int id, float weight, rules, int size_min, int size_max, int max_retr
 
     # Reset the random generator to the state it was just before the simulation
     gmp_randinit_set(rstate.gmp_state, gmp_state)
-    obj = c_generate(id, weight, rules, builders, rstate)
+    obj = c_generate(first_rule, rules, builders, rstate)
     statistics = {
         "size": size,
         "nb_rejections": nb_rejections,
@@ -304,17 +317,20 @@ cdef make_default_builder(rule):
     """Generate the default builders for a rule.
 
     For use with Boltzmann samplers :mod:`sage.combinat.boltzmann_sampling`"""
-    type, __, args = rule
-    if type == REF:
+    if isinstance(rule, Ref):
         return identity
-    elif type == ATOM:
+    elif isinstance(rule, Atom):
         return identity
-    elif type == UNION:
-        subbuilders = [make_default_builder(component) for component in args]
+    elif isinstance(rule, Product):
+        subbuilders = [make_default_builder(component) for component in rule.args]
         return UnionBuilder(*subbuilders)
-    elif type == PRODUCT:
-        subbuilders = [make_default_builder(component) for component in args]
+    elif isinstance(rule, Union):
+        subbuilders = [make_default_builder(component) for component in rule.args]
         return ProductBuilder(subbuilders)
+
+# ---
+# High level interface
+# ---
 
 class Generator:
     """High level interface for Boltzmann samplers."""
@@ -331,19 +347,21 @@ class Generator:
         """
         # Load the default oracle if none is supplied
         if oracle is None:
-            oracle = SimpleOracle(grammar, e1=1e-6, e2=1e-6)
+            oracle = SimpleOracle(grammar)
         self.oracle = oracle
-        # flatten the grammar for faster access to rules
         self.grammar = grammar
-        self.grammar.annotate(oracle)
-        name_to_id, id_to_name, flat_rules = _map_all_names_to_ids(grammar.rules)
+        # Replace all symbols in the grammar by an integer identifier
+        # Use arrays rather than dictionaries
+        name_to_id, id_to_name = _map_all_names_to_ids(grammar.rules)
         self.name_to_id = name_to_id
         self.id_to_name = id_to_name
-        self.flat_rules = flat_rules
+        # Cached generating function values
+        self.oracle_cache = {}
+        self.singularity = None
         # init builders
         self.builders = [
-            make_default_builder(rule)
-            for rule in self.flat_rules
+            make_default_builder(self.grammar.rules[self.id_to_name[id]])
+            for id in range(len(self.id_to_name))
         ]
 
     def set_builder(self, non_terminal, func):
@@ -368,7 +386,13 @@ class Generator:
         symbol_id = self.name_to_id[non_terminal]
         return self.builders[symbol_id]
 
-    def gen(self, name, window, max_retry=2000):
+    def _precompute_oracle_values(self, z):
+        return [
+            self.oracle.eval_rule(self.id_to_name[rule_id], z)
+            for rule_id in range(len(self.flat_rules))
+        ]
+
+    def gen(self, name, window, max_retry=2000, singular=True):
         """Generate a term of the grammar in a given size window.
 
         INPUT:
@@ -383,14 +407,40 @@ class Generator:
         - ``max_retry`` (default: 2000) -- integer, maximum number of attempts.
           If no object in the size window is found in less that ``max_retry``
           attempts, the generator returns None
+
+        - ``singular`` (default: True) -- boolean, whether the generator should
+          do singular sampling (the parameter z is the singularity of the
+          generating function) or guess the best value for the parameter z in
+          order to generate objects in the given size window.
         """
-        id = self.name_to_id[name]
-        weight = self.grammar.rules[name].weight
         size_min, size_max = window
+        # Precompute the generating functions of each non-terminal in the
+        # system
+        z = None
+        if singular:
+            if self.singularity is None:
+                values = find_singularity(self.oracle)
+                # XXX. ugly
+                atom_name = list(self.oracle.terminals)[0]
+                self.singularity = values[atom_name]
+                z = self.singularity
+                self.oracle_cache[z] = values
+        else:
+            raise NotImplementedError("Non-singular generation")
+        if z not in self.oracle_cache:
+            self.oracle_cache[z] = self._precompute_oracle_values(z)
+        # Convert the grammar into an array of tuples (for performance)
+        flat_rules = _map_all_names_to_ids_system(
+            self.name_to_id,
+            self.id_to_name,
+            self.oracle_cache[z],
+            self.grammar.rules
+        )
+        # Generate
+        first_rule = flat_rules[self.name_to_id[name]]
         statistics, obj = c_gen(
-            id,
-            weight,
-            self.flat_rules,
+            first_rule,
+            flat_rules,
             size_min,
             size_max,
             max_retry,
