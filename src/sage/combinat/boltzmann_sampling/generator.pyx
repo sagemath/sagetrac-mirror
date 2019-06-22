@@ -226,20 +226,22 @@ cdef inline ProductBuilder(builders):
         return tuple(builders[i](terms[i]) for i in range(len(terms)))
     return build
 
-cdef make_default_builder(rule):
+cdef make_default_builder(rule, labelled=False):
     """Generate the default builders for a rule.
 
     For use with Boltzmann samplers :mod:`sage.combinat.boltzmann_sampling`"""
     if isinstance(rule, Ref):
         return identity
     elif isinstance(rule, Atom):
-        # return first
-        return identity
+        if labelled:
+            return identity
+        else:
+            return first
     elif isinstance(rule, Union):
-        subbuilders = [make_default_builder(component) for component in rule.args]
+        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
         return UnionBuilder(*subbuilders)
     elif isinstance(rule, Product):
-        subbuilders = [make_default_builder(component) for component in rule.args]
+        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
         return ProductBuilder(subbuilders)
 
 
@@ -540,7 +542,10 @@ class Generator:
         self.singularity = None
         # init builders
         self.builders = [
-            make_default_builder(self.grammar.rules[self.id_to_name[id]])
+            make_default_builder(
+                self.grammar.rules[self.id_to_name[id]],
+                labelled=self.grammar.labelled
+            )
             for id in range(len(self.id_to_name))
         ]
         if self.grammar.labelled:
