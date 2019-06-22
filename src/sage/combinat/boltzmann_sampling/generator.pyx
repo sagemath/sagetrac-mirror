@@ -417,6 +417,15 @@ cdef gen_partition(bag, sizes, total_size, rstate):
         bags[i].append(label)
     return bags
 
+cdef shuffle_array(array, randstate rstate):
+    cdef int l = len(array)
+    cdef int tmp
+    for i in range(l, 0, -1):
+        j = rand_int(i, rstate)
+        tmp = array[j]
+        array[j] = array[i - 1]
+        array[i - 1] = tmp
+
 cdef inline int tree_size(tree):
     __, __, size = tree
     return size
@@ -435,6 +444,8 @@ cdef labelling(tree, builders, randstate rstate):
         if type == REF:
             rule_id, children = content
             todo.append(((FUNCTION, rule_id, size), None))
+            if len(bag) > 1:
+                shuffle_array(bag, rstate)
             todo.append((children, bag))
         elif type == ATOM:
             name = content
