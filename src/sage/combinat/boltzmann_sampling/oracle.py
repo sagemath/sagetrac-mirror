@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Various oracle implementations for Boltzmann sampling.
 
@@ -145,7 +146,7 @@ class SimpleOracle(SageObject):
         return "SimpleOracle({})".format(self.combsys)
 
 
-def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., divergence=1e3):
+def find_singularity(oracle, precision=1e-6, zmin=1e-9, zmax=1., divergence=1e3):
     """Given an oracle for a combinatorial system try to find the singularity.
 
     The algorithm proceed by dichotomic search. The divergence parameter allows
@@ -158,20 +159,33 @@ def find_singularity(oracle, precision=1e-6, zstart=0., zmin=0., zmax=1., diverg
         sage: leaf = Atom("leaf", size=0)
         sage: z = Atom("z")
         sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
-        sage: oracle = SimpleOracle(g)
-        sage: find_singularity(oracle)["z"] # abs tol 1e-6
+        sage: o = SimpleOracle(g)
+        sage: find_singularity(o)["z"] # abs tol 1e-6
         0.25
+
+        sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
+        sage: o = oracle({"B": B})
+        sage: values = find_singularity(o)
+        sage: values["z"] # abs tol 1e-6
+        0.25
+        sage: values["B"] # abs tol 1e-2
+        2.0
     """
 
     y = None
+    zstart = zmin
     while zmax - zmin > precision:
-        y = oracle.eval_combsys({v: zstart for v in oracle.terminals})
-        if any((x < 0 or x > divergence for x in y.values())):
+        try:
+            y = oracle.eval_combsys({v: zstart for v in oracle.terminals})
+            if any((x not in RR or x < 0 or x > divergence for x in y.values())):
+                zmax = zstart
+                zstart = (zmin + zstart) / 2
+            else:
+                zmin = zstart
+                zstart = (zmax + zstart) / 2
+        except ValueError:
             zmax = zstart
             zstart = (zmin + zstart) / 2
-        else:
-            zmin = zstart
-            zstart = (zmax + zstart) / 2
 
     return oracle.eval_combsys({v: zmin for v in oracle.terminals})
 
@@ -208,6 +222,7 @@ class OracleFromFunctions(SageObject):
         """
         self.sys = sys
         self.precision_ring = precision_ring
+        self.terminals = {str(v) for f in sys.values() for v in f.variables()}
 
     def eval_combsys(self, z):
         """Compute an evaluation of the combinatorial system
@@ -221,7 +236,9 @@ class OracleFromFunctions(SageObject):
         OUTPUT: a dictionary associating symbols of the grammar
         to value of their generating functions at the input point.
         """
-        return {k: self.eval_rule(k, z) for k in self.sys.keys()}
+        values = {k: self.eval_rule(k, z) for k in self.sys.keys()}
+        values.update(z)
+        return values
 
     def eval_rule(self, name, z):
         """Compute a evaluation of the grammar rule ``name``
@@ -235,7 +252,8 @@ class OracleFromFunctions(SageObject):
           numerical value
         """
 
-        return self.precision_ring(self.sys[name].subs(**z))
+        # return self.precision_ring(self.sys[name].subs(**z))
+        return self.sys[name](**z)
 
     def _repr_(self):
         return "OracleFromFunctions({})".format(self.sys)
