@@ -14529,7 +14529,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``func`` -- the function with respect to which the minimum eccentricity
           of a vertex is calculated.
 
-        - ``ranking`` -- function or a list (default: ``None``); the order of
+        - ``ranking`` -- function (default: ``None``); the order of
           the vertices. Used for breaking ties among nodes at the same distance
           while calculating the antipode of a vertex.
  
@@ -14542,14 +14542,48 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``lower_certificate`` -- The certificate which is essential in calculation
           of eccentricity values of the vertices.
+
+        EXAMPLES::
+
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: func = lambda x, v: v
+            sage: G.minimum_eccentricity_vertex_selection(func=func)
+            (7, array([4., 4., 4., 4., 4., 3., 3., 2., 3., 4.]), {4, 9})
+            sage: rank = lambda x: -x
+            sage: G.minimum_eccentricity_vertex_selection(func=func, ranking=rank)
+            (1, array([1., 4., 3., 2., 1., 2., 1., 1., 2., 0.]), {1})
+
+        TESTS::
+
+        When `func` is not callable:
+
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: func = 3
+            sage: G.minimum_eccentricity_vertex_selection(func)
+            Traceback (most recent call last):
+            ...
+            ValueError: func must be callable.
+
+        When `ranking` is not callable:
+
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: func = lambda x, v: v
+            sage: ranking = [1, 2, 3]
+            sage: G.minimum_eccentricity_vertex_selection(func=func, ranking=ranking)
+            Traceback (most recent call last):
+            ...
+            ValueError: ranking must be callable
         """
 
         if ranking is None:
             rank = lambda x: self.vertices().index(x)
-        elif type(ranking) is list:
-            rank = lambda x: ranking.index(x)
-        else:
+        elif callable(ranking):
             rank = ranking
+        else:
+            raise ValueError('ranking must be callable')
+
+        if not callable(func):
+            raise ValueError('func must be callable.')
 
         lower_certificate = set()
         V = self.vertices()
@@ -14592,21 +14626,51 @@ class GenericGraph(GenericGraph_pyx):
         - ``func`` -- the function with respect to which the minimum eccentricity
           of a vertex is calculated.
 
-        - ``ranking`` -- function or a list (default: ``None``); the order of
+        - ``ranking`` -- function (default: ``None``); the order of
           the vertices. Used for breaking ties among nodes at the same distance
           while calculating the antipode of a vertex.
- 
-        OUTPUT:
 
-        - The value of the minimum eccentricity in the graph.
+        EXAMPLES::
+
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: func = lambda x, v: v
+            sage: G.minimum_eccentricity_selection(func=func)
+            2.0
+            sage: rank = lambda x: -x
+            sage: G.minimum_eccentricity_selection(func=func, ranking=rank)
+            0.0
+
+        TESTS::
+
+        When `func` is not callable:
+
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: func = 3
+            sage: G.minimum_eccentricity_selection(func)
+            Traceback (most recent call last):
+            ...
+            ValueError: func must be callable.
+
+        When `ranking` is not callable:
+
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: func = lambda x, v: v
+            sage: ranking = [1, 2, 3]
+            sage: G.minimum_eccentricity_selection(func=func, ranking=ranking)
+            Traceback (most recent call last):
+            ...
+            ValueError: ranking must be callable
         """
 
         if ranking is None:
             rank = lambda x: self.vertices().index(x)
-        elif type(ranking) is list:
-            rank = lambda x: ranking.index(x)
-        else:
+        elif callable(ranking):
             rank = ranking
+        else:
+            raise ValueError('ranking must be callable.')
+        
+        if not callable(func):
+            raise ValueError('func must be callable.')
 
         V = self.vertices()
 
@@ -14643,6 +14707,11 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Floyd-Warshall-Cython'`` - a Cython implementation of the
             Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
             ``v is None``.
+
+          - ``'with_certificate'`` - generates teh eccentricity of all vertices of
+            the graph, along with its certificates. Refer to the
+            ``eccentricity_with_certificates`` method for more information.
+            Also, ``v`` must be ``None``
 
           - ``'Floyd-Warshall-Python'`` - a Python implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
@@ -14710,6 +14779,8 @@ class GenericGraph(GenericGraph_pyx):
             [1, 1, 1]
             sage: G.eccentricity(algorithm = 'Floyd-Warshall-Cython')
             [1, 1, 1]
+            sage: G.eccentricity(algorithm = 'with_certificate')
+            [1, 1, 1]
             sage: G.eccentricity(by_weight = True, algorithm = 'Dijkstra_NetworkX')
             [2, 1, 2]
             sage: G.eccentricity(by_weight = True, algorithm = 'Dijkstra_Boost')
@@ -14740,6 +14811,10 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: algorithm 'Floyd-Warshall-Cython' does not work with weights
+            sage: G.eccentricity(by_weight = True, algorithm = 'with_certificate')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'with_certificate' does not work with weights
 
         An algorithm that computes the all-pair-shortest-paths when not all
         vertices are needed::
@@ -14756,16 +14831,16 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: algorithm 'Johnson_Boost' works only if all eccentricities are needed
+            sage: G.eccentricity(0, algorithm = 'with_certificate')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'Johnson_Boost' works only if all eccentricities are needed
         """
         if weight_function is not None:
             by_weight = True
         elif by_weight:
             def weight_function(e):
                 return e[2]
-
-        if algorithm == 'certificate':
-            eccentricity, _, _ = self.eccentricity_with_certificates()
-            return eccentricity
 
         if algorithm is None:
             if dist_dict is not None:
@@ -14797,6 +14872,12 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     return eccentricity(self, algorithm=algo)
 
+            if algorithm == 'with_certificate':
+                if by_weight:
+                    raise ValueError("algorithm 'with_certificate' does not work with weights")
+                eccentricity, _, _ = self.eccentricity_with_certificates()
+                return eccentricity
+
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
@@ -14805,7 +14886,7 @@ class GenericGraph(GenericGraph_pyx):
 
             v = self.vertices()
 
-        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
+        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost', 'with_certificate']:
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
@@ -14858,17 +14939,40 @@ class GenericGraph(GenericGraph_pyx):
 
         - The vertex with minimum eccentricity
 
-        - ``lower_certificate`` --  
+        - ``lower_certificate`` -- A certificate used in the calculation of
+          the radius of the graph. It is the set of antipodes in the graph.
 
-        - ``upper_certificate`` -- 
+        - ``upper_certificate`` -- A certificate used in the calculation of
+          the diameter of the graph. It is the set of centers of the graph.
+
+        EXAMPLES::
+
+            sage: G = graphs.PathGraph(10)
+            sage: G.eccentricity_with_certificates()
+            ([9.0, 8.0, 7.0, 6.0, 5.0, 5.0, 6.0, 7.0, 8.0, 9.0], {0, 9}, {4, 5})
+            sage: rank = lambda x: -x
+            sage: G.eccentricity_with_certificates(ranking=rank)
+            ([9.0, 9.0, 8.0, 7.0, 6.0, 5.0, 5.0, 6.0, 7.0, 8.0], {0, 9}, {4, 5})
+
+        TESTS::
+
+        When `ranking` is not callable:
+
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: ranking = [1, 2, 3]
+            sage: G.eccentricity_with_certificates(ranking=ranking)
+            Traceback (most recent call last):
+            ...
+            ValueError: ranking must be callable
+
         """
 
         if ranking is None:
             rank = lambda x: self.vertices().index(x)
-        elif type(ranking) is list:
-            rank = lambda x: ranking.index(x)
-        else:
+        elif callable(ranking):
             rank = ranking
+        else:
+            raise ValueError('ranking must be callable.')
 
         V = self.vertices()
 
@@ -14896,7 +15000,7 @@ class GenericGraph(GenericGraph_pyx):
 
             upper_bound = np.minimum(upper_bound, dist_from_u + np.full(len(V), ecc))
         
-        return upper_bound, lower_certificate, upper_certificate
+        return upper_bound.tolist(), lower_certificate, upper_certificate
 
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
