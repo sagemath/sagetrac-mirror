@@ -44,6 +44,20 @@ EXAMPLES::
     sage: dyck_word, _ = generator.gen("B", (10, 20))
     sage: dyck_word  # random
     "(()((()())))((())(()((()))))"
+    sage: len(dyck_word) in range(20, 41)  # 2n in [20; 40]
+    True
+
+    sage: def leaf_builder(_):
+    ....:     return BinaryTree()
+
+    sage: def node_builder(tuple):
+    ....:     _, left, right = tuple
+    ....:     return BinaryTree([left, right])
+
+    sage: generator.set_builder("B", UnionBuilder(leaf_builder, node_builder))
+    sage: tree, _ = generator.gen("B", (10, 20))
+    sage: tree.node_number() in range(10, 21)
+    True
 
 Note that the builders' mechanism can also be used to compute parameters on the
 structure on the fly without building the whole structure such as the height of
