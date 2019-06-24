@@ -31,7 +31,6 @@ from sage.rings.real_double import RDF
 from sage.libs.gsl.all cimport *
 from sage.misc.sageinspect import sage_getargspec
 from sage.ext.fast_eval cimport FastDoubleFunc
-from sage.ext.fast_callable cimport Wrapper
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_callable import fast_callable
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
@@ -401,6 +400,7 @@ cdef double c_monte_ff(double *x, size_t dim, void *params):
 
 def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', params=None):
     """
+    Integrate ``func``.
     Integrate ``func`` over the dim-dimensional hypercubic region defined by the lower and upper
     limits in the arrays xl and xu, each of size dim. The integration uses a fixed number of function calls calls,
     and obtains random sampling points using the default gsl's random number generator.
@@ -505,7 +505,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
             v *= _xu[i] - _xl[i]
         return (v * <double?> func, 0.0)
 
-    elif not isinstance(func, Wrapper):
+    elif not isinstance(func, Wrapper_rdf):
         try:
             if hasattr(func, 'arguments'):
                 vars = func.arguments()
