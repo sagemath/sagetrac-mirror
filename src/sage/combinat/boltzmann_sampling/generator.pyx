@@ -96,9 +96,10 @@ from sage.libs.gmp.random cimport gmp_randinit_set, gmp_randinit_default
 from sage.libs.gmp.types cimport gmp_randstate_t
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 
-from .grammar import Atom, Product, Ref, Union
-from .oracle import SimpleOracle, find_singularity
+from .grammar import Atom, Product, Ref, Union, Seq
+from .oracle import SimpleOracle
 
+from libc.math cimport log, ceil
 
 ctypedef enum options:
     # Grammar constructions
@@ -106,12 +107,13 @@ ctypedef enum options:
     ATOM,
     UNION,
     PRODUCT,
+    SEQ,
     # Special instructions used by the random generators
     TUPLE,
+    LIST,
     FUNCTION,
     WRAP_CHOICE,
     WRAPPED_CHOICE
-
 
 # ------------------------------------------------------- #
 # Grammar preprocessing
@@ -127,7 +129,7 @@ cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
     """Recursively transform an expression into a tuple of the form
     (RULE_TYPE, weight, args) where:
     - RULE_TYPE encodes the type of the expression [ATOM|REF|PRODUCT|...]
-    - weight is the value of the gerating function of this expression
+    - weight is the value of the generating function of this expression
     - args is auxilliary information (the name of an atom, the components of an
       union, ...)
     """
@@ -148,7 +150,11 @@ cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
             1.
         )
         return (PRODUCT, total_weight, args)
+    elif isinstance(expr, Seq):
+        rule = _map_all_names_to_ids_expr(name_to_id, weights, expr.arg)
+        return (SEQ, 1./(1. - rule[1]), rule)
 
+    
 cdef _map_all_names_to_ids_system(name_to_id, id_to_name, weights, rules):
     return [
         _map_all_names_to_ids_expr(name_to_id, weights, rules[id_to_name[i]])
@@ -240,6 +246,13 @@ cdef inline ProductBuilder(builders):
         return tuple(builders[i](terms[i]) for i in range(len(terms)))
     return build
 
+
+cdef inline SeqBuilder(builder):
+    def build(terms):
+        return list(builder(terms[i]) for i in range(len(terms)))
+    return build
+
+
 cdef make_default_builder(rule, labelled=False):
     """Generate the default builders for a rule.
 
@@ -251,13 +264,15 @@ cdef make_default_builder(rule, labelled=False):
             return identity
         else:
             return first
-    elif isinstance(rule, Union):
-        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
-        return UnionBuilder(*subbuilders)
     elif isinstance(rule, Product):
         subbuilders = [make_default_builder(component, labelled) for component in rule.args]
         return ProductBuilder(subbuilders)
-
+    elif isinstance(rule, Seq):
+        subbuilder = make_default_builder(rule.arg, labelled)
+        return SeqBuilder(subbuilder)
+    elif isinstance(rule, Union):
+        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
+        return UnionBuilder(*subbuilders)
 
 # ------------------------------------------------------- #
 # Auxilliary builders with size and choice annotations
@@ -321,7 +336,7 @@ cdef size_builder(name_to_id, rule):
 cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
     cdef int size = 0
     cdef list todo = [first_rule]
-    cdef float r = 0.
+    cdef double r = 0.
 
     while todo:
         type, weight, args = todo.pop()
@@ -343,7 +358,12 @@ cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
                     break
         elif type == PRODUCT:
             todo += args[::-1]
-
+        elif type == SEQ:
+            __, arg_weight, __ = args
+            # k ~ Geom(arg_weight)
+            k = int(ceil(log(rstate.c_rand_double())/log(arg_weight)-1))
+            for __ in range(k):
+                todo.append(args)
     return size
 
 # Free Boltzmann sampler (actual generation)
@@ -352,7 +372,7 @@ cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
 cdef c_generate(first_rule, rules, builders, randstate rstate):
     cdef list generated = []
     cdef list todo = [first_rule]
-    cdef float r = 0.
+    cdef double r = 0.
 
     while todo:
         type, weight, args = todo.pop()
@@ -377,11 +397,26 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
             nargs = len(args)
             todo.append((TUPLE, weight, nargs))
             todo += args[::-1]
+        elif type == SEQ:
+            __, arg_weight, __ = args
+            # k ~ Geom(arg_weight)
+            k = int(ceil(log(rstate.c_rand_double())/log(arg_weight)-1))
+            todo.append((LIST, weight, k))
+            for __ in range(k):
+                todo.append(args)
         elif type == TUPLE:
             nargs = args
             t = tuple(generated[-nargs:])
             generated = generated[:-nargs]
             generated.append(t)
+        elif type == LIST:
+            nargs = args
+            if nargs == 0:
+                generated.append([])
+            else:
+                t = list(generated[-nargs:])
+                generated = generated[:-nargs]
+                generated.append(t)
         elif type == FUNCTION:
             func = builders[args]
             x = generated.pop()
@@ -634,7 +669,7 @@ class Generator:
         z = None
         if singular:
             if self.singularity is None:
-                values = find_singularity(self.oracle)
+                values = self.oracle.find_singularity()
                 # XXX. ugly
                 atom_name = list(self.oracle.terminals)[0]
                 self.singularity = values[atom_name]
