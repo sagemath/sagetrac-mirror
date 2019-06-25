@@ -317,8 +317,8 @@ class Grammar(SageObject):
             sage: g.set_rule("D", Union(z, Product(z, "S", z)))
             sage: g.set_rule("S", Union(eps, Product("D", "S")))
             sage: g
-            S -> Union(eps, Product(D, S))
             D -> Union(z, Product(z, S, z))
+            S -> Union(eps, Product(D, S))
         """
         self.labelled = labelled
         self.rules = {}
@@ -377,15 +377,15 @@ class Grammar(SageObject):
         else:
             inside = " \\\\ \n".join(
                 "{} &= {}".format(name, latex(rule))
-                for name, rule in self.rules.items()
+                for name, rule in sorted(self.rules.items())
             )
             return "\\begin{{cases}}\n{}\n\\end{{cases}}".format(inside)
 
     def _repr_(self):
         return "\n".join(
             "{} -> {}".format(non_terminal, expr)
-            for non_terminal, expr in self.rules.items()
+            for non_terminal, expr in sorted(self.rules.items())
         )
 
     def combsys(self):
-        return {name : rule.combsys() for name, rule in self.rules.items()}
+        return {name: rule.combsys() for name, rule in self.rules.items()}
