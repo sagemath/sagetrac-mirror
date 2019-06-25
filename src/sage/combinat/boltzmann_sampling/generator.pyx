@@ -97,7 +97,7 @@ from sage.libs.gmp.types cimport gmp_randstate_t
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 
 from .grammar import Atom, Product, Ref, Union, Seq
-from .oracle import SimpleOracle, find_singularity
+from .oracle import SimpleOracle
 
 from libc.math cimport log, ceil
 
@@ -669,7 +669,7 @@ class Generator:
         z = None
         if singular:
             if self.singularity is None:
-                values = find_singularity(self.oracle)
+                values = self.oracle.find_singularity()
                 # XXX. ugly
                 atom_name = list(self.oracle.terminals)[0]
                 self.singularity = values[atom_name]

@@ -149,48 +149,40 @@ class SimpleOracle(SageObject):
         return "SimpleOracle({})".format(self.combsys)
 
 
-def find_singularity(oracle, precision=1e-6, zmin=1e-9, zmax=1., divergence=1e2):
-    """Given an oracle for a combinatorial system try to find the singularity.
+    def find_singularity(self, precision=1e-6, zmin=1e-9, zmax=1.-1e-9, divergence=1e2):
+        """Given an oracle for a combinatorial system try to find the singularity.
+        
+        The algorithm proceed by dichotomic search. The divergence parameter allows
+        to decide of the divergence of system.
+    
+        EXAMPLE::
 
-    The algorithm proceed by dichotomic search. The divergence parameter allows
-    to decide of the divergence of system.
+            sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
 
-    EXAMPLE::
+            sage: leaf = Atom("leaf", size=0)
+            sage: z = Atom("z")
+            sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
+            sage: o = SimpleOracle(g)
+            sage: o.find_singularity()["z"] # abs tol 1e-6
+            0.25
+        """
 
-        sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
-
-        sage: leaf = Atom("leaf", size=0)
-        sage: z = Atom("z")
-        sage: g = Grammar(rules={"B": Union(leaf, Product(z, "B", "B"))})
-        sage: o = SimpleOracle(g)
-        sage: find_singularity(o)["z"] # abs tol 1e-6
-        0.25
-
-        sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
-        sage: o = oracle({"B": B})
-        sage: values = find_singularity(o)
-        sage: values["z"] # abs tol 1e-6
-        0.25
-        sage: values["B"] # abs tol 1e-2
-        2.0
-    """
-
-    y = None
-    zstart = zmin
-    while zmax - zmin > precision:
-        try:
-            y = oracle.eval_combsys({v: zstart for v in oracle.terminals})
-            if _diverge(y, threshold=divergence):
+        y = None
+        zstart = zmin
+        while zmax - zmin > precision:
+            try:
+                y = self.eval_combsys({v: zstart for v in self.terminals})
+                if _diverge(y, threshold=divergence):
+                    zmax = zstart
+                    zstart = (zmin + zstart) / 2
+                else:
+                    zmin = zstart
+                    zstart = (zmax + zstart) / 2
+            except ValueError:
                 zmax = zstart
                 zstart = (zmin + zstart) / 2
-            else:
-                zmin = zstart
-                zstart = (zmax + zstart) / 2
-        except ValueError:
-            zmax = zstart
-            zstart = (zmin + zstart) / 2
 
-    return oracle.eval_combsys({v: zmin for v in oracle.terminals})
+        return self.eval_combsys({v: zmin for v in self.terminals})
 
 
 class OracleFromFunctions(SageObject):
@@ -226,7 +218,8 @@ class OracleFromFunctions(SageObject):
         self.sys = sys
         self.precision_ring = precision_ring
         self.terminals = {str(v) for f in sys.values() for v in f.variables()}
-
+        self.singularity = None
+        
     def eval_combsys(self, z):
         """Compute an evaluation of the combinatorial system
         at a given point ``z`` with the oracle's precision.
@@ -260,3 +253,28 @@ class OracleFromFunctions(SageObject):
 
     def _repr_(self):
         return "OracleFromFunctions({})".format(self.sys)
+
+    def set_singularity(self, singularity):
+        self.singularity = singularity
+    
+    def find_singularity(self, *args, **kargs):
+        """Given an oracle for a combinatorial system try to find the singularity.
+        
+        The algorithm proceed by dichotomic search. The divergence parameter allows
+        to decide of the divergence of system.
+    
+        EXAMPLE::
+
+            sage: from sage.combinat.boltzmann_sampling.oracle import OracleFromFunctions
+
+            sage: B(z) = (1 - sqrt(1 - 4 * z)) / (2 * z)
+            sage: oracle = OracleFromFunctions({"z": z, "B": B})
+            sage: oracle.set_singularity({"z":1/4})
+            sage: oracle.find_singularity()
+            {'B': 2, 'z': 1/4}
+        """
+
+        if self.singularity is None:
+            raise NotImplementedError("You should provide the singularity using set_singularity.")
+        else:
+            return self.eval_combsys(self.singularity)

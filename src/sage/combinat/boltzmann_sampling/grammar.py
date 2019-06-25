@@ -308,10 +308,10 @@ class Seq(Rule):
             sage: latex(Seq(A))
             {\sc Seq}\left(A\right)
 
-            sage: latex(Seq(Union("A", "B"))
+            sage: latex(Seq(Union("A", "B")))
             {\sc Seq}\left(A + B\right)
         """
-        return "{\sc Seq}\left({}\right)".format(latex(self.arg))
+        return r"{{\sc Seq}}\left({}\right)".format(latex(self.arg))
     
     def _repr_(self):
         # shall it be copy-pastable?
