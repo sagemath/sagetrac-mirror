@@ -289,7 +289,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         False
     """
     @staticmethod
-    def __classcall__(self, n, RR=ZZ, names=None):
+    def __classcall__(cls, n, R=ZZ, names=None):
         """
         EXAMPLES::
 
@@ -297,7 +297,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             True
         """
         normalized_names = normalize_names(n+1, names)
-        return super(ProjectiveSpace_ring, self).__classcall__(self, n, RR, tuple(normalized_names))
+        return super(ProjectiveSpace_ring, cls).__classcall__(cls, n, R, normalized_names)
 
     def __init__(self, n, R=ZZ, names=None):
         """
@@ -308,7 +308,6 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: ProjectiveSpace(3, Zp(5), 'y')
             Projective Space of dimension 3 over 5-adic Ring with capped relative precision 20
         """
-        names = normalize_names(n+1, names)
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
 

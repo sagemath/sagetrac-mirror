@@ -936,6 +936,9 @@ REFERENCES:
 .. [Can1990] \J. Canny. Generalised characteristic polynomials.
              J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
 
+.. [Cam2006] Antonio Campillo. *Algebroid curves in positive characteristics*,
+             Vol. 813. Springer, 2006.
+
 .. [Car1972] \R. W. Carter. *Simple groups of Lie type*, volume 28 of
              Pure and Applied Mathematics. John Wiley and Sons, 1972.
 
