@@ -286,6 +286,41 @@ class Product(Rule):
         return res
 
 
+class Seq(Rule):
+    """Sequence (with order) of rule.
+    """
+
+    def __init__(self, arg):
+        """
+
+        INPUT:
+
+        - ``arg`` -- a rule or the name of a grammar symbol (string)
+        """
+        #TODO : add
+        self.arg = _to_rule(arg)
+
+    def _latex_(self):
+        r"""Return the LaTeX representation of sequence
+
+        EXAMPLES::
+            sage: A, B = Ref("A"), Ref("B")
+            sage: latex(Seq(A))
+            {\sc Seq}\left(A\right)
+
+            sage: latex(Seq(Union("A", "B"))
+            {\sc Seq}\left(A + B\right)
+        """
+        return "{\sc Seq}\left({}\right)".format(latex(self.arg))
+    
+    def _repr_(self):
+        # shall it be copy-pastable?
+        return "Seq({})".format(self.arg)
+
+    def combsys(self):
+        return SR(1/(1-self.arg.combsys()))
+    
+
 class Grammar(SageObject):
     """Context free grammars."""
 

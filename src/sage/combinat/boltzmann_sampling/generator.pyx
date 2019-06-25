@@ -82,16 +82,19 @@ from sage.libs.gmp.random cimport gmp_randinit_set, gmp_randinit_default
 from sage.libs.gmp.types cimport gmp_randstate_t
 from sage.misc.randstate cimport randstate, current_randstate
 
-from .grammar import Atom, Product, Ref, Union
+from .grammar import Atom, Product, Ref, Union, Seq
 from .oracle import SimpleOracle, find_singularity
 
+from libc.math cimport log, ceil
 
 ctypedef enum options:
     REF,
     ATOM,
     UNION,
     PRODUCT,
+    SEQ,
     TUPLE,
+    LIST,
     FUNCTION,
     WRAP_CHOICE
 
@@ -109,7 +112,7 @@ cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
     """Recursively transform an expression into a tuples of the form
     (RULE_TYPE, weight, args) where:
     - RULE_TYPE encodes the type of the expression [ATOM|REF|PRODUCT|...]
-    - weight is the value of the gerating function of this expression
+    - weight is the value of the generating function of this expression
     - args is auxilliary information (the name of an atom, the components of an
       union, ...)
     """
@@ -130,7 +133,11 @@ cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
             1.
         )
         return (PRODUCT, total_weight, args)
+    elif isinstance(expr, Seq):
+        rule = _map_all_names_to_ids_expr(name_to_id, weights, expr.rule)
+        return (SEQ, 1./(1. - rule[1]), rule)
 
+    
 cdef _map_all_names_to_ids_system(name_to_id, id_to_name, weights, rules):
     return [
         _map_all_names_to_ids_expr(name_to_id, weights, rules[id_to_name[i]])
@@ -157,7 +164,7 @@ cdef _map_all_names_to_ids(rules):
 cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
     cdef int size = 0
     cdef list todo = [first_rule]
-    cdef float r = 0.
+    cdef double r = 0.
 
     while todo:
         type, weight, args = todo.pop()
@@ -179,20 +186,22 @@ cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
                     break
         elif type == PRODUCT:
             todo += args[::-1]
-
+        elif type == SEQ:
+            __, arg_weight, __ = args
+            # k ~ Geom(arg_weight)
+            k = ceil(log(rstate.c_rand_double())/log(arg_weight)-1)
+            for i in range(k):
+                todo.append(args)
     return size
 
 # ---
 # Actual generation
 # ---
 
-cdef inline wrap_choice(float weight, int id):
-    return (WRAP_CHOICE, weight, id)
-
 cdef c_generate(first_rule, rules, builders, randstate rstate):
     generated = []
     cdef list todo = [first_rule]
-    cdef float r = 0.
+    cdef double r = 0.
 
     while todo:
         type, weight, args = todo.pop()
@@ -210,16 +219,28 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
                 __, arg_weight, __ = arg
                 r -= arg_weight
                 if r <= 0:
-                    todo.append(wrap_choice(arg_weight, i))
+                    todo.append((WRAP_CHOICE, arg_weight, i))
                     todo.append(arg)
                     break
         elif type == PRODUCT:
             nargs = len(args)
             todo.append((TUPLE, weight, nargs))
             todo += args[::-1]
+        elif type == SEQ:
+            __, arg_weight, __ = args
+            # k ~ Geom(arg_weight)
+            k = ceil(log(rstate.c_rand_double())/log(arg_weight)-1)
+            todo.append((LIST, weight, k))
+            for __ in range(k):
+                todo.append(args)
         elif type == TUPLE:
             nargs = args
             t = tuple(generated[-nargs:])
+            generated = generated[:-nargs]
+            generated.append(t)
+        elif type == LIST:
+            nargs = args
+            t = list(generated[-nargs:])
             generated = generated[:-nargs]
             generated.append(t)
         elif type == FUNCTION:
@@ -313,6 +334,12 @@ cdef inline ProductBuilder(builders):
         return tuple(builders[i](terms[i]) for i in range(len(terms)))
     return build
 
+cdef inline SeqBuilder(builder):
+    def build(terms):
+        return list(builder(terms[i]) for i in range(len(terms)))
+    return build
+
+
 cdef make_default_builder(rule):
     """Generate the default builders for a rule.
 
@@ -323,10 +350,13 @@ cdef make_default_builder(rule):
         return identity
     elif isinstance(rule, Product):
         subbuilders = [make_default_builder(component) for component in rule.args]
-        return UnionBuilder(*subbuilders)
+        return ProductBuilder(subbuilders)
+    elif isinstance(rule, Seq):
+        subbuilder = make_default_builder(rule.arg)
+        return SeqBuilder(subbuilder)
     elif isinstance(rule, Union):
         subbuilders = [make_default_builder(component) for component in rule.args]
-        return ProductBuilder(subbuilders)
+        return UnionBuilder(*subbuilders)
 
 # ---
 # High level interface
