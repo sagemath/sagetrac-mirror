@@ -44,6 +44,20 @@ EXAMPLES::
     sage: dyck_word, _ = generator.gen("B", (10, 20))
     sage: dyck_word  # random
     "(()((()())))((())(()((()))))"
+    sage: len(dyck_word) in range(20, 41)  # 2n in [20; 40]
+    True
+
+    sage: def leaf_builder(_):
+    ....:     return BinaryTree()
+
+    sage: def node_builder(tuple):
+    ....:     _, left, right = tuple
+    ....:     return BinaryTree([left, right])
+
+    sage: generator.set_builder("B", UnionBuilder(leaf_builder, node_builder))
+    sage: tree, _ = generator.gen("B", (10, 20))
+    sage: tree.node_number() in range(10, 21)
+    True
 
 Note that the builders' mechanism can also be used to compute parameters on the
 structure on the fly without building the whole structure such as the height of
@@ -80,7 +94,7 @@ from functools import reduce
 
 from sage.libs.gmp.random cimport gmp_randinit_set, gmp_randinit_default
 from sage.libs.gmp.types cimport gmp_randstate_t
-from sage.misc.randstate cimport randstate, current_randstate
+from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 
 from .grammar import Atom, Product, Ref, Union, Seq
 from .oracle import SimpleOracle, find_singularity
@@ -88,28 +102,31 @@ from .oracle import SimpleOracle, find_singularity
 from libc.math cimport log, ceil
 
 ctypedef enum options:
+    # Grammar constructions
     REF,
     ATOM,
     UNION,
     PRODUCT,
     SEQ,
+    # Special instructions used by the random generators
     TUPLE,
     LIST,
     FUNCTION,
-    WRAP_CHOICE
+    WRAP_CHOICE,
+    WRAPPED_CHOICE
 
-# ---
-# Preprocessing
-# ---
+# ------------------------------------------------------- #
+# Grammar preprocessing
+# ------------------------------------------------------- #
 
-# For performance reasons, we use integers to identify symbols rather that
-# strings during generation. These two functions do the substitutions and
-# compute tables for mapping the names to their integer id and the ids to their
-# original names.
-# All of this is hidden from the user.
+# For performance reasons, we use integers rather that strings to identify
+# symbols during generation and we drop the python classes in favour of tuples
+# nested tuples. The following functions implement this transformation.
+#
+# All of this should remain hidden from the end user.
 
 cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
-    """Recursively transform an expression into a tuples of the form
+    """Recursively transform an expression into a tuple of the form
     (RULE_TYPE, weight, args) where:
     - RULE_TYPE encodes the type of the expression [ATOM|REF|PRODUCT|...]
     - weight is the value of the generating function of this expression
@@ -134,7 +151,7 @@ cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
         )
         return (PRODUCT, total_weight, args)
     elif isinstance(expr, Seq):
-        rule = _map_all_names_to_ids_expr(name_to_id, weights, expr.rule)
+        rule = _map_all_names_to_ids_expr(name_to_id, weights, expr.arg)
         return (SEQ, 1./(1. - rule[1]), rule)
 
     
@@ -157,9 +174,164 @@ cdef _map_all_names_to_ids(rules):
         id_to_name[i] = name
     return name_to_id, id_to_name
 
-# ---
-# Simulation phase
-# ---
+
+# ------------------------------------------------------- #
+# Generic builders
+# ------------------------------------------------------- #
+
+# When it chooses one possible derivation for a union rule, the random
+# generator wraps the generated object in a tuple of the form ``(choice_id,
+# object)`` so that the builder that will be called on this value has the
+# information of which derivation was chosen. This helper function hides this
+# machinery to the end user, allowing her to compose builders in a "high-level"
+# manner.
+
+def UnionBuilder(*builders):
+    """Factory for generating builders for union rules.
+
+    The recommended way to write a builder for a union rule is to use this
+    helper: write a auxilliary builder for each component of the union and
+    compose them with ``UnionBuilder``.
+
+    EXAMPLES::
+
+        Assume the symbol ``D`` is defined by ``Union("A", "B", "C")``, then
+        defining a builder for D would look like:
+
+        sage: def build_A(args):
+        ....:     # Do something
+        ....:     pass
+
+        sage: def build_B(args):
+        ....:     # Do something
+        ....:     pass
+
+        sage: def build_C(args):
+        ....:     # Do something
+        ....:     pass
+
+        sage: build_D = UnionBuilder(build_A, build_B, build_C)
+
+        For instance, for binary trees defined by ``B = Union(leaf, Product(z,
+        B, B))``, this could be:
+
+        sage: def build_leaf(_):
+        ....:     return BinaryTree()
+
+        sage: def build_node(args):
+        ....:     z, left, right = args
+        ....:     return BinaryTree([left, right])
+
+        sage: build_binarytree = UnionBuilder(build_leaf, build_node)
+    """
+    def build(obj):
+        index, content = obj
+        builder = builders[index]
+        return builder(content)
+    return build
+
+# The following functions generate the default builders for labelled and
+# unlabelled structures. These builders produces nested tuples. Atom sizes and
+# choices ids are omitted for readability.
+
+cdef inline identity(x):
+    return x
+
+cdef inline first(x):
+    a, __ = x
+    return a
+
+cdef inline ProductBuilder(builders):
+    def build(terms):
+        return tuple(builders[i](terms[i]) for i in range(len(terms)))
+    return build
+
+
+cdef inline SeqBuilder(builder):
+    def build(terms):
+        return list(builder(terms[i]) for i in range(len(terms)))
+    return build
+
+
+cdef make_default_builder(rule, labelled=False):
+    """Generate the default builders for a rule.
+
+    For use with Boltzmann samplers :mod:`sage.combinat.boltzmann_sampling`"""
+    if isinstance(rule, Ref):
+        return identity
+    elif isinstance(rule, Atom):
+        if labelled:
+            return identity
+        else:
+            return first
+    elif isinstance(rule, Product):
+        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
+        return ProductBuilder(subbuilders)
+    elif isinstance(rule, Seq):
+        subbuilder = make_default_builder(rule.arg, labelled)
+        return SeqBuilder(subbuilder)
+    elif isinstance(rule, Union):
+        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
+        return UnionBuilder(*subbuilders)
+
+# ------------------------------------------------------- #
+# Auxilliary builders with size and choice annotations
+# ------------------------------------------------------- #
+
+# These builders are very verbose and are not meant to be used by end users.
+# They are applied in the first phase of the generation of labelled structures,
+# before the labelling phase and before the other builders (default or
+# user-defined) are called.
+#
+# The produced trees are annotated with:
+# - the size of every subtree, for later use by the labelling algorithm
+# - the choices made on the union rules, to pass the information to the other
+#   builders
+
+cdef size_ref_builder(id):
+    def build(x):
+        __, __, size = x
+        return (REF, (id, x), size)
+    return build
+
+cdef size_atom_builder(x):
+    name, size = x
+    return (ATOM, name, size)
+
+cdef size_product_builder(builders):
+    def build(terms):
+        t = tuple(builders[i](terms[i]) for i in range(len(terms)))
+        size = sum([s for __, __, s in t])
+        return (PRODUCT, t, size)
+    return build
+
+cdef size_union_builder(builders):
+    def build(obj):
+        index, content = obj
+        builder = builders[index]
+        content = builder(content)
+        return (WRAPPED_CHOICE, (index, content), content[2])
+    return build
+
+cdef size_builder(name_to_id, rule):
+    if isinstance(rule, Ref):
+        return size_ref_builder(name_to_id[rule.name])
+    elif isinstance(rule, Atom):
+        return size_atom_builder
+    elif isinstance(rule, Union):
+        subbuilders = [size_builder(name_to_id, component) for component in rule.args]
+        return size_union_builder(subbuilders)
+    elif isinstance(rule, Product):
+        subbuilders = [size_builder(name_to_id, component) for component in rule.args]
+        return size_product_builder(subbuilders)
+
+
+# ------------------------------------------------------- #
+# Random generation
+# ------------------------------------------------------- #
+
+# A free Boltzmann generator, but instead of generating a tree it only compute
+# its size.
 
 cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
     cdef int size = 0
@@ -189,17 +361,16 @@ cdef int c_simulate(first_rule, int size_max, flat_rules, randstate rstate):
         elif type == SEQ:
             __, arg_weight, __ = args
             # k ~ Geom(arg_weight)
-            k = ceil(log(rstate.c_rand_double())/log(arg_weight)-1)
-            for i in range(k):
+            k = int(ceil(log(rstate.c_rand_double())/log(arg_weight)-1))
+            for __ in range(k):
                 todo.append(args)
     return size
 
-# ---
-# Actual generation
-# ---
+# Free Boltzmann sampler (actual generation)
+# Does not handle the labelling of labelled structures
 
 cdef c_generate(first_rule, rules, builders, randstate rstate):
-    generated = []
+    cdef list generated = []
     cdef list todo = [first_rule]
     cdef double r = 0.
 
@@ -210,8 +381,8 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
             todo.append((FUNCTION, weight, symbol))
             todo.append(rules[symbol])
         elif type == ATOM:
-            atom_name, __ = args
-            generated.append(atom_name)
+            (name, size) = args
+            generated.append((name, size))
         elif type == UNION:
             r = rstate.c_rand_double() * weight
             for i in range(len(args)):
@@ -229,7 +400,7 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
         elif type == SEQ:
             __, arg_weight, __ = args
             # k ~ Geom(arg_weight)
-            k = ceil(log(rstate.c_rand_double())/log(arg_weight)-1)
+            k = int(ceil(log(rstate.c_rand_double())/log(arg_weight)-1))
             todo.append((LIST, weight, k))
             for __ in range(k):
                 todo.append(args)
@@ -240,9 +411,12 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
             generated.append(t)
         elif type == LIST:
             nargs = args
-            t = list(generated[-nargs:])
-            generated = generated[:-nargs]
-            generated.append(t)
+            if nargs == 0:
+                generated.append([])
+            else:
+                t = list(generated[-nargs:])
+                generated = generated[:-nargs]
+                generated.append(t)
         elif type == FUNCTION:
             func = builders[args]
             x = generated.pop()
@@ -255,9 +429,111 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
     obj, = generated
     return obj
 
-cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builders):
-    """Search for a tree in a given size window. Wrapper around c_simulate and
-    c_generate."""
+
+# ------------------------------------------------------- #
+# Labellings
+# ------------------------------------------------------- #
+
+# A few helpers first
+
+cdef int rand_int(int bound, randstate rstate):
+    """Generate a uniform random integer in [0; bound[."""
+    cdef int r = rstate.c_random()
+    cdef int v = r % bound
+    if r - v > SAGE_RAND_MAX - bound + 1:
+        return rand_int(bound, rstate)
+    else:
+        return v
+
+cdef int select(int r, sizes):
+    """Compute the smallest i s.t. `r < sum_{j <= i} sizes[j]`."""
+    cdef int t = r
+    for i in range(len(sizes)):
+        t -= sizes[i]
+        if t < 0:
+            return i
+
+cdef gen_partition(bag, sizes, total_size, rstate):
+    """Return a uniform partition of the list ``bag`` where the sizes of the
+    elements of the partition are specified in ``sizes``."""
+    total_size = total_size
+    bags = [[] for __ in sizes]
+    for total_size in range(total_size, 0, -1):
+        r = rand_int(total_size, rstate)
+        i = select(r, sizes)
+        sizes[i] -= 1
+        label = bag.pop()
+        bags[i].append(label)
+    return bags
+
+cdef shuffle_array(array, randstate rstate):
+    cdef int l = len(array)
+    cdef int tmp
+    for i in range(l, 0, -1):
+        j = rand_int(i, rstate)
+        tmp = array[j]
+        array[j] = array[i - 1]
+        array[i - 1] = tmp
+
+cdef inline int tree_size(tree):
+    __, __, size = tree
+    return size
+
+# The labelling function
+# Sample a uniform labelling or a structure and apply the (default or
+# user-defined) builders to the resulting tree.
+
+cdef labelling(tree, builders, randstate rstate):
+    bag = list(range(tree_size(tree)))
+    generated = []
+    todo = [(tree, bag)]
+
+    while todo:
+        (type, content, size), bag = todo.pop()
+        if type == REF:
+            rule_id, children = content
+            todo.append(((FUNCTION, rule_id, size), None))
+            if len(bag) > 1:
+                shuffle_array(bag, rstate)
+            todo.append((children, bag))
+        elif type == ATOM:
+            name = content
+            assert len(bag) == size
+            generated.append((name, bag))
+        elif type == PRODUCT:
+            sizes = [tree_size(t) for t in content]
+            bags = gen_partition(bag, sizes, size, rstate)
+            todo.append(((TUPLE, len(content), size), None))
+            for i in range(len(content) - 1, -1, -1):
+                todo.append((content[i], bags[i]))
+        elif type == TUPLE:
+            nargs = content
+            t = tuple(generated[-nargs:])
+            generated = generated[:-nargs]
+            generated.append(t)
+        elif type == FUNCTION:
+            func = builders[content]
+            x = generated.pop()
+            generated.append(func(x))
+        elif type == WRAPPED_CHOICE:
+            (index, tree) = content
+            todo.append(((WRAP_CHOICE, index, size), None))
+            todo.append((tree, bag))
+        elif type == WRAP_CHOICE:
+            index = content
+            x = generated.pop()
+            generated.append((index, x))
+
+    tree, = generated
+    return tree
+
+
+# ------------------------------------------------------- #
+# High level interface
+# ------------------------------------------------------- #
+
+cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builders, size_builders=None):
+    """Search for a tree in a given size window."""
     cdef int nb_rejections = 0
     cdef int cumulative_rejected_size = 0
     cdef int size = -1
@@ -282,85 +558,21 @@ cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builder
 
     # Reset the random generator to the state it was just before the simulation
     gmp_randinit_set(rstate.gmp_state, gmp_state)
-    obj = c_generate(first_rule, rules, builders, rstate)
+    if size_builders is not None:
+        # Labelled grammar
+        obj = c_generate(first_rule, rules, size_builders, rstate)
+        __, __, id = first_rule
+        __, __, size = obj
+        tree = (REF, (id, obj), size)
+        obj = labelling(tree, builders, rstate)
+    else:
+        obj = c_generate(first_rule, rules, builders, rstate)
     statistics = {
         "size": size,
         "nb_rejections": nb_rejections,
         "cumulative_rejected_size": cumulative_rejected_size,
     }
     return statistics, obj
-
-# ---
-# Builders
-# ---
-
-cdef inline identity(x):
-    return x
-
-def UnionBuilder(*builders):
-    """Helper for computing the builder of a union out of the builders of its
-    components in Boltzmann samplers. For instance, in order to compute the
-    height of a binary tree on the fly:
-
-    EXAMPLES::
-
-        sage: # Grammar: B = Union(leaf, Product(z, B, B))
-
-        sage: def leaf_builder(_):
-        ....:     return 0
-
-        sage: def node_builder(tuple):
-        ....:     _, left, right = tuple
-        ....:     return 1 + max(left, right)
-
-        sage: builder = UnionBuilder(leaf_builder, node_builder)
-        sage: choice_number = 0
-        sage: builder((choice_number, "leaf"))
-        0
-
-        sage: choice_number = 1
-        sage: builder((choice_number, ('z', 37, 23)))
-        38
-    """
-    def build(obj):
-        index, content = obj
-        builder = builders[index]
-        return builder(content)
-    return build
-
-cdef inline ProductBuilder(builders):
-    """Default builder for product: return a tuple."""
-    def build(terms):
-        return tuple(builders[i](terms[i]) for i in range(len(terms)))
-    return build
-
-cdef inline SeqBuilder(builder):
-    def build(terms):
-        return list(builder(terms[i]) for i in range(len(terms)))
-    return build
-
-
-cdef make_default_builder(rule):
-    """Generate the default builders for a rule.
-
-    For use with Boltzmann samplers :mod:`sage.combinat.boltzmann_sampling`"""
-    if isinstance(rule, Ref):
-        return identity
-    elif isinstance(rule, Atom):
-        return identity
-    elif isinstance(rule, Product):
-        subbuilders = [make_default_builder(component) for component in rule.args]
-        return ProductBuilder(subbuilders)
-    elif isinstance(rule, Seq):
-        subbuilder = make_default_builder(rule.arg)
-        return SeqBuilder(subbuilder)
-    elif isinstance(rule, Union):
-        subbuilders = [make_default_builder(component) for component in rule.args]
-        return UnionBuilder(*subbuilders)
-
-# ---
-# High level interface
-# ---
 
 class Generator:
     """High level interface for Boltzmann samplers."""
@@ -390,9 +602,17 @@ class Generator:
         self.singularity = None
         # init builders
         self.builders = [
-            make_default_builder(self.grammar.rules[self.id_to_name[id]])
+            make_default_builder(
+                self.grammar.rules[self.id_to_name[id]],
+                labelled=self.grammar.labelled
+            )
             for id in range(len(self.id_to_name))
         ]
+        if self.grammar.labelled:
+            self.size_builders = [
+                size_builder(self.name_to_id, self.grammar.rules[self.id_to_name[id]])
+                for id in range(len(self.id_to_name))
+            ]
 
     def set_builder(self, non_terminal, func):
         """Set the builder for a non-terminal symbol.
@@ -419,7 +639,7 @@ class Generator:
     def _precompute_oracle_values(self, z):
         return [
             self.oracle.eval_rule(self.id_to_name[rule_id], z)
-            for rule_id in range(len(self.flat_rules))
+            for rule_id in range(len(self.id_to_name))
         ]
 
     def gen(self, name, window, max_retry=2000, singular=True):
@@ -455,6 +675,7 @@ class Generator:
                 self.singularity = values[atom_name]
                 z = self.singularity
                 self.oracle_cache[z] = values
+            z = self.singularity
         else:
             raise NotImplementedError("Non-singular generation")
         if z not in self.oracle_cache:
@@ -467,7 +688,7 @@ class Generator:
             self.grammar.rules
         )
         # Generate
-        first_rule = flat_rules[self.name_to_id[name]]
+        first_rule = (REF, self.oracle_cache[z][name], self.name_to_id[name])
         statistics, obj = c_gen(
             first_rule,
             flat_rules,
@@ -475,5 +696,6 @@ class Generator:
             size_max,
             max_retry,
             self.builders,
+            size_builders=(self.size_builders if self.grammar.labelled else None)
         )
         return obj, statistics
