@@ -548,6 +548,21 @@ class AbstractLinearCode(Module):
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
 
+    def __getstate__(self):
+        """
+        Used for pickling codes.
+
+        TESTS::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: '_registered_encoders' in C.__getstate__()
+            True
+        """
+        d = super(AbstractLinearCode, self).__getstate__()
+        d['_registered_encoders'] = self._registered_encoders
+        d['_registered_decoders'] = self._registered_decoders
+        return d
+
     def _repr_(self):
         r"""
         Return an error message requiring to override ``_repr_`` in ``self``.
@@ -1027,9 +1042,7 @@ class AbstractLinearCode(Module):
 
         REFERENCE:
 
-        .. [Du04] \I. Duursma, "Combinatorics of the two-variable zeta function",
-           Finite fields and applications, 109-136, Lecture Notes in
-           Comput. Sci., 2948, Springer, Berlin, 2004.
+        - [Du2004]_
         """
         n = self.length()
         k = self.dimension()
@@ -2058,7 +2071,7 @@ class AbstractLinearCode(Module):
             sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
             sage: C = LinearCode(C.basis_matrix())
             sage: Clist = C.list()
-            sage: all([C[i]==Clist[i] for i in range(len(C))])
+            sage: all(C[i] == Clist[i] for i in range(len(C)))
             True
 
         Check that only the indices less than the size of the code are
@@ -3469,8 +3482,7 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        .. [Du01] \I. Duursma, "From weight enumerators to zeta functions", in
-           Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
+        - [Du2001]_
         """
         n = self.length()
         q = (self.base_ring()).order()
