@@ -548,15 +548,15 @@ class SkewTableau(ClonableList):
             sage: all(by_word(t) == SkewTableau(t).weight() for t in SST)
             True
         """
-        if len(self) == 0:
+        if len(self) == 0 or all(c is None for row in self for c in row):
             return []
-        m = max(max(row) for row in self)
+        m = max(c for row in self for c in row if c is not None)
         if m is None:
             return []
         res = [0] * m
         for row in self:
             for i in row:
-                if not (i is None) and i > 0:
+                if (i is not None) and i > 0:
                     res[i - 1] += 1
         return res
 
@@ -777,12 +777,10 @@ class SkewTableau(ClonableList):
             [[1]]
         """
         if max_entry is None:
-            if len(self) == 0:
+            if len(self) == 0 or all(c is None for row in self for c in row):
                 max_entry = 0
             else:
-                max_entry = max(max(row) for row in self)
-            if max_entry is None:
-                max_entry = 0
+                max_entry = max(c for row in self for c in row if c is not None)
         return [self.restriction_outer_shape(x) for x in range(max_entry+1)]
 
     def slide(self, corner=None, return_vacated=False):
@@ -1751,13 +1749,13 @@ class StandardSkewTableaux(SkewTableaux):
     ::
 
         sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
-        [[[None, 1, 2], [None, 3], [4]],
+        [[[None, 2, 3], [None, 4], [1]],
+         [[None, 1, 2], [None, 3], [4]],
          [[None, 1, 2], [None, 4], [3]],
-         [[None, 1, 3], [None, 2], [4]],
-         [[None, 1, 4], [None, 2], [3]],
          [[None, 1, 3], [None, 4], [2]],
          [[None, 1, 4], [None, 3], [2]],
-         [[None, 2, 3], [None, 4], [1]],
+         [[None, 1, 4], [None, 2], [3]],
+         [[None, 1, 3], [None, 2], [4]],
          [[None, 2, 4], [None, 3], [1]]]
     """
     @staticmethod
@@ -1833,9 +1831,8 @@ class StandardSkewTableaux_all(StandardSkewTableaux):
             sage: [next(it) for x in range(10)]
             [[],
              [[1]],
-             [[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]],
-             [[1, 2, 3]], [[1, 2], [3]], [[1, 3], [2]],
-             [[None, 1, 2], [3]]]
+             [[1, 2]], [[1], [2]], [[None, 2], [1]], [[None, 1], [2]],
+             [[1, 2, 3]], [[1, 2], [3]], [[1, 3], [2]], [[None, 2, 3], [1]]]
         """
         n = 0
         while True:
@@ -1894,21 +1891,24 @@ class StandardSkewTableaux_size(StandardSkewTableaux):
         EXAMPLES::
 
             sage: StandardSkewTableaux(2).list()
-            [[[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]]]
+            [[[1, 2]], [[1], [2]], [[None, 2], [1]], [[None, 1], [2]]]
 
             sage: StandardSkewTableaux(3).list()
             [[[1, 2, 3]],
              [[1, 2], [3]], [[1, 3], [2]],
-             [[None, 1, 2], [3]], [[None, 1, 3], [2]],
-             [[None, 2, 3], [1]],
-             [[None, 1], [2, 3]], [[None, 2], [1, 3]],
-             [[None, None, 1], [2, 3]], [[None, None, 2], [1, 3]], [[None, None, 3], [1, 2]],
-             [[1], [2], [3]],
-             [[None, 1], [None, 2], [3]], [[None, 1], [None, 3], [2]], [[None, 2], [None, 3], [1]],
-             [[None, 1], [2], [3]], [[None, 2], [1], [3]], [[None, 3], [1], [2]],
-             [[None, None, 1], [None, 2], [3]], [[None, None, 1], [None, 3], [2]],
-             [[None, None, 2], [None, 1], [3]], [[None, None, 3], [None, 1], [2]],
-             [[None, None, 2], [None, 3], [1]], [[None, None, 3], [None, 2], [1]]]
+             [[None, 2, 3], [1]], [[None, 1, 2], [3]], [[None, 1, 3], [2]],
+             [[None, 2], [1, 3]], [[None, 1], [2, 3]],
+             [[None, None, 2], [1, 3]], [[None, None, 3], [1, 2]],
+             [[None, None, 1], [2, 3]],
+             [[1], [2], [3]], [[None, 2], [None, 3], [1]],
+             [[None, 1], [None, 2], [3]], [[None, 1], [None, 3], [2]],
+             [[None, 2], [1], [3]], [[None, 3], [1], [2]],
+             [[None, 1], [2], [3]], [[None, None, 3], [None, 2], [1]],
+             [[None, None, 2], [None, 3], [1]],
+             [[None, None, 1], [None, 3], [2]],
+             [[None, None, 1], [None, 2], [3]],
+             [[None, None, 2], [None, 1], [3]],
+             [[None, None, 3], [None, 1], [2]]]
         """
         for skp in SkewPartitions(self.n):
             for sst in StandardSkewTableaux_shape(skp):
@@ -1988,14 +1988,14 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
         EXAMPLES::
 
-            sage: [st for st in StandardSkewTableaux([[3, 2, 1], [1, 1]])]
-            [[[None, 1, 2], [None, 3], [4]],
+            sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
+            [[[None, 2, 3], [None, 4], [1]],
+             [[None, 1, 2], [None, 3], [4]],
              [[None, 1, 2], [None, 4], [3]],
-             [[None, 1, 3], [None, 2], [4]],
-             [[None, 1, 4], [None, 2], [3]],
              [[None, 1, 3], [None, 4], [2]],
              [[None, 1, 4], [None, 3], [2]],
-             [[None, 2, 3], [None, 4], [1]],
+             [[None, 1, 4], [None, 2], [3]],
+             [[None, 1, 3], [None, 2], [4]],
              [[None, 2, 4], [None, 3], [1]]]
         """
         dag = self.skp.to_dag(format="tuple")
