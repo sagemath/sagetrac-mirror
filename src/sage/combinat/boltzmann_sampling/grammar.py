@@ -34,6 +34,8 @@ AUTHORS:
 - Martin Pépin (2019): initial version
 """
 
+from functools import reduce
+
 from sage.all import latex, var, SR
 from sage.structure.sage_object import SageObject
 
@@ -119,6 +121,20 @@ class Atom(Rule):
     def labelled(self):
         return self._labelled
 
+    def atoms(self):
+        return {self}
+
+    def __hash__(self):
+        return hash((self.name, self.size, self._labelled))
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Atom)
+            and self.name == other.name
+            and self.size == other.size
+            and self.labelled == other.labelled
+        )
+
 
 class Ref(Rule):
     """Non terminal symbols of a grammar.
@@ -162,6 +178,9 @@ class Ref(Rule):
 
     def labelled(self):
         return False
+
+    def atoms(self):
+        return set()
 
 
 def _to_rule(r):
@@ -234,6 +253,9 @@ class Union(Rule):
     def labelled(self):
         return any((arg.labelled() for arg in self.args))
 
+    def atoms(self):
+        return reduce(lambda x, y: x | y, (arg.atoms() for arg in self.args))
+
 
 class Product(Rule):
     """Product of two or more rules.
@@ -283,11 +305,13 @@ class Product(Rule):
             sage: latex(Product(z, "A"))
             z^2 \times A
         """
+
         def wrap_latex(rule):
             if isinstance(rule, Union):
                 return "({})".format(latex(rule))
             else:
                 return latex(rule)
+
         return r" \times ".join(map(wrap_latex, self.args))
 
     def _repr_(self):
@@ -302,6 +326,9 @@ class Product(Rule):
 
     def labelled(self):
         return any((arg.labelled() for arg in self.args))
+
+    def atoms(self):
+        return reduce(lambda x, y: x | y, (arg.atoms() for arg in self.args))
 
 
 class Seq(Rule):
@@ -335,10 +362,13 @@ class Seq(Rule):
         return "Seq({})".format(self.arg)
 
     def combsys(self):
-        return SR(1/(1-self.arg.combsys()))
+        return SR(1 / (1 - self.arg.combsys()))
 
     def labelled(self):
         return self.arg.labelled()
+
+    def atoms(self):
+        return self.arg.atoms()
 
 
 class Grammar(SageObject):
@@ -441,3 +471,18 @@ class Grammar(SageObject):
 
     def labelled(self):
         return any((expr.labelled for expr in self.rules.values()))
+
+    def atoms(self):
+        """Return all the atoms (terminals) appearing in the grammar.
+
+        EXAMPLE:
+
+            sage: z = Atom("z")
+            sage: e = Atom("e", size=0)
+            sage: g = Grammar(rules={"B": Union(e, Product(z, "B", "B"))})
+            sage: g.atoms()
+            {e, z}
+        """
+        return reduce(
+            lambda x, y: x | y, (expr.atoms() for expr in self.rules.values())
+        )

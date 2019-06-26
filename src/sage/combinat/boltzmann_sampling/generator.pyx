@@ -136,7 +136,7 @@ cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
     if isinstance(expr, Ref):
         return (REF, weights[expr.name], name_to_id[expr.name])
     elif isinstance(expr, Atom):
-        weight = 1. if expr.size == 0 else weights[expr.name]
+        weight = 1. if expr.size == 0 else weights[expr.name] ** expr.size
         return (ATOM, weight, (expr.name, expr.size))
     elif isinstance(expr, Union):
         args = tuple((_map_all_names_to_ids_expr(name_to_id, weights, arg) for arg in expr.args))
@@ -551,8 +551,13 @@ cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builder
             cumulative_rejected_size += size
             nb_rejections += 1
 
+    statistics = {
+        "size": size,
+        "nb_rejections": nb_rejections,
+        "cumulative_rejected_size": cumulative_rejected_size,
+    }
     if not(size <= size_max and size >= size_min):
-        return None
+        return statistics, None
 
     # Reset the random generator to the state it was just before the simulation
     gmp_randinit_set(rstate.gmp_state, gmp_state)
@@ -565,11 +570,6 @@ cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builder
         obj = labelling(tree, builders, rstate)
     else:
         obj = c_generate(first_rule, rules, builders, rstate)
-    statistics = {
-        "size": size,
-        "nb_rejections": nb_rejections,
-        "cumulative_rejected_size": cumulative_rejected_size,
-    }
     return statistics, obj
 
 class Generator:
@@ -590,6 +590,11 @@ class Generator:
             oracle = SimpleOracle(grammar)
         self.oracle = oracle
         self.grammar = grammar
+        self.atoms = sorted([
+            atom.name
+            for atom in grammar.atoms()
+            if atom.size != 0
+        ])
         # Replace all symbols in the grammar by an integer identifier
         # Use arrays rather than dictionaries
         name_to_id, id_to_name = _map_all_names_to_ids(grammar.rules)
@@ -632,8 +637,9 @@ class Generator:
         return self.builders[symbol_id]
 
     def _precompute_oracle_values(self, z):
+        variables = {self.atoms[i]: z[i] for i in range(len(z))}
         return [
-            self.oracle.eval_rule(self.id_to_name[rule_id], z)
+            self.oracle.eval_rule(self.id_to_name[rule_id], variables)
             for rule_id in range(len(self.id_to_name))
         ]
 
@@ -665,9 +671,7 @@ class Generator:
         if singular:
             if self.singularity is None:
                 values = self.oracle.find_singularity()
-                # XXX. ugly
-                atom_name = list(self.oracle.terminals)[0]
-                self.singularity = values[atom_name]
+                self.singularity = tuple(values[name] for name in self.atoms)
                 z = self.singularity
                 self.oracle_cache[z] = values
             z = self.singularity

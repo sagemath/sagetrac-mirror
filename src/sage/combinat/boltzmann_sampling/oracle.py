@@ -28,8 +28,10 @@ from sage.rings.infinity import Infinity as oo
 from sage.all import SR, var, RR, vector
 from .grammar import Grammar
 
+
 def _diverge(dict, threshold=1e2):
     return any(x not in RR or x < 0 or x > threshold for x in dict.values())
+
 
 def oracle(sys, **kargs):
     """Build different oracles given different inputs
@@ -92,9 +94,9 @@ class SimpleOracle(SageObject):
         # non terminal names of the grammar i.e. combinatorial classes
         self.non_terminals = set(self.combsys.keys())
         # terminal names of the grammar i.e. atoms
-        self.terminals = {str(var) for expr in self.combsys.values()
-                          for var in expr.variables()
-                          if str(var) not in self.non_terminals}
+        self.terminals = {
+            atom.name for atom in grammar.atoms() if atom.size != 0
+        }
         # all atoms are represented by the same variable
         self.combsys.update({v: var(v) for v in self.terminals})
 
@@ -123,7 +125,7 @@ class SimpleOracle(SageObject):
         values = {k: RR(0) for k in self.non_terminals}
         values.update(z)
         new_values = {k: RR(self.combsys[k].subs(**values)) for k in values.keys()}
-        
+
         while vector((values[k] - new_values[k] for k in values.keys())).norm(oo) > self.precision \
         and not _diverge(new_values):
             values = new_values
@@ -148,13 +150,12 @@ class SimpleOracle(SageObject):
     def _repr_(self):
         return "SimpleOracle({})".format(self.combsys)
 
-
     def find_singularity(self, precision=1e-6, zmin=1e-9, zmax=1.-1e-9, divergence=1e2):
         """Given an oracle for a combinatorial system try to find the singularity.
-        
-        The algorithm proceed by dichotomic search. The divergence parameter allows
-        to decide of the divergence of system.
-    
+
+        The algorithm proceed by dichotomic search. The divergence parameter
+        allows to decide of the divergence of system.
+
         EXAMPLE::
 
             sage: from sage.combinat.boltzmann_sampling.oracle import SimpleOracle
@@ -217,9 +218,8 @@ class OracleFromFunctions(SageObject):
         """
         self.sys = sys
         self.precision_ring = precision_ring
-        self.terminals = {str(v) for f in sys.values() for v in f.variables()}
         self.singularity = None
-        
+
     def eval_combsys(self, z):
         """Compute an evaluation of the combinatorial system
         at a given point ``z`` with the oracle's precision.
@@ -256,13 +256,13 @@ class OracleFromFunctions(SageObject):
 
     def set_singularity(self, singularity):
         self.singularity = singularity
-    
+
     def find_singularity(self, *args, **kargs):
         """Given an oracle for a combinatorial system try to find the singularity.
-        
+
         The algorithm proceed by dichotomic search. The divergence parameter allows
         to decide of the divergence of system.
-    
+
         EXAMPLE::
 
             sage: from sage.combinat.boltzmann_sampling.oracle import OracleFromFunctions
