@@ -82,6 +82,36 @@ EXAMPLES::
     sage: height  # random
     6
 
+A last example with labelled grammars:
+
+    sage: leaf = Atom("leaf")
+    sage: u, z = Atom("u", labelled=True), Atom("z", labelled=True)
+    sage: g = Grammar(rules={
+    ....:     "T": Union(leaf, Product(u, "T"), Product(z, "T", "T"))
+    ....: })
+    sage: T(leaf, u, z) = ((1-u) - sqrt((1-u)^2 - 4 * z * leaf)) / (2 * z)
+    sage: o = oracle({"T": T})
+    sage: o.set_singularity({"leaf": 1/4, "u": 1/2, "z": 1/4})
+    sage: generator = Generator(g, oracle=o)
+    sage: tree, stats = generator.gen("T", (10, 20))
+    sage: tree
+    (('z', [1]),
+     'leaf',
+     (('u', [2]),
+      (('u', [7]),
+       (('u', [3]),
+        (('z', [2]),
+         (('u', [8]),
+          (('u', [6]),
+           (('u', [1]),
+            (('z', [0]),
+             (('u', [5]),
+              (('u', [0]),
+               'leaf')),
+             'leaf')))),
+        (('u', [4]),
+         'leaf'))))))
+
 REFERENCES:
 
 .. [DuFlLoSc04] Philippe Duchon, Philippe Flajolet, Guy Louchard, and Gilles
@@ -282,25 +312,32 @@ cdef make_default_builder(rule):
 # user-defined) are called.
 #
 # The produced trees are annotated with:
-# - the size of every subtree, for later use by the labelling algorithm
+# - the size of every subtree with respect to each labelled atom, for later use
+#   by the labelling algorithm
 # - the choices made on the union rules, to pass the information to the other
 #   builders
 
 cdef size_ref_builder(id):
     def build(x):
-        __, __, size = x
-        return (REF, (id, x), size)
+        __, __, sizes = x
+        return (REF, (id, x), sizes)
     return build
 
-cdef size_atom_builder(x):
-    name, size = x
-    return (ATOM, name, size)
+cdef size_atom_builder(labelled_atoms):
+    def build(x):
+        atom_name, atom_size = x
+        sizes = [atom_size if name == atom_name else 0 for name in labelled_atoms]
+        return (ATOM, (atom_name, atom_size), sizes)
+    return build
 
-cdef size_product_builder(builders):
+cdef size_product_builder(builders, labelled_atoms):
     def build(terms):
         t = tuple(builders[i](terms[i]) for i in range(len(terms)))
-        size = sum([s for __, __, s in t])
-        return (PRODUCT, t, size)
+        sizes = [0 for __ in labelled_atoms]
+        for __, __, arg_sizes in t:
+            for i in range(len(arg_sizes)):
+                sizes[i] += arg_sizes[i]
+        return (PRODUCT, t, sizes)
     return build
 
 cdef size_union_builder(builders):
@@ -311,17 +348,17 @@ cdef size_union_builder(builders):
         return (WRAPPED_CHOICE, (index, content), content[2])
     return build
 
-cdef size_builder(name_to_id, rule):
+cdef size_builder(name_to_id, labelled_atoms, rule):
     if isinstance(rule, Ref):
         return size_ref_builder(name_to_id[rule.name])
     elif isinstance(rule, Atom):
-        return size_atom_builder
+        return size_atom_builder(labelled_atoms)
     elif isinstance(rule, Union):
-        subbuilders = [size_builder(name_to_id, component) for component in rule.args]
+        subbuilders = [size_builder(name_to_id, labelled_atoms, component) for component in rule.args]
         return size_union_builder(subbuilders)
     elif isinstance(rule, Product):
-        subbuilders = [size_builder(name_to_id, component) for component in rule.args]
-        return size_product_builder(subbuilders)
+        subbuilders = [size_builder(name_to_id, labelled_atoms, component) for component in rule.args]
+        return size_product_builder(subbuilders, labelled_atoms)
 
 
 # ------------------------------------------------------- #
@@ -434,6 +471,12 @@ cdef c_generate(first_rule, rules, builders, randstate rstate):
 
 # A few helpers first
 
+cdef int position(str s, array):
+    for i in range(len(array)):
+        if s == array[i]:
+            return i
+    return -1
+
 cdef int rand_int(int bound, randstate rstate):
     """Generate a uniform random integer in [0; bound[."""
     cdef int r = rstate.c_random()
@@ -451,7 +494,7 @@ cdef int select(int r, sizes):
         if t < 0:
             return i
 
-cdef gen_partition(bag, sizes, total_size, rstate):
+cdef gen_one_partition(bag, sizes, total_size, rstate):
     """Return a uniform partition of the list ``bag`` where the sizes of the
     elements of the partition are specified in ``sizes``."""
     total_size = total_size
@@ -464,6 +507,21 @@ cdef gen_partition(bag, sizes, total_size, rstate):
         bags[i].append(label)
     return bags
 
+cdef gen_partitions(bags, args_sizes, total_sizes, rstate):
+    transposed = [
+        gen_one_partition(
+            bags[i],
+            [arg_size[i] for arg_size in args_sizes],
+            total_sizes[i],
+            rstate
+        )
+        for i in range(len(bags))
+    ]
+    return [
+        [transposed[i][j] for i in range(len(bags))]
+        for j in range(len(args_sizes))
+    ]
+
 cdef shuffle_array(array, randstate rstate):
     cdef int l = len(array)
     cdef int tmp
@@ -473,37 +531,44 @@ cdef shuffle_array(array, randstate rstate):
         array[j] = array[i - 1]
         array[i - 1] = tmp
 
-cdef inline int tree_size(tree):
-    __, __, size = tree
-    return size
+cdef tree_sizes(tree):
+    __, __, sizes = tree
+    return sizes
 
 # The labelling function
 # Sample a uniform labelling or a structure and apply the (default or
 # user-defined) builders to the resulting tree.
 
-cdef labelling(tree, builders, randstate rstate):
-    bag = list(range(tree_size(tree)))
+cdef labelling(tree, builders, labelled_atoms, randstate rstate):
+    sizes = tree_sizes(tree)
+    bags = [list(range(size)) for size in sizes]
     generated = []
-    todo = [(tree, bag)]
+    todo = [(tree, bags)]
 
     while todo:
-        (type, content, size), bag = todo.pop()
+        (type, content, sizes), bags = todo.pop()
         if type == REF:
             rule_id, children = content
-            todo.append(((FUNCTION, rule_id, size), None))
-            if len(bag) > 1:
-                shuffle_array(bag, rstate)
-            todo.append((children, bag))
+            todo.append(((FUNCTION, rule_id, sizes), None))
+            todo.append((children, bags))
         elif type == ATOM:
-            name = content
-            assert len(bag) == size
-            generated.append((name, bag))
+            (name, size) = content
+            i = position(name, labelled_atoms)
+            if i >= 0:
+                # Label!
+                bag = bags[i]
+                assert len(bag) == size
+                if len(bag) > 1:
+                    shuffle_array(bag, rstate)
+                generated.append((name, bag))
+            else:
+                generated.append((name, size))
         elif type == PRODUCT:
-            sizes = [tree_size(t) for t in content]
-            bags = gen_partition(bag, sizes, size, rstate)
+            args_sizes = [tree_sizes(t) for t in content]
+            args_bags = gen_partitions(bags, args_sizes, sizes, rstate)
             todo.append(((TUPLE, len(content), size), None))
             for i in range(len(content) - 1, -1, -1):
-                todo.append((content[i], bags[i]))
+                todo.append((content[i], args_bags[i]))
         elif type == TUPLE:
             nargs = content
             t = tuple(generated[-nargs:])
@@ -516,7 +581,7 @@ cdef labelling(tree, builders, randstate rstate):
         elif type == WRAPPED_CHOICE:
             (index, tree) = content
             todo.append(((WRAP_CHOICE, index, size), None))
-            todo.append((tree, bag))
+            todo.append((tree, bags))
         elif type == WRAP_CHOICE:
             index = content
             x = generated.pop()
@@ -530,7 +595,7 @@ cdef labelling(tree, builders, randstate rstate):
 # High level interface
 # ------------------------------------------------------- #
 
-cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builders, size_builders=None):
+cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builders, labelled_atoms, size_builders=None):
     """Search for a tree in a given size window."""
     cdef int nb_rejections = 0
     cdef int cumulative_rejected_size = 0
@@ -562,12 +627,13 @@ cdef c_gen(first_rule, rules, int size_min, int size_max, int max_retry, builder
     # Reset the random generator to the state it was just before the simulation
     gmp_randinit_set(rstate.gmp_state, gmp_state)
     if size_builders is not None:
+        assert len(labelled_atoms) > 0
         # Labelled grammar
         obj = c_generate(first_rule, rules, size_builders, rstate)
         __, __, id = first_rule
-        __, __, size = obj
-        tree = (REF, (id, obj), size)
-        obj = labelling(tree, builders, rstate)
+        __, __, sizes = obj
+        tree = (REF, (id, obj), sizes)
+        obj = labelling(tree, builders, labelled_atoms, rstate)
     else:
         obj = c_generate(first_rule, rules, builders, rstate)
     return statistics, obj
@@ -589,12 +655,18 @@ class Generator:
         if oracle is None:
             oracle = SimpleOracle(grammar)
         self.oracle = oracle
+        # Store grammar-related information
         self.grammar = grammar
         self.atoms = sorted([
             atom.name
             for atom in grammar.atoms()
             if atom.size != 0
         ])
+        self.labelled_atoms = [
+            atom.name
+            for atom in grammar.atoms()
+            if atom.size != 0 and atom.labelled()
+        ]
         # Replace all symbols in the grammar by an integer identifier
         # Use arrays rather than dictionaries
         name_to_id, id_to_name = _map_all_names_to_ids(grammar.rules)
@@ -610,7 +682,11 @@ class Generator:
         ]
         if self.grammar.labelled():
             self.size_builders = [
-                size_builder(self.name_to_id, self.grammar.rules[self.id_to_name[id]])
+                size_builder(
+                    self.name_to_id,
+                    self.labelled_atoms,
+                    self.grammar.rules[self.id_to_name[id]]
+                )
                 for id in range(len(self.id_to_name))
             ]
 
@@ -695,6 +771,7 @@ class Generator:
             size_max,
             max_retry,
             self.builders,
+            self.labelled_atoms,
             size_builders=(self.size_builders if self.grammar.labelled() else None)
         )
         return obj, statistics

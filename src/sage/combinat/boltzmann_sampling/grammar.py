@@ -470,7 +470,7 @@ class Grammar(SageObject):
         return {name: rule.combsys() for name, rule in self.rules.items()}
 
     def labelled(self):
-        return any((expr.labelled for expr in self.rules.values()))
+        return any((expr.labelled() for expr in self.rules.values()))
 
     def atoms(self):
         """Return all the atoms (terminals) appearing in the grammar.
