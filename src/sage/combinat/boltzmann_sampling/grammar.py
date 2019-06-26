@@ -52,22 +52,28 @@ class Atom(Rule):
 
         sage: z = Atom("z")
 
-        sage: z = Atom("z", size=4)
+        sage: z = Atom("z", size=4, labelled=True)
 
         sage: x = Atom("x", size=0)
     """
 
-    def __init__(self, name, size=1):
-        """Create an Atom.
+    def __init__(self, name, size=1, labelled=False):
+        r"""Create an Atom.
 
         INPUT:
 
         - ``name`` -- string; names should be unique across a grammar
 
         - ``size`` -- integer (default: 1)
+
+        - ``labelled`` (default: False) -- whether the atom is labelled or not.
+          In the labelled case, the generator module will draw objects
+          according to the labelled distribution (i.e. `P_x[a] =
+          \frac{x^{|a|}{|a|!A(x)}`).
         """
         self.name = name
         self.size = size
+        self._labelled = labelled
 
     def _latex_(self):
         r"""Return the LaTeX representation of an atom.
@@ -110,6 +116,9 @@ class Atom(Rule):
         else:
             return SR(1)
 
+    def labelled(self):
+        return self._labelled
+
 
 class Ref(Rule):
     """Non terminal symbols of a grammar.
@@ -150,6 +159,9 @@ class Ref(Rule):
 
     def combsys(self):
         return var(self.name)
+
+    def labelled(self):
+        return False
 
 
 def _to_rule(r):
@@ -219,6 +231,9 @@ class Union(Rule):
             res += rule.combsys()
         return res
 
+    def labelled(self):
+        return any((arg.labelled() for arg in self.args))
+
 
 class Product(Rule):
     """Product of two or more rules.
@@ -285,6 +300,9 @@ class Product(Rule):
             res *= rule.combsys()
         return res
 
+    def labelled(self):
+        return any((arg.labelled() for arg in self.args))
+
 
 class Seq(Rule):
     """Sequence (with order) of rule.
@@ -297,7 +315,7 @@ class Seq(Rule):
 
         - ``arg`` -- a rule or the name of a grammar symbol (string)
         """
-        #TODO : add
+        # TODO: add
         self.arg = _to_rule(arg)
 
     def _latex_(self):
@@ -312,30 +330,27 @@ class Seq(Rule):
             {\sc Seq}\left(A + B\right)
         """
         return r"{{\sc Seq}}\left({}\right)".format(latex(self.arg))
-    
+
     def _repr_(self):
-        # shall it be copy-pastable?
         return "Seq({})".format(self.arg)
 
     def combsys(self):
         return SR(1/(1-self.arg.combsys()))
-    
+
+    def labelled(self):
+        return self.arg.labelled()
+
 
 class Grammar(SageObject):
     """Context free grammars."""
 
-    def __init__(self, rules=None, labelled=False):
+    def __init__(self, rules=None):
         r"""Create a grammar.
 
         INPUT:
 
         - ``rules`` (default: None) -- dictionary mapping strings (non-terminal
           names) to Rules
-
-        - ``labelled`` (default: False) -- whether the atoms of the grammar are
-          labelled or not. In the labelled case, the generator module will draw
-          objects according to the labelled distribution (i.e.
-          `P_x[a] = \frac{x^{|a|}{|a|!A(x)}`).
 
         EXAMPLES::
 
@@ -355,7 +370,6 @@ class Grammar(SageObject):
             D -> Union(z, Product(z, S, z))
             S -> Union(eps, Product(D, S))
         """
-        self.labelled = labelled
         self.rules = {}
         rules = rules or {}
         for name, rule in rules.items():
@@ -424,3 +438,6 @@ class Grammar(SageObject):
 
     def combsys(self):
         return {name: rule.combsys() for name, rule in self.rules.items()}
+
+    def labelled(self):
+        return any((expr.labelled for expr in self.rules.values()))

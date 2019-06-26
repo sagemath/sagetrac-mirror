@@ -154,7 +154,7 @@ cdef _map_all_names_to_ids_expr(name_to_id, weights, expr):
         rule = _map_all_names_to_ids_expr(name_to_id, weights, expr.arg)
         return (SEQ, 1./(1. - rule[1]), rule)
 
-    
+
 cdef _map_all_names_to_ids_system(name_to_id, id_to_name, weights, rules):
     return [
         _map_all_names_to_ids_expr(name_to_id, weights, rules[id_to_name[i]])
@@ -246,32 +246,30 @@ cdef inline ProductBuilder(builders):
         return tuple(builders[i](terms[i]) for i in range(len(terms)))
     return build
 
-
 cdef inline SeqBuilder(builder):
     def build(terms):
         return list(builder(terms[i]) for i in range(len(terms)))
     return build
 
-
-cdef make_default_builder(rule, labelled=False):
+cdef make_default_builder(rule):
     """Generate the default builders for a rule.
 
     For use with Boltzmann samplers :mod:`sage.combinat.boltzmann_sampling`"""
     if isinstance(rule, Ref):
         return identity
     elif isinstance(rule, Atom):
-        if labelled:
+        if rule.labelled():
             return identity
         else:
             return first
     elif isinstance(rule, Product):
-        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
+        subbuilders = [make_default_builder(component) for component in rule.args]
         return ProductBuilder(subbuilders)
     elif isinstance(rule, Seq):
-        subbuilder = make_default_builder(rule.arg, labelled)
+        subbuilder = make_default_builder(rule.arg)
         return SeqBuilder(subbuilder)
     elif isinstance(rule, Union):
-        subbuilders = [make_default_builder(component, labelled) for component in rule.args]
+        subbuilders = [make_default_builder(component) for component in rule.args]
         return UnionBuilder(*subbuilders)
 
 # ------------------------------------------------------- #
@@ -602,13 +600,10 @@ class Generator:
         self.singularity = None
         # init builders
         self.builders = [
-            make_default_builder(
-                self.grammar.rules[self.id_to_name[id]],
-                labelled=self.grammar.labelled
-            )
+            make_default_builder(self.grammar.rules[self.id_to_name[id]])
             for id in range(len(self.id_to_name))
         ]
-        if self.grammar.labelled:
+        if self.grammar.labelled():
             self.size_builders = [
                 size_builder(self.name_to_id, self.grammar.rules[self.id_to_name[id]])
                 for id in range(len(self.id_to_name))
@@ -696,6 +691,6 @@ class Generator:
             size_max,
             max_retry,
             self.builders,
-            size_builders=(self.size_builders if self.grammar.labelled else None)
+            size_builders=(self.size_builders if self.grammar.labelled() else None)
         )
         return obj, statistics
