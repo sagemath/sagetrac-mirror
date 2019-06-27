@@ -113,15 +113,20 @@ class Atom(Rule):
         return self.name
 
     def combsys(self):
+        """Translate the expression into a symbolic formula using the symbolic
+        method of analytic combinatorics."""
         if self.size > 0:
             return var(self.name) ** self.size
         else:
             return SR(1)
 
     def labelled(self):
+        """Return True if the expression contains at least one labelled
+        atom."""
         return self._labelled
 
     def atoms(self):
+        """Return the set of atoms containted in the expression."""
         return {self}
 
     def __hash__(self):
@@ -174,12 +179,17 @@ class Ref(Rule):
         return self.name
 
     def combsys(self):
+        """Translate the expression into a symbolic formula using the symbolic
+        method of analytic combinatorics."""
         return var(self.name)
 
     def labelled(self):
+        """Return True if the expression contains at least one labelled
+        atom."""
         return False
 
     def atoms(self):
+        """Return the set of atoms containted in the expression."""
         return set()
 
 
@@ -245,15 +255,20 @@ class Union(Rule):
         return "Union({})".format(", ".join(map(repr, self.args)))
 
     def combsys(self):
+        """Translate the expression into a symbolic formula using the symbolic
+        method of analytic combinatorics."""
         res = SR(0)
         for rule in self.args:
             res += rule.combsys()
         return res
 
     def labelled(self):
+        """Return True if the expression contains at least one labelled
+        atom."""
         return any((arg.labelled() for arg in self.args))
 
     def atoms(self):
+        """Return the set of atoms containted in the expression."""
         return reduce(lambda x, y: x | y, (arg.atoms() for arg in self.args))
 
 
@@ -319,15 +334,20 @@ class Product(Rule):
         return "Product({})".format(", ".join(map(repr, self.args)))
 
     def combsys(self):
+        """Translate the expression into a symbolic formula using the symbolic
+        method of analytic combinatorics."""
         res = SR(1)
         for rule in self.args:
             res *= rule.combsys()
         return res
 
     def labelled(self):
+        """Return True if the expression contains at least one labelled
+        atom."""
         return any((arg.labelled() for arg in self.args))
 
     def atoms(self):
+        """Return the set of atoms containted in the expression."""
         return reduce(lambda x, y: x | y, (arg.atoms() for arg in self.args))
 
 
@@ -362,12 +382,17 @@ class Seq(Rule):
         return "Seq({})".format(self.arg)
 
     def combsys(self):
+        """Translate the expression into a symbolic formula using the symbolic
+        method of analytic combinatorics."""
         return SR(1 / (1 - self.arg.combsys()))
 
     def labelled(self):
+        """Return True if the expression contains at least one labelled
+        atom."""
         return self.arg.labelled()
 
     def atoms(self):
+        """Return the set of atoms containted in the expression."""
         return self.arg.atoms()
 
 
@@ -467,15 +492,18 @@ class Grammar(SageObject):
         )
 
     def combsys(self):
+        """Translate the grammar into a symbolic system of equations using the
+        symbolic method of analytic combinatorics."""
         return {name: rule.combsys() for name, rule in self.rules.items()}
 
     def labelled(self):
+        """Return True if the grammar contains at least one labelled atom."""
         return any((expr.labelled() for expr in self.rules.values()))
 
     def atoms(self):
         """Return all the atoms (terminals) appearing in the grammar.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: z = Atom("z")
             sage: e = Atom("e", size=0)

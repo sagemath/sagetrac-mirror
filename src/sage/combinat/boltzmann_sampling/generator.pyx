@@ -84,6 +84,8 @@ EXAMPLES::
 
 A last example with labelled grammars:
 
+EXAMPLE::
+
     sage: leaf = Atom("leaf")
     sage: u, z = Atom("u", labelled=True), Atom("z", labelled=True)
     sage: g = Grammar(rules={
@@ -223,10 +225,10 @@ def UnionBuilder(*builders):
     helper: write a auxilliary builder for each component of the union and
     compose them with ``UnionBuilder``.
 
-    EXAMPLES::
+    Assume the symbol ``D`` is defined by ``Union("A", "B", "C")``, then
+    defining a builder for D would look like:
 
-        Assume the symbol ``D`` is defined by ``Union("A", "B", "C")``, then
-        defining a builder for D would look like:
+    EXAMPLE::
 
         sage: def build_A(args):
         ....:     # Do something
@@ -242,8 +244,10 @@ def UnionBuilder(*builders):
 
         sage: build_D = UnionBuilder(build_A, build_B, build_C)
 
-        For instance, for binary trees defined by ``B = Union(leaf, Product(z,
-        B, B))``, this could be:
+    For instance, for binary trees defined by ``B = Union(leaf, Product(z, B,
+    B))``, this could be:
+
+    EXAMPLE::
 
         sage: def build_leaf(_):
         ....:     return BinaryTree()
