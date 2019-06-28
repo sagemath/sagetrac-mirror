@@ -1425,13 +1425,20 @@ class BooleanFormula(object):
             i += 1
         return str[i]
         
-    def TautologicallyImplies(self,other):
+    def getindexTrue(formula):
+    store = list()
+    table = formula.truthtable().get_table_list()
+    for i in range(1,len(table)):
+        if table[i][-1]:
+            store.append(i)
+    return store
 
-    tableSelf = self.truthtable().get_table_list()
-    tableOther = other.truthtable().get_table_list()
-   
-    for i in range(1,len(tableSelf)):
-        if tableSelf[i][-1] and not tableOther[i][-1]:
-            return False
-    return True
-
+    def isConsistent(listOfFormula):
+        store = getindexTrue(listOfFormula[0])
+        copy = getindexTrue(listOfFormula[0])
+        for i in range(1,len(listOfFormula)):
+            table = listOfFormula[i].truthtable().get_table_list()
+            for j in range(len(store)):
+                if not table[store[j]][-1] and store[j] in copy:
+                    copy.remove(store[j])
+        return not copy == []
