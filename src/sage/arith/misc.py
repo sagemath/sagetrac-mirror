@@ -5432,6 +5432,50 @@ def sum_of_k_squares(k, n):
     return tuple(t)
 
 
+def digit_sum(n, b=10):
+    r"""
+    Calculate the sum of digits in `n`.
+
+    INPUT:
+
+    - ``n`` -- integer; number to sum digits of
+
+    - ``b`` -- integer (default: `10`); number base to convert `n` to.
+
+    OUTPUT: digit sum as integer
+
+    EXAMPLES::
+
+        sage: digit_sum(98790817298279494393898898989322344893275679934893489834893489932)
+        395
+
+        sage: digit_sum(98790817298279494393898898989322344893275679934893489834893489932,10)
+        395
+
+        sage: digit_sum(98790817298279494393898898989322344893275679934893489834893489932,99283)
+        665012
+
+        sage: digit_sum(19284,2)
+        7
+
+        sage: digit_sum(1001,3)
+        5
+
+        sage: digit_sum(1001,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: base (=1) must be greater than 1
+
+    SEEALSO:
+        :func:`Integer.digits <sage.rings.integer.Integer.digits>` -- used to calculate sum.
+    """
+    n = ZZ(n)
+    b = ZZ(b)
+    if b < 2:
+        raise ValueError("base (=%s) must be greater than 1" %b)
+    return sum(k for k in n.digits(base=b))
+
+
 def subfactorial(n):
     r"""
     Subfactorial or rencontres numbers, or derangements: number of
