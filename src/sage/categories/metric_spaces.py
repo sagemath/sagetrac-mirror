@@ -245,9 +245,9 @@ class MetricSpaces(MetricSpacesCategory):
 
             TESTS::
 
-                sage: TestSuite(Sets().Metric().Complete()).run()
                 sage: Sets().Metric().Complete.__module__
                 'sage.categories.metric_spaces'
+                sage: TestSuite(Sets().Metric().Complete()).run()
             """
             return self._with_axiom('Complete')
 

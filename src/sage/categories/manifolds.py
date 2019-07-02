@@ -147,9 +147,9 @@ class Manifolds(Category_over_base_ring):
 
             TESTS::
 
-                sage: TestSuite(Manifolds(RR).Differentiable()).run()
                 sage: Manifolds(RR).Differentiable.__module__
                 'sage.categories.manifolds'
+                sage: TestSuite(Manifolds(RR).Differentiable()).run()
             """
             return self._with_axiom('Differentiable')
 
@@ -167,9 +167,9 @@ class Manifolds(Category_over_base_ring):
 
             TESTS::
 
-                sage: TestSuite(Manifolds(RR).Smooth()).run()
                 sage: Manifolds(RR).Smooth.__module__
                 'sage.categories.manifolds'
+                sage: TestSuite(Manifolds(RR).Smooth()).run()
             """
             return self._with_axiom('Smooth')
 
@@ -187,9 +187,9 @@ class Manifolds(Category_over_base_ring):
 
             TESTS::
 
-                sage: TestSuite(Manifolds(RR).Analytic()).run()
                 sage: Manifolds(RR).Analytic.__module__
                 'sage.categories.manifolds'
+                sage: TestSuite(Manifolds(RR).Analytic()).run()
             """
             return self._with_axiom('Analytic')
 
@@ -208,9 +208,9 @@ class Manifolds(Category_over_base_ring):
 
             TESTS::
 
-                sage: TestSuite(Manifolds(RR).AlmostComplex()).run()
                 sage: Manifolds(RR).AlmostComplex.__module__
                 'sage.categories.manifolds'
+                sage: TestSuite(Manifolds(RR).AlmostComplex()).run()
             """
             return self._with_axiom('AlmostComplex')
 
@@ -228,9 +228,9 @@ class Manifolds(Category_over_base_ring):
 
             TESTS::
 
-                sage: TestSuite(Manifolds(CC).Complex()).run()
                 sage: Manifolds(CC).Complex.__module__
                 'sage.categories.manifolds'
+                sage: TestSuite(Manifolds(CC).Complex()).run()
             """
             return ComplexManifolds(self.base())._with_axioms(self.axioms())
 

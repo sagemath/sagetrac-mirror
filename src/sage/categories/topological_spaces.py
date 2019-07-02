@@ -72,9 +72,9 @@ class TopologicalSpaces(TopologicalSpacesCategory):
 
             TESTS::
 
-                sage: TestSuite(Sets().Topological().Connected()).run()
                 sage: Sets().Topological().Connected.__module__
                 'sage.categories.topological_spaces'
+                sage: TestSuite(Sets().Topological().Connected()).run()
             """
             return self._with_axiom('Connected')
 
@@ -90,9 +90,9 @@ class TopologicalSpaces(TopologicalSpacesCategory):
 
             TESTS::
 
-                sage: TestSuite(Sets().Topological().Compact()).run()
                 sage: Sets().Topological().Compact.__module__
                 'sage.categories.topological_spaces'
+                sage: TestSuite(Sets().Topological().Compact()).run()
             """
             return self._with_axiom('Compact')
 
