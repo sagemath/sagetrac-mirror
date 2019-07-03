@@ -847,7 +847,7 @@ cdef class CachedFunction(object):
             ....:     return x
             ....:
             sage: f.is_pickled()
-        True
+            True
         """
         return self.do_pickle
 
