@@ -1176,7 +1176,7 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         d = {}
         try:
             for key, value in self.__dict__.items():
-                if isinstance(value, CachedFunction) and value.is_pickled():
+                if isinstance(value, CachedFunction) and value.is_pickled_with_cache():
                     d[key] = value
         except AttributeError:
             pass
