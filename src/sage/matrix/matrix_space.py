@@ -948,8 +948,8 @@ class MatrixSpace(UniqueRepresentation, Parent):
                     else:
                         # action of base ring
                         return sage.structure.coerce.LeftModuleAction(S, self)
-            except TypeError:
-                return None
+        except TypeError:
+            return None
 
     def _coerce_map_from_(self, S):
         """
