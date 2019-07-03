@@ -830,6 +830,27 @@ cdef class CachedFunction(object):
         """
         return _cached_function_unpickle, (self.__module__, self.__name__, self.cache)
 
+    def is_pickled(self):
+        """
+        Check if this cached function is pickled.
+
+        EXAMPLES::
+
+            sage: @cached_function
+            ....: def f(x):
+            ....:     return x
+            ....:
+            sage: f.is_pickled()
+            False
+            sage: @cached_function(do_pickle=True)
+            ....: def f(x):
+            ....:     return x
+            ....:
+            sage: f.is_pickled()
+        True
+        """
+        return self.do_pickle
+
     #########
     ## Introspection
     ##
@@ -1436,6 +1457,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
 
 weak_cached_function = decorator_keywords(WeakCachedFunction)
+
 
 class CachedMethodPickle(object):
     """

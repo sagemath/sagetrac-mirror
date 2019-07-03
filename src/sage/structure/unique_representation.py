@@ -1,18 +1,7 @@
 r"""
 Unique Representation
 
-Abstract classes for cached and unique representation behavior.
-
-.. SEEALSO::
-
-   :class:`sage.structure.factory.UniqueFactory`
-
-AUTHORS:
-
-- Nicolas M. Thiery (2008): Original version.
-- Simon A. King (2013-02): Separate cached and unique representation.
-- Simon A. King (2013-08): Extended documentation.
-
+This modules defines abstract classes for cached and unique representation behavior.
 
 What is a cached representation?
 ================================
@@ -542,6 +531,18 @@ provide unique representation behaviour, in spite of its name! Hence, for
 unique representation behaviour, one has to implement hash and equality test
 accordingly, for example by inheriting from
 :class:`~sage.misc.fast_methods.WithEqualityById`.
+
+.. SEEALSO::
+
+   :class:`sage.structure.factory.UniqueFactory`
+
+AUTHORS:
+
+- Nicolas M. Thiery (2008): Original version.
+
+- Simon A. King (2013-02): Separate cached and unique representation.
+
+- Simon A. King (2013-08): Extended documentation.
 
 """
 #*****************************************************************************
@@ -1151,15 +1152,13 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
 
         EXAMPLES::
 
-            sage: cython('''from sage.structure.unique_representation import UniqueRepresentation
-            ....: from sage.misc.cachefunc import cached_method
-            ....: class X(UniqueRepresentation):
+            sage: class X(UniqueRepresentation):
             ....:     def __init__(self, x):
             ....:         self._x = x
             ....:     @cached_method(do_pickle=True)
             ....:     def genus(self):
             ....:         return len(self._x)
-            ....: ''')
+            ....:
             sage: import __main__; __main__.X = X  # not needed in an interactive session
             sage: a = X((1,2,3))
             sage: a.genus()
@@ -1176,15 +1175,9 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         from sage.misc.cachefunc import CachedFunction
         d = {}
         try:
-            for i in self.__dict__:
-                if isinstance(self.__dict__[i], CachedFunction):
-                    d[i] = self.__dict__[i]
-        except AttributeError:
-            pass
-
-        # for objects of extension classes
-        try:
-            d['__cached_methods'] = self.__cached_methods
+            for key, value in self.__dict__.items():
+                if isinstance(value, CachedFunction) and value.is_pickled():
+                    d[key] = value
         except AttributeError:
             pass
 
@@ -1216,8 +1209,7 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
             sage: b.genus.cache
             3
         """
-        for i in d:
-            self.__dict__[i] = d[i]
+        self.__dict__.update(d)
 
     def __copy__(self):
         """
