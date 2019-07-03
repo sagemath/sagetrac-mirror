@@ -538,11 +538,11 @@ accordingly, for example by inheriting from
 
 AUTHORS:
 
-- Nicolas M. Thiery (2008): Original version.
+- Nicolas M. Thiery (2008): initial version
 
-- Simon A. King (2013-02): Separate cached and unique representation.
+- Simon A. King (2013-02): separated cached and unique representation
 
-- Simon A. King (2013-08): Extended documentation.
+- Simon A. King (2013-08): extended documentation
 
 """
 #*****************************************************************************

@@ -1,10 +1,6 @@
 r"""
 Factory for cached representations
 
-.. SEEALSO::
-
-    :mod:`sage.structure.unique_representation`
-
 Using a :class:`UniqueFactory` is one way of implementing a *cached
 representation behaviour*. In spite of its name, using a
 :class:`UniqueFactory` is not enough to ensure the *unique representation
@@ -34,6 +30,10 @@ argument preprocessing is not needed or the preprocess is not very
 sophisticated, then generally
 :class:`~sage.structure.unique_representation.CachedRepresentation` is much
 easier to use than a factory.
+
+.. SEEALSO::
+
+    :mod:`sage.structure.unique_representation`
 
 AUTHORS:
 
