@@ -839,6 +839,126 @@ def stirling_number2(n, k, algorithm=None):
         raise ValueError("unknown algorithm: %s" % algorithm)
 
 
+def binom_trans(a, n=None):
+    r'''
+    Returns the binomial transform (or element of the transform) of a sequence `a`.
+
+    INPUT:
+
+    - ``a`` -- iterable; sequence to transform
+
+    - ``n`` -- integer (default: None); If set, outputs only element of binomial transform at index `n`.
+      Must be greater than `-1`, less than size of `a`
+
+    OUTPUT: Binomial transform as list OR element of binomial transform
+
+    EXAMPLES::
+
+        sage: binom_trans([2^n for n in [0..9]])
+        [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683]
+
+        sage: binom_trans([catalan_number(n) for n in [0..9]])
+        [1, 2, 5, 15, 51, 188, 731, 2950, 12235, 51822]
+
+        sage: binom_trans([fibonacci(n) for n in [0..9]])
+        [0, 1, 3, 8, 21, 55, 144, 377, 987, 2584]
+
+        sage: binom_trans([euler_number(n) for n in [0..9]])
+        [1, 1, 0, -2, 0, 16, 0, -272, 0, 7936]
+
+        sage: binom_trans([(n*(n+1))/2 for n in [0..9]])
+        [0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912]
+
+        sage: binom_trans([2^n for n in [0..9]], 5)
+        243
+
+        sage: binom_trans([catalan_number(n) for n in [0..9]], 2)
+        5
+
+        sage: binom_trans([(n*(n+1))/2 for n in [0..9]], 9)
+        6912
+
+        sage: binom_trans([(n*(n+1))/2 for n in [0..9]], 10)
+        Traceback (most recent call last):
+        ...
+        ValueError: Index out of range: n (=10) must be greater than -1 and less then len(a) (=10)
+
+        sage: binom_trans([(n*(n+1))/2 for n in [0..9]], -2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Index out of range: n (=-2) must be greater than -1 and less then len(a) (=10)
+
+    SEEALSO:
+        :func:`binom_trans_inv <binom_trans_inv>`
+
+    REFERENCES:
+        https://oeis.org/wiki/Binomial_transform
+    '''
+    if n == None:
+        return [sum(binomial(k,j) * a[j] for j in range(0,k+1)) for k in range(0,len(a))]
+    n = ZZ(n)
+    if n < 0 or n >= len(a):
+        raise ValueError("Index out of range: n (=%s) must be greater than -1 and less then len(a) (=%s)" %(n,len(a)))
+    return sum(binomial(n,j) * a[j] for j in range(0,n+1))
+
+
+def binom_trans_inv(a, n=None):
+    r'''
+    Returns the inverse binomial transform (or element of the transform) of a sequence `a`.
+
+    INPUT:
+
+    - ``a`` -- iterable; sequence to transform
+
+    - ``n`` -- integer (default: None); If set, outputs only element of inverse transform at index `n`.
+      Must be greater than `-1`, less than size of `a`
+
+    OUTPUT: Inverse binomial transform as list OR element of inverse binomial transform
+
+    EXAMPLES::
+
+        sage: binom_trans_inv(binom_trans([0,1,2,3,4,5]))
+        [0, 1, 2, 3, 4, 5]
+
+        sage: binom_trans_inv([4^n for n in [0..9]])
+        [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683]
+
+        sage: binom_trans_inv([0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912])
+        [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
+
+        sage: binom_trans_inv([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584])
+        [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+        sage: binom_trans_inv([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], 5)
+        5
+
+        sage: [binom_trans_inv([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], n) for n in [6..8]]
+        [8, 13, 21]
+
+        sage: binom_trans_inv([(n*(n+1))/2 for n in [0..9]], 10)
+        Traceback (most recent call last):
+        ...
+        ValueError: Index out of range: n (=10) must be greater than -1 and less then len(a) (=10)
+
+        sage: binom_trans_inv([(n*(n+1))/2 for n in [0..9]], -2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Index out of range: n (=-2) must be greater than -1 and less then len(a) (=10)
+
+    SEEALSO:
+        :func:`binom_trans <binom_trans>`
+
+    REFERENCES:
+        https://oeis.org/wiki/Binomial_transform
+    '''
+    if n == None:
+        return [sum((-1)**(k-j) * binomial(k,j) * a[j] for j in range(0,k+1)) for k in range(0,len(a))]
+    n = ZZ(n)
+    if n < 0 or n >= len(a):
+        raise ValueError("Index out of range: n (=%s) must be greater than -1 and less then len(a) (=%s)" %(n,len(a)))
+    return sum((-1)**(n-j) * binomial(n,j) * a[j] for j in range(0,n+1))
+
+
 class CombinatorialObject(SageObject):
     def __init__(self, l, copy=True):
         """

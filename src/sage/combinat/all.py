@@ -7,6 +7,7 @@ from sage.misc.lazy_import import lazy_import
 
 from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
+        binom_trans, binom_trans_inv, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
         UnionCombinatorialClass, MapCombinatorialClass, \
         InfiniteAbstractCombinatorialClass, \
