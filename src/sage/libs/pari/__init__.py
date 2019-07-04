@@ -179,9 +179,16 @@ def _get_pari_instance():
     #    as large as the complete virtual stack.
     # As a simple heuristic, we set the virtual stack to 1/4 of the
     # virtual memory.
+    from sage import doctest
     from sage.misc.getusage import virtual_memory_limit
 
     sizemax = virtual_memory_limit() // 4
+
+    # When running the doctests use even less, as not all tests need to use
+    # Pari extensively in the first place, and we typically try to limit the
+    # virtual memory usage of doctests
+    if doctest.DOCTEST_MODE:
+        sizemax //= 2
 
     from sage.env import CYGWIN_VERSION
     if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
