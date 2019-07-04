@@ -300,7 +300,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef _neg_(self):
         return self._new_generic([-x for x in self.list(copy=False)])
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         r"""
         Test whether this polynomial is zero.
 
@@ -316,7 +316,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.degree() < 0
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         r"""
         Test whether this polynomial is 1.
 
@@ -4650,7 +4650,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.gcd(q)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Order in Number Field in a with defining polynomial x^2 - 5 does not provide a gcd implementation for univariate polynomials
+            NotImplementedError: Order in Number Field in a with defining polynomial x^2 - 5 with a = -2.236067977499790? does not provide a gcd implementation for univariate polynomials
             sage: S.<x> = O.number_field()[]
             sage: O._gcd_univariate_polynomial = lambda f,g : R(S(f).gcd(S(g)))
             sage: p.gcd(q)
@@ -4925,7 +4925,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return len(self.exponents()) == 1 and self.leading_coefficient() == 1
 
-    cpdef bint is_term(self):
+    cpdef bint is_term(self) except -1:
         """
         Return ``True`` if this polynomial is a nonzero element of the
         base ring times a power of the variable.
@@ -10617,7 +10617,7 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __nonzero__(self):
         return bool(self.__coeffs)
 
-    cpdef bint is_term(self):
+    cpdef bint is_term(self) except -1:
         """
         Return ``True`` if this polynomial is a nonzero element of the
         base ring times a power of the variable.
