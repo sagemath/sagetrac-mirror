@@ -2,20 +2,6 @@ from .kunz_cone import kunz_cone
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.integer_mod_ring import Integers
 
-
-def sort_vertices(orders, vectors):
-    """
-    assumes orders to the number of appearances of the vectors
-    """
-    pass
-
-def get_Vrep(dimension):
-    r"""
-    Return the Vrepresentation of KunzCone as Vectors.
-    """
-    P = kunz_cone(dimension)
-    return [vector(i) for i in P.Vrepresentation()]
-
 def get_incident_count(dimension):
     r"""
     Get incident count for each entry in the Vrepr()
@@ -47,8 +33,10 @@ def apply_map(g,b):
         lst[(g*(i+1))-1] = b[i]
     return vector(lst)
 
-def new_vertex_order(dimension, chunksize):
-    dic = special_dic(dimension)
+def sort_vertices(Vrep, incident_count, chunksize):
+    Vrep = [vector(i) for i in Vrep]
+    dimension = len(Vrep[0]) + 1
+    dic = special_dic(dimension, Vrep, incident_count)
     counter = 0
     [shift_dics2, result_dic] = obtain_next_vertices(dic[next_key_of_special_dic(dic)], chunksize)
     shift_dics = [[i for i in j] for j in shift_dics2]
@@ -104,9 +92,7 @@ def next_key_of_special_dic(dic):
             result = key
     return result
 
-def special_dic(dimension):
-    Vrep = get_Vrep(dimension)
-    incident_count = get_incident_count(dimension)
+def special_dic(dimension, Vrep, incident_count):
     dic = {}
     r = Integers(dimension)
     gens = r.unit_gens()

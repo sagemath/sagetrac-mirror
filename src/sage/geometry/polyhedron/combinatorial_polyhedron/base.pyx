@@ -105,6 +105,8 @@ from sage.rings.integer cimport smallInteger
 from cysignals.signals cimport sig_check, sig_on, sig_off, sig_block, sig_unblock
 from cysignals.memory cimport sig_free, sig_calloc
 from .bit_vector_operations cimport parallel_f_vector
+from .kunz_cone import kunz_cone
+from .sort_vertices import sort_vertices
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -281,6 +283,12 @@ cdef class CombinatorialPolyhedron(SageObject):
         # ``self._length_edges_list*2*sizeof(size_t *)``.
         self._length_edges_list = 16348
 
+        if isinstance(data, numbers.Integral):
+            data = kunz_cone(data)
+            n_lines = 0
+            incident_count = [sum(1 for _ in Vrep.incident()) for Vrep in data.Vrepresentation()]
+            print(sort_vertices(data.Vrepresentation(), incident_count, 64))
+
         if isinstance(data, Polyhedron_base):
             # input is ``Polyhedron``
             Vrepr = data.Vrepresentation()
@@ -359,19 +367,6 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             self._n_facets = self.bitrep_facets.n_faces
 
-        elif isinstance(data, numbers.Integral):
-            # To construct a trivial polyhedron, equal to its affine hull,
-            # one can give an Integer as Input.
-            if data < -1:
-                ValueError("any polyhedron must have dimension at least -1")
-            self._n_facets = 0
-            self._dimension = data
-
-            # Initializing the facets in their Bit-representation.
-            self.bitrep_facets = facets_tuple_to_bit_repr_of_facets((), 0)
-
-            # Initializing the Vrepr as their Bit-representation.
-            self.bitrep_Vrepr = facets_tuple_to_bit_repr_of_Vrepr((), 0)
 
         else:
             # Input is a "list" of facets.
