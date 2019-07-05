@@ -952,16 +952,20 @@ if [ -f spkg-postinst ]; then
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then
-    # Drop our sage-spkg's shared lock, and try to call sage-rebase.sh
-    # under an exclusive lock
-    sage-flock -u 200
-
     # Rebase after installing each package--in case any packages load this
     # package at build time we need to ensure during the build that no binaries
     # have conflicting address spaces
-    echo "Waiting for rebase lock"
-    sage-flock -x "$SAGE_LOCAL/var/lock/rebase.lock" \
-        sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
+    #
+    # Convert the existing shared lock to an exclusive lock; this isn't
+    # necessarily atomic, so another process *may* grab a shared lock in the
+    # meantime and keep us waiting.
+    echo "Waiting for rebase lock..."
+    sage-flock -x 200
+
+    sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
+
+    # Explicitly release the flock
+    sage-flock -u 200
 fi
 
 
