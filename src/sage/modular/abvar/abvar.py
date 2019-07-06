@@ -1166,18 +1166,21 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         base_field = self.base_ring()
         return ModularAbelianVariety(groups, lattice, base_field, check=False)
 
-    def quotient(self, other):
+    def quotient(self, other, map_to_quotient=True):
         """
         Compute the quotient of self and other, where other is either an
         abelian subvariety of self or a finite subgroup of self.
 
         INPUT:
 
-
         -  ``other`` - a finite subgroup or subvariety
+        -  ``map_to_quotient`` -- (default: ``True``)
 
 
-        OUTPUT: a pair (A, phi) with phi the quotient map from self to A
+        OUTPUT:
+            - either ``A`` or the tuple ``(A, phi)``, where
+                - ``A`` is the quotient of ``self`` by ``other``
+                - ``phi`` is the quotient map from ``self`` to ``A``
 
         EXAMPLES: We quotient `J_0(33)` out by an abelian
         subvariety::
@@ -1202,8 +1205,17 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Finite subgroup with invariants [10, 10] over QQ of Abelian variety J0(33) of dimension 3
             sage: J0(11).direct_product(J1(13))
             Abelian variety J0(11) x J1(13) of dimension 3
+
+        Set ``map_to_quotient=False`` to only return the quotient. ::
+
+            sage: J = J0(23)
+            sage: J.quotient(J.cuspidal_subgroup(), map_to_quotient=False)
+            Abelian variety factor of dimension 2 of J0(23)
         """
-        return self / other
+        if map_to_quotient:
+            return self / other
+        else:
+            return (self / other)[0]
 
     def __truediv__(self, other):
         """
