@@ -919,28 +919,86 @@ class Polytopes():
              [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
-    def snub_cube(self, backend=None):
+    def snub_cube(self, exact=False, base_ring=None, backend=None, verbose=False):
         """
         Return a snub cube.
 
         The snub cube is an Archimedean solid. It has 24 vertices and 38 faces.
         For more information see the :wikipedia:`Snub_cube`.
 
-        It uses the real double field for the coordinates.
+        The constant `z` used in constructing this polytope is the reciprocal
+        of the tribonacci constant, that is, the solution of the equation
+        `x^3 + x^2 + x - 1 = 0`.
+        See :wikipedia:`Generalizations_of_Fibonacci_numbers#Tribonacci_numbers`.
 
         INPUT:
 
-        - ``backend`` -- the backend to use to create the polytope.
+        - ``exact`` -- (boolean, default ``False``) if ``True`` use exact
+          coordinates instead of floating point approximations
+
+        - ``base_ring`` -- the field to use. If ``None`` (the default), construct
+          the exact number field needed (if ``exact`` is ``True``) or default
+          to ``RDF`` (if ``exact`` is ``True``).
+
+        - ``backend`` -- the backend to use to create the polytope.  If ``None``
+          (the default), the backend will be selected automatically.
 
         EXAMPLES::
 
-            sage: sc = polytopes.snub_cube()
-            sage: sc.f_vector()
+            sage: sc_inexact = polytopes.snub_cube(exact=False)
+            sage: sc_inexact
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
+            sage: sc_inexact.f_vector()
             (1, 24, 60, 38, 1)
+            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
+            sage: sc_exact.f_vector()               # long time
+            (1, 24, 60, 38, 1)
+            sage: sc_exact.vertices()               # long time
+            (A vertex at (-1, -z, -z^2),
+             A vertex at (-z^2, -1, -z),
+             A vertex at (-z, -z^2, -1),
+             A vertex at (-1, z^2, -z),
+             A vertex at (-z, -1, z^2),
+             A vertex at (z^2, -z, -1),
+             A vertex at (z, -1, -z^2),
+             A vertex at (-z^2, z, -1),
+             A vertex at (-1, -z^2, z),
+             A vertex at (z, z^2, -1),
+             A vertex at (-1, z, z^2),
+             A vertex at (z^2, -1, z),
+             A vertex at (-z, 1, -z^2),
+             A vertex at (z^2, 1, -z),
+             A vertex at (-z^2, -z, 1),
+             A vertex at (-z, z^2, 1),
+             A vertex at (-z^2, 1, z),
+             A vertex at (1, -z^2, -z),
+             A vertex at (1, -z, z^2),
+             A vertex at (1, z, -z^2),
+             A vertex at (z, -z^2, 1),
+             A vertex at (z, 1, z^2),
+             A vertex at (z^2, z, 1),
+             A vertex at (1, z^2, z))
+            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
+            True
         """
-        base_ring = RDF
-        tsqr33 = 3 * base_ring(33).sqrt()
-        z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1) / 3
+        def construct_z(field):
+            # z here is the reciprocal of the tribonacci constant, that is, the
+            # solution of the equation x^3 + x^2 + x - 1 = 0.
+            tsqr33 = 3 * field(33).sqrt()
+            return ((17 + tsqr33)**QQ((1, 3)) - (-17 + tsqr33)**QQ((1, 3)) - 1) / 3
+
+        if exact and base_ring is None:
+            # construct the exact number field
+            from sage.rings.number_field.number_field import NumberField
+            R = QQ['x']
+            f = R([-1,1,1,1])
+            embedding = construct_z(AA)
+            base_ring = NumberField(f, name='z', embedding=embedding)
+            z = base_ring.gen()
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            z = construct_z(base_ring)
 
         verts = []
         z2 = z ** 2
@@ -956,7 +1014,7 @@ class Polytopes():
                         v = [f * z, e, g * z2]
                         for p in A3:
                             verts += [p(v)]
-        return Polyhedron(vertices=verts, base_ring=base_ring)
+        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def buckyball(self, exact=True, base_ring=None, backend=None):
         r"""
@@ -987,7 +1045,7 @@ class Polytopes():
             sage: bb.f_vector()                # long time
             (1, 60, 90, 32, 1)
             sage: bb.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1048,7 +1106,7 @@ class Polytopes():
             verts.extend(p(x) for x in gens)
 
         if exact:
-            return Polyhedron(vertices=verts,base_ring=K)
+            return Polyhedron(vertices=verts,base_ring=K,backend=backend)
         else:
             verts = [(RR(x), RR(y), RR(z)) for x, y, z in verts]
             return Polyhedron(vertices=verts, backend=backend)
@@ -1079,7 +1137,7 @@ class Polytopes():
             sage: id.f_vector()                # long time
             (1, 30, 60, 32, 1)
             sage: id.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1141,7 +1199,7 @@ class Polytopes():
             sage: td.f_vector()
             (1, 60, 90, 32, 1)
             sage: td.base_ring()
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         Its faces are 20 triangles and 12 regular decagons::
 
@@ -1297,7 +1355,7 @@ class Polytopes():
             sage: rid.f_vector()                # long time
             (1, 60, 120, 62, 1)
             sage: rid.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1365,7 +1423,7 @@ class Polytopes():
             sage: ti.f_vector()                # long time
             (1, 120, 180, 62, 1)
             sage: ti.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         The implementation using floating point approximations is much faster::
 
@@ -1431,7 +1489,12 @@ class Polytopes():
         Unfortunately, no polyhedra backend supports the construction of the
         snub dodecahedron at the moment::
 
-            sage: sd = polytopes.snub_dodecahedron()
+            sage: sd = polytopes.snub_dodecahedron() # py2
+            sage: sd = polytopes.snub_dodecahedron() # py3
+            doctest:warning
+            ...
+            UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
+
             sage: sd.f_vector() # not tested
             (1, 60, 150, 92, 1)
             sage: sd.base_ring() # not tested
@@ -1941,8 +2004,8 @@ class Polytopes():
             sage: K = QuadraticField(2, 'sqrt2')
             sage: sqrt2 = K.gen()
             sage: polytopes.parallelotope([ (1,sqrt2), (1,-1) ])
-            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining
-            polynomial x^2 - 2)^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining 
+            polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as the convex hull of 4 vertices
         """
         from sage.modules.free_module_element import vector
         from sage.structure.sequence import Sequence
