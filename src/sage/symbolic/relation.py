@@ -628,6 +628,9 @@ def solve(f, *args, **kwds):
     - ``domain`` - string (default: 'complex'); setting this to 'real'
       changes the way SymPy solves single equations; inequalities
       are always solved in the real domain.
+    
+    - ``check_domain`` - bool (default: False); use SymPy to check for
+      and exclude solutions which are actually NaN (i.e. 0/0).
 
     EXAMPLES::
 
