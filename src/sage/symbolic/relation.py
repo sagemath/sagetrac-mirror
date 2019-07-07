@@ -867,6 +867,17 @@ def solve(f, *args, **kwds):
         sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve='force')
         [x == 1/4*pi + pi*z...]
 
+    In some cases, Maxima will return solutions that are not in the domain
+    of the given equation. In this case, use ``check_domain`` to eliminate
+    these results (be aware: this uses SymPy to check each solution of the
+    equation is not NaN, which may be significantly slower than usual)::
+
+        sage: var('x')
+        sage: solve((x^2 - 1)/(sin(x - 1)) == 0, x)
+        [x == -1, x == 1]
+        sage: solve((x^2 - 1)/(sin(x - 1)) == 0, x, check_domain=True)
+        [x == -1]
+
     We use ``use_grobner`` in Maxima if no solution is obtained from
     Maxima's ``to_poly_solve``::
 
@@ -1011,6 +1022,7 @@ def solve(f, *args, **kwds):
     solution_dict = kwds.get('solution_dict', False)
     algorithm = kwds.get('algorithm', None)
     domain = kwds.get('domain', None)
+    check_domain = kwds.get('check_domain', None)
 
     if len(args) > 1:
         x = args
@@ -1041,7 +1053,7 @@ def solve(f, *args, **kwds):
                     "cannot handle %s"%repr(type(f)))
 
     if is_Expression(f): # f is a single expression
-        return _solve_expression(f, x, explicit_solutions, multiplicities, to_poly_solve, solution_dict, algorithm, domain)
+        return _solve_expression(f, x, explicit_solutions, multiplicities, to_poly_solve, solution_dict, algorithm, domain, check_domain)
 
     if not isinstance(f, (list, tuple)):
         raise TypeError("The first argument must be a symbolic expression or a list of symbolic expressions.")
@@ -1131,10 +1143,14 @@ def solve(f, *args, **kwds):
 
     sol_list = string_to_list_of_solutions(repr(s))
 
+    if not sol_list: # fixes IndexError on empty solution list (#8553)
+        return []
+
+    if kwds.get('check_domain', None):
+        sol_list = _validate_solutions_domain(sol_list, f)
+
     # Relaxed form suggested by Mike Hansen (#8553):
     if kwds.get('solution_dict', None):
-        if not sol_list: # fixes IndexError on empty solution list (#8553)
-            return []
         if isinstance(sol_list[0], list):
             sol_dict = [{eq.left(): eq.right() for eq in solution}
                     for solution in sol_list]
@@ -1147,7 +1163,7 @@ def solve(f, *args, **kwds):
 
 
 def _solve_expression(f, x, explicit_solutions, multiplicities,
-                     to_poly_solve, solution_dict, algorithm, domain):
+                     to_poly_solve, solution_dict, algorithm, domain, check_domain):
     """
     Solve an expression ``f``. For more information, see :func:`solve`.
 
@@ -1364,6 +1380,9 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
                         del ret_multiplicities[ix]
                     continue
 
+    if check_domain:
+        X = _validate_solutions_domain(X, f)
+
     if solution_dict:
         if isinstance(x, (list, tuple)):
             X = [{sol.left():sol.right() for sol in b} for b in X]
@@ -1374,6 +1393,46 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
         return X, ret_multiplicities
     else:
         return X
+
+def _validate_solutions_domain(sol_list, f):
+    from sympy.core.sympify import SympifyError
+    from sympy.core.numbers import NaN
+    valid_solns = []
+    if len(sol_list) > 0 and isinstance(sol_list[0], (list, tuple)):
+        # Multiple sets of solutions
+        for solution_set in sol_list:
+            # Collect the equations of the form
+            # variable == expression
+            subs = {eq.left(): eq.right() for eq in solution_set
+                    if eq.left() in f.variables()}
+            sp = f._sympy_()
+            try:
+                simpl = sp.subs(subs).simplify()
+
+                # Test if our solution is valid
+                if type(simpl) is not NaN and not (simpl.is_Boolean and simpl == False):
+                    valid_solns.append(solution_set)
+            except SympifyError:
+                print("warning: couldn't validate solution '%s' is valid in the domain" % solution_set)
+                valid_solns.append(solution_set)
+    else:
+        # Multiple or one solution
+        for eq in sol_list:
+            if not eq.left() in f.variables():
+                # We probably can't check it by substitution
+                # so assume it's valid
+                valid_solns.append(eq)
+                continue
+            sp = f._sympy_()
+            try:
+                simpl = sp.subs(eq.left(), eq.right()).simplify()
+
+                if type(simpl) is not NaN and not (simpl.is_Boolean and simpl == False):
+                    valid_solns.append(eq)
+            except SympifyError:
+                print("warning: couldn't validate solution '%s' is valid in the domain" % eq)
+                valid_solns.append(eq)
+    return valid_solns
 
 def solve_mod(eqns, modulus, solution_dict = False):
     r"""
