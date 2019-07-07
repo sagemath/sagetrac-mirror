@@ -107,6 +107,7 @@ from cysignals.memory cimport sig_free, sig_calloc
 from .bit_vector_operations cimport parallel_f_vector
 from .kunz_cone import kunz_cone
 from .sort_vertices import sort_vertices
+from sage.modules.free_module_element import vector
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -253,7 +254,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(3r)
         Combinatorial type of a polyhedron of dimension 3 with 0 vertices
     """
-    def __init__(self, data, Vrepr=None, facets=None, n_lines=None):
+    def __init__(self, data, Vrepr=None, facets=None):
         r"""
         Initialize :class:`CombinatorialPolyhedron`.
 
@@ -273,6 +274,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._equalities = ()
         self._all_faces = None
         self._mem_tuple = ()
+        n_lines = 0
 
         # ``_length_edges_list`` should not be touched in an instance
         # of :class:`CombinatorialPolyhedron`. This number can be altered,
@@ -285,12 +287,11 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         if isinstance(data, numbers.Integral):
             data = kunz_cone(data)
-            n_lines = 0
-            incident_count = [sum(1 for _ in Vrep.incident()) for Vrep in data.Vrepresentation()]
-            print(sort_vertices(data.Vrepresentation(), incident_count, 64))
 
         if isinstance(data, Polyhedron_base):
             # input is ``Polyhedron``
+            # is expected to be a kunz_cone
+
             Vrepr = data.Vrepresentation()
             facets = tuple(inequality for inequality in data.Hrepresentation())
             self._dimension = data.dimension()
@@ -303,38 +304,20 @@ cdef class CombinatorialPolyhedron(SageObject):
                 self._n_lines = 0
 
             data = data.incidence_matrix()
-        elif isinstance(data, LatticePolytopeClass):
-            # input is ``LatticePolytope``
-            self._unbounded = False
-            self._n_lines = 0
-            Vrepr = data.vertices()
-            self._length_Vrepr = len(Vrepr)
-            facets = data.facets()
-            self._length_Hrep = len(facets)
-            data = tuple(tuple(vert for vert in facet.vertices())
-                         for facet in facets)
+
         else:
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
-            if n_lines is None:
-                # bounded polyhedron
-                self._unbounded = False
-                self._n_lines = 0
-            elif n_lines >= 0:
-                # unbounded polyhedron
-                # will be slower but not incorrect if ``n_lines == 0``
-                assert isinstance(n_lines, numbers.Integral), "n_lines need to be an integer"
-                self._unbounded = True
-                self._n_lines = int(n_lines)
-            else:
-                raise ValueError("n_lines must be a non-negative integer")
+            # unbounded polyhedron
+            # will be slower but not incorrect if ``n_lines == 0``
+            self._unbounded = True
+            self._n_lines = int(n_lines)
 
         if Vrepr:
             # store vertices names
             self._V = tuple(Vrepr)
             self._Vinv = {v: i for i,v in enumerate(self._V)}
         else:
-            self._V = None
-            self._Vinv = None
+            raise ValueError("must specify Vrepr for KunzCone")
 
         if facets:
             # store facets names and compute equalities
@@ -358,6 +341,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Input is incidence-matrix or was converted to it.
             self._length_Hrep = data.ncols()
             self._length_Vrepr = data.nrows()
+            length_Vrepr = data.nrows()
+            incident_count = [sum(row) for row in data.rows()]
+
+            facets = tuple(tuple(i for i in range(self._length_Vrepr) if col[i]) for col in data.columns())
 
             # Initializing the facets in their Bit-representation.
             self.bitrep_facets = incidence_matrix_to_bit_repr_of_facets(data)
@@ -366,7 +353,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             self.bitrep_Vrepr = incidence_matrix_to_bit_repr_of_Vrepr(data)
 
             self._n_facets = self.bitrep_facets.n_faces
-
 
         else:
             # Input is a "list" of facets.
@@ -396,14 +382,32 @@ cdef class CombinatorialPolyhedron(SageObject):
                 def f(v): return int(v)
             facets = tuple(tuple(f(i) for i in j) for j in data)
 
-            self._n_facets = len(facets)
-            self._length_Hrep = len(facets)
+        incident_count = [0] * self._length_Vrepr
+        for facet in facets:
+            for i in facet:
+                incident_count[i] += 1
+        # Determine new Vrepr
+        sort_dic = sort_vertices(Vrepr, incident_count, 64)
+        new_length_Vrepr = 64*len(sort_dic[0][0])
+        self._length_Vrepr = new_length_Vrepr
+        Vrepr = tuple(vector(i) for i in Vrepr)
+        map_old_new = {Vrepr.index(sort_dic[1][i]): i for i in sort_dic[1]}
+        facets = tuple(tuple(map_old_new[i] for i in facet) for facet in facets)
+        new_V = [None] * new_length_Vrepr
+        for i in sort_dic[1]:
+            new_V[i] = sort_dic[1][i]
 
-            # Initializing the facets in their Bit-representation.
-            self.bitrep_facets = facets_tuple_to_bit_repr_of_facets(facets, length_Vrepr)
+        self._V = tuple(new_V)
 
-            # Initializing the Vrepr as their Bit-representation.
-            self.bitrep_Vrepr = facets_tuple_to_bit_repr_of_Vrepr(facets, length_Vrepr)
+        self._n_facets = len(facets)
+        self._length_Hrep = len(facets)
+
+        # Initializing the facets in their Bit-representation.
+        self.bitrep_facets = facets_tuple_to_bit_repr_of_facets(facets, new_length_Vrepr)
+
+        # Initializing the Vrepr as their Bit-representation.
+        self.bitrep_Vrepr = facets_tuple_to_bit_repr_of_Vrepr(facets, new_length_Vrepr)
+
 
     def _repr_(self):
         r"""
