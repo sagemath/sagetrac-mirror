@@ -9414,6 +9414,42 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 ##############################
 # (Multi)set-valued tableaux #
 ##############################
+
+class SemistandardMultisetTableaux(Tableaux):
+    r"""
+    Class of semistandard multiset tableaux.
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        pass
+        
+    Element = SemistandardMultisetTableau
+    
+    def __init__(self,**kwds):
+        pass
+        
+    class options(GlobalOptions):
+        pass
+    
+    def _element_constructor_(self,t):
+        pass
+    
+    def __contains__(self,x):
+        pass
+    
+class SemistandardMultisetTableaux_all(Tableaux):
+    
+    def __init__(self):
+        pass
+        
+    def _repr_(self):
+        pass
+    
+    def an_element(self):
+        pass
+        
+class SemistandardMultisetTableaux_size(Tableaux):
+    pass
       
 #Abstract class for the elements of multiset tableau
 @add_metaclass(InheritComparisonClasscallMetaclass)
