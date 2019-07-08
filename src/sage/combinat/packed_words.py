@@ -567,9 +567,9 @@ class PackedWord(ClonableIntArray):
         The ``right`` inversions are taken on ``positions`` by default,
         whereas the ``left`` inversions are taken by default on ``values``.
 
-        Exemples when ``side`` is "right" and ``support`` is "position".
+        EXAMPLES:
 
-        EXAMPLES::
+        Exemples when ``side`` is "right" and ``support`` is "position"::
 
             sage: PackedWord([]).inversions()
             set()
@@ -584,9 +584,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions()
             {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
 
-        Exemples when ``side`` is "right" and ``support`` is "value".
-
-        EXAMPLES::
+        Exemples when ``side`` is "right" and ``support`` is "value"::
 
             sage: PackedWord([]).inversions(support = "value")
             set()
@@ -601,9 +599,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions(support = "value")
             {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
 
-        Exemples when ``side`` is "left" and ``support`` is "value".
-
-        EXAMPLES::
+        Exemples when ``side`` is "left" and ``support`` is "value"::
 
             sage: PackedWord([]).inversions(side = "left")
             set()
@@ -618,9 +614,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 4, 1, 2]).inversions(side = "left")
             {(3, 1), (3, 2), (4, 2)}
 
-        Exemples when ``side`` is "left" and ``support`` is "position".
-
-        EXAMPLES::
+        Exemples when ``side`` is "left" and ``support`` is "position"::
 
             sage: PackedWord([]).inversions(side = "left", support = "position")
             set()
@@ -637,7 +631,7 @@ class PackedWord(ClonableIntArray):
         """
         if not side in ["left", "right"]:
             raise ValueError("option 'side' must be 'left' or 'right'")
-        if support == None:
+        if support is None:
             support = "position" if side == "right" else "value"
         if not support in ["position", "value"]:
             raise ValueError("option 'support' must be 'position' or 'value'")
@@ -1068,7 +1062,15 @@ class PackedWord(ClonableIntArray):
 
     def is_gequal(self, pw, side="right"):
         r"""
-        Return whether ``pw`` is greater than
+        Return whether ``pw`` is greater than ``self`` under the ``side`` weak order.
+
+        .. SEEALSO::
+
+            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`, 
+            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred` 
+            for more information on the weak order.
+        
+        EXAMPLES::
 
             sage: u = PackedWord([3, 1, 1, 2])
             sage: v = PackedWord([3, 1, 2, 1])
@@ -1113,7 +1115,15 @@ class PackedWord(ClonableIntArray):
 
     def is_lequal(self, pw, side="right"):
         r"""
-        Return whether ``pw`` is greater than
+        Return whether ``pw`` is lower than ``self`` under the ``side`` weak order.
+
+        .. SEEALSO::
+
+            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`, 
+            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred` 
+            for more information on the weak order.
+        
+        EXAMPLES::
 
             sage: u = PackedWord([3, 1, 1, 2])
             sage: v = PackedWord([3, 1, 2, 1])
@@ -1221,7 +1231,6 @@ class PackedWordsFactory(SetFactory):
 
         EXAMPLES::
 
-
             sage: PackedWords.add_constraints((), (() ,{}))
             ()
             sage: PackedWords.add_constraints((), ((3,), {}))
@@ -1251,10 +1260,9 @@ class PackedWordsBaseClass(ParentWithSetFactory):
     A word `u` over the positive integers is a *packed word* if for each
     number `k > 1` appearing in `u`, the number `k - 1` also appears in `u`.
 
-    TODO:
+    .. TODO::
 
         - perhaps reformat the display of packed words of sizes 0..3.
-          (I need to look at the documentation to see.)
 
     Packed words are in bijection with ordered set partitions as follows.
     Given an ordered set partition `O`, the corresponding packed word `u`
@@ -1518,51 +1526,6 @@ class PackedWords_all(PackedWordsBaseClass, DisjointUnionEnumeratedSets, UniqueR
             Packed words
         """
         return "Packed words"
-
-    # def __iter__(self):
-    #     """
-    #     Iterate over ``self``.
-
-    #     EXAMPLES::
-
-    #         sage: it = iter(PackedWords())
-    #         sage: [next(it) for _ in range(10)]
-    #         [[], [1], [1, 2], [2, 1], [1, 1], [1, 2, 3],
-    #          [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
-    #     """
-    #     n = 0
-    #     while True:
-    #         for w in PackedWords(n):
-    #             yield self._element_constructor_(list(w))
-    #         n += 1
-
-    #def subset(self, size=None):
-        r"""
-        Return the set of packed words of size ``size``.
-
-        EXAMPLES::
-
-            sage: P = PackedWords()
-            sage: P.subset(6) is PackedWords(6)
-            True
-            sage: P.subset(0)
-            Packed words of size 0
-
-        TESTS::
-
-            sage: P.subset(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: n must be a non-negative integer
-            sage: P.subset(3/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: n must be a non-negative integer
-        """
-        #if size is None:
-        #    return self
-        #return PackedWords(size)
-
 
 #==============================================================================
 # Enumerated set of packed words of a given size
