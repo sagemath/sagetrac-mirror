@@ -5151,7 +5151,6 @@ class SymplecticTableau(Tableau):
 
         elif self.tab_type == 'King':
             convert = lambda k : 2*k if k > 0 else -2*k-1
-            # check semistandard
             if not Tableau([map(convert, row) for row in self]).is_semistandard():
                 raise ValueError("tableau not semistandard in King ordering")
             if not all( abs(t.entry(cell)) > cell[0] for cell in t.cells() ):
@@ -9256,7 +9255,7 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
         TESTS::
 
             sage: repr(SymplecticTableaux([2,1],[0, -1], tableau_type="DP"))    # indirect doctest
-            'DeConciniProcesi Symplectic tableaux of shape [2, 1] and weight (0, -1)'
+            'DeConciniProcesi Symplectic tableaux of shape [2, 1] and symplectic weight (0, -1)'
         """
         return "%s Symplectic tableaux of shape %s and symplectic weight %s"%(self.tab_type, self.shape, self.weight)
 
