@@ -9411,8 +9411,11 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
 
+##############################
+# (Multi)set-valued tableaux #
+##############################
       
-#Abstract class for the elements of weak tableau
+#Abstract class for the elements of multiset tableau
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SemistandardMultisetTableau_abstract(ClonableList):
     r"""
@@ -9499,7 +9502,7 @@ class SemistandardMultisetTableau_abstract(ClonableList):
         """
         pass
 
-#Abstract class for the parents of weak tableaux
+#Abstract class for the parents of multiset tableaux
 class SemistandardMultisetTableaux_abstract(UniqueRepresentation, Parent):
     r"""
     Abstract class for the various parent classes of WeakTableaux.
@@ -9587,7 +9590,7 @@ class MultisetTableaux_bounded(WeakTableaux_abstract):
         """
         pass
 
-    Element = WeakTableau_bounded
+    Element = SemistandardMultisetTableau_abstract
 
 
 
