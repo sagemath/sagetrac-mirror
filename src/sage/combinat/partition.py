@@ -293,9 +293,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import var
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.combinat.skew_partition', 'SkewPartition')
-lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
+from sage.combinat.skew_partition import SkewPartition
+from sage.combinat.partition_tuple import PartitionTuple
 
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
