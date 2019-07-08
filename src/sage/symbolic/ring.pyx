@@ -31,7 +31,14 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC, ZZ
 
+import keyword
 import operator
+import parser
+
+# Do not allow any of these keywords as identifiers for symbolic variables
+KEYWORDS = set(keyword.kwlist).union(['exec', 'print', 'None', 'True',
+                                      'False', 'nonlocal'])
+
 
 cdef class SymbolicRing(CommutativeRing):
     """
@@ -826,10 +833,10 @@ cdef class SymbolicRing(CommutativeRing):
         """
         if is_Expression(name):
             return name
-        if not isinstance(name, (basestring,list,tuple)):
+        if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)
 
-        if isinstance(name, (list,tuple)):
+        if isinstance(name, (list, tuple)):
             names_list = [s.strip() for s in name]
         elif ',' in name:
             names_list = [s.strip() for s in name.split(',' )]
@@ -840,7 +847,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         for s in names_list:
             if not isidentifier(s):
-                raise ValueError('The name "'+s+'" is not a valid Python identifier.')
+                raise ValueError(f'The name "{s}" is not a valid Python identifier.')
 
         formatted_latex_name = None
         if latex_name is not None and n is None:
@@ -850,7 +857,7 @@ cdef class SymbolicRing(CommutativeRing):
             except TypeError:
                 formatted_latex_name = '{{{0}}}'.format(latex_name)
 
-        if len(names_list) == 0:
+        if not names_list:
             raise ValueError('You need to specify the name of the new variable.')
         if len(names_list) == 1:
             if n is not None:
@@ -961,7 +968,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: f(z=2)
             Gamma(2, w)
         """
-        if len(args) == 0:
+        if not args:
             d = None
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
@@ -1312,9 +1319,10 @@ def var(name, **kwds):
     """
     return SR.var(name, **kwds)
 
+
 def is_SymbolicVariable(x):
     """
-    Returns True if x is a variable.
+    Return ``True`` if ``x`` is a variable.
 
     EXAMPLES::
 
@@ -1331,20 +1339,22 @@ def is_SymbolicVariable(x):
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
+
 def isidentifier(x):
     """
     Return whether ``x`` is a valid identifier.
 
-    When we switch to Python 3 this function can be replaced by the
-    official Python function of the same name.
-
     INPUT:
 
-    - ``x`` -- a string.
+    - ``x`` -- a string
 
     OUTPUT:
 
     Boolean. Whether the string ``x`` can be used as a variable name.
+
+    This function should return ``False`` for keywords, so we can not
+    just use the ``isidentifier`` method of strings (in Python 3),
+    because, for example, it returns ``True`` for "def" and for "None".
 
     EXAMPLES::
 
@@ -1363,10 +1373,24 @@ def isidentifier(x):
         True
         sage: isidentifier('lambda s:s+1')
         False
+        sage: isidentifier('None')
+        False
+        sage: isidentifier('lambda')
+        False
+        sage: isidentifier('def')
+        False
     """
-    import parser
+    if x in KEYWORDS:
+        return False
+    try:
+        if not x.isidentifier():  # py3
+            return False
+    except AttributeError:
+        pass  # py2
+
     try:
         code = parser.expr(x).compile()
-    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError), msg:
+    except (MemoryError, OverflowError, SyntaxError,
+            SystemError, parser.ParserError):
         return False
     return len(code.co_names) == 1 and code.co_names[0] == x

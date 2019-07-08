@@ -50,7 +50,7 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
 ])
 
 
-SAGE_SPKG_CONFIGURE([gcc], [
+SAGE_SPKG_CONFIGURE_BASE([gcc], [
 	AC_REQUIRE([AC_PROG_CC])
 	AC_REQUIRE([AC_PROG_CPP])
 	AC_REQUIRE([AC_PROG_CXX])
@@ -98,6 +98,7 @@ SAGE_SPKG_CONFIGURE([gcc], [
     if test $HAVE_CXX11 != 1; then
         SAGE_MUST_INSTALL_GCC([your C++ compiler does not support C++11])
     fi
+    AC_SUBST(CXX)
 
     AC_LANG_PUSH(C)
     if test -z "$CC"; then

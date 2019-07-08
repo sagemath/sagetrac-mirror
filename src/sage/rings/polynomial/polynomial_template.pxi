@@ -16,7 +16,7 @@ Polynomial Template for C/C++ Library Interfaces
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element, RingElement
-from sage.structure.element import coerce_binop, bin_op
+from sage.structure.element import coerce_binop
 from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer cimport Integer
@@ -713,7 +713,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return element_shift(self, -n)
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         """
         EXAMPLES::
 
@@ -723,7 +723,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         """
         EXAMPLES::
 
