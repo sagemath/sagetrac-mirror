@@ -9411,6 +9411,66 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
 
+    
+class SemistandardMultisetTableaux(Tableaux):
+    """
+    A factory class for various classes of Semistandard Multiset Tableaux.
+    """
+    pass
+
+    class SemistandardMultisetTableaux_all():
+        pass
+    
+    class SemistandardMultisetTableaux_shape():
+        pass
+    
+    class SemistandardMultisetTableaux_size():
+        pass
+    
+    class SemistandardMultisetTableaux_shape_weight():
+        pass
+    
+    class SemistandardMultisetTableaux_size_weight():
+        pass
+    
+    
+class StandardMultisetTableaux(Tableaux):
+    """
+    A factory class for various classes of Standard Multiset Tableaux.
+    """
+    
+    class StandardMultisetTableaux_all():
+        """
+        All standard multiset tableaux.
+        """
+        def __init__(self):
+            r"""
+            Initializes the class of all standard multiset tableaux.
+
+            TESTS::
+
+                sage: ST = StandardTableaux()
+                sage: TestSuite(ST).run()
+            """
+            pass
+        pass
+    
+    class StandardMultisetTableau_size():
+        pass
+    
+    class StandardMultisetTableaux_shape():
+        pass
+    
+    class StandardMultisetTableaux_shape_weight():
+        pass
+    
+    
+    pass
+
+
+
+
+
 
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.misc.persist import register_unpickle_override
