@@ -7,7 +7,7 @@ AUTHORS:
 - Nils Bruin (2013-05): Cython version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,15 +19,16 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
+
 
 cdef class _lazy_attribute(object):
     """
     Cython base class for lazy attributes.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Only Python subclasses of this class are supposed to be instantiated::
 
@@ -88,7 +89,7 @@ cdef class _lazy_attribute(object):
             sage: src[0]
             'def banner():\n'
             sage: lines
-            83
+            82
         """
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self.f)
@@ -338,20 +339,20 @@ class lazy_attribute(_lazy_attribute):
     Old style and new style classes play a bit differently with
     @property and attribute setting::
 
-        sage: class A:
+        sage: class A:  # py2 - no old-style classes on python 3
         ....:     @property
         ....:     def x(self):
         ....:         print("calculating x")
         ....:         return 3
         ....:
-        sage: a = A()
-        sage: a.x = 4
-        sage: a.__dict__
+        sage: a = A()  # py2
+        sage: a.x = 4  # py2
+        sage: a.__dict__  # py2
         {'x': 4}
-        sage: a.x
+        sage: a.x  # py2
         4
-        sage: a.__dict__['x']=5
-        sage: a.x
+        sage: a.__dict__['x']=5  # py2
+        sage: a.x  # py2
         5
 
         sage: class A (object):
@@ -634,7 +635,7 @@ class lazy_class_attribute(lazy_attribute):
         sage: b.x
         1
 
-    First access from an object also porperly triggers the computation::
+    First access from an object also properly triggers the computation::
 
         sage: class Cl1(object):
         ....:     @lazy_class_attribute
@@ -647,7 +648,7 @@ class lazy_class_attribute(lazy_attribute):
         sage: Cl1().x
         1
 
-    ..WARNING::
+    .. WARNING::
 
         The behavior of lazy class attributes with respect to inheritance is
         not specified. It currently depends on the evaluation order::

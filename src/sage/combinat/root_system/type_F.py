@@ -1,18 +1,20 @@
+# -*- coding: utf-8 -*-
 """
 Root system data for type F
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
-import ambient_space
-from sage.misc.cachefunc import cached_method
+from six.moves import range
+
+from . import ambient_space
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
 
@@ -21,7 +23,7 @@ from sage.combinat.family import Family
 class AmbientSpace(ambient_space.AmbientSpace):
     """
     The lattice behind `F_4`.  The computations are based on Bourbaki,
-    Groupes et Algebres de Lie, Ch. 4,5,6 (planche VIII).
+    Groupes et Algèbres de Lie, Ch. 4,5,6 (planche VIII).
     """
     def __init__(self, root_system, base_ring):
         r"""
@@ -69,7 +71,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         EXAMPLES::
 
             sage: e = RootSystem(['F',4]).ambient_space()
-            sage: [ e.root(i,j,p2=1) for i in xrange(e.n) for j in xrange(i+1,e.n) ]
+            sage: [ e.root(i,j,p2=1) for i in range(e.n) for j in range(i+1,e.n) ]
             [(1, -1, 0, 0), (1, 0, -1, 0), (1, 0, 0, -1), (0, 1, -1, 0), (0, 1, 0, -1), (0, 0, 1, -1)]
         """
         if i == j or j is None:
@@ -177,9 +179,9 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         v = ZZ(1)/ZZ(2)
         if not hasattr(self, 'PosRoots'):
-            self.PosRoots = ([ self.monomial(i) for i in xrange(self.n) ] +
-                            [ self.root(i,j,p2=0) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
-                            [ self.root(i,j,p2=1) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
+            self.PosRoots = ([ self.monomial(i) for i in range(self.n) ] +
+                            [ self.root(i,j,p2=0) for i in range(self.n) for j in range(i+1,self.n) ] +
+                            [ self.root(i,j,p2=1) for i in range(self.n) for j in range(i+1,self.n) ] +
                             [ v*self.root(0,1,2,3,0,p2,p3,p4) for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] ])
         return self.PosRoots
 
@@ -199,7 +201,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                         3: v*(3*self.monomial(0)+self.monomial(1)+self.monomial(2)+self.monomial(3)),
                         4: self.monomial(0)})
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self):
         """
@@ -282,7 +284,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         for i in range(1, 4):
             g.add_edge(i, i+1)
@@ -377,5 +379,5 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         return CartanTypeFolded(self, ['E', 6], [[2], [4], [3, 5], [1, 6]])
 
 # For unpickling backward compatibility (Sage <= 4.1)
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_F', 'ambient_space',  AmbientSpace)

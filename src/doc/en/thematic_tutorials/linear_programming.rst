@@ -319,7 +319,7 @@ the matching, which is a linear constraint. We will be solving:
 
 .. MATH::
     \text{Max: } & \sum_{e \in E(G)} m_e\\
-    \text{Such that: } & \forall v, \sum_{e \in E(G) \atop v \sim e} m_e \leq 1
+    \text{Such that: } & \forall v, \sum_{\substack{e \in E(G) \\ v \sim e}} m_e \leq 1
 
 Let us write the Sage code of this MILP::
 
@@ -353,7 +353,7 @@ Let us write the Sage code of this MILP::
 ::
 
     sage: matching = p.get_values(matching)
-    sage: [e for e,b in matching.iteritems() if b == 1]  # not tested
+    sage: [e for e, b in matching.items() if b == 1]  # not tested
     [(0, 1), (6, 9), (2, 7), (3, 4), (5, 8)]
 
 
@@ -385,7 +385,7 @@ following LP
 
 .. MATH::
     \text{Max: } & \sum_{sv \in G} f_{sv}\\
-    \text{Such that: } & \forall v \in G, {v \neq s \atop v \neq t}, \sum_{vu \in G} f_{vu} - \sum_{uv \in G} f_{uv} = 0\\
+    \text{Such that: } & \forall v \in G, {\substack{v \neq s \\ v \neq t}}, \sum_{vu \in G} f_{vu} - \sum_{uv \in G} f_{uv} = 0\\
     & \forall uv \in G, f_{uv} \leq 1\\
 
 We will solve the flow problem on an orientation of Chvatal's
@@ -497,45 +497,61 @@ change !) filename is joined.
 The environment variable defining the licence's path must also be set when
 running Sage. You can append to your ``.bashrc`` file one of the following :
 
-    * For CPLEX ::
+* For CPLEX
 
-        export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
+  .. CODE-BLOCK:: bash
 
-    * For GUROBI ::
+    export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
 
-        export GRB_LICENSE_FILE=/path/to/the/license/gurobi.lic
+* For GUROBI
+
+  .. CODE-BLOCK:: bash
+
+    export GRB_LICENSE_FILE=/path/to/the/license/gurobi.lic
 
 
 As Sage also needs the files library and header files the easiest way is to
 create symbolic links to these files in the appropriate directories:
 
 * For CPLEX:
-    * ``libcplex.a`` -- in ``SAGE_ROOT/local/lib/``, type::
+    * ``libcplex.a`` -- in ``SAGE_ROOT/local/lib/``, type:
 
-        ln -s /path/to/lib/libcplex.a .
+      .. CODE-BLOCK:: shell-session
 
-    * ``cplex.h`` -- in ``SAGE_ROOT/local/include/``, type::
+        $ ln -s /path/to/lib/libcplex.a .
 
-        ln -s /path/to/include/cplex.h .
+    * ``cplex.h`` -- in ``SAGE_ROOT/local/include/``, type:
 
-    *  ``cpxconst.h`` (if it exists) -- in ``SAGE_ROOT/local/include/``, type::
+      .. CODE-BLOCK:: shell-session
 
-        ln -s /path/to/include/cpxconst.h .
+        $ ln -s /path/to/include/cplex.h .
+
+    *  ``cpxconst.h`` (if it exists) -- in ``SAGE_ROOT/local/include/``, type:
+
+      .. CODE-BLOCK:: shell-session
+
+        $ ln -s /path/to/include/cpxconst.h .
 
 * For GUROBI
 
-    * ``libgurobi56.so`` -- in ``SAGE_ROOT/local/lib/``, type::
+    * ``libgurobi56.so`` -- in ``SAGE_ROOT/local/lib/``, type:
 
-        ln -s /path/to/lib/libgurobi56.so libgurobi.so
+      .. CODE-BLOCK:: shell-session
 
-    * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type::
+        $ ln -s /path/to/lib/libgurobi56.so libgurobi.so
 
-        ln -s /path/to/include/gurobi_c.h .
+    * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type:
 
-**It is very important that the names of the symbolic links in Sage's folders**
-** be precisely as indicated. If the names differ, Sage will not notice that**
-**the files are present**
+      .. CODE-BLOCK:: shell-session
 
-Once this is done, Sage is to be asked to notice the changes by running::
+        $ ln -s /path/to/include/gurobi_c.h .
 
-    make
+**It is very important that the names of the symbolic links in Sage's folders
+be precisely as indicated. If the names differ, Sage will not notice that
+the files are present**
+
+Once this is done, Sage is to be asked to notice the changes by running:
+
+.. CODE-BLOCK:: shell-session
+
+    $ make

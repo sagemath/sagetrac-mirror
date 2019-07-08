@@ -1,7 +1,14 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
-from datetime import date
-
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, SAGE_SHARE
+import sage.version
+from sage.misc.sagedoc import extlinks
+import dateutil.parser
+from six import iteritems
+from docutils import nodes
+from docutils.transforms import Transform
+from sphinx.ext.doctest import blankline_re
+from sphinx import highlighting
+from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
@@ -11,33 +18,73 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['inventory_builder', 'multidocs',
-              'sage_autodoc',  'sphinx.ext.graphviz',
-              'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+extensions = ['inventory_builder',
+              'multidocs',
+              'sage_autodoc',
+              'sphinx.ext.graphviz',
+              'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.todo',
+              'sphinx.ext.extlinks',
+              'IPython.sphinxext.ipython_directive',
+              'matplotlib.sphinxext.plot_directive']
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
 # through mathplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
 plot_pre_code = """
-def sphinx_plot(plot):
+def sphinx_plot(graphics, **kwds):
     import matplotlib.image as mpimg
-    from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
+    from sage.misc.temporary_file import tmp_filename
+    from sage.plot.graphics import _parse_figsize
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
-        fn = tmp_filename(ext=".png")
-        plot.plot().save(fn)
-        img = mpimg.imread(fn)
-        plt.imshow(img)
+        ## Option handling is taken from Graphics.save
+        options = dict()
+        if isinstance(graphics, sage.plot.graphics.Graphics):
+            options.update(sage.plot.graphics.Graphics.SHOW_OPTIONS)
+            options.update(graphics._extra_kwds)
+            options.update(kwds)
+        elif isinstance(graphics, sage.plot.multigraphics.MultiGraphics):
+            options.update(kwds)
+        else:
+            graphics = graphics.plot(**kwds)
+        dpi = options.pop('dpi', None)
+        transparent = options.pop('transparent', None)
+        fig_tight = options.pop('fig_tight', None)
+        figsize = options.pop('figsize', None)
+        if figsize is not None:
+            figsize = _parse_figsize(figsize)
+        plt.figure(figsize=figsize)
+        figure = plt.gcf()
+        if isinstance(graphics, (sage.plot.graphics.Graphics,
+                                 sage.plot.multigraphics.MultiGraphics)):
+            graphics.matplotlib(figure=figure, figsize=figsize, **options)
+            # tight_layout adjusts the *subplot* parameters so ticks aren't
+            # cut off, etc.
+            figure.tight_layout()
+        else:
+            # 3d graphics via png
+            import matplotlib as mpl
+            mpl.rcParams['image.interpolation'] = 'bilinear'
+            mpl.rcParams['image.resample'] = False
+            mpl.rcParams['figure.figsize'] = [8.0, 6.0]
+            mpl.rcParams['figure.dpi'] = 80
+            mpl.rcParams['savefig.dpi'] = 100
+            fn = tmp_filename(ext=".png")
+            graphics.save(fn)
+            img = mpimg.imread(fn)
+            plt.imshow(img)
+            plt.axis("off")
         plt.margins(0)
-        plt.axis("off")
-        plt.tight_layout(pad=0)
+        if not isinstance(graphics, sage.plot.multigraphics.MultiGraphics):
+            plt.tight_layout(pad=0)
 
 from sage.all_cmdline import *
 """
 
 plot_html_show_formats = False
+plot_formats = ['svg', 'pdf', 'png']
 
 # We do *not* fully initialize intersphinx since we call it by hand
 # in find_sage_dangling_links.
@@ -55,15 +102,13 @@ master_doc = 'index'
 
 # General information about the project.
 project = u""
-copyright = u"2005--{}, The Sage Development Team".format(date.today().year)
+copyright = u"2005--{}, The Sage Development Team".format(dateutil.parser.parse(sage.version.date).year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-#
-# The short X.Y version.
-from sage.version import version
-release = version
+version = sage.version.version
+release = sage.version.version
 
 # The language for content autogenerated by Sphinx. Refer to documentation
 # for a list of supported languages.
@@ -99,6 +144,14 @@ default_role = 'math'
 # This overrides a HTML theme's corresponding setting (see below).
 pygments_style = 'sphinx'
 
+# Default lexer to use when highlighting code blocks, using the IPython
+# console lexers. 'ipycon' is the IPython console, which is what we want
+# for most code blocks: anything with "sage:" prompts. For other IPython,
+# like blocks which might appear in a notebook cell, use 'ipython'.
+highlighting.lexers['ipycon'] = IPythonConsoleLexer(in1_regex=r'sage: ', in2_regex=r'[.][.][.][.]: ')
+highlighting.lexers['ipython'] = IPyLexer()
+highlight_language = 'ipycon'
+
 # GraphViz includes dot, neato, twopi, circo, fdp.
 graphviz_dot = 'dot'
 inheritance_graph_attrs = { 'rankdir' : 'BT' }
@@ -113,9 +166,12 @@ todo_include_todos = True
 
 
 # Cross-links to other project's online documentation.
+python_version = sys.version_info.major
 intersphinx_mapping = {
     'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common", "python.inv"))}
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version))),
+    'pplpy': (PPLPY_DOCS, None)}
 
 def set_intersphinx_mappings(app):
     """
@@ -143,20 +199,6 @@ def set_intersphinx_mappings(app):
             dst = os.path.join(invpath, directory, 'objects.inv')
             app.config.intersphinx_mapping[src] = dst
 
-
-pythonversion = sys.version.split(' ')[0]
-# Python and Sage trac ticket shortcuts. For example, :trac:`7549` .
-
-# Sage trac ticket shortcuts. For example, :trac:`7549` .
-extlinks = {
-    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
-    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://dx.doi.org/%s', 'doi:'),
-    'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
-    }
 
 # By default document are not master.
 multidocs_is_master = True
@@ -201,7 +243,8 @@ html_favicon = 'favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), 'static']
+html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), THEBE_DIR,
+                    'static']
 
 # We use MathJax to build the documentation unless the environment
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
@@ -217,20 +260,18 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
     from sage.misc.latex_macros import sage_mathjax_macros
     html_theme_options['mathjax_macros'] = sage_mathjax_macros()
 
-    from pkg_resources import Requirement, working_set
-    sagenb_path = working_set.find(Requirement.parse('sagenb')).location
-    mathjax_relative = os.path.join('sagenb','data','mathjax')
+    mathjax_relative = 'mathjax'
 
     # It would be really nice if sphinx would copy the entire mathjax directory,
     # (so we could have a _static/mathjax directory), rather than the contents of the directory
 
-    mathjax_static = os.path.join(sagenb_path, mathjax_relative)
+    mathjax_static = os.path.join(SAGE_SHARE, mathjax_relative)
     html_static_path.append(mathjax_static)
     exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
                          for i in ('docs', 'README*', 'test',
                                    'unpacked', 'LICENSE')]
 else:
-     extensions.append('sphinx.ext.pngmath')
+     extensions.append('sphinx.ext.imgmath')
 
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
@@ -306,109 +347,114 @@ latex_elements['preamble'] = r"""
 \usepackage{amssymb}
 \usepackage{textcomp}
 \usepackage{mathrsfs}
-\DeclareUnicodeCharacter{01CE}{\capitalcaron a}
-\DeclareUnicodeCharacter{0428}{cyrillic Sha}
-\DeclareUnicodeCharacter{250C}{+}
-\DeclareUnicodeCharacter{2510}{+}
-\DeclareUnicodeCharacter{2514}{+}
-\DeclareUnicodeCharacter{2518}{+}
-\DeclareUnicodeCharacter{253C}{+}
+\usepackage{iftex}
 
+% Only declare unicode characters when compiling with pdftex; E.g. japanese
+% tutorial does not use pdftex
+\ifPDFTeX
+    \DeclareUnicodeCharacter{01CE}{\capitalcaron a}
+    \DeclareUnicodeCharacter{0428}{cyrillic Sha}
+    \DeclareUnicodeCharacter{250C}{+}
+    \DeclareUnicodeCharacter{2510}{+}
+    \DeclareUnicodeCharacter{2514}{+}
+    \DeclareUnicodeCharacter{2518}{+}
+    \DeclareUnicodeCharacter{253C}{+}
 
-\DeclareUnicodeCharacter{03B1}{\ensuremath{\alpha}}
-\DeclareUnicodeCharacter{03B2}{\ensuremath{\beta}}
-\DeclareUnicodeCharacter{03B3}{\ensuremath{\gamma}}
-\DeclareUnicodeCharacter{0393}{\ensuremath{\Gamma}}
-\DeclareUnicodeCharacter{03B4}{\ensuremath{\delta}}
-\DeclareUnicodeCharacter{0394}{\ensuremath{\Delta}}
-\DeclareUnicodeCharacter{03B5}{\ensuremath{\varepsilon}}
-\DeclareUnicodeCharacter{03B6}{\ensuremath{\zeta}}
-\DeclareUnicodeCharacter{03B7}{\ensuremath{\eta}}
-\DeclareUnicodeCharacter{03B8}{\ensuremath{\vartheta}}
-\DeclareUnicodeCharacter{0398}{\ensuremath{\Theta}}
-\DeclareUnicodeCharacter{03BA}{\ensuremath{\kappa}}
-\DeclareUnicodeCharacter{03BB}{\ensuremath{\lambda}}
-\DeclareUnicodeCharacter{039B}{\ensuremath{\Lambda}}
-\DeclareUnicodeCharacter{00B5}{\ensuremath{\mu}}      % micron sign
-\DeclareUnicodeCharacter{03BC}{\ensuremath{\mu}}
-\DeclareUnicodeCharacter{03BD}{\ensuremath{\nu}}
-\DeclareUnicodeCharacter{03BE}{\ensuremath{\xi}}
-\DeclareUnicodeCharacter{039E}{\ensuremath{\Xi}}
-\DeclareUnicodeCharacter{03B9}{\ensuremath{\iota}}
-\DeclareUnicodeCharacter{03C0}{\ensuremath{\pi}}
-\DeclareUnicodeCharacter{03A0}{\ensuremath{\Pi}}
-\DeclareUnicodeCharacter{03C1}{\ensuremath{\rho}}
-\DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
-\DeclareUnicodeCharacter{03A3}{\ensuremath{\Sigma}}
-\DeclareUnicodeCharacter{03C4}{\ensuremath{\tau}}
-\DeclareUnicodeCharacter{03C6}{\ensuremath{\varphi}}
-\DeclareUnicodeCharacter{03A6}{\ensuremath{\Phi}}
-\DeclareUnicodeCharacter{03C7}{\ensuremath{\chi}}
-\DeclareUnicodeCharacter{03C8}{\ensuremath{\psi}}
-\DeclareUnicodeCharacter{03A8}{\ensuremath{\Psi}}
-\DeclareUnicodeCharacter{03C9}{\ensuremath{\omega}}
-\DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
-\DeclareUnicodeCharacter{03C5}{\ensuremath{\upsilon}}
-\DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
-\DeclareUnicodeCharacter{2113}{\ell}
+    \DeclareUnicodeCharacter{03B1}{\ensuremath{\alpha}}
+    \DeclareUnicodeCharacter{03B2}{\ensuremath{\beta}}
+    \DeclareUnicodeCharacter{03B3}{\ensuremath{\gamma}}
+    \DeclareUnicodeCharacter{0393}{\ensuremath{\Gamma}}
+    \DeclareUnicodeCharacter{03B4}{\ensuremath{\delta}}
+    \DeclareUnicodeCharacter{0394}{\ensuremath{\Delta}}
+    \DeclareUnicodeCharacter{03B5}{\ensuremath{\varepsilon}}
+    \DeclareUnicodeCharacter{03B6}{\ensuremath{\zeta}}
+    \DeclareUnicodeCharacter{03B7}{\ensuremath{\eta}}
+    \DeclareUnicodeCharacter{03B8}{\ensuremath{\vartheta}}
+    \DeclareUnicodeCharacter{0398}{\ensuremath{\Theta}}
+    \DeclareUnicodeCharacter{03BA}{\ensuremath{\kappa}}
+    \DeclareUnicodeCharacter{03BB}{\ensuremath{\lambda}}
+    \DeclareUnicodeCharacter{039B}{\ensuremath{\Lambda}}
+    \DeclareUnicodeCharacter{00B5}{\ensuremath{\mu}}      % micron sign
+    \DeclareUnicodeCharacter{03BC}{\ensuremath{\mu}}
+    \DeclareUnicodeCharacter{03BD}{\ensuremath{\nu}}
+    \DeclareUnicodeCharacter{03BE}{\ensuremath{\xi}}
+    \DeclareUnicodeCharacter{039E}{\ensuremath{\Xi}}
+    \DeclareUnicodeCharacter{03B9}{\ensuremath{\iota}}
+    \DeclareUnicodeCharacter{03C0}{\ensuremath{\pi}}
+    \DeclareUnicodeCharacter{03A0}{\ensuremath{\Pi}}
+    \DeclareUnicodeCharacter{03C1}{\ensuremath{\rho}}
+    \DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
+    \DeclareUnicodeCharacter{03A3}{\ensuremath{\Sigma}}
+    \DeclareUnicodeCharacter{03C4}{\ensuremath{\tau}}
+    \DeclareUnicodeCharacter{03C6}{\ensuremath{\varphi}}
+    \DeclareUnicodeCharacter{03A6}{\ensuremath{\Phi}}
+    \DeclareUnicodeCharacter{03C7}{\ensuremath{\chi}}
+    \DeclareUnicodeCharacter{03C8}{\ensuremath{\psi}}
+    \DeclareUnicodeCharacter{03A8}{\ensuremath{\Psi}}
+    \DeclareUnicodeCharacter{03C9}{\ensuremath{\omega}}
+    \DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
+    \DeclareUnicodeCharacter{03C5}{\ensuremath{\upsilon}}
+    \DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
+    \DeclareUnicodeCharacter{2113}{\ell}
 
-\DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
-\DeclareUnicodeCharacter{2264}{\leq}
-\DeclareUnicodeCharacter{2265}{\geq}
-\DeclareUnicodeCharacter{221E}{\infty}
-\DeclareUnicodeCharacter{2211}{\sum}
-\DeclareUnicodeCharacter{2208}{\in}
-\DeclareUnicodeCharacter{2209}{\notin}
-\DeclareUnicodeCharacter{2202}{\partial}
-\DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
-\DeclareUnicodeCharacter{2148}{\id}
-\DeclareUnicodeCharacter{2248}{\approx}
-\DeclareUnicodeCharacter{2260}{\neq}
-\DeclareUnicodeCharacter{00B1}{\pm}
-\DeclareUnicodeCharacter{2A02}{\otimes}
-\DeclareUnicodeCharacter{2A01}{\oplus}
-\DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
-\DeclareUnicodeCharacter{00D7}{\times}
-\DeclareUnicodeCharacter{00B7}{\cdot}
-\DeclareUnicodeCharacter{230A}{\lfloor}
-\DeclareUnicodeCharacter{230B}{\rfloor}
-\DeclareUnicodeCharacter{2308}{\lceil}
-\DeclareUnicodeCharacter{2309}{\rceil}
-\DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
+    \DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
+    \DeclareUnicodeCharacter{2264}{\leq}
+    \DeclareUnicodeCharacter{2265}{\geq}
+    \DeclareUnicodeCharacter{221E}{\infty}
+    \DeclareUnicodeCharacter{2211}{\sum}
+    \DeclareUnicodeCharacter{2208}{\in}
+    \DeclareUnicodeCharacter{2209}{\notin}
+    \DeclareUnicodeCharacter{2202}{\partial}
+    \DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
+    \DeclareUnicodeCharacter{2148}{\id}
+    \DeclareUnicodeCharacter{2248}{\approx}
+    \DeclareUnicodeCharacter{2260}{\neq}
+    \DeclareUnicodeCharacter{00B1}{\pm}
+    \DeclareUnicodeCharacter{2A02}{\otimes}
+    \DeclareUnicodeCharacter{2A01}{\oplus}
+    \DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
+    \DeclareUnicodeCharacter{00D7}{\times}
+    \DeclareUnicodeCharacter{00B7}{\cdot}
+    \DeclareUnicodeCharacter{230A}{\lfloor}
+    \DeclareUnicodeCharacter{230B}{\rfloor}
+    \DeclareUnicodeCharacter{2308}{\lceil}
+    \DeclareUnicodeCharacter{2309}{\rceil}
+    \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
 
-\newcommand{\sageMexSymbol}[1]
-{{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
-\DeclareUnicodeCharacter{239B}{\sageMexSymbol{"30}} % parenlefttp
-\DeclareUnicodeCharacter{239C}{\sageMexSymbol{"42}} % parenleftex
-\DeclareUnicodeCharacter{239D}{\sageMexSymbol{"40}} % parenleftbt
-\DeclareUnicodeCharacter{239E}{\sageMexSymbol{"31}} % parenrighttp
-\DeclareUnicodeCharacter{239F}{\sageMexSymbol{"43}} % parenrightex
-\DeclareUnicodeCharacter{23A0}{\sageMexSymbol{"41}} % parenrightbt
-\DeclareUnicodeCharacter{23A1}{\sageMexSymbol{"32}} % bracketlefttp
-\DeclareUnicodeCharacter{23A2}{\sageMexSymbol{"36}} % bracketleftex
-\DeclareUnicodeCharacter{23A3}{\sageMexSymbol{"34}} % bracketleftbt
-\DeclareUnicodeCharacter{23A4}{\sageMexSymbol{"33}} % bracketrighttp
-\DeclareUnicodeCharacter{23A5}{\sageMexSymbol{"37}} % bracketrightex
-\DeclareUnicodeCharacter{23A6}{\sageMexSymbol{"35}} % bracketrightbt
+    \newcommand{\sageMexSymbol}[1]
+    {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
+    \DeclareUnicodeCharacter{239B}{\sageMexSymbol{"30}} % parenlefttp
+    \DeclareUnicodeCharacter{239C}{\sageMexSymbol{"42}} % parenleftex
+    \DeclareUnicodeCharacter{239D}{\sageMexSymbol{"40}} % parenleftbt
+    \DeclareUnicodeCharacter{239E}{\sageMexSymbol{"31}} % parenrighttp
+    \DeclareUnicodeCharacter{239F}{\sageMexSymbol{"43}} % parenrightex
+    \DeclareUnicodeCharacter{23A0}{\sageMexSymbol{"41}} % parenrightbt
+    \DeclareUnicodeCharacter{23A1}{\sageMexSymbol{"32}} % bracketlefttp
+    \DeclareUnicodeCharacter{23A2}{\sageMexSymbol{"36}} % bracketleftex
+    \DeclareUnicodeCharacter{23A3}{\sageMexSymbol{"34}} % bracketleftbt
+    \DeclareUnicodeCharacter{23A4}{\sageMexSymbol{"33}} % bracketrighttp
+    \DeclareUnicodeCharacter{23A5}{\sageMexSymbol{"37}} % bracketrightex
+    \DeclareUnicodeCharacter{23A6}{\sageMexSymbol{"35}} % bracketrightbt
 
-\DeclareUnicodeCharacter{23A7}{\sageMexSymbol{"38}} % curly brace left top
-\DeclareUnicodeCharacter{23A8}{\sageMexSymbol{"3C}} % curly brace left middle
-\DeclareUnicodeCharacter{23A9}{\sageMexSymbol{"3A}} % curly brace left bottom
-\DeclareUnicodeCharacter{23AA}{\sageMexSymbol{"3E}} % curly brace extension
-\DeclareUnicodeCharacter{23AB}{\sageMexSymbol{"39}} % curly brace right top
-\DeclareUnicodeCharacter{23AC}{\sageMexSymbol{"3D}} % curly brace right middle
-\DeclareUnicodeCharacter{23AD}{\sageMexSymbol{"3B}} % curly brace right bottom
-\DeclareUnicodeCharacter{23B0}{\{} % 2-line curly brace left top half  (not in cmex)
-\DeclareUnicodeCharacter{23B1}{\}} % 2-line curly brace right top half (not in cmex)
+    \DeclareUnicodeCharacter{23A7}{\sageMexSymbol{"38}} % curly brace left top
+    \DeclareUnicodeCharacter{23A8}{\sageMexSymbol{"3C}} % curly brace left middle
+    \DeclareUnicodeCharacter{23A9}{\sageMexSymbol{"3A}} % curly brace left bottom
+    \DeclareUnicodeCharacter{23AA}{\sageMexSymbol{"3E}} % curly brace extension
+    \DeclareUnicodeCharacter{23AB}{\sageMexSymbol{"39}} % curly brace right top
+    \DeclareUnicodeCharacter{23AC}{\sageMexSymbol{"3D}} % curly brace right middle
+    \DeclareUnicodeCharacter{23AD}{\sageMexSymbol{"3B}} % curly brace right bottom
+    \DeclareUnicodeCharacter{23B0}{\{} % 2-line curly brace left top half  (not in cmex)
+    \DeclareUnicodeCharacter{23B1}{\}} % 2-line curly brace right top half (not in cmex)
 
-\DeclareUnicodeCharacter{2320}{\ensuremath{\int}} % top half integral
-\DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
-\DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
+    \DeclareUnicodeCharacter{2320}{\ensuremath{\int}} % top half integral
+    \DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
+    \DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
 
-\DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+    \DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+\fi
 
 \let\textLaTeX\LaTeX
-\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
+\AtBeginDocument{\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}}
 """
 
 # Documents to append as an appendix to all manuals.
@@ -501,20 +547,19 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
     """
     Print a warning if pickling is broken for nested classes.
     """
-    import types
     if hasattr(obj, '__dict__') and hasattr(obj, '__module__'):
         # Check picklability of nested classes.  Adapted from
         # sage.misc.nested_class.modify_for_nested_pickle.
         module = sys.modules[obj.__module__]
-        for (nm, v) in obj.__dict__.iteritems():
-            if (isinstance(v, (type, types.ClassType)) and
+        for (nm, v) in iteritems(obj.__dict__):
+            if (isinstance(v, type) and
                 v.__name__ == nm and
                 v.__module__ == module.__name__ and
                 getattr(module, nm, None) is not v and
                 v.__module__ not in skip_picklability_check_modules):
                 # OK, probably this is an *unpicklable* nested class.
                 app.warn('Pickling of nested class %r is probably broken. '
-                         'Please set __metaclass__ of the parent class to '
+                         'Please set the metaclass of the parent class to '
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 
@@ -564,9 +609,11 @@ def skip_member(app, what, name, obj, skip, options):
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
     Replace dollar signs with backticks.
-    See sage.misc.sagedoc.process_dollars for more information
+
+    See sage.misc.sagedoc.process_dollars for more information.
     """
-    if len(docstringlines) > 0 and name.find("process_dollars") == -1:
+    if len(docstringlines) and name.find("process_dollars") == -1:
+        from six.moves import range
         from sage.misc.sagedoc import process_dollars as sagedoc_dollars
         s = sagedoc_dollars("\n".join(docstringlines))
         lines = s.split("\n")
@@ -593,7 +640,7 @@ def process_inherited(app, what, name, obj, options, docstringlines):
         if name in obj.__objclass__.__dict__.keys():
             return
 
-    for i in xrange(len(docstringlines)):
+    for i in range(len(docstringlines)):
         docstringlines.pop()
 
 dangling_debug = False
@@ -610,14 +657,14 @@ def call_intersphinx(app, env, node, contnode):
     Check that the link from the thematic tutorials to the reference
     manual is relative, see :trac:`20118`::
 
-        sage: from sage.env import SAGE_DOC
-        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")
-        sage: for line in open(thematic_index).readlines():
+        sage: from sage.env import SAGE_DOC  # optional - dochtml
+        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")  # optional - dochtml
+        sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
-        ....:         sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics ...)"><span>Introduction to the -adics</span></a></li>
+        ....:         _ = sys.stdout.write(line)
+        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></li>
     """
-    debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
+    debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
     res =  sphinx.ext.intersphinx.missing_reference(
         app, env, node, contnode)
@@ -629,9 +676,9 @@ def call_intersphinx(app, env, node, contnode):
             here = os.path.dirname(os.path.join(builder.outdir,
                                                 node['refdoc']))
             res['refuri'] = os.path.relpath(res['refuri'], here)
-            debug_inf(app, "++++ Found at %s"%res['refuri'])
+            debug_inf(app, "++++ Found at %s" % res['refuri'])
     else:
-        debug_inf(app, "---- Intersphinx: %s not Found"%node['reftarget'])
+        debug_inf(app, "---- Intersphinx: %s not Found" % node['reftarget'])
     return res
 
 def find_sage_dangling_links(app, env, node, contnode):
@@ -645,7 +692,7 @@ def find_sage_dangling_links(app, env, node, contnode):
     try:
         doc = node['refdoc']
     except KeyError:
-        debug_inf(app, "-- no refdoc in node %s"%node)
+        debug_inf(app, "-- no refdoc in node %s" % node)
         return None
 
     debug_inf(app, "Searching %s from %s"%(reftarget, doc))
@@ -673,14 +720,19 @@ def find_sage_dangling_links(app, env, node, contnode):
     basename = reftarget.split(".")[0]
     try:
         target_module = getattr(sys.modules['sage.all'], basename).__module__
+        debug_inf(app, "++ found %s using sage.all in %s" % (basename, target_module))
     except AttributeError:
-        debug_inf(app, "-- %s not found in sage.all"%(basename))
-        return None
+        try:
+            target_module = getattr(sys.modules[node['py:module']], basename).__module__
+            debug_inf(app, "++ found %s in this module" % (basename,))
+        except AttributeError:
+            debug_inf(app, "-- %s not found in sage.all or this module" % (basename))
+            return None
+        except KeyError:
+            target_module = None
     if target_module is None:
         target_module = ""
         debug_inf(app, "?? found in None !!!")
-
-    debug_inf(app, "++ found %s using sage.all in %s"%(basename, target_module))
 
     newtarget = target_module+'.'+reftarget
     node['reftarget'] = newtarget
@@ -757,6 +809,25 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     while len(docstringlines) > len(lines):
         del docstringlines[len(lines)]
 
+class SagemathTransform(Transform):
+    """
+    Transform for code-blocks.
+
+    This allows Sphinx to treat code-blocks with prompt "sage:" as
+    associated with the pycon lexer, and in particular, to change
+    "<BLANKLINE>" to a blank line.
+    """
+    default_priority = 500
+
+    def apply(self):
+        for node in self.document.traverse(nodes.literal_block):
+            if node.get('language') is None and node.astext().startswith('sage:'):
+                node['language'] = 'ipycon'
+                source = node.rawsource
+                source = blankline_re.sub('', source)
+                node.rawsource = source
+                node[:] = [nodes.Text(source)]
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -769,6 +840,7 @@ def setup(app):
     if os.environ.get('SAGE_SKIP_TESTS_BLOCKS', False):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
+    app.add_transform(SagemathTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
     # 'LANGUAGE/DOCNAME', but when doing introspection, app.srcdir is
@@ -785,4 +857,3 @@ def setup(app):
         app.connect('builder-inited', set_intersphinx_mappings)
         app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)
-

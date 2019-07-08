@@ -48,6 +48,7 @@ AUTHORS:
 
 - William Stein
 """
+from __future__ import absolute_import
 
 
 #*****************************************************************************
@@ -67,9 +68,10 @@ AUTHORS:
 
 from sage.rings.all import RDF
 from sage.matrix.constructor import matrix
-from shapes import Box, ColorCube
-from shapes2 import frame3d
-from index_face_set import IndexFaceSet
+from sage.misc.decorators import rename_keyword
+from .shapes import Box, ColorCube
+from .shapes2 import frame3d
+from .index_face_set import IndexFaceSet
 
 
 def index_face_set(face_list, point_list, enclosed, **kwds):
@@ -147,10 +149,11 @@ def prep(G, center, size, kwds):
         G = G.scale(size)
     if center != (0, 0, 0):
         G = G.translate(center)
+    kwds['threejs_flat_shading'] = True
     G._set_extra_kwds(kwds)
     return G
 
-
+@rename_keyword(alpha='opacity')
 def tetrahedron(center=(0, 0, 0), size=1, **kwds):
     """
     A 3d tetrahedron.
@@ -221,7 +224,7 @@ def tetrahedron(center=(0, 0, 0), size=1, **kwds):
 
         sphinx_plot(tetrahedron(color='red') + tetrahedron((0,0,-2)).scale([1,1,-1]))
 
-    A Dodecahedral complex of 5 tetrahedrons (a more elaborate example
+    A Dodecahedral complex of 5 tetrahedra (a more elaborate example
     from Peter Jipsen)::
 
         sage: v=(sqrt(5.)/2-5/6, 5/6*sqrt(3.)-sqrt(15.)/2, sqrt(5.)/3)
@@ -261,7 +264,7 @@ def tetrahedron(center=(0, 0, 0), size=1, **kwds):
         kwds['aspect_ratio'] = [1, 1, 1]
     return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, **kwds)
 
-
+@rename_keyword(alpha='opacity')
 def cube(center=(0, 0, 0), size=1, color=None, frame_thickness=0,
          frame_color=None, **kwds):
     """
@@ -402,7 +405,7 @@ def cube(center=(0, 0, 0), size=1, color=None, frame_thickness=0,
             B += frame3d((-0.5,-0.5,-0.5),(0.5,0.5,0.5), thickness=frame_thickness, color=frame_color)
     return prep(B, center, size, kwds)
 
-
+@rename_keyword(alpha='opacity')
 def octahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     Return an octahedron.
@@ -434,11 +437,12 @@ def octahedron(center=(0, 0, 0), size=1, **kwds):
         sphinx_plot(G)
 
     """
+    kwds['enclosed'] = True
     if 'aspect_ratio' not in kwds:
         kwds['aspect_ratio'] = [1, 1, 1]
     return prep(Box(1,1,1).dual(**kwds), center, size, kwds)
 
-
+@rename_keyword(alpha='opacity')
 def dodecahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     A dodecahedron.
@@ -551,7 +555,7 @@ def dodecahedron(center=(0, 0, 0), size=1, **kwds):
 #        vertex_spheres += [faces.stickers(['red','yellow','blue','purple','black','orange'], .1, .1)] # [faces]
 #        return Graphics3dGroup(vertex_spheres)
 
-
+@rename_keyword(alpha='opacity')
 def icosahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     An icosahedron.
@@ -577,7 +581,7 @@ def icosahedron(center=(0, 0, 0), size=1, **kwds):
 
         sphinx_plot(icosahedron())
 
-    Two icosahedrons at different positions of different sizes. ::
+    Two icosahedra at different positions of different sizes. ::
 
         sage: p = icosahedron((-1/2,0,1), color='orange')
         sage: p += icosahedron((2,0,1), size=1/2, color='red', aspect_ratio=[1,1,1])
@@ -591,6 +595,7 @@ def icosahedron(center=(0, 0, 0), size=1, **kwds):
         sphinx_plot(p)
 
     """
+    kwds['enclosed'] = True
     if 'aspect_ratio' not in kwds:
         kwds['aspect_ratio'] = [1, 1, 1]
     return prep(dodecahedron().dual(**kwds), center, size, kwds)

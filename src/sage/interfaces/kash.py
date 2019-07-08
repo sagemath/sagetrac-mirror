@@ -430,9 +430,12 @@ unlike for the other interfaces.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
+from sage.docs.instancedoc import instancedoc
 import os
+
 
 class Kash(Expect):
     r"""
@@ -517,7 +520,8 @@ class Kash(Expect):
         try:
             Expect._start(self)
         except RuntimeError:
-            raise RuntimeError("You must install the optional Kash package to use Kash from Sage.")
+            from sage.misc.package import PackageNotFoundError
+            raise PackageNotFoundError("kash")
         # Turn off the annoying timer.
         self.eval('Time(false);')
 
@@ -557,7 +561,8 @@ class Kash(Expect):
 ##         """
 ##         Return help on KASH commands.
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: X = kash.help('IntegerRing')   # optional - kash
 
 ##         """
@@ -664,6 +669,8 @@ class Kash(Expect):
     def version(self):
         return kash_version()
 
+
+@instancedoc
 class KashElement(ExpectElement):
     def __mod__(self, other):
         self._check_valid()

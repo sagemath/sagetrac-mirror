@@ -8,8 +8,9 @@ Root system data for (untwisted) type A affine
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from cartan_type import CartanType_standard_untwisted_affine, CartanType_simply_laced
+from .cartan_type import CartanType_standard_untwisted_affine, CartanType_simply_laced
 class CartanType(CartanType_standard_untwisted_affine):
     def __init__(self, n):
         """
@@ -98,7 +99,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             sage: sorted(a.edges())
             [(0, 1, 2), (1, 0, 2)]
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         n = self.n
         g = DynkinDiagram_class(self)
 
@@ -204,7 +205,7 @@ class CartanType(CartanType_standard_untwisted_affine):
         return self
 
     def _default_folded_cartan_type(self):
-        """
+        r"""
         Return the default folded Cartan type.
 
         In general, this just returns ``self`` in ``self`` with `\sigma` as
@@ -221,4 +222,3 @@ class CartanType(CartanType_standard_untwisted_affine):
         if self.n == 1:
             return CartanTypeFolded(self, ['A', 3, 1], [[0,2], [1,3]])
         return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
-

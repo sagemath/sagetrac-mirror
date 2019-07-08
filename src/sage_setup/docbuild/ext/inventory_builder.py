@@ -9,6 +9,11 @@
 from sphinx.builders.html import StandaloneHTMLBuilder
 from sphinx.util.console import bold
 from os import path
+
+from six import iteritems, text_type
+
+import shutil
+
 try:
     from hashlib import md5
 except ImportError:
@@ -21,14 +26,18 @@ class InventoryBuilder(StandaloneHTMLBuilder):
     inventory files and pickle files. The documentation files are not written.
     """
     name = "inventory"
+    format = "inventory"
+    epilog = "The inventory files are in %(outdir)s."
 
     def get_outdated_docs(self):
+        def md5hash_obj(obj):
+            return md5(text_type(obj).encode('utf-8')).hexdigest()
+
         cfgdict = dict((name, self.config[name])
-                       for (name, desc) in self.config.values.iteritems()
+                       for (name, desc) in iteritems(self.config.values)
                        if desc[1] == 'html')
-        self.config_hash = md5(unicode(cfgdict).encode('utf-8')).hexdigest()
-        self.tags_hash = md5(unicode(sorted(self.tags)).encode('utf-8')) \
-                .hexdigest()
+        self.config_hash = md5hash_obj(cfgdict)
+        self.tags_hash = md5hash_obj(sorted(self.tags))
         old_config_hash = old_tags_hash = ''
         try:
             fp = open(path.join(self.outdir, '.buildinfo'))
@@ -99,11 +108,23 @@ class InventoryBuilder(StandaloneHTMLBuilder):
         """
         raise RuntimeError("This function shouldn't be called in \"%s\" builder"%(self.name))
 
+    def cleanup(self):
+        """
+        Remove the '_static' directory.
+
+        This directory is unnecessary for the inventory build, but it
+        may be created by the graphviz extension. Its presence will
+        break the docbuild later on, so remove it.
+        """
+        if path.isdir(path.join(self.outdir, '_static')):
+            shutil.rmtree(path.join(self.outdir, '_static'))
+
+
     copy_image_files = removed_method_error
     copy_download_files = removed_method_error
     copy_static_files = removed_method_error
     handle_finish = removed_method_error
 
+
 def setup(app):
     app.add_builder(InventoryBuilder)
-

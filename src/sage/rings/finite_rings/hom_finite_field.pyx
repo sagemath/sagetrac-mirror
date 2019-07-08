@@ -100,7 +100,7 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.rings.integer cimport Integer
 
@@ -234,6 +234,38 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         else:
             self._section_class = section_class
 
+    def __copy__(self):
+        """
+        Return a copy of this map.
+
+        TESTS::
+
+            sage: from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
+            sage: k.<t> = GF(3^7)
+            sage: K.<T> = GF(3^21)
+            sage: f = FiniteFieldHomomorphism_generic(Hom(k, K))
+            sage: g = copy(f)
+            sage: g.section()(g(t)) == f.section()(f(t))
+            True
+
+        ::
+
+            sage: F = GF(2)
+            sage: E = GF(4)
+            sage: phi = E.coerce_map_from(F); phi
+            Ring morphism:
+              From: Finite Field of size 2
+              To:   Finite Field in z2 of size 2^2
+              Defn: 1 |--> 1
+            sage: phi.section()
+            Section of Ring morphism:
+              From: Finite Field of size 2
+              To:   Finite Field in z2 of size 2^2
+              Defn: 1 |--> 1
+        """
+        cdef FiniteFieldHomomorphism_generic out = super(FiniteFieldHomomorphism_generic, self).__copy__()
+        out._section_class = self._section_class
+        return out
 
     def _latex_(self):
         r"""
@@ -249,7 +281,6 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             '\\Bold{F}_{3^{7}} \\hookrightarrow \\Bold{F}_{3^{21}}'
         """
         return self.domain()._latex_() + " \\hookrightarrow " + self.codomain()._latex_()
-
 
     cpdef Element _call_(self, x):
         """
@@ -323,7 +354,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
             sage: k.<t> = GF(3^7)
             sage: K.<T> = GF(3^21)
-            sage: f = FiniteFieldHomomorphism_generic(Hom(k, K));
+            sage: f = FiniteFieldHomomorphism_generic(Hom(k, K))
             sage: g = f.section(); g
             Section of Ring morphism:
               From: Finite Field in t of size 3^7
@@ -509,7 +540,7 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
 
     def power(self):
         """
-        Return an integer `n` such that this endormorphism
+        Return an integer `n` such that this endomorphism
         is the `n`-th power of the absolute (arithmetic)
         Frobenius.
 
@@ -610,7 +641,7 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
         """
         if self._degree_fixed == 1:
             k = FiniteField(self.domain().characteristic())
-            from hom_prime_finite_field import FiniteFieldHomomorphism_prime
+            from .hom_prime_finite_field import FiniteFieldHomomorphism_prime
             f = FiniteFieldHomomorphism_prime(Hom(k, self.domain()))
         else:
             k = FiniteField(self.domain().characteristic()**self._degree_fixed,
@@ -668,5 +699,5 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
         return Morphism.__hash__(self)
 
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_morphism', 'FiniteFieldHomomorphism_generic', FiniteFieldHomomorphism_generic)

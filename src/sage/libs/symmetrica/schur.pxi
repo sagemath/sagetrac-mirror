@@ -63,7 +63,8 @@ def outerproduct_schur_symmetrica(parta, partb):
     outer tensor product of two irreducibe representations of the
     symmetric group.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.outerproduct_schur([2],[2])
         s[2, 2] + s[3, 1] + s[4]
     """
@@ -140,7 +141,8 @@ def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
     partition PART as a POLYNOM erg. The INTEGER length specifies the
     length of the alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_schur_with_alphabet(2,2)
         x0^2 + x0*x1 + x1^2
         sage: symmetrica.compute_schur_with_alphabet([2],2)
@@ -162,7 +164,7 @@ def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
     elif isinstance(part, (builtinlist, Partition)):
         _op_partition(part, cpart)
     else:
-        raise NotImplementedError, "n must be an integer or partition"
+        raise NotImplementedError("n must be an integer or partition")
     _op_integer(length, clength)
 
     sig_on()
@@ -185,7 +187,8 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     The INTEGER laenge specifies the length of the alphabet.
     Both routines are the same.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_homsym_with_alphabet(3,1,'x')
         x^3
         sage: symmetrica.compute_homsym_with_alphabet([2,1],1,'x')
@@ -206,7 +209,7 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     elif isinstance(n, (builtinlist, Partition)):
         _op_partition(n, cn)
     else:
-        raise NotImplementedError, "n must be an integer or a partition"
+        raise NotImplementedError("n must be an integer or a partition")
 
     _op_integer(length, clength)
 
@@ -231,7 +234,8 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     The INTEGER length specifies the length of the alphabet.
     Both routines are the same.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = symmetrica.compute_elmsym_with_alphabet(2,2); a
         x0*x1
         sage: a.parent()
@@ -256,7 +260,7 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
             return 0
         _op_partition(n, cn)
     else:
-        raise NotImplementedError, "n must be an integer or a partition"
+        raise NotImplementedError("n must be an integer or a partition")
 
     _op_integer(length, clength)
 
@@ -279,7 +283,8 @@ def compute_monomial_with_alphabet_symmetrica(n, length, alphabet='x'):
     function labeled by a PARTITION number as a POLYNOM erg.
     The INTEGER laenge specifies the length of the alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_monomial_with_alphabet([2,1],2,'x')
         x0^2*x1 + x0*x1^2
         sage: symmetrica.compute_monomial_with_alphabet([1,1,1],2,'x')
@@ -301,7 +306,7 @@ def compute_monomial_with_alphabet_symmetrica(n, length, alphabet='x'):
             return 0
         _op_partition(n, cn)
     else:
-        raise NotImplementedError, "n must be an integer or a partition"
+        raise NotImplementedError("n must be an integer or a partition")
 
     _op_integer(length, clength)
 
@@ -325,7 +330,8 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     or a POW_SYM label as a POLYNOM erg.
     The INTEGER laenge specifies the length of the alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_powsym_with_alphabet(2,2,'x')
         x0^2 + x1^2
         sage: symmetrica.compute_powsym_with_alphabet(2,2,'x').parent()
@@ -346,7 +352,7 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     elif isinstance(n, (builtinlist, Partition)):
         _op_partition(n, cn)
     else:
-        raise NotImplementedError, "need to write code for POW_SYM"
+        raise NotImplementedError("need to write code for POW_SYM")
 
     _op_integer(length, clength)
 
@@ -365,7 +371,8 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
 def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_schur_with_alphabet_det(2,2)
         x0^2 + x0*x1 + x1^2
         sage: symmetrica.compute_schur_with_alphabet_det([2],2)
@@ -384,7 +391,7 @@ def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
     elif isinstance(part, (builtinlist, Partition)):
         _op_partition(part, cpart)
     else:
-        raise NotImplementedError, "n must be an integer or partition"
+        raise NotImplementedError("n must be an integer or partition")
 
     _op_integer(length, clength)
 
@@ -402,9 +409,10 @@ def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
 
 def part_part_skewschur_symmetrica(outer, inner):
     """
-    Returns the skew schur function s_{outer/inner}
+    Return the skew Schur function s_{outer/inner}.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.part_part_skewschur([3,2,1],[2,1])
         s[1, 1, 1] + 2*s[2, 1] + s[3]
     """
@@ -438,7 +446,7 @@ def hall_littlewood_symmetrica(part):
     cdef OP pointer
 
     if len(part) == 0:
-        raise TypeError, "part must be a partition of a positive integer"
+        raise TypeError("part must be a partition of a positive integer")
 
     _op_partition(part, cpart)
 
@@ -545,7 +553,7 @@ def t_POLYNOM_SCHUR_symmetrica(p):
     _op_polynom(p, polynom)
 
     if not symmetricp(polynom):
-        raise ValueError, "the polynomial must be symmetric"
+        raise ValueError("the polynomial must be symmetric")
 
     sig_on()
     t_POLYNOM_SCHUR(polynom, cresult)
@@ -654,7 +662,7 @@ def t_POLYNOM_MONOMIAL_symmetrica(p):
     _op_polynom(p, polynom)
 
     if not symmetricp(polynom):
-        raise ValueError, "the polynomial must be symmetric"
+        raise ValueError("the polynomial must be symmetric")
 
     sig_on()
     t_POLYNOM_MONOMIAL(polynom, cresult)
@@ -761,7 +769,7 @@ def t_POLYNOM_ELMSYM_symmetrica(p):
     _op_polynom(p, polynom)
 
     if not symmetricp(polynom):
-        raise ValueError, "the polynomial must be symmetric"
+        raise ValueError("the polynomial must be symmetric")
 
     sig_on()
     t_POLYNOM_ELMSYM(polynom, cresult)
@@ -954,7 +962,7 @@ def t_POLYNOM_POWER_symmetrica(p):
     _op_polynom(p, polynom)
 
     if not symmetricp(polynom):
-        raise ValueError, "the polynomial must be symmetric"
+        raise ValueError("the polynomial must be symmetric")
 
     sig_on()
     t_POLYNOM_POWER(polynom, cresult)

@@ -19,8 +19,7 @@ AUTHORS:
 
 REFERENCES:
 
-- Chaps. 15, 24 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
+- Chaps. 15, 24 of R. Godement: *Algebra* [God1968]_
 
 """
 #******************************************************************************
@@ -31,6 +30,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import absolute_import
+from six import itervalues
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
@@ -229,7 +230,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         sage: (-a).matrix(e) == - (a.matrix(e))
         True
 
-    Adding two automorphisms results in a generic type-(1,1) tensor::
+    Adding two automorphisms results in a generic type-`(1,1)` tensor::
 
         sage: s = a + b ; s
         Type-(1,1) tensor a+b on the Rank-2 free module M over the Integer Ring
@@ -243,7 +244,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         )
 
     To get the result as an endomorphism, one has to explicitely convert it via
-    the parent of endormophisms, `\mathrm{End}(M)`::
+    the parent of endomorphisms, `\mathrm{End}(M)`::
 
         sage: s = End(M)(a+b) ; s
         Generic endomorphism of Rank-2 free module M over the Integer Ring
@@ -355,7 +356,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         r"""
         Delete the derived quantities.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
@@ -407,7 +408,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             <class 'sage.tensor.modules.comp.KroneckerDelta'>
 
         """
-        from comp import KroneckerDelta
+        from .comp import KroneckerDelta
         if self._is_identity:
             fmodule = self._fmodule
             return KroneckerDelta(fmodule._ring, basis,
@@ -541,7 +542,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
           class :class:`~sage.tensor.modules.comp.Components`; if such
           components did not exist previously, they are created.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Setting the components of an automorphism of a rank-3 free
         `\ZZ`-module::
@@ -664,7 +665,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
           class :class:`~sage.tensor.modules.comp.Components`;
           if such components did not exist previously, they are created
 
-        EXAMPLE:
+        EXAMPLES:
 
         Adding components to an automorphism of a rank-3 free
         `\ZZ`-module::
@@ -769,7 +770,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
 
         """
-        from free_module_tensor import FiniteRankFreeModuleElement
+        from .free_module_element import FiniteRankFreeModuleElement
         if len(arg) > 1:
             # The automorphism acting as a type-(1,1) tensor on a pair
             # (linear form, module element), returning a scalar:
@@ -897,10 +898,8 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
             sage: a^(-1)*a == id
             True
-
         """
-        from sage.matrix.constructor import matrix
-        from comp import Components
+        from .comp import Components
         if self._is_identity:
             return self
         if self._inverse is None:
@@ -1090,7 +1089,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         OUTPUT:
 
-        - the matrix representing representing the automorphism ``self`` w.r.t
+        - the matrix representing the automorphism ``self`` w.r.t
           to bases ``basis1`` and ``basis2``; more precisely, the columns of
           this matrix are formed by the components w.r.t. ``basis2`` of
           the images of the elements of ``basis1``.
@@ -1225,7 +1224,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return self._matrices.values()[0].det() # pick a random value in the
+        return next(itervalues(self._matrices)).det() # pick a random value in the
                                                 # dictionary self._matrices
                                                 # and compute the determinant
 
@@ -1258,6 +1257,6 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return self._matrices.values()[0].trace() # pick a random value in the
+        return next(itervalues(self._matrices)).trace() # pick a random value in the
                                                   # dictionary self._matrices
                                                   # and compute the trace

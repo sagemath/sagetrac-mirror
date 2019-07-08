@@ -10,8 +10,9 @@ Root system data for type C
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-import ambient_space
+from . import ambient_space
 
 class AmbientSpace(ambient_space.AmbientSpace):
     """
@@ -122,7 +123,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         return self.sum(self.monomial(j) for j in range(i))
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic, CartanType_simply_laced
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic, CartanType_simply_laced
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self, n):
         """
@@ -206,7 +207,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: CartanType(["C", 3]).dual()
             ['B', 3]
         """
-        import cartan_type
+        from . import cartan_type
         return cartan_type.CartanType(["B", self.n])
 
     def dynkin_diagram(self):
@@ -307,5 +308,5 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             [[i, 2*n-i] for i in range(1, n)] + [[n]])
 
 # For unpickling backward compatibility (Sage <= 4.1)
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_C', 'ambient_space',  AmbientSpace)

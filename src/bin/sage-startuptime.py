@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env sage-python23
 
 ########################################################################
 # Originally based on a script by Andrew Dalke:
@@ -21,6 +21,12 @@ from __future__ import print_function
 import sys
 import time
 import gc
+import warnings
+
+# Ignore collections.abc warnings, there are a lot of them but they are
+# harmless. These warnings are also disabled in src/sage/all.py.
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    message='.*collections[.]abc.*')
 
 cmdline_args = sys.argv[2:]
 have_cmdline_args = (len(cmdline_args) > 0)
@@ -31,7 +37,12 @@ parent = None
 index_to_parent = dict()
 all_modules = dict()
 
-def new_import(name, globals={}, locals={}, fromlist=[], level=-1):
+if sys.version_info[0] == 2:
+    DEFAULT_LEVEL = -1
+else:
+    DEFAULT_LEVEL = 0
+
+def new_import(name, globals={}, locals={}, fromlist=[], level=DEFAULT_LEVEL):
      """"
      The new import function
 
@@ -76,8 +87,9 @@ __builtins__.__import__ = old_import
 for data in all_modules.values():
      data['parents'] = set( index_to_parent.get(i,None) for i in data['parents'] )
 
-module_by_speed = sorted(( (data['time'], module, data)
-                           for module,data in all_modules.items() ))
+module_by_speed = sorted(((data['time'], module, data)
+                          for module, data in all_modules.items()),
+                          key=lambda x: x[0])
 
 
 def print_separator():

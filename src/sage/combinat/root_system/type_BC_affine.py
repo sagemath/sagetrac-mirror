@@ -10,8 +10,9 @@ Root system data for type BC affine
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from cartan_type import CartanType_standard_affine
+from .cartan_type import CartanType_standard_affine
 from sage.rings.integer_ring import ZZ
 class CartanType(CartanType_standard_affine):
     def __init__(self, n):
@@ -107,7 +108,7 @@ class CartanType(CartanType_standard_affine):
             [(0, 1, 1), (1, 0, 4)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         n = self.n
         g = DynkinDiagram_class(self)
         if n == 1:
@@ -128,14 +129,14 @@ class CartanType(CartanType_standard_affine):
             sage: latex(CartanType(['BC',4,2]))
             BC_{4}^{(2)}
 
-            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.options.notation = 'Kac'
             sage: latex(CartanType(['BC',4,2]))
             A_{8}^{(2)}
             sage: latex(CartanType(['A',8,2]))
             A_{8}^{(2)}
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
-        if self.global_options('notation') == "Kac":
+        if self.options.notation == "Kac":
             return "A_{%s}^{(2)}"%(2*self.classical().rank())
         else:
             return "BC_{%s}^{(2)}"%self.n
@@ -197,7 +198,6 @@ class CartanType(CartanType_standard_affine):
             ret += node(node_dist, 0, label(1))
             return ret
 
-        n = self.n
         ret = "\\draw (0, 0.1 cm) -- +(%s cm,0);\n"%node_dist
         ret += "\\draw (0, -0.1 cm) -- +(%s cm,0);\n"%node_dist
         if dual:
@@ -205,7 +205,6 @@ class CartanType(CartanType_standard_affine):
         else:
             ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
         ret += "{\n\\pgftransformxshift{%s cm}\n"%node_dist
-        classical = self.classical()
         ret += self.classical()._latex_dynkin_diagram(label, node, node_dist, dual=dual)
         ret += "}\n" + node(0, 0, label(0))
         return ret
@@ -248,7 +247,7 @@ class CartanType(CartanType_standard_affine):
             sage: CartanType(["BC", 3, 2]).classical()
             ['C', 3]
         """
-        import cartan_type
+        from . import cartan_type
         return cartan_type.CartanType(["C", self.n])
 
     def basic_untwisted(self):
@@ -269,7 +268,7 @@ class CartanType(CartanType_standard_affine):
             sage: CartanType(['BC', 4, 2]).basic_untwisted()
             ['A', 8]
         """
-        import cartan_type
+        from . import cartan_type
         return cartan_type.CartanType(["A", 2*self.n])
 
     def _default_folded_cartan_type(self):
