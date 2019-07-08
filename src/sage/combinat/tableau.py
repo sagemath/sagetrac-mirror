@@ -9413,7 +9413,7 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 
 #Abstract class for the elements of weak tableau
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class SemistandardAlphabetTableau_abstract(ClonableList):
+class SemistandardMultisetTableau_abstract(ClonableList):
     r"""
     Abstract class for the various element classes of SemistandardAlphabetTableau.
     """
@@ -9553,7 +9553,7 @@ class SemistandardMultisetTableaux_abstract(UniqueRepresentation, Parent):
         """
         pass
         
-class WeakTableaux_bounded(WeakTableaux_abstract):
+class MultisetTableaux_bounded(WeakTableaux_abstract):
     r"""
     
 
@@ -9616,8 +9616,6 @@ class WeakTableaux_bounded(WeakTableaux_abstract):
         pass
 
     Element = WeakTableau_bounded
-
-
     
 class SemistandardMultisetTableaux(Tableaux):
     """
