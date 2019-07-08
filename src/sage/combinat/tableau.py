@@ -9411,13 +9411,24 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
 
-    
+       
 class SemistandardMultisetTableaux(Tableaux):
     """
-    A factory class for various classes of Semistandard Multiset Tableaux.
+    A factory class for various classes of semistandard multiset tableaux.
+    
+    INPUT:
+    - ``shape`` -- the shape of the multiset tableaux; a list of weakly decreasing non-negative integers
+    - ``n`` -- a positive integer that is the max entry of the values in the tableaux
+    - ``order`` -- the order on multisets. This can one of the following strings: ``graded lex``, ``last letter``. The order is defaulted to ``last letter``. The user can also implement their own order by inputting a function which takes in multisets x, y and outputs true if x <= y.
     """
-    pass
-
+    
+    @staticmethod
+    def __classcall_private__(cls, shape, n, order):
+        pass
+    
+    def __init__(self, shape, n, order):
+        pass
+        
     class SemistandardMultisetTableaux_all():
         pass
     
@@ -9427,12 +9438,23 @@ class SemistandardMultisetTableaux(Tableaux):
     class SemistandardMultisetTableaux_size():
         pass
     
-    class SemistandardMultisetTableaux_shape_weight():
-        pass
+    class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux_shape):
+        
+        def __init__(self, p, mu, order):
+            pass
+        
+        def _repr_(self):
+            pass
+        
+        def __contains__(self, x):
+            pass
+        
+        def __iter__(self):
+            pass
+        
     
     class SemistandardMultisetTableaux_size_weight():
         pass
-    
     
 class StandardMultisetTableaux(Tableaux):
     """
