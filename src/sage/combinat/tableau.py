@@ -9411,10 +9411,151 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
 
-       
-class SemistandardMultisetTableaux(Tableaux):
+      
+#Abstract class for the elements of weak tableau
+@add_metaclass(InheritComparisonClasscallMetaclass)
+class SemistandardMultisetTableau_abstract(ClonableList):
+    r"""
+    Abstract class for the various element classes of SemistandardAlphabetTableau.
     """
-    A factory class for various classes of semistandard multiset tableaux.
+    def shape(self):
+        r"""
+        Return the shape of ``self``.
+
+        When the tableau is straight, the outer shape is returned.
+        When the tableau is skew, the tuple of the outer and inner shape is returned.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+    def size(self):
+        r"""
+        Return the size of the shape of ``self``.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+    def intermediate_shapes(self):
+        r"""
+        Return the intermediate shapes of ``self``.
+
+        A (skew) tableau with letters `1,2,\ldots,\ell` can be viewed as a sequence of shapes,
+        where the `i`-th shape is given by the shape of the subtableau on letters `1,2,\ldots,i`.
+        The output is the list of these shapes.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+    def pp(self):
+        r"""
+        Return a pretty print string of the tableau.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+    def _latex_(self):
+        r"""
+        Return a latex method for the tableau.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+    def representation(self, representation = 'core'):
+        r"""
+        Return the analogue of ``self`` in the specified representation.
+
+        INPUT:
+
+        - ``representation`` -- 'core', 'bounded', or 'factorized_permutation' (default: 'core')
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+#Abstract class for the parents of weak tableaux
+class SemistandardMultisetTableaux_abstract(UniqueRepresentation, Parent):
+    r"""
+    Abstract class for the various parent classes of WeakTableaux.
+    """
+    def shape(self):
+        r"""
+        Return the shape of the tableaux of ``self``.
+
+        When ``self`` is the class of straight tableaux, the outer shape is returned.
+        When ``self`` is the class of skew tableaux, the tuple of the outer and inner
+        shape is returned.
+
+        Note that in the 'core' and 'factorized_permutation' representation, the shapes
+        are `(k+1)`-cores.  In the 'bounded' representation, the shapes are `k`-bounded
+        partitions.
+
+        If the user wants to access the skew shape (even if the inner shape is empty),
+        please use ``self._shape``.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+        
+    def size(self):
+        r"""
+        Return the size of the shape.
+
+        In the bounded representation, the size of the shape is the number of boxes in the
+        outer shape minus the number of boxes in the inner shape. For the core and
+        factorized permutation representation, the size is the length of the outer shape
+        minus the length of the inner shape.
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+
+    def representation(self, representation = 'core'):
+        r"""
+        Return the analogue of ``self`` in the specified representation.
+
+        INPUT:
+
+        - ``representation`` -- 'core', 'bounded', or 'factorized_permutation' (default: 'core')
+
+        EXAMPLES::
+
+            sage: 
+        """
+        pass
+        
+class MultisetTableaux_bounded(WeakTableaux_abstract):
+    r"""
     
     INPUT:
     - ``shape`` -- the shape of the multiset tableaux; a list of weakly decreasing non-negative integers
@@ -9429,65 +9570,25 @@ class SemistandardMultisetTableaux(Tableaux):
     def __init__(self, shape, n, order):
         pass
         
-    class SemistandardMultisetTableaux_all():
-        pass
-    
-    class SemistandardMultisetTableaux_shape():
-        pass
-    
-    class SemistandardMultisetTableaux_size():
-        pass
-    
-    class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux_shape):
-        
-        def __init__(self, p, mu, order):
-            pass
-        
-        def _repr_(self):
-            pass
-        
-        def __contains__(self, x):
-            pass
-        
-        def __iter__(self):
-            pass
-        
-    
-    class SemistandardMultisetTableaux_size_weight():
-        pass
-    
-class StandardMultisetTableaux(Tableaux):
-    """
-    A factory class for various classes of Standard Multiset Tableaux.
-    """
-    
-    class StandardMultisetTableaux_all():
-        """
-        All standard multiset tableaux.
-        """
-        def __init__(self):
-            r"""
-            Initializes the class of all standard multiset tableaux.
 
-            TESTS::
+    def _repr_(self):
+        """
+        TESTS::
 
-                sage: ST = StandardTableaux()
-                sage: TestSuite(ST).run()
-            """
-            pass
+            sage: 
+        """
         pass
-    
-    class StandardMultisetTableau_size():
+
+    def __iter__(self):
+        r"""
+        TESTS::
+
+            sage: 
+        """
         pass
-    
-    class StandardMultisetTableaux_shape():
-        pass
-    
-    class StandardMultisetTableaux_shape_weight():
-        pass
-    
-    
-    pass
+
+    Element = WeakTableau_bounded
+
 
 
 
