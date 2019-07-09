@@ -9415,6 +9415,12 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 # (Multi)set-valued tableaux #
 ##############################
 
+def grlex(x,y):
+    x1,y1 = sorted(x),sorted(y)
+    return (len(x),x1)<(len(y),y1)
+    
+def cmp_to_key(comp):
+    pass
 
 class SemistandardMultisetTableaux(Tableaux):
     r"""
@@ -9422,13 +9428,13 @@ class SemistandardMultisetTableaux(Tableaux):
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
-        
-        
+        pass
+
     Element = SemistandardMultisetTableau
     
     def __init__(self,order='last_letter',**kwds):
         """
-        Initialize ``self``.
+        Initialize ``self`` given an order.
 
         EXAMPLES::
 
@@ -9437,11 +9443,21 @@ class SemistandardMultisetTableaux(Tableaux):
         """
         if callable(order):
             self.order = order
+
+            def order_to_cmp(x,y):
+                if x==y:
+                    return 0
+                elif order(x,y):
+                    return -1
+                return 1 
+
+            self.key = cmp_to_key(order_to_cmp) # need to implement cmp_to_key!!
         elif order == 'last_letter':
-            f = lambda (L1,L2): max(L1)<=max(L2)
-            self.order = f
+            self.order = lambda (x,y): sorted(x)[-1]<=sorted(y)[-1]
+            self.key = lambda x: sorted(x)[-1]
         elif order == 'grlex':
-            self.order = grlex
+            self.order = grlexS
+            self.key = lambda x: (len(x),sorted(x))
         else:
             raise ValueError("An order should be given")
 
@@ -9451,15 +9467,12 @@ class SemistandardMultisetTableaux(Tableaux):
         else:
             self.max_entry = None
         Tableaux.__init__(self, **kwds)
-        
-    class options(GlobalOptions):
-        pass
-    
-    def _element_constructor_(self,t):
-        
     
     def __contains__(self,x):
+            
         """
+        Checks if x is an element of self.
+        
         TESTS::
 
             sage: T = sage.combinat.tableau.SemistandardMultisetTableaux_all()
@@ -9479,7 +9492,17 @@ class SemistandardMultisetTableaux(Tableaux):
             sage: [[[1],[3],[2]]] in T
             False
         """
-        
+        if isinstance(x,SemistandardMultisetTableau) and x.order==self.order:
+            return True
+        elif isinstance(x,Tableau):
+            order = self.order
+            for row in x:
+                if not all(all(c>0 for c in C) for C in row):
+                    return False
+                elif not all(order(row[i],row[i+1]) for i in range(len(row)-1)):
+                    return False
+                elif not all(order):
+                    pass
     
 class SemistandardMultisetTableaux_all(Tableaux):
     
