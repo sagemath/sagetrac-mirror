@@ -9416,6 +9416,40 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 ##############################
 
 
+class SemistandardMultisetTableau(Tableau):
+    """
+    A class to model a semistandard multiset tableau.
+    """
+
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        """
+        pass
+
+    def check(self):
+        """
+        Check that ``self`` is a valid semistandard multiset tableau.
+        """
+        super(SemistandardMultisetTableau, self).check()
+
+        # Tableau() has checked that t is tableau, so it remains to check that
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+
+        for row in self:
+            if any(self.order_key(row[c]) > self.order_key(row[c+1]) for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
+
+        # and strictly increasing down columns
+        if self:
+            for row, next in zip(self, self[1:]):
+                if not all(self.order_key(row[c]) < self.order_key(next[c]) for c in range(len(next))):
+                    raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+
+
 class SemistandardMultisetTableaux(Tableaux):
     r"""
     Class of semistandard multiset tableaux.
