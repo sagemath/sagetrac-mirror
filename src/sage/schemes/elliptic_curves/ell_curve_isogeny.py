@@ -847,6 +847,16 @@ class EllipticCurveIsogeny(Morphism):
         ((1/4*x^2 + t^2)/x, (1/8*x^2*y + (-1/2*t^2)*y)/x^2)
         sage: duals[0]
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 4*t^2*x over Rational function field in t over Rational Field to Elliptic Curve defined by y^2 = x^3 + (-t^2)*x over Rational function field in t over Rational Field
+
+    Example where the kernel is taken directly from the torsion subgroup rather than the abelian group of the elliptic curve (see :trac:'28146')::
+
+        sage: E = EllipticCurve('11a')
+        sage: P = E.torsion_subgroup().gens()[0]
+        sage: EllipticCurveIsogeny(E, kernel=P)
+        Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
+        sage: EllipticCurveIsogeny(E, kernel=E(P)) == EllipticCurveIsogeny(E, kernel=P)
+        True
+
     """
 
     ####################
