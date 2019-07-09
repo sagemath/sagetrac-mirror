@@ -668,7 +668,7 @@ class DemazureBasisOnVectors(LinearBasisOnVectors):
         This class is a wrapper for the on basis isobaric divided differences
         methods.
         It contains a optimized version of the isobaric divided differences
-        for K polynomials (Demazre basis), they will be used instead of the
+        for Demazure characters; they will be used instead of the
         default ones on monomials.
 
         TESTS::
@@ -681,8 +681,8 @@ class DemazureBasisOnVectors(LinearBasisOnVectors):
 
         def isobaric_divided_difference_on_basis(self, key):
             r"""
-            On basis action for the isobaric divided difference on the
-            demazure basis.
+            On basis action for the isobaric divided difference operator on the
+            Demazure basis.
 
             TESTS::
                 sage: A = MultivariatePolynomialAlgebra(QQ)

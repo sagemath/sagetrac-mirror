@@ -403,6 +403,9 @@ class MonomialKeyWrapper(Parent, UniqueRepresentation):
 
         def __hash__(self):
             return hash(self._wrapped)
+        
+        def weyl_action(self, w):
+            return type(self)(self.parent(), self._wrapped.weyl_action(w))
 
 r"""
     The category of bases of (see :class:``MultivariatePolynomialAlgebra``). These
@@ -2237,7 +2240,9 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
             x[0, 0, 0] + 2*x[1, 0, 0] + x[1, 2, 3] + 3*x[2, 0, 0]
 
         """
-        return self.finite_basis(3).an_element()
+        from sage.combinat.composition import Compositions
+        co = Compositions(5,length=3).an_element()
+        return self[co]
 
     def term(self, key, coeff = None):
         r"""

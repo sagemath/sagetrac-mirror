@@ -28,7 +28,7 @@ def SchubertPolynomialsOnVectors(R, basis_name = None, basis_repr= "Y", **keywor
     $Y_{\cdots v_{i+1} v_i-1 \cdots} = Y_v \partial_i$ where $\partial_i$
     is the ith Newton divided difference operator.
 
-    The vectors indexing the Schubert polynomials can as well been seen as
+    The vectors indexing the Schubert polynomials can be seen as
     Lehmer codes.
 
     INPUT:
@@ -113,7 +113,7 @@ def DemazurePolynomials(R, group_type ="A", basis_name = None, basis_repr = "K",
         $K_{\cdots v_{i+1} v_i \cdots} = K_v \pi_i$ where $\pi_i$ is the
         ith isobaric divided difference operator.
 
-        The vectors indexing the key polynomials can as well been seen
+        The vectors indexing the key polynomials can be seen
         as Lehmer codes.
 
         INPUT:
