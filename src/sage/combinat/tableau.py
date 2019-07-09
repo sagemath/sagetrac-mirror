@@ -9411,6 +9411,168 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
 
+#####################################
+# Semistandard Set-Valued Tableaux  #
+#####################################
+        
+class SemistandardSetValuedTableaux(Tableaux):
+    r"""
+    Class of semistandard set-valued tableaux.
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.
+        
+        TESTS::
+
+            sage: SemistandardSetValuedTableaux()
+            SemistandardSetValuedTableaux
+            sage: SemistandardSetValuedTableaux(3)
+            Tableaux of size 3
+        """
+        if args:
+            from sage.combinat.partition import _Partitions
+            if isinstance(args[0],(int,Integer)) and args[0]>=0:
+                return SemistandardSetValuedTableaux_size()
+            elif args[0] in _Partitions:
+                return SemistandardSetValuedTableaux_shape()
+            else:
+                raise ValueError("the argument must be a non-negative integer or a partition")            
+        #else:
+        #    return SemistandardSetValuedTableaux_all()
+        else:
+            raise NotImplementedError("SemistandardSetValuedTableaux_all is not implemented yet")
+        
+    Element = SemistandardSetValuedTableau
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = SemistandardSetValuedTableaux()
+            sage: TestSuite(S).run()
+        """
+        if 'max_entry' in kwds:
+            self.max_entry = kwds['max_entry']
+            kwds.pop('max_entry')
+        else:
+            self.max_entry = None
+        Tableaux.__init__(self, *args, **kwargs)
+    
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: SemistandardSetValuedTableaux()
+            Semistandard set-valued tableaux
+
+            sage: SemistandardSetValuedTableaux(max_entry=3)
+            Semistandard set-valued tableaux with maximum entry 3
+        """
+        if self.max_entry is not None:
+            return "Semistandard set-valued tableaux with maximum entry {}".format(self.max_entry)
+        return "Semistandard set-valued tableaux"
+        
+    def __contains__(self,x):
+        r"""
+        Determines if x is an element of self.
+        """
+        pass
+        
+class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
+    """
+    Semistandard set-valued tableaux of fixed size `n`.
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of all semistandard set-valued tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardSetValuedTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: TestSuite( SemistandardSetValuedTableaux(0) ).run()
+            sage: TestSuite( SemistandardSetValuedTableaux(3) ).run()
+        """
+        SemistandardSetValuedTableaux.__init__(self)
+        from sage.combinat.partition import Partitions_n
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(Partitions_n(n), SemistandardSetValuedTableaux_shape),
+                                             facade=True, keepkey=False)
+        self._size = Integer(n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: SemistandardSetValuedTableaux(3)
+            Semistandard set-valued tableaux of size 3
+        """
+        return "Semistandard set-valued tableaux of size %s" % self._size
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+        """
+        return SemistandardSetValuedTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
+
+class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
+    """
+    Semistandard set-valued tableaux of a fixed shape `p`.
+    """
+    def __init__(self, p):
+        r"""
+        Initializes the class of all semistandard set-valued tableaux of a given shape.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardSetValuedTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: TestSuite( SemistandardSetValuedTableaux([2,1,1]) ).run()
+        """
+        super(SemistandardSetValuedTableaux_shape, self).__init__(category=FiniteEnumeratedSets())
+        self.shape = p
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+        """
+        return SemistandardSetValuedTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: SemistandardSetValuedTableaux([2,1,1])
+            Semistandard set-valued tableaux of shape [2, 1, 1]
+        """
+        return "Semistandard set-valued tableaux of shape {}".format(self.shape)
+
+    def __iter__(self):
+        r"""
+        An iterator for the semistandard set-valued tableaux associated to the
+        shape `p` of ``self``.
+
+        EXAMPLES::
+
+        """
+        pass
+
+
+
+
 
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.misc.persist import register_unpickle_override
