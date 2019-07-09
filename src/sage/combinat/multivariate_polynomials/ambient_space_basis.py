@@ -24,19 +24,19 @@ from sage.rings.rational_field import QQ
 class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
     r"""
     This class implements the ambient space basis. This is really close to
-    the monomial basis as polynomials are also seen as sum of monomials. But
+    the monomial basis as polynomials are also seen as sums of monomials. But
     now, each monomial is indexed by an element of the ambient space basis
     and so has a group type embeded in it.
 
     The class is called by
-    ``multivariate_polinomials.MultivariatePolynomialAlgebra.ambien_space_basis``
+    ``multivariate_polynomials.MultivariatePolynomialAlgebra.ambient_space_basis``
 
-    It is a representation of ``multivariate_polinomials.MultivariatePolynomialAlgebra``
+    It is a representation of ``multivariate_polynomials.MultivariatePolynomialAlgebra``
 
     The number of variables is not set, this class is a facade for
     ``FiniteMonomialBasis``.
 
-    As the number of variable is not set, then the ambient space basis is
+    As the number of variable is not set, the ambient space basis is
     not directly created, but the group type is kept.
 
     INPUT:
@@ -82,7 +82,7 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
 
     def equivalent_basis(self, abstract_polynomial_ring):
         r"""
-            Returns the ambien space basis of another abstract polynomial ring.
+            Returns the ambient space basis of another abstract polynomial ring.
 
             INPUT:
             - ``abstract_polynomial_ring``, an abstract polynomial ring
@@ -202,9 +202,9 @@ class PolynomialRingWithBasisFromAmbientSpace(PolynomialRingWithBasis):
 
 class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasis):
     r"""
-    This class implements the ambient basis on a given number of variables
-    it is obtained automatically by PolynomialRingWithBasisFromAmbientSpace when a polynomial is created
-    see AbastractPolynomialRing.monomial_basis_with_type for more information
+    This class implements the ambient basis on a given number of variables.
+    It is obtained automatically by PolynomialRingWithBasisFromAmbientSpace when a polynomial is created.
+    See AbstractPolynomialRing.monomial_basis_with_type for more information.
 
     EXAMPLES::
 
@@ -308,7 +308,7 @@ class FinitePolynomialRingWithBasisFromAmbientSpace(FinitePolynomialRingWithBasi
 
     def weyl_group(self):
         r"""
-        Returns the weyl group acting on ``self``.
+        Returns the Weyl group acting on ``self``.
 
         EXAMPLES::
 

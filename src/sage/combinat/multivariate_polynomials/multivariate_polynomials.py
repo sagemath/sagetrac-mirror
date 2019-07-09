@@ -199,9 +199,9 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         object.
 
         In the case of the multivariate polynomial algebra, the number
-        of actual generators is potentatially infinite. So this method
-        actually return a tuple containing the monomial basis which can
-        be seen as a multivariate gerator.
+        of actual generators is potentially infinite. So this method
+        instead returns a tuple containing the monomial basis which can
+        be seen as a multivariate generator.
 
         EXAMPLES::
 
@@ -592,12 +592,12 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
     def linear_basis_on_vectors(self, group_type, basis_name, basis_repr, on_basis_method, extra_parameters = (), **keywords):
         r"""
-        Create a linear basis on objects inedexed by vectors based on an operation
+        Create a linear basis on objects indexed by vectors based on an operation
         to convert each object (through its vector) into a typed polynomial.
 
         INPUT:
 
-        - ``group_type`` -- the letter that represents the type of the weyl group that
+        - ``group_type`` -- the letter that represents the type of the Weyl group that
            will be used for the ambient space basis
         - ``basis_name`` -- the name of the basis (used in repr)
         - ``basis_repr``-- the basis representation for elements
@@ -619,9 +619,9 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         - ``**keyword`` : parameters used to create the morphism to the ambient space basis,
           sent to ``CombinatorialFreeModule.module_morphism``. By default, ``triangular`` is
-          set to ``upper`` : change it explicitly to ``None`` if you're basis is not.
+          set to ``upper`` : change it explicitly to ``None`` if your basis is not.
           A default ``cmp`` method is also used to order keys : it compares degrees first and
-          then orders vectors by inversed lexical order. This comparasion method is the classic
+          then orders vectors by reverse lexicographic order. This comparison method is the classical
           one, used by Schubert, Demazure and Grothendieck polynomials.
 
         OUTPUT :
@@ -661,7 +661,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
     def schubert_basis_on_vectors(self, basis_name = None, basis_repr = "Y"):
         r"""
-        Creates the simple Schubert basis where schubert polynomials are indexed
+        Creates the simple Schubert basis where Schubert polynomials are indexed
         by vectors.
 
         Here is the definition we use. For $v = (v_1, \cdots, v_n) \in \mathbb{N}^n$, we define
@@ -673,7 +673,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         $Y_{\cdots v_{i+1} v_i-1 \cdots} = Y_v \partial_i$ where $\partial_i$ is the ith divided difference.
 
         The vectors indexing the Schubert polynomials can as well been seen as
-        lehmer codes.
+        Lehmer codes.
 
         INPUT:
 
@@ -744,13 +744,13 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         Otherwise, we have for $ v_i > v_{i+1}$
 
-        $K_{\cdots v_{i+1} v_i \cdots} = K_v \pi_i$ where $\pi_i$ is the ith isobar divided difference.
+        $K_{\cdots v_{i+1} v_i \cdots} = K_v \pi_i$ where $\pi_i$ is the ith isobaric divided difference operator.
 
-        The vectors indexing the key polynomials can as well been seen as lehmer codes.
+        The vectors indexing the key polynomials can as well been seen as Lehmer codes.
 
         INPUT:
 
-        - ``group_type``: (default: ``A``) the letter that represents the type of the weyl group
+        - ``group_type``: (default: ``A``) the letter that represents the type of the Weyl group
         - ``basis_name``: (default: canonical name) the name of the basis (used in repr)
         - ``basis_repr``: (default: ``K``) the basis representation for elements
 
@@ -819,7 +819,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
     def demazure_hat_basis_on_vectors(self, group_type ="A", basis_name = None, basis_repr = "^K"):
         r"""
-        Creates the Demazure hat basis where demazure polynomials are indexed
+        Creates the Demazure hat basis where Demazure polynomials are indexed
         by vectors.
 
         Here is the definition we use for type A. For $v = (v_1, \cdots, v_n) \in \mathbb{N}^n$, we define
@@ -828,9 +828,9 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         Otherwise, we have for $ v_i > v_{i+1}$
 
-        $K_{\cdots v_{i+1} v_i \cdots} = K_v \pi_i$ where $\pi_i$ is the ith isobar hat divided difference.
+        $K_{\cdots v_{i+1} v_i \cdots} = K_v \pi_i$ where $\pi_i$ is the ith isobaric hat divided difference.
 
-        The vectors indexing the key polynomials can as well been seen as lehmer codes.
+        The vectors indexing the key polynomials can as well been seen as Lehmer codes.
 
         INPUT:
 
@@ -900,7 +900,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         r"""
         Creates the simple Grothendieck basis where Grothendieck polynomials are indexed
         by vectors. The Negative stands for that we use a definition of the basis where
-        the variable have negative exposants.
+        the variables have negative exponents.
 
         Here is the definition we use. For $v = (v_1, \cdots, v_n) \in \mathbb{N}^n$, we define
 
@@ -908,9 +908,9 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         Otherwise, we have for $ v_i > v_{i+1}$
 
-        $G_{\cdots v_{i+1} v_i-1 \cdots} = G_v \pi_i$ where $\pi_i$ is the ith isobar divided difference.
+        $G_{\cdots v_{i+1} v_i-1 \cdots} = G_v \pi_i$ where $\pi_i$ is the ith isobaric divided difference operator.
 
-        The vectors indexing the Grothendieck polynomials can as well been seen as lehmer codes.
+        The vectors indexing the Grothendieck polynomials can as well been seen as Lehmer codes.
 
 
 
@@ -922,8 +922,8 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         OUTPUT:
 
         - The ring of multivariate polynomials on x over ``R`` on the
-          Grothendieck basis of type ``group_type`` with negative exposants
-          indexd by vectors where ``R`` is the algebra base ring defined in
+          Grothendieck basis of type ``group_type`` with negative exponents
+          indexed by vectors where ``R`` is the algebra base ring defined in
           the abstract algebra.
 
         EXAMPLES::
@@ -938,8 +938,8 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         We can convert a Grothendieck polynomial into the Monomial or
         Ambient Space basis but not the other way around as Grothendieck
-        polynomials are with negative exposants. Note that conversion
-        from monomials with negative exposants into Grothendieck polynomials
+        polynomials are with negative exponents. Note that conversion
+        from monomials with negative exponents into Grothendieck polynomials
         is NOT implemented ::
 
             sage: g = Groth[0,1];g
@@ -979,7 +979,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         r"""
         Creates the simple Grothendieck basis where Grothendieck polynomials
         are indexed by vectors. The positive stands for that we use a definition
-        of the basis where variables have positive exposants.
+        of the basis where variables have positive exponents.
 
         It corresponds to the basis given by ``grothendieck_negative_basis_on_vectors``
         by a change of variables :
@@ -992,9 +992,9 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         Otherwise, we have for $ v_i > v_{i+1}$
 
-        $G_{\cdots v_{i+1} v_i-1 \cdots} = G_v \pi_i$ where $\pi_i$ is the ith isobar divided difference.
+        $G_{\cdots v_{i+1} v_i-1 \cdots} = G_v \pi_i$ where $\pi_i$ is the ith isobaric divided difference operator.
 
-        The vectors indexing the Grothendieck polynomials can as well been seen as lehmer codes.
+        The vectors indexing the Grothendieck polynomials can as well been seen as Lehmer codes.
 
         INPUT:
 
@@ -1058,19 +1058,19 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
     def macdonald_basis_on_vectors(self, t1 =None , t2=None, q=None , basis_name = None, basis_repr = "M"):
         r"""
-        Creates the the basis of non symmetric Macdonald polynomials indexed by vectors.
+        Creates the the basis of nonsymmetric Macdonald polynomials indexed by vectors.
 
         INPUT:
 
         - ``t1``: (default: symbolic variable t1) the first parameter for the Hecke algebra operator
         - ``t2``: (default: symbolic variable t2) the second parameter for the Hecke algebra operator
-        - ``q``: (default: symbolic variable q) the specific q parmater of the polynomials
+        - ``q``: (default: symbolic variable q) the specific q parameter of the polynomials
         - ``basis_name``: (default: canonical name) the name of the basis (used in repr)
         - ``basis_repr``: (default: ``M``) the basis representation for elements
 
         OUTPUT:
 
-        - The ring of multivariate polynomials on x over ``R`` on the Macdolald basis
+        - The ring of multivariate polynomials on x over ``R`` on the Macdonald basis
           of type A indexed by vectors where ``R ``is the algebra base ring defined
           in the abstract algebra.
 
@@ -1190,7 +1190,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
     def reduce_nb_variables(self, pol):
         """
-        Creates a polynomial by removing all last variables with exposant 0 of the given polynomial
+        Creates a polynomial by removing all last variables with exponent 0 of the given polynomial
 
         INPUT:
 
@@ -1199,7 +1199,7 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
         OUTPUT:
 
         - a polynomial equal to ``pol`` and without all the last variables
-          with exposant 0
+          with exponent 0
 
         EXAMPLES::
 
@@ -1229,9 +1229,9 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
     def maxDiffDiv(self, pol):
         """
         Apply the maximum divided difference to the polynomial.
-        As the result is a symmetrical function, it is writen as a symmetrical
-        Schubert polynomial (same as Schur functions). Giving the result in this
-        basis makes the algorithm faster and the result compact.
+        As the result is a symmetrical function, it is writen as a symmetric
+        Schubert polynomial (same as a Schur polynomial). Giving the result in this
+        basis makes the algorithm faster and the result more compact.
 
         INPUT:
 
@@ -1255,9 +1255,9 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
     def maxPi(self, pol):
         """
         Apply the maximum isobaric divided difference to the polynomial.
-        As the result is a symmetrical function, it is writen as a symmetrical
-        Schubert polynomial (same as Schur functions). Giving the result in this
-        basis makes the algorithm faster and the result compact.
+        As the result is a symmetric polynomial, it is writen as a symmetric
+        Schubert polynomial (same as a Schur polynomial). Giving the result in this
+        basis makes the algorithm faster and the result more compact.
 
         INPUT:
 
@@ -1286,9 +1286,9 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
     INPUT:
 
     - ``polynomial_ring_tower`` -- the class of the polynomial algebra in an
-      unset number of variables. from which the ``FiniteMultivariatePolynomialAlgebra``
+      unspecified number of variables, which the ``FiniteMultivariatePolynomialAlgebra``
       comes from. A ``FiniteMultivariatePolynomialAlgebra`` always comes from a
-      ``MultivariatePolynomialAlgebra`` which contains general informations like
+      ``MultivariatePolynomialAlgebra`` which contains general information like
        the base ring.
     - ``nb_variables`` -- the number of variables
     - ``main_repr_var`` -- the letter corresponding to the set of variables,
@@ -1460,7 +1460,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
     def monomial_basis_with_type(self, letter, basis_repr = None):
         r"""
         Return the algebra ``self`` view in the proper ambient space of the
-        root system design by ``letter``.
+        root system designated by ``letter``.
 
         EXAMPLES::
 
@@ -1530,7 +1530,7 @@ class FiniteMultivariatePolynomialAlgebra(UniqueRepresentation, Parent):
         ``polynomial_ring_tower``
 
         - ``polynomial_ring_tower``: the basis of ``AbsractPolynomialRing`` which is a facade to this basis and
-        represents it on a undefined number of variables. It should inherit from a basis.LinearBasisOnVectors
+        represents it on a unspecified number of variables. It should inherit from a basis.LinearBasisOnVectors
         - ``basis_name``: the name of the basis (used in repr)
         - ``basis_repr``: the basis representation for elements
         - ``**keyword`` : parameters used to create the morphism to the ambient space basis,

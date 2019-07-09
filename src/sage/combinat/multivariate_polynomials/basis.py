@@ -133,7 +133,7 @@ class MonomialKeyWrapper(Parent, UniqueRepresentation):
 
     def is_typed(self):
         r"""
-        Return whether ``self`` is a typed wrapped, i.e. does it wrapp
+        Return whether ``self`` is a typed wrapped, i.e. does it wrap
         root system ambient space elements or just integer tuples.
 
         EXAMPLES::
@@ -190,7 +190,7 @@ class MonomialKeyWrapper(Parent, UniqueRepresentation):
 
     def root_sytem(self):
         r"""
-        Return the group system whose ambien space elements are wrapped in ``self``.
+        Return the group system whose ambient space elements are wrapped in ``self``.
 
         OUTPUT:
 
@@ -423,7 +423,7 @@ r"""
 
     Even so :meth:`__contains__<sage.categories.facade_sets.FacadeSets.ParentMethods.facade_for>`
     is defined in FacadeSets it does not override the default Parent method and
-    so we have unexpectd behaviour::
+    so we have unexpected behaviour::
 
         sage: M = A.monomial_basis()
         sage: Schub = A.schubert_basis_on_vectors("A")
@@ -451,7 +451,7 @@ r"""
     method says that a parent contains an element if it can construct it :
     both Schub and M can construct pol. But the combinatorialFreeModule
     :meth:`__contains__<sage.combinat.free_module.CombinatorialFreeModule.__contains__>`
-    method returns true if the element's parents is actually the
+    method returns true if the element's parent is actually the
     combinatorialFreeModule itself. That is why pol is considered to be part of
     Schub but not part of any of its finite equivalent. There is a contradiction
     here and a choice has to be make. It would seem logical that "pol in Schub"
@@ -1926,9 +1926,9 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
         The call function is used to create elements of the basis from
         an object.
         If a polynomial from another basis is given, it is sent to the finite
-        basis corresponding to the number of variables in the polynomial, this way
-        the coercion system that exist between finite bases can work. (There is no
-        automatic coercion between bases with an unset number of variables)
+        basis corresponding to the number of variables in the polynomial. In this way,
+        the coercion system that exists between finite bases can work. (There is no
+        automatic coercion between bases with an unspecified number of variables)
 
         EXAMPLES::
 
@@ -1940,7 +1940,7 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
 
         The coercion exists only between the monomial basis on 3 variables and the
         Schubert basis on 3 variables. So when the monomial basis on all variables
-        receive the polynomial, it gives it to its finite basis.
+        receives the polynomial, it gives it to its finite basis.
 
         If the given element type is the key type of the ``CombinatorialFreeModule``
         used in the finite basis, the element is created. As the non finite basis is
@@ -2041,21 +2041,21 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
 
     def _right_number_of_variables(self, i, otype=None):
         r"""
-            This methods returns the minimal number of variables needed to apply
+            This method returns the minimal number of variables needed to apply
             an operation. If the operation number is not correct for any
             number of variables, then an exception is raised.
 
             INPUT:
             - ``i``, the operation number
             - ``otype``, the operation type, this should be send only on
-            untyped basis, otherwise it will be ignored.
+            untyped basis; otherwise it will be ignored.
             If set to ``None`` on a untyped basis, the default value is
             ``A``
 
             OUTPUT:
 
             the minimal number of variables needed to apply the ``ith``
-            divided difference opperator (or other predefined operations)
+            divided difference operator (or other predefined operations)
 
             Here is an example on a untyped basis:
 
@@ -2157,7 +2157,7 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
 
         On some basis (like the Macdonald basis), this embeding is not true, then
         ``_variables_auto_coerce`` is set to False, and the coercion between
-        polynomials on different number of variables is done throught the Monomial
+        polynomials on different number of variables is done through the Monomial
         Basis.
 
         INPUT:
@@ -2414,7 +2414,7 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
         OUPUT:
             - the ``one`` of the basis.
 
-        As ``self`` is a facade for the finie bases, the ``one`` returned comes
+        As ``self`` is a facade for the finite basis, the ``one`` returned comes
         from the method ``_default_finite_basis``
 
         EXAMPLES::
@@ -2438,7 +2438,7 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
             If not set, it takes ``expr.variables()``. The variables are matched
             to the vector key of the monomials by the order of the list.
             - ``second_alphabet`` (optional) a list of symbolic variables
-            when working on a polynomial on 2 sets of variables
+            when working on a polynomial on two sets of variables
 
         EXAMPLES:
 
@@ -2533,15 +2533,15 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
 
 class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
     r"""
-    This class is the upperclass of all finite basis. It corresponds to
+    This class is the upperclass of all finite bases. It corresponds to
     finite realizations of basis of ``MultivariatePolynomialAlgebra`` and inherit
     from ``CombinatorialFreeModule``
 
-    The finie basis ``basisName`` in n variables is a realization of both
+    The finite basis ``basisName`` in n variables is a realization of both
     ``multivariate_polynomials.FiniteMultivariatePolynomialAlgebra`` in n variables
-    anf the basis ``basisName`` on a unset number of variables.
+    and the basis ``basisName`` on a unspecified number of variables.
 
-    It is not supposed to be directly called, its main subclasses are :
+    It is not supposed to be directly called. Its main subclasses are :
      - ``sage.combinat.multivariate_polynomials.basis.FinitePolynomialRingWithBasisFromMorphism``
      - ``sage.combinat.multivariate_polynomials.monomial.FiniteMonomialBasis``
      - ``sage.combinat.multivariate_polynomials.monomial_basis_with_type.FinitePolynomialRingWithBasisFromAmbientSpace``
@@ -2831,7 +2831,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 
     def isobaric_divided_difference_morphism(self, i, otype=None):
         r"""
-            Returns a morphism for the ith isobaric divided difference
+            Returns a morphism for the ith isobaric divided difference operator
 
             `\pi_i = x_i \partial_i`
 
@@ -2850,7 +2850,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             OUTPUT:
 
             - a morphism applying the ith isobaric divided
-              difference
+              difference operator
 
             EXAMPLES::
 
@@ -2928,7 +2928,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             OUTPUT:
 
             - a morphism applying the ith hat isobaric divided
-              difference
+              difference operator
 
             EXAMPLES::
 
@@ -2956,7 +2956,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 
             On a typed basis, the polynomial type is used. Giving a
             value to the ``otype`` argument will raise an exception. The operation
-            that is applied is the one that make sense for the Weyl Group
+            that is applied is the one that makes sense for the Weyl Group
             linked to the polynomial. As an example, in type ``B``, with
             a polynomial in ``n`` variables, `\hat{\pi}_i^A` will be used
             for `1 \leq i < n` and `\hat{\pi}_i^B` for ``i=n``.
@@ -3123,7 +3123,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             - ``**keywords``, extra parameters needed for the method
 
             OUTPUT:
-            A morphim on polynomials appling the sent method.
+            A morphism on polynomials appling the sent method.
 
             If the method is not implemented by the basis of ``self``, then
             a ``NotImplementedError`` exception is raised.
@@ -3228,7 +3228,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             - ``**keywords``, extra parameters needed for the method
 
         OUTPUT:
-            A morphim on polynomials applying the sent method.
+            A morphism on polynomials applying the sent method.
 
         TESTS::
             sage: A = MultivariatePolynomialAlgebra(QQ)
@@ -3318,7 +3318,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 
         def __getitem__(self,c):
             r"""
-            Returns the coefficient of the input in ``self`` the input can be a list
+            Returns the coefficient of the input in ``self``. The input can be a list
             or an element of the basis keys.
 
             EXAMPLES::
@@ -3357,8 +3357,8 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             - use the ``subs_var`` method if you want to replace any `x_i`
             by a value
 
-            - use the ``subs_basis`` method if you want to substitue the
-            basis and keeping the indices
+            - use the ``subs_basis`` method if you want to substitute the
+            basis and keep the indices
 
             - use the ``subs_on_keys`` is you want to replace given keys
             by a new value
@@ -3375,10 +3375,10 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
         def maxDiffDiv(self):
             r"""
             Apply the maximum divided difference to the polynomial.
-            As the result is a symemtrical function, it is writen as a
-            symmetrical Schubert polynomial (same as Schur functions).
+            As the result is a symmetric polynomial, it is written as a
+            symmetric Schubert polynomial (same as a Schur polynomial).
             Giving the result in this basis makes the algorithm faster and
-            the result compact.
+            the result more compact.
 
             OUTPUT:
 
@@ -3400,10 +3400,10 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
         def maxPi(self):
             r"""
             Apply the maximum isobaric divided difference to the polynomial.
-            As the result is a symmetrical function, it is writen as a
-            symmetrical Schubert polynomial (same as Schur functions). Giving
+            As the result is a symmetric function, it is writen as a
+            symmetric Schubert polynomial (same as a Schur polynomial). Giving
             the result in this basis makes the algorithm faster and the result
-            compact.
+            more compact.
 
             OUTPUT:
 
@@ -3447,7 +3447,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
         def change_nb_variables(self, nb_variables):
             r"""
             Creates a new polynomial with ``nb_variables`` variables by adding
-            new variables to the given polynomial with exposant `0`.
+            new variables to the given polynomial with exponent `0`.
 
             INPUT:
 
@@ -3479,12 +3479,12 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
         def reduce_nb_variables(self):
             r"""
             Creates a polynomial by removing all last variables with
-            exposant `0` of the given polynomial.
+            exponent `0` of the given polynomial.
 
             OUTPUT:
 
             - a polynomial equal to ``self`` and without all the last variables
-              with exposant `0`
+              with exponent `0`
 
             EXAMPLES::
 
@@ -3551,7 +3551,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 
             OUTPUT:
 
-            - the polynomial obtainend by exchanging the variables
+            - the polynomial obtained by exchanging the variables
 
             EXAMPLES::
 
@@ -3711,7 +3711,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             Replace the given keys by their value in ``d``
 
             INPUT:
-            - a dictonary of tuples
+            - a dictionary of tuples
 
             EXAMPLES::
 
@@ -3778,7 +3778,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
                 if let to ``None``, it uses basis_repr + i (by default,
                 'x1' to 'xn')
                 - ``alphabety`` an optional second alphabet for the
-                coeffients. it is used if the coeffincents have a
+                coeffients. it is used if the coefficients have a
                 ``to_expr`` method.
 
             EXAMPLES::
@@ -3854,7 +3854,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             OUTPUT:
 
             - the polynomial obtained by performing the ith divided
-              difference
+              difference operator
 
 
             EXAMPLES::
@@ -3931,7 +3931,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 
         def isobaric_divided_difference(self, i, otype=None):
             r"""
-            Applies the ith isobaric divided difference on ``self``
+            Applies the ith isobaric divided difference operator on ``self``
 
             `\pi_i = x_i \partial_i`
 
@@ -4045,7 +4045,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             OUTPUT:
 
             - the polynomial obtained by performing the ith hat isobaric divided
-              difference.
+              difference operator.
 
             EXAMPLES::
 
@@ -4346,7 +4346,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 
         def apply_composed_morphism(self, operation_list):
             r"""
-            Applies a composed morhism on ``self`` from an operation list.
+            Applies a composed morphism on ``self`` from an operation list.
 
             The operations are given through a list of tuples (or list) of the
             form ``(operation,number,otype)``
@@ -4464,8 +4464,8 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             This methods verifies that the number of variables of a polynomial
             is appropriate for an operation.
 
-            The generique implementation only raises an Exception if this number
-            is not appropriate, but it can be overriten by subclasses to actually
+            The generic implementation only raises an Exception if this number
+            is not appropriate, but it can be overwritten by subclasses to actually
             return a different polynomial by changing the number of variables.
 
             INPUT:
@@ -4474,7 +4474,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             group type or ``A`` for untyped polynomials
 
             OUTPUT:
-            the polynomial itself, or a equivalent polynomial in a different
+            The polynomial itself, or a equivalent polynomial in a different
             number of variables
 
             EXAMPLES::
@@ -4568,7 +4568,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
 class PolynomialRingWithBasisFromMorphism(PolynomialRingWithBasis):
     r"""
         Implements a basis defined by its morphism to another basis. It is
-        mainlu used as an upperclass of ``LinearBasisOnVectors``.
+        mainly used as a superclass of ``LinearBasisOnVectors``.
 
         INPUT:
 
@@ -4692,12 +4692,12 @@ class FinitePolynomialRingWithBasisFromMorphism(FinitePolynomialRingWithBasis):
     This class implements the basis obtained by a morphism to another basis
     on a given number of variables it is obtained automatically by
     PolynomialRingWithBasisFromMorphism when a polynomial is created
-    see AbastractPolynomialRing.from_morphism_basis for more information.
+    see AbstractPolynomialRing.from_morphism_basis for more information.
 
     INPUT:
 
         - ``abstract_polynomial_ring`` the abstract ring of polynomials
-        in n variables, where n is wanted number of variables for the
+        in n variables, where n is the desired number of variables for the
         basis
         - ``polynomial_ring_tower``: the basis of ``AbsractPolynomialRing`` which
          is a facade to this basis and represents it on a undefined number

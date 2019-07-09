@@ -26,10 +26,10 @@ def SchubertPolynomialsOnVectors(R, basis_name = None, basis_repr= "Y", **keywor
     Otherwise, we have for $ v_i > v_{i+1}$
 
     $Y_{\cdots v_{i+1} v_i-1 \cdots} = Y_v \partial_i$ where $\partial_i$
-    is the ith divided difference.
+    is the ith Newton divided difference operator.
 
     The vectors indexing the Schubert polynomials can as well been seen as
-    lehmer codes.
+    Lehmer codes.
 
     INPUT:
 
@@ -99,7 +99,7 @@ def SchubertPolynomialsOnVectors(R, basis_name = None, basis_repr= "Y", **keywor
 
 def DemazurePolynomials(R, group_type ="A", basis_name = None, basis_repr = "K", **keywords):
     r"""
-        Creates the Demazure polynomials where demazure / key polynomials are indexed
+        Creates the Demazure polynomials where Demazure / key polynomials are indexed
         by vectors, as basis of multivariate polynomials on different bases,
          see :class:`MultivariatePolynomialAlgebra`
 
@@ -111,10 +111,10 @@ def DemazurePolynomials(R, group_type ="A", basis_name = None, basis_repr = "K",
         Otherwise, we have for $ v_i > v_{i+1}$
 
         $K_{\cdots v_{i+1} v_i \cdots} = K_v \pi_i$ where $\pi_i$ is the
-        ith isobar divided difference.
+        ith isobaric divided difference operator.
 
         The vectors indexing the key polynomials can as well been seen
-        as lehmer codes.
+        as Lehmer codes.
 
         INPUT:
 
@@ -182,7 +182,7 @@ def DemazurePolynomials(R, group_type ="A", basis_name = None, basis_repr = "K",
 
 def DemazureHatPolynomials(R, group_type ="A", basis_name = None, basis_repr = "^K", **keywords):
     r"""
-        Creates the Demazure hat polynomials where demazure / key polynomials are indexed
+        Creates the Demazure hat polynomials where Demazure / key polynomials are indexed
         by vectors, as basis of multivariate polynomials on different bases,
          see :class:`MultivariatePolynomialAlgebra`
 
@@ -195,15 +195,15 @@ def DemazureHatPolynomials(R, group_type ="A", basis_name = None, basis_repr = "
         Otherwise, we have for $ v_i > v_{i+1}$
 
         $\hat{K}_{\cdots v_{i+1} v_i \cdots} = \hat{K}_v \hat{\pi}_i$ where
-         $\hat{\pi}_i$ is the ith isobar hat divided difference.
+         $\hat{\pi}_i$ is the ith isobaric hat divided difference operator.
 
         The vectors indexing the key polynomials can as well been seen
-        as lehmer codes.
+        as Lehmer codes.
 
         INPUT:
 
         - ``R`` -- a ring
-        - ``group_type`` -- (default: ``A``) the letter that represents the type of the weyl group
+        - ``group_type`` -- (default: ``A``) the letter that represents the type of the Weyl group
         - ``basis_name`` -- (default: canonical name) the name of the basis (used in repr)
         - ``basis_repr``-- (default: ``^K``) the basis representation for elements
         - ``**keywords`` --  other keywords to send t the abstract polynomial ring
@@ -282,13 +282,9 @@ def GrothendieckPolynomials(R, basis_name = None, basis_repr= "G", **keywords):
 
     Otherwise, we have for $ v_i > v_{i+1}$
 
-    $G_{\cdots v_{i+1} v_i-1 \cdots} = G_v \pi_i$ where $\pi_i$ is the ith isobar divided difference.
+    $G_{\cdots v_{i+1} v_i-1 \cdots} = G_v \pi_i$ where $\pi_i$ is the ith isobaric divided difference operator.
 
-    The vectors indexing the Grothendieck polynomials can as well been seen as lehmer codes.
-
-
-    The vectors indexing the Grothendieck polynomials can as well been seen as
-    lehmer codes.
+    The vectors indexing the Grothendieck polynomials can as well been seen as Lehmer codes.
 
     INPUT:
 
