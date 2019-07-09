@@ -144,13 +144,13 @@ def isogeny_determine_algorithm(E, kernel):
     """
     kernel_is_list = isinstance(kernel, list)
 
-    if not kernel_is_list and kernel in E :
-        kernel = [kernel]
+    if not kernel_is_list and (kernel in E or kernel in E.torsion_subgroup()):
+        kernel = [E(kernel)]
         kernel_is_list = True
 
-    if (is_Polynomial(kernel) or ( kernel_is_list) and (kernel[0] in E.base_ring()) ):
+    if is_Polynomial(kernel) or kernel_is_list and kernel[0] in E.base_ring()):
         algorithm = "kohel"
-    elif (kernel_is_list) and (kernel[0] in E):
+    elif kernel_is_list and (kernel[0] in E or kernel[0] in E.torsion_subgroup()):
         # note that if kernel[0] is on an extension of E this
         # condition will be false
         algorithm = "velu"
@@ -980,10 +980,15 @@ class EllipticCurveIsogeny(Morphism):
         if not is_EllipticCurve(E):
             raise ValueError("E parameter must be an EllipticCurve.")
 
-        if not isinstance(kernel, list) and kernel in E :
+        if not isinstance(kernel, list) and (kernel in E or kernel in E.torsion_subgroup()):
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
-            kernel = [kernel]
+            kernel = [E(kernel)]
+
+        if isinstance(kernel, list) and kernel[0] in E.torsion_subgroup():
+            # a list of points in the torsion subgroup were given,
+            # we put them in the abelian group of the elliptic curve
+            kernel = [E(k) for k in kernel]
 
         # if the kernel is None and the codomain isn't
         # calculate the kernel polynomial
