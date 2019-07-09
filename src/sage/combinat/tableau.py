@@ -9415,27 +9415,71 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 # (Multi)set-valued tableaux #
 ##############################
 
+
 class SemistandardMultisetTableaux(Tableaux):
     r"""
     Class of semistandard multiset tableaux.
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
-        pass
+        
         
     Element = SemistandardMultisetTableau
     
-    def __init__(self,**kwds):
-        pass
+    def __init__(self,order='last_letter',**kwds):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = SemistandardMultisetTableaux()
+            sage: TestSuite(S).run()
+        """
+        if callable(order):
+            self.order = order
+        elif order == 'last_letter':
+            f = lambda (L1,L2): max(L1)<=max(L2)
+            self.order = f
+        elif order == 'grlex':
+            self.order = grlex
+        else:
+            raise ValueError("An order should be given")
+
+        if 'max_entry' in kwds:
+            self.max_entry = kwds['max_entry']
+            kwds.pop('max_entry')
+        else:
+            self.max_entry = None
+        Tableaux.__init__(self, **kwds)
         
     class options(GlobalOptions):
         pass
     
     def _element_constructor_(self,t):
-        pass
+        
     
     def __contains__(self,x):
-        pass
+        """
+        TESTS::
+
+            sage: T = sage.combinat.tableau.SemistandardMultisetTableaux_all()
+            sage: [[[1,2],[1,2]],[[2]]] in T
+            True
+            sage: [] in T
+            True
+            sage: Tableau([[[1]]]) in T
+            True
+            sage: StandardMultisetTableau([[[1]]]) in T
+            True
+
+            sage: [[[1],[2]],[[1]]] in T
+            False
+            sage: [[[1],[1]],[[5]]] in T
+            True
+            sage: [[[1],[3],[2]]] in T
+            False
+        """
+        
     
 class SemistandardMultisetTableaux_all(Tableaux):
     
@@ -9448,9 +9492,11 @@ class SemistandardMultisetTableaux_all(Tableaux):
     def an_element(self):
         pass
         
-class SemistandardMultisetTableaux_size(Tableaux):
-    pass
-      
+class SemistandardMultisetTableaux_shape_weight(Tableaux):
+    
+    def __iter__(self):
+        pass
+              
 #Abstract class for the elements of multiset tableau
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SemistandardMultisetTableau_abstract(ClonableList):
