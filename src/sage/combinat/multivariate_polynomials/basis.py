@@ -2572,7 +2572,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
     Schub3 and m3 are subclasses of FinitePolynomialRingWithBasis
 
     """
-    def __init__(self, abstract_algebra, basis_tower, basis_keys, basis_name, basis_repr = "x", base_ring = None):
+    def __init__(self, abstract_algebra, basis_tower, basis_keys, basis_name, sorting_key=None, basis_repr = "x", base_ring = None):
         r"""
         TESTS::
 
@@ -2593,6 +2593,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             self,
             base_ring,
             basis_keys,
+            sorting_key=sorting_key,
             category = [Realizations(abstract_algebra),GradedAlgebrasWithBasis(base_ring)]
         )
         m1 = SetMorphism( Hom(self, abstract_algebra), lambda x: x)
@@ -3343,7 +3344,7 @@ class FinitePolynomialRingWithBasis(CombinatorialFreeModule):
             if not c in self.parent()._basis_keys:
                 c = self.parent()._basis_keys(c)
 
-            return self._coefficient_fast(c)
+            return CombinatorialFreeModule.Element.__getitem__(self, c)
 
 
         def subs(self, **args):
@@ -4647,7 +4648,7 @@ class PolynomialRingWithBasisFromMorphism(PolynomialRingWithBasis):
             basis_name,
             neutral_nb_variables,
             basis_repr,
-            variables_auto_coerce = variables_auto_coerce
+            variables_auto_coerce = variables_auto_coerce,
         )
 
     def _finite_basis_instance(self, n):
