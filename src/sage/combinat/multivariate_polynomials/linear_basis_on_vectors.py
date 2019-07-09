@@ -47,7 +47,7 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
 
         if(not keywords.has_key("triangular")): keywords["triangular"] = "upper"
         if(not keywords["triangular"] is None):
-            if(not keywords.has_key("cmp")): keywords["cmp"] = self.cmp
+            if(not keywords.has_key("key")): keywords["key"] = self._basis_key
         self._keywords = keywords
 
         self._extra_parameters = {}
@@ -67,18 +67,10 @@ class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
             **keywords
         )
 
-    def cmp(self, key1, key2):
-        l = len(key1)
-        d1 = sum( [key1[i] for i in xrange(l)])
-        d2 = sum( [key2[i] for i in xrange(l)])
-        if (d1 > d2): return -1
-        if (d1 < d2): return 1
-        for i in xrange(l-1,-1,-1):
-            if (key1[i]>key2[i]):
-                return 1
-            if (key1[i]<key2[i]):
-                return -1
-        return 0
+    def _basis_key(self, vec):
+        l = len(vec)
+        d = sum( [vec[i] for i in xrange(l)])
+        return (-d, tuple(reversed(vec)))
 
     def _get_basis_keys(self, n):
         r"""
@@ -537,38 +529,17 @@ class MacdonaldBasisOnVectors(LinearBasisOnVectors):
             basis_repr,
             on_basis_method = self.on_basis_method,
             extra_parameters = extra_parameters,
-            cmp = self.cmp
+            key = self._basis_key
         )
 
 
     def equivalent_basis(self, abstract_polynomial_ring):
         return abstract_polynomial_ring.macdonald_basis_on_vectors(self.group_type(), self._t1, self._t2, self._q)
 
-    def cmp(self, key1, key2):
-        l = len(key1.parent()._basis_keys)
-
-        d1 = sum( [key1[i] for i in xrange(l) ] )
-        d2 = sum( [key2[i] for i in xrange(l) ] )
-        if(d1>d2): return 1
-        if(d1<d2): return -1
-
-        v1 = [key1[i] for i in xrange(l)]
-        v2 = [key2[i] for i in xrange(l)]
-        v1.sort()
-        v2.sort()
-
-        for i in xrange(l-1,-1,-1):
-            if(v1[i] > v2[i]):
-                return 1
-            if(v1[i] < v2[i]):
-                return -1
-
-        for i in xrange(l):
-            if (key1[i]>key2[i]):
-                return 1
-            if (key1[i]<key2[i]):
-                return -1
-        return 0
+    def _basis_key(self, vec):
+        l = len(vec.parent()._basis_keys)
+        d = sum( [vec[i] for i in xrange(l) ] )
+        return (d, tuple(sorted(vec,reverse=True)), tuple(vec))
 
 
     def on_basis_method(self, u, basis, call_back, t1=1, t2=1, q=1):
@@ -870,7 +841,7 @@ class DemazureBasisOnVectors(LinearBasisOnVectors):
                 True
             """
             key2 = key.weyl_action([self._i])
-            if(self._module.basis_tower().cmp(key,key2) < 0):
+            if key < key2:
                 return self._module(key2)
             else:
                 return self._module(key)
@@ -1215,10 +1186,9 @@ class DemazureBasisOnVectors(LinearBasisOnVectors):
                 True
             """
             key2 = key.weyl_action([self._i])
-            c = self._module.basis_tower().cmp(key,key2)
-            if(c < 0):
+            if key<key2:
                 return self._module(key2)
-            elif(c ==0):
+            elif key==key2:
                 return self._module.zero()
             else:
                 return -self._module(key)

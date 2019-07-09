@@ -4704,7 +4704,7 @@ class FinitePolynomialRingWithBasisFromMorphism(FinitePolynomialRingWithBasis):
          of variables. It must have a ``get_morphism_on_basis`` method and
          a ``get_basis_keys`` method as well as a ``morphism_to_basis``
         - ``basis_name``: the name of the basis (used in repr)
-        - ``basis_repr``: the basis representation for elements (exemple "x")
+        - ``basis_repr``: the basis representation for elements (example "x")
         - ``**keywords`` : the keywords sent to the ``CombinatorialFreeModule``
         morphism.
 
