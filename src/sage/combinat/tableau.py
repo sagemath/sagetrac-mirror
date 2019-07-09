@@ -9415,9 +9415,25 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 # (Multi)set-valued tableaux #
 ##############################
 
+class SemistandardMultisetTableau(Tableau):
+    """
+    A class to model a semistandard multiset tableau.
+
+    A semistandard multiset tableau is a .....
+
+    INPUT:
+
+    - ``t`` -- a Tableau, a list of iterables, or an empty list       
+    """
+    pass
+
 class SemistandardMultisetTableaux(Tableaux):
     r"""
     Class of semistandard multiset tableaux.
+
+    EXAMPLES:
+
+        SemistandardMultisetTableaux(shape, content, order=my_compare)
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
@@ -9448,8 +9464,138 @@ class SemistandardMultisetTableaux_all(Tableaux):
     def an_element(self):
         pass
         
-class SemistandardMultisetTableaux_size(Tableaux):
-    pass
+class SemistandardMultisetTableaux_shape_weight(Tableaux):
+
+    @staticmethod
+    def _make_total(self, multi_subset):
+        """
+        Return list of equivalence classes arranged in increasing order.
+
+        INPUT:
+        - multi_subset -- list of multisets
+
+        Groups the elements in multi_subset into equivalence classes 
+        based on the preorder given. Each equivalence class is stored as a list.
+        Returns a list of the equivalence classes.
+        """
+        pass
+
+    @classmethod
+    def _cmp_order(cls, x, y):
+        if x==y:
+            return 0
+        elif self.order(y,x):
+            return 1
+        elif self.order(x,y):
+            return -1
+        else:
+            return
+
+    def __iter__(self):
+
+        # # get set of all allowable multisets to put in tableaux
+        # msets = Subsets(self.content, submultiset=True)
+
+        # # group multisets into equivalence classes and totally order
+        #     import functools 
+        #     comp = functools.cmp_to_key(self.order)
+        #     msets = sorted(msets, key=comp)
+
+        #     # equivs is a list of lists of multisets, 
+        #     # sorted by the associated total order on equivalence classes. 
+        #     # The ith list is the ith equivalence class.
+        #     equivs = [ [msets[0]] ]
+        #     is_equiv = lambda x, y: self.order(x,y) and self.order(y,x)
+        #     for i in range(len(multisets)):
+        #         current_ms = mset[i]
+        #         next_ms = msets[i+1]
+        #         if is_equiv(current_ms, next_ms):
+        #             equivs[-1] += [next_ms]
+        #         else:
+        #             equivs += [ [next_ms] ]
+
+        # # run over SSYT and replace i's with multiset of things in ith equiv class
+
+
+        ##################
+
+        # MSET is list of multiset-partitions of content to fill shape of tableau
+        # a typical element of MSET will be list of lists (some repeated and some empty) 
+        # with total content equal to self.content
+        def convert_to_mset(vp, pad):
+            mset = []
+            if len(vp) > pad:
+                return []
+            for part in vp:
+                mset_part = [ i+1 for i,n in enumerate(part) for _ in range(n) ]
+                mset.append(mset_part)
+            mset.extend([] for _ in range(pad-len(vp)))
+            return mset
+        
+        content_vp = [self.content.count(i) for i in range(max(self.content))]
+        VP = VectorPartitions(content_vp).list()
+        MSET = []
+        for vp in VP:
+            MSET.extend([convert_to_mset(vp, self.size)])
+
+        # for each multiset partition, group into equivalence classes and totally order
+        for mset in MSET:
+            s_mset = sorted(mset, cmp=SemistandardMultisetTableaux._cmp_order)
+            entries_dict = {1: [s_mset[0]]}
+            current_val = 1
+            is_equiv = lambda x, y: self.order(x,y) and self.order(y,x)
+            for i in range(len(s_mset)-1):
+                current_ms = s_mset[i]
+                next_ms = s_mset[i+1]
+                if is_equiv(current_ms, next_ms):
+                    entries_dict[current_val] += [next_ms]
+                else:
+                    current_val += 1
+                    entries_dict[current_val] = [next_ms]
+
+        # run over SSYT and replace i's with multiset of things in ith equiv class
+        res = []
+        t_wt = [len(entries_dict[key]) for key in entries_dict.keys()]
+        for t in SemistandardTalbeaux(self.shape, weight=t_wt):
+            mt = t.list()
+            for i in range(len(t_wt)):
+                for cell in t.cells_containing(i):
+                    # replace cells with values in entries_dict[i]
+        return res
+
+        #################
+
+
+        # res = []
+        # ordered_size = sorted(self.content)
+        # multiset_partitions = Set()
+        # for t in SemistandardTableaux(self.shape, max_entry=self.size+1):
+        #     # get multiset of all multiset partitions of self.weight
+        #     n_blocks = self.size - t.weight[0]
+        #     N = len(self.content)
+        #     for SP in SetPartitions(N, n_blocks):
+        #         for part in SP:
+        #             multiset_partitions.add(map(lambda i : ordered_size[i], part))
+
+        #     # for each multiset partition, group into total order on equivalence classes
+        #     equivs = _make_total(list(multiset_partitions))
+
+        #     # 1 -> empty set, 2 -> first equivalence class, 3 -> second equivalence class, etc.
+        #     mt = t.list()
+        #     for i in range(self.size+1):
+        #         if i == 1:
+        #             for cell in t.cells_containing(i):
+        #                 mt[*cell] = []
+        #         else:
+        #             n_i = len(t.cells_containing(i))
+            
+        #     res += [Tableau(mt)]
+
+        # return res
+
+
+
+
       
 #Abstract class for the elements of multiset tableau
 @add_metaclass(InheritComparisonClasscallMetaclass)
