@@ -9432,8 +9432,6 @@ class SemistandardSetValuedTableau(Tableau):
     def maj(self):
         pass
 
-
-
 class SemistandardSetValuedTableaux(Tableaux):
     r"""
     Class of semistandard set-valued tableaux.
