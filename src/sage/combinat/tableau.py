@@ -9427,20 +9427,73 @@ class SemistandardSetValuedTableau(Tableau):
 
     
     def excess(self):
-        pass
+        r"""
+        Returns the excess statistic for self.
+
+        The excess of a semistandard set-valued tableaux ``T`` is the total number 
+        of integers in ``T`` minus the size of ``T``.
+
+        EXAMPLES::
+            sage: T = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
+            sage: T.excess()
+            4
+        """
+        tot = sum([len(cells) for cells in self.entries()])
+        return tot - self.size()
 
     def maj(self):
         pass
 
 class SemistandardSetValuedTableaux(Tableaux):
     r"""
-    Class of semistandard set-valued tableaux.
+    A factory for various classes of semistandard set-valued tableaux.
+
+    INPUT:
+    
+    - ``p`` -- Either a non-negative integer or a partition
+    - ``max_entry`` -- a positive integer that is the maximum allowed entry in the tableau
+
+    OUTPUT:
+
+    - With no shape or size, the class of all semistandard set-valued tableaux.
+
+    - With no ``max_entry``, the class of all semistandard set-valued tableaux of 
+      specified size or shape.
+
+    - With a ``max_entry``, one of the following:
+        - With a non-negative integer amount, ``p``, the class of all semistandard 
+          set-valued tableaux of size ``p`` and maximum integer ``max_entry``.
+
+        - With a partition argument, ``p``, the class of all semistandard 
+          set-valued tableaux of shape ``p`` and maximum integer ``max_entry``.
+
+    A semistandard set-valued tableau is a tableau whose cells are filled with 
+    nonempty sets of integers such that the tableau is semistandard with respect 
+    to the ordering on sets A, B given by A <= B if max(A) < min(B).
+
+    EXAMPLES::
+
+        sage: SSVT = SemistandardSetValuedTableaux(3); SSVT
+        Semistandard set-valued tableaux of size 3
+        sage: SSVT = SemistandardSetValuedTableaux(3, max_entry=2); SSVT
+
+        sage: SSVT.first()
+
+        sage: SSVT.last()
+
+        sage: SSVT = SemistandardSetValuedTableaux([2,2], max_entry=3); SSVT
+
+        sage: SSVT.list()
+
+    TESTS::
+
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
-        arguments.
+        arguments. See the documentation for :class:`SemistandardSetValuedTableaux` 
+        for more information.
 
         TESTS::
 
@@ -9560,7 +9613,7 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
             sage: SemistandardSetValuedTableaux(3)
             Semistandard set-valued tableaux of size 3
         """
-        return "Semistandard set-valued tableaux of size {}".format(self._size)
+        return "Semistandard set-valued tableaux of size {} and max entry {}".format(self._size, self.max_entry)
 
     def __contains__(self, x):
         """
@@ -9613,7 +9666,75 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
         EXAMPLES::
 
         """
-        pass
+        def jumps(row):
+            """
+            Return list of indices i where row[i] < row[i+1] and also
+            the last index of row
+
+            INPUT:
+            
+            - ``row`` -- a list of list of integers
+            """
+            return [i for i in range(len(row)-1) if max(row[i])<min(row[i+1])] + [len(row)-1]
+        
+        def addable(cell,right,below,max_entry):
+            """
+            Return a list of numbers that can added to the cell ``cell`` of a
+            semistandard set-valued tableau.
+
+            INPUT:
+
+            - ``cell`` -- a nonempty list of integers
+            - ``right`` -- a list of integers or None
+            - ``below`` -- a list of integers or None
+            - ``max_entry`` -- a nonnegative integer
+
+            """
+            if (below == None and right != None) or min(right)<min(below):
+                return list(range(max(cell)+1,min(right)+1))
+            elif (below != None and right == None) or min(right)>=min(below):
+                return list(range(max(cell)+1,min(below)))
+            else: # when there is no cell below or to the right
+                return list(range(max(cell),max_entry+1))
+
+        for t in SemistandardTableaux(shape=self.shape, max_entry=self.max_entry):
+            tab = [[[entry] for entry in row] for row in t]
+            addable_indices = []
+            addable_sets = []
+            for i in range(len(tab)):
+                J = jumps(tab[i])
+                for j in J:
+                    cell = tab[i][j]
+                    right, below = None, None
+                    if i+1 < len(tab):
+                        if j < len(tab[i+1]):
+                            below = tab[i+1][j]
+                    if j+1 < len(tab[i]):
+                        right = tab[i][j+1]
+                    # if a cell can be added with extra letters
+
+                    addable_indices += [(i,j)]
+                    elts_to_add = [tuple(_) for _ in powerset(addable(cell,right,below,self.max_entry))]
+                    addable_sets.append(elts_to_add)
+                    
+            from sage.combinat.cartesian_product import cartesian_product
+            for cp in CartesianProduct(addable_sets):
+                for k in range(len(addable_sets)):
+                    i,j = addable_indices[k]
+                    tab[i][j] = cp[k]
+                print(tab)
+                yield self.element_class(self, tab)
+    
+    def list(self):
+        r"""
+        Return a list of the semistandard set-valued tableaux of the specified shape.
+
+        EXAMPLES::
+
+        """
+        return [y for y in self]         
+                        
+                    
 
 
 
