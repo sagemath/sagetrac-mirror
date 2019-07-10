@@ -9476,14 +9476,20 @@ class SemistandardSetValuedTableaux(Tableaux):
         sage: SSVT = SemistandardSetValuedTableaux(3); SSVT
         Semistandard set-valued tableaux of size 3
         sage: SSVT = SemistandardSetValuedTableaux(3, max_entry=2); SSVT
-
-        sage: SSVT.first()
-
-        sage: SSVT.last()
-
+        Semistandard set-valued tableaux of size 3 and max entry 2
+        sage: list(SSVT)
+        [[[[1], [1], [1]]],
+         [[[1], [1], [1, 2]]],
+         [[[1], [1], [2]]],
+         [[[1], [1, 2], [2]]],
+         [[[1], [2], [2]]],
+         [[[1, 2], [2], [2]]],
+         [[[2], [2], [2]]],
+         [[[1], [1]], [[2]]],
+         [[[1], [1, 2]], [[2]]],
+         [[[1], [2]], [[2]]]]
         sage: SSVT = SemistandardSetValuedTableaux([2,2], max_entry=3); SSVT
-
-        sage: SSVT.list()
+        Semistandard set-valued tableaux of shape [2, 2] and max entry 3
 
     TESTS::
 
@@ -9508,7 +9514,7 @@ class SemistandardSetValuedTableaux(Tableaux):
 
             # if n is size
             if isinstance(p,(int,Integer)) and p>=0:
-                return SemistandardSetValuedTableaux_size(Integer(p))
+                return SemistandardSetValuedTableaux_size(Integer(p), max_entry)
 
             # if n is shape
             from sage.combinat.partition import _Partitions
@@ -9582,11 +9588,11 @@ class SemistandardSetValuedTableaux(Tableaux):
             # if self has max_entry, checks if that all elements in each cell are within max_entry
             return self.max_entry is None or max(max(max(cell) for cell in row) for row in t)<=self.max_entry
 
-class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
+class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
     """
     Semistandard set-valued tableaux of fixed size `n`.
     """
-    def __init__(self, n):
+    def __init__(self, n, max_entry=None):
         r"""
         Initializes the class of all semistandard set-valued tableaux of size ``n``.
 
@@ -9600,11 +9606,9 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
             sage: TestSuite( SemistandardSetValuedTableaux(0) ).run()
             sage: TestSuite( SemistandardSetValuedTableaux(3) ).run()
         """
-        SemistandardSetValuedTableaux.__init__(self)
-        from sage.combinat.partition import Partitions_n
-        DisjointUnionEnumeratedSets.__init__(self,
-                                             Family(Partitions_n(n), SemistandardSetValuedTableaux_shape),
-                                             facade=True, keepkey=False)
+        if max_entry is None:
+            max_entry = n
+        SemistandardSetValuedTableaux.__init__(self, n, max_entry=max_entry)
         self._size = Integer(n)
 
     def _repr_(self):
@@ -9623,11 +9627,25 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
         """
         return SemistandardSetValuedTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
 
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+        """
+        if self._size == 0:
+            yield self.element_class(self, [])
+            return
+
+        from sage.combinat.partition import Partitions
+        for part in Partitions(self._size):
+            for ssvt in SemistandardSetValuedTableaux_shape(part, self.max_entry):
+                yield self.element_class(self, ssvt)
+
 class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     """
     Semistandard set-valued tableaux of a fixed shape `p`.
     """
-    def __init__(self, p, max_entry):
+    def __init__(self, p, max_entry=None):
         r"""
         Initializes the class of all semistandard set-valued tableaux of a given shape.
 
@@ -9663,6 +9681,10 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
         r"""
         An iterator for the semistandard set-valued tableaux associated to the
         shape `p` of ``self``.
+
+        .. WARNING::
+
+            Currently doesn't check max_entry is not None.
 
         EXAMPLES::
 
