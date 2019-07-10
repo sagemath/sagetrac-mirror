@@ -39,16 +39,21 @@ class SemistandardMultisetTableau(Tableau):
     """
 
     @staticmethod
-    def __classcall_private__(self, t, *args, **kwds):
+    def __classcall_private__(self, t, order='last_letter', key=None, *args, **kwds):
         r"""
-        Ensures that a SMT is only ever created from a class of SMT
+        Ensures that a SemistandardMultisetTableau is only ever created
+        from a class of SemistandardMultisetTableaux
         """
         if isinstance(t, SemistandardMultisetTableau):
-            # TODO do we want to try to change the order fn of t?
-            return t
-        # TODO implement this
+            if order is not None:
+                return SemistandardTableaux().element_class(
+                    SemistandardTableaux(), t, order=order)
+            else:
+                return t
+
         elif t in SemistandardMultisetTableaux(key=key_fn):
-            return SemistandardTableaux().element_class(SemistandardTableaux(), t)
+            return SemistandardMultisetTableaux().element_class(
+                SemistandardMultisetTableaux(), t)
 
         # t is not a semistandard tableau so we give an appropriate error message
         if t not in Tableaux():
@@ -81,15 +86,15 @@ class SemistandardMultisetTableau(Tableau):
         super(SemistandardMultisetTableau, self).check()
 
         # Tableau() has checked that t is tableau, so it remains to check that
-        # the entries of t are positive integers which are weakly increasing
-        # along rows
+        # the entries of t are tuples of positive integers which are weakly increasing
+        # along rows with respect to the order (i.e., self.key)
         from sage.sets.positive_integers import PositiveIntegers
         PI = PositiveIntegers()
 
         for row in self:
             if any(self.key(row[c]) > self.key(row[c+1])
                    for c in range(len(row)-1)):
-                raise ValueError("the entries in each row of a semistandard"
+                raise ValueError("the entries in each row of a semistandard "
                                  "multiset tableau must be weakly increasing")
 
         # and strictly increasing down columns
@@ -98,8 +103,10 @@ class SemistandardMultisetTableau(Tableau):
                 if not all(self.key(row[c]) < self.key(next[c])
                            for c in range(len(next))):
                     raise ValueError(
-                        "the entries of each column of a semistandard"
+                        "the entries of each column of a semistandard "
                         "multiset tableau must be strictly increasing")
+
+        return True
 
 class SemistandardMultisetTableaux(Tableaux):
     r"""
@@ -286,8 +293,34 @@ class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
         return ("Semistandard multiset tableaux of shape {0} and max entry {1} "
                 "with order {2}".format(self.shape, self.max_entry, self.order))
 
+    def list(self):
+        """
+        Returns a list of all semistandard multiset tableaux of this shape and weight.
+
+        EXAMPLES::
+
+            sage: list(SemistandardMultisetTableaux_shape_weight((2,1,), (2,2,)))
+            [[[(1, 1), (2,)], [(2,)]],
+             [[(1,), (1, 2)], [(2,)]],
+             [[(1,), (2,)], [(1, 2)]],
+             [[(), (1, 1, 2)], [(2,)]],
+             [[(), (2,)], [(1, 1, 2)]],
+             [[(1,), (1,)], [(2, 2)]],
+             [[(), (1, 1)], [(2, 2)]],
+             [[(), (2, 2)], [(1, 1)]],
+             [[(), (1,)], [(1, 2, 2)]],
+             [[(), (1, 2, 2)], [(1,)]],
+             [[(), (1, 2)], [(1, 2)]],
+             [[(), ()], [(1, 1, 2, 2)]]]
+        """
+
+        return [y for y in self]
+
     def __iter__(self):
         """
+        An iterator for the semistandard multiset tableaux of the specified shape
+        with the specified weight vector.
+
         EXAMPLES::
 
             sage: list(SemistandardMultisetTableaux_shape_weight((2,1,), (2,2,)))
