@@ -258,9 +258,9 @@ class SemistandardMultisetTableaux(Tableaux):
                 elif not all(order):
                     pass
 
-class SemistandardMultisetTableaux_all(Tableaux):
+class SemistandardMultisetTableaux_all(SemistandardMultisetTableaux, DisjointUnionEnumeratedSets):
 
-    def __init__(self, order):
+    def __init__(self, order, max_entry):
         pass
 
     def _repr_(self):
@@ -269,17 +269,46 @@ class SemistandardMultisetTableaux_all(Tableaux):
     def an_element(self):
         pass
 
-class SemistandardMultisetTableaux_size_weight(Tableaux):
-    def __init__(self, size, weight, order):
-        pass
+class SemistandardMultisetTableaux_size_weight(SemistandardMultisetTableaux):
+    def __init__(self, size, weight, order='last_letter', **kwds):
+        super(SemistandardMultisetTableaux_size_weight, self).__init__(
+            order=order,
+            category=FiniteEnumeratedSets(),
+            **kwds)
+        self.size = size
+        self.weight = weight
 
     def _repr_(self):
         pass
 
+    def list(self):
+        return [y for y in self]
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+        """
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
+            for ssmt in SemistandardMultisetTableaux_shape_weight(p, self.weight):
+                yield self.element_class(self, ssmt)
+
+    def cardinality(self):
+        from sage.combinat.partition import Partitions
+        c = 0
+        for p in Partitions(self.size):
+            c += SemistandardMultisetTableaux_shape_weight(p, self.weight).cardinality()
+        return c
+
+
 class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
 
     def __init__(self, shape, weight, order='last_letter', **kwds):
-        super(SemistandardMultisetTableaux_shape_weight, self).__init__(order=order, **kwds)
+        super(SemistandardMultisetTableaux_shape_weight, self).__init__(
+            order=order,
+            category=FiniteEnumeratedSets(),
+            **kwds)
         self.shape = shape
         self.weight = weight
 
@@ -315,6 +344,12 @@ class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
         """
 
         return [y for y in self]
+
+    def cardinality(self):
+        c = 0
+        for _ in self:
+            c += 1
+        return c
 
     def __iter__(self):
         """
