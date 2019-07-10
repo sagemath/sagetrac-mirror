@@ -38,7 +38,7 @@ class SemistandardMultisetTableau(Tableau):
     """
 
     @staticmethod
-    def __classcall_private__(self, t, order=None, key=None):
+    def __classcall_private__(self, t, *args, **kwds):
         r"""
         Ensures that a SMT is only ever created from a class of SMT
         """
@@ -46,8 +46,8 @@ class SemistandardMultisetTableau(Tableau):
             # TODO do we want to try to change the order fn of t?
             return t
         # TODO implement this
-        #elif t in SemistandardMultisetTableaux(key=key_fn):
-        #    return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
+        elif t in SemistandardMultisetTableaux(key=key_fn):
+            return SemistandardTableaux().element_class(SemistandardTableaux(), t)
 
         # t is not a semistandard tableau so we give an appropriate error message
         if t not in Tableaux():
@@ -63,6 +63,12 @@ class SemistandardMultisetTableau(Tableau):
         # If we're still here ``t`` cannot be column strict
         # TODO are there other edge cases for SSMT?
         raise ValueError('%s is not a column strict tableau' % t)
+
+    def __init__(self, parent, t, order=None, key=None, *args, **kwds):
+        self.order = order
+        self.key = key
+
+        super(SemistandardMultisetTableau, self).__init__(parent, t, *args, **kwds)
 
     def check(self):
         """
@@ -328,6 +334,6 @@ class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
                     for assignment in Arrangements([tuple(x) for x in eq_class], n_icells):
                         for (row, col), assign_set in zip(t.cells_containing(i), assignment):
                             mt[row][col] = tuple(assign_set)
-                yield mt#self.element_class(self, mt, order=self.order, key=self.key)
+                yield self.element_class(self, mt, order=self.order, key=self.key)
 
         return
