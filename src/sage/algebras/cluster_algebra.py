@@ -68,8 +68,9 @@ principle be added to :meth:`ClusterAlgebra.mutate_initial`.
 REFERENCES:
 
 - [FZ2007]_
-- [LLZ2014]_
 - [NZ2012]_
+- [LLZ2014]_
+- [NR2016]_
 
 AUTHORS:
 
@@ -460,7 +461,7 @@ class ClusterAlgebraElement(ElementWrapper):
             sage: x.d_vector()
             (1, 1, 2, -2)
         """
-        monomials = self.lift().dict()
+        monomials = self.lift().dict().keys()
         minimal = map(min, zip(*monomials))
         return tuple(-vector(minimal))[:self.parent().rank()]
 
@@ -500,7 +501,7 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         components = self.homogeneous_components()
         if len(components) != 1:
             raise ValueError("this element is not homogeneous")
-        k, = components
+        k, = components.keys()
         return k
 
     def F_polynomial(self):
@@ -588,6 +589,8 @@ class ClusterAlgebraSeed(SageObject):
     - ``B`` -- a skew-symmetrizable integer matrix
     - ``C`` -- the matrix of c-vectors of ``self``
     - ``G`` -- the matrix of g-vectors of ``self``
+    - ``d`` -- the tuple of exchange polynomial degrees of ``self``
+    - ``Z`` -- the tuple of tuples of exchange polynomial coefficients of ``self``
     - ``parent`` -- :class:`ClusterAlgebra`; the algebra to which the
       seed belongs
     - ``path`` -- list (default ``[]``); the mutation sequence from the
@@ -602,7 +605,7 @@ class ClusterAlgebraSeed(SageObject):
         :meth:`__eq__` is no longer guaranteed to give correct answers.
         Use at your own risk.
     """
-    def __init__(self, B, C, G, parent, **kwargs):
+    def __init__(self, B, C, G, d, Z, parent, **kwargs):
         r"""
         Initialize ``self``.
 
@@ -618,6 +621,8 @@ class ClusterAlgebraSeed(SageObject):
         self._B = copy(B)
         self._C = copy(C)
         self._G = copy(G)
+        self._d = copy(d)
+        self._Z = copy(Z)
         self._parent = parent
         self._path = kwargs.get('path', [])
 
@@ -638,6 +643,8 @@ class ClusterAlgebraSeed(SageObject):
         other._B = copy(self._B)
         other._C = copy(self._C)
         other._G = copy(self._G)
+        other._d = copy(self._d)
+        other._Z = copy(self._Z)
         other._parent = self._parent
         other._path = copy(self._path)
         return other
@@ -676,7 +683,8 @@ class ClusterAlgebraSeed(SageObject):
         """
         return (isinstance(other, ClusterAlgebraSeed) and
                 self.parent() == other.parent() and
-                frozenset(self.g_vectors()) == frozenset(other.g_vectors()))
+                frozenset(self.g_vectors()) == frozenset(other.g_vectors()) and
+                frozenset(self._Z) == frozenset(other._Z))
 
     def __contains__(self, element):
         r"""
@@ -1082,7 +1090,7 @@ class ClusterAlgebraSeed(SageObject):
             # compute new G-matrix
             J = identity_matrix(n)
             for j in range(n):
-                J[j, k] += max(0, -eps * to_mutate._B[j, k])
+                J[j, k] += max(0, -eps * to_mutate._B[j, k] * self._d[k])
             J[k, k] = -1
             to_mutate._G = to_mutate._G * J
 
@@ -1098,12 +1106,36 @@ class ClusterAlgebraSeed(SageObject):
             # compute new C-matrix
             J = identity_matrix(n)
             for j in range(n):
-                J[k, j] += max(0, eps * to_mutate._B[k, j])
+                J[k, j] += max(0, eps * self._d[k] * to_mutate._B[k, j])
             J[k, k] = -1
             to_mutate._C = to_mutate._C * J
 
             # compute new B-matrix
-            to_mutate._B.mutate(k)
+            DB = to_mutate._B
+            for j in range(n):
+                for i in range(DB.nrows()):
+                    DB[i][j] *= self._d[j]
+            DB.mutate(k)
+            for j in range(n):
+                for i in range(DB.nrows()):
+                    DB[i][j] = ZZ(DB[i][j] * self._d[j]**(-1))
+            to_mutate._B = DB
+            
+            # compute new exchange polynomials
+            for i in range(n):
+                if to_mutate._Z[i][0] != 1 or to_mutate._Z[i][to_mutate._d[i]] != 1:
+                    raise NotImplementedError('Mutations are only implemented for normalized exchange polynomials.')
+            new_Z = []
+            for i in range(n):
+                if i != k:
+                    new_Zi = to_mutate._Z[i]
+                else:
+                    new_Zi = []
+                    for j in range(to_mutate._d[k]):
+                        new_Zi.append(to_mutate._Z[k][to_mutate._d[k] - j])
+                    new_Zi = tuple(new_Zi)
+                new_Z.append(new_Zi)
+            to_mutate._Z = tuple(new_Z)
 
         # return if we need to
         if not inplace:
@@ -1148,7 +1180,7 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j) ** self._B[j, k]
             elif self._B[j, k] < 0:
                 neg *= self.F_polynomial(j) ** (-self._B[j, k])
-        return (pos + neg) / alg.F_polynomial(old_g_vector)
+        return sum( self._Z[k][i] * pos**(self._d[k] - i) * neg**i for i in range(self._d[k]) ) / alg.F_polynomial(old_g_vector)
 
 ##############################################################################
 # Cluster algebras
@@ -1163,6 +1195,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
     - ``data`` -- some data defining a cluster algebra; it can be anything
       that can be parsed by :class:`ClusterQuiver`
+      
+    - ``d`` -- the tuple of exchange polynomial degrees of ``self``
+    
+    - ``Z`` -- the tuple of tuples of exchange polynomial coefficients of ``self``
 
     - ``scalars`` -- a ring (default `\ZZ`); the scalars over
       which the cluster algebra is defined
@@ -1184,7 +1220,11 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
     ALGORITHM:
 
-    The implementation is mainly based on [FZ2007]_ and [NZ2012]_.
+    The implementation is mainly based on the papers 
+      - [FZ2007]_
+      - [NZ2012]_
+      - [CS2014]_
+      - [NR2016]_
 
     EXAMPLES::
 
@@ -1267,12 +1307,21 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             M0 = Q.b_matrix()[self._n:, :]
         self._B0 = block_matrix([[Q.b_matrix()[:self._n, :]], [M0]])
         m = M0.nrows()
-
+        self._d = kwargs.get('d', (1,)*self._n)
+        if len(self._d) != self._n:
+            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
+        self._Z = kwargs.get('Z', ((1,1),)*self._n)
+        if len(self._Z) != self._n:
+            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
+        for i in range(len(kwargs.get('Z'))):
+            if len(kwargs.get('Z')[i]) != self._d[i] + 1:
+                raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
+                 
         # Ambient space for F-polynomials
         # NOTE: for speed purposes we need to have QQ here instead of the more
         # natural ZZ. The reason is that _mutated_F is faster if we do not cast
         # the result to polynomials but then we get "rational" coefficients
-        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)])
+        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] + ['z%s_%s' % (i,j) for j in range(1,self._d[i]) for i in range(self._n)])
 
         # Setup infrastructure to store computed data
         self.clear_computed_data()
@@ -1570,7 +1619,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self.b_matrix(), I, I, self)
+        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self)
 
     def b_matrix(self):
         r"""
@@ -2259,7 +2308,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 # compute new F-polynomial
                 if old_g_vect in F_poly_dict:
                     h = -min(0, old_g_vect[k])
-                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * (Ugen[k] + 1) ** old_g_vect[k]
+                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum(self._Z[k][i]*Ugen[k]**i for i in range(self._d[k])) ** old_g_vect[k]
                     tmp_F_poly_dict[new_g_vect] = new_F_poly
 
             # update storage
