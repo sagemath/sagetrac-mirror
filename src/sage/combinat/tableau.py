@@ -9502,6 +9502,7 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: SemistandardSetValuedTableaux(3)
             Tableaux of size 3
         """
+        max_entry = kwargs.get('max_entry')
         if args:
             p = args[0]
 
@@ -9512,7 +9513,7 @@ class SemistandardSetValuedTableaux(Tableaux):
             # if n is shape
             from sage.combinat.partition import _Partitions
             if p in _Partitions:
-                return SemistandardSetValuedTableaux_shape(_Partitions(p))
+                return SemistandardSetValuedTableaux_shape(_Partitions(p), max_entry)
             else:
                 raise ValueError("the argument must be a non-negative integer or a partition")            
         #else:
@@ -9626,7 +9627,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     """
     Semistandard set-valued tableaux of a fixed shape `p`.
     """
-    def __init__(self, p):
+    def __init__(self, p, max_entry):
         r"""
         Initializes the class of all semistandard set-valued tableaux of a given shape.
 
@@ -9639,7 +9640,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
             sage: TestSuite( SemistandardSetValuedTableaux([2,1,1]) ).run()
         """
-        super(SemistandardSetValuedTableaux_shape, self).__init__(category=FiniteEnumeratedSets())
+        super(SemistandardSetValuedTableaux_shape, self).__init__(max_entry=max_entry, category=FiniteEnumeratedSets())
         self.shape = p
 
     def __contains__(self, x):
@@ -9656,7 +9657,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             sage: SemistandardSetValuedTableaux([2,1,1])
             Semistandard set-valued tableaux of shape [2, 1, 1]
         """
-        return "Semistandard set-valued tableaux of shape {}".format(self.shape)
+        return "Semistandard set-valued tableaux of shape {} and max entry {}".format(self.shape, self.max_entry)
 
     def __iter__(self):
         r"""
@@ -9664,6 +9665,25 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
         shape `p` of ``self``.
 
         EXAMPLES::
+
+        sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3); SSVT
+        Semistandard set-valued tableaux of shape [2, 2] and max entry 3
+        sage: SSVT.list()
+        [[[[1], [1]], [[2], [2]]],
+         [[[1], [1]], [[2], [2, 3]]],
+         [[[1], [1]], [[2], [3]]],
+         [[[1], [1]], [[2, 3], [3]]],
+         [[[1], [1, 2]], [[2], [3]]],
+         [[[1], [1, 2]], [[2, 3], [3]]],
+         [[[1], [1]], [[3], [3]]],
+         [[[1], [1, 2]], [[3], [3]]],
+         [[[1], [2]], [[2], [3]]],
+         [[[1], [2]], [[2, 3], [3]]],
+         [[[1], [2]], [[3], [3]]],
+         [[[1, 2], [2]], [[3], [3]]],
+         [[[2], [2]], [[3], [3]]]]
+        sage: len(SSVT)
+        13
 
         """
         def jumps(row):
@@ -9690,13 +9710,17 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             - ``max_entry`` -- a nonnegative integer
 
             """
-            if (below == None and right != None) or min(right)<min(below):
-                return list(range(max(cell)+1,min(right)+1))
-            elif (below != None and right == None) or min(right)>=min(below):
-                return list(range(max(cell)+1,min(below)))
-            else: # when there is no cell below or to the right
-                return list(range(max(cell),max_entry+1))
+            cell_val = max(cell)+1
+            right_val = min(right)+1 if right != None else max_entry+1
+            below_val = min(below) if below != None else max_entry+1
 
+            if right_val < below_val:
+                return list(range(cell_val, right_val))
+            else:
+                return list(range(cell_val, below_val))
+
+        from sage.misc.mrange import cartesian_product_iterator as CPI
+        import copy
         for t in SemistandardTableaux(shape=self.shape, max_entry=self.max_entry):
             tab = [[[entry] for entry in row] for row in t]
             addable_indices = []
@@ -9716,14 +9740,13 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
                     addable_indices += [(i,j)]
                     elts_to_add = [tuple(_) for _ in powerset(addable(cell,right,below,self.max_entry))]
                     addable_sets.append(elts_to_add)
-                    
-            from sage.combinat.cartesian_product import cartesian_product
-            for cp in CartesianProduct(addable_sets):
+            
+            for cp in CPI(addable_sets):
+                tab_copy = copy.deepcopy(tab)
                 for k in range(len(addable_sets)):
                     i,j = addable_indices[k]
-                    tab[i][j] = cp[k]
-                print(tab)
-                yield self.element_class(self, tab)
+                    tab_copy[i][j] += cp[k]
+                yield self.element_class(self, tab_copy)
     
     def list(self):
         r"""
