@@ -9415,17 +9415,45 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 # (Multi)set-valued tableaux #
 ##############################
 
+def grlex(x,y):
+    x1,y1 = sorted(x),sorted(y)
+    return (len(x),x1)<(len(y),y1)
+    
+def cmp_to_key(comp):
+    pass
+
 class SemistandardMultisetTableau(Tableau):
     """
     A class to model a semistandard multiset tableau.
-
-    A semistandard multiset tableau is a .....
-
-    INPUT:
-
-    - ``t`` -- a Tableau, a list of iterables, or an empty list       
     """
-    pass
+
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        """
+        pass
+
+    def check(self):
+        """
+        Check that ``self`` is a valid semistandard multiset tableau.
+        """
+        super(SemistandardMultisetTableau, self).check()
+
+        # Tableau() has checked that t is tableau, so it remains to check that
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+
+        for row in self:
+            if any(self.order_key(row[c]) > self.order_key(row[c+1]) for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
+
+        # and strictly increasing down columns
+        if self:
+            for row, next in zip(self, self[1:]):
+                if not all(self.order_key(row[c]) < self.order_key(next[c]) for c in range(len(next))):
+                    raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class SemistandardMultisetTableaux(Tableaux):
     r"""
@@ -9438,20 +9466,80 @@ class SemistandardMultisetTableaux(Tableaux):
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
         pass
-        
+
     Element = SemistandardMultisetTableau
     
-    def __init__(self,**kwds):
-        pass
-        
-    class options(GlobalOptions):
-        pass
-    
-    def _element_constructor_(self,t):
-        pass
+    def __init__(self,order='last_letter',**kwds):
+        """
+        Initialize ``self`` given an order.
+
+        EXAMPLES::
+
+            sage: S = SemistandardMultisetTableaux()
+            sage: TestSuite(S).run()
+        """
+        if callable(order):
+            self.order = order
+
+            def order_to_cmp(x,y):
+                if x==y:
+                    return 0
+                elif order(x,y):
+                    return -1
+                return 1 
+
+            self.key = cmp_to_key(order_to_cmp) # need to implement cmp_to_key!!
+        elif order == 'last_letter':
+            self.order = lambda (x,y): sorted(x)[-1]<=sorted(y)[-1]
+            self.key = lambda x: sorted(x)[-1]
+        elif order == 'grlex':
+            self.order = grlexS
+            self.key = lambda x: (len(x),sorted(x))
+        else:
+            raise ValueError("An order should be given")
+
+        if 'max_entry' in kwds:
+            self.max_entry = kwds['max_entry']
+            kwds.pop('max_entry')
+        else:
+            self.max_entry = None
+        Tableaux.__init__(self, **kwds)
     
     def __contains__(self,x):
-        pass
+            
+        """
+        Checks if x is an element of self.
+        
+        TESTS::
+
+            sage: T = sage.combinat.tableau.SemistandardMultisetTableaux_all()
+            sage: [[[1,2],[1,2]],[[2]]] in T
+            True
+            sage: [] in T
+            True
+            sage: Tableau([[[1]]]) in T
+            True
+            sage: StandardMultisetTableau([[[1]]]) in T
+            True
+
+            sage: [[[1],[2]],[[1]]] in T
+            False
+            sage: [[[1],[1]],[[5]]] in T
+            True
+            sage: [[[1],[3],[2]]] in T
+            False
+        """
+        if isinstance(x,SemistandardMultisetTableau) and x.order==self.order:
+            return True
+        elif isinstance(x,Tableau):
+            order = self.order
+            for row in x:
+                if not all(all(c>0 for c in C) for C in row):
+                    return False
+                elif not all(order(row[i],row[i+1]) for i in range(len(row)-1)):
+                    return False
+                elif not all(order):
+                    pass
     
 class SemistandardMultisetTableaux_all(Tableaux):
     
@@ -9465,7 +9553,7 @@ class SemistandardMultisetTableaux_all(Tableaux):
         pass
         
 class SemistandardMultisetTableaux_shape_weight(Tableaux):
-    
+
     def __init__(self):
         pass
 
@@ -9536,9 +9624,6 @@ class SemistandardMultisetTableaux_shape_weight(Tableaux):
         return res
 
 
-
-
-      
 #Abstract class for the elements of multiset tableau
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SemistandardMultisetTableau_abstract(ClonableList):
