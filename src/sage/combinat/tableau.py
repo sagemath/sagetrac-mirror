@@ -9372,14 +9372,34 @@ class SemistandardSetValuedTableau(Tableau):
         r"""
         This ensures that a :class:`SemistandardSetValuedTableau` is only
         constructed as an ``element_class`` call of an appropriate parent.
+
+        EXAMPLES::
+        
+            sage: t = SemistandardSetValuedTableau([[[],[7],[8]],[[5],[6,2]],[[3,1,4]]])
+            sage: t.shape()
+            [3, 2, 1]
+            sage: t.pp()
+             [1, 3, 4]
+                   [5] [2, 6]
+                    []    [7] [8]
+
+        TESTS::
+
+            sage: SemistandardSetValuedTableau([[[1,2],[2,3]],[[4,6]]])
+            [[[1, 2], [2, 3]], [[4, 6]]]
+
         """
 
         if isinstance(t, SemistandardSetValuedTableau):
             return t
 
-        tab = Tableau(t)
-        SSVT = SemistandardSetValuedTableaux(tab.shape())
-        return SSVT.element_class(SSVT, t)
+        t_list = list(t)
+        for i in range(len(t)):
+            for j in range(len(t[i])):
+                t_list[i][j] =  sorted(t[i][j])
+
+        SSVT = SemistandardSetValuedTableaux(Tableau(t_list).shape())
+        return SSVT.element_class(SSVT, t_list)
 
     def check(self):
         """
@@ -9390,21 +9410,18 @@ class SemistandardSetValuedTableau(Tableau):
         # Tableau() has checked that t is tableau, so it remains to check that
         # the entries of t are positive integers which are weakly increasing
         # along rows
-        from sage.sets.positive_integers import PositiveIntegers
-        PI = PositiveIntegers()
-
         for row in self:
             try:
                 row_t = [tuple(_) for _ in row]
             except TypeError:
                 raise ValueError("the entries of a semistandard set-valued tableau must be iterables")
-            if any(max(row[c]) <= min(row[c+1]) for c in range(len(row)-1)):
+            if any(max(row[c]) > min(row[c+1]) for c in range(len(row)-1)):
                 raise ValueError("the entries in each row of a semistandard set-valued tableau must be weakly increasing")
 
         # and strictly increasing down columns
         if self:
             for row, next in zip(self, self[1:]):
-                if not all(max(row[c]) <= min(next[c]) for c in range(len(next))):
+                if not all(max(row[c]) < min(next[c]) for c in range(len(next))):
                     raise ValueError("the entries of each column of a semistandard set-valued tableau must be strictly increasing")
 
 
