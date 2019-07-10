@@ -2022,6 +2022,11 @@ class PolynomialRingWithBasis(UniqueRepresentation, Parent):
             The ring of multivariate polynomials on x over Rational Field with 3 variables on the monomial basis
 
         """
+        print("finite_basis")
+        print(self.basis_repr())
+        print("cabbage")
+        print(self._basis_repr)
+        print("\n")
         fb = self._finite_basis_instance(nb_variables)
 
         return fb
@@ -4597,7 +4602,7 @@ class PolynomialRingWithBasisFromMorphism(PolynomialRingWithBasis):
                 input:
                     -``nb_variables``, the number of variables
                 output:
-                    - the function that will be used to create the module morphims on
+                    - the function that will be used to create the module morphisms on
                       basis on the given number of variables
         - ``variables_auto_coerce``: if set to ``True``, a coercion will be
         created between elements of the basis indexed by vectors of size
@@ -4652,7 +4657,7 @@ class PolynomialRingWithBasisFromMorphism(PolynomialRingWithBasis):
             abstract_polynomial_ring,
             basis_name,
             neutral_nb_variables,
-            basis_repr,
+            basis_repr=basis_repr,
             variables_auto_coerce = variables_auto_coerce,
         )
 
@@ -4673,6 +4678,10 @@ class PolynomialRingWithBasisFromMorphism(PolynomialRingWithBasis):
             sage: MyBasis._finite_basis_instance(3)
             The ring of multivariate polynomials on x over Rational Field with 3 variables on the My Basis
         """
+        print("_finite_basis_instance")
+        print self.basis_repr()
+        print self._basis_repr
+        print "balloon \n"
         return self.abstract_algebra().algebra_finite_nb_variables(n).from_morphism_basis(self, self._basis_name, self.basis_repr(), **self._keywords)
 
     def morphism_to_basis(self):

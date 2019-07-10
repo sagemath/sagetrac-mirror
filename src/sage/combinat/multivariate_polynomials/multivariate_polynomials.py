@@ -672,13 +672,13 @@ class MultivariatePolynomialAlgebra_generic(UniqueRepresentation, Parent):
 
         $Y_{\cdots v_{i+1} v_i-1 \cdots} = Y_v \partial_i$ where $\partial_i$ is the ith divided difference.
 
-        The vectors indexing the Schubert polynomials can as well been seen as
+        The vectors indexing the Schubert polynomials can be seen as
         Lehmer codes.
 
         INPUT:
 
         - ``basis_name``: (default: canonical name) the name of the basis (used in repr)
-        - ``basis_repr``: (defaul: ``Y``) the basis representation for elements
+        - ``basis_repr``: (default: ``Y``) the basis representation for elements
 
         OUTPUT:
 

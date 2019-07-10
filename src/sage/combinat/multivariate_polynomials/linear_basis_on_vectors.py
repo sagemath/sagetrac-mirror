@@ -22,7 +22,7 @@ from basis import PolynomialRingWithBasisFromMorphism, FinitePolynomialRingWithB
 
 class LinearBasisOnVectors(PolynomialRingWithBasisFromMorphism):
     r"""
-    Common upperclass for basis based on a (typed) linear divided difference morphisme
+    Common upperclass for basis based on a (typed) linear divided difference morphism
 
     EXAMPLES::
 
