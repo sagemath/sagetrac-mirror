@@ -9416,8 +9416,15 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 ##############################
 
 def grlex(x,y):
+    """
+    return True if x <= y in graded lex order
+    
+    INPUT:
+    - 'x' -- a multiset of positive integers
+    - 'y' -- a multiset of positive integers
+    """
     x1,y1 = sorted(x),sorted(y)
-    return (len(x),x1)<(len(y),y1)
+    return (len(x),x1) <= (len(y),y1)
     
 def cmp_to_key(comp):
     pass
@@ -9428,10 +9435,11 @@ class SemistandardMultisetTableau(Tableau):
     """
 
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(self, t, order):
         r"""
         """
         pass
+
 
     def check(self):
         """
@@ -9465,7 +9473,37 @@ class SemistandardMultisetTableaux(Tableaux):
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
-        pass
+        """
+        """
+        from sage.combinat.partition import _Partitions
+
+        if args:
+            n = args[0]
+        elif 'n' in kwargs:
+            n = kwargs['n']
+        else:
+            n = None
+
+        weight = kwargs.get('weight', None)
+        order = kwargs.get('order', 'grlex')
+
+        # neither shape nor size given
+        if n is None:
+            return SemistandardMultisetTableaux_all(order)
+
+        # weight not given
+        if weight is None:
+            raise NotImplementedError('class of all semistandard multiset tableaux of given weight not yet implemented')
+
+        # shape given
+        elif n in _Partitions:
+            return SemistandardMultisetTableaux_shape_weight(_Partitions(n), weight, order)
+
+        # size given
+        if not isinstance(n, (int, Integer)) or n < 0:
+            raise ValueError("the argument must be a non-negative integer or a partition")
+
+        return SemistandardMultisetTableaux_size_weight(n, weight, order)
 
     Element = SemistandardMultisetTableau
     
@@ -9543,7 +9581,7 @@ class SemistandardMultisetTableaux(Tableaux):
     
 class SemistandardMultisetTableaux_all(Tableaux):
     
-    def __init__(self):
+    def __init__(self, order):
         pass
         
     def _repr_(self):
@@ -9551,11 +9589,34 @@ class SemistandardMultisetTableaux_all(Tableaux):
     
     def an_element(self):
         pass
+
+class SemistandardMultisetTableaux_size_weight(Tableaux):
+    
+    def __init__(self, size, weight, order):
+        pass
+        
+    def _repr_(self):
+        pass
         
 class SemistandardMultisetTableaux_shape_weight(Tableaux):
 
-    def __init__(self):
+    @staticmethod
+    def __classcall_private__(cls, shape, weight, order):
         pass
+        
+    def __init__(self, shape, weight, order):
+        self.shape = shape
+        self.weight = weight
+        self.order = order
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: SemistandardMultisetTableaux([2,1,1], max_entry=4)
+            Semistandard multiset tableaux of shape [2, 1, 1] and max entry 4 with order last_letter
+        """
+        return "Semistandard multiset tableaux of shape {0} and max entry {1} with order {2}".format(self.shape, self.max_entry, self.order)
 
     @classmethod
     def _cmp_order(cls, x, y):
@@ -9609,199 +9670,18 @@ class SemistandardMultisetTableaux_shape_weight(Tableaux):
 
         # run over SSYT and replace i's with multiset of things in ith equiv class
         from sage.combinat.Permutation import Arrangements
-        res = []
-        wt = [len(tab_entries[key]) for key in tab_entries.keys()]
+        wt = [len(value) for value in tab_entries.values()]
         for t in SemistandardTableaux(self.shape, weight=wt):
             mt = t.list()
             for i in range(len(wt)):
                 icells_size = len(t.cells_containing(i))
-                i_equiv = Arrangements([tuple(x) for x in tab_entries[i]], icells_size):
+                i_equiv = Arrangements([tuple(x) for x in tab_entries[i]], icells_size).list()
                 for k in range(icells_size):
                     row, col = t.cells_containing(i)[k]
                     mt[row][col] = list(i_equiv[k])
-            res += [mt]
+            yield self.element_class(self, mt)
 
-        return res
-
-
-#Abstract class for the elements of multiset tableau
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class SemistandardMultisetTableau_abstract(ClonableList):
-    r"""
-    Abstract class for the various element classes of SemistandardAlphabetTableau.
-    """
-    def shape(self):
-        r"""
-        Return the shape of ``self``.
-
-        When the tableau is straight, the outer shape is returned.
-        When the tableau is skew, the tuple of the outer and inner shape is returned.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-    def size(self):
-        r"""
-        Return the size of the shape of ``self``.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-    def intermediate_shapes(self):
-        r"""
-        Return the intermediate shapes of ``self``.
-
-        A (skew) tableau with letters `1,2,\ldots,\ell` can be viewed as a sequence of shapes,
-        where the `i`-th shape is given by the shape of the subtableau on letters `1,2,\ldots,i`.
-        The output is the list of these shapes.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-    def pp(self):
-        r"""
-        Return a pretty print string of the tableau.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-    def __hash__(self):
-        r"""
-        Return the hash of ``self``.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-    def _latex_(self):
-        r"""
-        Return a latex method for the tableau.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-    def representation(self, representation = 'core'):
-        r"""
-        Return the analogue of ``self`` in the specified representation.
-
-        INPUT:
-
-        - ``representation`` -- 'core', 'bounded', or 'factorized_permutation' (default: 'core')
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-#Abstract class for the parents of multiset tableaux
-class SemistandardMultisetTableaux_abstract(UniqueRepresentation, Parent):
-    r"""
-    Abstract class for the various parent classes of WeakTableaux.
-    """
-    def shape(self):
-        r"""
-        Return the shape of the tableaux of ``self``.
-
-        When ``self`` is the class of straight tableaux, the outer shape is returned.
-        When ``self`` is the class of skew tableaux, the tuple of the outer and inner
-        shape is returned.
-
-        Note that in the 'core' and 'factorized_permutation' representation, the shapes
-        are `(k+1)`-cores.  In the 'bounded' representation, the shapes are `k`-bounded
-        partitions.
-
-        If the user wants to access the skew shape (even if the inner shape is empty),
-        please use ``self._shape``.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-        
-    def size(self):
-        r"""
-        Return the size of the shape.
-
-        In the bounded representation, the size of the shape is the number of boxes in the
-        outer shape minus the number of boxes in the inner shape. For the core and
-        factorized permutation representation, the size is the length of the outer shape
-        minus the length of the inner shape.
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-
-    def representation(self, representation = 'core'):
-        r"""
-        Return the analogue of ``self`` in the specified representation.
-
-        INPUT:
-
-        - ``representation`` -- 'core', 'bounded', or 'factorized_permutation' (default: 'core')
-
-        EXAMPLES::
-
-            sage: 
-        """
-        pass
-        
-class MultisetTableaux_bounded(WeakTableaux_abstract):
-    r"""
-    
-    INPUT:
-    - ``shape`` -- the shape of the multiset tableaux; a list of weakly decreasing non-negative integers
-    - ``n`` -- a positive integer that is the max entry of the values in the tableaux
-    - ``order`` -- the order on multisets. This can one of the following strings: ``graded lex``, ``last letter``. The order is defaulted to ``last letter``. The user can also implement their own order by inputting a function which takes in multisets x, y and outputs true if x <= y.
-    """
-    
-    @staticmethod
-    def __classcall_private__(cls, shape, n, order):
-        pass
-    
-    def __init__(self, shape, n, order):
-        pass
-        
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: 
-        """
-        pass
-
-    def __iter__(self):
-        r"""
-        TESTS::
-
-            sage: 
-        """
-        pass
-
-    Element = SemistandardMultisetTableau_abstract
-
-
+        return
 
 
 
