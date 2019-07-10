@@ -9361,7 +9361,63 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 #####################################
 # Semistandard Set-Valued Tableaux  #
 #####################################
-        
+
+class SemistandardSetValuedTableau(Tableaux):
+    """
+    A class to model a semistandard set-valued tableau.
+
+    """
+    @staticmethod
+    def __classcall_private__(self, t, order):
+       r"""
+        This ensures that a :class:`SemistandardSetValuedTableau` is only
+        constructed as an ``element_class`` call of an appropriate parent.
+
+        TESTS::
+
+        """
+
+        if isinstance(t, SemistandardSetValuedTableau):
+            return t
+
+        tab = Tableau(t)
+        SSVT = SemistandardSetValuedTableaux(tab.shape(), order=order)
+        return SSVT(t)
+
+    def check(self):
+        """
+        Check that ``self`` is a valid semistandard set-valued tableau.
+        """
+        super(SemistandardSetValuedTableau, self).check()
+
+        # Tableau() has checked that t is tableau, so it remains to check that
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+
+        for row in self:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries of a semistandard tableau must be lists")
+            if any(row[c] > row[c+1] for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
+
+        # and strictly increasing down columns
+        if self:
+            for row, next in zip(self, self[1:]):
+                if not all(row[c] < next[c] for c in range(len(next))):
+                    raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+
+
+    
+    def excess(self):
+        pass
+
+    def maj(self):
+        pass
+
+
+
 class SemistandardSetValuedTableaux(Tableaux):
     r"""
     Class of semistandard set-valued tableaux.
