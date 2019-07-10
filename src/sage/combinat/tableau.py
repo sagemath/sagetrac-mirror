@@ -5677,7 +5677,7 @@ class SymplecticTableau(Tableau):
             []
             sage: STKN = SymplecticTableaux([1,1,1], max_entry=4)
             sage: is_sorted = True
-            ....: for kn in STKN:
+            sage: for kn in STKN:
             ....:     dp = kn.to_deconcini_procesi()
             ....:     is_sorted = is_sorted and sorted(sum(dp.sheats().to_list(),[])) == sum(dp.to_list(),[])
             ....:
