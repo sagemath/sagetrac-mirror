@@ -231,6 +231,14 @@ class Homspace(HomsetWithBase):
         self._gens = None
         HomsetWithBase.__init__(self, domain, codomain, category=cat)
 
+    def __eq__(self, other):
+        if not isinstance(other, Homspace):
+            return False
+        equal_domain_codomain = (self.domain() == other.domain()) and \
+            (self.codomain() == other.codomain())
+        equal_free_module = self.free_module() == other.free_module()
+        return equal_domain_codomain and equal_free_module
+
     def identity(self):
         """
         Return the identity endomorphism.
