@@ -9362,7 +9362,7 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 # Semistandard Set-Valued Tableaux  #
 #####################################
 
-class SemistandardSetValuedTableau(Tableaux):
+class SemistandardSetValuedTableau(Tableau):
     """
     A class to model a semistandard set-valued tableau.
 
@@ -9379,7 +9379,7 @@ class SemistandardSetValuedTableau(Tableaux):
 
         tab = Tableau(t)
         SSVT = SemistandardSetValuedTableaux(tab.shape())
-        return SSVT(t)
+        return SSVT.element_class(SSVT, t)
 
     def check(self):
         """
@@ -9434,18 +9434,17 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: SemistandardSetValuedTableaux(3)
             Tableaux of size 3
         """
-        #order = kwargs.get('order', 'grlex')
         if args:
-            n = args[0]
+            p = args[0]
 
             # if n is size
-            if isinstance(n,(int,Integer)) and n>=0:
-                return SemistandardSetValuedTableaux_size(n)
+            if isinstance(p,(int,Integer)) and p>=0:
+                return SemistandardSetValuedTableaux_size(Integer(p))
 
             # if n is shape
             from sage.combinat.partition import _Partitions
-            if n in _Partitions:
-                return SemistandardSetValuedTableaux_shape(n)
+            if p in _Partitions:
+                return SemistandardSetValuedTableaux_shape(_Partitions(p))
             else:
                 raise ValueError("the argument must be a non-negative integer or a partition")            
         #else:
@@ -9492,7 +9491,7 @@ class SemistandardSetValuedTableaux(Tableaux):
         """
         if isinstance(t,SemistandardSetValuedTableau):
             return True
-        elif Tableaux.__contains(self,t):
+        elif Tableaux.__contains__(self,t):
             # x is assumed to be at least a list of lists with shape given by a partition
             for row in t:
                 for cell in row:
@@ -9557,9 +9556,9 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
 
 class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     """
-    Semistandard set-valued tableaux of a fixed shape `la`.
+    Semistandard set-valued tableaux of a fixed shape `p`.
     """
-    def __init__(self, la):
+    def __init__(self, p):
         r"""
         Initializes the class of all semistandard set-valued tableaux of a given shape.
 
@@ -9573,7 +9572,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             sage: TestSuite( SemistandardSetValuedTableaux([2,1,1]) ).run()
         """
         super(SemistandardSetValuedTableaux_shape, self).__init__(category=FiniteEnumeratedSets())
-        self.shape = la
+        self.shape = p
 
     def __contains__(self, x):
         """
@@ -9594,7 +9593,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     def __iter__(self):
         r"""
         An iterator for the semistandard set-valued tableaux associated to the
-        shape `la` of ``self``.
+        shape `p` of ``self``.
 
         EXAMPLES::
 
