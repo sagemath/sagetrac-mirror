@@ -9368,20 +9368,17 @@ class SemistandardSetValuedTableau(Tableaux):
 
     """
     @staticmethod
-    def __classcall_private__(self, t, order):
-       r"""
+    def __classcall_private__(self, t):
+        r"""
         This ensures that a :class:`SemistandardSetValuedTableau` is only
         constructed as an ``element_class`` call of an appropriate parent.
-
-        TESTS::
-
         """
 
         if isinstance(t, SemistandardSetValuedTableau):
             return t
 
         tab = Tableau(t)
-        SSVT = SemistandardSetValuedTableaux(tab.shape(), order=order)
+        SSVT = SemistandardSetValuedTableaux(tab.shape())
         return SSVT(t)
 
     def check(self):
@@ -9397,16 +9394,18 @@ class SemistandardSetValuedTableau(Tableaux):
         PI = PositiveIntegers()
 
         for row in self:
-            if any(c not in PI for c in row):
-                raise ValueError("the entries of a semistandard tableau must be lists")
-            if any(row[c] > row[c+1] for c in range(len(row)-1)):
-                raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
+            try:
+                row_t = [tuple(_) for _ in row]
+            except TypeError:
+                raise ValueError("the entries of a semistandard set-valued tableau must be iterables")
+            if any(max(row[c]) <= min(row[c+1]) for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of a semistandard set-valued tableau must be weakly increasing")
 
         # and strictly increasing down columns
         if self:
             for row, next in zip(self, self[1:]):
-                if not all(row[c] < next[c] for c in range(len(next))):
-                    raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+                if not all(max(row[c]) <= min(next[c]) for c in range(len(next))):
+                    raise ValueError("the entries of each column of a semistandard set-valued tableau must be strictly increasing")
 
 
     
@@ -9435,12 +9434,18 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: SemistandardSetValuedTableaux(3)
             Tableaux of size 3
         """
+        #order = kwargs.get('order', 'grlex')
         if args:
+            n = args[0]
+
+            # if n is size
+            if isinstance(n,(int,Integer)) and n>=0:
+                return SemistandardSetValuedTableaux_size(n)
+
+            # if n is shape
             from sage.combinat.partition import _Partitions
-            if isinstance(args[0],(int,Integer)) and args[0]>=0:
-                return SemistandardSetValuedTableaux_size()
-            elif args[0] in _Partitions:
-                return SemistandardSetValuedTableaux_shape()
+            if n in _Partitions:
+                return SemistandardSetValuedTableaux_shape(n)
             else:
                 raise ValueError("the argument must be a non-negative integer or a partition")            
         #else:
@@ -9459,11 +9464,12 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: S = SemistandardSetValuedTableaux()
             sage: TestSuite(S).run()
         """
-        if 'max_entry' in kwds:
-            self.max_entry = kwds['max_entry']
-            kwds.pop('max_entry')
+        if 'max_entry' in kwargs:
+            self.max_entry = kwargs['max_entry']
+            kwargs.pop('max_entry')
         else:
             self.max_entry = None
+
         Tableaux.__init__(self, *args, **kwargs)
 
     def _repr_(self):
