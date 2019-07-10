@@ -193,7 +193,7 @@ class SemistandardMultisetTableaux(Tableaux):
 
     @staticmethod
     def last_letter_key(x):
-        return -1 if not x else max(x)
+        return 1 if not x else max(x)
 
     @staticmethod
     def grlex_key(x):
@@ -294,7 +294,7 @@ class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
         weight_vec_p = VectorPartitions(self.weight)
         N = sum(self.shape)
         mset_partitions = [
-            sorted(wp, key=self.key, reverse=True)
+            sorted(wp, key=self.key)
             for wp in (weight_part_to_mset_maxlen(vp, N) for vp in weight_vec_p)
             if wp is not None
         ]
@@ -317,21 +317,17 @@ class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
                     current_val += 1
                     tab_entries[current_val].append(next_p)
 
-        # run over SSYT and replace i's with multiset of things in ith equiv class
-        wt = [len(eqclass) for eqclass in tab_entries.values()]
-        print(tab_entries)
-        print(wt)
-        print()
-        for t in SemistandardTableaux(self.shape, weight=wt):
-            mt = [list(r) for r in t]
-            print("sst:", mt)
-            for i, eq_class in tab_entries.items():
-                n_icells = len(t.cells_containing(i))
-                print("eqc:", eq_class, "  nic:", n_icells)
-                for assignment in Arrangements([tuple(x) for x in eq_class], n_icells):
-                    print("assg:", assignment)
-                    for (row, col), assign_set in zip(t.cells_containing(i), assignment):
-                        mt[row][col] = tuple(assign_set)
-            yield mt#self.element_class(self, mt, order=self.order, key=self.key)
+            # run over SSYT and replace i's with multiset of things in ith equiv class
+            wt = [len(eqclass) for eqclass in tab_entries.values()]
+            for t in SemistandardTableaux(self.shape, wt):
+                mt = [list(r) for r in t]
+
+                for i, eq_class in tab_entries.items():
+                    n_icells = len(t.cells_containing(i))
+
+                    for assignment in Arrangements([tuple(x) for x in eq_class], n_icells):
+                        for (row, col), assign_set in zip(t.cells_containing(i), assignment):
+                            mt[row][col] = tuple(assign_set)
+                yield mt#self.element_class(self, mt, order=self.order, key=self.key)
 
         return
