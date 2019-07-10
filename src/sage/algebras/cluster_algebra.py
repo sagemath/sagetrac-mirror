@@ -1112,18 +1112,9 @@ class ClusterAlgebraSeed(SageObject):
 
             # compute new B-matrix
             D = diagonal_matrix(self._d)
-            DB = matrix(to_mutate._B)*D
-#            for j in range(n):
-#                for i in range(DB.nrows()):
-#                    print(type(DB))
-#                    print(type(DB[i][j]))
-#                    DB[i][j] *= self._d[j]
-            DB.mutate(k)
-#            DI = diagonal_matrix(tuple([d**(-1) for d in self._d]))
-#            for j in range(n):
-#                for i in range(DB.nrows()):
-#                    DB[i][j] = ZZ(DB[i][j] * self._d[j]**(-1))
-            to_mutate._B = matrix(ZZ,DB*D.inverse())
+            BD = matrix(to_mutate._B)*D
+            BD.mutate(k)
+            to_mutate._B = matrix(ZZ,BD*D.inverse())
             
             # compute new exchange polynomials
             for i in range(n):
@@ -2289,7 +2280,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             tmp_F_poly_dict = {}
 
             # mutate B-matrix
-            B0.mutate(k)
+            D = diagonal_matrix(self._d)
+            B0D = matrix(B_0)*D
+            B0D.mutate(k)
+            B0 = matrix(ZZ,B0D*D.inverse())
 
             # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
             F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(B0[k, j], 0) * sum(self._Z[k][i]*Ugen[k]**i for i in range(self._d[k]+1)) ** (-self._d[k] * B0[k, j]) for j in range(n)]
