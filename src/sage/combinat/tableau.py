@@ -9424,7 +9424,7 @@ class SemistandardSetValuedTableaux(Tableaux):
         r"""
         This is a factory class which returns the appropriate parent based on
         arguments.
-        
+
         TESTS::
 
             sage: SemistandardSetValuedTableaux()
@@ -9443,8 +9443,8 @@ class SemistandardSetValuedTableaux(Tableaux):
         #else:
         #    return SemistandardSetValuedTableaux_all()
         else:
-            raise NotImplementedError("SemistandardSetValuedTableaux_all is not implemented yet")
-        
+            raise NotImplementedError
+
     Element = SemistandardSetValuedTableau
 
     def __init__(self, *args, **kwargs):
@@ -9462,7 +9462,7 @@ class SemistandardSetValuedTableaux(Tableaux):
         else:
             self.max_entry = None
         Tableaux.__init__(self, *args, **kwargs)
-    
+
     def _repr_(self):
         """
         TESTS::
@@ -9476,13 +9476,35 @@ class SemistandardSetValuedTableaux(Tableaux):
         if self.max_entry is not None:
             return "Semistandard set-valued tableaux with maximum entry {}".format(self.max_entry)
         return "Semistandard set-valued tableaux"
-        
-    def __contains__(self,x):
+
+    def __contains__(self,t):
         r"""
-        Determines if x is an element of self.
+        Determines if t is an element of self.
         """
-        pass
-        
+        if isinstance(t,SemistandardSetValuedTableau):
+            return True
+        elif Tableaux.__contains(self,t):
+            # x is assumed to be at least a list of lists with shape given by a partition
+            for row in t:
+                for cell in row:
+                    # checks that cell is a list containing a set
+                    if not isinstance(cell,list) or len(cell)!=len(set(cell)):
+                        return False
+                    # checks that the set consists of integers
+                    if not all(elt>0 for elt in cell):
+                        return False
+                # checks cells are weakly increasing along rows
+                for i in range(len(row)-1):
+                    left,right = row[i],row[i+1]
+                    if max(left) > min(right):
+                        return False
+            # checks cells are strictly increasing along columns
+            for row, next in zip(t, t[1:]):
+                if not all(max(row[i])<min(next[i]) for i in range(len(next))):
+                    return False 
+            # if self has max_entry, checks if that all elements in each cell are within max_entry
+            return self.max_entry is None or max(max(max(cell) for cell in row) for row in t)<=self.max_entry
+
 class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
     """
     Semistandard set-valued tableaux of fixed size `n`.
@@ -9515,7 +9537,7 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
             sage: SemistandardSetValuedTableaux(3)
             Semistandard set-valued tableaux of size 3
         """
-        return "Semistandard set-valued tableaux of size %s" % self._size
+        return "Semistandard set-valued tableaux of size {}".format(self._size)
 
     def __contains__(self, x):
         """
@@ -9526,9 +9548,9 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
 
 class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     """
-    Semistandard set-valued tableaux of a fixed shape `p`.
+    Semistandard set-valued tableaux of a fixed shape `la`.
     """
-    def __init__(self, p):
+    def __init__(self, la):
         r"""
         Initializes the class of all semistandard set-valued tableaux of a given shape.
 
@@ -9542,14 +9564,14 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             sage: TestSuite( SemistandardSetValuedTableaux([2,1,1]) ).run()
         """
         super(SemistandardSetValuedTableaux_shape, self).__init__(category=FiniteEnumeratedSets())
-        self.shape = p
+        self.shape = la
 
     def __contains__(self, x):
         """
         EXAMPLES::
 
         """
-        return SemistandardSetValuedTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+        return SemistandardSetValuedTableaux.__contains__(self, x) and [len(row) for row in x] == self.shape
 
     def _repr_(self):
         """
@@ -9563,7 +9585,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     def __iter__(self):
         r"""
         An iterator for the semistandard set-valued tableaux associated to the
-        shape `p` of ``self``.
+        shape `la` of ``self``.
 
         EXAMPLES::
 
