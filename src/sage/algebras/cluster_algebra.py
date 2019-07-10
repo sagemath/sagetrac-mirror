@@ -368,7 +368,7 @@ from sage.functions.other import binomial
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan
 from sage.matrix.constructor import identity_matrix, matrix
-from sage.matrix.special import block_matrix
+from sage.matrix.special import block_matrix, diagonal_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.modules.free_module_element import vector
@@ -1111,15 +1111,19 @@ class ClusterAlgebraSeed(SageObject):
             to_mutate._C = to_mutate._C * J
 
             # compute new B-matrix
-            DB = to_mutate._B
-            for j in range(n):
-                for i in range(DB.nrows()):
-                    DB[i][j] *= self._d[j]
+            D = diagonal_matrix(self._d)
+            DB = matrix(to_mutate._B)*D
+#            for j in range(n):
+#                for i in range(DB.nrows()):
+#                    print(type(DB))
+#                    print(type(DB[i][j]))
+#                    DB[i][j] *= self._d[j]
             DB.mutate(k)
-            for j in range(n):
-                for i in range(DB.nrows()):
-                    DB[i][j] = ZZ(DB[i][j] * self._d[j]**(-1))
-            to_mutate._B = DB
+#            DI = diagonal_matrix(tuple([d**(-1) for d in self._d]))
+#            for j in range(n):
+#                for i in range(DB.nrows()):
+#                    DB[i][j] = ZZ(DB[i][j] * self._d[j]**(-1))
+            to_mutate._B = matrix(ZZ,DB*D.inverse())
             
             # compute new exchange polynomials
             for i in range(n):
@@ -1131,7 +1135,7 @@ class ClusterAlgebraSeed(SageObject):
                     new_Zi = to_mutate._Z[i]
                 else:
                     new_Zi = []
-                    for j in range(to_mutate._d[k]):
+                    for j in range(to_mutate._d[k]+1):
                         new_Zi.append(to_mutate._Z[k][to_mutate._d[k] - j])
                     new_Zi = tuple(new_Zi)
                 new_Z.append(new_Zi)
@@ -1180,7 +1184,7 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j) ** self._B[j, k]
             elif self._B[j, k] < 0:
                 neg *= self.F_polynomial(j) ** (-self._B[j, k])
-        return sum( self._Z[k][i] * pos**(self._d[k] - i) * neg**i for i in range(self._d[k]) ) / alg.F_polynomial(old_g_vector)
+        return sum( self._Z[k][i] * pos**(self._d[k] - i) * neg**i for i in range(self._d[k]+1) ) / alg.F_polynomial(old_g_vector)
 
 ##############################################################################
 # Cluster algebras
@@ -1313,8 +1317,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._Z = kwargs.get('Z', ((1,1),)*self._n)
         if len(self._Z) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-        for i in range(len(kwargs.get('Z'))):
-            if len(kwargs.get('Z')[i]) != self._d[i] + 1:
+        for i in range(len(self._Z)):
+            if len(self._Z[i]) != self._d[i] + 1:
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
                  
         # Ambient space for F-polynomials
@@ -1619,7 +1623,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self)
+        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z, self)
 
     def b_matrix(self):
         r"""
@@ -2288,7 +2292,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             B0.mutate(k)
 
             # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(B0[k, j], 0) * (1 + Ugen[k]) ** (-B0[k, j]) for j in range(n)]
+            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(B0[k, j], 0) * sum(self._Z[k][i]*Ugen[k]**i for i in range(self._d[k]+1)) ** (-self._d[k] * B0[k, j]) for j in range(n)]
 
             for old_g_vect in path_dict:
                 # compute new g-vector
@@ -2296,7 +2300,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 eps = sign(old_g_vect[k])
                 for j in range(n):
                     # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
-                    J[j, k] += max(0, -eps * B0[j, k])
+                    J[j, k] += max(0, -eps * B0[j, k] * self._d[k])
                 J[k, k] = -1
                 new_g_vect = tuple(J * vector(old_g_vect))
 
@@ -2308,7 +2312,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 # compute new F-polynomial
                 if old_g_vect in F_poly_dict:
                     h = -min(0, old_g_vect[k])
-                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum(self._Z[k][i]*Ugen[k]**i for i in range(self._d[k])) ** old_g_vect[k]
+                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum(self._Z[k][i]*Ugen[k]**i for i in range(self._d[k]+1)) ** old_g_vect[k]
                     tmp_F_poly_dict[new_g_vect] = new_F_poly
 
             # update storage
