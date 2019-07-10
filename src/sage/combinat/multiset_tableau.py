@@ -24,6 +24,7 @@ AUTHORS:
 #****************************************************************************
 
 from collections import defaultdict
+from itertools import product
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.tableau import (SemistandardTableau, SemistandardTableaux,
@@ -64,9 +65,11 @@ class SemistandardMultisetTableau(Tableau):
         # TODO are there other edge cases for SSMT?
         raise ValueError('%s is not a column strict tableau' % t)
 
-    def __init__(self, parent, t, order=None, key=None, *args, **kwds):
-        self.order = order
-        self.key = key
+    def __init__(self, parent, t, order='last_letter', key=None, *args, **kwds):
+        if key is None:
+            self.order, self.key = SemistandardMultisetTableaux._order_to_order_key(order)
+        else:
+            self.order, self.key = order, key
 
         super(SemistandardMultisetTableau, self).__init__(parent, t, *args, **kwds)
 
@@ -153,10 +156,23 @@ class SemistandardMultisetTableaux(Tableaux):
             sage: S = SemistandardMultisetTableaux()
             sage: TestSuite(S).run()
         """
-        if callable(order):
-            self.order = order
 
-            def order_to_key(order_fn):
+        self.order, self.key = SemistandardMultisetTableaux._order_to_order_key(order)
+
+        if 'max_entry' in kwds:
+            self.max_entry = kwds['max_entry']
+            kwds.pop('max_entry')
+        else:
+            self.max_entry = None
+        Tableaux.__init__(self, **kwds)
+
+    @staticmethod
+    def _order_to_order_key(order):
+        if callable(order):
+            order_fn = order
+            order = None
+
+            def order_fn_to_key(order_fn):
                 class K(object):
                     __slots__ = ['obj']
                     def __init__(self, obj, *args):
@@ -177,29 +193,24 @@ class SemistandardMultisetTableaux(Tableaux):
                         raise TypeError('hash not implemented')
                 return K
 
-            self.key = order_to_key(order)
+            key = order_fn_to_key(order)
 
         elif order == 'last_letter':
-            self.order = 'last_letter'
-            self.key = self.last_letter_key
+            order = 'last_letter'
+            key = SemistandardMultisetTableaux.last_letter_key
 
         elif order == 'grlex':
-            self.order = 'grlex'
-            self.key = self.grlex_key
+            order = 'grlex'
+            key = SemistandardMultisetTableaux.grlex_key
 
         else:
             raise ValueError("An order should be given")
 
-        if 'max_entry' in kwds:
-            self.max_entry = kwds['max_entry']
-            kwds.pop('max_entry')
-        else:
-            self.max_entry = None
-        Tableaux.__init__(self, **kwds)
+        return order, key
 
     @staticmethod
     def last_letter_key(x):
-        return 1 if not x else max(x)
+        return -1 if not x else max(x)
 
     @staticmethod
     def grlex_key(x):
@@ -228,17 +239,14 @@ class SemistandardMultisetTableaux(Tableaux):
             sage: [[[1],[3],[2]]] in T
             False
         """
-        # TODO self.order == x.order will return False unless they are a reference
-        # to exactly the same order function (i.e. (lambda x: x) != (lambda x: x) since
-        # they are different references to 'the same function definition')
-        if isinstance(x,SemistandardMultisetTableau) and x.order==self.order:
+        if isinstance(x, SemistandardMultisetTableau) and x.order == self.order:
             return True
-        elif isinstance(x,Tableau):
-            order = self.order
+        elif isinstance(x, Tableau):
+            key = self.key
             for row in x:
                 if not all(all(c>0 for c in C) for C in row):
                     return False
-                elif not all(order(row[i],row[i+1]) for i in range(len(row)-1)):
+                elif not all(key(r_i) < key(r_ii) for r_i, r_ii in zip(row, row[1:])):
                     return False
                 elif not all(order):
                     pass
@@ -279,6 +287,23 @@ class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
                 "with order {2}".format(self.shape, self.max_entry, self.order))
 
     def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: list(SemistandardMultisetTableaux_shape_weight((2,1,), (2,2,)))
+            [[[(1, 1), (2,)], [(2,)]],
+             [[(1,), (1, 2)], [(2,)]],
+             [[(1,), (2,)], [(1, 2)]],
+             [[(), (1, 1, 2)], [(2,)]],
+             [[(), (2,)], [(1, 1, 2)]],
+             [[(1,), (1,)], [(2, 2)]],
+             [[(), (1, 1)], [(2, 2)]],
+             [[(), (2, 2)], [(1, 1)]],
+             [[(), (1,)], [(1, 2, 2)]],
+             [[(), (1, 2, 2)], [(1,)]],
+             [[(), (1, 2)], [(1, 2)]],
+             [[(), ()], [(1, 1, 2, 2)]]]
+        """
         def weight_part_to_mset_maxlen(vp, N):
             mset = []
 
@@ -323,17 +348,22 @@ class SemistandardMultisetTableaux_shape_weight(SemistandardMultisetTableaux):
                     current_val += 1
                     tab_entries[current_val].append(next_p)
 
+            eq_class_list = [tab_entries[i] for i in sorted(tab_entries.keys())]
+
             # run over SSYT and replace i's with multiset of things in ith equiv class
             wt = [len(eqclass) for eqclass in tab_entries.values()]
             for t in SemistandardTableaux(self.shape, wt):
                 mt = [list(r) for r in t]
 
-                for i, eq_class in tab_entries.items():
-                    n_icells = len(t.cells_containing(i))
+                for assigments in product(*[Arrangements([tuple(x) for x in eq_class], len(eq_class))
+                                            for eq_class in eq_class_list]):
 
-                    for assignment in Arrangements([tuple(x) for x in eq_class], n_icells):
+                    #print(mset_part, t, assigments, tab_entries)
+
+                    for i, assignment in enumerate(assigments, 1):
                         for (row, col), assign_set in zip(t.cells_containing(i), assignment):
                             mt[row][col] = tuple(assign_set)
-                yield self.element_class(self, mt, order=self.order, key=self.key)
+
+                    yield self.element_class(self, mt, order=self.order, key=self.key)
 
         return
