@@ -9415,27 +9415,42 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
 # (Multi)set-valued tableaux #
 ##############################
 
-def grlex(x,y):
-    x1,y1 = sorted(x),sorted(y)
-    return (len(x),x1)<(len(y),y1)
-    
-def cmp_to_key(comp):
-    pass
-
 class SemistandardMultisetTableau(Tableau):
     """
     A class to model a semistandard multiset tableau.
     """
 
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(self, t, key_fn):
         r"""
+        Ensures that a SMT is only ever created from a class of SMT
         """
-        pass
+        if isinstance(t, SemistandardMultisetTableau):
+            # TODO do we want to try to change the order fn of t?
+            return t
+        # TODO implement this
+        #elif t in SemistandardMultisetTableaux(key=key_fn):
+        #    return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
+
+        # t is not a semistandard tableau so we give an appropriate error message
+        if t not in Tableaux():
+            raise ValueError('%s is not a tableau' % t)
+
+        if not all(isinstance(c, (int, Integer)) and c > 0
+                   for row in t for sset in row for c in sset):
+            raise ValueError("entries must be finite iterables of positive integers"%t)
+
+        if any(key_fn(row[ci]) > key_fn(row[ci+1]) for row in t for ci in range(len(row)-1)):
+            raise ValueError("The rows of %s are not weakly increasing"%t)
+
+        # If we're still here ``t`` cannot be column strict
+        # TODO are there other edge cases for SSMT?
+        raise ValueError('%s is not a column strict tableau' % t)
 
     def check(self):
         """
-        Check that ``self`` is a valid semistandard multiset tableau.
+        Check that ``self`` is a valid semistandard multiset tableau, for
+        multiset order provided
         """
         super(SemistandardMultisetTableau, self).check()
 
@@ -9446,14 +9461,19 @@ class SemistandardMultisetTableau(Tableau):
         PI = PositiveIntegers()
 
         for row in self:
-            if any(self.order_key(row[c]) > self.order_key(row[c+1]) for c in range(len(row)-1)):
-                raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
+            if any(self.key(row[c]) > self.key(row[c+1])
+                   for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of a semistandard"
+                                 "multiset tableau must be weakly increasing")
 
         # and strictly increasing down columns
         if self:
             for row, next in zip(self, self[1:]):
-                if not all(self.order_key(row[c]) < self.order_key(next[c]) for c in range(len(next))):
-                    raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+                if not all(self.key(row[c]) < self.key(next[c])
+                           for c in range(len(next))):
+                    raise ValueError(
+                        "the entries of each column of a semistandard"
+                        "multiset tableau must be strictly increasing")
 
 
 class SemistandardMultisetTableaux(Tableaux):
@@ -9465,7 +9485,6 @@ class SemistandardMultisetTableaux(Tableaux):
         pass
 
     Element = SemistandardMultisetTableau
-    
     def __init__(self,order='last_letter',**kwds):
         """
         Initialize ``self`` given an order.
@@ -9478,20 +9497,37 @@ class SemistandardMultisetTableaux(Tableaux):
         if callable(order):
             self.order = order
 
-            def order_to_cmp(x,y):
-                if x==y:
-                    return 0
-                elif order(x,y):
-                    return -1
-                return 1 
+            def order_to_key(order_fn):
+                class K(object):
+                    __slots__ = ['obj']
+                    def __init__(self, obj, *args):
+                        self.obj = obj
+                    def __eq__(self, other):
+                        return self.obj == other.obj
+                    def __ne__(self, other):
+                        return not self == other
+                    def __lt__(self, other):
+                        return order_fn(x, y) and not self == other
+                    def __gt__(self, other):
+                        return (not self <= other)
+                    def __le__(self, other):
+                        return self < other or self == other
+                    def __ge__(self, other):
+                        return not self < other
+                    def __hash__(self):
+                        raise TypeError('hash not implemented')
+                return K
 
-            self.key = cmp_to_key(order_to_cmp) # need to implement cmp_to_key!!
+            self.key = order_to_key(order)
+
         elif order == 'last_letter':
-            self.order = lambda (x,y): sorted(x)[-1]<=sorted(y)[-1]
-            self.key = lambda x: sorted(x)[-1]
+            self.order = SemistandardMultisetTableaux.last_letter_order
+            self.key = lambda x: max(x)
+
         elif order == 'grlex':
-            self.order = grlexS
+            self.order = SemistandardMultisetTableaux.grlex_order
             self.key = lambda x: (len(x),sorted(x))
+
         else:
             raise ValueError("An order should be given")
 
@@ -9501,12 +9537,19 @@ class SemistandardMultisetTableaux(Tableaux):
         else:
             self.max_entry = None
         Tableaux.__init__(self, **kwds)
-    
+
+    @staticmethod
+    def last_letter_order(x, y):
+        return max(x) <= max(y)
+
+    @staticmethod
+    def grlex_order(x, y):
+        return (len(x), sorted(x)) < (len(y), sorted(y))
+
     def __contains__(self,x):
-            
         """
         Checks if x is an element of self.
-        
+
         TESTS::
 
             sage: T = sage.combinat.tableau.SemistandardMultisetTableaux_all()
@@ -9526,6 +9569,9 @@ class SemistandardMultisetTableaux(Tableaux):
             sage: [[[1],[3],[2]]] in T
             False
         """
+        # TODO self.order == x.order will return False unless they are a reference
+        # to exactly the same order function (i.e. (lambda x: x) != (lambda x: x) since
+        # they are different references to 'the same function definition')
         if isinstance(x,SemistandardMultisetTableau) and x.order==self.order:
             return True
         elif isinstance(x,Tableau):
@@ -9543,7 +9589,7 @@ class SemistandardMultisetTableaux_all(Tableaux):
     def __init__(self):
         pass
         
-    def _repr_(self):
+    def __repr__(self):
         pass
     
     def an_element(self):
