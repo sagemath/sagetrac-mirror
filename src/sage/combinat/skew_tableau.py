@@ -1147,7 +1147,7 @@ class SkewTableau(ClonableList):
         and whose direct upper neighbor is not filled with the integer `k`
         (in particular, this neighbor might not exist at all). It is clear
         that for any row `r` of `T`, the lower free `k`'s and the upper
-        free `k + 1`'s in `r` together form a contiguous interval or `r`.
+        free `k + 1`'s in `r` together form a contiguous interval of `r`.
 
         The *`k`-th Bender--Knuth switch at row `i`* changes the entries of
         the cells in this interval in such a way that if it used to have

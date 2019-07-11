@@ -9462,11 +9462,82 @@ class SemistandardSetValuedTableau(Tableau):
             if i > 0:
                 wt[i - 1] += 1
         return wt
+
+    @combinatorial_map(order=2, name='Bender-Knuth involution')
     def bender_knuth_involution(self, k, rows=None):
+        r"""
+        Return the image of ``self`` under the `k`-th Bender--Knuth
+        involution, assuming ``self`` is a semistandard set-valued tableau.
+        This function was introduced by Ikeda and Shimazaki in this context.
+
+        Let `T` be a tableau and fix `k`. Then a free `k` in `T` means a cell of
+        `T` that contains `k` and whose direct lower
+        neighbor does not contain `k + 1` (in particular,
+        this lower neighbor might not exist). A free `k + 1`
+        in `T` is a cell of `T` that contains `k + 1`
+        and whose direct upper neighbor does not contain `k`
+        (in particular, this neighbor might not exist). Note that a cell
+        that contains both `k` and `k + 1` is both a free `k` and a free `k + 1`. 
+        It is clear that for any row `r` of `T`, the free `k`'s and
+        free `k + 1`'s in `r` together form a contiguous interval of `r`.
+
+        The *`k`-th Bender--Knuth involution at row `i`* changes the entries of
+        the cells in this interval in such a way that if it used to have
+        `a` entries of `k` and `b` entries of `k + 1`, it will now
+        have `b` entries of `k` and `a` entries of `k + 1`. For fixed `k`, the
+        `k`-th Bender--Knuth switches for different `i` commute. The
+        composition of the `k`-th Bender--Knuth switches for all rows is
+        called the *`k`-th Bender--Knuth involution*. This is used to show that
+        the symmetric Grothendieck polynomials defined as generating functions for
+        semistandard set-valued tableaux are in fact symmetric polynomials.
+
+        INPUT:
+
+        - ``k`` -- an integer
+
+        - ``rows`` -- (Default ``None``) When set to ``None``, the method
+          computes the `k`-th Bender--Knuth involution as defined above.
+          When an iterable, this computes the composition of the `k`-th
+          Bender--Knuth switches at row `i` over all `i` in ``rows``. When set
+          to an integer `i`, the method computes the `k`-th Bender--Knuth
+          switch at row `i`. Note the indexing of the rows starts with `1`.
+
+        OUTPUT:
+
+        The image of ``self`` under either the `k`-th Bender--Knuth
+        involution, the `k`-th Bender--Knuth switch at a certain row, or
+        the composition of such switches, as detailed in the INPUT section.
+
+        EXAMPLES::
+
+            sage: t = SemistandardSetValuedTableau([[[1],[1,2,3]],[[4,6]]])
+            sage: t
+            [[(1,), (1, 2, 3)], [(4, 6)]]
+            sage: t.bender_knuth_involution(1)
+            [[(1, 2), (2, 3)], [(4, 6)]]
+            sage: t.bender_knuth_involution(1).bender_knuth_involution(2)
+            [[(1, 2, 3), (3,)], [(4, 6)]]
+
+        The Bender--Knuth involution is an involution::
+
+            sage: t = SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
+            sage: all(t.bender_knuth_involution(k).bender_knuth_involution(k) == t for k in range(1,8))
+            True
+        """
         ell = len(self)    # ell is the number of rows of self.
         # Sanitizing the rows input so that it always becomes a list of
         # nonnegative integers. We also subtract 1 from these integers
         # because the i-th row of a tableau T is T[i - 1].
+        def rem(tup,num):
+            mylist = list(tup)
+            mylist.remove(num)
+            return tuple(mylist)
+
+        def app(tup,num):
+            mylist = list(tup)
+            mylist.append(num)
+            return tuple(mylist)
+
         if rows is None:
             rows = list(range(ell))
         elif rows in ZZ:
@@ -9513,36 +9584,36 @@ class SemistandardSetValuedTableau(Tableau):
                 if sk1 is not None:
                     if a > b:
                         for j in range(sk1-(a-b), sk1):
-                            result_tab[i][j].remove(k)
-                            result_tab[i][j].append(k+1)
+                            result_tab[i][j] = rem(result_tab[i][j],k)
+                            result_tab[i][j] = app(result_tab[i][j],k+1)
                     elif a < b:
                         for j in range(sk1, sk1+b-a):
-                            result_tab[i][j].remove(k+1)
-                            result_tab[i][j].append(k)
+                            result_tab[i][j] = rem(result_tab[i][j],k+1)
+                            result_tab[i][j] = app(result_tab[i][j],k)
                 elif sk is not None:
                     for j in range(sk, sk+a):
-                        result_tab[i][j].remove(k)
-                        result_tab[i][j].append(k+1)
+                        result_tab[i][j] = rem(result_tab[i][j],k)
+                        result_tab[i][j] = app(result_tab[i][j],k+1)
             else:
                 if sk1 is not None:
                     if a > b:
-                        result_tab[i][sk1-(a-b)-1].append(k+1)
-                        for j in range(sk1-(a-b), sk1-1):
-                            result_tab[i][j].remove(k)
-                            result_tab[i][j].append(k+1)
-                        result_tab[i][sk1].remove(k)
+                        result_tab[i][sk1-(a-b)-1] = app(result_tab[i][sk1-(a-b)-1],k+1)
+                        for j in range(sk1-(a-b), sk1):
+                            result_tab[i][j] = rem(result_tab[i][j],k)
+                            result_tab[i][j] = app(result_tab[i][j],k+1)
+                        result_tab[i][sk1] = rem(result_tab[i][sk1],k)
                     elif a < b:
-                        result_tab[i][sk1-1].remove(k+1)
-                        for j in range(sk1, sk1+b-a):
-                            result_tab[i][j].remove(k+1)
-                            result_tab[i][j].append(k)
-                        result_tab[i][sk1+b-a+1].append(k)
+                        result_tab[i][sk1-1] = rem(result_tab[i][sk1-1],k+1)
+                        for j in range(sk1, sk1+b-a-1):
+                            result_tab[i][j] = rem(result_tab[i][j],k+1)
+                            result_tab[i][j] = app(result_tab[i][j],k)
+                        result_tab[i][sk1+b-a-1] = app(result_tab[i][sk1+b-a-1],k)
                 elif sk is not None:
-                    result_tab[i][sk].append(k+1)
-                    for j in range(sk+1, sk+a+1):
-                        result_tab[i][j].remove(k)
-                        result_tab[i][j].append(k+1)
-                    result_tab[i][sk+a+1].remove(k)
+                    result_tab[i][sk] = app(result_tab[i][sk],k+1)
+                    for j in range(sk+1, sk+a):
+                        result_tab[i][j] = rem(result_tab[i][j],k)
+                        result_tab[i][j] = app(result_tab[i][j],k+1)
+                    result_tab[i][sk+a] = rem(result_tab[i][sk+a],k)
         return SemistandardSetValuedTableau(result_tab)
 
     def pp(self):
