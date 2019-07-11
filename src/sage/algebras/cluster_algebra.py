@@ -1295,7 +1295,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._d = kwargs.get('d', (1,)*self._n)
         if len(self._d) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-        self._Z = kwargs.get('Z', ((1,1),)*self._n)
+        self._Z = kwargs.get('Z', tuple((1,)*(self._d[i]+1) for  i in range(self._n)))
+        
         if len(self._Z) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
         for i in range(len(self._Z)):
@@ -1371,8 +1372,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
             A Cluster Algebra with cluster variables x0, x1
              and coefficients y0, y1 over Integer Ring
+            sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
+            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
+            over Integer Ring, with degree vector (2, 1) and exchange polynomial 
+            coefficients ((1, 1, 1), (1, 1))             
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
-            A Cluster Algebra with cluster variables x0, x1 and no coefficients 
+            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
             over Integer Ring, with degree vector (3, 1) and exchange polynomial 
             coefficients ((1, 1, 1, 1), (1, 1))
         """
@@ -1382,10 +1387,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         coeff_prefix = " and" + (" " if len(coeff_names) > 0 else " no ") + "coefficient"
         coeff = coeff_prefix + (" " if len(coeff_names) == 1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names) > 0 else "")
         if not all(x==1 for x in self._d):
+            GCA = "Generalized Cluster Algebra"
             exchange_poly_info = " with degree vector " + str(self._d) + " and exchange polynomial coefficients " + str(self._Z)
         else:
+            GCA = "Cluster Algebra"
             exchange_poly_info = ""
-        return "A Cluster Algebra with cluster variable" + var_names + coeff + "over " + repr(self.scalars()) + exchange_poly_info
+        return "A " + GCA + " with cluster variable" + var_names + coeff + "over " + repr(self.scalars()) + exchange_poly_info
 
     def __eq__(self, other):
         r"""
