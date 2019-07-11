@@ -8,13 +8,13 @@ from sage.combinat.root_system.cartan_type import CartanType
 
 from sage.misc.lazy_attribute import lazy_attribute
 
-class HeckeMonoidFactorizationCrystal(UniqueRepresentation, Parent):
+class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
     r"""
-    The crystal on Hecke monoid factorizations.
+    The crystal on semistandard set-valued tableaux.
 
     INPUT:
 
-    - ``w`` -- an element in a symmetric group
+    - ```` -- an element in a symmetric group
 
     - ``n`` -- the number of factors in the factorization
 
@@ -88,7 +88,34 @@ class HeckeMonoidFactorizationCrystal(UniqueRepresentation, Parent):
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     class Element(ElementWrapper):
-            
+    
+        def __init__(self,parent,tab):
+            """
+            Creates an instance of element t subject to constraints on w and excess.
+            The decreasing factorization t should be equivalent to t and
+            must have the correct excess as specified by its parent.
+
+            sage: H = HeckeMonoid(SymmetricGroup(3))
+            sage: t = H.from_reduced_word([1,2,1])
+            sage: B = HeckeMonoidFactorizationCrystal(t,4,2)
+            sage: h = HeckeFactorization([[],[1],[2,1],[2,1]],2);h
+            ()(1)(2, 1)(2, 1)
+            sage: u = B(h);u
+            ()(1)(2, 1)(2, 1)
+            """
+            excess = parent.excess
+            if isinstance(hf,HeckeFactorization) == False:
+                raise ValueError("A HeckeFactorization is expected")
+            if parent.m != hf.m:
+                raise ValueError("Number of factors do not match")
+            self.m = parent.m
+            self.value = hf.value
+            self.weight = hf.weight
+            self.k = parent.k
+            self.hf = hf
+            if hf.excess != excess:
+                raise ValueError("The HeckeFactorization word must have correct excess")
+            ElementWrapper.__init__(self, parent, self.value)
 
         def e(self, i):
             r"""
@@ -98,7 +125,24 @@ class HeckeMonoidFactorizationCrystal(UniqueRepresentation, Parent):
 
                 sage: 
             """
-
+            if i not in self.index_set():
+                raise ValueError("i must be in the index set")
+            col = _bracket(self,i,right=False)
+            if col == -1:
+                return None
+            tab = [[[entry] for entry in r] for r in self]
+            t = self.conjugate()
+            column = t[col]
+            row = min([ j for j in range(len(column)) if i+1 in column[j] ])
+            # checks that there is a cell to the left and that the cell contains i and i+1
+            if col>=1 and all(x in tab[row][col-1] for x in [i,i+1]):
+                tab[row][col-1].remove(i+1)
+                tab[row][col] = sorted(tab[row][col]+[i])
+            else:
+                tab[row][col].remove(i+1)
+                tab[row][col] = sorted(tab[row][col]+[i])
+            return self.parent()(tab)
+            
         def f(self, i):
             r"""
             Returns the action of `f_i` on ``self``.
@@ -109,4 +153,18 @@ class HeckeMonoidFactorizationCrystal(UniqueRepresentation, Parent):
             """
             if i not in self.index_set():
                 raise ValueError("i must be in the index set")
-            
+            col = _bracket(self,i,right=True)
+            if col == -1:
+                return None
+            tab = [[[entry] for entry in r] for r in self]
+            t = self.conjugate()
+            column = t[col]
+            row = min([ j for j in range(len(column)) if i in column[j] ])
+            # checks that there is a cell to the right and that the cell contains i and i+1
+            if col<len(self[row])-1 and all(x in tab[row][col+1] for x in [i,i+1]):
+                tab[row][col+1].remove(i)
+                tab[row][col] = sorted(tab[row][col]+[i+1])
+            else:
+                tab[row][col].remove(i)
+                tab[row][col] = sorted(tab[row][col]+[i+1])
+            return self.parent()(tab)
