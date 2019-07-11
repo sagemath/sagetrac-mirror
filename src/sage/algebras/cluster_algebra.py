@@ -1295,7 +1295,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._d = kwargs.get('d', (1,)*self._n)
         if len(self._d) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-        self._Z = kwargs.get('Z', ((1,1),)*self._n)
+        self._Z = kwargs.get('Z', tuple((1,)+(100000,)*(self._d[i]-1)+(1,) for  i in range(self._n)))
+        
         if len(self._Z) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
         for i in range(len(self._Z)):
@@ -1371,8 +1372,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
             A Cluster Algebra with cluster variables x0, x1
              and coefficients y0, y1 over Integer Ring
+            sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
+            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
+            over Integer Ring, with degree vector (2, 1) and exchange polynomial 
+            coefficients ((1, 100000, 1), (1, 1))             
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
-            A Cluster Algebra with cluster variables x0, x1 and no coefficients 
+            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
             over Integer Ring, with degree vector (3, 1) and exchange polynomial 
             coefficients ((1, 1, 1, 1), (1, 1))
         """
@@ -1382,10 +1387,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         coeff_prefix = " and" + (" " if len(coeff_names) > 0 else " no ") + "coefficient"
         coeff = coeff_prefix + (" " if len(coeff_names) == 1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names) > 0 else "")
         if not all(x==1 for x in self._d):
+            GCA = "Generalized Cluster Algebra"
             exchange_poly_info = " with degree vector " + str(self._d) + " and exchange polynomial coefficients " + str(self._Z)
         else:
+            GCA = "Cluster Algebra"
             exchange_poly_info = ""
-        return "A Cluster Algebra with cluster variable" + var_names + coeff + "over " + repr(self.scalars()) + exchange_poly_info
+        return "A " + GCA + " with cluster variable" + var_names + coeff + "over " + repr(self.scalars()) + exchange_poly_info
 
     def __eq__(self, other):
         r"""
@@ -2339,9 +2346,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             B0D = matrix(B0) * D
             B0D.mutate(k)
             B0 = matrix(ZZ, B0D * D.inverse())
+
+            # reverse k-th exchange polynomial
+            Z = tuple([Z[i] if i != k else tuple([Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
          
             # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n)]
+            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n)]
          
             for old_g_vect in path_dict:
                 # compute new g-vector
@@ -2363,7 +2373,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 # compute new F-polynomial
                 if old_g_vect in F_poly_dict:
                     h = -min(0, old_g_vect[k] * self._d[k])
-                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1) ) ** old_g_vect[k]
+                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** old_g_vect[k]
                     tmp_F_poly_dict[new_g_vect] = new_F_poly
 
             # update storage
@@ -2373,7 +2383,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             tmp_F_poly_dict[initial_g] = self._U(1)
             F_poly_dict = tmp_F_poly_dict
             path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
-            Z = tuple([Z[i] if i != k else tuple([Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
          
         # create new algebra
         cv_names = self.initial_cluster_variable_names()
