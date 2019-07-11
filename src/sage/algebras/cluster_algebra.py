@@ -2334,9 +2334,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             B0D = matrix(B0) * D
             B0D.mutate(k)
             B0 = matrix(ZZ, B0D * D.inverse())
+
+            # reverse k-th exchange polynomial
+            Z = tuple([Z[i] if i != k else tuple([Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
          
             # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n)]
+            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n)]
          
             for old_g_vect in path_dict:
                 # compute new g-vector
@@ -2358,7 +2361,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 # compute new F-polynomial
                 if old_g_vect in F_poly_dict:
                     h = -min(0, old_g_vect[k] * self._d[k])
-                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1) ) ** old_g_vect[k]
+                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** old_g_vect[k]
                     tmp_F_poly_dict[new_g_vect] = new_F_poly
 
             # update storage
@@ -2368,7 +2371,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             tmp_F_poly_dict[initial_g] = self._U(1)
             F_poly_dict = tmp_F_poly_dict
             path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
-            Z = tuple([Z[i] if i != k else tuple([Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
          
         # create new algebra
         cv_names = self.initial_cluster_variable_names()
