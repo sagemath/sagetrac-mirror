@@ -16,7 +16,10 @@ Factory for Character-Based Art
 #
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
-from six import iteritems, string_types, text_type, binary_type
+from six import iterkeys, string_types, text_type, binary_type
+
+from IPython.lib.pretty import MAX_SEQ_LENGTH, DICT_IS_ORDERED
+from IPython.lib.pretty import _sorted_for_pprint
 
 from sage.structure.sage_object import SageObject
 
@@ -321,8 +324,11 @@ class CharacterArtFactory(SageObject):
             elt._breakpoints.remove(k._l)
             elt._breakpoints.remove(k._l + 1)
             return elt
+        it = iterkeys(d)
+        if not DICT_IS_ORDERED and len(d) < MAX_SEQ_LENGTH:
+            it = _sorted_for_pprint(it)
         repr_elems = self.concatenate(
-                (concat_no_breakpoint(k, v) for k, v in iteritems(d)),
+                (concat_no_breakpoint(k, d[k]) for k in it),
                 comma)
         return self.build_container(
                 repr_elems, self.left_curly_brace, self.right_curly_brace,
