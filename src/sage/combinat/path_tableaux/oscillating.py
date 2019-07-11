@@ -330,11 +330,13 @@ class OscillatingTableau(ClonableArray,PathTableau):
             sage: T = OscillatingTableau([[],[1],[1,1],[1],[]])
             sage: T.to_word()
             [1, 2, -2, -1]
+            sage: OscillatingTableau([[2,1],[2,2]]).to_word()
+            [2]
 
         """
         n = len(self)
         result = [0]*(n-1)
-        l = map(len,self)
+        l = map(len, self)
 
         for i in range(n-1):
             if l[i] > l[i+1]:
@@ -342,9 +344,11 @@ class OscillatingTableau(ClonableArray,PathTableau):
             elif l[i] < l[i+1]:
                 result[i] = l[i+1]
             else:
-                for u, v in zip(self[i],self[i+1]):
-                    if u != v:
-                        result[i] = v-u
+                for j in range(l[i]):
+                    d = self[i+1][j]-self[i][j]
+                    if d:
+                        result[i] = (j+1)*d
+                        break
 
         return result
 
