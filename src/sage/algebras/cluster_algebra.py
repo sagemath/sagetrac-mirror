@@ -2289,10 +2289,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             True
             sage: len(A6.g_vectors_so_far()) == len(A6.F_polynomials_so_far())
             True
-            
-        Check that the computed F polynomials are actually polynomials rather than rational functions
-        
             sage: all(denominator(A6.F_polynomials_so_far()[x])==1 for x in range(len(A6.F_polynomials_so_far())))
+            True
+            sage: A1 = ClusterAlgebra(matrix([[0,1],[-1,0]]),d=(4,1),Z=((1,2,3,4,1),(1,1)))
+            sage: A2 = A1.mutate_initial([0,1,0,1,0,1])
+            sage: F_dict = A2._F_poly_dict
+            sage: A2.clear_computed_data()
+            sage: S = A2.initial_seed()
+            sage: S.mutate([1,0,1,0,1,0])
+            sage: A2._F_poly_dict == F_dict
             True
         """
         n = self.rank()
