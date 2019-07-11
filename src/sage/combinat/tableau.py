@@ -9498,17 +9498,23 @@ class SemistandardSetValuedTableaux(Tableaux):
             Tableaux of size 3
         """
         max_entry = kwargs.get('max_entry')
+        
         if args:
             p = args[0]
 
             # if n is size
             if isinstance(p,(int,Integer)) and p>=0:
-                return SemistandardSetValuedTableaux_size(Integer(p))
+                if max_entry is None or max_entry==PlusInfinity():
+                    return SemistandardSetValuedTableaux_size(Integer(p)) 
+                return SemistandardSetValuedTableaux_size(Integer(p), max_entry)
 
             # if n is shape
             from sage.combinat.partition import _Partitions
             if p in _Partitions:
-                return SemistandardSetValuedTableaux_shape(_Partitions(p), max_entry)
+                if max_entry is None or max_entry==PlusInfinity():
+                    return SemistandardSetValuedTableaux_shape_inf(_Partitions(p))
+                else:
+                    return SemistandardSetValuedTableaux_shape(_Partitions(p), max_entry)
             else:
                 raise ValueError("the argument must be a non-negative integer or a partition")            
         #else:
@@ -9545,7 +9551,7 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: SemistandardSetValuedTableaux(max_entry=3)
             Semistandard set-valued tableaux with maximum entry 3
         """
-        if self.max_entry is not None:
+        if self.max_entry is not None and self.max_entry<PlusInfinity():
             return "Semistandard set-valued tableaux with maximum entry {}".format(self.max_entry)
         return "Semistandard set-valued tableaux"
 
@@ -9577,15 +9583,58 @@ class SemistandardSetValuedTableaux(Tableaux):
                 if not all(max(row[i])<min(next[i]) for i in range(len(next))):
                     return False 
             # if self has max_entry, checks if that all elements in each cell are within max_entry
-            return self.max_entry is None or max(max(max(cell) for cell in row) for row in t)<=self.max_entry
+            return self.max_entry==PlusInfinity() or max(max(max(cell) for cell in row) for row in t)<=self.max_entry
 
 class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
     """
     Semistandard set-valued tableaux of fixed size `n`.
     """
-    def __init__(self, n):
+    def __init__(self, n, max_entry):
         r"""
         Initializes the class of all semistandard set-valued tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardSetValuedTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: TestSuite( SemistandardSetValuedTableaux(0,max_entry=4) ).run()
+            sage: TestSuite( SemistandardSetValuedTableaux(3,max_entry=4) ).run()
+        """
+        SemistandardSetValuedTableaux.__init__(self,max_entry=max_entry)
+        from sage.combinat.partition import Partitions_n
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(Partitions_n(n), SemistandardSetValuedTableaux_shape),
+                                             facade=True, keepkey=False)
+        self._size = Integer(n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: SemistandardSetValuedTableaux(3,max_entry=4)
+            Semistandard set-valued tableaux of size 3 and max entry 4
+        """
+        return "Semistandard set-valued tableaux of size {} and max entry {}".format(self._size, self.max_entry)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+        """
+        return SemistandardSetValuedTableaux.__contains__(self, x) and \
+        sum(map(len, x)) == self._size and \
+        max([max([max(cell) for cell in row]) for row in x]) <= self.max_entry
+
+class SemistandardSetValuedTableaux_size_inf(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
+    """
+    Semistandard set-valued tableaux of fixed size `n` and no maximum entry.
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of all semistandard set-valued tableaux of size ``n`` and no maximum entry.
 
         .. WARNING::
 
@@ -9597,10 +9646,10 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
             sage: TestSuite( SemistandardSetValuedTableaux(0) ).run()
             sage: TestSuite( SemistandardSetValuedTableaux(3) ).run()
         """
-        SemistandardSetValuedTableaux.__init__(self)
+        SemistandardSetValuedTableaux.__init__(self,max_entry=PlusInfinity())
         from sage.combinat.partition import Partitions_n
         DisjointUnionEnumeratedSets.__init__(self,
-                                             Family(Partitions_n(n), SemistandardSetValuedTableaux_shape),
+                                             Family(Partitions_n(n), SemistandardSetValuedTableaux_shape_inf),
                                              facade=True, keepkey=False)
         self._size = Integer(n)
 
@@ -9611,12 +9660,21 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
             sage: SemistandardSetValuedTableaux(3)
             Semistandard set-valued tableaux of size 3
         """
-        return "Semistandard set-valued tableaux of size {} and max entry {}".format(self._size, self.max_entry)
+        return "Semistandard set-valued tableaux of size {}".format(self._size)
 
     def __contains__(self, x):
         """
         TESTS::
 
+            sage: T = SemistandardSetValuedTableaux(3)
+            sage: [[[1,2]],[[2]],[[3]]] in T
+            False
+            sage: [[[1,2]],[[3]],[4[]]] in T
+            True
+            sage: [[[1,2],[2]],[[3]],[[4]]] in T
+            False
+            sage: [[[1,2],[2]],[[3]]] in T
+            False
         """
         return SemistandardSetValuedTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
 
@@ -9654,16 +9712,16 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             sage: [[[1,2],[2,3]],[[3,4],[4,5,6]],[[6]]] in T
             False
         """
-        return SemistandardSetValuedTableaux.__contains__(self, x) \ 
-               and [len(row) for row in x] == self.shape \ 
-               and max([max([max(cell) for cell in row]) for row in x]) <= self.max_entry
+        return SemistandardSetValuedTableaux.__contains__(self, x) and \
+               [len(row) for row in x] == self.shape and \
+               max([max([max(cell) for cell in row]) for row in x]) <= self.max_entry
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: SemistandardSetValuedTableaux([3,1])
-            Semistandard set-valued tableaux of shape [3, 1] 
+            sage: SemistandardSetValuedTableaux([3,1],max_entry=2)
+            Semistandard set-valued tableaux of shape [3, 1] and max entry 2 
         """
         return "Semistandard set-valued tableaux of shape {} and max entry {}".format(self.shape, self.max_entry)
 
@@ -9774,7 +9832,7 @@ class SemistandardSetValuedTableaux_shape_inf(SemistandardSetValuedTableaux):
 
             sage: TestSuite( SemistandardSetValuedTableaux([2,1,1]) ).run()
         """
-        super(SemistandardSetValuedTableaux_shape, self).__init__(max_entry='oo', category=InfiniteEnumeratedSets())
+        super(SemistandardSetValuedTableaux_shape_inf, self).__init__(max_entry=PlusInfinity(),category=InfiniteEnumeratedSets())
         self.shape = p
 
     def __contains__(self, x):
@@ -9785,6 +9843,8 @@ class SemistandardSetValuedTableaux_shape_inf(SemistandardSetValuedTableaux):
             sage: [[[1,2],[2,3]],[[2]],[[3]]] in T
             False
             sage: [[[1,2],[2,3]],[[3,4]],[[6]]] in T
+            True
+            sage: [[[1],[2,3,4]],[[3,4]],[[100]]] in T
             True
             sage: [[[1,2],[1,3]],[[3,4]],[[6]]] in T
             False
@@ -9797,7 +9857,7 @@ class SemistandardSetValuedTableaux_shape_inf(SemistandardSetValuedTableaux):
         """
         TESTS::
 
-            sage: SemistandardSetValuedTableaux([3,1],max_entry=4)
+            sage: SemistandardSetValuedTableaux([3,1])
             Semistandard set-valued tableaux of shape [3, 1] 
         """
         return "Semistandard set-valued tableaux of shape {}".format(self.shape)
