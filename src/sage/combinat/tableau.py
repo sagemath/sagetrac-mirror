@@ -9435,6 +9435,33 @@ class SemistandardSetValuedTableau(Tableau):
         tot = sum([len(cells) for cells in self.entries()])
         return tot - self.size()
 
+    def weight(self):
+        r"""
+        Return the weight of the set-valued tableau ``self``. Trailing zeroes are
+        omitted when returning the weight.
+
+        The weight of a tableau `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
+        where `a_k` is the number of entries of `T` equal to `k`. This
+        sequence contains only finitely many nonzero entries.
+
+        EXAMPLES::
+
+            sage: SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]]).weight()
+            [2, 2, 1, 1, 0, 1, 1, 1]
+
+            sage: SemistandardSetValuedTableau([]).weight()
+            []
+        """
+        if len(self) == 0:
+            return []
+        vec = sum([sum(row,[]) for row in self],[])
+        m = max(vec)
+        wt = [0] * m
+        for i in vec:
+            if i > 0:
+                wt[i - 1] += 1
+        return wt
+
     def pp(self):
         r"""
         EXAMPLES::
