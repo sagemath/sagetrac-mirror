@@ -1377,7 +1377,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
             A Generalized Cluster Algebra with cluster variables x0, x1
              and no coefficients over Integer Ring with degree vector (2, 1) 
-             and exchange polynomial coefficients ((1, 100000, 1), (1, 1))             
+             and exchange polynomial coefficients ((1, z0_1, 1), (1, 1))             
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
             A Generalized Cluster Algebra with cluster variables x0, x1
              and no coefficients over Integer Ring with degree vector (3, 1) 
@@ -2214,6 +2214,42 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         seeds = self.seeds(depth=depth, mutating_F=False)
         cones = [Cone(S.g_vectors()) for S in seeds]
         return Fan(cones)
+
+    def mutate_current(self, direction, **kwargs):
+        r"""
+        Mutates the current seed of ``self``, keeping the cluster algebra the same.
+
+        INPUT:
+
+        - ``direction`` -- in which direction(s) to mutate, it can be:
+
+          * an integer in ``range(self.rank())`` to mutate in one direction only
+          * an iterable of such integers to mutate along a sequence
+          * a string "sinks" or "sources" to mutate at all sinks or sources simultaneously
+
+        - ``inplace`` -- bool (default ``True``); whether to mutate in place or to return a new object
+
+        - ``mutating_F`` -- bool (default ``True``); whether to compute
+          F-polynomials while mutating
+
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 4])
+            sage: A.clear_computed_data()
+            sage: A.mutate_current([0,1,0,1])
+            sage: A.g_vectors_so_far()
+            [(-1, 0, 0, 0),
+            (1, 0, 0, 0),
+            (0, 0, 0, 1),
+            (0, -1, 0, 0),
+            (0, 0, 1, 0),
+            (0, 1, 0, 0),
+            (-1, 1, 0, 0)]
+            sage: A.cluster_variables_so_far()
+            [(x0*x2 + x1 + 1)/(x0*x1), x0, x3, (x0*x2 + 1)/x1, x2, x1, (x1 + 1)/x0]
+        """
+        (self._seed).mutate(direction)
 
     def mutate_initial(self, direction):
         r"""
