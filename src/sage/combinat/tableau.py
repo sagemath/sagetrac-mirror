@@ -9436,6 +9436,115 @@ class SemistandardSetValuedTableau(Tableau):
         tot = sum([len(cells) for cells in self.entries()])
         return tot - self.size()
 
+    def weight(self):
+        r"""
+        Return the weight of the set-valued tableau ``self``. Trailing zeroes are
+        omitted when returning the weight.
+
+        The weight of a tableau `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
+        where `a_k` is the number of entries of `T` equal to `k`. This
+        sequence contains only finitely many nonzero entries.
+
+        EXAMPLES::
+
+            sage: SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]]).weight()
+            [2, 2, 1, 1, 0, 1, 1, 1]
+
+            sage: SemistandardSetValuedTableau([]).weight()
+            []
+        """
+        if len(self) == 0:
+            return []
+        vec = sum([sum(row,[]) for row in self],[])
+        m = max(vec)
+        wt = [0] * m
+        for i in vec:
+            if i > 0:
+                wt[i - 1] += 1
+        return wt
+    def bender_knuth_involution(self, k, rows=None):
+        ell = len(self)    # ell is the number of rows of self.
+        # Sanitizing the rows input so that it always becomes a list of
+        # nonnegative integers. We also subtract 1 from these integers
+        # because the i-th row of a tableau T is T[i - 1].
+        if rows is None:
+            rows = list(range(ell))
+        elif rows in ZZ:
+            rows = [rows - 1]
+        else:
+            rows = [i - 1 for i in rows]
+        # Now, rows should be iterable.
+
+        # result_tab is going to be the result tableau (as a list of lists);
+        # we will build it up step by step, starting with a deep copy of self.
+        result_tab = self.to_list()
+        for i in rows:
+            if i >= ell:
+                continue
+            # Setup the previous and next rows
+            if i == 0:
+                prev_row = [[None]] * len(result_tab[i])
+            else:
+                prev_row = result_tab[i-1]
+            if i == ell - 1:
+                next_row = [[None]] * len(result_tab[i])
+            else:
+                next_row = result_tab[i+1] + [[None]] * (len(result_tab[i]) - len(result_tab[i+1]))
+            a = 0 #counter for free k
+            b = 0 #counter for free k+1
+            c=0 #counter for free box with both k and k+1
+            sk = None # The column number of the first free k
+            sk1 = None # The column number of the first free k+1
+            skboth = None #The column number of the (unique) free box with both k and k+1
+            for j, val in enumerate(result_tab[i]):
+                if k in val and k+1 not in next_row[j]:
+                    if k+1 in val:
+                        c += 1
+                        skboth = j
+                    else:
+                        if sk is None:
+                            sk = j
+                        a += 1
+                elif k+1 in val and k not in prev_row[j]:
+                    if sk1 is None:
+                        sk1 = j
+                    b += 1
+            if skboth is None:
+                if sk1 is not None:
+                    if a > b:
+                        for j in range(sk1-(a-b), sk1):
+                            result_tab[i][j].remove(k)
+                            result_tab[i][j].append(k+1)
+                    elif a < b:
+                        for j in range(sk1, sk1+b-a):
+                            result_tab[i][j].remove(k+1)
+                            result_tab[i][j].append(k)
+                elif sk is not None:
+                    for j in range(sk, sk+a):
+                        result_tab[i][j].remove(k)
+                        result_tab[i][j].append(k+1)
+            else:
+                if sk1 is not None:
+                    if a > b:
+                        result_tab[i][sk1-(a-b)-1].append(k+1)
+                        for j in range(sk1-(a-b), sk1-1):
+                            result_tab[i][j].remove(k)
+                            result_tab[i][j].append(k+1)
+                        result_tab[i][sk1].remove(k)
+                    elif a < b:
+                        result_tab[i][sk1-1].remove(k+1)
+                        for j in range(sk1, sk1+b-a):
+                            result_tab[i][j].remove(k+1)
+                            result_tab[i][j].append(k)
+                        result_tab[i][sk1+b-a+1].append(k)
+                elif sk is not None:
+                    result_tab[i][sk].append(k+1)
+                    for j in range(sk+1, sk+a+1):
+                        result_tab[i][j].remove(k)
+                        result_tab[i][j].append(k+1)
+                    result_tab[i][sk+a+1].remove(k)
+        return SemistandardSetValuedTableau(result_tab)
+
     def pp(self):
         r"""
         EXAMPLES::
