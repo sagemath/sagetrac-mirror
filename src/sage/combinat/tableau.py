@@ -9422,12 +9422,13 @@ class SemistandardSetValuedTableau(Tableau):
 
     def excess(self):
         r"""
-        Returns the excess statistic for self.
+        Return the excess statistic for ``self``.
 
         The excess of a semistandard set-valued tableaux ``T`` is the total number 
         of integers in ``T`` minus the size of ``T``.
 
         EXAMPLES::
+
             sage: T = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
             sage: T.excess()
             4
@@ -9438,6 +9439,7 @@ class SemistandardSetValuedTableau(Tableau):
     def pp(self):
         r"""
         EXAMPLES::
+
             sage: T = [ [[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[7,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[10,11,13],[16,17,18]] ]
             sage: SemistandardSetValuedTableau(T).pp()
             [ 1,2,3,4,6 ][  6  ][  6,7   ][    8,9    ][ 9,11,12 ][ 12 ]
@@ -9601,7 +9603,7 @@ class SemistandardSetValuedTableaux(Tableaux):
 
     def __contains__(self,t):
         r"""
-        Determines if t is an element of self.
+        Determine if t is an element of self.
 
         TESTS::
 
@@ -9653,7 +9655,7 @@ class SemistandardSetValuedTableaux(Tableaux):
 
 class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
     """
-    Semistandard set-valued tableaux of fixed size `n`.
+    Semistandard set-valued tableaux of fixed size ``n``.
     """
     def __init__(self, n, max_entry=None):
         r"""
@@ -9777,7 +9779,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     """
     def __init__(self, p, max_entry=None):
         r"""
-        Initializes the class of all semistandard set-valued tableaux of a given shape.
+        Initialize the class of all semistandard set-valued tableaux of given shape ``p``.
 
         .. WARNING::
 
@@ -9823,7 +9825,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     def __iter__(self):
         r"""
         An iterator for the semistandard set-valued tableaux associated to the
-        shape `p` of ``self``.
+        shape ``p`` of ``self``.
 
         .. WARNING::
 
@@ -9856,8 +9858,8 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
         def jumps(row):
             """
-            Returns list of indices i where row[i] < row[i+1] and also
-            the last index of row
+            Return list of indices i where row[i] < row[i+1] and also
+            the last index of row.
 
             INPUT:
             
@@ -9867,7 +9869,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
         
         def addable(cell,right,below,max_entry):
             """
-            Returns a list of numbers that can added to the cell ``cell`` of a
+            Return a list of numbers that can added to the cell ``cell`` of a
             semistandard set-valued tableau.
 
             INPUT:
@@ -9879,8 +9881,8 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
             """
             cell_val = max(cell)+1
-            right_val = min(right)+1 if right != None else max_entry+1
-            below_val = min(below) if below != None else max_entry+1
+            right_val = min(right)+1 if right is not None else max_entry+1
+            below_val = min(below) if below is not None else max_entry+1
 
             if right_val < below_val:
                 return list(range(cell_val, right_val))
