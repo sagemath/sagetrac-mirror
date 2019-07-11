@@ -9439,6 +9439,31 @@ class SemistandardSetValuedTableau(Tableau):
         tot = sum([len(cells) for cells in self.entries()])
         return tot - self.size()
 
+    def pp(self):
+        r"""
+        EXAMPLES::
+            sage: T = [ [[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[7,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[10,11,13],[16,17,18]] ]
+            sage: T.pp()
+            [ 1,2,3,4,6 ][  6  ][  6,7   ][    8,9    ][ 9,11,12 ][ 12 ]
+            [     7     ][  7  ][ 7,8,9  ][ 9,10,12,14 ][   14    ]
+            [    8,9    ][ 9,10 ][ 7,8,10 ][ 14,15,16  ]
+
+        """
+        max_len = max(len(row) for row in self)
+        str_len = [[sum([len(str(elt)) for elt in cell])+len(cell)-1 for cell in row] for row in self]
+        col_max = [max(row[j] for row in str_len if j<len(row)) for j in range(max_len)]
+        S = ""
+        for row in self:
+            for j in range(len(row)):
+                s = ""
+                for k in range(len(row[j])):
+                    s += str(row[j][k])
+                    if k < len(row[j])-1:
+                        s+=","
+                S+="[ "+'{st:{c}^{n}}'.format(st=s,c=" ",n=col_max[j])+" ]"
+            S += "\n"
+        print(S)
+
 class SemistandardSetValuedTableaux(Tableaux):
     r"""
     A factory for various classes of semistandard set-valued tableaux.
