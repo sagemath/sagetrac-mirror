@@ -9382,7 +9382,7 @@ class SemistandardSetValuedTableau(Tableau):
         TESTS::
 
             sage: SemistandardSetValuedTableau([[[1,2],[2,3]],[[4,6]]])
-            [[[1, 2], [2, 3]], [[4, 6]]]
+            [[(1, 2), (2, 3)], [(4, 6)]]
 
         """
 
@@ -9392,7 +9392,7 @@ class SemistandardSetValuedTableau(Tableau):
         t_list = list(t)
         for i in range(len(t)):
             for j in range(len(t[i])):
-                t_list[i][j] =  sorted(t[i][j])
+                t_list[i][j] =  tuple(sorted(t[i][j]))
 
         SSVT = SemistandardSetValuedTableaux(Tableau(t_list).shape())
         return SSVT.element_class(SSVT, t_list)
@@ -9422,12 +9422,13 @@ class SemistandardSetValuedTableau(Tableau):
 
     def excess(self):
         r"""
-        Returns the excess statistic for self.
+        Return the excess statistic for ``self``.
 
         The excess of a semistandard set-valued tableaux ``T`` is the total number 
         of integers in ``T`` minus the size of ``T``.
 
         EXAMPLES::
+
             sage: T = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
             sage: T.excess()
             4
@@ -9435,11 +9436,121 @@ class SemistandardSetValuedTableau(Tableau):
         tot = sum([len(cells) for cells in self.entries()])
         return tot - self.size()
 
+    def weight(self):
+        r"""
+        Return the weight of the set-valued tableau ``self``. Trailing zeroes are
+        omitted when returning the weight.
+
+        The weight of a tableau `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
+        where `a_k` is the number of entries of `T` equal to `k`. This
+        sequence contains only finitely many nonzero entries.
+
+        EXAMPLES::
+
+            sage: SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]]).weight()
+            [2, 2, 1, 1, 0, 1, 1, 1]
+
+            sage: SemistandardSetValuedTableau([]).weight()
+            []
+        """
+        if len(self) == 0:
+            return []
+        vec = sum([sum(row,[]) for row in self],[])
+        m = max(vec)
+        wt = [0] * m
+        for i in vec:
+            if i > 0:
+                wt[i - 1] += 1
+        return wt
+    def bender_knuth_involution(self, k, rows=None):
+        ell = len(self)    # ell is the number of rows of self.
+        # Sanitizing the rows input so that it always becomes a list of
+        # nonnegative integers. We also subtract 1 from these integers
+        # because the i-th row of a tableau T is T[i - 1].
+        if rows is None:
+            rows = list(range(ell))
+        elif rows in ZZ:
+            rows = [rows - 1]
+        else:
+            rows = [i - 1 for i in rows]
+        # Now, rows should be iterable.
+
+        # result_tab is going to be the result tableau (as a list of lists);
+        # we will build it up step by step, starting with a deep copy of self.
+        result_tab = self.to_list()
+        for i in rows:
+            if i >= ell:
+                continue
+            # Setup the previous and next rows
+            if i == 0:
+                prev_row = [[None]] * len(result_tab[i])
+            else:
+                prev_row = result_tab[i-1]
+            if i == ell - 1:
+                next_row = [[None]] * len(result_tab[i])
+            else:
+                next_row = result_tab[i+1] + [[None]] * (len(result_tab[i]) - len(result_tab[i+1]))
+            a = 0 #counter for free k
+            b = 0 #counter for free k+1
+            c=0 #counter for free box with both k and k+1
+            sk = None # The column number of the first free k
+            sk1 = None # The column number of the first free k+1
+            skboth = None #The column number of the (unique) free box with both k and k+1
+            for j, val in enumerate(result_tab[i]):
+                if k in val and k+1 not in next_row[j]:
+                    if k+1 in val:
+                        c += 1
+                        skboth = j
+                    else:
+                        if sk is None:
+                            sk = j
+                        a += 1
+                elif k+1 in val and k not in prev_row[j]:
+                    if sk1 is None:
+                        sk1 = j
+                    b += 1
+            if skboth is None:
+                if sk1 is not None:
+                    if a > b:
+                        for j in range(sk1-(a-b), sk1):
+                            result_tab[i][j].remove(k)
+                            result_tab[i][j].append(k+1)
+                    elif a < b:
+                        for j in range(sk1, sk1+b-a):
+                            result_tab[i][j].remove(k+1)
+                            result_tab[i][j].append(k)
+                elif sk is not None:
+                    for j in range(sk, sk+a):
+                        result_tab[i][j].remove(k)
+                        result_tab[i][j].append(k+1)
+            else:
+                if sk1 is not None:
+                    if a > b:
+                        result_tab[i][sk1-(a-b)-1].append(k+1)
+                        for j in range(sk1-(a-b), sk1-1):
+                            result_tab[i][j].remove(k)
+                            result_tab[i][j].append(k+1)
+                        result_tab[i][sk1].remove(k)
+                    elif a < b:
+                        result_tab[i][sk1-1].remove(k+1)
+                        for j in range(sk1, sk1+b-a):
+                            result_tab[i][j].remove(k+1)
+                            result_tab[i][j].append(k)
+                        result_tab[i][sk1+b-a+1].append(k)
+                elif sk is not None:
+                    result_tab[i][sk].append(k+1)
+                    for j in range(sk+1, sk+a+1):
+                        result_tab[i][j].remove(k)
+                        result_tab[i][j].append(k+1)
+                    result_tab[i][sk+a+1].remove(k)
+        return SemistandardSetValuedTableau(result_tab)
+
     def pp(self):
         r"""
         EXAMPLES::
+
             sage: T = [ [[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[7,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[10,11,13],[16,17,18]] ]
-            sage: T.pp()
+            sage: SemistandardSetValuedTableau(T).pp()
             [ 1,2,3,4,6 ][  6  ][  6,7   ][    8,9    ][ 9,11,12 ][ 12 ]
             [     7     ][  7  ][ 7,8,9  ][ 9,10,12,14 ][   14    ]
             [    8,9    ][ 9,10 ][ 7,8,10 ][ 14,15,16  ]
@@ -9601,7 +9712,7 @@ class SemistandardSetValuedTableaux(Tableaux):
 
     def __contains__(self,t):
         r"""
-        Determines if t is an element of self.
+        Determine if t is an element of self.
 
         TESTS::
 
@@ -9653,7 +9764,7 @@ class SemistandardSetValuedTableaux(Tableaux):
 
 class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
     """
-    Semistandard set-valued tableaux of fixed size `n`.
+    Semistandard set-valued tableaux of fixed size ``n``.
     """
     def __init__(self, n, max_entry=None):
         r"""
@@ -9777,7 +9888,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     """
     def __init__(self, p, max_entry=None):
         r"""
-        Initializes the class of all semistandard set-valued tableaux of a given shape.
+        Initialize the class of all semistandard set-valued tableaux of given shape ``p``.
 
         .. WARNING::
 
@@ -9823,7 +9934,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     def __iter__(self):
         r"""
         An iterator for the semistandard set-valued tableaux associated to the
-        shape `p` of ``self``.
+        shape ``p`` of ``self``.
 
         .. WARNING::
 
@@ -9856,8 +9967,8 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
         def jumps(row):
             """
-            Returns list of indices i where row[i] < row[i+1] and also
-            the last index of row
+            Return list of indices i where row[i] < row[i+1] and also
+            the last index of row.
 
             INPUT:
             
@@ -9867,7 +9978,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
         
         def addable(cell,right,below,max_entry):
             """
-            Returns a list of numbers that can added to the cell ``cell`` of a
+            Return a list of numbers that can added to the cell ``cell`` of a
             semistandard set-valued tableau.
 
             INPUT:
@@ -9879,8 +9990,8 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
             """
             cell_val = max(cell)+1
-            right_val = min(right)+1 if right != None else max_entry+1
-            below_val = min(below) if below != None else max_entry+1
+            right_val = min(right)+1 if right is not None else max_entry+1
+            below_val = min(below) if below is not None else max_entry+1
 
             if right_val < below_val:
                 return list(range(cell_val, right_val))
