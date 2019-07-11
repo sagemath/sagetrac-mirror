@@ -1243,12 +1243,12 @@ class SkewTableau(ClonableList):
         """
         if check and not self.is_semistandard():
             raise ValueError("the skew tableau must be semistandard")
-        l = len(self)    # l is the number of rows of self.
+        ell = len(self)    # ell is the number of rows of self.
         # Sanitizing the rows input so that it always becomes a list of
         # nonnegative integers. We also subtract 1 from these integers
         # because the i-th row of a tableau T is T[i - 1].
         if rows is None:
-            rows = list(range(l))
+            rows = list(range(ell))
         elif rows in ZZ:
             rows = [rows - 1]
         else:
@@ -1259,14 +1259,14 @@ class SkewTableau(ClonableList):
         # we will build it up step by step, starting with a deep copy of self.
         result_tab = self.to_list()
         for i in rows:
-            if i >= l:
+            if i >= ell:
                 continue
             # Setup the previous and next rows
             if i == 0:
                 prev_row = [None] * len(result_tab[i])
             else:
                 prev_row = result_tab[i-1]
-            if i == l - 1:
+            if i == ell - 1:
                 next_row = [None] * len(result_tab[i])
             else:
                 next_row = result_tab[i+1] + [None] * (len(result_tab[i]) - len(result_tab[i+1]))
