@@ -1120,17 +1120,7 @@ class ClusterAlgebraSeed(SageObject):
             for i in range(n):
                 if to_mutate._Z[i][0] != 1 or to_mutate._Z[i][to_mutate._d[i]] != 1:
                     raise NotImplementedError('Mutations are only implemented for normalized exchange polynomials.')
-            new_Z = []
-            for i in range(n):
-                if i != k:
-                    new_Zi = to_mutate._Z[i]
-                else:
-                    new_Zi = []
-                    for j in range(to_mutate._d[k]+1):
-                        new_Zi.append(to_mutate._Z[k][to_mutate._d[k] - j])
-                    new_Zi = tuple(new_Zi)
-                new_Z.append(new_Zi)
-            to_mutate._Z = tuple(new_Z)
+            to_mutate._Z = tuple([to_mutate._Z[i] if i != k else tuple([to_mutate._Z[k][self._d[k] - j] for j in range(to_mutate._d[k] + 1)]) for i in range(n)])
 
         # return if we need to
         if not inplace:
@@ -1175,12 +1165,12 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j) ** self._B[j, k]
             elif self._B[j, k] < 0:
                 neg *= self.F_polynomial(j) ** (-self._B[j, k])
-        return sum( self._Z[k][i] * pos**(self._d[k] - i) * neg**i for i in range(self._d[k]+1) ) / alg.F_polynomial(old_g_vector)
+        return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) / alg.F_polynomial(old_g_vector)
+
 
 ##############################################################################
 # Cluster algebras
 ##############################################################################
-
 
 class ClusterAlgebra(Parent, UniqueRepresentation):
     r"""
@@ -2271,69 +2261,73 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         B0 = copy(self._B0)
 
         # go
-        for k in seq:
-            if k not in range(n):
-                raise ValueError('Cannot mutate in direction ' + str(k))
+        try:
+            k = seq.next()
+        except StopIteration:
+            return self
 
-            # clear storage
-            tmp_path_dict = {}
-            tmp_F_poly_dict = {}
+        if k not in range(n):
+            raise ValueError('Cannot mutate in direction ' + str(k))
 
-            # mutate B-matrix
-            D = diagonal_matrix(self._d)
-            B0D = matrix(B_0)*D
-            B0D.mutate(k)
-            B0 = matrix(ZZ,B0D*D.inverse())
+        # clear storage
+        new_path_dict = {}
+        new_F_poly_dict = {}
 
-            # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( self._Z[k, i] * Ugen[k] ** i for i in range(self._d[k]+1)) ** (-self._d[k] * B0[k, j]) for j in range(n)]
+        # mutate B-matrix
+        D = diagonal_matrix(self._d)
+        B0D = matrix(B0)*D
+        B0D.mutate(k)
+        B0 = matrix(ZZ,B0D*D.inverse())
 
-            for old_g_vect in path_dict:
-                # compute new g-vector
-                J = identity_matrix(n)
-                eps = sign(old_g_vect[k])
-                for j in range(n):
-                    # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
-                    J[j, k] += max(0, -eps * B0[j, k] * self._d[k])
-                J[k, k] = -1
-                new_g_vect = tuple(J * vector(old_g_vect))
+        # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
+        F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( self._Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1)) ** (-B0[k, j]) for j in range(n)]
 
-                # compute new path
-                new_path = path_dict[old_g_vect]
-                new_path = ([k] + new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
-                tmp_path_dict[new_g_vect] = new_path
+        for old_g_vect in path_dict:
+            # compute new g-vector
+            J = identity_matrix(n)
+            eps = sign(old_g_vect[k])
+            for j in range(n):
+                # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
+                J[j, k] += max(0, -eps * B0[j, k] * self._d[k])
+            J[k, k] = -1
+            new_g_vect = tuple(J * vector(old_g_vect))
 
-                # compute new F-polynomial
-                if old_g_vect in F_poly_dict:
-                    h = -min(0, old_g_vect[k])
-                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( self._Z[k, i] * Ugen[k] ** i for i in range(self._d[k]+1)) ** old_g_vect[k]
-                    tmp_F_poly_dict[new_g_vect] = new_F_poly
+            # compute new path
+            new_path = path_dict[old_g_vect]
+            new_path = ([k] + new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
+            if sum(i for i in new_g_vect) == 1 and sum(i**2 for i in new_g_vect) == 1:
+                new_path = []
+            new_path_dict[new_g_vect] = new_path
 
-            # update storage
-            initial_g = (0,)*k+(1,)+(0,)*(n-k-1)
-            tmp_path_dict[initial_g] = []
-            path_dict = tmp_path_dict
-            tmp_F_poly_dict[initial_g] = self._U(1)
-            F_poly_dict = tmp_F_poly_dict
-            path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
+            # compute new F-polynomial
+            if old_g_vect in F_poly_dict:
+                h = -min(0, old_g_vect[k] * self._d[k])
+                new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( self._Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1)) ** old_g_vect[k]
+                new_F_poly_dict[new_g_vect] = new_F_poly
+
+        # update storage
+        initial_g = (0,)*k+(1,)+(0,)*(n-k-1)
+        new_path_dict[initial_g] = []
+        new_F_poly_dict[initial_g] = self._U(1)
+        path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
 
         # create new algebra
         cv_names = self.initial_cluster_variable_names()
         coeff_names = self.coefficient_names()
         scalars = self.scalars()
-        A = ClusterAlgebra(B0, cluster_variable_names=cv_names,
-                           coefficient_names=coeff_names, scalars=scalars)
+        new_Z = tuple([self._Z[i] if i != k else tuple([self._Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
+        A = ClusterAlgebra(B0, d=self._d, Z=new_Z, cluster_variable_names=cv_names, coefficient_names=coeff_names, scalars=scalars)
 
         # store computed data
-        A._F_poly_dict.update(F_poly_dict)
-        A._path_dict.update(path_dict)
+        A._F_poly_dict.update(new_F_poly_dict)
+        A._path_dict.update(new_path_dict)
 
         # reset self.current_seed() to the previous location
         S = A.initial_seed()
         S.mutate(path_to_current, mutating_F=False)
         A.set_current_seed(S)
 
-        return A
+        return A.mutate_initial(seq)
 
     def greedy_element(self, d_vector):
         r"""
