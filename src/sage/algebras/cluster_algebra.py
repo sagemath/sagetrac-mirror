@@ -1333,12 +1333,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # the result to polynomials but then we get "rational" coefficients
         self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] +  flatten([['z%s_%s' % (i,j) for j in range(1,self._d0[i])] for i in range(self._n)]))
 
-        self._Z0 = kwargs.get('Z', tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d0[i])])+(1,) for  i in range(self._n)))
+        self._Z0 = kwargs.get('Z', tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n)))
         
         if len(self._Z0) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
         for i in range(len(self._Z0)):
-            if len(self._Z0[i]) != self._d0[i] + 1:
+            if len(self._Z0[i]) != self._d[i] + 1:
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
 
         # Setup infrastructure to store computed data
@@ -1420,7 +1420,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         coeff = coeff_prefix + (" " if len(coeff_names) == 1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names) > 0 else "")
         if not all(x==1 for x in self._d0):
             GCA = "Generalized Cluster Algebra"
-            exchange_poly_info = " with degree vector " + str(self._d0) + " and exchange polynomial coefficients " + str(self._Z0)
+            exchange_poly_info = " with degree vector " + str(self._d) + " and exchange polynomial coefficients " + str(self._Z0)
         else:
             GCA = "Cluster Algebra"
             exchange_poly_info = ""
@@ -1651,7 +1651,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d0, self._Z0, self)
+        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z0, self)
 
     def b_matrix(self):
         r"""
@@ -1681,6 +1681,36 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             (3, 2)
         """
         return copy(self._d0)     
+
+    def exchange_coefficients_initial(self):
+        r"""
+        Return the exchange degrees of the inial seed of``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.exchange_coefficients_initial()
+            ((1, 1), (1, 1))
+            sage: A = ClusterAlgebra(['A', 2],d=(3,2))
+            sage: A.exchange_coefficients_initial()
+            ((1, z0_1, z0_2, 1), (1, z1_1, 1))
+        """
+        return copy(self._Z0)
+
+    def exchange_degrees(self):
+        r"""
+        Return the exchange degrees of``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.exchange_degrees()
+            (1, 1)
+            sage: A = ClusterAlgebra(['A', 2],d=(3,2))
+            sage: A.exchange_degrees()
+            (3, 2)
+        """
+        return copy(self._d)
 
     def exchange_coefficients_initial(self):
         r"""
