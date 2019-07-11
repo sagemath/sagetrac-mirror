@@ -9375,13 +9375,9 @@ class SemistandardSetValuedTableau(Tableau):
 
         EXAMPLES::
         
-            sage: t = SemistandardSetValuedTableau([[[],[7],[8]],[[5],[6,2]],[[3,1,4]]])
+            sage: t = SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
             sage: t.shape()
             [3, 2, 1]
-            sage: t.pp()
-             [1, 3, 4]
-                   [5] [2, 6]
-                    []    [7] [8]
 
         TESTS::
 
@@ -9521,7 +9517,7 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: SemistandardSetValuedTableaux(7, max_entry=0)
             Traceback (most recent call last):
             ...
-            ValueError: the maximum entry must be a positive integer or None
+            ValueError: the maximum entry must be a positive integer, None, or PlusInfinity
 
             sage: SemistandardSetValuedTableaux()
             Traceback (most recent call last):
@@ -9541,6 +9537,8 @@ class SemistandardSetValuedTableaux(Tableaux):
             if isinstance(p,(int,Integer)) and p>=0:
                 if max_entry is None or max_entry==PlusInfinity():
                     return SemistandardSetValuedTableaux_size_inf(Integer(p)) 
+                elif isinstance(max_entry, (int,Integer)) and max_entry <= 0:
+                    raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
                 return SemistandardSetValuedTableaux_size(Integer(p), max_entry)
 
             # if p is shape
@@ -9565,7 +9563,7 @@ class SemistandardSetValuedTableaux(Tableaux):
 
         EXAMPLES::
 
-            sage: S = SemistandardSetValuedTableaux(2)
+            sage: S = SemistandardSetValuedTableaux(2, max_entry=3)
             sage: TestSuite(S).run()
         """
         if 'max_entry' in kwargs:
@@ -9582,15 +9580,15 @@ class SemistandardSetValuedTableaux(Tableaux):
 
         TESTS::
 
-            sage: ssvt = [[[1, 2], [2], [2]]]
+            sage: ssvt = [[[1], [1, 2]], [[2]]]
             sage: ssvt2 = Tableau([[[2], [2], [2]]])
             sage: ssvt in SemistandardSetValuedTableaux(3)
             True
             sage: ssvt2 in SemistandardSetValuedTableaux(3)
             True
-            sage: ssvt in SemistandardSetValuedTableaux([2,1,1])
+            sage: ssvt in SemistandardSetValuedTableaux([2,1])
             True
-            sage: ssvt2 inSemistandardSetValuedTableaux([2,1,1])
+            sage: ssvt2 in SemistandardSetValuedTableaux([2,1,1])
             False
             sage: ssvt in SemistandardSetValuedTableaux(3, max_entry=3)
             True
@@ -9725,12 +9723,12 @@ class SemistandardSetValuedTableaux_size_inf(SemistandardSetValuedTableaux, Disj
             sage: T = SemistandardSetValuedTableaux(3)
             sage: [[[1,2]],[[2]],[[3]]] in T
             False
-            sage: [[[1,2]],[[3]],[4[]]] in T
+            sage: [[[1,2]],[[3]],[[4]]] in T
             True
             sage: [[[1,2],[2]],[[3]],[[4]]] in T
             False
             sage: [[[1,2],[2]],[[3]]] in T
-            False
+            True
         """
         return SemistandardSetValuedTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
 
@@ -9795,7 +9793,7 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             sage: SemistandardSetValuedTableaux([3,1],max_entry=2)
             Semistandard set-valued tableaux of shape [3, 1] and max entry 2 
         """
-        return "Semistandard set-valued tableaux of shape {} and max_entry {}".format(self.shape, self.max_entry)
+        return "Semistandard set-valued tableaux of shape {} and max entry {}".format(self.shape, self.max_entry)
 
     def __iter__(self):
         r"""
