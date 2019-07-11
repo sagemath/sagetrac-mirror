@@ -613,7 +613,7 @@ class ClusterAlgebraSeed(SageObject):
 
             sage: A = ClusterAlgebra(['F', 4])
             sage: from sage.algebras.cluster_algebra import ClusterAlgebraSeed
-            sage: ClusterAlgebraSeed(A.b_matrix(), identity_matrix(4), identity_matrix(4), A, path=[1, 2, 3])
+            sage: ClusterAlgebraSeed(A.b_matrix(), identity_matrix(4), identity_matrix(4), (1,1,1,1), ((1,1),(1,1),(1,1),(1,1)), A, path=[1, 2, 3])
             The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
              and no coefficients over Integer Ring obtained from the initial
              by mutating along the sequence [1, 2, 3]
@@ -1373,13 +1373,13 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             A Cluster Algebra with cluster variables x0, x1
              and coefficients y0, y1 over Integer Ring
             sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
-            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
-            over Integer Ring, with degree vector (2, 1) and exchange polynomial 
-            coefficients ((1, 100000, 1), (1, 1))             
+            A Generalized Cluster Algebra with cluster variables x0, x1
+             and no coefficients over Integer Ring with degree vector (2, 1) 
+             and exchange polynomial coefficients ((1, 100000, 1), (1, 1))             
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
-            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
-            over Integer Ring, with degree vector (3, 1) and exchange polynomial 
-            coefficients ((1, 1, 1, 1), (1, 1))
+            A Generalized Cluster Algebra with cluster variables x0, x1
+             and no coefficients over Integer Ring with degree vector (3, 1) 
+             and exchange polynomial coefficients ((1, 1, 1, 1), (1, 1))
         """
         var_names = self.initial_cluster_variable_names()
         var_names = (" " if len(var_names) == 1 else "s ") + ", ".join(var_names)
