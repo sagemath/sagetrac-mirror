@@ -364,11 +364,10 @@ def dict_function(x):
         sage: from sage.misc.latex import dict_function
         sage: x,y,z = var('x,y,z')
         sage: print(dict_function({x/2: y^2}))
-        \left\{\frac{1}{2} \, x : y^{2}\right\}
+        \left\{\begin{aligned}\frac{1}{2} \, x :&\ y^{2}\end{aligned}\right\}
         sage: d = {(1,2,x^2): [sin(z^2), y/2]}
         sage: latex(d)
-        \left\{\left(1, 2, x^{2}\right) :
-               \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]\right\}
+        \left\{\begin{aligned}\left(1, 2, x^{2}\right) :&\ \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]\end{aligned}\right\}
     """
     it = iterkeys(x)
     if not DICT_IS_ORDERED and len(x) < MAX_SEQ_LENGTH:
