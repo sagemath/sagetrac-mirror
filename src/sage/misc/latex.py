@@ -26,8 +26,12 @@ import random
 import re
 import shutil
 import subprocess
+import sys
 
-from six import iteritems, integer_types
+from six import iterkeys, integer_types
+
+from IPython.lib.pretty import MAX_SEQ_LENGTH, DICT_IS_ORDERED
+from IPython.lib.pretty import _sorted_for_pprint
 
 from sage.cpython.string  import str_to_bytes
 
@@ -366,10 +370,13 @@ def dict_function(x):
         \left\{\left(1, 2, x^{2}\right) :
                \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]\right\}
     """
-    return "".join([r"\left\{",
-                    ", ".join(r"%s : %s" % (latex(key), latex(value))
-                              for key, value in iteritems(x)),
-                    r"\right\}"])
+    it = iterkeys(x)
+    if not DICT_IS_ORDERED and len(x) < MAX_SEQ_LENGTH:
+        it = _sorted_for_pprint(it)
+    return "".join([r"\left\{\begin{aligned}",
+                    r", \\".join(r"%s :&\ %s" % (latex(key), latex(x[key]))
+                                 for key in it),
+                    r"\end{aligned}\right\}"])
 
 # One can add to the latex_table in order to install latexing
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
