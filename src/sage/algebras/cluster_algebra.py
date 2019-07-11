@@ -614,7 +614,7 @@ class ClusterAlgebraSeed(SageObject):
 
             sage: A = ClusterAlgebra(['F', 4])
             sage: from sage.algebras.cluster_algebra import ClusterAlgebraSeed
-            sage: ClusterAlgebraSeed(A.b_matrix(), identity_matrix(4), identity_matrix(4), A, path=[1, 2, 3])
+            sage: ClusterAlgebraSeed(A.b_matrix(), identity_matrix(4), identity_matrix(4), (1,1,1,1), ((1,1),(1,1),(1,1),(1,1)), A, path=[1, 2, 3])
             The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
              and no coefficients over Integer Ring obtained from the initial
              by mutating along the sequence [1, 2, 3]
@@ -1375,13 +1375,13 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             A Cluster Algebra with cluster variables x0, x1
              and coefficients y0, y1 over Integer Ring
             sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
-            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
-            over Integer Ring, with degree vector (2, 1) and exchange polynomial 
-            coefficients ((1, 100000, 1), (1, 1))             
+            A Generalized Cluster Algebra with cluster variables x0, x1
+             and no coefficients over Integer Ring with degree vector (2, 1) 
+             and exchange polynomial coefficients ((1, 100000, 1), (1, 1))             
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
-            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
-            over Integer Ring, with degree vector (3, 1) and exchange polynomial 
-            coefficients ((1, 1, 1, 1), (1, 1))
+            A Generalized Cluster Algebra with cluster variables x0, x1
+             and no coefficients over Integer Ring with degree vector (3, 1) 
+             and exchange polynomial coefficients ((1, 1, 1, 1), (1, 1))
         """
         var_names = self.initial_cluster_variable_names()
         var_names = (" " if len(var_names) == 1 else "s ") + ", ".join(var_names)
@@ -1395,36 +1395,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             GCA = "Cluster Algebra"
             exchange_poly_info = ""
         return "A " + GCA + " with cluster variable" + var_names + coeff + "over " + repr(self.scalars()) + exchange_poly_info
-
-    def __eq__(self, other):
-        r"""
-        Returns True iff ``self`` represent the same Cluster Algebra as ``other`` and all tracked data agrees.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A',5])
-            sage: A2 = A.mutate_initial(0)
-            sage: A2.__eq__( A )
-            False
-            sage: A3 = A2.mutate_initial(0)
-            sage: A3.__eq__( A )
-            True
-        """
-        if not isinstance(other, ClusterAlgebra):
-            return False
-        ExMat = self._B0 == other._B0
-        ExDeg = self._d == other._d
-        ExZ = self._Z == other._Z
-        VarCoeff = self._names == other._names
-        #if self._use_fpolys and other._use_fpolys:
-        #    clusters = self.cluster() == other.cluster() and self.ground_field() == other.ground_field()
-        #elif self._use_g_vec and other._use_g_vec:
-        #    g_vec = self.g_matrix() == other.g_matrix()
-        #if self._use_c_vec and other._use_c_vec:
-        #    c_vec = self.c_matrix() == other.c_matrix()
-        #if self._use_d_vec and other._use_d_vec:
-        #    d_vec = self.d_matrix() == other.d_matrix()
-        return ExMat and ExDeg and ExZ and VarCoeff
 
     def _an_element_(self):
         r"""
@@ -2298,10 +2268,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             True
             sage: len(A6.g_vectors_so_far()) == len(A6.F_polynomials_so_far())
             True
-            
-        Check that the computed F polynomials are actually polynomials rather than rational functions
-        
             sage: all(denominator(A6.F_polynomials_so_far()[x])==1 for x in range(len(A6.F_polynomials_so_far())))
+            True
+            sage: A1 = ClusterAlgebra(matrix([[0,1],[-1,0]]),d=(4,1),Z=((1,2,3,4,1),(1,1)))
+            sage: A2 = A1.mutate_initial([0,1,0,1,0,1])
+            sage: F_dict = A2._F_poly_dict
+            sage: A2.clear_computed_data()
+            sage: S = A2.initial_seed()
+            sage: S.mutate([1,0,1,0,1,0])
+            sage: A2._F_poly_dict == F_dict
             True
         """
         n = self.rank()
