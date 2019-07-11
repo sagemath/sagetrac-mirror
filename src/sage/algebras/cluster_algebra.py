@@ -1404,9 +1404,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A2 = A.mutate_initial(0)
             sage: A2.__eq__( A )
             False
-            sage: A3 = A2.mutate_initial(0)
-            sage: A3.__eq__( A )
-            True
         """
         if not isinstance(other, ClusterAlgebra):
             return False
