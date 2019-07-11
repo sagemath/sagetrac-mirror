@@ -1306,7 +1306,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # NOTE: for speed purposes we need to have QQ here instead of the more
         # natural ZZ. The reason is that _mutated_F is faster if we do not cast
         # the result to polynomials but then we get "rational" coefficients
-        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] + ['z%s_%s' % (i,j) for j in range(1,self._d[i]) for i in range(self._n)])
+        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)]) #+ ['z%s_%s' % (i,j) for j in range(1,self._d[i]) for i in range(self._n)])
 
         # Setup infrastructure to store computed data
         self.clear_computed_data()
@@ -2308,7 +2308,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         B0 = matrix(ZZ,B0D*D.inverse())
 
         # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-        F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( self._Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1)) ** (-B0[k, j]) for j in range(n)]
+        F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( self._Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n)]
 
         for old_g_vect in path_dict:
             # compute new g-vector
@@ -2323,14 +2323,16 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             # compute new path
             new_path = path_dict[old_g_vect]
             new_path = ([k] + new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
-            if sum(i for i in new_g_vect) == 1 and sum(i**2 for i in new_g_vect) == 1:
+            if vector(new_g_vect) in identity_matrix(n).columns():
                 new_path = []
             new_path_dict[new_g_vect] = new_path
 
             # compute new F-polynomial
             if old_g_vect in F_poly_dict:
                 h = -min(0, old_g_vect[k] * self._d[k])
-                new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( self._Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1)) ** old_g_vect[k]
+                new_F_poly = F_poly_dict[old_g_vect](F_subs)
+                new_F_poly *= Ugen[k] ** h 
+                new_F_poly *= sum( self._Z[k][i] * Ugen[k] ** (self._d[k] - i) for i in range(self._d[k]+1) ) ** old_g_vect[k]
                 new_F_poly_dict[new_g_vect] = new_F_poly
 
         # update storage
