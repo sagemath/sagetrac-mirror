@@ -371,6 +371,7 @@ from sage.matrix.constructor import identity_matrix, matrix
 from sage.matrix.special import block_matrix, diagonal_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
+from sage.misc.flatten import flatten
 from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
@@ -1295,19 +1296,20 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._d = kwargs.get('d', (1,)*self._n)
         if len(self._d) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-        self._Z = kwargs.get('Z', tuple((1,)+(100000,)*(self._d[i]-1)+(1,) for  i in range(self._n)))
+                 
+        # Ambient space for F-polynomials
+        # NOTE: for speed purposes we need to have QQ here instead of the more
+        # natural ZZ. The reason is that _mutated_F is faster if we do not cast
+        # the result to polynomials but then we get "rational" coefficients
+        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] +  flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)]))
+
+        self._Z = kwargs.get('Z', tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n)))
         
         if len(self._Z) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
         for i in range(len(self._Z)):
             if len(self._Z[i]) != self._d[i] + 1:
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
-                 
-        # Ambient space for F-polynomials
-        # NOTE: for speed purposes we need to have QQ here instead of the more
-        # natural ZZ. The reason is that _mutated_F is faster if we do not cast
-        # the result to polynomials but then we get "rational" coefficients
-        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)]) #+ ['z%s_%s' % (i,j) for j in range(1,self._d[i]) for i in range(self._n)])
 
         # Setup infrastructure to store computed data
         self.clear_computed_data()
@@ -2346,7 +2348,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             Z = tuple([Z[i] if i != k else tuple([Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
          
             # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n)]
+            F_subs = { Ugen[j] : Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n) }
          
             for old_g_vect in path_dict:
                 # compute new g-vector
@@ -2368,7 +2370,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 # compute new F-polynomial
                 if old_g_vect in F_poly_dict:
                     h = -min(0, old_g_vect[k] * self._d[k])
-                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** old_g_vect[k]
+                    new_F_poly = F_poly_dict[old_g_vect].subs(F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** old_g_vect[k]
                     tmp_F_poly_dict[new_g_vect] = new_F_poly
 
             # update storage
