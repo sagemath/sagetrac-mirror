@@ -1667,21 +1667,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         n = self.rank()
         return copy(self._B0[:n, :])
         
-    def exchange_degrees_initial(self):
-        r"""
-        Return the exchange degrees of the initial seed of``self``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2])
-            sage: A.exchange_degrees_initial()
-            (1, 1)
-            sage: A = ClusterAlgebra(['A', 2],d=(3,2))
-            sage: A.exchange_degrees_initial()
-            (3, 2)
-        """
-        return copy(self._d)     
-
     def exchange_coefficients_initial(self):
         r"""
         Return the exchange degrees of the inial seed of``self``.
@@ -1711,21 +1696,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             (3, 2)
         """
         return copy(self._d)
-
-    def exchange_coefficients_initial(self):
-        r"""
-        Return the exchange degrees of the inial seed of``self``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2])
-            sage: A.exchange_coefficients_initial()
-            ((1, 1), (1, 1))
-            sage: A = ClusterAlgebra(['A', 2],d=(3,2))
-            sage: A.exchange_coefficients_initial()
-            ((1, z0_1, z0_2, 1), (1, z1_1, 1))
-        """
-        return copy(self._Z0)
 
     def g_vectors(self, mutating_F=True):
         r"""
