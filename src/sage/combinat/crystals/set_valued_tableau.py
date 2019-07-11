@@ -87,8 +87,64 @@ class HeckeMonoidFactorizationCrystal(UniqueRepresentation, Parent):
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
+
     class Element(ElementWrapper):
             
+
+        def _get_signs(self, i):
+            """
+            auxiliary function for `e_i` and `f_i` methods.
+    
+            Assign each column of self a +1, -1 or 0 according to
+            +1 if there is an unmatched `i+1` aka left paren '('
+            -1 if there is an unmatched `i` aka right paren ')'
+            0 if all the `i`s and `i+1`s are matched
+            
+            Return list of +1, -1, 0 with length equal to number of columns of self.
+            """
+            st = SemistandardSetValuedTableau(self)
+            signs = []
+            for col in st.conjugate():
+                word = sum(col, [])
+                if i in word and i+1 in word:
+                    signs += [0]
+                elif i in word: #i in word, i+1 not in word
+                    signs += [-1]
+                elif i+1 in word: # i not in word, i+1 is
+                    signs += [+1]
+                else: # neither i nor i+1 in word
+                    signs += [0]
+            return signs
+
+        def _bracket(self, i, right=True):
+            """
+            auxiliary function for `e_i` and `f_i` methods.
+
+            Return index of column in self with rightmost `i` to be changed to `i+1` 
+            or leftmost `i+1` to be changed to `i`.
+
+            If right is True (default), then return index of rightmost `i`.
+            If right is False, then return index of leftmost `i+1`.
+
+            If no `i` can be changed to `i+1` or vice versa, return -1.
+            """
+            x = _get_signs(self, i) # x is a list of +1, -1, 0
+            if not right:
+                x = [-j for j in x][::-1]
+            count = 0
+            index = -1
+            for j in range(len(x)):
+                if x[j] == -1:
+                    if count == 0:
+                        index = j
+                    else:
+                        count -= 1
+                if x[j] == +1:
+                    count += 1
+            if right:
+                return index
+            else:
+                return -1 if index < 0 else len(x)-1-index
 
         def e(self, i):
             r"""
@@ -98,6 +154,9 @@ class HeckeMonoidFactorizationCrystal(UniqueRepresentation, Parent):
 
                 sage: 
             """
+            if i not in self.index_set():
+                raise ValueError("i must be in the index set")
+            pass
 
         def f(self, i):
             r"""
@@ -109,4 +168,5 @@ class HeckeMonoidFactorizationCrystal(UniqueRepresentation, Parent):
             """
             if i not in self.index_set():
                 raise ValueError("i must be in the index set")
+            pass
             
