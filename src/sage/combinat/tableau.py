@@ -9468,7 +9468,7 @@ class SemistandardSetValuedTableau(Tableau):
         r"""
         Return the image of ``self`` under the `k`-th Bender--Knuth
         involution, assuming ``self`` is a semistandard set-valued tableau.
-        This function was introduced by Ikeda and Shimazaki in this context.
+        This function was introduced by Ikeda and Shimazaki [IS2014]_ in this context.
 
         Let `T` be a tableau and fix `k`. Then a free `k` in `T` means a cell of
         `T` that contains `k` and whose direct lower
