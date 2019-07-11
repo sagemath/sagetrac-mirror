@@ -1295,7 +1295,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._d = kwargs.get('d', (1,)*self._n)
         if len(self._d) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-        self._Z = kwargs.get('Z', tuple((1,)*(self._d[i]+1) for  i in range(self._n)))
+        self._Z = kwargs.get('Z', tuple((1,)+(100000,)*(self._d[i]-1)+(1,) for  i in range(self._n)))
         
         if len(self._Z) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
@@ -1375,7 +1375,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
             A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
             over Integer Ring, with degree vector (2, 1) and exchange polynomial 
-            coefficients ((1, 1, 1), (1, 1))             
+            coefficients ((1, 100000, 1), (1, 1))             
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
             A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients 
             over Integer Ring, with degree vector (3, 1) and exchange polynomial 
