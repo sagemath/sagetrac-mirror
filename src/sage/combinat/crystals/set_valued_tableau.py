@@ -25,37 +25,31 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
         sage: B = crystals.HeckeMonoidFactorizationCrystal(w,3); B
         Crystal on Hecke monoid factorizations associated to s2*s3*s2*s1    
     """
-    '''
-    ## YET TO BE IMPLEMENTED ##
+   
     @staticmethod
-    def __classcall_private__(cls, w, n, x = None, k = None):
+    def __classcall_private__(cls, shape, n):
         r"""
         Classcall to mend the input.
 
         TESTS::
 
-            sage: A = crystals.AffineFactorization([[3,1],[1]], 4, k=3); A
-            Crystal on affine factorizations of type A3 associated to s3*s2*s1
-            sage: AC = crystals.AffineFactorization([Core([4,1],4),Core([1],4)], 4, k=3)
-            sage: AC is A
-            True
+            sage: B = crystals.SemistandardSetValuedTableaux([2,1],3); B
+            Crystal of set-valued tableaux of type A_2 of shape [2,1]
         """ 
-        pass
-        '''
+        
+        
 
-    def __init__(self, w, n):
+    def __init__(self, sh, n):
         r"""
+        Initialize crystal of semistandard set-valued tableaux of a fixed shape and given maximum entry. 
+        
         EXAMPLES::
             
-            sage: W = WeylGroup(['A',3], prefix='s')
-            sage: w = W.from_reduced_word([2,3,2,1])
-            sage: B = crystals.HeckeMonoidFactorizationCrystal(w,4)
-            sage: B.w
-            s2*s3*s2*s1
-            sage: B.k
-            3
+            sage: B = crystals.SemistandardSetValuedTableaux([2,1],3)
             sage: B.n
-            4
+            3
+            sage: B.shape
+            [2,1]
 
         TESTS::
 
@@ -65,24 +59,21 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
             sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = ClassicalCrystals())
-        # n is the number of parenthesis pairs
+        # n is the max entry
         self.n = n
-        # k is the highest letter that appears in the factorization
-        self.k = w.parent().n-1
-        # w is a given word in the symmetric group
-        self.w = w
         cartan_type = CartanType(['A',n-1])
         self._cartan_type = cartan_type
-        ## YET TO BE IMPLEMENTED ##
-        ## self.module_generators (this enumerates all highest weight vectors!)
+        # (this enumerates all highest weight vectors!)
+        self.module_generators = [] 
 
-    def __repr__(self):
-        """
+    def _repr_(self):
+        r"""
         EXAMPLES::
 
-            sage: 
+            sage: B = crystals.SemistandardSetValuedTableaux([2,1],3); B
+            Crystal of set-valued tableaux of type A_2 of shape [2,1]
         """
-        return "Crystal of 0-Hecke monoid factorizations of type A_{} associated to {}".format(self.n-1, self.w)
+        return "Crystal of set-valued tableaux of type A_{} of shape {}".format(self.n-1, self.shape)
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
@@ -91,36 +82,24 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
     class Element(ElementWrapper):
     
         def __init__(self,parent,tab):
-            """
-            Creates an instance of element t subject to constraints on w and excess.
-            The decreasing factorization t should be equivalent to t and
-            must have the correct excess as specified by its parent.
+            r"""
+            Initialize self as a crystal element.
 
-            sage: H = HeckeMonoid(SymmetricGroup(3))
-            sage: t = H.from_reduced_word([1,2,1])
-            sage: B = HeckeMonoidFactorizationCrystal(t,4,2)
-            sage: h = HeckeFactorization([[],[1],[2,1],[2,1]],2);h
-            ()(1)(2, 1)(2, 1)
-            sage: u = B(h);u
-            ()(1)(2, 1)(2, 1)
+            EXAMPLES::
+
+            sage: SVT = crystals.SemistandardSetValuedTableau([2,1],3)
+            sage: T = SVT([ [[1,2],[2,3]],[[3]] ]); T
+            [[[1, 2], [2,3]], [[3]] ]
             """
-            excess = parent.excess
-            if isinstance(hf,HeckeFactorization) == False:
-                raise ValueError("A HeckeFactorization is expected")
-            if parent.m != hf.m:
-                raise ValueError("Number of factors do not match")
-            self.m = parent.m
-            self.value = hf.value
-            self.weight = hf.weight
-            self.k = parent.k
-            self.hf = hf
+            self.n = parent.n
+            self.value = SemistandardSetValuedTableau(tab)
             if hf.excess != excess:
                 raise ValueError("The HeckeFactorization word must have correct excess")
             ElementWrapper.__init__(self, parent, self.value)
 
         def _get_signs(self, i):
             """
-            auxiliary function for `e_i` and `f_i` methods.
+            Auxiliary function for `e_i` and `f_i` methods.
     
             Assign each column of self a +1, -1 or 0 according to
             +1 if there is an unmatched `i+1` aka left paren '('
