@@ -1371,13 +1371,21 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
             A Cluster Algebra with cluster variables x0, x1
              and coefficients y0, y1 over Integer Ring
+            sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
+            A Cluster Algebra with cluster variables x0, x1 and no coefficients 
+            over Integer Ring, with degree vector (3, 1) and exchange polynomial 
+            coefficients ((1, 1, 1, 1), (1, 1))
         """
         var_names = self.initial_cluster_variable_names()
         var_names = (" " if len(var_names) == 1 else "s ") + ", ".join(var_names)
         coeff_names = self.coefficient_names()
         coeff_prefix = " and" + (" " if len(coeff_names) > 0 else " no ") + "coefficient"
         coeff = coeff_prefix + (" " if len(coeff_names) == 1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names) > 0 else "")
-        return "A Cluster Algebra with cluster variable" + var_names + coeff + "over " + repr(self.scalars())
+        if not all(x==1 for x in self._d):
+            exchange_poly_info = " with degree vector " + str(self._d) + " and exchange polynomial coefficients " + str(self._Z)
+        else:
+            exchange_poly_info = ""
+        return "A Cluster Algebra with cluster variable" + var_names + coeff + "over " + repr(self.scalars()) + exchange_poly_info
 
     def _an_element_(self):
         r"""
@@ -2236,6 +2244,26 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A',2])
             sage: A.mutate_initial(0) is A
             False
+            
+        TESTS::
+        
+            sage: A = ClusterAlgebra(['A',2],d=(2,1),Z=((1,1,1),(1,1)))
+            sage: A2 = A.mutate_initial(0)
+            sage: A3 = A2.mutate_initial(1)
+            sage: A4 = A3.mutate_initial(0)
+            sage: A5 = A4.mutate_initial(1)
+            sage: A6 = A.mutate_initial([0,1,0,1])
+            sage: A5.g_vectors_so_far() == A6.g_vectors_so_far()
+            True
+            sage: A5.F_polynomials_so_far() == A6.F_polynomials_so_far()
+            True
+            sage: len(A6.g_vectors_so_far()) == len(A6.F_polynomials_so_far())
+            True
+            
+        Check that the computed F polynomials are actually polynomials rather than rational functions
+        
+            sage: all(denominator(A6.F_polynomials_so_far()[x])==1 for x in range(len(A6.F_polynomials_so_far())))
+            True
         """
         n = self.rank()
 
