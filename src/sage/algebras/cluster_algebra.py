@@ -1379,7 +1379,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(),
                         names=variables + coefficients)
 
-        if not prod(flatten([[self._Z[i][j] in self.base() for j in range(1,self._d[i])] for i in range(self._n)])):
+        if not prod(flatten([[self._Z0[i][j] in self.base() for j in range(1,self._d[i])] for i in range(self._n)])):
             raise ValueError('The exchange polynomial coefficients need to be contained in the base ring.')
 
         # Setup infrastructure to store computed data
