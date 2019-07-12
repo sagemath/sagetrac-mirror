@@ -2292,6 +2292,11 @@ REFERENCES:
 .. [IR1990] \K. Ireland and M. Rosen, *A Classical Introduction to
             Modern Number Theory*, Springer-Verlag, GTM volume
             84, 1990.
+            
+.. [IS2014] \T. Ikeda and T. Shimazaki.
+            *A proof of K-theoretic Littlewood-Richardson rules by
+            Bender-Knuth-type involutions*. Mathematical Research Letters,
+            21(2), 333-339, 2014.
 
 .. [ISSK2009] \M. Izadi, B. Sadeghiyan, S. S. Sadeghian, H. A. Khanooki,
               *MIBS: A new lightweight block cipher*; in
