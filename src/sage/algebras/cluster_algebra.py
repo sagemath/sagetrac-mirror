@@ -427,6 +427,23 @@ class ClusterAlgebraElement(ElementWrapper):
         """
         return self.parent().retract(-self.lift())
 
+    def _mul_(self, other):
+        r"""
+        Return the multiplication of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element of ``self.parent()``
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F', 4])
+            sage: A.an_element() * A.an_element()
+            x0^2
+        """
+        return self.parent().retract(self.lift() * other.lift())
+
+
     def _div_(self, other):
         r"""
         Return the quotient of ``self`` and ``other``.
