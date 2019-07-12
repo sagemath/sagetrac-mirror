@@ -1349,13 +1349,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(),
                         names=variables + coefficients)
 
-        for i in range(self._n):
-            for j in range(1,self._d[i]):
-                if self._Z[i][j] not in self.base():
-                    raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
-        #is this better?
         if not prod(flatten([[self._Z[i][j] in self.base() for j in range(1,self._d[i])] for i in range(self._n)])):
-            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
+            raise ValueError('The exchange polynomial coefficients need to be contained in the base ring.')
 
         # Setup infrastructure to store computed data
         self.clear_computed_data()
@@ -1375,8 +1370,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** self._B0[i, j]
                                            for i in range(self._n + m))
                       for j in range(self._n)}
-        #self._z = {self._U('z%s_%s' % (i,j)): self._Z[i][j] for j in range(1,self._d[i])
-        #           for i in range(self._n)}
 
         # Register embedding into self.ambient()
         embedding = SetMorphism(Hom(self, self.ambient()), lambda x: x.lift())
@@ -2234,7 +2227,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         cones = [Cone(S.g_vectors()) for S in seeds]
         return Fan(cones)
 
-    def mutate_initial(self, direction):
+    def mutate_initial(self, direction, mutating_F=False):
         r"""
         Return the cluster algebra obtained by mutating ``self`` at
         the initial seed.
@@ -2316,7 +2309,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         # setup
         Ugen = self._U.gens()
-        F_poly_dict = copy(self._F_poly_dict)
+        if mutating_F:
+            F_poly_dict = copy(self._F_poly_dict)
         path_dict = copy(self._path_dict)
         path_to_current = copy(self.current_seed().path_from_initial_seed())
         B0 = copy(self._B0)
@@ -2330,7 +2324,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
          
             # clear storage
             tmp_path_dict = {}
-            tmp_F_poly_dict = {}
+            if mutating_F:
+                tmp_F_poly_dict = {}
          
             # mutate B-matrix
             D = diagonal_matrix(self._d)
@@ -2342,7 +2337,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             Z = tuple([Z[i] if i != k else tuple([Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
          
             # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            F_subs = { Ugen[j] : Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n) }
+            if mutating_F:
+                F_subs = { Ugen[j] : Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n) }
          
             for old_g_vect in path_dict:
                 # compute new g-vector
@@ -2362,17 +2358,19 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 tmp_path_dict[new_g_vect] = new_path
          
                 # compute new F-polynomial
-                if old_g_vect in F_poly_dict:
-                    h = -min(0, old_g_vect[k] * self._d[k])
-                    new_F_poly = F_poly_dict[old_g_vect].subs(F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** old_g_vect[k]
-                    tmp_F_poly_dict[new_g_vect] = new_F_poly
+                if mutating_F:
+                    if old_g_vect in F_poly_dict:
+                        h = -min(0, old_g_vect[k] * self._d[k])
+                        new_F_poly = F_poly_dict[old_g_vect].subs(F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** old_g_vect[k]
+                        tmp_F_poly_dict[new_g_vect] = new_F_poly
 
             # update storage
             initial_g = (0,)*k+(1,)+(0,)*(n-k-1)
             tmp_path_dict[initial_g] = []
             path_dict = tmp_path_dict
-            tmp_F_poly_dict[initial_g] = self._U(1)
-            F_poly_dict = tmp_F_poly_dict
+            if mutating_F:
+                tmp_F_poly_dict[initial_g] = self._U(1)
+                F_poly_dict = tmp_F_poly_dict
             path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
          
         # create new algebra
@@ -2382,7 +2380,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         A = ClusterAlgebra(B0, d=self._d, Z=Z, cluster_variable_names=cv_names, coefficient_names=coeff_names, scalars=scalars)
 
         # store computed data
-        A._F_poly_dict.update(F_poly_dict)
+        if mutating_F:
+            A._F_poly_dict.update(F_poly_dict)
         A._path_dict.update(path_dict)
  
         # reset self.current_seed() to the previous location
