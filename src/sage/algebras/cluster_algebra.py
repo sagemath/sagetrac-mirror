@@ -75,8 +75,12 @@ REFERENCES:
 AUTHORS:
 
 - Dylan Rupel (2015-06-15): initial version
-
 - Salvatore Stella (2015-06-15): initial version
+
+- Esther Banaian (2019-07-12): upgrade to generalized mutations
+- Elizabeth Kelley (2019-07-12): upgrade to generalized mutations
+- Gregg Musiker (2019-07-12): upgrade to generalized mutations
+- Dylan Rupel (2019-07-12): upgrade to generalized mutations
 
 EXAMPLES:
 
@@ -1182,9 +1186,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
     - ``data`` -- some data defining a cluster algebra; it can be anything
       that can be parsed by :class:`ClusterQuiver`
       
-    - ``d`` -- the tuple of exchange polynomial degrees of ``self``
+    - ``d`` -- a tuple of exchange polynomial degrees of ``self``
     
-    - ``Z`` -- the tuple of tuples of exchange polynomial coefficients of ``self``
+    - ``Z`` -- a tuple of tuples of exchange polynomial coefficients of ``self``
 
     - ``scalars`` -- a ring (default `\ZZ`); the scalars over
       which the cluster algebra is defined
@@ -1297,13 +1301,18 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         if len(self._d) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
                  
-        # Ambient space for F-polynomials
+        # Ambient space for F-polynomials, by default this contains formal exchange polynomial
+        # coefficient if none are provided
         # NOTE: for speed purposes we need to have QQ here instead of the more
         # natural ZZ. The reason is that _mutated_F is faster if we do not cast
         # the result to polynomials but then we get "rational" coefficients
-        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] +  flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)]))
+        var_switch = not kwargs.get('Z', False)
+        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] + flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else PolynomialRing(QQ, ['u%s' % i for i in range(self._n)])
 
-        self._Z = kwargs.get('Z', tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n)))
+        if var_switch:
+            self._Z = tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
+        else:
+            self._Z = kwargs.get('Z')
         
         if len(self._Z) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
@@ -1311,17 +1320,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             if len(self._Z[i]) != self._d[i] + 1:
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
 
-        # Setup infrastructure to store computed data
-        self.clear_computed_data()
-
-        # Determine the names of the initial cluster variables
-        variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
-        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(self._n)]))
-        if len(variables) != self._n:
-            raise ValueError("cluster_variable_names should be a list of %d valid variable names" % self._n)
-
         # Determine scalars
-        scalars = kwargs.get('scalars', ZZ)
+        scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])))
 
         # Determine coefficients and base
         if m > 0:
@@ -1338,18 +1338,36 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             base = scalars
             coefficients = []
 
-        # Have we got principal coefficients?
-        if M0 == I:
-            self.Element = PrincipalClusterAlgebraElement
-        else:
-            self.Element = ClusterAlgebraElement
+        # Determine the names of the initial cluster variables
+        variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
+        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(self._n)]))
+        if len(variables) != self._n:
+            raise ValueError("cluster_variable_names should be a list of %d valid variable names" % self._n)
 
         # Setup Parent and ambient
         self._ambient = LaurentPolynomialRing(scalars, variables + coefficients)
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(),
                         names=variables + coefficients)
 
+        for i in range(self._n):
+            for j in range(1,self._d[i]):
+                if self._Z[i][j] not in self.base():
+                    raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
+        #is this better?
+        if not prod(flatten([[self._Z[i][j] in self.base() for j in range(1,self._d[i])] for i in range(self._n)])):
+            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
+
+        # Setup infrastructure to store computed data
+        self.clear_computed_data()
+
+        # Have we got principal coefficients?
+        if M0 == I:
+            self.Element = PrincipalClusterAlgebraElement
+        else:
+            self.Element = ClusterAlgebraElement
+
         # Data to compute cluster variables using separation of additions
+        # and exchange coefficient specialization
         # NOTE: storing both _B0 as rectangular matrix and _yhat is redundant.
         # We keep both around for speed purposes.
         self._y = {self._U.gen(j): prod(self._base.gen(i) ** M0[i, j] for i in range(m))
@@ -1357,10 +1375,180 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** self._B0[i, j]
                                            for i in range(self._n + m))
                       for j in range(self._n)}
+        #self._z = {self._U('z%s_%s' % (i,j)): self._Z[i][j] for j in range(1,self._d[i])
+        #           for i in range(self._n)}
 
         # Register embedding into self.ambient()
         embedding = SetMorphism(Hom(self, self.ambient()), lambda x: x.lift())
         self._populate_coercion_lists_(embedding=embedding)
+
+    def ambient(self):
+        r"""
+        Return the Laurent polynomial ring containing ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A.ambient()
+            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
+        """
+        return self._ambient
+
+    def scalars(self):
+        r"""
+        Return the ring of scalars over which ``self`` is defined.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.scalars()
+            Integer Ring
+        """
+        return self._ambient.base()
+
+    def lift(self, x):
+        r"""
+        Return ``x`` as an element of :meth:`ambient`.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: x = A.cluster_variable((1, 0))
+            sage: A.lift(x).parent()
+            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
+        """
+        return self.ambient()(x.value)
+
+    def retract(self, x):
+        r"""
+        Return ``x`` as an element of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: L = A.ambient()
+            sage: x = L.gen(0)
+            sage: A.retract(x).parent()
+            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+        """
+        return self(x)
+
+    @cached_method
+    def gens(self):
+        r"""
+        Return the list of initial cluster variables and coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A.gens()
+            (x0, x1, y0, y1)
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x')
+            sage: A.gens()
+            (x0, x1, x2, x3)
+        """
+        return tuple(map(self.retract, self.ambient().gens()))
+
+    def coefficient(self, j):
+        r"""
+        Return the ``j``-th coefficient of ``self``.
+
+        INPUT:
+
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the coefficient to return
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A.coefficient(0)
+            y0
+        """
+        if not isinstance(self.base(), LaurentPolynomialRing_generic):
+            raise ValueError("generator not defined")
+        return self.retract(self.base().gen(j))
+
+    @cached_method
+    def coefficients(self):
+        r"""
+        Return the list of coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A.coefficients()
+            (y0, y1)
+            sage: A1 = ClusterAlgebra(['B', 2])
+            sage: A1.coefficients()
+            ()
+        """
+        if isinstance(self.base(), LaurentPolynomialRing_generic):
+            return tuple(map(self.retract, self.base().gens()))
+        else:
+            return ()
+
+    def coefficient_names(self):
+        r"""
+        Return the list of coefficient names.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 3])
+            sage: A.coefficient_names()
+            ()
+            sage: A1 = ClusterAlgebra(['B', 2], principal_coefficients=True)
+            sage: A1.coefficient_names()
+            ('y0', 'y1')
+            sage: A2 = ClusterAlgebra(['C', 3], principal_coefficients=True, coefficient_prefix='x')
+            sage: A2.coefficient_names()
+            ('x3', 'x4', 'x5')
+        """
+        return self.variable_names()[self.rank():]
+
+    def initial_cluster_variable(self, j):
+        r"""
+        Return the ``j``-th initial cluster variable of ``self``.
+
+        INPUT:
+
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the cluster variable to return
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A.initial_cluster_variable(0)
+            x0
+        """
+        return self.retract(self.ambient().gen(j))
+
+    @cached_method
+    def initial_cluster_variables(self):
+        r"""
+        Return the list of initial cluster variables of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A.initial_cluster_variables()
+            (x0, x1)
+        """
+        return tuple(map(self.retract, self.ambient().gens()[:self.rank()]))
+
+    def initial_cluster_variable_names(self):
+        r"""
+        Return the list of initial cluster variable names.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A.initial_cluster_variable_names()
+            ('x0', 'x1')
+            sage: A1 = ClusterAlgebra(['B', 2], cluster_variable_prefix='a')
+            sage: A1.initial_cluster_variable_names()
+            ('a0', 'a1')
+        """
+        return self.variable_names()[:self.rank()]
 
     def _repr_(self):
         r"""
@@ -1583,8 +1771,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: sorted(A.g_vectors_so_far())
             [(0, 1), (1, 0)]
         """
-        I = identity_matrix(self._n)
-        self._path_dict = dict((v, []) for v in map(tuple, I.columns()))
+        self._path_dict = dict((v, []) for v in map(tuple, identity_matrix(self._n).columns()))
         self._F_poly_dict = dict((v, self._U(1)) for v in self._path_dict)
         self.reset_current_seed()
         self.reset_exploring_iterator()
@@ -1870,174 +2057,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 raise ValueError("%s is not the g-vector of any cluster variable of a %s" % (str(g_vector), str(self)[2:]))
         return copy(self._path_dict.get(g_vector, None))
 
-    def ambient(self):
-        r"""
-        Return the Laurent polynomial ring containing ``self``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: A.ambient()
-            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
-        """
-        return self._ambient
-
-    def scalars(self):
-        r"""
-        Return the ring of scalars over which ``self`` is defined.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2])
-            sage: A.scalars()
-            Integer Ring
-        """
-        return self.base().base()
-
-    def lift(self, x):
-        r"""
-        Return ``x`` as an element of :meth:`ambient`.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: x = A.cluster_variable((1, 0))
-            sage: A.lift(x).parent()
-            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
-        """
-        return self.ambient()(x.value)
-
-    def retract(self, x):
-        r"""
-        Return ``x`` as an element of ``self``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: L = A.ambient()
-            sage: x = L.gen(0)
-            sage: A.retract(x).parent()
-            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
-        """
-        return self(x)
-
-    @cached_method
-    def gens(self):
-        r"""
-        Return the list of initial cluster variables and coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: A.gens()
-            (x0, x1, y0, y1)
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x')
-            sage: A.gens()
-            (x0, x1, x2, x3)
-        """
-        return tuple(map(self.retract, self.ambient().gens()))
-
-    def coefficient(self, j):
-        r"""
-        Return the ``j``-th coefficient of ``self``.
-
-        INPUT:
-
-        - ``j`` -- an integer in ``range(self.parent().rank())``;
-          the index of the coefficient to return
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: A.coefficient(0)
-            y0
-        """
-        if not isinstance(self.base(), LaurentPolynomialRing_generic):
-            raise ValueError("generator not defined")
-        return self.retract(self.base().gen(j))
-
-    @cached_method
-    def coefficients(self):
-        r"""
-        Return the list of coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: A.coefficients()
-            (y0, y1)
-            sage: A1 = ClusterAlgebra(['B', 2])
-            sage: A1.coefficients()
-            ()
-        """
-        if isinstance(self.base(), LaurentPolynomialRing_generic):
-            return tuple(map(self.retract, self.base().gens()))
-        else:
-            return ()
-
-    def coefficient_names(self):
-        r"""
-        Return the list of coefficient names.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 3])
-            sage: A.coefficient_names()
-            ()
-            sage: A1 = ClusterAlgebra(['B', 2], principal_coefficients=True)
-            sage: A1.coefficient_names()
-            ('y0', 'y1')
-            sage: A2 = ClusterAlgebra(['C', 3], principal_coefficients=True, coefficient_prefix='x')
-            sage: A2.coefficient_names()
-            ('x3', 'x4', 'x5')
-        """
-        return self.variable_names()[self.rank():]
-
-    def initial_cluster_variable(self, j):
-        r"""
-        Return the ``j``-th initial cluster variable of ``self``.
-
-        INPUT:
-
-        - ``j`` -- an integer in ``range(self.parent().rank())``;
-          the index of the cluster variable to return
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: A.initial_cluster_variable(0)
-            x0
-        """
-        return self.retract(self.ambient().gen(j))
-
-    @cached_method
-    def initial_cluster_variables(self):
-        r"""
-        Return the list of initial cluster variables of ``self``.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: A.initial_cluster_variables()
-            (x0, x1)
-        """
-        return tuple(map(self.retract, self.ambient().gens()[:self.rank()]))
-
-    def initial_cluster_variable_names(self):
-        r"""
-        Return the list of initial cluster variable names.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
-            sage: A.initial_cluster_variable_names()
-            ('x0', 'x1')
-            sage: A1 = ClusterAlgebra(['B', 2], cluster_variable_prefix='a')
-            sage: A1.initial_cluster_variable_names()
-            ('a0', 'a1')
-        """
-        return self.variable_names()[:self.rank()]
-
     def seeds(self, **kwargs):
         r"""
         Return an iterator running over seeds of ``self``.
@@ -2301,7 +2320,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         path_dict = copy(self._path_dict)
         path_to_current = copy(self.current_seed().path_from_initial_seed())
         B0 = copy(self._B0)
-        initial_g_vects = [tuple(c) for c in identity_matrix(n).columns()]
+        initial_g_vects = list(map(tuple, identity_matrix(n).columns()))
         Z = copy(self._Z)
 
         # go
