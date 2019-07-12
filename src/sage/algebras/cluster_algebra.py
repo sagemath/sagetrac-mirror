@@ -129,6 +129,35 @@ Simple operations among cluster variables behave as expected::
     sage: _.parent() == A
     False
 
+Several examples using Generalized Cluster Algebras, including Exchange Coefficients that can be formal variables.  Eventually will work for non-integer scalars also, but currently breaks::
+
+    sage: Agen = ClusterAlgebra(['A',2],d=(1,3))
+    sage: Agen2 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),sqrt(2),1)),scalars=RR)
+    sage: Agen3 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),sqrt(2),1)),scalars=ZZ[sqrt(2)])
+    sage: Agen.explore_to_depth(infinity)
+    sage: Agen2.explore_to_depth(infinity)
+    sage: Agen3.explore_to_depth(infinity)
+    sage: Agen.F_polynomials_so_far()
+    [1, u0 + 1, u0*u1^3 + z1_2*u0*u1^2 + z1_1*u0*u1 + u0 + 1, u0^2*u1^3 + z1_2*u0^2*u1^2 + z1_1*u0^2*u1 + u0^2 + z1_1*u0*u1 + 2*u0 + 1, 
+    u0^3*u1^6 + 2*z1_2*u0^3*u1^5 + (z1_2^2 + 2*z1_1)*u0^3*u1^4 + (2*z1_1*z1_2 + 2)*u0^3*u1^3 + z1_1*u0^2*u1^4 + (z1_1^2 + 2*z1_2)*u0^3*u1^2 + 
+    (z1_1*z1_2 + 3)*u0^2*u1^3 + 2*z1_1*u0^3*u1 + (z1_1^2 + 3*z1_2)*u0^2*u1^2 + u0^3 + 4*z1_1*u0^2*u1 + z1_2*u0*u1^2 + 3*u0^2 + 2*z1_1*u0*u1 + 3*u0 + 1, 
+    u0^3*u1^3 + z1_2*u0^3*u1^2 + z1_1*u0^3*u1 + z1_2*u0^2*u1^2 + u0^3 + 2*z1_1*u0^2*u1 + 3*u0^2 + z1_1*u0*u1 + 3*u0 + 1, u1^3 + z1_2*u1^2 + z1_1*u1 + 1, 1]
+    sage: Agen.F_polynomial((-2,1))
+    u0^2*u1^3 + z1_2*u0^2*u1^2 + z1_1*u0^2*u1 + u0^2 + z1_1*u0*u1 + 2*u0 + 1
+    sage: Agen.cluster_variable((-2,1))
+    (x0^3 + z1_2*x0^2 + z1_1*x0*x1 + x1^2 + z1_1*x0 + 2*x1 + 1)/(x0^2*x1)
+    sage: Agen2.F_polynomial((-2,1))  ## should be fixed
+    (1.00000000000000*u0^3*u1^3 + 1.00000000000000*sqrt(2)*(1.00000000000000*u0 + 1.00000000000000)*u0^2*u1^2 + 1.00000000000000*u0^2*u1^3 + 1.00000000000000*sqrt(2)*(1.00000000000000*u0^2 +
+     2.00000000000000*u0 + 1.00000000000000)*u0*u1 + 1.00000000000000*u0^3 + 3.00000000000000*u0^2 + 3.00000000000000*u0 + 1.00000000000000)/(1.00000000000000*u0 + 1.00000000000000)
+    sage: Agen2.cluster_variable((-2,1))  ## should be fixed
+    Traceback (most recent call last):
+            ...
+    TypeError: u0 is not a variable of Multivariate Laurent Polynomial Ring in x0, x1 over Real Field with 53 bits of precision
+    sage: Agen3.F_polynomial((-2,1))
+    (u0^3*u1^3 + sqrt(2)*(u0 + 1)*u0^2*u1^2 + u0^2*u1^3 + sqrt(2)*(u0^2 + 2*u0 + 1)*u0*u1 + u0^3 + 3*u0^2 + 3*u0 + 1)/(u0 + 1)
+    sage: Agen3.cluster_variable((-2,1))  ## should be fixed
+    <repr(<sage.algebras.cluster_algebra.ClusterAlgebra_with_category.element_class at 0x14d0e0100>) failed: TypeError: unable to coerce since the denominator is not 1>
+
 Division is not guaranteed to yield an element of ``A`` so it returns an
 element of ``A.ambient().fraction_field()`` instead::
 
@@ -1217,8 +1246,10 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j) ** self._B[j, k]
             elif self._B[j, k] < 0:
                 neg *= self.F_polynomial(j) ** (-self._B[j, k])
-        return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) // alg.F_polynomial(old_g_vector)
-
+        try:
+            return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) // alg.F_polynomial(old_g_vector)
+        except:
+            return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) / alg.F_polynomial(old_g_vector)
 
 ##############################################################################
 # Cluster algebras
@@ -1603,8 +1634,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
              and coefficients y0, y1 over Integer Ring
             sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
             A Generalized Cluster Algebra with cluster variables x0, x1
-             and no coefficients over Integer Ring with degree vector (2, 1) 
-             and exchange polynomial coefficients ((1, z0_1, 1), (1, 1))             
+             and no coefficients over Univariate Polynomial Ring in z0_1 over Integer Ring with degree vector (2, 1)
+              and exchange polynomial coefficients ((1, z0_1, 1), (1, 1))  
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
             A Generalized Cluster Algebra with cluster variables x0, x1
              and no coefficients over Integer Ring with degree vector (3, 1) 
@@ -2370,7 +2401,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: B.mutate(0)
             sage: A1 = ClusterAlgebra(B)
             sage: A1.explore_to_depth(infinity)
-            sage: A2 = A1.mutate_initial(0)
+            sage: A2 = A1.mutate_initial(0,mutating_F=True)
             sage: A2._F_poly_dict == A._F_poly_dict
             True
 
@@ -2383,11 +2414,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         TESTS::
         
             sage: A = ClusterAlgebra(['A',2],d=(2,1),Z=((1,1,1),(1,1)))
-            sage: A2 = A.mutate_initial(0)
-            sage: A3 = A2.mutate_initial(1)
-            sage: A4 = A3.mutate_initial(0)
-            sage: A5 = A4.mutate_initial(1)
-            sage: A6 = A.mutate_initial([0,1,0,1])
+            sage: A.clear_computed_data()
+            sage: A2 = A.mutate_initial(0,mutating_F=True)
+            sage: A3 = A2.mutate_initial(1,mutating_F=True)
+            sage: A4 = A3.mutate_initial(0,mutating_F=True)
+            sage: A5 = A4.mutate_initial(1,mutating_F=True)
+            sage: A6 = A.mutate_initial([0,1,0,1],mutating_F=True)
             sage: A5.g_vectors_so_far() == A6.g_vectors_so_far()
             True
             sage: A5.F_polynomials_so_far() == A6.F_polynomials_so_far()
@@ -2397,13 +2429,33 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: all(denominator(A6.F_polynomials_so_far()[x])==1 for x in range(len(A6.F_polynomials_so_far())))
             True
             sage: A1 = ClusterAlgebra(matrix([[0,1],[-1,0]]),d=(4,1),Z=((1,2,3,4,1),(1,1)))
-            sage: A2 = A1.mutate_initial([0,1,0,1,0,1])
+            sage: A1.clear_computed_data()
+            sage: A2 = A1.mutate_initial([0,1,0,1,0,1],mutating_F=True)
             sage: F_dict = A2._F_poly_dict
             sage: A2.clear_computed_data()
             sage: S = A2.initial_seed()
             sage: S.mutate([1,0,1,0,1,0])
             sage: A2._F_poly_dict == F_dict
             True
+            sage: A = ClusterAlgebra(['A',2],d=(1,3))
+            sage: A.clear_computed_data()
+            sage: A.explore_to_depth(infinity)
+            sage: gg = A.g_vectors_so_far(); gg
+            [(0, 1), (-1, 1), (-1, 0), (-2, 1), (-3, 1), (-3, 2), (0, -1), (1, 0)]
+            sage: len(A.F_polynomials_so_far())
+            8
+            sage: A.cluster_variables_so_far()
+            [x1, (x1 + 1)/x0, (x0^3 + z1_2*x0^2 + z1_1*x0 + x1 + 1)/(x0*x1), (x0^3 + z1_2*x0^2 + z1_1*x0*x1 + x1^2 + z1_1*x0 + 2*x1 + 1)/(x0^2*x1),
+            (x0^6 + 2*z1_2*x0^5 + z1_1*x0^4*x1 + (z1_2^2 + 2*z1_1)*x0^4 + (z1_1*z1_2 + 3)*x0^3*x1 + z1_2*x0^2*x1^2 + (2*z1_1*z1_2 + 2)*x0^3
+             + (z1_1^2 + 3*z1_2)*x0^2*x1 + 2*z1_1*x0*x1^2 + x1^3 + (z1_1^2 + 2*z1_2)*x0^2 + 4*z1_1*x0*x1 + 3*x1^2 + 2*z1_1*x0 + 3*x1 + 1)/(x0^3*x1^2), 
+             (x0^3 + z1_2*x0^2*x1 + z1_1*x0*x1^2 + x1^3 + z1_2*x0^2 + 2*z1_1*x0*x1 + 3*x1^2 + z1_1*x0 + 3*x1 + 1)/(x0^3*x1), 
+             (x0^3 + z1_2*x0^2 + z1_1*x0 + 1)/x1, x0]
+            sage: A.clear_computed_data()
+            sage: A2 = A.mutate_initial([0,1,0,1,0,1,0,1])  # mutating_F = False here by default
+            sage: A2.g_vectors_so_far() == gg
+            True
+            sage: A2.F_polynomials_so_far()
+            [1, 1]
         """
         n = self.rank()
 
@@ -2428,7 +2480,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         path_dict = copy(self._path_dict)
         path_to_current = copy(self.current_seed().path_from_initial_seed())
         B0 = copy(self._B0)
-        initial_g_vects = list(map(tuple, identity_matrix(n).columns()))
+        initial_g_vects = frozenset(map(tuple, identity_matrix(n).columns()))
         Z = copy(self._Z0)
 
         # go
