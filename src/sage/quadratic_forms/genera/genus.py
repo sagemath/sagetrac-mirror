@@ -3793,7 +3793,7 @@ def rational_qf_from_invariants(m, det, P, sminus):
             S = P
             if sminus == 2:
                 S += [-1]
-            a = QQ.hilbert_conductor_inverse(S,-d)
+            a = QQ.hilbert_symbol_negative_at_S(S,-d)
         P = [p for p in P if hilbert_symbol(a, -d, p) == 1] + [p for p in ZZ(2*a*d).prime_divisors() if hilbert_symbol(a, -d, p)==-1 and p not in P]
         sminus = max(0, sminus-1)
         m = m - 1

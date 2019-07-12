@@ -356,7 +356,7 @@ class AbelianGroupAutomorphismGroup_gap(GroupMixinLibGAP,
         ambient = self.ambient()
         generators = libgap_subgroup.GeneratorsOfGroup()
         generators = tuple([ambient(g) for g in generators])
-        return AbelianGroupAutomorphismGroup_subgroup(ambient, generators,check=check)
+        return AbelianGroupAutomorphismGroup_subgroup(ambient, generators,check=False)
 
     def covering_matrix_ring(self):
         r"""

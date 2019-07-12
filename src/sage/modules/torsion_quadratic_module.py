@@ -344,10 +344,6 @@ class TorsionQuadraticModule(FGP_Module_class):
                                           modulus=self._modulus,
                                           modulus_qf=self._modulus_qf)
 
-    _to_smith = to_smith
-
-    _to_gens = to_gens
-
     def all_submodules(self):
         r"""
         Return a list of all submodules of ``self``.
@@ -1490,6 +1486,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         # for k in range(E.ncols()):
         #     assert 0 == (tmp[:, k]-E[:, k]) % invs[k]
         return to_gens
+
+    _to_smith = to_smith
+    _to_gens = to_gens
 
     def direct_sum(self, other, return_maps=False):
         r"""
