@@ -173,18 +173,16 @@ class SetValuedTableaux(UniqueRepresentation, Parent):
             col = self._bracket(i,right=False)
             if col == -1:
                 return None
-            tab = [[[entry] for entry in r] for r in self.value]
+            tab = [[list(entry) for entry in r] for r in self.value]
             t = self.value.conjugate()
             column = t[col]
             row = min([ j for j in range(len(column)) if i+1 in column[j] ])
             # checks that there is a cell to the left and that the cell contains i and i+1
             if col>0 and all(x in tab[row][col-1] for x in [i,i+1]):
-                entry = list(tab[row][col-1])
-                entry.remove(i+1)
-                tab[row][col] = sorted(tab[row][col]+[i])
+                tab[row][col-1].remove(i+1)S
             else:
                 tab[row][col].remove(i+1)
-                tab[row][col] = sorted(tab[row][col]+[i])
+            tab[row][col] = sorted(tab[row][col]+[i])
             return self.parent()(tab)
             
         def f(self, i):
@@ -200,15 +198,14 @@ class SetValuedTableaux(UniqueRepresentation, Parent):
             col = self._bracket(i,right=True)
             if col == -1:
                 return None
-            tab = [[[entry] for entry in r] for r in self.value]
+            tab = [[list(entry) for entry in r] for r in self.value]
             t = self.value.conjugate()
             column = t[col]
             row = min([ j for j in range(len(column)) if i in column[j] ])
             # checks that there is a cell to the right and that the cell contains i and i+1
             if col<len(self.value[row])-1 and all(x in tab[row][col+1] for x in [i,i+1]):
                 tab[row][col+1].remove(i)
-                tab[row][col] = sorted(tab[row][col]+[i+1])
             else:
                 tab[row][col].remove(i)
-                tab[row][col] = sorted(tab[row][col]+[i+1])
+            tab[row][col] = sorted(tab[row][col]+[i+1])
             return self.parent()(tab)
