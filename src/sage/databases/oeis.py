@@ -926,7 +926,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's ...
+            A087778: Decimal expansion ... Avogadro...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23
@@ -1745,7 +1745,7 @@ class OEISSequence(SageObject):
             A001113: Decimal expansion of e.
 
             sage: ee.programs()[0]                      # optional -- internet
-            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } \\\\ _Harry J. Smith_, Apr 15 2009'
+            '(PARI) default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); \\\\ _Harry J. Smith_, Apr 15 2009'
 
         TESTS::
 

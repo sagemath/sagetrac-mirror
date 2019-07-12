@@ -287,7 +287,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision is None:
             precision = series_precision()
 
-        from sage.functions.log import log
+        log = A.locals()['log']
         result = A.zero()
         if precision >= 1:
             result += n * log(n)
@@ -442,7 +442,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision is None:
             precision = series_precision()
 
-        from sage.functions.log import log
+        log = A.locals()['log']
         result = A.zero()
         if precision >= 1:
             result += log(n)
@@ -880,14 +880,14 @@ class AsymptoticExpansionGenerators(SageObject):
         ::
 
             sage: from sage.groups.misc_gps.argument_groups import SignGroup
-            sage: S = SignGroup()
+            sage: Signs = SignGroup()
             sage: asymptotic_expansions.SingularityAnalysis(
-            ....:     'n', S(-1), alpha=2, beta=1, precision=5,
+            ....:     'n', Signs(-1), alpha=2, beta=1, precision=5,
             ....:     normalized=False)
             n*log(n)*(-1)^n + (euler_gamma - 1)*n*(-1)^n + log(n)*(-1)^n
             + (euler_gamma + 1/2)*(-1)^n + O(n^(-1)*(-1)^n)
             sage: _.parent()
-            Asymptotic Ring <n^ZZ * log(n)^ZZ * S^n> over Symbolic Constants Subring
+            Asymptotic Ring <n^ZZ * log(n)^ZZ * Signs^n> over Symbolic Constants Subring
         """
         from itertools import islice, count
         from .asymptotic_ring import AsymptoticRing
@@ -1185,7 +1185,7 @@ class AsymptoticExpansionGenerators(SageObject):
         for k in srange(2, precision-1):
             coef = z_expansion.monomial_coefficient((1/Z)**((k+1) * one_half))
             current_var = SR('d{k}'.format(k=k))
-            solution_dict[current_var] = coef.subs(solution_dict).solve(current_var)[0].rhs()
+            solution_dict[current_var] = coef.subs(solution_dict).simplify_rational().solve(current_var)[0].rhs()
 
         return A(tau) + ansatz(prec=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
 
