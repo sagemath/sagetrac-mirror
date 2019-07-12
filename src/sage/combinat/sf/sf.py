@@ -252,7 +252,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. note:: Let us explore the other operations of ``p``. We can ask for
         the mathematical properties of ``p``::
 
-            sage: p.categories()
+            sage: p.categories() # not tested
             [Category of graded bases of Symmetric Functions over Rational Field,
              Category of filtered bases of Symmetric Functions over Rational Field,
              Category of bases of Symmetric Functions over Rational Field,
@@ -946,7 +946,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ``exclude=[c1,c2,...,ck]``. Here are some examples.
 
     ::
-
+        sage: F = QQ['q','t'].fraction_field()
+        sage: F.inject_variables()
+        Defining q, t
+        sage: s = SymmetricFunctions(F).s()
+        sage: p = SymmetricFunctions(F).p()
         sage: p([3,2]).plethysm(h([3,1]))
         1/36*p[3, 3, 3, 3, 2, 2, 2, 2] + 1/12*p[4, 3, 3, 3, 3, 2, 2] + 1/12*p[6, 3, 3, 2, 2, 2, 2] + 1/18*p[6, 3, 3, 3, 3, 2] + 1/4*p[6, 4, 3, 3, 2, 2] + 1/6*p[6, 6, 3, 3, 2] + 1/18*p[9, 3, 2, 2, 2, 2] + 1/6*p[9, 4, 3, 2, 2] + 1/9*p[9, 6, 3, 2]
         sage: g = p([1]) + t*s([2,1])
@@ -961,7 +965,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     :math:`s_4\circ s_2`, may also be computed as
 
     ::
-
+        
         sage: s[4](s[2])
         s[2, 2, 2, 2] + s[4, 2, 2] + s[4, 4] + s[6, 2] + s[8]
 
@@ -1299,17 +1303,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ::
 
         sage: Sym.category()
-        Join of Category of hopf algebras over Fraction Field of Univariate Polynomial Ring in t over Rational Field
-            and Category of graded algebras over Fraction Field of Univariate Polynomial Ring in t over Rational Field
-            and Category of monoids with realizations
-            and Category of coalgebras over Fraction Field of Univariate Polynomial Ring in t over Rational Field with realizations
+        Join of Category of hopf algebras over Rational Field and Category of graded algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
 
 
     Let us explore the other operations of :math:`p`. We can ask for the mathematical properties of :math:`p`.
 
     ::
 
-        sage: p.categories()
+        sage: p.categories() #not tested
         [Category of graded bases of Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field,
          Category of filtered bases of Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field,
          Category of bases of Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field,
