@@ -1351,7 +1351,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
 
         # Determine scalars
-        scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])))
+        #print('yay', self._d, (1,)*self._n)
+        if self._d <> (1,)*self._n:
+            scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])))
+        else:
+             #print 'yip'
+             scalars = ZZ
 
         # Determine coefficients and base
         if m > 0:
