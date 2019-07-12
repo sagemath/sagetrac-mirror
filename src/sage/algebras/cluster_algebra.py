@@ -1336,27 +1336,32 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # NOTE: for speed purposes we need to have QQ here instead of the more
         # natural ZZ. The reason is that _mutated_F is faster if we do not cast
         # the result to polynomials but then we get "rational" coefficients
-        var_switch = not kwargs.get('Z', False)
-        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] + flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else PolynomialRing(QQ, ['u%s' % i for i in range(self._n)])
 
-        if var_switch:
-            self._Z0 = tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
+        # Determine scalars
+        var_switch = self._d != (1,)*self._n and not kwargs.get('Z', False)
+        self._scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else ZZ)
+
+        self._U = PolynomialRing(self._scalars, ['u%s' % i for i in range(self._n)])
+
+        if var_switch or self._d == (1,)*self._n:
+            self._Z0 = tuple((1,)+tuple([self._scalars('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
         else:
             self._Z0 = kwargs.get('Z')
         
+        # consistency checking  for exchange coefficients
         if len(self._Z0) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
         for i in range(len(self._Z0)):
             if len(self._Z0[i]) != self._d[i] + 1:
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
+        if not prod(flatten([[self._Z0[i][j] in self._scalars for j in range(1,self._d[i])] for i in range(self._n)])):
+            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
 
-        # Determine scalars
-        #print('yay', self._d, (1,)*self._n)
-        if self._d <> (1,)*self._n:
-            scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])))
-        else:
-             #print 'yip'
-             scalars = ZZ
+        # Determine the names of the initial cluster variables
+        variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
+        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(self._n)]))
+        if len(variables) != self._n:
+            raise ValueError("cluster_variable_names should be a list of %d valid variable names" % self._n)
 
         # Determine coefficients and base
         if m > 0:
@@ -1368,24 +1373,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix + str(i) for i in range(offset, m + offset)]))
             if len(coefficients) != m:
                 raise ValueError("coefficient_names should be a list of %d valid variable names" % m)
-            base = LaurentPolynomialRing(scalars, coefficients)
+            base = LaurentPolynomialRing(self._scalars, coefficients)
         else:
-            base = scalars
+            base = self._scalars
             coefficients = []
 
-        # Determine the names of the initial cluster variables
-        variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
-        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(self._n)]))
-        if len(variables) != self._n:
-            raise ValueError("cluster_variable_names should be a list of %d valid variable names" % self._n)
-
         # Setup Parent and ambient
-        self._ambient = LaurentPolynomialRing(scalars, variables + coefficients)
-        Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(),
+        self._ambient = LaurentPolynomialRing(base, variables)
+        Parent.__init__(self, base=base, category=Rings(self._scalars).Commutative().Subobjects(),
                         names=variables + coefficients)
-
-        if not prod(flatten([[self._Z0[i][j] in self.base() for j in range(1,self._d[i])] for i in range(self._n)])):
-            raise ValueError('The exchange polynomial coefficients need to be contained in the base ring.')
 
         # Setup infrastructure to store computed data
         self.clear_computed_data()
@@ -1400,11 +1396,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # and exchange coefficient specialization
         # NOTE: storing both _B0 as rectangular matrix and _yhat is redundant.
         # We keep both around for speed purposes.
-        self._y = {self._U.gen(j): prod(self._base.gen(i) ** M0[i, j] for i in range(m))
+        self._y = {self._U.gen(j): prod(base(coefficients[i]) ** M0[i, j] for i in range(m))
                    for j in range(self._n)}
-        self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** self._B0[i, j]
-                                           for i in range(self._n + m))
-                      for j in range(self._n)}
+        self._yhat = {self._U.gen(j): self._y[self._U.gen(j)] * prod(self._ambient.gen(i) ** self._B0[i, j] for i in range(self._n)) for j in range(self._n)}
 
         # Register embedding into self.ambient()
         embedding = SetMorphism(Hom(self, self.ambient()), lambda x: x.lift())
@@ -1432,7 +1426,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.scalars()
             Integer Ring
         """
-        return self._ambient.base()
+        return self._scalars
 
     def lift(self, x):
         r"""
@@ -1916,6 +1910,36 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 found_so_far.add(g)
                 yield g
 
+    @cached_method(key=lambda a, b: tuple(b))
+    def cluster_variable(self, g_vector):
+        r"""
+        Return the cluster variable with g-vector ``g_vector`` if it has
+        been found.
+
+        INPUT:
+
+        - ``g_vector`` -- tuple; the g-vector of the cluster variable to return
+
+        ALGORITHM:
+
+        This function computes cluster variables from their g-vectors and
+        F-polynomials using the "separation of additions" formula of
+        Theorem 3.7 in [FZ2007]_.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.initial_seed().mutate(0)
+            sage: A.cluster_variable((-1, 1))
+            (x1 + 1)/x0
+        """
+        g_vector = tuple(g_vector)
+        F = self.ambient().fraction_field()(self.F_polynomial(g_vector))
+        F_std = F.subs(self._yhat)
+        g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
+        F_trop = F.subs(self._y).denominator()[1]
+        return self.retract(g_mon * F_std * F_trop)
+
     def cluster_variables(self):
         r"""
         Return an iterator producing all the cluster variables of ``self``.
@@ -1934,6 +1958,20 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             9
         """
         return map(self.cluster_variable, self.g_vectors())
+
+    def cluster_variables_so_far(self):
+        r"""
+        Return a list of the cluster variables encountered so far.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
+            sage: A.current_seed().mutate(0)
+            sage: sorted(A.cluster_variables_so_far(), key=str)
+            [(x1 + 1)/x0, x0, x1]
+        """
+        return [self.cluster_variable(v) for v in self.g_vectors_so_far()]
 
     def F_polynomials(self):
         r"""
@@ -1968,20 +2006,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         return list(self._path_dict)
 
-    def cluster_variables_so_far(self):
-        r"""
-        Return a list of the cluster variables encountered so far.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2])
-            sage: A.clear_computed_data()
-            sage: A.current_seed().mutate(0)
-            sage: sorted(A.cluster_variables_so_far(), key=str)
-            [(x1 + 1)/x0, x0, x1]
-        """
-        return [self.cluster_variable(v) for v in self.g_vectors_so_far()]
-
     def F_polynomials_so_far(self):
         r"""
         Return a list of the F-polynomials encountered so far.
@@ -1995,36 +2019,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             [1, 1, u0 + 1]
         """
         return list(self._F_poly_dict.values())
-
-    @cached_method(key=lambda a, b: tuple(b))
-    def cluster_variable(self, g_vector):
-        r"""
-        Return the cluster variable with g-vector ``g_vector`` if it has
-        been found.
-
-        INPUT:
-
-        - ``g_vector`` -- tuple; the g-vector of the cluster variable to return
-
-        ALGORITHM:
-
-        This function computes cluster variables from their g-vectors and
-        F-polynomials using the "separation of additions" formula of
-        Theorem 3.7 in [FZ2007]_.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2])
-            sage: A.initial_seed().mutate(0)
-            sage: A.cluster_variable((-1, 1))
-            (x1 + 1)/x0
-        """
-        g_vector = tuple(g_vector)
-        F = self.F_polynomial(g_vector)
-        F_std = F.subs(self._yhat)
-        g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
-        F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
-        return self.retract(g_mon * F_std * F_trop)
 
     def F_polynomial(self, g_vector):
         r"""
