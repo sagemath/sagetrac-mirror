@@ -363,24 +363,34 @@ def set_function(x):
 
         sage: from sage.misc.latex import set_function
         sage: x,y,z = var('x,y,z')
-        sage: print(set_function({x/2, y^2}))
-        \mathrm{set}(\left\{y^{2}, \frac{1}{2} \, x\right\})
+        sage: print(set_function({(x/2, y^2)}))
+        \left\{\left(\frac{1}{2} \, x, y^{2}\right)\right\}
         sage: s = frozenset([1, 2, x^2, sin(z^2), y/2])
-        sage: latex(s)
-        \mathrm{frozenset}(\left\{1, 2, \frac{1}{2} \, y, \sin\left(z^{2}\right), x^{2}\right\})
+        sage: latex(s)  # random
+        \mathrm{frozenset}\left(\left\{1, 2, \frac{1}{2} \, y, \sin\left(z^{2}\right), x^{2}\right\}\right)
+
+    TESTS:
+
+    Empty sets::
+
+        sage: print(set_function(set()))
+        \left\{\right\}
+        sage: print(set_function(frozenset()))
+        \mathrm{frozenset}\left(\right)
     """
-    head = r"\mathrm{%s}" % x.__class__.__name__
-    if len(x) == 0:
-        return "%s()" % head
+    head = x.__class__.__name__
+    is_set = isinstance(x, set)
     if len(x) < MAX_SEQ_LENGTH:
         x = _sorted_for_pprint(x)
     data = "".join([r"\left\{",
                     ", ".join(latex(elt) for elt in x),
                     r"\right\}"])
-    if isinstance(x, set):
+    if is_set:
         return data
     else:
-        return "%s(%s)" % (head, data)
+        if len(x) == 0:
+            data = ""
+        return r"\mathrm{%s}\left(%s\right)" % (head, data)
 
 
 def dict_function(x):
@@ -396,18 +406,18 @@ def dict_function(x):
         sage: from sage.misc.latex import dict_function
         sage: x,y,z = var('x,y,z')
         sage: print(dict_function({x/2: y^2}))
-        \left\{\begin{aligned}\frac{1}{2} \, x :&\ y^{2}\end{aligned}\right\}
+        \left\{{\frac{1}{2} \, x : y^{2}}\right\}
         sage: d = {(1,2,x^2): [sin(z^2), y/2]}
         sage: latex(d)
-        \left\{\begin{aligned}\left(1, 2, x^{2}\right) :&\ \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]\end{aligned}\right\}
+        \left\{{\left(1, 2, x^{2}\right) : \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]}\right\}
     """
     it = iterkeys(x)
     if not DICT_IS_ORDERED and len(x) < MAX_SEQ_LENGTH:
         it = _sorted_for_pprint(it)
-    return "".join([r"\left\{\begin{aligned}",
-                    r", \\".join(r"%s :&\ %s" % (latex(key), latex(x[key]))
+    return "".join([r"\left\{",
+                    r", ".join(r"{%s : %s}" % (latex(key), latex(x[key]))
                                  for key in it),
-                    r"\end{aligned}\right\}"])
+                    r"\right\}"])
 
 # One can add to the latex_table in order to install latexing
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)

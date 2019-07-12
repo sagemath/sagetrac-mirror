@@ -271,7 +271,7 @@ class CharacterArtFactory(SageObject):
         r"""
         Return an character art output of a set.
 
-        TESTS::
+        TESTS:
 
         When the constructor is passed a set or frozenset, this method is
         called. If the set is small enough, its contents are sorted::
@@ -295,27 +295,27 @@ class CharacterArtFactory(SageObject):
                 ( {            /\    /\      /\/\    /  \  } )
             list( { /\/\/\, /\/  \, /  \/\, /    \, /    \ } )
 
-        The type of an empty set is always printed::
+        Printing empty sets::
 
-            sage: ascii_art(set())
-            set(  )
+            sage: ascii_art(set())  # indirect doctest
+            { }
+            sage: ascii_art(frozenset())  # indirect doctest
+            frozenset( )
         """
-        head = self.build_from_string(s.__class__.__name__)
         is_set = isinstance(s, set)
+        head = self.build_from_string(s.__class__.__name__)
         if len(s) < MAX_SEQ_LENGTH:
             s = _sorted_for_pprint(s)
         comma = self.art_type([self.string_type(', ')], baseline=0)
         repr_elems = self.concatenate(s, comma)
-        if len(s) == 0:
-            data = repr_elems
-            is_set = False
-        else:
-            data = self.build_container(
-                repr_elems, self.left_curly_brace, self.right_curly_brace,
-                baseline)
+        data = self.build_container(
+            repr_elems, self.left_curly_brace, self.right_curly_brace,
+            baseline)
         if is_set:
             return data
         else:
+            if len(s) == 0:
+                data = repr_elems
             return head + self.build_container(
                 data, self.left_parenthesis, self.right_parenthesis,
                 baseline)
