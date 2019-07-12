@@ -269,7 +269,7 @@ class CharacterArtFactory(SageObject):
 
     def build_set(self, s, baseline=0):
         r"""
-        Return an character art output of a set.
+        Return the character art output of a set.
 
         TESTS:
 
@@ -322,7 +322,7 @@ class CharacterArtFactory(SageObject):
 
     def build_dict(self, d, baseline=0):
         r"""
-        Return an character art output of a dictionary.
+        Return the character art output of a dictionary.
 
         TESTS::
 
@@ -359,7 +359,7 @@ class CharacterArtFactory(SageObject):
 
     def build_list(self, l, baseline=0):
         r"""
-        Return an character art output of a list.
+        Return the character art output of a list.
 
         TESTS::
 
@@ -387,7 +387,7 @@ class CharacterArtFactory(SageObject):
 
     def build_tuple(self, t, baseline=0):
         r"""
-        Return an character art output of a tuple.
+        Return the character art output of a tuple.
 
         TESTS::
 
