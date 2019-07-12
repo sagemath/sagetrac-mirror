@@ -1217,7 +1217,7 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j) ** self._B[j, k]
             elif self._B[j, k] < 0:
                 neg *= self.F_polynomial(j) ** (-self._B[j, k])
-        return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) / alg.F_polynomial(old_g_vector)
+        return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) // alg.F_polynomial(old_g_vector)
 
 
 ##############################################################################
@@ -1950,12 +1950,20 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.cluster_variable((-1, 1))
             (x1 + 1)/x0
         """
+        #g_vector = tuple(g_vector)
+        #F = self.ambient().fraction_field()(self.F_polynomial(g_vector))
+        #F_std = F.subs(self._yhat)
+        #g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
+        #F_trop = F.subs(self._y).denominator()
+        #return self.retract(g_mon * F_std * F_trop)     
+           
         g_vector = tuple(g_vector)
-        F = self.ambient().fraction_field()(self.F_polynomial(g_vector))
+        F = self.F_polynomial(g_vector)
         F_std = F.subs(self._yhat)
         g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
-        F_trop = F.subs(self._y).denominator()[1]
+        F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
         return self.retract(g_mon * F_std * F_trop)
+        
 
     def cluster_variables(self):
         r"""
