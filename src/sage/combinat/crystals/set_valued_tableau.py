@@ -8,7 +8,8 @@ from sage.combinat.tableau import SemistandardSetValuedTableau
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.partition import Partition
 
-class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
+#class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
+class SetValuedTableaux(UniqueRepresentation, Parent):
     r"""
     The crystal on semistandard set-valued tableaux.
 
@@ -29,7 +30,7 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, shape, n):
+    def __classcall_private__(cls, shape, n=None):
         r"""
         Classcall to mend the input.
 
@@ -43,12 +44,12 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
         if not isinstance(shape,Partition) and not isinstance(shape,list):
             raise ValueError("shape should be a partition")
         else:
-            self.shape = Partition(shape)
+            shape = Partition(shape)
         if n is None:
-            self.max_entry = self.shape.size()
-        elif n>0:
-            sel.max_entry = n
-        raise ValueError("n should be a positive integer")
+            n = shape.size()
+        elif n<=0:
+            raise ValueError("n should be a positive integer")
+        return super(SetValuedTableaux, cls).__classcall__(cls, shape, n)
 
     def __init__(self, shape, n):
         r"""
@@ -114,10 +115,11 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
             
             Return list of +1, -1, 0 with length equal to number of columns of self.
             """
-            st = SemistandardSetValuedTableau(self)
+            #st = SemistandardSetValuedTableau(self)
+            st = self.value
             signs = []
             for col in st.conjugate():
-                word = sum(col, [])
+                word = sum(col, ())
                 if i in word and i+1 in word:
                     signs += [0]
                 elif i in word: #i in word, i+1 not in word
@@ -140,7 +142,7 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
 
             If no `i` can be changed to `i+1` or vice versa, return -1.
             """
-            x = _get_signs(self, i) # x is a list of +1, -1, 0
+            x = self._get_signs(i) # x is a list of +1, -1, 0
             if not right:
                 x = [-j for j in x][::-1]
             count = 0
@@ -168,16 +170,17 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
             """
             if i not in self.index_set():
                 raise ValueError("i must be in the index set")
-            col = _bracket(self,i,right=False)
+            col = self._bracket(i,right=False)
             if col == -1:
                 return None
-            tab = [[[entry] for entry in r] for r in self]
-            t = self.conjugate()
+            tab = [[[entry] for entry in r] for r in self.value]
+            t = self.value.conjugate()
             column = t[col]
             row = min([ j for j in range(len(column)) if i+1 in column[j] ])
             # checks that there is a cell to the left and that the cell contains i and i+1
-            if col>=1 and all(x in tab[row][col-1] for x in [i,i+1]):
-                tab[row][col-1].remove(i+1)
+            if col>0 and all(x in tab[row][col-1] for x in [i,i+1]):
+                entry = list(tab[row][col-1])
+                entry.remove(i+1)
                 tab[row][col] = sorted(tab[row][col]+[i])
             else:
                 tab[row][col].remove(i+1)
@@ -194,15 +197,15 @@ class SemistandardSetValuedTableaux(UniqueRepresentation, Parent):
             """
             if i not in self.index_set():
                 raise ValueError("i must be in the index set")
-            col = _bracket(self,i,right=True)
+            col = self._bracket(i,right=True)
             if col == -1:
                 return None
-            tab = [[[entry] for entry in r] for r in self]
-            t = self.conjugate()
+            tab = [[[entry] for entry in r] for r in self.value]
+            t = self.value.conjugate()
             column = t[col]
             row = min([ j for j in range(len(column)) if i in column[j] ])
             # checks that there is a cell to the right and that the cell contains i and i+1
-            if col<len(self[row])-1 and all(x in tab[row][col+1] for x in [i,i+1]):
+            if col<len(self.value[row])-1 and all(x in tab[row][col+1] for x in [i,i+1]):
                 tab[row][col+1].remove(i)
                 tab[row][col] = sorted(tab[row][col]+[i+1])
             else:
