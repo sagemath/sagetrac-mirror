@@ -131,7 +131,7 @@ class CharacterArtFactory(SageObject):
             return self.build_dict(obj, baseline)
         elif isinstance(obj, list):
             return self.build_list(obj, baseline)
-        elif isinstance(obj, set):
+        elif isinstance(obj, set) or isinstance(obj, frozenset):
             return self.build_set(obj, baseline)
         else:
             return self.build_from_string(obj, baseline)
@@ -271,31 +271,54 @@ class CharacterArtFactory(SageObject):
         r"""
         Return an character art output of a set.
 
-        TESTS:
+        TESTS::
 
-        When the constructor is passed a set, this method is called.  Since
-        iteration over sets is non-deterministic so too is the results of this
-        test::
+        When the constructor is passed a set or frozenset, this method is
+        called. If the set is small enough, its contents are sorted::
 
-            sage: ascii_art(set(DyckWords(3)))  # indirect doctest random
+            sage: ascii_art(set(DyckWords(3)))  # indirect doctest
             {                                   /\   }
-            {  /\      /\/\              /\    /  \  }
-            { /  \/\, /    \, /\/\/\, /\/  \, /    \ }
+            {            /\    /\      /\/\    /  \  }
+            { /\/\/\, /\/  \, /  \/\, /    \, /    \ }
+
+            sage: ascii_art(frozenset(DyckWords(3)))  # indirect doctest
+                     ( {                                   /\   } )
+                     ( {            /\    /\      /\/\    /  \  } )
+            frozenset( { /\/\/\, /\/  \, /  \/\, /    \, /    \ } )
 
         We can also call this method directly an pass an iterable that is not a
         set, but still obtain the same output formatting::
 
             sage: from sage.typeset.ascii_art import _ascii_art_factory as factory
             sage: factory.build_set(sorted(set(DyckWords(3))))
-            {                                   /\   }
-            {            /\    /\      /\/\    /  \  }
-            { /\/\/\, /\/  \, /  \/\, /    \, /    \ }
+                ( {                                   /\   } )
+                ( {            /\    /\      /\/\    /  \  } )
+            list( { /\/\/\, /\/  \, /  \/\, /    \, /    \ } )
+
+        The type of an empty set is always printed::
+
+            sage: ascii_art(set())
+            set(  )
         """
+        head = self.build_from_string(s.__class__.__name__)
+        is_set = isinstance(s, set)
+        if len(s) < MAX_SEQ_LENGTH:
+            s = _sorted_for_pprint(s)
         comma = self.art_type([self.string_type(', ')], baseline=0)
         repr_elems = self.concatenate(s, comma)
-        return self.build_container(
-            repr_elems, self.left_curly_brace, self.right_curly_brace,
-            baseline)
+        if len(s) == 0:
+            data = repr_elems
+            is_set = False
+        else:
+            data = self.build_container(
+                repr_elems, self.left_curly_brace, self.right_curly_brace,
+                baseline)
+        if is_set:
+            return data
+        else:
+            return head + self.build_container(
+                data, self.left_parenthesis, self.right_parenthesis,
+                baseline)
 
     def build_dict(self, d, baseline=0):
         r"""

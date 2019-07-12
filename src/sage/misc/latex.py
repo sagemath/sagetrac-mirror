@@ -351,6 +351,38 @@ def str_function(x):
     return x
 
 
+def set_function(x):
+    r"""
+    Returns the LaTeX code for a set ``x``.
+
+    INPUT:
+
+    - ``x`` -- a set
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import set_function
+        sage: x,y,z = var('x,y,z')
+        sage: print(set_function({x/2, y^2}))
+        \mathrm{set}(\left\{y^{2}, \frac{1}{2} \, x\right\})
+        sage: s = frozenset([1, 2, x^2, sin(z^2), y/2])
+        sage: latex(s)
+        \mathrm{frozenset}(\left\{1, 2, \frac{1}{2} \, y, \sin\left(z^{2}\right), x^{2}\right\})
+    """
+    head = r"\mathrm{%s}" % x.__class__.__name__
+    if len(x) == 0:
+        return "%s()" % head
+    if len(x) < MAX_SEQ_LENGTH:
+        x = _sorted_for_pprint(x)
+    data = "".join([r"\left\{",
+                    ", ".join(latex(elt) for elt in x),
+                    r"\right\}"])
+    if isinstance(x, set):
+        return data
+    else:
+        return "%s(%s)" % (head, data)
+
+
 def dict_function(x):
     r"""
     Returns the LaTeX code for a dictionary ``x``.
@@ -413,7 +445,9 @@ latex_table = {type(None): None_function,
                bool: bool_function,
                dict: dict_function,
                float: float_function,
+               frozenset: set_function,
                list: list_function,
+               set: set_function,
                str: str_function,
                tuple: tuple_function,
                type(NotImplemented): builtin_constant_function,
