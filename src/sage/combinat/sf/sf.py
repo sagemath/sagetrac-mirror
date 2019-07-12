@@ -3,13 +3,13 @@ Symmetric functions, with their multiple realizations
 """
 from __future__ import absolute_import
 #*****************************************************************************
-#       Copyright (C) 2017-2019 Pauline Hubert <hubert.pauline@courrier.uqam.ca>
-#                     2017-2019 Mélodie Lapointe <lapointe.melodie@courrier.uqam.ca>
-#                     2007 Mike Hansen <mhansen@gmail.com>
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2009-2012 Jason Bandlow <jbandlow@gmail.com>
 #                     2012 Anne Schilling <anne at math.ucdavis.edu>
 #                     2009-2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
+#                     2017-2019 Pauline Hubert <hubert.pauline@courrier.uqam.ca>
+#                     2017-2019 Mélodie Lapointe <lapointe.melodie@courrier.uqam.ca>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -50,11 +50,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. MODULEAUTHOR:: Jason Bandlow, Pauline Hubert, Mélodie Lapointe, Anne Schilling, Nicolas M. Thiery, Mike Zabrocki
 
     The first part of this document consists in a tutorial on symmetric functions.
-    It is then followed by the documentation. 
-    The aim of this tutorial is to present what it is possible to do in Sage on symmetric functions. 
+    It is then followed by the documentation.
+    The aim of this tutorial is to present what it is possible to do in Sage on symmetric functions.
     We suppose that the reader knows only the basics about symmetric functions but if the reader wants to learn
     more on symmetric functions [MAC]_ and [STA]_, Chapter 7, are two excellent references.
-    
+
     **Caveat:** in this tutorial, the term symmetric "functions" will
     mostly stand for "abstract" symmetric polynomials, in which variables
     are not made explicit. Indeed for most practical calculations
@@ -70,19 +70,19 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: For the impatient
 
-    Before going into details with symmetric functions in sage, here is 
-    a quick example of what we can do in sage.
+    Before going into details with symmetric functions in Sage, here is
+    a quick example of what we can do in Sage.
 
-    We recall that the **complete homogeneous** symmetric functions 
+    We recall that the **complete homogeneous** symmetric functions
     :math:`h_d` are defined in terms of the **power sum** symmetric functions
     :math:`p_{\mu}` by the formula :
 
     .. MATH:: h_d = \sum \limits_{\mu \vdash d} \dfrac{1}{z_{\mu}} p_{\mu}
 
-    where :math:`z_\mu` is the number of "automorphisms" of a permutation having 
+    where :math:`z_\mu` is the number of "automorphisms" of a permutation having
     cycle structure :math:`\mu`.
 
-    Here is how to obtain both sides of this equality in the ring of symmetric 
+    Here is how to obtain both sides of this equality in the ring of symmetric
     function ":math:`\mathrm{Sym}`" over :math:`\mathbb{Q}`::
 
         sage: Sym = SymmetricFunctions(QQ)
@@ -129,15 +129,12 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Abstract symmetric functions
 
-        We first describe how to manipulate "variable free" symmetric functions (with coefficients in the ring of rational coefficient fractions in :math:`q` and :math:`t`). 
-    Such functions are linear combinations of one of the six classical bases of symmetric functions; all indexed by interger partitions :math:`\mu=\mu_1\mu_2\cdots \mu_k`. 
+        We first describe how to manipulate "variable free" symmetric functions (with coefficients in the ring of rational coefficient fractions in :math:`q` and :math:`t`).
+    Such functions are linear combinations of one of the six classical bases of symmetric functions; all indexed by integer partitions :math:`\mu=\mu_1\mu_2\cdots \mu_k`.
 
     -   The **power sum** symmetric functions :math:`p_\mu=p_{\mu_1}p_{\mu_2}\cdots p_{\mu_2}`
-
     -   The **(complete) homogeneous** symmetric functions :math:`h_\mu=h_{\mu_1}h_{\mu_2}\cdots h_{\mu_2}`
-
     -   The **elementary** symmetric functions :math:`e_\mu=e_{\mu_1}e_{\mu_2}\cdots e_{\mu_2}`
-        
     -   The **monomial** functions :math:`m_{\mu}`
     -   The **Schur** functions :math:`s{\mu}`
     -   The **forgotten** symmetric functions :math:`f_{\mu}`
@@ -159,29 +156,29 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     Another often used coefficient ring is :math:`\mathbb{Q}(q,t)`. 
     Thus, declaring first this ring (and "injecting" variables :math:`q` and 
-    :math:`t` to make them available), one may introduce the ring of symmetric 
-    functions over :math:`\mathbb{Q}(q,t)` as follows. The ``Symqt.inject_shorthands()`` 
-    command makes the "usual" short names (as in Macdonald book) available 
+    :math:`t` to make them available), one may introduce the ring of symmetric
+    functions over :math:`\mathbb{Q}(q,t)` as follows. The ``Symqt.inject_shorthands()``
+    command makes the "usual" short names (as in the Macdonald book) available
     (with Sage < 8.0, it will display a warning message you can ignore.).
-    The keyword `verbose` allows you to make the injection quiet. 
+    The keyword `verbose` allows you to make the injection quiet.
 
     ::
 
         sage: h[2,1],p[2,1]
         (h[2, 1], p[2, 1])
-        
+
     ::
 
         sage: (q+t)*s[2,1,1]
         (q+t)*s[2, 1, 1]
 
-    Now that we have acces to all the bases we need, we can start to manipulate them.
-    Symmetric functions are indexed by partitions :math:`\mu`, with integers considered 
+    Now that we have access to all the bases we need, we can start to manipulate them.
+    Symmetric functions are indexed by partitions :math:`\mu`, with integers considered
     as partitions having size one (don't forget the brackets!)::
 
         sage: s[101,14,13,11]
         s[101, 14, 13, 11]
-        
+
     ::
 
         sage: e[3,2,1]
@@ -214,14 +211,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
       2*p[] + 2*p[1] + 3*p[2]
 
     .. rubric:: The ring structure
-    
-    Note that for the multiplicative bases (ie: :math:`e`, :math:`h` and :math:`p`), 
+
+    Note that for the multiplicative bases (ie: :math:`e`, :math:`h` and :math:`p`),
     products are replaced by the corresponding partition indexed expression::
 
         sage: p([2,1,1])*p([5,2])==p([5,2,2,1,1])
         True
 
-    For the non-multiplicative bases, such as the Schur functions, multiplication 
+    For the non-multiplicative bases, such as the Schur functions, products
     are expanded as linear combinations in the same (linear) basis::
 
         sage: s([5])^2*s([1,1,1])
@@ -230,13 +227,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: m([3,1])*m([2,2])
         m[3, 2, 2, 1] + 2*m[3, 3, 2] + m[5, 2, 1] + m[5, 3]
 
-    These calculations are relatively fast as illustrated in the following, 
+    These calculations are relatively fast as illustrated in the following,
     showing only the length of the output rather than printing it out in all its glory::
 
         sage: len(s[10,5,5,3]*s[12,5,2])
         2986
 
-    When we mix different bases, the result will be expressed in one of
+    When we mix different bases, the result will, by default, be expressed in one of
     the bases, usually the first basis encountered in the expression::
 
         sage: s([2,1])*m([1,1])+p([2,2])
@@ -248,6 +245,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p([2,2])+m([1,1])*s([2,1])
         1/6*p[1, 1, 1, 1, 1] - 1/6*p[2, 1, 1, 1] + p[2, 2] - 1/6*p[3, 1, 1] + 1/6*p[3, 2]
 
+    We can force the answer to be expressed with respect to a particular basis as follows::
+
+        sage: s(m([1,1])*s([2,1])+p([2,2]))
+        s[1, 1, 1, 1] - s[2, 1, 1] + s[2, 1, 1, 1] + 2*s[2, 2] + s[2, 2, 1] - s[3, 1] + s[3, 1, 1] + s[3, 2] + s[4]
 
     .. note:: Let us explore the other operations of ``p``. We can ask for
         the mathematical properties of ``p``::
@@ -260,38 +261,38 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
              ...]
 
         To start with, ``p`` is a graded algebra, the grading being induced
-        by the size of the partitions. Due to this, the one is the basis
-        element indexed by the empty partition::
+        by the size of the partitions. Due to this, the multiplicative identity is the 
+        basis element indexed by the empty partition::
 
             sage: p.one()
             p[]
 
     .. rubric:: Concrete symmetric functions
 
-    Our above abstract symmetric functions represent (possibly very large) 
-    concrete multivariate polynomials that are invariant upon any permutation 
+    Our above abstract symmetric functions represent (possibly very large)
+    concrete multivariate polynomials that are invariant upon any permutation
     of their variables. Simple examples include
 
     .. MATH:: p_k(x_1,x_2,\ldots, x_n)= x_1^k+x_2^k+\ldots +x_n^k,\ (\hbox{for any } k\in\mathbb{N}),\ {\rm or}
 
     .. MATH:: e_n(x_1,x_2,\ldots, x_n) = x_1x_2\cdots x_n.
 
-    To expand a symmetric function into a concrete polynomial in the set of 
+    To expand a symmetric function into a concrete polynomial in the set of
     variables :math:`x_0, x_1, \dots, x_{n-1}`, one proceeds as follows::
 
         sage: p[3].expand(3)
         x0^3 + x1^3 + x2^3
-        
+
     ::
 
         sage: h[3].expand(3)
         x0^3 + x0^2*x1 + x0*x1^2 + x1^3 + x0^2*x2 + x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2 + x2^3
-        
+
     ::
-        
+
         sage: e[3].expand(3)
         x0*x1*x2
-        
+
     ::
 
         sage: s[3,1,1].expand(4)
@@ -301,13 +302,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: m[3,1,1].expand(4)
         x0^3*x1*x2 + x0*x1^3*x2 + x0*x1*x2^3 + x0^3*x1*x3 + x0*x1^3*x3 + x0^3*x2*x3 + x1^3*x2*x3 + x0*x2^3*x3 + x1*x2^3*x3 + x0*x1*x3^3 + x0*x2*x3^3 + x1*x2*x3^3
-        
+
     ::
-        
+
         sage: f[3,1,1].expand(4)
         3*x0^5 + 2*x0^4*x1 + x0^3*x1^2 + x0^2*x1^3 + 2*x0*x1^4 + 3*x1^5 + 2*x0^4*x2 + x0^3*x1*x2 + x0*x1^3*x2 + 2*x1^4*x2 + x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 + x0*x1*x2^3 + x1^2*x2^3 + 2*x0*x2^4 + 2*x1*x2^4 + 3*x2^5 + 2*x0^4*x3 + x0^3*x1*x3 + x0*x1^3*x3 + 2*x1^4*x3 + x0^3*x2*x3 + x1^3*x2*x3 + x0*x2^3*x3 + x1*x2^3*x3 + 2*x2^4*x3 + x0^3*x3^2 + x1^3*x3^2 + x2^3*x3^2 + x0^2*x3^3 + x0*x1*x3^3 + x1^2*x3^3 + x0*x2*x3^3 + x1*x2*x3^3 + x2^2*x3^3 + 2*x0*x3^4 + 2*x1*x3^4 + 2*x2*x3^4 + 3*x3^5
 
-    For sure, one may use any other set of variables via the optional "alphabet"::
+    For sure, one may use any other set of variables via the optional "alphabet" keyword::
 
         sage: g = s[2,1]
         sage: g.expand(3, alphabet =['x','y','z'])
@@ -315,7 +316,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TOPIC:: Exercise
 
-        Let :math:`e_k(n) = e_k(x_0,x_1, \dots , x_{n-1})` and similarly for 
+        Let :math:`e_k(n) = e_k(x_0,x_1, \dots , x_{n-1})` and similarly for
         the homogeneous functions.
         Then we have the following recursion relations for :math:`n \geq 1` :
 
@@ -328,9 +329,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         where :math:`\delta_{k,0}` is the Kronecker delta.
 
         Check these relations for :math:`k=3` and :math:`2 \leq n \leq 5`.
-        
+
         ::
-        
+
             sage: #write your solution here
 
     .. TOPIC:: Solution
@@ -350,7 +351,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             ....:     g1 = h([k]).expand(n)
             ....:     print(g1)
             ....:     g2 = h([k]).expand(n-1,l[:n-1])+xn*(h([k-1]).expand(n,l[:n]))
-            ....:     print(g2)     
+            ....:     print(g2)
             0
             0
             x0^3 + x0^2*x1 + x0*x1^2 + x1^3
@@ -370,7 +371,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Convert a concrete symmetric polynomial into an abstract symmetric function
 
-    Conversely, a "concrete" symmetric polynomial, i.e.: explicitly expressed 
+    Conversely, a "concrete" symmetric polynomial, i.e.: explicitly expressed
     in the variables, maybe written as a formal symmetric function in any chosen basis.
 
     ::
@@ -383,7 +384,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: X=R.gens()
         sage: R.inject_variables()
         Defining x0, x1, x2
-        
+
     ::
 
         sage: Discr=mul(mul((X[k]-X[j])^2 for j in range(k)) for k in range(1,n))
@@ -393,10 +394,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         e[2, 2, 1, 1] - 4*e[2, 2, 2] - 4*e[3, 1, 1, 1] + 18*e[3, 2, 1] - 27*e[3, 3] - 8*e[4, 1, 1] + 24*e[4, 2]
 
 
-    The ``pol`` input of the function ``from_polynomial(pol)`` is assumed to 
+    The ``pol`` input of the function ``from_polynomial(pol)`` is assumed to
     lie in a polynomial ring over the same base field as that used for the symmetric
-     functions, which thus has to be delared beforehand.
-     
+    functions, which therefore has to be declared beforehand.
+
     ::
 
         sage: n = 3
@@ -406,7 +407,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         
     Here, we will work with three variables (:math:`y_0, y_1` and :math:`y_2`).
     Finally, we can declare our polynomial and convert it into a symmetric function
-     in the monomial basis for example.
+    in the monomial basis for example.
 
 
     ::
@@ -417,7 +418,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
 
     In the preceeding example, the base ring of polynomials is the same as the base
-     ring of symmetric polynomials considered, as checked by the following.
+    ring of symmetric polynomials considered, as checked by the following.
 
     ::
 
@@ -439,8 +440,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         s[] + (q+t)*s[1, 1] + q*t*s[1, 1, 1]
 
 
-
-    .. note::The one for different bases such as the power sum and Schur function is the same::
+    .. note::The multiplicative identity for different bases such as the power sum and Schur function is the same::
 
         sage: s.one() == p.one()
         True
@@ -500,7 +500,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TOPIC:: Exercise
 
-        It is well konwn that  :math:`h_n(X) = \sum \limits_{\mu \vdash n} \dfrac{p_{\mu}(x)}{z_{\mu}}`. Verify this result for  :math:`n \in \{1,2,3,4\}`
+        It is well known that  :math:`h_n(X) = \sum \limits_{\mu \vdash n} \dfrac{p_{\mu}(x)}{z_{\mu}}`. Verify this result for  :math:`n \in \{1,2,3,4\}`
 
         Note that there exists a function ``zee()`` which takes a partition  :math:`\mu` and gives back the value of  :math:`z_{\mu}`. To use this function, you should import it from* ``sage.combinat.sf.sfa``.
 
@@ -523,12 +523,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         True
 
     ::
-        
+
     .. rubric:: Other well-known bases
 
-    Other important bases are implemented in SAGE.
+    Other important bases of symmetric functions are implemented in Sage.
 
-    - The forgotten symmetric functions
     - The Hall-littlewood basis
     - The Jack basis
     - The orthogonal basis
@@ -536,14 +535,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     - The Witt basis
     - The zonal basis
 
-    The well known Macdonald symmetric functions are also implemented in sage. 
+    The well-known Macdonald symmetric functions are also implemented in sage.
     For more details, you can consult the following sage reference :
     http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/sf/macdonald.html
-    
+
     For more information, see the documentation of the individual bases.
 
-    Here are some examples involving the "combinatorial" Macdonald symmetric functions. 
-    These are eigenfunctions of the operator :math:`\nabla`. 
+    Here are some examples involving the "combinatorial" Macdonald symmetric functions.
+    These are eigenfunctions of the operator :math:`\nabla`.
     (See below for more informations about :math:`\nabla`.)
 
     ::
@@ -566,8 +565,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
          q^2*t^2*McdHt[2, 2],
          q*t^3*McdHt[2, 1, 1],
          t^6*McdHt[1, 1, 1, 1]]
-         
-         
+
+
     .. rubric:: More basic commands on symmetric functions
 
     We can see that the terms of a calculation are always given in a precise order on the partitions. This order can be changed.
@@ -633,7 +632,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         10
 
 
-    Finally, the function ``support()`` returns the list of partitions that appear in a given symmetric function. The result will depend on the basis of the function. In the following example, we also use the function ``sorted()`` to get an ordered list.
+    Finally, the function ``support()`` returns the list of partitions that appear with nonzero coefficient in a given symmetric function. 
+    The result will depend on the basis of the function. In the following example, we also use the function ``sorted()`` to get an ordered list.
 
     ::
 
@@ -742,10 +742,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: Sym.rename("Symmetric Functions over Rational Field"); Sym
         Symmetric Functions over Rational Field
-        
+
     .. rubric:: The omega involution
 
-    The :math:`\omega` involution is the linear extension of the map which sends :math:`e_\lambda` to :math:`h_{\lambda}`.
+    The :math:`\omega` involution is the linear transformation that sends :math:`e_\lambda` to :math:`h_{\lambda}`.
 
     :: 
 
@@ -765,21 +765,20 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
          (s[1, 1, 1, 1, 1], s[5])]
 
     ::
-    
+
     .. rubric:: Scalar Products
 
-    The Hall scalar product is the standard scalar product on the algebra of 
-    symmetric functions. It makes the Schur functions into an orthonormal basis. 
-    The value of the scalar product between :math:`p_{\mu}` and :math:`p_{\lambda}` 
+    The Hall scalar product is the standard scalar product on the algebra of
+    symmetric functions. It makes the Schur functions into an orthonormal basis.
+    The value of the scalar product between :math:`p_{\mu}` and :math:`p_{\lambda}`
     is given by :math:`z_{\mu}` if :math:`\mu = \lambda` or zero otherwise.
     In formula,
 
     .. MATH:: \langle p_\mu,p_\lambda\rangle = z_\mu\,\delta_{\mu,\lambda}
 
     Or, yet again, we have
-      
-    .. MATH:: \left(\langle p_\mu,p_\lambda/z_\lambda\rangle\right)_{\mu,\lambda}= {\rm Id}_{n\times n}
 
+    .. MATH:: \left(\langle p_\mu,p_\lambda/z_\lambda\rangle\right)_{\mu,\lambda}= {\rm Id}_{n\times n}
 
     Thus, we get
 
@@ -799,9 +798,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric :: Other scalar products, such as the :math:`q,t`-scalar product
 
-    One may specify an optional argument which is a function on partitions 
-    giving the value for the scalar product between :math:`p_{\mu}` and :math:`p_{\mu}`. 
-    Power sums remain orthogonal for the resulting scalar product. By default, 
+    One may specify an optional argument which is a function on partitions
+    giving the value for the scalar product between :math:`p_{\mu}` and :math:`p_{\mu}`.
+    Power sums remain orthogonal for the resulting scalar product. By default,
     this value is :math:`z_{\mu}`, but other interesting cases include:
 
     .. MATH:: \langle p_{\mu},p_{\mu}\rangle_{q,t} = z_\mu\,\prod_i\frac{1-q^{\mu_i}}{1-t^{\mu_i}}.
@@ -817,11 +816,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
      .. rubric:: Schur Positivity
 
 
-    When computing with symmetric functions, one often wants to check a given 
-    symmetric function is Schur positive or not. In our current setup, this means 
-    that coefficients polynomials in :math:`\mathbb{N}[q,t]`. The following function
-     returns ``True`` if the given symmetric function is Schur positive and ``False`` 
-     if not.
+    When computing with symmetric functions, one often wants to check whether a given
+    symmetric function is Schur positive or not. In our current setup, this means
+    that the coefficients are polynomials in :math:`\mathbb{N}[q,t]`. The following function
+    returns ``True`` if the given symmetric function is Schur positive and ``False``
+    if not.
 
     ::
 
@@ -854,7 +853,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TOPIC:: Exercise
 
-        Its representation theoretic signification implies that :math:`\nabla (e_n)` is Schur positive. Verify this for :math:`1 \leq n \leq 6`.
+        Its representation-theoretic interpretation implies that :math:`\nabla (e_n)` is Schur positive. Verify this for :math:`1 \leq n \leq 6`.
 
     .. TOPIC:: Solution
 
@@ -870,11 +869,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         True
 
 
-    Schur positivity is a rare phenomena in general, but symmetric functions that come from representation theory are Schur positive. One can show that the probability that a degree :math:`n` monomial positive is Schur positive is equal to
+    Schur positivity is a rare phenomenon in general, but symmetric functions that come from representation theory are Schur positive, as are those that
+    represent effective cohomology classes on a Grassmannian. One can show that the probability that a degree :math:`n` monomial positive symmetric function
+    is Schur positive is
 
     .. MATH:: \prod_{\mu\vdash n}\frac{1}{k_\mu},\qquad {\rm where}\qquad k_\mu:=\sum_{\nu\vdash n} K_{\mu,\nu},
 
-    with :math:`K_{\mu,\nu}` the **Kostka numbers**. Recall that these occur in the expansion of the Schur functions in terms of the monomial functions:
+    with :math:`K_{\mu,\nu}` the **Kostka numbers**. Recall that these occur also in the monomial expansion of Schur functions:
 
     .. MATH:: s_\mu=\sum_\nu K_{\mu,\nu}\, m_\nu.
 
@@ -926,8 +927,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ::
 
         sage: [prob_Schur_positive(n) for n in range(1,8)]
-        [1, 1/2, 1/9, 1/560, 1/480480, 1/1027458432000, 1/2465474364698304960000]   
-    
+        [1, 1/2, 1/9, 1/560, 1/480480, 1/1027458432000, 1/2465474364698304960000]
+
     .. rubric:: Plethysm
 
 
@@ -940,9 +941,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     - :math:`p_k\circ x =x^k`, if :math:`x` is a **variable**
     - :math:`p_k\circ c =c`, if :math:`c` is a **constant**
 
-    One may specify a list of SAGE-variables to be treated as **variables** 
-    in a plethysm, using the option ``include=[x1,x2,...,xk]``, and/or a list 
-    of SAGE-variables to be considered as **constants**, using the option 
+    One may specify a list of Sage-variables to be treated as **variables**
+    in a plethysm, using the option ``include=[x1,x2,...,xk]``, and/or a list
+    of Sage-variables to be considered as **constants**, using the option
     ``exclude=[c1,c2,...,ck]``. Here are some examples.
 
     ::
@@ -959,9 +960,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p([2]).plethysm(g,exclude=[t])
         p[2] + 1/3*t*p[2, 2, 2] + (-1/3*t)*p[6]
 
-    It is costumary to also write :math:`f[g]` for :math:`f\circ g` in 
-    mathematical texts, but SAGE uses the shorthand notation :math:`f(g)` 
-    for better compatibility with python. For instance, the plethysm 
+    It is customary to also write :math:`f[g]` for :math:`f\circ g` in
+    mathematical texts, but Sage uses the shorthand notation :math:`f(g)`
+    for better compatibility with python. For instance, the plethysm
     :math:`s_4\circ s_2`, may also be computed as
 
     ::
@@ -970,16 +971,15 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         s[2, 2, 2, 2] + s[4, 2, 2] + s[4, 4] + s[6, 2] + s[8]
 
 
-    To have nice expressions for plethystic substitutions, one may set aliases 
-    for the  symmetric function on the empty partition 
-    (i.e. :math:`s_0, m_0, \dots`, all equal to the constant 1), and the 
+    To have nice expressions for plethystic substitutions, one may set aliases
+    for the symmetric function on the empty partition
+    (i.e. :math:`s_0, m_0, \dots`, all equal to the constant 1), and the
     symmetric function (unique up to a scalar) of degree 1.
 
     ::
 
-        sage: One = s([])
+        sage: One = s.one()
         sage: X = s[1]
-        
 
     ::
 
@@ -1012,32 +1012,32 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         s[4, 4, 4] + s[6, 4, 2] + s[7, 4, 1] + s[8, 2, 2] + s[9, 3]
 
 
-    Suggests that we have the following positive coefficient polynomial
+    These calculations suggest that we have the following positive coefficient polynomial
 
     ::
 
         sage: q_binomial(7,3)-q_binomial(8,2)
-        q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3    
-    
-    
+        q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3
+
+
     .. rubric:: Some interesting operators on symmetric functions
 
-    Operators on symmetric functions may be found in SAGE. Among these, 
-    the **nabla operator** is characterized as having the combinatorial 
-    Macdonald symmetric functions :math:`H_{\mu}=H_{\mu}(\mathbf{x};q,t)` 
+    Operators on symmetric functions may be found in Sage. Among these,
+    the **nabla operator** is characterized as having the combinatorial
+    Macdonald symmetric functions :math:`H_{\mu}=H_{\mu}(\mathbf{x};q,t)`
     as eigenfunctions:
 
     .. MATH:: \nabla H_{\mu} = t^{n(\mu)} q^{n(\mu')} H_{\mu},
 
-    where :math:`\mu` is a partition, :math:`\mu'` its conjugate, and :math:`n(\mu)` 
-    is set to be equal to :math:`\sum_i (i-1)\mu_i`.
+    where :math:`\mu` is a partition, :math:`\mu'` its conjugate, and :math:`n(\mu)`
+    is defined as :math:`\sum_i (i-1)\mu_i`.
     This operator :math:`\nabla` is thus defined over symmetric functions with
-     coefficients in the fraction field :math:`\mathbb{Q}[q,t]`, as is declared above.
+    coefficients in the fraction field :math:`\mathbb{Q}[q,t]`, as is declared above.
 
-    It has been shown by Haiman that :math:`\nabla(e_n)` is the Frobenius transform 
+    It has been shown by Mark Haiman that :math:`\nabla(e_n)` is the Frobenius transform
     of the bigraded character of the :math:`\mathbb{S}_n`-module of diagonal harmonic
-     polynomials. Recall that the Frobernius transform encodes irreducible as Schur 
-     functions.
+    polynomials. Recall that the Frobenius transform sends irreducible modules to Schur
+    functions.
 
     ::
 
@@ -1045,7 +1045,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         (q^3+q^2*t+q*t^2+t^3+q*t)*s[1, 1, 1] + (q^2+q*t+t^2+q+t)*s[2, 1] + s[3]
 
 
-    The global dimension of this module is :math:`(n+1)^{n-1}`, and the dimension of its alternating component (see exercise below) is the Catalan number :math:`C_n=\frac{1}{n+1}\binom{2n}{n}`. And there are many other interesting properties of the bigraded version.
+    The global dimension of this module is :math:`(n+1)^{n-1}`, and the dimension of its alternating component (see exercise below) is the Catalan number :math:`C_n=\frac{1}{n+1}\binom{2n}{n}`. There are many other interesting properties of the bigraded version.
 
     ::
 
@@ -1073,7 +1073,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         *Note that the n-th q,t-Catalan number can be computed by using the command ``qt_catalan_number(n)`` which has to be imported from* ``sage.combinat.q_analogues`` if it hasn't already been done*.
 
     ::
-        
+
         sage: from sage.combinat.q_analogues import *
         sage: for n in range (1,6) :
         ....:     print((n,qt_catalan_number(n)))
@@ -1089,7 +1089,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         (3, 5)
         (4, 14)
         (5, 42)
-        
+
     ::
 
         sage: for n in range (1,6) :
@@ -1112,7 +1112,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         True
         True
         True
-            
+
     .. rubric:: `k`-Schur functions
 
     The `k`-Schur functions live in the `k`-bounded subspace of the ring of
@@ -1195,7 +1195,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     When `t` is not equal to `1`, the subspace spanned by the `k`-Schur functions is
     realized as a quotient of the ring of symmetric functions by the ideal generated by
-    the Hall-Littlewood symmetric functions in the P basis indexed by partitions with
+    the Hall-Littlewood symmetric functions in the `P` basis indexed by partitions with
     first part greater than `k`.::
 
         sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
@@ -1232,13 +1232,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: F = SymQ3.affineSchur()
         sage: F[3,1]==dks[3,1]
         True
-  
+
 
     .. _`Representation theory of the symmetric group`:
 
     .. rubric:: Representation theory of the symmetric group
 
-    The Schur functions `s_\lambda` can also be interpreted as irreducible characters of the symmetric
+    The Schur functions `s_\lambda` can be interpreted as irreducible characters of the symmetric
     group `S_n`, where `n` is the size of the partition `\lambda`. Since the Schur functions of
     degree `n` form a basis of the symmetric functions of degree `n`, it
     follows that an arbitrary symmetric function (homogeneous of degree
@@ -1293,9 +1293,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: More specific applications
 
-    The first part of this tutorial was meant to present general use 
-    of symmetric functions in Sage. 
-    Here are now more specific applications. 
+    The first part of this tutorial was meant to present general use of symmetric functions in Sage.
+    Here are now more specific applications.
 
 
     Sage knows certain categorical information about this algebra.
@@ -1382,28 +1381,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
          Category of objects]
 
 
-
-    To start with, :math:`p` is a graded algebra, the grading being induced by the size of the partitions. Due to this, the one is the basis element indexed by the empty partition::
-
-        sage: p.one()
-        p[]
-
-
-    Note also that it is a good idea to use::
-
-        sage: s.one()
-        s[]
-        sage: s.zero()
-        0
-
-
-    instead of :math:`s(1)` and :math:`s(0)` within programs where speed is important, in order to prevent unnecessary coercions.
-
-
     .. rubric:: Hopf structure and important identities
 
-    Many important identities between symmetric functions can be linked to "the" 
-    Hopf algebra structure on the ring of symmetric function. 
+    Many important identities between symmetric functions can be linked to "the"
+    Hopf algebra structure on the ring of symmetric function.
     In part, this means that we have a **coproduct** on symmetric functions
      that may be described in either of the two forms:
 
@@ -1476,14 +1457,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: f.coproduct().apply_multilinear_morphism( lambda x,y: x*y.antipode() )
         0
 
-    .. rubric:: Skew Schur fonctions
+    .. rubric:: Skew Schur functions
 
     arise when one considers the effect of coproduct on Schur functions themselves
 
     .. MATH:: \Delta(s_\lambda) = \sum_{\mu\subseteq \lambda} s_{\lambda/\mu}\otimes s_\mu.
 
-    Skew Schur functions are also implemented in SAGE. 
-    For instance, we have the skew Schur :math:`s_{321/2}`. 
+    Skew Schur functions are also implemented in Sage.
+    For instance, we have the skew Schur :math:`s_{321/2}`.
 
     ::
 
@@ -1505,7 +1486,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     In particular, we get
 
     .. MATH:: \Delta(h_n) = \sum_{k+j=n} h_k\otimes h_j.
-        
+
     ::
 
         sage: h[4].coproduct()
@@ -1523,7 +1504,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     The Cauchy kernel is the expression
 
     .. MATH:: \sum_{n\geq 0} h_n(\mathbf{x}\mathbf{y})=\prod_{i,j}\frac{1}{1-x_iy_j}
-    written here using plethystic notation. Its degree :math:`n` homogeneous component plays a crucial role in the description of "dual bases" with respect to the scalar product. We have
+    written here using plethystic notation. Its degree :math:`n` homogeneous component plays a crucial role in the description 
+    of "dual bases" with respect to the scalar product. We have
 
     .. MATH:: h_n(\mathbf{x}\mathbf{y})=\sum_{\mu\vdash n} F_\mu\otimes G_\mu
         \qquad {\rm iff}\qquad
@@ -1531,11 +1513,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         (\delta_{\mu \lambda}:\ \hbox{Kronecker "delta"})`
 
     where one "thinks" :math:`\mathbf{x}=s_1\otimes \mathbb{1}` and
-     :math:`\mathbf{y}= \mathbb{1}\otimes s_1`. One says that 
+     :math:`\mathbf{y}= \mathbb{1}\otimes s_1`. One says that
      :math:`\{F_\mu\}_\mu` and :math:`\{G_\lambda\}_\lambda` are **dual bases**.
-      Schur functions are self dual, the dual of the :math:`h_{\mu}` are the 
-      :math:`m_\mu`, that of the :math:`p_\mu` are the :math:`p_{\mu}/z_{\mu}`. 
-      The "forgotten" symmetric function :math:`f_{\mu}` appear as the dual of 
+      Schur functions are self dual, the dual of the :math:`h_{\mu}` are the
+      :math:`m_\mu`, that of the :math:`p_\mu` are the :math:`p_{\mu}/z_{\mu}`.
+      The "forgotten" symmetric function :math:`f_{\mu}` appear as the dual of
       the :math:`e_{\mu}`.
 
     ::
@@ -1591,20 +1573,19 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         s[] # s[2, 2] + s[] # s[3, 1] + s[] # s[4] + 2*s[1] # s[2, 1] + 2*s[1] # s[3] + s[1, 1] # s[1, 1] + s[1, 1] # s[2] + s[2] # s[1, 1] + 3*s[2] # s[2] + 2*s[2, 1] # s[1] + s[2, 2] # s[] + 2*s[3] # s[1] + s[3, 1] # s[] + s[4] # s[]
         sage: g.coproduct().apply_multilinear_morphism( lambda x,y: x*y.antipode() )
         0
-        
-    In this interpretation of symmetric functions as characters on the symmetric group, 
-    the multiplication and comultiplication are interpreted as induction 
-    (from :math:`S_n\times S_m` to :math:`S_{n+m}`) and restriction, respectively. 
-    The Schur functions can also be interpreted as characters of :math:`GL_n`.
 
+    In this interpretation of symmetric functions as characters on the symmetric group,
+    the multiplication and comultiplication are interpreted as induction
+    (from :math:`S_n\times S_m` to :math:`S_{n+m}`) and restriction, respectively.
+    The Schur functions can also be interpreted as characters of :math:`GL_n`.
 
 
     .. rubric:: The Kronecker product
 
-    As in the section on the **Representation theory of the symmetric group**, 
-    a symmetric function may be considered as a class function on the symmetric 
-    group where the elements :math:`p_\mu/z_\mu` are the indicators of a permutation 
-    having cycle structure :math:`\mu`.  The Kronecker product of two symmetric 
+    As in the section on the **Representation theory of the symmetric group**,
+    a symmetric function may be considered as a class function on the symmetric
+    group where the elements :math:`p_\mu/z_\mu` are the indicators of a permutation
+    having cycle structure :math:`\mu`.  The Kronecker product of two symmetric
     functions corresponds to the pointwise product of these class functions.
 
     Since the Schur functions are the irreducible characters
@@ -1664,8 +1645,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     to specialize. In this example we will convert to and from the Schur
     basis.  For this we implement methods ``_self_to_s`` and ``_s_to_self``.
     By registering these two functions as coercions, Sage then knows
-    automatically how it possible to change between any two bases for
-    which there is a path of changes of bases. 
+    automatically how to change between any two bases for
+    which there is a path of changes of basis.
 
     ::
 
