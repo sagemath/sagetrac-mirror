@@ -1396,7 +1396,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             coefficients = []
 
         # Setup Parent and ambient
-        self._ambient = LaurentPolynomialRing(base, variables)
+        self._ambient = LaurentPolynomialRing(self._scalars, variables + coefficients)
         Parent.__init__(self, base=base, category=Rings(self._scalars).Commutative().Subobjects(),
                         names=variables + coefficients)
 
@@ -1415,7 +1415,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # We keep both around for speed purposes.
         self._y = {self._U.gen(j): prod(base(coefficients[i]) ** M0[i, j] for i in range(m))
                    for j in range(self._n)}
-        self._yhat = {self._U.gen(j): self._y[self._U.gen(j)] * prod(self._ambient.gen(i) ** self._B0[i, j] for i in range(self._n)) for j in range(self._n)}
+        self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** self._B0[i, j] for i in range(self._n + m)) for j in range(self._n)}
 
         # Register embedding into self.ambient()
         embedding = SetMorphism(Hom(self, self.ambient()), lambda x: x.lift())
@@ -1950,12 +1950,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.cluster_variable((-1, 1))
             (x1 + 1)/x0
         """
-        #g_vector = tuple(g_vector)
-        #F = self.ambient().fraction_field()(self.F_polynomial(g_vector))
-        #F_std = F.subs(self._yhat)
-        #g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
-        #F_trop = F.subs(self._y).denominator()
-        #return self.retract(g_mon * F_std * F_trop)     
            
         g_vector = tuple(g_vector)
         F = self.F_polynomial(g_vector)
