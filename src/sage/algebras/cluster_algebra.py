@@ -944,6 +944,36 @@ class ClusterAlgebraSeed(SageObject):
         """
         return list(map(tuple, self._G.columns()))
 
+    def exchange_degrees(self):
+        r"""
+        Return the exchange degrees of ``self``.
+
+        EXAMPLES::
+
+            sage: S = ClusterAlgebra(['A', 2]).initial_seed()
+            sage: S.exchange_degrees()
+            (1, 1)
+            sage: S = ClusterAlgebra(['A', 2],d=(3,2)).initial_seed()
+            sage: S.exchange_degrees()
+            (3, 2)
+        """
+        return copy(self._d)     
+
+    def exchange_coefficients(self):
+        r"""
+        Return the exchange degrees of ``self``.
+
+        EXAMPLES::
+
+            sage: S = ClusterAlgebra(['A', 2]).initial_seed()
+            sage: S.exchange_coefficients()
+            ((1, 1), (1, 1))
+            sage: S = ClusterAlgebra(['A', 2],d=(3,2)).initial_seed()
+            sage: S.exchange_coefficients()
+            ((1, z0_1, z0_2, 1), (1, z1_1, 1))
+        """
+        return copy(self._Z)
+
     def F_polynomial(self, j):
         r"""
         Return the ``j``-th F-polynomial of ``self``.
@@ -1310,14 +1340,14 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)] + flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else PolynomialRing(QQ, ['u%s' % i for i in range(self._n)])
 
         if var_switch:
-            self._Z = tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
+            self._Z0 = tuple((1,)+tuple([self._U('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
         else:
-            self._Z = kwargs.get('Z')
+            self._Z0 = kwargs.get('Z')
         
-        if len(self._Z) != self._n:
+        if len(self._Z0) != self._n:
             raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-        for i in range(len(self._Z)):
-            if len(self._Z[i]) != self._d[i] + 1:
+        for i in range(len(self._Z0)):
+            if len(self._Z0[i]) != self._d[i] + 1:
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
 
         # Determine scalars
@@ -1558,7 +1588,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
             A Generalized Cluster Algebra with cluster variables x0, x1
              and no coefficients over Integer Ring with degree vector (2, 1) 
-             and exchange polynomial coefficients ((1, 100000, 1), (1, 1))             
+             and exchange polynomial coefficients ((1, z0_1, 1), (1, 1))             
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
             A Generalized Cluster Algebra with cluster variables x0, x1
              and no coefficients over Integer Ring with degree vector (3, 1) 
@@ -1571,7 +1601,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         coeff = coeff_prefix + (" " if len(coeff_names) == 1 else "s ") + ", ".join(coeff_names) + (" " if len(coeff_names) > 0 else "")
         if not all(x==1 for x in self._d):
             GCA = "Generalized Cluster Algebra"
-            exchange_poly_info = " with degree vector " + str(self._d) + " and exchange polynomial coefficients " + str(self._Z)
+            exchange_poly_info = " with degree vector " + str(self._d) + " and exchange polynomial coefficients " + str(self._Z0)
         else:
             GCA = "Cluster Algebra"
             exchange_poly_info = ""
@@ -1801,7 +1831,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z, self)
+        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z0, self)
 
     def b_matrix(self):
         r"""
@@ -1816,6 +1846,36 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         return copy(self._B0[:n, :])
+        
+    def exchange_coefficients_initial(self):
+        r"""
+        Return the exchange degrees of the inial seed of``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.exchange_coefficients_initial()
+            ((1, 1), (1, 1))
+            sage: A = ClusterAlgebra(['A', 2],d=(3,2))
+            sage: A.exchange_coefficients_initial()
+            ((1, z0_1, z0_2, 1), (1, z1_1, 1))
+        """
+        return copy(self._Z0)
+
+    def exchange_degrees(self):
+        r"""
+        Return the exchange degrees of``self``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.exchange_degrees()
+            (1, 1)
+            sage: A = ClusterAlgebra(['A', 2],d=(3,2))
+            sage: A.exchange_degrees()
+            (3, 2)
+        """
+        return copy(self._d)
 
     def g_vectors(self, mutating_F=True):
         r"""
@@ -2227,6 +2287,42 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         cones = [Cone(S.g_vectors()) for S in seeds]
         return Fan(cones)
 
+    def mutate_current(self, directions, **kwargs):
+        r"""
+        Mutates the current seed of ``self``, keeping the cluster algebra the same.
+
+        INPUT:
+
+        - ``direction`` -- in which direction(s) to mutate, it can be:
+
+          * an integer in ``range(self.rank())`` to mutate in one direction only
+          * an iterable of such integers to mutate along a sequence
+          * a string "sinks" or "sources" to mutate at all sinks or sources simultaneously
+
+        - ``inplace`` -- bool (default ``True``); whether to mutate in place or to return a new object
+
+        - ``mutating_F`` -- bool (default ``True``); whether to compute
+          F-polynomials while mutating
+
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 4])
+            sage: A.clear_computed_data()
+            sage: A.mutate_current([0,1,0,1])
+            sage: A.g_vectors_so_far()
+            [(-1, 0, 0, 0),
+            (1, 0, 0, 0),
+            (0, 0, 0, 1),
+            (0, -1, 0, 0),
+            (0, 0, 1, 0),
+            (0, 1, 0, 0),
+            (-1, 1, 0, 0)]
+            sage: A.cluster_variables_so_far()
+            [(x0*x2 + x1 + 1)/(x0*x1), x0, x3, (x0*x2 + 1)/x1, x2, x1, (x1 + 1)/x0]
+        """
+        self._seed.mutate(directions)
+
     def mutate_initial(self, direction, mutating_F=False):
         r"""
         Return the cluster algebra obtained by mutating ``self`` at
@@ -2315,7 +2411,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         path_to_current = copy(self.current_seed().path_from_initial_seed())
         B0 = copy(self._B0)
         initial_g_vects = list(map(tuple, identity_matrix(n).columns()))
-        Z = copy(self._Z)
+        Z = copy(self._Z0)
 
         # go
         for k in seq:
