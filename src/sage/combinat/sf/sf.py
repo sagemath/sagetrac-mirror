@@ -75,7 +75,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     We recall that the **complete homogeneous** symmetric functions
     :math:`h_d` are defined in terms of the **power sum** symmetric functions
-    :math:`p_{\mu}` by the formula :
+    :math:`p_{\mu}` by the formula:
 
     .. MATH:: h_d = \sum \limits_{\mu \vdash d} \dfrac{1}{z_{\mu}} p_{\mu}
 
@@ -318,7 +318,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         Let :math:`e_k(n) = e_k(x_0,x_1, \dots , x_{n-1})` and similarly for
         the homogeneous functions.
-        Then we have the following recursion relations for :math:`n \geq 1` :
+        Then we have the following recursion relations for :math:`n \geq 1`:
 
         .. MATH::
 
@@ -394,7 +394,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         e[2, 2, 1, 1] - 4*e[2, 2, 2] - 4*e[3, 1, 1, 1] + 18*e[3, 2, 1] - 27*e[3, 3] - 8*e[4, 1, 1] + 24*e[4, 2]
 
 
-    The ``pol`` input of the function ``from_polynomial`` is assumed to
+    The ``pol`` input of the method ``from_polynomial()`` is assumed to
     lie in a polynomial ring over the same base field as that used for the symmetric
     functions, which therefore has to be declared beforehand.
 
@@ -571,7 +571,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     We can see that the terms of an expression are always listed in a specific order on the partitions. This order can be changed.
 
-    First, the function  ``get_print_style()``  applied to a basis hands the order used on partitions for this basis. Then, with  ``set_print_style()``  we can set another printing order. The possible orders are:
+    First, the method  ``get_print_style()``  applied to a basis hands the order used on partitions for this basis. Then, with  ``set_print_style()``  we can set another printing order. The possible orders are:
 
     -  ``lex``   : lexicographic order.
     -  ``length``   : by partition length, and then by lexicographic order for partitions of same length.
@@ -837,11 +837,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: for mu in Partitions(2) :
-        ....:     for nu in Partitions(3) :
-        ....:         if (s(mu)*s(nu)).is_schur_positive() :
+        sage: for mu in Partitions(2):
+        ....:     for nu in Partitions(3):
+        ....:         if (s(mu)*s(nu)).is_schur_positive():
         ....:             print('The product of ', s(mu),' and ',s(nu),' is Schur positive.')
-        ....:         else :
+        ....:         else:
         ....:             print('The product of ', s(mu),' and ',s(nu),'is not Schur positive.')
         The product of  s[2]  and  s[3]  is Schur positive.
         The product of  s[2]  and  s[2, 1]  is Schur positive.
@@ -1075,14 +1075,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ::
 
         sage: from sage.combinat.q_analogues import *
-        sage: for n in range (1,6) :
+        sage: for n in range (1,6):
         ....:     print((n,qt_catalan_number(n)))
         (1, 1)
         (2, q + t)
         (3, q^3 + q^2*t + q*t^2 + t^3 + q*t)
         (4, q^6 + q^5*t + q^4*t^2 + q^3*t^3 + q^2*t^4 + q*t^5 + t^6 + q^4*t + q^3*t^2 + q^2*t^3 + q*t^4 + q^3*t + q^2*t^2 + q*t^3)
         (5, q^10 + q^9*t + q^8*t^2 + q^7*t^3 + q^6*t^4 + q^5*t^5 + q^4*t^6 + q^3*t^7 + q^2*t^8 + q*t^9 + t^10 + q^8*t + q^7*t^2 + q^6*t^3 + q^5*t^4 + q^4*t^5 + q^3*t^6 + q^2*t^7 + q*t^8 + q^7*t + 2*q^6*t^2 + 2*q^5*t^3 + 2*q^4*t^4 + 2*q^3*t^5 + 2*q^2*t^6 + q*t^7 + q^6*t + q^5*t^2 + 2*q^4*t^3 + 2*q^3*t^4 + q^2*t^5 + q*t^6 + q^4*t^2 + q^3*t^3 + q^2*t^4)
-        sage: for n in range (1,6) :
+        sage: for n in range (1,6):
         ....:     print((n,e([n]).nabla().scalar(e([n])).substitute({q:1,t:1})))
         (1, 1)
         (2, 2)
@@ -1092,7 +1092,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: for n in range (1,6) :
+        sage: for n in range (1,6):
         ....:     print((n,factor(e([n]).nabla().scalar(e([n])).substitute({t:1/q}))))
         (1, 1)
         (2, q^-1 * (q^2 + 1))
@@ -1105,7 +1105,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: for n in range (1,6) :
+        sage: for n in range (1,6):
         ....:     print(e([n]).nabla().scalar(e([n])) == qt_catalan_number(n))
         True
         True
