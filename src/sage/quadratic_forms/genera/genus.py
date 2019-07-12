@@ -2925,7 +2925,7 @@ class GenusSymbol_global_ring(object):
 
     def _improper_spinor_kernel(self):
         r"""
-        Return the proper spinor kernel.
+        Return the improper spinor kernel.
 
         OUTPUT::
 
@@ -3497,7 +3497,7 @@ class GenusSymbol_global_ring(object):
         representatives = []
         if n==0:
             return [self.representative()]
-        if n>8 and prod(self.signature_pair_of_matrix())==0:
+        if n>6 and prod(self.signature_pair_of_matrix())==0:
             backend = 'magma'
         if backend == "magma":
             from sage.interfaces.magma import Magma

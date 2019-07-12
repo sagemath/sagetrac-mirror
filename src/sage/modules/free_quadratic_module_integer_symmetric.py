@@ -749,9 +749,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
             sage: L.all_overlattices(only_even=True)
             [Lattice of degree 2 and rank 2 over Integer Ring
-            Basis matrix:
-            [1 0]
-            [0 1]
+            Standard basis
             Inner product matrix:
             [4 2]
             [2 4]]
@@ -760,9 +758,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
             sage: L.all_overlattices()
             [Lattice of degree 2 and rank 2 over Integer Ring
-            Basis matrix:
-            [1 0]
-            [0 1]
+            Standard basis
             Inner product matrix:
             [4 2]
             [2 4], Lattice of degree 2 and rank 2 over Integer Ring
@@ -1426,21 +1422,23 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     @cached_method
     def quadratic_form(self):
-        return QuadraticForm(self.gram_matrix())
-
-    @cached_method
-    def maximum(self):
         r"""
+        Return the quadratic form given by ``(x,x)``.
         """
-        p, n = self.signature_pair()
-        if p != 0:
-            return infinity
-        else:
-            return QuadraticForm(-self.gram_matrix()).minimum()
+        return QuadraticForm(2*self.gram_matrix())
 
     @cached_method
     def minimum(self):
         r"""
+        Return the minimum of this lattice.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice('A2')
+            sage: L.minimum()
+            2
+            sage: L.twist(-1).minimum()
+            -Infinity
         """
         p, n = self.signature_pair()
         if n != 0:
@@ -1448,25 +1446,47 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             return MinusInfinity()
         m = min(self.gram_matrix().diagonal())
         sv = self.short_vectors(m.abs() - 1)
-        return min((m,) +tuple(k for k in range(1,len(sv)) if len(sv[k])!=0))
+        mpari = (self.gram_matrix()).__pari__().qfminim(None,0)[1]
+
+        assert min((m,) +tuple(k for k in range(1,len(sv)) if len(sv[k])!=0)) == mpari
+        return mpari
 
     @cached_method
     def maximum(self):
         r"""
+        Return the maximum of this lattice.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice('A2')
+            sage: L.maximum()
+            +Infinity
+            sage: L.twist(-1).maximum()
+            -2
         """
         p, n = self.signature_pair()
         if p != 0:
             from sage.rings.infinity import PlusInfinity
             return PlusInfinity()
-        m = max(self.gram_matrix().diagonal())
-        sv = self.short_vectors(m.abs())
-        return min((m,) +tuple(k for k in range(1,len(sv)) if len(sv[k])!=0))
+        mpari = (-self.gram_matrix()).__pari__().qfminim(None,0)[1]
+        #m = max(self.lll().gram_matrix().diagonal())
+        #sv = self.short_vectors(m.abs())
+        #assert max((m,) +tuple(-k for k in range(1,len(sv)) if len(sv[k])!=0)) == -mpari
+        return -mpari
+
 
     min = minimum
     max = maximum
 
     def LLL(self):
         r"""
+        Return this lattice with an LLL reduced basis.
+
+        EXAMPLES::
+
+
+
+
         """
         p, n = self.signature_pair()
         if p*n != 0:
@@ -1474,15 +1494,36 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         e = 1
         if n != 0:
             e = -1
-        U = (e*self.gram_matrix()).LLL_gram().T
+        U = (e*self.gram_matrix().change_ring(ZZ)).LLL_gram().T
         return self.sublattice(U*self.basis_matrix())
 
     lll = LLL
 
     def short_vectors(self, n, **kwargs):
+        r"""
+        Return the short vectors of length `< n`.
+
+        INPUT:
+
+        - ``n`` -- an integer
+        - further key word arguments are passed on to
+          :meth:`sage.quadratic_forms.short_vector_list_up_to_length`.
+
+        OUTPUT:
+
+        - a list `L` where ``L[k]`` is the list of vectors of lengths `k`
+
+        EXAMPLES::
+
+            sage: A2 = IntegralLattice('A2')
+            sage: A2.short_vectors(3)
+            [[(0, 0)], [], [(1, 1), (-1, -1), (0, 1), (0, -1), (1, 0), (-1, 0)]]
+            sage: A2.short_vectors(3,up_to_sign_flag=True)
+            [[(0, 0)], [], [(1, 1), (0, 1), (1, 0)]]
+        """
         p, m = self.signature_pair()
         if p*m != 0:
-            raise NotImplementedError("")
+            raise NotImplementedError("The lattice has to be positive definite.")
         e = 1
         if m != 0:
             e = -1

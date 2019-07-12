@@ -1522,7 +1522,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         #     assert 0 == (tmp[:, k]-E[:, k]) % invs[k]
         return to_gens
 
-    def direct_sum(self, other, return_more=False):
+    def direct_sum(self, other, return_maps=False):
         r"""
         """
         V, fVs, fVo = self.V().direct_sum(other.V(),return_embeddings=True)
@@ -1531,7 +1531,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         T = TorsionQuadraticModule(V, W, modulus=self._modulus)
         fs = self.hom([fVs(g.lift()) for g in self.gens()], T)
         fo = other.hom([fVo(g.lift()) for g in other.gens()], T)
-        if return_more:
+        if return_maps:
             return T, fs, fo, fVs, fVo
         else:
             return T, fs, fo
@@ -1561,7 +1561,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         stab = libgap.Stabilizer(G.gap(), Sgap, mu)
         return stab
 
-    def subgroup_representatives(self, H, G, order, g=None, algorithm=None):
+    def subgroup_representatives(self, H, G, order, g=1, algorithm=None):
         r"""
         Return representatives of the subgroups of `H` modulo the action of `G`.
 
@@ -1587,21 +1587,65 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         EXAMLES::
 
-        sage: D = TorsionQuadraticForm(matrix.diagonal([1/2,1/2,1/2]))
-        sage: G = D.orthogonal_group()
-        sage: g = G.one()
-        sage: D.subgroup_representatives(D,G,g=g,algorithm='magma')
+            sage: D = TorsionQuadraticForm(matrix.diagonal([1/2,1/2,1/2]))
+            sage: G = D.orthogonal_group()
+            sage: g = G.one()
+            sage: L = D.subgroup_representatives(D, G, 4, g=g, algorithm='elementary')
+            sage: L.sort(key=lambda x: x.representative().gram_matrix_quadratic())
+            sage: L
+            [Orbit represented by
+            Finite quadratic module over Integer Ring with invariants (2, 2)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [1/2   0]
+            [  0 1/2], Orbit represented by
+            Finite quadratic module over Integer Ring with invariants (2, 2)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [1/2   0]
+            [  0   1], Orbit represented by
+            Finite quadratic module over Integer Ring with invariants (2, 2)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [  1 1/2]
+            [1/2   1]]
 
 
         TESTS::
 
             sage: T = TorsionQuadraticForm(matrix.diagonal([2/3,2/9,4/9]))
+            sage: H = T.V() & (1/3)*T.W()
+            sage: H = T.submodule(H.gens())
             sage: G = T.orthogonal_group()
-            sage: subs1 = T.subgroup_representatives(T, G, algorithm="hulpke")
-            sage: subs2 = T.subgroup_representatives(T, G, algorithm="brute force")
-            sage: len(subs1) == len(subs2)
-            True
+            sage: g = G.one()
+            sage: subs1 = T.subgroup_representatives(H, G, 9, g=g, algorithm="brute force")
+            sage: subs2 = T.subgroup_representatives(H, G, 9, g=g, algorithm="magma")
+            sage: subs3 = T.subgroup_representatives(H, G, 9, g=g, algorithm="elementary")
+            sage: len(subs1)
+            4
+            sage: len(subs2)
+            4
+            sage: len(subs3)
+            4
+
+        Larger instances only work with magma as backend::
+
+            sage: U = matrix(ZZ,2,[0,1,1,0])/2
+            sage: T = matrix.block_diagonal(5*[U])
+            sage: T = TorsionQuadraticForm(T)
+            sage: G = T.orthogonal_group()
+            sage: subs = T.subgroup_representatives(T,G,4, g=G.one(),algorithm='magma')
+            sage: subs = [x.representative().normal_form() for x in subs]
+            sage: subs = [x.gram_matrix_quadratic() for x in subs]
+            sage: subs.sort()
+
+        By witts theorem the subspace orbits are given by their isomorphism class as quadratic forms::
+
+            sage: subs
+            [
+            [0 0]  [  0 1/2]  [1 0]  [  1 1/2]
+            [0 0], [1/2   0], [0 0], [1/2   1]
+            ]
+
         """
+        g = G(g)
         if H.cardinality() == 1:
             return [orbit_sage(rep=H,stab=G)]
         if algorithm is None:
@@ -1683,9 +1727,20 @@ class TorsionQuadraticModule(FGP_Module_class):
         EXAMPLES::
 
             sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
-            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
-            sage: q, fs , fo = q1.direct_sum(q2)
-            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
+            sage: q2 = TorsionQuadraticForm(matrix.diagonal([4/3,2/9]))
+            sage: H1 = q1.submodule([(g.order()//3)*g for g in q1.gens()])
+            sage: H2 = q2.submodule([(g.order()//3)*g for g in q2.gens()])
+            sage: G1 = q1.orthogonal_group()
+            sage: G2 = q2.orthogonal_group()
+            sage: q1.all_primitive_prime_equiv(q2, H1, H2, G1, G2, G1.one(),G2.one(),2)
+            [[Finite quadratic module over Integer Ring with invariants (3, 3)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [0 0]
+            [0 0], Group of isometries of
+            Finite quadratic module over Integer Ring with invariants (27,)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [8/27]
+            generated by 1 elements]]
         """
         if qlist is not None:
             assert qlist[0].ncols() == glue_valuation
@@ -1700,7 +1755,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         glue_valuation = ZZ(glue_valuation)
         if not glue_valuation >= 0:
             raise ValueError()
-        D, i1, i2, iV1, iV2 = self.direct_sum(other,return_more=True)
+        D, i1, i2, iV1, iV2 = self.direct_sum(other,return_maps=True)
 
         from sage.libs.gap.libgap import libgap
         from sage.env import SAGE_EXTCODE
@@ -1882,7 +1937,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
-        G of the orthogonal group of self
+        G of the orthogonal group of self.
+        Does not assume ``H1`` and ``H2`` to be vector spaces.
 
         Input:
 
@@ -1893,9 +1949,12 @@ class TorsionQuadraticModule(FGP_Module_class):
         EXAMPLES::
 
             sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
-            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
-            sage: q, fs , fo = q1.direct_sum(q2)
-            sage: q.all_primitive(3*fs.image(),fo.image())
+            sage: q2 = TorsionQuadraticForm(matrix.diagonal([4/3,2/9]))
+            sage: G1 = q1.orthogonal_group()
+            sage: G2 = q2.orthogonal_group()
+            sage: extensions = q1.all_primitive(q2, q1, q2, G1, G2, G1.one(),G2.one(),9)
+            sage: len(extensions)
+            3
         """
         if h1 is None:
             h1 = G1.one()
@@ -1914,7 +1973,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         if not (H1.is_submodule(self) and H2.is_submodule(other)):
             raise ValueError()
 
-        D, i1, i2, iV1, iV2 = self.direct_sum(other)
+        D, i1, i2, iV1, iV2 = self.direct_sum(other,return_maps=True)
         OD = D.orthogonal_group()
         embedG1, embedG2 = direct_sum_embed(D, i1, i2, OD, G1, G2)
 
@@ -1940,18 +1999,15 @@ class TorsionQuadraticModule(FGP_Module_class):
 
 
         for S1 in subs1:
-            S1, stab1 = S1
             for S2 in subs2:
-                S2, stab2 = S2
-
-                is_isom, isom = S1.is_isomorphic_to(S2.twist(-1))
+                is_isom, isom = S1.representative().is_isomorphic_to(S2.representative().twist(-1))
                 if not is_isom:
                     continue
-                isom = [isom[0],[S2(g) for g in isom[1]]]
+                isom = [isom[0],[S2.representative()(g) for g in isom[1]]]
 
                 # there are glue maps
-                O1 = S1.orthogonal_group()
-                O2 = S2.orthogonal_group()
+                O1 = S1.representative().orthogonal_group()
+                O2 = S2.representative().orthogonal_group()
 
                 A1 = O1.domain()
                 A2 = O2.domain()
@@ -1973,9 +2029,9 @@ class TorsionQuadraticModule(FGP_Module_class):
                 assert h2_on_S2==phi.InducedAutomorphism(O1(h1).gap())
 
                 center = O2.gap().Centraliser(h2_on_S2)
-                stab1phi= [phi.InducedAutomorphism(O1(g,False).gap()) for g in stab1.gens()]
+                stab1phi= [phi.InducedAutomorphism(O1(g,False).gap()) for g in S1.stabilizer().gens()]
                 stab1phi = center.Subgroup(stab1phi)
-                stab2c = O2.subgroup(O2(g,False) for g in stab2.gens())
+                stab2c = O2.subgroup(O2(g,False) for g in S2.stabilizer().gens())
                 reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
 
                 for g in reps:
@@ -1987,8 +2043,8 @@ class TorsionQuadraticModule(FGP_Module_class):
                     # we also need the centralizer of h1 x h2 in S1 x S2
                     ###############################
                     phig_graph = OD.domain().subgroup([OD.domain()(a) for a in gens]).gap()
-                    S1_times_S2 =  [embedG1.Image(s.gap()) for s in stab1.gens()]
-                    S1_times_S2 += [embedG2.Image(s.gap()) for s in stab2.gens()]
+                    S1_times_S2 =  [embedG1.Image(s.gap()) for s in S1.stabilizer().gens()]
+                    S1_times_S2 += [embedG2.Image(s.gap()) for s in S2.stabilizer().gens()]
                     S1_times_S2 = OD.gap().Subgroup(S1_times_S2)
                     stab = S1_times_S2.Stabilizer(phig_graph, OnSubgroups).GeneratorsOfGroup()
                     ##############################
@@ -2202,18 +2258,18 @@ def direct_sum_embed(D, i1, i2, OD, G1, G2,as_hom=True):
     for f in G1g:
         imgs = [Dgap(i1(a*f)).gap() for a in i1.domain().gens()]
         imgs += direct_sum_gens[n1:]
-        f = Dgap.gap().GroupHomomorphismByImages(Dgap.gap(), direct_sum_gens, imgs)
+        f = Dgap.gap().GroupHomomorphismByImagesNC(Dgap.gap(), direct_sum_gens, imgs)
         gensG1_imgs.append(f)
 
     gensG2_imgs = []
     for f in G2g:
         imgs = [Dgap(i2(a*f)).gap() for a in i2.domain().gens()]
         imgs = direct_sum_gens[:n1] + imgs
-        f = Dgap.gap().GroupHomomorphismByImages(Dgap.gap(), direct_sum_gens, imgs)
+        f = Dgap.gap().GroupHomomorphismByImagesNC(Dgap.gap(), direct_sum_gens, imgs)
         gensG2_imgs.append(f)
     if as_hom:
-        embed1 = G1.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G1.gens()], gensG1_imgs)
-        embed2 = G2.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G2.gens()], gensG2_imgs)
+        embed1 = G1.gap().GroupHomomorphismByImagesNC(OD.gap(),[g.gap() for g in G1.gens()], gensG1_imgs)
+        embed2 = G2.gap().GroupHomomorphismByImagesNC(OD.gap(),[g.gap() for g in G2.gens()], gensG2_imgs)
         return embed1, embed2
     return gensG1_imgs, gensG2_imgs
 
