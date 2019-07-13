@@ -1268,14 +1268,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: SymmetricGroup(5).character_table() == M
         True
 
-    In this interpretation of symmetric functions as characters on the
-    symmetric group, the multiplication and comultiplication are
-    interpreted as induction (from `S_n\times S_m` to `S_{n+m}`)
-    and restriction, respectively. The Schur functions can also be interpreted
-    as characters of `GL_n`, see `Partitions and Schur functions`__.
-
-    __ ../../../../../thematic_tutorials/lie/lie_basics.html#partitions-and-schur-polynomials
-
 
     .. rubric:: Inner plethysm
 
@@ -1410,53 +1402,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s[3,2,1](Y+Z)
         s[] # s[3, 2, 1] + s[1] # s[2, 2, 1] + s[1] # s[3, 1, 1] + s[1] # s[3, 2] + s[1, 1] # s[2, 1, 1] + s[1, 1] # s[2, 2] + s[1, 1] # s[3, 1] + s[1, 1, 1] # s[2, 1] + s[2] # s[2, 1, 1] + s[2] # s[2, 2] + s[2] # s[3, 1] + s[2, 1] # s[1, 1, 1] + 2*s[2, 1] # s[2, 1] + s[2, 1] # s[3] + s[2, 1, 1] # s[1, 1] + s[2, 1, 1] # s[2] + s[2, 2] # s[1, 1] + s[2, 2] # s[2] + s[2, 2, 1] # s[1] + s[3] # s[2, 1] + s[3, 1] # s[1, 1] + s[3, 1] # s[2] + s[3, 1, 1] # s[1] + s[3, 2] # s[1] + s[3, 2, 1] # s[]
 
-
-    The coproduct is an algebra morphism, and therefore
-    determined by its values on the generators; the power sum generators
-    are primitive::
-
-        sage: p[1].coproduct()
-        p[] # p[1] + p[1] # p[]
-        sage: p[2].coproduct()
-        p[] # p[2] + p[2] # p[]
-
-    The coproduct, being cocommutative on the generators, is cocommutative everywhere::
-
-        sage: p[2, 1].coproduct()
-        p[] # p[2, 1] + p[1] # p[2] + p[2] # p[1] + p[2, 1] # p[]
-
-    This coproduct, along with the counit which maps every symmetric function
-    to its `0`-th homogeneous component, makes the ring of symmetric functions
-    into a graded connected bialgebra. It is known that every graded connected
-    bialgebra has an antipode. For the ring of symmetric functions, the antipode
-    can be characterized explicitly: it is an anti-algebra morphism
-    (thus an algebra morphism, since our algebra is commutative) which maps
-    `p_{\lambda}` to `(-1)^{\mathrm{length}(\lambda)} p_{\lambda}` for every
-    partition `\lambda`. Thus, in particular, it maps the generators on the
-    ``p`` basis to their opposites::
-
-        sage: p[3].antipode()
-        -p[3]
-        sage: p[3,2,1].antipode()
-        -p[3, 2, 1]
-
-    The graded connected bialgebra of symmetric functions over a `\QQ`-algebra
-    has a rather simply understood structure: it is (isomorphic to) the
-    symmetric algebra of its space of primitives (which is spanned by the
-    power-sum symmetric functions).
-
-    Here are further examples::
-
-        sage: f = s[2]^2
-        sage: f.antipode()
-        s[1, 1, 1, 1] + s[2, 1, 1] + s[2, 2]
-        sage: f.coproduct()
-        s[] # s[2, 2] + s[] # s[3, 1] + s[] # s[4] + 2*s[1] # s[2, 1] + 2*s[1] # s[3] + s[1, 1] # s[1, 1]
-        + s[1, 1] # s[2] + s[2] # s[1, 1] + 3*s[2] # s[2] + 2*s[2, 1] # s[1] + s[2, 2] # s[] + 2*s[3] # s[1]
-        + s[3, 1] # s[] + s[4] # s[]
-        sage: f.coproduct().apply_multilinear_morphism( lambda x,y: x*y.antipode() )
-        0
-
     .. rubric:: Skew Schur functions
 
     arise when one considers the effect of coproduct on Schur functions themselves
@@ -1534,6 +1479,15 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         1/24*p[1, 1, 1, 1] # p[1, 1, 1, 1] + 1/4*p[2, 1, 1] # p[2, 1, 1] + 1/8*p[2, 2] # p[2, 2] + 1/3*p[3, 1] # p[3, 1] + 1/4*p[4] # p[4]
 
 
+    The coproduct is an algebra morphism, and therefore
+    determined by its values on the generators; the power sum generators
+    are primitive::
+
+        sage: p[1].coproduct()
+        p[] # p[1] + p[1] # p[]
+        sage: p[2].coproduct()
+        p[] # p[2] + p[2] # p[]
+
     The coproduct, being cocommutative on the generators, is cocommutative everywhere::
 
         sage: p[2, 1].coproduct()
@@ -1577,8 +1531,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     In this interpretation of symmetric functions as characters on the symmetric group,
     the multiplication and comultiplication are interpreted as induction
     (from :math:`S_n\times S_m` to :math:`S_{n+m}`) and restriction, respectively.
-    The Schur functions can also be interpreted as characters of :math:`GL_n`.
+    The Schur functions can also be interpreted as characters of :math:`GL_n`, 
+    see `Partitions and Schur functions`__.
 
+    __ ../../../../../thematic_tutorials/lie/lie_basics.html#partitions-and-schur-polynomials
 
     .. rubric:: The Kronecker product
 
