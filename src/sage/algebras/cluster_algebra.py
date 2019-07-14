@@ -2644,7 +2644,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
     def greedy_element(self, d_vector):
         r"""
         Return the greedy element with denominator vector ``d_vector``.
-        This method can be applied to generalized cluster algebras.
+        This method can be applied to generalized cluster algebras with exchange polynomial coefficients in an ordered field.
+        TODO: Add a check that the coefficients are in such a field.
 
         INPUT:
 
@@ -2673,14 +2674,14 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             raise ValueError('greedy elements are only defined in rank 2')
 
         if len(self.coefficients()) != 0:
-            raise NotImplementedError('can only compute greedy elements in the coefficient-free case')
+            raise NotImplementedError('can currently only compute greedy elements in the coefficient-free case')
 
         b = abs(self.b_matrix()[0, 1])
         c = abs(self.b_matrix()[1, 0])
         a1, a2 = d_vector
         d0 = self._d[0]
         d1 = self._d[1]
-        Z = self._Z 
+        Z = self._Z0 
         # Here we use the generators of self.ambient() because cluster variables
         #   do not have an inverse.
         x1, x2 = self.ambient().gens()
@@ -2688,17 +2689,17 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             if a2 < 0:
                 return self.retract(x1 ** (-a1) * x2 ** (-a2))
             else:
-                return self.retract(x1 ** (-a1) * ((sum(Z[1][i]*x2**(c*i)  for i in range(d1 + 1)))/ x1) ** a2)
+                return self.retract(x1 ** (-a1) * (sum(Z[1][i] * x2 ** (c * i) for i in range(d1 + 1)) / x1) ** a2)
         elif a2 < 0:
-            return self.retract(((sum(Z[0][i] * x1**(b*i) for i in range(d0 + 1))) / x2) ** a1 * x2 ** (-a2))
+            return self.retract(x2 ** (-a2) * (sum(Z[0][i] * x1 ** (b * i) for i in range(d0 + 1)) / x2) ** a1)
         output = 0
         for p in range(0, d1*a2 + 1):
             for q in range(0, d0*a1 + 1):
-                output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+                output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b * p) * x2 ** (c * q)
         return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
 
-
     
+    @cached_method
     def _greedy_coefficient(self, d_vector, p, q):
 #        if self._d[0] > 1:
  #           d0 = self._d[0]
@@ -2709,7 +2710,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
   #      else:
   #          d1 = abs(self.b_matrix()[1, 0])
         #print '(p,q) = ' + str((p,q))
-        Z = self._Z  
+        Z = self._Z0
         d0 = self._d[0]
         d1 = self._d[1]
         b = abs(self.b_matrix()[0, 1])
@@ -2722,10 +2723,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         sum1 = 0
         for k in range(1, p + 1):
             for wp in self.bddweakcompositions(p, d1, k):
-                subt = sum((j+1)*wp[j] for j in range(d1))
-                prodt = prod(Z[1][d1 -i]** wp[i-1] for i in range(1, d1+1))
+                subt = sum( (j + 1) * wp[j] for j in range(d1))
+                prodt = prod( Z[1][d1 -i] ** wp[i-1] for i in range(1, d1+1))
                 L = list(wp)
-                L.append(a2 - c*q - 1)
+                L.append(a2 - c * q - 1)
                 if p - subt >= 0:
                     sum1 += (-1) ** (k - 1) * self._greedy_coefficient(d_vector, p - subt, q) *prodt * multinomial(L)
         #print sum1
@@ -2733,15 +2734,16 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         sum2 = 0
         for l in range(1, q + 1):
             for wp in self.bddweakcompositions(q, d0, l):
-                subt = sum((j+1)*wp[j] for j in range(d0))
-                prodt = prod(Z[0][d0 - i]** wp[i-1] for i in range(1, d0+1))
+                subt = sum( (j + 1) * wp[j] for j in range(d0))
+                prodt = prod( Z[0][d0 - i] ** wp[i-1] for i in range(1, d0+1))
                 L = list(wp)
-                L.append(a1 - b*p- 1)
+                L.append(a1 - b * p - 1)
                 if q-subt >=0:
                     sum2 += (-1) ** (l- 1) * self._greedy_coefficient(d_vector, p, q - subt) * prodt * multinomial(L)
         sum22 = max(sum2,0)
         return Integer(max(sum11, sum22))    
         
+    @cached_method
     def bddweakcompositions(self, p, d, k):
         if p >= k >= 0 and d == 1:
             listofcomps = [[k]]
@@ -2751,11 +2753,11 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         if d == 0:
             return listofcomps
         for i in range((p/d).floor()+1):
-            smallcomps = self.bddweakcompositions3(p - d*i, d-1, k-i)
-            for thing in smallcomps:
-                if (d > 1) or (d == 1 and i + sum(thing[l] for l in range(d-1)) == k):
-                    thing.append(i)                 
-                    listofcomps.append(thing)
+            smallcomps = self.bddweakcompositions(p - d*i, d-1, k-i)
+            for w in smallcomps:
+                if d > 1 or (d == 1 and i + sum(w[l] for l in range(d-1)) == k):
+                    w.append(i)                 
+                    listofcomps.append(w)
         return listofcomps   
                 
         
