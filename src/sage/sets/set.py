@@ -39,8 +39,13 @@ from __future__ import print_function
 import six
 from six import integer_types
 
+from IPython.lib.pretty import pretty
+
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
+
+from sage.typeset.ascii_art import ascii_art
+from sage.typeset.unicode_art import unicode_art
 
 from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
@@ -442,7 +447,7 @@ class Set_object(Set_generic):
             sage: Set(RealField()) + Set(QQ^5)
              Set-theoretic union of Set of elements of Real Field with 53 bits of precision and Set of elements of Vector space of dimension 5 over Rational Field
             sage: Set(GF(3)) + Set(GF(2))
-            {0, 1, 2, 0, 1}
+            {0, 0, 1, 1, 2}
             sage: Set(GF(2)) + Set(GF(4,'a'))
             {0, 1, a, a + 1}
             sage: sorted(Set(GF(8,'b')) + Set(GF(4,'a')), key=str)
@@ -793,6 +798,18 @@ class Set_object_enumerated(Set_object):
         """
         return iter(self.set())
 
+    def _ascii_art_(self):
+        r"""
+        Return the ASCII art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: S = Set(GF(2))
+            sage: ascii_art(S)
+            { 0, 1 }
+        """
+        return ascii_art(self.set())
+
     def _latex_(self):
         r"""
         Return the LaTeX representation of ``self``.
@@ -803,7 +820,7 @@ class Set_object_enumerated(Set_object):
             sage: latex(S)
             \left\{0, 1\right\}
         """
-        return '\\left\\{' + ', '.join([latex(x) for x in self.set()])  + '\\right\\}'
+        return latex(self.set())
 
     def _repr_(self):
         r"""
@@ -819,14 +836,29 @@ class Set_object_enumerated(Set_object):
 
             sage: Set()
             {}
+
+        The set elements are sorted (:trac:`28180`)::
+
+            sage: Set([(1, 2, 3), (2, 3, 6), (1, 2)])
+            {(1, 2), (1, 2, 3), (2, 3, 6)}
         """
         py_set = self.set()
-        if six.PY3:
-            if not py_set:
-                return "{}"
-            return repr(py_set)
+        if not py_set:
+            return "{}"
         else:
-            return "{" + repr(py_set)[5:-2] + "}"
+            return pretty(py_set)
+
+    def _unicode_art_(self):
+        r"""
+        Return the Unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: S = Set(GF(2))
+            sage: unicode_art(S)
+            { 0, 1 }
+        """
+        return unicode_art(self.set())
 
     def list(self):
         """
@@ -1280,7 +1312,7 @@ class Set_object_union(Set_object_binary):
 
             sage: X = Set(GF(3)).union(Set(GF(2)))
             sage: X
-            {0, 1, 2, 0, 1}
+            {0, 0, 1, 1, 2}
             sage: X.cardinality()
             5
 
