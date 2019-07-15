@@ -118,7 +118,7 @@ We can convert from symbolic expressions::
     sage: AA(I)
     Traceback (most recent call last):
     ...
-    ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+    TypeError: cannot coerce algebraic number with non-zero imaginary part to algebraic real
     sage: QQbar(I * golden_ratio)
     1.618033988749895?*I
     sage: AA(golden_ratio)^2 - AA(golden_ratio)
@@ -132,7 +132,7 @@ We can convert from symbolic expressions::
     sage: AA((-4)^(1/4))
     Traceback (most recent call last):
     ...
-    ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+    TypeError: unable to convert (-4)^(1/4) to Algebraic Real Field
 
 The coercion, however, goes in the other direction, since not all
 symbolic expressions are algebraic numbers::
@@ -414,7 +414,7 @@ Converting from ``QQbar`` to a real type (``float``, ``RDF``, ``RR``,
 real (has an imaginary component of exactly zero). Converting from
 either ``AA`` or ``QQbar`` to ``ZZ`` or ``QQ`` succeeds only if the
 number actually is an integer or rational. If conversion fails, a
-ValueError will be raised.
+TypeError will be raised.
 
 Here are examples of all of these conversions::
 
@@ -743,7 +743,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             if x.imag().is_zero():
                 return x.real()
             else:
-                raise ValueError("Cannot coerce algebraic number with non-zero imaginary part to algebraic real")
+                raise TypeError("cannot coerce algebraic number with non-zero imaginary part to algebraic real")
         elif hasattr(x, '_algebraic_'):
             return x._algebraic_(AA)
         return AlgebraicReal(x)
@@ -4346,7 +4346,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         r"""
         Given a ``RealField``, compute a good approximation to self in
         that field. Works only if the imaginary component of self is
-        exactly zero; otherwise it raises a ``ValueError``.
+        exactly zero; otherwise it raises a ``TypeError``.
 
         EXAMPLES::
 
@@ -4357,7 +4357,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar.zeta(3)._mpfr_(RR)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            TypeError: cannot coerce algebraic number with non-zero imaginary part to algebraic real
         """
         return AA(self)._mpfr_(field)
 
@@ -4365,7 +4365,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         r"""
         Compute a good float approximation to self. Works only if the
         imaginary component of self is exactly zero; otherwise it
-        raises a ``ValueError``.
+        raises a ``TypeError``.
 
         EXAMPLES::
 
@@ -4376,7 +4376,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: float(QQbar.zeta(3))
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            TypeError: cannot coerce algebraic number with non-zero imaginary part to algebraic real
         """
         return AA(self).__float__()
 
@@ -4430,11 +4430,11 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar.zeta(6)._integer_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            TypeError: cannot coerce algebraic number with non-zero imaginary part to algebraic real
             sage: QQbar(sqrt(17))._integer_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce non-integral Algebraic Real 4.123105625617660? to Integer
+            TypeError: cannot coerce non-integral Algebraic Real 4.123105625617660? to Integer
             sage: QQbar(sqrt(16))._integer_()
             4
             sage: v = QQbar(1 + I*sqrt(3))^5 + QQbar(16*sqrt(3)*I); v
@@ -4457,11 +4457,11 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: (QQbar.zeta(7)^3)._rational_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            TypeError: cannot coerce algebraic number with non-zero imaginary part to algebraic real
             sage: QQbar(sqrt(2))._rational_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce irrational Algebraic Real 1.414213562373095? to Rational
+            TypeError: cannot coerce irrational Algebraic Real 1.414213562373095? to Rational
             sage: v1 = QQbar(1/3 + I*sqrt(5))^7
             sage: v2 = QQbar((100336/729*golden_ratio - 50168/729)*I)
             sage: v = v1 + v2; v
@@ -4869,21 +4869,21 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(golden_ratio)._integer_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce non-integral Algebraic Real 1.618033988749895? to Integer
+            TypeError: cannot coerce non-integral Algebraic Real 1.618033988749895? to Integer
             sage: (AA(golden_ratio)^10 + AA(1-golden_ratio)^10)._integer_()
             123
             sage: AA(-22/7)._integer_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce non-integral Algebraic Real -22/7 to Integer
+            TypeError: cannot coerce non-integral Algebraic Real -22/7 to Integer
         """
         if self._value.lower().ceiling() > self._value.upper().floor():
             # The value is known to be non-integral.
-            raise ValueError("Cannot coerce non-integral Algebraic Real %s to Integer" % self)
+            raise TypeError("cannot coerce non-integral Algebraic Real %s to Integer" % self)
 
         self.exactify()
         if not isinstance(self._descr, ANRational):
-            raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
+            raise TypeError("cannot coerce irrational Algebraic Real %s to Integer" % self)
 
         return ZZ(self._descr._value)
 
@@ -5005,7 +5005,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(sqrt(7))._rational_()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce irrational Algebraic Real 2.645751311064591? to Rational
+            TypeError: cannot coerce irrational Algebraic Real 2.645751311064591? to Rational
             sage: v = AA(1/2 + sqrt(2))^3 - AA(11/4*sqrt(2)); v
             3.125000000000000?
             sage: v._rational_()
@@ -5013,7 +5013,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         self.exactify()
         if not isinstance(self._descr, ANRational):
-            raise ValueError("Cannot coerce irrational Algebraic Real %s to Rational" % self)
+            raise TypeError("cannot coerce irrational Algebraic Real %s to Rational" % self)
 
         return QQ(self._descr._value)
 

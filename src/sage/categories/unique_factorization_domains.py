@@ -184,7 +184,7 @@ class UniqueFactorizationDomains(Category_singleton):
             d = a.gcd(b)
             A = A // a
             B = B // b
-            g = h = 1
+            g = h = self.one()
 
             delta = A.degree()-B.degree()
             _,R = A.pseudo_quo_rem(B)

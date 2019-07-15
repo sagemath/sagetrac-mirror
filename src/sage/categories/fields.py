@@ -19,6 +19,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_contains_method_by_parent_class
 from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.division_rings import DivisionRings
+from sage.categories.unique_factorization_domains import UniqueFactorizationDomains as UFD
 
 import sage.rings.ring
 from sage.structure.element import coerce_binop
@@ -275,12 +276,16 @@ class Fields(CategoryWithAxiom):
                 sage: Q._gcd_univariate_polynomial(x, x)
                 x
             """
-            while b:
-                q, r = a.quo_rem(b)
-                a, b = b, r
-            if a:
-                a = a.monic()
-            return a
+            try:
+                g = UFD.ParentMethods._gcd_univariate_polynomial(self, a, b)
+            except TypeError:
+                g = a
+                while b:
+                    q, r = g.quo_rem(b)
+                    g, b = b, r
+            if g:
+                g = g.monic()
+            return g
 
         def _xgcd_univariate_polynomial(self, a, b):
             r"""

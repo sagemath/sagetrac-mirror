@@ -2680,7 +2680,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: AA(alpha)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce algebraic number with non-zero imaginary
+            TypeError: cannot coerce algebraic number with non-zero imaginary
             part to algebraic real
 
             sage: NF.<alpha> = NumberField(x^5 + 7*x + 3)
