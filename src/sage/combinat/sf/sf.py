@@ -53,7 +53,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     It is then followed by the documentation.
     The aim of this tutorial is to present what it is possible to do in Sage with symmetric functions.
     We suppose that the reader knows only the basics about symmetric functions, but if one wants to learn
-    more on symmetric functions, [MAC]_ and [STA]_, Chapter 7, are two excellent references.
+    more on symmetric functions, [Mac1995]_ and [EnumComb2]_, Chapter 7, are two excellent references.
 
     **Caveat:** in this tutorial, the term symmetric "functions" will
     mostly stand for "abstract" symmetric polynomials, in which variables
@@ -1274,7 +1274,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     The operation of inner plethysm ``f.inner_plethysm(g)`` models the
     composition of the `S_n` representation represented by `g` with the
     `GL_m` representation whose character is `f`.  See the documentation of
-    ``inner_plethysm``, [ST94]_ or [STA]_, exercise 7.74 solutions for more
+    ``inner_plethysm``, [ST94]_ or [EnumComb2]_, exercise 7.74 solutions for more
     information::
 
         sage: s = SymmetricFunctions(QQ).schur()
@@ -1658,33 +1658,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     The design is heavily inspired from the implementation of
     symmetric functions in MuPAD-Combinat (see [HT04]_ and [FD06]_).
-
-    REFERENCES:
-
-        .. [FD06] Francois Descouens, Making research on symmetric functions using MuPAD-Combinat.
-                 In Andres Iglesias and Nobuki Takayama, editors, 2nd International Congress on Mathematical Software (ICMS'06),
-                 volume 4151 of LNCS, pages 407-418, Castro Urdiales, Spain, September 2006. Springer-Verlag.
-                 :arXiv:`0806.1873`
-
-        .. [HT04] Florent Hivert and Nicolas M. Thiery,
-                 MuPAD-Combinat, an open-source package for research in algebraic combinatorics.
-                 Sem. Lothar. Combin., 51 :Art. B51z, 70 pp. (electronic), 2004.
-                 http://mupad-combinat.sf.net/.
-
-        .. [MAC] Ian Macdonald, Symmetric Functions and Orthogonal Polynomials,
-                 Second edition. With contributions by A. Zelevinsky. Oxford Mathematical Monographs.
-                 Oxford Science Publications. The Clarendon Press, Oxford University Press, New York, 1995. x+475 pp.
-                 ISBN: 0-19-853489-2
-
-        .. [STA] Richard Stanley, Enumerative combinatorics. Vol. 2.
-                 With a foreword by Gian-Carlo Rota and appendix 1 by Sergey Fomin.
-                 Cambridge Studies in Advanced Mathematics, 62. Cambridge University Press, Cambridge, 1999. xii+581 pp.
-                 ISBN: 0-521-56069-1; 0-521-78987-7
-
-        .. [ST94]  Scharf, Thomas, Thibon, Jean-Yves,
-                 A Hopf-algebra approach to inner plethysm.
-                 Adv. Math.  104  (1994),  no. 1, 30-58.
-                 :doi:`10.1006/aima.1994.1019`
 
     .. rubric:: Further tests
 
