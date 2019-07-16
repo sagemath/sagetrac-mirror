@@ -428,11 +428,15 @@ class SQLQuery(SageObject):
         Test that :trac:`27562` is fixed::
 
             sage: D = SQLDatabase()
-            sage: r = SQLQuery(D, {'simon':'example_table', 'display_cols':['a1'], 'expression':['b2','<=', 3]})
-            ValueError: Database has no table simon.
+            sage: r = SQLQuery(D, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 3]})
+            Traceback (most recent call last):
+                ...
+            ValueError: Database has no table simon
             sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
             sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
-            ValueError: Database already has a table named simon.
+            Traceback (most recent call last):
+                ...
+            ValueError: Database already has a table named simon
 
         """
         if not isinstance(database, SQLDatabase):
@@ -478,10 +482,10 @@ class SQLQuery(SageObject):
             if query_dict['display_cols'] is not None:
                 for column in query_dict['display_cols']:
                     if column not in skel[table_name]:
-                        raise ValueError("Table has no column %s."%column)
+                        raise ValueError("Table has no column %s"%column)
             if query_dict['expression'][0] not in skel[table_name]:
-                raise ValueError("Table has no column " \
-                    + str(query_dict['expression'][0]) + ".")
+                raise ValueError("Table has no column %s"
+                    % query_dict['expression'][0])
 
             self.__query_dict__ = query_dict
             self.__param_tuple__ = (str(query_dict['expression'][2]),)
@@ -1406,8 +1410,8 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot add table to a read only database.')
         if table_name in self.__skeleton__:
-            raise ValueError('database already has a table named %s'
-                %table_name)
+            raise ValueError('Database already has a table named %s'
+                % table_name)
         if table_name.find(' ') != -1:
             raise ValueError('Table names cannot contain spaces.')
         if table_name.upper() in sqlite_keywords:
