@@ -35,26 +35,31 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 from six.moves import range
 
-import optparse, os, shutil, subprocess, sys, re
-import logging, warnings
+import logging
+import optparse
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import warnings
 
 logger = logging.getLogger(__name__)
 
-import sphinx.cmdline
 import sphinx.util.console
 import sphinx.ext.intersphinx
 
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, CYGWIN_VERSION
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -94,15 +99,14 @@ def builder_helper(type):
         ....:     raise BaseException("abort pool operation")
         sage: original_runsphinx, sage_setup.docbuild.sphinxbuild.runsphinx = sage_setup.docbuild.sphinxbuild.runsphinx, raiseBaseException
 
-        sage: from sage_setup.docbuild import builder_helper, build_many, build_ref_doc
+        sage: from sage_setup.docbuild import builder_helper, build_ref_doc
+        sage: from sage_setup.docbuild import _build_many as build_many
         sage: helper = builder_helper("html")
-        sage: build_many(build_ref_doc, [("docname", "en", "html", {})])
-        Traceback (most recent call last):
-        ...
-        Exception: ('Non-exception during docbuild: abort pool operation', BaseException('abort pool operation',))
-
-        sage: sage_setup.docbuild.sphinxbuild.runsphinx = original_runsphinx
-
+        sage: try:
+        ....:     build_many(build_ref_doc, [("docname", "en", "html", {})])
+        ....: except Exception as E:
+        ....:     "Non-exception during docbuild: abort pool operation" in str(E)
+        True
     """
     def f(self, *args, **kwds):
         output_dir = self._output_dir(type)
@@ -265,34 +269,45 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
-if NUM_THREADS > 1:
-    def build_many(target, args):
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(target, args, 1)
-        try:
-            ret = x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
-        return ret
+
+def _build_many(target, args):
+    # Pool() uses an actual fork() to run each new instance. This is
+    # important for performance reasons, i.e., don't use a forkserver when
+    # it becomes available with Python 3: Here, sage is already initialized
+    # which is quite costly, with a forkserver we would have to
+    # reinitialize it for every document we build. At the same time, don't
+    # serialize this by taking the pool (and thus the call to fork()) out
+    # completely: The call to Sphinx leaks memory, so we need to build each
+    # document in its own process to control the RAM usage.
+    from multiprocessing import Pool
+    pool = Pool(NUM_THREADS, maxtasksperchild=1)
+    # map_async handles KeyboardInterrupt correctly. Plain map and
+    # apply_async does not, so don't use it.
+    x = pool.map_async(target, args, 1)
+    try:
+        ret = x.get(99999)
+        pool.close()
+        pool.join()
+    except Exception:
+        pool.terminate()
+        if ABORT_ON_ERROR:
+            raise
+    return ret
+
+if not (CYGWIN_VERSION and CYGWIN_VERSION[0] < 3):
+    build_many = _build_many
 else:
-    def build_many(target, args):
-        results = []
-
-        for arg in args:
-            try:
-                results.append(target(arg))
-            except Exception:
-                if ABORT_ON_ERROR:
-                    raise
-
-        return results
+    # Cygwin 64-bit < 3.0.0 has a bug with exception handling when exceptions
+    # occur in pthreads, so it's dangerous to use multiprocessing.Pool, as
+    # signals can't be properly handled in worker processes, and they can crash
+    # causing the docbuild to hang.  But where are these pthreads, you ask?
+    # Well, multiprocessing.Pool runs a thread from which it starts new worker
+    # processes when old workers complete/die, so the worker processes behave
+    # as though they were started from a pthread, even after fork(), and are
+    # actually succeptible to this bug.  As a workaround, here's a naïve but
+    # good-enough "pool" replacement that does not use threads
+    # https://trac.sagemath.org/ticket/27214#comment:25 for further discussion.
+    from .utils import _build_many as build_many
 
 
 ##########################################
@@ -325,7 +340,6 @@ class AllBuilder(object):
         This is the function which goes through all of the documents
         and does the actual building.
         """
-        import time
         start = time.time()
         docs = self.get_all_documents()
         refs = [x for x in docs if x.endswith('reference')]
@@ -340,6 +354,7 @@ class AllBuilder(object):
             getattr(get_builder(document), 'inventory')(*args, **kwds)
 
         logger.warning("Building reference manual, second pass.\n")
+        sage_makedirs(os.path.join(SAGE_DOC, "html", "en", "reference", "_static"))
         for document in refs:
             getattr(get_builder(document), name)(*args, **kwds)
 
@@ -571,9 +586,8 @@ class ReferenceBuilder(AllBuilder):
                         pass
                 # Now modify website's index.html page and write it
                 # to output_dir.
-                f = open(os.path.join(website_dir, 'index.html'))
-                html = f.read().replace('Documentation', 'Reference')
-                f.close()
+                with open(os.path.join(website_dir, 'index.html')) as f:
+                    html = f.read().replace('Documentation', 'Reference')
                 html_output_dir = os.path.dirname(website_dir)
                 html = html.replace('http://www.sagemath.org',
                                     os.path.join(html_output_dir, 'index.html'))
@@ -582,9 +596,8 @@ class ReferenceBuilder(AllBuilder):
                 html_bottom = html.rfind('</table>') + len('</table>')
                 # For the content, we modify doc/en/reference/index.rst,
                 # which has two parts: the body and the table of contents.
-                f = open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst'))
-                rst = f.read()
-                f.close()
+                with open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst')) as f:
+                    rst = f.read()
                 # Replace rst links with html links.  There are two forms:
                 #
                 #   `blah`__    followed by __ LINK
@@ -599,7 +612,7 @@ class ReferenceBuilder(AllBuilder):
                 #
                 #   <a href="module/module.pdf">blah <img src="_static/pdf.png" /></a>
                 #
-                rst = re.sub('`([^`]*)`__\.\n\n__ (.*)',
+                rst = re.sub(r'`([^`]*)`__\.\n\n__ (.*)',
                                   r'<a href="\2">\1</a>.', rst)
                 rst = re.sub(r':doc:`([^<]*?)\s+<(.*)/index>`',
                              r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png" /></a>',
@@ -622,16 +635,15 @@ class ReferenceBuilder(AllBuilder):
                 rst_toc = re.sub('\n([A-Z][a-zA-Z, ]*)\n-*\n',
                              '</ul>\n\n\n<h2>\\1</h2>\n\n<ul>\n', rst_toc)
                 # Now write the file.
-                new_index = open(os.path.join(output_dir, 'index.html'), 'w')
-                new_index.write(html[:html_end_preamble])
-                new_index.write('<h1>' + rst[:rst.find('\n')] +
-                                ' (PDF version)'+ '</h1>')
-                new_index.write(rst_body)
-                new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
-                new_index.write(rst_toc)
-                new_index.write('</ul>\n\n')
-                new_index.write(html[html_bottom:])
-                new_index.close()
+                with open(os.path.join(output_dir, 'index.html'), 'w') as new_index:
+                    new_index.write(html[:html_end_preamble])
+                    new_index.write('<h1>' + rst[:rst.find('\n')] +
+                                    ' (PDF version)'+ '</h1>')
+                    new_index.write(rst_body)
+                    new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
+                    new_index.write(rst_toc)
+                    new_index.write('</ul>\n\n')
+                    new_index.write(html[html_bottom:])
                 logger.warning('''
 PDF documents have been created in subdirectories of
 
@@ -768,16 +780,14 @@ class ReferenceSubBuilder(DocBuilder):
         if not os.path.exists(filename):
             return {}
         from six.moves import cPickle
-        file = open(self.cache_filename(), 'rb')
-        try:
-            cache = cPickle.load(file)
-        except Exception:
-            logger.debug("Cache file '%s' is corrupted; ignoring it..."% filename)
-            cache = {}
-        else:
-            logger.debug("Loaded the reference cache: %s", filename)
-        finally:
-            file.close()
+        with open(self.cache_filename(), 'rb') as file:
+            try:
+                cache = cPickle.load(file)
+            except Exception:
+                logger.debug("Cache file '%s' is corrupted; ignoring it..." % filename)
+                cache = {}
+            else:
+                logger.debug("Loaded the reference cache: %s", filename)
         return cache
 
     def save_cache(self):
@@ -786,9 +796,8 @@ class ReferenceSubBuilder(DocBuilder):
         """
         cache = self.get_cache()
         from six.moves import cPickle
-        file = open(self.cache_filename(), 'wb')
-        cPickle.dump(cache, file)
-        file.close()
+        with open(self.cache_filename(), 'wb') as file:
+            cPickle.dump(cache, file)
         logger.debug("Saved the reference cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
@@ -810,7 +819,6 @@ class ReferenceSubBuilder(DocBuilder):
             return env
         except IOError as err:
             logger.debug("Failed to open Sphinx environment: %s", err)
-            pass
 
     def update_mtimes(self):
         """
@@ -819,7 +827,6 @@ class ReferenceSubBuilder(DocBuilder):
         """
         env = self.get_sphinx_environment()
         if env is not None:
-            import time
             for doc in env.all_docs:
                 env.all_docs[doc] = time.time()
             logger.info("Updated %d reST file mtimes", len(env.all_docs))
@@ -841,17 +848,14 @@ class ReferenceSubBuilder(DocBuilder):
             # remove unpicklable attributes
             env.set_warnfunc(None)
             del env.config.values
-            picklefile = open(env_pickle, 'wb')
-            # remove potentially pickling-problematic values from config
-            for key, val in vars(env.config).items():
-                if key.startswith('_') or isinstance(val, (types.ModuleType,
-                                                           types.FunctionType,
-                                                           type)):
-                    del env.config[key]
-            try:
+            with open(env_pickle, 'wb') as picklefile:
+                # remove potentially pickling-problematic values from config
+                for key, val in vars(env.config).items():
+                    if key.startswith('_') or isinstance(val, (types.ModuleType,
+                                                               types.FunctionType,
+                                                               type)):
+                        del env.config[key]
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
-            finally:
-                picklefile.close()
 
             logger.debug("Saved Sphinx environment: %s", env_pickle)
 
@@ -940,7 +944,12 @@ class ReferenceSubBuilder(DocBuilder):
             except ImportError as err:
                 logger.error("Warning: Could not import %s %s", module_name, err)
                 raise
-            newtime = os.path.getmtime(sys.modules[module_name].__file__)
+
+            module_filename = sys.modules[module_name].__file__
+            if (module_filename.endswith('.pyc') or module_filename.endswith('.pyo')):
+                source_filename = module_filename[:-1]
+                if (os.path.exists(source_filename)): module_filename = source_filename
+            newtime = os.path.getmtime(module_filename)
 
             if newtime > mtime:
                 updated_modules.append(module_name)
@@ -977,14 +986,12 @@ class ReferenceSubBuilder(DocBuilder):
         Given a filename for a reST file, return an iterator for
         all of the autogenerated reST files that it includes.
         """
-        #Create the regular expression used to detect an autogenerated file
-        auto_re = re.compile('^\s*(..\/)*(sage(nb)?\/[\w\/]*)\s*$')
+        # Create the regular expression used to detect an autogenerated file
+        auto_re = re.compile(r'^\s*(..\/)*(sage(nb)?\/[\w\/]*)\s*$')
 
-        #Read the lines
-        f = open(filename)
-        lines = f.readlines()
-        f.close()
-
+        # Read the lines
+        with open(filename) as f:
+            lines = f.readlines()
         for line in lines:
             match = auto_re.match(line)
             if match:
@@ -1035,25 +1042,24 @@ class ReferenceSubBuilder(DocBuilder):
         filename = self.auto_rest_filename(module_name)
         sage_makedirs(os.path.dirname(filename))
 
-        outfile = open(filename, 'w')
-
         title = self.get_module_docstring_title(module_name)
 
         if title == '':
             logger.error("Warning: Missing title for %s", module_name)
             title = "MISSING TITLE"
 
-        # Don't doctest the autogenerated file.
-        outfile.write(".. nodoctest\n\n")
-        # Now write the actual content.
-        outfile.write(".. _%s:\n\n"%(module_name.replace(".__init__","")))
-        outfile.write(title + '\n')
-        outfile.write('='*len(title) + "\n\n")
-        outfile.write('.. This file has been autogenerated.\n\n')
+        with open(filename, 'w') as outfile:
+            # Don't doctest the autogenerated file.
+            outfile.write(".. nodoctest\n\n")
+            # Now write the actual content.
+            outfile.write(".. _%s:\n\n"%(module_name.replace(".__init__","")))
+            outfile.write(title + '\n')
+            outfile.write('='*len(title) + "\n\n")
+            outfile.write('.. This file has been autogenerated.\n\n')
 
-        inherited = ':inherited-members:' if self._options.inherited else ''
+            inherited = ':inherited-members:' if self._options.inherited else ''
 
-        automodule = '''
+            automodule = '''
 .. automodule:: %s
    :members:
    :undoc-members:
@@ -1061,15 +1067,12 @@ class ReferenceSubBuilder(DocBuilder):
    %s
 
 '''
-        outfile.write(automodule % (module_name, inherited))
-
-        outfile.close()
+            outfile.write(automodule % (module_name, inherited))
 
     def clean_auto(self):
         """
         Remove all autogenerated reST files.
         """
-        import shutil
         try:
             shutil.rmtree(os.path.join(self.dir, 'sage'))
             logger.debug("Deleted auto-generated reST files in: %s",
@@ -1123,6 +1126,7 @@ class ReferenceSubBuilder(DocBuilder):
         """
         for module_name in self.get_all_included_modules():
             print(module_name)
+
 
 class SingleFileBuilder(DocBuilder):
     """
@@ -1413,6 +1417,7 @@ def help_message_long(option, opt_str, value, parser):
         print(f())
     sys.exit(0)
 
+
 def help_message_short(option=None, opt_str=None, value=None, parser=None,
                        error=False):
     """
@@ -1423,12 +1428,13 @@ def help_message_short(option=None, opt_str=None, value=None, parser=None,
     requested a list (e.g., documents, formats, commands).
     """
     if not hasattr(parser.values, 'printed_help'):
-        if error == True:
+        if error is True:
             if not hasattr(parser.values, 'printed_list'):
                 parser.print_help()
         else:
             parser.print_help()
         setattr(parser.values, 'printed_help', 1)
+
 
 def help_wrapper(option, opt_str, value, parser):
     """
@@ -1560,6 +1566,7 @@ def setup_parser():
 
     return parser
 
+
 def setup_logger(verbose=1, color=True):
     r"""
     Set up a Python Logger instance for the Sage documentation builder. The
@@ -1569,9 +1576,8 @@ def setup_logger(verbose=1, color=True):
 
         sage: from sage_setup.docbuild import setup_logger, logger
         sage: setup_logger()
-        sage: logger
-        <logging.Logger object at ...>
-
+        sage: type(logger)
+        <class 'logging.Logger'>
     """
     # Set up colors. Adapted from sphinx.cmdline.
     import sphinx.util.console as c

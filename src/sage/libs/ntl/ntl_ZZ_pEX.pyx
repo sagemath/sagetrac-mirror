@@ -117,7 +117,7 @@ cdef class ntl_ZZ_pEX(object):
             self.c = (<ntl_ZZ_pEX>v).c
         elif isinstance(v, ntl_ZZ_pE):
             self.c = (<ntl_ZZ_pE>v).c
-        elif (isinstance(v, list) or isinstance(v, tuple)) and len(v) > 0:
+        elif isinstance(v, (list, tuple)) and v:
             if isinstance(v[0], ntl_ZZ_pEX):
                 self.c = (<ntl_ZZ_pEX>v[0]).c
             elif isinstance(v[0], ntl_ZZ_pE):
@@ -419,6 +419,7 @@ cdef class ntl_ZZ_pEX(object):
 
         EXAMPLES::
 
+
             sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^10))
             sage: a = c.ZZ_pE([5, 1])
             sage: b = c.ZZ_pE([4, 99])
@@ -463,6 +464,7 @@ cdef class ntl_ZZ_pEX(object):
         NTLError due to division by a noninvertible element of ZZ_p.
 
         EXAMPLES::
+
 
             sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^10))
             sage: a = c.ZZ_pE([5, 1])
@@ -719,7 +721,7 @@ cdef class ntl_ZZ_pEX(object):
             sage: f.left_shift(5)
             [[] [] [] [] [] [3 2] [1 2] [1 2]]
 
-            A negative left shift is a right shift::
+        A negative left shift is a right shift::
 
             sage: f.left_shift(-2)
             [[1 2]]
@@ -1137,13 +1139,15 @@ cdef class ntl_ZZ_pEX(object):
     #    monomial x modulo this polynomial for i = 0, ..., deg(f)-1.
     #    This polynomial must be monic.
     #
-    #    EXAMPLES:
+    #    EXAMPLES::
+    #
     #        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
     #        sage: f = c.ZZ_pX([1,2,0,3,0,1])
     #        sage: f.trace_list()
     #        [5, 0, 14, 0, 10]
     #
-    #        The input polynomial must be monic or a ValueError is raised:
+    #    The input polynomial must be monic or a ValueError is raised::
+    #
     #        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
     #        sage: f = c.ZZ_pX([1,2,0,3,0,2]
     #        sage: f.trace_list()

@@ -108,41 +108,42 @@ def is_NumberFieldElement(x):
     """
     return isinstance(x, NumberFieldElement)
 
+
 def __create__NumberFieldElement_version0(parent, poly):
     """
     Used in unpickling elements of number fields pickled under very old Sage versions.
 
-    EXAMPLES::
+    TESTS::
 
         sage: k.<a> = NumberField(x^3 - 2)
         sage: R.<z> = QQ[]
         sage: sage.rings.number_field.number_field_element.__create__NumberFieldElement_version0(k, z^2 + z + 1)
+        doctest:...: DeprecationWarning: __create__NumberFieldElement_version0() is deprecated
+        See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
+    from sage.misc.superseded import deprecation
+    deprecation(25848, '__create__NumberFieldElement_version0() is deprecated')
     return NumberFieldElement(parent, poly)
+
 
 def __create__NumberFieldElement_version1(parent, cls, poly):
     """
-    Used in unpickling elements of number fields.
+    Used in unpickling elements of number fields pickled under old Sage versions.
 
-    EXAMPLES:
-
-    Since this is just used in unpickling, we unpickle.
-
-    ::
+    TESTS::
 
         sage: k.<a> = NumberField(x^3 - 2)
-        sage: loads(dumps(a+1)) == a + 1 # indirect doctest
-        True
-
-    This also gets called for unpickling order elements; we check that
-    :trac:`6462` is fixed::
-
-        sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
-        sage: loads(dumps(w)) == w # indirect doctest
-        True
+        sage: R.<z> = QQ[]
+        sage: sage.rings.number_field.number_field_element.__create__NumberFieldElement_version1(k, type(a), z^2 + z + 1)
+        doctest:...: DeprecationWarning: __create__NumberFieldElement_version1() is deprecated
+        See https://trac.sagemath.org/25848 for details.
+        a^2 + a + 1
     """
+    from sage.misc.superseded import deprecation
+    deprecation(25848, '__create__NumberFieldElement_version1() is deprecated')
     return cls(parent, poly)
+
 
 def _inverse_mod_generic(elt, I):
     r"""
@@ -414,18 +415,30 @@ cdef class NumberFieldElement(FieldElement):
         """
         Used in pickling number field elements.
 
-        Note for developers: If this is changed, please also change the doctests of __create__NumberFieldElement_version1.
-
         EXAMPLES::
 
             sage: k.<a> = NumberField(x^3 - 17*x^2 + 1)
             sage: t = a.__reduce__(); t
-            (<built-in function __create__NumberFieldElement_version1>, (Number Field in a with defining polynomial x^3 - 17*x^2 + 1, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>, x))
+            (<type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>,
+             (Number Field in a with defining polynomial x^3 - 17*x^2 + 1, x))
             sage: t[0](*t[1]) == a
             True
+
+        ::
+
+            sage: k.<a> = NumberField(x^3 - 2)
+            sage: loads(dumps(a+1)) == a + 1 # indirect doctest
+            True
+
+        This also gets called for unpickling order elements; we check that
+        :trac:`6462` is fixed::
+
+            sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
+            sage: loads(dumps(w)) == w # indirect doctest
+            True
         """
-        return __create__NumberFieldElement_version1, \
-               (self.parent(), type(self), self.polynomial())
+        args = (self.parent(), self.polynomial())
+        return type(self), args
 
     def _repr_(self):
         """
@@ -1611,6 +1624,20 @@ cdef class NumberFieldElement(FieldElement):
             sage: t[1].norm(K)
             -a
 
+        Verify that :trac:`27469` has been fixed::
+
+            sage: L.<z24> = CyclotomicField(24); L
+            Cyclotomic Field of order 24 and degree 8
+            sage: K = L.subfield(z24^3, 'z8')[0]; K
+            Number Field in z8 with defining polynomial x^4 + 1 with z8 = 0.7071067811865475? + 0.7071067811865475?*I
+            sage: flag, c = K(-7).is_norm(K, element=True)
+            sage: flag
+            True
+            sage: c.norm(K)
+            -7
+            sage: c in L
+            True
+
         AUTHORS:
 
         - Craig Citro (2008-04-05)
@@ -1627,7 +1654,7 @@ cdef class NumberFieldElement(FieldElement):
 
         from sage.rings.number_field.number_field import is_AbsoluteNumberField
         if is_AbsoluteNumberField(L):
-            Lrel = L.relativize(K.hom(L), (L.variable_name()+'0', K.variable_name()+'0') )
+            Lrel = L.relativize(K.hom(L), L.variable_name() + '0')
             b, x = self.is_norm(Lrel, element=True, proof=proof)
             h = Lrel.structure()[0]
             return b, h(x)
@@ -1928,7 +1955,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: R(1).gcd(R(4*i))
             Traceback (most recent call last):
             ...
-            NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 is not implemented
+            NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I is not implemented
 
         The following field has class number 3, but if the ideal
         ``(self, other)`` happens to be principal, this still works::
@@ -2216,7 +2243,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a = K(0)^0; a
             1
             sage: a.parent()
-            Number Field in sqrt2 with defining polynomial x^2 - 2
+            Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
 
         TESTS::
 
@@ -2559,11 +2586,13 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^10 - x - 1)
-            sage: long(a)
+            sage: long(a)  # py2
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(K(1234))
+            sage: long(K(1234)) # py2
+            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27675 for details.
             1234L
 
         The value does not have to be preserved, in the case of fractions.
@@ -3475,7 +3504,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: ((a-b)/2).is_integral()
             False
         """
-        return all([a in ZZ for a in self.absolute_minpoly()])
+        return all(a in ZZ for a in self.absolute_minpoly())
 
     def matrix(self, base=None):
         r"""
@@ -4306,7 +4335,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
             sage: a._magma_init_(magma)            # optional - magma
             '(_sage_[...]![0, 1, 0])'
             sage: m = magma((2/3)*a^2 - 17/3); m   # optional - magma
@@ -4318,8 +4347,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         ::
 
-            sage: K = CyclotomicField(9)
-            sage: K.gen()
+            sage: K = CyclotomicField(9) # optional - magma
+            sage: K.gen() # optional - magma
             zeta9
             sage: K.gen()._magma_init_(magma)     # optional - magma
             '(_sage_[...]![0, 1, 0, 0, 0, 0])'
@@ -5173,7 +5202,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
 
 
 
-class CoordinateFunction:
+class CoordinateFunction(object):
     r"""
     This class provides a callable object which expresses
     elements in terms of powers of a fixed field generator `\alpha`.
@@ -5184,7 +5213,7 @@ class CoordinateFunction:
         sage: f = (a + 1).coordinates_in_terms_of_powers(); f
         Coordinate function that writes elements in terms of the powers of a + 1
         sage: f.__class__
-        <class sage.rings.number_field.number_field_element.CoordinateFunction at ...>
+        <class 'sage.rings.number_field.number_field_element.CoordinateFunction'>
         sage: f(a)
         [-1, 1]
         sage: f == loads(dumps(f))

@@ -38,6 +38,7 @@ AUTHORS:
 
 - John Cremona and Charlie Turner <charlotteturner@gmail.com> (06-2010):
   improvements to clarity and documentation.
+
 """
 
 #*****************************************************************************
@@ -84,17 +85,17 @@ def enum_affine_rational_field(X, B):
     ::
 
         sage: A.<w,x,y,z> = AffineSpace(4, QQ)
-        sage: S = A.subscheme([x^2-y*z+3, w^3+z+y^2])
+        sage: S = A.subscheme([x^2-y*z+1, w^3+z+y^2])
+        sage: enum_affine_rational_field(S(QQ), 1)
+        [(0, 0, -1, -1)]
         sage: enum_affine_rational_field(S(QQ), 2)
-        []
-        sage: enum_affine_rational_field(S(QQ), 3)
-        [(-2, 0, -3, -1)]
+        [(0, 0, -1, -1), (1, -1, -1, -2), (1, 1, -1, -2)]
 
     ::
 
         sage: A.<x,y> = AffineSpace(2, QQ)
         sage: C = Curve(x^2+y-x)
-        sage: enum_affine_rational_field(C, 10)
+        sage: enum_affine_rational_field(C, 10) # long time (3 s)
         [(-2, -6), (-1, -2), (-2/3, -10/9), (-1/2, -3/4), (-1/3, -4/9),
         (0, 0), (1/3, 2/9), (1/2, 1/4), (2/3, 2/9), (1, 0),
         (4/3, -4/9), (3/2, -3/4), (5/3, -10/9), (2, -2), (3, -6)]
@@ -108,13 +109,12 @@ def enum_affine_rational_field(X, B):
     - Raman Raghukul 2018: updated.
     """
     from sage.schemes.affine.affine_space import is_AffineSpace
-    if(is_Scheme(X)):
-        if (not is_AffineSpace(X.ambient_space())):
+    if is_Scheme(X):
+        if not is_AffineSpace(X.ambient_space()):
             raise TypeError("ambient space must be affine space over the rational field")
         X = X(X.base_ring())
-    else:
-        if (not is_AffineSpace(X.codomain().ambient_space())):
-            raise TypeError("codomain must be affine space over the rational field")
+    elif not is_AffineSpace(X.codomain().ambient_space()):
+        raise TypeError("codomain must be affine space over the rational field")
 
     n = X.codomain().ambient_space().ngens()
     VR = X.value_ring()
@@ -168,7 +168,7 @@ def enum_affine_number_field(X, **kwds):
     ALGORITHM:
 
     This is an implementation of the revised algorithm (Algorithm 4) in
-    [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
+    [DK2013]_. Algorithm 5 is used for imaginary quadratic fields.
 
 
     INPUT:
@@ -213,13 +213,12 @@ def enum_affine_number_field(X, **kwds):
     tol = kwds.pop('tolerance', 1e-2)
     prec = kwds.pop('precision', 53)
     from sage.schemes.affine.affine_space import is_AffineSpace
-    if(is_Scheme(X)):
-        if (not is_AffineSpace(X.ambient_space())):
+    if is_Scheme(X):
+        if not is_AffineSpace(X.ambient_space()):
             raise TypeError("ambient space must be affine space over a number field")
         X = X(X.base_ring())
-    else:
-        if (not is_AffineSpace(X.codomain().ambient_space())):
-            raise TypeError("codomain must be affine space over a number field")
+    elif not is_AffineSpace(X.codomain().ambient_space()):
+        raise TypeError("codomain must be affine space over a number field")
 
     R = X.codomain().ambient_space()
 
@@ -288,13 +287,12 @@ def enum_affine_finite_field(X):
     - John Cremona and Charlie Turner (06-2010)
     """
     from sage.schemes.affine.affine_space import is_AffineSpace
-    if(is_Scheme(X)):
-        if (not is_AffineSpace(X.ambient_space())):
+    if is_Scheme(X):
+        if not is_AffineSpace(X.ambient_space()):
             raise TypeError("ambient space must be affine space over a finite field")
         X = X(X.base_ring())
-    else:
-        if (not is_AffineSpace(X.codomain().ambient_space())):
-            raise TypeError("codomain must be affine space over a finite field")
+    elif not is_AffineSpace(X.codomain().ambient_space()):
+        raise TypeError("codomain must be affine space over a finite field")
 
     n = X.codomain().ambient_space().ngens()
     F = X.value_ring()

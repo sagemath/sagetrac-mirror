@@ -44,7 +44,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Category of finite dimensional algebras with basis over Rational Field
         sage: C.super_categories()
         [Category of algebras with basis over Rational Field,
-         Category of finite dimensional modules with basis over Rational Field]
+         Category of finite dimensional magmatic algebras with basis over Rational Field]
         sage: C.example()
         An example of a finite dimensional algebra with basis:
         the path algebra of the Kronecker quiver
@@ -284,7 +284,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S in Algebras(QQ).Semisimple()
                 True
                 sage: S.basis()
-                Finite family {'y': B['y'], 'x': B['x']}
+                Finite family {'x': B['x'], 'y': B['y']}
                 sage: xs,ys = sorted(S.basis())
                 sage: (xs + ys) * xs
                 B['x']
@@ -484,7 +484,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 An example of a finite multiplicative monoid: the integers modulo 12
                 sage: A = Z12.algebra(QQ)
                 sage: idempotents = A.orthogonal_idempotents_central_mod_radical()
-                sage: sorted(idempotents, key=str)
+                sage: sorted(idempotents, key=str) # py2
                 [-1/2*B[8] + 1/2*B[4],
                  -B[0] + 1/2*B[8] + 1/2*B[4],
                  -B[0] + 1/2*B[9] + 1/2*B[3],
@@ -494,6 +494,16 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  1/4*B[1] - 1/2*B[4] - 1/4*B[5] + 1/4*B[7] + 1/2*B[8] - 1/4*B[11],
                  B[0],
                  B[0] + 1/4*B[1] - 1/2*B[3] - 1/2*B[4] + 1/4*B[5] + 1/4*B[7] - 1/2*B[8] - 1/2*B[9] + 1/4*B[11]]
+                sage: sorted(idempotents, key=str) # py3
+                [-B[0] + 1/2*B[4] + 1/2*B[8],
+                 1/2*B[4] - 1/2*B[8],
+                 1/2*B[9] + 1/2*B[3] - B[0],
+                 1/2*B[9] - 1/2*B[3],
+                 1/4*B[1] + 1/4*B[11] - 1/4*B[5] - 1/4*B[7],
+                 1/4*B[1] - 1/2*B[9] + 1/4*B[5] - 1/4*B[7] + 1/2*B[3] - 1/4*B[11],
+                 1/4*B[1] - 1/2*B[9] - 1/2*B[3] + 1/4*B[11] + 1/4*B[5] + 1/4*B[7] + B[0] - 1/2*B[4] - 1/2*B[8],
+                 1/4*B[1] - 1/4*B[5] + 1/4*B[7] - 1/4*B[11] - 1/2*B[4] + 1/2*B[8],
+                 B[0]]
                 sage: sum(idempotents) == 1
                 True
                 sage: all(e*e == e for e in idempotents)
@@ -885,10 +895,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: [[decomposition[i][j].dimension()          # long time (4s)
                 ....:   for j in range(len(decomposition))]
                 ....:  for i in range(len(decomposition))]
-                [[1, 0, 0, 0, 0],
+                [[9, 0, 0, 0, 0],
                  [0, 9, 0, 0, 0],
                  [0, 0, 4, 0, 0],
-                 [0, 0, 0, 9, 0],
+                 [0, 0, 0, 1, 0],
                  [0, 0, 0, 0, 1]]
 
             The dimension of each block is `d^2`, where `d` is the
@@ -1153,7 +1163,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 tester = self._tester(**options)
                 cell_basis = self.cellular_basis()
                 B = cell_basis.basis()
-                K = B.keys()
                 P = self.cell_poset()
                 for mu in P:
                     C = self.cell_module_indices(mu)
@@ -1189,7 +1198,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             @abstract_method
             def cell_module_indices(self, mu):
-                """
+                r"""
                 Return the indices of the cell module of ``self``
                 indexed by ``mu`` .
 
@@ -1376,7 +1385,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     return ret
 
                 def cell_module_indices(self, mu):
-                    """
+                    r"""
                     Return the indices of the cell module of ``self``
                     indexed by ``mu`` .
 

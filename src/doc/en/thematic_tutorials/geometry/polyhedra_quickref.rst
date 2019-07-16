@@ -53,6 +53,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simple` |  checks whether the degree of all vertices is equal to the dimension of the polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplex` | test whether a polytope is a simplex
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplicial` |  checks whether all faces of the polyhedron are simplices
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_lawrence_polytope` |  tests whether self is a Lawrence polytope
 
 **Enumerative properties**
 
@@ -76,6 +77,7 @@ List of Polyhedron methods
 
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.backend` | gives the backend used
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.base_ring` | gives the base ring used
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.change_ring` | changes the base ring
 
 **Transforming polyhedra**
 
@@ -96,6 +98,9 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.barycentric_subdivision` | constructs a geometric realization of the barycentric subdivision
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dilation` |  scalar dilation
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_truncation` | truncates a specific face
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_split` | returns the face splitting of a face of self
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.one_point_suspension` | the one-point suspension over a vertex of self (face splitting of a vertex)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.stack` | stack a face of the polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lattice_polytope` | returns an encompassing lattice polytope.
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.polar` | returns the polar of a polytope (needs to be compact)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.prism` | prism over a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient space)
@@ -103,6 +108,8 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bipyramid` | bipyramid over a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.translation` | translates by a given vector
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.truncation` | truncates all vertices simultaneously
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lawrence_extension` | returns the Lawrence extension of self on a given point
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lawrence_polytope` | returns the Lawrence polytope of self
 
 **Combinatorics**
 

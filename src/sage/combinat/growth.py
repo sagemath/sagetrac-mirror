@@ -1214,7 +1214,7 @@ class GrowthDiagram(SageObject):
                     return 1
                 elif rule.rank(la) > rule.rank(mu):
                     if is_P_edge is not None and e not in is_P_edge(mu, la):
-                        raise ValueError("%s has smaller rank than %s but there is no edge of color %s in in P" % (mu, la, e))
+                        raise ValueError("%s has smaller rank than %s but there is no edge of color %s in P" % (mu, la, e))
                     return 0
                 else:
                     raise ValueError("can only determine the shape of the growth"
@@ -1265,7 +1265,7 @@ class GrowthDiagram(SageObject):
         """
         half_perimeter = self.half_perimeter()
         if self.rule.has_multiple_edges:
-            if len(labels) % 2 != 1:
+            if not (len(labels) % 2):
                 raise ValueError("only a list of odd length can specify a path, but %s has even length" % len(labels))
             path_length = (len(labels) + 1) / 2
         else:
@@ -2152,7 +2152,7 @@ class RuleShiftedShapes(Rule):
             if content == 0:
                 g, z = 0, x
             elif content == 1:
-                if len(x) == 0:
+                if not x:
                     g, z = 1, _Partitions(x).add_cell(0) # black
                 else:
                     g, z = 2, _Partitions(x).add_cell(0) # blue
@@ -2516,7 +2516,7 @@ class RuleLLMS(Rule):
             sage: LLMS3.forward_rule(Z, None, Z, None, Z, 1)
             (None, [1], 0)
 
-            sage: Y = Core([3,1,1], 3);
+            sage: Y = Core([3,1,1], 3)
             sage: LLMS3.forward_rule(Y, None, Y, None, Y, 1)
             (None, [4, 2, 1, 1], 3)
 
@@ -3564,7 +3564,7 @@ class RuleYoungFibonacci(Rule):
         TESTS::
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w);
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = YF(w)
             sage: GrowthDiagram(YF, labels=G.out_labels()).to_word() == w  # indirect doctest
             True
         """
@@ -3826,6 +3826,7 @@ class RuleRSK(RulePartitions):
             i = i-1
         return (_Partitions(t), carry)
 
+
 class RuleBurge(RulePartitions):
     r"""
     A rule modelling Burge insertion.
@@ -4022,7 +4023,7 @@ class RuleDomino(Rule):
 
         sage: pi = [3,-1,2,4,-5]
         sage: G = Domino(pi)
-        sage: G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         True
 
     Negating all signs transposes all the partitions::
@@ -4048,12 +4049,13 @@ class RuleDomino(Rule):
         [   2  3,   3  3 ]
 
         sage: l = {pi: Domino(pi) for pi in SignedPermutations(4)}
-        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
+        sage: S = Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()])
+        sage: S.cardinality()
         384
 
     Check the color-to-spin property for all permutations of size 4::
 
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: all(list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         ....:     for G in l.values())
         True
 

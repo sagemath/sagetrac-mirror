@@ -1,69 +1,13 @@
 # -*- encoding: utf-8 -*-
 r"""
 Abstract base class for Sage objects
-
-TESTS:
-
-Test deprecations::
-
-    sage: from sage.structure.sage_object import (
-    ....:     richcmp, richcmp_not_equal,
-    ....:     rich_to_bool, py_rich_to_bool, rich_to_bool_sgn,
-    ....:     op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
-    sage: richcmp(2, 3, op_EQ)
-    doctest:...: DeprecationWarning: Importing richcmp from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_EQ from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    False
-    sage: richcmp_not_equal(2, 3, op_LT)
-    doctest:...: DeprecationWarning: Importing richcmp_not_equal from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_LT from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    True
-    sage: rich_to_bool(op_NE, 0)
-    doctest:...: DeprecationWarning: Importing rich_to_bool from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_NE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    False
-    sage: py_rich_to_bool(op_GT, 1)
-    doctest:...: DeprecationWarning: Importing rich_to_bool from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/21128 for details.
-    doctest:...: DeprecationWarning: Importing op_GT from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    True
-    sage: rich_to_bool_sgn(op_LE, -123)
-    doctest:...: DeprecationWarning: Importing rich_to_bool_sgn from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    doctest:...: DeprecationWarning: Importing op_LE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    True
-    sage: op_GE
-    doctest:...: DeprecationWarning: Importing op_GE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
-    See http://trac.sagemath.org/23103 for details.
-    5
 """
-
 from __future__ import absolute_import, print_function
 
 from sage.misc.persist import (_base_dumps, _base_save,
                                register_unpickle_override, make_None)
 
 from sage.misc.lazy_import import LazyImport
-richcmp = LazyImport('sage.structure.richcmp', 'richcmp', deprecation=23103)
-richcmp_not_equal = LazyImport('sage.structure.richcmp', 'richcmp_not_equal', deprecation=23103)
-rich_to_bool = LazyImport('sage.structure.richcmp', 'rich_to_bool', deprecation=23103)
-py_rich_to_bool = LazyImport('sage.structure.richcmp', 'rich_to_bool', deprecation=21128)
-rich_to_bool_sgn = LazyImport('sage.structure.richcmp', 'rich_to_bool_sgn', deprecation=23103)
-op_LT = LazyImport('sage.structure.richcmp', 'op_LT', deprecation=23103)
-op_LE = LazyImport('sage.structure.richcmp', 'op_LE', deprecation=23103)
-op_EQ = LazyImport('sage.structure.richcmp', 'op_EQ', deprecation=23103)
-op_NE = LazyImport('sage.structure.richcmp', 'op_NE', deprecation=23103)
-op_GT = LazyImport('sage.structure.richcmp', 'op_GT', deprecation=23103)
-op_GE = LazyImport('sage.structure.richcmp', 'op_GE', deprecation=23103)
-
 
 # NOTE: These imports are just for backwards-compatibility
 loads = LazyImport('sage.misc.persist', 'loads', deprecation=25153)
@@ -499,10 +443,22 @@ cdef class SageObject:
 
         EXAMPLES::
 
-            sage: O=SageObject(); O.dumps()
-            'x\x9ck`J.NLO\xd5+.)*M.)-\x02\xb2\x80\xdc\xf8\xfc\xa4\xac\xd4\xe4\x12\xae` \xdb\x1f\xc2,d\xd4l,d\xd2\x03\x00\xb7X\x10\xf1'
-            sage: O.dumps(compress=False)
-            '\x80\x02csage.structure.sage_object\nSageObject\nq\x01)\x81q\x02.'
+            sage: from sage.misc.persist import comp
+            sage: O = SageObject()
+            sage: p_comp = O.dumps()
+            sage: p_uncomp = O.dumps(compress=False)
+            sage: comp.decompress(p_comp) == p_uncomp
+            True
+            sage: import pickletools
+            sage: pickletools.dis(p_uncomp)
+                0: \x80 PROTO      2
+                2: c    GLOBAL     'sage.structure.sage_object SageObject'
+               41: q    BINPUT     ...
+               43: )    EMPTY_TUPLE
+               44: \x81 NEWOBJ
+               45: q    BINPUT     ...
+               47: .    STOP
+            highest protocol among opcodes = 2
         """
 
         return _base_dumps(self, compress=compress)
@@ -583,7 +539,7 @@ cdef class SageObject:
             sage: tester.assertTrue(1 == 0, "this is expected to fail")
             Traceback (most recent call last):
             ...
-            AssertionError: this is expected to fail
+            AssertionError:... this is expected to fail
 
             sage: tester.assertEqual(1, 1)
             sage: tester.assertEqual(1, 0)
@@ -638,7 +594,7 @@ cdef class SageObject:
                     tester.fail("Not implemented method: %s"%name)
                 except Exception:
                     pass
-        finally: 
+        finally:
             # Restore warnings
             warnings.filters.pop(0)
 
@@ -660,7 +616,8 @@ cdef class SageObject:
             sage: Bla()._test_pickling()
             Traceback (most recent call last):
             ...
-            PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup __main__.Bla failed
+            PicklingError: Can't pickle <class '__main__.Bla'>: attribute
+            lookup ... failed
 
         TODO: for a stronger test, this could send the object to a
         remote Sage session, and get it back.
@@ -676,24 +633,6 @@ cdef class SageObject:
     # Sage
     def _sage_(self):
         return self
-
-    def _pari_(self):
-        """
-        Deprecated alias for ``__pari__``.
-
-        TESTS::
-
-            sage: class NewStylePari(SageObject):
-            ....:     def __pari__(self):
-            ....:         return pari(42)
-            sage: NewStylePari()._pari_()
-            doctest:...: DeprecationWarning: the _pari_ method is deprecated, use __pari__ instead
-            See http://trac.sagemath.org/22470 for details.
-            42
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(22470, 'the _pari_ method is deprecated, use __pari__ instead')
-        return self.__pari__()
 
     def _interface_(self, I):
         """

@@ -356,7 +356,7 @@ class WeylGroup_gens(UniqueRepresentation,
 
             sage: W = WeylGroup("B2", prefix="s")
             sage: refdict = W.reflections(); refdict
-            Finite family {(1, -1): s1, (1, 1): s2*s1*s2, (1, 0): s1*s2*s1, (0, 1): s2}
+            Finite family {(1, -1): s1, (0, 1): s2, (1, 1): s2*s1*s2, (1, 0): s1*s2*s1}
             sage: [r+refdict[r].action(r) for r in refdict.keys()]
             [(0, 0), (0, 0), (0, 0), (0, 0)]
 
@@ -764,10 +764,11 @@ class WeylGroupElement(MatrixGroupElement_gap):
             return MatrixGroupElement_gap._latex_(self)
         else:
             redword = self.reduced_word()
-            if len(redword) == 0:
+            if not redword:
                 return "1"
             else:
-                return "".join(["%s_{%d}"%(self._parent._prefix, i) for i in redword])
+                return "".join("%s_{%d}" % (self._parent._prefix, i)
+                               for i in redword)
 
     def __eq__(self, other):
         """
@@ -785,9 +786,9 @@ class WeylGroupElement(MatrixGroupElement_gap):
         subclasses overriding __cmp__ with something slow for specific
         purposes.
         """
-        return self.__class__ == other.__class__ and \
-               self._parent   == other._parent   and \
-               self.matrix()  == other.matrix()
+        return (self.__class__ == other.__class__ and
+                self._parent   == other._parent and
+                self.matrix()  == other.matrix())
 
     def _richcmp_(self, other, op):
         """
@@ -1318,19 +1319,6 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
             [0, 1, 2]
         """
         return self._index_set_inverse[i]
-
-    def _element_class(self):
-        r"""
-        A temporary workaround for compatibility with Sage's
-        permutation groups.
-
-        TESTS::
-
-            sage: W = WeylGroup(['B',3], implementation="permutation")
-            sage: W._element_class() is W.element_class
-            True
-        """
-        return self.element_class
 
     class Element(RealReflectionGroupElement):
         def _repr_(self):

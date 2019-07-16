@@ -1,4 +1,4 @@
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
@@ -11,9 +11,8 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, division
 
 from cysignals.signals cimport sig_on, sig_off
@@ -52,7 +51,7 @@ def GF2XHexOutput(have_hex=None):
 
     INPUT:
 
-        have_hex if True hex representation will be used
+    - have_hex -- if True hex representation will be used
 
     EXAMPLES::
 
@@ -80,6 +79,7 @@ def GF2XHexOutput(have_hex=None):
         GF2XHexOutput_c[0] = 1
     else:
         GF2XHexOutput_c[0] = 0
+
 
 cdef class ntl_GF2X(object):
     """
@@ -604,7 +604,7 @@ cdef class ntl_GF2X(object):
 
         TESTS::
 
-            sage: hex(e)
+            sage: hex(e)    # py2
             doctest:warning...:
             DeprecationWarning: use the method .hex instead
             See http://trac.sagemath.org/24514 for details.
@@ -632,19 +632,19 @@ cdef class ntl_GF2X(object):
 
     def _sage_(ntl_GF2X self, R=None):
         """
-        Returns a Sage polynomial over GF(2) equivalent to
-        this element. If a ring R is provided it is used
-        to construct the polynomial in, otherwise
-        an appropriate ring is generated.
+        Return a Sage polynomial over GF(2) equivalent to this element.
+
+        If a ring R is provided, it is used to construct the polynomial
+        in. Otherwise, an appropriate ring is generated.
 
         INPUT:
 
-            self  -- GF2X element
-            R     -- PolynomialRing over GF(2)
+        - self  -- GF2X element
+        - R     -- PolynomialRing over GF(2)
 
         OUTPUT:
 
-            polynomial in R
+        polynomial in R
 
         EXAMPLES::
 
@@ -659,15 +659,15 @@ cdef class ntl_GF2X(object):
             from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 
-        return R(map(int,self.list()))
+        return R([int(c) for c in self.list()])
 
     def coeff(self, int i):
         """
-        Return the coefficient of the monomial $X^i$ in self.
+        Return the coefficient of the monomial `X^i` in ``self``.
 
         INPUT:
 
-            i -- degree of X
+        - i -- degree of X
 
         EXAMPLES::
 
@@ -702,8 +702,9 @@ cdef class ntl_GF2X(object):
 
     def LeadCoeff(self):
         """
-        Return the leading coefficient of self. This is always 1
-        except when self == 0.
+        Return the leading coefficient of self.
+
+        This is always 1 except when self == 0.
 
         EXAMPLES::
 
@@ -737,7 +738,7 @@ cdef class ntl_GF2X(object):
 
     def SetCoeff(self, int i, a):
         """
-        Change one of the coefficients
+        Set the value of a coefficient of self.
 
         INPUT:
 
@@ -832,7 +833,7 @@ cdef class ntl_GF2X(object):
 
         INPUT:
 
-            hi -- bit position until which reverse is requested
+        - hi -- bit position until which reverse is requested
 
         EXAMPLES::
 
@@ -892,7 +893,7 @@ cdef class ntl_GF2X(object):
 
     def NumBits(self):
         """
-        returns number of bits of self, i.e., deg(self) + 1.
+        Return the number of bits of self, i.e., deg(self) + 1.
 
         EXAMPLES::
 
@@ -921,7 +922,7 @@ cdef class ntl_GF2X(object):
 
     def NumBytes(self):
         """
-        Returns number of bytes of self, i.e., floor((NumBits(self)+7)/8)
+        Return the number of bytes of self, i.e., floor((NumBits(self)+7)/8)
 
         EXAMPLES::
 
