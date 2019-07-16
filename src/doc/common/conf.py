@@ -1,8 +1,14 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, SAGE_SHARE
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, SAGE_SHARE
 import sage.version
+from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from six import iteritems
+from docutils import nodes
+from docutils.transforms import Transform
+from sphinx.ext.doctest import blankline_re
+from sphinx import highlighting
+from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
@@ -12,39 +18,73 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['inventory_builder', 'multidocs',
-              'sage_autodoc',  'sphinx.ext.graphviz',
-              'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+extensions = ['inventory_builder',
+              'multidocs',
+              'sage_autodoc',
+              'sphinx.ext.graphviz',
+              'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.todo',
+              'sphinx.ext.extlinks',
+              'IPython.sphinxext.ipython_directive',
+              'matplotlib.sphinxext.plot_directive']
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
 # through mathplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
 plot_pre_code = """
-def sphinx_plot(plot):
+def sphinx_plot(graphics, **kwds):
     import matplotlib.image as mpimg
-    from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
+    from sage.misc.temporary_file import tmp_filename
+    from sage.plot.graphics import _parse_figsize
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
-        import matplotlib as mpl
-        mpl.rcParams['image.interpolation'] = 'bilinear'
-        mpl.rcParams['image.resample'] = False
-        mpl.rcParams['figure.figsize'] = [8.0, 6.0]
-        mpl.rcParams['figure.dpi'] = 80
-        mpl.rcParams['savefig.dpi'] = 100
-        fn = tmp_filename(ext=".png")
-        plot.plot().save(fn)
-        img = mpimg.imread(fn)
-        plt.imshow(img)
+        ## Option handling is taken from Graphics.save
+        options = dict()
+        if isinstance(graphics, sage.plot.graphics.Graphics):
+            options.update(sage.plot.graphics.Graphics.SHOW_OPTIONS)
+            options.update(graphics._extra_kwds)
+            options.update(kwds)
+        elif isinstance(graphics, sage.plot.multigraphics.MultiGraphics):
+            options.update(kwds)
+        else:
+            graphics = graphics.plot(**kwds)
+        dpi = options.pop('dpi', None)
+        transparent = options.pop('transparent', None)
+        fig_tight = options.pop('fig_tight', None)
+        figsize = options.pop('figsize', None)
+        if figsize is not None:
+            figsize = _parse_figsize(figsize)
+        plt.figure(figsize=figsize)
+        figure = plt.gcf()
+        if isinstance(graphics, (sage.plot.graphics.Graphics,
+                                 sage.plot.multigraphics.MultiGraphics)):
+            graphics.matplotlib(figure=figure, figsize=figsize, **options)
+            # tight_layout adjusts the *subplot* parameters so ticks aren't
+            # cut off, etc.
+            figure.tight_layout()
+        else:
+            # 3d graphics via png
+            import matplotlib as mpl
+            mpl.rcParams['image.interpolation'] = 'bilinear'
+            mpl.rcParams['image.resample'] = False
+            mpl.rcParams['figure.figsize'] = [8.0, 6.0]
+            mpl.rcParams['figure.dpi'] = 80
+            mpl.rcParams['savefig.dpi'] = 100
+            fn = tmp_filename(ext=".png")
+            graphics.save(fn)
+            img = mpimg.imread(fn)
+            plt.imshow(img)
+            plt.axis("off")
         plt.margins(0)
-        plt.axis("off")
-        plt.tight_layout(pad=0)
+        if not isinstance(graphics, sage.plot.multigraphics.MultiGraphics):
+            plt.tight_layout(pad=0)
 
 from sage.all_cmdline import *
 """
 
 plot_html_show_formats = False
+plot_formats = ['svg', 'pdf', 'png']
 
 # We do *not* fully initialize intersphinx since we call it by hand
 # in find_sage_dangling_links.
@@ -104,6 +144,14 @@ default_role = 'math'
 # This overrides a HTML theme's corresponding setting (see below).
 pygments_style = 'sphinx'
 
+# Default lexer to use when highlighting code blocks, using the IPython
+# console lexers. 'ipycon' is the IPython console, which is what we want
+# for most code blocks: anything with "sage:" prompts. For other IPython,
+# like blocks which might appear in a notebook cell, use 'ipython'.
+highlighting.lexers['ipycon'] = IPythonConsoleLexer(in1_regex=r'sage: ', in2_regex=r'[.][.][.][.]: ')
+highlighting.lexers['ipython'] = IPyLexer()
+highlight_language = 'ipycon'
+
 # GraphViz includes dot, neato, twopi, circo, fdp.
 graphviz_dot = 'dot'
 inheritance_graph_attrs = { 'rankdir' : 'BT' }
@@ -118,9 +166,12 @@ todo_include_todos = True
 
 
 # Cross-links to other project's online documentation.
+python_version = sys.version_info.major
 intersphinx_mapping = {
     'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common", "python.inv"))}
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version))),
+    'pplpy': (PPLPY_DOCS, None)}
 
 def set_intersphinx_mappings(app):
     """
@@ -148,21 +199,6 @@ def set_intersphinx_mappings(app):
             dst = os.path.join(invpath, directory, 'objects.inv')
             app.config.intersphinx_mapping[src] = dst
 
-
-pythonversion = sys.version.split(' ')[0]
-# Python and Sage trac ticket shortcuts. For example, :trac:`7549` .
-
-# Sage trac ticket shortcuts. For example, :trac:`7549` .
-extlinks = {
-    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
-    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://doi.org/%s', 'doi:'),
-    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
-    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
-    }
 
 # By default document are not master.
 multidocs_is_master = True
@@ -418,7 +454,7 @@ latex_elements['preamble'] = r"""
 \fi
 
 \let\textLaTeX\LaTeX
-\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
+\AtBeginDocument{\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}}
 """
 
 # Documents to append as an appendix to all manuals.
@@ -621,14 +657,14 @@ def call_intersphinx(app, env, node, contnode):
     Check that the link from the thematic tutorials to the reference
     manual is relative, see :trac:`20118`::
 
-        sage: from sage.env import SAGE_DOC
-        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")
-        sage: for line in open(thematic_index).readlines():
+        sage: from sage.env import SAGE_DOC  # optional - dochtml
+        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")  # optional - dochtml
+        sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
-        ....:         sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the -adics</span></a></li>
+        ....:         _ = sys.stdout.write(line)
+        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></li>
     """
-    debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
+    debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
     res =  sphinx.ext.intersphinx.missing_reference(
         app, env, node, contnode)
@@ -640,9 +676,9 @@ def call_intersphinx(app, env, node, contnode):
             here = os.path.dirname(os.path.join(builder.outdir,
                                                 node['refdoc']))
             res['refuri'] = os.path.relpath(res['refuri'], here)
-            debug_inf(app, "++++ Found at %s"%res['refuri'])
+            debug_inf(app, "++++ Found at %s" % res['refuri'])
     else:
-        debug_inf(app, "---- Intersphinx: %s not Found"%node['reftarget'])
+        debug_inf(app, "---- Intersphinx: %s not Found" % node['reftarget'])
     return res
 
 def find_sage_dangling_links(app, env, node, contnode):
@@ -656,7 +692,7 @@ def find_sage_dangling_links(app, env, node, contnode):
     try:
         doc = node['refdoc']
     except KeyError:
-        debug_inf(app, "-- no refdoc in node %s"%node)
+        debug_inf(app, "-- no refdoc in node %s" % node)
         return None
 
     debug_inf(app, "Searching %s from %s"%(reftarget, doc))
@@ -684,14 +720,19 @@ def find_sage_dangling_links(app, env, node, contnode):
     basename = reftarget.split(".")[0]
     try:
         target_module = getattr(sys.modules['sage.all'], basename).__module__
+        debug_inf(app, "++ found %s using sage.all in %s" % (basename, target_module))
     except AttributeError:
-        debug_inf(app, "-- %s not found in sage.all"%(basename))
-        return None
+        try:
+            target_module = getattr(sys.modules[node['py:module']], basename).__module__
+            debug_inf(app, "++ found %s in this module" % (basename,))
+        except AttributeError:
+            debug_inf(app, "-- %s not found in sage.all or this module" % (basename))
+            return None
+        except KeyError:
+            target_module = None
     if target_module is None:
         target_module = ""
         debug_inf(app, "?? found in None !!!")
-
-    debug_inf(app, "++ found %s using sage.all in %s"%(basename, target_module))
 
     newtarget = target_module+'.'+reftarget
     node['reftarget'] = newtarget
@@ -768,6 +809,25 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     while len(docstringlines) > len(lines):
         del docstringlines[len(lines)]
 
+class SagemathTransform(Transform):
+    """
+    Transform for code-blocks.
+
+    This allows Sphinx to treat code-blocks with prompt "sage:" as
+    associated with the pycon lexer, and in particular, to change
+    "<BLANKLINE>" to a blank line.
+    """
+    default_priority = 500
+
+    def apply(self):
+        for node in self.document.traverse(nodes.literal_block):
+            if node.get('language') is None and node.astext().startswith('sage:'):
+                node['language'] = 'ipycon'
+                source = node.rawsource
+                source = blankline_re.sub('', source)
+                node.rawsource = source
+                node[:] = [nodes.Text(source)]
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -780,6 +840,7 @@ def setup(app):
     if os.environ.get('SAGE_SKIP_TESTS_BLOCKS', False):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
+    app.add_transform(SagemathTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
     # 'LANGUAGE/DOCNAME', but when doing introspection, app.srcdir is

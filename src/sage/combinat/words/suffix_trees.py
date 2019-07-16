@@ -1,15 +1,15 @@
 r"""
 Suffix Tries and Suffix Trees
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 from six import iteritems
 
@@ -23,6 +23,7 @@ from sage.rings.integer import Integer
 # Suffix Tries
 ################################################################################
 
+
 class SuffixTrie(SageObject):
     def __init__(self, word):
         r"""
@@ -32,8 +33,9 @@ class SuffixTrie(SageObject):
         the factors of w. It is a tree whose edges are labelled with
         letters of w, and whose leafs correspond to suffixes of w.
 
-        This is a straightforward implementation of Algorithm 1 from [1].
-        It constructs the suffix trie of w[:i] from that of w[:i-1].
+        This is a straightforward implementation of Algorithm 1 from
+        [Ukko1995]_.  It constructs the suffix trie of w[:i] from that
+        of w[:i-1].
 
         A suffix trie is modelled as a deterministic finite-state automaton
         together with the suffix_link map. The set of states corresponds to
@@ -53,8 +55,7 @@ class SuffixTrie(SageObject):
 
         REFERENCES:
 
-        - [1] E. Ukkonen, "On-line construction of suffix trees",
-          Algorithmica, 1995, volume 14, number 3, pages 249--260.
+        - [Ukko1995]_
 
         EXAMPLES::
 
@@ -91,7 +92,6 @@ class SuffixTrie(SageObject):
 
         # Process each letter, in order.
         W = word.parent()
-        w = W()
         for letter in word:
             self._process_letter(W([letter]))
 
@@ -114,13 +114,12 @@ class SuffixTrie(SageObject):
         r = self._active_state
         # While r is not the auxiliary vertex, or
         # there is not transition from r along letter, ...
-        while r != -1 and \
-                (r,letter) not in self._transition_function:
+        while r != -1 and (r, letter) not in self._transition_function:
             # adjoin a new state s
             s = len(self._suffix_link)
             self._suffix_link.append(None)
             # create a transition from r to s along letter
-            self._transition_function[(r,letter)] = s
+            self._transition_function[(r, letter)] = s
             if r != self._active_state:
                 # update the suffix link
                 self._suffix_link[old_s] = s
@@ -130,7 +129,7 @@ class SuffixTrie(SageObject):
         if r == -1:
             self._suffix_link[old_s] = 0
         else:
-            self._suffix_link[old_s] = self._transition_function[(r,letter)]
+            self._suffix_link[old_s] = self._transition_function[(r, letter)]
         # update the active state
         self._active_state = \
                 self._transition_function[(self._active_state, letter)]
@@ -501,6 +500,7 @@ class SuffixTrie(SageObject):
 # Suffix Trees
 ################################################################################
 
+
 class ImplicitSuffixTree(SageObject):
     def __init__(self, word):
         r"""
@@ -514,8 +514,9 @@ class ImplicitSuffixTree(SageObject):
         indices of the occurrence of the factors in w.
 
         The following is a straightforward implementation of Ukkonen's
-        on-line algorithm for constructing the implicit suffix tree [1].
-        It constructs the suffix tree for w[:i] from that of w[:i-1].
+        on-line algorithm for constructing the
+        implicit suffix tree [Ukko1995]_.  It constructs the suffix tree for
+        w[:i] from that of w[:i-1].
 
         GENERAL IDEA. The suffix tree of w[:i+1] can be obtained from that
         of w[:i] by visiting each node corresponding to a suffix of w[:i]
@@ -556,8 +557,7 @@ class ImplicitSuffixTree(SageObject):
 
         REFERENCES:
 
-        - [1] E. Ukkonen, "On-line construction of suffix trees",
-          Algorithmica, 1995, volume 14, number 3, pages 249--260.
+        - [Ukko1995]_
 
         EXAMPLES::
 
@@ -591,8 +591,9 @@ class ImplicitSuffixTree(SageObject):
 
     def _process_letter(self, letter):
         r"""
-        This is the main part of Ukkonen's algorithm. This corresponds to
-        the algorithm "update" in [1].
+        This is the main part of Ukkonen's algorithm.
+
+        This corresponds to the algorithm "update" in [Ukko1995]_.
 
         .. note::
 
@@ -601,8 +602,7 @@ class ImplicitSuffixTree(SageObject):
 
         REFERENCES:
 
-        - [1] E. Ukkonen, "On-line construction of suffix trees",
-          Algorithmica, 1995, volume 14, number 3, pages 249--260.
+        - [Ukko1995]_
 
         TESTS::
 
@@ -910,7 +910,6 @@ class ImplicitSuffixTree(SageObject):
         self.plot(word_labels=word_labels, *args, **kwds).show()
         return
 
-
     #####
     # Various methods
     #####
@@ -1095,7 +1094,6 @@ class ImplicitSuffixTree(SageObject):
         end_of_string = object()
         self._letters.append(end_of_string)
         (s,(k,i)) = self._active_state
-        old_r = 0
         (end_state, r) = self._test_and_split(s,(k,i-1), end_of_string)
         while not end_state:
             (s, k) = self._canonize(self._suffix_link[s], (k,i-1))
@@ -1122,7 +1120,7 @@ class ImplicitSuffixTree(SageObject):
         """
         queue = [0]
         while queue:
-            v=queue.pop()
+            v = queue.pop()
             for ((i,j),u) in iteritems(self._transition_function[v]):
                 yield (v,u,(i-1,j))
                 queue.append(u)
@@ -1193,7 +1191,7 @@ class ImplicitSuffixTree(SageObject):
                     num_factors += length_word - i
                 else:
                     num_factors += j - i
-        elif isinstance(n, (int,Integer)):
+        elif isinstance(n, (int, Integer)):
             length_word = self.word().length()
             num_factors = 0
             queue = [(0, 0)]
@@ -1211,7 +1209,7 @@ class ImplicitSuffixTree(SageObject):
                             else:
                                 queue.append((u,l+j-i+1))
         else:
-            raise TypeError("not an integer or None: %s" %s)
+            raise TypeError("not an integer or None: %s" % n)
         return num_factors
 
     def factor_iterator(self,n=None):
@@ -1263,7 +1261,7 @@ class ImplicitSuffixTree(SageObject):
                     if j is None:
                         j = wlen
                     queue.append((u,i,j, l+j-i+1))
-        elif isinstance(n, (int,Integer)):
+        elif isinstance(n, (int, Integer)):
             queue = [(0, 0, -1, 0)]
             while queue:
                 (v,i,j,l) = queue.pop()
@@ -1278,17 +1276,16 @@ class ImplicitSuffixTree(SageObject):
                         else:
                             queue.append((u,i,j, l+j-i+1))
         else:
-            raise TypeError("not an integer or None: %s" %s)
-
+            raise TypeError("not an integer or None: %s" % n)
 
     def LZ_decomposition(self):
         r"""
-        Return a list of index of the begining of the block of the Lempel-Ziv
+        Return a list of index of the beginning of the block of the Lempel-Ziv
         decomposition of ``self.word``
 
         The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a
         word `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k`
-        that has an occurence starting before `u_i` or a letter if this prefix
+        that has an occurrence starting before `u_i` or a letter if this prefix
         is empty.
 
         OUTPUT:
@@ -1323,7 +1320,7 @@ class ImplicitSuffixTree(SageObject):
             ((x, y), successor) = self._find_transition(0, w[i])
             x = x-1
             while x < i+l:
-                if y == None:
+                if y is None:
                     l = len(w)-i
                 else:
                     l += y-x
@@ -1363,7 +1360,7 @@ class ImplicitSuffixTree(SageObject):
             if len(label) == 1:
                 newtree.add_edge(u,v)
             else:
-                newtree.add_edge(u,new_node,label[0]);
+                newtree.add_edge(u,new_node,label[0])
                 for w in label[1:-1]:
                     newtree.add_edge(new_node,new_node+1,w)
                     new_node += 1
@@ -1402,4 +1399,3 @@ class ImplicitSuffixTree(SageObject):
                     d[new_node,w[-1:]] = v
                     new_node += 1
         return d
-

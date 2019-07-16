@@ -71,18 +71,15 @@ We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
     sage: K.<a> = QuadraticField(-7)
     sage: EK = E.change_ring(K)
     sage: EK.period_lattice(K.complex_embeddings()[0])
-    Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + 7 with respect to the embedding Ring morphism:
-      From: Number Field in a with defining polynomial x^2 + 7
+    Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I with respect to the embedding Ring morphism:
+      From: Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
       To:   Algebraic Field
       Defn: a |--> -2.645751311064591?*I
 
 
 REFERENCES:
 
-.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
-   elliptic curves over $\CC$ and complex elliptic logarithms.
-   Journal of Number Theory Volume 133, Issue 8, August 2013, pages
-   2813-2841.
+- [CT2013]_
 
 
 AUTHORS:
@@ -497,8 +494,8 @@ class PeriodLattice_ell(PeriodLattice):
             sage: tau = w1/w2; tau
             0.387694505032876 + 1.30821088214407*I
         """
-        w1, w2 = periods = self.basis(prec=prec, algorithm=algorithm)
-        periods, mat = normalise_periods(w1,w2)
+        w1, w2 = self.basis(prec=prec, algorithm=algorithm)
+        periods, _ = normalise_periods(w1, w2)
         return periods
 
     @cached_method
@@ -594,18 +591,19 @@ class PeriodLattice_ell(PeriodLattice):
             1.9072648860892725468182549468 - 1.3404778596244020196600112394*I)
         """
         if prec is None:
-            prec = RealField().precision()
+            prec = 53
         R = RealField(prec)
         C = ComplexField(prec)
 
-        if algorithm=='pari':
-            if self.E.base_field() is QQ:
-                periods = self.E.pari_curve().omega(prec).sage()
-                return (R(periods[0]), C(periods[1]))
+        if algorithm == 'pari':
+            ainvs = self.E.a_invariants()
+            if self.E.base_field() is not QQ:
+                ainvs = [C(self.embedding(ai)).real() for ai in ainvs]
 
-            E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
-            periods = E_pari.omega(prec).sage()
-            return (R(periods[0]), C(periods[1]))
+            # The precision for omega() is determined by ellinit()
+            E_pari = pari.ellinit(ainvs, precision=prec)
+            w1, w2 = E_pari.omega()
+            return R(w1), C(w2)
 
         if algorithm!='sage':
             raise ValueError("invalid value of 'algorithm' parameter")
@@ -1244,7 +1242,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 
@@ -1437,7 +1435,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 
@@ -1460,8 +1458,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         Note that this is actually the inverse of the Weierstrass isomorphism::
 
-            sage: L.elliptic_exponential(_)
-            (3.00000000000000000000000000... : 5.00000000000000000000000000... : 1.000000000000000000000000000)
+            sage: L.elliptic_exponential(_)  # abs tol 1e-26
+            (3.000000000000000000000000000 : 5.000000000000000000000000000 : 1.000000000000000000000000000)
 
         An example with negative discriminant, and a torsion point::
 
@@ -1749,12 +1747,12 @@ class PeriodLattice_ell(PeriodLattice):
         # test for the point at infinity:
 
         eps = (C(2)**(-0.8*prec)).real()  ## to test integrality w.r.t. lattice within 20%
-        if all([(t.round()-t).abs() < eps for t in self.coordinates(z)]):
+        if all((t.round()-t).abs() < eps for t in self.coordinates(z)):
             K = z.parent()
             if to_curve:
                 return self.curve().change_ring(K)(0)
             else:
-                return (K('+infinity'),K('+infinity'))
+                return (K('+infinity'), K('+infinity'))
 
         # general number field code (including QQ):
 
@@ -1882,7 +1880,7 @@ def normalise_periods(w1, w2):
     return (a*w1+b*w2,c*w1+d*w2), abcd
 
 
-def extended_agm_iteration(a,b,c):
+def extended_agm_iteration(a, b, c):
     r"""
     Internal function for the extended AGM used in elliptic logarithm computation.
     INPUT:
@@ -1913,13 +1911,13 @@ def extended_agm_iteration(a,b,c):
     """
     if not isinstance(a, (RealNumber,ComplexNumber)):
         raise ValueError("values must be real or complex numbers")
-    eps = a.parent().one().real()>>(a.parent().precision()-10)
+    eps = a.parent().one().real() >> (a.parent().precision() - 10)
     while True:
-        a1 = (a + b)/2
-        b1 = (a*b).sqrt()
-        delta = (b**2 - a**2)/c**2
-        f = (1 + (1 + delta).sqrt())/2
-        if (f.abs()-1).abs() < eps:
-            return a,b,c
-        c*=f
-        a,b = a1,b1
+        a1 = (a + b) / 2
+        b1 = (a * b).sqrt()
+        delta = (b**2 - a**2) / c**2
+        f = (1 + (1 + delta).sqrt()) / 2
+        if (f.abs() - 1).abs() < eps:
+            return a, b, c
+        c *= f
+        a, b = a1, b1

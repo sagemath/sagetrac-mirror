@@ -335,7 +335,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             sage: Sets.Subquotients
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
-            Cached version of <function Subquotients at ...>
+            Cached version of <function ...Subquotients at ...>
 
         This method also initializes the attribute
         ``_base_category_class`` if not already set::
@@ -415,7 +415,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             return cls.default_super_categories(category, *args)
 
     def __init__(self, category, *args):
-        """
+        r"""
         TESTS::
 
             sage: from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
@@ -493,7 +493,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         return "%s of %s"%(Category._repr_object_names(self), self.base_category()._repr_object_names())
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(Semigroups().Subquotients())   # indirect doctest
@@ -514,7 +514,7 @@ class CovariantConstructionCategory(FunctorialConstructionCategory):
 
     @classmethod
     def default_super_categories(cls, category, *args):
-        """
+        r"""
         Return the default super categories of `F_{Cat}(A,B,...)` for
         `A,B,...` parents in `Cat`.
 
@@ -610,7 +610,7 @@ class CovariantConstructionCategory(FunctorialConstructionCategory):
                 AttributeError: 'JoinCategory_with_category' object has no attribute 'is_construction_defined_by_base'
         """
         base = self.base_category()
-        f = self._functor_category;
+        f = self._functor_category
         return not any(hasattr(C, f) for C in base.super_categories())
 
     def additional_structure(self):
@@ -629,7 +629,7 @@ class CovariantConstructionCategory(FunctorialConstructionCategory):
             - :meth:`Category.additional_structure`.
             - :meth:`is_construction_defined_by_base`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: Modules(ZZ).Graded().additional_structure()
             Category of graded modules over Integer Ring

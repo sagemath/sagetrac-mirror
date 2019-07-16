@@ -37,6 +37,7 @@ test.spyx
 --R
 --root
 --rst2ipynb
+--ipynb2rst
 --rst2txt
 --rst2sws
 --sh
@@ -54,7 +55,7 @@ AUTHORS:
 - Jeroen Demeyer (2010-11-20): initial version (:trac:`10300`)
 
 """
-from subprocess import *
+from subprocess import Popen, PIPE
 import os
 import select
 
@@ -194,42 +195,42 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--root"])
-        sage: len(out) >= 2   # at least one character + newline
+        sage: (out, err, ret) = test_executable(["sage", "--root"])  # optional - build
+        sage: len(out) >= 2   # at least one character + newline; optional - build
         True
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional -build
         0
 
     Test ``sage --info [packages]`` and the equivalent
     ``sage -p --info --info [packages]`` (the doubling of ``--info``
     is intentional, that option should be idempotent)::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
-        sage: print(out)
+        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
+        sage: print(out)  # optional - build
         Found local metadata for sqlite-...
         = SQLite =
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional - build
         0
 
-        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
-        sage: print(out)
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
+        sage: print(out)  # optional - build
         Found local metadata for sqlite-...
         = SQLite =
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional - build
         0
 
     Test ``sage-run`` on a Python file, both with an absolute and with a relative path::
@@ -260,7 +261,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: _ = F.write("k.<a> = GF(5^3); print(a^124)\n")
+        sage: _ = F.write("from __future__ import print_function\nk.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)
@@ -352,7 +353,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Test ``sage -t --debug -p 2`` on a ReST file, the ``-p 2`` should
     be ignored. In Pdb, we run the ``help`` command::
 
-        sage: s = "::\n\n    sage: assert True == False\n    sage: 2 + 2\n    5"
+        sage: s = "::\n\n    sage: assert True is False\n    sage: 2 + 2\n    5"
         sage: script = tmp_filename(ext='.rst')
         sage: F = open(script, 'w')
         sage: _ = F.write(s)
@@ -367,13 +368,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         **********************************************************************
         File "...", line 3, in ...
         Failed example:
-            assert True == False
+            assert True is False
         Exception raised:
             Traceback (most recent call last):
             ...
             AssertionError
         > <doctest ...>(1)<module>()
-        -> assert True == False
+        -> assert True is False
         (Pdb)
         Documented commands (type help <topic>):
         ========================================
@@ -388,7 +389,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             4
         **********************************************************************
         Previously executed commands:
-            s...: assert True == False
+            s...: assert True is False
         sage:
         <BLANKLINE>
         Returning to doctests...
@@ -409,12 +410,10 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: os.chmod(d, 0o777)
         sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d)
         sage: print(err)
-        Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
         sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d)
         sage: print(err)
-        Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
 
@@ -754,6 +753,71 @@ def test_executable(args, input="", timeout=100.0, **kwds):
          }
         }
 
+    Test ``sage --ipynb2rst file.ipynb file.rst`` on a ipynb file::
+
+        sage: s = r'''{
+        ....:  "cells": [
+        ....:   {
+        ....:    "cell_type": "code",
+        ....:    "execution_count": 1,
+        ....:    "metadata": {},
+        ....:    "outputs": [
+        ....:     {
+        ....:      "data": {
+        ....:       "text/plain": [
+        ....:        "2"
+        ....:       ]
+        ....:      },
+        ....:      "execution_count": 1,
+        ....:      "metadata": {},
+        ....:      "output_type": "execute_result"
+        ....:     }
+        ....:    ],
+        ....:    "source": [
+        ....:     "1+1"
+        ....:    ]
+        ....:   },
+        ....:   {
+        ....:    "cell_type": "code",
+        ....:    "execution_count": null,
+        ....:    "metadata": {},
+        ....:    "outputs": [],
+        ....:    "source": []
+        ....:   }
+        ....:  ],
+        ....:  "metadata": {
+        ....:   "kernelspec": {
+        ....:    "display_name": "SageMath 8.3.beta4",
+        ....:    "language": "",
+        ....:    "name": "sagemath"
+        ....:   },
+        ....:   "language_info": {
+        ....:    "codemirror_mode": {
+        ....:     "name": "ipython",
+        ....:     "version": 2
+        ....:    },
+        ....:    "file_extension": ".py",
+        ....:    "mimetype": "text/x-python",
+        ....:    "name": "python",
+        ....:    "nbconvert_exporter": "python",
+        ....:    "pygments_lexer": "ipython2",
+        ....:    "version": "2.7.15"
+        ....:   }
+        ....:  },
+        ....:  "nbformat": 4,
+        ....:  "nbformat_minor": 2
+        ....: }
+        ....: '''
+        sage: t = '.. escape-backslashes\n.. default-role:: math\n\n\n::\n\n    sage: 1+1\n    2\n\n\n\n\n'
+        sage: input = tmp_filename(ext='.ipynb')
+        sage: output = tmp_filename(ext='.rst')
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
+        sage: L = ["sage", "--ipynb2rst", input, output]
+        sage: _ = test_executable(L)                        # optional - pandoc
+        sage: print(open(output, 'r').read() == t)          # optional - pandoc
+        True
+
     Test ``sage --rst2txt file.rst`` on a ReST file::
 
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
@@ -773,7 +837,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ///
         4
         }}}
-        sage: err
+        sage: err # py2
         ''
         sage: ret
         0
@@ -786,7 +850,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: test_executable(["sage", "--rst2txt", input, output])
-        ('', '', 0)
+        ('', ..., 0)
         sage: print(open(output, 'r').read())
         {{{id=0|
         2^10
@@ -807,11 +871,11 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: output = tmp_filename(ext='.sws')
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
-        sage: test_executable(["sage", "--rst2sws", input, output])
+        sage: test_executable(["sage", "--rst2sws", input, output]) # py2
         ('', '', 0)
-        sage: import tarfile
-        sage: f = tarfile.open(output, 'r')
-        sage: print(f.extractfile('sage_worksheet/worksheet.html').read())
+        sage: import tarfile # py2
+        sage: f = tarfile.open(output, 'r') # py2
+        sage: print(f.extractfile('sage_worksheet/worksheet.html').read()) # py2
         <h1 class="title">Thetitle</h1>
         <BLANKLINE>
         {{{id=0|
@@ -825,7 +889,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ///
         4
         }}}
-        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read())
+        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read()) # py2
         Thetitle
         system:sage
         <BLANKLINE>

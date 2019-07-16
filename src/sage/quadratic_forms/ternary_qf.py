@@ -77,7 +77,7 @@ class TernaryQF(SageObject):
     possible_automorphisms = None
 
     def __init__(self,v):
-        """
+        r"""
         Creates the ternary quadratic form `a*x^2 + b*y^2 + c*z^2 + r*y*z + s*x*z + t*x*y.` from the
         tuple v=[a,b,c,r,s,t] over `\ZZ`.
 
@@ -92,8 +92,6 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [1 2 3]
             [4 5 6]
-
-
         """
 
         if len(v) != 6:
@@ -625,8 +623,9 @@ class TernaryQF(SageObject):
 
     def adjoint(self):
         """
-        Returns the adjoint form associated to the given ternary quadratic form.
-        That is, the Hessian matrix of the adjoint form is twice the adjoint matrix of the Hessian matrix of the given form.
+        Returns the adjoint form associated to the given ternary quadratic
+        form. That is, the Hessian matrix of the adjoint form is twice the
+        classical adjoint matrix of the Hessian matrix of the given form.
 
         EXAMPLES::
 
@@ -635,7 +634,7 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [68 68 3]
             [0 0 -68]
-            sage: Q.adjoint().matrix() == 2*Q.matrix().adjoint()
+            sage: Q.adjoint().matrix() == 2*Q.matrix().adjoint_classical()
             True
 
         """
