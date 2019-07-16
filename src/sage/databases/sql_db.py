@@ -430,13 +430,14 @@ class SQLQuery(SageObject):
             sage: D = SQLDatabase()
             sage: r = SQLQuery(D, {'table_name':'simon', 'display_cols':['a1'], 'expression':['b2','<=', 3]})
             Traceback (most recent call last):
-                ...
             ValueError: Database has no table simon
             sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
             sage: D.create_table('simon',{'a1':{'sql':'bool', 'primary_key':False}, 'b2':{'sql':'int'}})
             Traceback (most recent call last):
-                ...
             ValueError: Database already has a table named simon
+            sage: SQLQuery(D, {'table_name':'simon', 'display_cols':['a1'], 'expression':['c1','>',2]})
+            Traceback (most recent call last):
+            ValueError: Table has no column c1
 
         """
         if not isinstance(database, SQLDatabase):
