@@ -49,7 +49,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. MODULEAUTHOR:: Jason Bandlow, Pauline Hubert, Mélodie Lapointe, Anne Schilling, Nicolas M. Thiery, Mike Zabrocki
 
-    The first part of this document consists in a tutorial on symmetric functions.
+    The first part of this document consists of a tutorial on symmetric functions.
     It is then followed by the documentation.
     The aim of this tutorial is to present what it is possible to do in Sage with symmetric functions.
     We suppose that the reader knows only the basics about symmetric functions, but if one wants to learn
@@ -535,7 +535,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     - The Witt basis
     - The zonal basis
 
-    The well-known Macdonald symmetric functions are also implemented in sage.
+    The well-known Macdonald symmetric functions are also implemented in Sage.
     For more details, you can consult the following Sage reference :
     http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/sf/macdonald.html
 
@@ -649,7 +649,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. rubric:: Transformations of symmetric functions
 
     There are many methods in Sage which make it easy to manipulate symmetric
-    functions.  For example, if we have some function which acts on partitions
+    functions.  For example, if we have some function that acts on partitions
     (say, conjugation), it is a simple matter to apply it to the support of a
     symmetric function.  Here is an example::
 
@@ -966,7 +966,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     :math:`s_4\circ s_2`, may also be computed as
 
     ::
-        
+
         sage: s[4](s[2])
         s[2, 2, 2, 2] + s[4, 2, 2] + s[4, 4] + s[6, 2] + s[8]
 
@@ -1479,7 +1479,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         1/24*p[1, 1, 1, 1] # p[1, 1, 1, 1] + 1/4*p[2, 1, 1] # p[2, 1, 1] + 1/8*p[2, 2] # p[2, 2] + 1/3*p[3, 1] # p[3, 1] + 1/4*p[4] # p[4]
 
 
-    The coproduct is an algebra morphism, and therefore
+    The coproduct is an algebra morphism, and is therefore
     determined by its values on the generators; the power sum generators
     are primitive::
 
