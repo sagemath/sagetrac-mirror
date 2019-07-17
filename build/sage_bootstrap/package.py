@@ -12,6 +12,7 @@ Sage Packages
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import six
 
 import re
 import os
@@ -216,7 +217,12 @@ class Package(object):
         """
         Load the checksums from the appropriate ``checksums.ini`` file
         """
-        checksums_ini = os.path.join(self.path, 'checksums.ini')
+        if six.PY2:
+            checksums_ini = os.path.join(self.path, 'checksums-legacy.ini')
+            if not os.path.isfile(checksums_ini):
+                checksums_ini = os.path.join(self.path, 'checksums.ini')
+        else:
+            checksums_ini = os.path.join(self.path, 'checksums.ini')
         assignment = re.compile('(?P<var>[a-zA-Z0-9]*)=(?P<value>.*)')
         result = dict()
         with open(checksums_ini, 'rt') as f:
@@ -236,7 +242,13 @@ class Package(object):
     VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')
     
     def _init_version(self):
-        with open(os.path.join(self.path, 'package-version.txt')) as f:
+        if six.PY2:
+            pkg_version = os.path.join(self.path, 'package-version-legacy.txt')
+            if not os.path.isfile(package_version):
+                pkg_version = os.path.join(self.path, 'package-version.txt')
+        else:
+            pkg_version = os.path.join(self.path, 'package-version.txt')
+        with open(pkg_version) as f:
             package_version = f.read().strip()
         match = self.VERSION_PATCHLEVEL.match(package_version)
         if match is None:
@@ -245,5 +257,3 @@ class Package(object):
         else:
             self.__version = match.group('version')
             self.__patchlevel = int(match.group('patchlevel'))
-        
-        

@@ -42,6 +42,7 @@ Functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
+import six
 
 import sage.env
 
@@ -257,9 +258,14 @@ def list_packages(*pkg_types, **opts):
             else:
                 pkg['remote_version'] = None
         else:
+            package_filename = os.path.join(SAGE_PKGS, p, "package-version.txt")
+            if six.PY2:
+                package_filename_legacy = os.path.join(SAGE_PKGS, p, "package-version-legacy.txt")
+                if os.path.isfile(package_filename_legacy):
+                    package_filename = package_filename_legacy
+
             # If package-version.txt does not exist, that is an error
             # in the build system => we just propagate the exception
-            package_filename = os.path.join(SAGE_PKGS, p, "package-version.txt")
             with open(package_filename) as f:
                 pkg['remote_version'] = f.read().strip()
             pkg['installed_version'] = installed.get(p)

@@ -287,7 +287,14 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     PKG_VER="${PKG_NAME#${PKG_BASE}}"
     PKG_VER="${PKG_VER#-}"
     PKG_SCRIPTS="$SAGE_ROOT/build/pkgs/$PKG_BASE"
-    LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
+    if [ "$SAGE_PYTHON3" = yes ]; then
+       LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
+    else
+       LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version-legacy.txt 2>/dev/null`
+       if ! [ -f "$LOCAL_PKG_VER" ]; then
+           LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
+       fi
+    fi
     if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" = "$LOCAL_PKG_VER" ]; then
         PKG_VER="$LOCAL_PKG_VER"
         if [ -z "$PKG_VER" ]; then
