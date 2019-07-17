@@ -41,6 +41,7 @@ from sage.structure.mutability cimport Mutability
 from sage.misc.misc_c cimport normalize_index
 
 from sage.categories.fields import Fields
+from sage.categories.integral_domains import IntegralDomains
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
@@ -51,6 +52,7 @@ import sage.modules.free_module
 from .matrix_misc import row_iterator
 
 _Fields = Fields()
+_IntegralDomains = IntegralDomains()
 
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
@@ -5367,7 +5369,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         R = self.base_ring()
         if R not in _Fields:
-            if R.is_integral_domain(proof=False):
+            if R in _IntegralDomains:
                 return ~self.matrix_over_field()
             else:
                 return self.inverse_of_unit()
