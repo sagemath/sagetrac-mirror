@@ -934,8 +934,16 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.edge_graph()
             Graph on 5 vertices
             sage: G = C.edge_graph()
-            sage: G.degree()
-            [4, 3, 4, 3, 4]
+            sage: for e in sorted(G.edge_iterator()): print(e)
+            (A vertex at (0, 0, 0), A vertex at (1, 1, 1), None)
+            (A vertex at (0, 0, 0), A vertex at (2, 4, 8), None)
+            (A vertex at (0, 0, 0), A vertex at (3, 9, 27), None)
+            (A vertex at (0, 0, 0), A vertex at (4, 16, 64), None)
+            (A vertex at (1, 1, 1), A vertex at (2, 4, 8), None)
+            (A vertex at (1, 1, 1), A vertex at (4, 16, 64), None)
+            (A vertex at (2, 4, 8), A vertex at (3, 9, 27), None)
+            (A vertex at (2, 4, 8), A vertex at (4, 16, 64), None)
+            (A vertex at (3, 9, 27), A vertex at (4, 16, 64), None)
         """
         return Graph(self.edges(names=names), format="list_of_edges")
 
