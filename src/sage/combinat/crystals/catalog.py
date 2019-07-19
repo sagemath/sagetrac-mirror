@@ -103,6 +103,7 @@ from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfig
 from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableaux_shape as ShiftedPrimedTableaux
 from sage.combinat.partition_kleshchev import KleshchevPartitions
 from sage.combinat.multiset_partition_into_sets_ordered import MinimajCrystal as Minimaj
+#from sage.combinat.semistandard_set_valued_tableau import SemistandardSetValuedTableaux_shape as SemistandardSetValuedTableaux
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
 

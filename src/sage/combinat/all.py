@@ -91,8 +91,7 @@ from .core import Core, Cores
 
 #Tableaux
 lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", "IncreasingTableau",
-                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux", "IncreasingTableaux",
-                                     "SemistandardSetValuedTableau", "SemistandardSetValuedTableaux"])
+                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux", "IncreasingTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from .ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
@@ -105,6 +104,8 @@ lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])
 lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
                                                      'ShiftedPrimedTableau'])
+lazy_import('sage.combinat.semistandard_set_valued_tableau', ['SemistandardSetValuedTableaux',
+                                                     'SemistandardSetValuedTableau'])
 
 #Words
 from .words.all import *
