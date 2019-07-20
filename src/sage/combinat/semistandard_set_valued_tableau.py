@@ -97,11 +97,11 @@ class SemistandardSetValuedTableau(Tableau):
         if isinstance(t, SemistandardSetValuedTableau):
             return t
 
-        T = list(t)
+        T = list([list(row)for row in t])
         for i in range(len(T)):
             for j in range(len(T[i])):
-                #T[i][j] =  tuple(sorted(T[i][j]))
-                T[i][j] =  sorted(T[i][j])
+                T[i][j] =  tuple(sorted(T[i][j]))
+                #T[i][j] =  sorted(T[i][j])
 
         SSVT = SemistandardSetValuedTableaux(Tableau(T).shape())
         return SSVT.element_class(SSVT,T)
@@ -112,27 +112,8 @@ class SemistandardSetValuedTableau(Tableau):
 
         TESTS::
 
-            sage: s = ShiftedPrimedTableau([[1,"2'","3'",3], [2,"3'"]])
-            sage: t = ShiftedPrimedTableaux([4,2])([[1,"2p","3p",3], [2,"3p"]])
-            sage: s == t
-            True
-            sage: t.parent()
-            Shifted Primed Tableaux of shape [4, 2]
-            sage: s.parent()
-            Shifted Primed Tableaux
-            sage: r = ShiftedPrimedTableaux([4, 2])(s); r.parent()
-            Shifted Primed Tableaux of shape [4, 2]
-            sage: s is t  # identical shifted tableaux are distinct objects
-            False
+            sage: 
 
-        A shifted primed tableau is deeply immutable as the rows are
-        stored as tuples::
-
-            sage: t = ShiftedPrimedTableau([[1,"2p","3p",3],[2,"3p"]])
-            sage: t[0][1] = 3
-            Traceback (most recent call last):
-            ...
-            TypeError: 'tuple' object does not support item assignment
         """
         if not preprocessed:
             t = self._preprocess(T)
@@ -142,32 +123,19 @@ class SemistandardSetValuedTableau(Tableau):
     def _preprocess(T):
         """
         Preprocessing list ``T`` to initialize the tableau.
-        The output is a list of rows as tuples, with explicit
-        ``None``'s to indicate the skew shape, and entries being
-        ``PrimedEntry``s.
-
-        Trailing empty rows are removed.
 
         TESTS::
 
-            sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
-            ....: skew=[1])
-            [(None, 2', 3', 4')]
-            sage: ShiftedPrimedTableau._preprocess([[None]], skew=[1])
-            [(None,)]
-            sage: ShiftedPrimedTableau._preprocess([], skew=[2,1])
-            [(None, None), (None,)]
-            sage: ShiftedPrimedTableau._preprocess([], skew=[])
-            []
+            sage: 
         """
         if isinstance(T, SemistandardSetValuedTableau):
             return T
         # Preprocessing list t for primes and other symbols
-        t = list(T)
-        for i in range(len(T)):
-            for j in range(len(T[i])):
-                #T[i][j] =  tuple(sorted(T[i][j]))
-                T[i][j] =  sorted(T[i][j])
+        t = list([list(row)for row in T])
+        for i in range(len(t)):
+            for j in range(len(t[i])):
+                t[i][j] =  tuple(sorted(t[i][j]))
+                #t[i][j] =  sorted(t[i][j])
         return t
 
     def _repr_(self):
@@ -281,7 +249,7 @@ class SemistandardSetValuedTableau(Tableau):
         """
         if len(self) == 0:
             return []
-        vec = sum([sum(row,[]) for row in self],[])
+        vec = sum([sum(row,()) for row in self],())
         m = max(vec)
         wt = [0] * m
         for i in vec:
@@ -495,7 +463,7 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         #st = SemistandardSetValuedTableau(self)
         signs = []
         for col in self.conjugate():
-            word = sum(col, [])
+            word = sum(col, ())
             if i in word and i+1 in word:
                 signs += [0]
             elif i in word: #i in word, i+1 not in word
@@ -568,20 +536,20 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         # checks that there is a cell to the left and that the cell contains i and i+1
         #if col>0 and all(x in tab[row][col-1] for x in [i,i+1]):
         if col>0 and all(x in T(row,col-1) for x in [i,i+1]):
-            entry = T(row,col-1)
+            entry = list(T(row,col-1))
             entry.remove(i+1)
-            T = T.add_entry((row,col-1),entry)
+            T = T.add_entry((row,col-1),tuple(entry))
             #tab[row][col-1].remove(i+1)
         else:
-            entry = T(row,col)
+            entry = list(T(row,col))
             entry.remove(i+1)
-            T = T.add_entry((row,col),entry)
+            T = T.add_entry((row,col),tuple(entry))
             #tab[row][col].remove(i+1)
         #tab[row][col] = sorted(tab[row][col]+[i])
-        entry = sorted(T(row,col)+[i])
-        T = T.add_entry((row,col),entry)
+        entry = sorted(list(T(row,col))+[i])
+        T = T.add_entry((row,col),tuple(entry))
         #return self.parent()(tab)
-        return T
+        return self.parent()(T)
 
     def f(self, i):
         r"""
@@ -622,16 +590,16 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
 
         # checks that there is a cell to the right and that the cell contains i and i+1
         if col<len(T[row])-1 and all(x in T(row,col+1) for x in [i,i+1]):
-            entry = T(row,col+1)
+            entry = list(T(row,col+1))
             entry.remove(i)
-            T = T.add_entry((row,col+1),entry)
+            T = T.add_entry((row,col+1),tuple(entry))
         else:
-            entry = T(row,col)
+            entry = list(T(row,col))
             entry.remove(i)
-            T = T.add_entry((row,col),entry)
-        entry = sorted(T(row,col)+[i+1])
-        T = T.add_entry((row,col),entry)
-        return T
+            T = T.add_entry((row,col),tuple(entry))
+        entry = sorted(list(T(row,col))+[i+1])
+        T = T.add_entry((row,col),tuple(entry))
+        return self.parent()(T)
 
     def reading_word(self):
         R = []
@@ -1395,71 +1363,71 @@ def _insertion_sequence(T):
         seq += [S]
     return seq
 
-def _uncrowding_insertion(seq,P=None,Q=None,mark='X'):
-    r"""
-    Returns the pair (P',Q') under the uncrowding map for sequence seq and pair (P,Q).
+# def _uncrowding_insertion(seq,P=None,Q=None,mark='X'):
+#     r"""
+#     Returns the pair (P',Q') under the uncrowding map for sequence seq and pair (P,Q).
 
-        INPUT::
-            seq - a sequence of integers to be inserted. This should insert to a hook shape.
-            P - a semistandard Young tableau; empty if none initialized
-            Q - a flagged increasing tableau with same shape as P; empty if none initialized
+#         INPUT::
+#             seq - a sequence of integers to be inserted. This should insert to a hook shape.
+#             P - a semistandard Young tableau; empty if none initialized
+#             Q - a flagged increasing tableau with same shape as P; empty if none initialized
 
-        OUTPUT::
-            P' - a semistandard Young tableau
-            Q' - a flagged increasing tableau with same shape as P'
+#         OUTPUT::
+#             P' - a semistandard Young tableau
+#             Q' - a flagged increasing tableau with same shape as P'
 
-        EXAMPLES::
-            sage: P = SemistandardTableau([[4],[6],[7]])
-            sage: Q = Tableau([['X'],['X'],[1]])
-            sage: _uncrowding_insertion([3,3,9,8],P,Q)
-            ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
+#         EXAMPLES::
+#             sage: P = SemistandardTableau([[4],[6],[7]])
+#             sage: Q = Tableau([['X'],['X'],[1]])
+#             sage: _uncrowding_insertion([3,3,9,8],P,Q)
+#             ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
 
-            sage: _uncrowding_insertion([1,1,4,5,4,3,2])
-            ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
-    """
-    Pp = P
-    Qq = Q
-    if P is None:
-        Pp = SemistandardTableau([])
-    if Q is None:
-        Qq = Tableau([])
-    if not isinstance(Pp,SemistandardTableau):
-        raise ValueError("P should be instance of SemistandardTableau")
-    if not isinstance(Qq,Tableau):
-        raise ValueError("Q should be instance of Tableau")
-    if Pp.shape()!=Qq.shape():
-        raise ValueError("P and Q must be of same shape")        
+#             sage: _uncrowding_insertion([1,1,4,5,4,3,2])
+#             ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
+#     """
+#     Pp = P
+#     Qq = Q
+#     if P is None:
+#         Pp = SemistandardTableau([])
+#     if Q is None:
+#         Qq = Tableau([])
+#     if not isinstance(Pp,SemistandardTableau):
+#         raise ValueError("P should be instance of SemistandardTableau")
+#     if not isinstance(Qq,Tableau):
+#         raise ValueError("Q should be instance of Tableau")
+#     if Pp.shape()!=Qq.shape():
+#         raise ValueError("P and Q must be of same shape")        
 
-    for x in seq:
-        Pp = Pp.bump(x)
-    shape = Pp.shape()
-    temp = Tableau([ [mark]*shape[0] ]+Qq.to_list())
-    cells = [pair for pair in Pp.cells() if pair not in temp.cells()]
-    for cell in cells: 
-        temp = temp.add_entry(cell,cell[0])
-    Qq = temp
-    return Pp, Qq
+#     for x in seq:
+#         Pp = Pp.bump(x)
+#     shape = Pp.shape()
+#     temp = Tableau([ [mark]*shape[0] ]+Qq.to_list())
+#     cells = [pair for pair in Pp.cells() if pair not in temp.cells()]
+#     for cell in cells: 
+#         temp = temp.add_entry(cell,cell[0])
+#     Qq = temp
+#     return Pp, Qq
 
-def _uncrowding_map(T):
-    r"""
-    Returns the image of semistandard set-valued tableau T under the 
-    uncrowding map.
+# def _uncrowding_map(T):
+#     r"""
+#     Returns the image of semistandard set-valued tableau T under the 
+#     uncrowding map.
 
-        EXAMPLES::
-            sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
-            sage: _uncrowding_map(T)
-            ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
+#         EXAMPLES::
+#             sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
+#             sage: _uncrowding_map(T)
+#             ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
 
-            sage: T = Tableau([ [ [1],[1,2],[2] ],[ [2,3],[3,4,5] ],[ [4] ] ])
-            sage: _uncrowding_map(T)
-            ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
-    """
-    P = SemistandardTableau([])
-    Q = Tableau([])
-    sequences = _insertion_sequence(T.to_list())
-    for seq in sequences:
-        P,Q = _uncrowding_insertion(seq,P,Q)
-    return P,Q
+#             sage: T = Tableau([ [ [1],[1,2],[2] ],[ [2,3],[3,4,5] ],[ [4] ] ])
+#             sage: _uncrowding_map(T)
+#             ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
+#     """
+#     P = SemistandardTableau([])
+#     Q = Tableau([])
+#     sequences = _insertion_sequence(T.to_list())
+#     for seq in sequences:
+#         P,Q = _uncrowding_insertion(seq,P,Q)
+#     return P,Q
 
 def _max_outer_shape(P,m):
     r"""
