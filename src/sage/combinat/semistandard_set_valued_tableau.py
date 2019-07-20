@@ -23,6 +23,7 @@ from six import add_metaclass
 
 from sage.combinat.partition import Partition, Partitions, _Partitions, Partitions_n
 from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux, SemistandardTableau
+from sage.combinat.skew_tableau import SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.composition import Composition, Compositions
 #from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
@@ -1101,20 +1102,10 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
             sage: 
         """
-        # if self._skew is not None:
-        #     raise NotImplementedError("only for non-skew shapes")
-        # list_dw = []
-        # if self._max_entry is None:
-        #     max_entry = sum(self._shape)
-        # else:
-        #     max_entry = self._max_entry
-        # for weight in (Partition(self._shape).dominated_partitions(rows=max_entry)):
-        #     list_dw.extend([self.element_class(self, T, check=False,
-        #                                        preprocessed=True)
-        #                     for T in ShiftedPrimedTableaux(weight=tuple(weight),
-        #                                                    shape=self._shape)])
-        # return tuple(list_dw)
-        pass
+        P = self._shape
+        m = self.max_entry
+        L = _generate_pairs(P,m)
+        return tuple([_crowding_map(S,F,mark=None,m=m) for S,F in L])
 
     def shape(self):
         """
@@ -1275,12 +1266,12 @@ class SemistandardSetValuedTableaux_shape_inf(SemistandardSetValuedTableaux):
 #  Helper functions  #
 ######################
 
-def _reconstruct_tableau(seq):
+def _reconstruct_tableau(seq,m=None):
     r"""
     Returns a tableau corresponding to a sequence of unimodal sequences.
     
         EXAMPLES:
-            sage: seq = [[10, 9], [8, 9, 13, 8], [7, 7, 12, 9, 8, 6, 5, 4], [3, 6, 7, 12, 11, 10, 8, 5, 3, 2, 1]][::-1]
+            sage: seq = [[3, 6, 7, 12, 11, 10, 8, 5, 3, 2, 1], [7, 7, 12, 9, 8, 6, 5, 4], [8, 9, 13, 8], [10, 9]]
             sage: _reconstruct_tableau(seq)
             [[[1, 2, 3], [3, 5, 6], [7], [8, 10, 11, 12]], [[4, 5, 6, 7], [7], [8, 9, 12]], [[8], [8, 9], [13]], [[9, 10]]]
     """
@@ -1295,72 +1286,85 @@ def _reconstruct_tableau(seq):
             row += [to_add+[x]]
         row += [others]
         L += [row]
-    T = SemistandardSetValuedTableau(L)
+    SSVT = SemistandardSetValuedTableaux(Tableau(L).shape(),max_entry=m)
+    return SSVT.element_class(SSVT,L)
+
+def _crowding_reverse_insertion(P,Q,seq=[]):
+    r"""
+    Returns the pair (P',Q') under the uncrowding map for sequence seq and 
+    pair (P,Q).
+
+        INPUT::
+            seq - a sequence of integers to be inserted. This should insert 
+                  to a hook shape.
+            P - a semistandard Young tableau; empty if none initialized
+            Q - a flagged increasing tableau with same shape as P; empty if 
+                none initialized
+
+        OUTPUT::
+            P' - a semistandard Young tableau
+            Q' - a flagged increasing tableau with same shape as P'
+
+        EXAMPLES::
+            sage: P = SemistandardTableau([[4],[6],[7]])
+            sage: Q = Tableau([['X'],['X'],[1]])
+            sage: _uncrowding_insertion([3,3,9,8],P,Q)
+            ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
+
+            sage: _uncrowding_insertion([1,1,4,5,4,3,2])
+            ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
+    """
+    Pp = P.clone()
+    Qq = Q.clone()
+    if not isinstance(Pp,SemistandardTableau):
+        raise ValueError("P should be an instance of SemistandardTableau")
+    if not isinstance(Qq,Tableau):
+        raise ValueError("Q should be an instance of Tableau")
+    if Pp.shape()!=Qq.shape():
+        raise ValueError("P and Q must be of same shape")
+    if P==SemistandardTableau([]):
+        return P,Q,seq
+    cells = sorted([cell for cell in Qq.cells() if isinstance(Qq(cell),(int,Integer)) and Qq(cell)==cell[0]],key=lambda x:-x[0])
+
+    for cell in cells:
+        Pp,x = Pp.reverse_bump(cell)
+        seq = [x]+seq
+    seq = [x for x in Pp[0]]+seq
+    Pp = SemistandardTableau(Pp.to_list()[1:])
+
+    q_cells = [cell for cell in Qq.cells() if cell not in cells and cell[0]>0]
+    support = [cell[0] for cell in q_cells]
+    if len(support)>0:
+        last = max(support)
+        q_rows = [[cell for cell in q_cells if cell[0]==i] for i in range(1,last+1)]
+        Qq = Tableau([[Qq(cell) for cell in row] for row in q_rows])
+    else:
+        Qq = Tableau([])       
+
+    return Pp,Qq,seq
+
+def _crowding_map(P,Q,mark='X',m=None):
+    r"""
+    Returns the image of pair (P,Q) of semistandard tableau and flagged 
+    increasing tableau under the crowding map.
+
+        EXAMPLE::
+            sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
+            sage: _uncrowding_map(T)
+            ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
+
+            sage: T = Tableau([ [ [1],[1,2],[2] ],[ [2,3],[3,4,5] ],[ [4] ] ])
+            sage: _uncrowding_map(T)
+            ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
+    """
+    part = [len([x for x in row if x==mark]) for row in Q if mark in row]
+    assert part in _Partitions
+    sequences = []
+    for i in range(len(part)):
+        P,Q,seq = _crowding_reverse_insertion(P,Q,[])
+        sequences += [seq]
+    T = _reconstruct_tableau(sequences,m=m)
     return T
-
-# def _crowding_reverse_insertion(seq=[],P,Q,mark=None):
-#     r"""
-#     Returns the pair (P',Q') under the uncrowding map for sequence seq and 
-#     pair (P,Q).
-
-#         INPUT::
-#             seq - a sequence of integers to be inserted. This should insert 
-#                   to a hook shape.
-#             P - a semistandard Young tableau; empty if none initialized
-#             Q - a flagged increasing tableau with same shape as P; empty if 
-#                 none initialized
-
-#         OUTPUT::
-#             P' - a semistandard Young tableau
-#             Q' - a flagged increasing tableau with same shape as P'
-
-#         EXAMPLES::
-#             sage: P = SemistandardTableau([[4],[6],[7]])
-#             sage: Q = Tableau([['X'],['X'],[1]])
-#             sage: _uncrowding_insertion([3,3,9,8],P,Q)
-#             ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
-
-#             sage: _uncrowding_insertion([1,1,4,5,4,3,2])
-#             ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
-#     """
-#     Pp = P
-#     Qq = Q
-#     if not isinstance(Pp,SemistandardTableau):
-#         raise ValueError("P should be instance of SemistandardTableau")
-#     if not isinstance(Qq,Tableau):
-#         raise ValueError("Q should be instance of Tableau")
-#     if Pp.shape()!=Qq.shape():
-#         raise ValueError("P and Q must be of same shape")     
-#     if P==SemistandardTableau([]) and Q==Tableau([]):
-#         return seq,P,Q
-#     if mark is None:
-#         raise ValueError("mark has to be specified")
-#     pass
-#     return seq,P,Q
-
-# def _crowding_map(P,Q,mark=None):
-#     r"""
-#     Returns the image of pair (P,Q) of semistandard tableau and flagged 
-#     increasing tableau under the crowding map.
-
-#         EXAMPLE::
-#             sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
-#             sage: _uncrowding_map(T)
-#             ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
-
-#             sage: T = Tableau([ [ [1],[1,2],[2] ],[ [2,3],[3,4,5] ],[ [4] ] ])
-#             sage: _uncrowding_map(T)
-#             ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
-#     """
-#     if mark is None:
-#         raise ValueError("mark has to be specified")
-#     part = [len([x for x in row if x==mark]) for row in Q if mark in row]
-#     sequences = []
-#     for i in len(part):
-#         seq,P,Q = _crowding_reverse_insertion([],P,Q,mark='X')
-#         sequences += [seq]
-#     T = _reconstruct_tableau(sequences)
-#     return T
 
 def _insertion_sequence(T):
     r"""
@@ -1391,7 +1395,7 @@ def _insertion_sequence(T):
         seq += [S]
     return seq
 
-def _uncrowding_insertion(seq,P=None,Q=None):
+def _uncrowding_insertion(seq,P=None,Q=None,mark='X'):
     r"""
     Returns the pair (P',Q') under the uncrowding map for sequence seq and pair (P,Q).
 
@@ -1429,7 +1433,7 @@ def _uncrowding_insertion(seq,P=None,Q=None):
     for x in seq:
         Pp = Pp.bump(x)
     shape = Pp.shape()
-    temp = Tableau([ ['X']*shape[0] ]+Qq.to_list())
+    temp = Tableau([ [mark]*shape[0] ]+Qq.to_list())
     cells = [pair for pair in Pp.cells() if pair not in temp.cells()]
     for cell in cells: 
         temp = temp.add_entry(cell,cell[0])
@@ -1441,7 +1445,7 @@ def _uncrowding_map(T):
     Returns the image of semistandard set-valued tableau T under the 
     uncrowding map.
 
-        EXAMPLE::
+        EXAMPLES::
             sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
             sage: _uncrowding_map(T)
             ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
@@ -1452,7 +1456,64 @@ def _uncrowding_map(T):
     """
     P = SemistandardTableau([])
     Q = Tableau([])
-    sequences = _insertion_sequence(T.to_list(),sorted=True)
+    sequences = _insertion_sequence(T.to_list())
     for seq in sequences:
         P,Q = _uncrowding_insertion(seq,P,Q)
     return P,Q
+
+def _max_outer_shape(P,m):
+    r"""
+    Returns the largest outer shape of flagged increasing tableau given partition P and maximum entry m.
+
+        EXAMPLES::
+            sage: P,m = [8,6,3,1],6
+            sage: _max_outer_shape(P,m)
+            [8, 7, 5, 4, 4, 4]
+
+            sage: P,m = [23,20,18,18,12,7,4,2,1],10
+            sage: _max_outer_shape(P,m)
+            [23, 21, 20, 20, 16, 12, 10, 9, 9, 9]
+    """
+    if P not in _Partitions or len(P)==0:
+        raise ValueError("P should be a nonempty integer partition")
+    if len(P)>m:
+        raise ValueError("m should be at the least length of partition P")
+    Q = P+[0]*(m-len(P))
+    L = [P[0]]
+    for i in range(1,m):
+        L+=[min(L[-1],i+Q[i])]
+    return Partition(L)
+
+def _is_flagged_increasing(T):
+    """
+    Returns True if T is a flagged increasing tableau.
+
+    T is assumed to be a semistandard skew tableau.
+    """
+    for i in range(1,len(T)):
+        values = [T[x][y] for x,y in T.cells() if T[x][y] in T[i]]
+        if len(values)>0 and any([k>i for k in values]):
+            return False
+    return T.conjugate().is_semistandard()
+
+def _highest_weight_tableau(P):
+    return SemistandardTableau([[i+1]*P[i] for i in range(len(P))])
+
+def _generate_pairs(P,m):
+    r"""
+    Returns the set of all pairs (S,F) given partition P and maximum entry m.
+    
+    S is a highest weight semistandard tableau
+    F is a flagged increasing tableau 
+    """
+    # Due to some quirk with SemistandardSkewTableaux, need separate 
+    # initialization for a flagged increasing tableau with same inner and 
+    # outer shape
+    S,F = _highest_weight_tableau(P),Tableau([[None]*P[i] for i in range(len(P))])
+    L = [(S,F)]
+    out = _max_outer_shape(P,m)
+    for n in range(sum(P)+1,len(P)*m+1):
+        for Q in Partitions(n,inner=P,outer=out):
+            Sk = [F for F in SemistandardSkewTableaux([Q,P],max_entry=m) if _is_flagged_increasing(F)]
+            L += [(_highest_weight_tableau(Q),Tableau(F)) for F in Sk]
+    return L
