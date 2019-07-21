@@ -2523,6 +2523,118 @@ class RuleSuperRSK(RuleRSK):
         raise ValueError("invalid output option")
 
 
+class RuleshiftedKnuth(RuleSuperRSK):
+    r"""
+    """
+    def to_pairs(self, obj1=None, obj2=None, check=True):
+        r"""
+        """
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
+        if obj2 is None:
+            try:
+                itr = obj1._rsk_iter()
+            except AttributeError:
+                # If this is (something which looks like) a matrix
+                #   then build the generalized permutation
+                try:
+                    t = []
+                    b = []
+                    for i, row in enumerate(obj1):
+                        for j, mult in enumerate(row):
+                            mult = PrimedEntry(mult)
+                            if mult > 0 and m.is_primed():
+                                t.extend([PrimedEntry(i+1)])
+                                b.extend([PrimedEntry(j+0.5)])
+                                mult = mult - 1
+                            if mult > 0:
+                                t.extend(PrimedEntry([i+1])*mult)
+                                b.extend(PrimedEntry([j+1])*mult)
+                    itr = zip(t, b)
+                except TypeError:
+                    # set recording list to default value [1, 2, 3, ...]
+                    rec = range(1, len(obj1)+1)
+                    # Converting entries to PrimedEntry
+                    for i in range(len(obj1)):
+                        obj1[i] = PrimedEntry(obj1[i])
+                        rec[i] = PrimedEntry(rec[i])
+                    itr = zip(rec, obj1)
+        else:
+            # Converting entries of obj1 to PrimedEntry
+            for i in range(len(obj1)):
+                obj1[i] = PrimedEntry(obj1[i])
+            # Converting entries of obj2 to PrimedEntry
+            for i in range(len(obj2)):
+                obj2[i] = PrimedEntry(obj2[i])
+            if check:
+                if len(obj1) != len(obj2):
+                    raise ValueError("the two arrays must be the same length")
+                for i in range(len(obj2)):
+                    if i.is_primed():
+                        raise ValueError("the top row of biword should be unprimed")
+            itr = zip(obj1, obj2)
+        return itr
+
+    def forward_rule(self, obj1, obj2, check_standard=False, check=True):
+        r"""
+        """
+        itr = self.to_pairs(obj1, obj2, check=check)
+        p = []       # the "insertion" tableau
+        q = []       # the "recording" tableau
+        for i, j in itr:
+            # loop
+            row_index = -1
+            col_index = -1
+            epsilon = 0
+            while True:
+                if epsilon == 0:
+                    # row insertion
+                    row_index += 1
+                    if row_index == len(p):
+                        p.append([j])
+                        q.append([i])
+                        break
+                    else:
+                        j1, col_index = self.insertion(j, p[row_index], epsilon=epsilon)
+                        if row_index == col_index:
+                            epsilon = 1
+                        if j1 is None:
+                            p[row_index].append(j)
+                            q[row_index].append(i)
+                            break
+                        j = j1
+                else:
+                    # column insertion
+                    col_index += 1
+                    if not p or col_index == len(p[0]):
+                        self._set_col(p, col_index, [j])
+                        self._set_col(q, col_index, [i])
+                        break
+                    else:
+                        # retrieve column
+                        c = self._get_col(p, col_index)
+                        j1, row_index = self.insertion(j, c, epsilon=epsilon)
+                        if j1 is None:
+                            c.append(j)
+                            self._set_col(p, col_index, c)
+                            if col_index == 0:
+                                q.append([])
+                            q[row_index].append(i)
+                            break
+                        else:
+                            j = j1
+                        self._set_col(p, col_index, c)
+        return self._forward_format_output(p, q, check_standard=check_standard)
+
+    def _forward_format_output(self, p, q, check_standard):
+        r"""
+        """
+        from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
+
+        if not p:
+            return [StandardTableau([]), StandardTableau([])]
+        if check_standard:
+            
+
 class InsertionRules(object):
     r"""
     Catalog of rules for RSK-like insertion algorithms.
