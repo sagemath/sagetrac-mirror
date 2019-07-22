@@ -27,6 +27,7 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.combinat.words.cautomata import DetAutomaton
+#from sage.combinat.words.cautomata import new_empty_automaton
 from sage.misc.prandom import randint, random
 
 
@@ -56,7 +57,32 @@ class DetAutomatonGenerators(object):
         sage: dag.Random()      # random
         DetAutomaton with 244 states and an alphabet of 183 letters
     """
+    
+    def EmptyAutomaton (self, A, S, keep_labels=True):
+        """
+        Generate a DetAutomaton with a given language and given set of states.
 
+        INPUT:
+
+        - ``A`` - list -- alphabet of the result
+
+        - ``S`` - list -- states of the result
+
+        - ``keep_labels`` - bool (default: ``True``) -- if True keep the list of labels (i.e. the list S)
+
+        OUTPUT:
+
+        A :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: dag.EmptyAutomaton([0,1], ['a', 'b'])
+            DetAutomaton with 2 states and an alphabet of 2 letters
+
+        """
+        a = DetAutomaton(None)
+        return a.new_empty_automaton(A,S,keep_labels)
+    
     def AnyLetter(self, A, A2=None):
         """
         Generate a DetAutomaton recognizing every letter of the alphabet A.

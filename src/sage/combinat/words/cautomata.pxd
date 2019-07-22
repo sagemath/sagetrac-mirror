@@ -48,7 +48,6 @@ cdef class DetAutomaton:
     #cdef dict dS  # dictionnary giving the index in S
     # cdef set_a(self, Automaton a)
 
-
 cdef class CAutomaton:
     cdef NAutomaton* a
     cdef list A

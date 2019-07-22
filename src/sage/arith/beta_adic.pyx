@@ -45,7 +45,7 @@ from sage.rings.qqbar import QQbar
 from sage.rings.padics.factory import Qp
 from libc.stdlib cimport malloc, free
 from math import pi as pi_number
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 cimport sage.combinat.words.cautomata
 from sage.combinat.words.cautomata cimport DetAutomaton, FreeAutomaton
 from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
@@ -1540,8 +1540,9 @@ cdef class BetaAdicSet:
         if n is None:
             n = -1
         try:
+            spr = self.a.prune().spectral_radius()
             sig_on()
-            a = UserDraw(b, sx, sy, n, ajust, col, self.a.prune().spectral_radius(), verb)
+            a = UserDraw(b, sx, sy, n, ajust, col, spr, verb)
             sig_off()
         except:
             raise NotImplementedError("This function does not exists in this version of Sage, because it uses the library SDL2. To use this function, you need to install the library SDL2 on your system and then recompile Sage from the sources, where you include the ticket https://trac.sagemath.org/ticket/21072.")
@@ -1620,8 +1621,9 @@ cdef class BetaAdicSet:
         if n is None:
             n = -1
         try:
+            spr = self.a.prune().spectral_radius()
             sig_on()
-            word = DrawZoom(b, sx, sy, n, ajust, col, nprec, self.a.prune().spectral_radius(), verb)
+            word = DrawZoom(b, sx, sy, n, ajust, col, nprec, spr, verb)
             sig_off()
         except:
             raise NotImplementedError("This function does not exists in this version of Sage, because it uses the library SDL2. To use this function, you need to install the library SDL2 on your system and then recompile Sage from the sources where you include the ticket https://trac.sagemath.org/ticket/21072.")
@@ -1757,8 +1759,9 @@ cdef class BetaAdicSet:
         col.a = color[3]
         if n is None:
             n = -1
+        spr = self.a.prune().spectral_radius()
         sig_on()
-        Draw(b, s, n, ajust, col, nprec, self.a.prune().spectral_radius(), verb)
+        Draw(b, s, n, ajust, col, nprec, spr, verb)
         sig_off()
         sig_on()
         im = surface_to_img(s)
@@ -1873,6 +1876,7 @@ cdef class BetaAdicSet:
         cdef ColorList cl
         sig_on()
         cl = NewColorList(b.na)
+        sig_off()
         if isinstance(colormap, list):
             # if b.na > len(colormap):
             #    raise ValueError("The list of color must contain at least %d elements."%b.na)
@@ -1881,6 +1885,7 @@ cdef class BetaAdicSet:
                     cl[i] = getColor(colormap[i])
                 else:
                     cl[i] = randColor(255)
+                sig_check()
         elif isinstance(colormap, str):
             from matplotlib import cm
             if not colormap in cm.datad.keys():
@@ -1889,9 +1894,12 @@ cdef class BetaAdicSet:
             cl[0] = getColor(backcolor)
             for i in range(b.na-1):
                 cl[i+1] = getColor(colormap(float(i)/float(b.na-1)))
+                sig_check()
         else:
             raise TypeError("Type of option colormap (=%s) must be list of colors or str" % colormap)
-        DrawList(b, s, n, ajust, cl, opacity, self.a.prune().spectral_radius(), nprec, verb)
+        spr = self.a.prune().spectral_radius()
+        sig_on()
+        DrawList(b, s, n, ajust, cl, opacity, spr, nprec, verb)
         sig_off()
         # enregistrement du résultat
         sig_on()

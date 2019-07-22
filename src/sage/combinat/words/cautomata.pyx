@@ -226,6 +226,9 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
             r.e[d1[a1]+d2[a2]*n1] = dv[d[(a1, a2)]]
     return r
 
+#def empty_automaton (A,S, keep_labels=True):
+#    return empty_automaton_(A,S,keep_labels=keep_labels)
+
 cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
     d = {}
     da = {}
@@ -1439,6 +1442,21 @@ cdef class DetAutomaton:
         # print("free self.a")
         free(self.a)
         sig_off()
+    
+    def new_empty_automaton (self, list A, list S, bool keep_labels=True):
+        cdef DetAutomaton r
+        cdef int n, na
+        n = len(S)
+        na = len(A)
+        r = DetAutomaton(None)
+        sig_on()
+        r.a[0] = NewAutomaton(n, na)
+        initAutomaton(r.a)
+        sig_off()
+        r.A = A
+        if keep_labels:
+            r.S = S
+        return r
 
     def copy(self):
         """
