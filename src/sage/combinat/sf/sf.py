@@ -1659,6 +1659,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     The design is heavily inspired from the implementation of
     symmetric functions in MuPAD-Combinat (see [HT04]_ and [FD06]_).
 
+
     .. rubric:: Further tests
 
     TESTS::
