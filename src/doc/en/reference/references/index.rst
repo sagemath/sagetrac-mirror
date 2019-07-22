@@ -1685,7 +1685,7 @@ REFERENCES:
 .. [FD06] Francois Descouens, Making research on symmetric functions using MuPAD-Combinat.
           In Andres Iglesias and Nobuki Takayama, editors, 2nd International Congress on Mathematical Software (ICMS'06),
           volume 4151 of LNCS, pages 407-418, Castro Urdiales, Spain, September 2006. Springer-Verlag.
-          :arXiv:`0806.1873`
+          :arxiv:`0806.1873`
 
 .. [FH2015] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
             Wehler K3 Surfaces over finite fields. New Zealand Journal
