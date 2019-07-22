@@ -315,9 +315,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             base_ring, basis_keys, category=category, prefix=prefix, names=names,
             **keywords)
 
-    # We make this explicitly a Python class so that the methods,
-    #   specifically _mul_, from category framework still works. -- TCS
-    # We also need to deal with the old pickles too. -- TCS
     Element = IndexedFreeModuleElement
 
     @lazy_attribute
@@ -1341,7 +1338,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                     symb = tensor.symbol
             else:
                 symb = tensor.symbol
-            return symb.join(["%s"%module for module in self._sets])
+            return symb.join("%s" % module for module in self._sets)
             # TODO: make this overridable by setting _name
 
         def _ascii_art_(self, term):
@@ -1418,7 +1415,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             """
             from sage.misc.latex import latex
             symb = " \\otimes "
-            return symb.join(["%s"%latex(module) for module in self._sets])
+            return symb.join("%s" % latex(module) for module in self._sets)
 
         def _repr_term(self, term):
             """
@@ -1716,7 +1713,8 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             F (+) F
         """
         from sage.categories.cartesian_product import cartesian_product
-        return cartesian_product.symbol.join(["%s"%module for module in self._sets])
+        return cartesian_product.symbol.join("%s" % module
+                                             for module in self._sets)
         # TODO: make this overridable by setting _name
 
     @cached_method

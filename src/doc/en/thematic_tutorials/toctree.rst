@@ -12,6 +12,7 @@ Thematic tutorial document tree
    sandpile
    group_theory
    lie
+   vector_calculus
    linear_programming
    numtheory_rsa
    coding_theory

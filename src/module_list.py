@@ -303,6 +303,28 @@ ext_modules = [
                          'sage/geometry/triangulation/triangulations.h'],
               language="c++"),
 
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.base',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.cc',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              extra_compile_args=['-std=c++11']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
+
     ################################
     ##
     ## sage.graphs
@@ -342,6 +364,9 @@ ext_modules = [
     Extension('sage.graphs.generic_graph_pyx',
               sources = ['sage/graphs/generic_graph_pyx.pyx']),
 
+    Extension('sage.graphs.traversals',
+              sources = ['sage/graphs/traversals.pyx']),
+
     Extension('sage.graphs.graph_generators_pyx',
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
 
@@ -360,6 +385,9 @@ ext_modules = [
 
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
+
+    Extension('sage.graphs.graph_coloring',
+              sources = ['sage/graphs/graph_coloring.pyx']),
 
     Extension('sage.graphs.weakly_chordal',
               sources = ['sage/graphs/weakly_chordal.pyx']),
@@ -416,7 +444,8 @@ ext_modules = [
               sources = ['sage/graphs/hyperbolicity.pyx']),
 
     Extension('sage.graphs.base.c_graph',
-              sources = ['sage/graphs/base/c_graph.pyx']),
+              sources = ['sage/graphs/base/c_graph.pyx'],
+              language = 'c++'),
 
     Extension('sage.graphs.base.sparse_graph',
               sources = ['sage/graphs/base/sparse_graph.pyx']),
@@ -1057,14 +1086,6 @@ ext_modules = [
               library_dirs = lapack_library_dirs,
               include_dirs = lapack_include_dirs,
               package = 'cbc'),
-
-    ################################
-    ##
-    ## sage.parallel
-    ##
-    ################################
-
-    Extension('*', ['sage/parallel/**/*.pyx']),
 
     ################################
     ##

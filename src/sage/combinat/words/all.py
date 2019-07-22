@@ -14,3 +14,5 @@ from .cautomata import DetAutomaton
 from .cautomata import CAutomaton
 from .cautomata_generators import DetAutomatonGenerators
 dag = DetAutomatonGenerators()
+from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
+

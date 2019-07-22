@@ -45,7 +45,7 @@ Functions
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
@@ -55,7 +55,7 @@ import six
 from six import itervalues
 from six.moves import range
 
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_function
 
 from sage.categories.sets_cat import EmptySetError
 import sage.arith.all as arith
@@ -881,7 +881,7 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
         ....:              if radical_difference_family(K, k, existence=True):
         ....:                  list_q.append(q)
         ....:                  _ = radical_difference_family(K,k)
-        ....:     print(" ".join([str(p) for p in list_q]))
+        ....:     print(" ".join(str(p) for p in list_q))
         k = 5
         41 61 81 241 281 401 421 601 641 661 701 761 821 881 1181 1201 1301 1321
         1361 1381 1481 1601 1681 1801 1901
@@ -1146,7 +1146,7 @@ def are_hadamard_difference_set_parameters(v, k, lmbda):
     N2 = N*N
     return v == 4*N2 and k == 2*N2 - N and lmbda == N2 - N
 
-@cached_method
+@cached_function
 def hadamard_difference_set_product_parameters(N):
     r"""
     Check whether a product construction is available for Hadamard difference

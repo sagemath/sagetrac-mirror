@@ -46,12 +46,13 @@ Introduction to Python
 * :ref:`tutorial-objects-and-classes`
 * :ref:`functional_programming`
 
-Calculus and plotting
+Calculus and Plotting
 ---------------------
 
 * `Tutorial: Symbolics and Plotting (PREP) <../prep/Symbolics-and-Basic-Plotting.html>`_
 * `Tutorial: Calculus (PREP) <../prep/Calculus.html>`_
 * `Tutorial: Advanced-2D Plotting (PREP) <../prep/Advanced-2DPlotting.html>`_
+* :ref:`vector_calculus`
 
 Algebra
 -------
@@ -93,7 +94,7 @@ Algebraic Combinatorics
 * :ref:`abelian_sandpile_model`
 * :ref:`beta_adic_set`
 
-Parents/Elements, Categories and algebraic structures
+Parents/Elements, Categories and Algebraic Structures
 -----------------------------------------------------
 
 * :ref:`coercion_and_categories`
@@ -101,13 +102,13 @@ Parents/Elements, Categories and algebraic structures
 * :ref:`sage.categories.tutorial`
 * :ref:`tutorial-implementing-algebraic-structures`
 
-Numerical computations
+Numerical Computations
 ----------------------
 
 * :ref:`numerical_computing`
 * :ref:`linear_programming`
 
-Advanced programming
+Advanced Programming
 --------------------
 
 * :ref:`cython_interface`

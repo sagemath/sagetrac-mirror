@@ -524,15 +524,15 @@ class CharacterArt(SageObject):
 
     def __add__(self, Nelt):
         r"""
-        Concatenate two ascii art object.
+        Concatenate two ascii art objects.
 
-        By default, when two object are concatenated, the new one will be
+        By default, when two objects are concatenated, the new one will be
         splittable between both.
 
         If the baseline is defined, the concatenation is computed such that the
-        new baseline coincidate with the olders.
+        new baseline coincides with the olders.
 
-        For example, let `T` be a tree with it's baseline ascii art
+        For example, let `T` be a tree with its baseline ascii art
         representation in the middle::
 
             o
@@ -541,7 +541,7 @@ class CharacterArt(SageObject):
              / \
             o   o
 
-        and let `M` be a matrix with it's baseline ascii art representation at
+        and let `M` be a matrix with its baseline ascii art representation at
         the middle two::
 
             [1 2 3]
@@ -672,10 +672,9 @@ class CharacterArt(SageObject):
         new_breakpoints.append(self._l)
         for bp in Nelt._breakpoints:
             new_breakpoints.append(bp + self._l)
-        from sage.misc.misc import uniq
         return self.__class__(
             lines=new_matrix,
-            breakpoints=uniq(new_breakpoints),
+            breakpoints=sorted(set(new_breakpoints)),
             baseline=new_baseline,
         )
 

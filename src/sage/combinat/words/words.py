@@ -3,7 +3,7 @@ r"""
 Set of words
 
 To define a new class of words, please refer to the documentation file:
-sage/combinat/words/notes/word_inheritance_howto.txt
+sage/combinat/words/notes/word_inheritance_howto.rst
 
 AUTHORS:
 
@@ -593,7 +593,7 @@ class FiniteWords(AbstractLanguage):
            when reloading. Also, most iterators do not support copying and
            should not support pickling by extension.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: W = FiniteWords()
 

@@ -175,7 +175,6 @@ from .polynomial_integer_dense_flint import Polynomial_integer_dense_flint
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
 
-
 _CommutativeRings = categories.commutative_rings.CommutativeRings()
 
 from . import cyclotomic
@@ -263,7 +262,24 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Check that category for zero ring::
 
             sage: PolynomialRing(Zmod(1), 'x').category()
-            Category of finite rings
+            Category of finite commutative algebras over
+            (finite commutative rings and subquotients of monoids and
+            quotients of semigroups and finite enumerated sets)
+
+        Check `is_finite` inherited from category (:trac:`24432`)::
+
+            sage: Zmod(1)['x'].is_finite()
+            True
+
+            sage: GF(7)['x'].is_finite()
+            False
+
+            sage: Zmod(1)['x']['y'].is_finite()
+            True
+
+            sage: GF(7)['x']['y'].is_finite()
+            False
+
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
@@ -1189,27 +1205,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return self.gen()
 
-    def is_finite(self):
-        """
-        Return False since polynomial rings are not finite (unless the base
-        ring is 0.)
-
-        EXAMPLES::
-
-            sage: R = Integers(1)['x']
-            sage: R.is_finite()
-            True
-            sage: R = GF(7)['x']
-            sage: R.is_finite()
-            False
-            sage: R['x']['y'].is_finite()
-            False
-        """
-        R = self.base_ring()
-        if R.is_finite() and R.order() == 1:
-            return True
-        return False
-
     @cached_method
     def is_exact(self):
         return self.base_ring().is_exact()
@@ -1244,6 +1239,28 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             True
         """
         return self.__is_sparse
+
+    def monomial(self, exponent):
+        """
+        Return the monomial with the ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- nonnegative integer
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.monomial(5)
+            x^5
+            sage: e=(10,)
+            sage: R.monomial(*e)
+            x^10
+            sage: m = R.monomial(100)
+            sage: R.monomial(m.degree()) == m
+            True
+        """
+        return self({exponent:self.base_ring().one()})
 
     def krull_dimension(self):
         """
@@ -1369,7 +1386,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             else:
                 raise ValueError("No polynomial of degree >= 0 has all coefficients zero")
 
-        # Pick a random degree 
+        # Pick a random degree
         d = randint(degree[0], degree[1])
 
         # If degree is -1, return the 0 polynomial
@@ -1636,7 +1653,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         # We trust that, if a category is given, that it is useful.
         if category is None:
             if base_ring.is_zero():
-                category = categories.rings.Rings().Finite()
+                category = categories.algebras.Algebras(base_ring.category()).Commutative().Finite()
             else:
                 category = polynomial_default_category(base_ring.category(), 1)
         PolynomialRing_general.__init__(self, base_ring, name=name,
@@ -1900,7 +1917,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         EXAMPLES:
 
         Only return the divided-difference coefficients `F_{i,i}`.
-        This example is taken from Example 1, page 121 of [BF05]_::
+        This example is taken from Example 1, page 121 of [BF2005]_::
 
             sage: points = [(1.0, 0.7651977), (1.3, 0.6200860), (1.6, 0.4554022), (1.9, 0.2818186), (2.2, 0.1103623)]
             sage: R = PolynomialRing(RR, "x")
@@ -1930,7 +1947,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0.00182510288066044]]
 
         The following example is taken from Example 4.12, page 225 of
-        [MF99]_::
+        [MF1999]_::
 
             sage: points = [(1, -3), (2, 0), (3, 15), (4, 48), (5, 105), (6, 192)]
             sage: R = PolynomialRing(QQ, "x")
@@ -1943,12 +1960,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             [48, 33, 9, 1],
             [105, 57, 12, 1, 0],
             [192, 87, 15, 1, 0, 0]]
-
-        REFERENCES:
-
-        .. [MF99] \J.H. Mathews and K.D. Fink. *Numerical Methods Using
-           MATLAB*.  3rd edition, Prentice-Hall, 1999.
-
         """
         to_base_ring = self.base_ring()
         points = [tuple(to_base_ring(c) for c in p) for p in points]
@@ -1983,7 +1994,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             differences.
 
           - ``algorithm='neville'``: adapt Neville's method as
-            described on page 144 of [BF05]_ to recursively generate
+            described on page 144 of [BF2005]_ to recursively generate
             the Lagrange interpolation polynomial.  Neville's method
             generates a table of approximating polynomials, where the
             last row of that table contains the `n`-th Lagrange
@@ -2104,12 +2115,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0
             sage: R.lagrange_polynomial([[1, 0], [2, 0], [3, 0]])
             0
-
-        REFERENCES:
-
-        .. [BF05] \R.L. Burden and J.D. Faires. *Numerical Analysis*.
-           8th edition, Thomson Brooks/Cole, 2005.
-
         """
         # Perhaps we should be slightly stricter on the input and use
         # self.base_ring().coerce here and in the divided_difference()

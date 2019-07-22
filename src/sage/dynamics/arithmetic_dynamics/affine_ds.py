@@ -259,14 +259,14 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             polys = [morphism_or_polys]
 
         PR = get_coercion_model().common_parent(*polys)         
-        fraction_field = any([is_FractionField(poly.parent()) for poly in polys])
+        fraction_field = any(is_FractionField(poly.parent()) for poly in polys)
         if fraction_field:
             K = PR.base_ring().fraction_field()
             # Replace base ring with its fraction field
             PR = PR.ring().change_ring(K).fraction_field()
             polys = [PR(poly) for poly in polys]
         else:
-            quotient_ring = any([is_QuotientRing(poly.parent()) for poly in polys])
+            quotient_ring = any(is_QuotientRing(poly.parent()) for poly in polys)
             # If any of the list entries lies in a quotient ring, we try
             # to lift all entries to a common polynomial ring.
             if quotient_ring:
@@ -509,6 +509,15 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: F = DynamicalSystem_affine([1/2*x^2 + CC(sqrt(3))])
             sage: F.dynatomic_polynomial([1,1])
             (0.125000000000000*x^4 + 0.366025403784439*x^2 + 1.50000000000000)/(0.500000000000000*x^2 - x + 1.73205080756888)
+
+        TESTS::
+
+            sage: R.<c> = QQ[]
+            sage: Pc.<x,y> = ProjectiveSpace(R, 1)
+            sage: G = DynamicalSystem_projective([(1/2*c + 1/2)*x^2 + (-2*c)*x*y + 2*c*y^2 , \
+                  (1/4*c + 1/2)*x^2 + (-c - 1)*x*y + (c + 1)*y^2])
+            sage: G.dehomogenize(1).dynatomic_polynomial(2)
+            (1/4*c + 1/4)*x^2 + (-c - 1/2)*x + c + 1
         """
         from sage.schemes.affine.affine_space import is_AffineSpace
         if not is_AffineSpace(self.domain()):
