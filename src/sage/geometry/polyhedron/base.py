@@ -2786,7 +2786,7 @@ class Polyhedron_base(Element):
             sage: P.is_bipyramid()
             Traceback (most recent call last):
             ...
-            NotImplementedError: polyhedron has to be compact
+            ValueError: polyhedron has to be compact
 
         ALGORITHM:
 
