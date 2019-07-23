@@ -2634,6 +2634,7 @@ class RuleshiftedKnuth(RuleSuperRSK):
         if not p:
             return [StandardTableau([]), StandardTableau([])]
         if check_standard:
+            pass
             
 
 class InsertionRules(object):
