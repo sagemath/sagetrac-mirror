@@ -9,7 +9,7 @@ from __future__ import absolute_import
 #                     2009-2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #                     2017-2019 Pauline Hubert <hubert.pauline@courrier.uqam.ca>
-#                     2017-2019 Mélodie Lapointe <lapointe.melodie@courrier.uqam.ca>
+#                     2017-2019 Melodie Lapointe <lapointe.melodie@courrier.uqam.ca>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -47,7 +47,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Symmetric Functions in Sage
 
-    .. MODULEAUTHOR:: Jason Bandlow, Pauline Hubert, Mélodie Lapointe, Anne Schilling, Nicolas M. Thiery, Mike Zabrocki
+    .. MODULEAUTHOR:: Jason Bandlow, Pauline Hubert, Melodie Lapointe, Anne Schilling, Nicolas M. Thiery, Mike Zabrocki
 
     The first part of this document consists of a tutorial on symmetric functions.
     It is then followed by the documentation.
@@ -83,7 +83,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     cycle structure :math:`\mu`.
 
     Here is how to obtain both sides of this equality in the ring of symmetric
-    function ":math:`\mathrm{Sym}`" over :math:`\mathbb{Q}`::
+    function :math:`\mathrm{Sym}` over :math:`\mathbb{Q}` ::
 
         sage: Sym = SymmetricFunctions(QQ)
         sage: Sym.inject_shorthands()
@@ -129,7 +129,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Abstract symmetric functions
 
-        We first describe how to manipulate "variable free" symmetric functions (with coefficients in the ring of rational coefficients fractions in :math:`q` and :math:`t`).
+    We first describe how to manipulate "variable free" symmetric functions (with coefficients in the ring of rational coefficients fractions in :math:`q` and :math:`t`).
     Such functions are linear combinations of one of the six classical bases of symmetric functions; all indexed by integer partitions :math:`\mu=\mu_1\mu_2\cdots \mu_k`.
 
     -   The **power sum** symmetric functions :math:`p_\mu=p_{\mu_1}p_{\mu_2}\cdots p_{\mu_2}`
