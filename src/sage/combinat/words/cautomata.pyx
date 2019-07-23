@@ -31,12 +31,12 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 from libc.stdlib cimport malloc, free
 from sage.graphs.digraph import DiGraph
 from cysignals.signals cimport sig_on, sig_off, sig_check
 from cpython cimport bool as c_bool
-from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
+from .cautomata_generators import DetAutomatonGenerators
 cimport sage.combinat.words.cautomata
 
 dag = DetAutomatonGenerators()
@@ -438,6 +438,13 @@ cdef AutomatonToDiGraph(Automaton a, A, keep_edges_labels=True):
                     L.append((i, a.e[i].f[j]))
     return DiGraph([range(a.n), L], loops=True, multiedges=True)
 
+def png_to_display (file):
+    from PIL import Image
+    im = Image.open(file)
+    from sage.repl.image import Image as Image2
+    im2 = Image2.__new__(Image2)
+    im2._pil = im
+    return im2
 
 cdef class CAutomaton:
     """
@@ -1257,8 +1264,7 @@ cdef class CAutomaton:
             sig_off()
             if verb:
                 print("Ouvre l'image produite...")
-            from PIL import Image
-            return Image.open(file+'.png')
+            return png_to_display(file+'.png')
 #            import ipywidgets as widgets
 #            file = open(file+'.png', "rb")
 #            image = file.read()
@@ -1973,8 +1979,7 @@ cdef class DetAutomaton:
                 free(vl)
                 sig_off()
             if draw:
-                from PIL import Image
-                return Image.open(file+'.png')
+                return png_to_display(file+'.png')
 #other possibility to get the image
 #            import ipywidgets as widgets
 #            file = open(file+'.png', "rb")
