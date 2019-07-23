@@ -2691,7 +2691,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
           to return a vertex of the polytope which is the apex of a pyramid,
           if found
 
@@ -2702,9 +2702,7 @@ class Polyhedron_base(Element):
         1. Boolean.
         2. The apex of the pyramid or ``None``.
 
-        If ``certificate`` is ``False`` returns:
-
-        - Boolean.
+        If ``certificate`` is ``False`` returns a boolean.
 
         EXAMPLES::
 
@@ -2721,12 +2719,12 @@ class Polyhedron_base(Element):
             False
         """
         if not self.is_compact():
-            raise NotImplementedError("The polyhedron has to be compact.")
+            raise ValueError("polyhedron has to be compact.")
 
         # Find a facet that contains all the vertices but one.
         n = self.n_vertices()
-        I = self.incidence_matrix()
-        facets = [column.nonzero_positions() for column in I.columns()]
+        IM = self.incidence_matrix()
+        facets = [column.nonzero_positions() for column in IM.columns()]
         for facet in facets:
             if len(facet) == n-1:
                 if certificate:
@@ -2745,7 +2743,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
           to return two vertices of the polytope which are the apices of a
           bipyramid, if found
 
@@ -2758,9 +2756,7 @@ class Polyhedron_base(Element):
             a. The first apex.
             b. The second apex.
 
-        If ``certificate`` is ``False`` returns:
-
-        - Boolean.
+        If ``certificate`` is ``False`` returns a boolean.
 
         EXAMPLES::
 
@@ -2805,7 +2801,7 @@ class Polyhedron_base(Element):
         To check this property it suffices to check for all facets of the polyhedron.
         """
         if not self.is_compact():
-            raise NotImplementedError("polyhedron has to be compact")
+            raise ValueError("polyhedron has to be compact")
 
         from sage.misc.functional import is_odd
         m = self.n_facets()
@@ -2814,18 +2810,18 @@ class Polyhedron_base(Element):
                 return (False, None)
             return False
 
-        I = self.incidence_matrix()
+        IM = self.incidence_matrix()
 
         if self.n_equations():
-            # Remove equations from incidence matrix,
-            # such this is the vertex-facet-incidences matrix.
-            I1 = I.transpose()
+            # Remove equations from the incidence matrix,
+            # such that this is the vertex-facet incidences matrix.
+            I1 = IM.transpose()
             I2 = I1[[i for i in range(self.n_Hrepresentation())
                      if not self.Hrepresentation()[i].is_equation()]]
-            I = I2.transpose()
+            IM = I2.transpose()
 
-        facets = [set(column.nonzero_positions()) for column in I.columns()]
-        vertices = [set(row.nonzero_positions()) for row in I.rows()]
+        facets = [set(column.nonzero_positions()) for column in IM.columns()]
+        vertices = [set(row.nonzero_positions()) for row in IM.rows()]
 
         # Find two vertices ``vertex1`` and ``vertex2`` such that one of them
         # lies on exactly half of the facets, and the other one lies on
@@ -2864,7 +2860,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
           to return two facets of the polytope which are the bases of a prism,
           if found
 
@@ -2877,9 +2873,7 @@ class Polyhedron_base(Element):
             a. List of the vertices of the first base facet.
             b. List of the vertices of the second base facet.
 
-        If ``certificate`` is ``False`` returns:
-
-        - Boolean.
+        If ``certificate`` is ``False`` returns a boolean.
 
         EXAMPLES::
 
@@ -2949,18 +2943,18 @@ class Polyhedron_base(Element):
                 return (False, None)
             return False
 
-        I = self.incidence_matrix()
+        IM = self.incidence_matrix()
 
         if self.n_equations():
-            # Remove equations from incidence matrix,
-            # such this is the vertex-facet-incidences matrix.
-            I1 = I.transpose()
+            # Remove equations from the incidence matrix,
+            # such that this is the vertex-facet incidences matrix.
+            I1 = IM.transpose()
             I2 = I1[[i for i in range(self.n_Hrepresentation())
                      if not self.Hrepresentation()[i].is_equation()]]
-            I = I2.transpose()
+            IM = I2.transpose()
 
-        vertices = [set(row.nonzero_positions()) for row in I.rows()]
-        facets = [set(column.nonzero_positions()) for column in I.columns()]
+        vertices = [set(row.nonzero_positions()) for row in IM.rows()]
+        facets = [set(column.nonzero_positions()) for column in IM.columns()]
 
         # Find two facets ``facet1`` and ``facet2`` such that one of them
         # contains exactly half of the vertices, and the other one contains
