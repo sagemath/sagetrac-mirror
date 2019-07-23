@@ -131,6 +131,8 @@ from libc.math cimport floor
 from libc.math cimport round
 from libc.math cimport fabs
 
+from sage.combinat.words.cautomata import PIL_to_display
+
 cdef extern from "draw.h":
     ctypedef unsigned char uint8
     cdef cppclass Color:
@@ -386,7 +388,7 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
     if get_ndarray:
         return im
     from PIL import Image
-    return Image.fromarray(im, 'RGBA')
+    return PIL_to_display(Image.fromarray(im, 'RGBA'))
 
 
 # plot the Rauzy fractal corresponding to the direction vector d,
@@ -522,7 +524,7 @@ def plot_Cadic2(numpy.ndarray dv, int sx=800, int sy=600,
             # print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
     print("%s pts computed." % npts)
     from PIL import Image
-    return Image.fromarray(im, 'RGBA')
+    return PIL_to_display(Image.fromarray(im, 'RGBA'))
 
 
 # compute the p-adic absolute value
@@ -706,7 +708,7 @@ cdef surface_to_img(Surface s):
     sig_on()
     SurfaceToNumpy (&s, arr)
     sig_off()
-    return Image.fromarray(arr, 'RGBA')
+    return PIL_to_display(Image.fromarray(arr, 'RGBA'))
 
 cdef Automaton getAutomaton(DetAutomaton a, list A, verb=False):
     cdef int i
@@ -2075,17 +2077,21 @@ cdef class BetaAdicSet:
                         places.append(P)
             if verb:
                 print(places)
+                print "b.minpoly = %s" % pi
+                print "coeff=%s" % coeff
             # bounds
             bo = []
             for i, p in enumerate(places):
-                if i < narch:
+                labs = [K.abs_val(p, x) for x in Ad]
+                if verb:
+                    print labs
+                if i < narch: 
                     bo.append(
-                        coeff*max(
-                            [K.abs_val(p, x) for x in Ad])/(K.abs_val(p, b) - 1))
+                        coeff*max(labs)/(K.abs_val(p, b) - 1))
                 else:
                     bo.append(
                         coeff*max(
-                            [K.abs_val(p, x) for x in Ad])/K.abs_val(p, b))
+                            labs)/K.abs_val(p, b))
             if verb:
                 print("bounds=%s" % bo)
             # compute the automaton

@@ -438,13 +438,16 @@ cdef AutomatonToDiGraph(Automaton a, A, keep_edges_labels=True):
                     L.append((i, a.e[i].f[j]))
     return DiGraph([range(a.n), L], loops=True, multiedges=True)
 
-def png_to_display (file):
-    from PIL import Image
-    im = Image.open(file)
+def PIL_to_display(im):
     from sage.repl.image import Image as Image2
     im2 = Image2.__new__(Image2)
     im2._pil = im
     return im2
+
+def png_to_display (file):
+    from PIL import Image
+    im = Image.open(file)
+    return PIL_to_display(im)
 
 cdef class CAutomaton:
     """
@@ -3149,8 +3152,9 @@ cdef class DetAutomaton:
             return r
 
     def split(self, DetAutomaton a, bool simplify=True, bool verb=False):
-        """
+        r"""
         Split the automaton with respect to a :class:`DetAutomaton` ``a``.
+
         Return two DetAutomaton recognizing the intersection of the language
         of self with the one of a and with the complementary of the language
         of a.
@@ -3202,7 +3206,7 @@ cdef class DetAutomaton:
             sage: a.split(b)
             [DetAutomaton with 1 state and an alphabet of 1 letter,
              DetAutomaton with 2 states and an alphabet of 1 letter]
-            sage: print(a)
+            sage: a
             DetAutomaton with 4 states and an alphabet of 2 letters
 
         TESTS::
