@@ -2957,6 +2957,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
+    @property
     def numerator(self):
         """
         Return the numerator of this rational number.
@@ -2981,7 +2982,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         return n
 
     #Define an alias for numerator
-    numer = numerator
+    def numer(self):
+        return self.numerator
 
     IF PY_MAJOR_VERSION <= 2:
         def __int__(self):
@@ -3024,6 +3026,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         else:
             return mpz_get_pylong(mpq_numref(self.value))
 
+    @property
     def denominator(self):
         """
         Returns the denominator of this rational number.
@@ -3048,7 +3051,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         return n
 
     #Define an alias for denominator
-    denom = denominator
+    def denom(self):
+        return self.denominator
 
     def factor(self):
         """

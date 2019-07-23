@@ -160,7 +160,7 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.arith.long cimport (pyobject_to_long, integer_check_long,
                               integer_check_long_py)
@@ -805,6 +805,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return codomain._coerce_(self)
 
+    def __call__(self, *args, **kwargs):
+        if args or kwargs:
+            raise TypeError("'{}.{}' object is not callable".format(self.__class__.__module__, self.__class__.__name__))
+        deprecation(28234, 'callable integers are only intended as a tempory patch until .numerator and .denominator properties are used everywhere')
+        return self
+
     cdef _xor(Integer self, Integer other):
         cdef Integer x
         x = PY_NEW(Integer)
@@ -1232,7 +1238,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self.str(16)
 
     def __hex__(self):
-        from sage.misc.superseded import deprecation
         deprecation(26756, 'use the method .hex instead')
         return self.hex()
 
@@ -1286,7 +1291,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self.str(8)
 
     def __oct__(self):
-        from sage.misc.superseded import deprecation
         deprecation(26756, 'use the method .oct instead')
         return self.oct()
 
@@ -2110,7 +2114,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         elif isinstance(left, Element):
             return coercion_model.bin_op(left, right, operator.pow)
         elif isinstance(left, str):
-            from sage.misc.superseded import deprecation
             deprecation(24260, "raising a string to an integer power is deprecated")
             return left * int(right)
         # left is a non-Element: do the powering with a Python int
@@ -4316,6 +4319,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_off()
         return z
 
+    @property
     def denominator(self):
         """
         Return the denominator of this integer, which of course is
@@ -4332,6 +4336,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return one
 
+    @property
     def numerator(self):
         """
         Return the numerator of this integer.
@@ -6995,7 +7000,6 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
     if sign < 0:
         mpz_neg(z, z)
     if warnoctal and mpz_sgn(z) != 0:
-        from sage.misc.superseded import deprecation
         deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
 
