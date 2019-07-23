@@ -1107,8 +1107,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         drawing.set_aspect_ratio(1)
         #fig_size = fig_size*2*n/3
         fig_size = 0.8*fig_size
-        #drawing.show(figsize=[fig_size*len(crossed_arcs)*(len(all_matchings)+1), fig_size*len(crossed_arcs)])
-        drawing.show()
+        drawing.show(figsize=[fig_size*len(crossed_arcs)*(len(all_matchings)+1), fig_size*len(crossed_arcs)])
 
     return SumOfMonomialTerms(G_x, all_matchings, boundary_edges, is_principal, G_y, all_matchings_symmetricdifference_minpm, is_loop)/ GetDenominator(G_x)
 
@@ -2310,7 +2309,7 @@ def _rearrange_triangle_small_first(triangle):
         (1, 3, 2)
     """
     x, y, z = triangle[0], triangle[1], triangle[2]
-    smallest = min(x,y,z)
+    smallest = min(str(x),str(y),str(z)) # Sage does not support comparison between objects of different types
     if smallest == x:
         return (x,y,z)
     if smallest == y:
