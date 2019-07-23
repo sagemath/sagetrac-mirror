@@ -8701,10 +8701,7 @@ class NumberField_absolute(NumberField_generic):
             exponent = - v.residue_class_degree() * iota_ideal.valuation(v)
             return R(p**exponent)
         except AttributeError:
-            if is_real_place(v):
-                return R(v(iota).abs())
-            else:
-                return R(v(iota).abs()**2)
+            return R(v(iota).abs())
 
     def relativize(self, alpha, names, structure=None):
         r"""
