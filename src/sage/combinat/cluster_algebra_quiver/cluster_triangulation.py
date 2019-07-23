@@ -1052,8 +1052,9 @@ class ClusterTriangulation(ClusterSeed):
 
         Figure 10 of Positivity for Cluster Algebras from Surfaces, [MSW_Positivity]_::
 
-            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
-            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
+            sage: thrice_punctured_square = [('r','r','ell'),('11','ell','3'),('3','12','4'),('4','5','14'),
+            ....: ('5','6','10'),('6','7','9'),('8','10','9'),('7','13','8')]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=['11','12','13','14'])
             sage: S = ClusterSeed(T)
             sage: r = T._get_map_label_to_variable('r')
             sage: ell = T._get_map_label_to_variable('ell')
@@ -1064,9 +1065,9 @@ class ClusterTriangulation(ClusterSeed):
             sage: crossed_arcs = [ell, (r,'counterclockwise'), ell, three, four, five, six]
             sage: T.draw_snake_graph(crossed_arcs,first_tile_orientation=-1,user_labels=False)
             Graphics object consisting of 43 graphics primitives
-            sage: T.draw_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
+            sage: T.draw_snake_graph(['ell', ('r','counterclockwise'),'ell','3','4','5','6'],first_tile_orientation=-1,user_labels=True)
             Graphics object consisting of 43 graphics primitives
-            sage: T.draw_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
+            sage: T.draw_snake_graph(['5','6','7','8','9','6','5'], first_tile_orientation=1, user_labels=True)
             Graphics object consisting of 43 graphics primitives
         """
         from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
@@ -1118,11 +1119,11 @@ class ClusterTriangulation(ClusterSeed):
         b1,b2,b3,b4 = ``b4``, ``b5``, ``b6``, ``b7``, Pick `tau_1` (or
         ``c`` edge) to be the edge labeled 1, and go clockwise::
 
-            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+            sage: T = ClusterTriangulation([('1','2','b4'),('1','0','b5'),('0','3','b6'),('2','3','b7')], boundary_edges=['b4','b5','b6','b7'])
             sage: c = [item for item in T.cluster()]
             sage: T.draw_band_graph([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
             Graphics object consisting of 25 graphics primitives
-            sage: T.draw_band_graph([1,2,3,0,1], user_labels=True)
+            sage: T.draw_band_graph(['1','2','3','0','1'], user_labels=True)
             Graphics object consisting of 25 graphics primitives
         """
         from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
