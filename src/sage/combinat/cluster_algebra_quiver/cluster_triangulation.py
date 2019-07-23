@@ -121,7 +121,7 @@ class ClusterTriangulation(ClusterSeed):
         sage: T
         A seed for a cluster algebra associated with an ideal triangulation of rank 10 with 4 boundary edges
         sage: ClusterSeed(T).mutation_type()
-        'undetermined finite mutation type from a surface'
+        'undetermined finite mutation type'
         sage: T.map_label_to_variable()
         {1: x0*x1,
         2: x1,
@@ -143,7 +143,7 @@ class ClusterTriangulation(ClusterSeed):
         sage: T
         A seed for a cluster algebra associated with an ideal triangulation of rank 5 with 2 boundary edges
         sage: ClusterSeed(T).mutation_type()
-        'undetermined finite mutation type from a surface'
+        'undetermined finite mutation type'
 
         sage: T = ClusterTriangulation ( [[4, 5, 1], [4, 3, 2], [3, 7, 2], [2, 1, 6], [1, 4, 5]], boundary_edges=[1])
         sage: T
@@ -161,7 +161,7 @@ class ClusterTriangulation(ClusterSeed):
         sage: once_punctured_torus = ClusterTriangulation([(1,2,3),(3,1,2)])
         sage: S = ClusterSeed(once_punctured_torus).mutation_type()
         sage: S
-        'undetermined finite mutation type from a surface'
+        'undetermined finite mutation type'
 
     Triangles do not need to be connected::
 
@@ -270,7 +270,7 @@ class ClusterTriangulation(ClusterSeed):
                 self._mutation_type += ' from a surface'
             self._is_principal = is_principal
 
-			#sets appropriate booleans to 'False'            
+            #sets appropriate booleans to 'False'            
             self._use_g_vec = False
             self._use_c_vec = False
             self._use_d_vec = False
@@ -323,7 +323,7 @@ class ClusterTriangulation(ClusterSeed):
             self._mutation_type = data._mutation_type
             self._is_principal = copy(data._is_principal)
             
-			#sets appropriate booleans to 'False'            
+            #sets appropriate booleans to 'False'            
             self._use_g_vec = False
             self._use_c_vec = False
             self._use_d_vec = False
@@ -349,119 +349,119 @@ class ClusterTriangulation(ClusterSeed):
             #Constructs the appropriate coefficient ring
             self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
         elif isinstance(data,ClusterSeed):
-        	#copy data that we want to retain in the ClusterTriangulation
-        	#(some of this is not necessary, so we might want to just ignore it)
-        	self._n = data._n
-        	self._nlist = data._nlist
-        	self._m = data._m
-        	self._mlist = data._mlist
-        	self._M = data._M
-        	self._R = data._R
-        	self._cluster = copy(data._cluster)
-        	self._mutation_type = data._mutation_type
-        	self._is_principal = data._is_principal
-        	self._use_g_vec = data._use_g_vec
-        	self._use_c_vec = data._use_c_vec
-        	self._use_d_vec = data._use_d_vec
-        	self._use_fpolys = data._use_fpolys
-        	self._bot_is_c = data._bot_is_c
-        	self._mut_path = data._mut_path
-        	self._track_mut = data._track_mut
-        	self._user_labels = data._user_labels
-        	self._user_labels_prefix = data._user_labels_prefix
-        	self._init_vars = data._init_vars
-        	self._init_exch = data._init_exch
-        	self._F = data._F
-        	self._y = data._y
-        	self._yhat = data._yhat
-        	
-        	if data._mutation_type.letter() == 'A':
-        		#By default, I'll have all the boundary edge variables be b1, b2, etc
-        		#And the default user labels for boundaries will just be 1?
-        		# Maybe there's another choice that makes more sense
-        		self._boundary_edges = ['b%i' % i for i in range(self._n+3)]
-        		self._boundary_edges_vars = [1]*(self._n+3)
-        		#print("It's type A!")
-        		
-        		#Constructing a list of triangles that we want in our triangulation
-        		#Note that the triangulation comes from the initial cluster, so we use the initial B matrix
-        		B = data._b_initial
-        		triangles = []
-        		avail_boundary_edges = self._boundary_edges
-        		
-        		#print(avail_boundary_edges)
-        		
-        		#The first triangle will always have sides (0,b_0,b_1)
-        		triangles += [(avail_boundary_edges[0], avail_boundary_edges[1], 0)]
-        		avail_boundary_edges = avail_boundary_edges[2:]
-        		
-        		#print(avail_boundary_edges)
-        		#print(triangles)
-        		#print(avail_boundary_edges)
-        		
-        		#creates intermediate triangles based on quiver orientation
-        		for i in range(self._n)[:-1]:
-        			if B[i,i+1] > 0:
-        				#print("+")
-        				triangles += [(i+1,i,avail_boundary_edges[0])]
-        				avail_boundary_edges = avail_boundary_edges[1:]
-        				#print(triangles)
-        				#print(avail_boundary_edges)
-        			if B[i,i+1] < 0:
-        				#print("-")
-        				triangles += [(i,i+1,avail_boundary_edges[-1])]
-        				avail_boundary_edges = avail_boundary_edges[:-1]
-        				#print(triangles)
-        				#print(avail_boundary_edges)
-        			
-        		#Adds final triangle with side n and remaining boundary sides	        		
-        		triangles += [(self._n-1,avail_boundary_edges[0],avail_boundary_edges[1])]
-        		
-        		print triangles
-        		#print(avail_boundary_edges)
-        		
-        	if data._mutation_type.letter() == 'D':
-        		#Same default choices, same comment about there probably being a better choice
-        		self._boundary_edges = ['b%i' % i for i in range(self._n)]
-        		self._boundary_edges_vars = [1]*(self._n)
-        		#print("It's type D!")
-        		
-        		B = data._b_initial
-        		triangles = []
-        		avail_boundary_edges = self._boundary_edges
-        		
-        		#The first triangle always has sides (0,b_0,b_1)
-        		triangles += [(avail_boundary_edges[0],avail_boundary_edges[1],0)]
-        		avail_boundary_edges = avail_boundary_edges[2:]
-        		
-        		#creates intermediate vertices (prior to last two)
-        		
-        		for i in range(self._n)[:-3]:
-        			if B[i,i+1] > 0:
-        				triangles += [(i+1,i,avail_boundary_edges[0])]
-        				avail_boundary_edges = avail_boundary_edges[1:]
-        			if B[i,i+1] < 0:
-        					triangles += [(i,i+1,avail_boundary_edges[-1])]
-        					avail_boundary_edges = avail_boundary_edges[:-1]
-        					
-        		
-        		#creates the final two triangles (possibly self-folded)
-        		#there are four cases, based on the four possible orientations for this part of D_n
-        		if B[self._n -2, self._n - 3] > 0 and B[self._n -1, self._n -3] > 0:
-        			triangles += [(self._n - 2, self._n - 3, avail_boundary_edges[0]),(self._n - 2, self._n -1, self._n -1)]
-        		elif B[self._n - 2, self._n -3] > 0 and B[self._n -1, self._n -3] < 0:
-        			triangles += [(self._n -1, self._n -2, self._n -3), (self._n - 1, self._n -2, avail_boundary_edges[0])]
-        		elif B[self._n -2, self._n -3] < 0 and B[self._n - 1, self._n - 3] > 0:
-        			triangles += [(self._n - 3, self._n - 1, self._n - 2),(self._n - 1, avail_boundary_edges[0], self._n - 2)]
-        		else:
-        			triangles += [(self._n - 3, self._n - 2, avail_boundary_edges[0]),(self._n - 2, self._n - 2, self._n -1)]
-        					
-        		print triangles
-        		#print avail_boundary_edges
-        	
-        	
-        	#print("Input was a ClusterSeed that's NOT a ClusterTriangulation")
-        	
+            #copy data that we want to retain in the ClusterTriangulation
+            #(some of this is not necessary, so we might want to just ignore it)
+            self._n = data._n
+            self._nlist = data._nlist
+            self._m = data._m
+            self._mlist = data._mlist
+            self._M = data._M
+            self._R = data._R
+            self._cluster = copy(data._cluster)
+            self._mutation_type = data._mutation_type
+            self._is_principal = data._is_principal
+            self._use_g_vec = data._use_g_vec
+            self._use_c_vec = data._use_c_vec
+            self._use_d_vec = data._use_d_vec
+            self._use_fpolys = data._use_fpolys
+            self._bot_is_c = data._bot_is_c
+            self._mut_path = data._mut_path
+            self._track_mut = data._track_mut
+            self._user_labels = data._user_labels
+            self._user_labels_prefix = data._user_labels_prefix
+            self._init_vars = data._init_vars
+            self._init_exch = data._init_exch
+            self._F = data._F
+            self._y = data._y
+            self._yhat = data._yhat
+            
+            if data._mutation_type.letter() == 'A':
+                #By default, I'll have all the boundary edge variables be b1, b2, etc
+                #And the default user labels for boundaries will just be 1?
+                # Maybe there's another choice that makes more sense
+                self._boundary_edges = ['b%i' % i for i in range(self._n+3)]
+                self._boundary_edges_vars = [1]*(self._n+3)
+                #print("It's type A!")
+                
+                #Constructing a list of triangles that we want in our triangulation
+                #Note that the triangulation comes from the initial cluster, so we use the initial B matrix
+                B = data._b_initial
+                triangles = []
+                avail_boundary_edges = self._boundary_edges
+                
+                #print(avail_boundary_edges)
+                
+                #The first triangle will always have sides (0,b_0,b_1)
+                triangles += [(avail_boundary_edges[0], avail_boundary_edges[1], 0)]
+                avail_boundary_edges = avail_boundary_edges[2:]
+                
+                #print(avail_boundary_edges)
+                #print(triangles)
+                #print(avail_boundary_edges)
+                
+                #creates intermediate triangles based on quiver orientation
+                for i in range(self._n)[:-1]:
+                    if B[i,i+1] > 0:
+                        #print("+")
+                        triangles += [(i+1,i,avail_boundary_edges[0])]
+                        avail_boundary_edges = avail_boundary_edges[1:]
+                        #print(triangles)
+                        #print(avail_boundary_edges)
+                    if B[i,i+1] < 0:
+                        #print("-")
+                        triangles += [(i,i+1,avail_boundary_edges[-1])]
+                        avail_boundary_edges = avail_boundary_edges[:-1]
+                        #print(triangles)
+                        #print(avail_boundary_edges)
+                    
+                #Adds final triangle with side n and remaining boundary sides                    
+                triangles += [(self._n-1,avail_boundary_edges[0],avail_boundary_edges[1])]
+                
+                print triangles
+                #print(avail_boundary_edges)
+                
+            if data._mutation_type.letter() == 'D':
+                #Same default choices, same comment about there probably being a better choice
+                self._boundary_edges = ['b%i' % i for i in range(self._n)]
+                self._boundary_edges_vars = [1]*(self._n)
+                #print("It's type D!")
+                
+                B = data._b_initial
+                triangles = []
+                avail_boundary_edges = self._boundary_edges
+                
+                #The first triangle always has sides (0,b_0,b_1)
+                triangles += [(avail_boundary_edges[0],avail_boundary_edges[1],0)]
+                avail_boundary_edges = avail_boundary_edges[2:]
+                
+                #creates intermediate vertices (prior to last two)
+                
+                for i in range(self._n)[:-3]:
+                    if B[i,i+1] > 0:
+                        triangles += [(i+1,i,avail_boundary_edges[0])]
+                        avail_boundary_edges = avail_boundary_edges[1:]
+                    if B[i,i+1] < 0:
+                            triangles += [(i,i+1,avail_boundary_edges[-1])]
+                            avail_boundary_edges = avail_boundary_edges[:-1]
+                            
+                
+                #creates the final two triangles (possibly self-folded)
+                #there are four cases, based on the four possible orientations for this part of D_n
+                if B[self._n -2, self._n - 3] > 0 and B[self._n -1, self._n -3] > 0:
+                    triangles += [(self._n - 2, self._n - 3, avail_boundary_edges[0]),(self._n - 2, self._n -1, self._n -1)]
+                elif B[self._n - 2, self._n -3] > 0 and B[self._n -1, self._n -3] < 0:
+                    triangles += [(self._n -1, self._n -2, self._n -3), (self._n - 1, self._n -2, avail_boundary_edges[0])]
+                elif B[self._n -2, self._n -3] < 0 and B[self._n - 1, self._n - 3] > 0:
+                    triangles += [(self._n - 3, self._n - 1, self._n - 2),(self._n - 1, avail_boundary_edges[0], self._n - 2)]
+                else:
+                    triangles += [(self._n - 3, self._n - 2, avail_boundary_edges[0]),(self._n - 2, self._n - 2, self._n -1)]
+                            
+                print triangles
+                #print avail_boundary_edges
+            
+            
+            #print("Input was a ClusterSeed that's NOT a ClusterTriangulation")
+            
         else:
             raise ValueError('Input must be a list of three-tuples or a ClusterTriangulation class. You entered data: ', data)
 
@@ -555,26 +555,6 @@ class ClusterTriangulation(ClusterSeed):
             [ 0  1 -1  0  0]
             [ 0  1 -1  0  0]
 
-        2 self-folded triangles and 1 triangle with one vertex
-        (affine D) Figure 9 (right) of [FominShapiroThurston]_ ::
-
-            sage: twice_punctured_monogon_mu2 = [(4,5,5),(2,3,3),(1,4,2)]
-            sage: Tmu2 = ClusterTriangulation(twice_punctured_monogon_mu2)
-            sage: Bmu2 = Tmu2.b_matrix()
-            sage: Bmu2
-            [ 0  1  1 -1 -1]
-            [-1  0  0  1  1]
-            [-1  0  0  1  1]
-            [ 1 -1 -1  0  0]
-            [ 1 -1 -1  0  0]
-            sage: B.mutate(1)
-            sage: Bmu2 == B
-            True
-
-            sage: Qmu2 = ClusterQuiver(Bmu2)
-            sage: Qmu2.mutation_type()
-            'undetermined finite mutation type'
-
         Figure 10 (bottom) of [FominShapiroThurston]_ ::
 
             sage: twice_punctured_monogon = [(1,1,2), (4,4,3), ('boundary',2,3)]
@@ -596,229 +576,8 @@ class ClusterTriangulation(ClusterSeed):
             [ 0  0  1 -1]
             [-1 -1  0  0]
             [ 1  1  0  0]
-            sage: B.mutate(2)
-            sage: Bmu3 == B
-            True
-
-        Four-punctured sphere with 3 self-folded triangle::
-
-            sage: four_punc_sphere = [(1,0,5),(3,5,4),(2,1,3),(0,2,4)]
-            sage: T = ClusterTriangulation(four_punc_sphere)
-            sage: B = T.b_matrix()
-            sage: Tmu0 = ClusterTriangulation([(0,1,2),(3,5,4),(2,1,3),(0,4,5)])
-            sage: B.mutate(0)
-            sage: B == Tmu0.b_matrix()
-            True
-            sage: Tmu04 = ClusterTriangulation([(0,1,2),(4,5,5),(2,1,3),(3,4,0)])
-            sage: B.mutate(4)
-            sage: B == Tmu04.b_matrix()
-            True
-            sage: Tmu040 = ClusterTriangulation([(1,0,4),(4,5,5),(2,1,3),(3,0,2)])
-            sage: B.mutate(0)
-            sage: B == Tmu040.b_matrix()
-            True
-            sage: Tmu0402 = Tmu040.mutate(2,inplace=False)
-            sage: Tmu0402.triangulation() == \
-            ....: ClusterTriangulation([(1,0,4),(4,5,5),(1,2,0),(3,2,3)]).triangulation()
-            True
         """
         return self._M
-
-    def mutate(self, sequence, inplace=True, user_labels=True):
-        """
-        Mutate ``self`` at a diagonal or a sequence of diagonals.
-
-        See :meth:`ClusterSeed.mutate`
-
-        INPUT:
-
-        - ``sequence`` -- a diagonal label (if user_labels is True)
-            or a diagonal position (if user_labels is not True) of self
-            or an iterator of diagonal labels/positions of self.
-        - ``inplace`` -- (default: True) if False, the result is returned,
-            otherwise ``self`` is modified.
-        - ``user_labels`` -- (default: True) if False, user should input position/s
-            of diagonal/s in input ``sequence``
-
-        EXAMPLES:
-
-        Twice-punctured monogon (labeled 'i0') with 3 (non-ordinary) ideal triangles (affine D)::
-
-            sage: T = ClusterTriangulation([('i1','i4','i2'),('i3','i4','i3'),('i2','i0','i1')])
-            sage: T.mutate('i1', inplace=False).cluster()
-            [x0, (x3*x4 + x0)/x1, x2, x3, x4]
-            sage: T.mutate('i2', inplace=False).cluster()
-            [x0, x1, (x3*x4 + x0)/x2, x3, x4]
-
-        Mutating at a self-folded triangle (r,r,ell)'s radius r is an involution except that
-        mutating at r twice returns the original triangulation with the label r and ell switched::
-
-            sage: T.mutate('i3', inplace=False).cluster()
-            [x0, x1, x2, (x1 + x2)/x3, x4]
-            sage: ClusterSeed(T._M).mutate(T.get_edge_position('i3'), inplace=False).cluster() == T.mutate('i3', inplace=False).cluster()
-            True
-            sage: T.mutate(['i3','i3'], inplace=False).cluster()
-            [x0, x1, x2, x3, x4]
-            sage: T.mutate(['i3','i3'], inplace=False).weighted_triangulation()
-            [(x2, x0, x1),
-            (x1, x3*x4, x2),
-            ((x4, 'counterclockwise'), (x4, 'clockwise'), x3*x4)]
-            sage: T.weighted_triangulation()
-            [(x1, x3*x4, x2),
-            ((x3, 'counterclockwise'), (x3, 'clockwise'), x3*x4),
-            (x2, x0, x1)]
-            sage: T.mutate(['i4','i4'], inplace=False) == T
-            True
-
-        Two self-folded triangles and 1 triangle with one vertex (affine D)::
-
-            sage: Tmu2 = ClusterTriangulation([('j1','j1','j2'),('j3','j4','j3'),('j2','j4','j0')])
-            sage: T.mutate('i2',inplace=False).b_matrix() == Tmu2.b_matrix()
-            True
-            sage: Tmu2.mutate(2, user_labels=False)
-            sage: T.b_matrix() == Tmu2.b_matrix()
-            True
-
-        Four-punctured sphere::
-
-            sage: four_punc_sphere = [('i1','i0','i5'),('i3','i5','i4'),('i2','i1','i3'),('i0','i2','i4')]
-            sage: T = ClusterTriangulation(four_punc_sphere)
-            sage: T.mutate([0,4,0,2],user_labels=False)
-            sage: Tmu0402 = ClusterTriangulation([(1,0,4),(4,5,5),(1,2,0),(3,2,3)])
-            sage: T.b_matrix() == Tmu0402.b_matrix()
-            True
-            sage: Tmu04020 = ClusterTriangulation([(1,0,1),(4,5,5),(4,0,2),(3,2,3)])
-            sage: T.mutate('i0',inplace=False).quiver() == Tmu04020.quiver()
-            True
-
-        A once-punctured square's triangulation with self-folded
-        triangle, border edges are labeled 4,5,6,7, 2nd triangulation
-        in oral paper ell-loop is labeled 3, radius is labeled 0::
-
-            sage: T = ClusterTriangulation([(1,7,4),(1,5,2),(2,3,6),(3,0,0)], boundary_edges=[4,5,6,7])
-            sage: S = ClusterSeed(T); S.cluster()
-            [x0, x1, x2, x3]
-            sage: S.mutate(T.get_edge_position(0))
-            sage: S.cluster()
-            [(x2 + 1)/x0, x1, x2, x3]
-            sage: T.mutate(0)
-            sage: T.triangles()
-            [(1, 7, 4), (1, 5, 2), (2, 3, 0), (0, 3, 6)]
-            sage: T.cluster()
-            [(x2 + 1)/x0, x1, x2, x3]
-            sage: ClusterSeed(T).cluster() # Cluster is reset to initial cluster
-            [x0, x1, x2, x3]
-            sage: T.quiver() == S.quiver()
-            True
-
-        A once-punctured torus::
-
-            sage: T = ClusterTriangulation([('a','b','c'),('c','a','b')])
-            sage: S = ClusterSeed(T)
-            sage: S.mutate(T.get_edge_position('a'))
-            sage: T.mutate('a')
-            sage: T.triangulation()
-            [('b', 'a', 'c'), ('b', 'a', 'c')]
-            sage: T.cluster()
-            [(x1^2 + x2^2)/x0, x1, x2]
-            sage: S.cluster() == T.cluster()
-            True
-            sage: S.b_matrix() == T.b_matrix()
-            True
-            sage: S.quiver() == T.quiver()
-            True
-            sage: T.mutate('a')
-            sage: T == ClusterTriangulation([('a','b','c'),('c','a','b')])
-            True
-
-        An edge that is only contained in one triangle and is not a
-        self-folded triangle's radius is not mutable::
-
-            sage: twice_punc_monogon = ClusterTriangulation([('i1','i4','i2'),('i3','i4','i3'),('i2','i0','i1')])
-            sage: twice_punc_monogon.mutate('i0')
-            Traceback (most recent call last):
-            ...
-            ValueError: ('The ideal triangulation cannot be mutated at ', 'i0', '.There is only one triangle ', ('i2', 'i0', 'i1'), ', not a self-folded triangle, with side ', 'i0')
-        """
-        from sage.combinat.cluster_algebra_quiver.surface import _triangles_mutate, \
-        produce_dict_label_to_variable, produce_dict_variable_to_label, _get_user_label_triangulation, _get_weighted_triangulation
-
-        if inplace:
-            ct = self
-        else:
-            ct = ClusterTriangulation( self )
-
-        S = ClusterSeed(ct)
-
-        #print "I am in ClusterTriangulation.mutate with ct: ", ct # TODO ERASE
-
-        n = ct._n
-        V = range(n)
-        edges = ct._edges
-
-        if user_labels:
-            if sequence in edges:
-                seq = [sequence]
-            else:
-                seq = sequence
-            if isinstance(seq, tuple):
-                seq = list( seq )
-        else:
-            if sequence in V:
-                seq = [sequence]
-            else:
-                seq = sequence
-            if isinstance(seq, tuple):
-                seq = list( seq )
-
-        if not isinstance(seq, list):
-            raise ValueError('The ideal triangulation can only be mutated at a diagonal or at a sequence of diagonals')
-        if not isinstance(inplace, bool):
-            raise ValueError('The second parameter must be boolean. To mutate at a sequence of length 2, input list of diagonals.')
-        if not isinstance(user_labels, bool):
-            raise ValueError('The third parameter must be boolean. To mutate at a sequence of length 3, input a list of diagonals.')
-
-        if user_labels:
-            if any( a not in edges for a in seq ):
-                a = filter( lambda a: a not in edges, seq )[0]
-                raise ValueError(str( a ) + ' is not an arc in the triangulation')
-            if any( b in ct._boundary_edges for b in seq ):
-                b = filter( lambda b: b in ct._boundary_edges, seq )[0]
-                raise ValueError('The triangulation cannot be mutated at a boundary edge ' + str( b ))
-        else:
-            if any( v not in V for v in seq ):
-                v = filter( lambda v: v not in V, seq )[0]
-                raise ValueError('The triangulation cannot be mutated at the diagonal position ' + str( v ))
-
-        for diagonal in seq:
-            if user_labels:
-                pos = ct.get_edge_position(diagonal)
-                ct._triangles = _triangles_mutate(ct._triangles, diagonal)
-                #ct._M.mutate(pos)
-                #ct._quiver.mutate(pos)
-                #S = S.mutate(pos, inplace=False)
-            else:
-                pos = diagonal
-                diagonal_label = ct._arcs[pos]
-                ct._triangles = _triangles_mutate(ct._triangles, diagonal_label)
-                #ct._M.mutate(pos)
-                #ct._quiver.mutate(pos)
-                #S = S.mutate(pos, inplace=False)
-
-            ct._M.mutate(pos)
-            S = S.mutate(pos, inplace=False)
-
-        ct._cluster = S.cluster()
-        ct._map_label_to_variable = produce_dict_label_to_variable (ct._triangles, ct._cluster[0:ct._n], ct._boundary_edges, ct._boundary_edges_vars)
-        ct._map_variable_to_label = produce_dict_variable_to_label (ct._map_label_to_variable)
-        ct._triangulation = _get_user_label_triangulation(ct._triangles)
-        ct._weighted_triangulation = _get_weighted_triangulation (ct._triangles, ct._map_label_to_variable)
-
-        #ct._M = S._M
-        ct._quiver = None
-
-        if not inplace:
-            return ct
 
     def arcs(self):
         """
@@ -891,11 +650,6 @@ class ClusterTriangulation(ClusterSeed):
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
             sage: T.map_label_to_variable()
             {1: b4, 2: x0*x1, 3: x1, 4: x2*x3, 5: x3}
-            sage: T.mutate(3)
-            sage: T.cluster()
-            [x0, (x2*x3 + 1)/x1, x2, x3]
-            sage: T.map_label_to_variable()
-            {1: b4, 2: x0, 3: (x2*x3 + 1)/x1, 4: x2*x3, 5: x3}
         """
         return self._map_label_to_variable
 
@@ -986,9 +740,6 @@ class ClusterTriangulation(ClusterSeed):
             x3
             sage: T._get_map_label_to_variable('ll')
             x2*x3
-            sage: T.mutate('a')
-            sage: T._get_map_label_to_variable('a')
-            (x2*x3 + x1)/x0
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edge
         return _get_weighted_edge(a, self._map_label_to_variable)
@@ -1044,16 +795,6 @@ class ClusterTriangulation(ClusterSeed):
             0
             sage: T._get_map_variable_to_label(T._boundary_edges_vars[2])
             6
-            sage: T.mutate(0)
-            sage: T.cluster()[0]*T.cluster_variable(3)
-            (x2*x3 + x3)/x0
-            sage: T._get_map_variable_to_label(T.cluster()[0]*T.cluster_variable(3))
-            0
-            sage: T._get_map_label_to_variable(0)
-            (x2*x3 + x3)/x0
-            sage: T.cluster()
-            [(x2 + 1)/x0, x1, x2, x3]
-
             sage: TT = ClusterTriangulation([('j1','j1','j2'),('j3','j4','j3'),('j2','j4','j0')])
             sage: TT._get_map_variable_to_label(TT._cluster[1]*TT._cluster[2])
             'j2'
@@ -1386,7 +1127,8 @@ class ClusterTriangulation(ClusterSeed):
         """
         from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
         drawing = _draw_snake_graph(self.list_band_graph(crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, first_tile_orientation=first_tile_orientation, user_labels=user_labels), print_user_labels=user_labels)
-        return drawing.plot( axes=False, figsize=fig_size )
+        #return drawing.plot( figsize=fig_size )
+        return drawing.plot()
 
     def draw_lifted_arc(self, crossed_arcs, first_triangle=None,
                         final_triangle=None, fig_size=None, verbose=False,
@@ -1466,7 +1208,8 @@ class ClusterTriangulation(ClusterSeed):
         drawing = _draw_lifted_curve(lifted_polygon, is_arc=True, is_loop=False)
         #if verbose:
         #    print lifted_polygon
-        return drawing.plot(axes=False, figsize=fig_size)
+        #return drawing.plot( figsize=fig_size)
+        return drawing.plot()
 
     def draw_lifted_loop(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, fig_size=None, verbose=False,
@@ -1540,7 +1283,8 @@ class ClusterTriangulation(ClusterSeed):
         drawing = _draw_lifted_curve(lifted_polygon, is_arc=False, is_loop=True)
         # if verbose:
         #    print lifted_polygon
-        return drawing.plot( axes=False, figsize=fig_size)
+        #return drawing.plot( figsize=fig_size)
+        return drawing.plot()
 
     def arc_laurent_expansion(self, crossed_arcs, first_triangle=None,
                               final_triangle=None, verbose=False,
@@ -1595,26 +1339,18 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: once_punctured_square = [(1,7,4),(1,5,2),(6,0,3),(2,3,0),(0,3,6),[7,4,1]]
             sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=[4,5,6,7])
-            sage: Q = ClusterQuiver(T)
-            sage: S = ClusterSeed(Q)
             sage: c = [item for item in T.cluster()]
-            sage: T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
+            sage: T.arc_laurent_expansion([T.x(1),T.x(2),T.x(3)], user_labels=False)
             (x0*x2^2 + 2*x0*x2 + x1*x3 + x0)/(x1*x2*x3)
             sage: T.arc_laurent_expansion([c[1],c[2],c[3]], first_triangle=[c[1],T._get_map_label_to_variable(7),T._get_map_label_to_variable(4)], \
             ....: final_triangle=( c[0],c[3], T._get_map_label_to_variable(6) ), \
-            ....: user_labels=False) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)], user_labels=False)
+            ....: user_labels=False) == T.arc_laurent_expansion([T.x(1),T.x(2),T.x(3)], user_labels=False)
             True
-            sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == T.arc_laurent_expansion([S.x(1),S.x(2),S.x(3)],user_labels=False)
+            sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == T.arc_laurent_expansion([T.x(1),T.x(2),T.x(3)],user_labels=False)
             True
-            sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == S.mutate([3,2,1],inplace=False).cluster_variable(1)
-            True
-
             sage: TP = T.principal_extension()
             sage: TP.arc_laurent_expansion([1,2,3],user_labels=True)
             (x1*x3*y1*y2*y3 + x0*x2^2 + x0*x2*y1 + x0*x2*y3 + x0*y1*y3)/(x1*x2*x3)
-            sage: SP = S.principal_extension()
-            sage: SP.mutate([3,2,1],inplace=False).cluster_variable(1) == TP.arc_laurent_expansion([1,2,3],user_labels=True)
-            True
 
         A once-punctured square's triangulation with self-folded
         triangle, border edges are labeled 4,5,6,7, 2nd triangulation
@@ -1632,33 +1368,19 @@ class ClusterTriangulation(ClusterSeed):
             sage: gamma = T.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True)
             sage: gamma == T.arc_laurent_expansion([c[1],c[2],ell,(r,'counterclockwise'),ell], user_labels=False)
             True
-            sage: gamma == T.mutate([0,3,2,1],inplace=False).cluster_variable(1)
-            True
             sage: gamma == T.arc_laurent_expansion([3,(0,'clockwise'),3,2,1], user_labels=True)
             True
             sage: TP = T.principal_extension()
             sage: SP = S.principal_extension()
-            sage: TP.arc_laurent_expansion([1,2,3,(0,'counterclockwise'),3], user_labels=True) == \
-            ....: SP.mutate([0,3,2,1],inplace=False).cluster_variable(1)
-            True
-
+ 
         An 8-gon triangulation from Figure 2 of [SchifflerThomas]_
         where tau_i = i and tau_13 is labeled 0::
 
             sage: T = ClusterTriangulation([('1','7','8'), ('2','9','10'), ('3','1','2'), ('5','4','3'), ('11','12','5'), ('4','0','6')],\
             ....: boundary_edges=['6','7','8','9','10','11','12','0'])
-            sage: S = ClusterSeed(T)
-            sage: c = [item for item in S.cluster()]
+            sage: c = [item for item in T.cluster()]
             sage: gamma = T.arc_laurent_expansion([c[1-1],c[3-1],c[5-1]], user_labels=False)
             sage: gamma == T.arc_laurent_expansion(['5','3','1'])
-            True
-            sage: S.mutate([1-1,3-1,5-1], inplace=True)
-            sage: S.cluster_variable(5-1) == gamma
-            True
-            sage: TP = T.principal_extension()
-            sage: TP.mutate(['1','3','5'],user_labels=True,inplace=False).cluster_variable(4) == TP.arc_laurent_expansion(['5','3','1'],user_labels=True)
-            True
-            sage: TP.arc_laurent_expansion(['1','3','5']) == TP.arc_laurent_expansion(['5','3','1'])
             True
 
         Affine A(2,2) triangulation from Figure 3 of
@@ -1670,48 +1392,24 @@ class ClusterTriangulation(ClusterSeed):
             sage: gamma = T.arc_laurent_expansion([c[1-1],c[2-1],c[3-1],c[4-1],c[1-1]], user_labels=False)
             sage: gamma == T.arc_laurent_expansion([1,4,3,2,1])
             True
-            sage: S.mutate([1-1,3-1,4-1,2-1,3-1], inplace=True)
-            sage: S.cluster_variable(2) == gamma
-            True
             sage: S.mutation_type()
             ['A', [2, 2], 1]
             sage: TP = T.principal_extension()
-            sage: TP.mutate([1-1,3-1,4-1,2-1,3-1], user_labels=False, inplace=False).cluster_variable(2) == TP.arc_laurent_expansion([1,4,3,2,1])
-            True
 
             sage: T = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
             sage: S = ClusterSeed(T)
-            sage: S1 = S.mutate(0, inplace=False)
-            sage: S1.cluster_variable(0) == T.arc_laurent_expansion ([S.cluster_variable(0)], user_labels=False)
-            True
-            sage: Tp = T.principal_extension()
-            sage: Sp = S.principal_extension()
-            sage: Sp.mutate(0, inplace=False).cluster_variable(0) == Tp.arc_laurent_expansion ([0], user_labels=True)
-            True
 
             sage: once_punctured_torus = ClusterTriangulation([(0,1,2),(2,0,1)])
             sage: S = ClusterSeed(once_punctured_torus)
             sage: c = S.cluster()
-            sage: once_punctured_torus.arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == \
-            ....: S.mutate([0,1,2], inplace=False).cluster_variable(2)
-            True
-            sage: once_punctured_torus.principal_extension().arc_laurent_expansion([c[0],c[1],c[0],c[2],c[0],c[1],c[0]], user_labels=False) == \
-            ....: S.principal_extension().mutate([0,1,2], inplace=False).cluster_variable(2)
-            True
-
-        An example that Salomon Dominguez wrote::
-
-            sage: affineD = ClusterTriangulation([('5','6','4'),('6','7','10'),('7','1','11'),('1','5','2'),('2','3','8'),('3','4','9')], boundary_edges=['8','9','10','11'])
-            sage: gamma = affineD.arc_laurent_expansion(['6','7','1','2','3'],verbose=False)
-            sage: gamma == affineD.mutate(['3','2','1','7','6'],user_labels=True, inplace=False).cluster()[5]
-            True
 
         Test bug for when a generalized arc's first cross and last cross are the same::
 
             sage: Annulus41 = ClusterTriangulation([(1,6,7),(1,3,2),(3,5,4),(5,0,2),(0,8,9)], boundary_edges=[6,7,8,9])
             sage: GeneralizedArc = Annulus41.arc_laurent_expansion([3,5,2])
             sage: Z = Annulus41.loop_laurent_expansion([2,3,5,2])
-            sage: GeneralizedArc == Z * Annulus41.cluster_variable(1) + Annulus41.cluster_variable(0)
+            sage: P = Annulus41.cluster_variable(1).parent()
+            sage: P(GeneralizedArc) == P(Z) * Annulus41.cluster_variable(1) + Annulus41.cluster_variable(0)
             True
 
         A markov quiver example which was a bug in a previous version::
@@ -1732,22 +1430,22 @@ class ClusterTriangulation(ClusterSeed):
             final_triangle = _get_weighted_edges(final_triangle,
                                                  CT._map_label_to_variable)
         if not return_labels: 
-        	return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+            return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
         else:
-        	expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size = fig_size)
-        	# reverses the label and variable dictionary so we can use it for substitution
-        	labelDict = {v:k for k,v in self._map_label_to_variable.items()}
-        	expansion = str(expansion)
-        	for key in labelDict.keys():
-        		expansion = expansion.replace(str(key),labelDict.get(key))
-        	return expansion
-        	
-        	#expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
-        	#print expansion
-		        # reverses the label -> variable dictionary so we can use it for substitution
-		        #labelDict = {v:k for k,v in T._map_label_to_variable.items()}
-		        #expansion = str(expansion)
-		        #for key in labelDict.keys():
+            expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size = fig_size)
+            # reverses the label and variable dictionary so we can use it for substitution
+            labelDict = {v:k for k,v in self._map_label_to_variable.items()}
+            expansion = str(expansion)
+            for key in labelDict.keys():
+                expansion = expansion.replace(str(key),labelDict.get(key))
+            return expansion
+            
+            #expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+            #print expansion
+                # reverses the label -> variable dictionary so we can use it for substitution
+                #labelDict = {v:k for k,v in T._map_label_to_variable.items()}
+                #expansion = str(expansion)
+                #for key in labelDict.keys():
                         #    expansion = expansion.replace(str(key),labelDict.get(key))
                         #return expansion
 
@@ -1874,15 +1572,10 @@ class ClusterTriangulation(ClusterSeed):
             [ 0  0  1  0]
             [ 0  0  0  1]
 
-            sage: TP.mutate(0)
-            sage: TP.cluster()
-            [(x3*y0 + x1)/x0, x1, x2, x3]
-            sage: TP._cluster
-            [(x3*y0 + x1)/x0, x1, x2, x3]
             sage: SP = ClusterSeed(TP); SP
             A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges with principal coefficients of type ['A', [2, 2], 1] with principal coefficients
 
-            sage: TP._cluster == SP._cluster
+            sage: TP.cluster() == SP.cluster()
             True
 
             sage: TP.principal_extension()
@@ -1892,11 +1585,11 @@ class ClusterTriangulation(ClusterSeed):
 
             sage: T2 = TP.principal_extension(ignore_coefficients=True)
             sage: TP.b_matrix()
-            [ 0 -1  0  1]
-            [ 1  0 -1 -1]
             [ 0  1  0 -1]
-            [-1  1  1  0]
-            [-1  1  0  0]
+            [-1  0 -1  0]
+            [ 0  1  0 -1]
+            [ 1  0  1  0]
+            [ 1  0  0  0]
             [ 0  1  0  0]
             [ 0  0  1  0]
             [ 0  0  0  1]

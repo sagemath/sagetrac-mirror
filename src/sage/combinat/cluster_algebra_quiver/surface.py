@@ -1042,9 +1042,8 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
     [1,2,3,0,1] ::
 
         sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
-        sage: S = ClusterSeed(T)
-        sage: c = [item for item in S.cluster()]
-        sage: LaurentExpansionFromSurface(T,[c[1],c[2],c[3],c[0],c[1]],None,None,None,True,None,T._boundary_edges_vars,None)
+        sage: c = [item for item in T.cluster()]
+        sage: LaurentExpansionFromSurface(T,[c[1],c[2],c[3],c[0],c[1]],None,None,is_arc=None,is_loop=True,verbose=None,boundary_edges=T._boundary_edges_vars,fig_size=None)
         (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
 
         sage: TP = T.principal_extension()
@@ -1108,7 +1107,8 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         drawing.set_aspect_ratio(1)
         #fig_size = fig_size*2*n/3
         fig_size = 0.8*fig_size
-        drawing.show(axes=False,figsize=[fig_size*len(crossed_arcs)*(len(all_matchings)+1), fig_size*len(crossed_arcs)])
+        #drawing.show(figsize=[fig_size*len(crossed_arcs)*(len(all_matchings)+1), fig_size*len(crossed_arcs)])
+        drawing.show()
 
     return SumOfMonomialTerms(G_x, all_matchings, boundary_edges, is_principal, G_y, all_matchings_symmetricdifference_minpm, is_loop)/ GetDenominator(G_x)
 
@@ -1429,7 +1429,7 @@ def GetAllMatchings(G):
         sage: once_punctured_square = [(1,'b7','b4'),(1,'b5',2),('b6',0,3),(2,3,0),(0,3,'b6'),['b7','b4',1]]
         sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['b4','b5','b6','b7'])
         sage: S = ClusterSeed(T)
-        sage: crossed = [S.x(1),S.x(2),S.x(3)]
+        sage: crossed = [T.x(1),T.x(2),T.x(3)]
         sage: gamma = S.mutate([3,2,1],inplace=False).cluster_variable(1)
         sage: snakegraph = T.list_snake_graph(crossed,user_labels=False)
         sage: sum(gamma.numerator().coefficients()) == len(GetAllMatchings(snakegraph))
@@ -1591,13 +1591,14 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_princi
         sage: from sage.combinat.cluster_algebra_quiver.surface import SumOfMonomialTerms, GetDenominator, GetAllMatchings, _get_weighted_edge
         sage: T = ClusterTriangulation([('b7',4,3),(4,1,'b5'),(3,'b6',2),(2,1,'b8')], boundary_edges=['b5','b6','b7','b8'])
         sage: S = ClusterSeed(T)
-        sage: crossed = [S.x(0),S.x(1),S.x(2),S.x(3),S.x(0)]
+        sage: crossed = [T.x(0),T.x(1),T.x(2),T.x(3),T.x(0)]
         sage: boundary_variables = [_get_weighted_edge(b,T._map_label_to_variable) for b in ['b5','b6','b7','b8']]
         sage: G = T.list_snake_graph(crossed,user_labels=False)
         sage: all_matchings = GetAllMatchings(G)
         sage: gamma_numerator = SumOfMonomialTerms(G, all_matchings, boundary_edges=boundary_variables)
         sage: gamma_denominator = GetDenominator(G)
-        sage: S.mutate([0,2,3,1,2], inplace=False).cluster_variable(2) == gamma_numerator/gamma_denominator
+        sage: xnew = S.mutate([0,2,3,1,2], inplace=False).cluster_variable(2)
+        sage: xnew == xnew.parent()(gamma_numerator/gamma_denominator)
         True
     """
     sumTerms = 0

@@ -233,11 +233,27 @@ class ClusterSeed(SageObject):
 
         if type(data) in [ClusterSeed, ClusterQuiver, ClusterTriangulation]:
             self._from_surface = from_surface if from_surface else data._from_surface
+            # self._is_principal = data._is_principal
+            # print('Flag in cluster_seed.py and line 236. self._from_surface: ', self._from_surface) # todo remove
         else:
             self._from_surface = from_surface
 
+        if type(data) in [ClusterTriangulation]:
+            data._from_surface = True
+            data._is_principal = data._is_principal
+            # print('Inside of cluster_seed. data is ClusterTriangulation') # TODO remove
+            quiver = ClusterQuiver(data, frozen=frozen, user_labels=user_labels, from_surface=True)
+            #quiver = data.quiver(from_surface=True)
+            self.__init__(quiver)
+            # self.__init__(quiver, frozen=frozen,
+            #               is_principal=is_principal,
+            #               user_labels=user_labels,
+            #               user_labels_prefix=user_labels_prefix)
+
         # constructs a cluster seed from a cluster seed
-        if isinstance(data, ClusterSeed):
+        elif isinstance(data, ClusterSeed):
+            # print('Inside of cluster_seed. data is ClusterSeed') # TODO remove
+
             if frozen:
                 print("The input \'frozen\' is ignored")
 
@@ -293,8 +309,15 @@ class ClusterSeed(SageObject):
             self._yhat = copy(data._yhat)
             self._mut_path = copy(data._mut_path)
 
+            # if self._from_surface:
+            #     self._use_fpolys = False
+            # if self._init_exch == None: # For ClusterTriangulation 
+            #     self._use_fpolys = False
+
         # constructs a cluster seed from a quiver
         elif isinstance(data, ClusterQuiver):
+            # print('Inside of cluster_seed. data is ClusterSeed') # TODO remove
+
             quiver = ClusterQuiver(data)
 
             self._M = copy(quiver._M)    # B-tilde exchange matrix
@@ -308,8 +331,11 @@ class ClusterSeed(SageObject):
             # If initializing from a ClusterQuiver rather than a ClusterSeed, the initial B-matrix is reset to be the input B-matrix.
             self._b_initial = copy(self._M)
             self._mutation_type = copy(quiver._mutation_type)
-            if not from_surface:
-                self._description = 'A seed for a cluster algebra of rank %d' % (self._n)
+            
+            self._description = 'A seed for a cluster algebra of rank %d' % (self._n)
+            # print('Flag in cluster_seed. Line 334. from_surface: ', self._from_surface) # todo remove
+            if self._from_surface:
+                self._description = self._description + ' from a surface'
             self._quiver = quiver
 
             # Sets ``user_labels`` to existing vertex labels
@@ -364,6 +390,9 @@ class ClusterSeed(SageObject):
             self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n+self._m)])) for j in range(self._n)])
             #self._cluster = None
             self._use_fpolys = True
+
+           # if self._init_exch == None: # TODO This was added for ClusterTriangulation. Not sure if this should be here.
+           #     self._use_fpolys = False
 
         # in all other cases, we construct the corresponding ClusterQuiver first
         else:
@@ -1363,6 +1392,8 @@ class ClusterSeed(SageObject):
             sage: S.cluster_variable(1)
             (x0*x2 + x1 + 1)/(x0*x1)
         """
+        if self._init_exch == None: # Hack for ClusterTriangulation
+            self._use_fpolys = False
         if self._use_fpolys:
             IE = self._init_exch.values()
             if (k in range(self._n)) or (k in IE):
@@ -1436,6 +1467,9 @@ class ClusterSeed(SageObject):
             sage: S.f_polynomial(0)
             y0 + 1
         """
+
+        if self._init_exch == None: # TODO hack for ClusterTriangulation
+            self._use_fpolys = None
         if self._use_fpolys:
             IE = self._init_exch.values()
         else:
@@ -2536,7 +2570,9 @@ class ClusterSeed(SageObject):
         if sequence is None:
             raise ValueError('not mutating: no vertices given')
 
-        if seed._use_fpolys:
+        if seed._init_exch == None: # For ClusterTriangulation
+            IE = []
+        elif seed._use_fpolys:
             IE = seed._init_exch.values()
         else:
             IE = []
