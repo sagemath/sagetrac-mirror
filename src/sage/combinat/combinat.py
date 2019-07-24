@@ -839,124 +839,131 @@ def stirling_number2(n, k, algorithm=None):
         raise ValueError("unknown algorithm: %s" % algorithm)
 
 
-def binom_trans(a, n=None):
+def binomial_transform(seq, n=None):
     r'''
-    Returns the binomial transform (or element of the transform) of a sequence `a`.
+    Returns the binomial transform (or element of the transform) of a sequence `seq`.
 
     INPUT:
 
-    - ``a`` -- iterable; sequence to transform
+    - ``seq`` -- iterable; sequence to transform
 
     - ``n`` -- integer (default: None); If set, outputs only element of binomial transform at index `n`.
-      Must be greater than `-1`, less than size of `a`
+      Must be greater than `-len(seq)`, less than size of `seq`
 
-    OUTPUT: Binomial transform as list OR element of binomial transform
+    OUTPUT: Binomial transform as list, or an element of binomial transform
 
     EXAMPLES::
 
-        sage: binom_trans([2^n for n in [0..9]])
+        sage: binomial_transform([2^n for n in [0..9]])
         [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683]
 
-        sage: binom_trans([catalan_number(n) for n in [0..9]])
+        sage: binomial_transform([catalan_number(n) for n in [0..9]])
         [1, 2, 5, 15, 51, 188, 731, 2950, 12235, 51822]
 
-        sage: binom_trans([fibonacci(n) for n in [0..9]])
+        sage: binomial_transform([fibonacci(n) for n in [0..9]])
         [0, 1, 3, 8, 21, 55, 144, 377, 987, 2584]
 
-        sage: binom_trans([euler_number(n) for n in [0..9]])
+        sage: binomial_transform([euler_number(n) for n in [0..9]])
         [1, 1, 0, -2, 0, 16, 0, -272, 0, 7936]
 
-        sage: binom_trans([(n*(n+1))/2 for n in [0..9]])
+        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]])
         [0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912]
 
-        sage: binom_trans([2^n for n in [0..9]], 5)
+        sage: binomial_transform([2^n for n in [0..9]], 5)
         243
 
-        sage: binom_trans([catalan_number(n) for n in [0..9]], 2)
+        sage: binomial_transform([catalan_number(n) for n in [0..9]], 2)
         5
 
-        sage: binom_trans([(n*(n+1))/2 for n in [0..9]], 9)
+        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]], 9)
         6912
 
-        sage: binom_trans([(n*(n+1))/2 for n in [0..9]], 10)
+        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]], 10)
         Traceback (most recent call last):
         ...
-        ValueError: Index out of range: n (=10) must be greater than -1 and less then len(a) (=10)
+        ValueError: Index out of range
 
-        sage: binom_trans([(n*(n+1))/2 for n in [0..9]], -2)
+        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]], -12)
         Traceback (most recent call last):
         ...
-        ValueError: Index out of range: n (=-2) must be greater than -1 and less then len(a) (=10)
+        ValueError: Index out of range
 
     SEEALSO:
-        :func:`binom_trans_inv <binom_trans_inv>`
+        :func:`binomial_transform_inverse <binomial_transform_inverse>`
 
     REFERENCES:
         https://oeis.org/wiki/Binomial_transform
     '''
     if n == None:
-        return [sum(binomial(k,j) * a[j] for j in range(0,k+1)) for k in range(0,len(a))]
+        return [sum(binomial(k,j) * seq[j] for j in range(0,k+1)) for k in range(0,len(seq))]
     n = ZZ(n)
-    if n < 0 or n >= len(a):
-        raise ValueError("Index out of range: n (=%s) must be greater than -1 and less then len(a) (=%s)" %(n,len(a)))
-    return sum(binomial(n,j) * a[j] for j in range(0,n+1))
+    if n < 0:
+        n = len(seq) + n + 1
+    if n >= len(seq) or n < 0:
+        raise ValueError("Index out of range")
+    return sum(binomial(n,j) * seq[j] for j in range(0,n+1))
 
 
-def binom_trans_inv(a, n=None):
+def binomial_transform_inverse(seq, n=None):
     r'''
-    Returns the inverse binomial transform (or element of the transform) of a sequence `a`.
+    Returns the inverse binomial transform (or element of the transform) of a sequence `seq`.
 
     INPUT:
 
-    - ``a`` -- iterable; sequence to transform
+    - ``seq`` -- iterable; sequence to transform
 
-    - ``n`` -- integer (default: None); If set, outputs only element of inverse transform at index `n`.
-      Must be greater than `-1`, less than size of `a`
+    - ``n`` -- integer (default: None) If set, outputs only element of binomial transform inverse 
+        at index `n`. Must be at least `-len(seq)`, and less than `len(seq)`
 
-    OUTPUT: Inverse binomial transform as list OR element of inverse binomial transform
+    OUTPUT: Inverse binomial transform as list, or element of inverse binomial transform
 
     EXAMPLES::
 
-        sage: binom_trans_inv(binom_trans([0,1,2,3,4,5]))
+        sage: binomial_transform_inverse(binomial_transform([0,1,2,3,4,5]))
         [0, 1, 2, 3, 4, 5]
 
-        sage: binom_trans_inv([4^n for n in [0..9]])
+        sage: binomial_transform_inverse([4^n for n in [0..9]])
         [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683]
 
-        sage: binom_trans_inv([0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912])
+        sage: binomial_transform_inverse([0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912])
         [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
 
-        sage: binom_trans_inv([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584])
+        sage: binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584])
         [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 
-        sage: binom_trans_inv([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], 5)
+        sage: binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], 5)
         5
 
-        sage: [binom_trans_inv([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], n) for n in [6..8]]
+        sage: [binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], n) for n in [6..8]]
         [8, 13, 21]
 
-        sage: binom_trans_inv([(n*(n+1))/2 for n in [0..9]], 10)
+        sage: binomial_transform_inverse([(n*(n+1))/2 for n in [0..9]], 10)
         Traceback (most recent call last):
         ...
-        ValueError: Index out of range: n (=10) must be greater than -1 and less then len(a) (=10)
+        ValueError: Index out of range
 
-        sage: binom_trans_inv([(n*(n+1))/2 for n in [0..9]], -2)
+        sage: binomial_transform_inverse([(n*(n+1))/2 for n in [0..9]], -2)
+        0
+
+        sage: binomial_transform_inverse([(n*(n+1))/2 for n in [0..9]], -12)
         Traceback (most recent call last):
         ...
-        ValueError: Index out of range: n (=-2) must be greater than -1 and less then len(a) (=10)
+        ValueError: Index out of range
 
     SEEALSO:
-        :func:`binom_trans <binom_trans>`
+        :func:`binomial_transform <binomial_transform>`
 
     REFERENCES:
         https://oeis.org/wiki/Binomial_transform
     '''
     if n == None:
-        return [sum((-1)**(k-j) * binomial(k,j) * a[j] for j in range(0,k+1)) for k in range(0,len(a))]
+        return [sum((-1)**(k-j) * binomial(k,j) * seq[j] for j in range(0,k+1)) for k in range(0,len(seq))]
     n = ZZ(n)
-    if n < 0 or n >= len(a):
-        raise ValueError("Index out of range: n (=%s) must be greater than -1 and less then len(a) (=%s)" %(n,len(a)))
-    return sum((-1)**(n-j) * binomial(n,j) * a[j] for j in range(0,n+1))
+    if n < 0:
+        n = len(seq) + n + 1
+    if n >= len(seq) or n < 0:
+        raise ValueError("Index out of range")
+    return sum((-1)**(n-j) * binomial(n,j) * seq[j] for j in range(0,n+1))
 
 
 class CombinatorialObject(SageObject):
