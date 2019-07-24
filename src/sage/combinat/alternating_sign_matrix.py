@@ -57,6 +57,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
 from sage.combinat.six_vertex_model import SquareIceModel
+from sage.combinat.posets.poset_examples import Posets
 
 
 def _inplace_height_function_gyration(hf):
@@ -1013,6 +1014,63 @@ class AlternatingSignMatrix(Element):
             Standard permutations
         """
         return self.left_key().to_permutation()
+    
+    def to_order_ideal(self, size = -1, down_color = 'darkblue', up_color = 'lightblue'):
+        """
+        Return a visualization of the order ideal in the tetrahedral poset
+        corresponding to the height function corresponding to ``self``
+        per the bijection in [Striker2015]_
+        
+        INPUT:
+            
+        - ``size`` -- the desired output size (figsize).  If no user input, ``size``
+                      will be based on the dimension of ``self``
+        
+        - ``down_color`` -- the desired color of the order ideal elements (default: 'darkblue')
+        
+        - ``up_color`` -- the desired color of the non-order-ideal elements (default: 'lightblue')
+        
+        EXAMPLES::
+        
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_order_ideal()
+            Launched png viewer for Graphics object consisting of 5 graphics primitives
+        
+        """
+        
+        n = self.to_matrix().nrows()
+        h = self.height_function()
+        T = Posets.TetrahedralPoset(n,'blue','yellow','orange','green')
+        elts = T.list()
+        order_ideal = []
+        
+        for i in range(1,n):
+            for j in range(1,n):
+                ell = (min(i+j,2*n-i-j) - h[i][j]) / 2
+                t = 0
+                while ell > 0:
+                    #Coordinate for bijection
+                    s = (i-1-t,j-1-t,t)
+                    #Corresponding coordinate relative to element labels
+                    tp_coord = (s[2],n-2-sum(s),s[1])
+                    if tp_coord in elts:
+                        order_ideal.append(tp_coord)
+                        ell -= 1
+                    t += 1
+                    
+        oi_complement = set(T) - set(order_ideal)
+        
+        pos_dict = {}
+        for v in elts:
+            x_pos = v[2] + v[1]/2 + (n*(n-1)/2 - (n-v[0])*(n-v[0]-1)/2)
+            y_pos = v[0] + v[1]
+            pos_dict[v] = (x_pos,y_pos)
+            
+        if size < 0:
+            size = n**1.2
+        
+        H = T.hasse_diagram().to_undirected()
+        return H.plot(pos = pos_dict, vertex_colors = {down_color: order_ideal, up_color: oi_complement}, vertex_labels = False, figsize = size)
 
 
 class AlternatingSignMatrices(UniqueRepresentation, Parent):

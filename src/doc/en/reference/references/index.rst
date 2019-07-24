@@ -3982,6 +3982,10 @@ REFERENCES:
                  alternating sign matrices, plane partitions, Catalan objects,
                  tournaments, and tableaux*, Advances in Applied Mathematics 46
                  (2011), no. 4, 583-609. :arxiv:`1408.5391`
+                 
+.. [Striker2015] \J. Striker. *The toggle group, homomesy, and the
+                 Razumov-Stroganov correspondence*, Electronic Journal
+                 of Combinatorics 22 (2015) no. 2. :arxiv:`1503.08898`
 
 .. [Stu1987] \J. Sturm, On the congruence of modular forms, Number
              theory (New York, 1984-1985), Springer, Berlin, 1987,
