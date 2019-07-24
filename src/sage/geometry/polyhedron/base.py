@@ -2737,7 +2737,7 @@ class Polyhedron_base(Element):
         return False
 
     def is_bipyramid(self, certificate=False):
-        """
+        r"""
         Test whether the polytope is combinatorially equivalent to a
         bipyramid over some polytope.
 
