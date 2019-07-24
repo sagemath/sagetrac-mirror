@@ -231,6 +231,7 @@ class ClusterTriangulation(ClusterSeed):
             self._n = len(self._edges) - len(self._boundary_edges) #if boundary_edges else len(self._edges)
             self._nlist = range(self._n)
             self._triangles = data
+            self._triangles.sort() # We can sort the list of triangles because each item on the list is of the same data type
 
             all_arrows = _triangulation_to_arrows(self._triangles)
             M = _surface_edge_list_to_matrix (all_arrows, self._edges, self._boundary_edges, self._n)
@@ -504,8 +505,8 @@ class ClusterTriangulation(ClusterSeed):
                 Tself.append(_rearrange_triangle_small_first(triangle))
             for triangle in other._weighted_triangulation:
                 Tother.append(_rearrange_triangle_small_first(triangle))
-            Tself.sort()
-            Tother.sort()
+            # Tself.sort() # Python3 doesn't support comparison between different data types
+            # Tother.sort() # Python3 doesn't support comparison between different data types
             return self._M == other._M and Tself == Tother
 
     def _repr_(self):
@@ -530,7 +531,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: Triangles = [(1,4,7),(1,2,5),(2,0,3),(0,6,3),(6,3,0)]
             sage: T = ClusterTriangulation(Triangles)
             sage: T.triangles()
-            [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
+            [(0, 6, 3), (1, 2, 5), (1, 4, 7), (2, 0, 3)]
         """
         return self._triangles
 
@@ -557,8 +558,8 @@ class ClusterTriangulation(ClusterSeed):
 
         Figure 10 (bottom) of [FominShapiroThurston]_ ::
 
-            sage: twice_punctured_monogon = [(1,1,2), (4,4,3), ('boundary',2,3)]
-            sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=['boundary'])
+            sage: twice_punctured_monogon = [(1,1,2), (4,4,3), (5,2,3)]
+            sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[5])
             sage: B = T.b_matrix()
             sage: B
             [ 0  0 -1 -1]
@@ -568,8 +569,8 @@ class ClusterTriangulation(ClusterSeed):
 
         Figure 10 (top) of [FominShapiroThurston]_ ::
 
-            sage: twice_punctured_monogon_mu3 = [(1,1,2), (2,4,3), (3,4,'boundary')]
-            sage: Tmu3 = ClusterTriangulation(twice_punctured_monogon_mu3, boundary_edges=['boundary'])
+            sage: twice_punctured_monogon_mu3 = [(1,1,2), (2,4,3), (3,4,5)]
+            sage: Tmu3 = ClusterTriangulation(twice_punctured_monogon_mu3, boundary_edges=[5])
             sage: Bmu3 = Tmu3.b_matrix()
             sage: Bmu3
             [ 0  0  1 -1]
@@ -682,16 +683,17 @@ class ClusterTriangulation(ClusterSeed):
             sage: Triangles = [(1,4,7),(1,2,5),(2,0,3),(0,6,3)]
             sage: CT = ClusterTriangulation(Triangles)
             sage: CT.triangulation()
-            [(1, 4, 7), (1, 2, 5), (2, 0, 3), (0, 6, 3)]
+            [(0, 6, 3), (1, 2, 5), (1, 4, 7), (2, 0, 3)]
 
         Figure 10 (bottom) of [FominShapiroThurston]_::
 
             sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1]) # 2 self-folded triangles and 1 triangle with one vertex (affine D)
             sage: T.triangulation()
-            [((5, 'counterclockwise'), (5, 'clockwise'), 4),
-            ((3, 'counterclockwise'), (3, 'clockwise'), 2),
-            (1, 4, 2)]
+            [(1, 4, 2),
+             ((3, 'counterclockwise'), (3, 'clockwise'), 2),
+             ((5, 'counterclockwise'), (5, 'clockwise'), 4)]
+
         """
         return self._triangulation
 
@@ -705,16 +707,16 @@ class ClusterTriangulation(ClusterSeed):
             sage: Triangles = [(1,4,7),(1,2,5),(2,0,3),(0,6,3)]
             sage: CT = ClusterTriangulation(Triangles)
             sage: CT.weighted_triangulation()
-            [(x1, x4, x7), (x1, x2, x5), (x2, x0, x3), (x0, x6, x3)]
+            [(x0, x6, x3), (x1, x2, x5), (x1, x4, x7), (x2, x0, x3)]
 
         Two self-folded triangles and 1 triangle with one vertex (affine D). See Figure 10 (bottom) of [FominShapiroThurston]_::
 
             sage: twice_punctured_monogon = [(4,5,5),(2,3,3),(1,4,2)]
             sage: T = ClusterTriangulation(twice_punctured_monogon, boundary_edges=[1])
             sage: T.weighted_triangulation()
-            [((x3, 'counterclockwise'), (x3, 'clockwise'), x2*x3),
-            ((x1, 'counterclockwise'), (x1, 'clockwise'), x0*x1),
-            (b4, x2*x3, x0*x1)]
+            [(b4, x2*x3, x0*x1),
+             ((x1, 'counterclockwise'), (x1, 'clockwise'), x0*x1), 
+             ((x3, 'counterclockwise'), (x3, 'clockwise'), x2*x3)]
         """
         return self._weighted_triangulation
 
@@ -895,27 +897,27 @@ class ClusterTriangulation(ClusterSeed):
 
         Thrice-punctured square of Figure 10 of 'Positivity for Cluster Algebras from Surfaces', [MSW_Positivity]_::
 
-            sage: thrice_punctured_square = [('r','r','ell'),(11,'ell',3),(3,12,4),(4,5,14),(5,6,10),(6,7,9),(8,10,9),(7,13,8)]
-            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=[11,12,13,14])
-            sage: T.list_snake_graph(['ell', ('r','counterclockwise'), 'ell', 3, 4, 5, 6],first_tile_orientation=-1,user_labels=True)
-            [[(-1, (3, 'ell', 11)),
-            (-2, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise')), 'RIGHT')],
-            [(1, ('ell', ('r', 'counterclockwise'), ('r', 'clockwise'))),
-            (2, (('r', 'counterclockwise'), ('r', 'clockwise'), 'ell'), 'ABOVE')],
-            [(-1, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise'))),
-            (-2, (3, 'ell', 11), 'RIGHT')],
-            [(1, ('ell', 3, 11)), (2, (4, 3, 12), 'RIGHT')],
-            [(-1, (3, 4, 12)), (-2, (5, 4, 14), 'RIGHT')],
-            [(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
-            [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'ABOVE')]]
-            sage: T.list_snake_graph([5,6,7,8,9,6,5], first_tile_orientation=1, user_labels=True)
-            [[(1, (4, 5, 14)), (2, (10, 5, 6), 'ABOVE')],
-            [(-1, (10, 6, 5)), (-2, (7, 6, 9), 'RIGHT')],
-            [(1, (6, 7, 9)), (2, (8, 7, 13), 'RIGHT')],
-            [(-1, (7, 8, 13)), (-2, (10, 8, 9), 'ABOVE')],
-            [(1, (10, 9, 8)), (2, (7, 9, 6), 'ABOVE')],
-            [(-1, (7, 6, 9)), (-2, (10, 6, 5), 'ABOVE')],
-            [(1, (10, 5, 6)), (2, (4, 5, 14), 'ABOVE')]]
+            sage: thrice_punctured_square = [('r','r','ell'),('11','ell','3'),('3','12','4'),('4','5','14'),('5','6','10'),('6','7','9'),('8','10','9'),('7','13','8')]
+            sage: T = ClusterTriangulation(thrice_punctured_square, boundary_edges=['11','12','13','14'])
+            sage: T.list_snake_graph(['ell', ('r','counterclockwise'), 'ell', '3', '4', '5', '6'],first_tile_orientation=-1,user_labels=True)
+            [[(-1, ('3', 'ell', '11')),
+              (-2, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise')), 'RIGHT')],
+             [(1, ('ell', ('r', 'counterclockwise'), ('r', 'clockwise'))),
+              (2, (('r', 'counterclockwise'), ('r', 'clockwise'), 'ell'), 'ABOVE')],
+             [(-1, (('r', 'counterclockwise'), 'ell', ('r', 'clockwise'))),
+              (-2, ('3', 'ell', '11'), 'RIGHT')],
+             [(1, ('ell', '3', '11')), (2, ('4', '3', '12'), 'RIGHT')],
+             [(-1, ('3', '4', '12')), (-2, ('5', '4', '14'), 'RIGHT')],
+             [(1, ('4', '5', '14')), (2, ('10', '5', '6'), 'ABOVE')],
+             [(-1, ('10', '6', '5')), (-2, ('7', '6', '9'), 'ABOVE')]]
+            sage: T.list_snake_graph(['5','6','7','8','9','6','5'], first_tile_orientation=1, user_labels=True)
+            [[(1, ('4', '5', '14')), (2, ('10', '5', '6'), 'ABOVE')],
+            [(-1, ('10', '6', '5')), (-2, ('7', '6', '9'), 'RIGHT')],
+            [(1, ('6', '7', '9')), (2, ('8', '7', '13'), 'RIGHT')],
+            [(-1, ('7', '8', '13')), (-2, ('10', '8', '9'), 'ABOVE')],
+            [(1, ('10', '9', '8')), (2, ('7', '9', '6'), 'ABOVE')],
+            [(-1, ('7', '6', '9')), (-2, ('10', '6', '5'), 'ABOVE')],
+            [(1, ('10', '5', '6')), (2, ('4', '5', '14'), 'ABOVE')]]
         """
         from sage.combinat.cluster_algebra_quiver.surface import _snake_graph
 
@@ -987,13 +989,13 @@ class ClusterTriangulation(ClusterSeed):
         [MW_MatrixFormulae]_ where tau_4, tau_1, tau_2, tau_3 =
         `0`, `1`, `2`, `3` and b1,b2,b3,b4=`b4`, `b5`, `b6`, `b7`::
 
-            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+            sage: T = ClusterTriangulation([('1','2','b4'),('1','0','b5'),('0','3','b6'),('2','3','b7')], boundary_edges=['b4','b5','b6','b7'])
             sage: c = [item for item in T.cluster()]
             sage: T.list_band_graph( [c[1],c[2],c[3],c[0],c[1]], user_labels=False) # Pick cut edge to be tau_1 = 1, go clockwise
             [[(1, (b5, x1, x0)), (2, (b4, x1, x2), 'ABOVE')],
-            [(-1, (b4, x2, x1)), (-2, (x3, x2, b7), 'RIGHT')],
-            [(1, (x2, x3, b7)), (2, (x0, x3, b6), 'RIGHT')],
-            [(-1, (x3, x0, b6)), (-2, (b5, x0, x1), 'ABOVE')]]
+             [(-1, (b4, x2, x1)), (-2, (x3, x2, b7), 'RIGHT')],
+             [(1, (x2, x3, b7)), (2, (x0, x3, b6), 'RIGHT')],
+             [(-1, (x3, x0, b6)), (-2, (b5, x0, x1), 'ABOVE')]]
         """
         from sage.combinat.cluster_algebra_quiver.surface import _snake_graph
 
@@ -1058,10 +1060,10 @@ class ClusterTriangulation(ClusterSeed):
             sage: S = ClusterSeed(T)
             sage: r = T._get_map_label_to_variable('r')
             sage: ell = T._get_map_label_to_variable('ell')
-            sage: three = T._get_map_label_to_variable(3)
-            sage: four = T._get_map_label_to_variable(4)
-            sage: five = T._get_map_label_to_variable(5)
-            sage: six = T._get_map_label_to_variable(6)
+            sage: three = T._get_map_label_to_variable('3')
+            sage: four = T._get_map_label_to_variable('4')
+            sage: five = T._get_map_label_to_variable('5')
+            sage: six = T._get_map_label_to_variable('6')
             sage: crossed_arcs = [ell, (r,'counterclockwise'), ell, three, four, five, six]
             sage: T.draw_snake_graph(crossed_arcs,first_tile_orientation=-1,user_labels=False)
             Graphics object consisting of 43 graphics primitives
@@ -1253,14 +1255,15 @@ class ClusterTriangulation(ClusterSeed):
         Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" [MSW_Positivity]_, where
         the boundary edges are labeled 11,12,13,0, and the arcs are labeled 1 (a radius), 2 (a noose), and 3,4,5,...,10::
 
-            sage: T = ClusterTriangulation([(2,3,'b11'),(2,1,1),(4,3,'b12'),('b0',4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,'b13')], boundary_edges=['b11','b12','b13','b0'])
+            sage: Todoerase= ClusterTriangulation([('2','3','b11'),('2','1','1'),('4','3','b12'),('b0','4','5'),('5','6','10'),('6','7','9'),('9','8','10'),('8','7','b13')], boundary_edges=['b11','b12','b13','b0'])
+            sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0])
             sage: c = [item for item in T.cluster()]
             sage: r = c[1-1]
             sage: ell = c[2-1]*c[1-1]
             sage: crossed_vars = [c[3-1],ell,(r,'counterclockwise'),ell, c[3-1],c[4-1],c[5-1],c[6-1],c[7-1],c[8-1],c[9-1],c[6-1],c[5-1],c[4-1],c[3-1]]
             sage: T.draw_lifted_loop(crossed_vars, user_labels=False)
             Graphics object consisting of 120 graphics primitives
-            sage: crossed_userlabels = [3,2,(1,'counterclockwise'),2, 3,4,5,6,7,8,9,6,5,4,3]
+            sage: crossed_userlabels = [3,2,(1,'counterclockwise'),2,3,4,5,6,7,8,9,6,5,4,3]
             sage: T.draw_lifted_loop(crossed_userlabels)
             Graphics object consisting of 120 graphics primitives
 
@@ -1505,11 +1508,11 @@ class ClusterTriangulation(ClusterSeed):
         b1,b2,b3,b4=``b4``,``b5``,``b6``,``b7``.  We pick tau_1 to
         be 1, and go clockwise, so that crossed_arcs = [1,2,3,0,1]::
 
-            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7'])
+            sage: T = ClusterTriangulation([('1','2','b4'),('1','0','b5'),('0','3','b6'),('2','3','b7')], boundary_edges=['b4','b5','b6','b7'])
             sage: c = [item for item in T.cluster()]
             sage: T.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
             (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
-            sage: T.loop_laurent_expansion([1,2,3,0,1], user_labels=True) == T.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
+            sage: T.loop_laurent_expansion(['1','2','3','0','1'], user_labels=True) == T.loop_laurent_expansion([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
             True
 
         Example 3.6 from [DupontThomas]_::
@@ -1557,7 +1560,7 @@ class ClusterTriangulation(ClusterSeed):
 
         EXAMPLES::
 
-            sage: T = ClusterTriangulation([(1,2,'b4'),(1,0,'b5'),(0,3,'b6'),(2,3,'b7')], boundary_edges=['b4','b5','b6','b7']); T
+            sage: T = ClusterTriangulation([('1','2','b4'),('1','0','b5'),('0','3','b6'),('2','3','b7')], boundary_edges=['b4','b5','b6','b7']); T
             A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges
 
             sage: TP = T.principal_extension(); TP
