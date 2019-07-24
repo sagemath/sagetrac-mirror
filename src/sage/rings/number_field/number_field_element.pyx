@@ -183,6 +183,36 @@ def _inverse_mod_generic(elt, I):
     return I.small_residue(y)
 
 
+def _im_gens_order(elt, codomain, im_gens):
+    r"""
+    Return the image of `elt` given the image, `im_gens`, of the generators.
+
+    Similar to :func:`_inverse_mod_generic`, this is a separate function called
+    from each of the OrderElement_XXX classes. Otherwise, we would need to
+    repeat the same code 3 times because of the lack of multiple inheritance.
+
+    EXAMPLES::
+
+        sage: K = NumberField(x^3+5,'a')
+        sage: Oh = K.maximal_order()
+        sage: Phi = Oh.hom(Oh.gens(), check=False)
+        sage: all([x == Phi(x) for x in Oh.gens()])
+        True
+    """
+    # Write everything in terms of the underlying free module to turn this into
+    # a linear algebra problem.
+
+    # elt_v = elt.vector()
+    Oh = elt.parent()
+    K = Oh.number_field().absolute_field(names='a')
+    _, to_K = K.structure()
+    elt_v = to_K(elt).vector()
+
+    Gs_v = Oh.free_module().basis_matrix()
+    coord = Gs_v.solve_left(elt_v).change_ring(ZZ)
+    return sum(coord[i] * im_gens[i] for i in range(len(coord)))
+
+
 cdef class NumberFieldElement(FieldElement):
     """
     An element of a number field.
@@ -4992,6 +5022,27 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         """
         return self._parent.number_field()(NumberFieldElement_absolute.__invert__(self))
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of self given the image, `im_gens`, of the generators.
+
+        This is used for computing morphisms coming out of an order.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x^3+5,'a')
+            sage: Oh = K.maximal_order()
+            sage: Phi = Oh.hom(Oh.gens(), check=False)
+            sage: all([x == Phi(x) for x in Oh.gens()])
+            True
+            sage: r, s, t = Oh.gens()
+            sage: Phi(s)*Phi(t) == Phi(s*t)
+            True
+            sage: Phi(2*r+s*t) == 2*Phi(r) + Phi(s)*Phi(t)
+            True
+        """
+        return _im_gens_order(self, codomain, im_gens)
+
 
 cdef class OrderElement_relative(NumberFieldElement_relative):
     """
@@ -5094,6 +5145,27 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         """
         R = self.parent()
         return R(_inverse_mod_generic(self, I))
+
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of self given the image, `im_gens`, of the generators.
+
+        This is used for computing morphisms coming out of an order.
+
+        EXAMPLES::
+
+            sage: E.<a,b> = NumberField([x^2 - x + 2, x^2 + 1])
+            sage: OE = E.ring_of_integers()
+            sage: Phi = OE.hom(OE.gens(), check=False)
+            sage: all([x == Phi(x) for x in OE.gens()])
+            True
+            sage: r, s, t, u = OE.gens()
+            sage: Phi(s)*Phi(t)*Phi(u) == Phi(s*t*u)
+            True
+            sage: Phi(2*r+s*t-u) == 2*Phi(r) + Phi(s)*Phi(t)-Phi(u)
+            True
+        """
+        return _im_gens_order(self, codomain, im_gens)
 
     def charpoly(self, var='x'):
         r"""
