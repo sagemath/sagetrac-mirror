@@ -888,7 +888,8 @@ def binomial_transform(seq, n=None):
         ...
         ValueError: Index out of range
 
-    SEEALSO:
+    .. SEEALSO::
+
         :func:`binomial_transform_inverse <binomial_transform_inverse>`
 
     REFERENCES:
@@ -950,7 +951,8 @@ def binomial_transform_inverse(seq, n=None):
         ...
         ValueError: Index out of range
 
-    SEEALSO:
+    .. SEEALSO::
+
         :func:`binomial_transform <binomial_transform>`
 
     REFERENCES:
