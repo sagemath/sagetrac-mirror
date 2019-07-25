@@ -195,7 +195,8 @@ class ClusterTriangulation(ClusterSeed):
         ...
         ValueError: A noose of a self-folded triangle must be a side of another triangle.
     """
-    def __init__(self, data, frozen=None, is_principal=None, from_surface=False, boundary_edges=None):
+    def __init__(self, data, frozen=None, is_principal=None, user_labels=None, user_labels_prefix='x', from_surface=False, boundary_edges=None):
+    # def __init__(self, data, frozen=None, is_principal=None, from_surface=False, boundary_edges=None):
         r"""
         .. TODO::
 
@@ -206,14 +207,68 @@ class ClusterTriangulation(ClusterSeed):
             sage: CT = ClusterTriangulation([('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')], boundary_edges=['c','d','e','f'])
             sage: TestSuite(CT).run()
         """
+
+        from itertools import islice
+
         from sage.combinat.cluster_algebra_quiver.surface import remove_duplicate_triangles, _triangulation_to_arrows, _surface_edge_list_to_matrix, _get_user_arc_labels, produce_dict_label_to_variable, produce_dict_variable_to_label, _get_user_label_triangulation, _get_weighted_triangulation
         from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         from sage.rings.all import QQ
+        from sage.rings.integer_ring import ZZ
         from sage.rings.all import FractionField, PolynomialRing
         from copy import copy
+
+        from sage.misc.all import prod
         from sage.matrix.all import identity_matrix
+        from sage.matrix.constructor import matrix
 
         self._from_surface = True # Maybe try to remove this? This should not be necessary for class ClusterTriangulation
+
+
+        self._n = 0
+        self._m = 0
+        self._nlist = None
+        self._mlist = None
+        self._M = None
+        self._B = None
+        self._b_initial = None
+        self._description = None
+        self._use_fpolys = None
+        self._cluster = None
+        self._user_labels_prefix = None
+        self._user_labels = None
+        self._init_vars = None
+        self._init_exch = None
+        self._U = None
+        self._F = None
+        self._R = None
+        self._y = None
+        self._yhat = None
+
+        self._use_g_vec = None
+        self._G = None
+
+        self._use_d_vec = None
+        self._D = None
+
+        self._bot_is_c = None
+        self._use_c_vec = None
+        self._C = None
+        self._BC = None
+        self._is_principal = None
+
+        self._quiver = None
+        self._mutation_type = None
+
+        self._track_mut = None
+        self._mut_path = None
+
+        # ensures user_labels are immutable
+        if isinstance(user_labels, list):
+            user_labels = [tuple(x) if isinstance(x, list) else x for x in user_labels]
+        elif isinstance(user_labels, dict):
+            values = [tuple(user_labels[x]) if isinstance(user_labels[x], list) else user_labels[x] for x in user_labels]
+            keys = list(user_labels)
+            user_labels = {keys[i]: v for i, v in enumerate(values)}
 
         # if data is a list of triangles (forming a triangulation)
         if isinstance(data,list) and \
@@ -234,69 +289,140 @@ class ClusterTriangulation(ClusterSeed):
             self._triangles.sort() # We can sort the list of triangles because each item on the list is of the same data type
 
             all_arrows = _triangulation_to_arrows(self._triangles)
-            M = _surface_edge_list_to_matrix (all_arrows, self._edges, self._boundary_edges, self._n)
-            self._M = M[:self._n,:self._n]
+            M = _surface_edge_list_to_matrix (all_arrows, self._edges, self._boundary_edges, self._n) 
+            self._M = copy(M[:self._n,:self._n]) # B-tilde exchange matrix
+            if is_principal:
+                if self._M.nrows()==self._n:
+                    self._M = self._M.stack(identity_matrix(self._n))
+                # self._M = self._M.stack(identity_matrix(self._n))
+
+            self._M.set_immutable() # Following a line in ClusterSeed
+            self._m = self._M.nrows() - self._n
+            self._mlist = list(range(self._n,self._n+self._m))
+            #print 'm :', self._m
+            self._B = copy(M[:self._n,:self._n]) # the mutable part of self._M, that is, the square Part of the B_matrix
+
+            # The initial B-matrix is reset to be the input B-matrix.
+            self._b_initial = copy(self._M)
+            if self._mutation_type == 'undetermined finite mutation type':
+                self._mutation_type += ' from a surface'
 
             #self._is_cluster_algebra = True
             self._description = 'A seed for a cluster algebra associated with an ideal triangulation of rank %d'  %(self._n)
             if boundary_edges:
                 self._description += ' with %d boundary edges' %(len(self._boundary_edges))
-
             if is_principal:
-                #if self._M.nrows()==self._n:
-                #    self._M = self._M.stack(identity_matrix(self._n))
-                self._M = self._M.stack(identity_matrix(self._n))
-                #if 'with principal coefficients' not in data._description:
                 self._description += ' with principal coefficients'
-
-            self._m = self._M.nrows() - self._n
-            self._mlist = range(self._m)
-            #print 'm :', self._m
             self._quiver = ClusterQuiver(self._M, from_surface=True)
 
-            if is_principal:
-                self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['y%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
+            # print("line 318 in clus tri. user_labels: ", user_labels)
+
+            # Sets ``user_labels`` to existing vertex labels
+            if not user_labels and set(self._nlist + self._mlist) != set(range(self._n+self._m)):
+                user_labels = self._nlist + self._mlist
+            if user_labels:
+                if isinstance(user_labels, dict):
+                    labelset = set(user_labels)
+                else:
+                    labelset = set(user_labels)
+                    # Sanitizes our ``user_labels`` to use Integers instead of ints
+                    user_labels = [ZZ(x) if x in ZZ else x for x in user_labels]
+                if labelset != set(self._nlist + self._mlist) and labelset != set(range(self._n + self._m)):
+                    raise ValueError('user_labels conflict with both the given'
+                                     ' vertex labels and the default labels')
+
+            # We are now updating labels from user's most recent choice.
+            self._is_principal = is_principal
+            self._user_labels = user_labels
+            self._user_labels_prefix = user_labels_prefix
+
+            # initialize the rest
+
+            self._C = matrix.identity(self._n)
+            self._use_c_vec = True
+
+            self._G = matrix.identity(self._n)
+            self._use_g_vec = True
+
+            self._BC = copy(self._M).stack(self.c_matrix())
+            self._bot_is_c=False
+
+            self._D = -matrix.identity(self._n)
+            self._use_d_vec = True
+
+            self._mut_path = [ ] # Mutation is not implemented for ClusterTriangulation
+            self._track_mut = True # Mutation is not implemeneted for ClusterTriangulation
+
+            if user_labels:
+                self._sanitize_init_vars(user_labels, user_labels_prefix)
+                # print("user_labels: ", user_labels, "\n init_vars: ", self._init_vars)
             else:
-                self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
-            #self._boundary_edges_vars = FractionField(PolynomialRing(QQ,['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
-            #self._cluster = list(self._R.gens()[0:self._n])
-            self._cluster = list(self._R.gens()[0:self._n+self._m])
-            self._boundary_edges_vars = list(self._R.gens()[self._n+self._m:]) if boundary_edges else []
+                xs = {i:'x%s'%i for i in range(self._n)}
+                ys = {(i+self._n):'y%s'%i for i in range(self._n+self._m)}
+                self._init_vars = copy(xs)
+                self._init_vars.update(ys)
+                # print("not user_labels, init_vars: ", self._init_vars)
+
+            self._init_exch = dict(islice(self._init_vars.items(), self._n))
+            self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
+            self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
+            self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)])
+            # print("self._R: ", self._R)
+            self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n,self._n+self._m)])) for j in range(self._n)])
+            self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n+self._m)])) for j in range(self._n)])
+            #self._cluster = None
+            self._use_fpolys = True
+
+
+
+            # if is_principal:
+            #     self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['y%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
+            # else:
+            #     self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
+            # #self._boundary_edges_vars = FractionField(PolynomialRing(QQ,['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
+            # #self._cluster = list(self._R.gens()[0:self._n])
+            # #self._cluster = list(self._R.gens()[0:self._n+self._m]) # works for sage 8.9beta 3 but not consistent with current ClusterSeed
+            
+            self._cluster = [self.cluster_variable(k) for k in range(self._n)] # copied from def cluster from current ClusterSeed
+            # print("line 381: ", self._cluster)
+            self._boundary_edges_vars = list(self._R.gens()[2*self._n+self._m:]) if boundary_edges else []
+            # print('line 384, self._boundary_edges_vars: ', self._boundary_edges_vars)
             self._map_label_to_variable = produce_dict_label_to_variable(self._triangles, self._cluster[0:self._n], self._boundary_edges, self._boundary_edges_vars)
+            # print('line 385')
             self._map_variable_to_label = produce_dict_variable_to_label(self._map_label_to_variable)
+            # print('line 387')
             self._triangulation = _get_user_label_triangulation(self._triangles)
             self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._map_label_to_variable)
             self._mutation_type = self._quiver.mutation_type()
-            if self._mutation_type == 'undetermined finite mutation type':
-                self._mutation_type += ' from a surface'
-            self._is_principal = is_principal
+            
+            # self._is_principal = is_principal
 
-            #sets appropriate booleans to 'False'            
-            self._use_g_vec = False
-            self._use_c_vec = False
-            self._use_d_vec = False
-            self._use_fpolys = True
-            self._bot_is_c = False
+            # #sets appropriate booleans to 'False'            
+            # self._use_g_vec = False
+            # self._use_c_vec = False
+            # self._use_d_vec = False
+            # self._use_fpolys = True
+            # self._bot_is_c = False
             
-            #sets up ability to track mutations
-            self._mut_path = []
-            self._track_mut = True
+            # #sets up ability to track mutations
+            # self._mut_path = []
+            # self._track_mut = True
             
-            #sets currently unused dictionaries, names, data to 'None'
-            self._user_labels = None
-            self._user_labels_prefix = None
-            self._init_vars = None
-            self._init_exch = None
-            self._F = None
-            self._y = None
-            self._yhat = None
-            #self._mut_path = None
+            # #sets currently unused dictionaries, names, data to 'None'
+            # self._user_labels = None
+            # self._user_labels_prefix = None
+            # self._init_vars = None
+            # self._init_exch = None
+            # self._F = None
+            # self._y = None
+            # self._yhat = None
+            # #self._mut_path = None
             
-            #The initial B-matrix is set to be the B-matrix corresponding to the input triangulation
-            self._b_initial = copy(self._M)
+            # #The initial B-matrix is set to be the B-matrix corresponding to the input triangulation
+            # self._b_initial = copy(self._M)
             
-            #Constructs the appropriate coefficient ring
-            self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
+            # #Constructs the appropriate coefficient ring
+            # self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
 
         # Construct data from a cluster triangulation
         elif isinstance(data, ClusterTriangulation):
@@ -1550,9 +1676,9 @@ class ClusterTriangulation(ClusterSeed):
                                                  CT._map_label_to_variable)
         return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)
 
-    def principal_extension(self,ignore_coefficients=False):
+    def principal_extension(self):
         r"""
-        Returns the principal extension of self, yielding a 2n-by-n matrix.  Raises an error if the input seed has a non-square exchange matrix,
+        Returns the principal extension of self, yielding a `2n \times n` matrix.  Raises an error if the input seed has a non-square exchange matrix,
         unless 'ignore_coefficients=True' is set.  In this case, the method instead adds n frozen variables to any previously frozen variables.
         I.e., the seed obtained by adding a frozen variable to every exchangeable variable of ``self``.
 
@@ -1577,36 +1703,65 @@ class ClusterTriangulation(ClusterSeed):
             [ 0  0  0  1]
 
             sage: SP = ClusterSeed(TP); SP
-            A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges with principal coefficients of type ['A', [2, 2], 1] with principal coefficients
+            A seed for a cluster algebra of rank 4 from a surface of type ['A', [2, 2], 1] with principal coefficients
 
             sage: TP.cluster() == SP.cluster()
             True
 
-            sage: TP.principal_extension()
+            sage: T2 = TP.principal_extension()
             Traceback (most recent call last):
             ...
-            ValueError: The b-matrix is not square. Use ignore_coefficients to ignore this.
-
-            sage: T2 = TP.principal_extension(ignore_coefficients=True)
-            sage: TP.b_matrix()
-            [ 0  1  0 -1]
-            [-1  0 -1  0]
-            [ 0  1  0 -1]
-            [ 1  0  1  0]
-            [ 1  0  0  0]
-            [ 0  1  0  0]
-            [ 0  0  1  0]
-            [ 0  0  0  1]
+            ValueError: the b-matrix is not square
             """
+        # from sage.matrix.all import identity_matrix
+        # from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+        # if not ignore_coefficients and self._m != 0:
+        #     raise ValueError("The b-matrix is not square. Use ignore_coefficients to ignore this.")
+        # #M = self._M.stack(identity_matrix(self._n))
+        # #Q = ClusterQuiver(M)
+        # #is_principal = (self._m == 0)
+        # is_principal = True
+        # #seed = ClusterTriangulation( self, is_principal=is_principal )
+        # seed = ClusterTriangulation( self._triangles, is_principal=is_principal, boundary_edges=self._boundary_edges ) # this will give initial cluster (x0,x1,..,xn) even if self has been mutated
+        # seed._mutation_type = self._mutation_type
+        # return seed
+
         from sage.matrix.all import identity_matrix
-        from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
-        if not ignore_coefficients and self._m != 0:
-            raise ValueError("The b-matrix is not square. Use ignore_coefficients to ignore this.")
+        if self._m != 0:
+            raise ValueError("the b-matrix is not square")
         #M = self._M.stack(identity_matrix(self._n))
-        #Q = ClusterQuiver(M)
-        #is_principal = (self._m == 0)
-        is_principal = True
-        #seed = ClusterTriangulation( self, is_principal=is_principal )
-        seed = ClusterTriangulation( self._triangles, is_principal=is_principal, boundary_edges=self._boundary_edges ) # this will give initial cluster (x0,x1,..,xn) even if self has been mutated
+        is_principal = (self._m == 0)
+        new_labels = None
+        if self._user_labels:
+            if isinstance(self._user_labels, list):
+                new_labels = self._user_labels + ['y%s'%i for i in range(self._n)]
+            elif isinstance(self._user_labels, dict):
+                new_labels = copy(self._user_labels)
+                new_labels.update( {(i+self._n): 'y%s'%i for i in range(self._n)} )
+        seed = ClusterTriangulation(self._triangles, is_principal=is_principal, boundary_edges=self._boundary_edges, 
+                        user_labels=new_labels,
+                        user_labels_prefix=self._user_labels_prefix, frozen=None)
+        seed.use_c_vectors(self._use_c_vec)
+        seed.use_fpolys(self._use_fpolys)
+        seed.use_g_vectors(self._use_g_vec)
+        seed.use_d_vectors(self._use_d_vec)
+        seed.track_mutations(self._track_mut)
+
+        #### This should fix principal_extension resetting boolean flags.  Might need to update user labels to include new principals with y's.    -G
         seed._mutation_type = self._mutation_type
         return seed
+
+    def mutate(self, sequence, inplace=True, input_type=None):
+        r"""
+        Returns a warning that mutation is not implemented.
+
+        EXAMPLES::
+
+            sage: T = ClusterTriangulation([(0,1,2),(0,3,4)])
+            sage: T.mutate(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Mutation is not implemented for ClusterTriangulation
+        """
+        raise ValueError("Mutation is not implemented for ClusterTriangulation")
+

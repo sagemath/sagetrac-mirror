@@ -1169,13 +1169,15 @@ def replace_x_with_y(CT, G_x):
             #print 'diagonal_x tuple: ', diagonal_x
             label_of_radius_x = CT._get_map_variable_to_label(diagonal_x[0])
             position_of_radius_x = CT.get_edge_position(label_of_radius_x)
-            radius_y = CT.cluster()[CT._n+position_of_radius_x]
+            # radius_y = CT.cluster()[CT._n+position_of_radius_x]
+            radius_y = CT.coefficients()[position_of_radius_x]
 
             triangle_rrl = _get_triangle(CT.triangles(), label_of_radius_x, None)[0]
             r,r,label_of_ell_x = is_selffolded(triangle_rrl)
             position_of_ell_x = CT.get_edge_position(label_of_ell_x)
 
-            r_notched_y = CT.cluster()[CT._n+position_of_ell_x]
+            # r_notched_y = CT.cluster()[CT._n+position_of_ell_x]
+            r_notched_y = CT.coefficients()[position_of_ell_x]
             diagonal_y = radius_y/r_notched_y
             diagonal_y_bottom = (diagonal_y, diagonal_x[1])
             if diagonal_x[1] == 'clockwise':
@@ -1193,13 +1195,15 @@ def replace_x_with_y(CT, G_x):
             #label_of_x_r = CT._get_map_variable_to_label(x_r)
             position_of_x_rnotched = CT.get_edge_position(label_of_x_ell)
             #position_of_x_r = CT.get_edge_position(label_of_x_r)
-            y_rnotched = CT.cluster()[CT._n+position_of_x_rnotched]
+            # y_rnotched = CT.cluster()[CT._n+position_of_x_rnotched]
+            y_rnotched = CT.coefficients()[position_of_x_rnotched]
             #y_r = CT.cluster()[CT._n+position_of_x_r]
             diagonal_y_bottom = diagonal_y_top = y_rnotched
         else:
             label_of_diagonal_x = CT._get_map_variable_to_label(diagonal_x)
             position_of_diagonal_x = CT.get_edge_position(label_of_diagonal_x)
-            diagonal_y_bottom = diagonal_y_top = CT.cluster()[CT._n+position_of_diagonal_x]
+            # diagonal_y_bottom = diagonal_y_top = CT.cluster()[CT._n+position_of_diagonal_x]
+            diagonal_y_bottom = diagonal_y_top = CT.coefficients()[position_of_diagonal_x]
 
         G_y_triangle_bottom = (G_x[tile_pos][0][0],(triangle_bottom[0], diagonal_y_bottom, triangle_bottom[2]))
         G_y_triangle_top = (G_x[tile_pos][1][0],(triangle_top[0], diagonal_y_top, triangle_top[2]), tile_dir)

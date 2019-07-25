@@ -240,15 +240,12 @@ class ClusterSeed(SageObject):
 
         if type(data) in [ClusterTriangulation]:
             data._from_surface = True
-            data._is_principal = data._is_principal
             # print('Inside of cluster_seed. data is ClusterTriangulation') # TODO remove
             quiver = ClusterQuiver(data, frozen=frozen, user_labels=user_labels, from_surface=True)
-            #quiver = data.quiver(from_surface=True)
-            self.__init__(quiver)
-            # self.__init__(quiver, frozen=frozen,
-            #               is_principal=is_principal,
-            #               user_labels=user_labels,
-            #               user_labels_prefix=user_labels_prefix)
+            self.__init__(quiver, frozen=frozen,
+                          is_principal=data._is_principal,
+                          user_labels=user_labels,
+                          user_labels_prefix=user_labels_prefix)
 
         # constructs a cluster seed from a cluster seed
         elif isinstance(data, ClusterSeed):
@@ -316,8 +313,6 @@ class ClusterSeed(SageObject):
 
         # constructs a cluster seed from a quiver
         elif isinstance(data, ClusterQuiver):
-            # print('Inside of cluster_seed. data is ClusterSeed') # TODO remove
-
             quiver = ClusterQuiver(data)
 
             self._M = copy(quiver._M)    # B-tilde exchange matrix
