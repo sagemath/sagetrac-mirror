@@ -1034,7 +1034,7 @@ class AlternatingSignMatrix(Element):
         
             sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
             sage: asm.to_order_ideal()
-            Launched png viewer for Graphics object consisting of 5 graphics primitives
+            Graphics object consisting of 5 graphics primitives
         
         """
         
