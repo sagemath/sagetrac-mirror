@@ -345,7 +345,7 @@ class ClusterSeed(SageObject):
                 xs = {i:'x%s'%i for i in range(self._n)}
                 ys = {(i+self._n):'y%s'%i for i in range(self._n+self._m)}
                 self._init_vars = copy(xs)
-                self._init_vars.update(ys)
+                #self._init_vars.update(ys)
 
             self._init_exch = dict(islice(self._init_vars.items(), self._n))
             self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
@@ -647,7 +647,7 @@ class ClusterSeed(SageObject):
                     xs = {i:'x%s'%i for i in range(self._n)}
                     ys = {(i+self._n):'y%s'%i for i in range(self._n+self._m)}
                     self._init_vars = copy(xs)
-                    self._init_vars.update(ys)
+                    #self._init_vars.update(ys)
 
                 if self._G == matrix.identity(self._n): # If we are at the root
                     if not self._use_g_vec:
@@ -3130,6 +3130,10 @@ class ClusterSeed(SageObject):
             elif isinstance(self._user_labels, dict):
                 new_labels = copy(self._user_labels)
                 new_labels.update( {(i+self._n): 'y%s'%i for i in range(self._n)} )
+        #else:
+        #        ys = {(i+self._n):'y%s'%i for i in range(self._n+self._m)}
+        #        self._init_vars.update(ys)        
+        #    BLAH
         seed = ClusterSeed(M, is_principal=is_principal, user_labels=new_labels,
                            user_labels_prefix=self._user_labels_prefix, frozen=None)
         seed.use_c_vectors(self._use_c_vec)
