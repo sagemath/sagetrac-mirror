@@ -119,6 +119,7 @@ from six import iteritems, string_types, class_types
 from six.moves import range
 
 import ast
+import numbers
 import inspect
 import functools
 import os
@@ -1581,7 +1582,7 @@ def sage_getargspec(obj):
     if isinstance(obj, (lazy_attribute, AbstractMethod)):
         source = sage_getsource(obj)
         return inspect.ArgSpec(*_sage_getargspec_cython(source))
-    if not callable(obj):
+    if not callable(obj) or isinstance(obj, numbers.Integral):
         raise TypeError("obj is not a code object")
     try:
         return inspect.ArgSpec(*obj._sage_argspec_())

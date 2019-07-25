@@ -37,6 +37,7 @@ from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_callable import fast_callable
 from sage.ext.memory_allocator cimport MemoryAllocator
 import inspect
+import numbers
 
 
 cdef class PyFunctionWrapper:
@@ -258,7 +259,7 @@ def numerical_integral(func, a, b=None,
    if a == b:
        return (0.0, 0.0)
 
-   if not callable(func):
+   if not callable(func) or isinstance(func, numbers.Integral):
         # handle the constant case
         return (((<double>b - <double>a) * <double>func), 0.0)
 
@@ -548,7 +549,7 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
         _xl[i] = <double> xl[i]
         _xu[i] = <double> xu[i]
 
-    if not callable(func):
+    if not callable(func) or isinstance(func, numbers.Integral):
         # constant
         v = float(1)
         for i in range(dim):

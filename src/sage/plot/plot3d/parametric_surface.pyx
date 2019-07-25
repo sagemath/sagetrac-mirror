@@ -84,6 +84,7 @@ Another colored example::
 # ****************************************************************************
 
 from cysignals.memory cimport sig_malloc, sig_free
+import numbers
 from cysignals.signals cimport sig_check
 
 from math import cos, sin
@@ -185,7 +186,7 @@ cdef class ParametricSurface(IndexFaceSet):
         color_data = None
         if 'color' in kwds:
             try:
-                if len(kwds['color']) == 2 and callable(kwds['color'][0]):
+                if len(kwds['color']) == 2 and callable(kwds['color'][0]) and not isinstance(kwds['color'][0], numbers.Integral):
                     color_data = kwds['color']
                     kwds.pop('color')
             except (TypeError, AttributeError):

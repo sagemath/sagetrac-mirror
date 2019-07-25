@@ -71,6 +71,7 @@ from sage.misc.fast_methods import WithEqualityById
 from sage.structure.dynamic_class import dynamic_class
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.lazy_attribute import lazy_attribute
+import numbers
 
 ###################################
 # Use the weak "triple" dictionary
@@ -939,7 +940,7 @@ class Homset(Set_generic):
                 x = mor * x
             return x
 
-        if callable(x):
+        if callable(x) and not isinstance(numbers.Integral):
             return self.element_class_set_morphism(self, x)
 
         raise TypeError("unable to convert {!r} to an element of {}".format(x, self))

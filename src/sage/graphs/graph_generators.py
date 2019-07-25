@@ -18,6 +18,7 @@ build by typing ``graphs.`` in Sage and then hitting tab.
 from __future__ import print_function, absolute_import, division
 from six.moves import range
 from six import PY2
+import numbers
 
 import subprocess
 
@@ -1020,7 +1021,7 @@ class GraphGenerators():
         from sage.graphs.all import graphs as graph_gen
         if graphs is None:
             graph_list=graph_gen(vertices, property=lambda _: True)
-        elif callable(graphs):
+        elif callable(graphs) and not isinstance(graphs, numbers.Integral):
             graph_list=iter(g for g in graph_gen(vertices, property=lambda _: True) if graphs(g))
         else:
             graph_list=iter(graphs)

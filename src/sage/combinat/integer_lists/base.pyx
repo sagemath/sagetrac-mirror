@@ -26,6 +26,7 @@ from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.misc.constant_function import ConstantFunction
 from sage.structure.element cimport RingElement
 from sage.rings.integer cimport Integer
+import numbers
 
 Infinity = float('+inf')
 MInfinity = float('-inf')
@@ -95,7 +96,7 @@ cdef class IntegerListsBackend(object):
                 floor = -Infinity
             elif isinstance(floor, (list, tuple)):
                 floor = tuple(Integer(i) for i in floor)
-            elif callable(floor):
+            elif callable(floor) and not isinstance(floor, numbers.Integral):
                 pass
             else:
                 raise TypeError("floor should be a list, tuple, or function")
@@ -112,7 +113,7 @@ cdef class IntegerListsBackend(object):
             elif isinstance(ceiling, (list, tuple)):
                 ceiling = tuple(Integer(i) if i != Infinity else Infinity
                                 for i in ceiling)
-            elif callable(ceiling):
+            elif callable(ceiling) and not isinstance(ceiling, numbers.Integral):
                 pass
             else:
                 raise ValueError("Unable to parse value of parameter ceiling")

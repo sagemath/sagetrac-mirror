@@ -43,6 +43,7 @@ communicates with its surroundings::
 #*****************************************************************************
 
 from functools import wraps
+import numbers
 
 
 def reproducible_repr(val):
@@ -182,7 +183,7 @@ class AttributeAccessTracerHelper(object):
             4
         """
         val = getattr(self.delegate, name)
-        if callable(val) and name not in self.delegate.__dict__:
+        if callable(val) and not isinstance(val, numbers.Integral) and name not in self.delegate.__dict__:
             @wraps(val)
             def wrapper(*args, **kwds):
                 arglst = [reproducible_repr(arg) for arg in args]

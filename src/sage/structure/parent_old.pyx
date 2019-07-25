@@ -28,6 +28,7 @@ This came up in some subtle bug once.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
+import numbers
 
 cimport sage.structure.sage_object as sage_object
 import operator
@@ -356,7 +357,7 @@ cdef class Parent(parent.Parent):
         """
         if self._element_constructor is None:
             if hasattr(self, '_element_constructor_'):
-                assert callable(self._element_constructor_)
+                assert callable(self._element_constructor_) and not isinstance(self._element_constructor_, numbers.Integral)
                 self._element_constructor = self._element_constructor_
             else:
                 from sage.categories.morphism import CallMorphism

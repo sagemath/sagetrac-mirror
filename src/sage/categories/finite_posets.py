@@ -19,6 +19,7 @@ Here is some terminology used in this file:
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.plot.plot import graphics_array
+import numbers
 
 class FinitePosets(CategoryWithAxiom):
     r"""
@@ -848,7 +849,7 @@ class FinitePosets(CategoryWithAxiom):
             n = self.cardinality()
             label_list = []
             if labels:
-                if callable(labels):
+                if callable(labels) and not isinstance(labels, numbers.Integral):
                     label_list = [labels(e) for e in linear_extension]
                 else:
                     label_list = labels.split(',')

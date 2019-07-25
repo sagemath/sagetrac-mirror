@@ -80,6 +80,7 @@ from __future__ import absolute_import
 
 cimport numpy as np
 import numpy as np
+import numbers
 
 from sage.plot.plot3d.transform cimport point_c, face_c, color_c, Transformation
 from sage.plot.plot3d.base cimport PrimitiveObject
@@ -963,7 +964,7 @@ cdef class ImplicitSurface(IndexFaceSet):
         color_data = None
         if 'color' in kwds:
             try:
-                if len(kwds['color']) == 2 and callable(kwds['color'][0]):
+                if len(kwds['color']) == 2 and callable(kwds['color'][0]) and not isinstance(kwds['color'][0], numbers.Integral):
                     color_data = kwds['color']
                     kwds.pop('color')
             except (TypeError, AttributeError):

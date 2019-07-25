@@ -22,6 +22,7 @@ EXAMPLES::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
+import numbers
 
 from cpython cimport *
 from cysignals.signals cimport sig_check
@@ -1949,7 +1950,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         S = []
         for x in self.list():
             # Override the usual representations with those specified
-            if callable(rep_mapping):
+            if callable(rep_mapping) and not isinstance(rep_mapping, numbers.Integral):
                 rep = rep_mapping(x)
             # avoid hashing entries, especially algebraic numbers
             elif rep_mapping and x in rep_mapping:

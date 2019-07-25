@@ -410,6 +410,7 @@ Methods
 from __future__ import print_function, absolute_import
 import six
 from six.moves import range
+import numbers
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1067,7 +1068,7 @@ class Graph(GenericGraph):
         if (format is None         and
             isinstance(data, list) and
             len(data) >= 2         and
-            callable(data[1])):
+            callable(data[1]) and not isinstance(data[1], numbers.Integral)):
             format = 'rule'
 
         if (format is None            and
@@ -1075,7 +1076,7 @@ class Graph(GenericGraph):
             len(data) == 2            and
             isinstance(data[0], list) and # a list of two lists, the second of
             isinstance(data[1], list) and # which contains iterables (the edges)
-            (not data[1] or callable(getattr(data[1][0], "__iter__", None)))):
+            (not data[1] or (callable(getattr(data[1][0], "__iter__", None)) and not isinstance(getattr(data[1][0], "__iter__", None), numbers.Integral)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):

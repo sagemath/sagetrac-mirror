@@ -275,6 +275,7 @@ from __future__ import division, print_function, absolute_import
 
 from six.moves import range, builtins
 from six import iteritems
+import numbers
 
 from copy import copy, deepcopy
 from sage.misc.cachefunc import cached_method
@@ -688,7 +689,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         D = DiGraph(data, format="dict_of_lists")
     elif isinstance(data, (list, tuple)): # types 1, 2, 3 (list/tuple)
         if len(data) == 2: # types 1 or 2
-            if callable(data[1]): # type 2
+            if callable(data[1]) and not isinstance(data[1], numbers.Integral): # type 2
                 elements, function = data
                 relations = []
                 for x in elements:
@@ -1869,7 +1870,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                     heights[key] = [relabeling[i] for i in heights[key]]
 
         if cover_labels is not None:
-            if callable(cover_labels):
+            if callable(cover_labels) and not isinstance(cover_labels, numbers.Integral):
                 for (v, w) in graph.edges(labels=False):
                     graph.set_edge_label(v, w, cover_labels(v, w))
             elif isinstance(cover_labels, dict):

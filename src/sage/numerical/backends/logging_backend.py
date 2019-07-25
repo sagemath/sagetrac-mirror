@@ -18,6 +18,7 @@ See :class:`LoggingBackendFactory` for more information.
 #*****************************************************************************
 
 from __future__ import print_function
+import numbers
 
 from sage.numerical.backends.generic_backend import GenericBackend
 
@@ -153,7 +154,7 @@ class LoggingBackend(GenericBackend):
             <bound method ...>
         """
         _a = getattr(self._backend, attr)
-        if callable(_a):
+        if callable(_a) and not isinstance(_a, numbers.Integral):
             # make a bound method
             import types
             _mm = types.MethodType(_make_wrapper(self._backend, attr), self)
@@ -202,7 +203,7 @@ def _override_attr(attr):
     Override a method by a delegating method.
     """
     a = getattr(LoggingBackend, attr)
-    if callable(a):
+    if callable(a) and not isinstance(a, numbers.Integral):
         m = _make_wrapper(GenericBackend(), attr)
         setattr(LoggingBackend, attr, m)
 

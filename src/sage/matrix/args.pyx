@@ -15,6 +15,7 @@ Helpers for creating matrices
 #*****************************************************************************
 
 from __future__ import absolute_import, generator_stop
+import numbers
 
 cimport cython
 from cpython.sequence cimport PySequence_Fast
@@ -1256,7 +1257,7 @@ cdef class MatrixArgs:
             pass
         else:
             return self.sequence_type()
-        if callable(self.entries):
+        if callable(self.entries) and not isinstance(self.entries, numbers.Integral):
             return MA_ENTRIES_CALLABLE
         if is_elt:  # Last resort
             return MA_ENTRIES_SCALAR

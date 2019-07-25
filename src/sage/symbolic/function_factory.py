@@ -10,6 +10,7 @@ Factory for symbolic functions
 #                  https://www.gnu.org/licenses/
 ###############################################################################
 from __future__ import print_function
+import numbers
 from six import string_types
 
 from sage.symbolic.function import (SymbolicFunction, sfunctions_funcs,
@@ -104,7 +105,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
     for func_name in sfunctions_funcs:
         func = l.get(func_name+"_func", None)
         if func:
-            if not callable(func):
+            if not callable(func) or isinstance(func, numbers.Integral):
                 raise ValueError(func_name + "_func" + " parameter must be callable")
             setattr(NewSymbolicFunction, '_%s_'%func_name, func)
 

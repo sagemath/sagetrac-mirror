@@ -103,6 +103,7 @@ This came up in some subtle bug once::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import, print_function
+import numbers
 
 from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
 from cpython.bool cimport *
@@ -596,7 +597,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             # Remark: A TypeError can actually occur;
             # it is a possible reason for "hasattr" to return False
             return
-        assert callable(_element_constructor_)
+        assert callable(_element_constructor_) and not isinstance(_element_constructor_, numbers.Integral)
         self._element_constructor = _element_constructor_
         self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
 
@@ -2267,7 +2268,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             # advantage of the _populate_coercion_lists_ data.
         elif isinstance(user_provided_mor, map.Map):
             return user_provided_mor
-        elif callable(user_provided_mor):
+        elif callable(user_provided_mor) and not isinstance(user_provided_mor, numbers.Integral):
             return CallableConvertMap(S, self, user_provided_mor)
         else:
             raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
@@ -2401,7 +2402,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if user_provided_mor is not None:
             if isinstance(user_provided_mor, map.Map):
                 return user_provided_mor
-            elif callable(user_provided_mor):
+            elif callable(user_provided_mor) and not isinstance(user_provided_mor, numbers.Integral):
                 return CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))

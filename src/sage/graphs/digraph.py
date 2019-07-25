@@ -158,6 +158,7 @@ Methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
+import numbers
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -662,7 +663,7 @@ class DiGraph(GenericGraph):
             data = data.to_directed()
             format = 'DiGraph'
         if format is None and isinstance(data,list) and \
-           len(data) >= 2 and callable(data[1]):
+           len(data) >= 2 and callable(data[1]) and not isinstance(data[1], numbers.Integral):
             format = 'rule'
 
         if (format is None            and
@@ -670,7 +671,7 @@ class DiGraph(GenericGraph):
             len(data) == 2            and
             isinstance(data[0], list) and # a list of two lists, the second of
             isinstance(data[1], list) and # which contains iterables (the edges)
-            (not data[1] or callable(getattr(data[1][0], "__iter__", None)))):
+            (not data[1] or (callable(getattr(data[1][0], "__iter__", None)) and not isinstance(getattr(data[1][0], "__iter__", None), numbers.Integral)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):

@@ -30,6 +30,7 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import print_function
+import numbers
 
 from copy import copy
 
@@ -1771,7 +1772,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         if solver == "Coin" and constraint_generation:
             solver = "Glpk"
 
-    elif callable(solver):
+    elif callable(solver) and not isinstance(solver, numbers.Integral):
         kwds = {}
         if base_ring is not None:
             kwds['base_ring']=base_ring

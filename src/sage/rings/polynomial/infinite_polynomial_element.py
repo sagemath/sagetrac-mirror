@@ -89,6 +89,7 @@ finite polynomial rings are merged with infinite polynomial rings::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from six.moves import range
+import numbers
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
@@ -725,7 +726,7 @@ class InfinitePolynomial_sparse(RingElement):
 
         """
         P = self.parent()
-        if callable(n):
+        if callable(n) and not isinstance(n, numbers.Integral):
             if (self._p.parent() == self._p.base_ring()):
                 return self
             if not (hasattr(self._p,'variables') and self._p.variables()):
@@ -1520,7 +1521,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
 
         """
         P = self.parent()
-        if callable(n):
+        if callable(n) and not isinstance(n, numbers.Integral):
             if (self._p.parent() == self._p.base_ring()):
                 return self
             if not (hasattr(self._p,'variables') and self._p.variables()):

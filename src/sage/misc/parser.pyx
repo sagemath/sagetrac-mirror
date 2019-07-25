@@ -20,6 +20,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+import numbers
 
 from libc.string cimport strchr
 from cpython.bytes cimport PyBytes_FromStringAndSize
@@ -489,9 +490,9 @@ cdef class Parser:
         """
         self.integer_constructor = make_int
         self.float_constructor = make_float
-        if not callable(make_var):
+        if not callable(make_var) or isinstance(make_var, numbers.Integral):
             make_var = LookupNameMaker(make_var)
-        if not callable(make_function):
+        if not callable(make_function) or isinstance(make_function, numbers.Integral):
             make_function = LookupNameMaker(make_function)
         self.variable_constructor = make_var
         self.callable_constructor = make_function

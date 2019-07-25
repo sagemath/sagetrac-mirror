@@ -104,6 +104,7 @@ Classes and Methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
+import numbers
 
 cdef extern from "Python.h":
     Py_ssize_t PY_SSIZE_T_MAX
@@ -222,7 +223,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         cache = list(initial_values)
 
     if update_function is not None:
-        assert callable(update_function)
+        assert callable(update_function) and not isinstance(update_function, numbers.Integral)
         return lazy_list_from_update_function(update_function, cache)
 
     if isinstance(data, (tuple,list)):
@@ -243,7 +244,7 @@ def lazy_list(data=None, initial_values=None, start=None, stop=None, step=None,
         from sage.misc.misc import is_iterator
         if is_iterator(data):
             l = lazy_list_from_iterator(iter(data), cache)
-        elif callable(data):
+        elif callable(data) and not isinstance(data, numbers.Integral):
             l = lazy_list_from_function(data, cache)
         else:
             raise ValueError("not able to build a lazy list from {}".format(type(data)))

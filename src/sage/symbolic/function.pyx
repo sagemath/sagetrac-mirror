@@ -14,6 +14,7 @@ Classes for symbolic functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division, absolute_import
+import numbers
 
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
@@ -107,8 +108,8 @@ cdef class Function(SageObject):
 
         for fname in sfunctions_funcs:
             real_fname = '_%s_'%fname
-            if hasattr(self, real_fname) and not \
-                    callable(getattr(self, real_fname)):
+            if hasattr(self, real_fname) and (not \
+                    callable(getattr(self, real_fname)) or isinstance(getattr(self, real_fname), numbers.Integral)):
                 raise ValueError(real_fname + " parameter must be callable")
 
         if not self._is_registered():
@@ -470,7 +471,7 @@ cdef class Function(SageObject):
                 #     [  0  -1]
                 if len(args) == 1:
                     method = getattr(args[0], self._name, None)
-                    if callable(method):
+                    if callable(method) and not isinstance(method, numbers.Integral):
                         return method()
                 raise TypeError("cannot coerce arguments: %s" % (err))
 
@@ -969,7 +970,7 @@ cdef class BuiltinFunction(Function):
                 if func is None and self._alt_name is not None:
                     func = getattr(module, self._alt_name, None)
 
-                if callable(func):
+                if callable(func) and not isinstance(func, numbers.Integral):
                     try:
                         return func(*args)
                     except (ValueError,TypeError):
@@ -986,7 +987,7 @@ cdef class BuiltinFunction(Function):
             if method is None and self._alt_name is not None:
                 method = getattr(arg, self._alt_name, None)
 
-            if callable(method):
+            if callable(method) and not isinstance(method, numbers.Integral):
                 try:
                     res = method()
                 except (ValueError, ArithmeticError):

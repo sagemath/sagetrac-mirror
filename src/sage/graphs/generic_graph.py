@@ -422,6 +422,7 @@ Methods
 from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
 from six import itervalues, iteritems, integer_types
+import numbers
 
 from copy import copy
 
@@ -21866,7 +21867,7 @@ class GenericGraph(GenericGraph_pyx):
             try:
                 it = iter(perm)
             except TypeError:
-                if not callable(perm):
+                if not callable(perm) or isinstance(perm, numbers.Integral):
                     raise
                 # callable
                 perm = {v: perm(v) for v in self}

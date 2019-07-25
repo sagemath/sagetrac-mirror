@@ -174,6 +174,7 @@ Classes and methods
 from __future__ import print_function
 from six.moves import range
 from six import iteritems, add_metaclass, string_types
+import numbers
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -645,7 +646,7 @@ class FindStat(SageObject):
             elif isinstance(query_2, (list, tuple)):
                 return query_by_iterable(query_2, collection)
 
-            elif callable(query_2):
+            elif callable(query_2) and not isinstance(query_2, numbers.Integral):
                 first_terms = collection.first_terms(query_2, max_values=max_values)
                 data = [([key], [to_str(key)], [Integer(value)]) for (key, value) in first_terms]
                 try:

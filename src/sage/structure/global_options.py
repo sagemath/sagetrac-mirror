@@ -507,6 +507,7 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+import numbers
 
 from six import iteritems, add_metaclass
 from importlib import import_module
@@ -1166,7 +1167,7 @@ class GlobalOptions(object):
             Current value: water
         """
         option = self._match_option(option)
-        if not callable(value):
+        if not callable(value) or isinstance(value, numbers.Integral):
             value = self._match_value(option, value)
 
         if value=='?':  # return help
@@ -1391,7 +1392,7 @@ class GlobalOptions(object):
                                                for k, v in iteritems(self._alias[option])}
                 self._case_sensitive[option] = bool(specifications[spec])
             elif spec == 'checker':
-                if not callable(specifications[spec]):
+                if not callable(specifications[spec]) or isinstance(specifications[spec], numbers.Integral):
                     raise ValueError('the checker for %s must be callable'%option)
                 self._checker[option]=specifications[spec]
             elif spec == 'default':
@@ -1413,7 +1414,7 @@ class GlobalOptions(object):
                 else:
                     raise ValueError("linked options must be specified as a string: 'linked_option' or a tuple: (link,linked_option)")
             elif spec == 'setter':
-                if callable(specifications[spec]):
+                if callable(specifications[spec]) and not isinstance(specifications[spec], numbers.Integral):
                     self._setter[option]=specifications[spec]
                 else:
                     raise ValueError('the setter for %s must be a function' % option)
@@ -1632,7 +1633,7 @@ class GlobalOptions(object):
             sage: dlist.options(delim=lambda self: '<%s>' % ','.join('%s'%i for i in self._list)); dlist
             <1,2,3>
         """
-        if callable(self._value[option]):
+        if callable(self._value[option]) and not isinstance(self._value[option], numbers.Integral):
             try:
                 return self._value[option](obj, *args, **kargs)
             except TypeError:

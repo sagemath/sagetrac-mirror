@@ -10,6 +10,7 @@ for use in doc-strings.
 from __future__ import print_function
 
 import inspect
+import numbers
 
 from six import PY2
 
@@ -263,7 +264,7 @@ def list_of_subfunctions(root, only_local_functions=True):
                   (not name.startswith('_')          and # private functions
                    not hasattr(f,'trac_number')      and # deprecated functions
                    not inspect.isclass(f)            and # classes
-                   callable(getattr(f,'__func__',f)) and # e.g. GenericGraph.graphics_array_defaults
+                   callable(getattr(f,'__func__',f)) and not isinstance(getattr(f,'__func__',f), numbers.Integral) and # e.g. GenericGraph.graphics_array_defaults
                    local_filter(f,name))                 # possibly filter imported functions
                   }
 

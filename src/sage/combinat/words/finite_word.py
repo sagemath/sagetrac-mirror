@@ -217,6 +217,7 @@ Left-special and bispecial factors::
 from __future__ import print_function, absolute_import
 
 from builtins import zip
+import numbers
 
 from six import iteritems
 from six.moves import range
@@ -5075,7 +5076,7 @@ class FiniteWord_class(Word_class):
                 p.union(a, b)
                 # take the first letter of the word
                 p.union(involution(a)[0], involution(b)[0])
-        elif callable(involution):
+        elif callable(involution) and not isinstance(involution, numbers.Integral):
             for (a,b) in S:
                 p.union(a, b)
                 p.union(involution(a), involution(b))

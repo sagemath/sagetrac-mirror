@@ -42,6 +42,7 @@ EXAMPLES::
 from __future__ import print_function
 
 import itertools
+import numbers
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -811,7 +812,7 @@ class FiniteWords(AbstractLanguage):
         elif 'char' in self._element_classes:
             if data is None:
                 data = []
-            elif callable(data):
+            elif callable(data) and not isinstance(data, numbers.Integral):
                 data = [data(i) for i in range(length)]
             elif not isinstance(data, (tuple, list)):
                 data = list(data)
@@ -832,7 +833,7 @@ class FiniteWords(AbstractLanguage):
         elif isinstance(data, CombinatorialObject):
             w = self._element_classes['list'](self, list(data))
 
-        elif callable(data):
+        elif callable(data) and not isinstance(data, numbers.Integral):
             w = self._word_from_callable(data, length, caching)
 
         elif hasattr(data, "__iter__"):
@@ -1558,7 +1559,7 @@ class InfiniteWords(AbstractLanguage):
             else:
                 raise ValueError("Unknown datatype (={})".format(datatype))
 
-        elif callable(data):
+        elif callable(data) and not isinstance(data, numbers.Integral):
             w = self._word_from_callable(data, caching)
 
         elif hasattr(data, "__iter__"):
@@ -2031,7 +2032,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
                 try:
                     length = len(data)
                 except TypeError:
-                    if callable(data):
+                    if callable(data) and not isinstance(data, numbers.Integral):
                         length = 'infinite'
 
         # now build finite/infinite or unknown length words

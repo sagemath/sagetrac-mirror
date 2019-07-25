@@ -142,6 +142,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
+import numbers
 import inspect
 
 from six import iteritems
@@ -331,7 +332,7 @@ class _Coordinates(object):
                 self.indep_vars[1]: indep_var_dummies[1]
             })
             if params is None:
-                if callable(func):
+                if callable(func) and not isinstance(func, numbers.Integral):
                     params = _find_arguments_for_callable(func)
                     if not params:
                         params = ['u', 'v']

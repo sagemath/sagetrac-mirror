@@ -4,6 +4,7 @@ Coercion via construction functors
 from __future__ import print_function, absolute_import
 from six.moves import range
 import six
+import numbers
 
 from sage.misc.lazy_import import lazy_import
 from sage.structure.coerce_exceptions import CoercionException
@@ -3489,7 +3490,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
             True
         """
         ConstructionFunctor.__init__(self,Objects(),Objects())
-        if not callable(box):
+        if not callable(box) or isinstance(box, numbers.Integral):
             raise TypeError("input must be callable")
         self.box = box
 
