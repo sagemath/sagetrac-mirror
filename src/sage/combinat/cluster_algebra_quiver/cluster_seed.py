@@ -304,7 +304,10 @@ class ClusterSeed(SageObject):
             self._quiver = quiver
 
             # Sets ``user_labels`` to existing vertex labels
-            if not user_labels and set(self._nlist + self._mlist) != set(range(self._n+self._m)):
+            if not user_labels:
+            # deleted the second clause since want to always populate 'user_labels'  
+            #if not user_labels and set(self._nlist + self._mlist) != set(range(self._n+self._m)):
+            
                 user_labels = self._nlist + self._mlist
             if user_labels:
                 if isinstance(user_labels, dict):
@@ -3130,10 +3133,6 @@ class ClusterSeed(SageObject):
             elif isinstance(self._user_labels, dict):
                 new_labels = copy(self._user_labels)
                 new_labels.update( {(i+self._n): 'y%s'%i for i in range(self._n)} )
-        #else:
-        #        ys = {(i+self._n):'y%s'%i for i in range(self._n+self._m)}
-        #        self._init_vars.update(ys)        
-        #    BLAH
         seed = ClusterSeed(M, is_principal=is_principal, user_labels=new_labels,
                            user_labels_prefix=self._user_labels_prefix, frozen=None)
         seed.use_c_vectors(self._use_c_vec)
