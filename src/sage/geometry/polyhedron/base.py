@@ -2826,29 +2826,31 @@ class Polyhedron_base(Element):
             v_i = set(IM.rows()[i].nonzero_positions())
             if len(v_i) == m/2:
                 vertices[i] = v_i
-
         # Find two vertices ``vertex1`` and ``vertex2`` such that one of them
         # lies on exactly half of the facets, and the other one lies on
         # exactly the other half.
-        from itertools import combinations
-        for i,j in combinations(vertices.keys(), 2):
+        valid_vertices = vertices.keys()
+        for a in range(len(valid_vertices)):
+            i = valid_vertices[a]
             vertex1 = vertices[i]
-            vertex2 = vertices[j]
-            vertices1and2 = vertex1.union(vertex2)
-            if len(vertices1and2) == m:
-                # We have found two candidates for apexes.
-                # Remove from each facet ``i`` resp. ``j``.
-                test_facets = set(frozenset(facet.difference({i,j}))
-                                  for facet in facets)
-                if len(test_facets) == m/2:
-                    # For each `F` containing `i` there is
-                    # `G` containing `j` such that
-                    # `F \setminus \{i\} =  G \setminus \{j\}
-                    # and vice versa.
-                    if certificate:
-                        V = self.vertices()
-                        return (True, [V[i], V[j]])
-                    return True
+            for b in range(a+1, len(valid_vertices)):
+                j = valid_vertices[b]
+                vertex2 = vertices[j]
+                vertices1and2 = vertex1.union(vertex2)
+                if len(vertices1and2) == m:
+                    # We have found two candidates for apexes.
+                    # Remove from each facet ``i`` resp. ``j``.
+                    test_facets = set(frozenset(facet.difference({i,j}))
+                                      for facet in facets)
+                    if len(test_facets) == m/2:
+                        # For each `F` containing `i` there is
+                        # `G` containing `j` such that
+                        # `F \setminus \{i\} =  G \setminus \{j\}
+                        # and vice versa.
+                        if certificate:
+                            V = self.vertices()
+                            return (True, [V[i], V[j]])
+                        return True
 
         if certificate:
             return (False, None)
@@ -2964,29 +2966,32 @@ class Polyhedron_base(Element):
         # Find two facets ``facet1`` and ``facet2`` such that one of them
         # contains exactly half of the vertices, and the other one contains
         # exactly the other half.
-        from itertools import combinations
-        for i,j in combinations(facets.keys(), 2):
+        valid_facets = facets.keys()
+        for a in range(len(valid_facets)):
+            i = valid_facets[a]
             facet1 = facets[i]
-            facet2 = facets[j]
-            facets1and2 = facet1.union(facet2)
-            if len(facets1and2) == n:
-                # We have found two candidates for base faces.
-                # The vertices are given as list of facets they are contained in.
-                # Remove from each vertex ``i`` resp. ``j``.
-                test_vertices = set(frozenset(vertex.difference({i,j}))
-                                    for vertex in vertices)
-                if len(test_vertices) == n/2:
-                    # For each vertex containing `i` there is
-                    # another one contained in `j`
-                    # and vice versa.
-                    # Other than `i` and `j` both are contained in
-                    # exactly the same facets.
-                    if certificate:
-                        V = self.vertices()
-                        facet1_vertices = [V[i] for i in facet1]
-                        facet2_vertices = [V[i] for i in facet2]
-                        return (True, [facet1_vertices, facet2_vertices])
-                    return True
+            for b in range(a+1, len(valid_facets)):
+                j = valid_facets[b]
+                facet2 = facets[j]
+                facets1and2 = facet1.union(facet2)
+                if len(facets1and2) == n:
+                    # We have found two candidates for base faces.
+                    # The vertices are given as list of facets they are contained in.
+                    # Remove from each vertex ``i`` resp. ``j``.
+                    test_vertices = set(frozenset(vertex.difference({i,j}))
+                                        for vertex in vertices)
+                    if len(test_vertices) == n/2:
+                        # For each vertex containing `i` there is
+                        # another one contained in `j`
+                        # and vice versa.
+                        # Other than `i` and `j` both are contained in
+                        # exactly the same facets.
+                        if certificate:
+                            V = self.vertices()
+                            facet1_vertices = [V[i] for i in facet1]
+                            facet2_vertices = [V[i] for i in facet2]
+                            return (True, [facet1_vertices, facet2_vertices])
+                        return True
 
         if certificate:
             return (False, None)
