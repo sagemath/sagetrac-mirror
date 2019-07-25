@@ -167,6 +167,12 @@ Several examples using Generalized Cluster Algebras, including Exchange Coeffici
 
     # sage: Agen5.cluster_variable((-2,1)) does not currently work
 
+    sage: Agen22 = ClusterAlgebra(['A',2],d=(2,2),Z=((1,sqrt(2),1),(1,sqrt(3),1))); Agen22
+    A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a = 0.5176380902050415? with degree vector (2, 2) and exchange polynomial coefficients ((1, -a^3 + 3*a, 1), (1, -a^2 + 2, 1))
+    sage: Agen22.explore_to_depth(4)
+    sage: Agen22.F_polynomial((-2,3))
+    u0^4*u1^2 + (-a^2 + 2)*u0^4*u1 + u0^4 + (-a^3 + 5*a)*u0^3*u1 + (-2*a^3 + 6*a)*u0^3 + (-a^2 + 2)*u0^2*u1 + 4*u0^2 + (-2*a^3 + 6*a)*u0 + 1
+
 Division is not guaranteed to yield an element of ``A`` so it returns an
 element of ``A.ambient().fraction_field()`` instead::
 
