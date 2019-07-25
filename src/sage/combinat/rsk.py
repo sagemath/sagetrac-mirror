@@ -2123,7 +2123,7 @@ class RuleSuperRSK(RuleRSK):
         # compute how many rows will contribute to the col
         num_rows_long_enough = 0
         for row in t:
-            if len(row) > col_index:
+            if len(row) > col_index and t[num_rows_long_enough][col_index] is not None:
                 num_rows_long_enough += 1
             else:
                 break
@@ -2358,7 +2358,7 @@ class RuleSuperRSK(RuleRSK):
     def backward_rule(self, p, q, output='array'):
         r"""
         Return the restricted super biword obtained by applying reverse
-        coRSK insertion to a pair of tableaux ``(p, q)``.
+        superRSK insertion to a pair of tableaux ``(p, q)``.
 
         INPUT:
 
@@ -2526,9 +2526,49 @@ class RuleSuperRSK(RuleRSK):
 
 class RuleshiftedKnuth(RuleSuperRSK):
     r"""
+    A rule modeling the Shifted Knuth insertion.
+
+    Shifted Knuth insertion is a combination of row and column insertion which 
+    provides a correspondence between a primed matrix `A` and a pair `(P, Q)` 
+    of same shaped generalized shifted tableaux.
+
+    Shifted Knuth insertion differs from classical RSK in the following ways:
+
+    * The input is still a biword but the bottom row entries can now have even 
+      or odd parity.
+
+    * The output is now a pair of same shaped generalized shifted primed 
+      tableaux `(P, Q)` with `Q` having no primed entry on its main diagonal.
+
+    * The main difference is in the way bumping works. Instead of having 
+      only row bumping, Shifted Knuth insertion is based on a combination of 
+      classical RSK bumping along the row and a Dual RSK like bumping (i.e. 
+      when a number `k_i` is inserted into the `i`-th row of `P`,it bumps 
+      out the first integer greater **or equal to** `k_i` in the column) 
+      along the column.
     """
     def to_pairs(self, obj1=None, obj2=None, check=True):
         r"""
+        Given a valid input for the shifted Knuth algorithm, such as
+        two `n`-tuples ``obj1`` `= [a_1, a_2, \ldots, a_n]`
+        and ``obj2`` `= [b_1, b_2, \ldots, b_n]` forming a biword
+        (i.e., satisfying
+        `a_1 \leq a_2 \leq \cdots \leq a_n`, and if
+        `a_i = a_{i+1}`, then `b_i \leq b_{i+1}`),
+        or a matrix ("generalized permutation"), or a single word,
+        return the array
+        `[(a_1, b_1), (a_2, b_2), \ldots, (a_n, b_n)]`.
+
+        INPUT:
+
+        - ``obj1, obj2`` -- anything representing a biword
+          (see the doc of :meth:`forward_rule` for the
+          encodings accepted).
+
+        - ``check`` -- (default: ``True``) whether to check
+          that ``obj1`` and ``obj2`` actually define a valid
+          restricted super biword.
+
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         if obj2 is None:
@@ -2577,7 +2617,46 @@ class RuleshiftedKnuth(RuleSuperRSK):
 
     def forward_rule(self, obj1, obj2, check_standard=False, check=True):
         r"""
+        Return a pair of tableaux obtained by applying forward
+        insertion to the restricted super biword ``[obj1, obj2]``.
+
+        INPUT:
+
+        - ``obj1, obj2`` -- can be one of the following ways to
+          represent a generalized permutation (or, equivalently,
+          biword):
+
+          - two lists ``obj1`` and ``obj2`` of equal length,
+            to be interpreted as the top row and the bottom row of
+            the biword;
+
+          - a matrix ``obj1`` of nonnegative integers, to be
+            interpreted as the generalized permutation in matrix
+            form (in this case, ``obj2`` is ``None``);
+
+          - a word ``obj1`` in an ordered alphabet, to be
+            interpreted as the bottom row of the biword (in this
+            case, ``obj2`` is ``None``; the top row of the biword
+            is understood to be `(1, 2, \ldots, n)` by default);
+
+          - any object ``obj1`` which has a method ``_rsk_iter()``,
+            as long as this method returns an iterator yielding
+            pairs of numbers, which then are interperted as top
+            entries and bottom entries in the biword (in this case,
+            ``obj2`` is ``None``).
+
+        - ``check`` -- (default: ``True``) whether to check
+          that ``obj1`` and ``obj2`` actually define a valid
+          generalized permutation.
+
+        ..NOTE::
+
+            If the input is a circled matrix (primed matrix) then it is 
+            converted to a biword like a regular matrix except that for 
+            the entries, the first entry in the bottom row of biword of 
+            corresponding letters will be primed. 
         """
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
         itr = self.to_pairs(obj1, obj2, check=check)
         p = []       # the "insertion" tableau
         q = []       # the "recording" tableau
@@ -2619,7 +2698,7 @@ class RuleshiftedKnuth(RuleSuperRSK):
                             self._set_col(p, col_index, c)
                             if col_index == 0:
                                 q.append([])
-                            q[row_index].append(i)
+                            q[row_index].append(PrimedEntry(i-0.5))
                             break
                         else:
                             j = j1
@@ -2628,13 +2707,104 @@ class RuleshiftedKnuth(RuleSuperRSK):
 
     def _forward_format_output(self, p, q, check_standard):
         r"""
+        Return final output of the ``RSK`` (here, shifted Knuth)
+        correspondence from the output of the corresponding
+        ``forward_rule``.
         """
         from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
 
         if not p:
             return [StandardTableau([]), StandardTableau([])]
-        if check_standard:
-            pass
+        return [Tableau(p), Tableau(q)]
+
+    def backward_rule(self, p, q, output='array'):
+        r"""
+        Return the generalized permutation obtained by applying reverse
+        shifted Knuth insertion to a pair of tableaux ``(p, q)``.
+
+        INPUT:
+
+        - ``p``, ``q`` -- two tableaux of the same shape.
+
+        - ``output`` -- (default: ``'array'``) if ``q`` is row-strict:
+
+          - ``'array'`` -- as a two-line array (i.e. biword)
+          - ``'matrix'`` -- as a matrix
+
+          and if ``q`` is standard, we can have the output:
+
+          - ``'word'`` -- as a word
+        """
+        p_copy = [[None]*i + list(row) for i, row in enumerate(p)]
+        q_copy = [[None]*i + list(row) for i, row in enumerate(q)]
+        upper_row = []
+        lower_row = []
+        # upper_row and lower_row will be the upper and lower rows of the
+        # generalized permutation we get as a result, but both reversed.
+        d = {}
+        for row, Li in enumerate(q_copy):
+            for col, val in enumerate(Li):
+                if val is None:
+                    continue
+                if val in d:
+                    d[val][col] = row
+                else:
+                    d[val] = {col: row}
+        # d is now a double family such that for every integers k and j,
+        # the value d[k][j] is the row i such that the (i, j)-th cell of
+        # q is filled with k.
+        for value, iter_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
+            epsilon = 1 if value.is_primed() else 0
+            if epsilon == 1:
+                iter_dict = {v: k for k, v in iter_dict.iteritems()}
+            for key in sorted(iter_dict, reverse=True):
+                row_index, col_index = (iter_dict[key], key) if epsilon == 0 else (key, iter_dict[key])
+                x = p_copy[row_index].pop() # Always the right-most entry
+                while True:
+                    if epsilon == 0:
+                        # row bumping
+                        row_index -= 1
+                        if row_index < 0:
+                            break
+                        x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
+                    else:
+                        # column bumping
+                        col_index -= 1
+                        if col_index < 0:
+                            break
+                        c = self._get_col(p_copy, col_index)
+                        x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
+                        if row_index == col_index:
+                            epsilon = 0
+                        self._set_col(p_copy, col_index, c)
+                upper_row.append(value.integer())
+                lower_row.append(x)
+        return self._backward_format_output(lower_row, upper_row, output, q.is_standard())
+
+    def _backward_format_output(self, lower_row, upper_row, output, 
+                                q_is_standard):
+        r"""
+        Return the final output of the ``RSK_inverse`` correspondence
+        from the output of the corresponding ``backward_rule``.
+
+        .. NOTE::
+
+            The default implementation of ``backward_rule`` lists
+            bumped-out entries in the order in which the reverse
+            bumping happens, which is *opposite* to the order of the
+            final output.
+        """
+        if output == 'matrix':
+            raise NotImplementedError("backward rule for matrices is not yet implemented")
+        if output == 'array':
+            return [list(reversed(upper_row)), list(reversed(lower_row))]
+        if output == 'word':
+            if q_is_standard:
+                from sage.combinat.words.word import Word
+                return Word(reversed(lower_row))
+            else:
+                raise TypeError("q must be standard to have a %s as valid output" %output)
+        raise ValueError("invalid output option")
             
 
 class InsertionRules(object):
