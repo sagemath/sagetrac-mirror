@@ -133,13 +133,14 @@ Several examples using Generalized Cluster Algebras, including Exchange Coeffici
 
     sage: Agen = ClusterAlgebra(['A',2],d=(1,3)); Agen # formal variables for exchange coeffs by default
     A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Multivariate Polynomial Ring in z1_1, z1_2 over Rational Field with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, z1_1, z1_2, 1))
-    sage: Agen2 = ClusterAlgebra(['A',2],d=(1,3)),Z=((1,1),(1,1,1,1))); Agen2
+    sage: Agen2 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,1,1,1))); Agen2
     A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Rational Field with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, 1, 1, 1))
-    sage: Agen3 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2)1,1)),scalars=QQ[sqrt(2)]); Agen3
+    sage: Agen3 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1)),scalars=QQ[sqrt(2)]); Agen3
     A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095? with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, sqrt2, 1, 1))
     sage: Agen4 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1))); Agen4 # scalars automatically populated
     A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in a with defining polynomial y^2 - 2 with a = 1.414213562373095? with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, a, 1, 1))
-    ##sage: Agen5 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1)),scalars=RR); Agen5  ## this example currently won't allow double-division and will print warnings
+
+    # sage: Agen5 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1)),scalars=RR); Agen5  ## this example currently won't allow double-division and will print warnings
 
     sage: Agen.explore_to_depth(infinity)
     sage: Agen2.explore_to_depth(infinity)
@@ -163,7 +164,8 @@ Several examples using Generalized Cluster Algebras, including Exchange Coeffici
     (x0^3 + x0^2 + (sqrt2)*x0*x1 + x1^2 + (sqrt2)*x0 + 2*x1 + 1)/(x0^2*x1)
     sage: Agen4.cluster_variable((-2,1))
     (x0^3 + x0^2 + (a)*x0*x1 + x1^2 + (a)*x0 + 2*x1 + 1)/(x0^2*x1)
-    ## sage: Agen5.cluster_variable((-2,1)) does not currently work
+
+    # sage: Agen5.cluster_variable((-2,1)) does not currently work
 
 Division is not guaranteed to yield an element of ``A`` so it returns an
 element of ``A.ambient().fraction_field()`` instead::
@@ -1281,7 +1283,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
     
     - ``Z`` -- a tuple of tuples of exchange polynomial coefficients of ``self``
 
-    - ``scalars`` -- a ring (default `\ZZ`); the scalars over
+    - ``scalars`` -- a ring (default `\QQ`); the scalars over
       which the cluster algebra is defined
 
     - ``cluster_variable_prefix`` -- string (default ``'x'``); it needs to be
@@ -1403,7 +1405,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         var_switch = self._d != (1,)*self._n and not kwargs.get('Z', False)
         if not var_switch:
             Z00 = kwargs.get('Z')
-        self._scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else number_field_elements_from_algebraics(flatten([[Z00[i][j] for j in range(1,self._d[i])] for i in range(self._n)]),embedded=True)[0]) 
+            if kwargs.get('scalars', 0) is PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])):
+                var_switch = True
+        # in the above, if already formal variables, parses input to stay that way
+        self._scalars = kwargs.get('scalars', PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else number_field_elements_from_algebraics(flatten([[Z00[i][j] for j in range(1,self._d[i])] for i in range(self._n)]),embedded=True)[0]) 
         # The above code will build the smallest number field (embedded in RR or CC) containing all of the z_i's, if scalars is not given by the user. 
         # TO DO: allow hybrid of formal z_i's and algebraic z_i's.  Currently allows one or the other.
         self._U = PolynomialRing(self._scalars, ['u%s' % i for i in range(self._n)])
