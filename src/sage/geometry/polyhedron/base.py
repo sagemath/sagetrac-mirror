@@ -2719,7 +2719,7 @@ class Polyhedron_base(Element):
             False
         """
         if not self.is_compact():
-            raise ValueError("polyhedron has to be compact.")
+            raise ValueError("polyhedron has to be compact")
 
         # Find a facet that contains all the vertices but one.
         n = self.n_vertices()
@@ -2829,7 +2829,7 @@ class Polyhedron_base(Element):
         for i in range(len(vertices)):
             vertex1 = vertices[i]
             if len(vertex1) == m/2:
-                for j in range(i, len(vertices)):
+                for j in range(i+1, len(vertices)):
                     vertex2 = vertices[j]
                     if len(vertex2) == m/2:
                         vertices1and2 = vertex1.union(vertex2)
