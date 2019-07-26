@@ -3,8 +3,8 @@
 .. default-role:: math
 
 
-Tutorial on Polytopes
-=====================
+Application ``polytope``: Tutorial on Polytopes
+===========================================
 
 A *polytope* is the convex hull of finitely many points in some
 Euclidean space. Equivalently, a polytope is the bounded intersection of

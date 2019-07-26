@@ -3,8 +3,8 @@
 .. default-role:: math
 
 
-Dealing with Graphs
-===================
+Application graph: Dealing with Graphs
+======================================
 
 Graphs are ubiquitous in geometric combinatorics. Hence they occur a lot
 throughout the ``polymake`` system, explicitly and implicitly. It is
