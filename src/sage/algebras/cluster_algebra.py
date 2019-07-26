@@ -2234,10 +2234,20 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             return self._F_poly_dict[g_vector]
         except KeyError:
             if g_vector in self._path_dict:
-                msg = "the F-polynomial with g-vector {} has not been computed yet; ".format(g_vector)
-                msg += "you can compute it by mutating from the initial seed along the sequence "
-                msg += str(self._path_dict[g_vector])
-                raise KeyError(msg)
+                msg1 = "The F-polynomial with g-vector {} has not been computed yet. ".format(g_vector)
+                msg2 = "Now computing it for you from the initial seed mutating along"
+                msg2 += str(self._path_dict[g_vector])
+                msg2 += "."                            
+                print(msg1)
+                print(msg2)
+                empath = self._path_dict[g_vector]
+                S = self.initial_seed()
+                S.mutate(empath)
+                return self.F_polynomial(g_vector)
+                #msg = "the F-polynomial with g-vector {} has not been computed yet; ".format(g_vector)
+                #msg += "you can compute it by mutating from the initial seed along the sequence "
+                #msg += str(self._path_dict[g_vector])
+                #raise KeyError(msg)
             else:
                 raise KeyError("the g-vector %s has not been found yet" % str(g_vector))
 
