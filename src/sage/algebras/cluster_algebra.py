@@ -413,6 +413,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import (LaurentPolynomialRing_generic,
                                                            LaurentPolynomialRing)
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
@@ -2639,8 +2640,45 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 bino = binomial(a1 - b * p + l - 1, l)
             sum2 += (-1) ** (l - 1) * self._greedy_coefficient_old(d_vector, p, q - l) * bino
         return Integer(max(sum1, sum2))
+
         
+    def _maxv(self, a,b):
+        r"""   
+        Used as a fix in the greedy coefficient method
+        """        
+        try:
+            return max(a,b)
+        except TypeError:
+            return max( a.coefficient(), b.coefficient())
+    
         
+    def _bddweakcompositions(self, p, d, k):
+        r"""
+        Computes the number of weak compositions of k into d parts , call it (a_1, ..., a_d), such that p - (a_1 + 2*a_2 + ... + d*a_d) is nonnegative. 
+        This function is used in computing coefficients of the greedy basis for cluster algebras following [R2013]. 
+            
+         EXAMPLES::
+
+        sage: B = ClusterAlgebra(['A',2], d = (2,1), Z = ((1,2,1),(1,1)))
+        sage: B._bddweakcompositions(3,2,2)
+        [[2, 0], [1, 1]]
+        """
+        if p >= k >= 0 and d == 1:
+            listofcomps = [[k]]
+            return listofcomps
+        else:
+            listofcomps = []
+        if d == 0:
+            return listofcomps
+        for i in range((p/d).floor()+1):
+            smallcomps = self._bddweakcompositions(p - d*i, d-1, k-i)
+            for thing in smallcomps:
+                if (d > 1) or (d == 1 and i + sum(thing[l] for l in range(d-1)) == k):
+                    thing.append(i)                 
+                    listofcomps.append(thing)
+        return listofcomps
+
+
     def greedy_element(self, d_vector):
         r"""
         Return the greedy element with denominator vector ``d_vector``.
@@ -2677,39 +2715,106 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         b = abs(self.b_matrix()[0, 1])
         c = abs(self.b_matrix()[1, 0])
+        
         a1, a2 = d_vector
         d0 = self._d[0]
         d1 = self._d[1]
-        Z = self._Z 
+        Z = self._Z0 
         # Here we use the generators of self.ambient() because cluster variables
         #   do not have an inverse.
         x1, x2 = self.ambient().gens()
-        if a1 < 0:
-            if a2 < 0:
+        if a1 <= 0:
+            if a2 <= 0:
                 return self.retract(x1 ** (-a1) * x2 ** (-a2))
+            elif self.b_matrix()[0,1] > 0:
+                return self.retract(x2 ** (-a1) * ((sum(Z[1][i]*x1**(c*i)  for i in range(d1 + 1)))/ x2) ** a2)
             else:
-                return self.retract(x1 ** (-a1) * ((sum(Z[1][i]*x2**(c*i)  for i in range(d1 + 1)))/ x1) ** a2)
-        elif a2 < 0:
-            return self.retract(((sum(Z[0][i] * x1**(b*i) for i in range(d0 + 1))) / x2) ** a1 * x2 ** (-a2))
+                return self.retract(x2 ** (-a1) * ((sum(Z[1][i]*x1**(c*(d1 - i))  for i in range(d1 + 1)))/ x2) ** a2)
+        elif a2 <= 0:
+            if self.b_matrix()[1,0] < 0:
+                return self.retract(x1 ** (-a2) * ((sum(Z[0][i]*x2**(b*(d0 - i))  for i in range(d0 + 1)))/ x1) ** a1)
+            else:
+                return self.retract(((sum(Z[0][i] * x2**(b*i) for i in range(d0 + 1))) / x1) ** a1 * x1 ** (-a2)) 
         output = 0
-        for p in range(0, d1*a2 + 1):
-            for q in range(0, d0*a1 + 1):
-                output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+        #at this point we know that a1 and a2 are positive
+        #using Proposition 4.22 of [R2013] to cut down number of coefficients computed.
+        if d1*a2 <= a1:
+            print("loop 1")
+            for p in range(0, d1*a2 + 1):
+                for q in range(0, d0*a1 + 1 - p*d0):
+                    try:
+                        output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+                    except TypeError:
+                        print("We cannot continue with the calculations.")
+                        print( parent(output), parent(self._greedy_coefficient(d_vector, p, q)) , parent(  x1 ** (b*p)) ) 
+                        break
+        elif d0*a1 <= a2:
+            print("loop 2")
+            for q in range (0,d0*a1 + 1):
+                for p in range(0, d1*a2 + 1 - q*d1):
+                    try:
+                        output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+                    except TypeError:
+                        print("We cannot continue with the calculations.")
+                        print( output.parent())
+                        print( self._greedy_coefficient(d_vector, p, q).parent() )
+                        print(x1.parent())
+                        print( (x1 ** (b*p)).parent() ) 
+                        break
+        else:
+            print("loop 3")
+            for q in range(0,a1 + 1):
+                for p in range (0, (((a2 - d1*a2)/a1)*q + d1*a2).ceil() + 1 ):
+                    try:
+                        output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+                    except TypeError:
+                        print("We cannot continue with the calculations.")
+                        print( parent(output), parent(self._greedy_coefficient(d_vector, p, q)) , parent(  x1 ** (b*p)) ) 
+                        break
+            if d0 > 1:    
+                print("loop 3a")
+                for q in range(a1 + 1, d0*a1 + 1):
+                    for p in range(0, ( (-a2/((d0 - 1)*a1))  *(q - d0*a1) ).ceil() + 1):#this sometimes results in dividing by zero
+                        try:
+                            output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+                        except TypeError:
+                            print("We cannot continue with the calculations.")
+                            print( parent(output), parent(self._greedy_coefficient(d_vector, p, q)) , parent(  x1 ** (b*p)) ) 
+                            break
+        print('check', output)                             
         return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
 
-
-    
     def _greedy_coefficient(self, d_vector, p, q):
-#        if self._d[0] > 1:
- #           d0 = self._d[0]
- #       else:
- #           d0 = abs(self.b_matrix()[0, 1])
- #       if self._d[1] > 1:
- #           d1 = self._d[1]
-  #      else:
-  #          d1 = abs(self.b_matrix()[1, 0])
-        #print '(p,q) = ' + str((p,q))
-        Z = self._Z  
+        r"""
+        Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)``
+        in the numerator of the greedy element with denominator vector ``d_vector``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', [1, 1], 1])
+            sage: A.greedy_element((1, 1))
+            (x0^2 + x1^2 + 1)/(x0*x1)
+            sage: A._greedy_coefficient((1, 1), 0, 0)
+            1
+            sage: A._greedy_coefficient((1, 1), 1, 0)
+            1
+            sage: B = ClusterAlgebra(['A',2], d = (2,1), Z = ((1,2,1),(1,1)))
+            sage: B.greedy_element((1,1))
+            (x1^2 + x0 + 2*x1 + 1)/(x0*x1)
+            sage: B._greedy_coefficient((1,1),2,0)
+            0
+            sage: B._greedy_coefficient((1,1),0,2)
+            1
+            sage: B._greedy_coefficient((1,1),0,1)
+            2
+            sage: C = ClusterAlgebra(['A',2], d= (2,1)); C
+            A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Univariate Polynomial Ring in z0_1 over Integer Ring with degree vector (2, 1) and exchange     polynomial coefficients ((1, z0_1, 1), (1, 1))
+            sage: C._greedy_coefficient((1,1),1,1)
+            Will need to use Theorem 2.15 of [R13], not yet implement
+            Cannot Continue Calculation
+            0
+        """
+        Z = self._Z0  
         d0 = self._d[0]
         d1 = self._d[1]
         b = abs(self.b_matrix()[0, 1])
@@ -2717,48 +2822,73 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         a1, a2 = d_vector
         p = Integer(p)
         q = Integer(q)
-        if p == 0 and q == 0:
-            return Integer(1)
+        x1, x2 = self._ambient.gens()
+        if p == 0:
+            if q == 0:
+                return Integer(1)
+            if q > 0:
+                if self.b_matrix()[1,0] > 0:
+                    expoly = sum(Z[0][i]*x1**i for i in range(d0 + 1))
+                    return (expoly**a1).coefficient(x1**q)
+                    #return Integer((expoly**a1).coefficient(x1**q))
+                else:
+                    expoly = sum(Z[0][i]*x1**(d0 -i) for i in range(d0 + 1))
+                    return (expoly**a1).coefficient(x1**q)
+                    #return Integer((expoly**a1).coefficient(x1**q))
+        elif q == 0:
+            if self.b_matrix()[0,1] > 0:
+                expoly = sum(Z[1][i]*x2**i for i in range(d1 + 1))
+                return (expoly**a2).coefficient(x2**p)
+                #return Integer((expoly**a2).coefficient(x2**p))
+            else:
+                expoly = sum(Z[1][i]*x2**(d1 -i) for i in range(d1 + 1))
+                return (expoly**a2).coefficient(x2**p)
+                #return Integer((expoly**a2).coefficient(x2**p))            
         sum1 = 0
         for k in range(1, p + 1):
-            for wp in self.bddweakcompositions(p, d1, k):
+            for wp in self._bddweakcompositions(p, d1, k):
                 subt = sum((j+1)*wp[j] for j in range(d1))
-                prodt = prod(Z[1][d1 -i]** wp[i-1] for i in range(1, d1+1))
                 L = list(wp)
                 L.append(a2 - c*q - 1)
+                if self.b_matrix()[0,1] < 0:
+                    prodt = prod(Z[1][d1 -i]** wp[i-1] for i in range(1, d1+1))
+                else:
+                    prodt = prod(Z[1][i]**wp[i-1] for i in range(1,d1+1))
                 if p - subt >= 0:
-                    sum1 += (-1) ** (k - 1) * self._greedy_coefficient(d_vector, p - subt, q) *prodt * multinomial(L)
+                    try:
+                        sum1 += (-1) ** (k - 1) * self._greedy_coefficient(d_vector, p - subt, q) *prodt * multinomial(L)
+                    except TypeError:
+                        print("Cannot Continue Calculation")
+                        break
         #print sum1
-        sum11 = max(sum1,0)
+        sum11 = self._maxv(sum1,0)
+        #sum11 = max(sum1,0)
         sum2 = 0
         for l in range(1, q + 1):
-            for wp in self.bddweakcompositions(q, d0, l):
+            for wp in self._bddweakcompositions(q, d0, l):
                 subt = sum((j+1)*wp[j] for j in range(d0))
-                prodt = prod(Z[0][d0 - i]** wp[i-1] for i in range(1, d0+1))
                 L = list(wp)
                 L.append(a1 - b*p- 1)
+                if self.b_matrix()[1,0] < 0:
+                    prodt = prod(Z[0][d0 -i]** wp[i-1] for i in range(1, d0+1))
+                else:
+                    prodt = prod(Z[0][i]**wp[i-1] for i in range(1,d0+1))
                 if q-subt >=0:
-                    sum2 += (-1) ** (l- 1) * self._greedy_coefficient(d_vector, p, q - subt) * prodt * multinomial(L)
-        sum22 = max(sum2,0)
-        return Integer(max(sum11, sum22))    
-        
-    def bddweakcompositions(self, p, d, k):
-        if p >= k >= 0 and d == 1:
-            listofcomps = [[k]]
-            return listofcomps
-        else:
-            listofcomps = []
-        if d == 0:
-            return listofcomps
-        for i in range((p/d).floor()+1):
-            smallcomps = self.bddweakcompositions3(p - d*i, d-1, k-i)
-            for thing in smallcomps:
-                if (d > 1) or (d == 1 and i + sum(thing[l] for l in range(d-1)) == k):
-                    thing.append(i)                 
-                    listofcomps.append(thing)
-        return listofcomps   
-                
-        
+                    try:
+                        sum2 += (-1) ** (l- 1) * self._greedy_coefficient(d_vector, p, q - subt) * prodt * multinomial(L)
+                    except TypeError:
+                        print("Cannot Continue Calculation")
+                        break                        
+        sum22 = self._maxv(sum2,0)
+        #sum22 = max(sum2,0)
+        try:  ## check syntax
+            #sol = Integer(max(sum11, sum22))
+            sol = max(sum11, sum22)
+            return sol
+        except TypeError:  ## check syntax
+            print("Will need to use Theorem 2.15 of [R13], not yet implement")
+        #return Integer(max(sum11, sum22))    
+
     # DESIDERATA
     # Some of these are probably unrealistic
     def upper_cluster_algebra(self):
