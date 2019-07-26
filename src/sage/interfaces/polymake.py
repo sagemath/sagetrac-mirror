@@ -1380,6 +1380,27 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             return P(self._name + "{" + key + "}")
         raise NotImplementedError("Cannot get items from Perl type {}".format(T))
 
+    def __setitem__(self, key, value):
+        """
+        Set an element of an array.
+
+        EXAMPLES::
+
+            sage: V = polymake.new_object('Vector', [1,0,0])    # optional - polymake
+            sage: V                                             # optional - polymake
+            1 0 0
+            sage: V[1] = 42
+            sage: V
+            1 42 0
+
+        """
+        P = self._check_valid()
+        _, T = self.typeof()
+        if T == 'ARRAY':
+            P.eval('{}->[{}] = {};'.format(self._name, key, P(value)._name))
+        else:
+            raise NotImplementedError("Cannot set items of Perl type {}".format(T))
+
     def __iter__(self):
         """
         Return an iterator for ``self``.
