@@ -105,6 +105,7 @@ sage.categories.modules_with_basis; see :trac:`8678` for the complete log.
 #******************************************************************************
 from __future__ import print_function
 from six import iteritems
+import numbers
 
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
@@ -1451,8 +1452,7 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
                 domain.base_ring()    == codomain.base_ring()):
             raise ValueError("The domain and codomain should have the same base ring "
                              "and the same basis indexing")
-        import collections
-        if not isinstance(diagonal, collections.Callable):
+        if not callable(diagonal) or isinstance(diagonal, numbers.Integral):
             raise ValueError("diagonal (=%s) should be a function"%diagonal)
         if category is None:
             category = ModulesWithBasis(domain.base_ring())
