@@ -88,7 +88,7 @@ We begin by creating a simple cluster algebra and printing its
 initial exchange matrix::
 
     sage: A = ClusterAlgebra(['A', 2]); A
-    A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
+    A Cluster Algebra with cluster variables x0, x1 and no coefficients over Rational Field
     sage: A.b_matrix()
     [ 0  1]
     [-1  0]
@@ -131,32 +131,47 @@ Simple operations among cluster variables behave as expected::
 
 Several examples using Generalized Cluster Algebras, including Exchange Coefficients that can be formal variables.  Eventually will work for non-integer scalars also, but currently breaks::
 
-    sage: Agen = ClusterAlgebra(['A',2],d=(1,3))
-    sage: Agen2 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),sqrt(2),1)),scalars=RR)
-    sage: Agen3 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),sqrt(2),1)),scalars=ZZ[sqrt(2)])
+    sage: Agen = ClusterAlgebra(['A',2],d=(1,3)); Agen # formal variables for exchange coeffs by default
+    A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Multivariate Polynomial Ring in z1_1, z1_2 over Rational Field with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, z1_1, z1_2, 1))
+    sage: Agen2 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,1,1,1))); Agen2
+    A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Rational Field with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, 1, 1, 1))
+    sage: Agen3 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1)),scalars=QQ[sqrt(2)]); Agen3
+    A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095? with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, sqrt2, 1, 1))
+    sage: Agen4 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1))); Agen4 # scalars automatically populated
+    A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in a with defining polynomial y^2 - 2 with a = 1.414213562373095? with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, a, 1, 1))
+
+    # sage: Agen5 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1)),scalars=RR); Agen5  ## this example currently won't allow double-division and will print warnings
+
     sage: Agen.explore_to_depth(infinity)
     sage: Agen2.explore_to_depth(infinity)
     sage: Agen3.explore_to_depth(infinity)
-    sage: Agen.F_polynomials_so_far()
-    [1, u0 + 1, u0*u1^3 + z1_2*u0*u1^2 + z1_1*u0*u1 + u0 + 1, u0^2*u1^3 + z1_2*u0^2*u1^2 + z1_1*u0^2*u1 + u0^2 + z1_1*u0*u1 + 2*u0 + 1, 
-    u0^3*u1^6 + 2*z1_2*u0^3*u1^5 + (z1_2^2 + 2*z1_1)*u0^3*u1^4 + (2*z1_1*z1_2 + 2)*u0^3*u1^3 + z1_1*u0^2*u1^4 + (z1_1^2 + 2*z1_2)*u0^3*u1^2 + 
-    (z1_1*z1_2 + 3)*u0^2*u1^3 + 2*z1_1*u0^3*u1 + (z1_1^2 + 3*z1_2)*u0^2*u1^2 + u0^3 + 4*z1_1*u0^2*u1 + z1_2*u0*u1^2 + 3*u0^2 + 2*z1_1*u0*u1 + 3*u0 + 1, 
-    u0^3*u1^3 + z1_2*u0^3*u1^2 + z1_1*u0^3*u1 + z1_2*u0^2*u1^2 + u0^3 + 2*z1_1*u0^2*u1 + 3*u0^2 + z1_1*u0*u1 + 3*u0 + 1, u1^3 + z1_2*u1^2 + z1_1*u1 + 1, 1]
+    sage: Agen4.explore_to_depth(infinity)
+
     sage: Agen.F_polynomial((-2,1))
     u0^2*u1^3 + z1_2*u0^2*u1^2 + z1_1*u0^2*u1 + u0^2 + z1_1*u0*u1 + 2*u0 + 1
+    sage: Agen2.F_polynomial((-2,1))
+    u0^2*u1^3 + u0^2*u1^2 + u0^2*u1 + u0^2 + u0*u1 + 2*u0 + 1
+    sage: Agen3.F_polynomial((-2,1))
+    u0^2*u1^3 + u0^2*u1^2 + (sqrt2)*u0^2*u1 + u0^2 + (sqrt2)*u0*u1 + 2*u0 + 1
+    sage: Agen4.F_polynomial((-2,1))
+    u0^2*u1^3 + u0^2*u1^2 + (a)*u0^2*u1 + u0^2 + (a)*u0*u1 + 2*u0 + 1
+
     sage: Agen.cluster_variable((-2,1))
     (x0^3 + z1_2*x0^2 + z1_1*x0*x1 + x1^2 + z1_1*x0 + 2*x1 + 1)/(x0^2*x1)
-    sage: Agen2.F_polynomial((-2,1))  ## should be fixed
-    (1.00000000000000*u0^3*u1^3 + 1.00000000000000*sqrt(2)*(1.00000000000000*u0 + 1.00000000000000)*u0^2*u1^2 + 1.00000000000000*u0^2*u1^3 + 1.00000000000000*sqrt(2)*(1.00000000000000*u0^2 +
-     2.00000000000000*u0 + 1.00000000000000)*u0*u1 + 1.00000000000000*u0^3 + 3.00000000000000*u0^2 + 3.00000000000000*u0 + 1.00000000000000)/(1.00000000000000*u0 + 1.00000000000000)
-    sage: Agen2.cluster_variable((-2,1))  ## should be fixed
-    Traceback (most recent call last):
-            ...
-    TypeError: u0 is not a variable of Multivariate Laurent Polynomial Ring in x0, x1 over Real Field with 53 bits of precision
-    sage: Agen3.F_polynomial((-2,1))
-    (u0^3*u1^3 + sqrt(2)*(u0 + 1)*u0^2*u1^2 + u0^2*u1^3 + sqrt(2)*(u0^2 + 2*u0 + 1)*u0*u1 + u0^3 + 3*u0^2 + 3*u0 + 1)/(u0 + 1)
-    sage: Agen3.cluster_variable((-2,1))  ## should be fixed
-    <repr(<sage.algebras.cluster_algebra.ClusterAlgebra_with_category.element_class at 0x1501da368>) failed: TypeError: unable to coerce since the denominator is not 1>
+    sage: Agen2.cluster_variable((-2,1))
+    (x0^3 + x0^2 + x0*x1 + x1^2 + x0 + 2*x1 + 1)/(x0^2*x1)
+    sage: Agen3.cluster_variable((-2,1))
+    (x0^3 + x0^2 + (sqrt2)*x0*x1 + x1^2 + (sqrt2)*x0 + 2*x1 + 1)/(x0^2*x1)
+    sage: Agen4.cluster_variable((-2,1))
+    (x0^3 + x0^2 + (a)*x0*x1 + x1^2 + (a)*x0 + 2*x1 + 1)/(x0^2*x1)
+
+    # sage: Agen5.cluster_variable((-2,1)) does not currently work
+
+    sage: Agen22 = ClusterAlgebra(['A',2],d=(2,2),Z=((1,sqrt(2),1),(1,sqrt(3),1))); Agen22
+    A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a = 0.5176380902050415? with degree vector (2, 2) and exchange polynomial coefficients ((1, -a^3 + 3*a, 1), (1, -a^2 + 2, 1))
+    sage: Agen22.explore_to_depth(4)
+    sage: Agen22.F_polynomial((-2,3))
+    u0^4*u1^2 + (-a^2 + 2)*u0^4*u1 + u0^4 + (-a^3 + 5*a)*u0^3*u1 + (-2*a^3 + 6*a)*u0^3 + (-a^2 + 2)*u0^2*u1 + 4*u0^2 + (-2*a^3 + 6*a)*u0 + 1
 
 Division is not guaranteed to yield an element of ``A`` so it returns an
 element of ``A.ambient().fraction_field()`` instead::
@@ -227,7 +242,7 @@ it could be useful to assign a name to it::
     4
     sage: A.current_seed()
     The initial seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
-     and no coefficients over Integer Ring
+     and no coefficients over Rational Field
     sage: A.current_seed() == A.initial_seed()
     True
     sage: S = A.current_seed()
@@ -248,7 +263,7 @@ and use ``S`` to walk around the exchange graph of ``A``::
 
     sage: S.mutate(0); S
     The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
-     and no coefficients over Integer Ring obtained from the initial
+     and no coefficients over Rational Field obtained from the initial
      by mutating in direction 0
     sage: S.b_matrix()
     [ 0 -1  0  0]
@@ -264,11 +279,11 @@ and use ``S`` to walk around the exchange graph of ``A``::
     [(x1 + 1)/x0, x1, x2, x3]
     sage: S.mutate('sinks'); S
     The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
-     and no coefficients over Integer Ring obtained from the initial
+     and no coefficients over Rational Field obtained from the initial
      by mutating along the sequence [0, 2]
     sage: S.mutate([2, 3, 2, 1, 0]); S
     The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
-     and no coefficients over Integer Ring obtained from the initial
+     and no coefficients over Rational Field obtained from the initial
      by mutating along the sequence [0, 3, 2, 1, 0]
     sage: S.g_vectors()
     [(0, 1, -2, 0), (-1, 2, -2, 0), (0, 1, -1, 0), (0, 0, 0, -1)]
@@ -349,10 +364,10 @@ the two algebras::
 
     sage: A = ClusterAlgebra(['F', 4]); A
     A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients
-     over Integer Ring
+     over Rational Field
     sage: A1 = ClusterAlgebra(A.b_matrix().matrix_from_columns([0, 1, 2]), coefficient_prefix='x'); A1
     A Cluster Algebra with cluster variables x0, x1, x2 and coefficient x3
-     over Integer Ring
+     over Rational Field
     sage: A.has_coerce_map_from(A1)
     True
 
@@ -369,7 +384,7 @@ mutating at the initial seed::
 
     sage: A1 = A.mutate_initial(0); A1
     A Cluster Algebra with cluster variables x4, x1, x2, x3 and no coefficients
-     over Integer Ring
+     over Rational Field
     sage: A.b_matrix() == A1.b_matrix()
     False
     sage: [X.has_coerce_map_from(Y) for X, Y in [(A, A1), (A1, A)]]
@@ -413,6 +428,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import (LaurentPolynomialRing_generic,
                                                            LaurentPolynomialRing)
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
@@ -493,12 +509,12 @@ class ClusterAlgebraElement(ElementWrapper):
             1
             sage: _.parent()
             Multivariate Laurent Polynomial Ring in x0, x1, x2, x3
-             over Integer Ring
+             over Rational Field
             sage: A.retract(x/x)
             1
             sage: _.parent()
             A Cluster Algebra with cluster variables x0, x1, x2, x3
-             and no coefficients over Integer Ring
+             and no coefficients over Rational Field
         """
         return self.lift() / other.lift()
 
@@ -668,7 +684,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: from sage.algebras.cluster_algebra import ClusterAlgebraSeed
             sage: ClusterAlgebraSeed(A.b_matrix(), identity_matrix(4), identity_matrix(4), (1,1,1,1), ((1,1),(1,1),(1,1),(1,1)), A, path=[1, 2, 3])
             The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
-             and no coefficients over Integer Ring obtained from the initial
+             and no coefficients over Rational Field obtained from the initial
              by mutating along the sequence [1, 2, 3]
         """
         self._B = copy(B)
@@ -798,14 +814,14 @@ class ClusterAlgebraSeed(SageObject):
             sage: A.clear_computed_data()
             sage: S = A.current_seed(); S
             The initial seed of a Cluster Algebra with cluster variables x0, x1, x2
-             and no coefficients over Integer Ring
+             and no coefficients over Rational Field
             sage: S.mutate(0); S
             The seed of a Cluster Algebra with cluster variables x0, x1, x2
-             and no coefficients over Integer Ring obtained from the initial
+             and no coefficients over Rational Field obtained from the initial
              by mutating in direction 0
             sage: S.mutate(1); S
             The seed of a Cluster Algebra with cluster variables x0, x1, x2
-             and no coefficients over Integer Ring obtained from the initial
+             and no coefficients over Rational Field obtained from the initial
              by mutating along the sequence [0, 1]
         """
         if self._path == []:
@@ -1118,7 +1134,7 @@ class ClusterAlgebraSeed(SageObject):
             sage: S = A.initial_seed()
             sage: S.mutate(0); S
             The seed of a Cluster Algebra with cluster variables x0, x1
-             and no coefficients over Integer Ring obtained from the initial
+             and no coefficients over Rational Field obtained from the initial
              by mutating in direction 0
             sage: S.mutate(5)
             Traceback (most recent call last):
@@ -1251,6 +1267,10 @@ class ClusterAlgebraSeed(SageObject):
         try:
             return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) // alg.F_polynomial(old_g_vector)
         except:
+            ## For debugging purposes.  With changes on 7-23-19, double-division (i.e. division with remainder) should work.
+            print("Couldn't do double-division")
+            print("Numerator:", sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ))
+            print("Denominator:", alg.F_polynomial(old_g_vector))  
             return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) / alg.F_polynomial(old_g_vector)
 
 ##############################################################################
@@ -1270,7 +1290,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
     
     - ``Z`` -- a tuple of tuples of exchange polynomial coefficients of ``self``
 
-    - ``scalars`` -- a ring (default `\ZZ`); the scalars over
+    - ``scalars`` -- a ring (default `\QQ`); the scalars over
       which the cluster algebra is defined
 
     - ``cluster_variable_prefix`` -- string (default ``'x'``); it needs to be
@@ -1301,12 +1321,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         sage: B = matrix([(0, 1, 0, 0), (-1, 0, -1, 0), (0, 1, 0, 1), (0, 0, -2, 0), (-1, 0, 0, 0), (0, -1, 0, 0)])
         sage: A = ClusterAlgebra(B); A
         A Cluster Algebra with cluster variables x0, x1, x2, x3
-         and coefficients y0, y1 over Integer Ring
+         and coefficients y0, y1 over Rational Field
         sage: A.gens()
         (x0, x1, x2, x3, y0, y1)
         sage: A = ClusterAlgebra(['A', 2]); A
         A Cluster Algebra with cluster variables x0, x1 and no coefficients
-         over Integer Ring
+         over Rational Field
         sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A.gens()
         (x0, x1, y0, y1)
         sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x'); A.gens()
@@ -1334,7 +1354,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
             A Cluster Algebra with cluster variables x0, x1 and no coefficients
-            over Integer Ring
+            over Rational Field
         """
         Q = ClusterQuiver(data)
         
@@ -1382,14 +1402,27 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         kwargs.setdefault('next_free_index',nfi)
         
         # Determine scalars
+        from sage.rings.qqbar import number_field_elements_from_algebraics
         var_switch = d != (1,)*n and not kwargs.get('Z', False)
-        scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,d[i])] for i in range(n)])) if var_switch else ZZ)
+        
+        if not var_switch:
+            Z00 = kwargs.get('Z')
+            if kwargs.get('scalars', 0) is PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,d[i])] for i in range(n)])):
+                var_switch = True
+                
+        scalars = kwargs.get('scalars', PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,d[i])] for i in range(n)])) if var_switch else number_field_elements_from_algebraics(flatten([[Z00[i][j] for j in range(1,d[i])] for i in range(n)]),embedded=True)[0]) 
 
         # Exchange polynomial coefficients
+#        if var_switch or d == (1,)*n:
+#            Z0 = tuple((1,)+tuple([scalars('z%s_%s' % (i,j)) for j in range(1,d[i])])+(1,) for  i in range(n))
+#        else:
+#            Z0 = kwargs.get('Z')
+            
         if var_switch or d == (1,)*n:
             Z0 = tuple((1,)+tuple([scalars('z%s_%s' % (i,j)) for j in range(1,d[i])])+(1,) for  i in range(n))
         else:
-            Z0 = kwargs.get('Z')
+            Z0 = tuple((1,)+tuple([scalars(Z00[i][j]) for j in range(1,d[i])])+(1,) for  i in range(n))  
+        ## This coercion is needed so it doesn't dump us back into symbolic ring  
         
         # consistency checking  for exchange coefficients
         if len(Z0) != n:
@@ -1399,6 +1432,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
         if not prod(flatten([[Z0[i][j] in scalars for j in range(1,d[i])] for i in range(n)])):
             raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
+        
+        # consistency checking  for exchange coefficients
+#        if len(Z0) != n:
+#            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
+#        for i in range(len(Z0)):
+#            if len(Z0[i]) != d[i] + 1:
+#                raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
+#        if not prod(flatten([[Z0[i][j] in scalars for j in range(1,d[i])] for i in range(n)])):
+#            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
 
         return super(ClusterAlgebra,self).__classcall__(self,B0,**kwargs)
         
@@ -1454,15 +1496,27 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._next_free_index = kwargs['next_free_index']
         
         # Determine scalars
+        from sage.rings.qqbar import number_field_elements_from_algebraics
         var_switch = self._d != (1,)*self._n and not kwargs.get('Z', False)
-        self._scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else ZZ)
-
+#<<<<<<< HEAD
         # Get exchange polynomial coefficients
+#        if var_switch or self._d == (1,)*self._n:
+#            self._Z0 = tuple((1,)+tuple([self._scalars('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
+#        else:
+#            self._Z0 = kwargs.get('Z')
+            
+        if not var_switch:
+            Z00 = kwargs.get('Z')
+            if kwargs.get('scalars', 0) is PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])):
+                var_switch = True
+                
+        self._scalars = kwargs.get('scalars', PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else number_field_elements_from_algebraics(flatten([[Z00[i][j] for j in range(1,self._d[i])] for i in range(self._n)]),embedded=True)[0]) 
+
+
         if var_switch or self._d == (1,)*self._n:
             self._Z0 = tuple((1,)+tuple([self._scalars('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
         else:
-            self._Z0 = kwargs.get('Z')
-            
+            self._Z0 = tuple((1,)+tuple([self._scalars(Z00[i][j]) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))  
                     
         # Ambient space for F-polynomials, by default this contains formal exchange polynomial
         # coefficient if none are provided
@@ -1471,7 +1525,32 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # the result to polynomials but then we get "rational" coefficients
             
         # scalars
-        self._scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else ZZ)
+#=======
+#        if not var_switch:
+#            Z00 = kwargs.get('Z')
+#            if kwargs.get('scalars', 0) is PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])):
+#                var_switch = True
+        # in the above, if already formal variables, parses input to stay that way
+#        self._scalars = kwargs.get('scalars', PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else number_field_elements_from_algebraics(flatten([[Z00[i][j] for j in range(1,self._d[i])] for i in range(self._n)]),embedded=True)[0]) 
+        # The above code will build the smallest number field (embedded in RR or CC) containing all of the z_i's, if scalars is not given by the user. 
+        # TO DO: allow hybrid of formal z_i's and algebraic z_i's.  Currently allows one or the other.
+#        self._U = PolynomialRing(self._scalars, ['u%s' % i for i in range(self._n)])
+
+#        if var_switch or self._d == (1,)*self._n:
+#            self._Z0 = tuple((1,)+tuple([self._scalars('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
+#        else:
+#            self._Z0 = tuple((1,)+tuple([self._scalars(Z00[i][j]) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))  
+## This coercion is needed so it doesn't dump us back into symbolic ring  
+        
+        # consistency checking  for exchange coefficients
+#        if len(self._Z0) != self._n:
+#            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
+#        for i in range(len(self._Z0)):
+#            if len(self._Z0[i]) != self._d[i] + 1:
+#                raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
+#        if not prod(flatten([[self._Z0[i][j] in self._scalars for j in range(1,self._d[i])] for i in range(self._n)])):
+#            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
+#>>>>>>> 59f9d7bc61fafc2b736a159c9ad8450fd80ae43a
 
         self._U = PolynomialRing(self._scalars, ['u%s' % i for i in range(self._n)])
         
@@ -1513,7 +1592,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
             sage: A.ambient()
-            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
+            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Rational Field
         """
         return self._ambient
 
@@ -1525,7 +1604,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.scalars()
-            Integer Ring
+            Rational Field
         """
         return self._scalars
 
@@ -1538,7 +1617,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
             sage: x = A.cluster_variable((1, 0))
             sage: A.lift(x).parent()
-            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Integer Ring
+            Multivariate Laurent Polynomial Ring in x0, x1, y0, y1 over Rational Field
         """
         return self.ambient()(x.value)
 
@@ -1552,7 +1631,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: L = A.ambient()
             sage: x = L.gen(0)
             sage: A.retract(x).parent()
-            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Rational Field
         """
         return self(x)
 
@@ -1681,17 +1760,17 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(matrix(1), principal_coefficients=True); A
             A Cluster Algebra with cluster variable x0
-             and coefficient y0 over Integer Ring
+             and coefficient y0 over Rational Field
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
             A Cluster Algebra with cluster variables x0, x1
-             and coefficients y0, y1 over Integer Ring
+             and coefficients y0, y1 over Rational Field
             sage: A = ClusterAlgebra(['A',2],d=(2,1)); A
             A Generalized Cluster Algebra with cluster variables x0, x1
-             and no coefficients over Univariate Polynomial Ring in z0_1 over Integer Ring with degree vector (2, 1)
+             and no coefficients over Univariate Polynomial Ring in z0_1 over Rational Field with degree vector (2, 1)
               and exchange polynomial coefficients ((1, z0_1, 1), (1, 1))  
             sage: A = ClusterAlgebra(['A',2],d=(3,1),Z=((1,1,1,1),(1,1))); A
             A Generalized Cluster Algebra with cluster variables x0, x1
-             and no coefficients over Integer Ring with degree vector (3, 1) 
+             and no coefficients over Rational Field with degree vector (3, 1) 
              and exchange polynomial coefficients ((1, 1, 1, 1), (1, 1))
         """
         var_names = self.initial_cluster_variable_names()
@@ -1807,7 +1886,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
             A Cluster Algebra with cluster variables x0, x1
-             and coefficients y0, y1 over Integer Ring
+             and coefficients y0, y1 over Rational Field
             sage: A.rank()
             2
         """
@@ -1823,7 +1902,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.clear_computed_data()
             sage: A.current_seed()
             The initial seed of a Cluster Algebra with cluster variables x0, x1
-             and no coefficients over Integer Ring
+             and no coefficients over Rational Field
         """
         return self._seed
 
@@ -1910,7 +1989,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
-            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Rational Field
             sage: S = copy(A.current_seed())
             sage: A.contains_seed(S)
             True
@@ -1927,7 +2006,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.initial_seed()
-            The initial seed of a Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
+            The initial seed of a Cluster Algebra with cluster variables x0, x1 and no coefficients over Rational Field
         """
         n = self.rank()
         I = identity_matrix(n)
@@ -2193,7 +2272,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             ...
             ValueError: (1, 1) is not the g-vector of any cluster variable of a
              Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1
-             over Integer Ring
+             over Rational Field
         """
         g_vector = tuple(g_vector)
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
@@ -2531,9 +2610,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             Check that :trac:`28176` is fixed::
 
             sage: A = ClusterAlgebra( matrix(5,[0,1,-1,1,-1]), cluster_variable_names=['p13'], coefficient_names=['p12','p23','p34','p41']); A
-            A Cluster Algebra with cluster variable p13 and coefficients p12, p23, p34, p41 over Integer Ring
+            A Cluster Algebra with cluster variable p13 and coefficients p12, p23, p34, p41 over Rational Field
             sage: A.mutate_initial(0)
-            A Cluster Algebra with cluster variable x0 and coefficients p12, p23, p34, p41 over Integer Ring
+            A Cluster Algebra with cluster variable x0 and coefficients p12, p23, p34, p41 over Rational Field
 
             sage: A1 = ClusterAlgebra(['A',[2,1],1])
             sage: A2 = A1.mutate_initial([0,1,0],mutating_F=True)
@@ -2720,8 +2799,45 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 bino = binomial(a1 - b * p + l - 1, l)
             sum2 += (-1) ** (l - 1) * self._greedy_coefficient_old(d_vector, p, q - l) * bino
         return Integer(max(sum1, sum2))
+
         
+    def _maxv(self, a,b):
+        r"""   
+        Used as a fix in the greedy coefficient method
+        """        
+        try:
+            return max(a,b)
+        except TypeError:
+            return max( a.coefficient(), b.coefficient())
+    
         
+    def _bddweakcompositions(self, p, d, k):
+        r"""
+        Computes the number of weak compositions of k into d parts , call it (a_1, ..., a_d), such that p - (a_1 + 2*a_2 + ... + d*a_d) is nonnegative. 
+        This function is used in computing coefficients of the greedy basis for cluster algebras following [R2013]. 
+            
+         EXAMPLES::
+
+        sage: B = ClusterAlgebra(['A',2], d = (2,1), Z = ((1,2,1),(1,1)))
+        sage: B._bddweakcompositions(3,2,2)
+        [[2, 0], [1, 1]]
+        """
+        if p >= k >= 0 and d == 1:
+            listofcomps = [[k]]
+            return listofcomps
+        else:
+            listofcomps = []
+        if d == 0:
+            return listofcomps
+        for i in range((p/d).floor()+1):
+            smallcomps = self._bddweakcompositions(p - d*i, d-1, k-i)
+            for thing in smallcomps:
+                if (d > 1) or (d == 1 and i + sum(thing[l] for l in range(d-1)) == k):
+                    thing.append(i)                 
+                    listofcomps.append(thing)
+        return listofcomps
+
+
     def greedy_element(self, d_vector):
         r"""
         Return the greedy element with denominator vector ``d_vector``.
@@ -2746,10 +2862,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A',[1,1],1])
             sage: A.greedy_element((3,3)) == A.greedy_element_old((3,3))
             True
-            sage: A.greedy_element((3,5)) == A.greedy_element_old((3,5))
+            sage: Asq = ClusterAlgebra(['A',2],d = (3,1), Z = ((1,sqrt(2),sqrt(3),1),(1,1))); S = Asq.initial_seed(); S.mutate([0,1,0,1]); Asq.cluster_variable((-1,2))
+            (x1^3 + (-a^3 + 3*a)*x1^2 + x0 + (-a^2 + 2)*x1 + 1)/(x0*x1)
+            sage: Asq.greedy_element((1,1)) == Asq.cluster_variable((-1,2))
             True
-            sage: A.greedy_element((4,5)) == A.greedy_element_old((4,5))
+            sage: AZ = ClusterAlgebra(['A',2],d = (3,1)); SZ = AZ.initial_seed(); SZ.mutate([0,1,0,1]); AZ.cluster_variable((-1,2))
+            (x1^3 + z0_1*x1^2 + x0 + z0_2*x1 + 1)/(x0*x1)
+            sage: AZ.cluster_variable((-1,2)) == AZ.greedy_element((1,1))
             True
+
         """
         if self.rank() != 2:
             raise ValueError('greedy elements are only defined in rank 2')
@@ -2759,6 +2880,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         b = abs(self.b_matrix()[0, 1])
         c = abs(self.b_matrix()[1, 0])
+        
         a1, a2 = d_vector
         d0 = self._d[0]
         d1 = self._d[1]
@@ -2766,32 +2888,72 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # Here we use the generators of self.ambient() because cluster variables
         #   do not have an inverse.
         x1, x2 = self.ambient().gens()
-        if a1 < 0:
-            if a2 < 0:
+        if a1 <= 0:
+            if a2 <= 0:
                 return self.retract(x1 ** (-a1) * x2 ** (-a2))
+            elif self.b_matrix()[0,1] > 0:
+                return self.retract(x2 ** (-a1) * ((sum(Z[1][i]*x1**(c*i)  for i in range(d1 + 1)))/ x2) ** a2)
             else:
-                return self.retract(x1 ** (-a1) * (sum(Z[1][i] * x2 ** (c * i) for i in range(d1 + 1)) / x1) ** a2)
-        elif a2 < 0:
-            return self.retract(x2 ** (-a2) * (sum(Z[0][i] * x1 ** (b * i) for i in range(d0 + 1)) / x2) ** a1)
+                return self.retract(x2 ** (-a1) * ((sum(Z[1][i]*x1**(c*(d1 - i))  for i in range(d1 + 1)))/ x2) ** a2)
+        elif a2 <= 0:
+            if self.b_matrix()[1,0] < 0:
+                return self.retract(x1 ** (-a2) * ((sum(Z[0][i]*x2**(b*(d0 - i))  for i in range(d0 + 1)))/ x1) ** a1)
+            else:
+                return self.retract(((sum(Z[0][i] * x2**(b*i) for i in range(d0 + 1))) / x1) ** a1 * x1 ** (-a2)) 
         output = 0
-        for p in range(0, d1*a2 + 1):
-            for q in range(0, d0*a1 + 1):
-                output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b * p) * x2 ** (c * q)
+        #at this point we know that a1 and a2 are positive
+        #using Proposition 4.22 of [R2013] to cut down number of coefficients computed.
+        if d1*a2 <= a1:
+            for p in range(0, d1*a2 + 1):
+                for q in range(0, d0*a1 + 1 - p*d0):
+                    output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+        elif d0*a1 <= a2:
+            for q in range (0,d0*a1 + 1):
+                for p in range(0, d1*a2 + 1 - q*d1):
+                    output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+        else:
+            for q in range(0,a1 + 1):
+                for p in range (0, (((a2 - d1*a2)/a1)*q + d1*a2).ceil() + 1 ):
+                    output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)
+            if d0 > 1:    
+                for q in range(a1 + 1, d0*a1 + 1):
+                    for p in range(0, ( (-a2/((d0 - 1)*a1))  *(q - d0*a1) ).ceil() + 1):#this sometimes results in dividing by zero
+                        output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b*p) * x2 ** (c*q)          
         return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
 
-    
-    @cached_method
     def _greedy_coefficient(self, d_vector, p, q):
-#        if self._d[0] > 1:
- #           d0 = self._d[0]
- #       else:
- #           d0 = abs(self.b_matrix()[0, 1])
- #       if self._d[1] > 1:
- #           d1 = self._d[1]
-  #      else:
-  #          d1 = abs(self.b_matrix()[1, 0])
-        #print '(p,q) = ' + str((p,q))
-        Z = self._Z0
+        r"""
+        Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)``
+        in the numerator of the greedy element with denominator vector ``d_vector``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', [1, 1], 1])
+            sage: A.greedy_element((1, 1))
+            (x0^2 + x1^2 + 1)/(x0*x1)
+            sage: A._greedy_coefficient((1, 1), 0, 0)
+            1
+            sage: A._greedy_coefficient((1, 1), 1, 0)
+            1
+            sage: B = ClusterAlgebra(['A',2], d = (2,1), Z = ((1,2,1),(1,1)))
+            sage: B.greedy_element((1,1))
+            (x1^2 + x0 + 2*x1 + 1)/(x0*x1)
+            sage: B._greedy_coefficient((1,1),2,0)
+            0
+            sage: B._greedy_coefficient((1,1),0,2)
+            1
+            sage: B._greedy_coefficient((1,1),0,1)
+            2
+            sage: Asq = ClusterAlgebra(['A',2],d = (3,1), Z = ((1,sqrt(2),sqrt(3),1),(1,1))); Asq.greedy_element((2,3))
+            (x1^6 + (-a^2 + 2)*x0*x1^4 + (-2*a^3 + 6*a)*x1^5 + (-a^3 + 3*a)*x0^2*x1^2 + (-a^3 + 5*a + 3)*x0*x1^3 + (-2*a^2 + 6)*x1^4 + x0^3 + (-2*a^2 + 4)*x0^2*x1 + (-3*a^3 + 9*a + 3)*x0*x1^2 + (-2*a^3 + 10*a + 2)*x1^3 + 3*x0^2 + (-4*a^2 + 8)*x0*x1 + (-2*a^3 + 6*a + 3)*x1^2 + 3*x0 + (-2*a^2 + 4)*x1 + 1)/(x0^2*x1^3)
+            sage: Asq._greedy_coefficient((2,3),2,2)
+            -a^3 + 3*a
+            sage: AZ = ClusterAlgebra(['A',2],d = (3,1)); AZ.greedy_element((2,3))
+            (x1^6 + z0_2*x0*x1^4 + 2*z0_1*x1^5 + z0_1*x0^2*x1^2 + (z0_1*z0_2 + 3)*x0*x1^3 + (z0_1^2 + 2*z0_2)*x1^4 + x0^3 + 2*z0_2*x0^2*x1 + (z0_2^2 + 3*z0_1)*x0*x1^2 + (2*z0_1*z0_2 + 2)*x1^3 + 3*x0^2 + 4*z0_2*x0*x1 + (z0_2^2 + 2*z0_1)*x1^2 + 3*x0 + 2*z0_2*x1 + 1)/(x0^2*x1^3)
+            sage: AZ._greedy_coefficient((2,3),1,3)
+            z0_1*z0_2 + 3
+        """
+        Z = self._Z0  
         d0 = self._d[0]
         d1 = self._d[1]
         b = abs(self.b_matrix()[0, 1])
@@ -2799,51 +2961,57 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         a1, a2 = d_vector
         p = Integer(p)
         q = Integer(q)
-        if p == 0 and q == 0:
-            return Integer(1)
+        x1, x2 = self._ambient.gens()
+        if p == 0:
+            if q == 0:
+                return Integer(1)
+            if q > 0:
+                if self.b_matrix()[1,0] > 0:
+                    expoly = sum(Z[0][i]*x1**i for i in range(d0 + 1))
+                    return (expoly**a1).coefficient(x1**q)
+                else:
+                    expoly = sum(Z[0][i]*x1**(d0 -i) for i in range(d0 + 1))
+                    return (expoly**a1).coefficient(x1**q)
+        elif q == 0:
+            if self.b_matrix()[0,1] > 0:
+                expoly = sum(Z[1][i]*x2**i for i in range(d1 + 1))
+                return (expoly**a2).coefficient(x2**p)
+            else:
+                expoly = sum(Z[1][i]*x2**(d1 -i) for i in range(d1 + 1))
+                return (expoly**a2).coefficient(x2**p)        
         sum1 = 0
         for k in range(1, p + 1):
-            for wp in self.bddweakcompositions(p, d1, k):
-                subt = sum( (j + 1) * wp[j] for j in range(d1))
-                prodt = prod( Z[1][d1 -i] ** wp[i-1] for i in range(1, d1+1))
+            for wp in self._bddweakcompositions(p, d1, k):
+                subt = sum((j+1)*wp[j] for j in range(d1))
                 L = list(wp)
-                L.append(a2 - c * q - 1)
+                L.append(a2 - c*q - 1)
+                if self.b_matrix()[0,1] < 0:
+                    prodt = prod(Z[1][d1 -i]** wp[i-1] for i in range(1, d1+1))
+                else:
+                    prodt = prod(Z[1][i]**wp[i-1] for i in range(1,d1+1))
                 if p - subt >= 0:
                     sum1 += (-1) ** (k - 1) * self._greedy_coefficient(d_vector, p - subt, q) *prodt * multinomial(L)
-        #print sum1
-        sum11 = max(sum1,0)
+        sum11 = self._maxv(sum1,0)
         sum2 = 0
         for l in range(1, q + 1):
-            for wp in self.bddweakcompositions(q, d0, l):
-                subt = sum( (j + 1) * wp[j] for j in range(d0))
-                prodt = prod( Z[0][d0 - i] ** wp[i-1] for i in range(1, d0+1))
+            for wp in self._bddweakcompositions(q, d0, l):
+                subt = sum((j+1)*wp[j] for j in range(d0))
                 L = list(wp)
-                L.append(a1 - b * p - 1)
+                L.append(a1 - b*p- 1)
+                if self.b_matrix()[1,0] < 0:
+                    prodt = prod(Z[0][d0 -i]** wp[i-1] for i in range(1, d0+1))
+                else:
+                    prodt = prod(Z[0][i]**wp[i-1] for i in range(1,d0+1))
                 if q-subt >=0:
-                    sum2 += (-1) ** (l- 1) * self._greedy_coefficient(d_vector, p, q - subt) * prodt * multinomial(L)
-        sum22 = max(sum2,0)
-        return Integer(max(sum11, sum22))    
-        
-    @cached_method
-    def bddweakcompositions(self, p, d, k):
-        if p >= k >= 0 and d == 1:
-            listofcomps = [[k]]
-            return listofcomps
-        else:
-            listofcomps = []
-        if d == 0:
-            return listofcomps
-        for i in range((p/d).floor()+1):
-            smallcomps = self.bddweakcompositions(p - d*i, d-1, k-i)
-            for w in smallcomps:
-                if d > 1 or (d == 1 and i + sum(w[l] for l in range(d-1)) == k):
-                    w.append(i)                 
-                    listofcomps.append(w)
-        return listofcomps   
-                
-        
+                    sum2 += (-1) ** (l- 1) * self._greedy_coefficient(d_vector, p, q - subt) * prodt * multinomial(L)           
+        sum22 = self._maxv(sum2,0)
+        sol = max(sum11, sum22)
+        return sol
+
+
     # DESIDERATA
     # Some of these are probably unrealistic
+
     def upper_cluster_algebra(self):
         r"""
         Return the upper cluster algebra associated to ``self``.
