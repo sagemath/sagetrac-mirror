@@ -1015,26 +1015,37 @@ class AlternatingSignMatrix(Element):
         """
         return self.left_key().to_permutation()
     
-    def to_order_ideal(self, size = -1, down_color = 'darkblue', up_color = 'lightblue'):
+    def to_order_ideal(self, plot = False, size = -1, down_color = 'darkblue', up_color = 'lightblue'):
         """
-        Return a visualization of the order ideal in the tetrahedral poset
-        corresponding to the height function corresponding to ``self``
-        per the bijection in [Striker2015]_
+        Return the order ideal corresponding to ``self``
+        
+        The order ideal lies in the tetrahedral poset with relations
+        described in [Striker2011]_.  This method sends an alternating sign
+        matrix to the associated height function, and then uses the bijection in
+        [Striker2015]_ to find the corresponding order ideal.
+        
         
         INPUT:
             
-        - ``size`` -- the desired output size (figsize).  If no user input, ``size``
-                      will be based on the dimension of ``self``
+        - ``plot`` -- display a visalization of the order ideal if True (default: False)
         
-        - ``down_color`` -- the desired color of the order ideal elements (default: 'darkblue')
+        - ``size`` -- the desired plot size (figsize) if applicable.  If no user input,
+                      ``size`` will be based on the dimension of ``self``
         
-        - ``up_color`` -- the desired color of the non-order-ideal elements (default: 'lightblue')
+        - ``down_color`` -- the plot color of the order ideal elements (default: 'darkblue')
+        
+        - ``up_color`` -- the plot color of the non-order-ideal elements (default: 'lightblue')
+        
         
         EXAMPLES::
-        
+            
             sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
             sage: asm.to_order_ideal()
-            Graphics object consisting of 5 graphics primitives
+            [(0, 0, 1), (0, 0, 0)]
+            
+            sage: A = AlternatingSignMatrices(4)
+            sage: A.random_element().to_order_ideal(plot = True)
+            Graphics object consisting of 17 graphics primitives
         
         """
         
@@ -1058,19 +1069,25 @@ class AlternatingSignMatrix(Element):
                         ell -= 1
                     t += 1
                     
-        oi_complement = set(T) - set(order_ideal)
         
-        pos_dict = {}
-        for v in elts:
-            x_pos = v[2] + v[1]/2 + (n*(n-1)/2 - (n-v[0])*(n-v[0]-1)/2)
-            y_pos = v[0] + v[1]
-            pos_dict[v] = (x_pos,y_pos)
-            
-        if size < 0:
-            size = n**1.2
         
-        H = T.hasse_diagram().to_undirected()
-        return H.plot(pos = pos_dict, vertex_colors = {down_color: order_ideal, up_color: oi_complement}, vertex_labels = False, figsize = size)
+        if plot:
+            oi_complement = set(T) - set(order_ideal)
+
+            pos_dict = {}
+            for v in elts:
+                x_pos = v[2] + v[1]/2 + (n*(n-1)/2 - (n-v[0])*(n-v[0]-1)/2)
+                y_pos = v[0] + v[1]
+                pos_dict[v] = (x_pos,y_pos)
+
+            if size < 0:
+                size = n**1.2
+
+            H = T.hasse_diagram().to_undirected()
+            return H.plot(pos = pos_dict, vertex_colors = {down_color: order_ideal, up_color: oi_complement}, vertex_labels = False, figsize = size)
+        
+        else:
+            return order_ideal
 
 
 class AlternatingSignMatrices(UniqueRepresentation, Parent):
