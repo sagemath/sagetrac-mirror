@@ -694,6 +694,7 @@ class ClusterAlgebraSeed(SageObject):
         self._Z = copy(Z)
         self._parent = parent
         self._path = kwargs.get('path', [])
+        self._mutating_F = kwargs.get('mutating_F',True)
 
     def __copy__(self):
         r"""
@@ -1570,7 +1571,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                         names=variables + coefficients)
 
         # Setup infrastructure to store computed data
-        self.clear_computed_data()
+        mf = kwargs.get('mutating_F',True)
+        #print mf
+        self.clear_computed_data(mutating_F=mf)
 
         # Data to compute cluster variables using separation of additions
         # and exchange coefficient specialization
@@ -1955,7 +1958,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         self._seed = self.initial_seed()
 
-    def clear_computed_data(self):
+    def clear_computed_data(self,mutating_F=True):
         r"""
         Clear the cache of computed g-vectors and F-polynomials
         and reset both the current seed and the exploring iterator.
@@ -1976,7 +1979,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._path_dict = dict((v, []) for v in map(tuple, identity_matrix(self._n).columns()))
         self._F_poly_dict = dict((v, self._U(1)) for v in self._path_dict)
         self.reset_current_seed()
-        self.reset_exploring_iterator()
+        self.reset_exploring_iterator(mutating_F=mutating_F)
 
     def contains_seed(self, seed):
         r"""
@@ -2010,7 +2013,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z0, self)
+        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z0, self, mutating_F = self._mutating_F)
 
     def b_matrix(self):
         r"""
@@ -2287,6 +2290,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         g_vector = tuple(g_vector)
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
+#                print self._sd_iter
                 seed = next(self._sd_iter)
                 if isinstance(seed, ClusterAlgebraSeed):
                     self._explored_depth = seed.depth()
@@ -2297,7 +2301,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 # Unless self._sd_iter has been manually altered, we checked
                 # all the seeds of self and did not find g_vector.
                 # Do some house cleaning before failing
-                self.reset_exploring_iterator()
+                self.reset_exploring_iterator(mutating_F=False)
                 raise ValueError("%s is not the g-vector of any cluster variable of a %s" % (str(g_vector), str(self)[2:]))
         return copy(self._path_dict.get(g_vector, None))
 
