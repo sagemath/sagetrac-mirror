@@ -184,6 +184,7 @@ var('JSMOL_DIR',                     join(SAGE_SHARE, 'jsmol'))
 var('MATHJAX_DIR',                   join(SAGE_SHARE, 'mathjax'))
 var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
+var('POLYMAKE_DATA_DIR',             join(SAGE_SHARE, 'polymake'))
 var('MAXIMA_FAS')
 
 # misc
