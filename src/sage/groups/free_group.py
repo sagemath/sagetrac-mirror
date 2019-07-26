@@ -680,7 +680,7 @@ class FreeGroupElement(ElementLibGAP):
         """
         Convert ``self`` to a word.
 
-        A free group element is a reduced words in the generators and their
+        A free group element is a reduced word in the generators and their
         inverses. This is naturally a finite word. Some choices have to be
         done:
 
@@ -709,7 +709,6 @@ class FreeGroupElement(ElementLibGAP):
 
         EXAMPLES::
 
-            sage: from train_track import *
             sage: F = FreeGroup(3)
             sage: w = F([1,-2,1,3,-1])
             sage: w.to_word()
