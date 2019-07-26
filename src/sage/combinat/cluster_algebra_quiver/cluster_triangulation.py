@@ -58,6 +58,8 @@ class ClusterTriangulation(ClusterSeed):
 
         * ClusterTriangulation
 
+        * ClusterSeed of type A or type D
+
     .. TODO::
 
         - ``data`` -- can also be any of the following
@@ -72,11 +74,7 @@ class ClusterTriangulation(ClusterSeed):
               quiver from a tagged triangulation (not yet
               implemented)
 
-            * Objects that Theodosios Douvropoulos is currently
-              working with (not related to cluster algebras from
-              surfaces) (not yet implemented)
-
-    EXAMPLES:
+    EXAMPLES OF A LIST OF TRIANGLES AS INPUT:
 
     From a list of ideal triangles (forming an ideal triangulation of
     a surface)::
@@ -194,6 +192,22 @@ class ClusterTriangulation(ClusterSeed):
         Traceback (most recent call last):
         ...
         ValueError: A noose of a self-folded triangle must be a side of another triangle.
+
+    EXAMPLES OF A CLUSTER TRIANGULATION AS INPUT::
+    
+        sage: once_punctured_square = [('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')]
+        sage: T = ClusterTriangulation(once_punctured_square, boundary_edges=['c','f','e','d'])
+        sage: T2 = ClusterTriangulation(T)
+        sage: T2 == T
+        True
+        sage: ClusterSeed(T2) == ClusterSeed(T)
+        True
+        sage: TP = T.principal_extension()
+        sage: T2P = T2.principal_extension()
+        sage: TP == T2P
+        True
+        sage: ClusterTriangulation(TP) == TP
+        True
     """
     def __init__(self, data, frozen=None, is_principal=None, user_labels=None, user_labels_prefix='x', from_surface=False, boundary_edges=None):
     # def __init__(self, data, frozen=None, is_principal=None, from_surface=False, boundary_edges=None):
@@ -294,12 +308,10 @@ class ClusterTriangulation(ClusterSeed):
             if is_principal:
                 if self._M.nrows()==self._n:
                     self._M = self._M.stack(identity_matrix(self._n))
-                # self._M = self._M.stack(identity_matrix(self._n))
 
             self._M.set_immutable() # Following a line in ClusterSeed
             self._m = self._M.nrows() - self._n
             self._mlist = list(range(self._n,self._n+self._m))
-            #print 'm :', self._m
             self._B = copy(M[:self._n,:self._n]) # the mutable part of self._M, that is, the square Part of the B_matrix
 
             # The initial B-matrix is reset to be the input B-matrix.
@@ -307,15 +319,12 @@ class ClusterTriangulation(ClusterSeed):
             if self._mutation_type == 'undetermined finite mutation type':
                 self._mutation_type += ' from a surface'
 
-            #self._is_cluster_algebra = True
             self._description = 'A seed for a cluster algebra associated with an ideal triangulation of rank %d'  %(self._n)
             if boundary_edges:
                 self._description += ' with %d boundary edges' %(len(self._boundary_edges))
             if is_principal:
                 self._description += ' with principal coefficients'
             self._quiver = ClusterQuiver(self._M, from_surface=True)
-
-            # print("line 318 in clus tri. user_labels: ", user_labels)
 
             # Sets ``user_labels`` to existing vertex labels
             if not user_labels and set(self._nlist + self._mlist) != set(range(self._n+self._m)):
@@ -350,27 +359,23 @@ class ClusterTriangulation(ClusterSeed):
             self._D = -matrix.identity(self._n)
             self._use_d_vec = True
 
-            self._mut_path = [ ] # Mutation is not implemented for ClusterTriangulation
-            self._track_mut = True # Mutation is not implemeneted for ClusterTriangulation
+            self._mut_path = [ ] # Keep these mutation-tracking attributes although mutation is not implemented for ClusterTriangulation
+            self._track_mut = True 
 
             if user_labels:
                 self._sanitize_init_vars(user_labels, user_labels_prefix)
-                # print("user_labels: ", user_labels, "\n init_vars: ", self._init_vars)
             else:
                 xs = {i:'x%s'%i for i in range(self._n)}
                 ys = {(i+self._n):'y%s'%i for i in range(self._n+self._m)}
                 self._init_vars = copy(xs)
                 self._init_vars.update(ys)
-                # print("not user_labels, init_vars: ", self._init_vars)
 
             self._init_exch = dict(islice(self._init_vars.items(), self._n))
             self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
             self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
             self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)])
-            # print("self._R: ", self._R)
             self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n,self._n+self._m)])) for j in range(self._n)])
             self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n+self._m)])) for j in range(self._n)])
-            #self._cluster = None
             self._use_fpolys = True
 
 
@@ -424,57 +429,111 @@ class ClusterTriangulation(ClusterSeed):
             # #Constructs the appropriate coefficient ring
             # self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
 
-        # Construct data from a cluster triangulation
+        # Construct a cluster seed from a cluster triangulation
         elif isinstance(data, ClusterTriangulation):
+
+            # Copy the following attributes from data
             self._boundary_edges = copy(data._boundary_edges)
             self._edges = copy(data._edges)
             self._arcs = copy(data._arcs)
-            self._n = data._n
-            self._nlist = range(self._n)
+            # self._n = data._n
+            # self._nlist = range(self._n)
             self._triangles = copy( data._triangles )
-            self._M = copy(data._M)
-            self._m = self._M.nrows() - self._n
-            self._mlist = range(self._m)
-            #self._quiver = ClusterQuiver(data._quiver)
-            self._quiver = ClusterQuiver( data._quiver ) if data._quiver else None
-            #self._is_cluster_algebra = data._is_cluster_algebra
-            self._description = copy( data._description )
 
-            self._R = copy(data._R)
-            self._cluster = copy(data._cluster)
+            self._M = copy(data._M)
+            self._M.set_immutable()
+            self._B = copy( data._B )
+            self._n = data._n
+            self._m = data._m
+            self._nlist = list(data._nlist)
+            self._mlist = list(data._mlist)
+
+            # initialize matrix of g-vectors if desired and possible
+            if data._use_g_vec and (data._G or data._cluster or (data._B.is_skew_symmetric() and data._C) or data._track_mut):
+                self._G = data.g_matrix()
+
+            # initialize matrix of c-vectors if desired and possible
+            if data._use_c_vec and (data._C or (data._B.is_skew_symmetric() and (data._cluster or (data._use_g_vec and data._G)) or data._track_mut)):
+                self._C = data.c_matrix()
+                self._BC = copy(self._M).stack(copy(self._C))
+            else:
+                self._BC = copy(self._M)
+
+            # initialize matrix of d-vectors if desired and possible
+            if data._use_d_vec and (data._D or data._cluster or data._track_mut):
+                self._D = data.d_matrix()
+
+            self._cluster = copy( data._cluster)
+
+            self._b_initial = copy( data._b_initial)
+
+            self._mutation_type = copy( data._mutation_type)
+            self._description = copy( data._description)
+            self._quiver = ClusterQuiver( data._quiver ) if data._quiver else None
+
+            # self._m = self._M.nrows() - self._n
+            # self._mlist = range(self._m)
+            #self._quiver = ClusterQuiver(data._quiver)
+            # self._quiver = ClusterQuiver( data._quiver ) if data._quiver else None
+            #self._is_cluster_algebra = data._is_cluster_algebra
+            # self._description = copy( data._description )
+
+            # self._R = copy(data._R)
+            # self._cluster = copy(data._cluster)
             self._boundary_edges_vars = copy(data._boundary_edges_vars)
             self._map_label_to_variable = copy(data._map_label_to_variable)
             self._map_variable_to_label = copy(data.map_variable_to_label)
             self._triangulation = copy(data._triangulation)
             self._weighted_triangulation = copy(data._weighted_triangulation)
-            self._mutation_type = data._mutation_type
-            self._is_principal = copy(data._is_principal)
+            # self._mutation_type = data._mutation_type
+            # self._is_principal = copy(data._is_principal)
+
+            # copy all previous booleans
+            self._use_fpolys = data._use_fpolys
+            self._use_g_vec = data._use_g_vec
+            self._use_d_vec = data._use_d_vec
+            self._bot_is_c = data._bot_is_c
+            self._use_c_vec = data._use_c_vec
+            self._track_mut = data._track_mut
+            self._is_principal = data._is_principal
+
+            # copy all previous dictionaries, names and data
+            self._user_labels = copy(data._user_labels)
+            self._user_labels_prefix = copy(data._user_labels_prefix)
+            self._init_vars = copy(data._init_vars)
+            self._init_exch = copy(data._init_exch)
+            self._U = copy(data._U)
+            self._F = copy(data._F)
+            self._R = copy(data._R)
+            self._y = copy(data._y)
+            self._yhat = copy(data._yhat)
+            self._mut_path = copy(data._mut_path)
             
-            #sets appropriate booleans to 'False'            
-            self._use_g_vec = False
-            self._use_c_vec = False
-            self._use_d_vec = False
-            self._use_fpolys = True
-            self._bot_is_c = False
+            # #sets appropriate booleans to 'False'            
+            # self._use_g_vec = False
+            # self._use_c_vec = False
+            # self._use_d_vec = False
+            # self._use_fpolys = True
+            # self._bot_is_c = False
             
-            #sets up ability to track mutations
-            self._mut_path = []
-            self._track_mut = True
+            # #sets up ability to track mutations
+            # self._mut_path = []
+            # self._track_mut = True
             
-            #sets currently unused dictionaries, names, data to 'None'
-            self._user_labels = None
-            self._user_labels_prefix = None
-            self._init_vars = None
-            self._init_exch = None
-            self._F = None
-            self._y = None
-            self._yhat = None
+            # #sets currently unused dictionaries, names, data to 'None'
+            # self._user_labels = None
+            # self._user_labels_prefix = None
+            # self._init_vars = None
+            # self._init_exch = None
+            # self._F = None
+            # self._y = None
+            # self._yhat = None
             
-            #The initial B-matrix is set to be the B-matrix corresponding to the input ClusterTriangulation
-            self._b_initial = copy(self._M)
+            # #The initial B-matrix is set to be the B-matrix corresponding to the input ClusterTriangulation
+            # self._b_initial = copy(self._M)
             
-            #Constructs the appropriate coefficient ring
-            self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
+            # #Constructs the appropriate coefficient ring
+            # self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
         elif isinstance(data,ClusterSeed):
             #copy data that we want to retain in the ClusterTriangulation
             #(some of this is not necessary, so we might want to just ignore it)
@@ -636,7 +695,7 @@ class ClusterTriangulation(ClusterSeed):
             return self._M == other._M and Tself == Tother
 
     def _repr_(self):
-        """
+        r"""
         Return the description of ``self``.
 
         EXAMPLES::
@@ -649,7 +708,7 @@ class ClusterTriangulation(ClusterSeed):
         return name
 
     def triangles(self):
-        """
+        r"""
         Return the underlying triangulation of ``self``.
 
         EXAMPLES::
@@ -662,7 +721,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._triangles
 
     def b_matrix(self):
-        """
+        r"""
         Return the B-matrix of the coefficient-free cluster.
 
         The conventions for B-matrices are the opposite of
@@ -707,7 +766,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._M
 
     def arcs(self):
-        """
+        r"""
         Return the sorted list of labels of diagonals of
         ``self`` given by user.
 
@@ -721,7 +780,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._arcs
 
     def boundary_edges(self):
-        """
+        r"""
         Return the labels of boundary edges (not diagonals) of
         ``self`` given by user.
 
@@ -735,7 +794,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._boundary_edges
 
     def cluster(self):
-        """
+        r"""
         Return the cluster seed list (i.e. [x_0, x_1, ..., x_{n-1}])
         corresponding to ``self``.
 
@@ -749,7 +808,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._cluster
 
     def boundary_edges_vars(self):
-        """
+        r"""
         Return the cluster seed list (i.e. [x_0, x_1, ..., x_{n-1}])
         corresponding to ``self``.
 
@@ -764,7 +823,7 @@ class ClusterTriangulation(ClusterSeed):
 
     #def triangulation_dictionary(self):
     def map_label_to_variable(self):
-        """
+        r"""
         Return a dictionary with keys user-given labels (numbers or strings)
         and items variables x_i/b_i of ``self``.
 
@@ -782,7 +841,7 @@ class ClusterTriangulation(ClusterSeed):
 
     #def triangulation_dictionary_variable_to_label(self):
     def map_variable_to_label(self):
-        """
+        r"""
         Return a dictionary with keys variables x_i/b_i
         and items user-given labels (numbers or strings) of ``self``.
 
@@ -799,7 +858,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._map_variable_to_label
 
     def triangulation(self):
-        """
+        r"""
         Return the list of triangles of ``self`` where a self-folded
         triangle (r,r,ell) is replaced by (r, 'counterclockwise'), (r,
         'clockwise'), ell).
@@ -824,7 +883,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._triangulation
 
     def weighted_triangulation(self):
-        """
+        r"""
         Return the list of triangles of ``self`` where user-given
         labels are replaced by the variables corresponding to them.
 
@@ -847,7 +906,7 @@ class ClusterTriangulation(ClusterSeed):
         return self._weighted_triangulation
 
     def _get_map_label_to_variable(self,a):
-        """
+        r"""
         Return the variable corresponding to the label (given by user)
         of an arc of boundary edge.
 
@@ -873,7 +932,7 @@ class ClusterTriangulation(ClusterSeed):
         return _get_weighted_edge(a, self._map_label_to_variable)
 
     def get_edge_position(self, a):
-        """
+        r"""
         Return the position of the variable corresponding to the label
         (given by user) of an arc or a boundary edge.
 
@@ -907,7 +966,7 @@ class ClusterTriangulation(ClusterSeed):
         raise ValueError(a, " is not a user-given label of an arc/boundary edge.")
 
     def _get_map_variable_to_label(self,var):
-        """
+        r"""
         Return the label (given by user) of an arc of boundary edge
         corresponding to a variable x_i or b_i (or a product x_i*x_j).
 
@@ -937,7 +996,7 @@ class ClusterTriangulation(ClusterSeed):
     def list_snake_graph(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, first_tile_orientation=1,
                          user_labels=True):
-        """
+        r"""
         Return the snake graph description for a list of crossed arcs.
 
         .. SEEALSO::
@@ -1061,7 +1120,7 @@ class ClusterTriangulation(ClusterSeed):
     def list_band_graph(self, crossed_arcs, first_triangle=None,
                         final_triangle=None, first_tile_orientation=1,
                         user_labels=True):
-        """
+        r"""
         Return the band graph description for a list of crossed arcs.
 
         .. SEEALSO::
@@ -1141,7 +1200,7 @@ class ClusterTriangulation(ClusterSeed):
     def draw_snake_graph(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, first_tile_orientation=1,
                          fig_size=None, user_labels=True):
-        """
+        r"""
         Display the snake graph for a list of crossed arcs.
 
         .. SEEALSO::
@@ -1204,7 +1263,7 @@ class ClusterTriangulation(ClusterSeed):
         return drawing.plot()
 
     def draw_band_graph (self, crossed_arcs, first_triangle=None, final_triangle=None, first_tile_orientation=1, fig_size=None, user_labels=True):
-        """
+        r"""
         Display the band graph for a list of crossed arcs.
 
         .. SEEALSO::
@@ -1262,7 +1321,7 @@ class ClusterTriangulation(ClusterSeed):
     def draw_lifted_arc(self, crossed_arcs, first_triangle=None,
                         final_triangle=None, fig_size=None, verbose=False,
                         user_labels=True):
-        """
+        r"""
         Display illustration of the lifted triangulated polygon and lifted arc.
 
         See [MSW_Positivity]_ section 7.
@@ -1343,7 +1402,7 @@ class ClusterTriangulation(ClusterSeed):
     def draw_lifted_loop(self, crossed_arcs, first_triangle=None,
                          final_triangle=None, fig_size=None, verbose=False,
                          user_labels=True):
-        """
+        r"""
         Display the lifted triangulated polygon and lifted loop.
 
         See Musiker - Schiffler - Williams "Positivity for Cluster
@@ -1381,8 +1440,8 @@ class ClusterTriangulation(ClusterSeed):
         Figure 10 and 11 of Musiker - Schiffler - Williams "Positivity for Cluster Algebras from Surfaces" [MSW_Positivity]_, where
         the boundary edges are labeled 11,12,13,0, and the arcs are labeled 1 (a radius), 2 (a noose), and 3,4,5,...,10::
 
-            sage: Todoerase= ClusterTriangulation([('2','3','b11'),('2','1','1'),('4','3','b12'),('b0','4','5'),('5','6','10'),('6','7','9'),('9','8','10'),('8','7','b13')], boundary_edges=['b11','b12','b13','b0'])
-            sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0])
+            sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], 
+            ....: boundary_edges=[11,12,13,0])
             sage: c = [item for item in T.cluster()]
             sage: r = c[1-1]
             sage: ell = c[2-1]*c[1-1]
@@ -1418,8 +1477,9 @@ class ClusterTriangulation(ClusterSeed):
 
     def arc_laurent_expansion(self, crossed_arcs, first_triangle=None,
                               final_triangle=None, verbose=False,
-                              fig_size=1, user_labels=True, return_labels=False):
-        """Return the Laurent expansion of a generalized arc gamma
+                              fig_size=1, user_labels=True):
+        r"""
+        Return the Laurent expansion of a generalized arc gamma
         (i.e. a curve between marked point/s) which crosses the arc in
         crossed_arcs
 
@@ -1450,9 +1510,6 @@ class ClusterTriangulation(ClusterSeed):
 
         - ``user_labels`` -- (default:``True``) whether or not
           ``crossed_arcs`` is a list of labels
-          
-        - ``return_labels`` -- (default: ``False``) allows the Laurent expansion
-          to be returned in terms of labels rather than variables
 
         .. SEEALSO::
 
@@ -1550,7 +1607,7 @@ class ClusterTriangulation(ClusterSeed):
             (2*x0^2*x2 + 2*x1^2*x2 + 2*x2^3)/(x0*x1)
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
-        CT = self#._cluster_triangulation
+        CT = self
 
         if user_labels:
             crossed_arcs = _get_weighted_edges(crossed_arcs,
@@ -1559,30 +1616,14 @@ class ClusterTriangulation(ClusterSeed):
                                                  CT._map_label_to_variable)
             final_triangle = _get_weighted_edges(final_triangle,
                                                  CT._map_label_to_variable)
-        if not return_labels: 
-            return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
-        else:
-            expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size = fig_size)
-            # reverses the label and variable dictionary so we can use it for substitution
-            labelDict = {v:k for k,v in self._map_label_to_variable.items()}
-            expansion = str(expansion)
-            for key in labelDict.keys():
-                expansion = expansion.replace(str(key),labelDict.get(key))
-            return expansion
-            
-            #expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
-            #print expansion
-                # reverses the label -> variable dictionary so we can use it for substitution
-                #labelDict = {v:k for k,v in T._map_label_to_variable.items()}
-                #expansion = str(expansion)
-                #for key in labelDict.keys():
-                        #    expansion = expansion.replace(str(key),labelDict.get(key))
-                        #return expansion
+        return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle = first_triangle, final_triangle = final_triangle, \
+            is_arc = True, is_loop = False, verbose = verbose, boundary_edges = CT._boundary_edges_vars, fig_size=fig_size)
 
     def loop_laurent_expansion(self, crossed_arcs, first_triangle=None,
                                final_triangle=None, verbose=False,
                                fig_size=1, user_labels=True):
-        """Return the Laurent expansion of a loop (living in the
+        r"""
+        Return the Laurent expansion of a loop (living in the
         surface's interior) in the variables of
         ``self.cluster_triangulation()._cluster``.
 
@@ -1674,7 +1715,8 @@ class ClusterTriangulation(ClusterSeed):
                                                  CT._map_label_to_variable)
             final_triangle = _get_weighted_edges(final_triangle,
                                                  CT._map_label_to_variable)
-        return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, False, True, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+        return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=first_triangle, final_triangle=final_triangle, \
+            is_arc = False, is_loop = True, verbose = verbose, boundary_edges = CT._boundary_edges_vars, fig_size=fig_size)
 
     def principal_extension(self):
         r"""

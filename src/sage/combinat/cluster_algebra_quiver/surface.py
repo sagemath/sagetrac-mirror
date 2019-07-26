@@ -21,7 +21,7 @@ ABOVE = 'ABOVE'
 
 
 def are_triangles_equal(triangleA, triangleB):
-    """
+    r"""
     If triangles are equal (including orientation), return
     ``True``. Otherwise return ``False``.
 
@@ -54,7 +54,7 @@ def are_triangles_equal(triangleA, triangleB):
 
 
 def is_selffolded(t):
-    """
+    r"""
     If triangle t only two distinct entries, return the triangle t in
     the form (a,a,b).
 
@@ -93,7 +93,7 @@ def is_selffolded(t):
         return False
 
 def remove_duplicate_triangles(data,boundary_edges=None):
-    """
+    r"""
     In case user accidentally inputs a duplicate triangle, we remove
     the duplicate.
 
@@ -141,7 +141,7 @@ def remove_duplicate_triangles(data,boundary_edges=None):
 
 
 def _triangulation_to_arrows(list_triangles):
-    """
+    r"""
     Return the list of directed edges [a,b] corresponding to the list
     ``list_triangles`` of ideal triangles.
 
@@ -288,7 +288,7 @@ def _triangulation_to_arrows(list_triangles):
     return digraph_edges + selffolded_edges + radius_to_radius_edges
 
 def _get_radius(noose,selffolded_triangles):
-    """
+    r"""
     Return the radius of the self-folded triangle with input noose from the list of all self-folded triangles.
 
     See :func:`~sage.combinat.cluster_algebra_quiver.surface._triangulation_to_arrows`
@@ -313,7 +313,7 @@ def _get_radius(noose,selffolded_triangles):
     raise ValueError('There is no self-folded triangles with noose ', noose)
 
 def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges, arcs_count):
-    """
+    r"""
     Returns the matrix obtained from the edge list of a quiver (possibly with loops, two-cycles, multiply-listed edges).
 
     .. NOTE:
@@ -399,7 +399,6 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
         elif user_edge[2] in ZZ:
             #edge = (_get_weighted_edge(user_edge[0],dic), _get_weighted_edge(user_edge[2],dic), (user_edge[2],-user_edge[2]))
             edge = (dic[user_edge[0]],dic[user_edge[1]],(2,-2))
-        #print 'edge: ', edge
         v1,v2,(a,b) = edge
 
         if v1 < arcs_count:
@@ -409,7 +408,7 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
     return -1*M
 
 def _get_user_arc_labels(T):
-    """
+    r"""
     Return the sorted list of all entries from a list of labels in a list of 3-tuples
 
     INPUT:
@@ -428,7 +427,7 @@ def _get_user_arc_labels(T):
     return T_user_labels
 
 def produce_dict_label_to_variable(T, cluster_xs, boundary_edges, boundary_edges_vars):
-    """
+    r"""
     Return a dictionary of tuples ``{a:b, ...}`` where ``a`` is a user-given label from input ``T``
     and ``b`` is the variable x_i or b_i corresponding to ``a1``.
 
@@ -473,21 +472,9 @@ def produce_dict_label_to_variable(T, cluster_xs, boundary_edges, boundary_edges
         if l not in boundary_edges:
             arcs.append(l)
 
-    #print 'arcs: ', arcs
-    #print 'boundary_edges: ', boundary_edges
-    #print 'cluster_xs: ', cluster_xs
-    #print 'boundary_edges_vars: ', boundary_edges_vars
-    #if len(arcs) + len(boundary_edges)==len(cluster) + len(boundary_edges_vars):
     dic_x = dict((arcs[pos],cluster_xs[pos]) for pos in range(0,len(cluster_xs)))
     dic_b = dict((boundary_edges[pos],boundary_edges_vars[pos]) for pos in range(0,len(boundary_edges_vars)))
     dic = dict(list(dic_x.items()) + list(dic_b.items()))
-
-        #for pos in range(0,len(cluster)):
-        #    dic.append((arcs[pos], cluster[pos]))
-        #for pos in range(0,len(boundary_edges_vars)):
-        #    dic.append((boundary_edges[pos], boundary_edges_vars[pos]))
-
-    #print 'dic: ', dic
 
     for triangle in T: # Keep track of any radius and ell-loop of a self-folded triangle
         selffolded = is_selffolded(triangle)
@@ -499,9 +486,9 @@ def produce_dict_label_to_variable(T, cluster_xs, boundary_edges, boundary_edges
             list_radius.append(radius)
             list_ell.append(ell)
 
-    #for pos in range(0,len(dic.keys())): # Assign a noose to the product of r * r\notch
+    # Assign a noose to the product of r * r\notch
     for user_label in dic:
-        cluster_var = dic.get(user_label) #dic[pos][1]
+        cluster_var = dic.get(user_label)
         if list_ell.count(cluster_var):
             ind = list_ell.index(cluster_var)
             dic[user_label] =  list_ell[ind] * list_radius[ind]
@@ -510,7 +497,7 @@ def produce_dict_label_to_variable(T, cluster_xs, boundary_edges, boundary_edges
     return dic
 
 def produce_dict_variable_to_label(td):
-    """
+    r"""
     Return a dictionary of tuples ``{a:b, ...}`` where is a variable x_i or b_i and
     ``a`` is the user-given label corresponding to ``b``.
 
@@ -541,7 +528,7 @@ def produce_dict_variable_to_label(td):
     return {v: k for k, v in td.items()}
 
 def _get_edge_user_label(edge_var, triangulation_dictionary_variable_to_label):
-    """
+    r"""
     Return tuple[0] if the input ``edge`` if tuple[1] is in the the input
     ``triangulation dictionary``
 
@@ -571,12 +558,9 @@ def _get_edge_user_label(edge_var, triangulation_dictionary_variable_to_label):
     """
     if triangulation_dictionary_variable_to_label.has_key(edge_var):
         return triangulation_dictionary_variable_to_label[edge_var]
-    #for td in triangulation_dictionary:
-    #    if td[1] == edge_var:
-    #        return td[0]
 
 def _get_weighted_edge(arc, triangulation_dictionary):
-    """
+    r"""
     Return the variable corresponding to the input arc label.
 
     See :func:`~sage.combinat.cluster_algebra_quiver.surface._get_weighted_edges`
@@ -613,12 +597,8 @@ def _get_weighted_edge(arc, triangulation_dictionary):
     if triangulation_dictionary.has_key(arc_label):
         return (triangulation_dictionary[arc_label], dir) if dir else triangulation_dictionary[arc_label]
 
-    #for td in triangulation_dictionary:
-    #    if td[0] == arc_label:
-    #        return (td[1], dir) if dir else td[1]
-
 def _get_weighted_edges(edges, triangulation_dictionary):
-    """
+    r"""
     Return the variables corresponding to the list of input arc label/s
 
     See :func:`~sage.combinat.cluster_algebra_quiver.surface._get_weighted_edge`
@@ -650,7 +630,7 @@ def _get_weighted_edges(edges, triangulation_dictionary):
     return weighted_edges
 
 def _get_weighted_triangulation(T, triangulation_dictionary):
-    """
+    r"""
     Return the triangulation ``T`` given by user such that user-given labels are replaced by variables x_i and b_i.
     See :class:`ClusterTriangulation` and :meth:`ClusterTriangulation.map_label_to_variable`
 
@@ -683,7 +663,7 @@ def _get_weighted_triangulation(T, triangulation_dictionary):
     return weighted_T
 
 def _get_user_label_triangulation(T):
-    """
+    r"""
     Return the same input list ``T`` (of triangles with user-given edge labels)
     where each triangle (a,a,b) or (a,b,a) or (b,a,a) is replaced by ((a, 'counterclockwise'),(a, 'clockwise'),b)
 
@@ -726,7 +706,7 @@ def _get_user_label_triangulation(T):
 ########################################### BEGINS: MUTATE A TRIANGULATION ###############
 
 def _is_arc_mutable(T, diagonal):
-    """
+    r"""
     Return True if ``diagonal`` is the side of two triangles
     or if ``diagonal`` is the radius of a self-folded triangle which noose
     is the side of another triangle
@@ -826,7 +806,8 @@ def _is_arc_mutable(T, diagonal):
         raise ValueErro('TODO: is this user error or bug? There should not be more than two triangles with side ', diagonal)
 
 def _triangles_mutate(T,diagonal):
-    """
+    r"""
+    TODO erase this if we will not implement mutation to ClusterTriangulation
     Return a list of triangles after we mutate at ``diagonal``, i.e.
     we remove the two triangles (before_tau_A, diagonal, after_tau_A) and
     (before_tau_B, diagonal, after_tau_B) which have ``diagonal`` as an edge from the
@@ -887,10 +868,6 @@ def _triangles_mutate(T,diagonal):
         sage: Tmu040203
         [(5, 4, 5), (1, 0, 1), (0, 2, 3), (3, 2, 4)]
     """
-    #two_triangles = _get_triangle(T, diagonal, None)
-
-    #if len(two_triangles) == 2:
-    #    triangleA, triangleB = two_triangles[0], two_triangles[1]
     is_mutable, two_triangles, is_selffolded_radius = _is_arc_mutable(T, diagonal)
     if not is_mutable:
         ErrorMessage = two_triangles
@@ -906,40 +883,17 @@ def _triangles_mutate(T,diagonal):
         before_tau_B, after_tau_B = triangleB[0], triangleB[2]
         T.extend([(after_tau_A, diagonal, before_tau_B),(after_tau_B, diagonal, before_tau_A)])
     elif is_mutable and is_selffolded_radius:
-    #elif len(two_triangles) == 1:
-    #    selffolded_tri = two_triangles[0]
-    #    if is_selffolded(selffolded_tri):
-    #        r,r,ell = is_selffolded(selffolded_tri)
-    #        if r != diagonal:
-    #            raise ValueError('The ideal triangulation cannot be mutated at ', diagonal, \
-    #            '. There is only one triangle ', selffolded_tri, \
-    #            ', and ', diagonal, ' is the noose, not the radius')
-    #    else:
-    #        raise ValueError('The ideal triangulation cannot be mutated at ', diagonal, \
-    #        '.There is only one triangle ', selffolded_tri, \
-    #        ', not a self-folded triangle, with side ', diagonal)
-    #    two_triangles_with_side_ell = _get_triangle(T, ell, None)
-    #    if len(two_triangles_with_side_ell) == 2:
-    #        two_triangles_with_side_ell.remove(selffolded_tri)
-    #        three_distinct_vertex_triangle = two_triangles_with_side_ell[0]
-    #    else:
-    #        raise ValueError('The ideal triangulation cannot be mutated at radius ', diagonal, \
-    #        '. The noose surrounding it is not the side of any triangle with three distinct sides.')
         selffolded_tri, three_distinct_vertex_triangle = two_triangles
         T.remove(selffolded_tri)
         T.remove(three_distinct_vertex_triangle)
 
         rrl = is_selffolded(selffolded_tri)
-        ell = rrl[2]#; print 'ell :', ell #TODO erase
-        r = rrl[0]#; print 'r :', r #TODO erase
+        ell = rrl[2]
+        r = rrl[0]
         three_distinct_vertex_triangle = _rearrange_triangle_for_snakegraph(three_distinct_vertex_triangle, ell, 1)
-        #print 'three_distinct_vertex_triangle after rearrange: ', three_distinct_vertex_triangle #TODO Erase
         before_ell, after_ell = three_distinct_vertex_triangle[0], three_distinct_vertex_triangle[2]
 
         T.extend([(before_ell, ell, r), (r, ell, after_ell)])
-    #else:
-    #    raise ValueError(ErrorMessage) #('The search for the two triangles with edge ', diagonal, ' returns ', two_triangles)
-
     return T
 
 ############# ENDING: MUTATE A TRIANGULATION #############################################
@@ -954,7 +908,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
                                 final_triangle=None, is_arc=None,
                                 is_loop=None, verbose=False,
                                 boundary_edges=None, fig_size=1):
-    """
+    r"""
     Return the Laurent expansion of the cluster algebra element
     (corresponding to the curve that crosses the arcs of ``crossed_arcs``)
     with respect to the initial seed corresponding to the triangulation ``T``.
@@ -1020,7 +974,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         sage: S1.cluster()
         [(x1*x3 + x2*x4)/x0, x1, x2, x3, x4, x5, x6]
         sage: S1.cluster_variable(0) ==\
-        ....: LaurentExpansionFromSurface(CT,[CT.cluster_variable(0)],None,None,\
+        ....: LaurentExpansionFromSurface(CT,[CT.cluster_variable(0)],first_triangle=None,final_triangle=None,\
         ....: is_arc=True,is_loop=None,verbose=None,boundary_edges=None)
         True
 
@@ -1043,7 +997,8 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
 
         sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)], boundary_edges=[4,5,6,7])
         sage: c = [item for item in T.cluster()]
-        sage: LaurentExpansionFromSurface(T,[c[1],c[2],c[3],c[0],c[1]],None,None,is_arc=None,is_loop=True,verbose=None,boundary_edges=T._boundary_edges_vars,fig_size=None)
+        sage: LaurentExpansionFromSurface(T,[c[1],c[2],c[3],c[0],c[1]],first_triangle=None,final_triangle=None,\
+        ....: is_arc=None,is_loop=True,verbose=None,boundary_edges=T._boundary_edges_vars,fig_size=None)
         (x0*x1^2*x2 + x0*x2*x3^2 + x1^2 + 2*x1*x3 + x3^2)/(x0*x1*x2*x3)
 
         sage: TP = T.principal_extension()
@@ -1052,7 +1007,6 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         **************** Perfect Matchings and Their Weights: *****************
         (x0*x2*x3^2*y0*y1*y2*y3 + x3^2*y0*y2*y3 + x0*x1^2*x2 + x1*x3*y0*y3 + x1*x3*y2*y3 + x1^2*y3)/(x0*x1*x2*x3)
     """
-    #from copy import deepcopy
     if not isinstance(crossed_arcs,list) or len(crossed_arcs) < 1:
         raise ValueError('crossed_arcs should be a non-empty list object '
                          'of cluster variable/s')
@@ -1061,7 +1015,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
     G_x = _snake_graph(T,crossed_arcs,first_triangle, final_triangle, is_arc, is_loop, 1, boundary_edges)
 
     if is_principal:
-        # Replace all x_i with the correct height monomial (see [MSW_Positivity]_ Thm 4.10)
+        # We replace all x_i with the correct height monomial (see [MSW_Positivity]_ Thm 4.10)
         G_y = replace_x_with_y(CT, G_x)
     else:
         G_y = None
@@ -1074,12 +1028,6 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         min_pm = GetMinimalMatching(G_x)
         for pm in all_matchings:
             minpm_symmetric_difference_pm = matching_symmetric_difference(min_pm, pm)
-
-            #print ' '
-            #print 'pm: ', pm
-            #print 'minpm_symmetric_difference_pm: ', minpm_symmetric_difference_pm
-            #print ' '
-
             all_matchings_symmetricdifference_minpm.append(minpm_symmetric_difference_pm)
 
     if verbose:
@@ -1112,7 +1060,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
     return SumOfMonomialTerms(G_x, all_matchings, boundary_edges, is_principal, G_y, all_matchings_symmetricdifference_minpm, is_loop)/ GetDenominator(G_x)
 
 def replace_x_with_y(CT, G_x):
-    """
+    r"""
     Replace the diagonal x_i in snake graph ``G_x`` with y_i replace_x_with_y
 
     EXAMPLES:
@@ -1166,7 +1114,6 @@ def replace_x_with_y(CT, G_x):
         tile_dir = G_x[tile_pos][1][2]
         diagonal_x = triangle_bottom[1]
         if isinstance(diagonal_x, tuple):
-            #print 'diagonal_x tuple: ', diagonal_x
             label_of_radius_x = CT._get_map_variable_to_label(diagonal_x[0])
             position_of_radius_x = CT.get_edge_position(label_of_radius_x)
             # radius_y = CT.cluster()[CT._n+position_of_radius_x]
@@ -1185,37 +1132,28 @@ def replace_x_with_y(CT, G_x):
             else:
                 clockwise_or_counterclockwise = 'clockwise'
             diagonal_y_top = (diagonal_y, clockwise_or_counterclockwise)
-            #print 'diagonal_y = (diagonal_y, diagonal_x[1]): ', diagonal_y
         elif diagonal_x in ell_loops:
-            #pos_of_ell_in_list = ell_loops.index(diagonal_x)
-            #triangle_rrl = selffoldedtriangles[pos_of_ell_in_list]
             x_ell = diagonal_x
-            #x_r = triangle_rrl[0][0]
             label_of_x_ell = CT._get_map_variable_to_label(x_ell)
-            #label_of_x_r = CT._get_map_variable_to_label(x_r)
             position_of_x_rnotched = CT.get_edge_position(label_of_x_ell)
-            #position_of_x_r = CT.get_edge_position(label_of_x_r)
-            # y_rnotched = CT.cluster()[CT._n+position_of_x_rnotched]
             y_rnotched = CT.coefficients()[position_of_x_rnotched]
-            #y_r = CT.cluster()[CT._n+position_of_x_r]
             diagonal_y_bottom = diagonal_y_top = y_rnotched
         else:
             label_of_diagonal_x = CT._get_map_variable_to_label(diagonal_x)
             position_of_diagonal_x = CT.get_edge_position(label_of_diagonal_x)
-            # diagonal_y_bottom = diagonal_y_top = CT.cluster()[CT._n+position_of_diagonal_x]
             diagonal_y_bottom = diagonal_y_top = CT.coefficients()[position_of_diagonal_x]
 
         G_y_triangle_bottom = (G_x[tile_pos][0][0],(triangle_bottom[0], diagonal_y_bottom, triangle_bottom[2]))
         G_y_triangle_top = (G_x[tile_pos][1][0],(triangle_top[0], diagonal_y_top, triangle_top[2]), tile_dir)
-
         G_y.append([G_y_triangle_bottom, G_y_triangle_top])
-        #print 'G_y: ', G_y
+
     if len(G_y) == 0:
         raise ValueError('Bug in replace_x_with_y. Snake graph G_y is empty')
+
     return G_y
 
 def matching_symmetric_difference(min_pm, pm):
-    """
+    r"""
     Return the symmetric difference of the (snake graph) perfect matchings
     ``min_pm`` and ``pm``
 
@@ -1240,7 +1178,7 @@ def matching_symmetric_difference(min_pm, pm):
     return minpm_symmetric_difference_pm
 
 def matching_union(pmA, pmB):
-    """
+    r"""
     Return the union of the (snake graph) perfect matchings
     ``min_pm`` and ``pm``
 
@@ -1276,7 +1214,7 @@ def matching_union(pmA, pmB):
     return [pmB[0], pmC]
 
 def matching_intersection(pmA, pmB):
-    """
+    r"""
     Return the intersection of the (snake graph) perfect matchings
     ``min_pm`` and ``pm``
 
@@ -1310,7 +1248,7 @@ def matching_intersection(pmA, pmB):
     return [pmB[0], pmC]
 
 def matching_subtract(bigger_pm, smaller_pm):
-    """
+    r"""
     Return subtraction of (snake graph) perfect matchings, ``bigger_pm`` minus ``smaller_pm``.
 
     EXAMPLES::
@@ -1399,7 +1337,7 @@ def matching_subtract(bigger_pm, smaller_pm):
     return [pmB[0], pmC]
 
 def GetAllMatchings(G):
-    """
+    r"""
     Return all perfect matchings of the snake/band graph ``G``.
 
     INPUT:
@@ -1446,10 +1384,9 @@ def GetAllMatchings(G):
         [[['minimal PM'], [[(1, 0, 1, 0), 'ABOVE']]],
         [['maximal PM'], [[(0, 1, 0, 1), 'ABOVE']]]]
     """
-    from sage.combinat.combinat import fibonacci # todo: eventually remove this after we are sure we don't need the upper bound
+    # from sage.combinat.combinat import fibonacci # todo: eventually remove this after we are sure we don't need the upper bound
 
     MinMatching = GetMinimalMatching(G)  # Return [['minimal PM'], [minimal matching with directions]]
-    #print 'MinMatching = GetMinimalMatching(G) : ', MinMatching
 
     tile_flip_max = len(G) # The maximal number of flips is equal to the number of tiles of G.
     # The maximal number of flips produces the maximal matching, i.e. the opposite of the minimal matching.
@@ -1473,11 +1410,11 @@ def GetAllMatchings(G):
 
                 old_matchings = UniqueList(old_matchings + current_matchings)
                 current_matchings = new_matchings_corrected_indices
-            else:
-                print 'WARNING: This else break should be removed.'
-                print 'All the perfect matchings of G are found when the maximal matching is produced (after tile_flip_max) flips.'
-                print 'loop count: ', loop_count
-                break
+            # else:
+            #     print 'WARNING: This else break should be removed.'
+            #     print 'All the perfect matchings of G are found when the maximal matching is produced (after tile_flip_max) flips.'
+            #     print 'loop count: ', loop_count
+            #     break
 
         all_matchings = UniqueList(old_matchings + current_matchings)
 
@@ -1485,7 +1422,7 @@ def GetAllMatchings(G):
 
 
 def UniqueList(in_list):
-    """
+    r"""
     Return the list ``in_list`` with any multiple entries removed
 
     EXAMPLES::
@@ -1510,7 +1447,7 @@ def UniqueList(in_list):
 ##########################################################################################
 
 def PartitionIntoTuples(L):
-    """
+    r"""
     Partition a list into a list of tuples. This function acts like Partition[L,2] in Mathematica.
 
     EXAMPLES::
@@ -1534,7 +1471,7 @@ def PartitionIntoTuples(L):
     return ListTuples
 
 def GetDenominator(G):
-    """
+    r"""
     Return the product of the variables corresponding to arcs that are crossed by curve gamma
     (this is the denominator of the Laurent polynomial expansion returned by
     :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`)
@@ -1543,7 +1480,8 @@ def GetDenominator(G):
 
     INPUT:
 
-    - ``G`` -- snake/band graph information, see :meth:`ClusterTriangulation.list_band_graph` or :meth:`ClusterTriangulation.list_snake_graph`
+    - ``G`` -- snake/band graph information, see :meth:`ClusterTriangulation.list_band_graph` 
+    or :meth:`ClusterTriangulation.list_snake_graph`
 
     EXAMPLES:
 
@@ -1553,7 +1491,8 @@ def GetDenominator(G):
     the first and last arc crossed::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import GetDenominator
-        sage: T = ClusterTriangulation([('1','2','b1'),('1','0','b2'),('0','3','b3'),('2','3','b4')],boundary_edges=['b1','b2','b3','b4']) # Counterclockwise triangulation
+        sage: T = ClusterTriangulation([('1','2','b1'),('1','0','b2'),('0','3','b3'),('2','3','b4')],\
+        ....: boundary_edges=['b1','b2','b3','b4']) # Counterclockwise triangulation
         sage: c = [item for item in T.cluster()]
         sage: BG = T.list_band_graph([c[1], c[2], c[3], c[0], c[1]],user_labels=False)
         sage: GetDenominator(BG)
@@ -1568,7 +1507,7 @@ def GetDenominator(G):
     return denom
 
 def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_principal=False, snakegraph_y=None, all_symmetric_differences=None, is_loop=False):
-    """
+    r"""
     Return sum of all monomial terms (corresponding to all perfect
     matchings of ``snakegraph``) which is the numerator of the Laurent
     polynomial expansion returned by
@@ -1617,7 +1556,7 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_princi
     return sumTerms
 
 def ExtractWeight(tile, abcd, is_final_tile):
-    """
+    r"""
     Return the list of cluster variables which label the marked edges
     of ``tile`` (such that an interior edge is ignored if it borders
     the next tile).
@@ -1674,7 +1613,7 @@ def ExtractWeight(tile, abcd, is_final_tile):
     return weights
 
 def GetMonomialTerm(snakegraph, PM, boundary_edges, is_loop):
-    """
+    r"""
     Return the monomial term corresponding to the input perfect matching ``PM``.
 
     To debug, see Mathematica function: terminoPolinomio
@@ -1807,7 +1746,7 @@ def GetMonomialTerm(snakegraph, PM, boundary_edges, is_loop):
     return matching_weight  * myarray
 
 def GetCoefficientTerm(snakegraph, SD):
-    """
+    r"""
     Return the coefficient product corresponding to the symmetric difference ``SD``
     is a union of disjoint cycle/s.
 
@@ -1860,21 +1799,16 @@ def GetCoefficientTerm(snakegraph, SD):
         y4
    """
     diagonal_weights = []
-    #if boundary_edges is None:
-    #    boundary_edges = []
 
     if len(snakegraph) == len(SD[1]):  # this should always be equal
         total_weight = []
         is_final_tile = False
         for pos in range(0,len(snakegraph)):
             DIR = snakegraph[pos][1][2]
-            #print snakegraph[pos]
             if pos == len(snakegraph)-1 :
                 is_final_tile = True
             abcd = SD[1][pos][0] # abcd = (bottom,right,top,left)
             bottom, right, top, left = abcd[0:4]
-            #print 'abcd:', abcd
-            #tile_weight = ExtractWeight(snakegraph[pos], abcd, is_final_tile)
             if (bottom and right) or (bottom and right) or (top and right) or (top and left):
                 diagonal_weight = snakegraph[pos][1][1][1]
             elif (bottom and top) and (DIR == RIGHT or right or left):
@@ -1891,7 +1825,6 @@ def GetCoefficientTerm(snakegraph, SD):
 
     #diagonal_weight = Multiply elements in diagonal_weights
     diagonal_weight = 1
-    #print 'diagonal_weights: ', diagonal_weights
     for var in diagonal_weights:
         diagonal_weight = diagonal_weight * var
 
@@ -1925,7 +1858,7 @@ def GetCoefficientTerm(snakegraph, SD):
 #########################################################################################
 
 def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, is_arc, is_loop):
-    """
+    r"""
     Search for and return [first_triangle, last_triangle], the first and final triangles crossed by curve.
 
     Called by :func:`~sage.combinat.cluster_algebra_quiver.surface_snake_graph`
@@ -1955,7 +1888,8 @@ def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, i
             raise ValueError('Since gamma is a loop, user needs to specify at least two crossing arcs.',\
             'If gamma only crosses one arc tau, then enter [tau,tau]')
         if crossed_arcs[0]!=crossed_arcs[-1]:
-            raise ValueError('Since gamma is a loop, user needs to specify a sequence of tau_1, tau_2, ..., tau_d where tau_1=tau_d')
+            raise ValueError('Since gamma is a loop, user needs to specify a sequence of tau_1, tau_2, ..., \
+                tau_d where tau_1=tau_d')
 
     # If only one arc tau of T is crossed, then we assign the two triangles
     # that have an edge tau to be first_triangle and final_triangle
@@ -1991,7 +1925,7 @@ def _get_first_final_triangles(T,crossed_arcs, first_triangle, final_triangle, i
     return [first_triangle,final_triangle]
 
 def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
-    """
+    r"""
     Return a list [(None,tau_1), (tau_1,tau_2), (tau_2,tau_3), ... ,(final_tau, None)]
     where tau_k is the k-th arc that is crossed by the curve
 
@@ -2007,7 +1941,8 @@ def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
     Figure 10 and 11 of [MSW_Positivity]_::
 
         sage: from sage.combinat.cluster_algebra_quiver.surface import _list_of_tau_k_and_tau_kplus1
-        sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], boundary_edges=[11,12,13,0]) # Counterclockwise
+        sage: T = ClusterTriangulation([(2,3,11),(2,1,1),(4,3,12),(0,4,5),(5,6,10),(6,7,9),(9,8,10),(8,7,13)], \
+        ....: boundary_edges=[11,12,13,0]) # Counterclockwise
         sage: _list_of_tau_k_and_tau_kplus1(T._triangulation,[2,(1,'counterclockwise'),2,3,4,5,6])
         [(None, 2),
         (2, (1, 'counterclockwise')),
@@ -2044,7 +1979,7 @@ def _list_of_tau_k_and_tau_kplus1(T, crossed_arcs):
     return edges
 
 def _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_triangle, edges):
-    """
+    r"""
     Return the list of ideal triangles Delta_k (in order) which are crossed by curve
 
     Called by :func:`~sage.combinat.cluster_algebra_quiver.surface_snake_graph`
@@ -2104,14 +2039,13 @@ def _list_triangles_crossed_by_curve(T, crossed_arcs, first_triangle, final_tria
     triangles.append(final_triangle)
     return triangles
 
-def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_arc=True, is_loop=False, first_tile_orientation=1, boundary_edges=None):
-    """
+def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_arc=True, is_loop=False, \
+    first_tile_orientation=1, boundary_edges=None):
+    r"""
     Return descriptions of the snake/band graph for the curve crossing the arcs in input ``crossed_arcs``
 
     See :meth:`ClusterTriangulation.list_snake_graph`, :meth:`ClusterTriangulation.list_band_graph`,
     :meth:`ClusterTriangulation.draw_snake_graph`, and :meth:`ClusterTriangulation.draw_band_graph`
-
-    To debug, see Mathematica function: banda
 
     INPUT:
 
@@ -2242,7 +2176,7 @@ def _snake_graph(T,crossed_arcs, first_triangle=None, final_triangle=None, is_ar
     return PartitionIntoTuples(out_snakegraph)
 
 def _rearrange_triangle_for_snakegraph(triangle, diagonal, s):
-    """
+    r"""
     Return a rearrangement of the 3-tuple input ``triangle``
     so that the ``diagonal`` is in the middle and
     the original orientation is kept (if ``s`` is +1) and reversed (if ``s`` is -1)
@@ -2322,7 +2256,7 @@ def _rearrange_triangle_small_first(triangle):
         return (z,x,y)
 
 def _get_triangle(T, tau_k, tau_k1=None):
-    """
+    r"""
     Return the triangle/s that share an edge with tau_k (and tau_k1 , if given).
 
     INPUT:
@@ -2424,7 +2358,7 @@ def try_to_find_end_triangles_for_one_crossed_arc(T, tau, first_triangle, final_
     return [first_triangle, final_triangle]
 
 def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, input_triangle=None):
-    """
+    r"""
     We assume there are at least two crossed arcs. Return the first/final triangle crossed by curve.
 
     See :func:`~sage.combinat.cluster_algebra_quiver.surface._get_first_final_triangles`, :func:`~sage.combinat.cluster_algebra_quiver.surface._snake_graph`
@@ -2504,7 +2438,7 @@ def try_to_find_end_triangle(T,crossed_arcs, first_or_final, is_arc, is_loop, in
 ##################################
 
 def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), white_space=1, print_user_labels=False, symmetric_difference=None):
-    """
+    r"""
     Returns drawing of a single snake graph with perfect matchings and symmetric difference.
 
     INPUT:
@@ -2609,7 +2543,7 @@ def _draw_matching(perfect_matching, matching_weight=None, pos=None, xy=(0,0), w
 
 
 def _draw_snake_graph(G, print_user_labels, xy=(0, 0)):
-    """
+    r"""
     Return the plot of the snake graph `G`.
 
     INPUT:
@@ -2712,7 +2646,7 @@ def _draw_snake_graph(G, print_user_labels, xy=(0, 0)):
 #########################################################################################
 
 def GetMinimalMatching(G):
-    """
+    r"""
     Return the minimal matching of the snake/band graph ``G``.
 
     To debug, see Mathematica function: MachingInicial[listaDirecciones]
@@ -2764,10 +2698,8 @@ def GetMinimalMatching(G):
         [(1, 0, 1, 0), 'RIGHT'],
         [(0, 1, 0, 0), 'ABOVE']]]
     """
-    # The list of (for each tile in the band/snake graph, the
-    # direction of the next tile)
+    # The list of (for each tile in the band/snake graph, the direction of the next tile)
     graph_directions = snake_graph_tile_directions(G)
-    #print 'graph_directions = snake_graph_tile_directions(G) and G is :', G
 
     if len(graph_directions) == 1:  # If curve crosses the triangulation once
         return [['minimal PM'], [[(1, 0, 1, 0), graph_directions[0]]]]
@@ -2792,7 +2724,7 @@ def GetMinimalMatching(G):
     return initial_matching
 
 def snake_graph_tile_directions(G):
-    """
+    r"""
     Return [the positions (RIGHT or ABOVE) of all tiles in the band/snake graph including the last tile]
 
     INPUT:
@@ -2816,7 +2748,7 @@ def snake_graph_tile_directions(G):
     return directions
 
 def _minimal_matching_first_tile(DIR, orientation_of_first_tile):
-    """
+    r"""
     Return the minimal matching of the first tile of the band/snake graph
 
     To debug, see Mathematica function: funAuxA
@@ -2854,7 +2786,7 @@ def _minimal_matching_first_tile(DIR, orientation_of_first_tile):
     raise ValueError("Bug. DIR should be ABOVE or RIGHT. orientation_of_first_tile should be 1 or -1")
 
 def _minimal_matching_current_tile(previous_DIR, current_DIR, last_marking_in_list):
-    """
+    r"""
     INPUT:
     [previous_DIR, current_DIR]
     - ``last_marking_in_list`` -> the last edges that we have marked so far on the previous tile
@@ -2913,7 +2845,7 @@ def _minimal_matching_current_tile(previous_DIR, current_DIR, last_marking_in_li
             return (1, 0, 0, 0)
 
 def _minimal_matching_final_tile(penultimate_direction, penultimate_tile_mark):
-    """
+    r"""
     Return the matching for the final tile
 
     To debug, see Mathematica function: funAuxFinDEBanda
@@ -2958,7 +2890,7 @@ def _minimal_matching_final_tile(penultimate_direction, penultimate_tile_mark):
 ##########################################################################################
 
 def FlipAllFlippableTilesInList(input_list_matchings):
-    """
+    r"""
     For each perfect matching ``PM`` in ``input_list_matchings``,
     create more perfect matchings by flipping every flippable tile.
 
@@ -3055,7 +2987,7 @@ def FlipAllFlippableTilesInList(input_list_matchings):
 
 
 def FlipAllFlippableTiles(input_tiles):
-    """
+    r"""
     Return a list ``out_list_new_matchings`` of new perfect matchings
     produced by flipping a flippable tile of ``input_tiles``.
 
@@ -3173,7 +3105,7 @@ def FlipAllFlippableTiles(input_tiles):
     return out_list_new_matchings
 
 def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
-    """
+    r"""
     Return a (possibly non-unique) list of perfect matchings of a snake/band graph
     (each perfect matching P includes info on all possible indices of tiles that were flipped to get to P)
 
@@ -3242,7 +3174,7 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
     return out_new_matchings_corrected_indices
 
 def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
-    """
+    r"""
     Return input ``current_matching`` if input ``to_compare_matching`` contains a different perfect matching, and
     return [[indices of last flipped tiles which may include new indices if ``to_compare_matching`` is the same matching],
     [current_matching[1]]]
@@ -3311,7 +3243,7 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
     return [last_flipped_tiles, current_matching[1]]
 
 def GetNextTileMarking(tile,DIR, NextTileMark):
-    """
+    r"""
     (1, 0, 1, 0), RIGHT, (a, b, c, d) -> return (a, b, c, 1)
 
     (1, 0, 1, 0), ABOVE, (a, b, c, d) -> return (0, b, c, d)
@@ -3357,7 +3289,7 @@ def GetNextTileMarking(tile,DIR, NextTileMark):
         return (1, b, c, d)
 
 def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
-    """
+    r"""
     RIGHT, (1, 0, 1, 0), (a, b,c, d) -> return (a, 1, c, d)
 
     ABOVE, (1, 0, 1, 0), (a, b,c, d) -> return (0, b, c, d)
@@ -3403,7 +3335,7 @@ def GetPreviousTileMarking(DIR, tile, PreviousTileMark):
         return (a, b, 1, d)
 
 def FlipTile(tile_info):
-    """
+    r"""
     [(1, 0, 1, 0),DIR] -> return [(0, 1, 0, 1), DIR]
 
     [(0, 1, 0, 1), DIR] -> return [(1, 0, 1, 0), DIR]
@@ -3432,7 +3364,7 @@ def FlipTile(tile_info):
 ######################################################################
 
 def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
-    """
+    r"""
     Returns the follow information (dictionary) on how the triangle should be displayed and glued to the next triangle::
 
         {'bottom'/'top': edge label or variable info,
@@ -3525,7 +3457,8 @@ def _triangle_to_draw(triangle, triangle_type, tau, tau_placement, test_k=None):
         raise ValueError ('Input error: ', triangle, triangle_type, tau, tau_placement)
 
 def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_loop):
-    """Return list of copies of the triangles which are crossed by gamma.
+    r"""
+    Return list of copies of the triangles which are crossed by gamma.
     See Section 7 of [MSW_Positivity]_
 
     INPUT:
@@ -3718,7 +3651,7 @@ def _lifted_polygon(T, crossed_arcs, first_triangle, final_triangle ,is_arc, is_
     return triangles_to_draw
 
 def _draw_lifted_curve(lifted_polygon, is_arc, is_loop):
-    """
+    r"""
     Returns the graphics of a lifted triangulated polygon/annulus and the lifted curve.
     See :meth:`ClusterTriangulation.draw_lifted_arc` and :meth:`ClusterTriangulation.draw_lifted_loop`
 
@@ -3810,7 +3743,7 @@ def _draw_lifted_curve(lifted_polygon, is_arc, is_loop):
                 else:
                     drawing = drawing + arrow2d((x,y-2),(x,y),linestyle = curve_style, rgbcolor='red') # from bottom to top corner
 
-            if triangle['glued_on'] == 'glued_to_the_left': #### TODO CHECK
+            if triangle['glued_on'] == 'glued_to_the_left':
                 # glue to the left of the previous (upside) triangle_{k-1}
                 x = x-2
                 y = y+2 # new x,y is at the bottom of the upside-down triangle
@@ -3840,7 +3773,7 @@ def _draw_lifted_curve(lifted_polygon, is_arc, is_loop):
     return drawing
 
 def _draw_triangle(triangle,x,y, k):
-    """
+    r"""
     Returns a triangle starting at (x,y) in the shape of a pyramid (resp, an upside-down triangle) if k is even (resp, k is odd).
     See :func:`~sage.combinat.cluster_algebra_quiver.surface._draw_lifted_curve`,
     :meth:`ClusterTriangulation.draw_lifted_arc` and :meth:`ClusterTriangulation.draw_lifted_loop`
