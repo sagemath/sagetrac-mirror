@@ -808,7 +808,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def __call__(self, *args, **kwargs):
         if args or kwargs:
             raise TypeError("'{}.{}' object is not callable".format(self.__class__.__module__, self.__class__.__name__))
-        deprecation(28234, 'callable integers are only intended as a tempory patch until .numerator and .denominator properties are used everywhere')
+	# If in the future we decide to deprecate this functionality then we can add:
+        #   deprecation(28234, 'callable integers are only intended as a tempory patch until .numerator and .denominator properties are used everywhere')
+	# This will require updating a large number of doctests to reflect this warning so we leave this for a future ticket.
         return self
 
     cdef _xor(Integer self, Integer other):
