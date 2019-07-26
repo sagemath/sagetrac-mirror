@@ -2730,10 +2730,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A',[1,1],1])
             sage: A.greedy_element((3,3)) == A.greedy_element_old((3,3))
             True
-            sage: A.greedy_element((3,5)) == A.greedy_element_old((3,5))
+            sage: Asq = ClusterAlgebra(['A',2],d = (3,1), Z = ((1,sqrt(2),sqrt(3),1),(1,1))); S = Asq.initial_seed(); S.mutate([0,1,0,1]); Asq.cluster_variable((-1,2))
+            (x1^3 + (-a^3 + 3*a)*x1^2 + x0 + (-a^2 + 2)*x1 + 1)/(x0*x1)
+            sage: Asq.greedy_element((1,1)) == Asq.cluster_variable((-1,2))
             True
-            sage: A.greedy_element((4,5)) == A.greedy_element_old((4,5))
+            sage: AZ = ClusterAlgebra(['A',2],d = (3,1)); SZ = AZ.initial_seed(); SZ.mutate([0,1,0,1]); AZ.cluster_variable((-1,2))
+            (x1^3 + z0_1*x1^2 + x0 + z0_2*x1 + 1)/(x0*x1)
+            sage: AZ.cluster_variable((-1,2)) == AZ.greedy_element((1,1))
             True
+
         """
         if self.rank() != 2:
             raise ValueError('greedy elements are only defined in rank 2')
@@ -2807,6 +2812,14 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             1
             sage: B._greedy_coefficient((1,1),0,1)
             2
+            sage: Asq = ClusterAlgebra(['A',2],d = (3,1), Z = ((1,sqrt(2),sqrt(3),1),(1,1))); Asq.greedy_element((2,3))
+            (x1^6 + (-a^2 + 2)*x0*x1^4 + (-2*a^3 + 6*a)*x1^5 + (-a^3 + 3*a)*x0^2*x1^2 + (-a^3 + 5*a + 3)*x0*x1^3 + (-2*a^2 + 6)*x1^4 + x0^3 + (-2*a^2 + 4)*x0^2*x1 + (-3*a^3 + 9*a + 3)*x0*x1^2 + (-2*a^3 + 10*a + 2)*x1^3 + 3*x0^2 + (-4*a^2 + 8)*x0*x1 + (-2*a^3 + 6*a + 3)*x1^2 + 3*x0 + (-2*a^2 + 4)*x1 + 1)/(x0^2*x1^3)
+            sage: Asq._greedy_coefficient((2,3),2,2)
+            -a^3 + 3*a
+            sage: AZ = ClusterAlgebra(['A',2],d = (3,1)); AZ.greedy_element((2,3))
+            (x1^6 + z0_2*x0*x1^4 + 2*z0_1*x1^5 + z0_1*x0^2*x1^2 + (z0_1*z0_2 + 3)*x0*x1^3 + (z0_1^2 + 2*z0_2)*x1^4 + x0^3 + 2*z0_2*x0^2*x1 + (z0_2^2 + 3*z0_1)*x0*x1^2 + (2*z0_1*z0_2 + 2)*x1^3 + 3*x0^2 + 4*z0_2*x0*x1 + (z0_2^2 + 2*z0_1)*x1^2 + 3*x0 + 2*z0_2*x1 + 1)/(x0^2*x1^3)
+            sage: AZ._greedy_coefficient((2,3),1,3)
+            z0_1*z0_2 + 3
         """
         Z = self._Z0  
         d0 = self._d[0]
