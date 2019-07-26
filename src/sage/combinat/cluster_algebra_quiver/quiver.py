@@ -36,6 +36,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
+import numbers
 
 from six.moves import range
 
@@ -1418,7 +1419,7 @@ class ClusterQuiver(SageObject):
                 data = getattr(self, data)()
 
         # If we get a function, execute it
-        if hasattr(data, '__call__'):
+        if callable(data) and not isinstance(data, numbers.Integral):
             # function should return either integer or sequence
             data = data(self)
 

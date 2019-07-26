@@ -557,6 +557,7 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import iteritems
+import numbers
 
 from functools import reduce
 
@@ -2301,7 +2302,7 @@ def _plot(funcs, xrange, parametric=False,
                 base_level = min(t[1] for t in data)
             elif fill == 'max':
                 base_level = max(t[1] for t in data)
-            elif hasattr(fill, '__call__'):
+            elif callable(fill) and not isinstance(fill, numbers.Integral):
                 if fill == max or fill == min:
                     if fill == max:
                         fstr = 'max'
@@ -2324,12 +2325,12 @@ def _plot(funcs, xrange, parametric=False,
                 except TypeError:
                     base_level = 0
 
-            if not hasattr(fill, '__call__') and polar:
+            if (not callable(fill) or isinstance(fill, numbers.Integral)) and polar:
                 filldata = generate_plot_points(lambda x: base_level, xrange, plot_points, adaptive_tolerance, \
                                                 adaptive_recursion, randomize)
                 filldata.reverse()
                 filldata += data
-            if not hasattr(fill, '__call__') and not polar:
+            if (not callable(fill) or isinstance(fill, numbers.Integral)) and not polar:
                 filldata = [(data[0][0], base_level)] + data + [(data[-1][0], base_level)]
 
         if fillcolor == 'automatic':

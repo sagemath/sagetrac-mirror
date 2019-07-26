@@ -282,6 +282,7 @@ continue down the MRO and find the ``_add_`` method in the category.
 # ****************************************************************************
 
 from __future__ import absolute_import, division, print_function
+import numbers
 
 cimport cython
 from cpython cimport *
@@ -788,7 +789,7 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self, '__call__'):
+        if not callable(self) or isinstance(self, numbers.Integral):
             return self
         parent = self._parent
         try:

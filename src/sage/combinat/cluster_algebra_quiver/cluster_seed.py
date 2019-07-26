@@ -32,6 +32,7 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
+import numbers
 
 from six.moves import range
 
@@ -2458,7 +2459,7 @@ class ClusterSeed(SageObject):
                         sequence = sequence + "_" + j
 
         # If we get a function, execute it
-        if hasattr(sequence, '__call__'):
+        if callable(sequence) and not isinstance(sequence, numbers.Integral):
             # function should return either integer or sequence
             sequence = sequence(seed)
 

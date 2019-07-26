@@ -54,6 +54,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+import numbers
 
 from six.moves import range
 
@@ -1889,7 +1890,7 @@ class WordGenerator(object):
             seq = sequence
         elif hasattr(morphisms, '__getitem__'):
             seq = (morphisms[i] for i in sequence)
-        elif hasattr(morphisms, '__call__'):
+        elif callable(morphisms) and not isinstance(morphisms, numbers.Integral):
             seq = (morphisms(i) for i in sequence)
         else:
             raise TypeError("morphisms (=%s) must be None, callable or provide a __getitem__ method."%morphisms)
