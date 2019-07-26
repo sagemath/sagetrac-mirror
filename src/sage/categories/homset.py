@@ -940,7 +940,7 @@ class Homset(Set_generic):
                 x = mor * x
             return x
 
-        if callable(x) and not isinstance(numbers.Integral):
+        if callable(x) and not isinstance(x, numbers.Integral):
             return self.element_class_set_morphism(self, x)
 
         raise TypeError("unable to convert {!r} to an element of {}".format(x, self))
