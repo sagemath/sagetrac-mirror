@@ -156,7 +156,7 @@ Several examples using Generalized Cluster Algebras, including Exchange Coeffici
     sage: Agen3.F_polynomial((-2,1))
     (u0^3*u1^3 + sqrt(2)*(u0 + 1)*u0^2*u1^2 + u0^2*u1^3 + sqrt(2)*(u0^2 + 2*u0 + 1)*u0*u1 + u0^3 + 3*u0^2 + 3*u0 + 1)/(u0 + 1)
     sage: Agen3.cluster_variable((-2,1))  ## should be fixed
-    <repr(<sage.algebras.cluster_algebra.ClusterAlgebra_with_category.element_class at 0x14d0e0100>) failed: TypeError: unable to coerce since the denominator is not 1>
+    <repr(<sage.algebras.cluster_algebra.ClusterAlgebra_with_category.element_class at 0x1501da368>) failed: TypeError: unable to coerce since the denominator is not 1>
 
 Division is not guaranteed to yield an element of ``A`` so it returns an
 element of ``A.ambient().fraction_field()`` instead::
@@ -368,7 +368,7 @@ but there is currently no coercion in between algebras obtained by
 mutating at the initial seed::
 
     sage: A1 = A.mutate_initial(0); A1
-    A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients
+    A Cluster Algebra with cluster variables x4, x1, x2, x3 and no coefficients
      over Integer Ring
     sage: A.b_matrix() == A1.b_matrix()
     False
@@ -1316,13 +1316,13 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, cluster_variable_names=['a', 'b'])
         Traceback (most recent call last):
         ...
-        ValueError: cluster_variable_names should be a list of 3 valid variable names
+        ValueError: cluster_variable_names should be an iterable of 3 valid variable names
         sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a', 'b', 'c']); A.gens()
         (x0, x1, x2, a, b, c)
         sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a', 'b'])
         Traceback (most recent call last):
         ...
-        ValueError: coefficient_names should be a list of 3 valid variable names
+        ValueError: coefficient_names should be an iterable of 3 valid variable names
     """
 
     @staticmethod
@@ -1337,12 +1337,78 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             over Integer Ring
         """
         Q = ClusterQuiver(data)
-        for key in kwargs:
-            if isinstance(kwargs[key], list):
-                kwargs[key] = tuple(kwargs[key])
-        return super(ClusterAlgebra, self).__classcall__(self, Q, **kwargs)
+        
+        # Rank
+        n = Q.n()
+        
+        # Exchange matrix
+        B0 = Q.b_matrix()[:n,:]
+        
+        # Coefficient matrix
+        if kwargs.pop('principal_coefficients',False):
+            M0 = identity_matrix(n)
+        else:
+            M0 = Q.b_matrix()[n:,:]
+        m = M0.nrows()
+        
+        B0 = block_matrix([[B0],[M0]])
+        B0.set_immutable()
+        
+        # Degree list
+        d = kwargs.get('d', (1,)*n)
+        if len(d) != n:
+            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
+        
+        # Determine the names of the initial cluster variables
+        kwargs.setdefault('cluster_variable_prefix','x')
+        kwargs['cluster_variable_names'] = tuple(kwargs.get('cluster_variable_names',[kwargs['cluster_variable_prefix'] + str(i) for i in range(n)]))
+        if len(kwargs['cluster_variable_names']) != n:
+            raise ValueError("cluster_variable_names should be an iterable of %d valid variable names" % n)
+            
+        # Determine the names of the coefficients
+        coefficient_prefix = kwargs.pop('coefficient_prefix','y')
+        offset = n if coefficient_prefix == kwargs['cluster_variable_prefix'] else 0
+        kwargs['coefficient_names'] = tuple(kwargs.get('coefficient_names',[coefficient_prefix + str(i) for i in range(offset,m+offset)]))
+        if len(kwargs['coefficient_names']) != m:
+            raise ValueError("coefficient_names should be an iterable of %d valid variable names" % m)     
+            
+        # Compute the next free index for new named variables
+        # This is the first integer nfi such that for any j >= nfi
+        # kwargs['cluster_variable_prefix'] + str(j) is not the name of an
+        # initial cluster variable nor a coefficient. This will be used in
+        # mutate_initial to name new cluster variables
+        splitnames = map(lambda w: w.partition(kwargs['cluster_variable_prefix']), kwargs['cluster_variable_names'] + kwargs['coefficient_names'])
+        nfi = 1 + max([-1] + [int(v) for u,_,v in splitnames if u =='' and v.isdigit()])
+        kwargs.setdefault('next_free_index',nfi)
+        
+        # Determine scalars
+        var_switch = d != (1,)*n and not kwargs.get('Z', False)
+        scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,d[i])] for i in range(n)])) if var_switch else ZZ)
 
-    def __init__(self, Q, **kwargs):
+        # Exchange polynomial coefficients
+        if var_switch or d == (1,)*n:
+            Z0 = tuple((1,)+tuple([scalars('z%s_%s' % (i,j)) for j in range(1,d[i])])+(1,) for  i in range(n))
+        else:
+            Z0 = kwargs.get('Z')
+        
+        # consistency checking  for exchange coefficients
+        if len(Z0) != n:
+            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
+        for i in range(len(Z0)):
+            if len(Z0[i]) != d[i] + 1:
+                raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
+        if not prod(flatten([[Z0[i][j] in scalars for j in range(1,d[i])] for i in range(n)])):
+            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
+
+        return super(ClusterAlgebra,self).__classcall__(self,B0,**kwargs)
+        
+        
+        #for key in kwargs:
+        #    if isinstance(kwargs[key], list):
+        #        kwargs[key] = tuple(kwargs[key])
+        #return super(ClusterAlgebra, self).__classcall__(self, Q, **kwargs)
+
+    def __init__(self, B, **kwargs):
         """
         Initialize ``self``.
 
@@ -1368,65 +1434,56 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.clear_computed_data()
             sage: TestSuite(A).run()
         """
-        # Parse input
-        self._n = Q.n()
-        I = identity_matrix(self._n)
-        if kwargs.get('principal_coefficients', False):
-            M0 = I
-        else:
-            M0 = Q.b_matrix()[self._n:, :]
-        self._B0 = block_matrix([[Q.b_matrix()[:self._n, :]], [M0]])
+        # Exchange matrix
+        self._B0 = copy(B)
+        
+        # Rank
+        self._n = B.ncols()
+        
+        M0 = B[self._n:,:]
         m = M0.nrows()
+        
+        # Flag for mutating_F
+        self._mutating_F = kwargs.get('mutating_F',False)
+        
+        # Degree list
         self._d = kwargs.get('d', (1,)*self._n)
-        if len(self._d) != self._n:
-            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-                 
+            
+        # Data to build new named variables
+        self._cluster_variable_prefix = kwargs['cluster_variable_prefix']
+        self._next_free_index = kwargs['next_free_index']
+        
+        # Determine scalars
+        var_switch = self._d != (1,)*self._n and not kwargs.get('Z', False)
+        self._scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else ZZ)
+
+        # Get exchange polynomial coefficients
+        if var_switch or self._d == (1,)*self._n:
+            self._Z0 = tuple((1,)+tuple([self._scalars('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
+        else:
+            self._Z0 = kwargs.get('Z')
+            
+                    
         # Ambient space for F-polynomials, by default this contains formal exchange polynomial
         # coefficient if none are provided
         # NOTE: for speed purposes we need to have QQ here instead of the more
         # natural ZZ. The reason is that _mutated_F is faster if we do not cast
         # the result to polynomials but then we get "rational" coefficients
-
-        # Determine scalars
-        var_switch = self._d != (1,)*self._n and not kwargs.get('Z', False)
+            
+        # scalars
         self._scalars = kwargs.get('scalars', PolynomialRing(ZZ, flatten([['z%s_%s' % (i,j) for j in range(1,self._d[i])] for i in range(self._n)])) if var_switch else ZZ)
 
         self._U = PolynomialRing(self._scalars, ['u%s' % i for i in range(self._n)])
-
-        if var_switch or self._d == (1,)*self._n:
-            self._Z0 = tuple((1,)+tuple([self._scalars('z%s_%s' % (i,j)) for j in range(1,self._d[i])])+(1,) for  i in range(self._n))
-        else:
-            self._Z0 = kwargs.get('Z')
         
-        # consistency checking  for exchange coefficients
-        if len(self._Z0) != self._n:
-            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-        for i in range(len(self._Z0)):
-            if len(self._Z0[i]) != self._d[i] + 1:
-                raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
-        if not prod(flatten([[self._Z0[i][j] in self._scalars for j in range(1,self._d[i])] for i in range(self._n)])):
-            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
-
-        # Determine the names of the initial cluster variables
-        variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
-        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(self._n)]))
-        if len(variables) != self._n:
-            raise ValueError("cluster_variable_names should be a list of %d valid variable names" % self._n)
-
-        # Determine coefficients and base
-        if m > 0:
-            coefficient_prefix = kwargs.get('coefficient_prefix', 'y')
-            if coefficient_prefix == variables_prefix:
-                offset = self._n
-            else:
-                offset = 0
-            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix + str(i) for i in range(offset, m + offset)]))
-            if len(coefficients) != m:
-                raise ValueError("coefficient_names should be a list of %d valid variable names" % m)
-            base = LaurentPolynomialRing(self._scalars, coefficients)
-        else:
-            base = self._scalars
-            coefficients = []
+        # Do we have principal coefficients?
+        self.Element = PrincipalClusterAlgebraElement if M0 == identity_matrix(self._n) else ClusterAlgebraElement
+        
+        # Variables and coefficients
+        variables = list(kwargs.get('cluster_variable_names', [self._cluster_variable_prefix + str(i) for i in range(self._n)]))
+        coefficients = list(kwargs.get('coefficient_names'))
+        
+        # Base ring
+        base = LaurentPolynomialRing(self._scalars,coefficients) if m > 0 else self._scalars
 
         # Setup Parent and ambient
         self._ambient = LaurentPolynomialRing(self._scalars, variables + coefficients)
@@ -1435,12 +1492,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         # Setup infrastructure to store computed data
         self.clear_computed_data()
-
-        # Have we got principal coefficients?
-        if M0 == I:
-            self.Element = PrincipalClusterAlgebraElement
-        else:
-            self.Element = ClusterAlgebraElement
 
         # Data to compute cluster variables using separation of additions
         # and exchange coefficient specialization
@@ -2374,10 +2425,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         self._seed.mutate(directions)
 
-    def mutate_initial(self, direction, mutating_F=False):
+    def mutate_initial(self, direction, mutating_F=False, **kwargs):
         r"""
         Return the cluster algebra obtained by mutating ``self`` at
         the initial seed.
+        
+        .. WARNING::
+
+            This method is significantly slower than :meth:`ClusterAlgebraSeed.mutate`.
+            It is therefore advisable to use the latter for exploration purposes.
 
         INPUT:
 
@@ -2386,6 +2442,17 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
           * an integer in ``range(self.rank())`` to mutate in one direction only
           * an iterable of such integers to mutate along a sequence
           * a string "sinks" or "sources" to mutate at all sinks or sources simultaneously
+          
+        - ``mutating_F`` -- bool (default ``False``); whether to compute
+          F-polynomials while mutating
+
+        .. NOTE::
+
+            While knowing F-polynomials is essential to computing
+            cluster variables, the process of mutating them is quite slow.
+            If you care only about combinatorial data like g-vectors and
+            c-vectors, setting ``mutating_F=False`` yields significant
+            benefits in terms of speed.
 
         ALGORITHM:
 
@@ -2412,6 +2479,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A',2])
             sage: A.mutate_initial(0) is A
             False
+            
+
             
         TESTS::
         
@@ -2458,6 +2527,22 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             True
             sage: A2.F_polynomials_so_far()
             [1, 1]
+            
+            Check that :trac:`28176` is fixed::
+
+            sage: A = ClusterAlgebra( matrix(5,[0,1,-1,1,-1]), cluster_variable_names=['p13'], coefficient_names=['p12','p23','p34','p41']); A
+            A Cluster Algebra with cluster variable p13 and coefficients p12, p23, p34, p41 over Integer Ring
+            sage: A.mutate_initial(0)
+            A Cluster Algebra with cluster variable x0 and coefficients p12, p23, p34, p41 over Integer Ring
+
+            sage: A1 = ClusterAlgebra(['A',[2,1],1])
+            sage: A2 = A1.mutate_initial([0,1,0],mutating_F=True)
+            sage: len(A2.g_vectors_so_far()) == len(A2.F_polynomials_so_far())
+            True
+            sage: all(parent(f) == A2._U for f in A2.F_polynomials_so_far())
+            True
+            sage: A2.find_g_vector((0,0,1)) == []
+            True
         """
         n = self.rank()
 
@@ -2476,12 +2561,11 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 seq = iter((direction, ))
 
         # setup
-        Ugen = self._U.gens()
-        if mutating_F:
-            F_poly_dict = copy(self._F_poly_dict)
         path_dict = copy(self._path_dict)
         path_to_current = copy(self.current_seed().path_from_initial_seed())
         B0 = copy(self._B0)
+        cv_names = list(self.initial_cluster_variable_names())
+        nfi = self._next_free_index
         initial_g_vects = frozenset(map(tuple, identity_matrix(n).columns()))
         Z = copy(self._Z0)
 
@@ -2492,8 +2576,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
          
             # clear storage
             tmp_path_dict = {}
-            if mutating_F:
-                tmp_F_poly_dict = {}
          
             # mutate B-matrix
             D = diagonal_matrix(self._d)
@@ -2503,10 +2585,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             # reverse k-th exchange polynomial
             Z = tuple([Z[i] if i != k else tuple([Z[k][self._d[k] - j] for j in range(self._d[k] + 1)]) for i in range(n)])
-         
-            # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            if mutating_F:
-                F_subs = { Ugen[j] : Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(self._d[k] * B0[k, j], 0) * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** (-B0[k, j]) for j in range(n) }
          
             for old_g_vect in path_dict:
                 # compute new g-vector
@@ -2524,38 +2602,41 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 if new_g_vect in initial_g_vects:
                     new_path = []
                 tmp_path_dict[new_g_vect] = new_path
-         
-                # compute new F-polynomial
-                if mutating_F:
-                    if old_g_vect in F_poly_dict:
-                        h = -min(0, old_g_vect[k] * self._d[k])
-                        new_F_poly = F_poly_dict[old_g_vect].subs(F_subs) * Ugen[k] ** h * sum( Z[k][i] * Ugen[k] ** i for i in range(self._d[k]+1) ) ** old_g_vect[k]
-                        tmp_F_poly_dict[new_g_vect] = new_F_poly
 
             # update storage
             initial_g = (0,)*k+(1,)+(0,)*(n-k-1)
             tmp_path_dict[initial_g] = []
             path_dict = tmp_path_dict
-            if mutating_F:
-                tmp_F_poly_dict[initial_g] = self._U(1)
-                F_poly_dict = tmp_F_poly_dict
             path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
          
+        # name the new cluster variable
+        cv_names[k] = self._cluster_variable_prefix + str(nfi)
+        nfi += 1
+         
         # create new algebra
-        cv_names = self.initial_cluster_variable_names()
         coeff_names = self.coefficient_names()
         scalars = self.scalars()
-        A = ClusterAlgebra(B0, d=self._d, Z=Z, cluster_variable_names=cv_names, coefficient_names=coeff_names, scalars=scalars)
+        A = ClusterAlgebra(B0, d=self._d, Z=Z, cluster_variable_names=cv_names, next_free_index = nfi, coefficient_names=coeff_names, scalars=scalars)
 
         # store computed data
-        if mutating_F:
-            A._F_poly_dict.update(F_poly_dict)
         A._path_dict.update(path_dict)
  
         # reset self.current_seed() to the previous location
         S = A.initial_seed()
         S.mutate(path_to_current, mutating_F=False)
         A.set_current_seed(S)
+#        print A.F_polynomials_so_far()
+#        print "I am trying"
+        
+        # recompute F-polynomials
+        # We use forward mutation of F-polynomials because it is much faster
+        # than backward mutation. Moreover the number of needed mutation is
+        # linear in len(seq) rather than quadratic.
+#        if kwargs.get('mutating_F', False):
+        if mutating_F:
+#            print "I am running"
+            for p in A._path_dict.values():
+                A.initial_seed().mutate(p)
         
         return A
 
