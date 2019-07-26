@@ -3,8 +3,8 @@
 .. default-role:: math
 
 
-Toric polymake tutorial
-=======================
+Application ``fulton``: Toric polymake tutorial
+===============================================
 
 This tutorial will go over the basics of polymake and then focus on the
 ``application "fulton"`` for toric varieties.

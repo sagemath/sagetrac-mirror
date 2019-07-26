@@ -3,8 +3,8 @@
 .. default-role:: math
 
 
-Introduction to topaz
----------------------
+Application ``topaz``: Introduction to topaz
+============================================
 
 This tutorial tries to give the user a first idea about the features of
 the ``topaz`` application of ``polymake``. We take a look at a variety

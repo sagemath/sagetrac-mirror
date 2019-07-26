@@ -6,13 +6,22 @@
  Thematic Tutorial: Polymake
 =============================
 
-.. Converted from the Polymake tutorials in polymake/demo/*.ipynb from
-   polymake release V3.2r3 using (in `sage -sh`)
+polymake is a mature open source software package for research in
+polyhedral geometry, by Ewgenij Gawrilow and Michael Joswig and
+contributing authors. It deals with polytopes, polyhedra and fans as
+well as simplicial complexes, matroids, graphs, tropical
+hypersurfaces, and other objects.
 
-   for a in *.ipynb; do
+This thematic tutorial was obtained by (1) converting from the polymake
+tutorials available in form of Jupyter notebooks in polymake release
+V3.4, (2) manually translating the Perl code to Python.
+
+.. Converted from the Polymake tutorials in polymake/demo/*.ipynb from
+   polymake release V3.4 using (in `sage -sh`)
+
+   for a in `ls *.ipynb | grep -v perl_intro | grep -v apps_polytope`; do
      sage-ipynb2rst-polymake $a $SAGE_ROOT/src/doc/en/thematic_tutorials/polymake/`basename $a .ipynb`.rst;
    done
-   rm $SAGE_ROOT/src/doc/en/thematic_tutorials/polymake/perl_intro.rst
 
    The following toctree must be updated manually.
 

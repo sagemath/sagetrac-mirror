@@ -3,8 +3,8 @@
 .. default-role:: math
 
 
-Groups in polymake
-==================
+Application ``group``: Groups in polymake
+=========================================
 
 ``polymake`` can deal with symmetry groups acting on polytopes,
 point/vector configurations and simplicial complexes. This can take the
