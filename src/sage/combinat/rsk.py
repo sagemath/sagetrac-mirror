@@ -173,15 +173,6 @@ from bisect import bisect_left, bisect_right
 from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 
-import inspect, re
-
-def dbg(p):
-    for line in inspect.getframeinfo(inspect.currentframe().f_back)[3]:
-        m = re.search(r'\bdbg\s*\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)', line)
-        if m:
-            print (str(m.group(1)) +" = "+ str(p))
-            print "------"
-
 
 class Rule(UniqueRepresentation):
     r"""
@@ -2702,8 +2693,6 @@ class RuleShiftedKnuth(RuleSuperRSK):
             sage: p, q = RuleShiftedKnuth().forward_rule([1, 1], [1, 2]); p
             [[1, 2]]
         """
-        # dbg(obj1)
-        # dbg(obj2)
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         itr = self.to_pairs(obj1, obj2, check=check)
         p = []       # the "insertion" tableau
@@ -2713,56 +2702,38 @@ class RuleShiftedKnuth(RuleSuperRSK):
             row_index = -1
             col_index = -1
             schen = True
-            # dbg(i)
-            # dbg(j)
-            y = j
             while True:
-                # dbg(epsilon)
-                # dbg(p)
-                # dbg(q)
                 if schen:
                     # row insertion
                     row_index += 1
                     epsilon = 0
                     if row_index == len(p):
                         p.append([None]*row_index + [j])
-                        # dbg(p)
                         q.append([i])
                         break
                     else:
                         row = p[row_index][row_index:]
-                        # dbg(row)
-                        # dbg(j)
                         if j.is_primed():
                             epsilon = 1
                         j1, col_index = self.insertion(j, row, epsilon=epsilon)
-                        # dbg(row)
-                        # dbg(j1)
                         p[row_index][row_index:] = row
                         col_index += row_index
                         if row_index == col_index:
                             schen = False
                             epsilon = 1
                         if j1 is None:
-                            # dbg(p)
                             p[row_index].append(j)
                             q[row_index].append(i)
                             break
                         j = j1
                 else:
                     # column insertion
-                    # dbg(row_index)
-                    # dbg(col_index)
-                    # dbg(j)
                     if row_index == col_index and p[row_index][col_index].integer() == j.integer():
                         if p[row_index][col_index].is_primed():
-                            # print("inside")
                             if j.is_primed():
                                 j = j.increase_half()
-                                # dbg(j)
                             else:
                                 p[row_index][col_index] = p[row_index][col_index].increase_half()
-                                # dbg(p)
 
                     col_index += 1
                     if not p or col_index == len(p[0]):
@@ -2775,9 +2746,6 @@ class RuleShiftedKnuth(RuleSuperRSK):
                         j1, row_index = self.insertion(j, c, epsilon=epsilon)
                         if j1 is None:
                             c.append(j)
-                            # dbg(p)
-                            # dbg(col_index)
-                            # dbg(c)
                             if len(p) < len(c):
                                 p.append([None]*row_index)
                                 q.append([])
@@ -2787,10 +2755,6 @@ class RuleShiftedKnuth(RuleSuperRSK):
                         else:
                             j = j1
                         self._set_col(p, col_index, c)
-            # print("final")
-            # dbg(epsilon)
-            # dbg(p)
-            # dbg(q)
         return self._forward_format_output(p, q, check_standard=check_standard)
 
     def _forward_format_output(self, p, q, check_standard):
@@ -2798,6 +2762,11 @@ class RuleShiftedKnuth(RuleSuperRSK):
         Return final output of the ``RSK`` (here, shifted Knuth)
         correspondence from the output of the corresponding
         ``forward_rule``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleShiftedKnuth
+
         """
         from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
         from sage.combinat.tableau import Tableau
@@ -2825,11 +2794,17 @@ class RuleShiftedKnuth(RuleSuperRSK):
           and if ``q`` is standard, we can have the output:
 
           - ``'word'`` -- as a word
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleShiftedKnuth
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: p, q = RSK([2,'3p',2,'2p',1,'1p'], insertion=RSK.rules.shiftedKnuth)
+            sage: RuleShiftedKnuth().backward_rule(p, q, 'array')
+            [[1, 2, 3, 4, 5, 6], [2, 3', 2, 2', 1, 1']]
         """
         p_copy = [[None]*i + list(row) for i, row in enumerate(p)]
         q_copy = [[None]*i + list(row) for i, row in enumerate(q)]
-        # dbg(p_copy)
-        # dbg(q_copy)
         upper_row = []
         lower_row = []
         # upper_row and lower_row will be the upper and lower rows of the
@@ -2850,17 +2825,10 @@ class RuleShiftedKnuth(RuleSuperRSK):
             schen = False if value.is_primed() else True
             if not schen:
                 iter_dict = {v: k for k, v in iter_dict.iteritems()}
-            # dbg(iter_dict)
             for key in sorted(iter_dict, reverse=True):
                 schen = False if value.is_primed() else True
                 row_index, col_index = (iter_dict[key], key) if schen else (key, iter_dict[key])
-                # dbg(val)
-                # dbg(row_index)
-                # dbg(col_index)
-                # dbg(p_copy)
                 x = p_copy[row_index].pop() # Always the right-most entry
-                # dbg(x)
-                # dbg(p_copy)
                 while True:
                     if schen:
                         # row bumping
@@ -2869,9 +2837,6 @@ class RuleShiftedKnuth(RuleSuperRSK):
                         if row_index < 0:
                             break
                         x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
-                        # dbg(x)
-                        # dbg(p_copy)
-                        # dbg(epsilon)
                     else:
                         # column bumping
                         col_index -= 1
@@ -2879,15 +2844,7 @@ class RuleShiftedKnuth(RuleSuperRSK):
                         if col_index < 0:
                             break
                         c = self._get_col(p_copy, col_index)
-                        # print("before")
-                        # dbg(c)
-                        # dbg(x)
-                        x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
-                        # print("after")
-                        # dbg(c)
-                        # dbg(x)
-                        # dbg(row_index)
-                        # dbg(col_index)
+                        x, row_index = self.reverse_insertion(x, c, epsilon=1)
                         self._set_col(p_copy, col_index, c)
                         if col_index == 0:
                             row_index = 0
@@ -2895,24 +2852,12 @@ class RuleShiftedKnuth(RuleSuperRSK):
                             schen = True
                             if p_copy[row_index][col_index].integer() == x.integer():
                                 if p_copy[row_index][col_index].is_unprimed():
-                                    # print("inside")
                                     if x.is_unprimed():
-                                        # print("unprimed inside")
-                                        # dbg(row_index)
-                                        # dbg(col_index)
-                                        # print(str(x.decrease_half()))
                                         x = x.decrease_half()
-                                        # dbg(p_copy)
-                                        # print("end unprimed")
                                     else:
                                         p_copy[row_index][col_index] = x
-                        # dbg(x)
-                        # dbg(p_copy)
                 upper_row.append(value.integer())
                 lower_row.append(x)
-                # dbg(upper_row)
-                # dbg(lower_row)
-                # dbg(p_copy)
         return self._backward_format_output(lower_row, upper_row, output, q.is_standard())
 
     def _backward_format_output(self, lower_row, upper_row, output, 
