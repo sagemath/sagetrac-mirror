@@ -2533,7 +2533,7 @@ class RuleSuperRSK(RuleRSK):
         raise ValueError("invalid output option")
 
 
-class RuleshiftedKnuth(RuleSuperRSK):
+class RuleShiftedKnuth(RuleSuperRSK):
     r"""
     A rule modeling the Shifted Knuth insertion.
 
@@ -2555,6 +2555,26 @@ class RuleshiftedKnuth(RuleSuperRSK):
       when a number `k_i` is inserted into the `i`-th row of `P`,it bumps 
       out the first integer greater **or equal to** `k_i` in the column) 
       along the column.
+
+    EXAMPLES::
+
+        sage: RSK([1,2,2,2], [2,1,1,2], insertion='shiftedKnuth')
+        [[[1, 1, 2], [2]], [[1, 2', 2], [2]]]
+        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+        sage: p = Tableau([[PrimedEntry(1), PrimedEntry(1), PrimedEntry(2)], [PrimedEntry(2)]]); q = Tableau([[PrimedEntry(1), PrimedEntry("2'"), PrimedEntry(2)], [PrimedEntry(2)]])
+        sage: RSK_inverse(p, q, insertion=RSK.rules.shiftedKnuth)
+        [[1, 2, 2, 2], [2, 1, 1, 2]]
+        sage: RSK([[0,0.5,1.5], [1,0.5,0], [1.5,0,0]], insertion=RSK.rules.shiftedKnuth)
+        [[[1, 1, 1, 3', 3], [2', 2]], [[1, 1, 1, 2', 3'], [2, 3']]]
+
+    TESTS:
+
+    Let us try Shifted Knuth on some examples give in []_::
+
+        sage: RSK([2,6,5,1,7,4,3], insertion=RSK.rules.shiftedKnuth)
+        [[[1, 2, 3, 6, 7], [4, 5]], [[1, 2, 4', 5, 7'], [3, 6']]]
+        sage: RSK([1,1,1,2,2,3,3],[1.5,2.5,3,1,1.5,0.5,1],insertion='shiftedKnuth')
+        [[[1, 1, 1, 3', 3], [2', 2]], [[1, 1, 1, 2', 3'], [2, 3']]]
     """
     def to_pairs(self, obj1=None, obj2=None, check=True):
         r"""
@@ -2580,8 +2600,15 @@ class RuleshiftedKnuth(RuleSuperRSK):
 
         EXAMPLES::
 
-            sage:
-
+            sage: from sage.combinat.rsk import RuleShiftedKnuth
+            sage: list(RuleShiftedKnuth().to_pairs([2, 1, 1],[1, 1, '1p']))
+            [(2, 1), (1, 1), (1, 1')]
+            sage: list(RuleShiftedKnuth().to_pairs([[1, '1p', 1],[1, 1, '1p'],['1p',1,1]]))
+            [(1, 1), (1, 2'), (1, 3), (2, 1), (2, 2), (2, 3'), (3, 1'), (3, 2), (3, 3)]
+            sage: list(RuleShiftedKnuth().to_pairs([2, '1p', 1],[1, 1, '1p']))
+            Traceback (most recent call last):
+            ...
+            ValueError: the top row of biword should be unprimed
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         if obj2 is None:
@@ -2668,6 +2695,12 @@ class RuleshiftedKnuth(RuleSuperRSK):
             converted to a biword like a regular matrix except that for 
             the entries, the first entry in the bottom row of biword of 
             corresponding letters will be primed. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleShiftedKnuth
+            sage: p, q = RuleShiftedKnuth().forward_rule([1, 1], [1, 2]); p
+            [[1, 2]]
         """
         # dbg(obj1)
         # dbg(obj2)
@@ -2795,8 +2828,8 @@ class RuleshiftedKnuth(RuleSuperRSK):
         """
         p_copy = [[None]*i + list(row) for i, row in enumerate(p)]
         q_copy = [[None]*i + list(row) for i, row in enumerate(q)]
-        dbg(p_copy)
-        dbg(q_copy)
+        # dbg(p_copy)
+        # dbg(q_copy)
         upper_row = []
         lower_row = []
         # upper_row and lower_row will be the upper and lower rows of the
@@ -2814,31 +2847,72 @@ class RuleshiftedKnuth(RuleSuperRSK):
         # the value d[k][j] is the row i such that the (i, j)-th cell of
         # q is filled with k.
         for value, iter_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
-            epsilon = 1 if value.is_primed() else 0
-            if epsilon == 1:
+            schen = False if value.is_primed() else True
+            if not schen:
                 iter_dict = {v: k for k, v in iter_dict.iteritems()}
+            # dbg(iter_dict)
             for key in sorted(iter_dict, reverse=True):
-                row_index, col_index = (iter_dict[key], key) if epsilon == 0 else (key, iter_dict[key])
+                schen = False if value.is_primed() else True
+                row_index, col_index = (iter_dict[key], key) if schen else (key, iter_dict[key])
+                # dbg(val)
+                # dbg(row_index)
+                # dbg(col_index)
+                # dbg(p_copy)
                 x = p_copy[row_index].pop() # Always the right-most entry
+                # dbg(x)
+                # dbg(p_copy)
                 while True:
-                    if epsilon == 0:
+                    if schen:
                         # row bumping
                         row_index -= 1
+                        epsilon = 1
                         if row_index < 0:
                             break
                         x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
+                        # dbg(x)
+                        # dbg(p_copy)
+                        # dbg(epsilon)
                     else:
                         # column bumping
                         col_index -= 1
+                        epsilon = 0
                         if col_index < 0:
                             break
                         c = self._get_col(p_copy, col_index)
+                        # print("before")
+                        # dbg(c)
+                        # dbg(x)
                         x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
-                        if row_index == col_index:
-                            epsilon = 0
+                        # print("after")
+                        # dbg(c)
+                        # dbg(x)
+                        # dbg(row_index)
+                        # dbg(col_index)
                         self._set_col(p_copy, col_index, c)
+                        if col_index == 0:
+                            row_index = 0
+                        if row_index == col_index:
+                            schen = True
+                            if p_copy[row_index][col_index].integer() == x.integer():
+                                if p_copy[row_index][col_index].is_unprimed():
+                                    # print("inside")
+                                    if x.is_unprimed():
+                                        # print("unprimed inside")
+                                        # dbg(row_index)
+                                        # dbg(col_index)
+                                        # print(str(x.decrease_half()))
+                                        x = x.decrease_half()
+                                        # dbg(p_copy)
+                                        # print("end unprimed")
+                                    else:
+                                        p_copy[row_index][col_index] = x
+                        # dbg(x)
+                        # dbg(p_copy)
                 upper_row.append(value.integer())
                 lower_row.append(x)
+                # dbg(upper_row)
+                # dbg(lower_row)
+                # dbg(p_copy)
         return self._backward_format_output(lower_row, upper_row, output, q.is_standard())
 
     def _backward_format_output(self, lower_row, upper_row, output, 
@@ -2877,7 +2951,7 @@ class InsertionRules(object):
     dualRSK = RuleDualRSK
     coRSK = RuleCoRSK
     superRSK = RuleSuperRSK
-    shiftedKnuth = RuleshiftedKnuth
+    shiftedKnuth = RuleShiftedKnuth
 
 #####################################################################
 
