@@ -265,8 +265,6 @@ class DoubleBruhatClusterQuiver(SageObject):
         else:
             width_factor = 2
             fig_size = fig_size*4*n/3
-        # if self._construction_type._description != 'DB':
-        #     raise ValueError("Sheets are only valid for double Bruhat cells")
 
         M = CartanMatrix(self._cartan_type)
         listk = self._S
@@ -275,16 +273,63 @@ class DoubleBruhatClusterQuiver(SageObject):
         for i in range(0, M.nrows()):
             for j in range(0, i+1):
                 if M[i,j]<0:
+                    L = self._quiver._digraph.subgraph(listk[i]+listk[j])
+                    subFrozens = [value for value in self._F if value in listk[i]+listk[j]]
+                    A = ClusterQuiver(L, frozen=subFrozens)
+                    A.show()
+                    #L
+                    #L.show()
                     #figure out what subgraph is?
-                    plot_sequence.append(self._quiver.plot(subgraph = [self._quiver._digraph.subgraph(listk[i]+listk[j]),listk[i],listk[j]], circular=False, linear=True, center=(number_of_sheets*width_factor,0)))
+
+                    #plot_sequence.append(self._quiver.plot(subgraph = [self._quiver._digraph.subgraph(listk[i]+listk[j]),listk[i],listk[j]], circular=False, linear=True, center=(number_of_sheets*width_factor,0)))
                     number_of_sheets += 1
-        sequence = []
-        for p in plot_sequence:
-            sequence.append( p )
-        plot_obj = Graphics()
-        for elem in sequence:
-            plot_obj += elem
-        plot_obj.show(axes=False, figsize=[fig_size*number_of_sheets,fig_size])
+        #for p in plot_sequence:
+        #    p.show()
+
+        #All of this is for printing on one file!
+        # sequence = []
+        # for p in plot_sequence:
+        #     sequence.append( p )
+        # plot_obj = Graphics()
+        # for elem in sequence:
+        #     plot_obj += elem
+        # plot_obj.show(axes=False, figsize=[fig_size*number_of_sheets,fig_size])
+
+############saved############
+
+    # def show_sheets(self):
+    #     n, m = self._quiver._n, self._quiver._m
+    #     from sage.plot.plot import Graphics
+    #     fig_size = 1.2
+    #     if m == 0:
+    #         width_factor = 1
+    #         fig_size = fig_size*2*n/3
+    #     else:
+    #         width_factor = 2
+    #         fig_size = fig_size*4*n/3
+    #     # if self._construction_type._description != 'DB':
+    #     #     raise ValueError("Sheets are only valid for double Bruhat cells")
+    #
+    #     M = CartanMatrix(self._cartan_type)
+    #     listk = self._S
+    #     plot_sequence = []
+    #     number_of_sheets = 0
+    #     for i in range(0, M.nrows()):
+    #         for j in range(0, i+1):
+    #             if M[i,j]<0:
+    #                 #figure out what subgraph is?
+    #                 plot_sequence.append(self._quiver.plot(self._quiver._digraph.subgraph(listk[i]+listk[j]), center=(number_of_sheets*width_factor,0)))
+    #                 #plot_sequence.append(self._quiver.plot(subgraph = [self._quiver._digraph.subgraph(listk[i]+listk[j]),listk[i],listk[j]], circular=False, linear=True, center=(number_of_sheets*width_factor,0)))
+    #                 number_of_sheets += 1
+    #     sequence = []
+    #     for p in plot_sequence:
+    #         sequence.append( p )
+    #     plot_obj = Graphics()
+    #     for elem in sequence:
+    #         plot_obj += elem
+    #     plot_obj.show(axes=False, figsize=[fig_size*number_of_sheets,fig_size])
+
+
 
 ################trying sheets################
 
