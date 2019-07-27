@@ -173,6 +173,15 @@ from bisect import bisect_left, bisect_right
 from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 
+import inspect, re
+
+def dbg(p):
+    for line in inspect.getframeinfo(inspect.currentframe().f_back)[3]:
+        m = re.search(r'\bdbg\s*\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)', line)
+        if m:
+            print (str(m.group(1)) +" = "+ str(p))
+            print "------"
+
 
 class Rule(UniqueRepresentation):
     r"""
@@ -2569,6 +2578,10 @@ class RuleshiftedKnuth(RuleSuperRSK):
           that ``obj1`` and ``obj2`` actually define a valid
           restricted super biword.
 
+        EXAMPLES::
+
+            sage:
+
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         if obj2 is None:
@@ -2583,13 +2596,13 @@ class RuleshiftedKnuth(RuleSuperRSK):
                     for i, row in enumerate(obj1):
                         for j, mult in enumerate(row):
                             mult = PrimedEntry(mult)
-                            if mult > 0 and m.is_primed():
+                            if mult > 0 and mult.is_primed():
                                 t.extend([PrimedEntry(i+1)])
                                 b.extend([PrimedEntry(j+0.5)])
-                                mult = mult - 1
+                                mult = PrimedEntry(mult.integer() - 1)
                             if mult > 0:
-                                t.extend(PrimedEntry([i+1])*mult)
-                                b.extend(PrimedEntry([j+1])*mult)
+                                t.extend([PrimedEntry(i+1)]*mult.integer())
+                                b.extend([PrimedEntry(j+1)]*mult.integer())
                     itr = zip(t, b)
                 except TypeError:
                     # set recording list to default value [1, 2, 3, ...]
@@ -2609,8 +2622,8 @@ class RuleshiftedKnuth(RuleSuperRSK):
             if check:
                 if len(obj1) != len(obj2):
                     raise ValueError("the two arrays must be the same length")
-                for i in range(len(obj2)):
-                    if i.is_primed():
+                for i in range(len(obj1)):
+                    if obj1[i].is_primed():
                         raise ValueError("the top row of biword should be unprimed")
             itr = zip(obj1, obj2)
         return itr
@@ -2656,6 +2669,8 @@ class RuleshiftedKnuth(RuleSuperRSK):
             the entries, the first entry in the bottom row of biword of 
             corresponding letters will be primed. 
         """
+        # dbg(obj1)
+        # dbg(obj2)
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         itr = self.to_pairs(obj1, obj2, check=check)
         p = []       # the "insertion" tableau
@@ -2664,30 +2679,62 @@ class RuleshiftedKnuth(RuleSuperRSK):
             # loop
             row_index = -1
             col_index = -1
-            epsilon = 0
+            schen = True
+            # dbg(i)
+            # dbg(j)
+            y = j
             while True:
-                if epsilon == 0:
+                # dbg(epsilon)
+                # dbg(p)
+                # dbg(q)
+                if schen:
                     # row insertion
                     row_index += 1
+                    epsilon = 0
                     if row_index == len(p):
-                        p.append([j])
+                        p.append([None]*row_index + [j])
+                        # dbg(p)
                         q.append([i])
                         break
                     else:
-                        j1, col_index = self.insertion(j, p[row_index], epsilon=epsilon)
+                        row = p[row_index][row_index:]
+                        # dbg(row)
+                        # dbg(j)
+                        if j.is_primed():
+                            epsilon = 1
+                        j1, col_index = self.insertion(j, row, epsilon=epsilon)
+                        # dbg(row)
+                        # dbg(j1)
+                        p[row_index][row_index:] = row
+                        col_index += row_index
                         if row_index == col_index:
+                            schen = False
                             epsilon = 1
                         if j1 is None:
+                            # dbg(p)
                             p[row_index].append(j)
                             q[row_index].append(i)
                             break
                         j = j1
                 else:
                     # column insertion
+                    # dbg(row_index)
+                    # dbg(col_index)
+                    # dbg(j)
+                    if row_index == col_index and p[row_index][col_index].integer() == j.integer():
+                        if p[row_index][col_index].is_primed():
+                            # print("inside")
+                            if j.is_primed():
+                                j = j.increase_half()
+                                # dbg(j)
+                            else:
+                                p[row_index][col_index] = p[row_index][col_index].increase_half()
+                                # dbg(p)
+
                     col_index += 1
                     if not p or col_index == len(p[0]):
                         self._set_col(p, col_index, [j])
-                        self._set_col(q, col_index, [i])
+                        self._set_col(q, col_index, [PrimedEntry(i.integer()-0.5)])
                         break
                     else:
                         # retrieve column
@@ -2695,14 +2742,22 @@ class RuleshiftedKnuth(RuleSuperRSK):
                         j1, row_index = self.insertion(j, c, epsilon=epsilon)
                         if j1 is None:
                             c.append(j)
-                            self._set_col(p, col_index, c)
-                            if col_index == 0:
+                            # dbg(p)
+                            # dbg(col_index)
+                            # dbg(c)
+                            if len(p) < len(c):
+                                p.append([None]*row_index)
                                 q.append([])
-                            q[row_index].append(PrimedEntry(i-0.5))
+                            self._set_col(p, col_index, c)
+                            q[row_index].append(PrimedEntry(i.integer()-0.5))
                             break
                         else:
                             j = j1
                         self._set_col(p, col_index, c)
+            # print("final")
+            # dbg(epsilon)
+            # dbg(p)
+            # dbg(q)
         return self._forward_format_output(p, q, check_standard=check_standard)
 
     def _forward_format_output(self, p, q, check_standard):
@@ -2712,7 +2767,10 @@ class RuleshiftedKnuth(RuleSuperRSK):
         ``forward_rule``.
         """
         from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
+        from sage.combinat.tableau import Tableau
 
+        # Remove None to typecast to tableau
+        p = [filter(lambda x: x is not None, row) for row in p]
         if not p:
             return [StandardTableau([]), StandardTableau([])]
         return [Tableau(p), Tableau(q)]
@@ -2737,6 +2795,8 @@ class RuleshiftedKnuth(RuleSuperRSK):
         """
         p_copy = [[None]*i + list(row) for i, row in enumerate(p)]
         q_copy = [[None]*i + list(row) for i, row in enumerate(q)]
+        dbg(p_copy)
+        dbg(q_copy)
         upper_row = []
         lower_row = []
         # upper_row and lower_row will be the upper and lower rows of the
@@ -2817,6 +2877,7 @@ class InsertionRules(object):
     dualRSK = RuleDualRSK
     coRSK = RuleCoRSK
     superRSK = RuleSuperRSK
+    shiftedKnuth = RuleshiftedKnuth
 
 #####################################################################
 
@@ -3002,6 +3063,8 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
             insertion = RSK.rules.coRSK
         elif insertion == 'superRSK':
             insertion = RSK.rules.superRSK
+        elif insertion == 'shiftedKnuth':
+            insertion = RSK.rules.shiftedKnuth
         else:
             raise ValueError("invalid input")
 
@@ -3199,6 +3262,8 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
             insertion = RSK.rules.coRSK
         elif insertion == 'superRSK':
             insertion = RSK.rules.superRSK
+        elif insertion == 'shiftedKnuth':
+            insertion = RSK.rules.shiftedKnuth
         else:
             raise ValueError("invalid input")
 
