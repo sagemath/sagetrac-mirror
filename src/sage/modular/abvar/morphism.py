@@ -581,6 +581,19 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         This currently only works when we can take rational linear combinations
         of ``im_gens``.
+
+        EXAMPLES::
+
+            sage: J = J0(23)
+            sage: E = J.endomorphism_ring()
+            sage: a, b = E.gens()
+            sage: A, B = a.matrix(), b.matrix()
+            sage: Phi = E.hom([A,B], check=False)
+            sage: x = 3*a+a*b
+            sage: y = Phi(x)
+            sage: x.matrix().minpoly() == y.minpoly()
+            True
+
         """
         E = self.parent()
         Bmatrix = E.free_module().basis_matrix()
