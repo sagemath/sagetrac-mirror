@@ -3904,7 +3904,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
           also return isogenies to and from other.
         - ``isogeny`` (default:None) -- an isogeny from self to other.
         - ``proof`` (default:True) -- a boolean determining whether to assume
-          the GRH.
+          the GRH to speed up class group computations.
 
         OUTPUT:
 
