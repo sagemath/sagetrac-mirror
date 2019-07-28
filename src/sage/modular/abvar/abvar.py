@@ -4003,8 +4003,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Hf_gens = [f * x for x in Hom(A, B).gens()]
         Hf = EndomorphismSubring(A, Hf_gens)
 
-        # This is what I want to write but __contains__ is broken
+        # I want to write
         # deg_d = [y for y in lift_sols if y in Hf]
+        # but __contains__ is broken
         def in_Hf(y):
             return vector(y.matrix()) in Hf.free_module()
         deg_d = [y for y in lift_sols if in_Hf(y)]
