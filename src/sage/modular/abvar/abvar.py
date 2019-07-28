@@ -3925,6 +3925,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             True
             sage: (Ad_to_A * A_to_Ad).is_identity()
             True
+
+            ::
+
+            sage: A = J0(69)[-1]; A
+            Simple abelian subvariety 69b(1,69) of dimension 2 of J0(69)
+            sage: Ad = A.dual()[0]
+            sage: A.is_isomorphic(Ad)
+            False
         """
         A = self
         B = other
