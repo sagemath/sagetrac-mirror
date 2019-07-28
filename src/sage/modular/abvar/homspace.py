@@ -1035,6 +1035,18 @@ class EndomorphismSubring(Homspace, Ring):
         r"""
         Return an order of a number field isomorphic to self when associated
         abelian variety is simple.
+
+        EXAMPLES::
+
+            sage: J = J0(23)
+            sage: E = J.endomorphism_ring()
+            sage: Oh, M_to_Oh, Oh_to_M = E.isomorphic_order(both_maps=True)
+            sage: Oh.discriminant() == E.discriminant() / 2**J.dimension()
+            True
+            sage: all(M_to_Oh(Oh_to_M(x)) == x for x in Oh.gens())
+            True
+            sage: all(Oh_to_M(M_to_Oh(x)) == x for x in E.gens())
+            True
         """
 
         A = self.abelian_variety()
