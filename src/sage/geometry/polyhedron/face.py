@@ -708,15 +708,11 @@ class PolyhedronFace(SageObject):
             (2, 1) has inner normal cone spanned by [[-1, -1], [-1, 0]]
 
         """
-        from sage.geometry.polyhedron.constructor import Polyhedron
-
         if direction == 'outer':
             normal_vectors = [-facet.A() for facet in self.ambient_Hrepresentation()]
         elif direction == 'inner':
             normal_vectors = [facet.A() for facet in self.ambient_Hrepresentation()]
         else:
             raise ValueError("the direction should be either 'outer' or 'inner'")
-        the_poly = self._polyhedron
-        br = the_poly.base_ring()
-        backend = the_poly.backend()
-        return Polyhedron(rays=normal_vectors, base_ring=br, backend=backend)
+        parent = self.parent()
+        return parent.element_class(parent,[[], normal_vectors, []], None)
