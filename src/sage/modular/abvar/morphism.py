@@ -553,7 +553,20 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
     def list(self):
         r"""
-        Return a list of elements in the matrix of self.
+        Return the list of entries of the matrix associated to ``self``.
+
+        This method is useful for embedding ``self`` into the underlying free
+        module.
+
+        EXAMPLES::
+
+        sage: J = J0(23)
+        sage: E = J.endomorphism_ring()
+        sage: A = E.gens()[1]
+        sage: L = A.list(); L
+        [0, 1, -1, 0, 0, 1, -1, 1, -1, 2, -2, 1, -1, 1, 0, -1]
+        sage: E(E.matrix_space()(L)) == A
+        True
         """
         return self.matrix().list()
 
