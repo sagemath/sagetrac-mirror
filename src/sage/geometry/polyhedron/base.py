@@ -2710,7 +2710,7 @@ class Polyhedron_base(Element):
             sage: P.is_pyramid()
             True
             sage: P.is_pyramid(certificate=True)
-            (True, A vertex at (1, 0, 0, 0))
+            (True, A vertex at (0, 0, 0, 1))
             sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
             sage: egyptian_pyramid.is_pyramid()
             True
@@ -2721,16 +2721,13 @@ class Polyhedron_base(Element):
         if not self.is_compact():
             raise ValueError("polyhedron has to be compact")
 
-        # Find a facet that contains all the vertices but one.
-        n = self.n_vertices()
+        # Find a vertex that is incident to all elements in Hrepresentation but one.
         IM = self.incidence_matrix()
-        facets = [column.nonzero_positions() for column in IM.columns()]
-        for facet in facets:
-            if len(facet) == n-1:
+        for index in range(self.n_vertices()):
+            vertex_incidences = IM.row(index)
+            if sum(vertex_incidences) == IM.ncols() - 1:
                 if certificate:
-                    V = self.vertices()
-                    apex = [V[i] for i in range(n) if i not in facet][0]
-                    return (True, apex)
+                    return (True, self.vertices()[index])
                 return True
         if certificate:
             return (False, None)
@@ -2804,9 +2801,9 @@ class Polyhedron_base(Element):
             raise ValueError("polyhedron has to be compact")
 
         from sage.misc.functional import is_odd
-        n = self.n_vertices()
-        m = self.n_facets()
-        if is_odd(m):
+        n_verts = self.n_vertices()
+        n_facets = self.n_facets()
+        if is_odd(n_facets):
             if certificate:
                 return (False, None)
             return False
@@ -2820,37 +2817,35 @@ class Polyhedron_base(Element):
                      if not self.Hrepresentation()[i].is_equation()]]
             IM = I2.transpose()
 
-        facets = [set(column.nonzero_positions()) for column in IM.columns()]
-        vertices = dict()
-        for i in range(n):
-            v_i = set(IM.rows()[i].nonzero_positions())
-            if len(v_i) == m/2:
-                vertices[i] = v_i
-        # Find two vertices ``vertex1`` and ``vertex2`` such that one of them
+        facets_incidences = [set(column.nonzero_positions()) for column in IM.columns()]
+        verts_incidences = dict()
+        for i in range(n_verts):
+            v_i = set(IM.row(i).nonzero_positions())
+            if len(v_i) == n_facets/2:
+                verts_incidences[i] = v_i
+
+        # Find two vertices ``vert1`` and ``vert2`` such that one of them
         # lies on exactly half of the facets, and the other one lies on
         # exactly the other half.
-        valid_vertices = vertices.keys()
-        for a in range(len(valid_vertices)):
-            i = valid_vertices[a]
-            vertex1 = vertices[i]
-            for b in range(a+1, len(valid_vertices)):
-                j = valid_vertices[b]
-                vertex2 = vertices[j]
-                vertices1and2 = vertex1.union(vertex2)
-                if len(vertices1and2) == m:
-                    # We have found two candidates for apexes.
-                    # Remove from each facet ``i`` resp. ``j``.
-                    test_facets = set(frozenset(facet.difference({i,j}))
-                                      for facet in facets)
-                    if len(test_facets) == m/2:
-                        # For each `F` containing `i` there is
-                        # `G` containing `j` such that
-                        # `F \setminus \{i\} =  G \setminus \{j\}
-                        # and vice versa.
-                        if certificate:
-                            V = self.vertices()
-                            return (True, [V[i], V[j]])
-                        return True
+        from itertools import combinations
+        for index1, index2 in combinations(verts_incidences, 2):
+            vert1_incidences = verts_incidences[index1]
+            vert2_incidences = verts_incidences[index2]
+            vert1and2 = vert1_incidences.union(vert2_incidences)
+            if len(vert1and2) == n_facets:
+                # We have found two candidates for apexes.
+                # Remove from each facet ``index1`` resp. ``index2``.
+                test_facets = set(frozenset(facet_inc.difference({index1, index2}))
+                                  for facet_inc in facets_incidences)
+                if len(test_facets) == n_facets/2:
+                    # For each `F` containing `index1` there is
+                    # `G` containing `index2` such that
+                    # `F \setminus \{index1\} =  G \setminus \{index2\}
+                    # and vice versa.
+                    if certificate:
+                        V = self.vertices()
+                        return (True, [V[index1], V[index2]])
+                    return True
 
         if certificate:
             return (False, None)
@@ -2940,9 +2935,9 @@ class Polyhedron_base(Element):
             raise NotImplementedError("polyhedron has to be compact")
 
         from sage.misc.functional import is_odd
-        n = self.n_vertices()
-        m = self.n_facets()
-        if is_odd(n):
+        n_verts = self.n_vertices()
+        n_facets = self.n_facets()
+        if is_odd(n_verts):
             if certificate:
                 return (False, None)
             return False
@@ -2956,42 +2951,38 @@ class Polyhedron_base(Element):
                      if not self.Hrepresentation()[i].is_equation()]]
             IM = I2.transpose()
 
-        vertices = [set(row.nonzero_positions()) for row in IM.rows()]
-        facets = dict()
-        for j in range(m):
-            F_j = set(IM.columns()[j].nonzero_positions())
-            if len(F_j) == n/2:
-                facets[j] = F_j
+        verts_incidences = [set(row.nonzero_positions()) for row in IM.rows()]
+        facets_incidences = dict()
+        for j in range(n_facets):
+            F_j = set(IM.column(j).nonzero_positions())
+            if len(F_j) == n_verts/2:
+                facets_incidences[j] = F_j
 
-        # Find two facets ``facet1`` and ``facet2`` such that one of them
+        # Find two vertices ``facet1`` and ``facet2`` such that one of them
         # contains exactly half of the vertices, and the other one contains
         # exactly the other half.
-        valid_facets = facets.keys()
-        for a in range(len(valid_facets)):
-            i = valid_facets[a]
-            facet1 = facets[i]
-            for b in range(a+1, len(valid_facets)):
-                j = valid_facets[b]
-                facet2 = facets[j]
-                facets1and2 = facet1.union(facet2)
-                if len(facets1and2) == n:
-                    # We have found two candidates for base faces.
-                    # The vertices are given as list of facets they are contained in.
-                    # Remove from each vertex ``i`` resp. ``j``.
-                    test_vertices = set(frozenset(vertex.difference({i,j}))
-                                        for vertex in vertices)
-                    if len(test_vertices) == n/2:
-                        # For each vertex containing `i` there is
-                        # another one contained in `j`
-                        # and vice versa.
-                        # Other than `i` and `j` both are contained in
-                        # exactly the same facets.
-                        if certificate:
-                            V = self.vertices()
-                            facet1_vertices = [V[i] for i in facet1]
-                            facet2_vertices = [V[i] for i in facet2]
-                            return (True, [facet1_vertices, facet2_vertices])
-                        return True
+        from itertools import combinations
+        for index1, index2 in combinations(facets_incidences, 2):
+            facet1_incidences = facets_incidences[index1]
+            facet2_incidences = facets_incidences[index2]
+            facet1and2 = facet1_incidences.union(facet2_incidences)
+            if len(facet1and2) == n_verts:
+                # We have found two candidates for base faces.
+                # Remove from each vertex ``index1`` resp. ``index2``.
+                test_verts = set(frozenset(vert_inc.difference({index1, index2}))
+                                  for vert_inc in verts_incidences)
+                if len(test_verts) == n_verts/2:
+                    # For each vertex containing `index1` there is
+                    # another one contained in `index2`
+                    # and vice versa.
+                    # Other than `index1` and `index2` both are contained in
+                    # exactly the same facets.
+                    if certificate:
+                        V = self.vertices()
+                        facet1_vertices = [V[i] for i in facet1_incidences]
+                        facet2_vertices = [V[i] for i in facet2_incidences]
+                        return (True, [facet1_vertices, facet2_vertices])
+                    return True
 
         if certificate:
             return (False, None)
