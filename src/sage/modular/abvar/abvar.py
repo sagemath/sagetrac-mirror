@@ -33,6 +33,7 @@ from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
 from sage.categories.all        import ModularAbelianVarieties
+from sage.categories.homset     import Hom
 from sage.structure.sequence    import Sequence, Sequence_generic
 from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
                                         rich_to_bool)
@@ -3912,6 +3913,18 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             - ``bul`` - a boolean
             - ``A_to_B`` - an isomorphism from ``self`` to ``other``, or ``None``
             - ``B_to_A`` - an isomorphism from ``other`` to ``self``, or ``None``
+
+        EXAMPLES::
+
+            sage: A = J0(23)
+            sage: Ad = A.dual()[0]
+            sage: bul, A_to_Ad, Ad_to_A = A.is_isomorphic(Ad, both_maps=True)
+            sage: bul
+            True
+            sage: (A_to_Ad * Ad_to_A).is_identity()
+            True
+            sage: (Ad_to_A * A_to_Ad).is_identity()
+            True
         """
         A = self
         B = other
@@ -3969,7 +3982,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         # This is what I want to write but __contains__ is broken
         # deg_d = [y for y in lift_sols if y in Hf]
         def in_Hf(y):
-            return y.matrix().list() in Hf.free_module()
+            return vector(y.matrix()) in Hf.free_module()
         deg_d = [y for y in lift_sols if in_Hf(y)]
 
         if not deg_d:
