@@ -131,6 +131,46 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         M = self.matrix()
         return M.nrows() == M.ncols() == M.rank()
 
+    def degree(self):
+        r"""
+        Return the degree of self when self is an isogeny.
+
+        EXAMPLES::
+
+            sage: J = J0(23)
+            sage: C = J.cuspidal_subgroup(); C.order()
+            11
+            sage: _, phi = J / C; phi.degree()
+            11
+
+            sage: J = J0(39)
+            sage: T = J.hecke_operator(19)
+            sage: T.degree()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be an isogeny
+        """
+        if not self.is_isogeny():
+            raise ValueError("self must be an isogeny")
+        return self.kernel()[0].order()
+
+    def is_identity(self):
+        r"""
+        Return True if this morphism is the identity map.
+
+        EXAMPLES::
+
+            sage: A = J0(33)[0]
+            sage: E = A.endomorphism_ring()
+            sage: E.identity().is_identity()
+            True
+            sage: _, f = A/A.shimura_subgroup()
+            sage: f.is_identity()
+            False
+        """
+        M = self.matrix()
+        return self.is_endomorphism() and M.is_one()
+
     def cokernel(self):
         """
         Return the cokernel of self.
@@ -506,9 +546,45 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
              [(0, 0, 0, 0, 0, 0, 0, 0)],
              [(0, 0, 0, 0, 0, 0, 0, 0)]]
         """
-        v = x._relative_element() * self.matrix() * self.codomain().lattice().basis_matrix()
+        v = x._relative_element() * self.matrix() * self.codomain().lattice(
+        ).basis_matrix()
         T = self.codomain().qbar_torsion_subgroup()
         return T(v)
+
+    def list(self):
+        r"""
+        Return a list of elements in the matrix of self.
+        """
+        return self.matrix().list()
+
+    def _im_gens_(self, codomain, im_gens):
+        r"""
+        Return the image of ``self`` in codomain under the map that sends
+        the images of the generators of the parent of ``self`` to the
+        tuple of elements of im_gens.
+
+        We assume that im_gens forms a rational basis for the endomorphism
+        algebra.
+        """
+        Bs = self.parent().gens()
+        coeffs = self._linear_combination_coefficients(Bs)
+        return sum(x * y for x, y in zip(coeffs, im_gens))
+
+    def _linear_combination_coefficients(self, Bs):
+        r"""
+        Return the coefficients needed to write self as a linear combination of
+        elements of Bs.
+
+        INPUT:
+
+        - ``Bs`` -- a list of morphisms containing self in its span.
+
+        OUTPUT:
+
+        A list of numbers of length equal to ``Bs``.
+        """
+        Bmatrix = matrix(QQ, [b.list() for b in Bs])
+        return Bmatrix.solve_left(vector(self.list()))
 
     def _image_of_finite_subgroup(self, G):
         """
