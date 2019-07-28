@@ -3904,7 +3904,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         - ``both_maps`` (default:False) -- a boolean determining whether to
           also return isogenies to and from other.
         - ``proof`` (default:True) -- a boolean determining whether to assume
-          the GRH to speed up class group computations.
+          the GRH to speed up unit group computations in solving norm
+          equations.
 
         OUTPUT:
 
