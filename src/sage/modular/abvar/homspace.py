@@ -1047,9 +1047,23 @@ class EndomorphismSubring(Homspace, Ring):
             True
             sage: all(Oh_to_M(M_to_Oh(x)) == x for x in E.gens())
             True
-        """
 
+        A nontrival subring of the endomorphism ring of a modular abelian
+        variety is isomorphic to a number field order if and only if the
+        modular abelian variety is simple. So when the domain
+        is not simple, we return a ``ValueError``.
+
+            sage: J = J0(22); J.is_simple()
+            False
+            sage: J.endomorphism_ring().isomorphic_order()
+            Traceback (most recent call last):
+            ...
+            ValueError: domain must be simple
+        """
         A = self.abelian_variety()
+        if not A.is_simple():
+            raise ValueError("domain must be simple")
+
         d = A.dimension()
 
         M = self.matrix_space()
@@ -1076,8 +1090,8 @@ class EndomorphismSubring(Homspace, Ring):
         C = P.solve_left(G)
 
         im_gens = [sum(C[i][j] * alpha**j for j in range(d)) for i in range(d)]
-        # Now we restrict to orders.
 
+        # Now we restrict to orders.
         Oh = K.order(im_gens)
         if not both_maps:
             return Oh
