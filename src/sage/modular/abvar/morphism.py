@@ -570,34 +570,34 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         """
         return self.matrix().list()
 
-    def _im_gens_(self, codomain, im_gens):
-        r"""
-        Return the image of ``self`` in codomain under the map that sends
-        the images of the generators of the parent of ``self`` to the
-        tuple of elements of im_gens.
+    # def _im_gens_(self, codomain, im_gens):
+    #     r"""
+    #     Return the image of ``self`` in codomain under the map that sends
+    #     the images of the generators of the parent of ``self`` to the
+    #     tuple of elements of im_gens.
 
-        We assume that im_gens forms a rational basis for the endomorphism
-        algebra.
-        """
-        Bs = self.parent().gens()
-        coeffs = self._linear_combination_coefficients(Bs)
-        return sum(x * y for x, y in zip(coeffs, im_gens))
+    #     We assume that im_gens forms a rational basis for the endomorphism
+    #     algebra.
+    #     """
+    #     Bs = self.parent().gens()
+    #     coeffs = self._linear_combination_coefficients(Bs)
+    #     return sum(x * y for x, y in zip(coeffs, im_gens))
 
-    def _linear_combination_coefficients(self, Bs):
-        r"""
-        Return the coefficients needed to write self as a linear combination of
-        elements of Bs.
+    # def _linear_combination_coefficients(self, Bs):
+    #     r"""
+    #     Return the coefficients needed to write self as a linear combination of
+    #     elements of Bs.
 
-        INPUT:
+    #     INPUT:
 
-        - ``Bs`` -- a list of morphisms containing self in its span.
+    #     - ``Bs`` -- a list of morphisms containing self in its span.
 
-        OUTPUT:
+    #     OUTPUT:
 
-        A list of numbers of length equal to ``Bs``.
-        """
-        Bmatrix = matrix(QQ, [b.list() for b in Bs])
-        return Bmatrix.solve_left(vector(self.list()))
+    #     A list of numbers of length equal to ``Bs``.
+    #     """
+    #     Bmatrix = matrix(QQ, [b.list() for b in Bs])
+    #     return Bmatrix.solve_left(vector(self.list()))
 
     def _image_of_finite_subgroup(self, G):
         """
