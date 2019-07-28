@@ -697,6 +697,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if not self.is_simple():
             raise ValueError("self is not simple")
 
+        # If self is not a subvariety of its ambient Jacobian, then we compute
+        # f \circ g, where g:self \to B is an isogeny to a subvariety to its
+        # ambient Jacobian and f = B._isogeny_to_newform_abelian_variety()
+        if not self.is_subvariety_of_ambient_jacobian():
+            f = self.isogeny_to_subvariety()
+            B = f.codomain()
+            return B._isogeny_to_newform_abelian_variety() * f
+
         t, N = self.decomposition()[0].degen_t()
         A = self.ambient_variety()
         for i in range(len(self.groups())):
@@ -2689,6 +2697,36 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         self.__hecke_polynomial[key] = f
         return f
 
+    def hecke_eigenvalue_field(self):
+        r"""
+        Return the Hecke eigenvalue field of self when self is simple and Hecke
+        stable.
+
+        If $A$ is a simple abelian variety, $A$ is isogenous to $A_f$ for some
+        newform $f=\sum a_n q^n$. This returns a number field isomorphic to
+        $\mathbf{Q}(\ldots,a_n,\ldots)$.
+
+        EXAMPLES::
+
+        sage: A, B = J0(37)
+        sage: X, _ = A / A.cuspidal_subgroup()
+        sage: X.hecke_eigenvalue_field()
+        Rational Field
+
+        ::
+
+        sage: J = J0(23)
+        sage: A, _ = J / J.cuspidal_subgroup()
+        sage: A.hecke_eigenvalue_field()
+        Number Field in alpha with defining polynomial x^2 + x - 1
+        """
+        if not self.is_simple():
+            raise ValueError("self must be simple")
+        if not self.is_hecke_stable():
+            raise ValueError("self must be Hecke stable")
+        A = self.isogenous_subvariety()
+        return A.modular_symbols(sign=1).dual_eigenvector()[-1].parent()
+
     def _compute_hecke_polynomial(self, n, var='x'):
         """
         Return the Hecke polynomial of index `n` in terms of the
@@ -3605,24 +3643,112 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             pass
 
         D = self.decomposition()
-        dest = prod([d._isogeny_to_newform_abelian_variety().image() for d in D])
+        dest = prod(
+            [d._isogeny_to_newform_abelian_variety().image() for d in D])
         A = self.ambient_variety()
         dim = sum([d.dimension() for d in D])
 
-        proj_ls = [ A.projection(factor) for factor in D ]
+        proj_ls = [A.projection(factor) for factor in D]
 
-        mat = matrix(ZZ, 2*self.dimension(), 2*dim)
+        mat = matrix(ZZ, 2 * self.dimension(), 2 * dim)
         ind = 0
 
         for i in range(len(D)):
             factor = D[i]
             proj = proj_ls[i]
             mat.set_block(0, ind, proj.restrict_domain(self).matrix())
-            ind += 2*factor.dimension()
+            ind += 2 * factor.dimension()
 
         H = self.Hom(dest)
         self._simple_product_isogeny = H(Morphism(H, mat))
         return self._simple_product_isogeny
+
+    def isogenous_subvariety(self):
+        r"""
+        Given an abelian variety `A`, return an isogenous abelian variety `B`
+        so that `B` is a subvariety of the ambient Jacobian of `A`.
+
+        Modular abelian varieties in Sage are defined by a tuple $(G, B, J)$,
+        where $J$ is the ambient Jacobian, $B$ is a subvariety of $J$, and $G$
+        a finite subgroup of $B$ so that $A$ is given by $B/G$. This method
+        returns $B$ by returning the abelian variety whose defining lattice is
+        the saturation of $A$'s.
+
+        This is currently only implemented when `self.groups()` is a singleton
+        and self.is_hecke_stable()
+
+        EXAMPLES::
+
+            sage: J = J0(23)
+            sage: A, _ = J / J.cuspidal_subgroup()
+            sage: A.isogenous_subvariety() == J
+            True
+
+        Currently only implemented when self.groups() is a singleton and self
+        is Hecke stable. ::
+
+            sage: A = J0(11) * J0(11)
+            sage: A.isogenous_subvariety()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented when self.groups() is singleton and self.is_hecke_stable()
+
+            sage: A, _ = J0(22)
+            sage: A.is_hecke_stable()
+            False
+            sage: A.isogenous_subvariety()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented when self.groups() is singleton and self.is_hecke_stable()
+        """
+        if not len(self.groups()) == 1 or not self.is_hecke_stable():
+            raise NotImplementedError('only implemented when self.groups() is '
+                                      'singleton and self.is_hecke_stable()')
+
+        # the subvariety of J isogenous to A is given by taking the
+        # saturation of the defining lattice of A.
+        L = self.lattice()
+        Lsat = L.saturation()
+        modsym_B = ModularSymbols(self.groups()[0]) \
+            .cuspidal_subspace() \
+            .submodule_from_nonembedded_module(Lsat)
+        B = ModularAbelianVariety_modsym(modsym_B)
+        return B
+
+    def isogeny_to_subvariety(self):
+        r"""
+        Given an abelian variety `A`, return an isogeny `\phi: A \rightarrow
+        B`, where `B` is a subvariety of the ambient Jacobian of `A`.
+
+        Modular abelian varieties in Sage are defined by a tuple $(G, B, J)$,
+        where $J$ is the ambient Jacobian, $B$ is a subvariety of $J$, and $G$
+        a finite subgroup of $B$ so that $A$ is given by $B/G$. This method
+        returns a map $A\to B/G$.
+
+        EXAMPLES::
+
+            sage: A = J0(23)
+            sage: B, G = A / A.cuspidal_subgroup()
+            sage: f = B.isogeny_to_subvariety()
+            sage: f.is_isogeny()
+            True
+            sage: f.codomain().is_subvariety_of_ambient_jacobian()
+            True
+        """
+        if self.is_subvariety_of_ambient_jacobian():
+            return self.endomorphism_ring().identity()
+        else:
+            # find A=B/G so find G by taking quotient of defining lattices
+            B = self.isogenous_subvariety()
+            L = self.lattice()
+            Lsat = L.saturation()
+            X = [x.lift() for x in (L / Lsat).gens()]
+            G = B.finite_subgroup(X, field_of_definition=QQ)
+            # self_again should be self, q is the quotient to self
+            self_again, q = B / G
+
+            # return dual of the quotient map
+            return q.complementary_isogeny()
 
     def _isogeny_to_product_of_powers(self):
         r"""
@@ -3649,31 +3775,216 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Abelian variety morphism:
               From: Abelian variety J0(22) x J0(37) of dimension 4
               To:   Abelian subvariety of dimension 4 of J0(22) x J0(37) x J0(22) x J0(37) x J0(22) x J0(37)
+
+        This also works when `A` is given as a quotient.
+
+            sage: J = J0(23)
+            sage: A = (J / J.cuspidal_subgroup())[0]
+            sage: f = A._isogeny_to_product_of_powers(); f
+            Abelian variety morphism:
+              From: Abelian variety factor of dimension 2 of J0(23)
+              To:   Abelian variety J0(23) of dimension 2
+            sage: f.is_isogeny()
+            True
+
         """
         try:
             return self._simple_power_product_isogeny
         except AttributeError:
             pass
 
+        # If self is not a subvariety of its ambient Jacobian, then we compute
+        # f \circ g, where g:self \to B is an isogeny to a subvariety to its
+        # ambient Jacobian and f = B._simple_power_product_isogeny()
+        if not self.is_subvariety_of_ambient_jacobian():
+            f = self.isogeny_to_subvariety()
+            B = f.codomain()
+            return B._isogeny_to_product_of_powers() * f
+
         D = self.decomposition(simple=False)
         A = self.ambient_variety()
-        proj_ls = [ A.projection(factor) for factor in D ]
+
+        proj_ls = [A.projection(factor) for factor in D]
         dest = prod([phi.image() for phi in proj_ls])
         dim = sum([d.dimension() for d in D])
 
-        mat = matrix(ZZ, 2*self.dimension(), 2*dim)
+        mat = matrix(ZZ, 2 * self.dimension(), 2 * dim)
         ind = 0
 
         for i in range(len(D)):
             factor = D[i]
             proj = proj_ls[i]
             mat.set_block(0, ind, proj.restrict_domain(self).matrix())
-            ind += 2*factor.dimension()
+            ind += 2 * factor.dimension()
 
         H = self.Hom(dest)
         self._simple_power_product_isogeny = H(Morphism(H, mat))
         return self._simple_power_product_isogeny
 
+    def is_isogenous(self, other, both_maps=False):
+        r"""
+        Return whether self is isogenous to other.
+
+        This is currently only implemented when self and other are simple.
+
+        INPUT:
+
+        - ``other`` -- a modular abelian variety
+        - ``both_maps`` (default:False) -- a boolean determining whether to
+          also return isogenies to and from other.
+
+        OUTPUT:
+
+        - Either the tuple ``(bul, A_to_B, B_to_A)`` or just ``bul``, where
+            - ``bul`` - a boolean
+            - ``A_to_B`` - an isogeny from ``self`` to ``other``, or ``None``
+            - ``B_to_A`` - an isogeny from ``other`` to ``self``, or ``None``
+
+        EXAMPLES::
+
+            sage: A = J0(29)
+            sage: B, _ = A / A.cuspidal_subgroup()
+            sage: bul, A_to_B, B_to_A = A.is_isogenous(B, both_maps=True)
+            sage: bul
+            True
+            sage: A_to_B
+            Abelian variety morphism:
+              From: Abelian variety J0(29) of dimension 2
+              To:   Abelian variety factor of dimension 2 of J0(29)
+            sage: B_to_A
+            Abelian variety morphism:
+              From: Abelian variety factor of dimension 2 of J0(29)
+              To:   Abelian variety J0(29) of dimension 2
+            sage: A_to_B.is_isogeny() and B_to_A.is_isogeny()
+            True
+        """
+        A = self
+        B = other
+
+        if not is_ModularAbelianVariety(other):
+            raise TypeError("other must be a modular abelian variety")
+
+        if not (A.is_simple() and B.is_simple()):
+            raise NotImplementedError(
+                "only implemented for simple abelian varieties")
+
+        if A.groups() != B.groups():
+            # The issue here is that the stuff below probably won't make any
+            # sense at all if we don't know that the two newform abelian
+            # varieties $A_f$ are identical.
+            raise NotImplementedError("only implemented when self and other "
+                                      "are in same ambient Jacobian")
+
+        if (A.newform_level() != B.newform_level()) or \
+           (A.isogeny_number() != B.isogeny_number()):
+            if both_maps:
+                return False, None, None
+            else:
+                return False
+        else:
+            if both_maps:
+                A_to_Af = A._isogeny_to_newform_abelian_variety()
+                B_to_Af = B._isogeny_to_newform_abelian_variety()
+                A_to_B = B_to_Af.complementary_isogeny() * A_to_Af
+                B_to_A = A_to_B.complementary_isogeny()
+                return True, A_to_B, B_to_A
+            else:
+                return True
+
+    def is_isomorphic(self, other, isogeny=None, both_maps=False, proof=True):
+        r"""
+        Return whether self is isomorphic to other.
+
+        This is currently only implemented when self and other are simple.
+
+        INPUT:
+
+        - ``other`` -- a modular abelian variety
+        - ``both_maps`` (default:False) -- a boolean determining whether to
+          also return isogenies to and from other.
+        - ``isogeny`` (default:None) -- an isogeny from self to other.
+        - ``proof`` (default:True) -- a boolean determining whether to assume
+          the GRH.
+
+        OUTPUT:
+
+        - Either the tuple ``(bul, A_to_B, B_to_A)`` or just ``bul``, where
+            - ``bul`` - a boolean
+            - ``A_to_B`` - an isomorphism from ``self`` to ``other``, or ``None``
+            - ``B_to_A`` - an isomorphism from ``other`` to ``self``, or ``None``
+        """
+        A = self
+        B = other
+
+        if not is_ModularAbelianVariety(other):
+            raise TypeError("other must be a modular abelian variety")
+
+        if not (A.is_simple() and B.is_simple()):
+            raise NotImplementedError(
+                "only implemented for simple abelian varieties")
+
+        if A.groups() != B.groups():
+            raise NotImplementedError("only implemented when self and other "
+                                      "are in same ambient Jacobian")
+
+        if isogeny is None:
+            b, _, f = A.is_isogenous(B, both_maps=True)
+        else:
+            b = True
+            f = isogeny.complementary_isogeny()
+
+        d = f.degree()
+        if not (d.is_square() and b):
+            if both_maps:
+                return False, None, None
+            else:
+                return False
+
+        E = A.endomorphism_ring()
+        Oh, E_to_Oh, Oh_to_E = E.isomorphic_order(both_maps=True)
+
+        K = Oh.number_field()
+        K_pari = K.pari_bnf(proof=proof)
+
+        norm_sols_pari = K_pari.bnfisintnorm(d.sqrt())
+
+        if not norm_sols_pari:
+            if both_maps:
+                return False, None, None
+            else:
+                return False
+
+        if not Oh.is_maximal():
+            raise NotImplementedError(
+                "not implemented because norm equations are"
+                " only implemented in the maximal order case")
+
+        norm_sols = [K(x) for x in norm_sols_pari]
+        lift_sols = [E(Oh_to_E(x)) for x in norm_sols]
+
+        from sage.modular.abvar.homspace import EndomorphismSubring
+        Hf_gens = [f * x for x in Hom(A, B).gens()]
+        Hf = EndomorphismSubring(A, Hf_gens)
+
+        # This is what I want to write but __contains__ is broken
+        # deg_d = [y for y in lift_sols if y in Hf]
+        def in_Hf(y):
+            return y.matrix().list() in Hf.free_module()
+        deg_d = [y for y in lift_sols if in_Hf(y)]
+
+        if not deg_d:
+            if both_maps:
+                return False, None, None
+            else:
+                return False
+        else:
+            if both_maps:
+                y = deg_d[0]
+                A_to_B = Hom(A, B)(y.matrix() * f.matrix().inverse())
+                B_to_A = A_to_B.inverse()
+                return True, A_to_B, B_to_A
+            else:
+                return True
 
     def complement(self, A=None):
         """
