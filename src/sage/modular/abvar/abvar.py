@@ -3950,6 +3950,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         A = self
         B = other
 
+        def return_false():
+            if both_maps:
+                return False, None, None
+            else:
+                return False
+
         if not is_ModularAbelianVariety(other):
             raise TypeError("other must be a modular abelian variety")
 
@@ -3958,10 +3964,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                                       "are in same ambient Jacobian")
 
         if A.is_simple() != B.is_simple():
-            if both_maps:
-                return False, None, None
-            else:
-                return False
+            return return_false()
 
         if not (A.is_simple() and B.is_simple()):
             raise NotImplementedError(
@@ -3975,10 +3978,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         d = f.degree()
         if not (d.is_square() and b):
-            if both_maps:
-                return False, None, None
-            else:
-                return False
+            return return_false()
 
         E = A.endomorphism_ring()
         Oh, E_to_Oh, Oh_to_E = E.isomorphic_order(both_maps=True)
@@ -3989,10 +3989,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         norm_sols_pari = K_pari.bnfisintnorm(d.sqrt())
 
         if not norm_sols_pari:
-            if both_maps:
-                return False, None, None
-            else:
-                return False
+            return return_false()
 
         if not Oh.is_maximal():
             raise NotImplementedError(
@@ -4013,10 +4010,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         deg_d = [y for y in lift_sols if in_Hf(y)]
 
         if not deg_d:
-            if both_maps:
-                return False, None, None
-            else:
-                return False
+            return return_false()
         else:
             if both_maps:
                 y = deg_d[0]
