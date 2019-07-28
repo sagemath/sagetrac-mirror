@@ -579,21 +579,13 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         the images of the generators of the parent of ``self`` to the
         tuple of elements of im_gens.
 
-        This is used for constructing morphisms out of the ambient space.
-
-        EXAMPLES::
-
-            sage: J = J0(23)
-            sage: E = J.endomorphism_ring()
-            sage: u, v = E.gens()
-            sage: Phi = E.hom([u, v], check=False)
-            sage: Phi(2*u+v+u*v) == 2*Phi(u)+Phi(v)+Phi(u)*Phi(v)
-            True
+        This currently only works when we can take rational linear combinations
+        of ``im_gens``.
         """
         E = self.parent()
         Bmatrix = E.free_module().basis_matrix()
         coeffs = Bmatrix.solve_left(vector(self.list()))
-        return E(sum(x * y.matrix() for x, y in zip(coeffs, im_gens)))
+        return codomain(sum(x * y for x, y in zip(coeffs, im_gens)))
 
     def _image_of_finite_subgroup(self, G):
         """
