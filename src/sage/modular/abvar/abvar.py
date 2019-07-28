@@ -3926,13 +3926,26 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: (Ad_to_A * A_to_Ad).is_identity()
             True
 
-            ::
+        This is the first simple subvariety of the new subvariety of J0(N) that
+        is not isomorphic to its dual. ::
 
             sage: A = J0(69)[-1]; A
             Simple abelian subvariety 69b(1,69) of dimension 2 of J0(69)
             sage: Ad = A.dual()[0]
             sage: A.is_isomorphic(Ad)
             False
+
+        Isomorphism testing replies on solving norm equations of orders of
+        number fields. We rely on the PARI implementation but solving norm
+        equation in PARI is only implemented in the maximal order case. ::
+
+            sage: A = J0(69)[-1]; A
+            Simple abelian subvariety 69b(1,69) of dimension 2 of J0(69)
+            sage: B = (A / A.torsion_subgroup(2))[0]
+            sage: A.is_isomorphic(B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented because norm equations are only implemented in the maximal order case
         """
         A = self
         B = other
@@ -3940,13 +3953,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if not is_ModularAbelianVariety(other):
             raise TypeError("other must be a modular abelian variety")
 
-        if not (A.is_simple() and B.is_simple()):
-            raise NotImplementedError(
-                "only implemented for simple abelian varieties")
-
         if A.groups() != B.groups():
             raise NotImplementedError("only implemented when self and other "
                                       "are in same ambient Jacobian")
+
+        if A.is_simple() != B.is_simple():
+            if both_maps:
+                return False, None, None
+            else:
+                return False
+
+        if not (A.is_simple() and B.is_simple()):
+            raise NotImplementedError(
+                "only implemented for simple abelian varieties")
 
         if isogeny is None:
             b, _, f = A.is_isogenous(B, both_maps=True)
