@@ -2709,17 +2709,17 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES::
 
-        sage: A, B = J0(37)
-        sage: X, _ = A / A.cuspidal_subgroup()
-        sage: X.hecke_eigenvalue_field()
-        Rational Field
+            sage: A, B = J0(37)
+            sage: X, _ = A / A.cuspidal_subgroup()
+            sage: X.hecke_eigenvalue_field()
+            Rational Field
 
         ::
 
-        sage: J = J0(23)
-        sage: A, _ = J / J.cuspidal_subgroup()
-        sage: A.hecke_eigenvalue_field()
-        Number Field in alpha with defining polynomial x^2 + x - 1
+            sage: J = J0(23)
+            sage: A, _ = J / J.cuspidal_subgroup()
+            sage: A.hecke_eigenvalue_field()
+            Number Field in alpha with defining polynomial x^2 + x - 1
         """
         if not self.is_simple():
             raise ValueError("self must be simple")

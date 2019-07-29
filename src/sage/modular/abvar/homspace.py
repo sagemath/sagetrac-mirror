@@ -243,12 +243,12 @@ class Homspace(HomsetWithBase):
 
         EXAMPLES::
 
-        sage: J = J0(23)
-        sage: E = J.endomorphism_ring()
-        sage: A = E.random_element(); A
-        Abelian variety endomorphism of Abelian variety J0(23) of dimension 2
-        sage: A in E
-        True
+            sage: J = J0(23)
+            sage: E = J.endomorphism_ring()
+            sage: A = E.random_element(); A
+            Abelian variety endomorphism of Abelian variety J0(23) of dimension 2
+            sage: A in E
+            True
 
         Output:
             - A morphism in this homset.

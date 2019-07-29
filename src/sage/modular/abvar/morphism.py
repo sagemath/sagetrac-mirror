@@ -563,13 +563,13 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         EXAMPLES::
 
-        sage: J = J0(23)
-        sage: E = J.endomorphism_ring()
-        sage: A = E.gens()[1]
-        sage: L = A.list(); L
-        [0, 1, -1, 0, 0, 1, -1, 1, -1, 2, -2, 1, -1, 1, 0, -1]
-        sage: E(E.matrix_space()(L)) == A
-        True
+            sage: J = J0(23)
+            sage: E = J.endomorphism_ring()
+            sage: A = E.gens()[1]
+            sage: L = A.list(); L
+            [0, 1, -1, 0, 0, 1, -1, 1, -1, 2, -2, 1, -1, 1, 0, -1]
+            sage: E(E.matrix_space()(L)) == A
+            True
         """
         return self.matrix().list()
 
