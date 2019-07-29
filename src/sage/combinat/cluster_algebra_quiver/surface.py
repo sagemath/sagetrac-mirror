@@ -1203,9 +1203,7 @@ def matching_union(pmA, pmB):
     for tile_pos in range(0,tile_count):
         tileA = pmA[1][tile_pos]
         tileB = pmB[1][tile_pos]
-        #print 'tileA:', tileA
         for pos in range(0,4):
-            #print 'tileA[0][pos]: ', tileA[0][pos]
             tileC_matching[pos] = tileA[0][pos] or tileB[0][pos]
         tileC = [(tileC_matching[0],tileC_matching[1],tileC_matching[2],tileC_matching[3]), tileA[1]]
         pmC.append(tileC)
@@ -1472,11 +1470,10 @@ def PartitionIntoTuples(L):
 
 def GetDenominator(G):
     r"""
-    Return the product of the variables corresponding to arcs that are crossed by curve gamma
-    (this is the denominator of the Laurent polynomial expansion returned by
-    :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`)
-
-    To debug, original Mathematica function: todaslasdiagonales
+    Return the product of the variables corresponding to arcs that are crossed by curve gamma.
+    This is a factor of the denominator of the Laurent polynomial expansion returned by
+    :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`. 
+    For type A, this is precisely the denominator of the Laurent polynomial expansion.
 
     INPUT:
 
@@ -1512,8 +1509,6 @@ def SumOfMonomialTerms(snakegraph, all_matchings, boundary_edges=None, is_princi
     matchings of ``snakegraph``) which is the numerator of the Laurent
     polynomial expansion returned by
     :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`
-
-    To debug, original Mathematica function: terminoPolinomioSobreListaDeConfig
 
     INPUT:
 
@@ -1560,8 +1555,6 @@ def ExtractWeight(tile, abcd, is_final_tile):
     Return the list of cluster variables which label the marked edges
     of ``tile`` (such that an interior edge is ignored if it borders
     the next tile).
-
-    To debug, see Mathematica function: rescatePositivo4
 
     INPUT:
 
@@ -1615,8 +1608,6 @@ def ExtractWeight(tile, abcd, is_final_tile):
 def GetMonomialTerm(snakegraph, PM, boundary_edges, is_loop):
     r"""
     Return the monomial term corresponding to the input perfect matching ``PM``.
-
-    To debug, see Mathematica function: terminoPolinomio
 
     Called by :func:`~sage.combinat.cluster_algebra_quiver.surface.SumOfMonomialTerms and :func:`~sage.combinat.cluster_algebra_quiver.surface.LaurentExpansionFromSurface`
 
@@ -2181,8 +2172,6 @@ def _rearrange_triangle_for_snakegraph(triangle, diagonal, s):
     so that the ``diagonal`` is in the middle and
     the original orientation is kept (if ``s`` is +1) and reversed (if ``s`` is -1)
 
-    To debug, see Mathematica function: rot
-
     INPUT:
 
     - ``triangle`` -- a 3-tuple triangle
@@ -2649,8 +2638,6 @@ def GetMinimalMatching(G):
     r"""
     Return the minimal matching of the snake/band graph ``G``.
 
-    To debug, see Mathematica function: MachingInicial[listaDirecciones]
-
     INPUT:
 
     - ``G`` -- a band/snake graph
@@ -2751,8 +2738,6 @@ def _minimal_matching_first_tile(DIR, orientation_of_first_tile):
     r"""
     Return the minimal matching of the first tile of the band/snake graph
 
-    To debug, see Mathematica function: funAuxA
-
     INPUT:
 
     - ``DIR`` -- ABOVE (resp, RIGHT) if the second tile is above (resp, to the right) the first tile
@@ -2848,8 +2833,6 @@ def _minimal_matching_final_tile(penultimate_direction, penultimate_tile_mark):
     r"""
     Return the matching for the final tile
 
-    To debug, see Mathematica function: funAuxFinDEBanda
-
     INPUT:
 
     - ``penultimate_direction`` -- whether the final tile is to the RIGHT or ABOVE the penultimate tile,
@@ -2903,8 +2886,6 @@ def FlipAllFlippableTilesInList(input_list_matchings):
     ``input_list_matchings``.
 
     See :func:`~sage.combinat.cluster_algebra_quiver.surface.GetAllMatchings`
-
-    To debug, see Mathematica function: confiSelectivoSobrelista
 
     INPUT:
 
@@ -2994,8 +2975,6 @@ def FlipAllFlippableTiles(input_tiles):
     The output list does not include the input perfect matching ``input_tiles``.
 
     See :func:`~sage.combinat.cluster_algebra_quiver.surface.FlipAllFlippableTilesInList`
-
-    To debug, see Mathematica function: confiSelectivo
 
     .. NOTE::
 
@@ -3109,8 +3088,6 @@ def GetMoreLastFlippedTilesInList(list_matchings, list_other_matchings):
     Return a (possibly non-unique) list of perfect matchings of a snake/band graph
     (each perfect matching P includes info on all possible indices of tiles that were flipped to get to P)
 
-    To debug, see Mathematica function: comparoNuevosContraVarios
-
     INPUT:
 
     - ``list_matchings`` -- a (possibly with repeats) list of perfect matchings of a snake/band graph
@@ -3178,8 +3155,6 @@ def GetMoreLastFlippedTiles(current_matching, to_compare_matching):
     Return input ``current_matching`` if input ``to_compare_matching`` contains a different perfect matching, and
     return [[indices of last flipped tiles which may include new indices if ``to_compare_matching`` is the same matching],
     [current_matching[1]]]
-
-    To debug, see Mathematica function: comparo1A1
 
     INPUT:
 

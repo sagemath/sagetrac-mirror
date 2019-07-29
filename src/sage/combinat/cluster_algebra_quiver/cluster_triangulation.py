@@ -208,14 +208,63 @@ class ClusterTriangulation(ClusterSeed):
         True
         sage: ClusterTriangulation(TP) == TP
         True
+
+    EXAMPLES OF A CLUSTER SEED (OF TYPE A OR D) AS INPUT::
+
+        sage: S5 = ClusterSeed(['A',5])
+        sage: T5 = ClusterTriangulation(S5)
+        sage: T5.triangles()
+        [(5, 6, 0), (1, 0, 7), (1, 2, 12), (3, 2, 8), (3, 4, 11), (4, 9, 10)]
+        sage: T5.weighted_triangulation()
+        [(b5, b6, x0),
+         (x1, x0, b7),
+         (x1, x2, b12),
+         (x3, x2, b8),
+         (x3, x4, b11),
+         (x4, b9, b10)]
+
+        sage: T5.cluster() == S5.cluster()
+        True
+        sage: T5.list_snake_graph([1,2,3,4])
+        [[(1, (7, 1, 0)), (2, (12, 1, 2), 'ABOVE')],
+         [(-1, (12, 2, 1)), (-2, (8, 2, 3), 'ABOVE')],
+         [(1, (8, 3, 2)), (2, (11, 3, 4), 'ABOVE')],
+         [(-1, (11, 4, 3)), (-2, (9, 4, 10), 'ABOVE')]]
+        sage: T5.draw_snake_graph([1,2,3,4])
+        Graphics object consisting of 25 graphics primitives
+        sage: T5.arc_laurent_expansion([1,2,3,4])
+        (x0*x2^2*x4 + x0*x2*x3 + x1*x3^2 + x0*x2 + x1*x3 + x2*x4 + x3 + 1)/(x1*x2*x3*x4)
+
+        sage: S5linear = S5.mutate([0,3,4], inplace=False) # Turn into a linearly oriented seed
+        sage: T5linear = ClusterTriangulation(S5linear)
+        sage: T5linear.triangles()
+        [(5, 6, 0), (0, 1, 12), (1, 2, 11), (2, 3, 10), (3, 4, 9), (4, 7, 8)]
+        sage: T5linear.weighted_triangulation()
+        [(b5, b6, x0),
+         (x0, x1, b12),
+         (x1, x2, b11),
+         (x2, x3, b10),
+         (x3, x4, b9),
+         (x4, b7, b8)]
+
+        sage: T5linear.b_matrix()
+        [ 0 -1  0  0  0]
+        [ 1  0 -1  0  0]
+        [ 0  1  0 -1  0]
+        [ 0  0  1  0 -1]
+        [ 0  0  0  1  0]
+        sage: T5linear.list_snake_graph([1,2,3,4])
+        [[(1, (0, 1, 12)), (2, (11, 1, 2), 'ABOVE')],
+         [(-1, (11, 2, 1)), (-2, (3, 2, 10), 'RIGHT')],
+         [(1, (2, 3, 10)), (2, (9, 3, 4), 'ABOVE')],
+         [(-1, (9, 4, 3)), (-2, (7, 4, 8), 'ABOVE')]]
+        sage: T5linear.draw_snake_graph([1,2,3,4])
+        Graphics object consisting of 25 graphics primitives
+
     """
     def __init__(self, data, frozen=None, is_principal=None, user_labels=None, user_labels_prefix='x', from_surface=False, boundary_edges=None):
     # def __init__(self, data, frozen=None, is_principal=None, from_surface=False, boundary_edges=None):
         r"""
-        .. TODO::
-
-            See my data for the TestSuite. Is this good enough?
-
         TESTS::
 
             sage: CT = ClusterTriangulation([('a','d','c'), ('a','ll','b'), ('r','r','ll'),('b','f','e')], boundary_edges=['c','d','e','f'])
@@ -236,7 +285,6 @@ class ClusterTriangulation(ClusterSeed):
         from sage.matrix.constructor import matrix
 
         self._from_surface = True # Maybe try to remove this? This should not be necessary for class ClusterTriangulation
-
 
         self._n = 0
         self._m = 0
@@ -378,56 +426,13 @@ class ClusterTriangulation(ClusterSeed):
             self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n+self._m)])) for j in range(self._n)])
             self._use_fpolys = True
 
-
-
-            # if is_principal:
-            #     self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['y%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
-            # else:
-            #     self._R = FractionField(PolynomialRing(QQ,['x%s'%i for i in range(0,self._n)]+['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
-            # #self._boundary_edges_vars = FractionField(PolynomialRing(QQ,['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)]))
-            # #self._cluster = list(self._R.gens()[0:self._n])
-            # #self._cluster = list(self._R.gens()[0:self._n+self._m]) # works for sage 8.9beta 3 but not consistent with current ClusterSeed
-            
             self._cluster = [self.cluster_variable(k) for k in range(self._n)] # copied from def cluster from current ClusterSeed
-            # print("line 381: ", self._cluster)
             self._boundary_edges_vars = list(self._R.gens()[2*self._n+self._m:]) if boundary_edges else []
-            # print('line 384, self._boundary_edges_vars: ', self._boundary_edges_vars)
             self._map_label_to_variable = produce_dict_label_to_variable(self._triangles, self._cluster[0:self._n], self._boundary_edges, self._boundary_edges_vars)
-            # print('line 385')
             self._map_variable_to_label = produce_dict_variable_to_label(self._map_label_to_variable)
-            # print('line 387')
             self._triangulation = _get_user_label_triangulation(self._triangles)
             self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._map_label_to_variable)
             self._mutation_type = self._quiver.mutation_type()
-            
-            # self._is_principal = is_principal
-
-            # #sets appropriate booleans to 'False'            
-            # self._use_g_vec = False
-            # self._use_c_vec = False
-            # self._use_d_vec = False
-            # self._use_fpolys = True
-            # self._bot_is_c = False
-            
-            # #sets up ability to track mutations
-            # self._mut_path = []
-            # self._track_mut = True
-            
-            # #sets currently unused dictionaries, names, data to 'None'
-            # self._user_labels = None
-            # self._user_labels_prefix = None
-            # self._init_vars = None
-            # self._init_exch = None
-            # self._F = None
-            # self._y = None
-            # self._yhat = None
-            # #self._mut_path = None
-            
-            # #The initial B-matrix is set to be the B-matrix corresponding to the input triangulation
-            # self._b_initial = copy(self._M)
-            
-            # #Constructs the appropriate coefficient ring
-            # self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
 
         # Construct a cluster seed from a cluster triangulation
         elif isinstance(data, ClusterTriangulation):
@@ -479,10 +484,10 @@ class ClusterTriangulation(ClusterSeed):
             # self._description = copy( data._description )
 
             # self._R = copy(data._R)
-            # self._cluster = copy(data._cluster)
+            self._cluster = copy(data._cluster)
             self._boundary_edges_vars = copy(data._boundary_edges_vars)
             self._map_label_to_variable = copy(data._map_label_to_variable)
-            self._map_variable_to_label = copy(data.map_variable_to_label)
+            self._map_variable_to_label = copy(data._map_variable_to_label)
             self._triangulation = copy(data._triangulation)
             self._weighted_triangulation = copy(data._weighted_triangulation)
             # self._mutation_type = data._mutation_type
@@ -538,12 +543,14 @@ class ClusterTriangulation(ClusterSeed):
             #copy data that we want to retain in the ClusterTriangulation
             #(some of this is not necessary, so we might want to just ignore it)
             self._n = data._n
-            self._nlist = data._nlist
+            self._nlist = copy(data._nlist)
             self._m = data._m
-            self._mlist = data._mlist
-            self._M = data._M
-            self._R = data._R
-            self._cluster = copy(data._cluster)
+            self._mlist = copy(data._mlist)
+            self._M = copy(data._M)
+            self._M.set_immutable()
+            #self._R = copy(data._R)
+
+            # self._cluster = copy(data._cluster)
             self._mutation_type = data._mutation_type
             self._is_principal = data._is_principal
             self._use_g_vec = data._use_g_vec
@@ -555,35 +562,62 @@ class ClusterTriangulation(ClusterSeed):
             self._track_mut = data._track_mut
             self._user_labels = data._user_labels
             self._user_labels_prefix = data._user_labels_prefix
-            self._init_vars = data._init_vars
-            self._init_exch = data._init_exch
+            self._init_vars = copy(data._init_vars)
+            self._init_exch = copy(data._init_exch)
             self._F = data._F
             self._y = data._y
             self._yhat = data._yhat
+
+
+
+            self._B = copy(data._B)
+            self._b_initial = copy(self._M) # the initial B-matrix is reset to be the input B-matrix.
+
+            # We are now updating labels from user's most recent choice.
+            self._is_principal = is_principal
+            self._user_labels = user_labels
+            self._user_labels_prefix = user_labels_prefix
+
+            self._description = 'A seed for a cluster algebra associated with an ideal triangulation of rank %d'  %(self._n)
+            if boundary_edges:
+                self._description += ' with %d boundary edges' %(len(self._boundary_edges))
+            if self._is_principal:
+                self._description += ' with principal coefficients'
+            self._quiver = ClusterQuiver(self._M, from_surface=True)
+
+            # initialize the rest
+            self._C = matrix.identity(self._n)
+            self._use_c_vec = True
+
+            self._G = matrix.identity(self._n)
+            self._use_g_vec = True
+
+            self._BC = copy(self._M).stack(self.c_matrix())
+            self._bot_is_c=False
+
+            self._D = -matrix.identity(self._n)
+            self._use_d_vec = True
+
+            self._mut_path = [ ] # Keep these mutation-tracking attributes although mutation is not implemented for ClusterTriangulation
+            self._track_mut = True 
             
-            if data._mutation_type.letter() == 'A':
-                #By default, I'll have all the boundary edge variables be b1, b2, etc
-                #And the default user labels for boundaries will just be 1?
-                # Maybe there's another choice that makes more sense
-                self._boundary_edges = ['b%i' % i for i in range(self._n+3)]
-                self._boundary_edges_vars = [1]*(self._n+3)
-                #print("It's type A!")
-                
-                #Constructing a list of triangles that we want in our triangulation
-                #Note that the triangulation comes from the initial cluster, so we use the initial B matrix
-                B = data._b_initial
+            if self._mutation_type.letter() == 'A':
+                self._boundary_edges = [ i for i in range(self._n, 2*self._n+3)]
+                self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()]+\
+                ['b%s'%i for i in range(self._n,len(self._boundary_edges)+self._n)])
+                # self._boundary_edges_vars = [1]*(self._n+3)
+                self._boundary_edges_vars = list(self._R.gens()[2*self._n+self._m:])
+                self._cluster = [self.x(k) for k in range(self._n)] 
+       
+                #Constructing a list of triangles that we want in our triangulation using the
+                #current B matrix of the cluster seed (not necessarily an intial cluster seed)
+                B = data.b_matrix()
                 triangles = []
                 avail_boundary_edges = self._boundary_edges
                 
-                #print(avail_boundary_edges)
-                
-                #The first triangle will always have sides (0,b_0,b_1)
+                #The first triangle will always have sides (0,b_n,b_(n+1))
                 triangles += [(avail_boundary_edges[0], avail_boundary_edges[1], 0)]
                 avail_boundary_edges = avail_boundary_edges[2:]
-                
-                #print(avail_boundary_edges)
-                #print(triangles)
-                #print(avail_boundary_edges)
                 
                 #creates intermediate triangles based on quiver orientation
                 for i in range(self._n)[:-1]:
@@ -597,14 +631,19 @@ class ClusterTriangulation(ClusterSeed):
                         #print("-")
                         triangles += [(i,i+1,avail_boundary_edges[-1])]
                         avail_boundary_edges = avail_boundary_edges[:-1]
-                        #print(triangles)
-                        #print(avail_boundary_edges)
                     
-                #Adds final triangle with side n and remaining boundary sides                    
+                #Adds final triangle with side n and remaining boundary sides   
+                self._arcs = range(self._n)              
                 triangles += [(self._n-1,avail_boundary_edges[0],avail_boundary_edges[1])]
+
                 
-                print triangles
-                #print(avail_boundary_edges)
+                self._triangles = copy(triangles)
+                self._triangulation = copy(triangles)
+
+                self._map_label_to_variable = produce_dict_label_to_variable(self._triangles, self._cluster[0:self._n], self._boundary_edges, self._boundary_edges_vars)
+                self._map_variable_to_label = produce_dict_variable_to_label(self._map_label_to_variable)
+                
+                self._weighted_triangulation = _get_weighted_triangulation (self._triangles, self._map_label_to_variable)
                 
             if data._mutation_type.letter() == 'D':
                 #Same default choices, same comment about there probably being a better choice
@@ -1306,11 +1345,11 @@ class ClusterTriangulation(ClusterSeed):
         b1,b2,b3,b4 = ``b4``, ``b5``, ``b6``, ``b7``, Pick `tau_1` (or
         ``c`` edge) to be the edge labeled 1, and go clockwise::
 
-            sage: T = ClusterTriangulation([('1','2','b4'),('1','0','b5'),('0','3','b6'),('2','3','b7')], boundary_edges=['b4','b5','b6','b7'])
+            sage: T = ClusterTriangulation([(1,2,4),(1,0,5),(0,3,6),(2,3,7)], boundary_edges=[4,5,6,7])
             sage: c = [item for item in T.cluster()]
             sage: T.draw_band_graph([c[1],c[2],c[3],c[0],c[1]], user_labels=False)
             Graphics object consisting of 25 graphics primitives
-            sage: T.draw_band_graph(['1','2','3','0','1'], user_labels=True)
+            sage: T.draw_band_graph([1,2,3,0,1], user_labels=True)
             Graphics object consisting of 25 graphics primitives
         """
         from sage.combinat.cluster_algebra_quiver.surface import _draw_snake_graph
@@ -1536,8 +1575,12 @@ class ClusterTriangulation(ClusterSeed):
             sage: T.arc_laurent_expansion([1,2,3],user_labels=True) == T.arc_laurent_expansion([T.x(1),T.x(2),T.x(3)],user_labels=False)
             True
             sage: TP = T.principal_extension()
-            sage: TP.arc_laurent_expansion([1,2,3],user_labels=True)
+            sage: x = TP.arc_laurent_expansion([1,2,3],user_labels=True)
+            sage: x
             (x1*x3*y1*y2*y3 + x0*x2^2 + x0*x2*y1 + x0*x2*y3 + x0*y1*y3)/(x1*x2*x3)
+            sage: TP2 = ClusterTriangulation(TP)
+            sage: x == TP2.arc_laurent_expansion([1,2,3],user_labels=True)
+            True
 
         A once-punctured square's triangulation with self-folded
         triangle, border edges are labeled 4,5,6,7, 2nd triangulation
@@ -1558,7 +1601,8 @@ class ClusterTriangulation(ClusterSeed):
             sage: gamma == T.arc_laurent_expansion([3,(0,'clockwise'),3,2,1], user_labels=True)
             True
             sage: TP = T.principal_extension()
-            sage: SP = S.principal_extension()
+            sage: ClusterSeed(TP) == S.principal_extension()
+            True
  
         An 8-gon triangulation from Figure 2 of [SchifflerThomas]_
         where tau_i = i and tau_13 is labeled 0::
@@ -1706,7 +1750,7 @@ class ClusterTriangulation(ClusterSeed):
             2
         """
         from sage.combinat.cluster_algebra_quiver.surface import _get_weighted_edges, LaurentExpansionFromSurface
-        CT = self#._cluster_triangulation
+        CT = self
 
         if user_labels:
             crossed_arcs = _get_weighted_edges(crossed_arcs,
