@@ -300,7 +300,7 @@ ext_modules = [
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx']),
 
-    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.cc',
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
               extra_compile_args=['-std=c++11']),
 
