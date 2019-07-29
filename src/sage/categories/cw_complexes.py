@@ -73,9 +73,9 @@ class CWComplexes(Category_singleton):
 
             TESTS::
 
-                sage: TestSuite(CWComplexes().Connected()).run()
                 sage: CWComplexes().Connected.__module__
                 'sage.categories.cw_complexes'
+                sage: TestSuite(CWComplexes().Connected()).run()
             """
             return self._with_axiom('Connected')
 
