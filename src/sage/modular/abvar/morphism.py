@@ -46,7 +46,6 @@ from sage.rings.all import ZZ, QQ
 import sage.modules.matrix_morphism
 import sage.matrix.matrix_space as matrix_space
 
-from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 
 from .finite_subgroup import TorsionPoint
