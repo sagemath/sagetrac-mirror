@@ -346,7 +346,7 @@ This also performs mutations of F-polynomials::
 which might not be a good idea in algebras that are too big. One workaround is
 to first disable F-polynomials and then recompute only the desired mutations::
 
-    sage: A.reset_exploring_iterator(mutating_F=False)  # long time
+    sage: A.reset_exploring_iterator()  # long time
     sage: v = (-1, 1, -2, 2, -1, 1, -1, 1, 1)  # long time
     sage: seq = A.find_g_vector(v); seq  # long time random
     [1, 0, 2, 6, 5, 4, 3, 8, 1]
@@ -694,7 +694,6 @@ class ClusterAlgebraSeed(SageObject):
         self._Z = copy(Z)
         self._parent = parent
         self._path = kwargs.get('path', [])
-        self._mutating_F = kwargs.get('mutating_F',True)
 
     def __copy__(self):
         r"""
@@ -1485,10 +1484,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         
         M0 = B[self._n:,:]
         m = M0.nrows()
-        
-        # Flag for mutating_F
-        self._mutating_F = kwargs.get('mutating_F',False)
-        
+                
         # Degree list
         self._d = kwargs.get('d', (1,)*self._n)
             
@@ -1571,9 +1567,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                         names=variables + coefficients)
 
         # Setup infrastructure to store computed data
-        mf = kwargs.get('mutating_F',True)
-        #print mf
-        self.clear_computed_data(mutating_F=mf)
+        self.clear_computed_data()
 
         # Data to compute cluster variables using separation of additions
         # and exchange coefficient specialization
@@ -1958,7 +1952,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         self._seed = self.initial_seed()
 
-    def clear_computed_data(self,mutating_F=True):
+    def clear_computed_data(self):
         r"""
         Clear the cache of computed g-vectors and F-polynomials
         and reset both the current seed and the exploring iterator.
@@ -1979,7 +1973,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._path_dict = dict((v, []) for v in map(tuple, identity_matrix(self._n).columns()))
         self._F_poly_dict = dict((v, self._U(1)) for v in self._path_dict)
         self.reset_current_seed()
-        self.reset_exploring_iterator(mutating_F=mutating_F)
+        self.reset_exploring_iterator()
 
     def contains_seed(self, seed):
         r"""
@@ -2013,7 +2007,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         n = self.rank()
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z0, self, mutating_F = self._mutating_F)
+        return ClusterAlgebraSeed(self.b_matrix(), I, I, self._d, self._Z0, self)
 
     def b_matrix(self):
         r"""
@@ -2059,14 +2053,14 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         return copy(self._d)
 
-    def g_vectors(self, mutating_F=True):
+    def g_vectors(self, mutating_F=False):
         r"""
         Return an iterator producing all the g-vectors of ``self``.
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default ``True``); whether to compute
-          F-polynomials; disable this for speed considerations
+        - ``mutating_F`` -- bool (default ``False``); whether to compute
+          F-polynomials; disabled by default for speed considerations
 
         ALGORITHM:
 
@@ -2301,7 +2295,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 # Unless self._sd_iter has been manually altered, we checked
                 # all the seeds of self and did not find g_vector.
                 # Do some house cleaning before failing
-                self.reset_exploring_iterator(mutating_F=False)
+                self.reset_exploring_iterator()
                 raise ValueError("%s is not the g-vector of any cluster variable of a %s" % (str(g_vector), str(self)[2:]))
         return copy(self._path_dict.get(g_vector, None))
 
@@ -2412,30 +2406,26 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             # we went one step deeper
             depth_counter += 1
 
-    def reset_exploring_iterator(self, mutating_F=True):
+    def reset_exploring_iterator(self):
         r"""
         Reset the iterator used to explore ``self``.
-
-        INPUT:
-
-        - ``mutating_F`` -- bool (default ``True``); whether to also compute
-          F-polynomials; disable this for speed considerations
 
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 4])
             sage: A.clear_computed_data()
-            sage: A.reset_exploring_iterator(mutating_F=False)
+            sage: A.reset_exploring_iterator()
             sage: A.explore_to_depth(infinity)
             sage: len(A.g_vectors_so_far())
             14
             sage: len(A.F_polynomials_so_far())
             4
         """
-        self._sd_iter = self.seeds(mutating_F=mutating_F, catch_KeyboardInterrupt=True)
+        self._sd_iter = self.seeds(mutating_F=False, catch_KeyboardInterrupt=True)
+        self._sd_iter_F = self.seeds(mutating_F=True, catch_KeyboardInterrupt=True)
         self._explored_depth = 0
 
-    def explore_to_depth(self, depth):
+    def explore_to_depth(self, depth,mutating_F=True):
         r"""
         Explore the exchange graph of ``self`` up to distance ``depth``
         from the initial seed.
@@ -2454,7 +2444,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         while self._explored_depth <= depth:
             try:
-                seed = next(self._sd_iter)
+                if mutating_F:
+                    seed = next(self._sd_iter_F)
+                else:
+                    seed = next(self._sd_iter)
                 if isinstance(seed, ClusterAlgebraSeed):
                     self._explored_depth = seed.depth()
                 else:
