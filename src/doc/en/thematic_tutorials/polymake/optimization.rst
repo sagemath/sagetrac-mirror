@@ -566,7 +566,7 @@ following code (possibly easier):
 
 In Sage::
 
-  sage: zero = polymake("unit_vector<Rational>({}, 0)".format(pin.DIM() + 1))
+  sage: zero = getattr(polymake, "unit_vector<Rational>")(pin.DIM() + 1, 0)
   sage: B = polymake.new_object("Polytope<Rational>", POINTS=zero)
   sage: for r in rays:
   ....:     M = polymake.new_object("Matrix<Rational>", polymake.primitive(r))
