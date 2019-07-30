@@ -2414,6 +2414,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: len(A.F_polynomials_so_far())
             14
         """
+        # Here, we build two versions of the sd_iter generator
+        # self._sd_iter has mutating_F set to False (so does not compute F polynomials)
+        # whereas self._sd_iter_F has mutating_F set to True (and therefore does compute F polynomials)
+        # Choose the appropriate generator depending on whether or not you need F polynomials
         self._sd_iter = self.seeds(mutating_F=False, catch_KeyboardInterrupt=True)
         self._sd_iter_F = self.seeds(mutating_F=True, catch_KeyboardInterrupt=True)
         self._explored_depth = 0
@@ -2427,6 +2431,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         - ``depth`` -- a positive integer or infinity; the maximum depth
           at which to stop searching
+          
+        - ``mutating_F`` -- bool (default ``True``); whether to compute
+          F-polynomials also; disable this for speed considerations
 
         EXAMPLES::
 
@@ -2434,6 +2441,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.explore_to_depth(infinity)
             sage: len(A.g_vectors_so_far())
             14
+            sage: len(A.F_polynomials_so_far())
+            14
+            sage: A.clear_computed_data()
+            sage: A.explore_to_depth(infinity,mutating_F = False)
+            sage: len(A.F_polynomials_so_far())
+            4
         """
         while self._explored_depth <= depth:
             try:
