@@ -2703,9 +2703,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Return the Hecke eigenvalue field of self when self is simple and Hecke
         stable.
 
-        If $A$ is a simple abelian variety, $A$ is isogenous to $A_f$ for some
-        newform $f=\sum a_n q^n$. This returns a number field isomorphic to
-        $\mathbf{Q}(\ldots,a_n,\ldots)$.
+        If `A` is a simple abelian variety, `A` is isogenous to `A_f` for some
+        newform `f=\sum a_n q^n`. This returns a number field isomorphic to
+        `\mathbf{Q}(\ldots,a_n,\ldots)`.
 
         EXAMPLES::
 
@@ -2915,9 +2915,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def shimura_subgroup(self):
         r"""
         Return the Shimura subgroup of this modular abelian variety. This is
-        the kernel of $J_0(N) \rightarrow J_1(N)$ under the natural map.
+        the kernel of `J_0(N) \rightarrow J_1(N)` under the natural map.
         Here we compute the Shimura subgroup as the kernel of
-        $J_0(N) \rightarrow J_0(Np)$ where the map is the difference between the
+        `J_0(N) \rightarrow J_0(Np)` where the map is the difference between the
         two degeneracy maps.
 
         EXAMPLES::
@@ -3669,11 +3669,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Given an abelian variety `A`, return an isogenous abelian variety `B`
         so that `B` is a subvariety of the ambient Jacobian of `A`.
 
-        Modular abelian varieties in Sage are defined by a tuple $(G, B, J)$,
-        where $J$ is the ambient Jacobian, $B$ is a subvariety of $J$, and $G$
-        a finite subgroup of $B$ so that $A$ is given by $B/G$. This method
-        returns $B$ by returning the abelian variety whose defining lattice is
-        the saturation of $A$'s.
+        Modular abelian varieties in Sage are defined by a tuple `(G, B, J)`,
+        where `J` is the ambient Jacobian, `B` is a subvariety of `J`, and `G`
+        a finite subgroup of `B` so that `A` is given by `B/G`. This method
+        returns `B` by returning the abelian variety whose defining lattice is
+        the saturation of `A`'s.
 
         This is currently only implemented when `self.groups()` is a singleton
         and self.is_hecke_stable()
@@ -3721,10 +3721,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Given an abelian variety `A`, return an isogeny `\phi: A \rightarrow
         B`, where `B` is a subvariety of the ambient Jacobian of `A`.
 
-        Modular abelian varieties in Sage are defined by a tuple $(G, B, J)$,
-        where $J$ is the ambient Jacobian, $B$ is a subvariety of $J$, and $G$
-        a finite subgroup of $B$ so that $A$ is given by $B/G$. This method
-        returns a map $A\to B/G$.
+        Modular abelian varieties in Sage are defined by a tuple `(G, B, J)`,
+        where `J` is the ambient Jacobian, `B` is a subvariety of `J`, and `G`
+        a finite subgroup of `B` so that `A` is given by `B/G`. This method
+        returns a map `A\to B/G`.
 
         EXAMPLES::
 
