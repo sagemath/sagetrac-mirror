@@ -103,7 +103,7 @@ In Sage::
     sage: a + b       # this won't work!
     Traceback (most recent call last):
     ...
-    TypeError: C++/perl Interface module compilation failed; most likely due to a type mismatch...
+    TypeError: C++/perl Interface module compilation failed...
 
 Tropical vector/matrix arithmetics also work - you can even ask for the
 tropical determinant!
@@ -490,7 +490,7 @@ Computing the divisor of a tropical polynomial in $ :raw-latex:`\mathbb `R^n$
 In Sage::
 
     sage: f = polymake.toTropicalPolynomial("'max(0,x,y,z)'")
-    sage: div = polymake.divisor(polymake("projective_torus<Max>(3)"), polymake.rational_fct_from_affine_numerator(f))
+    sage: div = polymake.divisor(getattr(polymake, "projective_torus<Max>")(3), polymake.rational_fct_from_affine_numerator(f))
     sage: div.VISUAL()      # not tested
 
 Here, ``projective_torus`` creates the tropical projective 3-torus (aka
@@ -513,7 +513,7 @@ Let’s create the standard tropical hyperplane in 3-space:
 
 In Sage::
 
-    sage: l = polymake("uniform_linear_space<Min>(3,2)")
+    sage: l = getattr(polymake, "uniform_linear_space<Min>")(3,2)
 
 Furthermore, we compute a curve as the divisor of a rational function on
 ``$l``:
@@ -549,8 +549,16 @@ surface”).
 
 In Sage::
 
-    sage: l.bounding_box(1)                    # ERROR - does it get confused by the global function of the same name?
-    sage: div.bounding_box(1)
+    sage: l.get_member_function("bounding_box")(1)
+    -1 -1 -1
+    1 1 1
+    sage: div.get_member_function("bounding_box")(1)
+    -2 -2 -2
+    4 1 1
+
+(Here we need to go through ``get_member_function`` because of a clash
+with a global polymake function of the same name.  The sage polymake
+interface puts all of these global functions also as methods of all objects.)
 
 The command boundingBox tells us, what a “good” bounding box for a given
 polyhedral complex should be. Obviously the bounding box for the curve
@@ -564,6 +572,13 @@ several objects at the same time:
 
     polymake> compose($l->VISUAL(VertexStyle=>"hidden",BoundingMode=>"absolute",BoundingBox=>$div->bounding_box(1)), $div->VISUAL(VertexStyle=>"hidden",EdgeColor=>"red", BoundingMode=>"absolute",BoundingBox=>$div->bounding_box(1)));
 
+.. link
+
+In Sage::
+
+    sage: div_bb = div.get_member_function("bounding_box")(1)
+    sage: polymake.compose(l.VISUAL(VertexStyle=repr("hidden"), BoundingMode=repr("absolute"), BoundingBox=div_bb), div.VISUAL(VertexStyle=repr("hidden"), EdgeColor=repr("red"), BoundingMode=repr("absolute"), BoundingBox=div_bb))    # not tested
+
 Alternatively, we could simply specify an explicit bounding box to make
 the surface look more symmetric:
 
@@ -574,6 +589,13 @@ the surface look more symmetric:
 
     polymake> $m = new Matrix<Rational>([[-5,-5,-5],[5,5,5]]);
     polymake> compose($l->VISUAL(VertexStyle=>"hidden",BoundingMode=>"absolute",BoundingBox=>$m), $div->VISUAL(VertexStyle=>"hidden",EdgeColor=>"red",BoundingMode=>"absolute",BoundingBox=>$m));
+
+.. link
+
+In Sage::
+
+    sage: m = polymake.new_object("Matrix<Rational>", [[-5,-5,-5],[5,5,5]])
+    sage: polymake.compose(l.VISUAL(VertexStyle=repr("hidden"), BoundingMode=repr("absolute"), BoundingBox=m), div.VISUAL(VertexStyle=repr("hidden"), EdgeColor=repr("red"), BoundingMode=repr("absolute"), BoundingBox=m))    # not tested
 
 Creation functions for commonly used tropical cycles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -654,8 +676,12 @@ be computed via:
 
 In Sage::
 
-    sage: p = polymake.cartesian_product(polymake("uniform_linear_space<Max>(3,2)"),
-    ....:                                polymake("uniform_linear_space<Max>(3,1)"))
+    sage: p = polymake.function_call("cartesian_product",
+    ....:                            [getattr(polymake, "uniform_linear_space<Max>")(3,2),
+    ....:                             getattr(polymake, "uniform_linear_space<Max>")(3,1)])
+
+(Need to use ``function_call`` because an unrelated method ``cartesian_product``
+is defined by a Sage superclass; it is not overridden by the polymake interface.)
 
 Computing the skeleton
 ''''''''''''''''''''''
@@ -776,7 +802,7 @@ Some examples:
 
 In Sage::
 
-    sage: x = polymake("uniform_linear_space<Max>(3, 2)")
+    sage: x = getattr(polymake, "uniform_linear_space<Max>")(3, 2)
     sage: x1 = polymake.local_restrict(x, polymake.new_object("IncidenceMatrix", [[0],[2,3]]))
 
 (The tropical hyperplane, locally around the 0-th ray and the maximal cone spanned by rays 2 and 3.
