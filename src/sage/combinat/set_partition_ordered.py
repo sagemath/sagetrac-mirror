@@ -153,6 +153,7 @@ class OrderedSetPartition(ClonableArray):
 
     :wikipedia:`Ordered_partition_of_a_set`
     """
+
     @staticmethod
     def __classcall_private__(cls, parts=None, from_word=None):
         """
@@ -185,10 +186,12 @@ class OrderedSetPartition(ClonableArray):
         if from_word:
             return OrderedSetPartitions().from_finite_word(Words()(from_word))
         # if `parts` looks like a sequence of "letters" then treat it like a word.
-        if parts in Words() or (len(parts) > 0 and (parts[0] in ZZ or isinstance(parts[0], str))):
+        if parts in Words() or (len(parts) > 0 and
+                                (parts[0] in ZZ or isinstance(parts[0], str))):
             return OrderedSetPartitions().from_finite_word(Words()(parts))
         else:
-            P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), map(Set, parts), Set([])) )
+            P = OrderedSetPartitions(
+                reduce(lambda x, y: x.union(y), map(Set, parts), Set([])))
             return P.element_class(P, parts)
 
     def __init__(self, parent, s):
@@ -201,9 +204,8 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        self._base_set = reduce(lambda x,y: x.union(y), map(Set, s), Set([]))
+        self._base_set = reduce(lambda x, y: x.union(y), map(Set, s), Set([]))
         ClonableArray.__init__(self, parent, [Set(_) for _ in s])
-
 
     def _repr_(self):
         """
@@ -219,7 +221,8 @@ class OrderedSetPartition(ClonableArray):
             sage: OrderedSetPartition([[1,3],[2,4]])
             [{1, 3}, {2, 4}]
         """
-        return '[' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + ']'
+        return '[' + ', '.join(
+            ('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + ']'
 
     def check(self):
         """
@@ -406,7 +409,8 @@ class OrderedSetPartition(ClonableArray):
         m = min(base_set)
         M = max(base_set)
         mM = m + M
-        return OrderedSetPartitions()([[mM - i for i in part] for part in self])
+        return OrderedSetPartitions()(
+            [[mM - i for i in part] for part in self])
 
     def finer(self):
         """
@@ -442,8 +446,10 @@ class OrderedSetPartition(ClonableArray):
         if not self:
             return FiniteEnumeratedSet([self])
         else:
-            return FiniteEnumeratedSet([par(sum((list(i) for i in C), []))
-                    for C in cartesian_product([OrderedSetPartitions(X) for X in self])])
+            return FiniteEnumeratedSet([
+                par(sum((list(i) for i in C), [])) for C in cartesian_product(
+                    [OrderedSetPartitions(X) for X in self])
+            ])
 
     def is_finer(self, co2):
         """
@@ -479,7 +485,9 @@ class OrderedSetPartition(ClonableArray):
         """
         co1 = self
         if co1.base_set() != co2.base_set():
-            raise ValueError("ordered set partitions self (= %s) and co2 (= %s) must be of the same set"%(self, co2))
+            raise ValueError(
+                "ordered set partitions self (= %s) and co2 (= %s) must be of the same set"
+                % (self, co2))
 
         i1 = 0
         for j2 in co2:
@@ -539,7 +547,7 @@ class OrderedSetPartition(ClonableArray):
         result = [None] * len(grouping)
         j = 0
         for i in range(len(grouping)):
-            result[i] = sum(self[j:j+grouping[i]], Set([]))
+            result[i] = sum(self[j:j + grouping[i]], Set([]))
             j += grouping[i]
         return parent(self)(result)
 
@@ -627,7 +635,7 @@ class OrderedSetPartition(ClonableArray):
         result = [None] * len(comp)
         j = 0
         for i in range(len(comp)):
-            result[i] = Set(xs[j:j+comp[i]])
+            result[i] = Set(xs[j:j + comp[i]])
             j += comp[i]
         return OrderedSetPartitions()(result)
 
@@ -662,9 +670,11 @@ class OrderedSetPartition(ClonableArray):
             return FiniteEnumeratedSet([self])
         else:
             buo = OrderedSetPartition.bottom_up_osp
-            return FiniteEnumeratedSet([par(sum((list(P) for P in C), []))
-                    for C in cartesian_product([[buo(X, comp) for comp in Compositions(len(X))] for X in self])])
-
+            return FiniteEnumeratedSet([
+                par(sum((list(P) for P in C), [])) for C in cartesian_product(
+                    [[buo(X, comp) for comp in Compositions(len(X))]
+                     for X in self])
+            ])
 
     def is_strongly_finer(self, co2):
         r"""
@@ -703,7 +713,9 @@ class OrderedSetPartition(ClonableArray):
         """
         co1 = self
         if co1.base_set() != co2.base_set():
-            raise ValueError("ordered set partitions self (= %s) and co2 (= %s) must be of the same set"%(self, co2))
+            raise ValueError(
+                "ordered set partitions self (= %s) and co2 (= %s) must be of the same set"
+                % (self, co2))
 
         i1 = 0
         for j2 in co2:
@@ -763,16 +775,22 @@ class OrderedSetPartition(ClonableArray):
         """
         c = [sorted(X) for X in self]
         l = len(c)
-        g = [-1] + [i for i in range(l-1) if c[i][-1] > c[i+1][0]] + [l-1]
+        g = [-1] + [i for i in range(l - 1)
+                    if c[i][-1] > c[i + 1][0]] + [l - 1]
         # g lists the positions of the blocks that cannot be merged
         # with their right neighbors.
-        subcomps = [OrderedSetPartition(c[g[i] + 1 : g[i+1] + 1]) for i in range(len(g)-1)]
+        subcomps = [
+            OrderedSetPartition(c[g[i] + 1:g[i + 1] + 1])
+            for i in range(len(g) - 1)
+        ]
         # Now, self is the concatenation of the entries of subcomps.
         # We can fatten each of the ordered set partitions setcomps
         # arbitrarily, and then concatenate the results.
         fattenings = [list(subcomp.fatter()) for subcomp in subcomps]
-        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(gg) for gg in fattening], []))
-            for fattening in cartesian_product(fattenings)])
+        return FiniteEnumeratedSet([
+            OrderedSetPartition(sum([list(gg) for gg in fattening], []))
+            for fattening in cartesian_product(fattenings)
+        ])
 
     @combinatorial_map(name='to packed word')
     def to_packed_word(self):
@@ -811,33 +829,37 @@ class OrderedSetPartition(ClonableArray):
         for i in range(len(self)):
             for letter in self[i]:
                 out[letter] = i
-        return Words()([out[letter]+1 for letter in X])
-    
+        return Words()([out[letter] + 1 for letter in X])
+
     def number_of_inversions(self):
         r"""
-            Return the number of inversions in ``self``.
+        Return the number of inversions in ``self``.
 
-            An inversion of an ordered set partition with blocks [B_1,B_,...,B_k] is a pair of elements `(i, j)`
-            with `i < j` and `p(i) > p(j)`.
+        An inversion of an ordered set partition with blocks `[B_1,B_2,...,B_k]`
+        is a pair of letters `i` and `j` with `i < j` such that `i` is minimal
+        in `B_m`, `j ∈ B_l`, and `l < m`.
 
-            REFERENCES:
+        REFERENCES:
 
+        .. A. T. Wilson. 
+        *An extension of MacMahon’s Equidistribution Theorem to ordered multiset partitions*. 
+        Electron. J. Combin., **23** (1) (2016), P1.5.
 
+        EXAMPLES::
 
-            EXAMPLES::
-
-                sage: OrderedSetPartition([{2,5},{4,6},{1,3}]).number_of_inversions()
-                5
-                sage: OrderedSetPartition([{1,3,8},{2,4},{5,6,7}]).number_of_inversions()
-                3
-            """
+            sage: OrderedSetPartition([{2,5},{4,6},{1,3}]).number_of_inversions()
+            5
+            sage: OrderedSetPartition([{1,3,8},{2,4},{5,6,7}]).number_of_inversions()
+            3
+        """
         num_invs = 0
         for i in range(len(self)):
-            for j in range(i+1,len(self)):
+            for j in range(i + 1, len(self)):
                 for a in self[i]:
                     if a > min(self[j]):
                         num_invs += 1
         return num_invs
+
 
 class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
@@ -899,6 +921,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
          [{'t'}, {'a'}, {'c'}],
          [{'t'}, {'c'}, {'a'}]]
     """
+
     @staticmethod
     def __classcall_private__(cls, s=None, c=None):
         """
@@ -913,12 +936,13 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         """
         if s is None:
             if c is not None:
-                raise NotImplementedError("cannot specify 'c' without specifying 's'")
+                raise NotImplementedError(
+                    "cannot specify 'c' without specifying 's'")
             return OrderedSetPartitions_all()
         if isinstance(s, (int, Integer)):
             if s < 0:
                 raise ValueError("s must be non-negative")
-            s = frozenset(range(1, s+1))
+            s = frozenset(range(1, s + 1))
         else:
             s = frozenset(s)
 
@@ -928,7 +952,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         if isinstance(c, (int, Integer)):
             return OrderedSetPartitions_sn(s, c)
         if c not in Compositions(len(s)):
-            raise ValueError("c must be a composition of %s"%len(s))
+            raise ValueError("c must be a composition of %s" % len(s))
         return OrderedSetPartitions_scomp(s, Composition(c))
 
     def __init__(self, s):
@@ -954,7 +978,8 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             [{1, 3}, {2, 4}]
         """
         if isinstance(s, OrderedSetPartition):
-            raise ValueError("cannot convert %s into an element of %s"%(s, self))
+            raise ValueError("cannot convert %s into an element of %s" %
+                             (s, self))
         return self.element_class(self, list(s))
 
     Element = OrderedSetPartition
@@ -1019,15 +1044,19 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         # TODO: fix this if statement.
         #       In fact, what we need is for the underlying alphabet to be sortable.
         if isinstance(w, (list, tuple, str, FiniteWord_class)):
-            return self.element_class(self, Words()(w).to_ordered_set_partition())
+            return self.element_class(self,
+                                      Words()(w).to_ordered_set_partition())
         else:
-            raise ValueError("Something is wrong: `from_finite_word` expects an object of type list/tuple/str/Word representing a finite word, received {}.".format(str(w)))
+            raise ValueError(
+                "Something is wrong: `from_finite_word` expects an object of type list/tuple/str/Word representing a finite word, received {}.".
+                format(str(w)))
 
 
 class OrderedSetPartitions_s(OrderedSetPartitions):
     """
     Class of ordered partitions of a set `S`.
     """
+
     def _repr_(self):
         """
         TESTS::
@@ -1035,7 +1064,7 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4])
             Ordered set partitions of {1, 2, 3, 4}
         """
-        return "Ordered set partitions of %s"%Set(self._set)
+        return "Ordered set partitions of %s" % Set(self._set)
 
     def cardinality(self):
         """
@@ -1056,7 +1085,10 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
             sage: OrderedSetPartitions(5).cardinality()
             541
         """
-        return sum([factorial(k)*stirling_number2(len(self._set),k) for k in range(len(self._set)+1)])
+        return sum([
+            factorial(k) * stirling_number2(len(self._set), k)
+            for k in range(len(self._set) + 1)
+        ])
 
     def __iter__(self):
         """
@@ -1080,6 +1112,7 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
         for x in Compositions(len(self._set)):
             for z in OrderedSetPartitions(self._set, x):
                 yield self.element_class(self, z)
+
 
 class OrderedSetPartitions_sn(OrderedSetPartitions):
     def __init__(self, s, n):
@@ -1114,7 +1147,8 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4], 2)
             Ordered set partitions of {1, 2, 3, 4} into 2 parts
         """
-        return "Ordered set partitions of %s into %s parts"%(Set(self._set),self.n)
+        return "Ordered set partitions of %s into %s parts" % (Set(self._set),
+                                                               self.n)
 
     def cardinality(self):
         """
@@ -1131,7 +1165,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
             sage: OrderedSetPartitions(4,1).cardinality()
             1
         """
-        return factorial(self.n)*stirling_number2(len(self._set), self.n)
+        return factorial(self.n) * stirling_number2(len(self._set), self.n)
 
     def __iter__(self):
         """
@@ -1153,9 +1187,10 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
              [{3}, {1, 2, 4}],
              [{4}, {1, 2, 3}]]
         """
-        for x in Compositions(len(self._set),length=self.n):
-            for z in OrderedSetPartitions_scomp(self._set,x):
+        for x in Compositions(len(self._set), length=self.n):
+            for z in OrderedSetPartitions_scomp(self._set, x):
                 yield self.element_class(self, z)
+
 
 class OrderedSetPartitions_scomp(OrderedSetPartitions):
     def __init__(self, s, comp):
@@ -1176,7 +1211,8 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4], [2,1,1])
             Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 1, 1]
         """
-        return "Ordered set partitions of %s into parts of size %s" % (Set(self._set), self.c)
+        return "Ordered set partitions of %s into parts of size %s" % (
+            Set(self._set), self.c)
 
     def __contains__(self, x):
         """
@@ -1190,7 +1226,8 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: len([x for x in OrderedSetPartitions([1,2,3,4]) if x in OS])
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and [len(z) for z in x] == self.c
+        return OrderedSetPartitions.__contains__(
+            self, x) and [len(z) for z in x] == self.c
 
     def cardinality(self):
         r"""
@@ -1216,7 +1253,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: OrderedSetPartitions(5, [2,0,3]).cardinality()
             10
         """
-        return factorial(len(self._set))/prod([factorial(i) for i in self.c])
+        return factorial(len(self._set)) / prod([factorial(i) for i in self.c])
 
     def __iter__(self):
         """
@@ -1272,14 +1309,17 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
         for x in Permutations_mset(p):
             res = permutation.to_standard(x).inverse()
             res = [lset[x - 1] for x in res]
-            yield self.element_class(self, [Set(res[dcomp[i]+1:dcomp[i+1]+1])
-                                            for i in range(l)])
+            yield self.element_class(
+                self,
+                [Set(res[dcomp[i] + 1:dcomp[i + 1] + 1]) for i in range(l)])
+
 
 class OrderedSetPartitions_all(OrderedSetPartitions):
     r"""
     Ordered set partitions of `\{1, \ldots, n\}` for all
     `n \in \ZZ_{\geq 0}`.
     """
+
     def __init__(self):
         """
         Initialize ``self``.
@@ -1321,9 +1361,10 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         """
         if isinstance(s, OrderedSetPartition):
             gset = s.parent()._set
-            if gset == frozenset(range(1,len(gset)+1)):
+            if gset == frozenset(range(1, len(gset) + 1)):
                 return self.element_class(self, list(s))
-            raise ValueError("cannot convert %s into an element of %s"%(s, self))
+            raise ValueError("cannot convert %s into an element of %s" %
+                             (s, self))
         return self.element_class(self, list(s))
 
     def __contains__(self, x):
@@ -1349,20 +1390,27 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             if x.parent() is self:
                 return True
             gset = x.parent()._set
-            return gset == frozenset(range(1, len(gset)+1))
+            return gset == frozenset(range(1, len(gset) + 1))
 
         # x must be a list or a tuple
         if not isinstance(x, (list, tuple)):
             return False
 
         # Check to make sure each element of the list is a nonempty set
-        if not all(s and isinstance(s, (set, frozenset, list, tuple, Set_generic)) for s in x):
+        if not all(
+                s and isinstance(s, (set, frozenset, list, tuple, Set_generic))
+                for s in x):
             return False
 
-        if not all(isinstance(s, (set, frozenset, Set_generic)) or len(s) == len(set(s)) for s in x):
+        if not all(
+                isinstance(s, (set, frozenset,
+                               Set_generic)) or len(s) == len(set(s))
+                for s in x):
             return False
-        X = set(reduce(lambda A,B: A.union(B), x, set()))
-        return len(X) == sum(len(s) for s in x) and X == set(range(1,len(X)+1))
+        X = set(reduce(lambda A, B: A.union(B), x, set()))
+        return len(X) == sum(len(s)
+                             for s in x) and X == set(range(1,
+                                                            len(X) + 1))
 
     def _coerce_map_from_(self, X):
         """
@@ -1379,7 +1427,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         if X is self:
             return True
         if isinstance(X, OrderedSetPartitions):
-            return X._set == frozenset(range(1,len(X._set)+1))
+            return X._set == frozenset(range(1, len(X._set) + 1))
         return super(OrderedSetPartitions_all, self)._coerce_map_from_(X)
 
     def _repr_(self):
@@ -1404,7 +1452,9 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
                 sage: el1 <= el2, el1 >= el2, el2 <= el1    # indirect doctest
                 (False, True, True)
             """
-            return richcmp([sorted(s) for s in left], [sorted(s) for s in right], op)
+            return richcmp([sorted(s) for s in left],
+                           [sorted(s) for s in right], op)
+
 
 ##########################################################
 # Deprecations
@@ -1428,8 +1478,9 @@ class SplitNK(OrderedSetPartitions_scomp):
         self.__class__ = OrderedSetPartitions_scomp
         n = state['_n']
         k = state['_k']
-        OrderedSetPartitions_scomp.__init__(self, range(state['_n']), (k,n-k))
+        OrderedSetPartitions_scomp.__init__(self, range(state['_n']),
+                                            (k, n - k))
+
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.split_nk", "SplitNK_nk", SplitNK)
-
