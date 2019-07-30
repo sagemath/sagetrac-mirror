@@ -241,6 +241,9 @@ class Homspace(HomsetWithBase):
         Return a random element by obtaining a random element of the underlying
         free module.
 
+        Output:
+            - A morphism in this homset.
+
         EXAMPLES::
 
             sage: J = J0(23)
@@ -250,8 +253,6 @@ class Homspace(HomsetWithBase):
             sage: A in E
             True
 
-        Output:
-            - A morphism in this homset.
         """
         F = self.free_module()
         M = self.matrix_space()
@@ -1051,7 +1052,7 @@ class EndomorphismSubring(Homspace, Ring):
         A nontrival subring of the endomorphism ring of a modular abelian
         variety is isomorphic to a number field order if and only if the
         modular abelian variety is simple. So when the domain
-        is not simple, we return a ``ValueError``.
+        is not simple, we return a ``ValueError``. ::
 
             sage: J = J0(22); J.is_simple()
             False
