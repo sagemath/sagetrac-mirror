@@ -511,6 +511,35 @@ class RationalField(Singleton, number_field_base.NumberField):
                     yield self(height/other)
                     yield self(-height/other)
 
+    def calkin_wilf_sequence(self, all_rationals=False):
+        r"""
+        Iterator for the Calkin-Wilf sequence, which generates all positive
+        rational numbers.
+
+        INPUT:
+
+        - ``all_rationals`` -- boolean (default: ``False``); if ``True``, start
+          with zero and include the positive and negative values of entries in
+          the Calkin-Wilf sequence, to produce an iterator for the entire
+          rational field rather than just the positive rationals.
+
+        EXAMPLES:
+
+            sage: from itertools import islice
+            sage: list(islice(QQ.calkin_wilf_sequence(), 10))
+            [1, 1/2, 2, 1/3, 3/2, 2/3, 3, 1/4, 4/3, 3/5]
+            sage: list(islice(QQ.calkin_wilf_sequence(all_rationals=True), 10))
+            [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3/2]
+        """
+        if all_rationals:
+            yield self(0)
+        p, q = ZZ(1), ZZ(1)
+        while True:
+            yield self(p / q)
+            if all_rationals:
+                yield -self(p / q)
+            p, q = q, 2 * (p // q) * q - p + q
+
     def primes_of_bounded_norm_iter(self, B):
         r"""
         Iterator yielding all primes less than or equal to `B`.
