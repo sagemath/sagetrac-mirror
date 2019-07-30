@@ -1433,12 +1433,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 var_switch = True
                 
         scalars = kwargs.get('scalars', PolynomialRing(QQ, flatten([['z%s_%s' % (i,j) for j in range(1,d[i])] for i in range(n)])) if var_switch else number_field_elements_from_algebraics(flatten([[Z00[i][j] for j in range(1,d[i])] for i in range(n)]),embedded=True)[0]) 
-
-        # Exchange polynomial coefficients
-#        if var_switch or d == (1,)*n:
-#            Z0 = tuple((1,)+tuple([scalars('z%s_%s' % (i,j)) for j in range(1,d[i])])+(1,) for  i in range(n))
-#        else:
-#            Z0 = kwargs.get('Z')
             
         if var_switch or d == (1,)*n:
             Z0 = tuple((1,)+tuple([scalars('z%s_%s' % (i,j)) for j in range(1,d[i])])+(1,) for  i in range(n))
@@ -1455,22 +1449,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         if not prod(flatten([[Z0[i][j] in scalars for j in range(1,d[i])] for i in range(n)])):
             raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
         
-        # consistency checking  for exchange coefficients
-#        if len(Z0) != n:
-#            raise ValueError('The number of exchange polynomials should match the number of cluster variables.')
-#        for i in range(len(Z0)):
-#            if len(Z0[i]) != d[i] + 1:
-#                raise ValueError('The number of coefficients should be compatible with the degree of exchange polynomial %s.' % i)
-#        if not prod(flatten([[Z0[i][j] in scalars for j in range(1,d[i])] for i in range(n)])):
-#            raise ValueError('The exchange polynomial coefficients need to be contained in the ring of scalars.')
-
         return super(ClusterAlgebra,self).__classcall__(self,B0,**kwargs)
-        
-        
-        #for key in kwargs:
-        #    if isinstance(kwargs[key], list):
-        #        kwargs[key] = tuple(kwargs[key])
-        #return super(ClusterAlgebra, self).__classcall__(self, Q, **kwargs)
 
     def __init__(self, B, **kwargs):
         """
@@ -2231,10 +2210,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 S = self.initial_seed()
                 S.mutate(empath)
                 return self.F_polynomial(g_vector)
-                #msg = "the F-polynomial with g-vector {} has not been computed yet; ".format(g_vector)
-                #msg += "you can compute it by mutating from the initial seed along the sequence "
-                #msg += str(self._path_dict[g_vector])
-                #raise KeyError(msg)
             else:
                 raise KeyError("the g-vector %s has not been found yet" % str(g_vector))
 
@@ -2274,7 +2249,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         g_vector = tuple(g_vector)
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
-#                print self._sd_iter
                 seed = next(self._sd_iter)
                 if isinstance(seed, ClusterAlgebraSeed):
                     self._explored_depth = seed.depth()
