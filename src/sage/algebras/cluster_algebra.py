@@ -1,8 +1,10 @@
 r"""
 Cluster algebras
 
-This file constructs cluster algebras using the Parent-Element framework.
-The implementation mainly utilizes structural theorems from [FZ2007]_.
+This file constructs generalized cluster algebras using the Parent-Element framework.
+In this generalization, the characteristic binomial exchange relations of ordinary cluster
+algebras are instead allowed to be polynomials of arbitrary degree. See [CS2014]_ for more details.
+The implementation mainly utilizes structural theorems from [FZ2007]_ and [Nak2015]_.
 
 The key points being used here are these:
 
@@ -67,10 +69,13 @@ principle be added to :meth:`ClusterAlgebra.mutate_initial`.
 
 REFERENCES:
 
+- [CS2014]_
 - [FZ2007]_
-- [NZ2012]_
 - [LLZ2014]_
+- [Nak2015]_
+- [NZ2012]_
 - [NR2016]_
+- [Rup2018]_
 
 AUTHORS:
 
@@ -140,8 +145,6 @@ Several examples using Generalized Cluster Algebras, including Exchange Coeffici
     sage: Agen4 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1))); Agen4 # scalars automatically populated
     A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in a with defining polynomial y^2 - 2 with a = 1.414213562373095? with degree vector (1, 3) and exchange polynomial coefficients ((1, 1), (1, a, 1, 1))
 
-    # sage: Agen5 = ClusterAlgebra(['A',2],d=(1,3),Z=((1,1),(1,sqrt(2),1,1)),scalars=RR); Agen5  ## this example currently won't allow double-division and will print warnings
-
     sage: Agen.explore_to_depth(infinity)
     sage: Agen2.explore_to_depth(infinity)
     sage: Agen3.explore_to_depth(infinity)
@@ -164,8 +167,6 @@ Several examples using Generalized Cluster Algebras, including Exchange Coeffici
     (x0^3 + x0^2 + (sqrt2)*x0*x1 + x1^2 + (sqrt2)*x0 + 2*x1 + 1)/(x0^2*x1)
     sage: Agen4.cluster_variable((-2,1))
     (x0^3 + x0^2 + (a)*x0*x1 + x1^2 + (a)*x0 + 2*x1 + 1)/(x0^2*x1)
-
-    # sage: Agen5.cluster_variable((-2,1)) does not currently work
 
     sage: Agen22 = ClusterAlgebra(['A',2],d=(2,2),Z=((1,sqrt(2),1),(1,sqrt(3),1))); Agen22
     A Generalized Cluster Algebra with cluster variables x0, x1 and no coefficients over Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a = 0.5176380902050415? with degree vector (2, 2) and exchange polynomial coefficients ((1, -a^3 + 3*a, 1), (1, -a^2 + 2, 1))
@@ -1275,7 +1276,7 @@ class ClusterAlgebraSeed(SageObject):
         try:
             return sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ) // alg.F_polynomial(old_g_vector)
         except:
-            ## For debugging purposes.  With changes on 7-23-19, double-division (i.e. division with remainder) should work.
+            # For debugging purposes.  With changes on 7-23-19, double-division (i.e. division with remainder) should work.
             print("Couldn't do double-division")
             print("Numerator:", sum( self._Z[k][i] * pos ** i * neg ** (self._d[k] - i) for i in range(self._d[k]+1) ))
             print("Denominator:", alg.F_polynomial(old_g_vector))  
@@ -1360,7 +1361,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
+            sage: A = ClusterAlgebra(['A', 2]); A
             A Cluster Algebra with cluster variables x0, x1 and no coefficients
             over Rational Field
 
@@ -1437,8 +1438,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         if var_switch or d == (1,)*n:
             Z0 = tuple((1,)+tuple([scalars('z%s_%s' % (i,j)) for j in range(1,d[i])])+(1,) for  i in range(n))
         else:
-            Z0 = tuple((1,)+tuple([scalars(Z00[i][j]) for j in range(1,d[i])])+(1,) for  i in range(n))  
-        ## This coercion is needed so it doesn't dump us back into symbolic ring  
+            # This coercion is needed so it doesn't dump us back into symbolic ring
+            Z0 = tuple((1,)+tuple([scalars(Z00[i][j]) for j in range(1,d[i])])+(1,) for  i in range(n))    
         
         # consistency checking  for exchange coefficients
         if len(Z0) != n:
@@ -2850,7 +2851,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         ALGORITHM:
 
         This implements greedy elements of a rank 2 cluster algebra using
-        Equation (1.5) from [LLZ2014]_.
+        Proposition 2.13 from [Rup2018]_.
 
         EXAMPLES::
 
