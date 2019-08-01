@@ -433,13 +433,11 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import (LaurentPolynomialRing_generic,
                                                            LaurentPolynomialRing)
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.functions.other import Function_floor
 
 
 ##############################################################################
@@ -2806,7 +2804,16 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         
     def _maxv(self, a,b):
         r"""   
-        Used as a fix in the greedy coefficient method
+        Used as a fix in the greedy coefficient method to return maximum of two integers or of two monomials, looking at their coefficients only. 
+        
+        EXAMPLES::
+        
+        sage: B = ClusterAlgebra(['A',2], d=(2,1))
+        sage: B._maxv(3, 10)
+        10
+        sage: z = B._Z0[0][1]
+        sage: B._maxv(3*z, 10*z)
+        10*z0_1
         """        
         try:
             return max(a,b)
