@@ -1,19 +1,23 @@
 r"""
 Cluster algebras
 
-This file constructs generalized cluster algebras using the Parent-Element framework.
-In this generalization, the characteristic binomial exchange relations of ordinary cluster
-algebras are instead allowed to be polynomials of arbitrary degree. See [CS2014]_ for more details.
-The implementation mainly utilizes structural theorems from [FZ2007]_ and [Nak2015]_.
-
+This file constructs cluster algebras using the Parent-Element framework.  
+The implementation mainly utilizes structural theorems from [FZ2007]_.  
+As of August 2019, generalized cluster algebras may also be constructed. 
+In this generalization, the characteristic binomial exchange relations of ordinary 
+cluster algebras are instead allowed to be polynomials of arbitrary degree. 
+See [CS2014]_ and [Nak2015]_ for more details.
+  
 The key points being used here are these:
 
-- cluster variables are parametrized by their g-vectors;
+- generalized cluster algebras are constructed using the ClusterAlgebra class with additional keywords.  Without the additional keywords, the constructor defaults to an ordinary cluster algebra.
+
+- (generalized) cluster variables are parametrized by their g-vectors;
 
 - g-vectors (together with c-vectors) provide a self-standing model for the
-  combinatorics behind any cluster algebra;
+  combinatorics behind any (generalized) cluster algebra;
 
-- each cluster variable in any cluster algebra can be computed, by the
+- each (generalized) cluster variable in any (generalized) cluster algebra can be computed, by the
   separation of additions formula, from its g-vector and F-polynomial.
 
 Accordingly this file provides three classes:
@@ -27,10 +31,10 @@ Accordingly this file provides three classes:
 :class:`ClusterAlgebra`, constructed as a subobject of
 :class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_generic`,
 is the frontend of this implementation. It provides all the algebraic
-features (like ring morphisms), it computes cluster variables, it is
+features (like ring morphisms), it computes (generalized) cluster variables, it is
 responsible for controlling the exploration of the exchange graph and
 serves as the repository for all the data recursively computed so far.
-In particular, all g-vectors and all F-polynomials of known cluster
+In particular, all g-vectors and all F-polynomials of known (generalized) cluster
 variables as well as a mutation path by which they can be obtained
 are recorded. In the optic of efficiency, this implementation does not
 store directly the exchange graph nor the exchange relations. Both of
@@ -44,10 +48,10 @@ and :meth:`ClusterAlgebra.initial_seed`. The task of performing current
 seed mutations is delegated to this class. Seeds are considered equal if
 they have the same parent cluster algebra and they can be obtained from
 each other by a permutation of their data (i.e. if they coincide as
-unlabelled seeds).  Cluster algebras whose initial seeds are equal in the
+unlabelled seeds).  (Generalized) Cluster algebras whose initial seeds are equal in the
 above sense are not considered equal but are endowed with coercion maps
-to each other.  More generally, a cluster algebra is endowed with coercion
-maps from any cluster algebra which is obtained by freezing a collection
+to each other.  More generally, a (generalized) cluster algebra is endowed with coercion
+maps from any (generalized) cluster algebra which is obtained by freezing a collection
 of initial cluster variables and/or permuting both cluster variables
 and coefficients.
 
@@ -1361,7 +1365,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = ClusterAlgebra(['A', 2]); A
+            sage: A = ClusterAlgebra(['A', 2]); A #indirect doctest
             A Cluster Algebra with cluster variables x0, x1 and no coefficients
             over Rational Field
 

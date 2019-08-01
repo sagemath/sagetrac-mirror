@@ -3417,6 +3417,10 @@ REFERENCES:
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
 
+.. [NR2016] Tomoki Nakanishi and Dylan Rupel. Companion cluster algebras
+            to a generalized cluster algebra. Travaux Mathématiques Vol XXIV,
+            Fac. Sci. Technol. Commun. Univ. Luxemb., Luxembourg, (2016), 129-149.
+
 .. [NZ1997] \T. Nakashima and A. Zelevinsky.
             Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.
             Adv. Math. **131**, pp. 253--278, 1997.
