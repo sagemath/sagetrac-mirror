@@ -135,7 +135,12 @@ from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 
 from copy import copy
-import collections
+try:
+    from collections.abc import Hashable
+except ImportError:
+    # Python 2.7
+    from collections import Hashable
+
 import os
 import subprocess
 import warnings
@@ -464,7 +469,7 @@ def is_LatticePolytope(x):
     return isinstance(x, LatticePolytopeClass)
 
 @richcmp_method
-class LatticePolytopeClass(SageObject, collections.Hashable):
+class LatticePolytopeClass(SageObject, Hashable):
     r"""
     Create a lattice polytope.
 
@@ -4060,8 +4065,7 @@ def is_NefPartition(x):
     return isinstance(x, NefPartition)
 
 
-class NefPartition(SageObject,
-                   collections.Hashable):
+class NefPartition(SageObject, Hashable):
     r"""
     Create a nef-partition.
 

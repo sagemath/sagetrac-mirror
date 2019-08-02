@@ -39,7 +39,13 @@ from __future__ import division
 
 import six
 import math
-import collections
+
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    # Python 2.7
+    from collections import MutableMapping
+
 from colorsys import hsv_to_rgb, hls_to_rgb, rgb_to_hsv, rgb_to_hls
 
 
@@ -1458,7 +1464,7 @@ def check_color_data(cfcm):
         raise ValueError('color data must be (color function, colormap)')
 
 
-class Colormaps(collections.MutableMapping):
+class Colormaps(MutableMapping):
     """
     A dict-like collection of lazily-loaded matplotlib color maps.
     For a list of map names, evaluate::

@@ -54,7 +54,11 @@ Author:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import collections
+
+try:
+    from collections.abc import Iterable
+except:
+    from collections import Iterable
 import itertools
 import operator
 
@@ -116,11 +120,11 @@ class SetShuffleProduct(SageObject):
             [[2, 3, 4, 5], [2, 5, 3, 4], [5, 2, 3, 4], [2, 3, 5, 4], [1, 2, 3, 5], [1, 5, 2, 3],
              [5, 1, 2, 3], [1, 2, 5, 3]]
         """
-        assert(isinstance(l1, collections.Iterable) and
-               isinstance(l2, collections.Iterable)
+        assert(isinstance(l1, Iterable) and
+               isinstance(l2, Iterable)
         )
-        assert(all(isinstance(elem, collections.Iterable) for elem in l1))
-        assert(all(isinstance(elem, collections.Iterable) for elem in l2))
+        assert(all(isinstance(elem, Iterable) for elem in l1))
+        assert(all(isinstance(elem, Iterable) for elem in l2))
         self._l1 = list(l1)
         self._l2 = list(l2)
 
@@ -259,8 +263,8 @@ class ShuffleProduct(SageObject):
              word: bbbaa, word: bbaba, word: babba, word: abbba]
 
         """
-        assert(isinstance(l1, collections.Iterable) and
-               isinstance(l2, collections.Iterable)
+        assert(isinstance(l1, Iterable) and
+               isinstance(l2, Iterable)
         )
         self._l1 = list(l1)
         self._l2 = list(l2)

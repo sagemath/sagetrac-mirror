@@ -22,7 +22,12 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 from six import itervalues, iteritems
 from six.moves import cPickle as pickle
 
-import collections
+try:
+    from collections.abc import Mapping
+except ImportError:
+    # Python 2.7
+    from collections import Mapping
+
 import os
 
 from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
@@ -30,7 +35,7 @@ from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
 _CONWAYDATA = os.path.join(CONWAY_POLYNOMIALS_DATA_DIR, 'conway_polynomials.p')
 _conwaydict = None
 
-class DictInMapping(collections.Mapping):
+class DictInMapping(Mapping):
     def __init__(self, dict):
         """
         Places dict into a non-mutable mapping.
@@ -94,7 +99,7 @@ class DictInMapping(collections.Mapping):
         return repr(self._store)
 
 
-class ConwayPolynomials(collections.Mapping):
+class ConwayPolynomials(Mapping):
     def __init__(self):
         """
         Initialize the database.

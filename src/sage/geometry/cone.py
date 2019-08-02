@@ -194,7 +194,12 @@ REFERENCES:
 from __future__ import print_function
 from six.moves import range
 
-import collections
+try:
+    from collections.abc import Hashable, Iterable, Container
+except ImportError:
+    # Python 2.7
+    from collections import Hashable, Iterable, Container
+
 import copy
 import warnings
 
@@ -687,8 +692,8 @@ def normalize_rays(rays, lattice):
 
 @richcmp_method
 class IntegralRayCollection(SageObject,
-                            collections.Hashable,
-                            collections.Iterable):
+                            Hashable,
+                            Iterable):
     r"""
     Create a collection of integral rays.
 
@@ -1330,7 +1335,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # for an example why this is needed.
 @richcmp_method
 class ConvexRationalPolyhedralCone(IntegralRayCollection,
-                                   collections.Container):
+                                   Container):
     r"""
     Create a convex rational polyhedral cone.
 

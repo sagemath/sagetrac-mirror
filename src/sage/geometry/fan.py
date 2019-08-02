@@ -231,7 +231,12 @@ inclusion!)
 # ****************************************************************************
 from __future__ import print_function
 
-import collections
+try:
+    from collections.abc import Callable, Container
+except ImportError:
+    # Python 2.7
+    from collections import Callable, Container
+
 import warnings
 import copy
 
@@ -1063,8 +1068,8 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
 
 @richcmp_method
 class RationalPolyhedralFan(IntegralRayCollection,
-                            collections.Callable,
-                            collections.Container):
+                            Callable,
+                            Container):
     r"""
     Create a rational polyhedral fan.
 

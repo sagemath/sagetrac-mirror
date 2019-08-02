@@ -19,7 +19,12 @@ Rankers
 #*****************************************************************************
 from six.moves import range
 
-from collections import Iterable, Sequence
+try:
+    from collections.abc import Iterable, Sequence
+except ImportError:
+    # Python 2.7
+    from collections import Iterable, Sequence
+
 from sage.misc.cachefunc import cached_function
 from sage.misc.callable_dict import CallableDict
 from sage.structure.parent import Parent

@@ -936,6 +936,12 @@ from six.moves import range, zip_longest, zip
 from six import itervalues
 
 from IPython.lib.pretty import pretty
+try:
+    from collections.abc import Iterator
+except ImportError:
+    # Python 2.7
+    from collections import Iterator
+
 import collections
 import itertools
 from copy import copy, deepcopy
@@ -14172,8 +14178,7 @@ def is_FSMProcessIterator(PI):
 #*****************************************************************************
 
 
-class FSMProcessIterator(SageObject,
-                         collections.Iterator):
+class FSMProcessIterator(SageObject, Iterator):
     """
     This class takes an input, feeds it into a finite state machine
     (automaton or transducer, in particular), tests whether this was
