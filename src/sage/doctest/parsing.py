@@ -62,10 +62,19 @@ backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 # The interval approach also means that we do not need to worry about
 # rounding errors and it is also very natural to see a number with
 # tolerance as an interval.
-# We need to import from sage.all to avoid circular imports.
-from sage.all import RealIntervalField
-RIFtol = RealIntervalField(1044)
+#
+# This is wrapped in a function that lazily instantiates the RIF upon first use
+# so as to prevent too much of Sage from being instantiated while importing the
+# doctest framework.
+_RIFtol = None
 
+def RIFtol(*val):
+    global _RIFtol
+    if _RIFtol is None:
+        from sage.rings.real_mpfi import RealIntervalField
+        _RIFtol = RealIntervalField(1024)
+
+    return _RIFtol(*val)
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
 #
