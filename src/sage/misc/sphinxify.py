@@ -26,6 +26,9 @@ import os
 import re
 import shutil
 from tempfile import mkdtemp
+
+import six
+
 from sphinx.application import Sphinx
 
 
@@ -164,6 +167,54 @@ smart_quotes = no""")
     shutil.rmtree(outdir, ignore_errors=True)
 
     return output
+
+
+def sphinxify_mimebundle(docstring):
+    r"""
+    Like `sphinxify`, but returns a Jupyter "mimebundle": a dict whose keys are
+    MIME types and the values are the representation of the docstring in each
+    type.
+
+    This returns the ``text/plain`` docstring as passed through
+    ``sage.misc.sagedoc.format`` which is effectively equivalent to what
+    `sage_getdoc` already returns.  It returns the HTML "sphinxified" docstring
+    with the ``text/html`` MIME type.
+
+    For the HTML output it also converts it to unicode, if it isn't already, as
+    IPython tries to append it to other unicode strings.  It also uses the
+    ``strip_math_delims=False`` option, which is needed for the math to render
+    in the Jupyter Notebook.
+
+    INPUT:
+
+    - ``docstring`` -- string -- a ReST-formatted docstring
+
+    OUTPUT:
+
+    - dict -- keys ``'text/plain'`` containing the plain-text representation fo
+      the docstring, and ``'text/html'`` containing the HTML-rendered
+      representation
+
+    EXAMPLE:
+
+        sage: from sage.misc.sphinxify import sphinxify_mimebundle
+        sage: bundle = sphinxify_mimebundle(':math:`x=y`')
+        sage: bundle['text/plain']
+        'x=y\n'
+        sage: bundle['text/html']
+        u'<div class="docstring">\n    \n  <p><span class="math notranslate nohighlight">\\(x=y\\)</span></p>\n\n\n</div>'
+    """
+    from sage.misc.sagedoc import format
+
+    html = sphinxify(format(docstring, embedded=True), strip_math_delims=False)
+    if not isinstance(html, six.text_type):
+        html = html.decode('utf-8')
+
+    html += (u'\n<script type="text/javascript">'
+             u'MathJax.Hub.Queue(["Typeset", MathJax.Hub, "pager-contents"])'
+             u'</script>')
+
+    return {'text/plain': format(docstring),'text/html': html}
 
 
 if __name__ == '__main__':
