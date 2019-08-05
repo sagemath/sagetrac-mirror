@@ -127,6 +127,7 @@ Comprehensive Module list
     sage/combinat/free_prelie_algebra
     sage/combinat/fully_packed_loop
     sage/combinat/gelfand_tsetlin_patterns
+    sage/combinat/generalized_shifted_primed_tableau
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/growth

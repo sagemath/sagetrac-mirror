@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-Generalizec shifted primed tableaux
+r"""
+Generalized shifted primed tableaux
 
 AUTHORS:
 
 - Kirill Paramonov (2017-08-18): initial implementation
-- Chaman Agrawal (2017-07-24): modify to include primed entries on main diagonal
+- Chaman Agrawal (2017-07-24): Modified shifted primed tableaux to include
+  primed entries on main diagonal.
 """
 
 from __future__ import print_function, absolute_import, division
@@ -32,8 +33,8 @@ from sage.categories.sets_cat import Sets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
-from sage.combinat.shifted_primed_tableau import PrimedEntry, CrystalElementShiftedPrimedTableau
+from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau, _add_strip
+from sage.combinat.shifted_primed_tableau import PrimedEntry
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -42,20 +43,20 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
     A generalized shifted primed tableau.
     
     A generalized primed tableau is a tableau of shifted shape in the alphabet
-    `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that
+    `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that:
 
     1. the entries are weakly increasing along rows and columns;
     2. a row cannot have two repeated primed elements, and a column
        cannot have two repeated non-primed elements.
 
-    ..NOTE:
+    ..NOTE::
 
-        This class is a variation of the class 
+        This class is a variation of the class
         :class:`~sage.combinat.shifted_primed_tableau.ShiftedPrimedTableau`.
-        The main difference between 
-        :class:`~sage.combinat.shifted_primed_tableau.ShiftedPrimedTableau` and 
+        The main difference between
+        :class:`~sage.combinat.shifted_primed_tableau.ShiftedPrimedTableau` and
         :class:`~sage.combinat.generalized_shifted_primed_tableau.
-        GeneralizedShiftedPrimedTableau` is that the first one does not allow 
+        GeneralizedShiftedPrimedTableau` is that the first one does not allow
         primed entries on the main diagonal while second does allow.
 
     Skew shape of the generalized shifted primed tableaux is specified either
@@ -64,48 +65,52 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
     EXAMPLES::
 
         sage: T = GeneralizedShiftedPrimedTableaux([4,2])
-        sage: T([[1,"2'","3'",3],[2,"3'"]])[1]
+        sage: T([[1,"2'","3'",3], [2,"3'"]])[1]
         (2, 3')
-        sage: t = GeneralizedShiftedPrimedTableau([[1,"2p",2.5,3],[2,2.5]])
+        sage: t = GeneralizedShiftedPrimedTableau([[1,"2p",2.5,3], [2,2.5]])
         sage: t[1]
         (2, 3')
-        sage: GeneralizedShiftedPrimedTableau([["2p",2,3],["2p","3p"],[2]], skew=[2,1])
+        sage: GeneralizedShiftedPrimedTableau([["2p",2,3], ["2p","3p"], [2]], 
+        ....:                                 skew=[2,1])
         [(None, None, 2', 2, 3), (None, 2', 3'), (2,)]
-        sage: GeneralizedShiftedPrimedTableau([[None,None,"2p"],[None,"2p"]])
+        sage: GeneralizedShiftedPrimedTableau([[None,None,"2p"], [None,"2p"]])
         [(None, None, 2'), (None, 2')]
 
-    TESTS::
+    TESTS:
 
-        sage: t = GeneralizedShiftedPrimedTableau([[1,2,2.5,3],[2,2.5]])
+        sage: t = GeneralizedShiftedPrimedTableau([[1,2,2.5,3], [2,2.5]])
         Traceback (most recent call last):
         ...
         ValueError: [[1, 2, 2.50000000000000, 3], [2, 2.50000000000000]]
-         is not an element of Shifted Primed Tableaux
+         is not an element of Generalized Shifted Primed Tableaux
     """
     @staticmethod
     def __classcall_private__(cls, T, skew=None):
         r"""
-        Ensure that a generalized shifted tableau is only ever constructed as an
-        ``element_class`` call of an appropriate parent.
+        Ensure that a generalized shifted tableau is only ever constructed as
+        an ``element_class`` call of an appropriate parent.
 
         EXAMPLES::
 
-            sage: data = [[1,"2'","2",3],[2,"3'"]]
+            sage: data = [[1,"2'","2",3], [2,"3'"]]
             sage: t = GeneralizedShiftedPrimedTableau(data)
-            sage: T = GeneralizedShiftedPrimedTableaux(shape=[4,2],weight=(1,3,2))
+            sage: T = GeneralizedShiftedPrimedTableaux(shape=[4,2],
+            ....:                                      weight=(1,3,2))
             sage: t == T(data)
             True
             sage: S = GeneralizedShiftedPrimedTableaux(shape=[4,2])
             sage: t == S(data)
             True
-            sage: t = GeneralizedShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: t = GeneralizedShiftedPrimedTableau([["2p",2,3],["2p"]],
+            ....:                                     skew=[2,1])
             sage: t.parent()
-            Shifted Primed Tableaux skewed by [2, 1]
-            sage: s = GeneralizedShiftedPrimedTableau([[None, None,"2p",2,3],[None,"2p"]])
+            Generalized Shifted Primed Tableaux skewed by [2, 1]
+            sage: s = GeneralizedShiftedPrimedTableau([[None, None,"2p",2,3],
+            ....:                                     [None,"2p"]])
             sage: s.parent()
-            Shifted Primed Tableaux skewed by [2, 1]
+            Generalized Shifted Primed Tableaux skewed by [2, 1]
 
-        TESTS::
+        TESTS:
 
             sage: GeneralizedShiftedPrimedTableau([])
             []
@@ -124,7 +129,7 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
 
     @staticmethod
     def _preprocess(T, skew=None):
-        """
+        r"""
         Preprocessing list ``T`` to initialize the tableau.
         The output is a list of rows as tuples, with explicit
         ``None``'s to indicate the skew shape, and entries being
@@ -132,12 +137,13 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
 
         Trailing empty rows are removed.
 
-        TESTS::
+        TESTS:
 
-            sage: GeneralizedShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
-            ....: skew=[1])
+            sage: GeneralizedShiftedPrimedTableau._preprocess([["2'","3p",3.5]]
+            ....:                                             , skew=[1])
             [(None, 2', 3', 4')]
-            sage: GeneralizedShiftedPrimedTableau._preprocess([[None]], skew=[1])
+            sage: GeneralizedShiftedPrimedTableau._preprocess([[None]],
+            ....:                                             skew=[1])
             [(None,)]
             sage: GeneralizedShiftedPrimedTableau._preprocess([], skew=[2,1])
             [(None, None), (None,)]
@@ -161,34 +167,35 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
         return T_
 
     def check(self):
-        """
+        r"""
         Check that ``self`` is a valid primed tableau.
 
         EXAMPLES::
 
-            sage: T = ShiftedPrimedTableaux([4,2])
+            sage: T = GeneralizedShiftedPrimedTableaux([4,2])
             sage: t = T([[1,'2p',2,2],[2,'3p']])
             sage: t.check()
-            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"],[2]],skew=[2,1])
+            sage: s = GeneralizedShiftedPrimedTableau([["2p",2,3],["2p"],[2]],
+            ....:                                     skew=[2,1])
             sage: s.check()
-            sage: t = T([['1p','2p',2,2],[2,'3p']])
+            sage: t = T([['1p','1p',2,2],[2,'3p']])
             Traceback (most recent call last):
             ...
-            ValueError: [['1p', '2p', 2, 2], [2, '3p']] is not an element of
-            Shifted Primed Tableaux of shape [4, 2]
+            ValueError: [['1p', '1p', 2, 2], [2, '3p']] is not an element of
+            Generalized Shifted Primed Tableaux of shape [4, 2] and maximum
+            entry 6
         """
         if not self.parent()._contains_tableau(self):
-            raise ValueError("{} is not an element of Generalized Shifted Primed Tableaux".format(self))
+            raise ValueError("{} is not an element of Generalized Shifted "
+                             "Primed Tableaux".format(self))
 
     def __eq__(self, other):
-        """
+        r"""
         Check whether ``self`` is equal to ``other``.
 
         INPUT:
 
         - ``other`` -- the element that ``self`` is compared to
-
-        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -208,7 +215,7 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
         return self._skew == Tab._skew and list(self) == list(Tab)
 
     def restrict(self, n):
-        """
+        r"""
         Return the restriction of the shifted tableau to all
         the numbers less than or equal to ``n``.
 
@@ -218,11 +225,10 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
             sage: t.restrict(2).pp()
             1  2' 2  2
                2
-
             sage: t.restrict("2p").pp()
             1  2'
-
-            sage: s = GeneralizedShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1])
+            sage: s = GeneralizedShiftedPrimedTableau([["2p",2,3],["2p"]],
+            ....:                                     skew=[2,1])
             sage: s.restrict(2).pp()
             .  .  2' 2
                .  2'
@@ -238,16 +244,16 @@ class GeneralizedShiftedPrimedTableau(ShiftedPrimedTableau):
 
 class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
     r"""
-    Returns the combinatorial class of shifted primed tableaux subject
-    to the constraints given by the arguments.
+    Return the combinatorial class of generalized shifted primed tableaux
+    subject to the constraints given by the arguments.
 
-    A primed tableau is a tableau of shifted shape on the alphabet
-    `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that
+    A generalized primed tableau is a tableau of shifted shape on the alphabet
+    `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that:
 
     1. the entries are weakly increasing along rows and columns
 
     2. a row cannot have two repeated primed entries, and a column
-       cannot have two repeated non-primed entries
+       cannot have two repeated non-primed entries.
 
     INPUT:
 
@@ -270,8 +276,9 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: SPT = GeneralizedShiftedPrimedTableaux(weight=(1,2,2), shape=[3,2]); SPT
-        Shifted Primed Tableaux of weight (1, 2, 2) and shape [3, 2]
+        sage: SPT = GeneralizedShiftedPrimedTableaux(weight=(1,2,2),
+        ....:                                        shape=[3,2]); SPT
+        Generalized Shifted Primed Tableaux of weight (1, 2, 2) and shape [3, 2]
         sage: SPT.list()
         [[(1, 2, 2), (3, 3)],
          [(1, 2, 2), (3', 3)],
@@ -290,7 +297,7 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
          [(1', 2', 2), (3, 3)],
          [(1', 2', 2), (3', 3)]]
         sage: SPT = GeneralizedShiftedPrimedTableaux(weight=(1,2)); SPT
-        Shifted Primed Tableaux of weight (1, 2)
+        Generalized Shifted Primed Tableaux of weight (1, 2)
         sage: list(SPT)
         [[(1, 2, 2)],
          [(1, 2', 2)],
@@ -301,7 +308,7 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
          [(1', 2'), (2,)],
          [(1', 2'), (2',)]]
         sage: SPT = GeneralizedShiftedPrimedTableaux([3,2], max_entry = 2); SPT
-        Shifted Primed Tableaux of shape [3, 2] and maximum entry 2
+        Generalized Shifted Primed Tableaux of shape [3, 2] and maximum entry 2
         sage: list(SPT)
         [[(1, 1, 1), (2, 2)],
          [(1, 1, 1), (2', 2)],
@@ -312,7 +319,7 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
          [(1', 1, 2'), (2, 2)],
          [(1', 1, 2'), (2', 2)]]
 
-    TESTS::
+    TESTS:
 
         sage: [(1,'2p',2,2),(2,'3p')] in GeneralizedShiftedPrimedTableaux()
         True
@@ -320,10 +327,6 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
         False
         sage: [] in GeneralizedShiftedPrimedTableaux()
         True
-
-    .. SEEALSO::
-
-        - :class:`GeneralizedShiftedPrimedTableau`
     """
     Element = GeneralizedShiftedPrimedTableau
     options = Tableaux.options
@@ -335,10 +338,10 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
         Normalize and process input to return the correct parent and
         ensure a unique representation.
 
-        TESTS::
+        TESTS:
 
             sage: GeneralizedShiftedPrimedTableaux([])
-            Shifted Primed Tableaux of shape [] and maximum entry 0
+            Generalized Shifted Primed Tableaux of shape [] and maximum entry 0
             sage: GeneralizedShiftedPrimedTableaux(3)
             Traceback (most recent call last):
             ...
@@ -369,9 +372,9 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
             try:
                 skew = Partition(skew)
             except ValueError:
-                raise ValueError('invalid skew argument')
+                raise ValueError("invalid skew argument")
             if not all(skew[i] > skew[i+1] for i in range(len(skew)-1)):
-                raise ValueError('skew shape must be a strict partition')
+                raise ValueError("skew shape must be a strict partition")
 
         if weight is not None:
             weight = tuple(weight)
@@ -383,14 +386,14 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
             try:
                 shape = Partition(shape)
             except (ValueError, TypeError):
-                raise ValueError('invalid shape argument')
+                raise ValueError("invalid shape argument")
 
             if not all(shape[i] > shape[i+1] for i in range(len(shape)-1)):
                 raise ValueError("shape {} is not a strict partition".format(shape))
 
             if (skew is not None and not all(skew[i] <= shape[i]
                                              for i in range(len(skew)))):
-                raise ValueError('skew shape must be inside the given tableau shape')
+                raise ValueError("skew shape must be inside the given tableau shape")
 
         if weight is not None:
             while weight and weight[-1] == 0:
@@ -417,10 +420,10 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
             return GeneralizedShiftedPrimedTableaux_weight_shape(weight, shape, skew=skew)
 
     def __init__(self, skew=None):
-        """
-        Initialization of the parent class with given skew shape.
+        r"""
+        Initialize the parent class with given skew shape.
 
-        TESTS::
+        TESTS:
 
             sage: SPT = GeneralizedShiftedPrimedTableaux(skew=[1])
             sage: TestSuite(SPT).run()  # known bug
@@ -428,9 +431,9 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
         self._skew = skew
 
     def _element_constructor_(self, T):
-        """
-        Construct an object from ``T`` as an element of shifted primed
-        tableaux, if possible.
+        r"""
+        Construct an object from ``T`` as an element of generalized shifted
+        primed tableaux, if possible.
 
         INPUT:
 
@@ -450,11 +453,13 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
             sage: tab = SPT([[1,1,2],[2,2]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1, 1, 2], [2, 2]] is not an element of Shifted Primed Tableaux
+            ValueError: [[1, 1, 2], [2, 2]] is not an element of Generalized
+            Shifted Primed Tableaux
             sage: SPT([[1,"2p","2p"]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1, '2p', '2p']] is not an element of Shifted Primed Tableaux
+            ValueError: [[1, '2p', '2p']] is not an element of Generalized
+            Shifted Primed Tableaux
 
             sage: SPT = GeneralizedShiftedPrimedTableaux(skew=[1])
             sage: SPT([["2p",2]])
@@ -474,9 +479,8 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
             sage: SPT([[1,1]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1, 1]] is not an element of Shifted Primed Tableaux
-             of shape [3] and maximum entry 3
-
+            ValueError: [[1, 1]] is not an element of Generalized Shifted 
+            Primed Tableaux of shape [3] and maximum entry 3
             sage: SPT = GeneralizedShiftedPrimedTableaux([3], weight=(2,1))
             sage: tab = SPT([[1,1,1.5]]); tab
             [(1, 1, 2')]
@@ -485,8 +489,8 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
             sage: SPT([[1,1]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1, 1]] is not an element of Shifted Primed Tableaux
-             of weight (2, 1) and shape [3]
+            ValueError: [[1, 1]] is not an element of Generalized Shifted
+            Primed Tableaux of weight (2, 1) and shape [3]
         """
         try:
             return self.element_class(self, T, skew=self._skew)
@@ -494,10 +498,10 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
             raise ValueError("{} is not an element of {}".format(T, self))
 
     def _contains_tableau(self, T):
-        """
+        r"""
         Check if ``self`` contains preprocessed tableau ``T``.
 
-        TESTS::
+        TESTS:
 
             sage: Tabs = GeneralizedShiftedPrimedTableaux()
             sage: tab = GeneralizedShiftedPrimedTableau._preprocess(
@@ -542,14 +546,14 @@ class GeneralizedShiftedPrimedTableaux(UniqueRepresentation, Parent):
 
 
 class GeneralizedShiftedPrimedTableaux_all(GeneralizedShiftedPrimedTableaux):
-    """
+    r"""
     The class of all generalized shifted primed tableaux.
     """
     def __init__(self, skew=None):
-        """
+        r"""
         Initialize the class of all generalized shifted tableaux.
 
-        TESTS::
+        TESTS:
 
             sage: SPT = GeneralizedShiftedPrimedTableaux()
             sage: [[1,1.5],[2]] in SPT
@@ -570,20 +574,20 @@ class GeneralizedShiftedPrimedTableaux_all(GeneralizedShiftedPrimedTableaux):
         self._skew = skew
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
-        TESTS::
+        TESTS:
 
             sage: GeneralizedShiftedPrimedTableaux()
-            Shifted Primed Tableaux
+            Generalized Shifted Primed Tableaux
         """
         if self._skew is None:
-            return "Shifted Primed Tableaux"
-        return "Shifted Primed Tableaux skewed by {}".format(self._skew)
+            return "Generalized Shifted Primed Tableaux"
+        return "Generalized Shifted Primed Tableaux skewed by {}".format(self._skew)
 
     def __iter__(self):
-        """
+        r"""
         Iterate over ``self``.
 
         EXAMPLES::
@@ -593,7 +597,7 @@ class GeneralizedShiftedPrimedTableaux_all(GeneralizedShiftedPrimedTableaux):
             [[], [(1,)], [(1',)], [(2,)], [(2',)]]
         """
         if self._skew is not None:
-            raise NotImplementedError('skew tableau must be empty')
+            raise NotImplementedError("skew tableau must be empty")
         yield self.element_class(self, [])  
 
         max_entry = 1
@@ -613,21 +617,15 @@ class GeneralizedShiftedPrimedTableaux_all(GeneralizedShiftedPrimedTableaux):
 
 class GeneralizedShiftedPrimedTableaux_shape(GeneralizedShiftedPrimedTableaux):
     r"""
-    Shifted primed tableaux of a fixed shape.
-
-    Shifted primed tableaux admit a type `A_n` classical crystal structure
-    with highest weights corresponding to a given shape.
-
-    The list of module generators consists of all elements of the
-    crystal with nonincreasing weight entries.
-
-    The crystal is constructed following operations described in [HPS2017]_.
+    Generalized Shifted primed tableaux of a fixed shape.
 
     EXAMPLES::
 
         sage: GeneralizedShiftedPrimedTableaux([4,3,1], max_entry=4)
-        Shifted Primed Tableaux of shape [4, 3, 1] and maximum entry 4
-        sage: GeneralizedShiftedPrimedTableaux([4,3,1], max_entry=4).cardinality()
+        Generalized Shifted Primed Tableaux of shape [4, 3, 1] and
+        maximum entry 4
+        sage: GeneralizedShiftedPrimedTableaux([4,3,1], 
+        ....:                                  max_entry=4).cardinality()
         2688
         sage: SPTC = GeneralizedShiftedPrimedTableaux([3,2], max_entry=3)
         sage: T = SPTC[-1]
@@ -640,10 +638,10 @@ class GeneralizedShiftedPrimedTableaux_shape(GeneralizedShiftedPrimedTableaux):
     """
     @staticmethod
     def __classcall_private__(cls, shape, max_entry=None, skew=None):
-        """
+        r"""
         Normalize the attributes for the class.
 
-        TESTS::
+        TESTS:
 
             sage: SPT = GeneralizedShiftedPrimedTableaux(shape=[2,1])
             sage: SPT._shape.parent()
@@ -658,13 +656,11 @@ class GeneralizedShiftedPrimedTableaux_shape(GeneralizedShiftedPrimedTableaux):
                      shape=shape, max_entry=max_entry, skew=skew)
 
     def __init__(self, shape, max_entry, skew):
-        """
-        Initialize the class of shifted primed tableaux of a given shape.
+        r"""
+        Initialize the class of generalized shifted primed tableaux
+        of a given shape.
 
-        If ``max_elt`` is specified, a finite set with entries smaller
-        or equal to ``max_elt``.
-
-        TESTS::
+        TESTS:
 
             sage: SPT = GeneralizedShiftedPrimedTableaux([4,2,1], max_entry=4)
             sage: TestSuite(SPT).run()  # long time
@@ -685,22 +681,25 @@ class GeneralizedShiftedPrimedTableaux_shape(GeneralizedShiftedPrimedTableaux):
             self._shape = SkewPartition((shape, skew))
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
-        TESTS::
+        TESTS:
 
             sage: GeneralizedShiftedPrimedTableaux([3,2,1])
-            Shifted Primed Tableaux of shape [3, 2, 1] and maximum entry 6
+            Generalized Shifted Primed Tableaux of shape [3, 2, 1] and maximum
+            entry 6
         """
-        base = "Shifted Primed Tableaux of shape " + self._shape._repr_()
+        base = "Generalized Shifted Primed Tableaux of shape " + self._shape._repr_()
         if self._max_entry is not None:
             base += " and maximum entry {}".format(self._max_entry)
         return base
 
     def _contains_tableau(self, T):
-        """
-        TESTS::
+        r"""
+        Check if ``self`` contains preprocessed tableau ``T``.
+
+        TESTS:
 
             sage: t = GeneralizedShiftedPrimedTableau._preprocess([[1,'2p',2,2],[2,'3p']])
             sage: GeneralizedShiftedPrimedTableaux([4,2],max_entry=4)._contains_tableau(t)
@@ -733,7 +732,19 @@ class GeneralizedShiftedPrimedTableaux_shape(GeneralizedShiftedPrimedTableaux):
         return True
 
     def __iter__(self):
-        """
+        r"""
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: Tabs = GeneralizedShiftedPrimedTableaux(shape=(3,2))
+            sage: Tabs[:4]
+            [[(1, 1, 1), (2, 2)],
+             [(1, 1, 1), (2', 2)],
+             [(1', 1, 1), (2, 2)],
+             [(1', 1, 1), (2', 2)]]
+            sage: len(list(Tabs))
+            568
         """
         from sage.combinat.permutation import Permutations
         list_weights = []
@@ -746,36 +757,36 @@ class GeneralizedShiftedPrimedTableaux_shape(GeneralizedShiftedPrimedTableaux):
             for T in GeneralizedShiftedPrimedTableaux(weight=tuple(weight), shape=self._shape):
                 yield T
 
-    def shape(self):
-        """
-        Return the shape of the shifted tableaux ``self``.
-
-        TESTS::
-
-            sage: GeneralizedShiftedPrimedTableaux([6,4,3,1]).shape()
-            [6, 4, 3, 1]
-        """
-        return self._shape
-
 
 class GeneralizedShiftedPrimedTableaux_weight(GeneralizedShiftedPrimedTableaux):
-    """
-    Shifted primed tableaux of fixed weight.
+    r"""
+    Generalized Shifted primed tableaux of fixed weight.
 
     EXAMPLES::
 
         sage: GeneralizedShiftedPrimedTableaux(weight=(2,3,1))
-        Shifted Primed Tableaux of weight (2, 3, 1)
+        Generalized Shifted Primed Tableaux of weight (2, 3, 1)
         sage: GeneralizedShiftedPrimedTableaux(weight=(2,3,1)).cardinality()
         64
+        sage: T = GeneralizedShiftedPrimedTableaux(weight=(3,2))
+        sage: T[:5]
+        [[(1, 1, 1, 2, 2)],
+         [(1, 1, 1, 2', 2)],
+         [(1', 1, 1, 2, 2)],
+         [(1', 1, 1, 2', 2)],
+         [(1, 1, 1, 2), (2,)]]
+        sage: T.cardinality()
+        16
     """
     def __init__(self, weight, skew=None):
-        """
-        Initialize the class of shifted primed tableaux of a given weight.
+        r"""
+        Initialize the class of generalized shifted primed tableaux of a
+        given weight.
 
-        TESTS::
+        TESTS:
 
-            sage: TestSuite( GeneralizedShiftedPrimedTableaux(weight=(3,2,1)) ).run()
+            sage: TestSuite( GeneralizedShiftedPrimedTableaux(
+            ....:                                   weight=(3,2,1))).run()
         """
         GeneralizedShiftedPrimedTableaux.__init__(self, skew=skew)
         if skew is None:
@@ -786,23 +797,23 @@ class GeneralizedShiftedPrimedTableaux_weight(GeneralizedShiftedPrimedTableaux):
         self._skew = skew
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
-        TESTS::
+        TESTS:
 
             sage: GeneralizedShiftedPrimedTableaux(weight=(3,2,1))
-            Shifted Primed Tableaux of weight (3, 2, 1)
+            Generalized Shifted Primed Tableaux of weight (3, 2, 1)
         """
         if self._skew is None:
-            return "Shifted Primed Tableaux of weight {}".format(self._weight)
-        return "Shifted Primed Tableaux of weight {} skewed by {}".format(self._weight, self._skew)
+            return "Generalized Shifted Primed Tableaux of weight {}".format(self._weight)
+        return "Generalized Shifted Primed Tableaux of weight {} skewed by {}".format(self._weight, self._skew)
 
     def _contains_tableau(self, T):
-        """
+        r"""
         Check if ``self`` contains preprocessed tableau ``T``.
 
-        TESTS::
+        TESTS:
 
             sage: t = GeneralizedShiftedPrimedTableau._preprocess([[1,1.5],[2]])
             sage: GeneralizedShiftedPrimedTableaux(weight=(1,2))._contains_tableau(t)
@@ -827,7 +838,7 @@ class GeneralizedShiftedPrimedTableaux_weight(GeneralizedShiftedPrimedTableaux):
         return self._weight == weight
 
     def __iter__(self):
-        """
+        r"""
         Iterate over ``self``.
 
         EXAMPLES::
@@ -850,24 +861,34 @@ class GeneralizedShiftedPrimedTableaux_weight(GeneralizedShiftedPrimedTableaux):
 
 
 class GeneralizedShiftedPrimedTableaux_weight_shape(GeneralizedShiftedPrimedTableaux):
-    """
-    Shifted primed tableaux of the fixed weight and shape.
+    r"""
+    Generalized Shifted primed tableaux of the fixed weight and shape.
 
     EXAMPLES::
 
         sage: GeneralizedShiftedPrimedTableaux([4,2,1], weight=(2,3,2))
-        Shifted Primed Tableaux of weight (2, 3, 2) and shape [4, 2, 1]
-        sage: GeneralizedShiftedPrimedTableaux([4,2,1], weight=(2,3,2)).cardinality()
+        Generalized Shifted Primed Tableaux of weight (2, 3, 2) and
+        shape [4, 2, 1]
+        sage: T = GeneralizedShiftedPrimedTableaux([4,2,1], weight=(2,3,2))
+        sage: T[:6]
+        [[(1, 1, 2, 2), (2, 3'), (3,)],
+         [(1, 1, 2, 2), (2, 3'), (3',)],
+         [(1, 1, 2, 2), (2', 3'), (3,)],
+         [(1, 1, 2, 2), (2', 3'), (3',)],
+         [(1, 1, 2', 3), (2, 2), (3,)],
+         [(1, 1, 2', 3), (2, 2), (3',)]]
+        sage: T.cardinality()
         32
     """
     def __init__(self, weight, shape, skew=None):
-        """
-        Initialize the class of shifted primed tableaux of the given weight
-        and shape.
+        r"""
+        Initialize the class of generalized shifted primed tableaux of the
+        given weight and shape.
 
-        TESTS::
+        TESTS:
 
-            sage: TestSuite( GeneralizedShiftedPrimedTableaux([4,2,1], weight=(3,2,2)) ).run()
+            sage: TestSuite( GeneralizedShiftedPrimedTableaux([4,2,1],
+            ....:                                     weight=(3,2,2))).run()
         """
         GeneralizedShiftedPrimedTableaux.__init__(self, skew=skew)
         if skew is None:
@@ -882,36 +903,42 @@ class GeneralizedShiftedPrimedTableaux_weight_shape(GeneralizedShiftedPrimedTabl
             self._shape = SkewPartition((shape, skew))
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
-        TESTS::
+        TESTS:
 
             sage: GeneralizedShiftedPrimedTableaux([3,2,1], weight=(4,2))
-            Shifted Primed Tableaux of weight (4, 2) and shape [3, 2, 1]
+            Generalized Shifted Primed Tableaux of weight (4, 2) and
+            shape [3, 2, 1]
         """
-        return ("Shifted Primed Tableaux of weight {} and shape {}"
+        return ("Generalized Shifted Primed Tableaux of weight {} and shape {}"
                 .format(self._weight, self._shape))
 
     def _contains_tableau(self, T):
-        """
+        r"""
         Check if ``self`` contains preprocessed tableau ``T``.
 
-        TESTS::
+        TESTS:
 
             sage: t = GeneralizedShiftedPrimedTableau._preprocess([[1,1.5],[2]])
-            sage: GeneralizedShiftedPrimedTableaux([2,1], weight=(1,2))._contains_tableau(t)
+            sage: GeneralizedShiftedPrimedTableaux([2,1],
+            ....:                            weight=(1,2))._contains_tableau(t)
             True
-            sage: GeneralizedShiftedPrimedTableaux([2,1], weight=(2,1))._contains_tableau(t)
+            sage: GeneralizedShiftedPrimedTableaux([2,1],
+            ....:                            weight=(2,1))._contains_tableau(t)
             False
-            sage: s = GeneralizedShiftedPrimedTableau._preprocess([[1,1.5,2,3],[3]])
-            sage: GeneralizedShiftedPrimedTableaux([3,2], weight=(1,2,2))._contains_tableau(s)
+            sage: s = GeneralizedShiftedPrimedTableau._preprocess([[1,1.5,2,3],
+            ....:                                                 [3]])
+            sage: GeneralizedShiftedPrimedTableaux([3,2],
+            ....:                          weight=(1,2,2))._contains_tableau(s)
             False
-
             sage: u = GeneralizedShiftedPrimedTableau._preprocess([])
-            sage: GeneralizedShiftedPrimedTableaux([3,2], weight=(1,2,2))._contains_tableau(u)
+            sage: GeneralizedShiftedPrimedTableaux([3,2],
+            ....:                          weight=(1,2,2))._contains_tableau(u)
             False
-            sage: GeneralizedShiftedPrimedTableaux([], weight=())._contains_tableau(u)
+            sage: GeneralizedShiftedPrimedTableaux([],
+            ....:                               weight=())._contains_tableau(u)
             True
         """
         if not super(GeneralizedShiftedPrimedTableaux_weight_shape, self)._contains_tableau(T):
@@ -937,12 +964,12 @@ class GeneralizedShiftedPrimedTableaux_weight_shape(GeneralizedShiftedPrimedTabl
         return self._shape == shape
 
     def __iter__(self):
-        """
+        r"""
         Iterate over ``self``.
 
         EXAMPLES::
 
-            sage: Tabs = GeneralizedShiftedPrimedTableaux([3,2], weight=(1,2,2))
+            sage: Tabs = GeneralizedShiftedPrimedTableaux([3,2],weight=(1,2,2))
             sage: Tabs[:4]
             [[(1, 2, 2), (3, 3)],
              [(1, 2, 2), (3', 3)],
@@ -951,14 +978,14 @@ class GeneralizedShiftedPrimedTableaux_weight_shape(GeneralizedShiftedPrimedTabl
             sage: len(list(Tabs))
             16
 
-        TESTS::
+        TESTS:
 
             sage: Tabs = GeneralizedShiftedPrimedTableaux([3,2], weight=(1,4))
             sage: list(Tabs)
             []
         """
         if self._skew is not None:
-            raise NotImplementedError('skew tableau must be empty')
+            raise NotImplementedError("skew tableau must be empty")
 
         if not self._shape.dominates(sorted(self._weight, reverse=True)):
             return
@@ -990,72 +1017,4 @@ class GeneralizedShiftedPrimedTableaux_weight_shape(GeneralizedShiftedPrimedTabl
                     if new_tab1:
                         tab_list_new.append(new_tab1)
         for tab in tab_list_new:
-            # shape = [len(row) for row in tab]
-            # if shape == full_shape:
             yield self.element_class(self, tab)
-
-
-####################
-# Helper functions #
-####################
-
-
-def _add_strip(sub_tab, full_tab, length):
-    """
-    Helper function used in the algorithm to generate all shifted primed
-    tableaux of the fixed weight and shape.
-
-    TESTS::
-
-        sage: list(ShiftedPrimedTableaux([3,1], weight=(2,2)))  # indirect doctest
-        [[(1, 1, 2), (2,)], [(1, 1, 2'), (2,)]]
-    """
-    if sum(sub_tab) + length > sum(full_tab):
-        raise ValueError("strip does not fit")
-
-    if not sub_tab:
-        cliff_list = []
-    else:
-        cliff_list = [int(sub_tab[0] != full_tab[0])]
-
-    for row in range(1, len(sub_tab)):
-        if sub_tab[row] == full_tab[row]:
-            cliff_list.append(0)
-        elif sub_tab[row-1]-1 == sub_tab[row]:
-            cliff_list[-1] += 1
-        else:
-            cliff_list.append(1)
-
-    if len(sub_tab) < len(full_tab):
-        cliff_list.append(0)
-
-    for primes_num in range(min(sum(cliff_list), length) + 1):
-        for primed_list in IntegerVectors(n=primes_num, k=len(cliff_list),
-                                          outer=cliff_list):
-            row = 0
-            primed_strip = []
-            for i, cliff in enumerate(cliff_list):
-                if cliff == 0:
-                    row += 1
-                    primed_strip.append(0)
-                primed_strip.extend([int(primed_list[i] > j)
-                                     for j in range(cliff)])
-                row += cliff
-            plat_list = []
-
-            if sub_tab and len(sub_tab) < len(full_tab):
-                plat_list.append(min(sub_tab[-1] + primed_strip[-2] - 1,
-                                     full_tab[len(sub_tab)]))
-            for row in reversed(range(1, len(sub_tab))):
-                plat_list.append(
-                    min(sub_tab[row-1]+primed_strip[row-1]-1, full_tab[row])
-                    - sub_tab[row] - primed_strip[row])
-            if sub_tab:
-                plat_list.append(full_tab[0] - sub_tab[0] - primed_strip[0])
-            else:
-                plat_list.append(full_tab[0])
-
-            for non_primed_strip in IntegerVectors(n=length-primes_num,
-                                                   k=len(plat_list),
-                                                   outer=plat_list):
-                yield list(primed_strip) + list(non_primed_strip)
