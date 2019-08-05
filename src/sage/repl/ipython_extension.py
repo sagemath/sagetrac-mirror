@@ -437,6 +437,10 @@ class SageCustomizations(object):
 
         self.register_interface_magics()
 
+        # Change some default settings to allow displaying HTML help
+        self.shell.enable_html_pager = True
+        self.shell.sphinxify_docstring = True
+
         if SAGE_IMPORTALL == 'yes':
             self.init_environment()
 
@@ -497,10 +501,17 @@ class SageCustomizations(object):
         # the global :class:`IPython.core.oinspect` module namespace.
         # Thus, we have to monkey-patch.
         import IPython.core.oinspect
-        IPython.core.oinspect.getdoc = LazyImport("sage.misc.sageinspect", "sage_getdoc")
+        IPython.core.oinspect.getdoc = \
+            LazyImport("sage.misc.sageinspect", "sage_getdoc_original")
         IPython.core.oinspect.getsource = LazyImport("sage.misc.sagedoc", "my_getsource")
         IPython.core.oinspect.find_file = LazyImport("sage.misc.sageinspect", "sage_getfile")
         IPython.core.oinspect.getargspec = LazyImport("sage.misc.sageinspect", "sage_getargspec")
+
+        # Similarly to enable Sage's sphinxify we must use a similar hack, but
+        # on IPython.core.interactiveshell
+        import IPython.core.interactiveshell
+        IPython.core.interactiveshell.sphinxify = \
+            LazyImport("sage.misc.sphinxify", "sphinxify_mimebundle")
 
     def init_line_transforms(self):
         """
