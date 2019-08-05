@@ -29,7 +29,7 @@ from tempfile import mkdtemp
 from sphinx.application import Sphinx
 
 
-def sphinxify(docstring, format='html'):
+def sphinxify(docstring, format='html', strip_math_delims=True):
     r"""
     Runs Sphinx on a ``docstring``, and outputs the processed
     documentation.
@@ -40,6 +40,13 @@ def sphinxify(docstring, format='html'):
 
     - ``format`` -- string (optional, default 'html') -- either 'html' or
       'text'
+
+    - ``strip_math_delims`` -- string (optional, default True) -- if True,
+      remove content like ``\( .. \)`` and ``\[ .. \]`` that are used by
+      default to delimit math content processed by MathJax.  This should be
+      set to False when generating output to be displayed in the Jupyter
+      Notebook, as its MathJax is configured to look for these.  The default
+      behavior is for legacy support of SageNB.
 
     OUTPUT:
 
@@ -55,6 +62,8 @@ def sphinxify(docstring, format='html'):
         '<div class="docstring"...<strong>Testing</strong>\n<span class="math...</p>\n\n\n</div>'
         sage: sphinxify('`x=y`')
         '<div class="docstring">\n    \n  <p><span class="math notranslate nohighlight">x=y</span></p>\n\n\n</div>'
+        sage: sphinxify(':math:`x=y`', strip_math_delims=False)
+        '<div class="docstring">\n    \n  <p><span class="math notranslate nohighlight">\\(x=y\\)</span></p>\n\n\n</div>'
         sage: sphinxify('`x=y`', format='text')
         'x=y\n'
         sage: sphinxify(':math:`x=y`', format='text')
@@ -141,7 +150,8 @@ smart_quotes = no""")
                         'src="/doc/static/reference/media/\\2"',
                         output)
         # Remove spurious \(, \), \[, \].
-        output = output.replace(r'\(', '').replace(r'\)', '').replace(r'\[', '').replace(r'\]', '')
+        if strip_math_delims:
+            output = re.sub(r'\\[()[\]]', '', output)
     else:
         from warnings import warn
         warn("Sphinx did not produce any output", Warning)
