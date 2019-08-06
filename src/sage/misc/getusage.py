@@ -75,6 +75,12 @@ def virtual_memory_limit():
     except resource.error:
         vmax = resource.RLIM_INFINITY
     if vmax == resource.RLIM_INFINITY:
-        import psutil
-        vmax = psutil.virtual_memory().total + psutil.swap_memory().total
+        import psutil, warnings
+        with warnings.catch_warnings():
+            # The swap_memory() function tries to collect some stats
+            # that may not be available and which we don't need. Hide
+            # the warnings that are emitted if the stats aren't there.
+            warnings.simplefilter("ignore")
+            swap = psutil.swap_memory()
+        vmax = psutil.virtual_memory().total + swap.total
     return min(vmax, sys.maxsize)

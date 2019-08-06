@@ -272,7 +272,14 @@ def get_gap_memory_pool_size():
     import psutil
     from sage.misc.getusage import virtual_memory_limit
     mem = psutil.virtual_memory()
-    swap = psutil.swap_memory()
+
+    with warnings.catch_warnings():
+        # The swap_memory() function tries to collect some statistics
+        # that may not be available and which we don't need. Hide the
+        # warnings that are emitted if the stats aren't available.
+        warnings.simplefilter("ignore")
+        swap = psutil.swap_memory()
+
     vmax = virtual_memory_limit()
 
     suggested_size = max(swap.free // 10, mem.available // 50)
