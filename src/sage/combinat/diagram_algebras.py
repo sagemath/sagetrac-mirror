@@ -37,12 +37,15 @@ from sage.combinat.combinat_cython import set_partition_iterator, perfect_matchi
 from sage.combinat.set_partition import SetPartitions, AbstractSetPartition
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
+from sage.combinat.partition import Partition, Partitions
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
+from sage.modules.free_module_element import zero_vector
 from sage.rings.all import ZZ, QQ
+from sage.sets.set import Set
 from sage.functions.other import ceil
 
 import itertools
@@ -3416,6 +3419,191 @@ class BrauerAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
             d[convertI([[i, -j], [j, -i]])] = one
             d[convertI([[i, j], [-i, -j]])] = -one
         return self._from_dict(d, remove_zeros=True)
+        
+    def central_primitive_idempotents(self):
+		""" Returns a list of the primite, central, mutually orthogonal idempotents.
+		Must have q > k if q is an integer"""
+		Q=self._q
+		m=self.order()
+		r=self.base_ring()
+		if Q.is_integer() and Q<m:
+			raise ValueError("Integer deformation parameter must be larger than the rank")
+			
+		def vectorize_element_Bk(s,lst,R):
+			vec=zero_vector(R,len(lst))
+			for i in range(0,len(lst)):
+				vec[i]=s.coefficient(lst[i])
+			return vec
+			
+		def our_jucys_murphy(n,k,z,R):
+			Bk=BrauerAlgebra(k,z,R)
+			assert(n<=k)
+			s=Bk.jucys_murphy(n)
+			z=s-((z-1)/2)
+			return z
+		
+		def list_of_brauer_irreducibles(k):
+			if k==0:
+				return [Partition([])]
+			lst=[]
+			possible_sums=[]
+			for w in range(0,k+1):
+				if w%2==0: #even
+					possible_sums.append(k-w)
+			for x in possible_sums:
+				for y in Partitions(x):
+					lst=[y]+lst
+			return lst
+			
+			
+		def T_content_at_k(T,k,z):
+			M=Set(T[k].cells())
+			N=Set(T[k-1].cells())
+			if T[k].size()>T[k-1].size():
+				O=M.difference(N)
+				return ZZ(O[0][0])-ZZ(O[0][1])
+			else:
+				O=N.difference(M)
+				return ZZ(O[0][1])-ZZ(O[0][0])+1-z
+				
+		def permissible_paths_to_partition(P,k):
+			assert(P in list_of_brauer_irreducibles(k))
+			lst=[]
+			box_num=len(P.cells())
+			for x in list_of_brauer_irreducibles(k-1):
+				if abs(len(x.cells())-box_num)==1:
+					lst+=[x]
+			new_lst=[]
+			for x in lst:
+				if box_num-len(x.cells())==1:
+					for y in P.cells():
+						if y in x.addable_cells():
+							if x.add_cell(y[0])==P:
+								new_lst+=[x]
+				elif box_num-len(x.cells())==-1:
+					for y in x.cells():
+						if y in x.removable_cells():
+							if x.remove_cell(y[0])==P:
+								new_lst+=[x]
+			return new_lst
+			
+		def GelfandTsetlinBasis(P,k,GT_basis,path=[]):
+			path+=[P]
+			if k==0:
+				GT_basis.append(list(path)) #list returns a list object, appending path alone will not alter GT_basis
+			branches=permissible_paths_to_partition(P,k)
+			for x in branches:
+				GelfandTsetlinBasis(x,k-1,GT_basis,path)
+			path.pop(len(path)-1)
+		
+		def list_of_tableaus_to_partition(P,k):
+			GT_list=[]
+			GelfandTsetlinBasis(P,k,GT_list,[])
+			GT_basis=[]
+			for x in GT_list:
+				x.reverse() # read paths to start at level k=0
+			for x in GT_list: # gets rid of duplicates
+				if x not in GT_basis:
+					GT_basis.append(x)
+			return GT_basis
+			
+		def truncate_tableau(T,k,i):
+			#take a tableau at the k^{th} level and truncate it k-i times
+			S=[]
+			S=list(T)
+			if i == k:
+				return S
+			for p in range(0,k-i):
+				S.pop()
+			return S
+		
+		def interpolating_polynomial(x,T,k,z,R):
+			assert(T[k] in list_of_brauer_irreducibles(k))
+			Bk_alg=BrauerAlgebra(k,z,R)
+			iden=Bk_alg.one()
+			val=iden
+			if k==0:
+				return val
+			lst=[]
+			brauer_irred_lst=list_of_brauer_irreducibles(k)
+			for t in brauer_irred_lst:
+				tmp_lst=list_of_tableaus_to_partition(t,k)
+				for y in tmp_lst:
+					lst.append(y)
+			lst.remove(T)
+			truncatedT=truncate_tableau(T,k,k-1)
+			new_lst=[]
+			for S in lst:
+				truncatedS=truncate_tableau(S,k,k-1)
+				if truncatedS==truncatedT and T!=S:
+					new_lst.append(S)
+			if len(new_lst)==0:
+				return iden
+			c_T=T_content_at_k(T,k,z)
+			for S in new_lst:
+				c_S=T_content_at_k(S,k,z)
+				new_val=(x-c_S*iden)*((1/(c_T-c_S))*iden)
+				val=val*new_val
+			return val
+			
+		def inject_kminusi_into_k_local(d,k,i):
+			lst=[]
+			for x in d:
+				lst+=[x]
+			Bk=BrauerDiagrams(k)
+			for x in range(k-i+1,k+1):
+				lst+=[(-x,x)]
+			return Bk(Set(lst))
+			
+		def inject_kminusi_into_k(v,k,i,z,R):
+			Bk_alg=BrauerAlgebra(k,z,R)
+			val=Bk_alg.zero()
+			kminusibasis=BrauerDiagrams(k-i).list()
+			kminusivec=vectorize_element_Bk(v,kminusibasis,R)
+			for y in range(0,len(kminusibasis)):
+				if kminusivec[y]!=0:
+					val+=kminusivec[y]*Bk_alg(inject_kminusi_into_k_local(kminusibasis[y],k,i))
+			return val
+			
+		def idempotent_of_tableau_at_k(T,k,z,R):
+			Bk_alg=BrauerAlgebra(k,z,R)
+			J={}
+			prod=Bk_alg.one()
+			if k==0:
+				return prod
+			for y in range(1,k+1):
+				J[y]=our_jucys_murphy(y,y,z,R)
+			S=[]
+			S=list(T)
+			for j in range(0,k):
+				val=interpolating_polynomial(J[k-j],S,k-j,z,R)
+				S=truncate_tableau(S,k,k-1)
+				new_val=inject_kminusi_into_k(val,k,j,z,R)
+				prod=new_val*prod
+			return prod
+        	
+		
+		def idempotent_of_partition_at_k(P,k,z,R):
+			Bk_alg=BrauerAlgebra(k,z,R)
+			val_sum=Bk_alg.zero()
+			if k==0:
+				return Bk_alg.one()
+			lst=list_of_tableaus_to_partition(P,k)
+			for x in lst:
+				idempotent_of_x=idempotent_of_tableau_at_k(x,k,z,R)
+				val_sum+=idempotent_of_x
+			return val_sum
+			
+		partition_lst=list_of_brauer_irreducibles(m)
+		idempotent_lst=[]
+		for p in partition_lst:
+			idempotent_lst+=[idempotent_of_partition_at_k(p,m,Q,r)]
+		return idempotent_lst
+		
+			
+
+    
+		
 
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
