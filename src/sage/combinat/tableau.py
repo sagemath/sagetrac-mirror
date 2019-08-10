@@ -4432,6 +4432,110 @@ class SemistandardTableau(Tableau):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
+    def crowding(self, Q, mark='X', m=None):
+        r"""
+        Returns the image of pair (self,Q) under the crowding map.
+
+        Q is a flagged increasing tableau and must be specified.
+
+            EXAMPLES::
+                sage: P = SemistandardTableau([[1,1], [2,2], [3,3]])
+                sage: Q = Tableau([['X', 'X'], ['X', 1], [1, 2]])
+                sage: _crowding(P,Q)
+                [[[1], [1, 2, 3]], [[2, 3]]]
+                
+                sage: P = SemistandardTableau([[1,1,2], [2,2], [3,3], [4,4], [5]])
+                sage: Q = Tableau([['X','X','X'], ['X','X'], ['X',1], [2,3], [3]])
+                sage: _crowding(P,Q)
+                [[[1], [1, 2], [2]], [[2, 3], [3, 4, 5]], [[4]]]
+        """
+        part = [len([x for x in row if x==mark]) for row in Q if mark in row]
+        assert part in _Partitions
+        sequences = []
+        for i in range(len(part)):
+            P,Q,seq = _crowding_reverse_insertion(P,Q)
+            sequences += [seq]
+        T = _reconstruct_tableau(sequences,m=m)
+        return T
+
+####################
+# Helper functions #
+####################
+
+def _reconstruct_tableau(seq, m=None):
+    r"""
+    Returns a tableau given a sequence of row reading words.
+    
+        EXAMPLES:
+            sage: seq = [[3, 6, 7, 12, 11, 10, 8, 5, 3, 2, 1], [7, 7, 12, 9, 8, 6, 5, 4], [8, 9, 13, 8], [10, 9]]
+            sage: _reconstruct_tableau(seq)
+            [[[1, 2, 3], [3, 5, 6], [7], [8, 10, 11, 12]], [[4, 5, 6, 7], [7], [8, 9, 12]], [[8], [8, 9], [13]], [[9, 10]]]
+    """
+    L = []
+    for S in seq:
+        cells = [x for x,y in zip(S,S[1:]) if x<=y]
+        others = S[len(cells):][::-1]
+        row = []
+        for x in cells:
+            to_add = [y for y in others if y<x]
+            others = [y for y in others if y not in to_add]
+            row += [to_add+[x]]
+        row += [others]
+        L += [row]
+    SSVT = SemistandardSetValuedTableaux(Tableau(L).shape(),max_entry=m)
+    return SSVT.element_class(SSVT,L)
+
+def _crowding_reverse_insertion(P, Q):
+    r"""
+    Returns the triple (P',Q',seq') under the crowding map for pair (P,Q).
+
+        INPUT::
+            P - a semistandard Young tableau
+            Q - a flagged increasing tableau with same shape as P
+
+        OUTPUT::
+            seq - a sequence of removed integers. This should insert to a hook shape.
+            P' - a semistandard Young tableau after reverse insertion
+            Q' - a flagged increasing tableau after reverse insertion with same shape as P'
+
+        EXAMPLES::
+            sage: P = SemistandardTableau([[3,3,8], [4,9], [6], [7]])
+            sage: Q = Tableau([['X', 'X', 'X', 'X'], [1], [2], [3]])
+            sage: _crowding_reverse_insertion(P,Q)
+            ([[4], [6], [7]], [['X'], ['X'], [1]], [3, 3, 9, 8])
+    """
+    Pp = P.clone()
+    Qq = Q.clone()
+    if not isinstance(Pp,SemistandardTableau):
+        raise ValueError("P should be an instance of SemistandardTableau")
+    if not isinstance(Qq,Tableau):
+        raise ValueError("Q should be an instance of Tableau")
+    if Pp.shape()!=Qq.shape():
+        raise ValueError("P and Q must be of same shape")
+    if P==SemistandardTableau([]):
+        return P,Q,[]
+    cells = sorted([cell for cell in Qq.cells() if \
+                    isinstance(Qq(cell),(int,Integer)) and \
+                    Qq(cell)==cell[0]], key=lambda x:-x[0])
+
+    seq = []
+    for cell in cells:
+        Pp,x = Pp.reverse_bump(cell)
+        seq = [x]+seq
+    seq = [x for x in Pp[0]]+seq
+    Pp = SemistandardTableau(Pp.to_list()[1:])
+
+    q_cells = [cell for cell in Qq.cells() if cell not in cells and cell[0]>0]
+    support = [cell[0] for cell in q_cells]
+    if len(support)>0:
+        last = max(support)
+        q_rows = [[cell for cell in q_cells if cell[0]==i] for i in range(1,last+1)]
+        Qq = Tableau([[Qq(cell) for cell in row] for row in q_rows])
+    else:
+        Qq = Tableau([])       
+
+    return Pp, Qq, seq
+
 class RowStandardTableau(Tableau):
     """
     A class to model a row standard tableau.
