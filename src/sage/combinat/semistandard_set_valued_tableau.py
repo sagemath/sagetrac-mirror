@@ -7,15 +7,17 @@ AUTHORS:
 - Jeremy Meza, Oliver Pechenik, Wencin Poh (2019): initial version
 """
 
-#*****************************************************************************
-#       Copyright (C) 
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#*****************************************************************************#
+#       Copyright (C) Jeremy Meza jdmeza@berkeley.edu                         #
+#                     Oliver Pechenik pechenik@umich.edu                      #
+#                     Wencin Poh wpoh@ucdavis.edu                             #
+#                                                                             #
+# This program is free software: you can redistribute it and/or modify        # 
+# it under the terms of the GNU General Public License as published by        #
+# the Free Software Foundation, either version 2 of the License, or           #
+# (at your option) any later version.                                         #
+#                  http://www.gnu.org/licenses/                               #
+#*****************************************************************************#
 
 from __future__ import print_function, absolute_import
 from six.moves import range, zip, map
@@ -23,7 +25,7 @@ from six import add_metaclass
 
 from sage.combinat.partition import Partition, Partitions, _Partitions, Partitions_n
 from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux, SemistandardTableau
-from sage.combinat.skew_tableau import SkewTableaux, SemistandardSkewTableaux
+from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.composition import Composition, Compositions
 #from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
@@ -37,7 +39,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
-#from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.non_negative_integers import NonNegativeIntegers
 
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -91,7 +93,6 @@ class SemistandardSetValuedTableau(Tableau):
 
             sage: SemistandardSetValuedTableau([[[1,2],[2,3]],[[4,6]]])
             [[[1, 2], [2, 3]], [[4, 6]]]
-
         """
 
         if isinstance(t, SemistandardSetValuedTableau):
@@ -101,44 +102,77 @@ class SemistandardSetValuedTableau(Tableau):
         for i in range(len(T)):
             for j in range(len(T[i])):
                 T[i][j] =  tuple(sorted(T[i][j]))
-                #T[i][j] =  sorted(T[i][j])
 
         SSVT = SemistandardSetValuedTableaux(Tableau(T).shape())
         return SSVT.element_class(SSVT,T)
 
-    def __init__(self, parent, T, check=True, preprocessed=False):
+    def __init__(self, parent, t, check=True, preprocessed=False):
         r"""
-        Initialize a shifted tableau.
+        Initialize a semistandard set-valued tableau.
 
         TESTS::
 
-            sage: 
+            sage: T1 = SemistandardSetValuedTableau([[(1,2), [3,2]], [(4,3,5), [5]]])
+            sage: T2 = SemistandardSetValuedTableaux([2,2])([[(1,2), [3,2]], [(4,3,5), [5]]])
+            sage: T1 == T2
+            True
+            sage: T1.parent()
+            Semistandard set-valued tableaux of shape [2, 2]
+            sage: T2.parent()
+            Semistandard set-valued tableaux of shape [2, 2]
+            sage: T1 is T2  # identical shifted tableaux are distinct objects
+            False
+
+        A semistandard set-valued tableau is deeply immutable as the cells are
+        stored as tuples::
+
+            sage: T = SemistandardSetValuedTableau([[[1], [1,2]], [[2]]])
+            sage: T[0][1] = (1,2,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
 
         """
         if not preprocessed:
-            t = self._preprocess(T)
-        Tableau.__init__(self, parent, t, check=check)
+            T = self._preprocess(t)
+        Tableau.__init__(self, parent, T, check=check)
 
     @staticmethod
-    def _preprocess(T):
+    def _preprocess(t):
         """
-        Preprocessing list ``T`` to initialize the tableau.
+        Preprocess list ``t`` to initialize the tableau.
+
+        The output is a list of list of sets (each set represented by a sorted tuple).
 
         TESTS::
 
-            sage: 
+            sage: SemistandardSetValuedTableau._preprocess([[(1,2),[3,2]],[(4,6,5)]])
+            [[(1, 2), (2, 3)], [(4, 5, 6)]]
+            sage: SemistandardSetValuedTableau._preprocess([])
+            []
         """
-        if isinstance(T, SemistandardSetValuedTableau):
-            return T
-        # Preprocessing list t for primes and other symbols
-        t = list([list(row)for row in T])
-        for i in range(len(t)):
-            for j in range(len(t[i])):
-                t[i][j] =  tuple(sorted(t[i][j]))
-                #t[i][j] =  sorted(t[i][j])
-        return t
+        if isinstance(t, SemistandardSetValuedTableau):
+            return t
+        # Preprocessing list t to represent sets as tuples.
+        T = list([list(row) for row in t])
+        for i in range(len(T)):
+            for j in range(len(T[i])):
+                T[i][j] =  tuple(sorted(T[i][j]))
+        return T
 
     def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+            sage: T = SemistandardSetValuedTableau([[(1,2),[3,2]],[(4,6,5)]])
+            sage: T
+            [[[1, 2], [2, 3]], [[4, 5, 6]]]
+            sage: U = SemistandardSetValuedTableau([])
+            sage: U
+            []
+
+        """
         L = [[list(cell) for cell in row] for row in self.to_list()]
         return repr(L)
 
@@ -171,14 +205,13 @@ class SemistandardSetValuedTableau(Tableau):
             \lr{2, 4}&\lr{4}\\\cline{1-2}
             \end{array}$}
             }
-
         """
         from sage.combinat.output import tex_from_array
         L = [row for i, row in enumerate(self._repr_tab())]
         return tex_from_array(L)
 
     def __hash__(self):
-        """
+        r"""
         Return the hash of ``self``.
 
         EXAMPLES::
@@ -192,7 +225,7 @@ class SemistandardSetValuedTableau(Tableau):
         return hash(tuple(tuple(tuple(cell) for cell in row) for row in self))
 
     def check(self):
-        """
+        r"""
         Check that ``self`` is a valid semistandard set-valued tableau.
         """
         super(SemistandardSetValuedTableau, self).check()
@@ -201,13 +234,8 @@ class SemistandardSetValuedTableau(Tableau):
         # the entries of t are positive integers which are weakly increasing
         # along rows
         for row in self:
-            try:
-                row_t = [tuple(_) for _ in row]
-            except TypeError:
-                raise ValueError("the entries of a semistandard set-valued tableau must be iterables")
             if any(max(row[c]) > min(row[c+1]) for c in range(len(row)-1)):
                 raise ValueError("the entries in each row of a semistandard set-valued tableau must be weakly increasing")
-
         # and strictly increasing down columns
         if self:
             for row, next in zip(self, self[1:]):
@@ -218,14 +246,17 @@ class SemistandardSetValuedTableau(Tableau):
         r"""
         Return the excess statistic for ``self``.
 
-        The excess of a semistandard set-valued tableaux ``T`` is the total number 
-        of integers in ``T`` minus the size of ``T``.
+        The excess of a semistandard set-valued tableau ``T`` is the total 
+        number of integers in ``T`` minus the size of ``T``.
 
         EXAMPLES::
 
             sage: T = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
             sage: T.excess()
             4
+            sage: S = SemistandardSetValuedTableau([[[1],[3]],[[5]]])
+            sage: S.excess()
+            0
         """
         tot = sum([len(cells) for cells in self.entries()])
         return tot - self.size()
@@ -254,36 +285,35 @@ class SemistandardSetValuedTableau(Tableau):
         wt = [0] * m
         for i in vec:
             if i > 0:
-                wt[i - 1] += 1
+                wt[i-1] += 1
         return wt
 
     @combinatorial_map(order=2, name='Bender-Knuth involution')
     def bender_knuth_involution(self, k, rows=None):
         r"""
-        Return the image of ``self`` under the `k`-th Bender--Knuth
-        involution, assuming ``self`` is a semistandard set-valued tableau.
-        This function was introduced by Ikeda and Shimazaki [IS2014]_ in this context.
+        Return the image of ``self`` under the `k`-th Bender--Knuth involution, 
+        assuming ``self`` is a semistandard set-valued tableau. This function 
+        was introduced by Ikeda and Shimazaki [IS2014]_ in this context.
 
         Let `T` be a tableau and fix `k`. Then a free `k` in `T` means a cell of
-        `T` that contains `k` and whose direct lower
-        neighbor does not contain `k + 1` (in particular,
-        this lower neighbor might not exist). A free `k + 1`
-        in `T` is a cell of `T` that contains `k + 1`
-        and whose direct upper neighbor does not contain `k`
-        (in particular, this neighbor might not exist). Note that a cell
-        that contains both `k` and `k + 1` is both a free `k` and a free `k + 1`. 
-        It is clear that for any row `r` of `T`, the free `k`'s and
-        free `k + 1`'s in `r` together form a contiguous interval of `r`.
+        `T` that contains `k` and whose direct lower neighbor does not contain 
+        `k + 1` (in particular, this lower neighbor might not exist). A free 
+        `k + 1` in `T` is a cell of `T` that contains `k + 1` and whose direct 
+        upper neighbor does not contain `k` (in particular, this neighbor might 
+        not exist). Note that a cell that contains both `k` and `k + 1` is both 
+        a free `k` and a free `k + 1`. It is clear that for any row `r` of `T`, 
+        the free `k`'s and free `k + 1`'s in `r` together form a contiguous 
+        interval of `r`.
 
         The *`k`-th Bender--Knuth involution at row `i`* changes the entries of
         the cells in this interval in such a way that if it used to have
-        `a` entries of `k` and `b` entries of `k + 1`, it will now
-        have `b` entries of `k` and `a` entries of `k + 1`. For fixed `k`, the
-        `k`-th Bender--Knuth switches for different `i` commute. The
+        `a` entries of `k` and `b` entries of `k + 1`, it will now have `b` 
+        entries of `k` and `a` entries of `k + 1`. For fixed `k`, the
+        `k`-th Bender--Knuth switches for different `i` commute. The 
         composition of the `k`-th Bender--Knuth switches for all rows is
         called the *`k`-th Bender--Knuth involution*. This is used to show that
-        the symmetric Grothendieck polynomials defined as generating functions for
-        semistandard set-valued tableaux are in fact symmetric polynomials.
+        the symmetric Grothendieck polynomials defined as generating functions 
+        for semistandard set-valued tableaux are in fact symmetric polynomials.
 
         INPUT:
 
@@ -412,22 +442,21 @@ class SemistandardSetValuedTableau(Tableau):
 
     def pp(self):
         r"""
-        Returns the pretty print of self.
+        Return the pretty print of ``self``.
 
         EXAMPLES::
 
-            sage: T = [[[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[8,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[11,13],[16,17,18]]]
-            sage: SemistandardSetValuedTableau(T).pp()
-            [ 1,2,3,4,6 ][  6   ][  6,7   ][     8,9     ][ 9,11,12 ][ 12 ]
-            [     7     ][  7   ][ 8,9,10 ][ 10,11,13,14 ][   14    ]
-            [    8,9    ][ 9,10 ][ 11,13  ][  16,17,18   ]
-
-            sage: U = SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
-            sage: U.pp()
+            sage: T = SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
+            sage: T.pp()
             [   1   ][  1  ][ 8 ]
             [   2   ][ 2,6 ]
             [ 3,4,7 ]
 
+            sage: U = [[[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[8,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[11,13],[16,17,18]]]
+            sage: SemistandardSetValuedTableau(U).pp()
+            [ 1,2,3,4,6 ][  6   ][  6,7   ][     8,9     ][ 9,11,12 ][ 12 ]
+            [     7     ][  7   ][ 8,9,10 ][ 10,11,13,14 ][   14    ]
+            [    8,9    ][ 9,10 ][ 11,13  ][  16,17,18   ]
         """
         max_len = max(len(row) for row in self)
         str_len = [[sum([len(str(elt)) for elt in cell])+len(cell)-1 for cell in row] for row in self]
@@ -444,29 +473,49 @@ class SemistandardSetValuedTableau(Tableau):
             S += "\n"
         print(S)
 
+    def uncrowding_map(self):
+        r"""
+        Return the image of semistandard set-valued tableau T under the uncrowding 
+        map.
+
+            EXAMPLES::
+
+                sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
+                sage: T.uncrowding_map()
+                ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
+
+                sage: T = Tableau([ [ [1],[1,2],[2] ],[ [2,3],[3,4,5] ],[ [4] ] ])
+                sage: T.uncrowding_map()
+                ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
+        """
+        P = SemistandardTableau([])
+        Q = Tableau([])
+        sequences = _insertion_sequence(self.to_list())
+        for seq in sequences:
+            P,Q = _uncrowding_insertion(seq,P,Q)
+        return P,Q
+
 class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
     r"""
     Class for elements of ``crystals.SemistandardSetValuedTableaux``
     """
-
     def _get_signs(self, i):
-        """
+        r"""
         Auxiliary function for `e_i` and `f_i` methods.
 
-        Assign each column of self a +1, -1 or 0 according to
-        +1 if there is an unmatched `i+1` aka left paren '('
-        -1 if there is an unmatched `i` aka right paren ')'
+        Assign each column of ``self`` a +1, -1 or 0 according to
+        +1 if there is an unmatched `i+1` aka left parenthesis '('
+        -1 if there is an unmatched `i` aka right parenthesis ')'
         0 if all the `i`s and `i+1`s are matched
         
-        Return list of +1, -1, 0 with length equal to number of columns of self.
+        Return list of +1, -1, 0 with length equal to number of columns of ``self``.
         """
-        #st = SemistandardSetValuedTableau(self)
         signs = []
         for col in self.conjugate():
             word = sum(col, ())
             if i in word and i+1 in word:
                 signs += [0]
-            elif i in word: #i in word, i+1 not in word
+            elif i in word: # i in word, i+1 not in word
                 signs += [-1]
             elif i+1 in word: # i not in word, i+1 is
                 signs += [+1]
@@ -475,8 +524,8 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         return signs
 
     def _bracket(self, i, right=True):
-        """
-        auxiliary function for `e_i` and `f_i` methods.
+        r"""
+        Auxiliary function for `e_i` and `f_i` methods.
 
         Return index of column in self with rightmost `i` to be changed to `i+1` 
         or leftmost `i+1` to be changed to `i`.
@@ -506,7 +555,7 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
 
     def e(self, i):
         r"""
-        Returns the action of `e_i` on ``self``.
+        Return the action of `e_i` on ``self``.
 
         EXAMPLES::
 
@@ -527,33 +576,24 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
             return None
         import copy
         T = copy.deepcopy(self)
-        #tab = copy.deepcopy(self.to_list())
-        #tab = [[list(entry) for entry in r] for r in self]
-        #t = self.conjugate()
-        #column = t[col]
         column = [T(cell) for cell in T.cells() if cell[1]==col]
         row = min([ j for j in range(len(column)) if i+1 in column[j] ]) 
         # checks that there is a cell to the left and that the cell contains i and i+1
-        #if col>0 and all(x in tab[row][col-1] for x in [i,i+1]):
         if col>0 and all(x in T(row,col-1) for x in [i,i+1]):
             entry = list(T(row,col-1))
             entry.remove(i+1)
             T = T.add_entry((row,col-1),tuple(entry))
-            #tab[row][col-1].remove(i+1)
         else:
             entry = list(T(row,col))
             entry.remove(i+1)
             T = T.add_entry((row,col),tuple(entry))
-            #tab[row][col].remove(i+1)
-        #tab[row][col] = sorted(tab[row][col]+[i])
         entry = sorted(list(T(row,col))+[i])
         T = T.add_entry((row,col),tuple(entry))
-        #return self.parent()(tab)
         return self.parent()(T)
 
     def f(self, i):
         r"""
-        Returns the action of `f_i` on ``self``.
+        Return the action of `f_i` on ``self``.
 
         EXAMPLES::
 
@@ -574,20 +614,8 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
             return None
         import copy
         T = copy.deepcopy(self)
-        #tab = copy.deepcopy(self.to_list())
-        #tab = [[list(entry) for entry in r] for r in self]
-        #t = self.conjugate()
-        #column = t[col]
         column = [T(cell) for cell in T.cells() if cell[1]==col]
         row = min([ j for j in range(len(column)) if i in column[j] ])
-        
-        # if col<len(self[row])-1 and all(x in tab[row][col+1] for x in [i,i+1]):
-        #     tab[row][col+1].remove(i)
-        # else:
-        #     tab[row][col].remove(i)
-        # tab[row][col] = sorted(tab[row][col]+[i+1])
-        # return self.parent()(tab)
-
         # checks that there is a cell to the right and that the cell contains i and i+1
         if col<len(T[row])-1 and all(x in T(row,col+1) for x in [i,i+1]):
             entry = list(T(row,col+1))
@@ -601,7 +629,31 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         T = T.add_entry((row,col),tuple(entry))
         return self.parent()(T)
 
+    def weight(self):
+        r"""
+        Return the weight for ``self``.
+
+        EXAMPLES::
+        
+            sage: SSVT = SemistandardSetValuedTableaux([2,1,1],max_entry=5)
+            sage: T = SSVT([[[1], [2, 3]], [[2]], [[3]]])
+            sage: T.weight()
+            (1, 2, 2, 0, 0)
+        """
+        WLR = self.parent().weight_lattice_realization()
+        return sum(sum(WLR.monomial(elt-1) for elt in self(cell)) for cell in self.cells())
+
     def reading_word(self):
+        r"""
+        Return the reading word of ``self``.
+
+        EXAMPLES::
+
+            sage: SSVT = SemistandardSetValuedTableaux([5,3,1,1],max_entry=6)
+            sage: T = SSVT([[[1,2],[2,3],[3],[3,4,5],[5,6]], [[3],[4,6],[6]], [[4,5]],[[6]]])
+            sage: reading_word(T)
+            [6, 5, 4, 3, 6, 6, 4, 2, 3, 3, 5, 6, 5, 4, 3, 2, 1]
+        """
         R = []
         for s in _insertion_sequence(self):
             R += s
@@ -677,7 +729,7 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: SemistandardSetValuedTableaux([4,2,1], max_entry=3)
             Semistandard set-valued tableaux of shape [4, 2, 1] and max entry 3
             sage: SemistandardSetValuedTableaux([1], max_entry=None)
-            Semistandard set-valued tableaux of shape [1] and max entry 1
+            Semistandard set-valued tableaux of shape [1]
             sage: from sage.rings.infinity import PlusInfinity
             sage: SemistandardSetValuedTableaux([1], max_entry=PlusInfinity())
             Semistandard set-valued tableaux of shape [1]
@@ -705,26 +757,28 @@ class SemistandardSetValuedTableaux(Tableaux):
             # if p is size
             if isinstance(p,(int,Integer)) and p>=0:
                 if max_entry is None or max_entry==PlusInfinity():
-                    return SemistandardSetValuedTableaux_size_inf(Integer(p))
-                elif isinstance(max_entry, (int,Integer))==False:
+                    #return SemistandardSetValuedTableaux_size_inf(Integer(p), max_entry=None)
+                    return SemistandardSetValuedTableaux_size(Integer(p), max_entry=None)
+                elif isinstance(max_entry, (int,Integer))==False or max_entry <= 0:
                     raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
-                elif isinstance(max_entry, (int,Integer)) and max_entry <= 0:
-                    raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
+                #elif isinstance(max_entry, (int,Integer)) and max_entry <= 0:
+                #    raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
                 return SemistandardSetValuedTableaux_size(Integer(p), max_entry)
 
             # if p is shape
-            if p in _Partitions:
+            elif p in _Partitions:
                 if max_entry is None or max_entry==PlusInfinity():
-                    return SemistandardSetValuedTableaux_shape_inf(_Partitions(p))
-                elif isinstance(max_entry, (int,Integer)) and max_entry <= 0:
+                    #return SemistandardSetValuedTableaux_shape_inf(_Partitions(p))
+                    return SemistandardSetValuedTableaux_shape(_Partitions(p), max_entry=None)
+                elif isinstance(max_entry, (int,Integer))==False or max_entry <= 0:
                     raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
                 return SemistandardSetValuedTableaux_shape(_Partitions(p), max_entry)
             else:
                 raise ValueError("the argument must be a non-negative integer or a partition")            
         else:
-            if max_entry is not None and max_entry!=PlusInfinity() and isinstance(max_entry, (int,Integer))==False:
-                raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
-            if isinstance(max_entry, (int,Integer)) and max_entry <= 0:
+            if max_entry is None or max_entry==PlusInfinity():
+                return SemistandardSetValuedTableaux_all(max_entry=None)
+            elif isinstance(max_entry, (int,Integer))==False or max_entry <= 0:
                 raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
             return SemistandardSetValuedTableaux_all(max_entry=max_entry)
 
@@ -756,9 +810,9 @@ class SemistandardSetValuedTableaux(Tableaux):
 
         TESTS::
 
-            sage: T1 = [ [ [1],[1,2] ],[ [2] ] ]
-            sage: T2 = Tableau([ [ [1],[1,3] ],[ [2] ] ])
-            sage: T3 = Tableau([ [ [1,2],[2] ],[ [2] ] ])
+            sage: T1 = [[[1], [1,2]], [[2]]]
+            sage: T2 = Tableau([[[1], [1,3]], [[2]]])
+            sage: T3 = Tableau([[[1,2], [2]], [[2]]])
             sage: T1 in SemistandardSetValuedTableaux(3)
             True
             sage: T2 in SemistandardSetValuedTableaux(3)
@@ -827,9 +881,9 @@ class SemistandardSetValuedTableaux_all(SemistandardSetValuedTableaux):
             sage: TestSuite(SSVT).run()  # long time
         """
         if max_entry==PlusInfinity() or max_entry is None:
-            SemistandardSetValuedTableaux.__init__(self,category=InfiniteEnumeratedSets())
+            SemistandardSetValuedTableaux.__init__(self, category=InfiniteEnumeratedSets())
         else:
-            SemistandardSetValuedTableaux.__init__(self,max_entry=max_entry,category=InfiniteEnumeratedSets())
+            SemistandardSetValuedTableaux.__init__(self, max_entry=max_entry, category=InfiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -878,13 +932,13 @@ class SemistandardSetValuedTableaux_all(SemistandardSetValuedTableaux):
 
         return SemistandardSetValuedTableaux.__contains__(self, x)
 
-class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
+class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
     """
     Class of all semistandard set-valued tableaux of fixed size ``n``.
     """
     def __init__(self, n, max_entry=None):
         r"""
-        Initializes the class of all semistandard set-valued tableaux of size ``n``.
+        Initializes a class of semistandard set-valued tableaux of size ``n``.
 
         .. WARNING::
 
@@ -894,11 +948,24 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
         TESTS::
 
             sage: TestSuite( SemistandardSetValuedTableaux(0,max_entry=4) ).run()
-            sage: TestSuite( SemistandardSetValuedTableaux(3,max_entry=4) ).run()
+            sage: TestSuite( SemistandardSetValuedTableaux(3,max_entry=2) ).run()
         """
+        #if max_entry is None:
+        #    self.max_entry = n
         if max_entry is None:
-            self.max_entry = n
-        SemistandardSetValuedTableaux.__init__(self,max_entry=max_entry,category=FiniteEnumeratedSets())
+            category = InfiniteEnumeratedSets()
+            SSVT = lambda p: SemistandardSetValuedTableaux_shape(p,max_entry=None)
+            DisjointUnionEnumeratedSets.__init__(self,
+                                                Family(Partitions_n(n), SSVT),
+                                                facade=True, keepkey=False)
+        else:
+            category = FiniteEnumeratedSets()
+            SSVT = lambda p: SemistandardSetValuedTableaux_shape(p,max_entry=max_entry)
+            Parts = [P for P in Partitions_n(n) if len(P)<=max_entry]
+            DisjointUnionEnumeratedSets.__init__(self,
+                                                Family(Parts, SSVT),
+                                                facade=True, keepkey=False)
+        SemistandardSetValuedTableaux.__init__(self,max_entry=max_entry,category=category)
         self._size = Integer(n)
 
     def _repr_(self):
@@ -907,7 +974,12 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
 
             sage: SemistandardSetValuedTableaux(3,max_entry=4)
             Semistandard set-valued tableaux of size 3 and max entry 4
+
+            sage: SemistandardSetValuedTableaux(5)
+            Semistandard set-valued tableaux of size 5
         """
+        if self.max_entry is None:
+             return "Semistandard set-valued tableaux of size {}".format(self._size)
         return "Semistandard set-valued tableaux of size {} and max entry {}".format(self._size, self.max_entry)
 
     def __contains__(self, x):
@@ -927,17 +999,27 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
             True
             sage: [[[1]],[[3,4]],[[5]]] in SSVT
             False
+
+            sage: SSVT = SemistandardSetValuedTableaux(3)
+            sage: [[[1,2]],[[2]],[[3]]] in SSVT
+            False
+            sage: [[[1,2]],[[3]],[[4]]] in SSVT
+            True
+            sage: [[[1,2],[2]],[[3]],[[4]]] in SSVT
+            False
+            sage: [[[1,2],[2],[3]]] in SSVT
+            True
+            sage: [[[1]],[[3,4]],[[50]]] in SSVT
+            True
         """
         return SemistandardSetValuedTableaux.__contains__(self, x) and \
-        sum(map(len, x)) == self._size and \
-        max([max([max(cell) for cell in row]) for row in x]) <= self.max_entry
+        sum(map(len, x)) == self._size
 
     def __iter__(self):
         """
         EXAMPLES::
 
-            sage: SSVT = SemistandardSetValuedTableaux(3,max_entry=2); SSVT
-            Semistandard set-valued tableaux of size 3 and max entry 2
+            sage: SSVT = SemistandardSetValuedTableaux(3,max_entry=2)
             sage: SSVT.list()
             [[[[1], [1], [1]]],
             [[[1], [1], [1, 2]]],
@@ -959,62 +1041,13 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux):
             for ssvt in SemistandardSetValuedTableaux_shape(part, self.max_entry):
                 yield self.element_class(self, ssvt)
 
-class SemistandardSetValuedTableaux_size_inf(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
-    """
-    Class of all semistandard set-valued tableaux of fixed size `n` and no maximum entry.
-    """
-    def __init__(self, n):
-        r"""
-        Initializes the class of all semistandard set-valued tableaux of size ``n`` and no maximum entry.
-
-        .. WARNING::
-
-            Input is not checked; please use :class:`SemistandardSetValuedTableaux` to
-            ensure the options are properly parsed.
-
-        TESTS::
-
-            sage: TestSuite( SemistandardSetValuedTableaux(0) ).run()
-            sage: TestSuite( SemistandardSetValuedTableaux(3) ).run()
-        """
-        SemistandardSetValuedTableaux.__init__(self,category=InfiniteEnumeratedSets())
-        DisjointUnionEnumeratedSets.__init__(self,
-                                             Family(Partitions_n(n),SemistandardSetValuedTableaux_shape_inf),
-                                             facade=True, keepkey=False)
-        self._size = Integer(n)
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: SemistandardSetValuedTableaux(3)
-            Semistandard set-valued tableaux of size 3
-        """
-        return "Semistandard set-valued tableaux of size {}".format(self._size)
-
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: SSVT = SemistandardSetValuedTableaux(3)
-            sage: [[[1,2]],[[2]],[[3]]] in SSVT 
-            False
-            sage: [[[1,2]],[[3]],[[4]]] in SSVT 
-            True
-            sage: [[[1,2],[2]],[[3]],[[4]]] in SSVT 
-            False
-            sage: [[[1,2],[2],[3]]] in SSVT 
-            True
-        """
-        return SemistandardSetValuedTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
-
 class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
     """
     Class of all semistandard set-valued tableaux of a fixed shape `p`.
     """
     def __init__(self, p, max_entry):
         r"""
-        Initialize the class of all semistandard set-valued tableaux of given shape ``p``.
+        Initialize a class of semistandard set-valued tableaux of given shape ``p``.
 
         .. WARNING::
 
@@ -1025,12 +1058,18 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
             sage: TestSuite( SemistandardSetValuedTableaux([2,1,1],max_entry=3) ).run()
         """
+        #if max_entry is None:
+        #    self.max_entry = len(p)
         if max_entry is None:
-            self.max_entry = len(p)
-        SemistandardSetValuedTableaux.__init__(self,max_entry=max_entry,category=ClassicalCrystals())
+            category = RegularCrystals().Infinite()
+            self._cartan_type = CartanType(['A+oo'])
+        else:
+            category = ClassicalCrystals()
+            self._cartan_type = CartanType(['A', max_entry-1])
         self._shape = p
-        self._cartan_type = CartanType(['A', max_entry-1])
         self.Element = CrystalElementSemistandardSetValuedTableau
+        SemistandardSetValuedTableaux.__init__(self, max_entry=max_entry)
+        Parent.__init__(self, category=category)
 
     def __contains__(self, x):
         """
@@ -1047,18 +1086,34 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             False
             sage: [[[1,2],[2,3]],[[3,4],[4,5,6]],[[6]]] in SSVT
             False
+
+            sage: SSVT = SemistandardSetValuedTableaux([2,1,1])
+            sage: [[[1,2],[2,3]],[[2]],[[3]]] in SSVT
+            False
+            sage: [[[1,2],[2,3]],[[3,4]],[[6]]] in SSVT
+            True
+            sage: [[[1],[2,3,4]],[[3,10]],[[100]]] in SSVT
+            True
+            sage: [[[1,2],[1,3]],[[3,4]],[[6]]] in SSVT
+            False
+            sage: [[[1,2],[2,3]],[[3,4],[4,5,6]],[[6]]] in SSVT
+            False         
         """
         return SemistandardSetValuedTableaux.__contains__(self, x) and \
-               [len(row) for row in x] == self._shape and \
-               max([max([max(cell) for cell in row]) for row in x]) <= self.max_entry
+               [len(row) for row in x] == self._shape
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: SemistandardSetValuedTableaux([3,1],max_entry=2)
-            Semistandard set-valued tableaux of shape [3, 1] and max entry 2 
+            sage: SemistandardSetValuedTableaux([3,1], max_entry=2)
+            Semistandard set-valued tableaux of shape [3, 1] and max entry 2
+
+            sage: SemistandardSetValuedTableaux([3,1])
+            Semistandard set-valued tableaux of shape [3, 1]
         """
+        if self.max_entry is None:
+            return "Semistandard set-valued tableaux of shape {}".format(self._shape)
         return "Semistandard set-valued tableaux of shape {} and max entry {}".format(self._shape, self.max_entry)
 
     @lazy_attribute
@@ -1066,14 +1121,26 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
         """
         Return the generators of ``self`` as a crystal.
 
+        .. WARNING::
+
+            If ``max_entry`` is None, this will raise a ValueError.
+
         TESTS::
 
-            sage: 
+            sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3)
+            sage: SSVT.module_generators
+            ([[[1], [1]], [[2], [2]]], [[[1], [1]], [[2], [2, 3]]], [[[1], [1, 2]], [[2], [3]]], [[[1], [1, 2]], [[2, 3], [3]]])
         """
         P = self._shape
         m = self.max_entry
-        L = _generate_pairs(P,m)
-        return tuple([_crowding_map(S,F,mark=None,m=m) for S,F in L])
+        if m is None:
+            # L = _generate_pairs(P, m)
+            # crowd = lambda i:_crowding_map(L[i][0],L[i][1], mark=None)
+            # return Family(L, crowd, lazy=True)
+            raise ValueError("max_entry has to be a positive integer to specify module_generators")
+        else:
+            L = _generate_pairs(P, m)
+            return tuple([_crowding_map(S, F, mark=None,m=m) for S,F in L])
 
     def shape(self):
         """
@@ -1083,6 +1150,9 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
             sage: SemistandardSetValuedTableaux([3,1],max_entry=2).shape()
             [3, 1]
+
+            sage: SemistandardSetValuedTableaux([2,2]).shape()
+            [2, 2]
         """
         return self._shape
 
@@ -1093,12 +1163,11 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
         .. WARNING::
 
-            if ``max_entry`` is None, will raise a ValueError.
+            If ``max_entry`` is None, this will raise a ValueError.
 
         EXAMPLES::
 
-            sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3); SSVT
-            Semistandard set-valued tableaux of shape [2, 2] and max entry 3
+            sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3)
             sage: SSVT.list()
             [[[[1], [1]], [[2], [2]]],
             [[[1], [1]], [[2], [2, 3]]],
@@ -1115,7 +1184,6 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             [[[2], [2]], [[3], [3]]]]
             sage: len(SSVT)
             13
-
         """
         if self.max_entry is None:
             raise ValueError("max_entry must be specified to iterate")
@@ -1182,61 +1250,13 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
                     tab_copy[i][j] += cp[k]
                 yield self.element_class(self, tab_copy)
 
-class SemistandardSetValuedTableaux_shape_inf(SemistandardSetValuedTableaux):
-    """
-    Class of all semistandard set-valued tableaux of a fixed shape `p` and no maximum entry.
-    """
-    def __init__(self, p):
-        r"""
-        Initializes the class of all semistandard set-valued tableaux of a given 
-        shape and no maximum entry.
-
-        .. WARNING::
-
-            Input is not checked; please use :class:`SemistandardSetValuedTableaux` to
-            ensure the options are properly parsed.
-
-        TESTS::
-
-            sage: TestSuite( SemistandardSetValuedTableaux([2,1,1]) ).run()
-        """
-        SemistandardSetValuedTableaux.__init__(self,category=InfiniteEnumeratedSets())
-        self._shape = p
-
-    def __contains__(self, x):
-        """
-        EXAMPLES::
-        
-            sage: SSVT = SemistandardSetValuedTableaux([2,1,1])
-            sage: [[[1,2],[2,3]],[[2]],[[3]]] in SSVT
-            False
-            sage: [[[1,2],[2,3]],[[3,4]],[[6]]] in SSVT
-            True
-            sage: [[[1],[2,3,4]],[[3,10]],[[100]]] in SSVT
-            True
-            sage: [[[1,2],[1,3]],[[3,4]],[[6]]] in SSVT
-            False
-            sage: [[[1,2],[2,3]],[[3,4],[4,5,6]],[[6]]] in SSVT
-            False
-        """
-        return SemistandardSetValuedTableaux.__contains__(self, x) and [len(row) for row in x] == self._shape
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: SemistandardSetValuedTableaux([3,1])
-            Semistandard set-valued tableaux of shape [3, 1] 
-        """
-        return "Semistandard set-valued tableaux of shape {}".format(self._shape)
-
 ######################
 #  Helper functions  #
 ######################
 
-def _reconstruct_tableau(seq,m=None):
+def _reconstruct_tableau(seq, m=None):
     r"""
-    Returns a tableau corresponding to a sequence of unimodal sequences.
+    Returns a tableau given a sequence of row reading words.
     
         EXAMPLES:
             sage: seq = [[3, 6, 7, 12, 11, 10, 8, 5, 3, 2, 1], [7, 7, 12, 9, 8, 6, 5, 4], [8, 9, 13, 8], [10, 9]]
@@ -1257,9 +1277,9 @@ def _reconstruct_tableau(seq,m=None):
     SSVT = SemistandardSetValuedTableaux(Tableau(L).shape(),max_entry=m)
     return SSVT.element_class(SSVT,L)
 
-def _crowding_reverse_insertion(P,Q,seq=[]):
+def _crowding_reverse_insertion(P, Q):
     r"""
-    Returns the pair (P',Q') under the uncrowding map for sequence seq and 
+    Returns the triple (P',Q',seq') under the crowding map for sequence seq and 
     pair (P,Q).
 
         INPUT::
@@ -1270,17 +1290,12 @@ def _crowding_reverse_insertion(P,Q,seq=[]):
                 none initialized
 
         OUTPUT::
+            seq' - 
             P' - a semistandard Young tableau
             Q' - a flagged increasing tableau with same shape as P'
 
         EXAMPLES::
-            sage: P = SemistandardTableau([[4],[6],[7]])
-            sage: Q = Tableau([['X'],['X'],[1]])
-            sage: _uncrowding_insertion([3,3,9,8],P,Q)
-            ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
-
-            sage: _uncrowding_insertion([1,1,4,5,4,3,2])
-            ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
+            
     """
     Pp = P.clone()
     Qq = Q.clone()
@@ -1291,9 +1306,10 @@ def _crowding_reverse_insertion(P,Q,seq=[]):
     if Pp.shape()!=Qq.shape():
         raise ValueError("P and Q must be of same shape")
     if P==SemistandardTableau([]):
-        return P,Q,seq
+        return P,Q,[]
     cells = sorted([cell for cell in Qq.cells() if isinstance(Qq(cell),(int,Integer)) and Qq(cell)==cell[0]],key=lambda x:-x[0])
 
+    seq = []
     for cell in cells:
         Pp,x = Pp.reverse_bump(cell)
         seq = [x]+seq
@@ -1311,25 +1327,19 @@ def _crowding_reverse_insertion(P,Q,seq=[]):
 
     return Pp,Qq,seq
 
-def _crowding_map(P,Q,mark='X',m=None):
+def _crowding_map(P, Q, mark='X', m=None):
     r"""
     Returns the image of pair (P,Q) of semistandard tableau and flagged 
     increasing tableau under the crowding map.
 
         EXAMPLE::
-            sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
-            sage: _uncrowding_map(T)
-            ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
-
-            sage: T = Tableau([ [ [1],[1,2],[2] ],[ [2,3],[3,4,5] ],[ [4] ] ])
-            sage: _uncrowding_map(T)
-            ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
+            
     """
     part = [len([x for x in row if x==mark]) for row in Q if mark in row]
     assert part in _Partitions
     sequences = []
     for i in range(len(part)):
-        P,Q,seq = _crowding_reverse_insertion(P,Q,[])
+        P,Q,seq = _crowding_reverse_insertion(P,Q)
         sequences += [seq]
     T = _reconstruct_tableau(sequences,m=m)
     return T
@@ -1363,77 +1373,58 @@ def _insertion_sequence(T):
         seq += [S]
     return seq
 
-# def _uncrowding_insertion(seq,P=None,Q=None,mark='X'):
-#     r"""
-#     Returns the pair (P',Q') under the uncrowding map for sequence seq and pair (P,Q).
-
-#         INPUT::
-#             seq - a sequence of integers to be inserted. This should insert to a hook shape.
-#             P - a semistandard Young tableau; empty if none initialized
-#             Q - a flagged increasing tableau with same shape as P; empty if none initialized
-
-#         OUTPUT::
-#             P' - a semistandard Young tableau
-#             Q' - a flagged increasing tableau with same shape as P'
-
-#         EXAMPLES::
-#             sage: P = SemistandardTableau([[4],[6],[7]])
-#             sage: Q = Tableau([['X'],['X'],[1]])
-#             sage: _uncrowding_insertion([3,3,9,8],P,Q)
-#             ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
-
-#             sage: _uncrowding_insertion([1,1,4,5,4,3,2])
-#             ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
-#     """
-#     Pp = P
-#     Qq = Q
-#     if P is None:
-#         Pp = SemistandardTableau([])
-#     if Q is None:
-#         Qq = Tableau([])
-#     if not isinstance(Pp,SemistandardTableau):
-#         raise ValueError("P should be instance of SemistandardTableau")
-#     if not isinstance(Qq,Tableau):
-#         raise ValueError("Q should be instance of Tableau")
-#     if Pp.shape()!=Qq.shape():
-#         raise ValueError("P and Q must be of same shape")        
-
-#     for x in seq:
-#         Pp = Pp.bump(x)
-#     shape = Pp.shape()
-#     temp = Tableau([ [mark]*shape[0] ]+Qq.to_list())
-#     cells = [pair for pair in Pp.cells() if pair not in temp.cells()]
-#     for cell in cells: 
-#         temp = temp.add_entry(cell,cell[0])
-#     Qq = temp
-#     return Pp, Qq
-
-# def _uncrowding_map(T):
-#     r"""
-#     Returns the image of semistandard set-valued tableau T under the 
-#     uncrowding map.
-
-#         EXAMPLES::
-#             sage: T = Tableau([ [ [1],[1,2,3] ],[ [2,3] ] ])
-#             sage: _uncrowding_map(T)
-#             ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
-
-#             sage: T = Tableau([ [ [1],[1,2],[2] ],[ [2,3],[3,4,5] ],[ [4] ] ])
-#             sage: _uncrowding_map(T)
-#             ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
-#     """
-#     P = SemistandardTableau([])
-#     Q = Tableau([])
-#     sequences = _insertion_sequence(T.to_list())
-#     for seq in sequences:
-#         P,Q = _uncrowding_insertion(seq,P,Q)
-#     return P,Q
-
-def _max_outer_shape(P,m):
+def _uncrowding_insertion(seq, P=None, Q=None, mark='X'):
     r"""
-    Returns the largest outer shape of flagged increasing tableau given partition P and maximum entry m.
+    Returns the pair (P',Q') under the uncrowding map for sequence seq and pair (P,Q).
+
+        INPUT::
+            seq - a sequence of integers to be inserted. This should insert to a hook shape.
+            P - a semistandard Young tableau; empty if none initialized
+            Q - a flagged increasing tableau with same shape as P; empty if none initialized
+
+        OUTPUT::
+            P' - a semistandard Young tableau
+            Q' - a flagged increasing tableau with same shape as P'
 
         EXAMPLES::
+            sage: P = SemistandardTableau([[4],[6],[7]])
+            sage: Q = Tableau([['X'],['X'],[1]])
+            sage: _uncrowding_insertion([3,3,9,8],P,Q)
+            ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
+
+            sage: _uncrowding_insertion([1,1,4,5,4,3,2])
+            ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
+    """
+    Pp = P
+    Qq = Q
+    if P is None:
+        Pp = SemistandardTableau([])
+    if Q is None:
+        Qq = Tableau([])
+    if not isinstance(Pp,SemistandardTableau):
+        raise ValueError("P should be instance of SemistandardTableau")
+    if not isinstance(Qq,Tableau):
+        raise ValueError("Q should be instance of Tableau")
+    if Pp.shape()!=Qq.shape():
+        raise ValueError("P and Q must be of same shape")        
+
+    for x in seq:
+        Pp = Pp.bump(x)
+    shape = Pp.shape()
+    temp = Tableau([ [mark]*shape[0] ]+Qq.to_list())
+    cells = [pair for pair in Pp.cells() if pair not in temp.cells()]
+    for cell in cells: 
+        temp = temp.add_entry(cell,cell[0])
+    Qq = temp
+    return Pp, Qq
+
+def _max_outer_shape(P, m):
+    r"""
+    Returns the largest outer shape of flagged increasing tableau given 
+    partition P and maximum entry m.
+
+        EXAMPLES::
+
             sage: P,m = [8,6,3,1],6
             sage: _max_outer_shape(P,m)
             [8, 7, 5, 4, 4, 4]
@@ -1453,35 +1444,78 @@ def _max_outer_shape(P,m):
     return Partition(L)
 
 def _is_flagged_increasing(T):
-    """
-    Returns True if T is a flagged increasing tableau.
+    r"""
+    Return True if T is a flagged increasing tableau and False otherwise.
 
-    T is assumed to be a semistandard skew tableau.
+    T needs to be an instance of ``SemistandardSkewTableau``.
+
     """
-    for i in range(1,len(T)):
-        values = [T[x][y] for x,y in T.cells() if T[x][y] in T[i]]
-        if len(values)>0 and any([k>i for k in values]):
-            return False
-    return T.conjugate().is_semistandard()
+    if isinstance(T,SkewTableau) and T.is_semistandard():
+        # Checks for flagged condition
+        for i in range(1,len(T)):
+            values = [T[x][y] for x,y in T.cells() if T[x][y] in T[i]]
+            if len(values)>0 and any([k>i for k in values]):
+                return False
+        return T.conjugate().is_semistandard()
+    raise ValueError("T needs to be a semistandard skew tableau")
 
 def _highest_weight_tableau(P):
+    """
+    Return the highest weight semistandard tableau of shape `P`.
+
+        EXAMPLES::
+            sage: P = [5,3,2,1]
+            sage: _highest_weight_tableau(P)
+            [[1, 1, 1, 1, 1], [2, 2, 2], [3, 3], [4]]
+    """
     return SemistandardTableau([[i+1]*P[i] for i in range(len(P))])
 
-def _generate_pairs(P,m):
+def _generate_pairs(P, m):
     r"""
-    Returns the set of all pairs (S,F) given partition P and maximum entry m.
+    Return the set of all pairs `(S,F)` given partition `P` and maximum entry `m`.
     
-    S is a highest weight semistandard tableau
-    F is a flagged increasing tableau 
+    `S` is a highest weight semistandard tableau
+    `F` is a flagged increasing tableau 
     """
-    # Due to some quirk with SemistandardSkewTableaux, need separate 
+    # Due to some quirk with SemistandardSkewTableaux, one needs separate 
     # initialization for a flagged increasing tableau with same inner and 
     # outer shape
-    S,F = _highest_weight_tableau(P),Tableau([[None]*P[i] for i in range(len(P))])
-    L = [(S,F)]
-    out = _max_outer_shape(P,m)
-    for n in range(sum(P)+1,len(P)*m+1):
-        for Q in Partitions(n,inner=P,outer=out):
-            Sk = [F for F in SemistandardSkewTableaux([Q,P],max_entry=m) if _is_flagged_increasing(F)]
-            L += [(_highest_weight_tableau(Q),Tableau(F)) for F in Sk]
-    return L
+    
+    if m is None:
+        # def pairs(k):
+        #     if k ==len(P):
+        #         S,F = _highest_weight_tableau(P),Tableau([[None]*P[i] for i in range(len(P))])
+        #         return tuple([(S,F)])
+        #     out = _max_outer_shape(P, k)
+        #     maximum = lambda T: max([T[x][y] for x,y in T.cells()])
+        #     for n in range(sum(P)+1, len(P)*k+1):
+        #         for Q in Partitions(n,inner=P,outer=out):
+        #             # Filters all flagged increasing tableau of shape Q/P with largest entry exactly k
+        #             Sk = [F for F in SemistandardSkewTableaux([Q,P], max_entry=k) if _is_flagged_increasing(F) and maximum(F)==k]
+        #             L += [(_highest_weight_tableau(Q),Tableau(F)) for F in Sk]
+        #     return tuple(L)
+
+        # NN = NonNegativeIntegers()
+        # Int = Family(NN, lambda i:i+len(P), lazy=True)
+        # F0 = Family(Int, pairs, lazy=True)
+        # def straighten(F0, k):
+        #     floor, i = 0, 0
+        #     while k-floor>=len(F0[i]):
+        #         floor += len(F0[i])
+        #         i += 1
+        #     return F0[i][k-floor]
+
+        # L = Family(F0, straighten, lazy=True)
+        # return L
+        raise ValueError("m has to be a positive integer")
+
+    else:
+        S,F = _highest_weight_tableau(P),Tableau([[None]*P[i] for i in range(len(P))])
+        L = [(S,F)]
+        out = _max_outer_shape(P, m)
+        for n in range(sum(P)+1, len(P)*m+1):
+            for Q in Partitions(n, inner=P, outer=out):
+                Sk = [F for F in SemistandardSkewTableaux([Q,P], max_entry=m) if _is_flagged_increasing(F)]
+                L += [(_highest_weight_tableau(Q),Tableau(F)) for F in Sk]
+        return tuple(L)
+    
