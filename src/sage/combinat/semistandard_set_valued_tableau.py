@@ -5,6 +5,7 @@ Semistandard set valued tableaux
 AUTHORS:
 
 - Jeremy Meza, Oliver Pechenik, Wencin Poh (2019): initial version
+
 """
 
 #*****************************************************************************
@@ -517,8 +518,8 @@ class SemistandardSetValuedTableau(Tableau):
 
 
 class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
-    r"""
-    Class for elements of ``crystals.SemistandardSetValuedTableaux``
+    """
+    Class for elements of ``crystals.SemistandardSetValuedTableaux``.
     """
     def _get_signs(self, i):
         """
@@ -527,9 +528,10 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         Assign each column of ``self`` a +1, -1 or 0 according to
         +1 if there is an unmatched `i+1` aka left parenthesis '('
         -1 if there is an unmatched `i` aka right parenthesis ')'
-        0 if all the `i`s and `i+1`s are matched
+        0 if all the `i`s and `i+1`s are matched.
         
-        Return list of +1, -1, 0 with length equal to number of columns of ``self``.
+        Return list of +1, -1, 0 with length equal to number of columns 
+        of ``self``.
         """
         signs = []
         for col in self.conjugate():
@@ -545,7 +547,7 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         return signs
 
     def _bracket(self, i, right=True):
-        r"""
+        """
         Auxiliary function for `e_i` and `f_i` methods.
 
         Return index of column in self with rightmost `i` to be changed to `i+1` 
@@ -575,104 +577,89 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
             return -1 if index < 0 else len(x)-1-index
 
     def e(self, i):
-        r"""
+        """
         Return the action of `e_i` on ``self``.
 
         EXAMPLES::
 
             sage: SSVT = SemistandardSetValuedTableaux([2,1],max_entry=3)
-            sage: T1 = SSVT([[[1, 2], [2]], [[3]]])
+            sage: T1 = SSVT([[[1,2], [2]], [[3]]])
             sage: T1.e(1)
             [[[1], [1, 2]], [[3]]]
 
             sage: SSVT = SemistandardSetValuedTableaux([2,1],max_entry=3)
-            sage: T2 = SSVT([[[1, 2], [3]], [[3]]])
+            sage: T2 = SSVT([[[1,2], [3]], [[3]]])
             sage: T2.e(2)
             [[[1, 2], [2]], [[3]]]
         """
         if i not in self.index_set():
             raise ValueError("i must be in the index set")
-        col = self._bracket(i,right=False)
+        col = self._bracket(i, right=False)
         if col == -1:
             return None
         import copy
         T = copy.deepcopy(self)
-        column = [T(cell) for cell in T.cells() if cell[1]==col]
-        row = min([ j for j in range(len(column)) if i+1 in column[j] ]) 
+        column = [T(cell) for cell in T.cells() if cell[1] == col]
+        row = min([j for j in range(len(column)) if i+1 in column[j]]) 
         # checks that there is a cell to the left and that the cell contains i and i+1
-        if col>0 and all(x in T(row,col-1) for x in [i,i+1]):
+        if col > 0 and all(x in T(row,col-1) for x in [i,i+1]):
             entry = list(T(row,col-1))
             entry.remove(i+1)
-            T = T.add_entry((row,col-1),tuple(entry))
+            T = T.add_entry((row,col-1), tuple(entry))
         else:
             entry = list(T(row,col))
             entry.remove(i+1)
-            T = T.add_entry((row,col),tuple(entry))
-        entry = sorted(list(T(row,col))+[i])
-        T = T.add_entry((row,col),tuple(entry))
+            T = T.add_entry((row,col), tuple(entry))
+        entry = sorted(list(T(row,col)) + [i])
+        T = T.add_entry((row,col), tuple(entry))
         return self.parent()(T)
 
     def f(self, i):
-        r"""
+        """
         Return the action of `f_i` on ``self``.
 
         EXAMPLES::
 
-            sage: SSVT = SemistandardSetValuedTableaux([2,1],max_entry=3)
-            sage: T1 = SSVT([[[1, 2], [2]], [[3]]])
+            sage: SSVT = SemistandardSetValuedTableaux([2,1], max_entry=3)
+            sage: T1 = SSVT([[[1,2], [2]], [[3]]])
             sage: T1.f(2)
             [[[1, 2], [3]], [[3]]]
 
-            sage: SSVT = SemistandardSetValuedTableaux([2,1],max_entry=3)
-            sage: T2 = SSVT([[[1], [1, 2]], [[3]]])
+            sage: SSVT = SemistandardSetValuedTableaux([2,1], max_entry=3)
+            sage: T2 = SSVT([[[1], [1,2]], [[3]]])
             sage: T2.f(1)
             [[[1, 2], [2]], [[3]]]
         """
         if i not in self.index_set():
             raise ValueError("i must be in the index set")
-        col = self._bracket(i,right=True)
+        col = self._bracket(i, right=True)
         if col == -1:
             return None
         import copy
         T = copy.deepcopy(self)
-        column = [T(cell) for cell in T.cells() if cell[1]==col]
-        row = min([ j for j in range(len(column)) if i in column[j] ])
+        column = [T(cell) for cell in T.cells() if cell[1] == col]
+        row = min([j for j in range(len(column)) if i in column[j]])
         # checks that there is a cell to the right and that the cell contains i and i+1
-        if col<len(T[row])-1 and all(x in T(row,col+1) for x in [i,i+1]):
+        if col < len(T[row])-1 and all(x in T(row,col+1) for x in [i,i+1]):
             entry = list(T(row,col+1))
             entry.remove(i)
-            T = T.add_entry((row,col+1),tuple(entry))
+            T = T.add_entry((row,col+1), tuple(entry))
         else:
             entry = list(T(row,col))
             entry.remove(i)
-            T = T.add_entry((row,col),tuple(entry))
-        entry = sorted(list(T(row,col))+[i+1])
-        T = T.add_entry((row,col),tuple(entry))
+            T = T.add_entry((row,col), tuple(entry))
+        entry = sorted(list(T(row,col)) + [i+1])
+        T = T.add_entry((row,col), tuple(entry))
         return self.parent()(T)
 
-    # def weight(self):
-    #     r"""
-    #     Return the weight for ``self``.
-
-    #     EXAMPLES::
-        
-    #         sage: SSVT = SemistandardSetValuedTableaux([2,1,1],max_entry=5)
-    #         sage: T = SSVT([[[1], [2, 3]], [[2]], [[3]]])
-    #         sage: T.weight()
-    #         (1, 2, 2, 0, 0)
-    #     """
-    #     WLR = self.parent().weight_lattice_realization()
-    #     return sum(sum(WLR.monomial(elt-1) for elt in self(cell)) for cell in self.cells())
-
     def reading_word(self):
-        r"""
-
+        """
         Return the reading word of ``self``.
 
         EXAMPLES::
 
-            sage: SSVT = SemistandardSetValuedTableaux([5,3,1,1],max_entry=6)
-            sage: T = SSVT([[[1,2],[2,3],[3],[3,4,5],[5,6]], [[3],[4,6],[6]], [[4,5]],[[6]]])
+            sage: SSVT = SemistandardSetValuedTableaux([5,3,1,1], max_entry=6)
+            sage: T = SSVT([[[1,2], [2,3], [3], [3,4,5], [5,6]], [[3], [4,6], [6]], [[4,5]], [[6]]])
             sage: T.reading_word()
             [6, 5, 4, 3, 6, 6, 4, 2, 3, 3, 5, 6, 5, 4, 3, 2, 1]
         """
@@ -680,10 +667,6 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         for s in _insertion_sequence(self):
             R += s
         return R
-
-    # def to_tableau(self):
-    #     SSVT = SemistandardSetValuedTableaux(self.size(),max_entry=self.parent().max_entry)
-    #     return SSVT.element_class(SSVT,self)
 
 
 class SemistandardSetValuedTableaux(Tableaux):
@@ -1448,9 +1431,7 @@ def _is_flagged_increasing(T):
         sage: T1 = SkewTableau([[None,None],[None,2],[1,1]])
         sage: from sage.combinat.semistandard_set_valued_tableau import _is_flagged_increasing
         sage: _is_flagged_increasing(T1)
-        Traceback (most recent call last):
-        ...
-        ValueError: T needs to be a semistandard skew tableau
+        False
 
         sage: from sage.combinat.semistandard_set_valued_tableau import _is_flagged_increasing
         sage: T2 = SkewTableau([[None,None],[None,2],[1,3]])
@@ -1467,14 +1448,12 @@ def _is_flagged_increasing(T):
         sage: _is_flagged_increasing(T4)
         False
     """
-    if isinstance(T,SkewTableau) and T.is_semistandard():
         # Checks for flagged condition
-        for i in range(1,len(T)):
-            values = [T[x][y] for x,y in T.cells() if T[x][y] in T[i]]
-            if len(values) > 0 and any([k > i for k in values]):
-                return False
-        return T.conjugate().is_semistandard()
-    raise ValueError("T needs to be a semistandard skew tableau")
+    for i in range(1,len(T)):
+        values = [T[x][y] for x,y in T.cells() if T[x][y] in T[i]]
+        if len(values) > 0 and any([k > i for k in values]):
+            return False
+    return T.is_semistandard() and T.conjugate().is_semistandard()
 
 def _highest_weight_tableau(P):
     """
@@ -1545,9 +1524,8 @@ def _generate_pairs(P, m):
         F = Tableau([[None]*P[i] for i in range(len(P))])
         L = [(S, F)]
         out = _max_outer_shape(P, m)
-        for n in range(sum(P)+1, len(P)*m+1):
+        for n in range(sum(P)+1, P[0]*m+1):
             for Q in Partitions(n, inner=P, outer=out):
-                Sk = [F for F in SemistandardSkewTableaux([Q,P], max_entry=m) \
-                            if _is_flagged_increasing(F)]
+                Sk = [F for F in SemistandardSkewTableaux([Q,P], max_entry=m) if _is_flagged_increasing(F)]
                 L += [(_highest_weight_tableau(Q),Tableau(F)) for F in Sk]
         return tuple(L)
