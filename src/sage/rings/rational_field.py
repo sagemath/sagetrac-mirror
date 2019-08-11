@@ -530,15 +530,23 @@ class RationalField(Singleton, number_field_base.NumberField):
             [1, 1/2, 2, 1/3, 3/2, 2/3, 3, 1/4, 4/3, 3/5]
             sage: list(islice(QQ.calkin_wilf_sequence(all_rationals=True), 10))
             [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3/2]
+
+        REFERENCES:
+
+        The Calkin-Wilf sequence is defined and developed in [CW1999]_.
         """
+        p, q = ZZ(1), ZZ(1)
         if all_rationals:
             yield self(0)
-        p, q = ZZ(1), ZZ(1)
-        while True:
-            yield self(p / q)
-            if all_rationals:
+            while True:
+                yield self(p / q)
                 yield -self(p / q)
-            p, q = q, 2 * (p // q) * q - p + q
+                p, q = q, 2 * (p // q) * q - p + q
+        else:
+            while True:
+                yield self(p / q)
+                p, q = q, 2 * (p // q) * q - p + q
+
 
     def primes_of_bounded_norm_iter(self, B):
         r"""

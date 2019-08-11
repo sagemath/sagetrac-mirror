@@ -1301,6 +1301,9 @@ REFERENCES:
              and Intersection Algorithms. SIAM Journal on Computing
              1986 15:4, 948-957.
 
+.. [CW1999] Neil Calkin and Herbert S. Wilf.  Recounting the rationals.
+            American Mathematical Monthly, 107 (4), 360-363.
+
 .. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
             curves. preprint, 2005.
 
@@ -2563,7 +2566,7 @@ REFERENCES:
              Compositio Mathematica, **149** (2013), no. 10.
              :arxiv:`1111.3660`.
 
-.. [Kly1990] Klyachko, Aleksandr Anatolevich. 
+.. [Kly1990] Klyachko, Aleksandr Anatolevich.
              Equivariant Bundles on Toral Varieties,
              Math USSR Izv. 35 (1990), 337-375.
              http://iopscience.iop.org/0025-5726/35/2/A04/pdf/0025-5726_35_2_A04.pdf
