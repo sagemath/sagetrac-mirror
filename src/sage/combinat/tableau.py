@@ -4508,12 +4508,17 @@ def _crowding_reverse_insertion(P, Q):
     Return triple ``(P',Q',seq')`` under the crowding map for pair ``(P,Q)``.
 
         INPUT:
-            ``P`` - a semistandard Young tableau
-            ``Q`` - a flagged increasing tableau with same shape as P
+
+        - ``P`` -- semistandard Young tableau
+
+        - ``Q`` -- flagged increasing tableau with same shape as ``P``
 
         OUTPUT: a tuple of 
+
         - sequence ``seq`` of removed integers
+        
         - semistandard Young tableau `P'` after reverse insertion
+        
         - flagged increasing tableau `Q` with same shape as `P'`
 
         EXAMPLES::
@@ -4544,7 +4549,7 @@ def _crowding_reverse_insertion(P, Q):
                     if isinstance(Qq(cell),(int,Integer)) \
                     and Qq(cell)==cell[0]], key=lambda x:-x[0])
 
-    # Insertion done to P first
+    # Reverse insertion done to P first
     seq = []
     for cell in cells:
         Pp, x = Pp.reverse_bump(cell)
@@ -4552,7 +4557,7 @@ def _crowding_reverse_insertion(P, Q):
     seq = [x for x in Pp[0]] + seq
     Pp = SemistandardTableau(Pp.to_list()[1:])
 
-    # Then corresponding cells are recorded in Q
+    # Then corresponding cells are removed from Q
     q_cells = [cell for cell in Qq.cells() if cell not in cells and cell[0]>0]
     support = [cell[0] for cell in q_cells]
     if len(support) > 0:

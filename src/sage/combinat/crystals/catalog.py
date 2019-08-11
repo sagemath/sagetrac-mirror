@@ -55,6 +55,8 @@ This is a catalog of crystals that are currently implemented in Sage:
   <sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths>`
 * :class:`RiggedConfigurations
   <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
+* :class:`SemistandardSetValuedTableaux
+  <sage.combinat.semistandard_set_valued_tableau.SemistandardSetValuedTableaux_shape>`
 * :class:`ShiftedPrimedTableaux
   <sage.combinat.shifted_primed_tableau.ShiftedPrimedTableaux_shape>`
 * :class:`Spins <sage.combinat.crystals.spins.CrystalOfSpins>`
@@ -103,7 +105,7 @@ from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfig
 from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableaux_shape as ShiftedPrimedTableaux
 from sage.combinat.partition_kleshchev import KleshchevPartitions
 from sage.combinat.multiset_partition_into_sets_ordered import MinimajCrystal as Minimaj
-#from sage.combinat.semistandard_set_valued_tableau import SemistandardSetValuedTableaux_shape as SemistandardSetValuedTableaux
+from sage.combinat.semistandard_set_valued_tableau import SemistandardSetValuedTableaux_shape as SemistandardSetValuedTableaux
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
 
