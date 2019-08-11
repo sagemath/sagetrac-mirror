@@ -8,64 +8,34 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) Jeremy Meza jdmeza@berkeley.edu                         
-#                     Oliver Pechenik pechenik@umich.edu                      
-#                     Wencin Poh wpoh@ucdavis.edu                             
-#                                                                             
-# This program is free software: you can redistribute it and/or modify         
-# it under the terms of the GNU General Public License as published by        
-# the Free Software Foundation, either version 2 of the License, or           
-# (at your option) any later version.                                         
-#                  http://www.gnu.org/licenses/                               
+#       Copyright (C) Jeremy Meza jdmeza@berkeley.edu
+#                     Oliver Pechenik pechenik@umich.edu
+#                     Wencin Poh wpoh@ucdavis.edu
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import print_function, absolute_import
 from six.moves import range, zip, map
 from six import add_metaclass
-
-from sage.combinat.partition import Partition, Partitions, _Partitions, Partitions_n
-from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux, SemistandardTableau
-from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
-from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.composition import Composition, Compositions
-#from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
-from sage.combinat.combinatorial_map import combinatorial_map
-#from sage.combinat.posets.posets import Poset
-#from sage.combinat import permutation
-
-from sage.categories.regular_crystals import RegularCrystals
-from sage.categories.classical_crystals import ClassicalCrystals
-from sage.combinat.root_system.cartan_type import CartanType
-
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.sets.non_negative_integers import NonNegativeIntegers
-
-from sage.categories.enumerated_sets import EnumeratedSets
+from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.sets_cat import Sets
-
-#from sage.structure.list_clone import ClonableArray
-#from sage.structure.sage_object import SageObject
-from sage.structure.element_wrapper import ElementWrapper
-from sage.structure.global_options import GlobalOptions
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableList
-from sage.structure.parent import Parent
-from sage.structure.richcmp import richcmp, richcmp_method
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-
-#from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.classical_crystals import ClassicalCrystals
+from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.partition import Partition, Partitions, _Partitions, Partitions_n
+from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableau, SemistandardTableaux
+from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.rings.infinity import PlusInfinity
 from sage.rings.integer import Integer
-
-#from sage.arith.all import factorial, binomial
-#import sage.libs.symmetrica.all as symmetrica
-#from sage.groups.perm_gps.permgroup import PermutationGroup
-
-#import sage.misc.prandom as random
-#from sage.misc.all import prod
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 from sage.misc.misc import powerset
 from sage.misc.lazy_attribute import lazy_attribute
 
@@ -178,7 +148,7 @@ class SemistandardSetValuedTableau(Tableau):
 
     def _repr_tab(self):
         """
-        Return a nested list of strings representing the elements.
+        Return a nested list of string representation of ``self``.
 
         EXAMPLES::
 
@@ -227,6 +197,7 @@ class SemistandardSetValuedTableau(Tableau):
     def check(self):
         r"""
         Check that ``self`` is a valid semistandard set-valued tableau.
+
         """
         super(SemistandardSetValuedTableau, self).check()
 
@@ -263,12 +234,23 @@ class SemistandardSetValuedTableau(Tableau):
 
     def weight(self):
         r"""
-        Return the weight of the set-valued tableau ``self``. Trailing zeroes are
-        omitted when returning the weight.
+        Return the weight of the set-valued tableau ``self``. 
+
+        Trailing zeroes are omitted when returning the weight.
 
         The weight of a tableau `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
         where `a_k` is the number of entries of `T` equal to `k`. This
         sequence contains only finitely many nonzero entries.
+
+        .. WARNING::
+
+            If tableau is considered as a crystal element, the weight returned 
+            will ignore trailing zeroes.
+
+            sage: SSVT = SemistandardSetValuedTableaux([2,1], max_entry=4)
+            sage: T = SemistandardSetValuedTableau([[[1], [1,3]], [[3]]])
+            sage: T.weight() # should give (2, 0, 2, 0)
+            [2, 0, 2]
 
         EXAMPLES::
 
@@ -336,11 +318,11 @@ class SemistandardSetValuedTableau(Tableau):
 
             sage: t = SemistandardSetValuedTableau([[[1],[1,2,3]],[[4,6]]])
             sage: t
-            [[[1], [1, 2, 3], [[4, 6]]
+            [[[1], [1, 2, 3]], [[4, 6]]]
             sage: t.bender_knuth_involution(1)
-            [[[1, 2], [2, 3], [[4, 6]]
+            [[[1, 2], [2, 3]], [[4, 6]]]
             sage: t.bender_knuth_involution(1).bender_knuth_involution(2)
-            [[[1, 2, 3], [3], [[4, 6]]
+            [[[1, 2, 3], [3]], [[4, 6]]]
 
         The Bender--Knuth involution is an involution::
 
@@ -474,24 +456,24 @@ class SemistandardSetValuedTableau(Tableau):
         print(S)
 
     def uncrowding(self):
-    r"""
-    Returns the image of self under the uncrowding map.
+        r"""
+        Returns the image of self under the uncrowding map.
 
-        EXAMPLES::
-            sage: T = Tableau([[[1], [1,2,3]], [[2,3]]])
-            sage: T.uncrowding()
-            ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
+            EXAMPLES::
+                sage: T = SemistandardSetValuedTableau([[[1], [1,2,3]], [[2,3]]])
+                sage: T.uncrowding()
+                ([[1, 1], [2, 2], [3, 3]], [['X', 'X'], ['X', 1], [1, 2]])
 
-            sage: T = Tableau([[[1], [1,2], [2]], [[2,3], [3,4,5]], [[4]]])
-            sage: T.uncrowding()
-            ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
-    """
-    P = SemistandardTableau([])
-    Q = Tableau([])
-    sequences = _insertion_sequence(self.to_list())
-    for seq in sequences:
-        P,Q = _uncrowding_insertion(seq,P,Q)
-    return P,Q
+                sage: T = SemistandardSetValuedTableau([[[1], [1,2], [2]], [[2,3], [3,4,5]], [[4]]])
+                sage: T.uncrowding()
+                ([[1, 1, 2], [2, 2], [3, 3], [4, 4], [5]], [['X', 'X', 'X'], ['X', 'X'], ['X', 1], [2, 3], [3]])
+        """
+        P = SemistandardTableau([])
+        Q = Tableau([])
+        sequences = _insertion_sequence(self.to_list())
+        for seq in sequences:
+            P,Q = _uncrowding_insertion(seq,P,Q)
+        return P,Q
 
 class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
     r"""
@@ -627,19 +609,19 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         T = T.add_entry((row,col),tuple(entry))
         return self.parent()(T)
 
-    def weight(self):
-        r"""
-        Return the weight for ``self``.
+    # def weight(self):
+    #     r"""
+    #     Return the weight for ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
         
-            sage: SSVT = SemistandardSetValuedTableaux([2,1,1],max_entry=5)
-            sage: T = SSVT([[[1], [2, 3]], [[2]], [[3]]])
-            sage: T.weight()
-            (1, 2, 2, 0, 0)
-        """
-        WLR = self.parent().weight_lattice_realization()
-        return sum(sum(WLR.monomial(elt-1) for elt in self(cell)) for cell in self.cells())
+    #         sage: SSVT = SemistandardSetValuedTableaux([2,1,1],max_entry=5)
+    #         sage: T = SSVT([[[1], [2, 3]], [[2]], [[3]]])
+    #         sage: T.weight()
+    #         (1, 2, 2, 0, 0)
+    #     """
+    #     WLR = self.parent().weight_lattice_realization()
+    #     return sum(sum(WLR.monomial(elt-1) for elt in self(cell)) for cell in self.cells())
 
     def reading_word(self):
         r"""
@@ -649,13 +631,17 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
 
             sage: SSVT = SemistandardSetValuedTableaux([5,3,1,1],max_entry=6)
             sage: T = SSVT([[[1,2],[2,3],[3],[3,4,5],[5,6]], [[3],[4,6],[6]], [[4,5]],[[6]]])
-            sage: reading_word(T)
+            sage: T.reading_word()
             [6, 5, 4, 3, 6, 6, 4, 2, 3, 3, 5, 6, 5, 4, 3, 2, 1]
         """
         R = []
         for s in _insertion_sequence(self):
             R += s
         return R
+
+    # def to_tableau(self):
+    #     SSVT = SemistandardSetValuedTableaux(self.size(),max_entry=self.parent().max_entry)
+    #     return SSVT.element_class(SSVT,self)
 
 class SemistandardSetValuedTableaux(Tableaux):
     r"""
@@ -816,7 +802,7 @@ class SemistandardSetValuedTableaux(Tableaux):
             sage: T2 in SemistandardSetValuedTableaux(3)
             True
             sage: T3 in SemistandardSetValuedTableaux(3)
-            True
+            False
             sage: T2 in SemistandardSetValuedTableaux([2,1])
             True
             sage: T1 in SemistandardSetValuedTableaux([2,1,1])
@@ -1032,9 +1018,6 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
             sage: len(SSVT)
             10
         """
-        if self._size == 0:
-            yield self.element_class(self, [])
-
         for part in Partitions(self._size):
             for ssvt in SemistandardSetValuedTableaux_shape(part, self.max_entry):
                 yield self.element_class(self, ssvt)
@@ -1130,6 +1113,8 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             ([[[1], [1]], [[2], [2]]], [[[1], [1]], [[2], [2, 3]]], [[[1], [1, 2]], [[2], [3]]], [[[1], [1, 2]], [[2, 3], [3]]])
         """
         P = self._shape
+        # if len(P) == 0:
+        #     return tuple([SemistandardSetValuedTableau([])])
         m = self.max_entry
         if m is None:
             # L = _generate_pairs(P, m)
@@ -1259,7 +1244,8 @@ def _insertion_sequence(T):
     The algorithm assumes that entries in cells of T are sorted in increasing order.
     
         EXAMPLES:
-            sage: T = SemistandardSetValuedTableau([ [ [2,3,1],[6,3,5],[7],[11,8,12,10] ], [ [4,5,6,7],[7],[9,12,8] ], [ [8],[9,8],[13] ], [ [9,10] ] ])
+            sage: T = SemistandardSetValuedTableau([[[2,3,1], [6,3,5], [7], [11,8,12,10]], [[4,5,6,7], [7], [9,12,8]], [[8], [9,8], [13]], [[9,10]]])
+            sage: from sage.combinat.semistandard_set_valued_tableau import _insertion_sequence
             sage: _insertion_sequence(T)
             [[10, 9], [8, 9, 13, 8], [7, 7, 12, 9, 8, 6, 5, 4], [3, 6, 7, 12, 11, 10, 8, 5, 3, 2, 1]]
     """
@@ -1297,9 +1283,11 @@ def _uncrowding_insertion(seq, P=None, Q=None, mark='X'):
         EXAMPLES::
             sage: P = SemistandardTableau([[4],[6],[7]])
             sage: Q = Tableau([['X'],['X'],[1]])
+            sage: from sage.combinat.semistandard_set_valued_tableau import _uncrowding_insertion
             sage: _uncrowding_insertion([3,3,9,8],P,Q)
             ([[3, 3, 8], [4, 9], [6], [7]], [['X', 'X', 'X'], ['X', 1], ['X'], [1]])
 
+            sage: from sage.combinat.semistandard_set_valued_tableau import _uncrowding_insertion
             sage: _uncrowding_insertion([1,1,4,5,4,3,2])
             ([[1, 1, 2, 4], [3], [4], [5]], [['X', 'X', 'X', 'X'], [1], [2], [3]])
     """
@@ -1334,10 +1322,12 @@ def _max_outer_shape(P, m):
         EXAMPLES::
 
             sage: P,m = [8,6,3,1],6
+            sage: from sage.combinat.semistandard_set_valued_tableau import _max_outer_shape
             sage: _max_outer_shape(P,m)
             [8, 7, 5, 4, 4, 4]
 
             sage: P,m = [23,20,18,18,12,7,4,2,1],10
+            sage: from sage.combinat.semistandard_set_valued_tableau import _max_outer_shape
             sage: _max_outer_shape(P,m)
             [23, 21, 20, 20, 16, 12, 10, 9, 9, 9]
     """
@@ -1373,6 +1363,7 @@ def _highest_weight_tableau(P):
 
         EXAMPLES::
             sage: P = [5,3,2,1]
+            sage: from sage.combinat.semistandard_set_valued_tableau import _highest_weight_tableau
             sage: _highest_weight_tableau(P)
             [[1, 1, 1, 1, 1], [2, 2, 2], [3, 3], [4]]
     """
@@ -1418,6 +1409,9 @@ def _generate_pairs(P, m):
         raise ValueError("m has to be a positive integer")
 
     else:
+        if len(P)==0:
+            return tuple([(SemistandardTableau([]),Tableau([]))])
+
         S,F = _highest_weight_tableau(P),Tableau([[None]*P[i] for i in range(len(P))])
         L = [(S,F)]
         out = _max_outer_shape(P, m)
