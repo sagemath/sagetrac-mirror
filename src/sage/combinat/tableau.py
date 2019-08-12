@@ -4434,7 +4434,7 @@ class SemistandardTableau(Tableau):
 
     def crowding(self, Q, mark='X', m=None):
         r"""
-        Returns the image of pair (self,Q) under the crowding map.
+        Return the image of pair (self,Q) under the crowding map.
 
         INPUT:
 
@@ -4447,7 +4447,7 @@ class SemistandardTableau(Tableau):
           (default: 'X'). If skew tableau is specified, ``mark`` should be
           assigned as None.
 
-        OUTPUT: a semistandard set valued tableau
+        OUTPUT: a semistandard set valued tableau `T`
 
         EXAMPLES:
 
@@ -4460,6 +4460,10 @@ class SemistandardTableau(Tableau):
             sage: Q = Tableau([['X','X','X'], ['X','X'], ['X',1], [2,3], [3]])
             sage: P.crowding(Q)
             [[[1], [1, 2], [2]], [[2, 3], [3, 4, 5]], [[4]]]
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.semistandard_set_valued_tableau.SemistandardSetValuedTableau.uncrowding`
         """
         part = [len([x for x in row if x==mark]) for row in Q if mark in row]
         from sage.combinat.partition import _Partitions
@@ -4477,7 +4481,7 @@ class SemistandardTableau(Tableau):
 ####################
 
 def _reconstruct_tableau(seq, m=None):
-    r"""
+    """
     Return a semistandard set-valued tableau given ``seq``.
 
     EXAMPLES:
@@ -4504,7 +4508,7 @@ def _reconstruct_tableau(seq, m=None):
     return SSVT.element_class(SSVT,L)
 
 def _crowding_reverse_insertion(P, Q):
-    r"""
+    """
     Return triple ``(P',Q',seq')`` under the crowding map for pair ``(P,Q)``.
 
         INPUT:

@@ -309,6 +309,7 @@ Comprehensive Module list
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
     sage/combinat/shard_order
+    sage/combinat/semistandard_set_valued_tableau
     sage/combinat/shifted_primed_tableau
     sage/combinat/shuffle
     sage/combinat/sidon_sets

@@ -3260,6 +3260,10 @@ REFERENCES:
              :doi:`10.1137/1.9781611972986.7`
              http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf
 
+.. [MPS2018] Cara Monical, Oliver Pechenik and Travis Scrimshaw,
+             *Crystal structures for symmetric Grothendieck polynomials*
+             Preprint, :arxiv:`1807.03294`.
+
 .. [MR1989] \G. Melançon and C. Reutenauer.
             *Lyndon words, free algebras and shuffles*,
             Can. J. Math., Vol. XLI, No. 4, 1989, pp. 577-591.
