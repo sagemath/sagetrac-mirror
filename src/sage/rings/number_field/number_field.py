@@ -8690,7 +8690,13 @@ class NumberField_absolute(NumberField_generic):
 
             sage: K.abs_val(v_fin,xi^2)
             0.111111111111111
+        
+        TESTS::
+            sage: K.abs_val(v_fin, K(0))
+            0
         """
+        if iota == 0:
+            return 0
         if prec is None:
             prec = 53
         R = sage.rings.real_mpfr.RealField(prec)
