@@ -9,7 +9,7 @@ from sage.rings.all import ZZ
 from sage.rings.ideal import Ideal_generic
 
 
-class OrderIdeal(Ideal_generic):
+class OrderFractionalIdeal(Ideal_generic):
     """
     An ideal of a number field order.
     """

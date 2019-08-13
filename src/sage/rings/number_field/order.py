@@ -201,8 +201,8 @@ class Order(IntegralDomain):
         if self.is_maximal:
             return self.number_field().fractional_ideal(*args, **kwds)
         else:
-            from sage.rings.number_field.order_ideal import OrderIdeal
-            return OrderIdeal(self, args, **kwds)
+            from sage.rings.number_field.order_fractional_ideal import OrderFractionalIdeal
+            return OrderFractionalIdeal(self, args, **kwds)
 
     def ideal(self, *args, **kwds):
         """
@@ -237,8 +237,8 @@ class Order(IntegralDomain):
         if self.is_maximal():
             I = self.number_field().ideal(*args, **kwds)
         else:
-            from sage.rings.number_field.order_ideal import OrderIdeal
-            I = OrderIdeal(self, args, **kwds)
+            from sage.rings.number_field.order_fractional_ideal import OrderFractionalIdeal
+            I = OrderFractionalIdeal(self, args, **kwds)
         if not I.is_integral():
             raise ValueError("ideal must be integral; use fractional_ideal to create a non-integral ideal.")
         return I

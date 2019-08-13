@@ -49,7 +49,7 @@ import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 
-from sage.rings.number_field.order_ideal import OrderIdeal
+from sage.rings.number_field.order_fractional_ideal import OrderFractionalIdeal
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
@@ -63,7 +63,7 @@ QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
 
-class NumberFieldIdeal(OrderIdeal):
+class NumberFieldIdeal(OrderFractionalIdeal):
     """
     An ideal of a number field.
     """
@@ -134,7 +134,7 @@ class NumberFieldIdeal(OrderIdeal):
                 gens = [field(gens, check=False)]
         if len(gens)==0:
             raise ValueError("gens must have length at least 1 (zero ideal is not a fractional ideal)")
-        OrderIdeal.__init__(self, field.ring_of_integers(), gens, coerce)
+        OrderFractionalIdeal.__init__(self, field.ring_of_integers(), gens, coerce)
         if field.absolute_degree() == 2:
             self.quadratic_form = self._quadratic_form
 
