@@ -1,8 +1,6 @@
 import os
 from distutils.extension import Extension
-from sage.env import SAGE_LOCAL
-
-SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
+from sage.env import SAGE_LOCAL, SAGE_INC
 
 #########################################################
 ### pkg-config setup
@@ -816,14 +814,14 @@ ext_modules = [
               library_dirs = m4ri_library_dirs + gd_library_dirs + png_library_dirs + zlib_library_dirs,
               include_dirs = m4ri_include_dirs + gd_include_dirs + png_include_dirs + zlib_include_dirs,
               extra_compile_args = m4ri_extra_compile_args,
-              depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
+              depends = ['png.h', 'm4ri/m4ri.h']),
 
     Extension('sage.matrix.matrix_gf2e_dense',
               sources = ['sage/matrix/matrix_gf2e_dense.pyx'],
               libraries = ['m4rie'] + m4ri_libs + ['m'],
               library_dirs = m4ri_library_dirs,
               include_dirs = m4ri_include_dirs,
-              depends = [SAGE_INC + "/m4rie/m4rie.h"],
+              depends = ['m4rie/m4rie.h'],
               extra_compile_args = m4ri_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense_float',
@@ -856,7 +854,7 @@ ext_modules = [
               libraries = ['iml', 'ntl', 'm'] + cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs,
-              depends = [SAGE_INC + '/m4ri/m4ri.h']),
+              depends = ['m4ri/m4ri.h']),
 
     Extension('sage.matrix.matrix_rational_sparse',
               sources = ['sage/matrix/matrix_rational_sparse.pyx']),
@@ -993,7 +991,7 @@ ext_modules = [
               library_dirs = m4ri_library_dirs + gd_library_dirs + png_library_dirs,
               include_dirs = m4ri_include_dirs + gd_include_dirs + png_include_dirs,
               extra_compile_args = m4ri_extra_compile_args,
-              depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
+              depends = ['png.h', 'm4ri/m4ri.h']),
 
     Extension('sage.modules.vector_rational_dense',
               sources = ['sage/modules/vector_rational_dense.pyx']),
@@ -1503,8 +1501,8 @@ ext_modules = [
               libraries=['brial', 'brial_groebner'] + m4ri_libs + png_libs,
               library_dirs = m4ri_library_dirs + png_library_dirs,
               include_dirs = m4ri_include_dirs + png_include_dirs,
-              depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] +
-                        [SAGE_INC + '/m4ri/m4ri.h'],
+              depends = ['polybori/polybori.h', 'polybori/config.h',
+                         'm4ri/m4ri.h'],
               extra_compile_args = m4ri_extra_compile_args),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
