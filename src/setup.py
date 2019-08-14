@@ -376,7 +376,11 @@ class sage_build_cython(Command):
                 key=lambda lib: library_order.get(lib, 0))
 
         # Dependencies: add setup.py and lib_headers
-        depends = kwds.get('depends', []) + [__file__]
+        # Take depends off the 'template' Extension as well in order to
+        # process them through default_create_extension; see
+        # https://trac.sagemath.org/ticket/28349
+        depends = kwds.get('depends', []) + template.depends + [__file__]
+        template.depends = []
         for lib, headers in lib_headers.items():
             if lib in libs:
                 depends += headers
