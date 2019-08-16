@@ -6739,7 +6739,11 @@ cdef class Matrix(Matrix1):
             # but this should be done by introducing a category of general valuation rings and fields,
             # which we don't have at the moment
             elif self.base_ring() in DiscreteValuationFields():
-                algorithm = 'scaled_partial_pivoting_valuation'
+                try:
+                    abs(self.base_ring().one())
+                    algorithm = 'scaled_partial_pivoting'
+                except TypeError:
+                    algorithm = 'scaled_partial_pivoting_valuation'
             else:
                 algorithm = 'classical'
         try:
