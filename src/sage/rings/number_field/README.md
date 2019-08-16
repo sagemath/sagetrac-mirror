@@ -1,3 +1,6 @@
+# Implement intersections
+
+
 # Changes that affect number field ideals
 
 ```

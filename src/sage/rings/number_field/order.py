@@ -1575,7 +1575,7 @@ class AbsoluteOrder(Order):
 
         ALGORITHM:
 
-        We follow the algorithm of Secion 6 of [KP2005]_.
+        We follow the algorithm of Section 6 of [KP2005]_.
 
         EXAMPLES::
 
