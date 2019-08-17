@@ -54,7 +54,7 @@ from sage.structure.element import is_Element
 from sage.modules.free_module_element import vector
 
 from .number_field_element import OrderElement_absolute, OrderElement_relative
-
+from .order_fractional_ideal import OrderFractionalIdeal
 from .number_field_element_quadratic import OrderElement_quadratic
 
 from sage.rings.monomials import monomials
@@ -1299,7 +1299,7 @@ class AbsoluteOrder(Order):
 
     def __and__(left, right):
         """
-        Intersect orders.
+        Intersect orders and ideals.
 
         EXAMPLES::
 
@@ -1311,12 +1311,31 @@ class AbsoluteOrder(Order):
             [1, 15*i]
             sage: O3.intersection(O5).basis()
             [1, 15*i]
+
+        We can intersect a fractional ideal in the same number field with this
+        order to obtain a fractional ideal of this order. ::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: O = K.order(a)
+            sage: f = O.conductor(in_integral_closure=True)
+            sage: fcapO = O.intersection(f)
+            sage: fcapO.order() == O
+            True
+            sage: fcapO == O.conductor(in_integral_closure=False)
+            True
         """
-        if not isinstance(left, AbsoluteOrder) or not isinstance(right, AbsoluteOrder):
+        if isinstance(right, AbsoluteOrder):
+            if left.number_field() != right.number_field():
+                raise TypeError("Number fields don't match.")
+            return AbsoluteOrder(left._K,
+                                 left._module_rep.intersection(right._module_rep),
+                                 False)
+        elif isinstance(right, OrderFractionalIdeal):
+            if left.number_field() != right.number_field():
+                raise TypeError("Number fields don't match.")
+            return left.ideal(right.gens())
+        else:
             raise NotImplementedError
-        if left.number_field() != right.number_field():
-            raise TypeError("Number fields don't match.")
-        return AbsoluteOrder(left._K, left._module_rep.intersection(right._module_rep), False)
 
     def _magma_init_(self, magma):
         """
