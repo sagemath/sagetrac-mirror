@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
 from sage.rings.ideal import Ideal_generic
+from sage.structure.richcmp import richcmp
 
 
 class OrderFractionalIdeal(Ideal_generic):
@@ -27,6 +28,17 @@ class OrderFractionalIdeal(Ideal_generic):
 
     def __repr__(self):
         return "Fractional ideal %s of non-maximal order" % self._repr_short()
+
+    def _richcmp_(self, other, op):
+        """
+        Compare this ideal with `other` by comparing their underlying free
+        module.
+        """
+        if not isinstance(other, OrderFractionalIdeal):
+            return NotImplemented
+        if not self.order() == other.order():
+            return NotImplemented
+        return richcmp(self.free_module(), other.free_module(), op)
 
     @cached_method
     def is_integral(self):

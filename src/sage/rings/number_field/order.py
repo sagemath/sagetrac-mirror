@@ -1608,6 +1608,8 @@ class AbsoluteOrder(Order):
             sage: I = O.conductor(in_integral_closure=False)
             sage: I.order() == O
             True
+            sage: I == O.ideal(2)
+            True
 
         The conductor is not always principal. ::
 
