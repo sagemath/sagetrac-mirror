@@ -52,10 +52,10 @@ class SemistandardSetValuedTableau(Tableau):
     A semistandard set-valued tableau is a tableau whose cells are filled with
     nonempty sets of integers such that:
 
-    1. If cell `A` appears to the left of cell `B` in tsame row, then 
-       max(A) <= \min(B). 
+    1. If cell `A` appears to the left of cell `B` in the same row, then 
+       ``\max(A) \leq \min(B)``. 
     2. If cell `A` appears before cell `B` in the same column, then 
-       max(A) < min(B).
+       ``\max(A) < \min(B)``.
 
     EXAMPLES::
 
@@ -525,6 +525,10 @@ class SemistandardSetValuedTableau(Tableau):
 
         EXAMPLES::
 
+            sage: T = SemistandardSetValuedTableau([])
+            sage: T.pp()
+              -
+
             sage: T = SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
             sage: T.pp()
             [   1   ][  1  ][ 8 ]
@@ -537,6 +541,8 @@ class SemistandardSetValuedTableau(Tableau):
             [     7     ][  7   ][ 8,9,10 ][ 10,11,13,14 ][   14    ]
             [    8,9    ][ 9,10 ][ 11,13  ][  16,17,18   ]
         """
+        if len(shape(self)) == 0:
+            print("  -")
         max_len = max(len(row) for row in self)
         str_len = [[sum([len(str(elt)) for elt in cell]) + len(cell) - 1 for cell in row] for row in self]
         col_max = [max(row[j] for row in str_len if j < len(row)) for j in range(max_len)]
@@ -1055,6 +1061,66 @@ class SemistandardSetValuedTableaux_all(SemistandardSetValuedTableaux, DisjointU
         """
         return SemistandardSetValuedTableaux.__contains__(self, x)
 
+    def __iter__(self):
+        """
+        Iterate over all semistandard set-valued tableaux associated to the
+        size of ``self``.
+
+        EXAMPLES::
+
+            sage: SSVT1 = SemistandardSetValuedTableaux(max_entry=2)
+            sage: it = iter(SSVT1)
+            sage: [next(it) for i in range(10)] 
+            
+
+            sage: SSVT2 = SemistandardSetValuedTableaux()
+            sage: it = iter(SSVT2)
+            sage: [next(it) for i in range(10)]
+            
+        """
+        m = self.max_entry
+        if m is None:
+            it = iter(SemistandardSetValuedTableaux_size(0))
+            yield self.element_class(self, next(it))
+            iters = Family(NonNegativeIntegers(), lambda n: iter(SemistandardSetValuedTableaux_size(n+1)))
+            cur_iters = []
+            for it0 in iters:
+                cur_iters.append(it0)
+                for it1 in cur_iters:
+                    yield self.element_class(self, next(it1))
+        else:
+            it = iter(SemistandardSetValuedTableaux_size(0,m))
+            yield self.element_class(self, next(it))
+            iters = Family(NonNegativeIntegers(), lambda n: iter(SemistandardSetValuedTableaux_size(n+1, max_entry=m)))
+            cur_iters = []
+            for it0 in iters:
+                cur_iters.append(it0)
+                for it1 in cur_iters:
+                    yield self.element_class(self, next(it1))
+
+
+        # from itertools import islice
+        # def nth_elt(it, n):
+        #     return next(islice(it, n, None))
+
+
+# def infinite_iter(n,char):
+#     value = [n, char]
+#     while True:
+#         yield value
+#         value[0] += 1
+
+# iters = Family(NonNegativeIntegers(), lambda n: RecursivelyEnumeratedSet([(n,0)],lambda x: [(x[0],x[1]+1)],structure='graded'))
+# cur_iters = []
+# levels = []
+# for next_level in iters:
+#     cur_iters.append(next_level)
+#     levels.append(0)
+#     for i, it in enumerate(cur_iters):
+#         for elt in it.graded_component(levels[i]):
+#             yield elt
+#         levels[i] += 1
+
 
 class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, DisjointUnionEnumeratedSets):
     """
@@ -1144,24 +1210,36 @@ class SemistandardSetValuedTableaux_size(SemistandardSetValuedTableaux, Disjoint
 
         EXAMPLES::
 
-            sage: SSVT = SemistandardSetValuedTableaux(3, max_entry=2)
-            sage: SSVT.list()
+            sage: SSVT1 = SemistandardSetValuedTableaux(3, max_entry=2)
+            sage: list(SSVT1)
             [[[[1], [1], [1]]],
-            [[[1], [1], [1, 2]]],
             [[[1], [1], [2]]],
-            [[[1], [1, 2], [2]]],
+            [[[1], [1], [1, 2]]],
             [[[1], [2], [2]]],
-            [[[1, 2], [2], [2]]],
+            [[[1], [1, 2], [2]]],
             [[[2], [2], [2]]],
+            [[[1, 2], [2], [2]]],
             [[[1], [1]], [[2]]],
-            [[[1], [1, 2]], [[2]]],
-            [[[1], [2]], [[2]]]]
-            sage: len(SSVT)
+            [[[1], [2]], [[2]]],
+            [[[1], [1, 2]], [[2]]]]
+            sage: len(SSVT1)
             10
+
+            sage: SSVT2 = SemistandardSetValuedTableaux(3)
+            sage: it = iter(SSVT2)
+            sage: [next(it) for i in range(15)]
         """
-        for part in Partitions(self._size):
-            for ssvt in SemistandardSetValuedTableaux_shape(part, self.max_entry):
-                yield self.element_class(self, ssvt)
+        n = self._size
+        m = self.max_entry
+        if m is None:
+            iters  = [iter(SemistandardSetValuedTableaux_shape(P, m)) for P in Partitions(n)]
+            while True:
+                for it in iters:
+                    yield self.element_class(self, next(it))
+        else:
+            for part in Partitions(n):
+              for T in SemistandardSetValuedTableaux_shape(part, max_entry=m):
+                 yield self.element_class(self, T)  
 
 
 class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
@@ -1313,18 +1391,157 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
 
             sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3)
             sage: SSVT.module_generators
-            ([[[1], [1]], [[2], [2]]], [[[1], [1]], [[2], [2, 3]]], [[[1], [1, 2]], [[2], [3]]], [[[1], [1, 2]], [[2, 3], [3]]])
+            ([[[1], [1]], [[2], [2]]],
+            [[[1], [1]], [[2], [2, 3]]],
+            [[[1], [1, 2]], [[2], [3]]],
+            [[[1], [1, 2]], [[2, 3], [3]]])
+
+            sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3)
+            sage: F = SSVT.module_generators
+            sage: [F[i] for i in range(10)]
+            [[[[1], [1]], [[2], [2]]],
+            [[[1], [1]], [[2], [2, 3]]],
+            [[[1], [1, 2]], [[2], [3]]],
+            [[[1], [1, 2]], [[2, 3], [3]]],
+            [[[1], [1]], [[2], [2, 3, 4]]],
+            [[[1], [1, 2]], [[2], [3, 4]]],
+            [[[1], [1, 2, 3]], [[2], [4]]],
+            [[[1], [1, 2]], [[2, 3], [3, 4]]],
+            [[[1], [1, 2, 3]], [[2, 3], [4]]],
+            [[[1], [1, 2, 3]], [[2, 3, 4], [4]]]]
         """
         P = self._shape
         m = self.max_entry
-        if m is None:
-            # L = _generate_pairs(P, m)
-            # crowd = lambda i: L[i][0].crowding(L[i][1], mark=None)
-            # return Family(L, crowd, lazy=True)
-            raise ValueError("max_entry must be specified to produce module_generators")
+
+        from itertools import islice
+        def nth_elt(it, n):
+            return next(islice(it, n, None))
+
+        if m is not None:
+            return tuple(_module_gens_iter(P, m))
+        return Family(NonNegativeIntegers(),lambda n: nth_elt(_module_gens_iter(P, m),n))
+
+    def __iter__(self):
+        """
+        Iterate over all semistandard set-valued tableaux associated to the
+        shape of ``self``.
+
+        EXAMPLES::
+
+            sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3)
+            sage: list(SSVT)
+            [[[[1], [1]], [[2], [2]]],
+             [[[1], [1]], [[2], [3]]],
+             [[[1], [1]], [[2], [2, 3]]],
+             [[[1], [1]], [[3], [3]]],
+             [[[1], [1]], [[2, 3], [3]]],
+             [[[1], [2]], [[2], [3]]],
+             [[[1], [1, 2]], [[2], [3]]],
+             [[[1], [2]], [[3], [3]]],
+             [[[1], [2]], [[2, 3], [3]]],
+             [[[1], [1, 2]], [[3], [3]]],
+             [[[1], [1, 2]], [[2, 3], [3]]],
+             [[[2], [2]], [[3], [3]]],
+             [[[1, 2], [2]], [[3], [3]]]]
+            sage: len(SSVT)
+            13
+
+            sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=None)
+            sage: it = iter(SSVT)
+            sage: [next(it) for i in range(15)]
+            [[[[1], [1]], [[2], [2]]],
+             [[[1], [1]], [[2], [3]]],
+             [[[1], [1]], [[2], [2, 3]]],
+             [[[1], [1]], [[2], [4]]],
+             [[[1], [1]], [[2], [2, 4]]],
+             [[[1], [1]], [[2], [3, 4]]],
+             [[[1], [1]], [[2], [2, 3, 4]]],
+             [[[1], [1]], [[3], [3]]],
+             [[[1], [1]], [[2, 3], [3]]],
+             [[[1], [1]], [[3], [4]]],
+             [[[1], [1]], [[3], [3, 4]]],
+             [[[1], [1]], [[2, 3], [4]]],
+             [[[1], [1]], [[2, 3], [3, 4]]],
+             [[[1], [1]], [[4], [4]]],
+             [[[1], [1]], [[2, 4], [4]]]]
+
+        """
+        def jumps(row):
+            """
+            Return list of indices i+1 where row[i] < row[i+1] and possibly
+            the first index of row if the entry is larger than 1.
+
+            INPUT:
+            
+            - ``row`` -- a list of list of integers
+
+            EXAMPLES::
+
+                sage: row = [[2], [3], [3], [5], [5]]
+                sage: jumps(row)
+                [0, 1, 3]
+                sage: row = [[1], [2], [4], [4], [5]]
+                sage: jumps(row)
+                [1, 2, 4]
+            """
+            L = [0] if min(row[0])>1 else []
+            return L+[i+1 for i in range(len(row)-1) if max(row[i])<min(row[i+1])]
+
+        def addable(cell, left, above):
+            """
+            Return a list of numbers that can added to the cell ``cell`` of a
+            semistandard set-valued tableau.
+
+            INPUT:
+
+            - ``cell`` -- nonempty list of integers
+
+            - ``left`` -- list of integers or None
+
+            - ``above`` -- list of integers or None
+
+            """
+            cell_val = min(cell)
+            left_val = max(left) if left is not None else 1
+            above_val = max(above)+1 if above is not None else 1
+
+            if left_val > above_val:
+                return list(range(left_val, cell_val))
+            else:
+                return list(range(above_val, cell_val))
+
+        if len(self._shape) == 0:
+            yield self.element_class(self, [])
         else:
-            L = _generate_pairs(P, m)
-            return tuple([S.crowding(F, mark=None, m=m) for S,F in L])
+            m = self.max_entry if self.max_entry is not None else PlusInfinity()
+
+            from sage.misc.mrange import cartesian_product_iterator as CPI
+            import copy
+            for t in SemistandardTableaux(shape=self._shape, max_entry=m):
+                tab = [[[entry] for entry in row] for row in t]
+                addable_indices = []
+                addable_sets = []
+                for i in range(len(tab)):
+                    J = jumps(tab[i])
+                    for j in J:
+                        cell = tab[i][j]
+                        left, above = None, None
+                        if i > 0:
+                            above = tab[i-1][j]
+                        if j > 0:
+                            left = tab[i][j-1]
+
+                        # if a cell can be added with extra letters
+                        addable_indices += [(i,j)]
+                        elts_to_add = [tuple(_) for _ in powerset(addable(cell, left, above))]
+                        addable_sets.append(elts_to_add)
+                
+                for cp in CPI(addable_sets):
+                    tab_copy = copy.deepcopy(tab)
+                    for k in range(len(addable_sets)):
+                        i,j = addable_indices[k]
+                        tab_copy[i][j] += cp[k]
+                    yield self.element_class(self, tab_copy)
 
     def shape(self):
         """
@@ -1338,102 +1555,6 @@ class SemistandardSetValuedTableaux_shape(SemistandardSetValuedTableaux):
             [2, 2]
         """
         return self._shape
-
-    def __iter__(self):
-        """
-        Iterate over all semistandard set-valued tableaux associated to the
-        shape of ``self``.
-
-        .. WARNING::
-
-            If ``max_entry`` is None, this will raise a ValueError.
-
-        EXAMPLES::
-
-            sage: SSVT = SemistandardSetValuedTableaux([2,2],max_entry=3)
-            sage: SSVT.list()
-            [[[[1], [1]], [[2], [2]]],
-            [[[1], [1]], [[2], [2, 3]]],
-            [[[1], [1]], [[2], [3]]],
-            [[[1], [1]], [[2, 3], [3]]],
-            [[[1], [1, 2]], [[2], [3]]],
-            [[[1], [1, 2]], [[2, 3], [3]]],
-            [[[1], [1]], [[3], [3]]],
-            [[[1], [1, 2]], [[3], [3]]],
-            [[[1], [2]], [[2], [3]]],
-            [[[1], [2]], [[2, 3], [3]]],
-            [[[1], [2]], [[3], [3]]],
-            [[[1, 2], [2]], [[3], [3]]],
-            [[[2], [2]], [[3], [3]]]]
-            sage: len(SSVT)
-            13
-        """
-        if self.max_entry is None:
-            raise ValueError("max_entry must be specified to iterate")
-
-        def jumps(row):
-            """
-            Return list of indices i where row[i] < row[i+1] and also
-            the last index of row.
-
-            INPUT:
-            
-            - ``row`` -- a list of list of integers
-            """
-            return [i for i in range(len(row)-1) if max(row[i])<min(row[i+1])] + [len(row)-1]
-        
-        def addable(cell, right, below, max_entry):
-            """
-            Return a list of numbers that can added to the cell ``cell`` of a
-            semistandard set-valued tableau.
-
-            INPUT:
-
-            - ``cell`` -- nonempty list of integers
-
-            - ``right`` -- list of integers or None
-
-            - ``below`` -- list of integers or None
-
-            - ``max_entry`` -- nonnegative integer
-            """
-            cell_val = max(cell)+1
-            right_val = min(right)+1 if right is not None else max_entry+1
-            below_val = min(below) if below is not None else max_entry+1
-
-            if right_val < below_val:
-                return list(range(cell_val, right_val))
-            else:
-                return list(range(cell_val, below_val))
-
-        from sage.misc.mrange import cartesian_product_iterator as CPI
-        import copy
-        for t in SemistandardTableaux(shape=self._shape, max_entry=self.max_entry):
-            tab = [[[entry] for entry in row] for row in t]
-            addable_indices = []
-            addable_sets = []
-            for i in range(len(tab)):
-                J = jumps(tab[i])
-                for j in J:
-                    cell = tab[i][j]
-                    right, below = None, None
-                    if i+1 < len(tab):
-                        if j < len(tab[i+1]):
-                            below = tab[i+1][j]
-                    if j+1 < len(tab[i]):
-                        right = tab[i][j+1]
-
-                    # if a cell can be added with extra letters
-                    addable_indices += [(i,j)]
-                    elts_to_add = [tuple(_) for _ in powerset(addable(cell,right,below,self.max_entry))]
-                    addable_sets.append(elts_to_add)
-            
-            for cp in CPI(addable_sets):
-                tab_copy = copy.deepcopy(tab)
-                for k in range(len(addable_sets)):
-                    i,j = addable_indices[k]
-                    tab_copy[i][j] += cp[k]
-                yield self.element_class(self, tab_copy)
 
 ######################
 #  Helper functions  #
@@ -1536,6 +1657,12 @@ def _max_outer_shape(P, m):
     Return the largest outer shape of flagged increasing tableau given 
     partition ``P`` and maximum entry ``m``.
 
+    INPUT:
+
+    - ``P`` - integer partition
+
+    - ``m`` - nonnegative integer or None if there is no maximum entry 
+
     EXAMPLES::
 
         sage: P,m = [8,6,3,1], 6
@@ -1543,20 +1670,35 @@ def _max_outer_shape(P, m):
         sage: _max_outer_shape(P, m)
         [8, 7, 5, 4, 4, 4]
 
+        sage: P,m = [23,20,18,18,12,7,4,2,1], 10
         sage: from sage.combinat.semistandard_set_valued_tableau import _max_outer_shape
-        sage: P,m = [23,20,18,18,12,7,4,2,1],10
         sage: _max_outer_shape(P, m)
         [23, 21, 20, 20, 16, 12, 10, 9, 9, 9]
+
+        sage: P,m = [23,20,18,18,12,7,4,2,1], None
+        sage: from sage.combinat.semistandard_set_valued_tableau import _max_outer_shape
+        sage: F = _max_outer_shape(P, None)
+        sage: [F[i] for i in range(15)]
+        [23, 21, 20, 20, 16, 12, 10, 9, 9, 9, 9, 9, 9, 9, 9]
     """
     if P not in _Partitions or len(P) == 0:
         raise ValueError("P should be a nonempty integer partition")
-    if len(P) > m:
-        raise ValueError("m should be at the least length of partition P")
-    Q = P + [0]*(m-len(P))
+    if m is not None and len(P) > m:
+        raise ValueError("m should be at least the length of partition P")
+
     L = [P[0]]
-    for i in range(1, m):
-        L += [min(L[-1], i+Q[i])]
-    return Partition(L)
+    for i in range(1, len(P)):
+        L += [min(L[-1], i+P[i])]
+
+    def sequence(L, n):
+        if n < len(L):
+            return L[n]
+        return L[-1]
+
+    F = Family(NonNegativeIntegers(), lambda n: sequence(L,n))
+    if m is not None:
+        return Partition([F[i] for i in range(m)])
+    return F
 
 def _is_flagged_increasing(T):
     """
@@ -1604,7 +1746,7 @@ def _highest_weight_tableau(P):
     """
     return SemistandardTableau([[i+1]*P[i] for i in range(len(P))])
 
-def _generate_pairs(P, m):
+# def _generate_pairs(P, m):
     """
     Return the set of all pairs of valid tableaux given partition and maximum entry.
     
@@ -1676,3 +1818,63 @@ def _generate_pairs(P, m):
                 Sk = [F for F in SemistandardSkewTableaux([Q,P], max_entry=m) if _is_flagged_increasing(F)]
                 L += [(_highest_weight_tableau(Q),Tableau(F)) for F in Sk]
         return tuple(L)
+
+def _module_gens_iter(P, m):
+    """
+    Return an iterator of module generators given shape P (and possibly max entry m).
+
+    INPUT:
+
+    - ``P`` -- partition
+    
+    - ``m`` -- nonnegative integer or None if there is no maximum entry
+
+    OUTPUT: An iterator of module generators.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.semistandard_set_valued_tableau import _module_gens_iter
+        sage: it = _module_gens_iter([2,1], 2)
+        sage: list(it)
+        [[[[1], [1]], [[2]]], [[[1], [1, 2]], [[2]]]]
+
+        sage: from sage.combinat.semistandard_set_valued_tableau import _module_gens_iter
+        sage: it = _module_gens_iter([2,1], None)
+        [[[[1], [1]], [[2]]],
+        [[[1], [1]], [[2, 3]]],
+        [[[1], [1, 2]], [[3]]],
+        [[[1], [1, 2]], [[2, 3]]],
+        [[[1], [1, 2, 3]], [[2]]]]
+    """
+    
+    # Due to some quirk with SemistandardSkewTableaux, one needs separate 
+    # initialization for a flagged increasing tableau with same inner and 
+    # outer shape
+
+    S0 = _highest_weight_tableau(P)
+    F0 = Tableau([[None]*P[i] for i in range(len(P))])
+    yield S0.crowding(F0, mark=None, m=m)
+
+    if len(P) > 0:
+        if m is not None:
+            out = _max_outer_shape(P, m)
+            for n in range(sum(P)+1, P[0]*m+1):
+                for Q in Partitions(n, inner=P, outer=out):
+                    Sk = [T for T in SemistandardSkewTableaux([Q,P], max_entry=m) if _is_flagged_increasing(T)]
+                    for T in Sk:
+                        S = _highest_weight_tableau(Q)
+                        F = Tableau(T)
+                        yield S.crowding(F, mark=None, m=m) 
+        else:
+            F_out = _max_outer_shape(P, None)
+            it1 = iter(NonNegativeIntegers())
+            while True:
+                m = next(it1)+len(P)+1
+                out = Partition([F_out[i] for i in range(m)])
+                for n in range(sum(P)+1, sum(out)+1):
+                    for Q in Partitions(n, inner=P, outer=out, length=m):
+                        Sk = [T for T in SemistandardSkewTableaux([Q,P], max_entry=m) if _is_flagged_increasing(T)]
+                        for T in Sk:
+                            S = _highest_weight_tableau(Q)
+                            F = Tableau(T)
+                            yield S.crowding(F, mark=None, m=m)
