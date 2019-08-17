@@ -1,10 +1,3 @@
-# Implement intersections
+# Decisions made that should be checked with sage-nt
 
-
-# Changes that affect number field ideals
-
-```
-sage: I = O.ideal(5)
-sage: B = I.basis()
-```
-The elements 
+- 2 ideals are equal if and only if the rings are equal
