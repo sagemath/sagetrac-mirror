@@ -1568,10 +1568,19 @@ class AbsoluteOrder(Order):
         """
         return self
 
-    def conductor(self):
+    def conductor(self, in_integral_closure=True):
         """
         Return the conductor of self in its integral closure as an ideal of its
         ambient number field.
+
+        Recall the conductor is the largest ideal that is also an ideal of the
+        integral closure. The `in_integral_closure` controls whether to return
+        this ideal as an ideal of `self` or `self.integral_closure()`.
+
+        INPUT:
+
+        - ``in_maximal`` -- bool (default: True): whether to return the ideal
+          as an ideal of `self.integral_closure()` instead `self`.
 
         ALGORITHM:
 
@@ -1590,7 +1599,18 @@ class AbsoluteOrder(Order):
             sage: O.conductor()
             Fractional ideal (20)
 
-        The conductor is not always principal.
+        By default, the conductor is given as an ideal of the integral closure.
+        By setting `in_integral_closure=False`, we can return the ideal as an
+        ideal of `self`. ::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: O = K.order(a)
+            sage: I = O.conductor(in_integral_closure=False)
+            sage: I.order() == O
+            True
+
+        The conductor is not always principal. ::
+
             sage: K.<a> = NumberField(x**3-7)
             sage: p = K.ideal(3).factor()[0][0]
             sage: O = K.order((p**2).gens())
@@ -1624,7 +1644,11 @@ class AbsoluteOrder(Order):
         H = dM.hermite_form(include_zero_rows=False)
         Hinv = H.inverse()
         generators = vector(O.basis()) * d * Hinv
-        return self.number_field().ideal(*generators)
+
+        if in_integral_closure:
+            return self.number_field().ideal(*generators)
+        else:
+            return self.ideal(*generators)
 
 
 class RelativeOrder(Order):
