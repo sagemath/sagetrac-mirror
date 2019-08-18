@@ -29,6 +29,32 @@ class OrderFractionalIdeal(Ideal_generic):
     def __repr__(self):
         return "Fractional ideal %s of non-maximal order" % self._repr_short()
 
+    def __hash__(self):
+        r"""
+        Return a hash by combining the hash of the underlying free module and
+        the hash of the order.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: O = K.order(a)
+            sage: f = O.conductor(in_integral_closure=False)
+            sage: f.gens()
+            (2, 2*a)
+            sage: g = O.ideal(2)
+            sage: g.gens()
+            (2,)
+            sage: hash(f) == hash(g) # f,g are both in O
+            True
+            sage: h = O.conductor(in_integral_closure=True)
+            sage: hash(h) == hash(g) # h is in integral closure
+            False
+
+        """
+        F = self.free_module()
+        O = self.order()
+        return hash((F, O))
+
     def _richcmp_(self, other, op):
         """
         Compare this ideal with `other` by comparing their underlying free
