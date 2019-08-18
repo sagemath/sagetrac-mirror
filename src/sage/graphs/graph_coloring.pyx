@@ -51,9 +51,8 @@ Methods
 #           Copyright (C) 2008 Tom Boothby <boothby@u.washington.edu>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         https://www.gnu.org/licenses/
-# ****************************************************************************
-from six.moves import range
+#                         http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
@@ -1675,7 +1674,7 @@ cdef class Test:
 
     def random(self, tests=1000):
         r"""
-        Call ``self.random_all_graph_colorings()``. 
+        Call ``self.random_all_graph_colorings()``.
 
         In the future, if other methods are added, it should call them, too.
 

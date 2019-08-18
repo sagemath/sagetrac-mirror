@@ -73,7 +73,6 @@ TESTS::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
-from six import integer_types
 
 import sage.libs.ntl.all as ntl
 
@@ -997,7 +996,7 @@ class NumberField_relative(NumberField_generic):
             2/3
             sage: c = a + b # no output
         """
-        if R in integer_types:
+        if R is int:
             return self._generic_coerce_map(R)
         elif R in (ZZ, QQ, self.base_field()):
             return self._generic_coerce_map(R)

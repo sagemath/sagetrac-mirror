@@ -15,7 +15,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import iteritems
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.magmatic_algebras import MagmaticAlgebras
@@ -523,7 +522,7 @@ class ZinbielFunctor(ConstructionFunctor):
 
         def action(x):
             return codom._from_dict({a: f(b)
-                                     for a, b in iteritems(x.monomial_coefficients(copy=False))})
+                                     for a, b in x.monomial_coefficients(copy=False).items()})
         return dom.module_morphism(function=action, codomain=codom)
 
     def __eq__(self, other):
@@ -556,7 +555,7 @@ class ZinbielFunctor(ConstructionFunctor):
             True
         """
         return hash(repr(self))
-    
+
     def __mul__(self, other):
         """
         If two Zinbiel functors are given in a row, form a single

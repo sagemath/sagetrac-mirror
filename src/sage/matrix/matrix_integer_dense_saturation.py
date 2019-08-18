@@ -2,7 +2,6 @@
 Saturation over ZZ
 """
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.rings.all import ZZ, GF
 from sage.arith.all import binomial, gcd

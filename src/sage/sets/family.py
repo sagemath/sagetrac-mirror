@@ -37,9 +37,6 @@ import types
 from copy import copy
 from pprint import pformat, saferepr
 
-from six import itervalues
-from six.moves import range
-
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -609,7 +606,7 @@ class FiniteFamily(AbstractFamily):
         if self._keys is not None:
             return [self._dictionary[key] for key in self._keys]
         else:
-            return list(itervalues(self._dictionary))
+            return list(self._dictionary.values())
 
     def has_key(self, k):
         """

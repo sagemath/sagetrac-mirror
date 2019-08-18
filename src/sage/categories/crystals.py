@@ -20,8 +20,6 @@ Catch warnings produced by :func:`check_tkz_graph`::
 #*****************************************************************************
 
 from __future__ import print_function
-from builtins import zip
-from six import itervalues
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -789,7 +787,7 @@ class Crystals(Category_singleton):
                         codomain = on_gens[0].parent()
                 elif isinstance(on_gens, dict):
                     if on_gens:
-                        codomain = next(itervalues(on_gens)).parent()
+                        codomain = next(iter(on_gens.values())).parent()
                 else:
                     for x in self.module_generators:
                         y = on_gens(x)

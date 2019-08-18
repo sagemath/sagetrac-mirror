@@ -81,7 +81,6 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-import six
 
 from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
@@ -703,7 +702,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         assert self.base_ring() == f.base_ring()
         exponent_coefficient = f.dict()
         z = {}
-        for (e, c) in six.iteritems(exponent_coefficient):
+        for (e, c) in exponent_coefficient.items():
             I = Compositions()([ei for ei in e if ei > 0])
             if I not in z:
                 z[I] = c

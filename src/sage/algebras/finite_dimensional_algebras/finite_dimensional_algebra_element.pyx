@@ -13,7 +13,6 @@ Elements of Finite Algebras
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 import re
 

@@ -45,7 +45,6 @@ alternative is to use ClasscallMetaclass as metaclass::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function, absolute_import
-from six import add_metaclass
 
 __all__ = []  # Don't document any parents
 
@@ -71,8 +70,7 @@ class TestParent1(Parent):
         pass
 
 
-@add_metaclass(NestedClassMetaclass)
-class TestParent2(Parent):
+class TestParent2(Parent, metaclass=NestedClassMetaclass):
     def __init__(self):
         """
         EXAMPLES::
@@ -104,8 +102,7 @@ class TestParent3(UniqueRepresentation, Parent):
         pass
 
 
-@add_metaclass(ClasscallMetaclass)
-class TestParent4(Parent):
+class TestParent4(Parent, metaclass=ClasscallMetaclass):
     def __init__(self):
         """
         EXAMPLES::
@@ -192,8 +189,7 @@ class ALB(object):
 C = ALB.C
 
 
-@add_metaclass(NestedClassMetaclass)
-class ABBMeta(object):
+class ABBMeta(metaclass=NestedClassMetaclass):
     class B(object):
         """
         B interne
@@ -201,13 +197,11 @@ class ABBMeta(object):
         pass
 
 
-@add_metaclass(NestedClassMetaclass)
-class ABLMeta(object):
+class ABLMeta(metaclass=NestedClassMetaclass):
     B = B
 
 
-@add_metaclass(NestedClassMetaclass)
-class ALBMeta(object):
+class ALBMeta(metaclass=NestedClassMetaclass):
     """
     There is a nested class just below which is properly sphinxed.
     """

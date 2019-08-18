@@ -59,8 +59,6 @@ from subprocess import Popen, PIPE
 import os
 import select
 
-import six
-
 
 def test_executable(args, input="", timeout=100.0, **kwds):
     r"""
@@ -850,12 +848,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     except KeyError:
         pass
 
-    encoding = kwds.pop('encoding', 'utf-8')
-    errors = kwds.pop('errors', None)
-
-    if six.PY3:
-        kwds['encoding'] = encoding
-        kwds['errors'] = errors
+    kwds.setdefault('encoding', 'utf-8')
 
     p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env,
               **kwds)

@@ -15,7 +15,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
 
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.categories.lie_algebras import LieAlgebras
@@ -715,7 +714,8 @@ class PreLieFunctor(ConstructionFunctor):
 
         def action(x):
             return codom._from_dict({a: f(b)
-                                     for a, b in iteritems(x.monomial_coefficients())})
+                                     for a, b in
+                                     x.monomial_coefficients().items()})
         return dom.module_morphism(function=action, codomain=codom)
 
     def __eq__(self, other):

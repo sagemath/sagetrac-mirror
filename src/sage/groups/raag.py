@@ -24,7 +24,6 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import division, absolute_import, print_function
-import six
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp
@@ -159,7 +158,7 @@ class RightAngledArtinGroup(ArtinGroup):
             raise ValueError("the graph must not be empty")
         if names is None:
             names = 'v'
-        if isinstance(names, six.string_types):
+        if isinstance(names, str):
             if ',' in names:
                 names = [x.strip() for x in names.split(',')]
             else:

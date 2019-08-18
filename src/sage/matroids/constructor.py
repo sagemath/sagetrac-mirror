@@ -102,8 +102,6 @@ Functions
 
 from __future__ import absolute_import
 
-from six import itervalues
-
 from itertools import combinations
 from sage.matrix.constructor import Matrix
 from sage.graphs.all import Graph
@@ -917,7 +915,7 @@ def Matroid(groundset=None, data=None, **kwds):
 
         if groundset is None:
             groundset = set()
-            for X in itervalues(CC):
+            for X in CC.values():
                 for Y in X:
                     groundset.update(Y)
 

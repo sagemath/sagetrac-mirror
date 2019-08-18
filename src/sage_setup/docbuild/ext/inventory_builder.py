@@ -10,8 +10,6 @@ from sphinx.builders.html import StandaloneHTMLBuilder
 from sphinx.util.console import bold
 from os import path
 
-from six import iteritems, text_type
-
 import shutil
 
 class InventoryBuilder(StandaloneHTMLBuilder):

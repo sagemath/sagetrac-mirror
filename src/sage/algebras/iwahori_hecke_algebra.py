@@ -19,7 +19,6 @@ AUTHORS:
 #*****************************************************************************
 
 from functools import cmp_to_key
-import six
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
@@ -77,7 +76,7 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k: R._base(c) for k, c in six.iteritems(p.dict())})
+        return R({k: R._base(c) for k, c in p.dict().items()})
     except (AttributeError, TypeError):
         return R(p)
 

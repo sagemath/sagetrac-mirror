@@ -10,7 +10,6 @@ Affine `n` space over a ring
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import integer_types
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
@@ -121,7 +120,7 @@ def AffineSpace(n, R=None, names=None, ambient_projective_space=None,
             names = ''
         else:
             names = 'x'
-    if isinstance(R, integer_types + (Integer,)):
+    if isinstance(R, (Integer, int)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -867,7 +866,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
 
-        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system
           should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_affine`

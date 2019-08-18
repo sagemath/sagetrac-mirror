@@ -47,7 +47,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.rings.all import ZZ, RR, QQ, GF
 from sage.arith.all import binomial
@@ -1343,7 +1342,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             1408
             sage: H.cardinality(3)
             50116
-            
+
         The following example shows that :trac:`20391` has been resolved::
             sage: F=GF(23)
             sage: x=polygen(F)

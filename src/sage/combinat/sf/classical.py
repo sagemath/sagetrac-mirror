@@ -31,8 +31,6 @@ from . import macdonald
 from . import jack
 from . import orthotriang
 
-import six
-
 
 ZZ = IntegerRing()
 QQ = RationalField()
@@ -236,7 +234,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
                 raise TypeError("no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(PBR, self.base_ring()))
 
             z_elt = {}
-            for m, c in six.iteritems(x._monomial_coefficients):
+            for m, c in x._monomial_coefficients.items():
                 n = sum(m)
                 P._m_cache(n)
                 for part in P._self_to_m_cache[n][m]:

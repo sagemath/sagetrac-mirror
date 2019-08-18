@@ -425,8 +425,6 @@ Methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import, division
-from six.moves import range, zip
-from six import itervalues, iteritems, integer_types
 
 from copy import copy
 
@@ -489,7 +487,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Also converts old NetworkX backends into a more recent one.
         """
-        for k,v in iteritems(state):
+        for k,v in state.items():
             self.__dict__[k] = v
 
     def __add__(self, other):
@@ -735,7 +733,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = G * 1; H
             Cycle graph: Graph on 3 vertices
         """
-        if isinstance(n, integer_types + (Integer,)):
+        if isinstance(n, (int, Integer)):
             if n < 1:
                 raise TypeError('multiplication of a graph and a nonpositive integer is not defined')
             if n == 1:
@@ -1212,7 +1210,7 @@ class GenericGraph(GenericGraph_pyx):
                 copy_attr = {}
                 old_attr = getattr(self, attr)
                 if isinstance(old_attr, dict):
-                    for v, value in iteritems(old_attr):
+                    for v, value in old_attr.items():
                         try:
                             copy_attr[v] = value.copy()
                         except AttributeError:
@@ -2388,10 +2386,10 @@ class GenericGraph(GenericGraph_pyx):
         if M.is_sparse():
             row_sums = {}
             if indegree:
-                for (i,j), entry in iteritems(M.dict()):
+                for (i,j), entry in M.dict().items():
                     row_sums[j] = row_sums.get(j, 0) + entry
             else:
-                for (i,j), entry in iteritems(M.dict()):
+                for (i,j), entry in M.dict().items():
                     row_sums[i] = row_sums.get(i, 0) + entry
 
 
@@ -9103,7 +9101,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Building and returning the flow graph
         g = DiGraph()
-        g.add_edges((x, y, l) for (x, y), l in iteritems(flow) if l > 0)
+        g.add_edges((x, y, l) for (x, y), l in flow.items() if l > 0)
         g.set_pos(self.get_pos())
 
         return flow_intensity, g
@@ -9277,7 +9275,7 @@ class GenericGraph(GenericGraph_pyx):
         flow = p.get_values(flow)
 
         # building clean flow digraphs
-        flow_graphs = [g._build_flow_graph({e: f for (ii,e),f in iteritems(flow) if ii == i}, integer=integer)
+        flow_graphs = [g._build_flow_graph({e: f for (ii,e),f in flow.items() if ii == i}, integer=integer)
                        for i in range(len(terminals))]
 
         # which could be .. graphs !
@@ -9337,7 +9335,7 @@ class GenericGraph(GenericGraph_pyx):
         g = DiGraph()
 
         # add significant edges
-        for (u,v),l in iteritems(flow):
+        for (u,v),l in flow.items():
             if l > 0 and not (integer and l < .5):
                 g.add_edge(u, v, l)
 
@@ -14202,7 +14200,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if nbunch is None:
             return triangles_count(self)
-        return {v: c for v, c in iteritems(triangles_count(self)) if v in nbunch}
+        return {v: c for v, c in triangles_count(self).items() if v in nbunch}
 
     def clustering_average(self, implementation=None):
         r"""
@@ -14411,11 +14409,11 @@ class GenericGraph(GenericGraph_pyx):
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
             return {v: coeff_from_triangle_count(v, count)
-                    for v, count in iteritems(triangles_count(self))}
+                    for v, count in triangles_count(self).items()}
         elif implementation =="dense_copy":
             from sage.graphs.base.static_dense_graph import triangles_count
             return {v: coeff_from_triangle_count(v, count)
-                    for v, count in iteritems(triangles_count(self))}
+                    for v, count in triangles_count(self).items()}
 
     def cluster_transitivity(self):
         r"""
@@ -15917,7 +15915,7 @@ class GenericGraph(GenericGraph_pyx):
             degree = self.out_degree if self.is_directed() else self.degree
             if vert is None:
                 closeness = networkx.closeness_centrality(G, vert, distance='weight' if by_weight else None)
-                return {v: c for v, c in iteritems(closeness) if degree(v)}
+                return {v: c for v, c in closeness.items() if degree(v)}
             closeness = {}
             for x in v_iter:
                 if degree(x):
@@ -16067,10 +16065,10 @@ class GenericGraph(GenericGraph_pyx):
                 return Integer(tr // 6)
             elif algorithm == "sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return sum(itervalues(triangles_count(self))) // 3
+                return sum(triangles_count(self).values()) // 3
             elif algorithm == "dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return sum(itervalues(triangles_count(self))) // 3
+                return sum(triangles_count(self).values()) // 3
             elif algorithm=='matrix':
                 return (self.adjacency_matrix(vertices=list(self))**3).trace() // 6
             else:
@@ -17242,9 +17240,9 @@ class GenericGraph(GenericGraph_pyx):
                                           weight_function=weight_function)
                 dist[u] = {v: self._path_length(p, by_weight=by_weight,
                                                 weight_function=weight_function)
-                           for v, p in iteritems(paths)}
+                           for v, p in paths.items()}
                 pred[u] = {v: None if len(p) <= 1 else p[1]
-                           for v, p in iteritems(paths)}
+                           for v, p in paths.items()}
             return dist, pred
 
         elif algorithm != "Floyd-Warshall-Python":
@@ -17901,7 +17899,6 @@ class GenericGraph(GenericGraph_pyx):
 
         Using different kinds of iterable container of vertices, :trac:`22906`::
 
-            sage: from six.moves import range
             sage: G = Graph(4)
             sage: G.add_clique(G)
             sage: G.is_clique()
@@ -19557,7 +19554,7 @@ class GenericGraph(GenericGraph_pyx):
                 stick.append(t)
 
         if tree_orientation in ['right', 'left']:
-            return {p: (py, px) for p, (px, py) in iteritems(pos)}
+            return {p: (py, px) for p, (px, py) in pos.items()}
 
         return pos
 
@@ -19650,7 +19647,7 @@ class GenericGraph(GenericGraph_pyx):
         import dot2tex
         positions = dot2tex.dot2tex(self.graphviz_string(**options), format="positions", prog=prog)
 
-        return {key_to_vertex[key]: pos for key, pos in iteritems(positions)}
+        return {key_to_vertex[key]: pos for key, pos in positions.items()}
 
     def _layout_bounding_box(self, pos):
         """
@@ -21872,7 +21869,7 @@ class GenericGraph(GenericGraph_pyx):
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 new_attr = {}
-                for v, value in iteritems(getattr(self, attr)):
+                for v, value in getattr(self, attr).items():
                     if attr != '_embedding':
                         new_attr[perm[v]] = value
                     else:
@@ -22431,7 +22428,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 # We relabel the cycles using the vertices' names instead of integers
                 n = self.order()
-                int_to_vertex = {((i + 1) if i != n else 1): v for v, i in iteritems(b)}
+                int_to_vertex = {((i + 1) if i != n else 1): v for v, i in b.items()}
                 gens = [[tuple(int_to_vertex[i] for i in cycle) for cycle in gen] for gen in gens]
                 output.append(PermutationGroup(gens=gens, domain=int_to_vertex.values()))
             else:

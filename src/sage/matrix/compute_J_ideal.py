@@ -118,7 +118,6 @@ Classes and Methods
 # *****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-from six import iteritems, iterkeys
 
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
@@ -805,7 +804,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         if s_max < t:
             result = {r: polynomial
-                      for r, polynomial in iteritems(p_min_polys)
+                      for r, polynomial in p_min_polys.items()
                       if r < s_max}
             next_t_candidates = list(r for r in p_min_polys if r >= s_max)
             if next_t_candidates:
@@ -865,8 +864,8 @@ class ComputeMinimalPolynomials(SageObject):
                 cofactor = b // p**t
                 p_polynomials = self.p_minimal_polynomials(p, t)
                 generators += [cofactor*p**(t-s)*nu
-                               for s, nu in iteritems(p_polynomials)]
-                if not p_polynomials or max(iterkeys(p_polynomials)) < t:
+                               for s, nu in p_polynomials.items()]
+                if not p_polynomials or max(p_polynomials) < t:
                     mu_B_coefficients.append(cofactor)
 
             assert all((g(self._B) % b).is_zero() for g in generators), \
@@ -942,4 +941,4 @@ class ComputeMinimalPolynomials(SageObject):
         return (self.mu_B, [self._DX(1)] +
                 [nu/p**s
                  for p in self.prime_candidates()
-                 for s, nu in iteritems(self.p_minimal_polynomials(p))])
+                 for s, nu in self.p_minimal_polynomials(p).items()])

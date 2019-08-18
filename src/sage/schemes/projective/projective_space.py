@@ -79,8 +79,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import integer_types
 
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
@@ -245,7 +243,7 @@ def ProjectiveSpace(n, R=None, names=None):
         return A
     if names is None:
         names = 'x'
-    if isinstance(R, integer_types + (Integer,)):
+    if isinstance(R, (Integer, int)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -1146,7 +1144,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
 
-        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system
           should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_projective`

@@ -32,7 +32,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import absolute_import
-from six import itervalues
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
@@ -1070,9 +1069,9 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return next(itervalues(self._matrices)).det() # pick a random value in the
-                                                # dictionary self._matrices
-                                                # and compute the determinant
+        # pick an arbitrary value in the dictionary self._matrices and compute
+        # the determinant
+        return next(iter(self._matrices.values())).det()
 
     def trace(self):
         r"""
@@ -1103,6 +1102,6 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return next(itervalues(self._matrices)).trace() # pick a random value in the
-                                                  # dictionary self._matrices
-                                                  # and compute the trace
+        # pick an arbitrary value in the dictionary self._matrices and compute
+        # the trace
+        return next(iter(self._matrices.values())).trace()

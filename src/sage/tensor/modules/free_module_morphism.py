@@ -23,7 +23,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from six import itervalues
 
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
@@ -486,8 +485,8 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: bool(Hom(M,N).zero())
             False
         """
-        # Some matrix representation is picked at random:
-        matrix_rep = next(itervalues(self._matrices))
+        # Some matrix representation is picked arbitrarily
+        matrix_rep = next(iter(self._matrices.values()))
         return not matrix_rep.is_zero()
 
     __nonzero__ = __bool__
@@ -913,8 +912,8 @@ class FiniteRankFreeModuleMorphism(Morphism):
             True
 
         """
-        # Some matrix representation is picked at random:
-        matrix_rep = next(itervalues(self._matrices))
+        # Some matrix representation is picked arbitrarily
+        matrix_rep = next(iter(self._matrices.values()))
         return matrix_rep.right_kernel().rank() == 0
 
     def is_surjective(self):

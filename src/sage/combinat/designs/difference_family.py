@@ -50,11 +50,6 @@ Functions
 # python3
 from __future__ import division, print_function, absolute_import
 
-from builtins import zip
-import six
-from six import itervalues
-from six.moves import range
-
 from sage.misc.cachefunc import cached_function
 
 from sage.categories.sets_cat import EmptySetError
@@ -289,7 +284,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
                 where[gg].add(i)
                 tmp_counter[gg] += 1
 
-        if sum(itervalues(tmp_counter)) != k * (k - 1):
+        if sum(tmp_counter.values()) != k * (k - 1):
             if verbose:
                 print("repeated element in the {}-th block {}".format(i,d))
             return False
@@ -1555,7 +1550,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         elif explain_construction:
             return "The database contains a ({},{},{})-difference family".format(v,k,l)
 
-        vv, blocks = next(six.iteritems(DF[v,k,l]))
+        vv, blocks = next(iter(DF[v,k,l].items()))
 
         # Build the group
         from sage.rings.finite_rings.integer_mod_ring import Zmod

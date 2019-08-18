@@ -314,7 +314,6 @@ Working with sandpile divisors::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, division
-from six.moves import zip, range
 
 from collections import Counter
 from copy import deepcopy

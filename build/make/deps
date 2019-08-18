@@ -171,7 +171,6 @@ sagelib: \
 		$(inst_readline) \
 		$(inst_rw) \
 		$(inst_singular) \
-		$(inst_six) \
 		$(inst_symmetrica) \
 		$(inst_zn_poly) \
 		$(EXTCODE)

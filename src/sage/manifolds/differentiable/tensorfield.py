@@ -51,7 +51,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
-from six import itervalues, string_types
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -752,7 +751,7 @@ class TensorField(ModuleElement):
                     # frame is actually a pair (frame, chart):
                     frame, chart = frame
                 self.add_comp(frame)[:, chart] = components
-        elif isinstance(comp0, string_types):
+        elif isinstance(comp0, str):
             # For compatibility with previous use of tensor_field():
             self.set_name(comp0)
         else:
@@ -2410,7 +2409,7 @@ class TensorField(ModuleElement):
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
-        some_rst = next(itervalues(resu_rst))
+        some_rst = next(iter(resu_rst.values()))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,
@@ -2479,7 +2478,7 @@ class TensorField(ModuleElement):
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
-        some_rst = next(itervalues(resu_rst))
+        some_rst = next(iter(resu_rst.values()))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,

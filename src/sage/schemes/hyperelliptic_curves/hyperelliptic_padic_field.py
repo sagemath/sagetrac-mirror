@@ -13,7 +13,6 @@ Hyperelliptic curves over a `p`-adic field
 #*****************************************************************************
 
 from __future__ import absolute_import
-from six.moves import range
 
 from . import hyperelliptic_generic
 

@@ -34,7 +34,7 @@ Vincent Delecroix, Ben Hutz (July 2016): initial implementation
 
 from __future__ import absolute_import, print_function
 
-import itertools, six
+import itertools
 
 from sage.categories.homset import Homset
 from sage.categories.morphism import Morphism
@@ -218,14 +218,14 @@ class FlatteningMorphism(Morphism):
         for ring in self._intermediate_rings:
             new_p = {}
             if is_PolynomialRing(ring):
-                for mon,pp in six.iteritems(p):
+                for mon,pp in p.items():
                     assert pp.parent() is ring
-                    for i,j in six.iteritems(pp.dict()):
+                    for i,j in pp.dict().items():
                         new_p[(i,)+(mon)] = j
             elif is_MPolynomialRing(ring):
-                for mon,pp in six.iteritems(p):
+                for mon,pp in p.items():
                     assert pp.parent() is ring
-                    for mmon,q in six.iteritems(pp.dict()):
+                    for mmon,q in pp.dict().items():
                         new_p[tuple(mmon)+mon] = q
             else:
                 raise RuntimeError

@@ -91,14 +91,13 @@ dynamical systems:
 #from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 #from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 #from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from six import add_metaclass
 from sage.categories.sets_cat import Sets
 from sage.misc.abstract_method import abstract_method
 from sage.structure.sage_object import SageObject
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 
-@add_metaclass(ClasscallMetaclass)
-class DiscreteDynamicalSystem(SageObject):
+
+class DiscreteDynamicalSystem(SageObject, metaclass=ClasscallMetaclass):
     r"""
     A discrete dynamical system.
 

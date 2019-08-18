@@ -63,8 +63,6 @@ matrices and Latin squares. See:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import, division
-from six.moves import range
-from six import integer_types
 
 import sage.rings.all as rings
 from sage.rings.ring import is_Ring
@@ -801,7 +799,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Size of matrix specified?
     # Formats 2, 4
     nrows = None
-    if isinstance(arg0, integer_types + (rings.Integer,)):
+    if isinstance(arg0, (rings.Integer, int)):
         nrows = arg0
         arg0 = arg1
     # Object holding entries
@@ -876,7 +874,7 @@ def identity_matrix(ring, n=0, sparse=False):
         sage: M.is_mutable()
         True
     """
-    if isinstance(ring, integer_types  + (rings.Integer,)):
+    if isinstance(ring, (rings.Integer, int)):
         n = ring
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, n, n, sparse)(1)
@@ -902,7 +900,7 @@ def lehmer(ring, n=0):
     """
     from sage.sets.integer_range import IntegerRange
 
-    if isinstance(ring, integer_types + (rings.Integer,)):
+    if isinstance(ring, (rings.Integer, int)):
         n = ring
         ring = rings.QQ
     return matrix_space.MatrixSpace(ring, n, n).matrix([[min(i, j)/max(i, j) for i in IntegerRange(1, n+1)] for j in IntegerRange(1, n+1)])
@@ -945,7 +943,7 @@ def zero_matrix(ring, nrows=None, ncols=None, sparse=False):
         [0 0 0 0 0]
 
     """
-    if isinstance(ring, integer_types + (rings.Integer,)):
+    if isinstance(ring, (rings.Integer, int)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
@@ -1030,7 +1028,7 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
         ...
         ValueError: constructing an all ones matrix requires at least one dimension
     """
-    if isinstance(ring, integer_types + (rings.Integer,)):
+    if isinstance(ring, (rings.Integer, int)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     if nrows is None:

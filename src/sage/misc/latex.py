@@ -27,8 +27,6 @@ import re
 import shutil
 import subprocess
 
-from six import iteritems, integer_types
-
 from sage.cpython.string  import str_to_bytes
 
 from sage.misc import sage_eval
@@ -368,7 +366,7 @@ def dict_function(x):
     """
     return "".join([r"\left\{",
                     ", ".join(r"%s : %s" % (latex(key), latex(value))
-                              for key, value in iteritems(x)),
+                              for key, value in x.items()),
                     r"\right\}"])
 
 # One can add to the latex_table in order to install latexing
@@ -403,18 +401,18 @@ def float_function(x):
     return latex(RDF(x))
 
 
-latex_table = {type(None): None_function,
-               bool: bool_function,
-               dict: dict_function,
-               float: float_function,
-               list: list_function,
-               str: str_function,
-               tuple: tuple_function,
-               type(NotImplemented): builtin_constant_function,
-               type(Ellipsis): builtin_constant_function}
-
-for t in integer_types:
-    latex_table[t] = str
+latex_table = {
+    type(None): None_function,
+    bool: bool_function,
+    dict: dict_function,
+    float: float_function,
+    int: str,
+    list: list_function,
+    str: str_function,
+    tuple: tuple_function,
+    type(NotImplemented): builtin_constant_function,
+    type(Ellipsis): builtin_constant_function
+}
 
 
 class LatexExpr(str):
@@ -2344,7 +2342,7 @@ def coeff_repr(c):
         return c._latex_coeff_repr()
     except AttributeError:
         pass
-    if isinstance(c, integer_types + (float,)):
+    if isinstance(c, (int, float)):
         return str(c)
     s = latex(c)
     if s.find("+") != -1 or s.find("-") != -1:
