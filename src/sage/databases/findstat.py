@@ -984,10 +984,6 @@ class FindStatStatistic(SageObject):
         self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION]
         self._name        = self._raw[FINDSTAT_STATISTIC_NAME]
         self._references  = self._raw[FINDSTAT_STATISTIC_REFERENCES]
-        import sys
-        if sys.version_info[0] < 3:
-            self._name        = self._name.encode("utf-8")
-            self._references  = self._references.encode("utf-8")
 
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
