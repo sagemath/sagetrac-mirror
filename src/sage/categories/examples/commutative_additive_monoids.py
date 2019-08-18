@@ -126,6 +126,5 @@ class FreeCommutativeAdditiveMonoid(FreeCommutativeAdditiveSemigroup):
             """
             return any(x for x in self.value.values())
 
-        __nonzero__ = __bool__
 
 Example = FreeCommutativeAdditiveMonoid

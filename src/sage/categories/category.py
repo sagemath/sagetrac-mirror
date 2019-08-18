@@ -1767,10 +1767,7 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Algebras(QQ).required_methods() # py2
-            {'element': {'optional': ['_add_', '_mul_'], 'required': ['__nonzero__']},
-             'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
-            sage: Algebras(QQ).required_methods() # py3
+            sage: Algebras(QQ).required_methods()
             {'element': {'optional': ['_add_', '_mul_'], 'required': ['__bool__']},
              'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
         """

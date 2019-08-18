@@ -415,8 +415,6 @@ class SpecialJordanAlgebra(JordanAlgebra):
             """
             return bool(self._x)
 
-        __nonzero__ = __bool__
-
         def __eq__(self, other):
             """
             Check equality.
@@ -819,8 +817,6 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 True
             """
             return bool(self._s) or bool(self._v)
-
-        __nonzero__ = __bool__
 
         def __eq__(self, other):
             """

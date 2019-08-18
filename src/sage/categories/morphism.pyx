@@ -375,7 +375,7 @@ cdef class Morphism(Map):
             domain = <Parent?>base
         return rich_to_bool(op, 0)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return whether this morphism is not a zero morphism.
 
@@ -397,10 +397,7 @@ cdef class Morphism(Map):
         try:
             return self._is_nonzero()
         except Exception:
-            if PY_MAJOR_VERSION < 3:
-                return super(Morphism, self).__nonzero__()
-            else:
-                return super().__bool__()
+            return super().__bool__()
 
 
 cdef class FormalCoercionMorphism(Morphism):

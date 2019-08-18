@@ -386,7 +386,7 @@ cdef class LazyImport(object):
         """
         return unicode(self.get_object())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 

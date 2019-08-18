@@ -1033,7 +1033,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return res
         return rich_to_bool(op, 0)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -2533,11 +2533,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         TESTS:
 
         We verify that :trac:`23020` has been resolved. (There are no elements
-        in the Sage library yet that do not implement ``__nonzero__``
-        and ``__bool__``, so we have to create one artificially.)::
+        in the Sage library yet that do not implement ``__bool__``, so we have
+        to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
-            ....:     def __nonzero__(self): raise NotImplementedError()
             ....:     def __bool__(self): raise NotImplementedError()
             sage: R.<x> = QQbar[]
             sage: R([PatchedAlgebraicNumber(0), 1])
@@ -10716,7 +10715,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return make_generic_polynomial, (self._parent, self.__coeffs)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.__coeffs)
 
     cpdef bint is_term(self) except -1:
@@ -10778,7 +10777,6 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: class BrokenRational(Rational):
             ....:     def __bool__(self):
             ....:         raise NotImplementedError("cannot check whether number is non-zero")
-            ....:     __nonzero__ = __bool__
             sage: z = BrokenRational()
             sage: R.<x> = QQ[]
             sage: from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense

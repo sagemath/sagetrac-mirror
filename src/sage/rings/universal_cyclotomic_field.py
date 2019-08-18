@@ -331,8 +331,6 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         return bool(self._obj)
 
-    __nonzero__ = __bool__
-
     def __reduce__(self):
         r"""
         TESTS::

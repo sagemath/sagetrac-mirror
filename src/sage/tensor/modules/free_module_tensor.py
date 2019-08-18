@@ -377,8 +377,6 @@ class FreeModuleTensor(ModuleElement):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__
-
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 
     def _repr_(self):

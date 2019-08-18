@@ -301,7 +301,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         from sage.typeset.unicode_art import unicode_art
         return unicode_art(self.value)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return if ``self`` is non-zero.
 
@@ -1126,7 +1126,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
                                self._c_coeff, self._d_coeff))
         return self._hash
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``self`` as a boolean.
 

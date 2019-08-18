@@ -2336,8 +2336,6 @@ done from the right side.""")
         """
         return bool(self.rank())
 
-    __nonzero__ = __bool__
-
     def uses_ambient_inner_product(self):
         r"""
         Return ``True`` if the inner product on this module is

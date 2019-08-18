@@ -915,7 +915,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return self.element
 
-    def __nonzero__(FiniteField_givaroElement self):
+    def __bool__(FiniteField_givaroElement self):
         r"""
         Return ``True`` if ``self != k(0)``.
 

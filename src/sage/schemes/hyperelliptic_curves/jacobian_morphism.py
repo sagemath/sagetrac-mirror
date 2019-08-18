@@ -659,8 +659,6 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         """
         return self.__polys[0] != 1
 
-    __nonzero__ = __bool__
-
     def __neg__(self):
         r"""
         Return the additive inverse of this divisor.

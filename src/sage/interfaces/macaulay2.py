@@ -1157,8 +1157,6 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         P = self.parent()
         return P.eval('{0}===false or {0}==0'.format(self._name)) != 'true'
 
-    __nonzero__ = __bool__
-
     def sage_polystring(self):
         """
         If this Macaulay2 element is a polynomial, return a string

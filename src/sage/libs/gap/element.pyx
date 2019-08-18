@@ -2261,7 +2261,7 @@ cdef class GapElement_Boolean(GapElement):
             return False
         raise ValueError('the GAP boolean value "fail" cannot be represented in Sage')
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check that the boolean is "true".
 
@@ -2275,12 +2275,12 @@ cdef class GapElement_Boolean(GapElement):
 
             sage: gap_bool = [libgap.eval('true'), libgap.eval('false'), libgap.eval('fail')]
             sage: for x in gap_bool:
-            ....:     if x:     # this calls __nonzero__
+            ....:     if x:     # this calls __bool__
             ....:         print("{} {}".format(x, type(x)))
             true <type 'sage.libs.gap.element.GapElement_Boolean'>
 
             sage: for x in gap_bool:
-            ....:     if not x:     # this calls __nonzero__
+            ....:     if not x:     # this calls __bool__
             ....:         print("{} {}".format( x, type(x)))
             false <type 'sage.libs.gap.element.GapElement_Boolean'>
             fail <type 'sage.libs.gap.element.GapElement_Boolean'>

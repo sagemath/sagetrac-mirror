@@ -586,8 +586,6 @@ class QuiverRepHom(CallMorphism):
         """
         return any(self._vector)
 
-    __nonzero__ = __bool__
-
     def __mul__(self, other):
         """
         This function overrides the ``*`` operator

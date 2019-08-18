@@ -1443,8 +1443,6 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         P = self.parent()
         return P.eval('%s == 0' % self.name()) == '0'
 
-    __nonzero__ = __bool__
-
     def sage_polystring(self):
         r"""
         If this Singular element is a polynomial, return a string

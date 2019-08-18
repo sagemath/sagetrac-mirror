@@ -1009,8 +1009,6 @@ class FriCASElement(ExpectElement):
         P = self._check_valid()
         return not P.new("zero?(%s)" % self._name).sage()
 
-    __nonzero__ = __bool__
-
     def __long__(self):
         """
         TESTS::

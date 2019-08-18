@@ -3331,7 +3331,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             ans.append(M)
         return ans
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Test whether this matrix is zero.
 

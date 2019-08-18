@@ -300,7 +300,7 @@ cdef class PathAlgebraElement(RingElement):
 
     # Basic properties
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 

@@ -277,9 +277,6 @@ class LazyLaurentSeries(ModuleElement):
 
         return False
 
-    # for Python 2 compatibility
-    __nonzero__ = __bool__
-
     def _repr_(self):
         """
         Return the string representation of this Laurent series.

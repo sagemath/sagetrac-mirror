@@ -1260,8 +1260,6 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
         """
         return self._hnf.nrows() != 0
 
-    __nonzero__ = __bool__
-
     def __hash__(self):
         """
         Return the hash of this ideal.

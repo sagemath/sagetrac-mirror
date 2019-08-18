@@ -182,7 +182,7 @@ class Rings(CategoryWithAxiom):
             .. NOTE::
 
                 We can not override ``is_zero()`` from the category framework
-                and we can not implement ``__nonzero__`` because it is a
+                and we can not implement ``__bool__`` because it is a
                 special method. That this is why this has a cumbersome name.
 
             EXAMPLES::

@@ -515,8 +515,6 @@ class TensorField(ModuleElement):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__  # For Python2 compatibility
-
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 
     def _repr_(self):

@@ -2141,7 +2141,7 @@ cdef class RealBall(RingElement):
         """
         return arb_is_nonzero(self.value)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` iff this ball is not the zero ball, i.e. if it its
         midpoint and radius are not both zero.

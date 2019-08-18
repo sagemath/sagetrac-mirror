@@ -125,8 +125,6 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         return bool(self._elements)
 
-    __nonzero__ = __bool__
-
     def _repr_(self):
         """
         TESTS::

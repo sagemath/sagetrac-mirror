@@ -631,9 +631,6 @@ class Option(object):
         """
         return bool(self._options[self._name])
 
-    # for the less sensibly named python 2 family
-    __nonzero__ = __bool__
-
     def __call__(self, value=None):
         r"""
         Get or set value of the option ``self``.

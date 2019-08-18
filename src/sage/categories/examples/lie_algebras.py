@@ -207,8 +207,6 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
             """
             return bool(self.value)
 
-        __nonzero__ = __bool__
-
         def _add_(self, rhs):
             """
             Add ``self`` and ``rhs``.

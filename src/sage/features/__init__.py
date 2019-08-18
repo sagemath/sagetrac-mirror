@@ -326,8 +326,6 @@ class FeatureTestResult(object):
         """
         return bool(self.is_present)
 
-    __nonzero__ = __bool__
-
     def __repr__(self):
         r"""
         TESTS::

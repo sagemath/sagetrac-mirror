@@ -1615,8 +1615,6 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         """
         return "FALSE" in repr(self==0)
 
-    __nonzero__ = __bool__
-
     def _comparison(self, other, symbol):
         """
         Used to implement comparison of two objects.

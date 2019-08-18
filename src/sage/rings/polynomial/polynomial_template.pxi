@@ -518,7 +518,7 @@ cdef class Polynomial_template(Polynomial):
             raise ValueError("Cannot coerce polynomial with degree %d to integer."%(self.degree()))
         return int(self[0])
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 

@@ -2624,8 +2624,6 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
                 pass
         return True
 
-    __nonzero__ = __bool__
-
     def sub(self, gens):
         """
         Return the sub-object of self with given gens.

@@ -284,8 +284,6 @@ class FormalSum(ModuleElement):
                 return True
         return False
 
-    __nonzero__ = __bool__
-
     def reduce(self):
         """
         EXAMPLES::

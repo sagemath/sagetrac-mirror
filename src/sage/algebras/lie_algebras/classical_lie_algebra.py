@@ -1175,8 +1175,6 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
             """
             return bool(self._real) or bool(self._imag)
 
-        __nonzero__ = __bool__
-
         def __hash__(self):
             r"""
             Return the hash of ``self``.

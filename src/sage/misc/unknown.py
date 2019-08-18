@@ -72,8 +72,6 @@ class UnknownClass(UniqueRepresentation, SageObject):
         """
         return False
 
-    __nonzero__ = __bool__
-
     def __and__(self, other):
         """
         The ``and`` logical connector.

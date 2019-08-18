@@ -434,8 +434,6 @@ class Ideal_generic(MonoidElement):
                 return True
         return False
 
-    __nonzero__ = __bool__
-
     def base_ring(self):
         r"""
         Returns the base ring of this ideal.
@@ -954,7 +952,7 @@ class Ideal_generic(MonoidElement):
             True
 
         This test addresses ticket :trac:`20514`::
-        
+
             sage: R = QQ['x', 'y']
             sage: I = R.ideal(R.gens())
             sage: I.is_trivial()

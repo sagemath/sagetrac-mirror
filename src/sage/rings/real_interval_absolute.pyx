@@ -569,7 +569,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
     cdef bint is_exact(self):
         return not self._diameter
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` for anything except exact zero.
 
