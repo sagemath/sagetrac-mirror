@@ -1629,8 +1629,6 @@ class AbsoluteOrder(Order):
             sage: I = O.conductor(in_integral_closure=False)
             sage: I.order() == O
             True
-            sage: I == O.ideal(2)
-            True
 
         The conductor is not always principal. ::
 
@@ -1668,10 +1666,11 @@ class AbsoluteOrder(Order):
         Hinv = H.inverse()
         generators = vector(O.basis()) * d * Hinv
 
+        f = self.number_field().ideal(*generators)
         if in_integral_closure:
-            return self.number_field().ideal(*generators)
+            return f
         else:
-            return self.ideal(*generators)
+            return self.intersection(f)
 
 
 class RelativeOrder(Order):

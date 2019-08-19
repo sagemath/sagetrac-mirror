@@ -40,10 +40,10 @@ class OrderFractionalIdeal(Ideal_generic):
             sage: O = K.order(a)
             sage: f = O.conductor(in_integral_closure=False)
             sage: f.gens()
-            (2, 2*a)
-            sage: g = O.ideal(2)
+            (2, a - 1)
+            sage: g = O.ideal(a + 1, 2*a)
             sage: g.gens()
-            (2,)
+            (a + 1, 2*a)
             sage: hash(f) == hash(g) # f,g are both in O
             True
             sage: h = O.conductor(in_integral_closure=True)
