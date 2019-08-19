@@ -221,7 +221,7 @@ class SemistandardSetValuedTableau(Tableau):
             from sage.combinat.output import tex_from_array
             L = [row for i, row in enumerate(self._repr_tab())]
             return tex_from_array(L)
-        return "{\emptyset}"
+        return r"{\emptyset}"
 
     def __eq__(self, other):
         """
