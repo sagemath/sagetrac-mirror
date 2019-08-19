@@ -3384,7 +3384,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: F.prime_above(0)
             Traceback (most recent call last):
             ...
-            AttributeError: 'NumberFieldIdeal' object has no attribute 'prime_factors'
+            ValueError: Does not make sense to factor (0)
         """
         if degree is not None:
             degree = ZZ(degree)
@@ -3479,7 +3479,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: F.prime_above(0)
             Traceback (most recent call last):
             ...
-            AttributeError: 'NumberFieldIdeal' object has no attribute 'prime_factors'
+            ValueError: Does not make sense to factor (0)
 
         """
         ids = self.primes_above(x, degree)

@@ -66,6 +66,19 @@ class OrderFractionalIdeal(Ideal_generic):
             return NotImplemented
         return richcmp(self.free_module(), other.free_module(), op)
 
+    def is_zero(self):
+        r"""
+        Return whether this ideal is the zero ideal.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: O = K.order(a)
+            sage: O.ideal(0).is_zero()
+            True
+        """
+        return all(x.is_zero() for x in self.gens())
+
     @cached_method
     def is_integral(self):
         """
@@ -200,14 +213,31 @@ class OrderFractionalIdeal(Ideal_generic):
         """
         return basis_to_module(self.basis(), self.number_field())
 
-    # def prime_factors(self):
-    #     O = self.order()
-    #     OK = O.integral_closure()
+    def prime_factors(self):
+        r"""
+        Return a list of the prime ideal factors of `self`.
 
-    #     aOK = OK.ideal(self.gens())
-    #     above = aOK.prime_factors()
+        EXAMPLES::
 
-    #     return [O.intersection(p) for p in above]
+        In this example, 5 splits in `OK` but not in `O`. ::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: OK = K.maximal_order()
+            sage: O = K.order(5*a)
+            sage: OK.ideal(5).prime_factors()
+            [Fractional ideal (-a - 2), Fractional ideal (2*a + 1)]
+            sage: O.ideal(5).prime_factors()
+            [Fractional ideal (5, 5*a) of non-maximal order]
+        """
+        if self.is_zero():
+            raise ValueError("Does not make sense to factor (0)")
+        O = self.order()
+        OK = O.integral_closure()
+
+        aOK = OK.ideal(self.gens())
+        above = aOK.prime_factors()
+
+        return list(set(O.intersection(p) for p in above))
 
 
 def basis_to_module(B, K):
