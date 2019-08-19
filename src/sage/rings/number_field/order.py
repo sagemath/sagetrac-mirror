@@ -1333,7 +1333,9 @@ class AbsoluteOrder(Order):
         elif isinstance(right, OrderFractionalIdeal):
             if left.number_field() != right.number_field():
                 raise TypeError("Number fields don't match.")
-            return left.ideal(right.gens())
+            K = left.number_field()
+            free_module = left.free_module().intersection(right.free_module())
+            return left.ideal([K(x) for x in free_module.basis()])
         else:
             raise NotImplementedError
 
