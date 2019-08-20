@@ -841,8 +841,8 @@ class OrderedSetPartition(ClonableArray):
 
         REFERENCES:
 
-        .. A. T. Wilson. 
-        *An extension of MacMahon’s Equidistribution Theorem to ordered multiset partitions*. 
+        .. A. T. Wilson.
+        *An extension of MacMahon’s Equidistribution Theorem to ordered multiset partitions*.
         Electron. J. Combin., **23** (1) (2016), P1.5.
 
         EXAMPLES::
