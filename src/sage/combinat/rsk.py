@@ -2523,7 +2523,7 @@ class RuleShiftedKnuth(RuleSuperRSK):
 
     Shifted Knuth insertion is a combination of row and column insertion which 
     provides a correspondence between a primed matrix `A` and a pair `(P, Q)` 
-    of same shaped generalized shifted tableaux.
+    of same shaped shifted tableaux.
 
     Shifted Knuth insertion differs from classical RSK in the following ways:
 
@@ -2540,25 +2540,31 @@ class RuleShiftedKnuth(RuleSuperRSK):
       out the first integer greater **or equal to** `k_i` in the column) 
       along the column.
 
+    ..NOTE::
+
+        The shifted primed tableau in this bijection can have primed diagonal
+        entries. For more details,
+        see :class:`~sage.combinat.shifted_primed_tableau.ShiftedPrimedTableau`.
+
     EXAMPLES::
 
         sage: RSK([1,2,2,2], [2,1,1,2], insertion='shiftedKnuth')
-        [[[1, 1, 2], [2]], [[1, 2', 2], [2]]]
+        [[(1, 1, 2), (2,)], [(1, 2', 2), (2,)]]
         sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
         sage: p = Tableau([[PrimedEntry(1), PrimedEntry(1), PrimedEntry(2)], [PrimedEntry(2)]]); q = Tableau([[PrimedEntry(1), PrimedEntry("2'"), PrimedEntry(2)], [PrimedEntry(2)]])
         sage: RSK_inverse(p, q, insertion=RSK.rules.shiftedKnuth)
         [[1, 2, 2, 2], [2, 1, 1, 2]]
         sage: RSK([[0,0.5,1.5], [1,0.5,0], [1.5,0,0]], insertion=RSK.rules.shiftedKnuth)
-        [[[1, 1, 1, 3', 3], [2', 2]], [[1, 1, 1, 2', 3'], [2, 3']]]
+        [[(1, 1, 1, 3', 3), (2', 2)], [(1, 1, 1, 2', 3'), (2, 3')]]
 
     TESTS:
 
     Let us try Shifted Knuth on some examples give in []_::
 
         sage: RSK([2,6,5,1,7,4,3], insertion=RSK.rules.shiftedKnuth)
-        [[[1, 2, 3, 6, 7], [4, 5]], [[1, 2, 4', 5, 7'], [3, 6']]]
+        [[(1, 2, 3, 6, 7), (4, 5)], [(1, 2, 4', 5, 7'), (3, 6')]]
         sage: RSK([1,1,1,2,2,3,3],[1.5,2.5,3,1,1.5,0.5,1],insertion='shiftedKnuth')
-        [[[1, 1, 1, 3', 3], [2', 2]], [[1, 1, 1, 2', 3'], [2, 3']]]
+        [[(1, 1, 1, 3', 3), (2', 2)], [(1, 1, 1, 2', 3'), (2, 3')]]
     """
     def to_pairs(self, obj1=None, obj2=None, check=True):
         r"""
@@ -2678,13 +2684,13 @@ class RuleShiftedKnuth(RuleSuperRSK):
             If the input is a circled matrix (primed matrix) then it is 
             converted to a biword like a regular matrix except that for 
             the entries, the first entry in the bottom row of biword of 
-            corresponding letters will be primed. 
+            corresponding letters will be primed.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleShiftedKnuth
             sage: p, q = RuleShiftedKnuth().forward_rule([1, 1], [1, 2]); p
-            [[1, 2]]
+            [(1, 2)]
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         itr = self.to_pairs(obj1, obj2, check=check)
@@ -2756,6 +2762,11 @@ class RuleShiftedKnuth(RuleSuperRSK):
         correspondence from the output of the corresponding
         ``forward_rule``.
 
+        ..NOTE:
+
+            Unlike other tableau classes, `ShiftedPrimedTableau` returns stores
+            the tableau as a list of tuples.
+
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleShiftedKnuth
@@ -2767,8 +2778,8 @@ class RuleShiftedKnuth(RuleSuperRSK):
         # Remove None to typecast to tableau
         p = [filter(lambda x: x is not None, row) for row in p]
         if not p:
-            return [StandardTableau([]), StandardTableau([])]
-        return [Tableau(p), Tableau(q)]
+            return [ShiftedPrimedTableau([]), ShiftedPrimedTableau([])]
+        return [ShiftedPrimedTableau(p, primed_diagonal=True), ShiftedPrimedTableau(q, primed_diagonal=True)]
 
     def backward_rule(self, p, q, output='array'):
         r"""
@@ -2851,10 +2862,9 @@ class RuleShiftedKnuth(RuleSuperRSK):
                                         p_copy[row_index][col_index] = x
                 upper_row.append(value.integer())
                 lower_row.append(x)
-        return self._backward_format_output(lower_row, upper_row, output, q.is_standard())
+        return self._backward_format_output(lower_row, upper_row, output)
 
-    def _backward_format_output(self, lower_row, upper_row, output, 
-                                q_is_standard):
+    def _backward_format_output(self, lower_row, upper_row, output):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
@@ -2870,14 +2880,8 @@ class RuleShiftedKnuth(RuleSuperRSK):
             raise NotImplementedError("backward rule for matrices is not yet implemented")
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
-        if output == 'word':
-            if q_is_standard:
-                from sage.combinat.words.word import Word
-                return Word(reversed(lower_row))
-            else:
-                raise TypeError("q must be standard to have a %s as valid output" %output)
         raise ValueError("invalid output option")
-            
+
 
 class InsertionRules(object):
     r"""
