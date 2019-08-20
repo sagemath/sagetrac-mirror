@@ -4388,6 +4388,19 @@ class SemistandardTableau(Tableau):
         elif t in SemistandardTableaux():
             return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
 
+        # t is not a semistandard tableau so we give an appropriate error message
+        if t not in Tableaux():
+            raise ValueError('%s is not a tableau' % t)
+
+        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
+            raise ValueError("entries must be positive integers"%t)
+
+        if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
+            raise ValueError("The rows of %s are not weakly increasing"%t)
+
+        # If we're still here ``t`` cannot be column strict
+        raise ValueError('%s is not a column strict tableau' % t)
+
     def check(self):
         """
         Check that ``self`` is a valid semistandard tableau.
@@ -9358,6 +9371,7 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
         if shape not in _Partitions:
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
+
 
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.misc.persist import register_unpickle_override
