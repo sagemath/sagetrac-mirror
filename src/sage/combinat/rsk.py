@@ -57,6 +57,8 @@ available:
 - CoRSK insertion (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018v5sol]_.
 - Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a combiantion of row
   and column insertions defined in [RM2017]_.
+- Shifted Knuth insertion (:class:`~sage.combinat.rsk.RuleShiftedKnuth`), a bijection
+  between primed matrices and shifted tableaux defined in [Sag1987]_.
 
 Implementing your own insertion rule
 ------------------------------------
@@ -2131,7 +2133,7 @@ class RuleSuperRSK(RuleRSK):
         at index ``col_index`` (Indexing  starting from zero) as 
         ``col``.
 
-        ..NOTE::
+        .. NOTE::
 
             If ``length(col)`` is greater than the corresponding column in 
             tableau ``t`` then only those rows of ``t`` will be set which 
@@ -2523,7 +2525,8 @@ class RuleShiftedKnuth(RuleSuperRSK):
 
     Shifted Knuth insertion is a combination of row and column insertion which 
     provides a correspondence between a primed matrix `A` and a pair `(P, Q)` 
-    of same shaped shifted tableaux.
+    of same shaped shifted tableaux
+    (:class:`~sage.combinat.shifted_primed_tableau.ShiftedPrimedTableau`).
 
     Shifted Knuth insertion differs from classical RSK in the following ways:
 
@@ -2540,30 +2543,33 @@ class RuleShiftedKnuth(RuleSuperRSK):
       out the first integer greater **or equal to** `k_i` in the column) 
       along the column.
 
-    ..NOTE::
+    .. NOTE::
 
         The shifted primed tableau in this bijection can have primed diagonal
-        entries. For more details,
-        see :class:`~sage.combinat.shifted_primed_tableau.ShiftedPrimedTableau`.
+        entries.
 
     EXAMPLES::
 
         sage: RSK([1,2,2,2], [2,1,1,2], insertion='shiftedKnuth')
         [[(1, 1, 2), (2,)], [(1, 2', 2), (2,)]]
         sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-        sage: p = Tableau([[PrimedEntry(1), PrimedEntry(1), PrimedEntry(2)], [PrimedEntry(2)]]); q = Tableau([[PrimedEntry(1), PrimedEntry("2'"), PrimedEntry(2)], [PrimedEntry(2)]])
+        sage: p = Tableau([[PrimedEntry(1), PrimedEntry(1), PrimedEntry(2)],
+        ....:             [PrimedEntry(2)]])
+        sage: q = Tableau([[PrimedEntry(1), PrimedEntry("2'"), PrimedEntry(2)],
+        ....:             [PrimedEntry(2)]])
         sage: RSK_inverse(p, q, insertion=RSK.rules.shiftedKnuth)
         [[1, 2, 2, 2], [2, 1, 1, 2]]
-        sage: RSK([[0,0.5,1.5], [1,0.5,0], [1.5,0,0]], insertion=RSK.rules.shiftedKnuth)
+        sage: RSK([[0,0.5,1.5], [1,0.5,0], [1.5,0,0]], insertion='shiftedKnuth')
         [[(1, 1, 1, 3', 3), (2', 2)], [(1, 1, 1, 2', 3'), (2, 3')]]
 
     TESTS:
 
-    Let us try Shifted Knuth on some examples give in []_::
+    Let us try Shifted Knuth on some examples give in [Sag1987]_::
 
         sage: RSK([2,6,5,1,7,4,3], insertion=RSK.rules.shiftedKnuth)
         [[(1, 2, 3, 6, 7), (4, 5)], [(1, 2, 4', 5, 7'), (3, 6')]]
-        sage: RSK([1,1,1,2,2,3,3],[1.5,2.5,3,1,1.5,0.5,1],insertion='shiftedKnuth')
+        sage: RSK([1,1,1,2,2,3,3],[1.5,2.5,3,1,1.5,0.5,1],
+        ....:     insertion='shiftedKnuth')
         [[(1, 1, 1, 3', 3), (2', 2)], [(1, 1, 1, 2', 3'), (2, 3')]]
     """
     def to_pairs(self, obj1=None, obj2=None, check=True):
@@ -2574,7 +2580,7 @@ class RuleShiftedKnuth(RuleSuperRSK):
         (i.e., satisfying
         `a_1 \leq a_2 \leq \cdots \leq a_n`, and if
         `a_i = a_{i+1}`, then `b_i \leq b_{i+1}`),
-        or a matrix ("generalized permutation"), or a single word,
+        or a matrix (may contain primed entries), or a single word,
         return the array
         `[(a_1, b_1), (a_2, b_2), \ldots, (a_n, b_n)]`.
 
@@ -2593,7 +2599,8 @@ class RuleShiftedKnuth(RuleSuperRSK):
             sage: from sage.combinat.rsk import RuleShiftedKnuth
             sage: list(RuleShiftedKnuth().to_pairs([2, 1, 1],[1, 1, '1p']))
             [(2, 1), (1, 1), (1, 1')]
-            sage: list(RuleShiftedKnuth().to_pairs([[1, '1p', 1],[1, 1, '1p'],['1p',1,1]]))
+            sage: list(RuleShiftedKnuth().to_pairs([[1, '1p', 1],[1, 1, '1p'],
+            ....:                                  ['1p',1,1]]))
             [(1, 1), (1, 2'), (1, 3), (2, 1), (2, 2), (2, 3'), (3, 1'), (3, 2), (3, 3)]
             sage: list(RuleShiftedKnuth().to_pairs([2, '1p', 1],[1, 1, '1p']))
             Traceback (most recent call last):
@@ -2647,8 +2654,8 @@ class RuleShiftedKnuth(RuleSuperRSK):
 
     def forward_rule(self, obj1, obj2, check_standard=False, check=True):
         r"""
-        Return a pair of tableaux obtained by applying forward
-        insertion to the restricted super biword ``[obj1, obj2]``.
+        Return a pair of shifted primed tableaux obtained by applying forward
+        insertion to the biword ``[obj1, obj2]``.
 
         INPUT:
 
@@ -2660,7 +2667,7 @@ class RuleShiftedKnuth(RuleSuperRSK):
             to be interpreted as the top row and the bottom row of
             the biword;
 
-          - a matrix ``obj1`` of nonnegative integers, to be
+          - a matrix ``obj1`` of nonnegative primed integers, to be
             interpreted as the generalized permutation in matrix
             form (in this case, ``obj2`` is ``None``);
 
@@ -2679,12 +2686,12 @@ class RuleShiftedKnuth(RuleSuperRSK):
           that ``obj1`` and ``obj2`` actually define a valid
           generalized permutation.
 
-        ..NOTE::
+        .. NOTE::
 
-            If the input is a circled matrix (primed matrix) then it is 
-            converted to a biword like a regular matrix except that for 
-            the entries, the first entry in the bottom row of biword of 
-            corresponding letters will be primed.
+            If the input is a primed matrix then it is first converted to
+            biword like a regular matrix and then, for each primed entry in
+            the matrix, the first `j` in the corresponding `(i, j)` pairs of
+            the biword will be primed.
 
         EXAMPLES::
 
@@ -2764,16 +2771,18 @@ class RuleShiftedKnuth(RuleSuperRSK):
 
         ..NOTE:
 
-            Unlike other tableau classes, `ShiftedPrimedTableau` returns stores
-            the tableau as a list of tuples.
+            Unlike other tableau classes, ``ShiftedPrimedTableau`` returns
+            stores the tableau as a list of tuples.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleShiftedKnuth
-
+            sage: isinstance(RuleShiftedKnuth()._forward_format_output(
+            ....:       [['1p', 1, '2p']], [['1p', '1', '2p']], True)[0],
+            ....:       ShiftedPrimedTableau)
+            True
         """
         from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
-        from sage.combinat.tableau import Tableau
 
         # Remove None to typecast to tableau
         p = [filter(lambda x: x is not None, row) for row in p]
@@ -2795,15 +2804,11 @@ class RuleShiftedKnuth(RuleSuperRSK):
           - ``'array'`` -- as a two-line array (i.e. biword)
           - ``'matrix'`` -- as a matrix
 
-          and if ``q`` is standard, we can have the output:
-
-          - ``'word'`` -- as a word
-
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleShiftedKnuth
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-            sage: p, q = RSK([2,'3p',2,'2p',1,'1p'], insertion=RSK.rules.shiftedKnuth)
+            sage: p, q = RSK([2,'3p',2,'2p',1,'1p'], insertion='shiftedKnuth')
             sage: RuleShiftedKnuth().backward_rule(p, q, 'array')
             [[1, 2, 3, 4, 5, 6], [2, 3', 2, 2', 1, 1']]
         """
@@ -2992,6 +2997,8 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
         for strict cobiwords) (:class:`~sage.combinat.rsk.RuleCoRSK`)
       - ``RSK.rules.superRSK`` (or ``'super'``) -- Super RSK insertion (only for
         restricted super biwords) (:class:`~sage.combinat.rsk.RuleSuperRSK`)
+      - ``RSK.rules.shiftedKnuth`` (or ``'shiftedKnuth'``) -- Shifted Knuth
+        insertion (:class:`~sage.combinat.rsk.RuleShiftedKnuth`)
 
     - ``check_standard`` -- (default: ``False``) check if either of the
       resulting tableaux is a standard tableau, and if so, typecast it
@@ -3148,6 +3155,8 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         for strict cobiwords) (:class:`~sage.combinat.rsk.RuleCoRSK`)
       - ``RSK.rules.superRSK`` (or ``'super'``) -- Super RSK insertion (only for
         restricted super biwords) (:class:`~sage.combinat.rsk.RuleSuperRSK`)
+      - ``RSK.rules.shiftedKnuth`` (or ``'shiftedKnuth'``) -- Shifted Knuth
+        insertion (:class:`~sage.combinat.rsk.RuleShiftedKnuth`)
 
     For precise information about constraints on the input and
     output, see the particular :class:`~sage.combinat.rsk.Rule` class.
