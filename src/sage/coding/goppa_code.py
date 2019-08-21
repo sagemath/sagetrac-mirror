@@ -224,15 +224,7 @@ class GoppaCode(AbstractLinearCode):
         D = self._defining_set
         h = [(g(D[i]).inverse_of_unit()) for i in range(n)]
 
-        #assemble top row
-        M = _columnize(alpha)
-        for i in range(n):
-            v = _columnize(h[i])
-            M = M.augment(v)
-        M = M.delete_columns([0])
-        old = M
-
-        for t in range(1,d):
+        for t in range(0,d):
             #assemble row
             M = _columnize(alpha)
             for i in range(n):
