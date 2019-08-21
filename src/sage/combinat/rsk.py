@@ -2833,7 +2833,7 @@ class RuleShiftedKnuth(RuleSuperRSK):
         for value, iter_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
             schen = False if value.is_primed() else True
             if not schen:
-                iter_dict = {v: k for k, v in iter_dict.iteritems()}
+                iter_dict = {v: k for k, v in iter_dict.items()}
             for key in sorted(iter_dict, reverse=True):
                 schen = False if value.is_primed() else True
                 row_index, col_index = (iter_dict[key], key) if schen else (key, iter_dict[key])

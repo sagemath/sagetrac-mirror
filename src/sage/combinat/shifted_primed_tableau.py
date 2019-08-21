@@ -37,7 +37,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 
 from sage.categories.regular_crystals import RegularCrystals
-from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_supercrystals import RegularSuperCrystals
 from sage.categories.sets_cat import Sets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
