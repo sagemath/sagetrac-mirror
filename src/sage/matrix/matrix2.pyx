@@ -6788,8 +6788,8 @@ cdef class Matrix(Matrix1):
           - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
             partial pivoting (if base ring has absolute value)
 
-          - ``'scaled_partial_pivoting_valuation'``: Gauss elimination, using scaled
-            partial pivoting (if base ring has absolute value)
+          - ``'scaled_partial_pivoting_valuation'``: Gauss elimination, using 
+            scaled partial pivoting (if base ring has valuation)
 
           - ``'strassen'``: use a Strassen divide and conquer
             algorithm (if available)
