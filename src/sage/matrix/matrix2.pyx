@@ -6742,7 +6742,7 @@ cdef class Matrix(Matrix1):
                 try:
                     self.base_ring().one().abs()
                     algorithm = 'scaled_partial_pivoting'
-                except AttributeError:
+                except (AttributeError, TypeError):
                     algorithm = 'scaled_partial_pivoting_valuation'
             else:
                 algorithm = 'classical'
