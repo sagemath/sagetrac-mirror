@@ -26,7 +26,21 @@ AUTHORS:
 #from sage.structure.sage_object import SageObject
 #from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.rational import Rational
+from sage.rings.integer import Integer
+from sage.matrix.all import matrix
+from sage.rings.all import QQ, ZZ
+from sage.arith.all import gcd, lcm
+from sage.rings.number_field.number_field import CyclotomicField
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.misc.functional import cyclotomic_polynomial
 
+
+
+def actual_product(L):
+    PR = 1
+    for l in L:
+        PR *= l
+    return PR
 
 def genus_hash(a,b):
     r"""
@@ -494,18 +508,17 @@ class PlumbingGraph():
         """
         return { e for e in self.edges if i in self.adj[e] }
 
-    def intersection_matrix(self):
+    def intersection_matrix(self, S=None):
         r"""
-
-        Comment: OK, seriously, how do you want me to define a matrix
-        with integral coefficients? Which library? What?
-
-        Returns the intersection matrix associated with the plumbing
+        Return the intersection matrix associated with the plumbing
         graph.
         """
         # here we assume no loops, let's clarify what to do with loops.
         n = len(self.vertices)
-        V = list(self.vertices)
+        if not S:
+            V = list(self.vertices)
+        else:
+            V = S
         d = { V[i]:i for i in range(0,n) }
         I = matrix(n,n)
         for i in range(0,n):
@@ -650,6 +663,17 @@ class PlumbingGraph():
         A set of vertices.
         """
         return { i for i in self.vertices if self.g[i] != 0 or self.r[i] != 0 or self.degree(i) > 2 or self.degree(i) == 0 }
+
+    def ends(self):
+        r"""
+        Returns the set of ends. An end is a vertex with g == 0 and
+        r == 0 and degree == 1.
+
+        OUTPUT:
+
+        A set of vertices.
+        """
+        return { i for i in self.vertices if self.g[i] == 0 and self.r[i] == 0 and self.degree(i) == 1 }
 
     def max_chain(self, i):
         r"""
@@ -1034,7 +1058,7 @@ class PlumbingGraph():
             sage: P.projective_extrude(0, 0, -1, -1, -1)
             True
             sage: P
-            A plumbing graph with 13 vertice
+            A plumbing graph with 13 vertices
         """
         if self.g[i] != genus_hash(g, -1):
             return False
@@ -2373,3 +2397,130 @@ class PlumbingGraph():
                 break
             self.delete_component(i)
             self.add_Seifert(0, 0, [2,2], r=1)
+    
+
+########################################################################
+# The zeta function
+
+    def zeta_cdgn(self, U, h=0):
+        r"""
+        Compute the zeta function described by Campillo, Delgado and
+        Gusein-Zade and N\'emethi
+        
+        INPUT:
+        
+        - ``U`` -- A list of vertices in the graph.
+
+        OUTPUT:
+
+        An element of a rational polynomial fraction field.
+
+        EXAMPLES
+        
+        A very simple example with one vertex
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-3,0,0)
+            0
+            sage: P.zeta_cdgn([0])
+            (6*t^3 + 3)/(3*t^6 - 6*t^3 + 3)
+        
+        An example with 4 variables
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(5/4)
+            3
+            sage: P.zeta_cdgn([0,1,2,3])
+            (5*t0^20*t1^20*t2^20*t3^20 + 5*t0^15*t1^15*t2^15*t3^15 + 5*t0^10*t1^10*t2^10*t3^10 + 5*t0^5*t1^5*t2^5*t3^5 + 5)/(5*t0^25*t1^25*t2^25*t3^25 - 5*t0^20*t1^15*t2^10*t3^5 - 5*t0^5*t1^10*t2^15*t3^20 + 5)
+        
+        Exampe 7.4.4 from N\'emethi's article (must put in this reference)
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-1,0,[7,3,2])
+            0
+            sage: P.zeta_cdgn([1])
+            (t^2 - t + 1)/(t^2 - 2*t + 1)
+
+        Newton nondegenerate example 7.6 from N\'emethi's article
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[2,2,3/2])
+            0
+            sage: P.add_vertex(-5,0,0)
+            5
+            sage: P.add_edge({3,5})
+            4
+            sage: P.zeta_cdgn([0])
+            (-12*t^192 - 12*t^132 - 12*t^120 - 12*t^72 - 12*t^60 - 12)/(-12*t^180 + 12*t^156 + 12*t^24 - 12)
+        """
+        S = list(self.vertices)
+        P = {}
+        for i in range(0,len(S)):
+            P.update({S[i]:i})
+        I = self.intersection_matrix(S)
+        s = I.ncols()
+        d = abs(I.determinant())
+        J = I**-1
+        LQ = QQ**s
+        Lp = LQ.span(J.columns(),ZZ)
+        G = Lp.echelonized_basis_matrix()
+        Gd = [ G[i,i]**-1 for i in range(0,s) ]
+        Gdr = [ actual_product( [ Gd[j] for j in range(i+1,s) ] ) for i in range(0,s) ]
+
+        if h == 0:
+            h = LQ.zero()
+        else:
+            h = LQ(h)
+
+        thesum = 0
+        ellp = LQ.zero()
+        D = range(0,s)
+
+        # In the case of a single vertex, make some ad-hoc calculations here:
+
+        # ...
+
+
+        # some definitions before heading off
+        deltas = { i : sum([I[P[i],j] for j in range(0,s) if S[j] != i])
+            for i in self.vertices}
+        NS = self.nodes()
+        ES = self.ends()
+
+        # We start by creating a cyclotomic field K. Here, XI
+        # is the dp-th root of unity, where we take dp as small as
+        # we can. We then create a function field C in variables t,
+        # the number of which is specified by e. The variables are
+        # accessible via the list X.
+
+        dp = 1
+        for i in range(0,s):
+            for j in range(0,s):
+                dp = abs(lcm(dp,J[i,j].denominator()))
+        K = CyclotomicField(dp)
+        XI = K.gen()
+        C = PolynomialRing(K, len(U), 't').fraction_field()
+        T = C.gens()
+
+        # Next we make the summation:
+        thesum = 0
+        for i in range(0,d):
+            ellp = LQ.zero()
+            for j in range(0,s):
+                ellp -= ((Rational(i) / Gdr[j]).floor() % Gd[j]) * J.column(j)
+            for j in range(0,len(ellp)):
+                ellp[j] -= (ellp[j]).floor()
+            elldp = dp*ellp
+            PR = XI**(-elldp.inner_product(h))
+            for j in NS:
+                PR *= (1- (XI**(elldp[P[j]])) * actual_product(
+                    [ T[k]**(-dp*J[P[j], P[U[k]]])
+                    for k in range(0,len(U))]))**(deltas[j]-2)
+            for j in ES:
+                PR *= (1- (XI**(elldp[P[j]])) * actual_product(
+                    [ T[k]**(-dp*J[P[j], P[U[k]]])
+                    for k in range(0,len(U))]))**-1
+            thesum += PR
+        thesum /= d
+        return(thesum)
+
