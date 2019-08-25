@@ -15,7 +15,7 @@ cdef extern from "bit_vector_operations.cc":
     cdef size_t get_next_level(
         uint64_t **faces, const size_t n_faces, uint64_t **nextfaces,
         uint64_t **nextfaces2, uint64_t **visited_all,
-        size_t n_visited_all, size_t face_length)
+        size_t n_visited_all, size_t face_length, int *is_not_newface)
 #        Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
 #        that are not contained in a face of ``visited_all``.
 
@@ -26,6 +26,7 @@ cdef extern from "bit_vector_operations.cc":
 #        - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
 #        - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
 #        - ``face_length`` -- length of the faces
+#        - ``is_not_newface`` -- quasi of type int[n_faces - 1]
 
 #        OUTPUT:
 

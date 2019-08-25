@@ -278,12 +278,15 @@ cdef class ListOfFaces:
         cdef MemoryAllocator newfaces_mem = MemoryAllocator()
         cdef uint64_t **newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
 
+        # ``is_not_newface`` stores whether an element of ``maybe_newfaces`` is a new face
+        cdef int *is_not_newface = <int *> newfaces_mem.allocarray(n_faces-1, sizeof(int))
+
         # Calculating ``maybe_newfaces`` and ``newfaces``
         # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
         cdef size_t new_n_faces
         sig_on()
         new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
-                                      newfaces, NULL, 0, face_length)
+                                      newfaces, NULL, 0, face_length, is_not_newface)
         sig_off()
 
         # compute the dimension of the polyhedron,

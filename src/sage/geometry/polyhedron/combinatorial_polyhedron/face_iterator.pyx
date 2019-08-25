@@ -473,6 +473,9 @@ cdef class FaceIterator(SageObject):
             some_list = self.newfaces_lists[i]
             self.maybe_newfaces[i] = some_list.data
 
+        # Initialize ``is_not_newface``
+        self.is_not_newface = <int *> self._mem.allocarray(self.coatoms.n_faces-1, sizeof(int))
+
         # Initialize ``visited_all``.
         self.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
         self.n_visited_all = <size_t *> self._mem.allocarray(self.dimension, sizeof(size_t))
@@ -762,7 +765,7 @@ cdef class FaceIterator(SageObject):
         newfacescounter = get_next_level(
             faces, n_faces + 1, self.maybe_newfaces[self.current_dimension-1],
             self.newfaces[self.current_dimension-1],
-            self.visited_all, n_visited_all, self.face_length)
+            self.visited_all, n_visited_all, self.face_length, self.is_not_newface)
         sig_off()
 
         if newfacescounter:

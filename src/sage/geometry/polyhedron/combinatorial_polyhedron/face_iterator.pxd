@@ -48,6 +48,8 @@ cdef class FaceIterator(SageObject):
     cdef uint64_t ***newfaces
     cdef size_t *n_newfaces  # number of newfaces for each dimension
 
+    cdef int *is_not_newface # space to store whether a maybe_newface is a newface
+
     # After having visited a face completely, we want to add it to ``visited_all``.
     # ``first_dim[i]`` will indicate, wether there is one more face in
     # ``newfaces[i]`` then ``n_newfaces[i]`` suggests
