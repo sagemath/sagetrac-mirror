@@ -826,3 +826,61 @@ class QarySymmetricChannel(Channel):
         """
         return sum(self.probability_of_exactly_t_errors(i)
                 for i in range(t+1))
+
+class StaticRankErrorChannel(Channel):
+
+    def __init__(self, space, subspace, number_errors):
+        """
+        A constructor for the Static Rank Error Channel.
+        """
+        if not isinstance(number_errors, (int, Integer)):
+            raise ValueError("number_errors must be an Integer or a Python int")
+        super(StaticRankErrorChannel, self).__init__(space, space)
+        if number_errors > space.dimension():
+            raise ValueError("There might be more errors than the degree of the input space")
+        self._number_errors = number_errors
+        self._subspace = subspace
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+        """
+        no_err = self.number_errors()
+        return "Static rank error channel creating %s errors, of input and output space %s"\
+                    % (no_err, self.input_space())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+        """
+        no_err = self.number_errors()
+        return "\\textnormal{Static rank error channel creating %s errors, of input and output space %s}"\
+                % (format_interval(no_err), self.input_space())
+
+    def transmit_unsafe(self, message):
+        r"""
+        Return ``message`` with as many errors as ``self._number_errors`` in it.
+
+        If ``self._number_errors`` was passed as a tuple for the number of errors, it will
+        pick a random integer between the bounds of the tuple and use it as the number of errors.
+
+        This method does not check if ``message`` belongs to the input space of``self``.
+        """
+        w = copy(message)
+        if not isinstance(self.number_errors(), (int, Integer)):
+            number_errors = randint(*self.number_errors())
+        else:
+            number_errors = self.number_errors()
+        F = self._subspace
+        for i in sample(xrange(len(w)), number_errors):
+            err = F.random_element()
+            while (w[i] == err):
+                err = F.random_element()
+            w[i] = err
+        return w
+
+    def number_errors(self):
+        r"""
+        Return the number of errors created by ``self``.
+        """
+        return self._number_errors
