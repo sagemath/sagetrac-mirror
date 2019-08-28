@@ -7069,7 +7069,7 @@ cdef class Matrix(Matrix1):
                     for r in range(start_row, nr):
                         if scale_factors[r] is not None:
                             abs_val = scale_factors[r] - A.get_unsafe(r,c).valuation()
-                            if abs_val > max_abs_val:
+                            if max_abs_val is None or abs_val > max_abs_val:
                                 max_abs_val = abs_val
                                 best_r = r
 
