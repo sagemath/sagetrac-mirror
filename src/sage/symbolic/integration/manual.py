@@ -42,8 +42,160 @@ class ManualIntegral(SageObject):
 
     Hints can either help continue the process initiated by a previous hint, or
     provide an alternative approach.
+
+    For example, let's try to compute the integral `\int x\sin(x)dx`. First
+    we have to construct the corresponding manual integral object::
+
+        sage: from sage.symbolic.integration.manual import ManualIntegral
+        sage: M = ManualIntegral(x*sin(x), x)
+
+    Now we can ask it for hints about how to proceed::
+
+        sage: M.hint()
+        (u == x,
+         dv == sin(x),
+         du == 1,
+         v == integrate(sin(x), x),
+         integrate(x*sin(x), x) == v*x - integrate(v, x))
+
+    The first hint we are given is to use integration by parts. This reduces the
+    problem of computing our original integral, to two subproblems: first we
+    need to compute `v=\int\sin(x)dx` and once done that, we need to compute
+    `\int vdx`. We can keep asking for hints. First it will give us hints to
+    resolve the first subproblem, and once it has been solved, proceed with the
+    second one::
+
+        sage: M.hint()
+        (integrate(sin(x), x) == -cos(x),)
+
+    The computation of `v` was immediate, so it is solved with just one hint.
+    Now  we ask for hints for our second subproblem::
+
+        sage: M.hint()
+        (integrate(-cos(x), x) == -integrate(cos(x), x),)
+        sage: M.hint()
+        (integrate(cos(x), x) == sin(x),)
+
+
+    So we have to take the sign out of the integral, and then we just have an
+    immediate integral. Since all the possible hints are given, if we ask for
+    a next one, we get an error::
+
+        sage: M.hint()
+        Traceback (most recent call last):
+        ...
+        StopIteration
+
+    But after that, we can start again with the first one::
+
+        sage: M.hint()
+        (u == x,
+         dv == sin(x),
+         du == 1,
+         v == integrate(sin(x), x),
+         integrate(x*sin(x), x) == v*x - integrate(v, x))
+
+    We can also ask for all the hints at once::
+
+        sage: M.all_hints()
+        [(u == x,
+          dv == sin(x),
+          du == 1,
+          v == integrate(sin(x), x),
+          integrate(x*sin(x), x) == v*x - integrate(v, x)),
+         (integrate(sin(x), x) == -cos(x),),
+         (integrate(-cos(x), x) == -integrate(cos(x), x),),
+         (integrate(cos(x), x) == sin(x),)]
+
+    We have already seen examples of hints consisting on taking a sign out of
+    the integrand, immediate integrals, and suggestions for integration by parts.
+    There are also hints suggesting a change of variables::
+
+        sage: N = ManualIntegral(cos(exp(x))*exp(x),x)
+        sage: N.hint()
+        (u == e^x, integrate(cos(e^x)*e^x, x) == integrate(cos(u), u))
+
+    to split the integral as a sum::
+
+        sage: L = ManualIntegral(2*sin(x) + 3*exp(x), x)
+        sage: L.hint()
+        (integrate(3*e^x + 2*sin(x), x) == integrate(3*e^x, x) + integrate(2*sin(x), x),)
+
+
+    to take constants out of the integral::
+
+        sage: L.hint()
+        (integrate(3*e^x, x) == 3*integrate(e^x, x),)
+
+    or just to rewrite the integrand::
+
+        sage: O = ManualIntegral((x+2)/(x^2-2*x+1), x)
+        sage: O.hint()
+        (integrate((x + 2)/(x^2 - 2*x + 1), x) == integrate(1/(x - 1) + 3/(x - 1)^2, x),)
+
+    When, after several application of the integration by parts, we get back
+    again the same integral, we also get a hint telling us to isolate it::
+
+        sage: P = ManualIntegral(sin(x)*exp(x), x)
+        sage: P.hint()
+        (u == sin(x),
+         dv == e^x,
+         du == cos(x),
+         v == integrate(e^x, x),
+         integrate(e^x*sin(x), x) == v*sin(x) - integrate(v*cos(x), x))
+        sage: P.hint()
+        (integrate(e^x, x) == e^x,)
+        sage: P.hint()
+        (u == cos(x),
+         dv == e^x,
+         du == -sin(x),
+         v == integrate(e^x, x),
+         integrate(cos(x)*e^x, x) == v*cos(x) - integrate(-v*sin(x), x))
+        sage: P.hint()
+        (integrate(e^x, x) == e^x,)
+        sage: P.hint()
+        (integrate(e^x*sin(x), x) == -cos(x)*e^x + e^x*sin(x) - integrate(e^x*sin(x), x),
+         2*integrate(e^x*sin(x), x) == -cos(x)*e^x + e^x*sin(x))
+
+    For some integrals, there might be different methods that can be suggested.
+    In that case, we first get the full resolution using each one, and then start
+    with the next one::
+
+        sage: O.all_hints()
+        [(integrate((x + 2)/(x^2 - 2*x + 1), x) == integrate(1/(x - 1) + 3/(x - 1)^2, x),),
+         (integrate(1/(x - 1) + 3/(x - 1)^2, x) == integrate(1/(x - 1), x) + integrate(3/(x - 1)^2, x),),
+         (u == x - 1, integrate(1/(x - 1), x) == integrate(1/u, u)),
+         (integrate(1/u, u) == log(abs(u)),),
+         (integrate(3/(x - 1)^2, x) == 3*integrate((x - 1)^(-2), x),),
+         (u == x - 1, integrate((x - 1)^(-2), x) == integrate(u^(-2), u)),
+         (integrate(u^(-2), u) == -1/u,),
+         (integrate((x + 2)/(x^2 - 2*x + 1), x) == integrate(x/(x^2 - 2*x + 1) + 2/(x^2 - 2*x + 1), x),),
+         (integrate(x/(x^2 - 2*x + 1) + 2/(x^2 - 2*x + 1), x) == integrate(x/(x^2 - 2*x + 1), x) + integrate(2/(x^2 - 2*x + 1), x),),
+         (integrate(x/(x^2 - 2*x + 1), x) == integrate(1/(x - 1) + 1/(x - 1)^2, x),),
+         (integrate(1/(x - 1) + 1/(x - 1)^2, x) == integrate(1/(x - 1), x) + integrate((x - 1)^(-2), x),),
+         (u == x - 1, integrate(1/(x - 1), x) == integrate(1/u, u)),
+         (integrate(1/u, u) == log(abs(u)),),
+         (u == x - 1, integrate((x - 1)^(-2), x) == integrate(u^(-2), u)),
+         (integrate(u^(-2), u) == -1/u,),
+         (integrate(2/(x^2 - 2*x + 1), x) == 2*integrate(1/(x^2 - 2*x + 1), x),),
+         (integrate(1/(x^2 - 2*x + 1), x) == integrate((x - 1)^(-2), x),),
+         (u == x - 1, integrate((x - 1)^(-2), x) == integrate(u^(-2), u)),
+         (integrate(u^(-2), u) == -1/u,)]
+
     """
     def __init__(self, f, x):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: M
+            integrate(x*sin(x), x)
+            sage: TestSuite(M).run()
+
+        """
         self._f = f
         self._x = x
         self._rule = integral_steps(f._sympy_(), x._sympy_())
@@ -51,15 +203,110 @@ class ManualIntegral(SageObject):
         self._current_index = -1
 
     def __iter__(self):
+        r"""
+        The iterator of an iterable object should be itself
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: M
+            integrate(x*sin(x), x)
+            sage: M.__iter__()
+            integrate(x*sin(x), x)
+
+        """
         return self
 
+    def __eq__(self, other):
+        r"""
+        Two objects of this class are equal if they compute the integral of equal
+        expressions with respect to equal variables.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: N = ManualIntegral(cos(exp(x))*exp(x), x)
+            sage: O = ManualIntegral(x*sin(x), x)
+            sage: M == N
+            False
+            sage: M == O
+            True
+            sage: M.__eq__(N)
+            False
+            sage: M.__eq__(O)
+            True
+
+        """
+        if not type(self) == type(other):
+            return False
+        return (self._f, self._x) == (other._f, other._x)
+
     def _repr_(self):
+        r"""
+        Objects of this class are represented as the integral they compute.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: M._repr_()
+            'integrate(x*sin(x), x)'
+
+        """
         return integral(self._f, self._x, hold=True)._repr_()
 
     def _latex_(self):
+        r"""
+        The latex expression of an object of this class is the same as the
+        integral it computes.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: M._latex_()
+            '\\int x \\sin\\left(x\\right)\\,{d x}'
+
+        """
         return integral(self._f, self._x, hold=True)._latex_()
 
     def next(self):
+        r"""
+        A ManualIntegral can be iterated over its hints. Each time the method
+        ``hint`` or ``next`` is called, a new hint is returned.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x**2+3*x, x)
+            sage: M.hint()
+            (integrate(x^2 + 3*x, x) == integrate(x^2, x) + integrate(3*x, x),)
+            sage: M.hint()
+            (integrate(x^2, x) == 1/3*x^3,)
+
+        The methods ``next`` or ``hint``can be used indistinctly::
+
+            sage: M.next()
+            (integrate(3*x, x) == 3*integrate(x, x),)
+
+        When all the hints have been returned, and a new hint is requested,
+        an exception is raised::
+
+            sage: M.next()
+            (integrate(x, x) == 1/2*x^2,)
+            sage: M.next()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        After that, the process can start again::
+
+            sage: M.hint()
+            (integrate(x^2 + 3*x, x) == integrate(x^2, x) + integrate(3*x, x),)
+
+        """
         self._current_index += 1
         if self._current_index >= len(self._rules_list):
             self._current_index = -1
@@ -70,10 +317,89 @@ class ManualIntegral(SageObject):
     hint = next
 
     def all_hints(self):
+        r"""
+        Return a list with all the hints to compute this integral.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: M.all_hints()
+            [(u == x,
+              dv == sin(x),
+              du == 1,
+              v == integrate(sin(x), x),
+              integrate(x*sin(x), x) == v*x - integrate(v, x)),
+             (integrate(sin(x), x) == -cos(x),),
+             (integrate(-cos(x), x) == -integrate(cos(x), x),),
+             (integrate(cos(x), x) == sin(x),)]
+
+        """
         return [integration_hint(r) for r in self._rules_list]
 
 
 def create_rules_list(rule):
+    r"""
+    Return a list with rules for all the substeps of a rule for integration.
+
+    INPUT:
+
+    - `rule` -- a sympy `manualintegrate` Rule
+
+    OUTPUT: a list of sympy rules, in the appropriate order.
+
+    EXAMPLES:
+
+    In the case of `CyclicPartsRule`, the different integration by parts steps
+    are put before the actual rule for collecting the cyclic parts::
+
+        sage: from sage.symbolic.integration.manual import ManualIntegral, create_rules_list
+        sage: M = ManualIntegral(exp(x)*sin(x), x)
+        sage: M._rule
+        CyclicPartsRule(parts_rules=[PartsRule(u=sin(x), dv=exp(x), v_step=ExpRule(base=E, exp=x, context=exp(x), symbol=x), second_step=None, context=None, symbol=None), PartsRule(u=cos(x), dv=exp(x), v_step=ExpRule(base=E, exp=x, context=exp(x), symbol=x), second_step=None, context=None, symbol=None)], coefficient=-1, context=exp(x)*sin(x), symbol=x)
+        sage: create_rules_list(M._rule)
+        [PartsRule(u=sin(x), dv=exp(x), v_step=ExpRule(base=E, exp=x, context=exp(x), symbol=x), second_step=None, context=exp(x)*sin(x), symbol=x),
+         ExpRule(base=E, exp=x, context=exp(x), symbol=x),
+         PartsRule(u=cos(x), dv=exp(x), v_step=ExpRule(base=E, exp=x, context=exp(x), symbol=x), second_step=None, context=exp(x)*cos(x), symbol=x),
+         ExpRule(base=E, exp=x, context=exp(x), symbol=x),
+         CyclicPartsRule(parts_rules=[PartsRule(u=sin(x), dv=exp(x), v_step=ExpRule(base=E, exp=x, context=exp(x), symbol=x), second_step=None, context=None, symbol=None), PartsRule(u=cos(x), dv=exp(x), v_step=ExpRule(base=E, exp=x, context=exp(x), symbol=x), second_step=None, context=None, symbol=None)], coefficient=-1, context=exp(x)*sin(x), symbol=x)]
+
+    For `AddRule` the different subrules are put after it::
+
+        sage: N = ManualIntegral(2*x + 1/x, x)
+        sage: N._rule
+        AddRule(substeps=[ConstantTimesRule(constant=2, other=x, substep=PowerRule(base=x, exp=1, context=x, symbol=x), context=2*x, symbol=x), ReciprocalRule(func=x, context=1/x, symbol=x)], context=2*x + 1/x, symbol=x)
+        sage: create_rules_list(N._rule)
+        [AddRule(substeps=[ConstantTimesRule(constant=2, other=x, substep=PowerRule(base=x, exp=1, context=x, symbol=x), context=2*x, symbol=x), ReciprocalRule(func=x, context=1/x, symbol=x)], context=2*x + 1/x, symbol=x),
+         ConstantTimesRule(constant=2, other=x, substep=PowerRule(base=x, exp=1, context=x, symbol=x), context=2*x, symbol=x),
+         PowerRule(base=x, exp=1, context=x, symbol=x),
+         ReciprocalRule(func=x, context=1/x, symbol=x)]
+
+    For `AlternativeRule`, the different alternatives are put one after another::
+
+        sage: O = ManualIntegral((x+1)/(x**2+2*x+2),x)
+        sage: O._rule
+        AlternativeRule(alternatives=[URule(u_var=_u, u_func=x**2 + 2*x + 2, constant=1/2, substep=ConstantTimesRule(constant=1/2, other=1/_u, substep=ReciprocalRule(func=_u, context=1/_u, symbol=_u), context=1/_u, symbol=_u), context=(x + 1)/(x**2 + 2*x + 2), symbol=x)], context=(x + 1)/(x**2 + 2*x + 2), symbol=x)
+        sage: create_rules_list(O._rule)
+        [URule(u_var=_u, u_func=x**2 + 2*x + 2, constant=1/2, substep=ConstantTimesRule(constant=1/2, other=1/_u, substep=ReciprocalRule(func=_u, context=1/_u, symbol=_u), context=1/_u, symbol=_u), context=(x + 1)/(x**2 + 2*x + 2), symbol=x),
+         ConstantTimesRule(constant=1/2, other=1/_u, substep=ReciprocalRule(func=_u, context=1/_u, symbol=_u), context=1/_u, symbol=_u),
+         ReciprocalRule(func=_u, context=1/_u, symbol=_u)]
+
+    If the rule has a substep, the corresponding rules are put after the rule itself::
+
+        sage: P = ManualIntegral(cos(x)^2,x)
+        sage: P._rule
+        RewriteRule(rewritten=cos(2*x)/2 + 1/2, substep=AddRule(substeps=[ConstantTimesRule(constant=1/2, other=cos(2*x), substep=URule(u_var=_u, u_func=2*x, constant=1/2, substep=ConstantTimesRule(constant=1/2, other=cos(_u), substep=TrigRule(func='cos', arg=_u, context=cos(_u), symbol=_u), context=cos(_u), symbol=_u), context=cos(2*x), symbol=x), context=cos(2*x)/2, symbol=x), ConstantRule(constant=1/2, context=1/2, symbol=x)], context=cos(2*x)/2 + 1/2, symbol=x), context=cos(x)**2, symbol=x)
+        sage: create_rules_list(P._rule)
+        [RewriteRule(rewritten=cos(2*x)/2 + 1/2, substep=AddRule(substeps=[ConstantTimesRule(constant=1/2, other=cos(2*x), substep=URule(u_var=_u, u_func=2*x, constant=1/2, substep=ConstantTimesRule(constant=1/2, other=cos(_u), substep=TrigRule(func='cos', arg=_u, context=cos(_u), symbol=_u), context=cos(_u), symbol=_u), context=cos(2*x), symbol=x), context=cos(2*x)/2, symbol=x), ConstantRule(constant=1/2, context=1/2, symbol=x)], context=cos(2*x)/2 + 1/2, symbol=x), context=cos(x)**2, symbol=x),
+         AddRule(substeps=[ConstantTimesRule(constant=1/2, other=cos(2*x), substep=URule(u_var=_u, u_func=2*x, constant=1/2, substep=ConstantTimesRule(constant=1/2, other=cos(_u), substep=TrigRule(func='cos', arg=_u, context=cos(_u), symbol=_u), context=cos(_u), symbol=_u), context=cos(2*x), symbol=x), context=cos(2*x)/2, symbol=x), ConstantRule(constant=1/2, context=1/2, symbol=x)], context=cos(2*x)/2 + 1/2, symbol=x),
+         ConstantTimesRule(constant=1/2, other=cos(2*x), substep=URule(u_var=_u, u_func=2*x, constant=1/2, substep=ConstantTimesRule(constant=1/2, other=cos(_u), substep=TrigRule(func='cos', arg=_u, context=cos(_u), symbol=_u), context=cos(_u), symbol=_u), context=cos(2*x), symbol=x), context=cos(2*x)/2, symbol=x),
+         URule(u_var=_u, u_func=2*x, constant=1/2, substep=ConstantTimesRule(constant=1/2, other=cos(_u), substep=TrigRule(func='cos', arg=_u, context=cos(_u), symbol=_u), context=cos(_u), symbol=_u), context=cos(2*x), symbol=x),
+         ConstantTimesRule(constant=1/2, other=cos(_u), substep=TrigRule(func='cos', arg=_u, context=cos(_u), symbol=_u), context=cos(_u), symbol=_u),
+         TrigRule(func='cos', arg=_u, context=cos(_u), symbol=_u),
+         ConstantRule(constant=1/2, context=1/2, symbol=x)]
+
+    """
     if not rule:
         return []
     elif isinstance(rule, AlternativeRule):
@@ -102,88 +428,6 @@ def create_rules_list(rule):
     else:
         return [rule]
 
-
-
-
-def hint_to_integrate(*args):
-    r"""
-    Give possible hints to integrate a function
-
-    The input must be either the symbolic expression to integrate, and the
-    variable to integrate with respect to; or a symbolic expression that contains
-    an integral in it. If the expression is an equality, the right hand side
-    is used.
-
-    The output is a list of hints. Each hint is a tuple of equations. If the
-    hint consist on a substitution, the first equation gives the substitution
-    to perform. If the hint is to integrate by parts, the first two equations
-    give the ``u`` and ``dv``. The last equation contains the integral after the
-    hint is applied.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.integration.manual import hint_to_integrate
-        sage: hint_to_integrate((x^2+3*x+1)/(x^3-x),x)
-        [(integrate((x^2 + 3*x + 1)/(x^3 - x), x) == integrate(-1/2/(x + 1) + 5/2/(x - 1) - 1/x, x),),
-        (integrate((x^2 + 3*x + 1)/(x^3 - x), x) == integrate(x^2/(x^3 - x) + 3*x/(x^3 - x) + 1/(x^3 - x), x),)]
-        sage: hint_to_integrate(log(x)/x, x)
-        [(u == (1/x), integrate(log(x)/x, x) == integrate(-log(1/u)/u, u)),
-        (u == log(x), integrate(log(x)/x, x) == integrate(u, u))]
-
-
-    We can see how the hint to perform integration by parts is given::
-
-        sage: h = hint_to_integrate(sin(x)*exp(x),x)
-        sage: h
-        [(u == sin(x),
-        dv == e^x,
-        integrate(e^x*sin(x), x) == e^x*sin(x) - integrate(cos(x)*e^x, x))]
-
-    The output can be used to get a new hint for the next step to follow::
-
-        sage: new_expression = h[0][2]
-        sage: new_expression
-        integrate(e^x*sin(x), x) == e^x*sin(x) - integrate(cos(x)*e^x, x)
-        sage: hint_to_integrate(new_expression)
-        [(u == cos(x),
-        dv == e^x,
-        integrate(cos(x)*e^x, x) == cos(x)*e^x - integrate(-e^x*sin(x), x))]
-        sage: hint_to_integrate(new_expression.rhs())
-        [(u == cos(x),
-        dv == e^x,
-        integrate(cos(x)*e^x, x) == cos(x)*e^x - integrate(-e^x*sin(x), x))]
-
-    Sometimes the hint is as simple as separating summands, or taking constants
-    out of the expression::
-
-        sage: hint_to_integrate(cos(x) + x, x)
-        [(integrate(x + cos(x), x) == integrate(x, x) + integrate(cos(x), x),)]
-        sage: hint_to_integrate(5*exp(x), x)
-        [(integrate(5*e^x, x) == 5*integrate(e^x, x),)]
-
-    """
-    if len(args) == 2:
-        f = args[0]
-        x = args[1]
-    elif len(args) == 1:
-        if not isinstance(args[0], Expression):
-            raise ValueError("input must be a symbolic expression, maybe with a variable")
-        w0 = SR.wild(0)
-        w1 = SR.wild(1)
-        if args[0].operator() == eq:
-            expr = args[0].rhs()
-        else:
-            expr = args[0]
-        if not expr.has(integral(w0, w1)):
-            raise ValueError("no symbolic integral in input")
-        integ = expr.find(integral(w0, w1))[0]
-        f, x = integ.operands()
-    else:
-        raise ValueError("input must be a symbolic expression, maybe with a variable")
-    rule = integral_steps(f._sympy_(), x._sympy_())
-    if isinstance(rule, AlternativeRule):
-        return [integration_hint(r) for r in rule.alternatives]
-    return [integration_hint(rule)]
 
 def integration_hint(rule):
     r"""
@@ -281,6 +525,10 @@ def integration_hint(rule):
         else:
             const = SR(rule.constant)
         subcontext = SR(rule.substep.context)*const
+        if u == x:
+            U = SR.var('U')
+            subcontext = subcontext.subs({u:U})
+            u = U
         return (u == uf, lhs == integral(subcontext, u, hold=True))
     elif type(rule) == PartsRule:
         u = SR(rule.u)
@@ -291,6 +539,11 @@ def integration_hint(rule):
         dvv = SR.var('dv')
         vv = SR.var('v')
         duv = SR.var('du')
+        if str(x) == 'u':
+            uv = SR.var('U')
+            vv = SR.var('V')
+            dvv = SR.var('dV')
+            duv = SR.var('dU')
         return (uv == u, dvv == dv, duv == du, vv == v, lhs == u*vv - integral(vv * du, x, hold=True))
     elif type(rule) == CyclicPartsRule:
         rhs = 0
@@ -301,144 +554,3 @@ def integration_hint(rule):
             coefficient *= -1
         res0 = SR(rhs) + SR(rule.coefficient) * integral(f, x, hold=True)
         return ( lhs == res0, SR(1-rule.coefficient)*lhs ==  rhs)
-
-
-class IntegrationHint(SageObject):
-    r"""
-    Container class to represent the hints.
-    """
-    def __init__(self, rule):
-
-        self._f = SR(rule.context)
-        self._x = SR(rule.symbol)
-        self._rule = rule
-        self._lhs = integral(_f, _x, hold=True)
-
-    def _repr_(self):
-        rule = self._rule
-        if isinstance(rule, ConstantTimesRule):
-            constant = SR(rule.constant)
-            other = SR(rule.other)
-            rhs = constant * integral(other, self._x, hold = True)
-            return (self._lhs == rhs)._repr_()
-        if isinstance(rule, RewriteRule):
-            rewritten = SR(rule.rewritten)
-            rhs = integral(rewritten, self._x, hold=True)
-            return (self._lhs == rhs)._repr_()
-        if isinstance(rule, AddRule):
-            steps = rule.substeps
-            rhs = sum(integral(SR(s.context), self._x, hold=True) for s in steps)
-            return (self._lhs == rhs)._repr_()
-        if isinstance(rule, TrigRule):
-            result = SR(_manualintegrate(rule))
-            return (lhs == result)._repr_()
-        if isintance(rule, ExpRule):
-            base = SR(rule.base)
-            exponent = SR(rule.exp)
-            string = 'The integral of an exponential function is itself divided by the natural logarithm of the base, so: '
-            string += (rhs == exp(exponent)/log(base))._repr_()
-            return string
-
-def rule_string(rule, depth):
-
-    if rule is None:
-        return ''
-    f = SR(rule.context)
-    x = SR(rule.symbol)
-    if type(rule) == AlternativeRule:
-        string = 'There are several ways to compute $\displaystyle\int {} d{}$<br>'.format(latex(f),latex(x))
-        alternatives = []
-        for r in rule.alternatives:
-            if type(r) == AlternativeRule:
-                alternatives += r.alternatives
-            else:
-                alternatives.append(r)
-        for (i,srule) in enumerate(alternatives):
-            string += '{})<br>'.format(i+1)
-            string += rule_string(srule, depth)+'<br>'
-        return string
-    if type(rule) == ConstantTimesRule:
-        return rule_string(rule.substep, depth-1)
-    string = 'Hint: to compute $$\int {} d{}$$<br>'.format(latex(f), latex(x))
-    if type(rule) == RewriteRule:
-        rewritten = SR(rule.rewritten)
-        string += '$$ \int {} d{} = \int {} d{}$$<br>'.format(latex(f),latex(x),latex(rewritten),latex(x))
-        string += rule_string(rule.substep, depth-1)
-        return string
-    if type (rule) == AddRule:
-        substeps = rule.substeps
-        string += '$$\int {} d{} = '.format(latex(f),latex(x))
-        for substep in substeps:
-            string += '\int {} d{} +'.format(latex(SR(substep.context)),latex(x))
-        string = string[:-1] + '$$<br>'
-        finalstring = ''
-        for substep in substeps:
-            string += rule_string(substep, depth-1)
-            finalstring += latex(SR(_manualintegrate(substep))) + '+'
-        string += 'So $$\int {} d{} = '.format(latex(f),latex(x)) + finalstring[:-1]+'+C$$<br>'
-        return string
-    if type(rule) == URule:
-        u = SR(rule.u_var)
-        uf = SR(rule.u_func)
-        if rule.constant is None:
-            const = SR(1)
-        else:
-            const = SR(rule.constant)
-        subcontext = SR(rule.substep.context)*const
-        string += 'Substitute ${}={}$, $d{}={}d{}$<br>'.format(latex(u),latex(uf),latex(u),latex(uf.diff(x)),latex(x))
-        string += '$$\int {}d{}=\int {}d{}$$<br><br>'.format(latex(f),latex(x),latex(subcontext),latex(u))
-        string += rule_string(rule.substep, depth-1)
-        # string += 'So, $$\int {} d {} = {} + C$$<br>'.format(latex(f),latex(x),latex(SR(manualintegrate(f._sympy_(), x._sympy_()))))
-        return string
-    if type(rule) == ExpRule:
-        r
-        string += 'The integral of an exponential function is itself divided by the natural logarithm of the base, so<br>'
-        string += '$$ \int {} d{} = {} + C$$<br>'.format(latex(f),latex(x),latex(exp(exponent)/log(base)))
-        return string
-    if type(rule) == PartsRule:
-        u = SR(rule.u)
-        dv = SR(rule.dv)
-        du = SR(u.diff(x))
-        v = SR(_manualintegrate(rule.v_step))
-        string += 'Integration by parts, taking $u = {}$, $dv = {}d{}$<br>'.format(latex(u),latex(dv),latex(x))
-        string += 'So $du={}$, and $\displaystyle v=\int {} d{}$<br>'.format(latex(du),latex(dv),latex(x))
-        string += rule_string(rule.v_step, depth-1)
-        string += 'So $$\int {} d{} =  {} - \int {} d{}$$<br>'.format(latex(f),latex(x),latex(u*v),latex(v*du),latex(x))
-        string += rule_string(rule.second_step,depth-1)
-        return string
-    if type(rule) == TrigRule:
-        result = SR(_manualintegrate(rule))
-        string += '$$\int {} d{} = {} + C$$'.format(latex(f), latex(x), latex(result))
-        return string
-    if type(rule) == CyclicPartsRule:
-        partialstring = '\int {} d{} = '.format(latex(f),latex(x))
-        sign = -1
-        resul = 0
-        count = 0
-        for srule in rule.parts_rules:
-            u = SR(srule.u)
-            dv = SR(srule.dv)
-            du = SR(u.diff(x))
-            v = SR(_manualintegrate(srule.v_step))
-            string += 'Integrate by parts, taking $u = {}$, $dv= {}d{}$ <br>'.format(latex(u),latex(dv),latex(x))
-            string += 'So $du={}$, and $\displaystyle v=\int {} d{}$ <br>'.format(latex(du),latex(dv),latex(x))
-            string += rule_string(srule.v_step,depth-1)
-            if sign == -1:
-                resul += u*v
-                if count :
-                    partialstring += '+{}'.format(latex(u*v))
-                else:
-                    partialstring += '{}'.format(latex(u*v))
-                string += 'So $${} - \int {} d{}$$'.format(partialstring, latex(v*du), latex(x))
-            else:
-                resul -= u*v
-                partialstring += '-{}'.format(latex(u*v))
-                string += 'So $${} + \int {} d{}$$<br>'.format(partialstring, latex(v*du), latex(x))
-            sign *= -1
-            count += 1
-        resul = resul / (1-SR(rule.coefficient))
-        string += 'Notice the integrand has repeated, so moving to one side we get:'
-        string += '$$\int {} d{} = {} +C$$'.format(latex(f), latex(x), latex(resul))
-        return string
-    else:
-        return ''
