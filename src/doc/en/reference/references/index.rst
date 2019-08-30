@@ -1320,6 +1320,10 @@ REFERENCES:
             Proceedings: F.Hess, S.Pauli and M.Pohst (eds.), ANTS VII, Lecture
             Notes in Computer Science 4076 (2006), pages 275-286.
 
+.. [CS2014] Leonid Chekhov and Michael Shapiro. Teichmuller spaces of Riemann
+            surfaces with orbifold points of arbitrary order and cluster
+            variables. Int Math Res Notices (2014) Vol 2014 2746-2772.
+
 .. [CST2010] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
              Filippo Tolli.
              *Representation Theory of the Symmetric Groups: The
@@ -3444,6 +3448,9 @@ REFERENCES:
 
 **N**
 
+.. [Nak2015] Tomoki Nakanishi. Structure of seeds in generalized cluster
+             algebras. Pacific J. Math 277 (2015) 201-218.
+
 .. [Nas1950] John Nash. *Equilibrium points in n-person games.*
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
@@ -3491,6 +3498,10 @@ REFERENCES:
 .. [NovThi06] Jean-Christophe Novelli, Jean-Yves Thibon,
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
+
+.. [NR2016] Tomoki Nakanishi and Dylan Rupel. Companion cluster algebras
+            to a generalized cluster algebra. Travaux Mathématiques Vol XXIV,
+            Fac. Sci. Technol. Commun. Univ. Luxemb., Luxembourg, (2016), 129-149.
 
 .. [NX2019] \E. M. d. Nascimento, J. A. M. Xexeo
             "Name of Submission:FlexAEAD -A Lightweight Cipher withIntegrated Authentication"
@@ -3875,6 +3886,9 @@ REFERENCES:
 
 .. [Rud1958] \M. E. Rudin. *An unshellable triangulation of a
              tetrahedron*. Bull. Amer. Math. Soc. 64 (1958), 90-91.
+
+.. [Rup2018] Dylan Rupel. *Greedy bases in rank 2 generalized cluster algebras*.
+             :arxiv:`1309.2567`.
 
 .. [Rus2003] Frank Ruskey. *Combinatorial Generation*. (2003).
              http://www.1stworks.com/ref/ruskeycombgen.pdf
