@@ -484,6 +484,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         ma = MatrixArgs_init(parent, entries)
         cdef long i, j
+        if entries is None:
+            return
         it = ma.iter(False)
         R = ma.base
         p = R.characteristic()
