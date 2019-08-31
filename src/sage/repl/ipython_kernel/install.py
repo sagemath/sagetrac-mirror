@@ -279,35 +279,3 @@ class SageKernelSpec(object):
         instance.use_local_threejs()
         instance._install_spec()
         instance._symlink_resources()
-
-
-def have_prerequisites(debug=True):
-    """
-    Check that we have all prerequisites to run the Jupyter notebook.
-
-    In particular, the Jupyter notebook requires OpenSSL whether or
-    not you are using https. See :trac:`17318`.
-
-    INPUT:
-
-    ``debug`` -- boolean (default: ``True``). Whether to print debug
-    information in case that prerequisites are missing.
-
-    OUTPUT:
-
-    Boolean.
-
-    EXAMPLES::
-
-        sage: from sage.repl.ipython_kernel.install import have_prerequisites
-        sage: have_prerequisites(debug=False) in [True, False]
-        True
-    """
-    try:
-        from notebook.notebookapp import NotebookApp
-        return True
-    except ImportError:
-        if debug:
-            import traceback
-            traceback.print_exc()
-        return False

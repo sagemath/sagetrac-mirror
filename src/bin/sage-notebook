@@ -91,12 +91,8 @@ class NotebookJupyter(object):
 
     def __init__(self, argv):
         self.print_banner()
-        from sage.repl.ipython_kernel.install import have_prerequisites
-        if not have_prerequisites():
-            print(self.PREREQUISITE_ERROR)
-            raise SystemExit(1)
-        from notebook.notebookapp import main
-        main(argv)
+        from sys import prefix
+        os.execv(os.path.join(prefix, 'bin', 'jupyter-notebook'), ['jupyter-notebook'] + argv)
 
 
 class NotebookJupyterlab(object):
@@ -109,15 +105,15 @@ class NotebookJupyterlab(object):
         cls(['help'])
 
     def __init__(self, argv):
+        self.print_banner()
+        from sys import prefix
         try:
-            from jupyterlab.labapp import main
-        except ImportError:
+            os.execv(os.path.join(prefix, 'bin', 'jupyter-lab'), ['jupyter-lab'] + argv)
+        except OSError:
             print("Jupyterlab is not installed (at least not in this Sage installation).")
             print("You can install it by running")
             print("  sage --pip install jupyterlab")
             raise SystemExit(1)
-        self.print_banner()
-        main(argv)
 
 
 class SageNBExport(NotebookJupyter):
