@@ -9,7 +9,7 @@ They are:
 
 - :func:`Sphere`: sphere embedded in Euclidean space
 - :func:`Torus`: torus embedded in Euclidean space
-- :func:`Minkowski`: 4-dimensional Minkowski space
+- :func:`Minkowski`: n-dimensional Minkowski space
 - :func:`Kerr`: Kerr spacetime
 
 AUTHORS:
@@ -27,17 +27,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 
-def Minkowski(positive_spacelike=True, names=None):
+def Minkowski(dim=4, positive_spacelike=True, names=None, start_index=0):
     """
-    Generate a Minkowski space of dimension 4.
+    Generate a Minkowski space of dimension ``dim``.
 
-    By default the signature is set to `(- + + +)`, but can be changed to
-    `(+ - - -)` by setting the optionnal argument ``positive_spacelike`` to
+    By default the signature is set to `(- + + +...)`, but can be changed to
+    `(+ - - -...)` by setting the optionnal argument ``positive_spacelike`` to
     ``False``. The shortcut operator ``.<,>`` can be used to
     specify the coordinates.
 
     INPUT:
 
+    - ``dim`` -- (default: 4) the dimension of the Minkowski space
     - ``positive_spacelike`` -- (default: ``True``) if ``False``, then
       the spacelike vectors yield a negative sign (i.e., the signature
       is `(+ - - - )`)
@@ -46,7 +47,7 @@ def Minkowski(positive_spacelike=True, names=None):
 
     OUTPUT:
 
-    - Lorentzian manifold of dimension 4 with (flat) Minkowskian metric
+    - Lorentzian manifold of dimension ``dim`` with (flat) Minkowskian metric
 
     EXAMPLES::
 
@@ -56,28 +57,48 @@ def Minkowski(positive_spacelike=True, names=None):
         [ 0  1  0  0]
         [ 0  0  1  0]
         [ 0  0  0  1]
-
-        sage: M.<t, x, y, z> = manifolds.Minkowski(False)
+        sage: M = manifolds.Minkowski(3)
+        sage: M.metric().disp()
+        g = -dt*dt + dx*dx + dy*dy
+        sage: M.<t, x, y, z> = manifolds.Minkowski(positive_spacelike=False)
         sage: M.metric()[:]
         [ 1  0  0  0]
         [ 0 -1  0  0]
         [ 0  0 -1  0]
         [ 0  0  0 -1]
+        sage: M = manifolds.Minkowski(5,start_index=1)
+        sage: M.metric().disp()
+        g = -dx1*dx1 + dx2*dx2 + dx3*dx3 + dx4*dx4 + dx5*dx5
     """
+    if names is not None and dim != len(names):
+        raise ValueError("the number of coordinates does not" 
+                                    " match the dimension")
     from sage.manifolds.manifold import Manifold
-    M = Manifold(4, 'M', structure='Lorentzian')
+    sti = start_index
+    M = Manifold(dim, 'M', structure='Lorentzian', start_index=sti)
     if names is None:
-        names = ("t", "x", "y", "z")
+        if dim==1:
+            names = ("t")
+        if dim==2:
+            names = ("t", "x")
+        if dim==3:
+            names = ("t", "x", "y")
+        if dim==4:
+            names = ("t", "x", "y", "z")
+        if dim>4:
+            names=tuple(["x"+str(i) for i in range(sti,sti+dim)])
     C = M.chart(names=names)
     M._first_ngens = C._first_ngens
 
     g = M.metric('g')
     sgn = 1 if positive_spacelike else -1
-    g[0,0] = -sgn
-    g[1,1], g[2,2], g[3,3] = sgn, sgn, sgn
+    g[sti,sti] = -sgn
+    for i in range(sti+1,sti+dim):
+        g[i,i] = sgn
     return M
 
-def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
+def Sphere(dim=2, radius=1, names=None, stereo2d=False, stereo_lim=None,
+                                                    start_index=0):
     """
     Generate a sphere embedded in Euclidean space.
 
@@ -85,8 +106,7 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
     INPUT:
 
-    - ``dim`` -- (optional) the dimension of the sphere; if not specified,
-      equals to the number of coordinate names
+    - ``dim`` -- (optional) the dimension of the sphere
     - ``radius`` -- (default: ``1``) radius of the sphere
     - ``names`` -- (default: ``None``) name of the coordinates,
       automatically set by the shortcut operator
@@ -118,6 +138,14 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         sage: S.metric().display()  # long time
         gamma = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
          + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
+
+        sage: S = manifolds.Sphere(4,start_index=1); S  # long time
+        4-dimensional Riemannian submanifold S embedded in the 
+         5-dimensional Euclidean space E^5
+        sage: S.metric().display() 
+        gamma = dphi_1*dphi_1 + sin(phi_1)^2 dphi_2*dphi_2 + 
+        sin(phi_1)^2*sin(phi_2)^2 dphi_3*dphi_3 + 
+        sin(phi_1)^2*sin(phi_2)^2*sin(phi_3)^2 dphi_4*dphi_4
     """
     from functools import reduce
     from sage.functions.trig import cos, sin, atan, atan2
@@ -127,13 +155,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
     from sage.manifolds.manifold import Manifold
     from sage.manifolds.differentiable.euclidean import EuclideanSpace
 
-    if dim is None:
-        if names is None:
-            raise ValueError("either the names or the dimension must be specified")
-        dim = len(names)
-    else:
-        if names is not None and dim != len(names):
-            raise ValueError("the number of coordinates does not match the dimension")
+    if names is not None and dim != len(names):
+        raise ValueError("the number of coordinates does not match the dimension")
 
     if stereo2d:
         if dim != 2:
@@ -188,14 +211,12 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         return S2
 
-    if dim != 2:
-        raise NotImplementedError("only implemented for 2 dimensional spheres")
-
-    E = EuclideanSpace(3, symbols='X Y Z')
+    sti = start_index
+    E = EuclideanSpace(dim+1)
     M = Manifold(dim, 'S', ambient=E, structure='Riemannian')
     if names is None:
-        names = tuple(["phi_{}:(0,pi)".format(i) for i in range(dim-1)] +
-                      ["phi_{}:(-pi,pi):periodic".format(dim-1)])
+        names = tuple(["phi_{}:(0,pi)".format(i) for i in range(sti,sti+dim-1)] +
+                      ["phi_{}:(-pi,pi):periodic".format(sti+dim-1)])
     else:
         names = tuple([names[i]+":(0,pi)"for i in range(dim - 1)] +
                       [names[dim-1]+":(-pi,pi):periodic"])
