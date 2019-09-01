@@ -413,5 +413,5 @@ def cython_aliases():
     if os.environ.get('SAGE_LCALC_INCDIR_NOLIBPREFIX', '') != '':
        aliases["LCALC_INCDIR_NOLIBPREFIX"] = '-DLCALC_INCDIR_NOLIBPREFIX'
     else:
-       aliases["LCALC_INCDIR_NOLIBPREFIX"] = ''
+       aliases["LCALC_INCDIR_NOLIBPREFIX"] = '-DLCALC_INCDIR_YESLIBPREFIX'
     return aliases
