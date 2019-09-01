@@ -10,7 +10,7 @@ SAGE_SPKG_CONFIGURE([lcalc], [
            AX_COMPARE_VERSION([$lcalc_ver], [ge], [$SAGE_LCALC_MINVER], [
                AC_MSG_RESULT([yes.])
                AC_CHECK_HEADERS([Lfunction/L.h libLfunction/L.h],
-                  [AS_IF([test x$ac_cv_header_libLfunction = x],
+                  [AS_IF([test x$ac_cv_header_libLfunction_L_h = x],
                          [SAGE_LCALC_INCDIR_NOLIBPREFIX='yes'],
                          [SAGE_LCALC_INCDIR_NOLIBPREFIX=''])
                    break;],
