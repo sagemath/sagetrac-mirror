@@ -13,6 +13,7 @@ SAGE_SPKG_CONFIGURE([lcalc], [
                   [AS_IF([test x$ac_cv_header_libLfunction_L_h = x],
                          [SAGE_LCALC_INCDIR_NOLIBPREFIX='yes'],
                          [SAGE_LCALC_INCDIR_NOLIBPREFIX=''])
+                   sage_spkg_install_lcalc=no
                    break;],
                   [sage_spkg_install_lcalc=yes])
           AC_MSG_CHECKING([whether we can link and run a program using libLfunction])
