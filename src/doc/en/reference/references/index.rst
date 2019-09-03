@@ -4104,6 +4104,10 @@ REFERENCES:
             Proceedings of seventh annual ACM symposium on Theory of computing,
             Pages 245-254, ACM 1975. :doi:`10.1145/800116.803775`.
 
+.. [RTL76] Donald J. Rose, Robert Endre Tarjan and George S. Lueker.
+           *Algorithmic aspects of vertex elimination on graphs*.
+           SIAM J. Comput., 5(2), 266–283 (1976).
+
 .. [Rub1991] \K. Rubin. The "main conjectures" of Iwasawa theory for
              imaginary quadratic fields. Invent. Math. 103 (1991),
              no. 1, 25--68.
