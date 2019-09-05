@@ -758,8 +758,9 @@ class LSeriesAbstract(Element):
                 return self._residues
             else:
                 C = ComplexField(prec)
+                self._function(prec=prec).__check_init()
                 return [C(a)
-                        for a in self._function(prec=prec).gp()('Lresidues')]
+                        for a in self._function(prec=prec)._gp_call_inst('Lresidues')]
         else:
             return list(self._residues)
 
@@ -1555,11 +1556,12 @@ class LSeriesAbstract(Element):
                 # (conjugate) L-functions isn't supported in Dokchitser class (yet).
                 L._Dokchitser__init = True
                 L._gp_eval(s)
-                L._gp_eval('initLdata("a(k)",1,"conj(a(k))")')
+                L._gp_call_inst('initLdata','"a(k)",1.3,"conj(a(k))"')
 
             if epsilon == 'solve':
-                cmd = "sgneq = Vec(checkfeq()); sgn = -sgneq[2]/sgneq[1]; sgn"
-                epsilon = ComplexField(prec)(L._gp_eval(cmd))
+                epsvec = L._gp_call_inst("checkfeq")
+                L._gp_eval('sgneq = Vec(%s)' % epsvec)
+                epsilon = ComplexField(prec)(L._gp_set_inst('sgn', '-sgneq[2]/sgneq[1]'))
                 if abs(abs(epsilon) - 1) > tiny0:
                     raise RuntimeError("unable to determine epsilon from functional equation working to precision %s, since we get epsilon=%s, which is not sufficiently close to 1" % (prec, epsilon))
                 # 1, -1 are two common special cases, where it is clear what the
