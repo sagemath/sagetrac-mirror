@@ -50,7 +50,7 @@ from cpython.float cimport *
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
-from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+from sage.ext.pool cimport ObjectPool_Cloning
 
 from sage.libs.gsl.all cimport *
 
@@ -75,6 +75,10 @@ from sage.arith.constants cimport *
 cimport gmpy2
 
 
+cdef RealDoubleField_class _RDF = RealDoubleField_class()
+RDF = _RDF   # external interface
+
+
 def is_RealDoubleField(x):
     """
     Returns ``True`` if ``x`` is the field of real double precision numbers.
@@ -88,6 +92,20 @@ def is_RealDoubleField(x):
         False
     """
     return isinstance(x, RealDoubleField_class)
+
+
+def RealDoubleField():
+    """
+    Return the unique instance of the
+    :class:`real double field<RealDoubleField_class>`.
+
+    EXAMPLES::
+
+        sage: RealDoubleField() is RealDoubleField()
+        True
+    """
+    return _RDF
+
 
 cdef class RealDoubleField_class(Field):
     """
@@ -695,18 +713,23 @@ cdef class RealDoubleElement(FieldElement):
 
     def __cinit__(self):
         """
-        Initialize ``self`` for cython.
+        Initialze ``self`` to an empty element.
 
         EXAMPLES::
 
-            sage: RDF(2.3) # indirect doctest
-            2.3
+            sage: from sage.rings.real_double import RealDoubleElement
+            sage: x = RealDoubleElement.__new__(RealDoubleElement)
+            sage: x
+            0.0
+            sage: x.parent()
+            Real Double Field
         """
-        (<Element>self)._parent = _RDF
+        self._parent = _RDF
+        self._value = 0.0
 
     def __init__(self, x):
         """
-        Create a new ``RealDoubleElement`` with value ``x``.
+        Initialze a new ``RealDoubleElement`` with value ``x``.
 
         EXAMPLES::
 
@@ -2687,6 +2710,22 @@ cdef class RealDoubleElement(FieldElement):
 
     algdep = algebraic_dependency
 
+
+cdef class RealDoublePool(ObjectPool_Cloning):
+    """
+    A pool for real double elements.
+
+    There are two relevant attributes: ``_parent`` (a Python object)
+    and ``_value`` (a double). We assume here that
+    ``_parent`` is never changed (an important assumption!), so we only
+    need to deal with ``_value``.
+    """
+    cdef int pool_out(self, obj) except -1:
+        (<RealDoubleElement>obj)._value = 0.0
+
+RealDoublePool(RealDoubleElement).enable()
+
+
 cdef class ToRDF(Morphism):
     def __init__(self, R):
         """
@@ -2752,27 +2791,6 @@ cdef class ToRDF(Morphism):
         return "Native"
 
 
-#####################################################
-# unique objects
-#####################################################
-cdef RealDoubleField_class _RDF
-_RDF = RealDoubleField_class()
-
-RDF = _RDF   # external interface
-
-def RealDoubleField():
-    """
-    Return the unique instance of the
-    :class:`real double field<RealDoubleField_class>`.
-
-    EXAMPLES::
-
-        sage: RealDoubleField() is RealDoubleField()
-        True
-    """
-    global _RDF
-    return _RDF
-
 def is_RealDoubleElement(x):
     """
     Check if ``x`` is an element of the real double field.
@@ -2786,116 +2804,6 @@ def is_RealDoubleElement(x):
         False
     """
     return isinstance(x, RealDoubleElement)
-
-
-################# FAST CREATION CODE ######################
-########### Based on fast integer creation code   #########
-######## There is nothing to see here, move along   #######
-
-# We use a global element to steal all the references
-# from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
-cdef RealDoubleElement global_dummy_element
-global_dummy_element = RealDoubleElement(0)
-
-# A global pool for performance when elements are rapidly created and destroyed.
-# It operates on the following principles:
-#
-# - The pool starts out empty.
-# - When an new element is needed, one from the pool is returned
-#   if available, otherwise a new RealDoubleElement object is created
-# - When an element is collected, it will add it to the pool
-#   if there is room, otherwise it will be deallocated.
-DEF element_pool_size = 50
-
-cdef PyObject* element_pool[element_pool_size]
-cdef int element_pool_count = 0
-
-# used for profiling the pool
-cdef int total_alloc = 0
-cdef int use_pool = 0
-
-
-cdef PyObject* fast_tp_new(type t, args, kwds):
-    global element_pool, element_pool_count, total_alloc, use_pool
-
-    cdef PyObject* new
-
-    # for profiling pool usage
-    # total_alloc += 1
-
-    # If there is a ready real double in the pool, we will
-    # decrement the counter and return that.
-
-    if element_pool_count > 0:
-
-        # for profiling pool usage
-        # use_pool += 1
-
-        element_pool_count -= 1
-        new = <PyObject *> element_pool[element_pool_count]
-
-    # Otherwise, we have to create one.
-
-    else:
-
-        # allocate enough room for the RealDoubleElement,
-        # sizeof_RealDoubleElement is sizeof(RealDoubleElement).
-        # The use of PyObject_Malloc directly assumes
-        # that RealDoubleElements are not garbage collected, i.e.
-        # they do not possess references to other Python
-        # objects (As indicated by the Py_TPFLAGS_HAVE_GC flag).
-        # See below for a more detailed description.
-
-        new = <PyObject*>PyObject_Malloc( sizeof(RealDoubleElement) )
-
-        # Now set every member as set in z, the global dummy RealDoubleElement
-        # created before this tp_new started to operate.
-
-        memcpy(new, (<void*>global_dummy_element), sizeof(RealDoubleElement) )
-
-    # This line is only needed if Python is compiled in debugging mode
-    # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
-    # case a Python object has a bunch of debugging fields which are
-    # initialized with this macro.
-    if_Py_TRACE_REFS_then_PyObject_INIT(
-            new, Py_TYPE(global_dummy_element))
-
-    # The global_dummy_element may have a reference count larger than
-    # one, but it is expected that newly created objects have a
-    # reference count of one. This is potentially unneeded if
-    # everybody plays nice, because the gobal_dummy_element has only
-    # one reference in that case.
-
-    # Objects from the pool have reference count zero, so this
-    # needs to be set in this case.
-
-    new.ob_refcnt = 1
-
-    return new
-
-cdef void fast_tp_dealloc(PyObject* o):
-
-    # If there is room in the pool for a used integer object,
-    # then put it in rather than deallocating it.
-
-    global element_pool, element_pool_count
-
-    if element_pool_count < element_pool_size:
-
-        # And add it to the pool.
-        element_pool[element_pool_count] = o
-        element_pool_count += 1
-        return
-
-    # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
-    # set. If it was set another free function would need to be
-    # called.
-
-    PyObject_Free(o)
-
-
-from sage.misc.allocator cimport hook_tp_functions
-hook_tp_functions(global_dummy_element, <newfunc>(&fast_tp_new), <destructor>(&fast_tp_dealloc), False)
 
 
 cdef double_repr(double x):

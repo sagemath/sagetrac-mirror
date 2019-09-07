@@ -242,8 +242,6 @@ def quit_sage(verbose=True):
     sage.libs.flint.flint.free_flint_stack()
 
     # Free globally allocated mpir integers.
-    import sage.rings.integer
-    sage.rings.integer.free_integer_pool()
     import sage.algebras.quatalg.quaternion_algebra_element
     sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 

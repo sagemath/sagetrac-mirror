@@ -156,7 +156,7 @@ import operator
 import sys
 
 from sage.ext.stdsage cimport PY_NEW
-from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+from sage.ext.pool cimport ObjectPool_Cloning
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -435,6 +435,7 @@ cdef class IntegerWrapper(Integer):
         if parent is not None:
             Element.__init__(self, parent=parent)
         Integer.__init__(self, x, base=base)
+
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -6991,6 +6992,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
 
 
+cdef class IntegerPool(ObjectPool_Cloning):
+    """
+    A pool for integers.
+
+    There are two relevant attributes: ``_parent`` (a Python object)
+    and ``value`` (a GMP/MPIR ``mpz_t``). We assume here that
+    ``_parent`` is never changed (an important assumption!), so we only
+    need to deal with ``value``.
+    """
+    cdef void pool_in(self, obj):
+        cdef mpz_ptr mpz = (<Integer>obj).value
+
+        # Set number to 0
+        mpz._mp_size = 0
+
+        # Deallocate some space if more than 16 limbs were used
+        if mpz._mp_alloc > 16:
+            _mpz_realloc(mpz, 1)
+
+    cdef int clone_out(self, obj) except -1:
+        mpz_init((<Integer>obj).value)
+
+    cdef void clone_in(self, obj):
+        mpz_clear((<Integer>obj).value)
+
+IntegerPool(Integer).enable()
+
+
 cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
     """
     Wrapper around ``mpz_set_str()`` which supports :pep:`3127`
@@ -7345,194 +7374,6 @@ cdef class long_to_Z(Morphism):
 
     def _repr_type(self):
         return "Native"
-
-############### INTEGER CREATION CODE #####################
-
-# This variable holds the size of any Integer object in bytes.
-cdef int sizeof_Integer
-
-# We use a global Integer element to steal all the references
-# from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
-cdef Integer global_dummy_Integer
-global_dummy_Integer = Integer()
-
-
-# A global pool for performance when integers are rapidly created and destroyed.
-# It operates on the following principles:
-#
-# - The pool starts out empty.
-# - When an new integer is needed, one from the pool is returned
-#   if available, otherwise a new Integer object is created
-# - When an integer is collected, it will add it to the pool
-#   if there is room, otherwise it will be deallocated.
-cdef int integer_pool_size = 100
-
-cdef PyObject** integer_pool
-cdef int integer_pool_count = 0
-
-# used for profiling the pool
-cdef int total_alloc = 0
-cdef int use_pool = 0
-
-
-cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
-    global integer_pool, integer_pool_count, total_alloc, use_pool
-
-    cdef PyObject* new
-    cdef mpz_ptr new_mpz
-
-    # for profiling pool usage
-    # total_alloc += 1
-
-    # If there is a ready integer in the pool, we will
-    # decrement the counter and return that.
-
-    if integer_pool_count > 0:
-
-        # for profiling pool usage
-        # use_pool += 1
-
-        integer_pool_count -= 1
-        new = <PyObject *> integer_pool[integer_pool_count]
-
-    # Otherwise, we have to create one.
-    else:
-
-        # allocate enough room for the Integer, sizeof_Integer is
-        # sizeof(Integer). The use of PyObject_Malloc directly
-        # assumes that Integers are not garbage collected, i.e.
-        # they do not possess references to other Python
-        # objects (as indicated by the Py_TPFLAGS_HAVE_GC flag).
-        # See below for a more detailed description.
-        new = <PyObject*>PyObject_Malloc( sizeof_Integer )
-        if unlikely(new == NULL):
-            raise MemoryError
-
-        # Now set every member as set in z, the global dummy Integer
-        # created before this tp_new started to operate.
-        memcpy(new, (<void*>global_dummy_Integer), sizeof_Integer )
-
-        # We allocate memory for the _mp_d element of the value of this
-        # new Integer. We allocate one limb. Normally, one would use
-        # mpz_init() for this, but we allocate the memory directly.
-        # This saves time both by avoiding extra function calls and
-        # because the rest of the mpz struct was already initialized
-        # fully using the memcpy above.
-        #
-        # What is done here is potentially very dangerous as it reaches
-        # deeply into the internal structure of GMP. Consequently things
-        # may break if a new release of GMP changes some internals. To
-        # emphasize this, this is what the GMP manual has to say about
-        # the documentation for the struct we are using:
-        #
-        #  "This chapter is provided only for informational purposes and the
-        #  various internals described here may change in future GMP releases.
-        #  Applications expecting to be compatible with future releases should use
-        #  only the documented interfaces described in previous chapters."
-        new_mpz = <mpz_ptr>((<Integer>new).value)
-        new_mpz._mp_d = <mp_ptr>check_malloc(GMP_LIMB_BITS >> 3)
-
-    # This line is only needed if Python is compiled in debugging mode
-    # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
-    # case a Python object has a bunch of debugging fields which are
-    # initialized with this macro.
-
-    if_Py_TRACE_REFS_then_PyObject_INIT(
-            new, Py_TYPE(global_dummy_Integer))
-
-    # The global_dummy_Integer may have a reference count larger than
-    # one, but it is expected that newly created objects have a
-    # reference count of one. This is potentially unneeded if
-    # everybody plays nice, because the gobal_dummy_Integer has only
-    # one reference in that case.
-
-    # Objects from the pool have reference count zero, so this
-    # needs to be set in this case.
-
-    new.ob_refcnt = 1
-
-    return new
-
-
-cdef void fast_tp_dealloc(PyObject* o):
-    # If there is room in the pool for a used integer object,
-    # then put it in rather than deallocating it.
-    global integer_pool, integer_pool_count
-
-    cdef mpz_ptr o_mpz = <mpz_ptr>((<Integer>o).value)
-
-    # If we are recovering from an interrupt, throw the mpz_t away
-    # without recycling or freeing it because it might be in an
-    # inconsistent state (see Trac #24986).
-    if sig_occurred() is NULL:
-        if integer_pool_count < integer_pool_size:
-            # Here we free any extra memory used by the mpz_t by
-            # setting it to a single limb.
-            if o_mpz._mp_alloc > 10:
-                _mpz_realloc(o_mpz, 1)
-
-            # It's cheap to zero out an integer, so do it here.
-            o_mpz._mp_size = 0
-
-            # And add it to the pool.
-            integer_pool[integer_pool_count] = o
-            integer_pool_count += 1
-            return
-
-        # No space in the pool, so just free the mpz_t.
-        sig_free(o_mpz._mp_d)
-
-    # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
-    # set. If it was set another free function would need to be
-    # called.
-    PyObject_Free(o)
-
-
-from sage.misc.allocator cimport hook_tp_functions
-cdef hook_fast_tp_functions():
-    """
-    Initialize the fast integer creation functions.
-    """
-    global global_dummy_Integer, sizeof_Integer, integer_pool
-
-    integer_pool = <PyObject**>check_allocarray(integer_pool_size, sizeof(PyObject*))
-
-    cdef PyObject* o
-    o = <PyObject *>global_dummy_Integer
-
-    # store how much memory needs to be allocated for an Integer.
-    sizeof_Integer = o.ob_type.tp_basicsize
-
-    # Finally replace the functions called when an Integer needs
-    # to be constructed/destructed.
-    hook_tp_functions(global_dummy_Integer, <newfunc>(&fast_tp_new), <destructor>(&fast_tp_dealloc), False)
-
-cdef integer(x):
-    if isinstance(x, Integer):
-        return x
-    return Integer(x)
-
-
-def free_integer_pool():
-    cdef int i
-    cdef PyObject *o
-
-    global integer_pool_count, integer_pool_size
-
-    for i from 0 <= i < integer_pool_count:
-        o = integer_pool[i]
-        mpz_clear( (<Integer>o).value )
-        # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
-        # set. If it was set another free function would need to be
-        # called.
-        PyObject_Free(o)
-
-    integer_pool_size = 0
-    integer_pool_count = 0
-    sig_free(integer_pool)
-
-# Replace default allocation and deletion with faster custom ones
-hook_fast_tp_functions()
 
 # zero and one initialization
 initialized = False
