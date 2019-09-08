@@ -6745,7 +6745,7 @@ cdef class Matrix(Matrix1):
             else:
                 algorithm = 'classical'
         try:
-            if self.base_ring() in Fields:
+            if self.base_ring() in _Fields:
                 if algorithm in ['classical', 'partial_pivoting', 'scaled_partial_pivoting', 'scaled_partial_pivoting_valuation']:
                     self._echelon_in_place(algorithm)
                 elif algorithm == 'strassen':
