@@ -1,0 +1,24 @@
+Flush some messages in mrank1.cc, to avoid a Python 3 buffering (?)
+problem with doctesting. See #28454. This patch should not be
+necessary after a new eclib release.
+
+diff --git a/libsrc/mrank1.cc b/libsrc/mrank1.cc
+index 0942d96..21d7c8a 100644
+--- a/libsrc/mrank1.cc
++++ b/libsrc/mrank1.cc
+@@ -74,13 +74,13 @@ inline int FITS_IN_LONG(const bigfloat& x) {return (x<=MAXLONG)&&(x>=MINLONG);}
+ inline void ROUNDUP(long& a,const bigfloat& x) 
+ {
+   if(FITS_IN_LONG(x)) return Iasb(a,ceil((x)-ROUNDADJUST));
+-  cout<<"Attempt to round "<<x<<" to a long int fails, aborting!\n";
++  cout<<"Attempt to round "<<x<<" to a long int fails, aborting!\n"<<flush;
+   abort();
+ }
+ inline void ROUNDDOWN(long& a,const bigfloat& x) 
+ {
+   if(FITS_IN_LONG(x)) return Iasb(a,floor((x)+ROUNDADJUST));
+-  cout<<"Attempt to round "<<x<<" to a long int fails, aborting!\n";
++  cout<<"Attempt to round "<<x<<" to a long int fails, aborting!\n"<<flush;
+   abort();
+ }
+ 
