@@ -136,7 +136,7 @@ cdef class PolyhedronFaceLattice:
         cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
         self.face_length = face_iter.face_length
         self._V = C.V()
-        self._H = C.H()
+        self._H = C.facet_names()
         self._equalities = C.equalities()
 
         # copy f_vector for later use

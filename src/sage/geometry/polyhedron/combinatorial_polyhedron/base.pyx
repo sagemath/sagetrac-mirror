@@ -356,11 +356,11 @@ cdef class CombinatorialPolyhedron(SageObject):
                     # will be detected.
                     if not facets[i].is_inequality():
                         test[i] = 0
-            self._H = tuple(facets[i] for i in range(len(facets)) if test[i])
+            self._facet_names = tuple(facets[i] for i in range(len(facets)) if test[i])
 
             self._equalities = tuple(facets[i] for i in range(len(facets)) if not test[i])
         else:
-            self._H = None
+            self._facet_names = None
 
         if isinstance(data, Matrix):
             # Input is incidence-matrix or was converted to it.
@@ -575,8 +575,8 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (0, 1, 1) x - 3 >= 0,
              An inequality (0, 0, 1) x - 1 >= 0)
         """
-        if self.H() is not None:
-            return self.equalities() + self.H()
+        if self.facet_names() is not None:
+            return self.equalities() + self.facet_names()
         else:
             return tuple(smallInteger(i) for i in range(self.n_Hrepresentation()))
 
@@ -1074,8 +1074,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         # with each array containing ``len_ridge_list`` of ridges.
 
         # Mapping the indices of the Vepr to the names, if requested.
-        if self.H() is not None and names is True:
-            def f(size_t i): return self.H()[i]
+        if self.facet_names() is not None and names is True:
+            def f(size_t i): return self.facet_names()[i]
         else:
             def f(size_t i): return smallInteger(i)
 
@@ -1463,8 +1463,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple V(self):
         return self._V
 
-    cdef tuple H(self):
-        return self._H
+    cdef tuple facet_names(self):
+        return self._facet_names
 
     cdef tuple equalities(self):
         return self._equalities

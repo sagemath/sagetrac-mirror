@@ -10,8 +10,8 @@ from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 cdef class CombinatorialPolyhedron(SageObject):
     # Do not assume any of those attributes to be initialized, use the corresponding methods instead.
     cdef tuple _V                            # the names of VRep, if they exist
-    cdef tuple _H                            # the names of HRep, if they exist
-    cdef tuple _equalities                   # stores equalities, given on input (might belong to Hrep)
+    cdef tuple _facet_names                  # the names of HRep without equalities, if they exist
+    cdef tuple _equalities                   # names of equalities, given on input
     cdef int _dimension                      # stores dimension, -2 on init
     cdef unsigned int _n_Hrepresentation     # Hrep might include equalities
     cdef unsigned int _n_Vrepresentation     # Vrep might include rays/lines
@@ -41,7 +41,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef PolyhedronFaceLattice _all_faces     # class to generate Hasse diagram incidences
 
     cdef tuple V(self)
-    cdef tuple H(self)
+    cdef tuple facet_names(self)
     cdef tuple equalities(self)
     cdef unsigned int n_Vrepresentation(self)
     cdef unsigned int n_Hrepresentation(self)
@@ -51,7 +51,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef ListOfFaces far_face(self)
     cdef tuple far_face_tuple(self)
 
-    # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
+    # Space for edges, ridges, etc. is allocated with ``MemoryAllocator``'s.
     # Upon sucess they are copied to ``_mem_tuple``.
     # Thus deallocation (at the correct time) is taken care of.
     cdef tuple _mem_tuple
