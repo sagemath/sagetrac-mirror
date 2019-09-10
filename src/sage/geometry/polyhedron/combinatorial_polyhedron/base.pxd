@@ -17,7 +17,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef unsigned int _length_Hrep      # Hrep might include equalities
     cdef unsigned int _length_Vrep      # Vrep might include rays/lines
     cdef size_t _n_facets               # length Hrep without equalities
-    cdef bint _unbounded                # ``True`` iff Polyhedron is unbounded
+    cdef bint _bounded                  # ``True`` iff Polyhedron is bounded
     cdef ListOfFaces _bitrep_facets     # facets in bit representation
     cdef ListOfFaces _bitrep_Vrep       # vertices in bit representation
     cdef ListOfFaces _far_face          # a 'face' containing all none-vertices of Vrep
@@ -47,7 +47,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple equalities(self)
     cdef unsigned int length_Vrep(self)
     cdef unsigned int length_Hrep(self)
-    cdef bint unbounded(self)
+    cdef bint is_bounded(self)
     cdef ListOfFaces bitrep_facets(self)
     cdef ListOfFaces bitrep_Vrep(self)
     cdef ListOfFaces far_face(self)

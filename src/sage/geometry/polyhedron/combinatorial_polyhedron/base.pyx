@@ -311,15 +311,15 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._dimension = data.dimension()
 
             if not data.is_compact():
-                self._unbounded = True
+                self._bounded = False
                 far_face = tuple(i for i in range(data.n_Vrepresentation()) if not data.Vrepresentation()[i].is_vertex())
             else:
-                self._unbounded = False
+                self._bounded = True
 
             data = data.incidence_matrix()
         elif isinstance(data, LatticePolytopeClass):
             # input is ``LatticePolytope``
-            self._unbounded = False
+            self._bounded = True
             Vrep = data.vertices()
             self._length_Vrep = len(Vrep)
             facets = data.facets()
@@ -330,11 +330,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
             if not unbounded:
                 # bounded polyhedron
-                self._unbounded = False
+                self._bounded = True
             elif not far_face:
                 raise ValueError("must specify far face for unbounded polyhedron")
             else:
-                self._unbounded = True
+                self._bounded = False
 
         if Vrep:
             # store vertices names
@@ -375,8 +375,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             self._n_facets = self.bitrep_facets().n_faces
 
-            # Initialize far_face if unbounded.
-            if self._unbounded:
+            # Initialize far_face if not bounded.
+            if not self._bounded:
                 self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), self._length_Vrep)
             else:
                 self._far_face = None
@@ -434,13 +434,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Initializing the Vrep as their Bit-representation.
             self._bitrep_Vrep = facets_tuple_to_bit_rep_of_Vrep(facets, length_Vrep)
 
-            # Initialize far_face if unbounded.
-            if self._unbounded:
+            # Initialize far_face if not unbounded.
+            if not self._bounded:
                 self._far_face = facets_tuple_to_bit_rep_of_facets((tuple(far_face),), length_Vrep)
             else:
                 self._far_face = None
 
-        if self._unbounded:
+        if not self._bounded:
             self._far_face_tuple = tuple(far_face)
         else:
             self._far_face_tuple = ()
@@ -530,7 +530,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             True
         """
         # Give a constructor by list of facets.
-        if self.unbounded():
+        if not self.is_bounded():
             return (CombinatorialPolyhedron, (self.facets(),
                     self.Vrepresentation(), self.Hrepresentation(),
                     True, self.far_face_tuple()))
@@ -602,7 +602,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # exactly one "vertex" and for each dimension one "line" as in
                 # :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
                 self._dimension = self.length_Vrep() - 1
-            elif self.unbounded() or self.n_facets() <= self.length_Vrep():
+            elif not self.is_bounded() or self.n_facets() <= self.length_Vrep():
                 self._dimension = self.bitrep_facets().compute_dimension()
             else:
                 # If the polyhedron has many facets,
@@ -654,7 +654,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self.dimension() == 0:
             # This specific trivial polyhedron needs special attention.
             return smallInteger(1)
-        if self.unbounded():
+        if not self.is_bounded():
             # Some elements in the ``Vrep`` might not correspond to actual combinatorial vertices.
             return len(self.vertices())
         else:
@@ -713,7 +713,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 return (self.V()[0],)
             else:
                 return (smallInteger(0),)
-        if self.unbounded():
+        if not self.is_bounded():
             it = self.face_iter(0)
             try:
                 # The Polyhedron has at least one vertex.
@@ -893,7 +893,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t len_edge_list = self._length_edges_list
         if self._edges is NULL:
             # compute the edges.
-            if self.unbounded():
+            if not self.is_bounded():
                 self._compute_edges(dual=False)
             elif self.length_Vrep() > self.n_facets()*self.n_facets():
                 # This is a wild estimate
@@ -1051,7 +1051,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t len_ridge_list = self._length_edges_list
         if self._ridges is NULL:
             # compute the ridges.
-            if self.unbounded():
+            if not self.is_bounded():
                 self._compute_ridges(dual=False)
             elif self.length_Vrep()*self.length_Vrep() < self.n_facets():
                 # This is a wild estimate
@@ -1248,7 +1248,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef FaceIterator face_iter
         if dual is None:
             # Determine the faster way, to iterate through all faces.
-            if self.unbounded() or self.n_facets() <= self.length_Vrep():
+            if not self.is_bounded() or self.n_facets() <= self.length_Vrep():
                 dual = False
             else:
                 dual = True
@@ -1265,7 +1265,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         See :meth:`CombinatorialPolyhedron.face_iter`
         """
-        if dual and self.unbounded():
+        if dual and not self.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded polyhedron")
         if dimension == -2:
             return FaceIterator(self, dual)
@@ -1478,8 +1478,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef unsigned int length_Hrep(self):
         return self._length_Hrep
 
-    cdef bint unbounded(self):
-        return self._unbounded
+    cdef bint is_bounded(self):
+        return self._bounded
 
     cdef ListOfFaces bitrep_facets(self):
         return self._bitrep_facets
@@ -1503,7 +1503,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             return 0  # There is no need to recompute the f_vector.
 
         cdef bint dual
-        if self.unbounded() or self.n_facets() <= self.length_Vrep():
+        if not self.is_bounded() or self.n_facets() <= self.length_Vrep():
             # In this case the non-dual approach is faster..
             dual = False
         else:
