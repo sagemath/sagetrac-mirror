@@ -1101,6 +1101,23 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return tuple(polynomials)
 
+    def _h_star_vector(self):
+        r"""
+        Returns the h*-vector of the lattice polytope.
+
+        INPUT:
+
+        - ``self`` -- A lattice polytope with ``backend`` = 'normaliz'.
+
+        OUTPUT:
+
+        The h*-vector as a list. 
+
+        EXAMPLES:
+
+        """
+        return self.ehrhart_series().numerator().coefficients()
+
     def _volume_normaliz(self, measure='euclidean'):
         r"""
         Computes the volume of a polytope using normaliz.
