@@ -492,7 +492,7 @@ cdef class CombinatorialFace(SageObject):
 
     def n_Hrepresentation(self):
         r"""
-        Returns the length of the :meth:`Hrep`.
+        Returns the length of the :meth:`Hrep` with ``names=False``.
 
         Might be faster than ``len(self.Hrep())``.
 
