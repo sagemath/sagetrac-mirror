@@ -787,12 +787,12 @@ cdef class FaceIterator(SageObject):
             self.first_time[self.current_dimension] = True
             return 0
 
-    cdef size_t length_atom_rep(self) except -1:
+    cdef size_t n_atom_rep(self) except -1:
         r"""
         Compute the number of atoms in the current face by counting the
         number of set bits.
 
-        This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.length_atom_rep`
+        This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.n_atom_rep`
         """
         if self.face:
             return count_atoms(self.face, self.face_length)

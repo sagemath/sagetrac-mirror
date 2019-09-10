@@ -400,7 +400,7 @@ cdef class CombinatorialFace(SageObject):
         if self._dual:
             return smallInteger(self.set_coatom_rep())
         else:
-            return smallInteger(self.length_atom_rep())
+            return smallInteger(self.n_atom_rep())
 
     def Hrep(self, names=True):
         r"""
@@ -507,9 +507,9 @@ cdef class CombinatorialFace(SageObject):
         if not self._dual:
             return smallInteger(self.set_coatom_rep())
         else:
-            return smallInteger(self.length_atom_rep())
+            return smallInteger(self.n_atom_rep())
 
-    cdef size_t length_atom_rep(self) except -1:
+    cdef size_t n_atom_rep(self) except -1:
         r"""
         Compute the number of atoms in the current face by counting the
         number of set bits.

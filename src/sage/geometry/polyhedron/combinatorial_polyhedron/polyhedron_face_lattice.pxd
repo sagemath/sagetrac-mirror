@@ -13,8 +13,8 @@ cdef class PolyhedronFaceLattice:
     cdef tuple _V, _H, _equalities  # some copies from CombinatorialPolyhedron
     cdef size_t *f_vector           # a copy of the f-vector, is reversed if dual
     cdef size_t *face_counter       # how many faces of each dimension have been initialized
-    cdef size_t *atom_rep           # a place where atom-representaion of face will be stored
-    cdef size_t *coatom_rep         # a place where coatom-representaion of face will be stored
+    cdef size_t *atom_rep           # a place where atom-representation of face will be stored
+    cdef size_t *coatom_rep         # a place where coatom-representation of face will be stored
 
     # Atoms and coatoms are the Vrep/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms Vrepresentatives and vice versa.

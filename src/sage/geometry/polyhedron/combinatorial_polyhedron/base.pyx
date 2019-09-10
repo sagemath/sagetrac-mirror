@@ -1480,7 +1480,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         Return the names of the equalities.
 
-        If not equalities are given, return ``None``.
+        If no equalities are given, return ``None``.
         """
         return self._equalities
 
@@ -1510,7 +1510,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     cdef ListOfFaces bitrep_Vrep(self):
         r"""
-        Return the Vrepresentations in bit representation.
+        Return the Vrepresentatives in bit representation.
         """
         return self._bitrep_Vrep
 

@@ -12,8 +12,8 @@ cdef class CombinatorialFace(SageObject):
     cdef uint64_t *face             # the face in bit-rep
 
     cdef MemoryAllocator _mem
-    cdef size_t *atom_rep           # a place where atom-representaion of face will be stored
-    cdef size_t *coatom_rep         # a place where coatom-representaion of face will be stored
+    cdef size_t *atom_rep           # a place where atom-representation of face will be stored
+    cdef size_t *coatom_rep         # a place where coatom-representation of face will be stored
     cdef int _dimension             # dimension of current face, dual dimension if ``dual``
     cdef int _ambient_dimension     # dimension of the polyhedron
     cdef size_t face_length         # stores length of the faces in terms of uint64_t
@@ -24,6 +24,6 @@ cdef class CombinatorialFace(SageObject):
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.
     cdef ListOfFaces atoms, coatoms
 
-    cdef size_t length_atom_rep(self) except -1
+    cdef size_t n_atom_rep(self) except -1
     cdef size_t set_coatom_rep(self) except -1
     cdef size_t set_atom_rep(self) except -1
