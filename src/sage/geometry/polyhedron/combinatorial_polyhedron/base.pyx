@@ -48,11 +48,11 @@ Obtaining edges and ridges::
     sage: C.ridges(names=False)[:2]
     ((6, 7), (5, 7))
 
-Vertex-graph and ridge-graph::
+Vertex-graph and facet-graph::
 
     sage: C.vertex_graph()
     Graph on 16 vertices
-    sage: C.ridge_graph()
+    sage: C.facet_graph()
     Graph on 8 vertices
 
 Face lattice::
@@ -976,7 +976,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         INPUT:
 
         - ``add_equalities`` -- if ``True``, then equalities of the polyhedron
-          will be added
+          will be added (only applicable when ``names`` is ``True``)
 
         - ``names`` -- if ``False``, then the facets are given by their indices
 
@@ -1039,6 +1039,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: it = C.face_iter(0)
             sage: for face in it: face.Hrepr()
             (An inequality (1, 0) x + 0 >= 0, An equation (0, 1) x + 0 == 0)
+
+        TESTS:
+
+        Testing that ``add_equalities`` is ignored if ``names`` is ``False``::
+
+            sage: C = CombinatorialPolyhedron(polytopes.simplex())
+            sage: C.ridges(names=False, add_equalities=True)
+            ((2, 3), (1, 3), (0, 3), (1, 2), (0, 2), (0, 1))
         """
         cdef size_t len_ridge_list = self._length_edges_list
         if self._ridges is NULL:
@@ -1078,7 +1086,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             return f(self._ridges[i // len_ridge_list][2*(i % len_ridge_list)+1])
 
         cdef size_t j
-        if add_equalities:
+        if add_equalities and names:
             # Also getting the equalities for each facet.
             return tuple(
                 ((self.equalities() + (facet_one(i),)),
@@ -1088,11 +1096,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             return tuple((facet_one(i), facet_two(i))
                          for i in range(n_ridges))
 
-    def ridge_graph(self, names=True):
+    def facet_graph(self, names=True):
         r"""
-        Return the ridge graph.
+        Return the facet graph.
 
-        The ridge graph of a polyhedron consists of
+        The facet graph of a polyhedron consists of
         ridges as edges and facets as vertices.
 
         If ``names`` is ``False``, the ``vertices`` of the graph  will
@@ -1102,10 +1110,19 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: P = polytopes.cyclic_polytope(4,6)
             sage: C = CombinatorialPolyhedron(P)
-            sage: C.ridge_graph()
+            sage: C.facet_graph()
             Graph on 9 vertices
+
+        TESTS::
+
+            sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
+            sage: CombinatorialPolyhedron(P).facet_graph()
+            Graph on 2 vertices
         """
-        return Graph(self.ridges(names=names), format="list_of_edges")
+        face_iter = self.face_iter(self.dimension() - 1, dual=False)
+        V = list(facet.Hrepr(names=names) for facet in face_iter)
+        E = self.ridges(names=names, add_equalities=True)
+        return Graph([V, E], format="vertices_and_edges")
 
     def f_vector(self):
         r"""
