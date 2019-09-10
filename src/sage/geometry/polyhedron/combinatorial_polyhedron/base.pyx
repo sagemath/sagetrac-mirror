@@ -1461,33 +1461,69 @@ cdef class CombinatorialPolyhedron(SageObject):
         return self._all_faces.get_face(dim, newindex)
 
     cdef tuple Vrep(self):
+        r"""
+        Return the names of the Vrepresentation, if they exist. Else return ``None``.
+        """
         return self._Vrep
 
     cdef tuple facet_names(self):
+        r"""
+        Return the names Hrepresentatives, which are facets.
+
+        If not given, return ``None``.
+        """
         return self._facet_names
 
     cdef tuple equalities(self):
+        r"""
+        Return the names of the equalities.
+
+        If not equalities are given, return ``None``.
+        """
         return self._equalities
 
     cdef unsigned int n_Vrepresentation(self):
+        r"""
+        Return the number of elements in the Vrepresentation.
+        """
         return self._n_Vrepresentation
 
     cdef unsigned int n_Hrepresentation(self):
+        r"""
+        Return the number of elements in the Hrepresentation.
+        """
         return self._n_Hrepresentation
 
     cdef bint is_bounded(self):
+        r"""
+        Return whether the polyhedron is bounded.
+        """
         return self._bounded
 
     cdef ListOfFaces bitrep_facets(self):
+        r"""
+        Return the facets in bit representation.
+        """
         return self._bitrep_facets
 
     cdef ListOfFaces bitrep_Vrep(self):
+        r"""
+        Return the Vrepresentations in bit representation.
+        """
         return self._bitrep_Vrep
 
     cdef ListOfFaces far_face(self):
+        r"""
+        Return a list with only the far face.
+
+        This is a face containing all Vrepresentatives that are not vertices.
+        """
         return self._far_face
 
     cdef tuple far_face_tuple(self):
+        r"""
+        Return the far face as it was given on initialization.
+        """
         return self._far_face_tuple
 
     cdef int _compute_f_vector(self) except -1:
