@@ -1116,8 +1116,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         TESTS::
 
             sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
-            sage: CombinatorialPolyhedron(P).facet_graph()
+            sage: G = CombinatorialPolyhedron(P).facet_graph(); G
             Graph on 2 vertices
+            sage: G.edges()
+            []
         """
         face_iter = self.face_iter(self.dimension() - 1, dual=False)
         V = list(facet.Hrep(names=names) for facet in face_iter)
