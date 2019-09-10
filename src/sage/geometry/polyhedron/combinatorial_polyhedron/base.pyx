@@ -339,10 +339,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         if Vrep:
             # store vertices names
             self._V = tuple(Vrep)
-            self._Vinv = {v: i for i,v in enumerate(self._V)}
+            Vinv = {v: i for i,v in enumerate(self._V)}
         else:
             self._V = None
-            self._Vinv = None
+            Vinv = None
 
         if facets:
             # store facets names and compute equalities
@@ -410,7 +410,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 n_Vrepresentation = len(Vrep)
                 if Vrep != range(len(Vrep)):
                     self._V = tuple(Vrep)
-                    self._Vinv = {v: i for i,v in enumerate(self._V)}
+                    Vinv = {v: i for i,v in enumerate(self._V)}
             else:
                 # Assuming the user gave as correct names for the vertices
                 # and labeled them instead by `0,...,n`.
@@ -420,7 +420,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Relabel the Vrep to be `0,...,n`.
             if self._V is not None:
-                def f(v): return self._Vinv[v]
+                def f(v): return Vinv[v]
             else:
                 def f(v): return int(v)
             facets = tuple(tuple(f(i) for i in j) for j in data)
@@ -1462,9 +1462,6 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     cdef tuple V(self):
         return self._V
-
-    cdef dict Vinv(self):
-        return self._Vinv
 
     cdef tuple H(self):
         return self._H
