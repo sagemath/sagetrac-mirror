@@ -48,9 +48,9 @@ Obtaining edges and ridges::
     sage: C.ridges(names=False)[:2]
     ((6, 7), (5, 7))
 
-Edge-graph and ridge-graph::
+Vertex-graph and ridge-graph::
 
-    sage: C.edge_graph()
+    sage: C.vertex_graph()
     Graph on 16 vertices
     sage: C.ridge_graph()
     Graph on 8 vertices
@@ -929,9 +929,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t j
         return tuple((vertex_one(j), vertex_two(j)) for j in range(self._n_edges))
 
-    def edge_graph(self, names=True):
+    def vertex_graph(self, names=True):
         r"""
-        Return the edge graph.
+        Return a graph in which the vertices correspond to vertices
+        of the polyhedron, and edges to bounded rank 1 faces.
 
         If ``names`` is set to ``False``, the Vrepresentatives will
         carry names according to the indexing of the Vrepresentation.
@@ -940,13 +941,25 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: P = polytopes.cyclic_polytope(3,5)
             sage: C = CombinatorialPolyhedron(P)
-            sage: C.edge_graph()
+            sage: C.vertex_graph()
             Graph on 5 vertices
-            sage: G = C.edge_graph()
+            sage: G = C.vertex_graph()
             sage: sorted(G.degree())
             [3, 3, 4, 4, 4]
+
+            sage: P = Polyhedron(rays=[[0,1]])
+            sage: CombinatorialPolyhedron(P).vertex_graph()
+            Graph on 1 vertex
         """
-        return Graph(self.edges(names=names), format="list_of_edges")
+        vertices = self.vertices(names=names)
+
+        # Getting the bounded edges.
+        edges = [edge for edge in self.edges(names=names)
+                 if edge[0] in vertices and edge[1] in vertices]
+
+        return Graph([vertices, edges], format="vertices_and_edges")
+
+    graph = vertex_graph
 
     def ridges(self, add_equalities=False, names=True):
         r"""
