@@ -14,13 +14,13 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _H                       # the names of HRep, if they exist
     cdef tuple _equalities              # stores equalities, given on input (might belong to Hrep)
     cdef int _dimension                 # stores dimension, -2 on init
-    cdef unsigned int _length_Hrepr     # Hrepr might include equalities
-    cdef unsigned int _length_Vrepr     # Vrepr might include rays/lines
+    cdef unsigned int _length_Hrep      # Hrep might include equalities
+    cdef unsigned int _length_Vrep      # Vrep might include rays/lines
     cdef size_t _n_facets               # length Hrep without equalities
     cdef bint _unbounded                # ``True`` iff Polyhedron is unbounded
     cdef ListOfFaces _bitrep_facets     # facets in bit representation
-    cdef ListOfFaces _bitrep_Vrepr      # vertices in bit representation
-    cdef ListOfFaces _far_face          # a 'face' containing all none-vertices of Vrepr
+    cdef ListOfFaces _bitrep_Vrep       # vertices in bit representation
+    cdef ListOfFaces _far_face          # a 'face' containing all none-vertices of Vrep
     cdef tuple _far_face_tuple
     cdef tuple _f_vector
 
@@ -45,11 +45,11 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef dict Vinv(self)
     cdef tuple H(self)
     cdef tuple equalities(self)
-    cdef unsigned int length_Vrepr(self)
-    cdef unsigned int length_Hrepr(self)
+    cdef unsigned int length_Vrep(self)
+    cdef unsigned int length_Hrep(self)
     cdef bint unbounded(self)
     cdef ListOfFaces bitrep_facets(self)
-    cdef ListOfFaces bitrep_Vrepr(self)
+    cdef ListOfFaces bitrep_Vrep(self)
     cdef ListOfFaces far_face(self)
     cdef tuple far_face_tuple(self)
 
