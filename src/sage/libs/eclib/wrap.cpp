@@ -67,17 +67,26 @@ char* Curvedata_repr(struct Curvedata* curve)
 
 double Curvedata_silverman_bound(const Curvedata* curve)
 {
-  return silverman_bound(*curve);
+  double b = silverman_bound(*curve);
+  cout<<flush;
+  cerr<<flush;
+  return b;
 }
 
 double Curvedata_cps_bound(const Curvedata* curve)
 {
-  return cps_bound(*curve);
+  double b = cps_bound(*curve);
+  cout<<flush;
+  cerr<<flush;
+  return b;
 }
 
 double Curvedata_height_constant(const Curvedata* curve)
 {
-  return height_constant(*curve);
+  double b = height_constant(*curve);
+  cout<<flush;
+  cerr<<flush;
+  return b;
 }
 
 char* Curvedata_getdiscr(struct Curvedata* curve)
@@ -118,6 +127,8 @@ char* Curvedata_isogeny_class(struct Curvedata* E, int verbose)
   instore << "], ";
 
   instore << cl.getmatrix() << ")";
+  cout<<flush;
+  cerr<<flush;
   return stringstream_to_char(instore);
 }
 
@@ -133,6 +144,7 @@ int mw_process(struct Curvedata* curve, struct mw* m,
     return 1;
   m->process(P, sat);
   cout<<flush;
+  cerr<<flush;
   return 0;
 }
 
@@ -169,12 +181,18 @@ char* mw_getbasis(struct mw* m)
 
 double mw_regulator(struct mw* m)
 {
-  return to_double(m->regulator());
+  double b = to_double(m->regulator());
+  cout<<flush;
+  cerr<<flush;
+  return b;
 }
 
 int mw_rank(struct mw* m)
 {
-  return m->getrank();
+  int r = m->getrank();
+  cout<<flush;
+  cerr<<flush;
+  return r;
 }
 
 /* Returns index and unsat long array, which user must deallocate */
@@ -183,6 +201,8 @@ int mw_saturate(struct mw* m, bigint* index, char** unsat,
 {
   vector<long> v;
   int s = m->saturate(*index, v, sat_bd, odd_primes_only);
+  cout<<flush;
+  cerr<<flush;
   ostringstream instore;
   instore << v;
   *unsat  = stringstream_to_char(instore);
@@ -201,6 +221,7 @@ void mw_search(struct mw* m, char* h_lim, int moduli_option, int verb)
 {
   m->search(str_to_bigfloat(h_lim), moduli_option, verb);
   cout<<flush;
+  cerr<<flush;
 }
 
 
@@ -208,17 +229,26 @@ void mw_search(struct mw* m, char* h_lim, int moduli_option, int verb)
 
 long two_descent_get_rank(struct two_descent* t)
 {
-  return t->getrank();
+  long r = t->getrank();
+  cout<<flush;
+  cerr<<flush;
+  return r;
 }
 
 long two_descent_get_rank_bound(struct two_descent* t)
 {
-  return t->getrankbound();
+  long r = t->getrankbound();
+  cout<<flush;
+  cerr<<flush;
+  return r;
 }
 
 long two_descent_get_selmer_rank(struct two_descent* t)
 {
-  return t->getselmer();
+  long r = t->getselmer();
+  cout<<flush;
+  cerr<<flush;
+  return r;
 }
 
 char* two_descent_get_basis(struct two_descent* t)
@@ -239,9 +269,14 @@ long two_descent_get_certain(const two_descent* t)
 void two_descent_saturate(struct two_descent* t, long sat_bd)
 {
   t->saturate(sat_bd);
+  cout<<flush;
+  cerr<<flush;
 }
 
 double two_descent_regulator(struct two_descent* t)
 {
-  return to_double(t->regulator());
+  double r = to_double(t->regulator());
+  cout<<flush;
+  cerr<<flush;
+  return r;
 }
