@@ -36,7 +36,7 @@ Obtain further information regarding a face::
     A 2-dimensional face of a 3-dimensional combinatorial polyhedron
     sage: face.Vrep()
     (A vertex at (0, 0, 1), A vertex at (0, 1, 0), A vertex at (1, 0, 0))
-    sage: face.length_Vrep()
+    sage: face.n_Vrepresentation()
     3
     sage: face.Hrep(names=False)
     (5,)
@@ -116,7 +116,7 @@ cdef class CombinatorialFace(SageObject):
         (A vertex at (6, 36, 216, 1296, 7776),)
         sage: face.Vrep(names=False)
         (6,)
-        sage: face.length_Vrep()
+        sage: face.n_Vrepresentation()
         1
 
     The Hrepresentation::
@@ -135,7 +135,7 @@ cdef class CombinatorialFace(SageObject):
          An inequality (-210, 317, -125, 19, -1) x + 0 >= 0)
         sage: face.Hrep(names=False)
         (3, 4, 5, 6, 7, 8, 9, 10, 11, 18, 19)
-        sage: face.length_Hrep()
+        sage: face.n_Hrepresentation()
         11
     """
     def __init__(self, data, dimension=None, index=None):
@@ -383,7 +383,7 @@ cdef class CombinatorialFace(SageObject):
                 return tuple(smallInteger(self.atom_rep[i])
                              for i in range(length))
 
-    def length_Vrep(self):
+    def n_Vrepresentation(self):
         r"""
         Return the length of the face.
 
@@ -394,7 +394,7 @@ cdef class CombinatorialFace(SageObject):
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: all(face.length_Vrep() == len(face.Vrep()) for face in it)
+            sage: all(face.n_Vrepresentation() == len(face.Vrep()) for face in it)
             True
         """
         if self._dual:
@@ -490,7 +490,7 @@ cdef class CombinatorialFace(SageObject):
                 return tuple(smallInteger(self.atom_rep[i])
                              for i in range(length))
 
-    def length_Hrep(self):
+    def n_Hrepresentation(self):
         r"""
         Returns the length of the :meth:`Hrep`.
 
@@ -501,7 +501,7 @@ cdef class CombinatorialFace(SageObject):
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: all(face.length_Hrep() == len(face.Hrep()) for face in it)
+            sage: all(face.n_Hrepresentation() == len(face.Hrep()) for face in it)
             True
         """
         if not self._dual:

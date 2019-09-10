@@ -9,18 +9,18 @@ from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 @cython.final
 cdef class CombinatorialPolyhedron(SageObject):
     # Do not assume any of those attributes to be initialized, use the corresponding methods instead.
-    cdef tuple _V                       # the names of VRep, if they exist
-    cdef dict _Vinv                     # dictionary to look up enumeration of vertices
-    cdef tuple _H                       # the names of HRep, if they exist
-    cdef tuple _equalities              # stores equalities, given on input (might belong to Hrep)
-    cdef int _dimension                 # stores dimension, -2 on init
-    cdef unsigned int _length_Hrep      # Hrep might include equalities
-    cdef unsigned int _length_Vrep      # Vrep might include rays/lines
-    cdef size_t _n_facets               # length Hrep without equalities
-    cdef bint _bounded                  # ``True`` iff Polyhedron is bounded
-    cdef ListOfFaces _bitrep_facets     # facets in bit representation
-    cdef ListOfFaces _bitrep_Vrep       # vertices in bit representation
-    cdef ListOfFaces _far_face          # a 'face' containing all none-vertices of Vrep
+    cdef tuple _V                            # the names of VRep, if they exist
+    cdef dict _Vinv                          # dictionary to look up enumeration of vertices
+    cdef tuple _H                            # the names of HRep, if they exist
+    cdef tuple _equalities                   # stores equalities, given on input (might belong to Hrep)
+    cdef int _dimension                      # stores dimension, -2 on init
+    cdef unsigned int _n_Hrepresentation     # Hrep might include equalities
+    cdef unsigned int _n_Vrepresentation     # Vrep might include rays/lines
+    cdef size_t _n_facets                    # length Hrep without equalities
+    cdef bint _bounded                       # ``True`` iff Polyhedron is bounded
+    cdef ListOfFaces _bitrep_facets          # facets in bit representation
+    cdef ListOfFaces _bitrep_Vrep            # vertices in bit representation
+    cdef ListOfFaces _far_face               # a 'face' containing all none-vertices of Vrep
     cdef tuple _far_face_tuple
     cdef tuple _f_vector
 
@@ -45,8 +45,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef dict Vinv(self)
     cdef tuple H(self)
     cdef tuple equalities(self)
-    cdef unsigned int length_Vrep(self)
-    cdef unsigned int length_Hrep(self)
+    cdef unsigned int n_Vrepresentation(self)
+    cdef unsigned int n_Hrepresentation(self)
     cdef bint is_bounded(self)
     cdef ListOfFaces bitrep_facets(self)
     cdef ListOfFaces bitrep_Vrep(self)

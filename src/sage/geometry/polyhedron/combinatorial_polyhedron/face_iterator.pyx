@@ -71,7 +71,7 @@ Obtain the Vrepresentation::
     sage: face = next(it)
     sage: face.Vrep()
     (A vertex at (0, -1, 0), A vertex at (0, 0, -1), A vertex at (1, 0, 0))
-    sage: face.length_Vrep()
+    sage: face.n_Vrepresentation()
     3
 
 Obtain the facet-representation::
@@ -85,7 +85,7 @@ Obtain the facet-representation::
        An inequality (-1, 1, 1) x + 1 >= 0)
     sage: face.Hrep(names=False)
     (4, 5, 6, 7)
-    sage: face.length_Hrep()
+    sage: face.n_Hrepresentation()
     4
 
 In non-dual mode one can ignore all faces contained in the current face::
@@ -610,7 +610,7 @@ cdef class FaceIterator(SageObject):
             sage: it = C.face_iter(dual=False)
             sage: n_non_simplex_faces = 1
             sage: for face in it:
-            ....:     if face.length_Vrep() > face.dimension() + 1:
+            ....:     if face.n_Vrepresentation() > face.dimension() + 1:
             ....:         n_non_simplex_faces += 1
             ....:     else:
             ....:         it.ignore_subfaces()
@@ -643,7 +643,7 @@ cdef class FaceIterator(SageObject):
             sage: it = C.face_iter(dual=True)
             sage: n_faces_with_non_simplex_quotient = 1
             sage: for face in it:
-            ....:     if face.length_Hrep() > C.dimension() - face.dimension() + 1:
+            ....:     if face.n_Hrepresentation() > C.dimension() - face.dimension() + 1:
             ....:         n_faces_with_non_simplex_quotient += 1
             ....:     else:
             ....:         it.ignore_supfaces()
