@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 make build
-exec "$@"
+exec sh -c "$*"

@@ -36,13 +36,16 @@
 
 # If you want to provide your own runners, make sure to tag them as follows:
 # * "big" (60GB of disk space are available) to make build-from-clean pass.
+# * "long", enough resources to run long doctest, i.e., at least 5 CPU hours
 
 image: docker:latest
 
 stages:
   - build
-  - test
+  - check
   - release
+  - test
+  - test-long
 
 variables:
   DOCKER_TAG: $CI_COMMIT_REF_NAME
@@ -90,6 +93,7 @@ build-from-latest: &build
     - gitlab-build-docker.log
     expire_in: 1 month
   script:
+    - set -o pipefail
     - apk --update add coreutils
     # The output of the build can get larger than gitlab.com's limit; only print the first 3MB (and the last 80 lines.)
     - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
@@ -125,23 +129,44 @@ build-from-clean:
   # So let's try three times before we give up.
   retry: 2
 
-test-dev:
-  stage: test
+check-dev:
+  stage: check
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
-    - sh .ci/test-dev.sh "$DOCKER_IMAGE"
+    - sh .ci/check-dev.sh "$DOCKER_IMAGE"
 
-test-cli:
+check-cli:
+  stage: check
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/check-cli.sh "$DOCKER_IMAGE"
+
+check-jupyter:
+  stage: check
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/check-jupyter.sh "$DOCKER_IMAGE" docker
+
+test-doctest-new:
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-cli.sh "$DOCKER_IMAGE"
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --new
 
-test-jupyter:
+test-doctest-short:
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --short
+
+test-doctest-long:
+  stage: test-long
+  tags:
+    # runner is going to run for at least 5 CPU hours
+    - long
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --long
 
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.

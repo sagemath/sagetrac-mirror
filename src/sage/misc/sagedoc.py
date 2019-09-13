@@ -798,9 +798,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
     The examples are nice, but marking them "random" means we're not
     really testing if the function works, just that it completes. These
-    tests aren't perfect, but are reasonable.
-
-    ::
+    tests aren't perfect, but are reasonable::
 
         sage: from sage.misc.sagedoc import _search_src_or_doc  # optional - dochtml
         sage: len(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1  # optional - dochtml
