@@ -9,6 +9,11 @@ AUTHORS:
 
 - Robert Bradshaw (2007-11): convert to Cython
 
+- Sebastian Oehms (2018-11): Added :meth:`gap` as synonym to
+  :meth:`_gap_` (compatibility to libgap framework, see :trac:`26750`)
+
+- Sebastian Oehms (2019-02): Implemented :meth:`gap` properly (:trac:`27234`)
+
 There are several ways to define a permutation group element:
 
 -  Define a permutation group `G`, then use ``G.gens()``
@@ -96,6 +101,7 @@ We create element of a permutation group of large degree::
 
 from __future__ import absolute_import, print_function
 
+import copy
 import random
 
 import sage.groups.old as group
@@ -109,14 +115,14 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.structure.element import is_Matrix
 from sage.matrix.all     import MatrixSpace
-from sage.interfaces.all import gap
-from sage.interfaces.gap import is_GapElement
+from sage.libs.gap.libgap import libgap
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 from sage.libs.gap.element cimport GapElement_List
-from sage.libs.gap.gap_includes cimport libGAP_Obj, libGAP_INT_INTOBJ, libGAP_ELM_LIST
+from sage.libs.gap.gap_includes cimport Obj, INT_INTOBJ, ELM_LIST
+
 
 import operator
 
@@ -212,6 +218,7 @@ def string_to_tuples(g):
     g = '[' + g + ']'
     return sage_eval(g, preparse=False)
 
+
 def standardize_generator(g, convert_dict=None):
     """
     Standardizes the input for permutation group elements to a list of
@@ -269,6 +276,8 @@ def standardize_generator(g, convert_dict=None):
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
     from sage.libs.pari.all import pari_gen
+    from sage.libs.gap.element import GapElement_Permutation
+
 
     if isinstance(g, pari_gen):
         g = list(g)
@@ -277,6 +286,10 @@ def standardize_generator(g, convert_dict=None):
         g = list(g)
 
     needs_conversion = True
+
+    if isinstance(g, GapElement_Permutation):
+        g = g.sage()
+        needs_conversion = False
     if isinstance(g, GapElement):
         g = str(g)
         needs_conversion = False
@@ -500,8 +513,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if not (parent is None or isinstance(parent, PermutationGroup_generic)):
                 raise TypeError('parent must be a permutation group')
             if parent is not None:
-                P = parent._gap_()
-                if not P.parent()(self.__gap) in P:
+                P = parent._libgap_()
+                if not P.parent().eval(self.__gap) in P:
                     raise TypeError('permutation %s not in %s' % (g, parent))
 
         Element.__init__(self, parent)
@@ -586,7 +599,34 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if gap is None:
                 from sage.interfaces.gap import gap
             self._gap_element = gap(self._gap_init_())
+
         return self._gap_element
+
+    def _libgap_(self):
+        if (self._gap_element is None or
+                self._gap_element._parent is not libgap):
+            self._gap_element = libgap.eval(self._libgap_init_())
+
+        return self._gap_element
+
+    # for compatibility with sage.groups.libgap_wrapper.ElementLibGAP
+    # see sage.groups.perm_gps.permgroup.PermutationGroup_generic.gap
+    def gap(self):
+        """
+        Returns self as a libgap element
+
+        EXAMPLES::
+
+            sage: P = PGU(8,2)
+            sage: p, q = P.gens()
+            sage: p_libgap  = p.gap()
+            sage: p_pexpect = gap(p)
+            sage: p_libgap == p_pexpect
+            True
+            sage: type(p_libgap) == type(p_pexpect)
+            False
+        """
+        return libgap(self)
 
     def _gap_init_(self):
         """
@@ -599,7 +639,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g._gap_init_()
             'PermList([2, 3, 1, 5, 4])'
         """
-        return 'PermList(%s)'%self._gap_list()
+        return 'PermList(%s)' % self._gap_list()
+
 
     def _repr_(self):
         """
@@ -951,7 +992,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             (1,4)(2,3)
         """
         cdef GapElement_List lst = <GapElement_List?> lst_in
-        cdef libGAP_Obj obj = lst.value
+        cdef Obj obj = lst.value
 
         cdef PermutationGroupElement new = self._new_c()
         cdef Py_ssize_t i, j, vn = len(lst)
@@ -959,7 +1000,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         assert vn <= self.n
 
         for i in range(vn):
-            j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
+            j = INT_INTOBJ(ELM_LIST(obj, i+1))
             new.perm[i] = j - 1
         for i in range(vn, self.n):
             new.perm[i] = i
@@ -1422,12 +1463,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         INPUT:
 
         - ``g`` -- an element of the permutation group ``self.parent()``
-        
+
         - ``singletons`` -- ``True`` or ``False`` depending on whether on or not
           trivial cycles should be counted (default: ``True``)
 
         - ``as_list`` -- ``True`` or ``False`` depending on whether the cycle
-          type should be returned as a ``list`` or as a :class:`Partition` 
+          type should be returned as a ``list`` or as a :class:`Partition`
           (default: ``False``)
 
         OUTPUT:
@@ -1569,13 +1610,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if not self._parent._has_natural_domain():
             raise NotImplementedError
 
-        import copy
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.interfaces.all import gap
 
-        G = gap(words[0].parent())
+        G = libgap(words[0].parent())
         g = words[0].parent()(self)
-        H = gap.Group(words)
+        H = libgap.Group(words)
         ans = G.EpimorphismFromFreeGroup().PreImagesRepresentative(g)
 
         l1 = str(ans)
@@ -1598,6 +1637,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print(l1)
             print(l5)
         return l1, l2
+
 
 cdef class SymmetricGroupElement(PermutationGroupElement):
     """
@@ -1623,6 +1663,20 @@ cdef class SymmetricGroupElement(PermutationGroupElement):
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self).absolute_length()
+
+    def has_left_descent(self, i):
+        """
+        Return whether `i` is a left descent of ``self``.
+
+        EXAMPLES::
+
+            sage: W = SymmetricGroup(4)
+            sage: w = W.from_reduced_word([1,3,2,1])
+            sage: [i for i in W.index_set() if w.has_left_descent(i)]
+            [1, 3]
+        """
+        return self.has_descent(i, side='left')
+
 
 cdef bint is_valid_permutation(int* perm, int n):
     """

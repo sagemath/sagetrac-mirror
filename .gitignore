@@ -1,5 +1,4 @@
 *.pyc
-/.BUILDSTART
 /dist
 /local
 /logs
@@ -38,6 +37,9 @@
 # PyCharm
 .idea
 .iml
+
+# VSCode
+.vscode
 
 # XCode
 xcuserdata/
