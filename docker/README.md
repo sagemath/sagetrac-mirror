@@ -45,7 +45,7 @@ Every push to our [github repository](https://github.com/sagemath/sage) triggers
 
 Every push to our [GitLab repository](https://gitlab.com/sagemath/sage) triggers a pipeline in GitLab CI which pushes the actual images to Docker Hub.
 
-Have a look at `.circleci/` and `.gitlab-ci.yml` if you want to setup CircleCI or GitLab CI for your own fork of the SageMath repository.
+Have a look at `.gitlab-ci.yml` if you want to setup GitLab CI for your own fork of the SageMath repository.
 
 # Report bugs and issues
 
