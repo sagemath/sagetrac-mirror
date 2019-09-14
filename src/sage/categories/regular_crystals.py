@@ -744,7 +744,13 @@ class RegularCrystals(Category_singleton):
             """
             tester = self._tester(**options)
             goodness=True
-            if index_set is None: index_set=self.index_set()
+#            if index_set is None: index_set=self.index_set()
+            if index_set is None:
+                index_set = self.index_set()
+                from sage.categories.sets_cat import Sets
+                if index_set in Sets().Infinite():
+                    it = iter(index_set)
+                    index_set = [it.next() for _ in range(10)]
 
             for (i,j) in Subsets(index_set, 2):
                 if self.e(i) is not None and self.e(j) is not None:
