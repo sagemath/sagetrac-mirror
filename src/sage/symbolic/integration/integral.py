@@ -867,6 +867,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: g.integrate(x, 0, 2*pi)
         2
 
+        sage: integrate(abs(sin(x)),x)
+        -cos(x)*sgn(sin(x)) + sgn(sin(x))
+
         sage: integrate(1/sqrt(abs(x)), x)
         2*sqrt(x*sgn(x))/sgn(x)
 
