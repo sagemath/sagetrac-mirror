@@ -3522,7 +3522,12 @@ class Polyhedron_base(Element):
             ieq[0] += min(values)   # shift constant term
             new_ieqs.append(ieq)
         P = self.parent()
-        return P.element_class(P, None, [new_ieqs, new_eqns])
+        try:
+            return P.element_class(P, None, [new_ieqs, new_eqns])
+        except TypeError:
+            # Some vertices might be fractions.
+            P = P.change_ring(P.base_ring().fraction_field())
+            return P.element_class(P, None, [new_ieqs, new_eqns])
 
     def __sub__(self, other):
         r"""
@@ -3906,7 +3911,12 @@ class Polyhedron_base(Element):
                             for l in other.line_generator() ] )
 
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+        try:
+            return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+        except TypeError:
+            # Some vertices might be fractions.
+            parent = parent.change_ring(new_ring.fraction_field())
+            return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def dilation(self, scalar):
         """
@@ -4359,7 +4369,12 @@ class Polyhedron_base(Element):
         new_eqns = self.equations_list()
 
         parent = self.parent().base_extend(cut_frac)
-        return parent.element_class(parent, None, [new_ieqs, new_eqns])
+        try:
+            return parent.element_class(parent, None, [new_ieqs, new_eqns])
+        except TypeError:
+            # Some vertices might be fractions.
+            parent = parent.change_ring(parent.base_ring().fraction_field())
+            return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     def stack(self, face, position=None):
         r"""
