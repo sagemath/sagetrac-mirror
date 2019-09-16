@@ -3478,7 +3478,9 @@ class Polyhedron_base(Element):
             sage: poly_spam - poly_eggs
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
 
-        TESTS::
+        TESTS:
+
+        Some tests::
 
             sage: X = polytopes.hypercube(2)
             sage: Y = Polyhedron(vertices=[(1,1)])
@@ -3494,6 +3496,13 @@ class Polyhedron_base(Element):
             True
             sage: (X-Y)+Y == X
             True
+
+        Testing that :trac:`28506` is fixed::
+
+            sage: Q = Polyhedron([[1,0],[0,1]])
+            sage: S = Polyhedron([[0,0],[1,2]])
+            sage: S.minkowski_difference(Q)
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
         """
         if other.is_empty():
             return self.parent().universe()   # empty intersection = everything
@@ -3857,7 +3866,9 @@ class Polyhedron_base(Element):
             :meth:`join`
             :meth:`subdirect_sum`
 
-        TESTS::
+        TESTS:
+
+        Check that the backend is preserved::
 
             sage: P = polytopes.simplex(backend='cdd')
             sage: Q = polytopes.simplex(backend='ppl')
@@ -3865,6 +3876,12 @@ class Polyhedron_base(Element):
             'cdd'
             sage: Q.direct_sum(P).backend()
             'ppl'
+
+        Check that :trac:`28506` is fixed::
+
+            sage: s2 = polytopes.simplex(2)
+            sage: s3 = polytopes.simplex(3)
+            sage: t = s2.direct_sum(s3)
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -4289,12 +4306,22 @@ class Polyhedron_base(Element):
              sage: face_trunc.face_lattice().is_isomorphic(Cube.face_lattice())
              True
 
-        TESTS::
+        TESTS:
+
+        Testing that the backend is preserved::
 
             sage: Cube = polytopes.cube(backend='field')
             sage: face_trunc = Cube.face_truncation(Cube.faces(2)[0])
             sage: face_trunc.backend()
             'field'
+
+        Testing that :trac:`28506` is fixed::
+
+            sage: P = polytopes.twenty_four_cell()
+            sage: P = P.dilation(6)
+            sage: P = P.change_ring(ZZ)
+            sage: P.face_truncation(P.faces(2)[0], cut_frac=1)
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 27 vertices
         """
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
