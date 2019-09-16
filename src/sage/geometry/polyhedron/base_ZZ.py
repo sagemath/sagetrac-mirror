@@ -483,9 +483,9 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: square = Polyhedron(vertices=[(0,0),(1,0),(0,1),(1,1)])
             sage: square.minkowski_decompositions()
             ((A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices),
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
-              A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices))
+              A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices))
 
         Example from http://cgi.di.uoa.gr/~amantzaf/geo/ ::
 
@@ -493,21 +493,21 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: R = Polyhedron(vertices=[(0,0), (5,0), (8,4), (3,2)])
             sage: (Q+R).minkowski_decompositions()
             ((A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 7 vertices),
              (A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices),
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 7 vertices),
              (A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices),
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 7 vertices),
              (A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices),
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 7 vertices),
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
-              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 6 vertices))
+              A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices))
 
            sage: [ len(square.dilation(i).minkowski_decompositions())
            ....:   for i in range(6) ]

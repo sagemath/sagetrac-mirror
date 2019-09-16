@@ -3467,7 +3467,7 @@ class Polyhedron_base(Element):
             sage: four_cube = polytopes.hypercube(4)
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: four_cube - four_simplex
-            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 16 vertices
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 16 vertices
             sage: four_cube.minkowski_difference(four_simplex) == four_cube - four_simplex
             True
 
@@ -3521,7 +3521,9 @@ class Polyhedron_base(Element):
             ieq = list(ieq)
             ieq[0] += min(values)   # shift constant term
             new_ieqs.append(ieq)
-        P = self.parent()
+
+        # Some vertices might need fractions.
+        P = self.parent().change_ring(self.base_ring().fraction_field())
         return P.element_class(P, None, [new_ieqs, new_eqns])
 
     def __sub__(self, other):
@@ -3884,7 +3886,8 @@ class Polyhedron_base(Element):
             sage: t = s2.direct_sum(s3)
         """
         try:
-            new_ring = self.parent()._coerce_base_ring(other)
+            # Some vertices might need fractions.
+            new_ring = self.parent()._coerce_base_ring(other).fraction_field()
         except TypeError:
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
                      + " and " + str(other.parent()))
@@ -4358,7 +4361,8 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        parent = self.parent().base_extend(cut_frac)
+        # Some vertices might need fractions.
+        parent = self.parent().base_extend(cut_frac/1)
         return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     def stack(self, face, position=None):
