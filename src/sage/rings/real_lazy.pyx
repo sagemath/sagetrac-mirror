@@ -334,6 +334,12 @@ class RealLazyField_class(LazyField):
         return RealLazyField, ()
 
     def random(self):
+        r"""
+        Construct a random number in [0,1].
+
+        For more information, see the documentation of the class
+        :class:`LazyRandomNumber <sage.rings.real_lazy.LazyRandomNumber>`.
+        """
         return LazyRandomNumber(self)
 
 RLF = RealLazyField_class()
@@ -1761,7 +1767,7 @@ cdef class LazyWrapperMorphism(Morphism):
             e._value = x
         return e
 
-class LazyRandomNumber(LazyFieldElement):
+cdef class LazyRandomNumber(LazyFieldElement):
     r"""
     Represents a random number in [0,1] chosen with respect to Lebesgue measure.
 
@@ -1788,9 +1794,11 @@ class LazyRandomNumber(LazyFieldElement):
         True
         sage: RealField(256)(r) == RealField(256)(rr)
         False
-        sage: TestSuite(r).run(skip="_test_category")
-
+        sage: TestSuite(r).run()
     """
+
+    cdef _approx
+
     def __init__(self, parent, restore=None):
         r"""
         Construct a random number in [0,1]. The ``parent`` should be
@@ -1857,7 +1865,7 @@ class LazyRandomNumber(LazyFieldElement):
                 tester.assertTrue(last_interval.upper() >= interval.upper())
             last_interval = interval
 
-    def eval(self, R):
+    cpdef eval(self, R):
         r"""
         Convert ``self`` into an element of the field ``R``.
         """
