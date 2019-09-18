@@ -460,7 +460,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.complete()
 
-    _shorthands = tuple(['S', 'R', 'L', 'Phi', 'Psi', 'nM', 'I', 'dQS', 'dYQS', 'ZL', 'ZR'])
+    _shorthands = ('S', 'R', 'L', 'Phi', 'Psi', 'nM', 'I',
+                   'dQS', 'dYQS', 'ZL', 'ZR')
 
     def dual(self):
         r"""

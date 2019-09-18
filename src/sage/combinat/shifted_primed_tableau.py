@@ -836,8 +836,7 @@ class ShiftedPrimedTableau(ClonableArray):
         if not flat:
             return ()
 
-        weight = tuple([flat.count(i+1) for i in range(max(flat))])
-        return weight
+        return tuple(flat.count(i + 1) for i in range(max(flat)))
 
 
 class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
@@ -1338,11 +1337,11 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
            (1, 4, 1)
         """
         flat = [entry.integer() for row in self for entry in row]
-        if flat == []:
+        if not flat:
             max_ind = 0
         else:
             max_ind = max(flat)
-        weight = tuple([flat.count(i+1) for i in range(max_ind)])
+        weight = tuple(flat.count(i + 1) for i in range(max_ind))
         return self.parent().weight_lattice_realization()(weight)
 
 
@@ -2440,7 +2439,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         if not flat:
             return not self._weight
         max_ind = max(flat)
-        weight = tuple([flat.count(i+1) for i in range(max_ind)])
+        weight = tuple(flat.count(i + 1) for i in range(max_ind))
         return self._weight == weight
 
     def __iter__(self):
@@ -2576,7 +2575,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             return not self._weight
 
         max_ind = max(flat)
-        weight = tuple([flat.count(i+1) for i in range(max_ind)])
+        weight = tuple(flat.count(i + 1) for i in range(max_ind))
         if self._weight != weight:
             return False
 

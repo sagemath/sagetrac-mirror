@@ -1811,11 +1811,12 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     # Filling holes with a smaller orthogonal array
     if inf > Gn and fill_hole:
         for L in orthogonal_array(k,inf-Gn,2):
-            new_M.append(tuple([x+Gn for x in L]))
+            new_M.append(tuple(x + Gn for x in L))
 
     return new_M
 
-def OA_from_Vmt(m,t,V):
+
+def OA_from_Vmt(m, t, V):
     r"""
     Return an Orthogonal Array from a `V(m,t)`
 

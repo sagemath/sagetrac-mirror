@@ -246,7 +246,7 @@ class KyotoPathModel(TensorProductOfCrystals):
         self._weight = weight
         if weight.parent().is_extended():
             # public for TensorProductOfCrystals
-            self.crystals = tuple([C.affinization() for C in crystals])
+            self.crystals = tuple(C.affinization() for C in crystals)
             self._epsilon_dicts = [{b.Epsilon(): self.crystals[i](b, 0) for b in B}
                                    for i,B in enumerate(crystals)]
             self._phi_dicts = [{b.Phi(): self.crystals[i](b, 0) for b in B}

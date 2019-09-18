@@ -1093,11 +1093,11 @@ class PuzzleFilling(object):
             ('1', '0', '1', '0')
         """
         # TODO: return ''.join(self[i, i]['south'] for i in range(1, self._n + 1))
-        return tuple([self[i,i]['south'] for i in range(1, self._n+1)])
+        return tuple(self[i, i]['south'] for i in range(1, self._n + 1))
 
     def add_piece(self, piece):
         r"""
-        Adds ``piece`` to partial puzzle.
+        Add ``piece`` to partial puzzle.
 
         EXAMPLES::
 

@@ -2620,9 +2620,10 @@ def unshuffle_iterator(a, one=1):
                 sign = not sign
         if len(sorted_I) % 4 > 1:
             sign = not sign
-        yield ((tuple([a[i] for i in sorted_I]),
-                tuple([a[i] for i in sorted_nonI])),
+        yield ((tuple(a[i] for i in sorted_I),
+                tuple(a[i] for i in sorted_nonI)),
                (one if sign else - one))
+
 
 def bell_polynomial(n, k):
     r"""

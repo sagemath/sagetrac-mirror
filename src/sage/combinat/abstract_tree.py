@@ -883,7 +883,7 @@ class AbstractTree(object):
             for p in self[i].paths_at_depth(depth - 1, path=[i]):
                 yield p
         for p in self[path[0]].paths_to_the_right(path[1:]):
-            yield tuple([path[0]] + list(p))
+            yield (path[0],) + p
 
     def node_number_to_the_right(self, path):
         r"""

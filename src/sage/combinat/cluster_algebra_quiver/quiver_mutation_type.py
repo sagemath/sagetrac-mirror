@@ -1667,7 +1667,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
         else:
             self._description = str([letter, rank])
 
-    def irreducible_components( self ):
+    def irreducible_components(self):
         """
         Return a list of all irreducible components of ``self``.
 
@@ -1678,7 +1678,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
             sage: mut_type.irreducible_components()
             (['A', 3],)
         """
-        return tuple([self])
+        return (self,)
 
     @cached_method
     def class_size(self):

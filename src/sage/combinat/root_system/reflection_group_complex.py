@@ -1107,12 +1107,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         if self.is_irreducible():
             if self.is_well_generated():
                 h = self.coxeter_number()
-                return tuple([h-d for d in self.degrees()])
+                return tuple(h - d for d in self.degrees())
             else:
                 return tuple(sorted(self._gap_group.ReflectionCoDegrees().sage(),
                                     reverse=True))
         else:
-            return sum([comp.codegrees() for comp in self.irreducible_components()],tuple())
+            return sum([comp.codegrees() for comp in self.irreducible_components()], tuple())
 
     @cached_method
     def reflection_eigenvalues_family(self):

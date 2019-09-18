@@ -133,7 +133,6 @@ class BraidMoveCalculator(object):
         first_word_list = self.put_in_front(k, start_word)
         first_last_word = first_word_list[-1]
         return (first_word_list[:-1] +
-                tuple([ (k,) + word for word in
-                         self.chain_of_reduced_words(first_last_word[1:],
-                                                     end_word[1:]) ]))
-
+                tuple((k,) + word for word in
+                      self.chain_of_reduced_words(first_last_word[1:],
+                                                  end_word[1:])))

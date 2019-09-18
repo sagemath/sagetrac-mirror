@@ -632,7 +632,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'YQS', 'phi', 'psi'])
+    _shorthands = ('M', 'F', 'E', 'dI', 'QS', 'YQS', 'phi', 'psi')
 
     def dual(self):
         r"""

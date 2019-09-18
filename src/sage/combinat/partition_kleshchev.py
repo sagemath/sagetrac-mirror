@@ -1191,7 +1191,7 @@ class KleshchevPartitions(PartitionTuples):
             multicharge = (0,)
 
         I = IntegerModRing(e)
-        multicharge = tuple([I(x) for x in multicharge])
+        multicharge = tuple(I(x) for x in multicharge)
 
         convention = convention.upper()
         if 'S' in convention:

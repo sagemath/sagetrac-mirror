@@ -784,7 +784,7 @@ class WeakTableau_core(WeakTableau_abstract):
             ([3, 2, 1], [2])
         """
         if self.parent()._skew:
-            return tuple([r.to_bounded_partition() for r in self.shape_core()])
+            return tuple(r.to_bounded_partition() for r in self.shape_core())
         return self.shape_core().to_bounded_partition()
 
     def check(self):
@@ -1251,7 +1251,7 @@ class WeakTableaux_core(WeakTableaux_abstract):
         if shape == [] or shape[0] in ZZ:
             shape = (Core(shape, k+1), Core([],k+1))
         else:
-            shape = tuple([Core(r,k+1) for r in shape])
+            shape = tuple(Core(r,k+1) for r in shape)
         return super(WeakTableaux_core, cls).__classcall__(cls, k, shape, tuple(weight))
 
     def __init__(self, k, shape, weight):
@@ -1486,7 +1486,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
             ([5, 2, 1], [2])
         """
         if self.parent()._skew:
-            return tuple([r.to_core(self.k) for r in self.shape_bounded()])
+            return tuple(r.to_core(self.k) for r in self.shape_bounded())
         return self.shape_bounded().to_core(self.k)
 
     def shape_bounded(self):
@@ -1719,7 +1719,7 @@ class WeakTableaux_bounded(WeakTableaux_abstract):
         if shape == [] or shape[0] in ZZ:
             shape = (Partition(shape), Partition([]))
         else:
-            shape = tuple([Partition(r) for r in shape])
+            shape = tuple(Partition(r) for r in shape)
         return super(WeakTableaux_bounded, cls).__classcall__(cls, k, shape, tuple(weight))
 
     def __init__(self, k, shape, weight):
@@ -1819,14 +1819,13 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             ValueError: inconsistent number of rows: should be 4 but got 5
         """
         W = WeylGroup(['A', k, 1], prefix='s')
-        if len(t) > 0:
-            if isinstance(t[0], list) or isinstance(t[0], tuple):
-                w_tuple = tuple(W.from_reduced_word(p) for p in t)
+        if t:
+            if isinstance(t[0], (list, tuple)):
+                return tuple(W.from_reduced_word(p) for p in t)
             else:
-                w_tuple = tuple(W(r) for r in t)
+                return tuple(W(r) for r in t)
         else:
-            w_tuple = tuple([W.one()])
-        return w_tuple
+            return (W.one(),)
 
     @staticmethod
     def __classcall_private__(cls, t, k, inner_shape = []):
@@ -1954,7 +1953,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             ([3, 2, 1], [2])
         """
         if self.parent()._skew:
-            return tuple([r.to_bounded_partition() for r in self.shape_core()])
+            return tuple(r.to_bounded_partition() for r in self.shape_core())
         return self.shape_core().to_bounded_partition()
 
     def check(self):
@@ -2140,7 +2139,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
         if shape == [] or shape[0] in ZZ:
             shape = (Core(shape, k+1), Core([],k+1))
         else:
-            shape = tuple([Core(r,k+1) for r in shape])
+            shape = tuple(Core(r, k+1) for r in shape)
         return super(WeakTableaux_factorized_permutation, cls).__classcall__(cls, k, shape, tuple(weight))
 
     def __init__(self, k, shape, weight):

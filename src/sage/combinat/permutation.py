@@ -1608,8 +1608,8 @@ class Permutation(CombinatorialElement):
         """
         p = self[:]
         n = len(p)
-        return [tuple([i+1,j+1]) for i in range(n-1) for j in range(i+1,n)
-                if p[i]>p[j]]
+        return [(i + 1, j + 1) for i in range(n - 1) for j in range(i + 1, n)
+                if p[i] > p[j]]
 
     def show(self, representation="cycles", orientation="landscape", **args):
         r"""

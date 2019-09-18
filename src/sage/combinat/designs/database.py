@@ -3723,7 +3723,7 @@ def DM_52_6_1():
     Mb=[[(0,0)]*6]
 
     from itertools import product
-    p = lambda x,y : G(tuple([x*yy for yy in G(y)]))
+    p = lambda x, y : G(tuple(x*yy for yy in G(y)))
 
     def t1(i,R):
         if i > 1:

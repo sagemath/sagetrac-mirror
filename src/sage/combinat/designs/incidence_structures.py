@@ -890,7 +890,8 @@ class IncidenceStructure(object):
                 for s in combinations(b,size):
                     d[s]+=1
             if self._point_to_index:
-                return {tuple([self._points[x] for x in s]):v for s,v in six.iteritems(d)}
+                return {tuple(self._points[x] for x in s): v
+                        for s, v in six.iteritems(d)}
             else:
                 return d
 
@@ -1803,7 +1804,8 @@ class IncidenceStructure(object):
                                              list(range(n,n+self.num_blocks()))])
 
         if self._point_to_index:
-            gens = [[tuple([self._points[i] for i in cycle if (not cycle or cycle[0]<n)])
+            gens = [[tuple(self._points[i] for i in cycle
+                           if (not cycle or cycle[0] < n))
                      for cycle in g.cycle_tuples()]
                     for g in ag.gens()]
         else:

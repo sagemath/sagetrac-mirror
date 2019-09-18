@@ -261,8 +261,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W = ReflectionGroup(['A',3])                          # optional - gap3
             sage: TestSuite(W).run()                                    # optional - gap3
         """
-        W_types = tuple([tuple(W_type) if isinstance(W_type, (list,tuple)) else W_type
-                         for W_type in W_types])
+        W_types = tuple(tuple(W_type) if isinstance(W_type, (list, tuple))
+                        else W_type
+                        for W_type in W_types)
         cartan_types = []
         for W_type in W_types:
             W_type = CartanType(W_type)

@@ -84,7 +84,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
         """
         return self.w()
 
-    _shorthands = tuple(['w'])
+    _shorthands = ('w',)
 
     def dual(self):
         r"""

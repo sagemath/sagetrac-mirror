@@ -595,7 +595,7 @@ class KleberTree(UniqueRepresentation, Parent):
             raise ValueError("use VirtualKleberTree for non-simply-laced types")
 
         # Standardize B input into a tuple of tuples
-        B = tuple([tuple(rs) for rs in B])
+        B = tuple(tuple(rs) for rs in B)
 
         if classical is None:
             classical = cartan_type.classical()

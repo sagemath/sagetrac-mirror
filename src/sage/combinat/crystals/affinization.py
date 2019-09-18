@@ -91,8 +91,8 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
         self._B = B
         self._cartan_type = B.cartan_type()
         Parent.__init__(self, category=(RegularCrystals(), InfiniteEnumeratedSets()))
-        self.module_generators = tuple([self.element_class(self, b, 0)
-                                        for b in B.module_generators])
+        self.module_generators = tuple(self.element_class(self, b, 0)
+                                       for b in B.module_generators)
 
     def _repr_(self):
         """

@@ -1002,7 +1002,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
             for I in combinations(range(1, npmp1), n):
                 J = [j for j in range(1, npmp1) if (j not in I)]
                 tt1 = [[I[x - 1] for x in row] for row in t1]
-                tt2 = [tuple([J[x - 1] for x in row]) for row in t2]
+                tt2 = [tuple(J[x - 1] for x in row) for row in t2]
                 z.append(ST(Tableau(tt1).slide_multiply(tt2)))
             return self.sum_of_monomials(z)
 

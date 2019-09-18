@@ -1230,7 +1230,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
                 if m > 0 and t[i] <= depth:
                     ret.append((t,m))
             return ret
-        hwv = (tuple([0 for j in self._index_set]), 1)
+        hwv = (tuple(0 for j in self._index_set), 1)
         terms = RecursivelyEnumeratedSet([hwv], next_level)
         fw = weyl_character_ring.fundamental_weights()
         P = self.weight_lattice()

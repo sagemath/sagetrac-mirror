@@ -90,14 +90,14 @@ def paths_in_triangle(i, j, a, b):
         raise ValueError("the endpoint is not valid")
 
     if i == 0:
-        return [tuple([1] * j)]
+        return [(1,) * j]
 
     if (j - 1) * a >= (i) * b:
-        result = [u + tuple([1]) for u in paths_in_triangle(i, j - 1, a, b)]
-        result += [u + tuple([0]) for u in paths_in_triangle(i - 1, j, a, b)]
+        result = [u + (1,) for u in paths_in_triangle(i, j - 1, a, b)]
+        result += [u + (0,) for u in paths_in_triangle(i - 1, j, a, b)]
         return result
 
-    return [u + tuple([0]) for u in paths_in_triangle(i - 1, j, a, b)]
+    return [u + (0,) for u in paths_in_triangle(i - 1, j, a, b)]
 
 
 def swap(p, i, m=1):

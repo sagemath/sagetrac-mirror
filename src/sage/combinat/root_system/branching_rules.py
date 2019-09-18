@@ -1259,8 +1259,8 @@ class BranchingRule(SageObject):
                 for j in self._R.index_set():
                     resfw = Sspace(self(list(Rspace.fundamental_weight(j).to_vector())))
                     print("%d => %s" % (j,
-                                        tuple([resfw.inner_product(a)
-                                               for a in Sspace.simple_coroots()])))
+                                        tuple(resfw.inner_product(a)
+                                              for a in Sspace.simple_coroots())))
             if not no_r and not verbose:
                 print("\nFor more detailed information use verbose=True")
 

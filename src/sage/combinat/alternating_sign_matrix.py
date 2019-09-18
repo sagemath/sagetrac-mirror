@@ -1591,9 +1591,9 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
              ))
         """
         ASMs = list(self)
-        perm = Permutation([ASMs.index(asm.gyration())+1 for asm in ASMs])
-        return tuple([tuple([ASMs[i-1] for i in cyc])
-                      for cyc in perm.cycle_tuples()])
+        perm = Permutation([ASMs.index(asm.gyration()) + 1 for asm in ASMs])
+        return tuple(tuple(ASMs[i - 1] for i in cyc)
+                     for cyc in perm.cycle_tuples())
 
     def gyration_orbit_sizes(self):
         r"""

@@ -843,7 +843,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             ['G2(1,0,-1)', 'G2(2,-1,-1)']
         """
         if self._fusion_labels is not None:
-            t = tuple([t.inner_product(x) for x in self.simple_coroots()])
+            t = tuple(t.inner_product(x) for x in self.simple_coroots())
             return self._fusion_labels[t]
         else:
             return self.irr_repr(t)
@@ -2343,7 +2343,7 @@ class FusionRing(WeylCharacterRing):
             fb = list(self.basis())
         for j, b in enumerate(fb):
             wt = b.highest_weight()
-            t = tuple([wt.inner_product(x) for x in self.simple_coroots()])
+            t = tuple(wt.inner_product(x) for x in self.simple_coroots())
             d[t] = labels[j]
             inject_variable(labels[j], b)
         self._fusion_labels = d

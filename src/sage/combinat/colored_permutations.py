@@ -113,7 +113,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
         """
         ip = ~self._perm
         return self.__class__(self.parent(),
-                              tuple([-self._colors[i - 1] for i in ip]),  # -1 for indexing
+                              tuple(-self._colors[i - 1] for i in ip),  # -1 for indexing
                               ip)
 
     __invert__ = inverse
@@ -999,7 +999,7 @@ class SignedPermutation(ColoredPermutation):
         """
         ip = ~self._perm
         return self.__class__(self.parent(),
-                              tuple([self._colors[i - 1] for i in ip]),  # -1 for indexing
+                              tuple(self._colors[i - 1] for i in ip),  # -1 for indexing
                               ip)
 
     __invert__ = inverse

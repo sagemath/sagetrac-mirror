@@ -321,7 +321,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
         """
         return self.powersum()
 
-    _shorthands = tuple(['chi', 'cp', 'm', 'e', 'h', 'p', 'rho', 'x'])
+    _shorthands = ('chi', 'cp', 'm', 'e', 'h', 'p', 'rho', 'x')
 
     def dual(self):
         r"""
