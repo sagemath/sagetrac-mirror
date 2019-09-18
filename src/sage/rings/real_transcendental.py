@@ -270,13 +270,13 @@ class RealTranscendentalExtensionField(Field):
         True
         sage: 0 < r1 < 1 and 0 < r2 < 1
         True
-        sage: TestSuite(FF).run()
+        sage: TestSuite(FF).run()  # long time (21s, 2019)
 
         sage: F.<sqrt2> = NumberField(x^2-2, embedding=AA(sqrt(2)))
         sage: L.<ee,r> = RealTranscendentalExtensionField(F, [e, RLF.random()])
         sage: r < ee-sqrt2
         True
-        sage: TestSuite(FF).run()
+        sage: TestSuite(FF).run()  # long time (22s, 2019)
         sage: TestSuite( r*(ee-sqrt2) ).run()
     """
 
@@ -324,12 +324,12 @@ class RealTranscendentalExtensionField(Field):
                     assert isinstance(names[0],str)
                     self._names = (names[0],)
             else:
-                self._names = tuple([str(names[i]) for i in xrange(n)])
+                self._names = tuple([str(names[i]) for i in range(n)])
         else:
             if n == 1:
                 self._names = ("t",)
             else:
-                self._names = tuple(["t_"+str(i) for i in xrange(n)])
+                self._names = tuple(["t_"+str(i) for i in range(n)])
 
         # Construct the underlying function field.
         ff = self._constant_field
@@ -342,7 +342,7 @@ class RealTranscendentalExtensionField(Field):
 
         self._ff = ff
 
-        self._gens = tuple([self.element_class(self,gens[i]) for i in xrange(n)])
+        self._gens = tuple([self.element_class(self,gens[i]) for i in range(n)])
 
     def constant_field(self):
         r"""
@@ -433,7 +433,7 @@ class RealTranscendentalExtensionField(Field):
         ot = other.transcendentals()
         if len(st) != len(ot):
             return False
-        for i in xrange(len(st)):
+        for i in range(len(st)):
             if st[i] != ot[i]:
                 return False
         return True
@@ -487,4 +487,7 @@ class RealTranscendentalExtensionField(Field):
         Return the characteristic of the this real subfield which is zero.
         """
         return ZZ.zero()
+
+    def __hash__(self):
+        return 2063*hash(self._ff) + 757*hash(self._gens)
 
