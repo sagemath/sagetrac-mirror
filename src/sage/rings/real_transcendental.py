@@ -36,7 +36,7 @@ from sage.structure.parent import Parent
 from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
 from sage.structure.unique_representation import UniqueRepresentation
 from .function_field.constructor import FunctionField
-from .function_field.function_field_element import FunctionFieldElement
+from .function_field.element import FunctionFieldElement
 from .integer_ring import ZZ
 from .real_double import RDF
 from .real_lazy import RLF
