@@ -3883,7 +3883,8 @@ class Polyhedron_base(Element):
 
             sage: s2 = polytopes.simplex(2)
             sage: s3 = polytopes.simplex(3)
-            sage: t = s2.direct_sum(s3)
+            sage: s2.direct_sum(s3)
+            A 5-dimensional polyhedron in QQ^7 defined as the convex hull of 7 vertices
         """
         try:
             # Some vertices might need fractions.
