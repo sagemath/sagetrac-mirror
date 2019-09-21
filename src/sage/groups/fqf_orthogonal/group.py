@@ -231,6 +231,15 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         from sage.libs.gap.element import GapElement
         if not type(x) is GapElement:
             try:
+                q = self.invariant_form()
+                W = q.W()
+                if (not len(q.invariants()) == W.degree() and
+                    x.ncols() == W.degree()):
+                    x = W.orthogonal_group([x]).gen(0)
+                    check = True
+            except AttributeError:
+                pass
+            try:
                 # if there is an action try that
                 gen = self.invariant_form().smith_form_gens()
                 x = matrix(ZZ, [(g*x).vector() for g in gen])
@@ -252,7 +261,6 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
         Something that acts on the domain.
         """
-        import pdb; pdb.set_trace()
         g = self.invariant_form().smith_form_gens()
         for i in range(len(g)):
             if (g[i]*f).q() != g[i].q():

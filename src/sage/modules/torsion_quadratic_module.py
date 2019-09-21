@@ -641,14 +641,16 @@ class TorsionQuadraticModule(FGP_Module_class):
                                                        is_GlobalGenus,
                                                        _blocks)
         from sage.misc.misc_c import prod
-        s_plus = signature_pair[0]
-        s_minus = signature_pair[1]
+        s_plus = ZZ(signature_pair[0])
+        s_minus = ZZ(signature_pair[1])
         rank = s_plus + s_minus
+        if s_plus < 0 or s_minus < 0:
+            raise ValueError("signatures must be non-negative")
         if len(self.invariants()) > rank:
             raise ValueError("this discriminant form and " +
                              "signature do not define a genus")
         disc = self.cardinality()
-        determinant = (-1)**s_minus * disc
+        determinant = ZZ(-1)**s_minus * disc
         local_symbols = []
         for p in (2 * disc).prime_divisors():
             D = self.primary_part(p)
@@ -1656,6 +1658,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             libgap.Read(gapcode)
             subgroup_reps = libgap.function_factory("SubgroupRepresentatives")
             subgroup_reps = subgroup_reps(Hgap, G, order)
+            subgroup_reps = [S for S in subgroup_reps if S['repr'].Size()==order]
         elif algorithm =="elementary":
             if not H.invariants()[-1].is_prime():
                 raise ValueError("")
@@ -1669,7 +1672,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             raise ValueError("not a valid algorithm")
         return [orbit_sage(rep=self._subgroup_from_gap(S['repr']), stab=G.subgroup(S['stab'].GeneratorsOfGroup())) for S in subgroup_reps]
 
-    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, glue_valuation, H10=None, H20=None, target_genus=None, qlist=None):
+    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, glue_valuation, H10=None, H20=None, target_genus=None, qlist=None,check=False):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
@@ -1819,7 +1822,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                 continue
             stab1 = S1.stabiliser()
             O1 = S1.representative().orthogonal_group()
-            act1 = stab1.hom([O1(x) for x in stab1.gens()],codomain=O1,check=False)
+            act1 = stab1.hom([O1(x) for x in stab1.gens()],codomain=O1,check=check)
             im1 = act1.image(stab1)
             ker1 = [embG1.Image(k.gap()) for k in act1.kernel().gens()]
             for S2 in subs2:
@@ -1831,7 +1834,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                 # there is a glue map
                 O2 = S2.representative().orthogonal_group()
 
-                act2 = stab2.hom([O2(x) for x in stab2.gens()],codomain=O2,check=False)
+                act2 = stab2.hom([O2(x) for x in stab2.gens()],codomain=O2,check=check)
                 im2 = act2.image(stab2)
                 ker2 = [embG2.Image(k.gap()) for k in act2.kernel().gens()]
 
@@ -1860,7 +1863,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                 stab1phi = center.Subgroup(stab1phi)
 
                 stab2c = O2.subgroup(stab2.gens())
-                reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
+                reps = center.DoubleCosetRepsAndSizes(stab1phi,stab2c)
                 for g in reps:
                     g = g[0]
                     phig = phi*g
@@ -2000,7 +2003,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                 stab1phi= [phi.InducedAutomorphism(O1(g,False).gap()) for g in S1.stabilizer().gens()]
                 stab1phi = center.Subgroup(stab1phi)
                 stab2c = O2.subgroup(O2(g,False) for g in S2.stabilizer().gens())
-                reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
+                reps = center.DoubleCosetRepsAndSizes(stab1phi,stab2c)
 
                 for g in reps:
                     g = g[0]
