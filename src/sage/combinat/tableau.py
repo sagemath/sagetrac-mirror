@@ -2769,6 +2769,12 @@ class Tableau(ClonableList):
             operator" :meth:`promotion_inverse` for semistandard tableaux
             has never been proven in literature. Corrections are welcome.
 
+        REFERENCES:
+
+        - [Hai1992]_
+
+        - [Sag2011]_
+
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3,3]])
@@ -3728,6 +3734,10 @@ class Tableau(ClonableList):
         row) to be a maximal consecutive sequence of `k`-boxes in the `i`-th
         row for any `i+1 \le k \le r+1`.  Denote the total number of
         `k`-segments in `T` by `\mathrm{seg}(T)`.
+
+        REFERENCES:
+
+        - [Sal2014]_
 
         EXAMPLES::
 
@@ -7695,8 +7705,12 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: sts = [StandardTableaux(n) for n in ns]
             sage: all(st.cardinality() == len(st.list()) for st in sts)
             True
-            sage: StandardTableaux(50).cardinality()  # long time
-            27886995605342342839104615869259776
+
+        The cardinality can be computed without constructing all elements in
+        this set, so this computation is fast (see also :trac:`28273`)::
+
+            sage: StandardTableaux(500).cardinality()
+            423107565308608549951551753690...221285999236657443927937253376
 
         TESTS::
 

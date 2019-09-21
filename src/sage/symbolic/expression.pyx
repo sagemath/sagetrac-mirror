@@ -1606,6 +1606,11 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: hash(unsigned_infinity) == hash(SR(unsigned_infinity))
             True
+
+        Check a corner case for rational numbers (:trac:`28219`)::
+
+            sage: hash(-1/3) == hash(SR(-1/3))
+            True
         """
         sig_on()
         try:
@@ -11506,6 +11511,15 @@ cdef class Expression(CommutativeRingElement):
 
             sage: solve((z^3-1)^3, z, multiplicities=True)
             ([z == 1/2*I*sqrt(3) - 1/2, z == -1/2*I*sqrt(3) - 1/2, z == 1], [3, 3, 3])
+
+        TESTS:
+
+        Check that :trac:`20755` is indeed fixed::
+
+            sage: w = x^4 - (1+3*i)*x^3 - (2-4*i)*x^2 + (6-2*i)*x - 4 - 4*i
+            sage: w.solve(x,multiplicities=True)
+            ([x == -1/2*sqrt(2*I) + 3/2*I - 1/2, x == 1/2*sqrt(2*I) + 3/2*I - 1/2, x == (-I + 1), x == (I + 1)],
+             [1, 1, 1, 1])
 
         See :func:`sage.symbolic.relation.solve` or the output of ``solve?``
         for extensive documentation.

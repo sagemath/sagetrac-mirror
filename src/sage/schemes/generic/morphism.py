@@ -83,6 +83,7 @@ from sage.structure.richcmp import richcmp
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
 from sage.rings.fraction_field_element import FractionFieldElement
+from sage.rings.fraction_field import is_FractionField
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
@@ -1150,9 +1151,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         o = self._codomain.ambient_space()._repr_generic_point(self.defining_polynomials())
         return "Defined on coordinates by sending %s to\n%s"%(i,o)
 
-    def __getitem__(self,i):
+    def __getitem__(self, i):
         """
-        returns the ith poly with self[i]
+        Return the i-th poly with self[i].
 
         INPUT:
 
@@ -1162,15 +1163,15 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         - element of the coordinate ring of the domain
 
-        Examples::
+        EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3/5*x^2,6*y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([3/5*x^2,6*y^2])
             sage: f[1]
             6*y^2
         """
-        return(self._polys[i])
+        return self._polys[i]
 
     def __copy__(self):
         r"""
@@ -1557,13 +1558,29 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             x^6 + x^5*y + 4*x^4*y^2 + 3*x^3*y^3 + 7*x^2*y^4 + 4*x*y^5 + 5*y^6
             sage: g == f.specialization({c:1}).dynatomic_polynomial(3)
             True
+        
+        ::
+
+            sage: R1.<alpha, beta> = QQ[]
+            sage: A.<x> = AffineSpace(Frac(R1),1)
+            sage: f = DynamicalSystem_affine([alpha/(x^2 + 1/alpha)/(x - 1/beta^2)])
+            sage: f.specialization({alpha:5,beta:10})
+            Dynamical System of Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                      (5/(x^3 - 1/100*x^2 + 1/5*x - 1/500))
+            sage: f.specialization({alpha:5}).specialization({beta:10}) == f.specialization({alpha:5,beta:10})
+            True
         """
         if D is None:
             if phi is None:
                 raise ValueError("either the dictionary or the specialization must be provided")
         else:
-            from sage.rings.polynomial.flatten import SpecializationMorphism
-            phi = SpecializationMorphism(self[0].parent(), D)
+            if is_FractionField(self[0].parent()):
+                from sage.rings.polynomial.flatten import FractionSpecializationMorphism
+                phi = FractionSpecializationMorphism(self[0].parent(), D)
+            else:
+                from sage.rings.polynomial.flatten import SpecializationMorphism
+                phi = SpecializationMorphism(self[0].parent(), D)
         if homset is None:
             domain = self.domain()
             if isinstance(domain, AlgebraicScheme_subscheme):
