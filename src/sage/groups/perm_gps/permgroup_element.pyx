@@ -119,6 +119,8 @@ from sage.libs.gap.libgap import libgap
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
+from sage.structure.coerce cimport coercion_model
+
 
 from sage.libs.gap.element cimport GapElement_List
 from sage.libs.gap.gap_includes cimport Obj, INT_INTOBJ, ELM_LIST
@@ -993,6 +995,54 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 return left(tuple(sigma_x))
             elif is_Matrix(left):
                 return left.with_permuted_rows(self)
+
+    def __mul__(left, right):
+        r"""
+        TESTS::
+
+            sage: S = SymmetricGroup(5)
+            sage: P = PermutationGroup([(1,2,3),(4,5)])
+            sage: Q = PermutationGroup([(1,2),(2,3),(4,5)])
+            sage: prod = S('(1,2,3)(4,5)')
+            sage: for P1 in [S, P,Q]:
+            ....:     for P2 in [S, P,Q]:
+            ....:         prod = P1('(1,2,3)') * P2('(4,5)')
+            ....:         assert prod.parent() == coercion_model.common_parent(P1, P2)
+            ....:         assert prod == S('(1,2,3)(4,5)')
+        """
+        if type(left) is type(right) and \
+           (<PermutationGroupElement> left)._parent is (<PermutationGroupElement> right)._parent:
+            return (<PermutationGroupElement> left)._mul_(right)
+
+        # shortcut the case when one of them belong to a full symmetric group
+        # and domains are equal
+        cdef PermutationGroupElement pl, pr, prod
+        cdef int i
+
+        if isinstance(left, SymmetricGroupElement):
+            if isinstance(right, PermutationGroupElement):
+                pl = <PermutationGroupElement> left
+                pr = <PermutationGroupElement> right
+                Pleft = pl._parent
+                Pright = pr._parent
+                if Pleft._domain == Pright._domain:
+                    prod = pl._new_c()
+                    for i in range(pl.n):
+                        prod.perm[i] = pr.perm[pl.perm[i]]
+                    return prod
+
+        elif isinstance(right, SymmetricGroupElement):
+            pl = <PermutationGroupElement> left
+            pr = <PermutationGroupElement> right
+            Pleft = pl._parent
+            Pright = pr._parent
+            if Pleft._domain == Pright._domain:
+                prod = pr._new_c()
+                for i in range(pr.n):
+                    prod.perm[i] = pr.perm[pl.perm[i]]
+                return prod
+
+        return coercion_model.bin_op(left, right, operator.mul)
 
     cpdef _mul_(left, _right):
         """
