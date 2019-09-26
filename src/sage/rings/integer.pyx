@@ -408,7 +408,6 @@ cdef class IntegerWrapper(Integer):
     The constructor of ``IntegerWrapper`` further allows for
     specifying an alternative parent to ``IntegerRing()``.
     """
-
     def __init__(self, parent=None, x=None, unsigned int base=0):
         """
         We illustrate how to create integers with parents different

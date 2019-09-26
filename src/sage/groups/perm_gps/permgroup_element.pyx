@@ -106,7 +106,7 @@ import random
 
 import sage.groups.old as group
 
-from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 from cpython.list cimport *
 
 from sage.ext.stdsage cimport HAS_DICTIONARY
@@ -179,7 +179,6 @@ def make_permgroup_element_v2(G, x, domain):
     G._domain_to_gap = {key: i+1 for i, key in enumerate(domain)}
     G._domain_from_gap = {i+1: key for i, key in enumerate(domain)}
     return G.element_class(x, G, check=False)
-
 
 def is_PermutationGroupElement(x):
     """
@@ -354,7 +353,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         sage: f * sigma
         3*x^2 + y^2 - z^2
     """
-    def __init__(self, g, parent = None, check = True):
+    def __dealloc__(self):
+        if self.perm != NULL and self.perm != self.perm_buf:
+            sig_free(self.perm)
+
+    def __init__(self, g, parent=None, check=True):
         r"""
         Create element of a permutation group.
 
@@ -490,60 +493,113 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: p = Permutation((1,2))
             sage: PermutationGroupElement(p)
             (1,2)
+
+        Bad input::
+
+            sage: S5 = SymmetricGroup(5)
+            sage: S5((3,-1,5))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid list of cycles to initialize a permutation
+            sage: S5((1,2,6,3))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid list of cycles to initialize a permutation
         """
-        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-        from sage.combinat.permutation import from_cycles
-
-        convert_dict = parent._domain_to_gap if parent is not None else None
-        try:
-            v = standardize_generator(g, convert_dict)
-        except KeyError:
-            raise ValueError("Invalid permutation vector: %s" % g)
-
-        degree = max([1] + [max(cycle+(1,)) for cycle in v])
-        v = from_cycles(degree, v)
-
-        self.__gap = 'PermList({})'.format(list(v)) # Make sure it is a list
-
         if parent is None:
-            parent = SymmetricGroup(len(v))
+            raise ValueError("the parent must be provided to initialize a class PermutationGroupElement; use sage.groups.perm_groups.constructor.PermutationGroupElement if you need the more general constructor")
 
-        if check and parent.__class__ != SymmetricGroup:
-            if not (parent is None or isinstance(parent, PermutationGroup_generic)):
-                raise TypeError('parent must be a permutation group')
-            if parent is not None:
-                P = parent._libgap_()
-                if not P.parent().eval(self.__gap) in P:
-                    raise TypeError('permutation %s not in %s' % (g, parent))
+        cdef int degree = parent.degree()
+        self._parent = parent
+        self._alloc(degree)
 
-        Element.__init__(self, parent)
+        if not g:
+            self._set_identity()
+            return
 
-        self.n = max(parent.degree(), 1)
-
-        if self.perm is NULL or self.perm is self.perm_buf:
-            self.perm = <int *>sig_malloc(sizeof(int) * self.n)
+        convert = not parent._has_natural_domain()
+        if isinstance(g, tuple) and not isinstance(g[0], tuple):
+            self._set_list_cycles([g], convert)
+        elif isinstance(g, list):
+            if isinstance(g[0], tuple):
+                self._set_list_cycles(g, convert)
+            else:
+                self._set_list_images(g, convert)
         else:
-            self.perm = <int *>sig_realloc(self.perm, sizeof(int) * self.n)
-
-
-        cdef int i, vn = len(v)
-        assert(vn <= self.n)
-        for i from 0 <= i < vn:
-            self.perm[i] = v[i] - 1
-        for i from vn <= i < self.n:
-            self.perm[i] = i
+            from sage.combinat.permutation import from_cycles
+            v = standardize_generator(g, parent._domain_to_gap)
+            v = from_cycles(degree, v)
+            self._set_list_images(v, False)
 
         # We do this check even if check=False because it's fast
         # (relative to other things in this function) and the
         # rest of the code is assumes that self.perm specifies
         # a valid permutation (else segfaults, infinite loops may occur).
-        if not is_valid_permutation(self.perm, vn):
-            raise ValueError("Invalid permutation vector: %s" % v)
+        if not is_valid_permutation(self.perm, self.n):
+            print([self.perm[i] for i in range(self.n)])
+            raise ValueError("invalid data to initialize a permutation g={}".format(g))
 
-    def __dealloc__(self):
-        if self.perm is not NULL and self.perm is not self.perm_buf:
-            sig_free(self.perm)
+        # This is more expensive
+        if check:
+            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+            from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+            if parent.__class__ != SymmetricGroup:
+                if not isinstance(parent, PermutationGroup_generic):
+                    raise TypeError('parent must be a permutation group')
+                P = parent._libgap_()
+                gap = 'PermList([{}])'.format(','.join('%d' % (self.perm[i]+1) for i in range(self.n)))
+                if not P.parent().eval(gap) in P:
+                    raise TypeError('permutation %s not in %s' % (g, parent))
+
+    cpdef _set_identity(self):
+        cdef int i
+        for i in range(self.n):
+            self.perm[i] = i
+
+    cpdef _set_list_images(self, v, bint convert):
+        cdef int i, j, vn = len(v)
+        assert(vn <= self.n)
+        if convert:
+            convert_dict = self._parent._domain_to_gap
+            for i in range(len(v)):
+                self.perm[i] = convert_dict[v[i]] - 1
+        else:
+            for i, j in enumerate(v):
+                self.perm[i] = j - 1
+
+        for i in range(vn, self.n):
+            self.perm[i] = i
+
+    cpdef _set_list_cycles(self, c, bint convert):
+        cdef int i, j
+        self._set_identity()
+        if convert:
+            convert_dict = self._parent._domain_to_gap
+            for t in c:
+                if len(t) <= 1:
+                    continue
+                for i in range(len(t) - 1):
+                    j = convert_dict[t[i]] - 1
+                    if j < 0 or j >= self.n:
+                        raise ValueError("invalid list of cycles to initialize a permutation")
+                    self.perm[j] = convert_dict[t[i+1]] - 1
+                j = convert_dict[t[-1]] - 1
+                if j < 0 or j >= self.n:
+                    raise ValueError("invalid list of cycles to initialize a permutation")
+                self.perm[j] = convert_dict[t[0]] - 1
+        else:
+            for t in c:
+                if len(t) <= 1:
+                    continue
+                for i in range(len(t) - 1):
+                    j = t[i] - 1
+                    if j < 0 or j >= self.n:
+                        raise ValueError("invalid list of cycles to initialize a permutation")
+                    self.perm[j] = t[i+1] - 1
+                j = t[-1] - 1
+                if j < 0 or j >= self.n:
+                    raise ValueError("invalid list of cycles to initialize a permutation")
+                self.perm[j] = t[0] - 1
 
     def __reduce__(self):
         """
@@ -560,17 +616,23 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         return make_permgroup_element_v2, (self._parent, self.domain(), self._parent.domain())
 
+    cdef _alloc(self, int n):
+        if n < 16 and self.perm == NULL:
+            self.perm = self.perm_buf
+        elif self.perm == NULL:
+            self.perm = <int *> sig_calloc(n, sizeof(int))
+        elif n > self.n:
+            self.perm = <int *> sig_realloc(self.perm, n * sizeof(int))
+
+        self.n = n
+
     cdef PermutationGroupElement _new_c(self):
         cdef type t = type(self)
         cdef PermutationGroupElement other = t.__new__(t)
         if HAS_DICTIONARY(self):
             other.__class__ = self.__class__
         other._parent = self._parent
-        other.n = self.n
-        if other.n <= sizeof(other.perm_buf) / sizeof(int):
-            other.perm = other.perm_buf
-        else:
-            other.perm = <int *>sig_malloc(sizeof(int) * other.n)
+        other._alloc(self.n)
         return other
 
     def _gap_(self, gap=None):
@@ -964,13 +1026,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             (1,4)(2,3)
         """
         cdef PermutationGroupElement new = self._new_c()
-        cdef Py_ssize_t i, j, vn = len(v)
-        assert vn <= self.n
-        for i in range(vn):
-            j = v[i]
-            new.perm[i] = j - 1
-        for i in range(vn, self.n):
-            new.perm[i] = i
+        new._set_list_images(v, False)
         return new
 
     cpdef PermutationGroupElement _generate_new_GAP(self, lst_in):
@@ -1098,17 +1154,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: x.domain()
             []
         """
-        cdef int i
-
-        #We need to do this to handle the case of SymmetricGroup(0)
-        #where the domain is (), but the permutation group element has
-        #an underlying representation of [1].  The 1 doesn't
-        #correspond to anything in the domain
-        if len(self._parent._domain) == 0:
+        if self.n == 0:
             return []
-        else:
-            from_gap = self._parent._domain_from_gap
-            return [from_gap[self.perm[i]+1] for i from 0 <= i < self.n]
+
+        cdef int i
+        from_gap = self._parent._domain_from_gap
+        return [from_gap[self.perm[i]+1] for i from 0 <= i < self.n]
 
     def __hash__(self):
         """
@@ -1124,20 +1175,19 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         Check that the hash looks reasonable::
 
             sage: s = set()
+            sage: s.update(map(hash,SymmetricGroup(0)))
             sage: s.update(map(hash,SymmetricGroup(1)))
             sage: s.update(map(hash,SymmetricGroup(2)))
             sage: s.update(map(hash,SymmetricGroup(3)))
             sage: s.update(map(hash,SymmetricGroup(4)))
             sage: s.update(map(hash,SymmetricGroup(5)))
-            sage: len(s) == 1 + 2 + 6 + 24 + 120
+            sage: len(s) == 1 + 1 + 2 + 6 + 24 + 120
             True
         """
         cdef size_t i
         cdef long ans = self.n
         for i in range(self.n):
             ans = (ans ^ (self.perm[i])) * 1000003L
-        if ans == -1:
-            ans = -2
         return ans
 
     def tuple(self):
@@ -1155,6 +1205,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: S.gen().tuple()
             ('b', 'a')
         """
+        # TODO: why is it cached!?
         if self.__tuple is None:
             self.__tuple = tuple(self.domain())
         return self.__tuple
@@ -1693,15 +1744,15 @@ cdef bint is_valid_permutation(int* perm, int n):
         sage: PermutationGroupElement([1,1],S,check=False)
         Traceback (most recent call last):
         ...
-        ValueError: The permutation has length 2 but its maximal element is 1. Some element may be repeated, or an element is missing, but there is something wrong with its length.
+        ValueError: invalid data to initialize a permutation g=[1, 1]
         sage: PermutationGroupElement([1,-1],S,check=False)
         Traceback (most recent call last):
         ...
-        ValueError: Invalid permutation vector: [1, -1]
+        ValueError: invalid data to initialize a permutation g=[1, -1]
         sage: PermutationGroupElement([1,2,3,10],S,check=False)
         Traceback (most recent call last):
         ...
-        ValueError: The permutation has length 4 but its maximal element is 10. Some element may be repeated, or an element is missing, but there is something wrong with its length.
+        ValueError: invalid data to initialize a permutation g=[1, 2, 3, 10]
     """
     cdef int i, ix
     # make everything is in bounds
