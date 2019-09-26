@@ -739,15 +739,25 @@ def lookup_global(name):
     """
     Used in unpickling the factory itself.
 
+    NOTE:
+
+    When unpickling a pickle that was created in a different language
+    level, it is possible that a function name is not presented as a ``str``,
+    but as a ``bytes`` or ``unicode``. This function does the corresponding
+    type casts.
+
     EXAMPLES::
 
         sage: from sage.structure.factory import lookup_global
         sage: lookup_global('ZZ')
         Integer Ring
-        sage: lookup_global('sage.rings.all.ZZ')
+        sage: lookup_global(u'sage.rings.all.ZZ')
         Integer Ring
     """
-    name = bytes_to_str(name, encoding='ASCII')
+    if not isinstance(name, (bytes,str)): # e.g., it is a unicode
+        name = str(name)
+    else:
+        name = bytes_to_str(name, encoding='ASCII')
     try:
         return factory_unpickles[name]
     except KeyError:
