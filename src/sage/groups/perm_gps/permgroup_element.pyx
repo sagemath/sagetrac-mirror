@@ -1582,8 +1582,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: G = DihedralGroup(3)
-            sage: [g.cycle_type() for g in G]
-            [[1, 1, 1], [3], [3], [2, 1], [2, 1], [2, 1]]
+            sage: sorted(g.cycle_type() for g in G)
+            [[1, 1, 1], [2, 1], [2, 1], [2, 1], [3], [3]]
             sage: PermutationGroupElement('(1,2,3)(4,5)(6,7,8)').cycle_type()
             [3, 3, 2]
             sage: G = SymmetricGroup(3); G('(1,2)').cycle_type()
@@ -1759,8 +1759,8 @@ cdef class SymmetricGroupElement(PermutationGroupElement):
         EXAMPLES::
 
             sage: S = SymmetricGroup(3)
-            sage: [x.absolute_length() for x in S]
-            [0, 2, 2, 1, 1, 1]
+            sage: sorted(x.absolute_length() for x in S)
+            [0, 1, 1, 1, 2, 2]
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self).absolute_length()
