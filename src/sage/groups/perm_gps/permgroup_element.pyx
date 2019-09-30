@@ -519,7 +519,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             self._set_identity()
             return
 
-        convert = not parent._has_natural_domain()
+        cdef bint convert = not parent._has_natural_domain()
         if isinstance(g, tuple) and not isinstance(g[0], tuple):
             self._set_list_cycles([g], convert)
         elif isinstance(g, list):
@@ -538,14 +538,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         # rest of the code is assumes that self.perm specifies
         # a valid permutation (else segfaults, infinite loops may occur).
         if not is_valid_permutation(self.perm, self.n):
-            print([self.perm[i] for i in range(self.n)])
             raise ValueError("invalid data to initialize a permutation g={}".format(g))
 
         # This is more expensive
         if check:
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            from sage.groups.perm_gps.permgroup import PermutationGroup_generic
             if parent.__class__ != SymmetricGroup:
+                from sage.groups.perm_gps.permgroup import PermutationGroup_generic
                 if not isinstance(parent, PermutationGroup_generic):
                     raise TypeError('parent must be a permutation group')
                 P = parent._libgap_()
