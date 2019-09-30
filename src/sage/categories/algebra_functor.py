@@ -227,13 +227,21 @@ is a natural map from `\ZZ[D_2]` to `\QQ[S_4]`::
 
     sage: A = DihedralGroup(2).algebra(ZZ)
     sage: B = SymmetricGroup(4).algebra(QQ)
-    sage: a = A.an_element(); a
+    sage: a = A.an_element()
+    sage: a  # py2
+    () + 2*(3,4) + 3*(1,2) + (1,2)(3,4)
+    sage: a  # py3
     () + 3*(3,4) + 2*(1,2) + (1,2)(3,4)
     sage: b = B.an_element(); b
     () + (2,3,4) + 2*(1,2) + 3*(1,2,3,4)
-    sage: B(a)
+    sage: B(a)  # py2
+    () + 2*(3,4) + 3*(1,2) + (1,2)(3,4)
+    sage: B(a)  # py3
     () + 3*(3,4) + 2*(1,2) + (1,2)(3,4)
-    sage: a * b  # a is automatically converted to an element of B
+    sage: a * b  # py2 # a is automatically converted to an element of B
+    7*() + 4*(3,4) + 2*(2,3) + (2,3,4) + 5*(1,2) + 5*(1,2)(3,4) + 6*(1,2,3)
+     + 3*(1,2,3,4) + (1,3,2) + 3*(1,3,4,2) + 3*(1,3) + 9*(1,3,4)
+    sage: a * b  # py3 # a is automatically converted to an element of B
     5*() + 5*(3,4) + 3*(2,3) + (2,3,4) + 4*(1,2) + 7*(1,2)(3,4) + 9*(1,2,3)
      + 3*(1,2,3,4) + (1,3,2) + 2*(1,3,4,2) + 3*(1,3) + 6*(1,3,4)
     sage: parent(a * b)
