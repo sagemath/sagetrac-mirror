@@ -28,6 +28,7 @@ from cysignals.signals cimport sig_check
 from sage.rings.complex_field import ComplexField
 from sage.functions.log import exp, log
 from sage.symbolic.constants import pi
+from math import sqrt
 
 
 def _color_to_RGB(color):
