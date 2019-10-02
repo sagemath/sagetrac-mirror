@@ -11,6 +11,7 @@ sage-python23 setup.py \
        --no-user-cfg \
        build_ext \
        --disable-jpeg \
+       --disable-zlib \
        install \
        --single-version-externally-managed \
        --root "$SAGE_DESTDIR" || sdh_die "Error building/installing Pillow"
