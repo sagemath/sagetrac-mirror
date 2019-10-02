@@ -229,9 +229,11 @@ class Package(object):
         self.__md5 = result.get('md5', None)
         self.__sha1 = result.get('sha1', None)
         self.__cksum = result.get('cksum', None)
-        self.__tarball_pattern = result['tarball']
+        self.__tarball_pattern = result.get('tarball', "")
         # Name of the directory containing the checksums.ini file
         self.__tarball_package_name = os.path.realpath(checksums_ini).split(os.sep)[-2]
+        if not result.get('tarball'):
+            log.warn("Could not find checksum in %s" % checksums_ini)
         
     VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')
     
