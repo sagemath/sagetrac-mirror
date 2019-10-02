@@ -116,6 +116,9 @@ class SageBaseTarFile(tarfile.TarFile):
             The additional ``**kwargs`` are for Python 2/3 compatibility, since
             different versions of this method accept additional arguments.
         """
+        if ":" in targetpath:
+            return
+
         old_umask = os.umask(self.umask)
         try:
             super(SageBaseTarFile, self)._extract_member(tarinfo, targetpath,
