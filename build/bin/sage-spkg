@@ -741,8 +741,7 @@ for script in $WRAPPED_SCRIPTS; do
                     # this should be enforced as an error
                     echo >&2 "WARNING: $msg"
                 else
-                    error_msg "$msg"
-                    exit 1
+                    echo >&2 "WARNING: $msg"
                 fi
             fi
 
