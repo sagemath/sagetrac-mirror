@@ -283,6 +283,8 @@ class FreeModuleTensor(ModuleElement):
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
+        self._is_zero = False # a priori, may be changed below or via
+                              # method __bool__()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -367,7 +369,11 @@ class FreeModuleTensor(ModuleElement):
             True
         """
         basis = self.pick_a_basis()
-        return not self._components[basis].is_zero()
+        if not self._components[basis].is_zero():
+            self._is_zero = False
+            return True
+        self._is_zero = True
+        return False
 
     __nonzero__ = __bool__
 
@@ -1246,6 +1252,7 @@ class FreeModuleTensor(ModuleElement):
                                  "defined on the {}".format(self._fmodule))
             self._components[basis] = self._new_comp(basis)
         self._del_derived() # deletes the derived quantities
+        self._is_zero = False  # a priori
         self.del_other_comp(basis)
         return self._components[basis]
 
@@ -1315,6 +1322,7 @@ class FreeModuleTensor(ModuleElement):
                                  "defined on the {}".format(self._fmodule))
             self._components[basis] = self._new_comp(basis)
         self._del_derived() # deletes the derived quantities
+        self._is_zero = False  # a priori
         return self._components[basis]
 
 
@@ -1482,7 +1490,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Return an exact copy of ``self``.
 
-        The name and the derived quantities are not copied.
+        The name and the derived quantities are copied, too.
 
         EXAMPLES:
 
@@ -1512,8 +1520,10 @@ class FreeModuleTensor(ModuleElement):
 
         """
         resu = self._new_instance()
+        resu.set_name(name=self._name, latex_name=self._latex_name)
         for basis, comp in self._components.items():
              resu._components[basis] = comp.copy()
+        resu._is_zero = self._is_zero
         return resu
 
     def common_basis(self, other):
@@ -1870,8 +1880,16 @@ class FreeModuleTensor(ModuleElement):
             True
 
         """
-        # No need for consistency check since self and other are guaranted
+        # No need for consistency check since self and other are guaranteed
         # to belong to the same tensor module
+        ###
+        # Case zero:
+        if self._is_zero:
+            return other
+        if other._is_zero:
+            return self
+        ###
+        # Generic case:
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the addition")
@@ -1972,6 +1990,17 @@ class FreeModuleTensor(ModuleElement):
         result = self._new_instance()
         for basis in self._components:
             result._components[basis] = other * self._components[basis]
+        ###
+        # If other has a name, set the name of the result:
+        try:
+            from sage.tensor.modules.format_utilities import (format_mul_txt,
+                                                              format_mul_latex)
+            result_name = format_mul_txt(other._name, '*', self._name)
+            result_latex = format_mul_latex(other._latex_name, r' \cdot ',
+                                            self._latex_name)
+            result.set_name(name=result_name, latex_name=result_latex)
+        except AttributeError:
+            pass
         return result
 
     ######### End of ModuleElement arithmetic operators ########
@@ -2018,12 +2047,8 @@ class FreeModuleTensor(ModuleElement):
             result._latex_name = format_mul_latex(self._latex_name,
                                                 r'\otimes ', other._latex_name)
             return result
-
         # multiplication by a scalar:
-        result = self._new_instance()
-        for basis in self._components:
-            result._components[basis] = other * self._components[basis]
-        return result
+        return FreeModuleTensor._rmul_(self, other)
 
     def __truediv__(self, other):
         r"""
@@ -2866,7 +2891,6 @@ class FreeModuleTensor(ModuleElement):
             basis = self.pick_a_basis()
         res_comp = self._components[basis].symmetrize(*pos)
         return self._fmodule.tensor_from_comp(self._tensor_type, res_comp)
-
 
     def antisymmetrize(self, *pos, **kwargs):
         r"""

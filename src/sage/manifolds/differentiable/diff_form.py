@@ -196,11 +196,11 @@ class DiffForm(TensorField):
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a ; s
-        1-form on the 2-dimensional differentiable manifold M
+        1-form f*a on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
-        (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
+        f*a = (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
         sage: s.display(eV)
-        1/2*u^2*v du - 1/2*u^3 dv
+        f*a = 1/2*u^2*v du - 1/2*u^3 dv
 
 
     .. RUBRIC:: Examples with SymPy as the symbolic engine
@@ -263,9 +263,9 @@ class DiffForm(TensorField):
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a
         sage: s.display(eU)
-        -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
+        f*a = -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
         sage: s.display(eV)
-        u**2*v/2 du - u**3/2 dv
+        f*a = u**2*v/2 du - u**3/2 dv
 
     """
     def __init__(self, vector_field_module, degree, name=None, latex_name=None):
@@ -515,6 +515,22 @@ class DiffForm(TensorField):
                 raise ValueError("incompatible ambient domains for exterior product")
         dom_resu = self._domain.intersection(other._domain)
         ambient_dom_resu = self._ambient_domain.intersection(other._ambient_domain)
+        resu_degree = self._tensor_rank + other._tensor_rank
+        dest_map = self._vmodule._dest_map
+        dest_map_resu = dest_map.restrict(dom_resu,
+                                          subcodomain=ambient_dom_resu)
+        ###
+        # Facilitate computations in case self or other is zero:
+        if self._is_zero or other._is_zero:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        ###
+        # In case self is other and tensor rank is odd:
+        if self is other and (self._tensor_rank % 2) == 1:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        ###
+        # Generic case:
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
@@ -539,11 +555,7 @@ class DiffForm(TensorField):
             if not is_atomic(olname):
                 olname = '(' + olname + ')'
             resu_latex_name = slname + r'\wedge ' + olname
-        dest_map = self._vmodule._dest_map
-        dest_map_resu = dest_map.restrict(dom_resu,
-                                          subcodomain=ambient_dom_resu)
         vmodule = dom_resu.vector_field_module(dest_map=dest_map_resu)
-        resu_degree = self._tensor_rank + other._tensor_rank
         resu = vmodule.alternating_form(resu_degree, name=resu_name,
                                         latex_name=resu_latex_name)
         for dom in self_r._restrictions:
