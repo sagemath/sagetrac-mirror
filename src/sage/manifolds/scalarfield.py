@@ -1494,6 +1494,7 @@ class ScalarField(CommutativeAlgebraElement):
         res._latex_name = self._latex_name
         for chart, funct in self._express.items():
             res._express[chart] = funct.copy()
+        res._is_zero = self._is_zero
         return res
 
     def coord_function(self, chart=None, from_chart=None):
@@ -2403,9 +2404,9 @@ class ScalarField(CommutativeAlgebraElement):
         """
         # Special cases:
         if self._is_zero:
-            return other.copy()
+            return other
         if other._is_zero:
-            return self.copy()
+            return self
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2454,7 +2455,7 @@ class ScalarField(CommutativeAlgebraElement):
         if self._is_zero:
             return -other
         if other._is_zero:
-            return self.copy()
+            return self
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
