@@ -1490,7 +1490,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Return an exact copy of ``self``.
 
-        The name and the derived quantities are not copied.
+        The name and the derived quantities are copied, too.
 
         EXAMPLES:
 
@@ -1520,6 +1520,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         resu = self._new_instance()
+        resu.set_name(name=self._name, latex_name=self._latex_name)
         for basis, comp in self._components.items():
              resu._components[basis] = comp.copy()
         self._is_zero = False  # a priori
@@ -1989,6 +1990,16 @@ class FreeModuleTensor(ModuleElement):
         result = self._new_instance()
         for basis in self._components:
             result._components[basis] = other * self._components[basis]
+        ###
+        # If other has a name, set the name of the result:
+        try:
+            from .format_utilities import format_mul_txt, format_mul_latex
+            result_name = format_mul_txt(other._name, '*', self._name)
+            result_latex = format_mul_latex(other._latex_name, r' \cdot ',
+                                            self._latex_name)
+            result.set_name(name=result_name, latex_name=result_latex)
+        except AttributeError:
+            pass
         return result
 
     ######### End of ModuleElement arithmetic operators ########
