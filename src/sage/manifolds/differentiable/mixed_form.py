@@ -1180,51 +1180,43 @@ class MixedForm(AlgebraElement):
         # TODO: Remove code redundancies
         # TODO: No continuation to chart domain since this might cause unwanted
         #       results
-        self_zero_scal = self[0].parent().zero()
-        if self[0] is not self_zero_scal:
+        if self[0] is not self[0].parent().zero():
             for chart, expr in rst[0]._express.items():
                 self[0]._express[chart] = expr
                 # automatic continuation to chart dom
-            self[0]._is_zero = False  # a priori
             self[0]._restrictions[subdomain] = rst[0]
+            self[0]._is_zero = False  # a priori
         else:
-            rst_zero_scal = rst[0].parent().zero()
-            if rst[0] is not rst_zero_scal:
+            if rst[0] is not rst[0].parent().zero():
                 self[0] = self[0].copy()
                 for chart, expr in rst[0]._express.items():
                     self[0]._express[chart] = expr
                     # automatic continuation to chart dom
-                self._is_zero = False  # a priori
                 self[0]._restrictions[subdomain] = rst[0]
-        self_one_scal = self[0].parent().one()
-        if self[0] is not self_one_scal:
+                self[0]._is_zero = False  # a priori
+        if self[0] is not self[0].parent().one():
             for chart, expr in rst[0]._express.items():
                 self[0]._express[chart] = expr
                 # automatic continuation to chart dom
-            self[0]._is_zero = False  # a priori
             self[0]._restrictions[subdomain] = rst[0]
+            self[0]._is_zero = False  # a priori
         else:
-            rst_one_scal = rst[0].parent().one()
-            if rst[0] is not rst_one_scal:
+            if rst[0] is not rst[0].parent().one():
                 self[0] = self[0].copy()
                 for chart, expr in rst[0]._express.items():
                     self[0]._express[chart] = expr
                     # automatic continuation to chart dom
-                self._is_zero = False  # a priori
                 self[0]._restrictions[subdomain] = rst[0]
+                self[0]._is_zero = False  # a priori
         ###
         # Restriction for generic case:
         for j in range(1, self._max_deg + 1):
-            self_zero = self[j].parent().zero()
-            if self[j] is not self_zero:
+            if self[j] is not self[j].parent().zero():
                 self[j].set_restriction(rst[j])
-                self[j]._is_zero = False  # a priori
             else:
-                rst_zero = rst[j].parent().zero()
-                if rst[j] is not rst_zero:
+                if rst[j] is not rst[j].parent().zero():
                     self[j] = self[j].copy()
                     self[j].set_restriction(rst[j])
-                    self._is_zero = False  # a priori
         self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):
