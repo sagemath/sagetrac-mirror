@@ -1315,7 +1315,8 @@ class FreeModuleTensor(ModuleElement):
             t = -3 e_0*e^1 + 2 e_1*e^2
 
         """
-        if basis is None: basis = self._fmodule._def_basis
+        if basis is None:
+            basis = self._fmodule._def_basis
         if basis not in self._components:
             if basis not in self._fmodule._known_bases:
                 raise ValueError("the {} has not been ".format(basis) +

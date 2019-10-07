@@ -621,7 +621,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.set_comp(e)
             Traceback (most recent call last):
             ...
-            TypeError: the components of the identity map cannot be changed
+            AssertionError: the components of the identity map cannot be changed
 
         Indeed, the components are automatically set by a call to
         :meth:`comp`::
@@ -633,10 +633,18 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise TypeError("the components of the identity map cannot be " +
-                            "changed")
-        else:
-            return FreeModuleTensor.set_comp(self, basis=basis)
+            raise AssertionError("the components of the identity map cannot be "
+                                 "changed")
+        if basis is None:
+            basis = self._fmodule._def_basis
+        if basis not in self._components:
+            if basis not in self._fmodule._known_bases:
+                raise ValueError("the {} has not been ".format(basis) +
+                                 "defined on the {}".format(self._fmodule))
+            self._components[basis] = self._new_comp(basis)
+        self._del_derived()  # deletes the derived quantities
+        self.del_other_comp(basis)
+        return self._components[basis]
 
     def add_comp(self, basis=None):
         r"""
@@ -696,7 +704,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.add_comp(e)
             Traceback (most recent call last):
             ...
-            TypeError: the components of the identity map cannot be changed
+            AssertionError: the components of the identity map cannot be changed
 
         Indeed, the components are automatically set by a call to
         :meth:`comp`::
@@ -708,10 +716,17 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise TypeError("the components of the identity map cannot be " +
-                            "changed")
-        else:
-            return FreeModuleTensor.add_comp(self, basis=basis)
+            raise AssertionError("the components of the identity map cannot be "
+                                 "changed")
+        if basis is None:
+            basis = self._fmodule._def_basis
+        if basis not in self._components:
+            if basis not in self._fmodule._known_bases:
+                raise ValueError("the {} has not been ".format(basis) +
+                                 "defined on the {}".format(self._fmodule))
+            self._components[basis] = self._new_comp(basis)
+        self._del_derived()  # deletes the derived quantities
+        return self._components[basis]
 
     def __call__(self, *arg):
         r"""
