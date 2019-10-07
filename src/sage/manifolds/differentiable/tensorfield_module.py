@@ -575,7 +575,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         resu = self._element_constructor_(name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                resu.add_comp(frame)
+                rst = resu.restrict(frame._domain)
+                rst._components[frame] = rst._new_comp(frame)
                 # (since new components are initialized to zero)
         resu._is_zero = True  # This element is certainly zero
         return resu
@@ -768,6 +769,8 @@ class TensorFieldFreeModule(TensorFreeModule):
         self._domain = domain
         self._dest_map = dest_map
         self._ambient_domain = vector_field_module._ambient_domain
+        # Zero element
+        self._zero_element = self.zero()
 
     #### Parent methods
 

@@ -601,15 +601,15 @@ class FreeModuleBasis(Basis_abstract):
         # base module itself, since it is considered as a type-(1,0) tensor
         # module):
         for t in fmodule._tensor_modules.values():
-            t._zero_element._components[self] = t._zero_element._new_comp(self)
+            t(0)._components[self] = t(0)._new_comp(self)
                                # (since new components are initialized to zero)
         # Initialization of the components w.r.t the current basis of the zero
         # elements of all exterior powers of the module and its dual
         # constructed up to now:
         for t in fmodule._exterior_powers.values():
-            t._zero_element._components[self] = t._zero_element._new_comp(self)
+            t(0)._components[self] = t(0)._new_comp(self)
         for t in fmodule._dual_exterior_powers.values():
-            t._zero_element._components[self] = t._zero_element._new_comp(self)
+            t(0)._components[self] = t(0)._new_comp(self)
         # The dual basis:
         self._symbol_dual = symbol_dual
         self._latex_symbol_dual = latex_symbol_dual

@@ -1027,12 +1027,14 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             Vector field zero on the 2-dimensional differentiable
              manifold M
         """
-        elt = self.element_class(self, name='zero', latex_name='0')
+        resu = self._element_constructor_(name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                elt.add_comp(frame)
+                rst = resu.restrict(frame._domain)
+                rst._components[frame] = rst._new_comp(frame)
                 # (since new components are initialized to zero)
-        return elt
+        resu._is_zero = True  # This element is certainly zero
+        return resu
 
     def metric(self, name, signature=None, latex_name=None):
         r"""
