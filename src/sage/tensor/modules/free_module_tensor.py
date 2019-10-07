@@ -1243,7 +1243,18 @@ class FreeModuleTensor(ModuleElement):
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_module(1, 1).zero()
+            sage: z.set_comp(f)[0,1] = 4
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
         if basis is None:
             basis = self._fmodule._def_basis
         if basis not in self._components:
@@ -1314,7 +1325,18 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display(e)
             t = -3 e_0*e^1 + 2 e_1*e^2
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_module(1, 1).zero()
+            sage: z.add_comp(f)[0,1] = 4
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
         if basis is None:
             basis = self._fmodule._def_basis
         if basis not in self._components:
