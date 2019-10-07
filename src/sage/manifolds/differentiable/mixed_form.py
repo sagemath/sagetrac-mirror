@@ -1176,11 +1176,13 @@ class MixedForm(AlgebraElement):
             raise ValueError("the specified domain is not a subset of " +
                              "the domain of definition of the mixed form")
         # set restrictions for scalar field:
+        self[0] = self[0].copy()
         self[0]._restrictions[subdomain] = rst[0]
         self[0]._is_zero = False  # a priori
         for chart, expr in rst[0]._express.items():
             self[0]._express[chart] = expr # automatic continuation to chart dom
         for j in range(1, self._max_deg + 1):
+            self[j] = self[j].copy()
             self[j].set_restriction(rst[j])
         self._is_zero = False  # a priori
 
@@ -1312,6 +1314,8 @@ class MixedForm(AlgebraElement):
         """
         if chart is None:
             chart = frame._chart
+        self[0] = self[0].copy()
         self[0].add_expr_by_continuation(chart, subdomain)
         for j in range(1, self._max_deg + 1):
+            self[j] = self[j].copy()
             self[j].add_comp_by_continuation(frame, subdomain, chart)

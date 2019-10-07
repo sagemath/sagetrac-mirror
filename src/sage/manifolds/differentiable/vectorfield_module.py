@@ -1415,13 +1415,6 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                 basis._subframes.update(subframe._subframes)
                                 basis._restrictions.update(subframe._restrictions)
 
-        # Initialization of the components of the zero element:
-        zero = self.zero()
-        for frame in self._domain._frames:
-            if frame._dest_map == self._dest_map:
-                zero.add_comp(frame) # since new components are
-                                     # initialized to zero
-
     #### Parent methods
 
     def _element_constructor_(self, comp=[], basis=None, name=None,

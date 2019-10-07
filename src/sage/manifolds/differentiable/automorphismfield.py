@@ -279,6 +279,154 @@ class AutomorphismField(TensorField):
         """
         return type(self)(self._vmodule)
 
+    def set_comp(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are deleted, in order to avoid any
+        inconsistency. To keep them, use the method :meth:`add_comp` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the automorphism field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: a = M.automorphism_field(name='a')
+            sage: a.set_comp(e_uv)
+            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: a.set_comp(e_uv)[0,0] = u+v
+            sage: a.set_comp(e_uv)[1,1] = u+v
+            sage: a.display(e_uv)
+            a = (u + v) d/du*du + (u + v) d/dv*dv
+
+        Setting the components in a new frame (``e``)::
+
+            sage: e = V.vector_frame('e')
+            sage: a.set_comp(e)
+            2-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: a.set_comp(e)[0,1] = u*v
+            sage: a.set_comp(e)[1,0] = u*v
+            sage: a.display(e)
+            a = u*v e_0*e^1 + u*v e_1*e^0
+
+        Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
+        components w.r.t. ``e_uv`` have been erased::
+
+            sage: a.display(c_uv.frame())
+            Traceback (most recent call last):
+            ...
+            ValueError: no basis could be found for computing the components
+             in the Coordinate frame (V, (d/du,d/dv))
+
+        Since the identity is a special element, its components cannot be
+        changed::
+
+            sage: id = M.automorphism_field_group().one()
+            sage: id.add_comp(e)[0,1] = u
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
+        """
+        if self._is_identity:
+            raise AssertionError("the components of the identity map cannot be "
+                                 "changed")
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst.set_comp(basis)
+
+    def add_comp(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are kept. To delete them, use the
+        method :meth:`set_comp` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if ``None``, the components are assumed
+          to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: a = M.automorphism_field(name='a')
+            sage: a.add_comp(e_uv)
+            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: a.add_comp(e_uv)[0,0] = u+v
+            sage: a.add_comp(e_uv)[1,1] = u+v
+            sage: a.display(e_uv)
+            a = (u + v) d/du*du + (u + v) d/dv*dv
+
+        Setting the components in a new frame (``e``)::
+
+            sage: e = V.vector_frame('e')
+            sage: a.add_comp(e)
+            2-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: a.add_comp(e)[0,1] = u*v
+            sage: a.add_comp(e)[1,0] = u*v
+            sage: a.display(e)
+            a = u*v e_0*e^1 + u*v e_1*e^0
+
+        The components with respect to ``e_uv`` are kept::
+
+            sage: a.display(e_uv)
+            a = (u + v) d/du*du + (u + v) d/dv*dv
+
+        Since the identity is a special element, its components cannot be
+        changed::
+
+            sage: id = M.automorphism_field_group().one()
+            sage: id.add_comp(e)[0,1] = u
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
+        """
+        if self._is_identity:
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst.add_comp(basis)
+
     def __call__(self, *arg):
         r"""
         Redefinition of

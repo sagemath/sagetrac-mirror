@@ -900,6 +900,9 @@ class TensorField(ModuleElement):
             True
 
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
         if not isinstance(rst, TensorField):
             raise TypeError("the argument must be a tensor field")
         if not rst._domain.is_subset(self._domain):
@@ -1132,7 +1135,18 @@ class TensorField(ModuleElement):
             ValueError: no basis could be found for computing the components
              in the Coordinate frame (V, (d/du,d/dv))
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.set_comp(e)[0,1] = 4
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
@@ -1191,7 +1205,18 @@ class TensorField(ModuleElement):
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.add_comp(e)[0,1] = 4
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities

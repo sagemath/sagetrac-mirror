@@ -788,7 +788,18 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             ValueError: no basis could be found for computing the components
              in the Vector frame (M, (e_0,e_1))
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.set_comp(f)[0,1] = 4
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
         if basis is None:
             basis = self._fmodule._def_basis
 
@@ -875,7 +886,18 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: t.display(e)
             t = x e_0*e^1
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.add_comp(f)[0,1] = 4
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
         if basis is None:
             basis = self._fmodule._def_basis
 
