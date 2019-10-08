@@ -2452,15 +2452,17 @@ cdef class MPolynomial(CommutativeRingElement):
         # K[x,y,...] as K[x][y]...
         d = self.dict()
         return all(c.is_nilpotent() for c in d.values())
+
     def zeta_function(self, p=None, N=None, affine=False, verbose=False):
         r"""
-        Return the zeta function of $f$ up to precision $N$.
+        Return the zeta function of `f` up to precision `N`.
 
         The zeta function is the generating function for the number of points
-        on the hypersurface defined by $f$ over a finite field.
+        on the hypersurface defined by `f` over a finite field.
 
-        The ambient space may be either the algebraic torus $(\overline{\mathbb{F}_q}^\times)^n$
-        (our default), or the affine space $(\overline{\mathbb{F}_q})^n$.
+        The ambient space may be either the algebraic torus
+        `(\overline{\GF_q}^\times)^n` (our default), or the
+        affine space `(\overline{\GF_q})^n`.
 
         This implementation assumes that the finite field is of prime order.
 
@@ -2473,24 +2475,22 @@ cdef class MPolynomial(CommutativeRingElement):
 
         - ``N'' -- positive integer (default: ``None'') precision to
                    calculate zeta function with. If ``None'' compute
-                   sufficient $N$ to recover entire zeta function
+                   sufficient `N` to recover entire zeta function
 
-        - ``affine'' -- boolean (default: False) Flag to compute affine
+        - ``affine'' -- boolean (default: ``False``) Flag to compute affine
                         or toric zeta function
 
-        - ``verbose'' -- boolean (default: False) debugging tool
+        - ``verbose'' -- boolean (default: ``False``) debugging tool
 
         OUTPUT:
 
-        - ``Z'' -- The zeta function of $f$, $Z(f, T)$.
+        - ``Z'' -- The zeta function of `f`, `Z(f, T)`
 
-        Examples::
+        EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ,1)
             sage: (1+x^3).zeta_function(7)
             -1/(T^3 - 3*T^2 + 3*T - 1)
-
-        ::
 
             sage: R.<x,y> = PolynomialRing(FiniteField(7))
             sage: (x^3+x+1-y^2).zeta_function(7)
@@ -2512,11 +2512,15 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.rings.real_mpfr import RR
         from sage.functions.log import log
         from sage.rings.finite_rings.integer_mod_ring import Zmod
+
+        R = PolynomialRing(ZZ, "T")
+        T = R.gen()
+
         # ------------------------------------------------------------------
         #                             Input Checks
         # ------------------------------------------------------------------
 
-        #Check that the polynomial is defined over Z or a finite field
+        # Check that the polynomial is defined over Z or a finite field
         S = self.base_ring()
         if not (S == ZZ or (S.is_finite() and S.is_field())):
             raise TypeError("The polynomial must be defined over ZZ or a finite field")
@@ -2542,7 +2546,7 @@ cdef class MPolynomial(CommutativeRingElement):
         def step_start(step):
             global start_time
 
-            print("Running Step %d..."%step,)
+            print("Running Step %d..." % step,)
             # Flush output
             stdout.flush()
             # Return time when the step started
@@ -2556,28 +2560,24 @@ cdef class MPolynomial(CommutativeRingElement):
 
             total_time = time()-start_time
             if total_time < 0.1:
-                print("(%.2fms)"%(total_time*1000))
+                print("(%.2fms)" % (total_time*1000))
             elif total_time > 120:
-                print("(%.2fm)"%(total_time/60))
+                print("(%.2fm)" % (total_time/60))
             else:
-                print("(%.2fs)"%total_time)
+                print("(%.2fs)" % total_time)
 
         # Helper function that computes Z(G_m^n, T)
         # the zeta function of the algebraic torus
         def zeta_torus(p, n):
-            R = PolynomialRing(ZZ, "T")
-            T = R.gen()
-            Z = 1
-            for i in range(n+1):
-                Z *= (1-p**i*T)**(binomial(n,i)*(-1)**(n+1-i))
+            Z = R.one()
+            for i in range(n + 1):
+                Z *= (1 - p**i*T)**(binomial(n,i)*(-1)**(n+1-i))
             return Z
 
         # Helper function that computes Z(A^n, T)
         # the zeta function of affine space
         def zeta_affine(p, n):
-            R = PolynomialRing(ZZ, "T")
-            T = R.gen()
-            return 1 / (1-p**n*T)
+            return R.one() / (1-p**n*T)
 
         # ------------------------------------------------------------------
         #                                 Step 0
@@ -2585,14 +2585,13 @@ cdef class MPolynomial(CommutativeRingElement):
 
         # Determine p
         # Use the characteristic if not given
-        if p == None:
+        if p is None:
             p = self.base_ring().characteristic()
             if p == 0:
                 raise ValueError("p must be prime")
         # Otherwise make sure the given value is prime
-        else:
-            if not p.is_prime():
-                raise ValueError("p must be prime")
+        elif not p.is_prime():
+            raise ValueError("p must be prime")
 
         # Determine the number of variables
         n = self.parent().ngens()
@@ -2627,11 +2626,11 @@ cdef class MPolynomial(CommutativeRingElement):
         v = factorial(n_tilde) * NP.affine_hull().volume()
 
         # Determine best guess for N if not given
-        if N == None:
+        if N is None:
             bounds = []
             for i in range(v):
                 bounds.append(binomial(v-1,i)*p**(i*(n-1)/2.0))
-            N = floor(log(max(bounds),p)) + 1
+            N = log(max(bounds),p).floor() + 1
 
         # Update user with relevant information
         if verbose:
@@ -2948,10 +2947,6 @@ cdef class MPolynomial(CommutativeRingElement):
             else:
                 return a
 
-        # Initialize output ring
-        R = PolynomialRing(ZZ, "T")
-        T = R.gen()
-
         # Compute the characteristic polynomial of A
         g = A.charpoly("T").reverse()
 
@@ -2973,7 +2968,7 @@ cdef class MPolynomial(CommutativeRingElement):
         try:
             L = R.fraction_field()(L)
         except TypeError:
-            #Cannot convert to ZZ(t)
+            # Cannot convert to ZZ(t)
             print("WARNING: Cannot convert L(wf,T) to ZZ(t)")
             print("Very likely precision is too low")
 
@@ -3038,6 +3033,7 @@ cdef class MPolynomial(CommutativeRingElement):
         # Output Zeta function Z(f, T)
         return Z
 
+
 class _ThetaCoefficient:
     """
     Helper class for zeta_function()
@@ -3051,13 +3047,13 @@ class _ThetaCoefficient:
         self.p = p
         self.N = N
 
-        if isinstance(t,tuple):
+        if isinstance(t, tuple):
             x, v = t
             self.x = x
             self.v = v
         else:
-            self.v = max(-valuation(t,p), 0)
-            self.x = Zmod(p**N)(t*p**self.v)
+            self.v = max(-valuation(t, p), 0)
+            self.x = Zmod(p**N)(t * p**self.v)
 
     def __str__(self):
         return str((self.x, self.v))
@@ -3077,7 +3073,7 @@ class _ThetaCoefficient:
         x = self.x * other.x
         v = self.v + other.v
 
-        return _ThetaCoefficient((x,v), self.p, self.N)
+        return _ThetaCoefficient((x, v), self.p, self.N)
 
     def __eq__(self, other):
         return self.x == other.x and self.v == other.v
@@ -3091,16 +3087,17 @@ class _ThetaCoefficient:
             v = self.v - c
             x = self.x
         else:
-            x = self.x * self.p**max(c-self.v, 0)
-            v = min(c-self.v, 0)
+            x = self.x * self.p**max(c - self.v, 0)
+            v = min(c - self.v, 0)
 
-        return _ThetaCoefficient((x,v), self.p, self.N)
+        return _ThetaCoefficient((x, v), self.p, self.N)
 
     def as_int(self):
         if self.v > 0:
             raise ValueError("Still has %d p's in denominator" % self.v)
         else:
             return self.x
+
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)
