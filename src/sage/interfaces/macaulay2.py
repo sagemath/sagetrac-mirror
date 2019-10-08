@@ -1315,16 +1315,9 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         Elements of quotient rings::
 
             sage: x, y = (R/I).gens()                   # optional - macaulay2
-            sage: x.sage()                              # optional - macaulay2
-            x
-            sage: y.sage()                              # optional - macaulay2
-            y
-            sage: f = (x^3 + 2*y^2*x)^7; f              # optional - macaulay2
-                18    14
-            2x*y   + y
-            sage: f.sage()                              # optional - macaulay2
+            sage: f = ((x^3 + 2*y^2*x)^7).sage(); f     # optional - macaulay2
             2*x*y^18 + y^14
-            sage: _.parent()                            # optional - macaulay2
+            sage: f.parent()                            # optional - macaulay2
             Quotient of Multivariate Polynomial Ring in x, y over Finite Field of size 7 by the ideal (x^3 - y^2)
 
         """
