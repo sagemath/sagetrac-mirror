@@ -15,6 +15,7 @@ from sys import stdout
 from sage.arith.all import factorial, binomial, factor
 from sage.combinat.integer_lists import IntegerListsLex
 from sage.combinat.integer_vector import IntegerVectors
+from sage.categories.fields import Fields
 from sage.functions.log import log
 from sage.functions.other import floor
 from sage.geometry.polyhedron.constructor import Polyhedron
@@ -81,8 +82,8 @@ def zeta_function_of_polynomial(f, p=None, N=None, affine=False, verbose=False):
 
     # Check that the polynomial is defined over Z or a finite field
     S = f.base_ring()
-    if not (S == ZZ or (S.is_finite() and S.is_field())):
-        raise TypeError("The polynomial must be defined over ZZ or a finite field")
+    if not (S == ZZ or S in Fields().Finite()):
+        raise TypeError("the polynomial must be defined over ZZ or a finite field")
 
     if S.is_finite():
         if not S.is_prime_field():
@@ -492,7 +493,7 @@ def zeta_function_of_polynomial(f, p=None, N=None, affine=False, verbose=False):
     # Function to convert coefficients
     # to lie in [-(p^N-1)/2, (p^N-1)/2]
     def normalize(a):
-        if 2 * a > ZZ(p**N - 1):
+        if 2 * a > p**N - 1:
             return a - p**N
         else:
             return a
@@ -505,7 +506,7 @@ def zeta_function_of_polynomial(f, p=None, N=None, affine=False, verbose=False):
     g = g.map_coefficients(normalize)
     g = g(p * T)
 
-    # Multiply by (1-T) factor if toric
+    # Multiply by (1 - T) factor if toric
     if not affine:
         g *= 1 - T
 
