@@ -97,6 +97,40 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 return L
             else:
                 return self
+        elif algorithm == 'AMM':
+            nthroot = K(1)
+            for r, v in F:
+                k, h = (q-1).val_unit(r)
+                g = K(2)
+                while g**((q-1)/r) == 1:
+                    g += 1
+                G = g**(r**(k-1)*h)
+                L = K(1)
+                while True:
+                    J = 0
+                    find_J = self**h
+                    while find_J != 1:
+                        J += 1
+                        find_J = find_J**r
+                    if J == 0:
+                        _, exp, _ = r.xgcd(h)
+                        self = self**(exp**v)/L
+                        nthroot *= g**((q-1)/r^v)
+                        break
+                    A = self**(r**(J-1)*h)
+                    lam = 1
+                    while A*G**lam != 1:
+                        lam += 1
+                    self *= g**(lam*r**(k-J))
+                    L *= g**(lam*r**(k-J-v))
+            if all:
+                result = [self]
+                for i in range(1,n):
+                    self *= nthroot
+                    result.append(self)
+                return result
+            else:
+                return self
         else:
             raise ValueError("unknown algorithm")
 
