@@ -1825,12 +1825,17 @@ class ScalarField(CommutativeAlgebraElement):
             on V: (u, v) |--> arctan(1/(u^2 + v^2))
 
         """
+        ###
+        # If self is zero or one, there's nothing to do:
+        if self._is_zero or self is self.parent().one():
+            return
+        ###
+        # Perform the continuation:
         if not chart._domain.is_subset(self._domain):
             raise ValueError("the chart is not defined on a subset of " +
                              "the scalar field domain")
         schart = chart.restrict(subdomain)
         self._express[chart] = chart.function(self.expr(schart))
-        self._is_zero = False # a priori
         self._del_derived()
 
     def display(self, chart=None):

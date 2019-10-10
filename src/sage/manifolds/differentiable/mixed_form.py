@@ -313,6 +313,7 @@ class MixedForm(AlgebraElement):
             sage: transf = c_xy.transition_map(c_uv, (x-y, x+y),
             ....:                   intersection_name='W', restrictions1= x>0,
             ....:                   restrictions2= u+v>0)
+            sage: W = U.intersection(V)
             sage: inv = transf.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame() # define frames
             sage: omega = M.diff_form(1, name='omega', latex_name=r'\omega')
@@ -556,13 +557,15 @@ class MixedForm(AlgebraElement):
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
             ....:                    intersection_name='W', restrictions1= x>0,
             ....:                    restrictions2= u+v>0)
+            sage: W = U.intersection(V)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: f = M.scalar_field(x, name='f')
+            sage: f.add_expr_by_continuation(c_uv, W)
             sage: eta = M.diff_form(1, name='eta')
             sage: eta[e_xy,0] = x+y
+            sage: eta.add_comp_by_continuation(e_uv, W, c_uv)
             sage: F = M.mixed_form(comp=[f, eta, 0])
-            sage: F.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: F == F
             True
             sage: F == F.copy()
@@ -1176,41 +1179,22 @@ class MixedForm(AlgebraElement):
             raise ValueError("the specified domain is not a subset of " +
                              "the domain of definition of the mixed form")
         ###
-        # Set restrictions for scalar field:
-        # TODO: Remove code redundancies
-        # TODO: No continuation to chart domain since this might cause unwanted
-        #       results
-        if self[0] is self[0].parent().zero():
-            if rst[0] is not rst[0].parent().zero():
-                self[0] = self[0].copy()
-                for chart, expr in rst[0]._express.items():
-                    self[0]._express[chart] = expr
-                    # automatic continuation to chart dom
-                self[0]._restrictions[subdomain] = rst[0]
-                self[0]._is_zero = False  # a priori
-        elif self[0] is self[0].parent().one():
-            if rst[0] is not rst[0].parent().one():
-                self[0] = self[0].copy()
-                for chart, expr in rst[0]._express.items():
-                    self[0]._express[chart] = expr
-                    # automatic continuation to chart dom
-                self[0]._restrictions[subdomain] = rst[0]
-                self[0]._is_zero = False  # a priori
-        else:
-            for chart, expr in rst[0]._express.items():
-                self[0]._express[chart] = expr
-                # automatic continuation to chart dom
-            self[0]._restrictions[subdomain] = rst[0]
-            self[0]._is_zero = False  # a priori
+        # The scalar field must be handled separately:
+        if self is self.parent().zero() or self[0] is self[0].parent().zero():
+            raise AssertionError("the components of the zero element cannot be "
+                                 "changed")
+        if self is self.parent().one() or self[0] is self[0].parent().one():
+            raise AssertionError("the components of the one element cannot be "
+                                 "changed")
+        for chart, expr in rst[0]._express.items():
+            int_domain = subdomain.intersection(chart._domain)
+            self[0]._express[chart.restrict(int_domain)] = expr
+        self[0]._restrictions[subdomain] = rst[0]
+        self[0]._is_zero = False  # a priori
         ###
         # Restriction for generic case:
         for j in range(1, self._max_deg + 1):
-            if self[j] is self[j].parent().zero():
-                if rst[j] is not rst[j].parent().zero():
-                    self[j] = self[j].copy()
-                    self[j].set_restriction(rst[j])
-            else:
-                self[j].set_restriction(rst[j])
+            self[j].set_restriction(rst[j])
         self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):
@@ -1247,6 +1231,7 @@ class MixedForm(AlgebraElement):
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
             ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
             ....:                restrictions2= u^2+v^2!=0)
+            sage: W = U.intersection(V)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
 
@@ -1261,7 +1246,7 @@ class MixedForm(AlgebraElement):
         Now, a mixed form can be restricted to some subdomain::
 
             sage: F = M.mixed_form(name='F', comp=[f, omega, eta])
-            sage: F.add_comp_by_continuation(e_uv, V.intersection(U), c_uv)
+            sage: F.add_comp_by_continuation(e_uv, W, c_uv)
             sage: FV = F.restrict(V); FV
             Mixed differential form F on the Open subset V of the 2-dimensional
              differentiable manifold M
@@ -1341,8 +1326,6 @@ class MixedForm(AlgebraElement):
         """
         if chart is None:
             chart = frame._chart
-        if self[0] is not (self[0].parent().zero() or self[0].parent().one()):
-            self[0].add_expr_by_continuation(chart, subdomain)
+        self[0].add_expr_by_continuation(chart, subdomain)
         for j in range(1, self._max_deg + 1):
-            if self[j] is not self[j].parent().zero():
-                self[j].add_comp_by_continuation(frame, subdomain, chart)
+            self[j].add_comp_by_continuation(frame, subdomain, chart)

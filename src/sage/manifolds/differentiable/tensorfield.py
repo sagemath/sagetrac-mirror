@@ -1287,6 +1287,12 @@ class TensorField(ModuleElement):
         and `a` is defined on the entire manifold `S^2`.
 
         """
+        ###
+        # If self is zero, there's nothing to do:
+        if self._is_zero:
+            return
+        ###
+        # Perform the continuation:
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the vector frame is not defined on a subset " +
@@ -1299,7 +1305,6 @@ class TensorField(ModuleElement):
         resu = self.add_comp(frame) # _del_derived is performed here
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
-        self._is_zero = False  # a priori
 
     def add_expr_from_subdomain(self, frame, subdomain):
         r"""
@@ -1398,7 +1403,6 @@ class TensorField(ModuleElement):
 
         rst = self._restrictions.copy()
         self._del_derived()         # delete restrictions
-        self._is_zero = False  # a priori
         self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):
