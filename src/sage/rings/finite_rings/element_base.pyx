@@ -113,9 +113,9 @@ cdef class FiniteRingElement(CommutativeRingElement):
                         J += 1
                         find_J = find_J**r
                     if J == 0:
-                        _, exp, _ = r.xgcd(h)
-                        self = self**(exp**v)/L
-                        nthroot *= g**((q-1)/r^v)
+                        _, rinv, _ = r.xgcd(h)
+                        self = self**(rinv**v)/L
+                        nthroot *= g**((q-1)/r**v)
                         break
                     A = self**(r**(J-1)*h)
                     lam = 1
@@ -748,10 +748,16 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         - The default is currently an algorithm described in the following paper:
 
         Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+        
+        - The alternative algorithm ("AMM") is adapted from the following paper:
+        
+        Adleman, Leonard M., Kenneth L. Manders and Gary L. Miller. “On taking roots in finite fields.” 18th Annual Symposium on Foundations of Computer Science (sfcs 1977): pp 175-178.
 
         AUTHOR:
 
         - David Roe (2010-02-13)
+        
+        - Hauke Neitzel (2019-10-10) added AMM algorithm
         """
         if self.is_zero():
             if n <= 0:
