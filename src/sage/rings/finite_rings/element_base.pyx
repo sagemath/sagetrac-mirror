@@ -118,9 +118,12 @@ cdef class FiniteRingElement(CommutativeRingElement):
                         nthroot *= g**((q-1)/r**v)
                         break
                     A = self**(r**(J-1)*h)
-                    lam = 1
-                    while A*G**lam != 1:
-                        lam += 1
+                    if r < 10: # arbitrarily chosen, in most cases r is small
+                        lam = 1
+                        while A*G**lam != 1:
+                            lam += 1
+                    else:
+                        lam = r - discrete_log(A, G, r, operation='*')
                     self *= g**(lam*r**(k-J))
                     L *= g**(lam*r**(k-J-v))
             if all:
@@ -751,7 +754,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         
         - The alternative algorithm ("AMM") is adapted from the following paper:
         
-        Adleman, Leonard M., Kenneth L. Manders and Gary L. Miller. “On taking roots in finite fields.” 18th Annual Symposium on Foundations of Computer Science (sfcs 1977): pp 175-178.
+        Adleman, Leonard M., Kenneth L. Manders and Gary L. Miller. "On taking roots in finite fields." 18th Annual Symposium on Foundations of Computer Science (sfcs 1977): pp 175-178.
 
         AUTHOR:
 
