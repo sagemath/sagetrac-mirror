@@ -141,3 +141,5 @@ lazy_import('sage.categories.polyhedra', 'PolyhedralSets')
 
 # lie conformal algebras
 lazy_import('sage.categories.lie_conformal_algebras', 'LieConformalAlgebras')
+lazy_import('sage.categories.vertex_algebras', 'VertexAlgebras')
+lazy_import('sage.categories.poisson_vertex_algebras', 'PoissonVertexAlgebras')
