@@ -625,6 +625,7 @@ if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         error_msg "Error: failed to extract $PKG_SRC"
         exit 1
     fi
+    chmod +rx src
 else
     # Old-style package (deprecated)
     echo "Extracting package $PKG_SRC"
