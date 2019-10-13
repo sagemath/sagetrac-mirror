@@ -35,7 +35,7 @@ from sage.rings.integer import Integer
 
 class LieConformalAlgebra(Parent, UniqueRepresentation):
     r""" 
-    A Lie conformal algebra `L`.
+    A Lie conformal algebra `L`. pingoloeon termina
     """
     # As of now either pass vertex=A vertex algebra 
     # or pass arg0 = a dict with the non-vanishig OPE
