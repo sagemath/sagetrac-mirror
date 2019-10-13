@@ -80,9 +80,10 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         cp = kwds.get('central_parameters', {})
         if cp == {}:
             cp = { i:0  for i in L.central_elements() }
-        if not all ( i in cp.keys() for i in L.central_elements()):
-            raise ValueError ("Number of central parameters and of " \
-                    "central elements must be equal")
+        if set(cp.keys()) != set(L.central_elements()):
+            raise ValueError ("central_parameters must be parametrized by "\
+                              "central elements")
+
         self._central_parameters = Family(cp)
         #need to call directly this because of 1 generator
         _basis = PartitionTuples_level(self.ngens())
