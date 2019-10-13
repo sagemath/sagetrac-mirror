@@ -115,7 +115,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                         self.central_elements() )
 
     def gen(self,i):
-        return self.gens()[i]
+        return self.gens()[i].lift()
 
     def central_elements(self):
         return tuple ( i for i in self._lca.central_elements())
@@ -197,9 +197,9 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                     ret += "{}*".format(abs(coeff[i][1]))
                 for idx,j in enumerate(coeff[i][0]):
                     for k in j.to_list():
-                        ret += "{}_".format(p._lca._repr_generator(p.gen(idx)))
+                        ret += "{}_".format(p._lca._repr_generator(p._lca.gen(idx)))
                         if p.is_graded():
-                            ret+= "{}".format(1 -k-p.gen(idx).degree())
+                            ret+= "{}".format(1 -k-p._lca.gen(idx).degree())
                         else:
                             ret+= "({})".format(-k)
                 ret+="|0>"
@@ -304,7 +304,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                                 #T^(n)a_{(-1)} = a_{(-1-n)} and the commutator 
                                 #formula. Given the implementation it's faster
                                 #to compute the bracket in the other direction
-                                br = p.gen(i2).bracket(p.gen(i))
+                                br = p._lca.gen(i2).bracket(p._lca.gen(i))
                                 if br:
                                     ret -= c*c2*sum( binomial(-ni2,j)*\
                                     factorial(ni+ni2+j-1)**(-1)*p(br[j].\
@@ -394,7 +394,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                 return Infinity
             ls = []
             for idx in self.value.monomial_coefficients().keys():
-                ret = sum(len(idx[i])*(p.gen(i).degree()-1) + idx[i].size() 
+                ret = sum(len(idx[i])*(p._lca.gen(i).degree()-1) + idx[i].size() 
                     for i in range(p.ngens()))
                 ls.append(ret)
             if ls[1:] == ls[:-1]:
