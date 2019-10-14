@@ -3478,9 +3478,7 @@ class Polyhedron_base(Element):
             sage: poly_spam - poly_eggs
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
 
-        TESTS:
-
-        Some tests::
+        TESTS::
 
             sage: X = polytopes.hypercube(2)
             sage: Y = Polyhedron(vertices=[(1,1)])
