@@ -79,7 +79,7 @@ EXAMPLES:
 
 3. The **Weyl** Lie conformal algebra, or `\beta-\gamma` system is given as the
    central extension of a free `R[T]` module with two generators `\beta` and
-   `\gamma`, by a central element `K`. The only non-trivial bracket among
+   `\gamma`, by a central element `K`. The only non-trivial brackets among
    generators are
 
    .. MATH::
@@ -179,7 +179,9 @@ class LieConformalAlgebras(Category_over_base_ring):
         return "Lie conformal algebras over {}".format(self.base_ring())
 
     class ParentMethods:
-        def universal_enveloping_algebra(self, central_parameters=None):
+        def universal_enveloping_algebra(self, 
+                                        central_parameters=None, 
+                                        names=None):
             r"""
             The universal enveloping vertex algebra of this Lie conformal
             algebra.
@@ -188,7 +190,10 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             - ``central_parameters`` -- A family of constants in the base ring
               of this Lie conformal algebra parametrized by the central
-              elements. 
+              elements.
+
+            - ``names`` -- The names of the generators of the universal
+              enveloping vertex algebra.
 
             OUTPUT: 
 
@@ -249,10 +254,21 @@ class LieConformalAlgebras(Category_over_base_ring):
                 cp = self.lift.codomain().central_parameters()
                 if cp == central_parameters:
                     return self.lift.codomain()
-            self._construct_UEA(central_parameters)
-            return self.lift.codomain()
+            V = self._construct_UEA(central_parameters, 
+                                    names=names)
 
-        def _construct_UEA(self, central_parameters=None):
+            from sage.categories.homset import Hom
+            self.lift = LiftMorphism(Hom(self, V, category = 
+                            LieConformalAlgebras(self.base_ring())))
+            try: 
+                self.lift.register_as_coercion()
+            except AssertionError:
+                #we already constructed this morphisms and its fine
+                pass
+
+            return V
+
+        def _construct_UEA(self, central_parameters=None, names=None):
             """ 
             Returns the universal enveloping vertex algebra of ``self``. 
 
@@ -260,7 +276,8 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             from sage.algebras.vertex_algebras.vertex_algebra import VertexAlgebra
             return VertexAlgebra(self.base_ring(), self, 
-                                central_parameters=central_parameters)
+                                central_parameters=central_parameters, 
+                                names=names)
 
         @abstract_method
         def ideal(self, *gens, **kwds):

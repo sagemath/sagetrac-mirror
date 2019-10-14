@@ -85,10 +85,17 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                               "central elements")
 
         self._central_parameters = Family(cp)
-        #need to call directly this because of 1 generator
-        _basis = PartitionTuples_level(self.ngens())
+        #need to call directly this because of 1 generator. 
+        #Also:self._module is needed for self.ngens()
+        _basis = PartitionTuples_level(L.ngens()-len(L.central_elements()))
         self._module = CombinatorialFreeModule(self.base_ring(), _basis)
+        self.register_lift()
     
+    def _repr_(self):
+        return "The universal enveloping vertex algebra of {}".format(
+            self._lca)
+
+    def register_lift(self):
         from sage.categories.homset import Hom
         self._lca.lift = LiftMorphism(Hom(self._lca, self, category = 
                         LieConformalAlgebras(self._lca.base_ring())))
@@ -98,9 +105,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             #we already constructed this morphisms and its fine
             pass
 
-    def _repr_(self):
-        return "The universal enveloping vertex algebra of {}".format(
-            self._lca)
+
 
     def basis(self,n=None):
         if n == None:
@@ -112,14 +117,23 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                 self.get_graded_part(n).basis() ) )
 
     def gens(self):
-        return tuple( i for i in self._lca.gens() if i not in
-                        self.central_elements() )
+        return tuple(self.gen(i) for i in range(self.ngens()))
+
+    def ngens(self):
+        """
+        The number of generators of this vertex algebra
+
+        We can't call directly gens cause we need this to construc the lift
+        """
+        return self._lca.ngens() - len(self._lca.central_elements())
 
     def gen(self,i):
-        return self.gens()[i].lift()
+        l = [[]]*self.ngens()
+        l[i] = [1]
+        return self(l)
 
     def central_elements(self):
-        return tuple ( i for i in self._lca.central_elements())
+        return tuple ( self(i) for i in self._lca.central_elements())
 
     def central_parameters(self):
         return self._central_parameters

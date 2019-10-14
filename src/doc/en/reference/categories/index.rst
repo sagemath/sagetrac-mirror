@@ -186,6 +186,7 @@ Individual Categories
    sage/categories/unital_algebras
    sage/categories/vector_bundles
    sage/categories/vector_spaces
+   sage/categories/vertex_algebras
    sage/categories/weyl_groups
 
 Technical Categories

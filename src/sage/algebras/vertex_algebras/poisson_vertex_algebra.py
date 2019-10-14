@@ -264,8 +264,7 @@ class PoissonVertexAlgebra_from_quotient(
 
         if x in self._va:
             if x.is_zero():
-                return {0:{0:self._va.get_graded_part(0,0).zero()}}
-            
+                return self.zero()
             x = self._va(x)
             p = x.parent()
             sret = self.zero() 
@@ -346,6 +345,8 @@ class PoissonVertexAlgebra_from_quotient(
             return bool(self.value)
 
         def _acted_upon_(self,scalar, self_on_left=False):
+            if scalar.is_zero():
+                return self.parent().zero()
             return type(self)(self.parent(), {k: {l : scalar*m for l,m in 
                         self.value[k].items() } for k in self.value.keys() })
 
@@ -384,9 +385,9 @@ class PoissonVertexAlgebra_from_quotient(
 
         def _mul_(self,right):
             p = self.parent()
-            if self.is_zero() or right.is_zero():
-                return self
             ret = p.zero()
+            if self.is_zero() or right.is_zero():
+                return ret
             for s in self.monomials():
                 for r in right.monomials():
                     ks,ds = s._bidegree()
@@ -420,7 +421,7 @@ class PoissonVertexAlgebra_from_quotient(
 
         def _get_bigraded_term(self,m,n):
             v = self.value.get(m,{})
-            v = v.get(n,0)
+            v = v.get(n,self.parent().zero())
             if v.is_zero():
                 return self.parent().zero()
             return type(self)(self.parent(), {m:{n:v}})
