@@ -1281,7 +1281,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         - ``algorithm`` - string (default: None); The algorithm for the prime modulus case.
           CRT and p-adic log techniques are used to reduce to this case.
-          'Johnston' is the only currently supported option.
+          'Johnston' is currently the default algorithm. The alternative 'AMM' has better
+          performance for large prime moduli.
 
         - ``cunningham`` - bool (default: ``False``); In some cases,
           factorization of ``n`` is computed. If cunningham is set to ``True``,
@@ -1399,10 +1400,16 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         - The default for prime modulus is currently an algorithm described in the following paper:
 
         Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+        
+        - The alternative algorithm ("AMM") is adapted from the following paper:
+        
+        Adleman, Leonard M., Kenneth L. Manders and Gary L. Miller. "On taking roots in finite fields." 18th Annual Symposium on Foundations of Computer Science (sfcs 1977): pp 175-178.
 
         AUTHORS:
 
         - David Roe (2010-2-13)
+        
+        - Hauke Neitzel (2019-10-10) added AMM algorithm
         """
         if extend:
             raise NotImplementedError

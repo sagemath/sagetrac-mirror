@@ -44,6 +44,9 @@ cdef class FiniteRingElement(CommutativeRingElement):
             [3, 5, 14, 12]
             sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham
             [3, 5, 14, 12]
+            sage: a._nth_root_common(4, True, "AMM", False)
+            [12, 3, 5, 14]
+            sage: a._nth_root_common(4, True, "AMM", cunningham = True) # optional - cunningham
         """
         K = self.parent()
         q = K.order()
@@ -53,11 +56,26 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 if all: return [self]
                 else: return self
             else:
-                # the following may eventually be improved to not need a multiplicative generator.
-                g = K.multiplicative_generator()
-                q1overn = (q-1)//gcd
-                nthroot = g**q1overn
-                return [nthroot**a for a in range(gcd)] if all else nthroot
+                if algorithm is None or algorithm == 'Johnston':
+                    # the following may eventually be improved to not need a multiplicative generator.
+                    g = K.multiplicative_generator()
+                    q1overn = (q-1)//gcd
+                    nthroot = g**q1overn
+                    return [nthroot**a for a in range(gcd)] if all else nthroot
+                elif algorithm == 'AMM':
+                    if cunningham:
+                        from sage.rings.factorint import factor_cunningham
+                        F = factor_cunningham(n)
+                    else:
+                        F = n.factor()
+                    one = K(1)
+                    nthroot = one
+                    for r, v in F:
+                        g = K(2)
+                        while (g**((q-1)/r)).is_one():
+                            g += one
+                        nthroot *= g**((q-1)/r**v)
+                    return [nthroot**a for a in range(gcd)] if all else nthroot
         n = n % (q-1)
         if n == 0:
             if all: return []
@@ -98,30 +116,31 @@ cdef class FiniteRingElement(CommutativeRingElement):
             else:
                 return self
         elif algorithm == 'AMM':
-            nthroot = K(1)
+            one = K(1)
+            nthroot = one
             for r, v in F:
                 k, h = (q-1).val_unit(r)
                 g = K(2)
-                while g**((q-1)/r) == 1:
-                    g += 1
+                while (g**((q-1)/r)).is_one():
+                    g += one
+                nthroot *= g**((q-1)/r**v)
                 G = g**(r**(k-1)*h)
-                L = K(1)
+                L = one
                 while True:
-                    J = 0
+                    J = 0 # find smallest J s.t. self**(r**J * h) == 1
                     find_J = self**h
-                    while find_J != 1:
+                    while not find_J.is_one():
                         J += 1
                         find_J = find_J**r
                     if J == 0:
                         _, rinv, _ = r.xgcd(h)
                         self = self**(rinv**v)/L
-                        nthroot *= g**((q-1)/r**v)
                         break
                     A = self**(r**(J-1)*h)
                     if r < 10: # arbitrarily chosen, in most cases r is small
                         lam = 1
-                        while A*G**lam != 1:
-                            lam += 1
+                        while not (A*G**lam).is_one():
+                            lam += one
                     else:
                         lam = r - discrete_log(A, G, r, operation='*')
                     self *= g**(lam*r**(k-J))
@@ -672,10 +691,11 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         - ``all`` -- bool (default: ``False``); if ``True``, return all `n`\th
           roots of ``self``, instead of just one.
 
-        - ``algorithm`` -- string (default: ``None``); 'Johnston' is the only
-          currently supported option.  For IntegerMod elements, the problem
-          is reduced to the prime modulus case using CRT and `p`-adic logs,
-          and then this algorithm used.
+        - ``algorithm`` -- string (default: ``None``); 'Johnston' is currently
+          the default algorithm. The alternative 'AMM' has better performance
+          for large prime moduli. For IntegerMod elements, the problem is
+          reduced to the prime modulus case using CRT and `p`-adic logs, and
+          then this algorithm used.
 
         OUTPUT:
 
