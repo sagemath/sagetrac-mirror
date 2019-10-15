@@ -1482,13 +1482,15 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
 
     - ``D`` -- (integer) a discriminant
 
-    - ``primitive_only`` -- (boolean, default True): if True, only
+    - ``primitive_only`` -- (boolean; default: ``True``): if ``True``, only
       return primitive forms.
+
+    - ``proper`` -- (boolean; default: ``True``)
 
     OUTPUT:
 
     (list) A lexicographically-ordered list of inequivalent reduced
-    representatives for the  proper equivalence classes of binary quadratic
+    representatives for the (im)proper equivalence classes of binary quadratic
     forms of discriminant `D`.  If ``primitive_only`` is ``True`` then
     imprimitive forms (which only exist when `D` is not fundamental) are
     omitted; otherwise they are included.
@@ -1546,56 +1548,22 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
     TESTS::
 
         sage: BinaryQF_reduced_representatives(73)
-        [-6*x^2 + 5*x*y + 2*y^2,
-        -6*x^2 + 7*x*y + y^2,
-        -4*x^2 + 3*x*y + 4*y^2,
-        -4*x^2 + 3*x*y + 4*y^2,
-        -4*x^2 + 5*x*y + 3*y^2,
-        -3*x^2 + 5*x*y + 4*y^2,
-        -3*x^2 + 7*x*y + 2*y^2,
-        -2*x^2 + 5*x*y + 6*y^2,
-        -2*x^2 + 7*x*y + 3*y^2,
-        -x^2 + 7*x*y + 6*y^2,
-        x^2 + 7*x*y - 6*y^2,
-        2*x^2 + 5*x*y - 6*y^2,
-        2*x^2 + 7*x*y - 3*y^2,
-        3*x^2 + 5*x*y - 4*y^2,
-        3*x^2 + 7*x*y - 2*y^2,
-        4*x^2 + 3*x*y - 4*y^2,
-        4*x^2 + 3*x*y - 4*y^2,
-        4*x^2 + 5*x*y - 3*y^2,
-        6*x^2 + 5*x*y - 2*y^2,
-        6*x^2 + 7*x*y - y^2]
+        [-4*x^2 + 3*x*y + 4*y^2,
+         4*x^2 + 3*x*y - 4*y^2]
         sage: BinaryQF_reduced_representatives(76, primitive_only=True)
-        [-5*x^2 + 4*x*y + 3*y^2,
-        -5*x^2 + 6*x*y + 2*y^2,
-         -3*x^2 + 4*x*y + 5*y^2,
-         -3*x^2 + 8*x*y + y^2,
-         -2*x^2 + 6*x*y + 5*y^2,
-         -x^2 + 8*x*y + 3*y^2,
-         x^2 + 8*x*y - 3*y^2,
-         2*x^2 + 6*x*y - 5*y^2,
-         3*x^2 + 4*x*y - 5*y^2,
-         3*x^2 + 8*x*y - y^2,
-         5*x^2 + 4*x*y - 3*y^2,
-         5*x^2 + 6*x*y - 2*y^2]
+        [-3*x^2 + 4*x*y + 5*y^2,
+         3*x^2 + 4*x*y - 5*y^2]
 
     Check that the primitive_only keyword does something::
 
         sage: BinaryQF_reduced_representatives(4*5, primitive_only=True)
         [-x^2 + 4*x*y + y^2,
-        -x^2 + 4*x*y + y^2,
-        x^2 + 4*x*y - y^2,
-        x^2 + 4*x*y - y^2]
+         x^2 + 4*x*y - y^2]
         sage: BinaryQF_reduced_representatives(4*5, primitive_only=False)
         [-2*x^2 + 2*x*y + 2*y^2,
-        -2*x^2 + 2*x*y + 2*y^2,
-        -x^2 + 4*x*y + y^2,
-        -x^2 + 4*x*y + y^2,
-        x^2 + 4*x*y - y^2,
-        x^2 + 4*x*y - y^2,
-        2*x^2 + 2*x*y - 2*y^2,
-        2*x^2 + 2*x*y - 2*y^2]
+         -x^2 + 4*x*y + y^2,
+         x^2 + 4*x*y - y^2,
+         2*x^2 + 2*x*y - 2*y^2]
     """
     D = ZZ(D)
 
@@ -1615,15 +1583,14 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
             b = D.sqrt()
             c = ZZ(0)
             # -b/2 < a <= b/2
-            for a in xsrange((-b/2).floor() + 1, (b/2).floor()+1):
-                Q = BinaryQF(a,b,c)
+            for a in xsrange((-b/2).floor() + 1, (b/2).floor() + 1):
+                Q = BinaryQF(a, b, c)
                 form_list.append(Q)
-        # We follow the description of Buchmann/Vollmer 6.7.1
-        # He ennumerates all reduced forms.
-        # We only want representatives
+        # We follow the description of Buchmann/Vollmer 6.7.1.  They
+        # enumerate all reduced forms.  We only want representatives.
         else:
             sqrt_d = D.sqrt(prec=53)
-            for b in xsrange(1, sqrt_d.floor()+1):
+            for b in xsrange(1, sqrt_d.floor() + 1):
                 if (D - b) % 2 != 0:
                     continue
                 A = (D - b**2) / 4
@@ -1634,7 +1601,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
                         continue
                     c = -A/a
                     if c in ZZ:
-                        if (not primitive_only) or gcd([a,b,c])==1:
+                        if (not primitive_only) or gcd([a, b, c])==1:
                             Q = BinaryQF(a, b, c)
                             Q1 = BinaryQF(-a, b, -c)
                             form_list.append(Q)
@@ -1661,10 +1628,12 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
                             form_list.append(BinaryQF([a,-b,c]))
                         form_list.append(BinaryQF([a,b,c]))
     if not proper or D > 0:
+        # TODO:
+        # instead of filtering, enumerate only improper classes to start with
         # filter for equivalence classes
         form_list_new = []
         for q in form_list:
-            if not any(q.is_equivalent(q1,proper=proper) for q1 in form_list_new):
+            if not any(q.is_equivalent(q1, proper=proper) for q1 in form_list_new):
                 form_list_new.append(q)
         form_list = form_list_new
 

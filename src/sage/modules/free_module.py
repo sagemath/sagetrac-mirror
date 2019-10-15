@@ -185,7 +185,6 @@ from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
                                     richcmp_not_equal, revop,
                                     op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE)
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecation
 
 from warnings import warn
 
@@ -598,7 +597,7 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
     if R not in PrincipalIdealDomains():
         raise TypeError("The base_ring (= %s) must be a principal ideal "
                         "domain." % R)
-    if len(gens) == 0:
+    if not gens:
         return FreeModule(R, 0)
     else:
         x = gens[0]
@@ -1054,10 +1053,6 @@ done from the right side.""")
         because of the different ambient vector spaces::
 
             sage: QQ^3 <= CC^3
-            doctest:warning
-            ...
-            DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
-            See http://trac.sagemath.org/23978 for details.
             False
             sage: CC^3 <= QQ^3
             False
@@ -1271,8 +1266,6 @@ done from the right side.""")
             return self._eq(other)
         if op == op_NE:
             return not self._eq(other)
-        deprecation(23978,"The default order on free modules has changed. "
-                    "The old ordering is in sage.modules.free_module.EchelonMatrixKey")
         if op == op_LE:
             return self.is_submodule(other)
         if op == op_GE:
@@ -1486,7 +1479,7 @@ done from the right side.""")
             [(0, 0), (1, 0), (0, 1), (1, 1)]
         """
         G = self.gens()
-        if len(G) == 0:
+        if not G:
             yield self(0)
             return
         R     = self.base_ring()
@@ -4908,7 +4901,7 @@ class FreeModule_ambient(FreeModule_generic):
         ::
 
             sage: A = GF(5)^20
-            sage: latex(A) # indiret doctest
+            sage: latex(A)  # indirect doctest
             \Bold{F}_{5}^{20}
 
         ::
@@ -4917,10 +4910,10 @@ class FreeModule_ambient(FreeModule_generic):
             sage: latex(A) #indirect doctest
             (\Bold{Q}[x_{0}, x_{1}, x_{2}])^{20}
         """
-        t = "%s"%latex.latex(self.base_ring())
+        t = "%s" % latex.latex(self.base_ring())
         if t.find(" ") != -1:
-            t = "(%s)"%t
-        return "%s^{%s}"%(t, self.rank())
+            t = "(%s)" % t
+        return "%s^{%s}" % (t, self.rank())
 
     def is_ambient(self):
         """
@@ -5617,7 +5610,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         EXAMPLES::
 
             sage: k.<a> = GF(3^4)
-            sage: VS = k.vector_space()
+            sage: VS = k.vector_space(map=False)
             sage: VS(a)
             (0, 1, 0, 0)
         """
@@ -5947,7 +5940,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             30
 
         """
-        if len(B) == 0:
+        if not B:
             return 1
         d = B[0].denominator()
         from sage.arith.all import lcm
@@ -7129,7 +7122,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             raise ArithmeticError("v (=%s) is not in self"%v)
         E = self.echelonized_basis_matrix()
         P = E.pivots()
-        if len(P) == 0:
+        if not P:
             if check and v != 0:
                 raise ArithmeticError("vector is not in free module")
             return []
