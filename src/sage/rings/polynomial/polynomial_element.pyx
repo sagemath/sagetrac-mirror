@@ -70,6 +70,7 @@ import sage.rings.complex_field
 import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
+from sage.misc.misc import newton_method_sizes
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
 from sage.arith.power cimport generic_power
@@ -1604,7 +1605,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             first_coeff = A(~const_term)
 
         current = R(first_coeff)
-        for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
+        for next_prec in newton_method_sizes(prec)[1:]:
             z = current._mul_trunc_(self, next_prec)._mul_trunc_(current, next_prec)
             current = current + current - z
         return current
@@ -10077,7 +10078,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             except ArithmeticError:
                 raise ArithmeticError("exponent not invertible in base ring")
 
-            from sage.misc.misc import newton_method_sizes
             mp1 = m + 1
             for i in newton_method_sizes(prec):
                 q = mi * (mp1 * q - p._mul_trunc_(q._power_trunc(mp1, i), i))
@@ -10210,8 +10210,52 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: Pol.<x> = CBF[]
             sage: (1 + x)._log_series(3)
             -0.5000000000000000*x^2 + x
+
+            sage: R.<x> = QQ[]
+            sage: S.<t> = R[]
+            sage: (1 + t)._log_series(5)
+            -1/4*t^4 + 1/3*t^3 - 1/2*t^2 + t
+            sage: p = (1 + t * (1 + x) + t**2 * x)
+            sage: p._log_series(5)
+            (-1/4*x^4 - 1/4)*t^4 + (1/3*x^3 + 1/3)*t^3 + (-1/2*x^2 - 1/2)*t^2 + (x + 1)*t
+
+            sage: R.<x> = SR[]
+            sage: (3 + x)._log_series(3)
+            -1/18*x^2 + 1/3*x + log(3)
+            sage: (3 + x)._log_series(3)._exp_series(3)
+            x + 3
+
+            sage: x._log_series()
+            Traceback (most recent call last):
+            ...
+            ValueError: can not take logarithm with zero constant coefficient
+
+        TESTS::
+
+            sage: R.<x> = QQ[]
+            sage: S.<t> = R[]
+            sage: p = (1 + t * (1 + x) + t**2 * x)
+            sage: all(p._log_series(n)._exp_series(n) == p for n in range(3, 20))
+            True
         """
-        raise NotImplementedError
+        if self.base_ring().characteristic() != 0:
+            raise ValueError("no logarithm series in positive characteristic")
+
+        a0 = self.constant_coefficient()
+        b0 = None
+        if a0.is_zero():
+            raise ValueError("can not take logarithm with zero constant coefficient")
+        elif not a0.is_one():
+            b0 = a0.log()
+            if b0.parent() is not a0.parent():
+                raise ValueError("can not take logarithm of the constant coefficient")
+            self /= a0
+        R = self.parent()
+        if n <= 1:
+            return R.zero()
+        inv = self.inverse_series_trunc(n - 1)
+        res = self.derivative()._mul_trunc_(inv, n - 1).integral()
+        return res if b0 is None else b0 + res
 
     def _exp_series(self, long n):
         r"""
@@ -10223,8 +10267,45 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: Pol.<x> = CBF[]
             sage: x._exp_series(3)
             0.5000000000000000*x^2 + x + 1.000000000000000
+
+            sage: R.<x> = QQ[]
+            sage: S.<t> = R[]
+            sage: (t)._exp_series(5)
+            1/24*t^4 + 1/6*t^3 + 1/2*t^2 + t + 1
+            sage: (t * (1 + x) + t**2 * (-x))._exp_series(3)
+            (1/2*x^2 + 1/2)*t^2 + (x + 1)*t + 1
+
+            sage: R.<x> = SR[]
+            sage: (2 + x)._exp_series(4)
+            1/6*e^2*x^3 + 1/2*e^2*x^2 + e^2*x + e^2
+            sage: (2 + x)._exp_series(4)._log_series(4)
+            x + 2
+
+        TESTS::
+
+            sage: R.<x> = QQ[]
+            sage: S.<t> = R[]
+            sage: p = t * (1 + 2*x**2) + t**2 * (-x)
+            sage: all(p._exp_series(n)._log_series(n) == p for n in range(3, 20))
+            True
         """
-        raise NotImplementedError
+        if self.base_ring().characteristic() != 0:
+            raise ValueError("no exponential series in positive characteristic")
+        a0 = self.constant_coefficient()
+        b0 = None
+        if a0:
+            b0 = a0.exp()
+            if a0.parent() is not b0.parent():
+                raise ValueError("can not take exponential of the constant term")
+            self -= a0
+        R = self.parent()
+        if n <= 0:
+            return R.zero()
+        s = R.one()
+        cdef long m = 1
+        for m in newton_method_sizes(n):
+            s += s._mul_trunc_(self - s._log_series(m), m)
+        return s if b0 is None else b0 * s
 
     def _atan_series(self, long n):
         r"""
