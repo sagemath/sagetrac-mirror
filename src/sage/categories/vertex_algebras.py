@@ -148,7 +148,6 @@ the *quasi-classical limit of* `V`.
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import all_axioms as all_axioms
 from sage.categories.quotients import QuotientsCategory
 from lie_conformal_algebras import LieConformalAlgebras
@@ -169,7 +168,6 @@ class VertexAlgebras(Category_over_base_ring):
 
     """
 
-    @cached_method
     def super_categories(self):
         """
         The super categories of this category
@@ -209,7 +207,7 @@ class VertexAlgebras(Category_over_base_ring):
 
             We construct the ideal defining the *Virasoro Ising* module::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                sage: V = VirasoroVertexAlgebra(QQ,1/2) 
                 sage: L = V.0
                 sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
                 sage: I = V.ideal(v)
@@ -304,6 +302,14 @@ class VertexAlgebras(Category_over_base_ring):
                 sage: 3*W.0
                 3*E(alpha[1])_-1|0>
 
+            TESTS::
+
+                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                sage: V([[1],[2]])
+                Traceback (most recent call last):
+                ...
+                TypeError: do not know how to convert [[1], [2]] into an element of The Virasoro vertex algebra at central charge 1/2
+
             """
             if x in self.base_ring():
                 if x != 0 :
@@ -374,6 +380,7 @@ class VertexAlgebras(Category_over_base_ring):
             For quotient algebras we get the algebra itself::
 
                 sage: V = VirasoroVertexAlgebra(QQ, 1/2)
+                sage: V.register_lift()
                 sage: L = V.0
                 sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
                 sage: Q = V.quotient(V.ideal(v))
@@ -392,6 +399,9 @@ class VertexAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
+                sage: V = VirasoroVertexAlgebra(QQ, 1/2); L = V.0
+                sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+                sage: Q = V.quotient(V.ideal(v))
                 sage: Q(0)
                 0
                 sage: V(0)
@@ -526,8 +536,6 @@ class VertexAlgebras(Category_over_base_ring):
                     sage: (P(L)*P(L))*P(L) == P(L)*(P(L)*P(L))
                     True
                     sage: L.bracket(L)
-                    {0: TL, 1: 2*L, 3: 1/2*C}
-                    sage: V(L).bracket(V(L))
                     {0: L_-3|0>, 1: 2*L_-2|0>, 3: 1/4*|0>}
                     sage: P(L).bracket(P(L))
                     {}
@@ -579,6 +587,7 @@ class VertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
                     sage: L.li_filtration_degree()
                     0
                     sage: (L.T(2)*L.T()).li_filtration_degree()
@@ -602,6 +611,7 @@ class VertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
                     sage: L.is_homogeneous()
                     True
                     sage: (L + L.T()).is_homogeneous()
@@ -615,6 +625,27 @@ class VertexAlgebras(Category_over_base_ring):
                 return True
 
             def nmodeproduct(self, other, n):
+                r"""
+                The shifted product of these two elements
+
+                The element needs to be homogeneous. 
+                If `a \in V_p`, then `a_n b` is defined as 
+                `a_{(n+p-1)}b`. 
+
+                EXAMPLES::
+                    
+                    sage: V = VirasoroVertexAlgebra(QQ, 1/2)
+                    sage: V.inject_variables()
+                    Defining L
+                    sage: L.nmodeproduct(L.T(),0)
+                    3*L_-3|0>
+
+                    sage: (L + V.vacuum()).nmodeproduct(L,0)
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: Couldn't compute weight of L_-2|0>+|0>, it's not homogeneous?
+
+                """
                 try:
                     weight = self.weight()
                 except ValueError:
@@ -625,31 +656,87 @@ class VertexAlgebras(Category_over_base_ring):
     class FinitelyGeneratedAsVertexAlgebra(CategoryWithAxiom_over_base_ring):
 
         def _repr_object_names(self):
+            """
+            The names of objects of this category
+            """
             return "finitely and strongly generated" \
                         " vertex algebras over {}".format(self.base_ring())
         
         class ParentMethods:
             @abstract_method
             def gens(self):
-                return
+                """
+                The list of generators of this vertex algebra
+
+                EXAMPLES::
+
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                    sage: V.gens()
+                    (L_-2|0>,)
+                    sage: L = V.0; L in V
+                    True
+                    sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+                    sage: Q = V.quotient(V.ideal(v))
+                    sage: Q.gens()
+                    (L_-2|0>,)
+                    sage: Q.gens()[0] in Q
+                    True
+                    sage: V = AffineVertexAlgebra(QQ, 'A1', 1); V
+                    The universal affine vertex algebra of CartanType ['A', 1] at level 1
+                    sage: V.gens()
+                    (E(alpha[1])_-1|0>, E(alphacheck[1])_-1|0>, E(-alpha[1])_-1|0>)          
+
+                """
 
             @abstract_method
             def ngens(self):
-                return
+                """
+                The number of generators of this vertex algebra
+                
+                EXAMPLES::
 
-            @abstract_method
-            def central_parameters(self):
-                return
-        
+                    sage: VirasoroVertexAlgebra(QQ,1/2).ngens()
+                    1
+                    sage: AffineVertexAlgebra(QQ,'A2',1).ngens()
+                    8
+
+                """
+
             def hilbert_series(self,ord):
+                """
+                The graded dimension of this algebra
+
+                INPUT:
+
+                - ``ord`` -- integer; the precision order of the result
+
+                OUTPUT: The sum
+
+                .. MATH::
+                    \sum_{n = 0}^{ord} q^n \mathrm{dim} V_n
+
+                EXAMPLES::
+
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                    sage: V.hilbert_series(8)
+                    1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 4*q^6 + 4*q^7 + 7*q^8
+                    sage: L = V.0; v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+                    sage: Q = V.quotient(V.ideal(v))
+                    sage: Q.hilbert_series(9)
+                    1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 3*q^6 + 3*q^7 + 5*q^8 + 5*q^9
+
+                """
                 from sage.rings.power_series_ring import PowerSeriesRing
-                q = PowerSeriesRing(self.base_ring(), 'q', 
-                                                default_prec = ord).gen()
+                q = PowerSeriesRing(self.base_ring(),'q', 
+                                    default_prec = ord+1).gen()
                 return sum(self.dimension(n)*q**n for n in range(ord+1 ))     
 
        
         class SubcategoryMethods:
             def HGraded(self):
+                """
+                The subcategory of finitely generated H-Graded vertex algebras
+                """
                 return self._with_axiom('HGraded')
 
         class HGraded(CategoryWithAxiom_over_base_ring):
@@ -659,6 +746,11 @@ class VertexAlgebras(Category_over_base_ring):
 
             class SubcategoryMethods:
                 def WithBasis(self):
+                    """
+                    The subcategory of finitely generated
+                    H-Graded Vertex algebras with a preferred
+                    basis
+                    """
                     return self._with_axiom("WithBasis")
 
             class WithBasis(CategoryWithAxiom_over_base_ring):
@@ -668,32 +760,70 @@ class VertexAlgebras(Category_over_base_ring):
 
             class ElementMethods:
                 def is_singular(self):
+                    """
+                    Return whether this vector is a singular vector 
+
+                    If `a \in V` is a vector in a finitely generated H-Graded
+                    vertex algebra, then `a` is singular if for each homogeneous
+                    vector `v in V` we have `v_n a = 0` whenever `n > 0`.
+
+                    EXAMPLES::
+
+                        sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
+                        sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+                        sage: v.is_singular()
+                        True
+                        sage: V = AffineVertexAlgebra(QQ, 'A1', 2); E = V.0
+                        sage: (E*E*E).is_singular()
+                        True
+
+                    """
                     p = self.parent()
                     try:
                         weight = self.weight()
                     except ValueError:
-                        raise ValueError( "Couldn't compute weight of {}, "\
-                            "it's not homogeneous?".format(self) )
-
-                    return all (p(g).nmodeproduct(self,n).is_zero() for 
+                        raise ValueError("Couldn't compute weight of {}, "\
+                                         "it's not homogeneous?".format(self))
+                    return all (g.nmodeproduct(self,n).is_zero() for 
                                 n in range(1,weight+2) for g in p.gens())
 
                 def _action_from_partition_tuple(self,p,negative=True):
                     """
-                    helper function. From a partition tuple `p` applies the
-                    corresponding basis element from `V` to self.
+                    helper function to apply elements of a vertex algebra
+                    constructed from partitions
+
+                    INPUT:
+
+                    - ``p`` -- `PartitionTuple`. The level of ``p`` needs to
+                      equal the number of generators of the vertex algebra
+                    - ``negative`` -- boolean (default: `True`); 
+
+                    OUTPUT: the result of repeatedly applying 
+                    modes determined by ``p`` of the generators of
+                    this vertex algebra to the vector ``self``. By default
+                    negative modes are applied. Thus if `p = [[1]]` and `L` is
+                    the unique generator of `V`, the mode `L_{-1}` will be
+                    applied. If ``negative`` is `False`, non-negative modes are
+                    applied instead. Thus in the example above `L_0` will be
+                    applied. 
+
+                    EXAMPLES:
+
+                        sage: V = AffineVertexAlgebra(QQ, 'A1', 1); F = V.2
+                        sage: F._action_from_partition_tuple(PartitionTuple([[2,1],[3],[]]))
+                        E(alpha[1])_-2E(alpha[1])_-1E(alphacheck[1])_-3E(-alpha[1])_-1|0>      
+
                     """
                     ngens = self.parent().ngens()
                     if len(p) != ngens:
                         raise ValueError("p has to be a partition tuple of "
-                            "level {0}, got {1}".format(ngens,p))
-
+                                         "level {0}, got {1}".format(ngens,p))
                     ret = self
                     p = p.to_list()
                     p.reverse()
                     for j in range(ngens):
                         p[j].reverse()
-                        g = self.parent()(self.parent().gen(ngens-j-1 ))
+                        g = self.parent()(self.parent().gen(ngens-j-1))
                         for n in p[j]:
                             if negative:
                                 ret = g.nmodeproduct(ret,-n)
