@@ -41,7 +41,6 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef PolyhedronFaceLattice _all_faces          # class to generate Hasse diagram incidences
 
     cdef tuple V(self)
-    cdef dict Vinv(self)
     cdef tuple H(self)
     cdef tuple equalities(self)
     cdef unsigned int length_Vrepr(self)
