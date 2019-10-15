@@ -159,6 +159,7 @@ Individual Categories
    sage/categories/polyhedra
    sage/categories/posets
    sage/categories/principal_ideal_domains
+   sage/categories/poisson_vertex_algebras
    sage/categories/quotient_fields
    sage/categories/quantum_group_representations
    sage/categories/regular_crystals

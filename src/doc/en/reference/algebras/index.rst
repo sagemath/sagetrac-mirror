@@ -97,11 +97,11 @@ Non-associative algebras
    :maxdepth: 2
 
    lie_algebras
-   sage/algebras/vertex_algebras/lie_conformal_algebra
    sage/algebras/jordan_algebra
    sage/combinat/free_dendriform_algebra
    sage/combinat/free_prelie_algebra
    sage/algebras/shuffle_algebra
+   vertex_algebras
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt

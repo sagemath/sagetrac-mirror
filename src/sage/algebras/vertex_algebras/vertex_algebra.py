@@ -32,7 +32,6 @@ from sage.structure.element import parent
 from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 
-
 class VertexAlgebra(Parent, UniqueRepresentation):
     @staticmethod
     def __classcall_private__(cls, R=None, arg0 = None, **kwds):
