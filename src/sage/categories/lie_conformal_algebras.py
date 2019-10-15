@@ -439,15 +439,58 @@ class LieConformalAlgebras(Category_over_base_ring):
             Returns the image of this element under the canonical lift to the
             universal enveloping vertex algebra. 
 
-            The universal enveloping algebra needs to be constructed first. 
+            .. WARNING::
 
-            EXAMPLES::
+                The universal enveloping algebra needs to be constructed first for
+                this morphism to be defined. 
+
+                This morphism is registered as a coercion between this Lie conformal
+                algebra and its universal enveloping vertex algebra upon creation.
+                Since we consider central quotients of the universal enveloping
+                vertex algebras by fixed central parameters, each time a different
+                universal enveloping vertex algebra is constructed, this lift
+                morphism is changed. See the examples below and also 
+                :meth:`register_lift()<sage.algebras.vertex_algebras.vertex_algebra.UniversalEnvelopingVertexAlgebra.register_lift>`.
+
+
+            EXAMPLES:
+
+            We lift to the universal enveloping vertex algebra of the Virasoro
+            Lie conformal algebra with central charge `0`::
                
                 sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                sage: V = Vir.universal_enveloping_algebra()
                 sage: L.lift()
                 L_-2|0>
                 sage: L.lift().__class__
                 <class 'sage.algebras.vertex_algebras.vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category.element_class'>
+                sage: L.lift().parent()
+                The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+
+            Notice that the target of the ``lift`` morphism changes when we
+            construct another universal enveloping vertex algebra::
+
+                sage: Vir.lift.codomain()
+                The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                sage: Vir.lift.codomain()
+                The Virasoro vertex algebra at central charge 1/2
+                sage: V = VirasoroVertexAlgebra(QQ,3)
+                sage: Vir.lift.codomain()
+                The Virasoro vertex algebra at central charge 3
+
+            Notice that recreation may not re-establish the right coercion
+            depending on the method of construction::
+
+                sage: cp = Family({Vir.1:1/2}); V = Vir.universal_enveloping_algebra(cp)
+                sage: Vir.lift.codomain()
+                The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                sage: Vir.lift.codomain()
+                The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+                sage: V.register_lift()
+                sage: Vir.lift.codomain()
+                The Virasoro vertex algebra at central charge 1/2                
 
             """
             raise NotImplementedError("Not implemented")
@@ -738,15 +781,57 @@ class LieConformalAlgebras(Category_over_base_ring):
                     Returns the image of this element under the canonical lift to the
                     universal enveloping vertex algebra. 
 
-                    The universal enveloping algebra needs to be constructed first. 
+                    .. WARNING::
 
-                    EXAMPLES::
+                        The universal enveloping algebra needs to be constructed first for
+                        this morphism to be defined. 
 
+                        This morphism is registered as a coercion between this Lie conformal
+                        algebra and its universal enveloping vertex algebra upon creation.
+                        Since we consider central quotients of the universal enveloping
+                        vertex algebras by fixed central parameters, each time a different
+                        universal enveloping vertex algebra is constructed, this lift
+                        morphism is changed. See the examples below and also 
+                        :meth:`register_lift()<sage.algebras.vertex_algebras.vertex_algebra.UniversalEnvelopingVertexAlgebra.register_lift>`.
+
+
+                    EXAMPLES:
+
+                    We lift to the universal enveloping vertex algebra of the Virasoro
+                    Lie conformal algebra with central charge `0`::
+                       
                         sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                        sage: V = Vir.universal_enveloping_algebra()
                         sage: L.lift()
                         L_-2|0>
                         sage: L.lift().__class__
                         <class 'sage.algebras.vertex_algebras.vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category.element_class'>
+                        sage: L.lift().parent()
+                        The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+
+                    Notice that the target of the ``lift`` morphism changes when we
+                    construct another universal enveloping vertex algebra::
+
+                        sage: Vir.lift.codomain()
+                        The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+                        sage: V = VirasoroVertexAlgebra(QQ,1/2);
+                        sage: V.register_lift()
+                        sage: Vir.lift.codomain()
+                        The Virasoro vertex algebra at central charge 1/2
+
+                    Notice that recreation may not re-establish the right coercion
+                    depending on the method of construction::
+
+                        sage: Vir = VirasoroLieConformalAlgebra(QQ)
+                        sage: cp = Family({Vir.1:1/3}); V = Vir.universal_enveloping_algebra(cp)
+                        sage: Vir.lift.codomain()
+                        The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+                        sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                        sage: Vir.lift.codomain()
+                        The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+                        sage: V.register_lift()
+                        sage: Vir.lift.codomain()
+                        The Virasoro vertex algebra at central charge 1/2                
 
                     """
                     p = self.parent()

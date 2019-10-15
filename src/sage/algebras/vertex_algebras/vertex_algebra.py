@@ -30,6 +30,8 @@ from sage.rings.infinity import Infinity
 from sage.sets.family import Family
 from sage.structure.element import parent
 from sage.rings.integer import Integer
+from sage.misc.cachefunc import cached_method
+
 
 class VertexAlgebra(Parent, UniqueRepresentation):
     @staticmethod
@@ -173,17 +175,24 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
     def module(self):
         return self._module
 
+    @cached_method
     def vacuum(self):
         vac = [Partition([]),]*self.ngens()
         return self.element_class(self, self.module()(vac))
 
+    @cached_method
     def zero(self):
         return self.element_class(self, self.module().zero())
 
     def _element_constructor_(self,x):
         if x == self.base_ring().zero():
             return self.zero()
-        return self.element_class(self, self.module()(x))
+        try:
+            v = self._module(x)
+        except TypeError:
+            raise TypeError("do not know how to convert {0} into an element "\
+                            "of {1}".format(x,self))
+        return self.element_class(self, v)
 
     def li_filtration(self,n,k=None):
         A = self.get_graded_part(n)

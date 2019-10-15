@@ -72,7 +72,10 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
             if x != 0:
                 raise ValueError("can only convert the scalar 0 into a Lie conformal algebra element")
             return self.zero()
-        return self.element_class(self,x)
+        if x in self.module():
+            return self.element_class(self,x)
+        raise ValueError("Don't know how to convert {0} into an element of "\
+                         "{1}".format(x,self))
 
     @cached_method
     def zero(self):
