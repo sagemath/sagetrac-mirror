@@ -196,7 +196,6 @@ cdef void late_import():
     import sage.rings.complex_interval_field
     is_ComplexIntervalField = sage.rings.complex_interval_field.is_ComplexIntervalField
 
-
 cdef class Polynomial(CommutativeAlgebraElement):
     """
     A polynomial.
@@ -1578,9 +1577,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: x = polygen(ZZ['a','b'])
             sage: (x+1).inverse_series_trunc(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: the precision must be positive, got 0
+            0
 
         AUTHORS:
 
@@ -1590,14 +1587,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         - Vincent Delecroix (2014-2015): move the implementation directly in
           polynomial
         """
+        R = self._parent
+
         if prec <= 0:
-            raise ValueError("the precision must be positive, got {}".format(prec))
+            return R.zero()
 
         const_term = self.get_coeff_c(0)
         if not const_term.is_unit():
             raise ValueError("constant term {} is not a unit".format(const_term))
 
-        R = self._parent
         A = R.base_ring()
         try:
             first_coeff = const_term.inverse_of_unit()
@@ -3746,7 +3744,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return [self.diff()]
 
-    def integral(self,var=None):
+    def integral(self, var=None):
         """
         Return the integral of this polynomial.
 
@@ -3861,23 +3859,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         R = self._parent
+        S = R.with_integral_division()
+        Q = S.base_ring()
+        if R is not S:
+            return self.change_ring(Q).integral(var)
 
-        # TODO:
-        # calling the coercion model bin_op is much more accurate than using the
-        # true division (which is bypassed by polynomials). But it does not work
-        # in all cases!!
-        cm = coercion_model
-        try:
-            S = cm.bin_op(R.one(), ZZ.one(), operator.truediv).parent()
-            Q = S.base_ring()
-        except TypeError:
-            Q = (R.base_ring().one() / ZZ.one()).parent()
-            S = R.change_ring(Q)
         if var is not None and var != R.gen():
             # call integral() recursively on coefficients
             return S([coeff.integral(var) for coeff in self])
         cdef Py_ssize_t n
         zero = Q.zero()
+        cm = coercion_model
         p = [zero] + [cm.bin_op(Q(self.get_unsafe(n)), n + 1, operator.truediv)
                       if self.get_unsafe(n) else zero for n in range(self.degree() + 1)]
         return S(p)
@@ -10200,7 +10192,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             phi = SpecializationMorphism(self._parent,D)
         return phi(self)
 
-    def _log_series(self, long n):
+    def _log_series(self, long n, algorithm=None):
         r"""
         Return the power series expansion of logarithm of this polynomial,
         truncated to `O(x^n)`.
@@ -10224,22 +10216,69 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/18*x^2 + 1/3*x + log(3)
             sage: (3 + x)._log_series(3)._exp_series(3)
             x + 3
-
-            sage: x._log_series()
+            sage: x._log_series(5)
             Traceback (most recent call last):
             ...
             ValueError: can not take logarithm with zero constant coefficient
+
+        More exotic base rings (non-commutative or positive characteristic)::
+
+            sage: M = MatrixSpace(QQ, 2)
+            sage: x = polygen(M)
+            sage: p = 1 + M([2,1/3,0,4]) * x + M([1/2,0,-1,3]) * x**2 + M([1/2,1/3,1/4,1/5]) * x**3
+            sage: p._log_series(10)._exp_series(10) == p
+            True
+
+            sage: x = polygen(GF(17))
+            sage: p = (1+x)._log_series(10)
+            sage: p
+            2*x^9 + 2*x^8 + 5*x^7 + 14*x^6 + 7*x^5 + 4*x^4 + 6*x^3 + 8*x^2 + x
+            sage: p._exp_series(10)
+            x + 1
+            sage: (1+x)._log_series(18)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: inverse of Mod(0, 17) does not exist
+
+            sage: M = MatrixSpace(Zmod(77), 2)
+            sage: x = polygen(M)
+            sage: p = 1 + M([2,1,0,4]) * x + M([2,0,-1,3]) * x**2 + M([1,3,4,1]) * x**3
+            sage: p._log_series(6)._exp_series(6) == p
+            True
 
         TESTS::
 
             sage: R.<x> = QQ[]
             sage: S.<t> = R[]
             sage: p = (1 + t * (1 + x) + t**2 * x)
+            sage: all(p._log_series(n, 'expansion') == p._log_series(n, 'integration') for n in range(10))
+            True
             sage: all(p._log_series(n)._exp_series(n) == p for n in range(3, 20))
             True
+
+            sage: R.<x> = SR[]
+            sage: R(3)._log_series(0)
+            0
+            sage: R(3)._log_series(1)
+            log(3)
         """
-        if self.base_ring().characteristic() != 0:
-            raise ValueError("no logarithm series in positive characteristic")
+        R = self.parent()
+        S = R.with_integral_division()
+        B = S.base_ring()
+        if R is not S:
+            if algorithm is None:
+                return self.change_ring(B)._log_series(n)
+            else:
+                return self.change_ring(B)._log_series(n, algorithm)
+
+        if n <= 0:
+            return R.zero()
+
+        if algorithm is None:
+            if B.is_commutative():
+                algorithm = 'integration'
+            else:
+                algorithm = 'expansion'
 
         a0 = self.constant_coefficient()
         b0 = None
@@ -10250,14 +10289,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if b0.parent() is not a0.parent():
                 raise ValueError("can not take logarithm of the constant coefficient")
             self /= a0
-        R = self.parent()
-        if n <= 1:
-            return R.zero()
-        inv = self.inverse_series_trunc(n - 1)
-        res = self.derivative()._mul_trunc_(inv, n - 1).integral()
+
+        if algorithm == 'expansion':
+            self = self - 1
+            res = R.zero()
+            q = R.one()
+            for i in range(1, n):
+                q = q._mul_trunc_(self, n)
+                res -= B((-1)**i) / i * q
+
+        elif algorithm == 'integration':
+            inv = self.inverse_series_trunc(n - 1)
+            res = self.derivative()._mul_trunc_(inv, n - 1).integral()
+
+        else:
+            raise ValueError("algorithm must be 'expansion' or 'integration'")
+
         return res if b0 is None else b0 + res
 
-    def _exp_series(self, long n):
+    def _exp_series(self, long n, algorithm=None):
         r"""
         Return the power series expansion of exponential of this polynomial,
         truncated to `O(x^n)`.
@@ -10281,6 +10331,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2 + x)._exp_series(4)._log_series(4)
             x + 2
 
+        More exotic base rings (non-commutative or positive characteristic)::
+
+            sage: M = MatrixSpace(ZZ,2)
+            sage: x = polygen(M)
+            sage: p = M([2,1,0,4]) * x + M([1,0,-1,3]) * x**2 + M([1,1,1,1]) * x**3
+            sage: p._exp_series(10)._log_series(10) == p
+            True
+
+            sage: x = polygen(GF(17))
+            sage: p = x._exp_series(10)
+            sage: p
+            8*x^9 + 4*x^8 + 15*x^7 + 3*x^6 + x^5 + 5*x^4 + 3*x^3 + 9*x^2 + x + 1
+            sage: p._log_series(10)
+            x
+            sage: x._exp_series(18)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: inverse of Mod(0, 17) does not exist
+
+            sage: M = MatrixSpace(Zmod(77), 2)
+            sage: x = polygen(M)
+            sage: p = M([2,1,0,4]) * x + M([1,0,-1,3]) * x**2 + M([1,1,1,1]) * x**3
+            sage: p._exp_series(6)._log_series(6) == p
+            True
+
         TESTS::
 
             sage: R.<x> = QQ[]
@@ -10289,23 +10364,49 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: all(p._exp_series(n)._log_series(n) == p for n in range(3, 20))
             True
         """
-        if self.base_ring().characteristic() != 0:
-            raise ValueError("no exponential series in positive characteristic")
+        R = self.parent()
+        S = R.with_integral_division()
+        B = S.base_ring()
+        if R is not S:
+            if algorithm is None:
+                return self.change_ring(B)._exp_series(n)
+            else:
+                return self.change_ring(B)._exp_series(n, algorithm)
+
+        if n <= 0:
+            return R.zero()
+
+        if algorithm is None:
+            if B.is_commutative():
+                algorithm = 'newton'
+            else:
+                algorithm = 'expansion'
+
         a0 = self.constant_coefficient()
         b0 = None
         if a0:
             b0 = a0.exp()
-            if a0.parent() is not b0.parent():
+            if b0.parent() is not B:
                 raise ValueError("can not take exponential of the constant term")
             self -= a0
-        R = self.parent()
-        if n <= 0:
-            return R.zero()
-        s = R.one()
-        cdef long m = 1
-        for m in newton_method_sizes(n):
-            s += s._mul_trunc_(self - s._log_series(m), m)
-        return s if b0 is None else b0 * s
+
+        cdef long m
+        if algorithm == 'newton':
+            res = R.one()
+            for m in newton_method_sizes(n):
+                res += res._mul_trunc_(self - res._log_series(m), m)
+
+        elif algorithm == 'expansion':
+            res = R.one()
+            q = R.one()
+            for m in range(1, n):
+                q = q._mul_trunc_(self, n)
+                res += B(1) / ZZ(m).factorial() * q
+
+        else:
+            raise ValueError("algorithm must be 'newton' or 'expansion'")
+
+        return res if b0 is None else b0 * res
 
     def _atan_series(self, long n):
         r"""
