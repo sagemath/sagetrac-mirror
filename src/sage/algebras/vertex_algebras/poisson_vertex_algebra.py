@@ -95,7 +95,7 @@ class PoissonVertexAlgebra_from_vertex_algebra(PoissonVertexAlgebra):
             return True
 
     def gens(self):
-        return self._va.gens()
+        return tuple (self(g) for g in self._va.gens())
     
     def gen(self,i):
         return self.gens()[i]
