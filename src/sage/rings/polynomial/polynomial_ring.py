@@ -625,6 +625,47 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         else:
             return IdentityMorphism(self)
 
+    @cached_method
+    def with_integral_division(self):
+        r"""
+        Return a promoted polynomial ring that allows division by integers.
+
+        EXAMPLES::
+
+            sage: QQ['x'].with_integral_division()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: QQ['x']['y'].with_integral_division()
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: ZZ['x'].with_integral_division()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: ZZ['x']['y'].with_integral_division()
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: Zmod(15)['x'].with_integral_division()
+            Univariate Polynomial Ring in x over Ring of integers modulo 15
+            sage: Zmod(15)['x']['y'].with_integral_division()
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Ring of integers modulo 15
+
+            sage: M = MatrixSpace(ZZ, 2)
+            sage: M['x'].with_integral_division()
+            Univariate Polynomial Ring in x over Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: M['x']['y'].with_integral_division()
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+        """
+        # TODO:
+        # calling the coercion model bin_op is much more accurate than using the
+        # true division (which is bypassed by polynomials). But it does not work
+        # in all cases!!
+        import operator
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        try:
+            return cm.bin_op(self.one(), ZZ.one(), operator.truediv).parent()
+        except TypeError:
+            Q = (self.base_ring().one() / ZZ.one()).parent()
+            return self.change_ring(Q)
+
     def construction(self):
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 
