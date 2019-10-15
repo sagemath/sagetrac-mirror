@@ -476,7 +476,6 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         multiplication and then truncating. The function is tuned for length
         `n` about half the length of a full product.
 
-
         EXAMPLES::
 
             sage: P.<a>=GF(7)[]
@@ -484,15 +483,11 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: a._mul_trunc_(b, 5)
             4*a^4 + 6*a^3 + 2*a^2 + 5*a
 
-        TESTS::
-
             sage: a._mul_trunc_(b, 0)
-            Traceback (most recent call last):
-            ...
-            ValueError: length must be > 0
+            0
         """
         if n <= 0:
-            raise ValueError("length must be > 0")
+            return self.parent().zero()
         cdef Polynomial_zmod_flint op2 = <Polynomial_zmod_flint> right
         cdef Polynomial_zmod_flint res = self._new()
         nmod_poly_mullow(&res.x, &self.x, &op2.x, n)
