@@ -1124,6 +1124,32 @@ cdef class CombinatorialPolyhedron(SageObject):
             raise ValueError("could not determine f_vector")
         return self._f_vector
 
+    def simpliness(self):
+        if not self.is_bounded():
+            raise NotImplementedError("must be bounded")
+        cdef FaceIterator face_iter = self._face_iter(False, -2)
+        cdef int d
+        cdef int dim = self.dimension()
+
+        if self.n_facets() == self.dimension() + 1:
+            # A simplex.
+            return self.dimension()
+
+        cdef simpliness = d - 1
+
+        # For each face in the iterator, check if its a simplex.
+        d = face_iter.next_dimension()
+        while (d < dim):
+            sig_check()
+            if face_iter.length_atom_repr() == d + 1:
+                # The current face is a simplex.
+                face_iter.ignore_subfaces()
+            else:
+                # Current face is not a simplex.
+                if simpliness > d:
+                    simpliness = d
+            d = face_iter.next_dimension()
+
     def face_iter(self, dimension=None, dual=None):
         r"""
         Iterator over all proper faces of specified dimension.
