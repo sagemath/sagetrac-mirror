@@ -1124,7 +1124,37 @@ cdef class CombinatorialPolyhedron(SageObject):
             raise ValueError("could not determine f_vector")
         return self._f_vector
 
-    def simpliness(self):
+    def simpliciality(self):
+        r"""
+        Return the largest `k` such that the polytope is `k`-simplicial.
+
+        Return the dimension in case of a simplex.
+
+        A polytope is `k`-simplicial, if every `k`-face is a simplex.
+
+        EXAMPLES::
+
+            sage: cyclic = polytopes.cyclic_polytope(10,4)
+            sage: CombinatorialPolyhedron(cyclic).simpliciality()
+            3
+
+            sage: hypersimplex = polytopes.hypersimplex(5,2)
+            sage: CombinatorialPolyhedron(hypersimplex).simpliciality()
+            2
+
+            sage: cross = polytopes.cross_polytope(4)
+            sage: P = cross.join(cross)
+            sage: CombinatorialPolyhedron(P).simpliciality()
+            3
+
+            sage: P = polytopes.simplex(3)
+            sage: CombinatorialPolyhedron(P).simpliciality()
+            3
+
+            sage: P = polytopes.simplex(1)
+            sage: CombinatorialPolyhedron(P).simpliciality()
+            1
+        """
         if not self.is_bounded():
             raise NotImplementedError("must be bounded")
         cdef FaceIterator face_iter = self._face_iter(False, -2)
@@ -1135,9 +1165,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             # A simplex.
             return self.dimension()
 
-        cdef simpliness = d - 1
+        cdef simpliciality = dim - 1
 
         # For each face in the iterator, check if its a simplex.
+        face_iter.lowest_dimension = 2 # every 1-face is a simplex
         d = face_iter.next_dimension()
         while (d < dim):
             sig_check()
@@ -1146,9 +1177,10 @@ cdef class CombinatorialPolyhedron(SageObject):
                 face_iter.ignore_subfaces()
             else:
                 # Current face is not a simplex.
-                if simpliness > d:
-                    simpliness = d
+                if simpliciality > d - 1:
+                    simpliciality = d - 1
             d = face_iter.next_dimension()
+        return smallInteger(simpliciality)
 
     def face_iter(self, dimension=None, dual=None):
         r"""
