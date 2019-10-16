@@ -8,6 +8,8 @@ from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 
 @cython.final
 cdef class CombinatorialPolyhedron(SageObject):
+    cdef public dict __cached_methods
+
     # Do not assume any of those attributes to be initialized, use the corresponding methods instead.
     cdef tuple _V                       # the names of VRep, if they exist
     cdef tuple _H                       # the names of HRep, if they exist
@@ -22,8 +24,6 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef ListOfFaces _far_face          # a 'face' containing all none-vertices of Vrepr
     cdef tuple _far_face_tuple
     cdef tuple _f_vector
-    cdef _simpliciality
-    cdef _simpliness
 
     # Edges, ridges and incidences are stored in a pointer of pointers.
     # The first edge has vertices ``edges[0][0]`` and ``edges[0][1]``,

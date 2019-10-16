@@ -98,6 +98,7 @@ from .conversions \
                incidence_matrix_to_bit_repr_of_Vrepr, \
                facets_tuple_to_bit_repr_of_facets, \
                facets_tuple_to_bit_repr_of_Vrepr
+from sage.misc.cachefunc            import cached_method
 
 from sage.rings.integer             cimport smallInteger
 from cysignals.signals              cimport sig_check, sig_block, sig_unblock
@@ -1124,6 +1125,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             raise ValueError("could not determine f_vector")
         return self._f_vector
 
+    @cached_method
     def simpliciality(self):
         r"""
         Return the largest `k` such that the polytope is `k`-simplicial.
@@ -1154,10 +1156,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.simplex(1)
             sage: CombinatorialPolyhedron(P).simpliciality()
             1
-        """
-        if self._simpliciality:
-            return smallInteger(self._simpliciality)
 
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.simpliciality is C.simpliciality
+            True
+        """
         if not self.is_bounded():
             raise NotImplementedError("must be bounded")
         cdef FaceIterator face_iter = self._face_iter(False, -2)
@@ -1186,9 +1192,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             if simpliciality == 1:
                 # Every polytope is 1-simplicial.
                 d = dim
-        self._simpliciality = simpliciality
         return smallInteger(simpliciality)
 
+    @cached_method
     def simpliness(self):
         r"""
         Return the largest `k` such that the polytope is `k`-simple.
@@ -1221,10 +1227,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.simplex(1)
             sage: CombinatorialPolyhedron(P).simpliness()
             1
-        """
-        if self._simpliness:
-            return smallInteger(self._simpliness)
 
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.simpliness is C.simpliness
+            True
+        """
         if not self.is_bounded():
             raise NotImplementedError("must be bounded")
         cdef FaceIterator face_iter = self._face_iter(True, -2)
@@ -1253,7 +1263,6 @@ cdef class CombinatorialPolyhedron(SageObject):
             if simpliness == 1:
                 # Every polytope is 1-simple.
                 d = dim
-        self._simpliness = simpliness
         return smallInteger(simpliness)
 
     def face_iter(self, dimension=None, dual=None):
