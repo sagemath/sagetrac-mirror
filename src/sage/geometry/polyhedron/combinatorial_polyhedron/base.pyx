@@ -1182,6 +1182,66 @@ cdef class CombinatorialPolyhedron(SageObject):
             d = face_iter.next_dimension()
         return smallInteger(simpliciality)
 
+    def simpliness(self):
+        r"""
+        Return the largest `k` such that the polytope is `k`-simple.
+
+        Return the dimension in case of a simplex.
+
+        A polytope `P` is `k`-simple, if for every face `F`
+        of codimension `k` the polytope `P/F` is simple.
+
+        Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
+
+        EXAMPLES::
+
+            sage: hyper4 = polytopes.hypersimplex(4,2)
+            sage: CombinatorialPolyhedron(hyper4).simpliness()
+            1
+
+            sage: hyper5 = polytopes.hypersimplex(5,2)
+            sage: CombinatorialPolyhedron(hyper5).simpliness()
+            2
+
+            sage: hyper6 = polytopes.hypersimplex(6,2)
+            sage: CombinatorialPolyhedron(hyper6).simpliness()
+            3
+
+            sage: P = polytopes.simplex(3)
+            sage: CombinatorialPolyhedron(P).simpliness()
+            3
+
+            sage: P = polytopes.simplex(1)
+            sage: CombinatorialPolyhedron(P).simpliness()
+            1
+        """
+        if not self.is_bounded():
+            raise NotImplementedError("must be bounded")
+        cdef FaceIterator face_iter = self._face_iter(True, -2)
+        cdef int d
+        cdef int dim = self.dimension()
+
+        if self.n_facets() == self.dimension() + 1:
+            # A simplex.
+            return self.dimension()
+
+        cdef simpliness = dim - 1
+
+        # For each coface in the iterator, check if its a simplex.
+        face_iter.lowest_dimension = 2 # every coface of dimension 1 is a simplex
+        d = face_iter.next_dimension()
+        while (d < dim):
+            sig_check()
+            if face_iter.length_atom_repr() == d + 1:
+                # The current face is a simplex.
+                face_iter.ignore_supfaces()
+            else:
+                # Current coface is not a simplex.
+                if simpliness > d - 1:
+                    simpliness = d - 1
+            d = face_iter.next_dimension()
+        return smallInteger(simpliness)
+
     def face_iter(self, dimension=None, dual=None):
         r"""
         Iterator over all proper faces of specified dimension.
