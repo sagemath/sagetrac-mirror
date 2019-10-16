@@ -45,7 +45,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple equalities(self)
     cdef unsigned int length_Vrepr(self)
     cdef unsigned int length_Hrepr(self)
-    cdef bint bounded(self)
+    cdef bint is_bounded(self)
     cdef ListOfFaces bitrep_facets(self)
     cdef ListOfFaces bitrep_Vrepr(self)
     cdef ListOfFaces far_face(self)
