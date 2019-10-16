@@ -1368,8 +1368,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:         x = K.random_element()
             ....:         y = x^r
             ....:         if y.nth_root(r)**r != y: raise RuntimeError
+            ....:         if y.nth_root(r, algorithm='AMM')**r != y: raise RuntimeError
             ....:         if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
+            ....:         if (y^41).nth_root(41*r, algorithm='AMM')**(41*r) != y^41: raise RuntimeError
             ....:         if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
+            ....:         if (y^307).nth_root(307*r, algorithm='AMM')**(307*r) != y^307: raise RuntimeError
 
             sage: for t in range(200):
             ....:     n = randint(1,2^63)
@@ -1379,7 +1382,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:     try:
             ....:         a = b.nth_root(e)
             ....:         if a^e != b:
-            ....:             print(n, b, e, a)
+            ....:             print("Johnston", n, b, e, a)
+            ....:             raise NotImplementedError
+            ....:         a2 = b.nth_root(e, algorithm='AMM')
+            ....:         if a2^e != b:
+            ....:             print("AMM", n, b, e, a2)
             ....:             raise NotImplementedError
             ....:     except ValueError:
             ....:         pass
@@ -1388,11 +1395,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
             sage: mod(-1, 4489).nth_root(2, all=True)
             []
+            sage: mod(-1, 4489).nth_root(2, all=True, algorithm='AMM')
+            []
 
         Check that the code path cunningham might be used::
 
             sage: a = Mod(9,11)
             sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham
+            [3, 8]
+            sage: a.nth_root(2, False, True, 'AMM', cunningham = True) # optional - cunningham
             [3, 8]
 
         ALGORITHMS:

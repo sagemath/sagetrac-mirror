@@ -57,12 +57,13 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 else: return self
             else:
                 if algorithm is None or algorithm == 'Johnston':
-                    # the following may eventually be improved to not need a multiplicative generator.
+                    # the AMM algorithm does not rely on a multiplicative generator.
                     g = K.multiplicative_generator()
                     q1overn = (q-1)//gcd
                     nthroot = g**q1overn
                     return [nthroot**a for a in range(gcd)] if all else nthroot
                 elif algorithm == 'AMM':
+                    n = n.gcd(q-1)
                     if cunningham:
                         from sage.rings.factorint import factor_cunningham
                         F = factor_cunningham(n)
@@ -140,7 +141,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
                     if r < 10: # arbitrarily chosen, in most cases r is small
                         lam = 1
                         while not (A*G**lam).is_one():
-                            lam += one
+                            lam += 1
                     else:
                         lam = r - discrete_log(A, G, r, operation='*')
                     self *= g**(lam*r**(k-J))
@@ -758,12 +759,19 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ....:             x = K.random_element()
             ....:             y = x^r
             ....:             assert y.nth_root(r)^r == y
+            ....:             assert y.nth_root(r, algorithm='AMM')^r == y
             ....:             assert (y^41).nth_root(41*r)^(41*r) == y^41
+            ....:             assert (y^41).nth_root(41*r, algorithm='AMM')^(41*r) == y^41
             ....:             assert (y^307).nth_root(307*r)^(307*r) == y^307
+            ....:             assert (y^307).nth_root(307*r, algorithm='AMM')^(307*r) == y^307
             sage: k.<a> = GF(4)
             sage: a.nth_root(0,all=True)
             []
+            sage: a.nth_root(0,all=True, algorithm='AMM')
+            []
             sage: k(1).nth_root(0,all=True)
+            [a, a + 1, 1]
+            sage: k(1).nth_root(0,all=True, algorithm='AMM')
             [a, a + 1, 1]
 
         ALGORITHMS:
