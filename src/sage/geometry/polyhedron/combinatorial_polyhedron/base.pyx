@@ -1155,6 +1155,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: CombinatorialPolyhedron(P).simpliciality()
             1
         """
+        if self._simpliciality:
+            return smallInteger(self._simpliciality)
+
         if not self.is_bounded():
             raise NotImplementedError("must be bounded")
         cdef FaceIterator face_iter = self._face_iter(False, -2)
@@ -1180,6 +1183,10 @@ cdef class CombinatorialPolyhedron(SageObject):
                 if simpliciality > d - 1:
                     simpliciality = d - 1
             d = face_iter.next_dimension()
+            if simpliciality == 1:
+                # Every polytope is 1-simplicial.
+                d = dim
+        self._simpliciality = simpliciality
         return smallInteger(simpliciality)
 
     def simpliness(self):
@@ -1215,6 +1222,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: CombinatorialPolyhedron(P).simpliness()
             1
         """
+        if self._simpliness:
+            return smallInteger(self._simpliness)
+
         if not self.is_bounded():
             raise NotImplementedError("must be bounded")
         cdef FaceIterator face_iter = self._face_iter(True, -2)
@@ -1240,6 +1250,10 @@ cdef class CombinatorialPolyhedron(SageObject):
                 if simpliness > d - 1:
                     simpliness = d - 1
             d = face_iter.next_dimension()
+            if simpliness == 1:
+                # Every polytope is 1-simple.
+                d = dim
+        self._simpliness = simpliness
         return smallInteger(simpliness)
 
     def face_iter(self, dimension=None, dual=None):
