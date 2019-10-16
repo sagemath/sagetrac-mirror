@@ -9,8 +9,8 @@ from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 @cython.final
 cdef class CombinatorialPolyhedron(SageObject):
     # Do not assume any of those attributes to be initialized, use the corresponding methods instead.
-    cdef tuple _V                       # the names of VRep, if they exist
-    cdef tuple _H                       # the names of HRep, if they exist
+    cdef tuple _Vrep                    # the names of VRep, if they exist
+    cdef tuple _facet_names             # the names of HRep without equalities, if they exist
     cdef tuple _equalities              # stores equalities, given on input (might belong to Hrep)
     cdef int _dimension                 # stores dimension, -2 on init
     cdef unsigned int _length_Hrepr     # Hrepr might include equalities
@@ -38,10 +38,10 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef size_t _n_ridges
     cdef size_t **_face_lattice_incidences  # stores incidences in Hasse diagram labeled indices of the faces
     cdef size_t _n_face_lattice_incidences
-    cdef PolyhedronFaceLattice _all_faces          # class to generate Hasse diagram incidences
+    cdef PolyhedronFaceLattice _all_faces   # class to generate Hasse diagram incidences
 
-    cdef tuple V(self)
-    cdef tuple H(self)
+    cdef tuple Vrep(self)
+    cdef tuple facet_names(self)
     cdef tuple equalities(self)
     cdef unsigned int length_Vrepr(self)
     cdef unsigned int length_Hrepr(self)
