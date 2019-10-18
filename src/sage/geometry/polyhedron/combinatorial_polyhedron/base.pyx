@@ -184,7 +184,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     an integer::
 
         sage: CombinatorialPolyhedron(-1).f_vector()
-        (1,)
+        (1)
         sage: CombinatorialPolyhedron(0).f_vector()
         (1, 1)
         sage: CombinatorialPolyhedron(5).f_vector()
@@ -206,7 +206,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: C
         A 2-dimensional combinatorial polyhedron with 2 facets
         sage: C.f_vector()
-        (1, 1, 2, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: not all vertices are intersections of facets
         sage: C.vertices()
         (A line in the direction (0, 1), A vertex at (1, 0), A vertex at (-1, 0))
 
@@ -252,15 +254,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         (A vertex at (0, 0),)
         sage: data = P.incidence_matrix()
         sage: vert = P.Vrepresentation()
-        sage: C = CombinatorialPolyhedron(data, Vrepr=vert)
-        sage: C
-        A 2-dimensional combinatorial polyhedron with 2 facets
-        sage: C.f_vector()
-        (1, 1, 2, 1)
-        sage: C.vertices()
-        (A vertex at (0, 0),
-         A ray in the direction (0, 1),
-         A ray in the direction (1, 0))
         sage: far_face = [i for i in range(3) if not P.Vrepresentation()[i].is_vertex()]
         sage: C = CombinatorialPolyhedron(data, Vrepr=vert, unbounded=True, far_face=far_face)
         sage: C
@@ -272,7 +265,19 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(3r)
         A 3-dimensional combinatorial polyhedron with 0 facets
 
+    Check that on wrong input subsequent calls of ``f_vector`` fail::
 
+        sage: data = P.incidence_matrix()
+        sage: vert = P.Vrepresentation()
+        sage: C = CombinatorialPolyhedron(data, Vrepr=vert)
+        sage: C.f_vector()
+        Traceback (most recent call last):
+        ...
+        ValueError: not all vertices are intersections of facets
+        sage: C.f_vector()
+        Traceback (most recent call last):
+        ...
+        ValueError: not all vertices are intersections of facets
     """
     def __init__(self, data, Vrepr=None, facets=None, unbounded=False, far_face=None):
         r"""
@@ -759,7 +764,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: C = CombinatorialPolyhedron(-1)
             sage: C.f_vector()
-            (1,)
+            (1)
             sage: C.n_facets()
             0
 
@@ -1117,12 +1122,19 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.f_vector()
             (1, 10, 45, 120, 185, 150, 50, 1)
+
+        TESTS::
+
+            sage: type(C.f_vector())
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         """
         if not self._f_vector:
             self._compute_f_vector()
         if not self._f_vector:
             raise ValueError("could not determine f_vector")
-        return self._f_vector
+        from sage.modules.free_module_element import vector
+        from sage.rings.all                   import ZZ
+        return vector(ZZ, self._f_vector)
 
     def face_iter(self, dimension=None, dual=None):
         r"""
@@ -1526,11 +1538,21 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Copy ``f_vector``.
         if dual:
+            if dim > 1 and f_vector[1] < self.n_facets():
+                # The input seemed to be wrong.
+                raise ValueError("not all facets are joins of vertices")
+
             # We have computed the ``f_vector`` of the dual.
             # Reverse it:
             self._f_vector = \
                 tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
+
         else:
+            if not self.unbounded() and dim > 1 \
+                    and f_vector[1] < self.length_Vrepr() - len(self.far_face_tuple()):
+                # The input seemed to be wrong.
+                raise ValueError("not all vertices are intersections of facets")
+
             self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
 
     cdef int _compute_edges(self, dual) except -1:
