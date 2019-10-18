@@ -1538,7 +1538,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Copy ``f_vector``.
         if dual:
-            if dim > 1 and f_vector[1] < self._n_facets:
+            if dim > 1 and f_vector[1] < self.n_facets():
                 # The input seemed to be wrong.
                 raise ValueError("not all facets are joins of vertices")
 
@@ -1548,8 +1548,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
 
         else:
-            if not self._unbounded and dim > 1 \
-                    and f_vector[1] < self._length_Vrepr - len(self.far_face_tuple):
+            if not self.unbounded() and dim > 1 \
+                    and f_vector[1] < self.length_Vrepr() - len(self.far_face_tuple()):
                 # The input seemed to be wrong.
                 raise ValueError("not all vertices are intersections of facets")
 
