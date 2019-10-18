@@ -736,6 +736,41 @@ def preparse_numeric_literals(code, extract=False):
         '0xEA'
         sage: preparse_numeric_literals('0x1012Fae')
         'Integer(0x1012Fae)'
+
+    In Python syntax, leading 0s are not allowed in an integer unless
+    it is binary, octal, or hex. So '01234' is not preparsed, and
+    evaluating it leads to an error::
+
+        sage: preparse_numeric_literals('01234')
+        '01234'
+        sage: 01234
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
+
+    Test underscores as digit separators (PEP 515,
+    https://www.python.org/dev/peps/pep-0515/)::
+
+        sage: preparse_numeric_literals('123_456')
+        'Integer(123456)'
+        sage: preparse_numeric_literals('123_456.78_9_0')
+        "RealNumber('123456.7890')"
+        sage: preparse_numeric_literals('0b11_011')
+        'Integer(0b11011)'
+        sage: preparse_numeric_literals('0o76_321')
+        'Integer(0o76321)'
+        sage: preparse_numeric_literals('0xaa_aaa')
+        'Integer(0xaaaaa)'
+
+    Multiple consecutive underscores are not valid Python syntax, so
+    it is not preparsed::
+
+        sage: preparse_numeric_literals('123__45')
+        '123__45'
+        sage: 123__45
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
     """
     literals = {}
     last = 0
@@ -743,20 +778,44 @@ def preparse_numeric_literals(code, extract=False):
 
     global all_num_regex
     if all_num_regex is None:
-        dec_num = r"\b\d+"
-        hex_num = r"\b0x[0-9a-f]+"
-        oct_num = r"\b0o[0-7]+"
-        bin_num = r"\b0b[01]+"
+        # Include underscores along with digits: they "can be used to
+        # group digits to enhance reability": PEP 515 and
+        # https://docs.python.org/3/reference/lexical_analysis.html#integer-literals
+        hex_num = r"\b0x[0-9a-f_]+"
+        oct_num = r"\b0o[0-7_]+"
+        bin_num = r"\b0b[01_]+"
         # This is slightly annoying as floating point numbers may start
         # with a decimal point, but if they do the \b will not match.
-        float_num = r"((\b\d+([.]\d*)?)|([.]\d+))(e[-+]?\d+)?"
-        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num, dec_num)
+        #
+        # Note that the '.' is optional in the following, so this
+        # regex matches integers. It matches too much, in particular
+        # integers with leading 0s: this is necessary to match
+        # decimals like '0.123'. Integers with leading 0s are not
+        # valid Python syntax, so we filter those out later.
+        float_num = r"((\b\d[\d_]*([.][\d_]*)?)|([.][\d_]+))(e[-+]?[\d_]+)?"
+        all_num = r"((%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num)
         all_num_regex = re.compile(all_num, re.I)
 
     for m in all_num_regex.finditer(code):
         start, end = m.start(), m.end()
         num = m.group(1)
         postfix = m.groups()[-1].upper()
+
+        # If there are no digits, bail out (we do not want to preparse "A._B").
+        if not re.search(r"\d", num):
+            continue
+
+        # Multiple consecutive underscores is invalid Python
+        # syntax. Do not preparse.
+        if num.find('__') != -1:
+            continue
+
+        # Python integers should not begin with 0 unless they're
+        # binary, octal, or hex. Do not preparse ordinary integers
+        # with leading 0s.
+        if (len(num) > 1 and num[0] == '0' and num[1].lower() not in 'box' and
+            num.find('.') == -1 and num.find('e') == -1):
+                continue
 
         if 'R' in postfix:
             if not six.PY2:
@@ -792,6 +851,9 @@ def preparse_numeric_literals(code, extract=False):
                     num += '.'
 
             num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
+
+            # Remove underscores.
+            num = num.replace('_', '')
 
             if 'J' in postfix:
                 num_make = "ComplexNumber(0, '%s')" % num
