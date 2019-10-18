@@ -1470,7 +1470,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     cdef bint is_bounded(self):
         r"""
-        Return whether the polyhedron is unbounded.
+        Return whether the polyhedron is bounded.
         """
         return self._bounded
 
@@ -1548,7 +1548,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
 
         else:
-            if not self.unbounded() and dim > 1 \
+            if self.is_bounded() and dim > 1 \
                     and f_vector[1] < self.length_Vrepr() - len(self.far_face_tuple()):
                 # The input seemed to be wrong.
                 raise ValueError("not all vertices are intersections of facets")
