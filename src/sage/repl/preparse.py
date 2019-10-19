@@ -742,16 +742,29 @@ def preparse_numeric_literals(code, extract=False):
         sage: preparse_numeric_literals('0x1012Fae')
         'Integer(0x1012Fae)'
 
-    In Python syntax, leading 0s are not allowed in an integer unless
+    In Python 3 syntax, leading 0s are not allowed in an integer unless
     it is binary, octal, or hex. So '01234' is not preparsed, and
     evaluating it leads to an error::
 
-        sage: preparse_numeric_literals('01234')
+        sage: preparse_numeric_literals('01234') # py3
         '01234'
-        sage: 01234
+        sage: 01234 # py3
         Traceback (most recent call last):
         ...
         SyntaxError: invalid token
+
+    In Python 2, a leading 0 means octal, although this usage is
+    deprecated::
+
+        sage: preparse_numeric_literals('010') # py2
+        "Integer('010')"
+        sage: 010 # py2
+        doctest:warning
+        ...
+        DeprecationWarning: use 0o as octal prefix instead of 0
+        If you do not want this number to be interpreted as octal, remove the leading zeros.
+        See http://trac.sagemath.org/17413 for details.
+        8
 
     Test underscores as digit separators (PEP 515,
     https://www.python.org/dev/peps/pep-0515/)::
@@ -772,13 +785,22 @@ def preparse_numeric_literals(code, extract=False):
 
         sage: preparse_numeric_literals('123__45')
         '123__45'
-        sage: 123__45
+        sage: 123__45 # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 123__45 # py3
         Traceback (most recent call last):
         ...
         SyntaxError: invalid token
+
         sage: preparse_numeric_literals('3040_1_')
         '3040_1_'
-        sage: 3040_1_
+        sage: 3040_1_ # py2
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: 3040_1_ # py3
         Traceback (most recent call last):
         ...
         SyntaxError: invalid token
@@ -826,11 +848,12 @@ def preparse_numeric_literals(code, extract=False):
         if num.endswith('_'):
             continue
 
-        # Python integers should not begin with 0 unless they're
+        # In Python 3, integers should not begin with 0 unless they're
         # binary, octal, or hex. Do not preparse ordinary integers
         # with leading 0s.
-        if (len(num) > 1 and num[0] == '0' and num[1].lower() not in 'box' and
-            num.find('.') == -1 and num.find('e') == -1):
+        if (six.PY3 and len(num) > 1 and num[0] == '0' and
+            num[1].lower() not in 'box' and num.find('.') == -1 and
+            num.find('e') == -1):
                 continue
 
         if 'R' in postfix:
