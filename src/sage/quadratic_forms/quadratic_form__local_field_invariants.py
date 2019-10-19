@@ -4,8 +4,7 @@ Local Field Invariants
 This contains routines to compute local (p-adic) invariants of
 quadratic forms over the rationals.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
 #       Copyright (C) 2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
@@ -13,8 +12,8 @@ quadratic forms over the rationals.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
 ###########################################################################
@@ -288,7 +287,7 @@ def _rational_diagonal_form_and_transformation(self):
 
 def signature_vector(self):
     """
-    Returns the triple `(p, n, z)` of integers where
+    Return the triple `(p, n, z)` of integers where
 
     - `p` = number of positive eigenvalues
     - `n` = number of negative eigenvalues
@@ -327,18 +326,36 @@ def signature_vector(self):
         sage: Q.signature_vector()
         (3, 1, 0)
 
+    Test for :trac:`28635`::
+
+        sage: K.<z> = CyclotomicField(8)
+        sage: a = z-z^3
+        sage: Q = QuadraticForm(K,8,[1/2,-a/2,0,0,0,0,0,0,1/2,
+        ....:     -a/2,0,0,0,0,0,1/2,-1/2,0,0,
+        ....:     0,0,1/2,-1/2,0,0,0,1/2,-1/2,0,0,1/2,-a/2,0,1/2,-a/2,1/2])
+        sage: Q.signature_vector()
+        (6, 2, 0)
     """
     diag = self.rational_diagonal_form()
     p = 0
     n = 0
     z = 0
-    for i in range(diag.dim()):
-        if diag[i,i] > 0:
-            p += 1
-        elif diag[i,i] < 0:
-            n += 1
-        else:
-            z += 1
+    try:
+        for i in range(diag.dim()):
+            if diag[i, i].sign() == 1:
+                p += 1
+            elif diag[i, i].sign() == -1:
+                n += 1
+            else:
+                z += 1
+    except AttributeError:
+        for i in range(diag.dim()):
+            if diag[i, i] > 0:
+                p += 1
+            elif diag[i, i] < 0:
+                n += 1
+            else:
+                z += 1
 
     return (p, n, z)
 
@@ -384,7 +401,7 @@ def signature(self):
         2
 
     """
-    (p, n, z) = self.signature_vector()
+    p, n, z = self.signature_vector()
     return p - n
 
 
