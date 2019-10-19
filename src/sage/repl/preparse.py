@@ -91,6 +91,11 @@ Raw and hex work correctly::
     sage: type(0Xa1R)
     <type 'int'>
 
+The preparser can handle PEP 515 (see :trac:`28490`)::
+
+    sage: 1_000_000 + 3_000
+    1003000
+
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
 
@@ -762,12 +767,18 @@ def preparse_numeric_literals(code, extract=False):
         sage: preparse_numeric_literals('0xaa_aaa')
         'Integer(0xaaaaa)'
 
-    Multiple consecutive underscores are not valid Python syntax, so
-    it is not preparsed::
+    Having consecutive underscores is not valid Python syntax, so
+    it is not preparsed, and similarly with a trailing underscore::
 
         sage: preparse_numeric_literals('123__45')
         '123__45'
         sage: 123__45
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid token
+        sage: preparse_numeric_literals('3040_1_')
+        '3040_1_'
+        sage: 3040_1_
         Traceback (most recent call last):
         ...
         SyntaxError: invalid token
@@ -808,6 +819,11 @@ def preparse_numeric_literals(code, extract=False):
         # Multiple consecutive underscores is invalid Python
         # syntax. Do not preparse.
         if num.find('__') != -1:
+            continue
+
+        # Trailing underscore is invalid Python syntax. Do not
+        # preparse.
+        if num.endswith('_'):
             continue
 
         # Python integers should not begin with 0 unless they're
