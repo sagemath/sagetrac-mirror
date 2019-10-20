@@ -54,12 +54,6 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
         from sage.typeset.unicode_art import unicode_art
         return unicode_art(self.value)
 
-    def __nonzero__(self):
-        """
-        Return if ``self`` is non-zero.
-       """
-        return bool(self.value)
-
     def _add_(self, right):
         """
         Add ``self`` and ``rhs``.
@@ -75,6 +69,7 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
     # Need to bypass the coercion model
     def _mul_(left, right):
         return left.lift()*right
+
     def __neg__(self):
         """
         Return the negation of ``self``.
@@ -102,7 +97,7 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
         """
         Return the monomial coefficients of ``self`` as a dictionary.
        """
-        return self.value.monomial_coefficients()
+        return self.value.monomial_coefficients() 
              
 
 class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
@@ -113,7 +108,32 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
 
     def _bracket_(self, right):
         """
-        Return the lambda bracket ``[self_\lambda right]``.
+        Return the lambda bracket of these two elements.
+
+        The result is a dictionary with non-negative integer keys. The value
+        corresponding to the entry `j` is ``self_{(j)}right``
+
+        EXAMPLES::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: L.bracket(L)
+            {0: TL, 1: 2*L, 3: 1/2*C}
+            sage: L.T().bracket(L)
+            {1: -TL, 2: -4*L, 4: -2*C}
+
+        When the Lie conformal algebra is actually a vertex algebra, elements
+        are denoted in a different fashion::
+
+            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V.inject_variables()
+            Defining L
+            sage: L.bracket(L*L)
+            {0: L_-5|0>+2*L_-3L_-2|0>,
+             1: 4*L_-2L_-2|0>,
+             2: 3*L_-3|0>,
+             3: 17/2*L_-2|0>,
+             5: 3/2*|0>}
+
         """
         p = self.parent()
         l1 = self.monomial_coefficients()
@@ -158,13 +178,6 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
                             l1[i]*l2[j]*b[1].T(l) 
         return { k:ret[k] for k in ret.keys() if ret[k] }
         
-
-    def to_vector(self):
-        """
-        Return ``self`` as a vector.
-       """
-        return self.value
-
 
     def __getitem__(self, i):
         """
