@@ -1,8 +1,4 @@
 
-
-:orphan:
-
-
 Let `R` be a ring. A *Vertex algebra* [Kac1997]_ over `R` is the datum of:
 
 - an `R` module `V` called *the space of states*

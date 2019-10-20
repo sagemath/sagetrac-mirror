@@ -3,6 +3,9 @@ Poisson vertex algebra
 AUTHORS
 
 - Reimundo Heluani (08-09-2019): Initial implementation
+
+.. include:: ../../../vertex_algebras/poisson_vertex_algebra_desc.rst
+
 """
 
 
