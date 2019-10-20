@@ -131,7 +131,7 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
             sage: L.bracket(L)
             {0: TL, 1: 2*L, 3: 1/2*C}
             sage: L.T().bracket(L)
@@ -198,10 +198,43 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
     def __getitem__(self, i):
         """
         Return the coefficient of the basis element indexed by ``i``.
+
+        ``i`` must be a basis element of this Lie conformal algebra
+
+        EXAMPLES::
+
+            sage: V = VirasoroLieConformalAlgebra(QQ); V.inject_variables()
+            Defining L, C
+            sage: v = L + 2*L.T() + 3/2*C; v.monomial_coefficients()
+            {TL: 2, L: 1, C: 3/2}
+            sage: v[L]
+            1
+            sage: v[C]
+            3/2
+
        """
-        return self.value[self.parent()._indices.index(i)]
+        return self.monomial_coefficients()[i]
 
     def _repr_(self):
+        r"""
+        A visual representation of this element
+
+        For a free generator `L`, the element `\frac{T^{j}}{j!}L` is denoted by
+        ``T^(j)L``.
+
+        EXAMPLES::
+
+            sage: V = VirasoroLieConformalAlgebra(QQ); V.inject_variables()
+            Defining L, C
+            sage: v = L.T(5).nproduct(L,6); v
+            -1440*L
+            sage: L.T(2) + L + C
+            C+2*T^(2)L+L
+            sage: L.T(4)
+            24*T^(4)L
+
+        """
+
         if self == self.parent().zero():
             return "0";
         coeff = self.value.monomial_coefficients().items()
@@ -223,6 +256,24 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
         return ret
     
     def _latex_(self):
+        r"""
+        A visual representation of this element
+
+        For a free generator `L`, the element `\frac{T^{j}}{j!}L` is denoted by
+        ``T^(j)L``.
+
+        EXAMPLES::
+
+            sage: V = VirasoroLieConformalAlgebra(QQ); V.inject_variables()
+            Defining L, C
+            sage: v = L.T(5).nproduct(L,6); latex(v)
+            -1440*L
+            sage: latex(L.T(3))
+            6*T^{(3)}L
+            sage: latex(L.T(2)  + C)
+            C+2*T^{(2)}L
+
+        """
         if self == self.parent().zero():
             return "0";
         coeff = self.value.monomial_coefficients().items()
