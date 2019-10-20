@@ -74,7 +74,7 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
             return self.zero()
         try: 
             x = self.module()(x)
-        except TypeError:
+        except TypeError, ValueError:
             raise ValueError("Don't know how to convert {0} into an element of "\
                              "{1}".format(x,self))
         return self.element_class(self,x)
@@ -128,7 +128,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
         if central_elements is not None:
             self._generators = self._generators + tuple(central_elements)
             E = DisjointUnionEnumeratedSets((E, cartesian_product([
-                tuple(central_elements), {0}])))
+                tuple(central_elements), {Integer(0)}])))
     
         super(LieConformalAlgebraWithGenerators,self).__init__(R,names=names, 
             index_set=E, category=category, prefix=prefix, **kwds)
