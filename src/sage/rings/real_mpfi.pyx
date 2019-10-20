@@ -3829,7 +3829,7 @@ cdef class RealIntervalFieldElement(RingElement):
             See http://trac.sagemath.org/22907 for details.
             0
         """
-        from sage.misc.superseded import deprecation
+        from sage.misc.superseded import deprecation_cython as deprecation
         deprecation(22907, 'for RIF elements, do not use cmp')
         return self.lexico_cmp(other)
 

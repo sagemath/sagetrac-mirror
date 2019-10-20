@@ -151,7 +151,7 @@ cdef class SymbolicSeries(Expression):
             See http://trac.sagemath.org/17659 for details.
             True
         """
-        from sage.misc.superseded import deprecation
+        from sage.misc.superseded import deprecation_cython as deprecation
         deprecation(17659, "ex.is_series() is deprecated. Use isinstance(ex, sage.symbolic.series.SymbolicSeries) instead")
         return True
 

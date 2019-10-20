@@ -4112,7 +4112,7 @@ cpdef bin_op(x, y, op):
 
 
 def coerce(Parent p, x):
-    from sage.misc.superseded import deprecation
+    from sage.misc.superseded import deprecation_cython as deprecation
     deprecation(25236, "sage.structure.element.coerce is deprecated")
     try:
         return p._coerce_c(x)

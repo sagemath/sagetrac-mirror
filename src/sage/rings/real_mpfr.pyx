@@ -130,7 +130,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.cpython.string cimport char_to_str, str_to_bytes
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.richcmp cimport rich_to_bool_sgn, rich_to_bool
@@ -5964,7 +5964,7 @@ def create_RealField(*args, **kwds):
         See http://trac.sagemath.org/24511 for details.
         Real Field with 53 bits of precision
     """
-    from sage.misc.superseded import deprecation
+    #deprecation has already been imported in this file
     deprecation(24511, "Please import create_RealField from sage.rings.real_field")
     from sage.rings.real_field import create_RealField as cr
     return cr(*args, **kwds)

@@ -154,7 +154,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.sage_object cimport SageObject

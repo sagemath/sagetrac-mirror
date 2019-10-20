@@ -1632,7 +1632,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             See http://trac.sagemath.org/23133 for details.
             0
         """
-        from sage.misc.superseded import deprecation
+        from sage.misc.superseded import deprecation_cython as deprecation
         deprecation(23133, 'for CIF elements, do not use cmp')
         return self.lexico_cmp(other)
 

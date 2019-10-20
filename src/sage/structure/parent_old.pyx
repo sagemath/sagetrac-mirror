@@ -103,7 +103,7 @@ cdef class Parent(parent.Parent):
                       From: Rational Field
                       To:   Multivariate Polynomial Ring in q, t over Rational Field
         """
-        from sage.misc.superseded import deprecation
+        from sage.misc.superseded import deprecation_cython as deprecation
         deprecation(25236, "coerce_map_from_c is deprecated")
         return self.__coerce_map_from_c(S)
 
@@ -294,7 +294,7 @@ cdef class Parent(parent.Parent):
             See https://trac.sagemath.org/25236 for details.
             False
         """
-        from sage.misc.superseded import deprecation
+        from sage.misc.superseded import deprecation_cython as deprecation
         deprecation(25236, "has_coerce_map_from_c is deprecated")
         return self.__has_coerce_map_from_c(S)
 

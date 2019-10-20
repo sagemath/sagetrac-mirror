@@ -173,7 +173,7 @@ cimport sage.symbolic.comparison
 from sage.rings.rational import Rational
 from sage.misc.derivative import multi_derivative
 from sage.misc.decorators import sage_wraps
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class

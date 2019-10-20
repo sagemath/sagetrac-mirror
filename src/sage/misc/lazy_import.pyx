@@ -220,7 +220,7 @@ cdef class LazyImport(object):
         self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
         name = self._as_name
         if self._deprecation is not None:
-            from sage.misc.superseded import deprecation
+            from sage.misc.superseded import deprecation_cython as deprecation
             try:
                 trac_number, message = self._deprecation
             except TypeError:
