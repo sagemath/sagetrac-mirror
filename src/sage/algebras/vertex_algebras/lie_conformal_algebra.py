@@ -72,10 +72,12 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
             if x != 0:
                 raise ValueError("can only convert the scalar 0 into a Lie conformal algebra element")
             return self.zero()
-        if x in self.module():
-            return self.element_class(self,x)
-        raise ValueError("Don't know how to convert {0} into an element of "\
-                         "{1}".format(x,self))
+        try: 
+            x = self.module()(x)
+        except TypeError:
+            raise ValueError("Don't know how to convert {0} into an element of "\
+                             "{1}".format(x,self))
+        return self.element_class(self,x)
 
     @cached_method
     def zero(self):
@@ -347,7 +349,7 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
                 return Infinity
             p = self.parent()
             ls = []
-            for idx in self.monomial_coefficients().keys():
+            for idx in self.value.monomial_coefficients().keys():
                 ret = idx[1]
                 if idx[0] not in p._central_elements:
                     ret+= p._weights[p._index_to_pos[idx[0]]] 

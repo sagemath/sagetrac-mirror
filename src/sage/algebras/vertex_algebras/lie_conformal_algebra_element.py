@@ -96,8 +96,9 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
     def monomial_coefficients(self):
         """
         Return the monomial coefficients of ``self`` as a dictionary.
-       """
-        return self.value.monomial_coefficients() 
+        """
+        p = self.parent()
+        return { p(k):v for k,v in self.value.monomial_coefficients().items() }
              
 
 class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
@@ -136,8 +137,8 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
 
         """
         p = self.parent()
-        l1 = self.monomial_coefficients()
-        l2 = right.monomial_coefficients()
+        l1 = self.value.monomial_coefficients()
+        l2 = right.value.monomial_coefficients()
         s_coeff = p.structure_coefficients()
         ret = {}
         for i in l1.keys():
@@ -188,7 +189,7 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
     def _repr_(self):
         if self == self.parent().zero():
             return "0";
-        coeff = self.monomial_coefficients().items()
+        coeff = self.value.monomial_coefficients().items()
         ret = ""
         for i in range(len (coeff)):    
             #TODO: deal with this without using an ordering of the ring. 
@@ -209,7 +210,7 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
     def _latex_(self):
         if self == self.parent().zero():
             return "0";
-        coeff = self.monomial_coefficients().items()
+        coeff = self.value.monomial_coefficients().items()
         ret = ""
         for i in range(len (coeff)):    
             #TODO: deal with this without using an ordering of the ring. 
