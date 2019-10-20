@@ -687,7 +687,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                     """
                     if n == 0 :
                         return self
-                    coef = self.monomial_coefficients()
+                    coef = self.value.monomial_coefficients()
                     p = self.parent()
                     ret = p.zero()
                     for k in coef.keys():
@@ -762,7 +762,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                             "algebra")
                     V = p.lift.codomain()
                     ret = V.zero()
-                    for c in self.monomial_coefficients().items():
+                    for c in self.value.monomial_coefficients().items():
                         if p.monomial(c[0]) in p.central_elements():
                             ret += c[1]*V.central_parameters()[
                                         p.monomial(c[0])]*V.vacuum()
@@ -788,7 +788,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                     True
 
                 """
-                return (len(self.monomial_coefficients()) == 1  or self.is_zero())
+                return (len(self.value.monomial_coefficients()) == 1  or self.is_zero())
 
             def index(self):
                 r"""
@@ -811,7 +811,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                     return tuple()
                 if not self.is_monomial():
                     raise ValueError ("index can only be computed for monomials")
-                return self.monomial_coefficients().keys()[0]
+                return self.value.monomial_coefficients().keys()[0]
 
 
 class LiftMorphism(Morphism):
