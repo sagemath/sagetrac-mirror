@@ -101,7 +101,7 @@ Non-associative algebras
    sage/combinat/free_dendriform_algebra
    sage/combinat/free_prelie_algebra
    sage/algebras/shuffle_algebra
-   vertex_algebras
+   vertex_algebras/vertex_algebras
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt
