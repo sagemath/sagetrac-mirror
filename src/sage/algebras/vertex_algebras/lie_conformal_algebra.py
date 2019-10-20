@@ -3,6 +3,9 @@ Lie Conformal Algebras
 AUTHORS
 
 - Reimundo Heluani (08-09-2019): Initial implementation
+
+.. include:: ../../../vertex_algebras/lie_conformal_algebra_desc.rst
+
 """
 
 
