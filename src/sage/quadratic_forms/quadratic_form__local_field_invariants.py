@@ -3,6 +3,10 @@ Local Field Invariants
 
 This contains routines to compute local (p-adic) invariants of
 quadratic forms over the rationals.
+
+Some of the methods work for more general fields. For example,
+the signature methods also works over quadratic real fields and
+cyclotomic fields.
 """
 # ****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
@@ -198,6 +202,8 @@ def _rational_diagonal_form_and_transformation(self):
     Both ``D`` and ``T`` are defined over the fraction field of the
     base ring of the given form.
 
+    If possible, this uses :pari:`qfgaussred`.
+
     EXAMPLES::
 
         sage: Q = QuadraticForm(ZZ, 4, [1, 1, 0, 0, 1, 0, 0, 1, 0, 18])
@@ -286,22 +292,29 @@ def _rational_diagonal_form_and_transformation(self):
 
 
 def signature_vector(self):
-    """
+    r"""
     Return the triple `(p, n, z)` of integers where
 
     - `p` = number of positive eigenvalues
     - `n` = number of negative eigenvalues
     - `z` = number of zero eigenvalues
 
-    for the symmetric matrix associated to Q.
+    for the symmetric matrix associated to the quadratic form.
 
     INPUT:
 
-    (none)
+    - ``self`` -- a ``QuadraticForm``
 
     OUTPUT:
 
     a triple of integers >= 0
+
+    .. NOTE::
+
+        This works over rings in which elements have either a method `sign`
+        or a mathematically meaningful comparison function.
+        This includes `\ZZ`, `\QQ`, real quadratic fields
+        and the cyclotomic fields.
 
     EXAMPLES::
 
@@ -309,13 +322,9 @@ def signature_vector(self):
         sage: Q.signature_vector()
         (1, 1, 2)
 
-    ::
-
         sage: Q = DiagonalQuadraticForm(ZZ, [1,2,-3,-4])
         sage: Q.signature_vector()
         (2, 2, 0)
-
-    ::
 
         sage: Q = QuadraticForm(ZZ, 4, range(10)); Q
         Quadratic form in 4 variables over Integer Ring with coefficients:
@@ -326,10 +335,24 @@ def signature_vector(self):
         sage: Q.signature_vector()
         (3, 1, 0)
 
-    Test for :trac:`28635`::
+    TESTS:
+
+    Tests for :trac:`28635`::
+
+        sage: Q = QuadraticForm(QQ,3,[1/2,-1/3,0,1/5,0,-1/6])
+        sage: Q.signature_vector()
+        (2, 1, 0)
+
+        sage: K = QuadraticField(2)
+        sage: a = K.gen()
+        sage: Q = QuadraticForm(K,8,[1/2,-a/2,0,0,0,0,0,0,1/2,
+        ....:     -a/2,0,0,0,0,0,1/2,-1/2,0,0,
+        ....:     0,0,1/2,-1/2,0,0,0,1/2,-1/2,0,0,1/2,-a/2,0,1/2,-a/2,1/2])
+        sage: Q.signature_vector()
+        (6, 2, 0)
 
         sage: K.<z> = CyclotomicField(8)
-        sage: a = z-z^3
+        sage: a = z - z^3
         sage: Q = QuadraticForm(K,8,[1/2,-a/2,0,0,0,0,0,0,1/2,
         ....:     -a/2,0,0,0,0,0,1/2,-1/2,0,0,
         ....:     0,0,1/2,-1/2,0,0,0,1/2,-1/2,0,0,1/2,-a/2,0,1/2,-a/2,1/2])
@@ -337,33 +360,29 @@ def signature_vector(self):
         (6, 2, 0)
     """
     diag = self.rational_diagonal_form()
+    d = diag.dim()
     p = 0
     n = 0
     z = 0
     try:
-        for i in range(diag.dim()):
+        for i in range(d):
             if diag[i, i].sign() == 1:
                 p += 1
             elif diag[i, i].sign() == -1:
                 n += 1
-            else:
-                z += 1
     except AttributeError:
-        for i in range(diag.dim()):
+        for i in range(d):
             if diag[i, i] > 0:
                 p += 1
             elif diag[i, i] < 0:
                 n += 1
-            else:
-                z += 1
 
-    return (p, n, z)
-
+    return (p, n, d - p - n)
 
 
 def signature(self):
-    """
-    Returns the signature of the quadratic form, defined as:
+    r"""
+    Return the signature of the quadratic form, defined as:
 
        number of positive eigenvalues - number of negative eigenvalues
 
@@ -371,11 +390,18 @@ def signature(self):
 
     INPUT:
 
-        None
+    - ``self`` -- a ``QuadraticForm``
 
     OUTPUT:
 
-        an integer
+    an integer
+
+    .. NOTE::
+
+        This works over rings in which elements have either a method `sign`
+        or a mathematically meaningful comparison function.
+        This includes `\ZZ`, `\QQ`, real quadratic fields
+        and the cyclotomic fields.
 
     EXAMPLES::
 
@@ -399,7 +425,6 @@ def signature(self):
         [ * * * 9 ]
         sage: Q.signature()
         2
-
     """
     p, n, z = self.signature_vector()
     return p - n
