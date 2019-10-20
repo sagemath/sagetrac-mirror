@@ -942,6 +942,19 @@ class FriCASElement(ExpectElement):
         l = P('#(%s)' % self._name)
         return l.sage()
 
+    def __iter__(self):
+        """
+        Return an iterator over ``self``.
+
+        EXAMPLES::
+
+            sage: L = fricas([4,5,6])   # optional - fricas
+            sage: list(L)               # optional - fricas
+            [4, 5, 6]
+        """
+        for i in range(len(self)):
+            yield self[i]
+
     def __getitem__(self, n):
         """
         We implement the sage conventions here, translating to 0-based iterables.
@@ -972,7 +985,7 @@ class FriCASElement(ExpectElement):
         P = self._check_valid()
         # use "elt" instead of "." here because then the error
         # message is clearer
-        return P.new("elt(%s,%s)" % (self._name, n+1))
+        return P.new("elt(%s,%s)" % (self._name, n + 1))
 
     def __int__(self):
         """
@@ -1722,6 +1735,15 @@ class FriCASElement(ExpectElement):
             sage: fricas("integrate(sin((x^2+1)/x),x)").sage()                  # optional - fricas
             integral(sin((x^2 + 1)/x), x)
 
+        Polynomials::
+
+            sage: x, y = polygens(QQ,['x','y'])
+            sage: u = fricas(sqrt(2)*x+y**2); u      # optional - fricas
+             2    +-+
+            y  + \|2 x
+            sage: u.sage()                           # optional - fricas
+            y^2 + 1.414213562373095?*x
+
         .. TODO::
 
             - Converting matrices and lists takes much too long.
@@ -1841,6 +1863,11 @@ class FriCASElement(ExpectElement):
             return R([self.coefficient(i).sage()
                       for i in range(ZZ(self.degree()) + 1)])
 
+        if head == "IndexedExponents":
+            data = self.listOfTerms()
+            # data = list of records [k = variable, c = exponent]
+            return {str(pair.elt('k')): pair.elt('c').sage() for pair in data}
+
         # finally translate domains with InputForm
         try:
             unparsed_InputForm = P.get_unparsed_InputForm(self._name)
@@ -1890,7 +1917,15 @@ class FriCASElement(ExpectElement):
                 return base_ring(unparsed_InputForm)
             else:
                 R = PolynomialRing(base_ring, vars)
-                return R(unparsed_InputForm)
+                gens = R.variable_names()
+                coeffs = (base_ring(cf.sage()) for cf in self.coefficients())
+                monoms = (m.degree() for m in self.monomials())
+
+                def vers_exposant(idx):
+                    return tuple(idx[v] if v in idx else 0 for v in gens)
+
+                return R({vers_exposant(idx.sage()): cf
+                          for idx, cf in zip(monoms, coeffs)})
 
         if head in ["OrderedCompletion", "OnePointCompletion"]:
             # it would be more correct to get the type parameter
