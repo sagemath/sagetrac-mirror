@@ -971,6 +971,9 @@ class FriCASElement(ExpectElement):
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
 
+            sage: fricas("[1,2,3]")[-1]                                          # optional - fricas
+            3
+
             sage: fricas("[1,2,3]")[3]                                          # optional - fricas
             Traceback (most recent call last):
             ...
@@ -980,11 +983,13 @@ class FriCASElement(ExpectElement):
             index out of range
         """
         n = int(n)
-        if n < 0:
+        if n < -1:
             raise IndexError("index out of range")
         P = self._check_valid()
         # use "elt" instead of "." here because then the error
         # message is clearer
+        if n == -1:
+            return P.new("elt(%s,last)" % (self._name))
         return P.new("elt(%s,%s)" % (self._name, n + 1))
 
     def __int__(self):
@@ -1744,6 +1749,10 @@ class FriCASElement(ExpectElement):
             sage: u.sage()                           # optional - fricas
             y^2 + 1.414213562373095?*x
 
+            sage: f = fricas(x+1/5)                  # optional - fricas
+            sage: f.sage()                           # optional - fricas
+            x + 1/5
+
         .. TODO::
 
             - Converting matrices and lists takes much too long.
@@ -1845,6 +1854,7 @@ class FriCASElement(ExpectElement):
             base_ring = self._get_sage_type(domain[1])
             rows = self.listOfLists().sage()
             return matrix(base_ring, rows)
+            # for a better parent, one could remove "base_ring"
 
         if head == "Fraction":
             return self.numer().sage() / self.denom().sage()
@@ -1921,10 +1931,15 @@ class FriCASElement(ExpectElement):
                 coeffs = (base_ring(cf.sage()) for cf in self.coefficients())
                 monoms = (m.degree() for m in self.monomials())
 
-                def vers_exposant(idx):
-                    return tuple(idx[v] if v in idx else 0 for v in gens)
+                if len(gens) == 1:
+                    v, = gens
+                    def to_exponent(idx):
+                        return idx[v] if v in idx else 0
+                else:
+                    def to_exponent(idx):
+                        return tuple(idx[v] if v in idx else 0 for v in gens)
 
-                return R({vers_exposant(idx.sage()): cf
+                return R({to_exponent(idx.sage()): cf
                           for idx, cf in zip(monoms, coeffs)})
 
         if head in ["OrderedCompletion", "OnePointCompletion"]:
