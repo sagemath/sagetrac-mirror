@@ -83,6 +83,10 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
         return self.value.__getitem__(i)
 
     def _acted_upon_(self, scalar, self_on_left=False):
+        """
+        Return the product ``scalar`` times this element of the Lie conformal
+        algebra
+        """
         scalar_parent = parent(scalar)
         if scalar_parent != self.parent().base_ring():
             if self.parent().base_ring().has_coerce_map_from(scalar_parent):
@@ -95,10 +99,21 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
 
     def monomial_coefficients(self):
         """
-        Return the monomial coefficients of ``self`` as a dictionary.
+        Return the monomial coefficients of this element as a dictionary.
+
+        The keys are element of the Lie conformal algebra
+
+        EXAMPLES::
+
+            sage: V = VirasoroLieConformalAlgebra(QQ); V.inject_variables()
+            Defining L, C
+            sage: v = L + 2*L.T() + 3/2*C; v.monomial_coefficients()
+            {TL: 2, L: 1, C: 3/2}
+
         """
         p = self.parent()
-        return { p(k):v for k,v in self.value.monomial_coefficients().items() }
+        return { p.monomial(k):v for k,v in 
+                self.value.monomial_coefficients().items() }
              
 
 class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
