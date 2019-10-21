@@ -1195,7 +1195,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         return smallInteger(simpliciality)
 
     @cached_method
-    def simpliness(self):
+    def simplicity(self):
         r"""
         Return the largest `k` such that the polytope is `k`-simple.
 
@@ -1209,30 +1209,30 @@ cdef class CombinatorialPolyhedron(SageObject):
         EXAMPLES::
 
             sage: hyper4 = polytopes.hypersimplex(4,2)
-            sage: CombinatorialPolyhedron(hyper4).simpliness()
+            sage: CombinatorialPolyhedron(hyper4).simplicity()
             1
 
             sage: hyper5 = polytopes.hypersimplex(5,2)
-            sage: CombinatorialPolyhedron(hyper5).simpliness()
+            sage: CombinatorialPolyhedron(hyper5).simplicity()
             2
 
             sage: hyper6 = polytopes.hypersimplex(6,2)
-            sage: CombinatorialPolyhedron(hyper6).simpliness()
+            sage: CombinatorialPolyhedron(hyper6).simplicity()
             3
 
             sage: P = polytopes.simplex(3)
-            sage: CombinatorialPolyhedron(P).simpliness()
+            sage: CombinatorialPolyhedron(P).simplicity()
             3
 
             sage: P = polytopes.simplex(1)
-            sage: CombinatorialPolyhedron(P).simpliness()
+            sage: CombinatorialPolyhedron(P).simplicity()
             1
 
         TESTS::
 
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
-            sage: C.simpliness is C.simpliness
+            sage: C.simplicity is C.simplicity
             True
         """
         if not self.is_bounded():
