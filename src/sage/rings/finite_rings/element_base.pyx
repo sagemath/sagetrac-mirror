@@ -69,12 +69,12 @@ cdef class FiniteRingElement(CommutativeRingElement):
                         F = factor_cunningham(n)
                     else:
                         F = n.factor()
-                    one = K(1)
-                    nthroot = one
+                    nthroot = K(1)
                     for r, v in F:
-                        g = K(2)
-                        while (g**((q-1)/r)).is_one():
-                            g += one
+                        iter_K = iter(K)
+                        next(iter_K) # ignore 0 / iter(K) always starts at 0
+                        for g in iter_K: # find rth non-residue mod q
+                            if not (g**((q-1)/r)).is_one(): break
                         nthroot *= g**((q-1)/r**v)
                     return [nthroot**a for a in range(gcd)] if all else nthroot
         n = n % (q-1)
@@ -117,16 +117,16 @@ cdef class FiniteRingElement(CommutativeRingElement):
             else:
                 return self
         elif algorithm == 'AMM':
-            one = K(1)
-            nthroot = one
+            nthroot = K(1)
             for r, v in F:
                 k, h = (q-1).val_unit(r)
-                g = K(2)
-                while (g**((q-1)/r)).is_one():
-                    g += one
+                iter_K = iter(K)
+                next(iter_K) # ignore 0 / iter(K) always starts at 0
+                for g in iter_K: # find rth non-residue mod q
+                    if not (g**((q-1)/r)).is_one(): break
                 nthroot *= g**((q-1)/r**v)
                 G = g**(r**(k-1)*h)
-                L = one
+                L = K(1)
                 while True:
                     J = 0 # find smallest J s.t. self**(r**J * h) == 1
                     find_J = self**h
