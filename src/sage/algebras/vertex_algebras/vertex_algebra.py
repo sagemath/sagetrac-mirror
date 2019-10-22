@@ -240,6 +240,9 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         def _sub_(self, right):
             return type(self)(self.parent(), self.value - right.value)
 
+        def _neg_(self):
+            return type(self)(self.parent(), -self.value)
+
         def _bracket_(self, other):
             p = self.parent()
             ret = {}
@@ -262,7 +265,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                         l2[i2] = Partition([k2[i2].get_part(0)])
                         if k2 == l2:
                             br = p._lca.gen(i2).T(l2[i2].size()-1) \
-                                .bracket(p._lca.gen(i).T(l[i].size()-1))
+                                ._bracket_(p._lca.gen(i).T(l[i].size()-1))
                             for j in br.keys():
                                 rec = ret.get(j,p.zero())
                                 ret[j] = rec + factorial(l[i].size()-1)**(-1)*\
@@ -270,10 +273,13 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                         else:
                             #skew-symmetry
                             br = p(k)._bracket_(p(k2))
-                            for l in range(max(br.keys())+1):
-                                rec = ret.get(l, p.zero())
-                                ret[l] = rec + sum( c*c2*(-1)**(j+1)*br[j].T(j-l) 
-                                            for j in br.keys() if j >= l )
+                            for cl in range(max(br.keys())+1):
+                                rec = ret.get(cl, p.zero())
+                                ret[cl] = rec+sum(c*c2*(-1)**(j+1)\
+                                          *p.base_ring()(factorial(j-cl))\
+                                          .inverse_of_unit()\
+                                          *br[j].T(j-cl) 
+                                          for j in br.keys() if j >= cl)
                 else:
                     #non-commutative Wick Formula
                     sf = k.to_list()
@@ -286,12 +292,12 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                         br2 = br[j]._bracket_(p(sf))
                         for m in br2.keys():
                             rec = ret.get(j+m+1 ,p.zero())
-                            ret[j+m+1] = rec + c*binomial(j+m+1 ,j)*br2[m]
+                            ret[j+m+1] = rec + c*binomial(j+m+1,j)*br2[m]
                     br = self._bracket_(p(sf))
                     for j in br.keys():
                         rec = ret.get(j, p.zero())
                         ret[j] = rec + c*p(l)._mul_(br[j])
-            return { k:ret[k] for k in ret.keys() if ret[k] } 
+            return {k:ret[k] for k in ret.keys() if ret[k]} 
 
         def _mul_(self,right):
             """
