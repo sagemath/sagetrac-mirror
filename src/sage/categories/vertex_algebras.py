@@ -630,6 +630,29 @@ class VertexAlgebras(Category_over_base_ring):
                     return "H-graded finitely and strongly generated vertex"\
                         " algebras with basis over {}".format(self.base_ring())
 
+            class ParentMethods:
+
+                def find_singular(self,n):
+                    """
+                    Return the vector space of singular vectors of weight `n`
+                    """
+                    M = self.get_graded_part(n)
+                    B = M.basis()
+                    from sage.matrix.constructor import Matrix
+                    ret = Matrix(self.base_ring(),B.cardinality(),0,0)
+                    for g in self.gens():
+                        for j in range(1,n+1):
+                            Mj = self.get_graded_part(n-j)
+                            ret = ret.augment(Matrix([Mj._from_dict(
+                                g.nmodeproduct(self._from_dict(
+                                v.monomial_coefficients()),j).value\
+                                .monomial_coefficients()).to_vector() 
+                                for v in B ]))
+                    myker = ret.kernel().basis()
+                    return [self._from_dict(M.from_vector(v)\
+                        .monomial_coefficients()) for v in myker]
+                            
+
             class ElementMethods:
                 def is_singular(self):
                     """
