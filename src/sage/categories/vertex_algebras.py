@@ -679,8 +679,14 @@ class VertexAlgebras(Category_over_base_ring):
                     except ValueError:
                         raise ValueError("Couldn't compute weight of {}, "\
                                          "it's not homogeneous?".format(self))
-                    return all (g.nmodeproduct(self,n).is_zero() for 
-                                n in range(1,weight+2) for g in p.gens())
+                    #it's cheaper to compute the whole bracket first
+                    for g in p.gens():
+                        gw = g.weight()
+                        br = g._bracket_(self)
+                        if not all(br.get(n+gw-1, p.zero()).is_zero() for 
+                                   n in range(1,weight+2)):
+                            return False
+                    return True
 
                 def _action_from_partition_tuple(self,p,negative=True):
                     """
