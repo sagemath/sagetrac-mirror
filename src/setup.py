@@ -110,6 +110,19 @@ if DEVEL:
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
     extra_compile_args.append('-fno-tree-copyrename')
 
+# Add `-march=native`,
+# for GCC from 5.1 or clang from 6.0
+# if `SAGE_FAT_BINARY` is not set.
+if not os.environ.get("SAGE_FAT_BINARY") == "yes":
+    if os.environ.get("CC") == "gcc":
+        gccversion = float(subprocess.check_output("""$CC --version | sed -n 1p | sed "s/(.*)//g" | grep -o "[0-9][0-9]*\.[0-9]" | sed -n 1p""", shell=True))
+        if gccversion >= 5.1:
+            extra_compile_args.append('-march=native')
+
+    elif os.environ.get("CC") == "clang":
+        clangversion = float(subprocess.check_output("""$CC --version | sed -n 1p | sed "s/(.*)//g" | grep -o "[0-9][0-9]*\.[0-9]" | sed -n 1p""", shell=True))
+        if clangversion > 6.0:
+            extra_compile_args.append('-march=native')
 
 #########################################################
 ### Testing related stuff
