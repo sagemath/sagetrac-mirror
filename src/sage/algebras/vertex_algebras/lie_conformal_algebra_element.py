@@ -239,7 +239,13 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
             return "0";
         coeff = self.value.monomial_coefficients().items()
         ret = ""
-        for i in range(len (coeff)):    
+        p = self.parent()
+        try:
+            names = p.variable_names()
+        except ValueError:
+            names = None
+
+        for i in range(len(coeff)):    
             #TODO: deal with this without using an ordering of the ring. 
             if i > 0  and coeff[i][1] > 0 :
                 ret += "+"
@@ -252,7 +258,11 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
                 ret += "T"
             elif coeff[i][0][1] > 1 :
                 ret += "T^({})".format(coeff[i][0][1])
-            ret += "{}".format(coeff[i][0][0])
+            if names:
+                idx = p._index_to_pos[coeff[i][0][0]]
+                ret += "{}".format(names[idx])
+            else:
+                ret += "{}".format(coeff[i][0][0])
         return ret
     
     def _latex_(self):
@@ -278,6 +288,12 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
             return "0";
         coeff = self.value.monomial_coefficients().items()
         ret = ""
+        p = self.parent()
+        try:
+            names = p.variable_names()
+        except ValueError:
+            names = None
+
         for i in range(len (coeff)):    
             #TODO: deal with this without using an ordering of the ring. 
             if i > 0  and coeff[i][1] > 0 :
@@ -291,7 +307,11 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
                 ret += "T"
             elif coeff[i][0][1] > 1 :
                 ret += "T^{("+"{}".format(coeff[i][0][1])+")}"
-            ret += "{}".format(coeff[i][0][0])
+            if names:
+                idx = p._index_to_pos[coeff[i][0][0]]
+                ret += "{}".format(names[idx])
+            else:
+                ret += "{}".format(coeff[i][0][0])
         return ret
 
  
