@@ -407,7 +407,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             return { p(k) : c[k] for k in c.keys() } 
 
         def is_monomial(self):
-            return ( len(self.monomial_coefficients()) == 1  or self.is_zero() )
+            return (len(self.monomial_coefficients()) == 1 or self.is_zero())
 
         def index(self):
             if self.is_zero():
@@ -475,14 +475,14 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
         
 class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
-    def __init__(self, R, c, arg0 = None, **kwds):
+    def __init__(self, R, c, arg0 = None, names="L"):
         from lie_conformal_algebra import VirasoroLieConformalAlgebra
         ML = VirasoroLieConformalAlgebra(R)
         if arg0 is not None:
             c = 1  - 6*(c-arg0)**2/(c*arg0)
         cp = Family({ML.gen(1):c})
         super(VirasoroVertexAlgebra,self).__init__(R, ML,
-                 central_parameters=cp, names = "L")
+                 central_parameters=cp, names = names)
         self._c = c
 
     def _repr_(self):
@@ -492,12 +492,19 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         return self._c
 
 class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
-    def __init__(self, R, ct, k, **kwds):
+    def __init__(self, R, ct, k, names=None):
         from lie_conformal_algebra import AffineLieConformalAlgebra
-        ML = AffineLieConformalAlgebra(R, ct, prefix='E', bracket='(')
+        if names is not None:
+            prefix = ''
+            bracket = ''
+        else:
+            prefix = 'E'
+            bracket = '('
+        ML = AffineLieConformalAlgebra(R, ct, names=names, prefix=prefix,
+                                       bracket=bracket)
         cp = Family({ML.central_elements()[0]: k})
         super(AffineVertexAlgebra,self).__init__(R, ML, 
-            central_parameters = cp, **kwds)
+            central_parameters = cp, names=names)
 
         self._level = k
         if type(ct) is str:

@@ -564,7 +564,6 @@ class LieConformalAlgebraWithStructureCoefficients(
                 pass
 
         if names is None:
-            names = 'l' 
             ngens=index_set.cardinality()
         else:
             ngens= len(names)
@@ -575,7 +574,7 @@ class LieConformalAlgebraWithStructureCoefficients(
                     ._standardize_s_coeff(s_coeff, index_set, central_elements)
    
  
-        if central_elements is not None:
+        if names is not None and central_elements is not None:
             names += tuple(central_elements)
 
         return super(LieConformalAlgebraWithStructureCoefficients, cls)\
@@ -637,6 +636,9 @@ class LieConformalAlgebraWithStructureCoefficients(
                  latex_bracket=False, string_quotes=False, prefix='', **kwds):
         
         self._index_to_pos = {k: i for i,k in enumerate(index_set)}
+        for i,ce in enumerate(central_elements):
+            self._index_to_pos[ce] = len(index_set)+i
+
         if "sorting_key" not in kwds:
             kwds["sorting_key"] = self._index_to_pos.__getitem__
 
@@ -653,6 +655,8 @@ class LieConformalAlgebraWithStructureCoefficients(
    
         self._s_coeff = Family({ k: tuple( (p[0], sum( c[1]*self.monomial(c[0]) for
                 c in p[1] )) for p in s_coeff[k] ) for k in s_coeff.keys() })
+
+        #Add central parameters to index_to_pos so that we can represent names
 
     _repr_term = IndexedGenerators._repr_generator
     _latex_term = IndexedGenerators._latex_generator
@@ -838,10 +842,13 @@ def AffineLieConformalAlgebra(R, ct, **kwds):
                     gdict[(k1,k2)][1] = {('K',0):myf}
 
     weights = (1,)*B.cardinality()
+    prefix = kwds.get('prefix','E')
+    bracket = kwds.get('bracket','[')
+    names = kwds.get('names', None)
     return LieConformalAlgebra(
                 R, gdict, index_set=B.keys(),  
                 central_elements=('K',), weights = weights, 
-                **kwds)
+                prefix=prefix, bracket=bracket, names=names)
 
     
 
