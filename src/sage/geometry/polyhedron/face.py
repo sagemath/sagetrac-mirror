@@ -714,5 +714,6 @@ class PolyhedronFace(SageObject):
             normal_vectors = [facet.A() for facet in self.ambient_Hrepresentation()]
         else:
             raise ValueError("the direction should be either 'outer' or 'inner'")
-        parent = self.parent()
-        return parent.element_class(parent,[[], normal_vectors, []], None)
+        parent = self.polyhedron().parent()
+        origin = parent.zero().vertices()[0].vector()
+        return parent.element_class(parent,[[origin], normal_vectors, []], None)

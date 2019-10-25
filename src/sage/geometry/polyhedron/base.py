@@ -4410,15 +4410,10 @@ class Polyhedron_base(Element):
         if cut_frac is None:
             cut_frac = ZZ.one() / 3
 
-        face_vertices = face.vertices()
-
-        normal_vectors = []
-
-        for facet in self.Hrepresentation():
-            if all(facet.contains(x) and not facet.interior_contains(x)
-                   for x in face_vertices):
-                # The facet contains the face
-                normal_vectors.append(facet.A())
+        # Getting the rays of the inner normal cone of the face:
+        normal_vectors = [r.vector() for r in face.normal_cone('inner').rays()]
+        # Pick a vertex to evaluate the new hyperplane
+        a_vertex = face.vertices()[0].vector()
 
         if linear_coefficients is not None:
             normal_vector = sum(linear_coefficients[i]*normal_vectors[i] for i
@@ -4426,10 +4421,9 @@ class Polyhedron_base(Element):
         else:
             normal_vector = sum(normal_vectors)
 
-        B = - normal_vector * (face_vertices[0].vector())
+        B = - normal_vector * (a_vertex)
 
-        linear_evaluation = set(-normal_vector * (v.vector()) for v in
-            self.vertices())
+        linear_evaluation = set(-normal_vector * (v.vector()) for v in self.vertices())
 
         if B == max(linear_evaluation):
             C = max(linear_evaluation.difference(set([B])))
