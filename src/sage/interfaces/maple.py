@@ -244,7 +244,8 @@ from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
-from sage.structure.richcmp import rich_to_bool
+from sage.structure.richcmp import rich_to_bool, op_EQ, op_NE
+from sage.cpython.string import bytes_to_str
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj' % DOT_SAGE
 
@@ -434,7 +435,7 @@ connection to a server running Maple; for hints, type
             True
             sage: m._start()           # optional - maple
             sage: m.expect()           # optional - maple
-            <pexpect.spawn instance at 0x...>
+            Maple with PID ... running ...
             sage: m.quit()             # optional - maple
         """
         return self._expect
@@ -485,7 +486,7 @@ connection to a server running Maple; for hints, type
             sage: 'divide' in c                # optional - maple
             True
         """
-        bs = chr(8)*len(s)
+        bs = chr(8) * len(s)
         if self._expect is None:
             self._start()
         E = self._expect
@@ -498,7 +499,7 @@ connection to a server running Maple; for hints, type
             E.timeout = t
             return []
         E.timeout = t
-        v = E.before
+        v = bytes_to_str(E.before)
         E.expect(self._prompt)
         E.expect(self._prompt)
         return v.split()[2:]
@@ -718,9 +719,10 @@ connection to a server running Maple; for hints, type
 
         EXAMPLES::
 
-            sage: print(maple._source('curry').strip())  # optional - maple
-            p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
-            sage: maple._source('ZZZ')                  #not tested
+            sage: print(maple._source('evalb').strip())  # optional - maple
+            proc() option builtin = evalb;  end proc
+
+            sage: maple._source('ZZZ')                   # not tested
             Traceback (most recent call last):
             ...
             Exception: no source code could be found
@@ -741,15 +743,13 @@ connection to a server running Maple; for hints, type
 
         INPUT:
 
-
         -  ``s`` - a string representing the function whose
            source code you want
 
-
         EXAMPLES::
 
-            sage: maple.source('curry')  #not tested
-            p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
+            sage: maple.source('evalb')  # not tested
+            proc() option builtin = evalb;  end proc
         """
         try:
             pager()(self._source(s))
@@ -763,7 +763,7 @@ connection to a server running Maple; for hints, type
         EXAMPLES::
 
             sage: txt = maple._help('gcd')  # optional - maple
-            sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
+            sage: txt.find('GreatestCommonDivisor') > 0 # optional - maple
             True
         """
         return os.popen('echo "?%s" | maple -q' % string).read()
@@ -792,7 +792,6 @@ connection to a server running Maple; for hints, type
         Make a package of Maple procedures available in the interpreter.
 
         INPUT:
-
 
         -  ``package`` - string
 
@@ -848,7 +847,7 @@ class MapleFunction(ExpectFunction):
         EXAMPLES::
 
             sage: txt = maple.gcd.__doc__  # optional - maple
-            sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
+            sage: txt.find('GreatestCommonDivisor') > 0 # optional - maple
             True
         """
         M = self._parent
@@ -856,7 +855,7 @@ class MapleFunction(ExpectFunction):
 
     def _sage_src_(self):
         """
-        Returns the source code of ``self``.
+        Return the source code of ``self``.
 
         This is the function that eventually gets called when doing
         maple.gcd?? for example.
@@ -878,7 +877,7 @@ class MapleFunction(ExpectFunction):
 class MapleFunctionElement(FunctionElement):
     def _instancedoc_(self):
         """
-        Returns the Maple help for this function.
+        Return the Maple help for this function.
 
         This gets called when doing "?" on ``self``.
 
@@ -886,7 +885,7 @@ class MapleFunctionElement(FunctionElement):
 
             sage: two = maple(2)  # optional - maple
             sage: txt = two.gcd.__doc__  # optional - maple
-            sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
+            sage: txt.find('GreatestCommonDivisor') > 0 # optional - maple
             True
         """
         return self._obj.parent()._help(self._name)
@@ -927,27 +926,22 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
 
     def __hash__(self):
         """
-        Returns a 64-bit integer representing the hash of self. Since
-        Python uses 32-bit hashes, it will automatically convert the result
-        of this to a 32-bit hash.
+        Return the hash of ``self``.
 
         These examples are optional, and require Maple to be installed. You
-        don't need to install any Sage packages for this.
+        do not need to install any Sage packages for this.
 
         EXAMPLES::
 
             sage: m = maple('x^2+y^2')                      # optional - maple
-            sage: m.__hash__()                              # optional - maple
-            188724254834261060184983038723355865733L
-            sage: hash(m)                                   # optional - maple
-            5035731711831192733
+            sage: h1 = hash(m)                               # optional - maple
+            sage: hash(m) == h1                             # optional - maple
+            True
             sage: m = maple('x^2+y^3')                      # optional - maple
-            sage: m.__hash__()                              # optional - maple
-            264835029579301191531663246434344770556L
-            sage: hash(m)                                   # optional - maple
-            -2187277978252104690
+            sage: hash(m) == h1                             # optional - maple
+            False
         """
-        return int(maple.eval('StringTools:-Hash(convert(%s, string))'%self.name())[1:-1],16)
+        return int(maple.eval('StringTools:-Hash(convert(%s, string))' % self.name())[1:-1], 16)
 
     def _richcmp_(self, other, op):
         """
@@ -983,26 +977,20 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: Mm = maple(M)                            # optional - maple
             sage: Mm == Mm                                 # optional - maple
             True
-            sage: Mm < 5                                   # optional - maple
-            True
-            sage: (Mm < 5) == (M < 5)                      # optional - maple
-            True
-            sage: 5 < Mm                                   # optional - maple
-            False
 
         TESTS::
 
             sage: x = var('x')
             sage: t = maple((x+1)^2)                       # optional - maple
             sage: u = maple(x^2+2*x+1)                     # optional - maple
-            sage: u == t # todo: not implemented
-            True         # returns False, should use 'testeq' in maple
+            sage: u == t                                   # optional - maple
+            True
             sage: maple.eval('testeq(%s = %s)' % (t.name(),u.name()))    # optional - maple
             'true'
         """
         P = self.parent()
         evalb = "evalb({} {} {})"
-        testeq = "testeq({} {} {})"
+        testeq = "testeq({}, {})"
 
         # first test for equality
         test_eq = P.eval(evalb.format(self.name(), P._equality_symbol(),
@@ -1010,8 +998,8 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
 
         # make sure that they are really not equal
         if not test_eq:
-            test_eq = P.eval(evalb.format(self.name(), P._equality_symbol(),
-                                          other.name())) == P._true_symbol()
+            test_eq = P.eval(testeq.format(self.name(), 
+                                           other.name())) == P._true_symbol()
         if op in [op_EQ, op_NE]:
             return test_eq if op == op_EQ else not test_eq
         if test_eq:
