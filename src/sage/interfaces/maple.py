@@ -244,6 +244,7 @@ from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.structure.richcmp import rich_to_bool
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj' % DOT_SAGE
 
@@ -948,12 +949,12 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return int(maple.eval('StringTools:-Hash(convert(%s, string))'%self.name())[1:-1],16)
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
-        Compare equality between self and other, using maple.
+        Rich comparison between ``self`` and ``other``, using Maple.
 
         These examples are optional, and require Maple to be installed. You
-        don't need to install any Sage packages for this.
+        do not need to install any Sage packages for this.
 
         EXAMPLES::
 
@@ -1000,34 +1001,44 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             'true'
         """
         P = self.parent()
-        if P.eval("evalb(%s %s %s)" % (self.name(), P._equality_symbol(),
-                                       other.name())) == P._true_symbol():
-            return 0
+        evalb = "evalb({} {} {})"
+        testeq = "testeq({} {} {})"
+
+        # first test for equality
+        test_eq = P.eval(evalb.format(self.name(), P._equality_symbol(),
+                                      other.name())) == P._true_symbol()
+
+        # make sure that they are really not equal
+        if not test_eq:
+            test_eq = P.eval(evalb.format(self.name(), P._equality_symbol(),
+                                          other.name())) == P._true_symbol()
+        if op in [op_EQ, op_NE]:
+            return test_eq if op == op_EQ else not test_eq
+        if test_eq:
+            return rich_to_bool(op, 0)
+
         # Maple does not allow comparing objects of different types and
-        # it raises an error in this case.
-        # We catch the error, and return True for <
+        # raises an error in this case.
+
+        # then test for <
         try:
-            if P.eval("evalb(%s %s %s)" % (self.name(), P._lessthan_symbol(),
-                                           other.name())) == P._true_symbol():
-                return -1
-        except RuntimeError as e:
-            msg = str(e)
-            if 'is not valid' in msg and 'to < or <=' in msg:
-                if (hash(str(self)) < hash(str(other))):
-                    return -1
-                else:
-                    return 1
-            else:
-                raise RuntimeError(e)
-        if P.eval("evalb(%s %s %s)" % (self.name(), P._greaterthan_symbol(),
-                                       other.name())) == P._true_symbol():
-            return 1
-        # everything is supposed to be comparable in Python, so we define
-        # the comparison thus when no comparable in interfaced system.
-        if (hash(self) < hash(other)):
-            return -1
-        else:
-            return 1
+            test_lt = P.eval(evalb.format(self.name(), P._lessthan_symbol(),
+                                           other.name())) == P._true_symbol()
+        except RuntimeError:
+            return NotImplemented
+        if test_lt:
+            return rich_to_bool(op, -1)
+
+        # then test for >
+        try:
+            test_gt = P.eval(evalb.format(self.name(), P._greaterthan_symbol(),
+                                           other.name())) == P._true_symbol()
+        except RuntimeError:
+            return NotImplemented
+        if test_gt:
+            return rich_to_bool(op, 1)
+
+        return NotImplemented
 
     def _mul_(self, right):
         """
@@ -1179,9 +1190,9 @@ def maple_console():
 
     EXAMPLES::
 
-        sage: maple_console() #not tested
-            |^/|     Maple 11 (IBM INTEL LINUX)
-        ._|\|   |/|_. Copyright (c) Maplesoft, a division of Waterloo Maple Inc. 2007
+        sage: maple_console()  # not tested
+            |\^/|     Maple 18 (X86 64 LINUX)
+        ._|\|   |/|_. Copyright (c) Maplesoft, a division of ...
          \  MAPLE  /  All rights reserved. Maple is a trademark of
          <____ ____>  Waterloo Maple Inc.
               |       Type ? for help.
