@@ -47,6 +47,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a._nth_root_common(4, True, "AMM", False)
             [12, 3, 5, 14]
             sage: a._nth_root_common(4, True, "AMM", cunningham = True) # optional - cunningham
+            [12, 3, 5, 14]
         """
         K = self.parent()
         q = K.order()
@@ -61,7 +62,6 @@ cdef class FiniteRingElement(CommutativeRingElement):
                     g = K.multiplicative_generator()
                     q1overn = (q-1)//gcd
                     nthroot = g**q1overn
-                    return [nthroot**a for a in range(gcd)] if all else nthroot
                 elif algorithm == 'AMM':
                     n = n.gcd(q-1)
                     if cunningham:
@@ -76,7 +76,16 @@ cdef class FiniteRingElement(CommutativeRingElement):
                         for g in iter_K: # find rth non-residue mod q
                             if not (g**((q-1)/r)).is_one(): break
                         nthroot *= g**((q-1)/r**v)
-                    return [nthroot**a for a in range(gcd)] if all else nthroot
+                else:
+                    raise ValueError("unknown algorithm")
+                if all:
+                    result = [self]
+                    for i in range(1,gcd):
+                        self *= nthroot
+                        result.append(self)
+                    return result
+                else:
+                    return nthroot
         n = n % (q-1)
         if n == 0:
             if all: return []
@@ -109,13 +118,6 @@ cdef class FiniteRingElement(CommutativeRingElement):
                     self = self**x * g**(-z*t)
             if all:
                 nthroot = g**q1overn
-                L = [self]
-                for i in range(1,n):
-                    self *= nthroot
-                    L.append(self)
-                return L
-            else:
-                return self
         elif algorithm == 'AMM':
             nthroot = K(1)
             for r, v in F:
@@ -124,7 +126,8 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 next(iter_K) # ignore 0 / iter(K) always starts at 0
                 for g in iter_K: # find rth non-residue mod q
                     if not (g**((q-1)/r)).is_one(): break
-                nthroot *= g**((q-1)/r**v)
+                if all:
+                    nthroot *= g**((q-1)/r**v)
                 G = g**(r**(k-1)*h)
                 L = K(1)
                 while True:
@@ -146,16 +149,16 @@ cdef class FiniteRingElement(CommutativeRingElement):
                         lam = r - discrete_log(A, G, r, operation='*')
                     self *= g**(lam*r**(k-J))
                     L *= g**(lam*r**(k-J-v))
-            if all:
-                result = [self]
-                for i in range(1,n):
-                    self *= nthroot
-                    result.append(self)
-                return result
-            else:
-                return self
         else:
             raise ValueError("unknown algorithm")
+        if all:
+            result = [self]
+            for i in range(1,n):
+                self *= nthroot
+                result.append(self)
+            return result
+        else:
+            return self
 
 
 cdef class FinitePolyExtElement(FiniteRingElement):
