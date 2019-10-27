@@ -2041,13 +2041,19 @@ class TensorField(ModuleElement):
         self.set_name(name=name, latex_name=latex_name)
         self._is_zero = other._is_zero
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
+
         .. NOTE::
 
-            The name and the derived quantities are copied, too.
+            The name and the derived quantities are not copied.
 
         EXAMPLES:
 
@@ -2066,10 +2072,10 @@ class TensorField(ModuleElement):
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = t.copy(); s
-            Tensor field t of type (1,1) on
-             the 2-dimensional differentiable manifold M
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
-            t = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s == t
             True
 
@@ -2079,7 +2085,7 @@ class TensorField(ModuleElement):
             sage: t.display(e_xy)
             t = -d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s.display(e_xy)
-            t = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s == t
             False
 
@@ -2087,8 +2093,8 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
+        resu.set_name(name=name, latex_name=latex_name)
         resu._is_zero = self._is_zero
-        resu.set_name(name=self._name, latex_name=self._latex_name)
         return resu
 
     def _common_subdomains(self, other):
@@ -2289,7 +2295,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = + rst
-        ###
         # Compose names:
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
@@ -2337,7 +2342,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = - rst
-        ###
         # Compose names:
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
@@ -2555,7 +2559,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
-        ###
         # Compose names:
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)

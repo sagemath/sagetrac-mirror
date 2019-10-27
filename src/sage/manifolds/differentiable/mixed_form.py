@@ -961,13 +961,19 @@ class MixedForm(AlgebraElement):
         resu._latex_name = format_unop_latex(r'\mathrm{d}', self._latex_name)
         return resu
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
         .. NOTE::
 
             The name and names of the components are not copied.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -1002,10 +1008,10 @@ class MixedForm(AlgebraElement):
         An exact copy is made. The copy is an entirely new instance and has a
         different name, but has the very same values::
 
-            sage: B = A.copy(); B.display()
-            A = f + omega + zero
-            sage: B.display_expansion(e_uv)
-            A = [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
+            sage: B = A.copy(); B.disp()
+            (unnamed scalar field)  + (unnamed 1-form) + (unnamed 2-form)
+            sage: B.disp(e_uv)
+            [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
             sage: A == B
             True
             sage: A is B
@@ -1019,14 +1025,15 @@ class MixedForm(AlgebraElement):
             omega = y dx
             sage: A.display_expansion(e_xy)
             A = [x] + [y dx] + [0]
-            sage: B.display_expansion(e_xy)
-            A = [x] + [x dx] + [0]
+            sage: B.disp(e_xy)
+            [x] + [x dx] + [0]
 
         """
         resu = self._new_instance()
         resu[:] = [form.copy() for form in self]
-        resu.set_name(name=self._name, latex_name=self._latex_name)
+        resu.set_name(name=name, latex_name=latex_name)
         resu._is_zero = self._is_zero  # a priori
+
         return resu
 
     def __setitem__(self, index, values):

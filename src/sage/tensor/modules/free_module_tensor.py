@@ -1678,11 +1678,17 @@ class FreeModuleTensor(ModuleElement):
             self._components[basis] = comp.copy()
         self._is_zero = other._is_zero
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
-        The name and the derived quantities are copied, too.
+        The name and the derived quantities are not copied.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -1712,7 +1718,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         resu = self._new_instance()
-        resu.set_name(name=self._name, latex_name=self._latex_name)
+        resu.set_name(name=name, latex_name=latex_name)
         for basis, comp in self._components.items():
              resu._components[basis] = comp.copy()
         resu._is_zero = self._is_zero
@@ -2188,7 +2194,6 @@ class FreeModuleTensor(ModuleElement):
         result = self._new_instance()
         for basis in self._components:
             result._components[basis] = other * self._components[basis]
-        ###
         # If other has a name, set the name of the result:
         try:
             from .format_utilities import format_mul_txt, format_mul_latex
