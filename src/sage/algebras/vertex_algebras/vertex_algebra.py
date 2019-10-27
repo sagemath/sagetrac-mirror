@@ -441,8 +441,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             for p in self.value.monomial_coefficients().keys():
                 ret = p.size() - sum(j.length() for j in p.components())
                 ls.append(ret)
-            return max(ls)
-
+            return min(ls)
            
 
         def PBW_filtration_degree(self):

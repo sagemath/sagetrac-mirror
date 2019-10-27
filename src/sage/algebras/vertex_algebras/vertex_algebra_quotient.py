@@ -90,6 +90,9 @@ class VertexAlgebraQuotient_space_element(ElementWrapper):
 
     def lift(self):
         return self.parent().lift(self)
+
+    def __eq__(self,other):
+        return (self - other).is_zero()
     
 
 class VertexAlgebraQuotient_space(Parent, UniqueRepresentation):
@@ -193,6 +196,9 @@ class VertexAlgebraQuotient(VertexAlgebraQuotient_space):
     def module(self):
         return self
 
+    def defining_ideal(self):
+        return self._submodule
+
     def vacuum(self):
         return self.retract(self._ambient.vacuum())
 
@@ -201,6 +207,11 @@ class VertexAlgebraQuotient(VertexAlgebraQuotient_space):
 
     def gen(self,i):
         return self.gens()[i]
+
+    def arc_space(self, termorder='wdegrevlex'):
+        from sage.algebras.vertex_algebras.poisson_vertex_algebra \
+                import VertexAlgebraArcSpace
+        return VertexAlgebraArcSpace(self, termorder)
 
     class Element(VertexAlgebraQuotient_space_element):
         def _mul_(self,right):
