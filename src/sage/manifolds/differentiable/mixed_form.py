@@ -35,18 +35,18 @@ class MixedForm(AlgebraElement):
     `\varphi: M \to N` between two differentiable manifolds `M` and `N`. More
     precisely, a mixed form `a` along `\varphi: M \to N` can be considered as a
     differentiable map
-    
+
     .. MATH::
 
         a: M \longrightarrow \bigoplus^n_{k=0} T^{(0,k)}N,
-    
+
     where `T^{(0,k)}` denotes the tensor bundle of type `(0,k)`, `\bigoplus`
     the Whitney sum and `n` the dimension of `N`, such that
-    
+
     .. MATH::
 
         \forall x\in M, \quad a(x) \in \bigoplus^n_{k=0} \Lambda^k\left( T_{\varphi(x)}^* N \right),
-    
+
     where `\Lambda^k(T^*_{\varphi(x)} N)` is the `k`-th exterior power of the
     dual of the tangent space `T_{\varphi(x)} N`.
 
@@ -638,13 +638,11 @@ class MixedForm(AlgebraElement):
             True
 
         """
-        ###
         # Case zero:
         if self._is_zero:
             return other
         if other._is_zero:
             return self
-        ###
         # Generic case:
         resu = self._new_instance()
         resu[:] = [self[j] + other[j] for j in self.irange()]
@@ -714,13 +712,11 @@ class MixedForm(AlgebraElement):
             True
 
         """
-        ###
         # Case zero:
         if self._is_zero:
             return -other
         if other._is_zero:
             return self
-        ###
         # Generic case:
         resu = self._new_instance()
         resu[:] = [self[j] - other[j] for j in self.irange()]
@@ -834,17 +830,14 @@ class MixedForm(AlgebraElement):
             A/\eta = [0] + [x*y dy] + [x*y dx/\dy] + [-y*z dx/\dy/\dz]
 
         """
-        ###
         # Case zero:
         if self._is_zero or other._is_zero:
             return self.parent().zero()
-        ###
         # Case one:
         if self is self.parent().one():
             return other
         if other is self.parent().one():
             return self
-        ###
         # Generic case:
         resu = self._new_instance()
         resu[:] = [0] * (self._max_deg + 1)
@@ -920,7 +913,7 @@ class MixedForm(AlgebraElement):
         `\Omega^*(M,\varphi)`:
 
         .. MATH::
-        
+
             \mathrm{d}: \Omega^*(M,\varphi) \to \Omega^*(M,\varphi).
 
         OUTPUT:

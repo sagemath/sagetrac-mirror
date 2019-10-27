@@ -1213,7 +1213,7 @@ class TensorField(ModuleElement):
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.set_comp(basis)
+        return rst.set_comp(basis=basis)
 
     def _add_comp_unsafe(self, basis=None):
         r"""
@@ -1342,7 +1342,7 @@ class TensorField(ModuleElement):
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.add_comp(basis)
+        return rst.add_comp(basis=basis)
 
     def add_comp_by_continuation(self, frame, subdomain, chart=None):
         r"""
@@ -2300,13 +2300,11 @@ class TensorField(ModuleElement):
             True
 
         """
-        ###
         # Case zero:
         if self._is_zero:
             return other
         if other._is_zero:
             return self
-        ###
         # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
@@ -2371,13 +2369,11 @@ class TensorField(ModuleElement):
             True
 
         """
-        ###
         # Case zero:
         if self._is_zero:
             return -other
         if other._is_zero:
             return self
-        ###
         # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
@@ -2452,15 +2448,12 @@ class TensorField(ModuleElement):
             True
 
         """
-        ###
         # Case zero:
         if scalar._is_zero:
             return self.parent().zero()
-        ###
         # Case one:
         if scalar is self._domain._one_scalar_field:
             return self
-        ###
         # Generic case:
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
