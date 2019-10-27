@@ -66,13 +66,13 @@ class VertexAlgebraIdeal(Module):
         return A.submodule(basis)
 
     def ambient(self):
-        """
-        returns the module of the ambient vertex algebra
-        """ 
         return self._ambient
 
     def reduce(self,x):
         S = self.get_degree(x.weight())
         A = S.ambient()
         return S.reduce(A._from_dict(x.value.monomial_coefficients()))
+
+    def gens(self):
+        return self._gens
 

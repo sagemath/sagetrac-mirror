@@ -30,6 +30,8 @@ from vertex_algebra import UniversalEnvelopingVertexAlgebra
 from vertex_algebra_quotient import VertexAlgebraQuotient
 from sage.combinat.partition import Partition
 from sage.sets.family import Family
+from sage.algebras.vertex_algebras.graded_algebra_with_derivation import \
+            AffineArcAlgebra, GradedCommutativeAlgebraWithDerivationQuotient
 
 class PoissonVertexAlgebra(Parent, UniqueRepresentation):
     @staticmethod
@@ -41,7 +43,8 @@ class PoissonVertexAlgebra(Parent, UniqueRepresentation):
             if R.has_coerce_map_from(arg0.base_ring()) and \
                 arg0 in VertexAlgebras(arg0.base_ring()):
                 if isinstance(arg0, UniversalEnvelopingVertexAlgebra):
-                    return PoissonVertexAlgebra_from_chiral_envelope(R, arg0, **kwds)
+                    return PoissonVertexAlgebra_from_chiral_envelope(R, arg0,
+                                                                     **kwds)
                 if isinstance(arg0, VertexAlgebraQuotient):
                     return PoissonVertexAlgebra_from_quotient(R, arg0, **kwds)
         except AttributeError: 
@@ -61,7 +64,7 @@ class PVA_from_vertex_algebra_element(ElementWrapper):
         return self._acted_upon_(scalar)
 
     def is_monomial(self):
-        return ( len(self.monomial_coefficients()) == 1  or self.is_zero() )
+        return (len(self.monomial_coefficients()) == 1  or self.is_zero())
 
 
 class PoissonVertexAlgebra_from_vertex_algebra(PoissonVertexAlgebra):
@@ -135,9 +138,8 @@ class PoissonVertexAlgebra_from_chiral_envelope(
     def one(self):
         return self.element_class(self, self._va.vacuum())
 
-
     def basis(self):
-        return Family ( self._va.basis(), lambda i : self(i), lazy = True )
+        return Family (self._va.basis(), lambda i : self(i), lazy = True )
 
     class Element(PVA_from_vertex_algebra_element):
         def _repr_(self):
@@ -204,9 +206,9 @@ class PoissonVertexAlgebra_from_chiral_envelope(
                             br = k2.lift().bracket(k.lift())
                             for j in br.keys():
                                 rec = ret.get(j,p.zero())
-                                ret[j] = rec + sum( p(m) for m in br[j].monomials()
+                                ret[j] = rec + sum(p(m) for m in br[j].monomials()
                                     if (not p._li_graded) or (
-                                    m.li_filtration_degree() == dk + dk2 - j) )
+                                    m.li_filtration_degree() == dk + dk2 - j))
                         else:
                             #skew-symmetry
                             br = k._bracket_(k2)
@@ -231,8 +233,8 @@ class PoissonVertexAlgebra_from_chiral_envelope(
             p = self.parent()
             svmc = self.value.value.monomial_coefficients()
             rvmc = right.value.value.monomial_coefficients()
-            return sum ( v1*v2*p(partmultiply(k1,k2)) for k1,v1 in 
-                svmc.items() for k2,v2 in rvmc.items() )
+            return sum (v1*v2*p(partmultiply(k1,k2)) for k1,v1 in 
+                svmc.items() for k2,v2 in rvmc.items())
 
         def weight(self):
             return self.lift().weight()
@@ -431,6 +433,32 @@ class PoissonVertexAlgebra_from_quotient(
     
         def T(self,n=1):
             return self.parent()(self.lift().T(n))
+
+class VertexAlgebraArcSpace(GradedCommutativeAlgebraWithDerivationQuotient):
+    def __init__(self, V, termorder):
+        if not isinstance(V, VertexAlgebraQuotient):
+            #We assume here that V is a quotient of a chiral envelope
+            raise ValueError ("V needs to be a quotient of a chiral "\
+                              "envelope, got {}".format(V))
+        if not V.is_graded():
+            raise ValueError ("V needs to be an H-Graded vertex algebra "\
+                              ",got {}".format(V))
+        R = V.base_ring()
+        try:
+            names = V.ambient().variable_names()
+        except ValueError:
+            names = tuple("x{}".format(d) for d in range(V.ngens()))
+        weights = [g.weight() for g in V.gens()]
+        category = PoissonVertexAlgebras(R).HGraded().Quotients()
+        A = AffineArcAlgebra(R, names, weights, termorder, category=category)
+        igens = []
+        for g in V.defining_ideal().gens():
+            d = g.li_filtration_degree()
+            igens.append(sum(A(m.value) for m in g.monomials() if
+                             m.li_filtration_degree() == d))
+        I = A.differential_ideal(igens)
+        super(VertexAlgebraArcSpace,self).__init__(I)
+
 
 
         
