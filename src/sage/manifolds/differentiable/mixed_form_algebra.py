@@ -308,9 +308,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         """
         res = self.element_class(self, name='zero', latex_name='0')
-        dom = self._domain
-        res._comp[:] = [dom.diff_form_module(j, dest_map=self._dest_map).zero()
-                        for j in self.irange()]
+        res[:] = [0] * (self._max_deg + 1)
         res._is_zero = True  # This element is certainly zero
         return res
 
