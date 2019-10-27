@@ -1023,7 +1023,7 @@ class MixedForm(AlgebraElement):
 
             sage: B = A.copy(); B.disp()
             (unnamed scalar field)  + (unnamed 1-form) + (unnamed 2-form)
-            sage: B.disp(e_uv)
+            sage: B.display_expansion(e_uv)
             [1/2*u + 1/2*v] + [(1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv] + [0]
             sage: A == B
             True
@@ -1038,7 +1038,7 @@ class MixedForm(AlgebraElement):
             omega = y dx
             sage: A.display_expansion(e_xy)
             A = [x] + [y dx] + [0]
-            sage: B.disp(e_xy)
+            sage: B.display_expansion(e_xy)
             [x] + [x dx] + [0]
 
         """
