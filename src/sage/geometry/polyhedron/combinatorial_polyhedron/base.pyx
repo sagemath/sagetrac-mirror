@@ -2086,8 +2086,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                     face_iter.set_atom_repr()
 
                     # Copy the information.
-                    edges[one][2*two] = face_iter.atom_repr[0]
-                    edges[one][2*two + 1] = face_iter.atom_repr[1]
+                    edges[one][2*two] = face_iter.structure.atom_repr[0]
+                    edges[one][2*two + 1] = face_iter.structure.atom_repr[1]
                     counter += 1
 
             # Success, copy the data to ``CombinatorialPolyhedron``.
@@ -2259,8 +2259,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                 face_iter.set_coatom_repr()
 
                 # Copy the information.
-                ridges[one][2*two] = face_iter.coatom_repr[0]
-                ridges[one][2*two + 1] = face_iter.coatom_repr[1]
+                ridges[one][2*two] = face_iter.structure.coatom_repr[0]
+                ridges[one][2*two + 1] = face_iter.structure.coatom_repr[1]
                 counter += 1
 
         # Success, copy the data to ``CombinatorialPolyhedron``.
