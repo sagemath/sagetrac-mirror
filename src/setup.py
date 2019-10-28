@@ -112,8 +112,8 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shel
 
 # Add `-march=native`,
 # for GCC from 5.1 or clang from 6.0
-# if `SAGE_FAT_BINARY` is not set.
-if not os.environ.get("SAGE_FAT_BINARY") == "yes":
+# if `SAGE_FAT_BINARY` and `CFLAGS` is not set.
+if not os.environ.get("SAGE_FAT_BINARY") == "yes" and not os.environ.get("CFLAGS"):
     if os.environ.get("CC") == "gcc":
         gccversion = float(subprocess.check_output("""$CC --version | sed -n 1p | sed "s/(.*)//g" | grep -o "[0-9][0-9]*\.[0-9]" | sed -n 1p""", shell=True))
         if gccversion >= 5.1:
