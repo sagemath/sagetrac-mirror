@@ -1644,21 +1644,12 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Copy ``f_vector``.
         if dual:
-            if dim > 1 and f_vector[1] < self.n_facets():
-                # The input seemed to be wrong.
-                raise ValueError("not all facets are joins of vertices")
-
             # We have computed the ``f_vector`` of the dual.
             # Reverse it:
             self._f_vector = \
                 tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
 
         else:
-            if self.is_bounded() and dim > 1 \
-                    and f_vector[1] < self.length_Vrepr() - len(self.far_face_tuple()):
-                # The input seemed to be wrong.
-                raise ValueError("not all vertices are intersections of facets")
-
             self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
 
     cdef int _compute_edges(self, dual) except -1:
