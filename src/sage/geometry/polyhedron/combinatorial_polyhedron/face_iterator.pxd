@@ -5,6 +5,8 @@ from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
 from .combinatorial_face        cimport CombinatorialFace
 
+cdef inline int next_dimension(iter_struct *structure) nogil
+
 cdef struct iter_struct:
     bint dual                  # if 1, then iterate over dual Polyhedron
     uint64_t *face             # the current face of the iterator

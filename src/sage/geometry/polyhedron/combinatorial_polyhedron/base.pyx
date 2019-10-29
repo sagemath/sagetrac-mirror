@@ -101,6 +101,7 @@ from .conversions \
 
 from sage.rings.integer             cimport smallInteger
 from cysignals.signals              cimport sig_check, sig_block, sig_unblock
+from .face_iterator                 cimport iter_struct, next_dimension
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -1630,15 +1631,16 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
         f_vector[0] = 1         # Face iterator will only visit proper faces.
         f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
+        cdef iter_struct *structure = &face_iter.structure
 
         # For each face in the iterator, add `1` to the corresponding entry in
         # ``f_vector``.
         if self.n_facets() > 0 and dim > 0:
-            d = face_iter.next_dimension()
+            d = next_dimension(structure)
             while (d < dim):
                 sig_check()
                 f_vector[d+1] += 1
-                d = face_iter.next_dimension()
+                d = next_dimension(structure)
 
         # Copy ``f_vector``.
         if dual:
