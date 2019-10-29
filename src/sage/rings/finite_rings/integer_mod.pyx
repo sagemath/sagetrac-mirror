@@ -1279,10 +1279,13 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         - ``all`` - bool (default: ``False``); if ``True``, return all `n`\th
           roots of ``self``, instead of just one.
 
-        - ``algorithm`` - string (default: None); The algorithm for the prime modulus case.
-          CRT and p-adic log techniques are used to reduce to this case.
-          'Johnston' is currently the default algorithm. The alternative 'AMM' has better
-          performance for large prime moduli.
+        - ``algorithm`` - string (default: None); The algorithm for the prime
+          modulus case. CRT and p-adic log techniques are used to reduce to
+          this case. Choices are 'Johnston' and 'AMM'. The default choice
+          depends on whether a multiplicative generator of the parent field is
+          available cached, since 'Johnston' requires it while 'AMM' does not
+          and the performance of 'Johnston' is usually dominated by the cost
+          of finding a generator.
 
         - ``cunningham`` - bool (default: ``False``); In some cases,
           factorization of ``n`` is computed. If cunningham is set to ``True``,
@@ -1361,18 +1364,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         TESTS::
 
+            sage: from itertools import product
             sage: for p in [1009,2003,10007,100003]:
             ....:     K = GF(p)
             ....:     for r in (p-1).divisors():
             ....:         if r == 1: continue
             ....:         x = K.random_element()
             ....:         y = x^r
-            ....:         if y.nth_root(r)**r != y: raise RuntimeError
-            ....:         if y.nth_root(r, algorithm='AMM')**r != y: raise RuntimeError
-            ....:         if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
-            ....:         if (y^41).nth_root(41*r, algorithm='AMM')**(41*r) != y^41: raise RuntimeError
-            ....:         if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
-            ....:         if (y^307).nth_root(307*r, algorithm='AMM')**(307*r) != y^307: raise RuntimeError
+            ....:         for s, algo in product([1,41,307], ['Johnston', 'AMM']):
+            ....:             assert (y^s).nth_root(s*r, algorithm=algo)**(s*r) == y^s
 
             sage: for t in range(200):
             ....:     n = randint(1,2^63)
@@ -1411,15 +1411,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         - The default for prime modulus is currently an algorithm described in the following paper:
 
         Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
-        
+
         - The alternative algorithm ("AMM") is adapted from the following paper:
-        
+
         Adleman, Leonard M., Kenneth L. Manders and Gary L. Miller. "On taking roots in finite fields." 18th Annual Symposium on Foundations of Computer Science (sfcs 1977): pp 175-178.
 
         AUTHORS:
 
         - David Roe (2010-2-13)
-        
+
         - Hauke Neitzel (2019-10-10) added AMM algorithm
         """
         if extend:

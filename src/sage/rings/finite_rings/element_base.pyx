@@ -50,6 +50,11 @@ cdef class FiniteRingElement(CommutativeRingElement):
             [12, 3, 5, 14]
         """
         K = self.parent()
+        if algorithm is None:
+            if K.multiplicative_generator.cache is not None:
+                algorithm = 'Johnston'
+            else:
+                algorithm = 'AMM'
         q = K.order()
         if self.is_one():
             gcd = n.gcd(q-1)
@@ -57,7 +62,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 if all: return [self]
                 else: return self
             else:
-                if algorithm is None or algorithm == 'Johnston':
+                if algorithm == 'Johnston':
                     # the AMM algorithm does not rely on a multiplicative generator.
                     g = K.multiplicative_generator()
                     q1overn = (q-1)//gcd
@@ -105,7 +110,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         else:
             F = n.factor()
         from sage.groups.generic import discrete_log
-        if algorithm is None or algorithm == 'Johnston':
+        if algorithm == 'Johnston':
             g = K.multiplicative_generator()
             for r, v in F:
                 k, h = (q-1).val_unit(r)
@@ -695,11 +700,11 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         - ``all`` -- bool (default: ``False``); if ``True``, return all `n`\th
           roots of ``self``, instead of just one.
 
-        - ``algorithm`` -- string (default: ``None``); 'Johnston' is currently
-          the default algorithm. The alternative 'AMM' has better performance
-          for large prime moduli. For IntegerMod elements, the problem is
-          reduced to the prime modulus case using CRT and `p`-adic logs, and
-          then this algorithm used.
+        - ``algorithm`` -- string (default: ``None``); Choices are 'Johnston'
+          and 'AMM'. The default choice depends on whether a multiplicative
+          generator of the parent field is available cached, since 'Johnston'
+          requires it while 'AMM' does not and the performance of 'Johnston' is
+          usually dominated by the cost of finding a generator.
 
         OUTPUT:
 
@@ -753,6 +758,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         TESTS::
 
+            sage: from itertools import product
             sage: for p in [2,3,5,7,11]:  # long time, random because of PARI warnings
             ....:     for n in [2,5,10]:
             ....:         q = p^n
@@ -761,12 +767,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ....:             if r == 1: continue
             ....:             x = K.random_element()
             ....:             y = x^r
-            ....:             assert y.nth_root(r)^r == y
-            ....:             assert y.nth_root(r, algorithm='AMM')^r == y
-            ....:             assert (y^41).nth_root(41*r)^(41*r) == y^41
-            ....:             assert (y^41).nth_root(41*r, algorithm='AMM')^(41*r) == y^41
-            ....:             assert (y^307).nth_root(307*r)^(307*r) == y^307
-            ....:             assert (y^307).nth_root(307*r, algorithm='AMM')^(307*r) == y^307
+            ....:             for s, algo in product([1,41,307], ['Johnston', 'AMM']):
+            ....:                 assert (y^s).nth_root(s*r, algorithm=algo)**(s*r) == y^s
             sage: k.<a> = GF(4)
             sage: a.nth_root(0,all=True)
             []
@@ -779,18 +781,18 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         ALGORITHMS:
 
-        - The default is currently an algorithm described in the following paper:
+        - The algorithm for when a multiplicative generator is available is described in the following paper:
 
         Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
-        
+
         - The alternative algorithm ("AMM") is adapted from the following paper:
-        
+
         Adleman, Leonard M., Kenneth L. Manders and Gary L. Miller. "On taking roots in finite fields." 18th Annual Symposium on Foundations of Computer Science (sfcs 1977): pp 175-178.
 
         AUTHOR:
 
         - David Roe (2010-02-13)
-        
+
         - Hauke Neitzel (2019-10-10) added AMM algorithm
         """
         if self.is_zero():
