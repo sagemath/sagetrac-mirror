@@ -251,7 +251,7 @@ cdef inline int next_face_loop(iter_struct *structure) nogil:
     newfacescounter = get_next_level(
         faces, n_faces + 1, structure[0].maybe_newfaces[structure[0].current_dimension-1],
         structure[0].newfaces[structure[0].current_dimension-1],
-        structure[0].visited_all, n_visited_all, structure[0].face_length)
+        structure[0].visited_all, n_visited_all, structure[0].face_length, structure[0].is_not_newface)
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.
@@ -747,6 +747,7 @@ cdef class FaceIterator(SageObject):
 
         self.structure.max_dimension = self.structure.dimension
         self.structure.current_stadium = <size_t*> self._mem.calloc(self.structure.dimension, sizeof(size_t))
+        self.structure.is_not_newface = <int*> self._mem.allocarray(self.coatoms.n_faces, sizeof(int))
 
 
     def _repr_(self):

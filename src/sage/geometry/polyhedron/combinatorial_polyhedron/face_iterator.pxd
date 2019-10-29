@@ -59,6 +59,7 @@ cdef struct iter_struct:
 
     size_t *current_stadium
     int max_dimension
+    int *is_not_newface
 
 
 @cython.final

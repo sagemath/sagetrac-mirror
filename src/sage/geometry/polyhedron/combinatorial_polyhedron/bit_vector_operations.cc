@@ -224,7 +224,7 @@ So we do not consider anything newer than AVX2.
 size_t get_next_level(\
         uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
-        size_t n_visited_all, size_t face_length){
+        size_t n_visited_all, size_t face_length, int *is_not_newface){
     /*
     Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
     that are not contained in a face of ``visited_all``.
@@ -265,11 +265,11 @@ size_t get_next_level(\
         intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
     }
 
-    // We keep track, which face in ``maybe_newfaces`` is a new face.
-    int *is_not_newface = new int[n_faces -1]();
+
 
     // For each face we will Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
+        is_not_newface[j] = 0;
         // Step 2a:
         for(size_t k = 0; k < j; k++){
             // Testing if maybe_newfaces[j] is contained in different nextface.
@@ -298,6 +298,7 @@ size_t get_next_level(\
             continue;
         }
 
+        /*
         // Step 3:
         for (size_t k = 0; k < n_visited_all; k++){
             // Testing if maybe_newfaces[j] is contained in one,
@@ -308,6 +309,7 @@ size_t get_next_level(\
                 break;
             }
         }
+        */
     }
 
     // Set ``newfaces`` to point to the correct ones.
@@ -321,7 +323,6 @@ size_t get_next_level(\
         newfaces[n_newfaces] = maybe_newfaces[j];
         n_newfaces++;
     }
-    delete[] is_not_newface;
     return n_newfaces;
 }
 
