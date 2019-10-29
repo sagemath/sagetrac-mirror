@@ -6,8 +6,10 @@ from .list_of_faces             cimport ListOfFaces
 from .combinatorial_face        cimport CombinatorialFace
 
 cdef inline int next_dimension(iter_struct *structure) nogil
+cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth)
 
 cdef struct iter_struct:
+    bint bounded
     bint dual                  # if 1, then iterate over dual Polyhedron
     uint64_t *face             # the current face of the iterator
     size_t *atom_repr          # a place where atom-representaion of face will be stored
@@ -31,6 +33,7 @@ cdef struct iter_struct:
     #     This is why the number of faces in ``visited_all``depends on dimension.
     uint64_t **visited_all
     size_t *n_visited_all
+    size_t n_coatoms
 
     # ``maybe_newfaces`` is where all possible facets of a face are stored.
     # In dimension ``dim`` when visiting all faces of some face,
@@ -53,6 +56,9 @@ cdef struct iter_struct:
     # The number of elements in newfaces[current_dimension],
     # that have not been visited yet.
     size_t yet_to_visit
+
+    size_t *current_stadium
+    int max_dimension
 
 
 @cython.final
