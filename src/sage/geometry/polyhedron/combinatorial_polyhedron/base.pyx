@@ -100,8 +100,9 @@ from .conversions \
                facets_tuple_to_bit_repr_of_Vrepr
 
 from sage.rings.integer             cimport smallInteger
-from cysignals.signals              cimport sig_check, sig_block, sig_unblock
-from .face_iterator                 cimport iter_struct, next_dimension
+from cysignals.signals              cimport sig_check, sig_block, sig_unblock, sig_on, sig_off
+from .face_iterator                 cimport iter_struct, next_dimension, parallel_f_vector
+from cysignals.memory cimport sig_free, sig_calloc
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -1204,7 +1205,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         deprecation(28604, "the method ridge_graph of CombinatorialPolyhedron is deprecated; use facet_graph", 3)
         return Graph(self.ridges(names=names), format="list_of_edges")
 
-    def f_vector(self):
+    def f_vector(self, n_threads=1, parallelization_depth=0):
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
@@ -1234,7 +1235,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         """
         if not self._f_vector:
-            self._compute_f_vector()
+            self._compute_f_vector(n_threads, parallelization_depth)
         if not self._f_vector:
             raise ValueError("could not determine f_vector")
         from sage.modules.free_module_element import vector
@@ -1605,7 +1606,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self._far_face_tuple
 
-    cdef int _compute_f_vector(self) except -1:
+    cdef int _compute_f_vector(self, size_t n_threads, size_t parallelization_depth) except -1:
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
@@ -1624,23 +1625,36 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef FaceIterator face_iter = self._face_iter(dual, -2)
 
         cdef int dim = self.dimension()
-        cdef int d  # dimension of the current face of the iterator
         cdef MemoryAllocator mem = MemoryAllocator()
+        cdef int d  # dimension of the current face of the iterator
+        cdef int parallelization_depth2 = parallelization_depth
+        if dim//2 < parallelization_depth2:
+            # make sure we do not parallelize more than possible
+            parallelization_depth = dim//2
+
+        if parallelization_depth == 0:
+            n_threads = 1
+        elif n_threads > self._n_facets*parallelization_depth:
+            # make sure the requested number of threads is reasonable
+            n_threads = self._n_facets*parallelization_depth
+
+        cdef iter_struct **iters = <iter_struct**> sig_calloc(n_threads, sizeof(iter_struct*))
+        cdef FaceIterator some_iter
+
+        a = tuple( self._face_iter(dual, -2) for _ in range(n_threads))
+        cdef size_t i
+        for i in range(n_threads):
+            some_iter = a[i]
+            iters[i] = &(some_iter.structure)
 
         # Initialize ``f_vector``.
         cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
         f_vector[0] = 1         # Face iterator will only visit proper faces.
         f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
-        cdef iter_struct *structure = &face_iter.structure
+        sig_on()
+        parallel_f_vector(iters, f_vector, n_threads, parallelization_depth)
+        sig_off()
 
-        # For each face in the iterator, add `1` to the corresponding entry in
-        # ``f_vector``.
-        if self.n_facets() > 0 and dim > 0:
-            d = next_dimension(structure)
-            while (d < dim):
-                sig_check()
-                f_vector[d+1] += 1
-                d = next_dimension(structure)
 
         # Copy ``f_vector``.
         if dual:

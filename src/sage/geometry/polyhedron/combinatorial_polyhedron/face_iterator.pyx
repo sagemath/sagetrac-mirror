@@ -162,6 +162,8 @@ from cysignals.signals      cimport sig_check, sig_on, sig_off
 from .conversions           cimport bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron
 from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr
+from cysignals.memory       cimport sig_malloc, sig_realloc, sig_free, sig_calloc
+from cython.parallel        cimport prange, threadid
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -185,7 +187,7 @@ cdef inline int next_dimension(iter_struct *structure) nogil:
         visiting sub-/supfaces instead of after. One cannot arbitrarily
         add faces to ``visited_all``, as visited_all has a maximal length.
     """
-    cdef int dim = structure[0].dimension
+    cdef int dim = structure[0].max_dimension
     while (not next_face_loop(structure)) and (structure[0].current_dimension < dim):
         pass
     structure[0]._index += 1
@@ -246,12 +248,10 @@ cdef inline int next_face_loop(iter_struct *structure) nogil:
     # which we have not yet visited.
     cdef size_t newfacescounter
 
-    sig_on()
     newfacescounter = get_next_level(
         faces, n_faces + 1, structure[0].maybe_newfaces[structure[0].current_dimension-1],
         structure[0].newfaces[structure[0].current_dimension-1],
         structure[0].visited_all, n_visited_all, structure[0].face_length)
-    sig_off()
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.
@@ -274,6 +274,133 @@ cdef inline int next_face_loop(iter_struct *structure) nogil:
         #     So this step is required to respect boundaries of ``visited_all``.
         structure[0].first_time[structure[0].current_dimension] = True
         return 0
+
+cdef inline size_t myPow(size_t x, size_t p) nogil:
+    if (p == 0): return 1
+    if (p == 1):  return x
+
+    cdef size_t tmp = myPow(x, p/2)
+    if (p%2 == 0) : return tmp * tmp
+    else:  return x * tmp * tmp
+
+cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vector, size_t rec_depth) nogil:
+    r"""
+    Prepares the face iterator to not visit the facets 0,...,-1
+    """
+    cdef size_t j, k
+    cdef size_t current_i = 0
+    if (rec_depth > 0):
+        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
+
+    cdef size_t rec
+    cdef int d
+    cdef int dimension = face_iter[0].dimension
+    cdef int add_a_face = 1
+    face_iter[0].face = NULL
+    if((current_i != face_iter[0].current_stadium[0])):
+        face_iter[0].face = NULL
+        face_iter[0].current_dimension = dimension -1
+        face_iter[0].lowest_dimension = 0
+
+
+        face_iter[0].n_visited_all[dimension -1] = 0
+        if not face_iter[0].bounded:
+            face_iter[0].n_visited_all[dimension - 1] = 1
+        face_iter[0].n_newfaces[dimension - 1] = face_iter[0].n_coatoms
+        face_iter[0].current_stadium[0] = 0
+        face_iter[0].first_time[dimension - 1] = 1
+        add_a_face = 0
+
+    cdef int rec2
+    cdef size_t missing_faces
+    cdef size_t old_number
+    for rec in range(rec_depth):
+        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
+        i = i%(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
+        rec2 = rec
+        if((current_i != face_iter[0].current_stadium[rec]) or (face_iter[0].current_dimension >= dimension - rec2 - 1) or (rec == rec_depth -1)):
+            if((rec == rec_depth - 1) and (add_a_face) and (rec > 0)):
+                face_iter[0].n_newfaces[dimension-rec-1] += 1
+
+            if((face_iter[0].current_dimension > dimension - rec2 - 1) or (current_i >= face_iter[0].n_newfaces[dimension-rec-1] + face_iter[0].current_stadium[rec])):
+                return 0
+
+            face_iter[0].current_dimension = dimension - rec2 - 1
+            if i == 0:
+                f_vector[dimension - rec] += 1
+
+            k = face_iter[0].n_visited_all[dimension - rec-1]
+            missing_faces = current_i - face_iter[0].current_stadium[rec]
+            for j in range(face_iter[0].n_newfaces[dimension-rec-1] - missing_faces, face_iter[0].n_newfaces[dimension -rec -1]):
+               face_iter[0].visited_all[k] = face_iter[0].newfaces[dimension -rec-1][j]
+               k += 1
+
+            face_iter[0].n_visited_all[dimension - rec-1] += missing_faces
+            face_iter[0].current_stadium[rec] = current_i
+            face_iter[0].current_stadium[rec+1] = 0
+
+            face_iter[0].n_newfaces[dimension - rec-1] -= missing_faces
+            face_iter[0].first_time[dimension - rec-1] = 1
+            face_iter[0].yet_to_visit = 0
+            face_iter[0].max_dimension = dimension - rec -1
+            add_a_face = 0
+            if rec < rec_depth -1:
+                old_number = face_iter[0].n_newfaces[dimension-rec-1]
+                d = next_dimension(face_iter)
+                face_iter[0].n_newfaces[dimension-rec-1] = old_number
+                face_iter[0].first_time[dimension - rec-1] = 1
+                face_iter[0].yet_to_visit = 0
+
+    return 1
+
+
+cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth):
+    cdef size_t i
+    cdef int j
+    rec_depth = recursion_depth
+    #omp_set_num_threads(n_threads);
+    cdef size_t **shared_f = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
+    cdef int dimension = face_iter[0][0].dimension
+
+    for i in range(n_threads):
+        shared_f[i] = <size_t *> sig_calloc(dimension + 2, sizeof(size_t))
+    cdef size_t n_faces = face_iter[0][0].n_coatoms
+
+    #iter_struct *my_iter;
+    #size_t *my_f;
+    #for l in prange(0, n_faces ** rec_depth, schedule='dynamic', chunksize=1):
+    #pragma omp parallel for shared(face_iter, shared_f) schedule(dynamic, 1)
+    cdef size_t l, ID
+    for l in prange(myPow(n_faces, rec_depth), nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
+        #partial_f(face_iter[openmp.omp_get_thread_num()], shared_f[openmp.omp_get_thread_num()], l)
+        #partial_f(face_iter[omp_get_thread_num()], shared_f[omp_get_thread_num()], l);
+
+        partial_f(face_iter, shared_f, l, rec_depth)
+
+    for i in range(n_threads):
+        for j in range(dimension + 2):
+            f_vector[j] += shared_f[i][j]
+
+        sig_free(shared_f[i])
+
+    sig_free(shared_f)
+
+cdef inline void partial_f(iter_struct **face_iter_all, size_t **f_vector_all, size_t i, size_t rec_depth) nogil:
+    cdef size_t ID
+    with gil:
+        ID = threadid()
+    cdef iter_struct * face_iter = face_iter_all[ID]
+    cdef size_t * f_vector = f_vector_all[ID]
+    cdef int rec_depth2
+    cdef int d, dimension
+    cdef size_t j
+    if (prepare_partial_iter(face_iter, i, f_vector, rec_depth)):
+        dimension = face_iter[0].dimension
+        d = next_dimension(face_iter)
+        rec_depth2 = rec_depth
+        while (d < dimension -rec_depth2):
+            f_vector[d + 1] += 1
+            d = next_dimension(face_iter)
 
 cdef class FaceIterator(SageObject):
     r"""
@@ -559,6 +686,7 @@ cdef class FaceIterator(SageObject):
         self._V = C.V()
         self._H = C.H()
         self._equalities = C.equalities()
+        self.structure.n_coatoms = self.coatoms.n_faces
 
         self.structure.atom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
         self.structure.coatom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
@@ -585,6 +713,7 @@ cdef class FaceIterator(SageObject):
         self.structure.visited_all = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
         self.structure.n_visited_all = <size_t *> self._mem.allocarray(self.structure.dimension, sizeof(size_t))
         self.structure.n_visited_all[self.structure.dimension -1] = 0
+        self.structure.bounded = C.is_bounded()
         if not C.is_bounded():
             # Treating the far face as if we had visited all its elements.
             # Hence we will visit all intersections of facets unless contained in the far face.
@@ -615,6 +744,10 @@ cdef class FaceIterator(SageObject):
 
         self.structure.yet_to_visit = self.coatoms.n_faces
         self.structure._index = 0
+
+        self.structure.max_dimension = self.structure.dimension
+        self.structure.current_stadium = <size_t*> self._mem.calloc(self.structure.dimension, sizeof(size_t))
+
 
     def _repr_(self):
         r"""
@@ -830,7 +963,7 @@ cdef class FaceIterator(SageObject):
         if self.structure.face:
             return count_atoms(self.structure.face, self.structure.face_length)
 
-        # The face was not initialized properly.
+        # The face was not initialize properly.
         raise LookupError("``FaceIterator`` does not point to a face")
 
     cdef size_t set_coatom_repr(self) except -1:
