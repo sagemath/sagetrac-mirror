@@ -158,7 +158,7 @@ AUTHOR:
 #*****************************************************************************
 
 from sage.rings.integer     cimport smallInteger
-from cysignals.signals      cimport sig_check, sig_on, sig_off
+from cysignals.signals      cimport sig_check, sig_on, sig_off, sig_check_no_except
 from .conversions           cimport bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron
 from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr
@@ -168,7 +168,7 @@ from cython.parallel        cimport prange, threadid
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
-cdef inline int next_dimension(iter_struct *structure) nogil:
+cdef inline int next_dimension(iter_struct *structure) nogil except -1:
     r"""
     Set attribute ``face`` to the next face and return the dimension.
 
@@ -193,7 +193,7 @@ cdef inline int next_dimension(iter_struct *structure) nogil:
     structure[0]._index += 1
     return structure[0].current_dimension
 
-cdef inline int next_face_loop(iter_struct *structure) nogil:
+cdef inline int next_face_loop(iter_struct *structure) nogil except -1:
     r"""
     Set attribute ``face`` to the next face. On success return `1`.
     Otherwise `0`. Needs to be recalled then.
@@ -283,7 +283,7 @@ cdef inline size_t myPow(size_t x, size_t p) nogil:
     if (p%2 == 0) : return tmp * tmp
     else:  return x * tmp * tmp
 
-cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vector, size_t rec_depth) nogil:
+cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vector, size_t rec_depth) nogil except -1:
     r"""
     Prepares the face iterator to not visit the facets 0,...,-1
     """
@@ -354,7 +354,7 @@ cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f
     return 1
 
 
-cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth):
+cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
     cdef size_t i
     cdef int j
     rec_depth = recursion_depth
@@ -385,7 +385,7 @@ cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_
 
     sig_free(shared_f)
 
-cdef inline void partial_f(iter_struct **face_iter_all, size_t **f_vector_all, size_t i, size_t rec_depth) nogil:
+cdef inline int partial_f(iter_struct **face_iter_all, size_t **f_vector_all, size_t i, size_t rec_depth) nogil except -1:
     cdef size_t ID
     with gil:
         ID = threadid()
@@ -936,7 +936,7 @@ cdef class FaceIterator(SageObject):
         """
         cdef int dim = self.structure.dimension
         while (not self.next_face_loop()) and (self.structure.current_dimension < dim):
-            sig_check()
+            pass
         self.structure._index += 1
         return self.structure.current_dimension
 

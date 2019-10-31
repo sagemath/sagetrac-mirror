@@ -5,8 +5,8 @@ from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
 from .combinatorial_face        cimport CombinatorialFace
 
-cdef inline int next_dimension(iter_struct *structure) nogil
-cdef void parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth)
+cdef inline int next_dimension(iter_struct *structure) nogil except -1
+cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1
 
 cdef struct iter_struct:
     bint bounded
