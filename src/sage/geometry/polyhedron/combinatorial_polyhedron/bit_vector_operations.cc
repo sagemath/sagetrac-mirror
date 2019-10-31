@@ -298,7 +298,6 @@ size_t get_next_level(\
             continue;
         }
 
-        /*
         // Step 3:
         for (size_t k = 0; k < n_visited_all; k++){
             // Testing if maybe_newfaces[j] is contained in one,
@@ -309,7 +308,6 @@ size_t get_next_level(\
                 break;
             }
         }
-        */
     }
 
     // Set ``newfaces`` to point to the correct ones.
