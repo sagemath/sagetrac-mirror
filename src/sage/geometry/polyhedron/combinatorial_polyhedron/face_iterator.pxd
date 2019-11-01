@@ -8,6 +8,8 @@ from .combinatorial_face        cimport CombinatorialFace
 cdef inline int next_dimension(iter_struct *structure) nogil except -1
 cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1
 
+cdef int parallel_bad_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1
+
 cdef struct iter_struct:
     bint bounded
     bint dual                  # if 1, then iterate over dual Polyhedron
@@ -60,6 +62,8 @@ cdef struct iter_struct:
     size_t *current_stadium
     int max_dimension
     int *is_not_newface
+    uint64_t *LHS
+    uint64_t *RHS
 
 
 @cython.final

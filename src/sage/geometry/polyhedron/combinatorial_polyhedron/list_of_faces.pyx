@@ -85,6 +85,7 @@ from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
 from .bit_vector_operations cimport chunksize, get_next_level, count_atoms
+from libc.string            cimport memcpy
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -290,3 +291,9 @@ cdef class ListOfFaces:
         # compute the dimension of the polyhedron,
         # by calculating dimension of one of its faces.
         return self.compute_dimension_loop(newfaces, new_n_faces, face_length) + 1
+
+    def __copy__(self):
+        cdef ListOfFaces copy = ListOfFaces(self.n_faces, self.n_atoms)
+        for i in range(self.n_faces):
+            memcpy(copy.data[i], self.data[i], self.face_length*8)
+        return copy

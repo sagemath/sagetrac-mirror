@@ -6,6 +6,7 @@ from libc.stdint                cimport uint64_t
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
     cdef const size_t chunksize
+    cdef int is_subset(uint64_t *A, uint64_t *B, size_t face_length) nogil
     cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
                            size_t face_length) nogil
 #    Return ``A & ~B == 0``.

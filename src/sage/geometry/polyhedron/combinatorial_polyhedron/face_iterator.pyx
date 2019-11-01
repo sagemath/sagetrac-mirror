@@ -160,8 +160,8 @@ AUTHOR:
 from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off, sig_check_no_except
 from .conversions           cimport bit_repr_to_Vrepr_list
-from .base                  cimport CombinatorialPolyhedron
-from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr
+from .base                  cimport CombinatorialPolyhedron, KunzCone
+from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr, is_subset
 from cysignals.memory       cimport sig_malloc, sig_realloc, sig_free, sig_calloc
 from cython.parallel        cimport prange, threadid
 
@@ -353,6 +353,109 @@ cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f
 
     return 1
 
+cdef inline int prepare_partial_bad_iter(iter_struct *face_iter, size_t i, size_t *f_vector, size_t rec_depth) nogil except -1:
+    r"""
+    Prepares the face iterator to not visit the facets 0,...,-1
+    """
+    cdef size_t j, k
+    cdef size_t current_i = 0
+    if (rec_depth > 0):
+        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
+
+    cdef size_t rec
+    cdef int d
+    cdef int dimension = face_iter[0].dimension
+    cdef int add_a_face = 1
+    if((current_i != face_iter[0].current_stadium[0])):
+        face_iter[0].current_dimension = dimension -1
+        face_iter[0].lowest_dimension = 0
+
+
+        face_iter[0].n_visited_all[dimension -1] = 0
+        if not face_iter[0].bounded:
+            face_iter[0].n_visited_all[dimension - 1] = 1
+        face_iter[0].n_newfaces[dimension - 1] = face_iter[0].n_coatoms
+        face_iter[0].current_stadium[0] = 0
+        face_iter[0].first_time[dimension - 1] = 1
+        add_a_face = 0
+
+    cdef int rec2
+    cdef size_t missing_faces
+    cdef size_t old_number
+
+    for rec in range(rec_depth):
+        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
+        i = i%(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
+        rec2 = rec
+        if((current_i != face_iter[0].current_stadium[rec]) or (face_iter[0].current_dimension >= dimension - rec2 - 1) or (rec == rec_depth -1)):
+            if((rec == rec_depth - 1) and (add_a_face) and (rec > 0)):
+                face_iter[0].n_newfaces[dimension-rec-1] += 1
+
+            if((face_iter[0].current_dimension > dimension - rec2 - 1) or (current_i >= face_iter[0].n_newfaces[dimension-rec-1] + face_iter[0].current_stadium[rec])):
+                return 0
+
+            face_iter[0].current_dimension = dimension - rec2 - 1
+            if i == 0:
+                # XXX for now I'm assuming this is zero anyway, as the face has high embedding dimension.
+                pass
+
+            k = face_iter[0].n_visited_all[dimension - rec-1]
+            missing_faces = current_i - face_iter[0].current_stadium[rec]
+            for j in range(face_iter[0].n_newfaces[dimension-rec-1] - missing_faces, face_iter[0].n_newfaces[dimension -rec -1]):
+               face_iter[0].visited_all[k] = face_iter[0].newfaces[dimension -rec-1][j]
+               k += 1
+
+            face_iter[0].n_visited_all[dimension - rec-1] += missing_faces
+            face_iter[0].current_stadium[rec] = current_i
+            face_iter[0].current_stadium[rec+1] = 0
+
+            face_iter[0].n_newfaces[dimension - rec-1] -= missing_faces
+            face_iter[0].first_time[dimension - rec-1] = 1
+            face_iter[0].yet_to_visit = 0
+            face_iter[0].max_dimension = dimension - rec -1
+            add_a_face = 0
+            if rec < rec_depth -1:
+                old_number = face_iter[0].n_newfaces[dimension-rec-1]
+                d = next_dimension(face_iter)
+                face_iter[0].n_newfaces[dimension-rec-1] = old_number
+                face_iter[0].first_time[dimension - rec-1] = 1
+                face_iter[0].yet_to_visit = 0
+
+    return 1
+
+cdef int parallel_bad_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
+    cdef size_t i
+    cdef int j
+    if recursion_depth > 2:
+        raise ValueError("recursion depth can be at most 2 at the moment, as I'm assuming everything with codimension recursion_depth to have high embeidding dimension")
+    rec_depth = recursion_depth
+    #omp_set_num_threads(n_threads);
+    cdef size_t **shared_f = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
+    cdef int dimension = face_iter[0][0].dimension
+
+    for i in range(n_threads):
+        shared_f[i] = <size_t *> sig_calloc(dimension + 2, sizeof(size_t))
+    cdef size_t n_faces = face_iter[0][0].n_coatoms
+
+    #iter_struct *my_iter;
+    #size_t *my_f;
+    #for l in prange(0, n_faces ** rec_depth, schedule='dynamic', chunksize=1):
+    #pragma omp parallel for shared(face_iter, shared_f) schedule(dynamic, 1)
+    cdef size_t l, ID
+    for l in prange(myPow(n_faces, rec_depth), nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
+        #partial_f(face_iter[openmp.omp_get_thread_num()], shared_f[openmp.omp_get_thread_num()], l)
+        #partial_f(face_iter[omp_get_thread_num()], shared_f[omp_get_thread_num()], l);
+
+        partial_bad(face_iter, shared_f, l, rec_depth)
+
+    for i in range(n_threads):
+        for j in range(dimension + 2):
+            f_vector[j] += shared_f[i][j]
+
+        sig_free(shared_f[i])
+
+    sig_free(shared_f)
+
 
 cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
     cdef size_t i
@@ -401,6 +504,53 @@ cdef inline int partial_f(iter_struct **face_iter_all, size_t **f_vector_all, si
         while (d < dimension -rec_depth2):
             f_vector[d + 1] += 1
             d = next_dimension(face_iter)
+
+cdef inline int partial_bad(iter_struct **face_iter_all, size_t **f_vector_all, size_t i, size_t rec_depth) nogil except -1:
+    cdef size_t ID
+    with gil:
+        ID = threadid()
+    cdef iter_struct * face_iter = face_iter_all[ID]
+    cdef size_t * f_vector = f_vector_all[ID]
+    cdef int rec_depth2
+    cdef int d, dimension
+    cdef size_t j
+    if (prepare_partial_bad_iter(face_iter, i, f_vector, rec_depth)):
+        dimension = face_iter[0].dimension
+        d = next_dimension(face_iter)
+        rec_depth2 = rec_depth
+        while (d < dimension -rec_depth2):
+            if is_bad_face(face_iter[0].face, face_iter):
+                f_vector[d + 1] += 1
+            d = next_dimension(face_iter)
+
+cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil:
+    cdef int dimension = face_iter[0].dimension
+    cdef uint64_t ** coatoms = face_iter[0].newfaces[dimension-1]
+    cdef size_t n_coatoms = face_iter[0].n_coatoms
+    cdef size_t face_length = face_iter[0].face_length
+    cdef uint64_t *LHS = face_iter[0].LHS
+    cdef uint64_t *RHS = face_iter[0].RHS
+    cdef uint64_t total_LHS = 0
+    cdef uint64_t total_RHS = 0
+    cdef size_t i
+    for i in range(n_coatoms):
+        if is_subset(face, coatoms[i], face_length):
+            total_LHS = total_LHS | LHS[i]
+            total_RHS = total_RHS | RHS[i]
+
+    cdef size_t m = dimension + 2
+    cdef size_t e = m-1-count_atoms(&total_RHS, 1) + 1
+    cdef size_t t = m-1-count_atoms(&total_LHS, 1)
+
+
+    if e > t:
+        # is Wilf
+        return 0
+
+    if 2*e >= m:
+        # is Wilf
+        return 0
+    return 1
 
 cdef class FaceIterator(SageObject):
     r"""
@@ -628,7 +778,7 @@ cdef class FaceIterator(SageObject):
                 # Note: At this point, we have visited exactly those faces,
                 # contained in any of the ``visited_all``.
     """
-    def __init__(self, CombinatorialPolyhedron C, bint dual, output_dimension=None):
+    def __init__(self, E, bint dual, output_dimension=None):
         r"""
         Initialize :class:`FaceIterator`.
 
@@ -646,6 +796,14 @@ cdef class FaceIterator(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator).run()
         """
+        assert(isinstance(E, CombinatorialPolyhedron), "wrong type")
+        cdef KunzCone D
+        cdef CombinatorialPolyhedron C = E
+        if isinstance(E, KunzCone):
+            D = E
+            self.structure.LHS = D.facets_LHS
+            self.structure.RHS = D.facets_RHS
+
         if dual and not C.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded Polyedron")
         cdef int i
@@ -677,11 +835,11 @@ cdef class FaceIterator(SageObject):
             self.structure.output_dimension = -2
 
         if dual:
-            self.atoms = C.bitrep_facets()
-            self.coatoms = C.bitrep_Vrepr()
+            self.atoms = C.bitrep_facets().__copy__()
+            self.coatoms = C.bitrep_Vrepr().__copy__()
         else:
-            self.coatoms = C.bitrep_facets()
-            self.atoms = C.bitrep_Vrepr()
+            self.coatoms = C.bitrep_facets().__copy__()
+            self.atoms = C.bitrep_Vrepr().__copy__()
         self.structure.face_length = self.coatoms.face_length
         self._V = C.V()
         self._H = C.H()
@@ -748,7 +906,6 @@ cdef class FaceIterator(SageObject):
         self.structure.max_dimension = self.structure.dimension
         self.structure.current_stadium = <size_t*> self._mem.calloc(self.structure.dimension, sizeof(size_t))
         self.structure.is_not_newface = <int*> self._mem.allocarray(self.coatoms.n_faces, sizeof(int))
-
 
     def _repr_(self):
         r"""

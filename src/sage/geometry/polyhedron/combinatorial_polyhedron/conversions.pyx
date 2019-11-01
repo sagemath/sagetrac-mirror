@@ -412,6 +412,48 @@ def incidence_matrix_to_bit_repr_of_Vrepr(matrix):
         incidences_to_bit_repr(tuple(matrix.column(i)), Vrepr_data[i], Vrepr.face_length)
     return Vrepr
 
+cdef ListOfFaces incidence_array_to_bit_repr_of_facets(bint **array, size_t n_facets, size_t n_vertices):
+    cdef ListOfFaces facets = ListOfFaces(n_facets, n_vertices)
+    cdef uint64_t **data = facets.data
+    cdef size_t face_length = facets.face_length
+
+    cdef size_t entry       # index for the entries in tup
+    cdef size_t position    # determines the position in output of entry
+    cdef size_t value       # determines which bit will be set in output[position]
+
+    cdef size_t i
+    for i in range(n_facets):
+
+        memset(data[i], 0, face_length*8)  #initialize
+        for entry in range(n_vertices):
+            if array[entry][i]:
+                # Vrepr ``entry`` is contained in the face, so set the corresponding bit
+                value = entry % 64
+                position = entry//64
+                data[i][position] += vertex_to_bit_dictionary(value)
+    return facets
+
+cdef ListOfFaces incidence_array_to_bit_repr_of_vertices(bint **array, size_t n_facets, size_t n_vertices):
+    cdef ListOfFaces facets = ListOfFaces(n_vertices, n_facets)
+    cdef uint64_t **data = facets.data
+    cdef size_t face_length = facets.face_length
+
+    cdef size_t entry       # index for the entries in tup
+    cdef size_t position    # determines the position in output of entry
+    cdef size_t value       # determines which bit will be set in output[position]
+
+    cdef size_t i
+    for i in range(n_vertices):
+
+        memset(data[i], 0, face_length*8)  #initialize
+        for entry in range(n_facets):
+            if array[i][entry]:
+                # Vrepr ``entry`` is contained in the face, so set the corresponding bit
+                value = entry % 64
+                position = entry//64
+                data[i][position] += vertex_to_bit_dictionary(value)
+    return facets
+
 def facets_tuple_to_bit_repr_of_facets(tuple facets_input, size_t n_Vrepr):
     r"""
     Initializes facets in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
