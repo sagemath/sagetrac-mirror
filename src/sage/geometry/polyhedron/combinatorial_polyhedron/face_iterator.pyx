@@ -161,7 +161,7 @@ from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off, sig_check_no_except
 from .conversions           cimport bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron, KunzCone
-from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr, is_subset
+from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr, is_bad_face_cc
 from cysignals.memory       cimport sig_malloc, sig_realloc, sig_free, sig_calloc
 from cython.parallel        cimport prange, threadid
 
@@ -522,7 +522,7 @@ cdef inline int partial_bad(iter_struct **face_iter_all, size_t **f_vector_all, 
         step = myPow(face_iter[0].n_coatoms, rec_depth-1)
 
         for j in range(1,n):
-            if to_do[j]*step < i:
+            if to_do[j]*step <= i:
                 prev = to_do[j]*step
 
         if i - prev > step:
@@ -548,27 +548,7 @@ cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil:
     cdef size_t face_length = face_iter[0].face_length
     cdef uint64_t *LHS = face_iter[0].LHS
     cdef uint64_t *RHS = face_iter[0].RHS
-    cdef uint64_t total_LHS = 0
-    cdef uint64_t total_RHS = 0
-    cdef size_t i
-    for i in range(n_coatoms):
-        if is_subset(face, coatoms[i], face_length):
-            total_LHS = total_LHS | LHS[i]
-            total_RHS = total_RHS | RHS[i]
-
-    cdef size_t m = dimension + 2
-    cdef size_t e = m-1-count_atoms(&total_RHS, 1) + 1
-    cdef size_t t = m-1-count_atoms(&total_LHS, 1)
-
-
-    if e > t:
-        # is Wilf
-        return 0
-
-    if 2*e >= m:
-        # is Wilf
-        return 0
-    return 1
+    return is_bad_face_cc(face, dimension, coatoms, n_coatoms, face_length, LHS, RHS)
 
 cdef class FaceIterator(SageObject):
     r"""

@@ -344,3 +344,25 @@ size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
     }
     return count_length;
 }
+
+inline int is_bad_face_cc(uint64_t *face, int dimension, uint64_t ** coatoms, size_t n_coatoms, size_t face_length, uint64_t *LHS, uint64_t *RHS){
+    uint64_t total_LHS = 0;
+    uint64_t total_RHS = 0;
+    size_t i;
+    for(i=0; i< n_coatoms; i++){
+        if(is_subset(face, coatoms[i], face_length)){
+            total_LHS = total_LHS | LHS[i];
+            total_RHS = total_RHS | RHS[i];
+        }
+    }
+    size_t m = dimension + 2;
+    size_t e = m-1-count_atoms(&total_RHS, 1) + 1;
+    size_t t = m-1-count_atoms(&total_LHS, 1);
+
+    if (e > t)
+        return 0;
+
+    if (2*e >= m)
+        return 0;
+    return 1;
+}
