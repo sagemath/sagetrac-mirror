@@ -1655,9 +1655,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
         f_vector[0] = 1         # Face iterator will only visit proper faces.
         f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
-        sig_on()
         parallel_f_vector(iters, f_vector, n_threads, parallelization_depth)
-        sig_off()
 
 
         # Copy ``f_vector``.

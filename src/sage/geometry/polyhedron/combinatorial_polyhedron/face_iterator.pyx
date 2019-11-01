@@ -189,7 +189,7 @@ cdef inline int next_dimension(iter_struct *structure) nogil except -1:
     """
     cdef int dim = structure[0].max_dimension
     while (not next_face_loop(structure)) and (structure[0].current_dimension < dim):
-        pass
+        sig_check()
     structure[0]._index += 1
     return structure[0].current_dimension
 
@@ -477,7 +477,6 @@ cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_t
     for l in prange(myPow(n_faces, rec_depth), nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
         #partial_f(face_iter[openmp.omp_get_thread_num()], shared_f[openmp.omp_get_thread_num()], l)
         #partial_f(face_iter[omp_get_thread_num()], shared_f[omp_get_thread_num()], l);
-
         partial_f(face_iter, shared_f, l, rec_depth)
 
     for i in range(n_threads):
