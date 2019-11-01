@@ -350,9 +350,11 @@ inline int is_bad_face_cc(uint64_t *face, int dimension, uint64_t ** coatoms, si
     uint64_t total_RHS = 0;
     size_t i;
     for(i=0; i< n_coatoms; i++){
-        if(is_subset(face, coatoms[i], face_length)){
-            total_LHS = total_LHS | LHS[i];
-            total_RHS = total_RHS | RHS[i];
+        if ((LHS[i] &~total_LHS) + (RHS[i] & ~total_RHS)){
+            if(is_subset(face, coatoms[i], face_length)){
+                total_LHS = total_LHS | LHS[i];
+                total_RHS = total_RHS | RHS[i];
+            }
         }
     }
     size_t m = dimension + 2;
