@@ -6,7 +6,6 @@ from .face_iterator             cimport FaceIterator, CombinatorialFace
 from .list_of_faces             cimport ListOfFaces
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 
-@cython.final
 cdef class CombinatorialPolyhedron(SageObject):
     # Do not assume any of those attributes to be initialized, use the corresponding methods instead.
     cdef tuple _V                       # the names of VRep, if they exist
@@ -61,3 +60,15 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef int _compute_edges(self, dual) except -1
     cdef int _compute_ridges(self, dual) except -1
     cdef int _compute_face_lattice_incidences(self) except -1
+
+cdef class KunzCone(CombinatorialPolyhedron):
+    cdef public tuple _orbit_first_element
+    cdef uint64_t *facets_LHS
+    cdef uint64_t *facets_RHS
+    cdef tuple _bad_vector
+
+    cdef tuple kunz_cone_to_my_data(self, P, bint **facets_to_vertices, uint64_t *LHS, uint64_t *RHS)
+
+    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS)
+
+    cdef int _compute_bad_vector(self, size_t n_threads, size_t parallelization_depth) except -1

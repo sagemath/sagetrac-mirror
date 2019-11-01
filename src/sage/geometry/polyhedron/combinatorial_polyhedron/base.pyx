@@ -99,9 +99,13 @@ from .conversions \
                facets_tuple_to_bit_repr_of_facets, \
                facets_tuple_to_bit_repr_of_Vrepr
 
+from .conversions \
+       cimport incidence_array_to_bit_repr_of_facets, \
+               incidence_array_to_bit_repr_of_vertices
+
 from sage.rings.integer             cimport smallInteger
 from cysignals.signals              cimport sig_check, sig_block, sig_unblock, sig_on, sig_off
-from .face_iterator                 cimport iter_struct, next_dimension, parallel_f_vector
+from .face_iterator                 cimport iter_struct, next_dimension, parallel_f_vector, parallel_bad_vector
 from cysignals.memory cimport sig_free, sig_calloc
 
 cdef extern from "Python.h":
@@ -2134,3 +2138,239 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._all_faces = PolyhedronFaceLattice(self)
         if self._all_faces is None:
             raise RuntimeError("could not determine a list of all faces")
+
+cdef class KunzCone(CombinatorialPolyhedron):
+    def __init__(self, m):
+        P = self.kunz_cone(m)
+        self._dimension = m-2 # We treat it as a bounded polytope.
+        self._edges = NULL
+        self._ridges = NULL
+        self._face_lattice_incidences = NULL
+        self._equalities = ()
+        self._all_faces = None
+        cdef MemoryAllocator mem = MemoryAllocator()
+        self._mem_tuple = (mem,)
+
+        # ``_length_edges_list`` should not be touched in an instance
+        # of :class:`CombinatorialPolyhedron`. This number can be altered,
+        # but should probably be a power of `2` (for memory usage).
+        # ``_length_edges_list`` shouldn't be too small for speed and
+        # shouldn't be too large, as ``ridges``, ``edges`` and ``incidences``
+        # each have a memory overhead of
+        # ``self._length_edges_list*2*sizeof(size_t *)``.
+        self._length_edges_list = 16348
+
+
+        self._bounded = True
+        far_face = None
+
+        cdef bint ** V_incidence = <bint **> sig_calloc(P.n_rays(), sizeof(bint *))
+        for i in range(P.n_rays()):
+            V_incidence[i] = <bint*> sig_calloc(P.n_Hrepresentation(), sizeof(bint))
+
+        self.facets_LHS = <uint64_t *> mem.calloc(P.n_Hrepresentation(), sizeof(uint64_t))
+        self.facets_RHS = <uint64_t *> mem.calloc(P.n_Hrepresentation(), sizeof(uint64_t))
+
+        Vrepr, self._orbit_first_element = self.kunz_cone_to_my_data(P, V_incidence, self.facets_LHS, self.facets_RHS)
+
+        facets = tuple(self.kunz_facet_string(self.facets_LHS[i], self.facets_RHS[i]) for i in range(P.n_Hrepresentation()))
+
+        # store vertices names
+        self._V = tuple(Vrepr)
+        Vinv = {v: i for i,v in enumerate(self._V)}
+
+        self._H = facets
+
+        self._equalities = ()
+
+        self._length_Hrepr = P.n_Hrepresentation()
+        self._length_Vrepr = P.n_rays()
+
+        self._bitrep_facets = incidence_array_to_bit_repr_of_facets(V_incidence, self._length_Hrepr, self._length_Vrepr)
+
+        self._bitrep_Vrepr = incidence_array_to_bit_repr_of_vertices(V_incidence, self._length_Hrepr, self._length_Vrepr)
+
+        self._n_facets = self.bitrep_facets().n_faces
+
+        for i in range(P.n_rays()):
+            sig_free(V_incidence[i])
+        sig_free(V_incidence)
+
+    def kunz_cone(self, m, backend='normaliz'):
+        from sage.rings.all import ZZ
+        V = ZZ**(m-1)
+        B = V.basis()
+        #print B
+        ieqs = [[0] +  list(B[i-1]+B[j-1]-B[(i+j-1) % m]) for j in range(1,m) for i in range(1,j+1) if i+j != m]
+        #print len(ieqs)
+        #return ieqs
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        return Polyhedron(ieqs=ieqs, backend=backend)
+
+    cdef tuple kunz_cone_to_my_data(self, P, bint **facets_to_vertices, uint64_t *LHS, uint64_t *RHS):
+        """
+        Expects a KunzCone. Converts it to
+
+        - for each vertex a list of facets, stored in ``facets_to_vertices``
+        - two uint64_t* as bitvectors representing the facets,
+          - one for the bases vectors on the LHS
+          - one for the bases vector on the RHS
+
+        Return
+        - the first index of each facet orbit as tuple,
+        - the sorted Vrep
+
+        This might seem an overkill, but this will come in handy, once we try to figure out,
+        which faces are bad faces.
+        """
+        Hrep, orbit_first_element = self.sort_Hrep(P)
+        m = P.dimension() +1
+        assert(m < 64, "this code is not excepted to have use in this case, but should be fixed if needed anyway")
+
+        # Initialize LHS and RHS.
+        Hvecs = list(H.A() for H in Hrep)
+        vectorlist = list(list(c) for c in Hvecs)
+        for i in range(len(P.Hrepresentation())):
+            vector = vectorlist[i]
+            LHS[i] = 0
+            RHS[i] = 0
+            for j in range(m-1):
+                if vector[j] > 0:
+                    LHS[i] += (<uint64_t>1) << (64 - j - 1)
+                elif vector[j] < 0:
+                    RHS[i] += (<uint64_t>1) << (64 - j - 1)
+
+        cdef bint **unsorted = <bint **> sig_calloc(P.n_Vrepresentation()-1, sizeof(bint *))
+        counter = [[0,i] for i in range(P.n_rays())]
+        cdef bint value
+
+        for i in range(P.n_Vrepresentation()-1):
+            unsorted[i] = facets_to_vertices[i]
+            Vvec = P.rays()[i].vector()
+            for j in range(len(Hrep)):
+                value = (Hvecs[j]*Vvec == 0)
+                unsorted[i][j] = value
+                counter[i][0] += value
+
+        counter = sorted(counter, reverse=True)
+
+        for i in range(P.n_rays()):
+            facets_to_vertices[i] = unsorted[counter[i][1]]
+
+        sig_free(unsorted)
+        Vrep = tuple(P.rays()[counter[i][1]] for i in range(P.n_rays()))
+        return Vrep, orbit_first_element
+
+
+    def sort_Hrep(self, P):
+        """
+        Expects a KunzCone and will return a tuple of
+        - sorted Hrep
+        - first element of each orbit in the Hrep
+        """
+        Hrep = P.Hrepresentation()
+        a = list(H.A() for H in P.Hrepresentation())
+        vectorlist = list(list(c) for c in a)
+
+
+        def perm(d,p):
+            e = [0]*len(d)
+            for i in range(1,len(d)+1):
+                e[(i*p-1) % (len(d)+1)] = d[i-1]
+            return e
+
+        newHrep = tuple()
+        Hrep_taken = [False for _ in range(len(Hrep))]
+
+        from sage.rings.all import Integers
+        m = P.dimension() + 1
+        R = Integers(m)
+        orbit_first_elements = tuple()
+
+        for i in range(len(Hrep)):
+            if not Hrep_taken[i]:
+                vector = vectorlist[i]
+                orbit_first_elements += (len(newHrep),)
+                for p in R:
+                    if p.is_unit():
+                        vector2 = perm(vector,p)
+                        index = vectorlist.index(vector2)
+                        if not Hrep_taken[index]:
+                            newHrep += (Hrep[index],)
+                            Hrep_taken[index] = True
+
+        return (newHrep, orbit_first_elements)
+
+    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS):
+        left = ()
+        right = ()
+        for i in range(64):
+            if LHS >= (<uint64_t>1) << (64 - i -1):
+                left = (i+1,) + left
+                LHS -= (<uint64_t>1) << (64 -i -1)
+            if RHS >= (<uint64_t>1) << (64 - i -1):
+                right = (i+1,) + right
+                RHS -= (<uint64_t>1) << (64 -i -1)
+        assert(len(left) in (1,2), "trouble")
+        assert(len(right) == 1, "trouble2")
+        if len(left) == 1:
+            return "2*b_{} >= b_{}".format(left[0], right[0])
+        return "b_{} + b_{} >= b_{}".format(left[0], left[1], right[0])
+
+
+
+    def bad_faces_vector(self, n_threads=1, parallelization_depth=0):
+        r"""
+        Compute the number of bad faces of the KunzCone.
+
+        Output: A vector, just like f_vector.
+        """
+        if not self._bad_vector:
+            self._compute_bad_vector(n_threads, parallelization_depth)
+        if not self._bad_vector:
+            raise ValueError("could not determine f_vector")
+        from sage.modules.free_module_element import vector
+        from sage.rings.all                   import ZZ
+        return vector(ZZ, self._bad_vector)
+
+    cdef int _compute_bad_vector(self, size_t n_threads, size_t parallelization_depth) except -1:
+        r"""
+        Compute the bad faces of the cone.
+
+        See :meth:`bad_faces_vector`.
+        """
+        cdef bint dual = False
+        cdef FaceIterator face_iter = self._face_iter(dual, -2)
+
+        cdef int dim = self.dimension()
+        cdef MemoryAllocator mem = MemoryAllocator()
+        cdef int d  # dimension of the current face of the iterator
+        cdef int parallelization_depth2 = parallelization_depth
+        if dim//2 < parallelization_depth2:
+            # make sure we do not parallelize more than possible
+            parallelization_depth = dim//2
+
+        if parallelization_depth == 0:
+            n_threads = 1
+        elif n_threads > self._n_facets*parallelization_depth:
+            # make sure the requested number of threads is reasonable
+            n_threads = self._n_facets*parallelization_depth
+
+        cdef iter_struct **iters = <iter_struct**> sig_calloc(n_threads, sizeof(iter_struct*))
+        cdef FaceIterator some_iter
+
+        a = tuple( self._face_iter(dual, -2) for _ in range(n_threads))
+        cdef size_t i
+        for i in range(n_threads):
+            some_iter = a[i]
+            iters[i] = &(some_iter.structure)
+
+        # Initialize ``f_vector``.
+        cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
+        f_vector[0] = 0         # Emtpy face is not bad.
+        f_vector[dim + 1] = 0   # Empty face is not bad.
+        parallel_bad_vector(iters, f_vector, n_threads, parallelization_depth)
+
+
+        # Copy ``bad_vector``.
+        self._bad_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
