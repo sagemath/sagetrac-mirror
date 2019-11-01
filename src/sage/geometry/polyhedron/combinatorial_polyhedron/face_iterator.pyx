@@ -510,10 +510,28 @@ cdef inline int partial_bad(iter_struct **face_iter_all, size_t **f_vector_all, 
     with gil:
         ID = threadid()
     cdef iter_struct * face_iter = face_iter_all[ID]
+
+    # Figuring out, wether we can safely skip this, as we have visited this orbit already.
+    cdef size_t n = face_iter.n_first_orbit_facets
+    cdef size_t *to_do = face_iter.first_orbit_facets
+    cdef size_t step
+    cdef size_t j
+    cdef size_t prev = 0
+
+    if rec_depth > 0:
+        step = myPow(face_iter[0].n_coatoms, rec_depth-1)
+
+        for j in range(1,n):
+            if to_do[j]*step < i:
+                prev = to_do[j]*step
+
+        if i - prev > step:
+            # ``i`` tells us to visit a facet, which is not the first of its orbit.
+            return 0
+
     cdef size_t * f_vector = f_vector_all[ID]
     cdef int rec_depth2
     cdef int d, dimension
-    cdef size_t j
     if (prepare_partial_bad_iter(face_iter, i, f_vector, rec_depth)):
         dimension = face_iter[0].dimension
         d = next_dimension(face_iter)
@@ -906,6 +924,14 @@ cdef class FaceIterator(SageObject):
         self.structure.max_dimension = self.structure.dimension
         self.structure.current_stadium = <size_t*> self._mem.calloc(self.structure.dimension, sizeof(size_t))
         self.structure.is_not_newface = <int*> self._mem.allocarray(self.coatoms.n_faces, sizeof(int))
+
+        cdef size_t n,j
+        if isinstance(E, KunzCone):
+            n = len(E._orbit_first_element)
+            self.structure.n_first_orbit_facets = n
+            self.structure.first_orbit_facets = <size_t *> self._mem.calloc(n, sizeof(size_t))
+            for j in range(n):
+                self.structure.first_orbit_facets[j] = E._orbit_first_element[j]
 
     def _repr_(self):
         r"""

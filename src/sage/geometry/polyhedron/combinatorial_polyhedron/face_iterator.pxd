@@ -64,6 +64,8 @@ cdef struct iter_struct:
     int *is_not_newface
     uint64_t *LHS
     uint64_t *RHS
+    size_t *first_orbit_facets # First in orbit, would have been a better name.
+    size_t n_first_orbit_facets
 
 
 @cython.final
