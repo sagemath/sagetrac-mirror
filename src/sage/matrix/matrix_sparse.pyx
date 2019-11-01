@@ -747,41 +747,48 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: m.apply_map(lambda x: x+1)
             [1|1]
             [4|1]
+
+        A test for :trac:`21629`::
+
+            sage: D = matrix.diagonal((0, 0, 0))
+            sage: D.apply_map(lambda t: t)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
         """
-        if self._nrows==0 or self._ncols==0:
+        if not self._nrows or not self._ncols:
             if not sparse:
                 return self.dense_matrix()
             else:
                 return self.__copy__()
         self_dict = self._dict()
         if len(self_dict) < self._nrows * self._ncols:
-            zero_res = phi(self.base_ring()(0))
-            if zero_res.is_zero():
-                zero_res = None
+            zero_image = phi(self.base_ring().zero())
+            zero_to_nonzero = not zero_image.is_zero()
         else:
-            zero_res = None
-        v = [(ij, phi(z)) for ij,z in self_dict.iteritems()]
+            zero_to_nonzero = False
+        v = [(ij, phi(z)) for ij, z in self_dict.items()]
         if R is None:
             w = [x for _, x in v]
-            if zero_res is not None:
-                w.append(zero_res)
+            if zero_to_nonzero or not w:
+                w.append(zero_image)
             w = sage.structure.sequence.Sequence(w)
             R = w.universe()
             v = {v[i][0]: w[i] for i in range(len(v))}
         else:
             v = dict(v)
-        if zero_res is not None:
+        if zero_to_nonzero:
             M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
                                                      self._ncols, sparse=sparse)
-            m = M([zero_res] * (self._nrows * self._ncols))
-            for i,n in v.items():
+            m = M([zero_image] * (self._nrows * self._ncols))
+            for i, n in v.items():
                 m[i] = n
             if self._subdivisions is not None:
                 m.subdivide(*self.subdivisions())
             return m
 
         M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
-                   self._ncols, sparse=sparse)
+                                                 self._ncols, sparse=sparse)
         m = M(v)
         if self._subdivisions is not None:
             m.subdivide(*self.subdivisions())
