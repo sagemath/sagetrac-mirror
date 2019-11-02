@@ -224,7 +224,7 @@ So we do not consider anything newer than AVX2.
 size_t get_next_level(\
         uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
-        size_t n_visited_all, size_t face_length, int *is_not_newface){
+        size_t n_visited_all, size_t face_length, int *is_not_newface, uint64_t **LHS, uint64_t **RHS){
     /*
     Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
     that are not contained in a face of ``visited_all``.
@@ -260,12 +260,26 @@ size_t get_next_level(\
             not visited yet.
     */
 
-    // Step 1:
-    for (size_t j = 0; j < n_faces - 1; j++){
-        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
+    uint64_t *current_LHS = NULL;
+    uint64_t *current_RHS = NULL;
+    uint64_t *next_LHS = NULL;
+    uint64_t *next_RHS = NULL;
+    if (LHS){
+        current_LHS = LHS[1];
+        current_RHS = RHS[1];
+        next_LHS = LHS[0];
+        next_RHS = RHS[0];
     }
 
 
+    // Step 1:
+    for (size_t j = 0; j < n_faces - 1; j++){
+        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
+        if (LHS){
+            next_LHS[j] = current_LHS[j] | current_LHS[n_faces -1];
+            next_RHS[j] = current_RHS[j] | current_RHS[n_faces -1];
+        }
+    }
 
     // For each face we will Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
@@ -319,6 +333,10 @@ size_t get_next_level(\
         }
         // It is a new face of codimension 1.
         newfaces[n_newfaces] = maybe_newfaces[j];
+        if (LHS){
+            next_LHS[n_newfaces] = next_LHS[j];
+            next_RHS[n_newfaces] = next_RHS[j];
+        }
         n_newfaces++;
     }
     return n_newfaces;
@@ -345,21 +363,19 @@ size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
     return count_length;
 }
 
-inline int is_bad_face_cc(uint64_t *face, int dimension, uint64_t ** coatoms, size_t n_coatoms, size_t face_length, uint64_t *LHS, uint64_t *RHS){
-    uint64_t total_LHS = 0;
-    uint64_t total_RHS = 0;
+inline int is_bad_face_cc(uint64_t *face, int dimension, uint64_t ** coatoms, size_t n_coatoms, size_t face_length, uint64_t *LHS, uint64_t *RHS, uint64_t *current_LHS, uint64_t *current_RHS){
     size_t i;
     for(i=0; i< n_coatoms; i++){
-        if ((LHS[i] &~total_LHS) + (RHS[i] & ~total_RHS)){
+        if ((LHS[i] &~current_LHS[0]) + (RHS[i] & ~current_RHS[0])){
             if(is_subset(face, coatoms[i], face_length)){
-                total_LHS = total_LHS | LHS[i];
-                total_RHS = total_RHS | RHS[i];
+                current_LHS[0] = current_LHS[0] | LHS[i];
+                current_RHS[0] = current_RHS[0] | RHS[i];
             }
         }
     }
     size_t m = dimension + 2;
-    size_t e = m-1-count_atoms(&total_RHS, 1) + 1;
-    size_t t = m-1-count_atoms(&total_LHS, 1);
+    size_t e = m-1-count_atoms(current_RHS, 1) + 1;
+    size_t t = m-1-count_atoms(current_LHS, 1);
 
     if (e > t)
         return 0;

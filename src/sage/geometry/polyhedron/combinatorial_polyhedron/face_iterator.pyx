@@ -215,6 +215,9 @@ cdef inline int next_face_loop(iter_struct *structure) nogil except -1:
         # Set ``face`` to the next face.
         structure[0].yet_to_visit -= 1
         structure[0].face = faces[structure[0].yet_to_visit]
+        if structure[0].LHS:
+            structure.current_LHS = &structure[0].LHS[structure[0].current_dimension][structure[0].yet_to_visit]
+            structure.current_RHS = &structure[0].RHS[structure[0].current_dimension][structure[0].yet_to_visit]
         return 1
 
     if structure[0].current_dimension <= structure[0].lowest_dimension:
@@ -248,10 +251,16 @@ cdef inline int next_face_loop(iter_struct *structure) nogil except -1:
     # which we have not yet visited.
     cdef size_t newfacescounter
 
+    cdef uint64_t **LHS = NULL
+    cdef uint64_t **RHS = NULL
+    if structure[0].LHS:
+        LHS = &structure[0].LHS[structure[0].current_dimension-1]
+        RHS = &structure[0].RHS[structure[0].current_dimension-1]
+
     newfacescounter = get_next_level(
         faces, n_faces + 1, structure[0].maybe_newfaces[structure[0].current_dimension-1],
         structure[0].newfaces[structure[0].current_dimension-1],
-        structure[0].visited_all, n_visited_all, structure[0].face_length, structure[0].is_not_newface)
+        structure[0].visited_all, n_visited_all, structure[0].face_length, structure[0].is_not_newface, LHS, RHS)
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.
@@ -545,9 +554,9 @@ cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil:
     cdef uint64_t ** coatoms = face_iter[0].newfaces[dimension-1]
     cdef size_t n_coatoms = face_iter[0].n_coatoms
     cdef size_t face_length = face_iter[0].face_length
-    cdef uint64_t *LHS = face_iter[0].LHS
-    cdef uint64_t *RHS = face_iter[0].RHS
-    return is_bad_face_cc(face, dimension, coatoms, n_coatoms, face_length, LHS, RHS)
+    cdef uint64_t *LHS = face_iter[0].LHS[dimension-1]
+    cdef uint64_t *RHS = face_iter[0].RHS[dimension-1]
+    return is_bad_face_cc(face, dimension, coatoms, n_coatoms, face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS)
 
 cdef class FaceIterator(SageObject):
     r"""
@@ -796,10 +805,6 @@ cdef class FaceIterator(SageObject):
         assert(isinstance(E, CombinatorialPolyhedron), "wrong type")
         cdef KunzCone D
         cdef CombinatorialPolyhedron C = E
-        if isinstance(E, KunzCone):
-            D = E
-            self.structure.LHS = D.facets_LHS
-            self.structure.RHS = D.facets_RHS
 
         if dual and not C.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded Polyedron")
@@ -906,11 +911,21 @@ cdef class FaceIterator(SageObject):
 
         cdef size_t n,j
         if isinstance(E, KunzCone):
+            D = E
             n = len(E._orbit_first_element)
             self.structure.n_first_orbit_facets = n
             self.structure.first_orbit_facets = <size_t *> self._mem.calloc(n, sizeof(size_t))
             for j in range(n):
-                self.structure.first_orbit_facets[j] = E._orbit_first_element[j]
+                self.structure.first_orbit_facets[j] = D._orbit_first_element[j]
+            self.structure.LHS = <uint64_t **> self._mem.calloc(self.structure.dimension, sizeof(uint64_t*))
+            self.structure.RHS = <uint64_t **> self._mem.calloc(self.structure.dimension, sizeof(uint64_t*))
+            for i in range(self.structure.dimension):
+                self.structure.LHS[i] = <uint64_t *> self._mem.calloc(self.structure.n_coatoms, sizeof(uint64_t))
+                self.structure.RHS[i] = <uint64_t *> self._mem.calloc(self.structure.n_coatoms, sizeof(uint64_t))
+
+            for j in range(self.structure.n_coatoms):
+                self.structure.LHS[self.structure.dimension-1][j] = D.facets_LHS[j]
+                self.structure.RHS[self.structure.dimension-1][j] = D.facets_RHS[j]
 
     def _repr_(self):
         r"""

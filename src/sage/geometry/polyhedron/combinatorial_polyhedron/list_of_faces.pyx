@@ -285,7 +285,7 @@ cdef class ListOfFaces:
         cdef size_t new_n_faces
         sig_on()
         new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
-                                      newfaces, NULL, 0, face_length, is_not_newface)
+                                      newfaces, NULL, 0, face_length, is_not_newface, NULL, NULL)
         sig_off()
 
         # compute the dimension of the polyhedron,
