@@ -648,6 +648,39 @@ class MatrixSpace(UniqueRepresentation, Parent):
         """
         default = get_matrix_class(self.base_ring(), self.nrows(), self.ncols(), self.is_sparse(), None)
         return self.Element is default
+<<<<<<< HEAD
+=======
+
+    def full_category_initialisation(self):
+        """
+        Make full use of the category framework.
+
+        .. NOTE::
+
+            It turns out that it causes a massive speed regression in
+            computations with elliptic curves, if a full initialisation
+            of the category framework of matrix spaces happens at
+            initialisation: The elliptic curves code treats matrix spaces
+            as containers, not as objects of a category. Therefore,
+            making full use of the category framework is now provided by
+            a separate method (see :trac:`11900`).
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(QQ,8)
+            sage: TestSuite(MS).run()
+            sage: type(MS)
+            <class 'sage.matrix.matrix_space.MatrixSpace_with_category'>
+            sage: MS.full_category_initialisation()
+            doctest:...: DeprecationWarning: the full_category_initialization
+             method does nothing, as a matrix space now has its category
+             systematically fully initialized
+            See http://trac.sagemath.org/15801 for details.
+        """
+        deprecation(15801, "the full_category_initialization method does nothing,"
+                           " as a matrix space now has its category"
+                           " systematically fully initialized")
+>>>>>>> bfabc5442125f0fd7a18a9e36f7e301045269a23
 
     @lazy_attribute
     def transposed(self):
@@ -813,7 +846,11 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: MS(t)       # given as a scalar matrix
             [t]
         """
+<<<<<<< HEAD
         return self.element_class(self, entries, copy, coerce)
+=======
+        return self.Element(self, entries, copy, coerce)
+>>>>>>> bfabc5442125f0fd7a18a9e36f7e301045269a23
 
     def change_ring(self, R):
         """
@@ -1030,8 +1067,13 @@ class MatrixSpace(UniqueRepresentation, Parent):
             [0 2 0]
             [0 0 2]
 
+<<<<<<< HEAD
         Verify which coercion maps are allowed (this should form a
         poset)::
+=======
+        Verify which coercion maps are allowed (this should be a
+        reflexive, anti-symmetric and transitive relation)::
+>>>>>>> bfabc5442125f0fd7a18a9e36f7e301045269a23
 
             sage: M1 = MatrixSpace(ZZ, 3, implementation='flint')
             sage: M2 = MatrixSpace(ZZ, 3, implementation='generic')
@@ -1672,7 +1714,11 @@ class MatrixSpace(UniqueRepresentation, Parent):
             False
         """
         zero = self.base_ring().zero()
+<<<<<<< HEAD
         res = self.element_class(self, zero, False, False)
+=======
+        res = self.Element(self, zero, False, False)
+>>>>>>> bfabc5442125f0fd7a18a9e36f7e301045269a23
         res.set_immutable()
         return res
 
