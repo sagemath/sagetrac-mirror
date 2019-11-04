@@ -390,8 +390,8 @@ So we do not consider anything newer than AVX2.
         unsigned int count = 0;
         for (i=0; i<face_length; i++){
             uint64_t a = A[i];
-            a = a - ((i >> 1) & 0x5555555555555555ULL);
-            a = (a & 0x3333333333333333ULL) + ((i >> 2) & 0x3333333333333333ULL);
+            a = a - ((a >> 1) & 0x5555555555555555ULL);
+            a = (a & 0x3333333333333333ULL) + ((a >> 2) & 0x3333333333333333ULL);
             count += ( ((a + (a >> 4)) & 0x0f0f0f0f0f0f0f0fULL) * 0x0101010101010101ULL ) >> 56;
         }
         return count;
