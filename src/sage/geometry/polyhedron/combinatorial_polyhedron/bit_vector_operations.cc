@@ -132,6 +132,7 @@ So we do not consider anything newer than AVX2.
 
 #else
     // No intrinsics.
+    There is some weird mistake and this branch should not be compiled without any intrinsics.
     const size_t chunksize = 64;
     inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
         /*
