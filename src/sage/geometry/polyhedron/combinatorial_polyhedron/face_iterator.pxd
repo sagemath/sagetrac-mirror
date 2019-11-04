@@ -1,5 +1,5 @@
 cimport cython
-from libc.stdint                cimport uint64_t
+from libc.stdint                cimport uint64_t, uint32_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
@@ -14,6 +14,7 @@ cdef struct iter_struct:
     bint bounded
     bint dual                  # if 1, then iterate over dual Polyhedron
     uint64_t *face             # the current face of the iterator
+    uint32_t *nonzero_face
     size_t *atom_repr          # a place where atom-representaion of face will be stored
     size_t *coatom_repr        # a place where coatom-representaion of face will be stored
     int current_dimension      # dimension of current face, dual dimension if ``dual``
@@ -41,11 +42,13 @@ cdef struct iter_struct:
     # In dimension ``dim`` when visiting all faces of some face,
     # the intersections with other faces are stored in ``newfaces2[dim]``.
     uint64_t ***maybe_newfaces
+    uint32_t ***nonzero_maybe_newfaces
 
     # ``newfaces`` will point to those faces in ``maybe_newfaces``
     # that are of codimension 1 and not already visited.
     uint64_t ***newfaces
     size_t *n_newfaces  # number of newfaces for each dimension
+    uint32_t ***nonzero_newfaces
 
     # After having visited a face completely, we want to add it to ``visited_all``.
     # ``first_dim[i]`` will indicate, wether there is one more face in

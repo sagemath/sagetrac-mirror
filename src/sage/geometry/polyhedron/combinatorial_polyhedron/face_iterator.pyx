@@ -161,7 +161,12 @@ from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off, sig_check_no_except
 from .conversions           cimport bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron, KunzCone
-from .bit_vector_operations cimport get_next_level, count_atoms, bit_repr_to_coatom_repr, is_bad_face_cc
+from .bit_vector_operations cimport get_next_level, \
+                                    count_atoms, \
+                                    bit_repr_to_coatom_repr, \
+                                    is_bad_face_cc, \
+                                    chunksize, \
+                                    get_next_level_with_nonzero
 from cysignals.memory       cimport sig_malloc, sig_realloc, sig_free, sig_calloc
 from cython.parallel        cimport prange, threadid
 
@@ -215,6 +220,7 @@ cdef inline int next_face_loop(iter_struct *structure) nogil except -1:
         # Set ``face`` to the next face.
         structure[0].yet_to_visit -= 1
         structure[0].face = faces[structure[0].yet_to_visit]
+        structure[0].nonzero_face = structure[0].nonzero_newfaces[structure[0].current_dimension][structure[0].yet_to_visit]
         if structure[0].LHS:
             structure.current_LHS = &structure[0].LHS[structure[0].current_dimension][structure[0].yet_to_visit]
             structure.current_RHS = &structure[0].RHS[structure[0].current_dimension][structure[0].yet_to_visit]
@@ -257,10 +263,12 @@ cdef inline int next_face_loop(iter_struct *structure) nogil except -1:
         LHS = &structure[0].LHS[structure[0].current_dimension-1]
         RHS = &structure[0].RHS[structure[0].current_dimension-1]
 
-    newfacescounter = get_next_level(
+    newfacescounter = get_next_level_with_nonzero(
         faces, n_faces + 1, structure[0].maybe_newfaces[structure[0].current_dimension-1],
         structure[0].newfaces[structure[0].current_dimension-1],
-        structure[0].visited_all, n_visited_all, structure[0].face_length, structure[0].is_not_newface, LHS, RHS)
+        structure[0].visited_all, n_visited_all, structure[0].face_length, structure[0].is_not_newface, LHS, RHS,
+        structure[0].nonzero_maybe_newfaces[structure[0].current_dimension-1],
+        structure[0].nonzero_newfaces[structure[0].current_dimension-1])
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.
@@ -486,6 +494,8 @@ cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_t
     for l in prange(myPow(n_faces, rec_depth), nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
         #partial_f(face_iter[openmp.omp_get_thread_num()], shared_f[openmp.omp_get_thread_num()], l)
         #partial_f(face_iter[omp_get_thread_num()], shared_f[omp_get_thread_num()], l);
+        with gil:
+            sig_check()
         partial_f(face_iter, shared_f, l, rec_depth)
 
     for i in range(n_threads):
@@ -556,7 +566,8 @@ cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil:
     cdef size_t face_length = face_iter[0].face_length
     cdef uint64_t *LHS = face_iter[0].LHS[dimension-1]
     cdef uint64_t *RHS = face_iter[0].RHS[dimension-1]
-    return is_bad_face_cc(face, dimension, coatoms, n_coatoms, face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS)
+    cdef uint32_t *nonzero_face = face_iter[0].nonzero_face
+    return is_bad_face_cc(face, nonzero_face, dimension, coatoms, n_coatoms, face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS)
 
 cdef class FaceIterator(SageObject):
     r"""
@@ -898,6 +909,16 @@ cdef class FaceIterator(SageObject):
         self.structure.n_newfaces = <size_t *> self._mem.allocarray(self.structure.dimension, sizeof(size_t))
         self.structure.n_newfaces[self.structure.dimension - 1] = self.coatoms.n_faces
 
+        cdef size_t n,j
+        # Initialize pointers to non-zero entries of newfaces etc.
+        self.structure.nonzero_newfaces = <uint32_t ***> self._mem.allocarray(self.structure.dimension, sizeof(uint32_t **))
+        self.structure.nonzero_maybe_newfaces = <uint32_t ***> self._mem.allocarray(self.structure.dimension, sizeof(uint32_t **))
+        for i in range(self.structure.dimension - 1):
+            self.structure.nonzero_newfaces[i] = <uint32_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint32_t *))
+            self.structure.nonzero_maybe_newfaces[i] = <uint32_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint32_t *))
+            for j in range(self.coatoms.n_faces):
+                self.structure.nonzero_maybe_newfaces[i][j] = <uint32_t *> self._mem.allocarray(self.structure.face_length*64/chunksize+1, sizeof(uint32_t))
+
         # Initialize ``first_time``.
         self.structure.first_time = <bint *> self._mem.allocarray(self.structure.dimension, sizeof(bint))
         self.structure.first_time[self.structure.dimension - 1] = True
@@ -909,7 +930,6 @@ cdef class FaceIterator(SageObject):
         self.structure.current_stadium = <size_t*> self._mem.calloc(self.structure.dimension, sizeof(size_t))
         self.structure.is_not_newface = <int*> self._mem.allocarray(self.coatoms.n_faces, sizeof(int))
 
-        cdef size_t n,j
         if isinstance(E, KunzCone):
             D = E
             n = len(E._orbit_first_element)
@@ -926,6 +946,9 @@ cdef class FaceIterator(SageObject):
             for j in range(self.structure.n_coatoms):
                 self.structure.LHS[self.structure.dimension-1][j] = D.facets_LHS[j]
                 self.structure.RHS[self.structure.dimension-1][j] = D.facets_RHS[j]
+        else:
+            self.structure.LHS = NULL
+            self.structure.RHS = NULL
 
     def _repr_(self):
         r"""

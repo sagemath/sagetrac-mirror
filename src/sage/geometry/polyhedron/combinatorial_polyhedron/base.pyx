@@ -2256,7 +2256,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
             facets_to_vertices[i] = unsorted[counter[i][1]]
 
         sig_free(unsorted)
-        Vrep = tuple(P.rays()[counter[i][1]] for i in range(P.n_rays()))
+        Vrep = tuple(tuple(P.rays()[counter[i][1]].vector()) for i in range(P.n_rays()))
         return Vrep, orbit_first_element
 
 
