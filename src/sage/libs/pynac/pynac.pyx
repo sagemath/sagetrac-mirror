@@ -13,7 +13,6 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
 from libc cimport math
@@ -2196,7 +2195,7 @@ cdef GConstant py_get_constant(const char* name):
     """
     from sage.symbolic.constants import constants_name_table
     cdef PynacConstant pc
-    c = constants_name_table.get(name, None)
+    c = constants_name_table.get(char_to_str(name), None)
     if c is None:
         raise RuntimeError
     else:

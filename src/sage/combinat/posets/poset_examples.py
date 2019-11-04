@@ -26,41 +26,41 @@ The infinite set of all posets can be used to find minimal examples::
     :widths: 30, 70
     :delim: |
 
-    :meth:`~posets.AntichainPoset` | Return an antichain on `n` elements.
-    :meth:`~posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
-    :meth:`~posets.ChainPoset` | Return a chain on `n` elements.
-    :meth:`~posets.Crown` | Return the crown poset on `2n` elements.
-    :meth:`~posets.DexterSemilattice` | Return the Dexter semilattice.
-    :meth:`~posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
-    :meth:`~posets.DivisorLattice` | Return the divisor lattice of an integer.
-    :meth:`~posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
-    :meth:`~posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
-    :meth:`~posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
-    :meth:`~posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
-    :meth:`~posets.PentagonPoset` | Return the Pentagon poset.
-    :meth:`~posets.PermutationPattern` | Return the Permutation pattern poset.
-    :meth:`~posets.PermutationPatternInterval` | Return an interval in the Permutation pattern poset.
-    :meth:`~posets.PermutationPatternOccurrenceInterval` | Return the occurrence poset for a pair of comparable elements in the Permutation pattern poset.
-    :meth:`~posets.PowerPoset` | Return a power poset.
-    :meth:`~posets.ProductOfChains` | Return a product of chain posets.
-    :meth:`~posets.RandomLattice` | Return a random lattice on `n` elements.
-    :meth:`~posets.RandomPoset` | Return a random poset on `n` elements.
-    :meth:`~posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
-    :meth:`~posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
-    :meth:`~posets.ShardPoset` | Return the shard intersection order.
-    :meth:`~posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
-    :meth:`~posets.StandardExample` | Return the standard example of a poset with dimension `n`.
-    :meth:`~posets.SymmetricGroupAbsoluteOrderPoset` | The poset of permutations with respect to absolute order.
-    :meth:`~posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
-    :meth:`~posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
-    :meth:`~posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
-    :meth:`~posets.TamariLattice` | Return the Tamari lattice.
-    :meth:`~posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
-    :meth:`~posets.UpDownPoset` | Return the up-down poset on `n` elements.
-    :meth:`~posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
-    :meth:`~posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
-    :meth:`~posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
-    :meth:`~posets.YoungFibonacci` | Return the Young-Fibonacci lattice up to rank `n`.
+    :meth:`~Posets.AntichainPoset` | Return an antichain on `n` elements.
+    :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
+    :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
+    :meth:`~Posets.Crown` | Return the crown poset on `2n` elements.
+    :meth:`~Posets.DexterSemilattice` | Return the Dexter semilattice.
+    :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
+    :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
+    :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
+    :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
+    :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~Posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
+    :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
+    :meth:`~Posets.PermutationPattern` | Return the Permutation pattern poset.
+    :meth:`~Posets.PermutationPatternInterval` | Return an interval in the Permutation pattern poset.
+    :meth:`~Posets.PermutationPatternOccurrenceInterval` | Return the occurrence poset for a pair of comparable elements in the Permutation pattern poset.
+    :meth:`~Posets.PowerPoset` | Return a power poset.
+    :meth:`~Posets.ProductOfChains` | Return a product of chain posets.
+    :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
+    :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
+    :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
+    :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
+    :meth:`~Posets.ShardPoset` | Return the shard intersection order.
+    :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
+    :meth:`~Posets.StandardExample` | Return the standard example of a poset with dimension `n`.
+    :meth:`~Posets.SymmetricGroupAbsoluteOrderPoset` | The poset of permutations with respect to absolute order.
+    :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
+    :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
+    :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
+    :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
+    :meth:`~Posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
+    :meth:`~Posets.UpDownPoset` | Return the up-down poset on `n` elements.
+    :meth:`~Posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
+    :meth:`~Posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
+    :meth:`~Posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
+    :meth:`~Posets.YoungFibonacci` | Return the Young-Fibonacci lattice up to rank `n`.
 
 Constructions
 -------------
@@ -666,9 +666,8 @@ class Posets(object):
             return LatticePoset(facade=facade)
         from sage.categories.cartesian_product import cartesian_product
         elements = cartesian_product([range(i) for i in l])
-        compare = lambda a,b : all(x <= y for x, y in zip(a ,b))
+        compare = lambda a, b: all(x <= y for x, y in zip(a, b))
         return LatticePoset([elements, compare], facade=facade)
-
 
     @staticmethod
     def RandomPoset(n, p):
@@ -1632,8 +1631,9 @@ class Posets(object):
         bottom = P(bottom)
         if not top.has_pattern(bottom):
             raise ValueError("{} doesn't contain {} as a pattern".format(top, bottom))
-        elem = [[top]] # Make a list of lists of elements in the interval divided by rank.
-                       # List will be flattened at the end
+        # Make a list of lists of elements in the interval divided by rank.
+        # List will be flattened at the end
+        elem = [[top]]
         level = 0    # Consider the top element to be level 0, and then go down from there.
         rel = []     # List of covering relations to be fed into poset constructor.
         while len(top) - len(bottom) >= level + 1:
@@ -1642,7 +1642,7 @@ class Posets(object):
                 # Run through all permutations on current level
                 #   and find relations for which it is upper cover
                 upper_perm = P(upper)
-                for i in range(len(top)-level):
+                for i in range(len(top) - level):
                     # Try and remove the ith element from the permutation
                     lower = list(upper)
                     j = lower.pop(i)

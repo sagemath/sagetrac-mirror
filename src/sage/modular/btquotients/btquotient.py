@@ -9,7 +9,7 @@
 r"""
 Quotients of the Bruhat-Tits tree
 
-This package contains all the functionality described and developed in [FM]_.
+This package contains all the functionality described and developed in [FM2014]_.
 It allows for computations with fundamental domains of the Bruhat-Tits tree,
 under the action of arithmetic groups arising from units in definite
 quaternion algebras.
@@ -29,13 +29,6 @@ We can query for its genus, as well as get it back as a graph::
     Multi-graph on 2 vertices
 
 The rest of functionality can be found in the docstrings below.
-
-REFERENCES:
-
-.. [FM] Computing fundamental domains for the Bruhat-Tits tree for `\textrm{GL}_2(\QQ_p)`,
-   `p`-adic automorphic forms, and the canonical embedding of Shimura curves
-   Cameron Franc, Marc Masdeu
-   LMS Journal of Computation and Mathematics (2014), volume 17, issue 01, pp. 1-23.
 """
 from __future__ import print_function, absolute_import
 
@@ -1742,7 +1735,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         Compute certain invariants from the level data of the quotient
         which allow one to compute the genus of the curve.
 
-        Details to be found in Theorem 9 of [FM]_.
+        Details to be found in Theorem 9 of [FM2014]_.
 
         EXAMPLES::
 
@@ -3308,7 +3301,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         matrix) and a boolean saying whether the quaternion is in the
         subgroup of `M_2(\Qp)` determined by the Dirichlet
         character. Note that if `N^+` is trivial then this function
-        aways outputs true.
+        always outputs true.
 
         EXAMPLES::
 
@@ -3392,7 +3385,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if twom is None:
             twom = v1.determinant().valuation(p) + v2.determinant().valuation(p)
         if check_parity:
-            if twom % 2 != 0:
+            if twom % 2:
                 self._cached_equivalent[(v1, v2, as_edges)] = None
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
