@@ -220,7 +220,8 @@ cdef inline int next_face_loop(iter_struct *structure) nogil except -1:
         # Set ``face`` to the next face.
         structure[0].yet_to_visit -= 1
         structure[0].face = faces[structure[0].yet_to_visit]
-        structure[0].nonzero_face = structure[0].nonzero_newfaces[structure[0].current_dimension][structure[0].yet_to_visit]
+        if structure[0].current_dimension < structure[0].dimension -1:
+            structure[0].nonzero_face = structure[0].nonzero_newfaces[structure[0].current_dimension][structure[0].yet_to_visit]
         if structure[0].LHS:
             structure.current_LHS = &structure[0].LHS[structure[0].current_dimension][structure[0].yet_to_visit]
             structure.current_RHS = &structure[0].RHS[structure[0].current_dimension][structure[0].yet_to_visit]
