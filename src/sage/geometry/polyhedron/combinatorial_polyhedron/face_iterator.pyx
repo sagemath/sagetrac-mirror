@@ -477,7 +477,7 @@ cdef int parallel_bad_vector(iter_struct **face_iter, size_t *f_vector, size_t n
 cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
     cdef size_t i
     cdef int j
-    rec_depth = recursion_depth
+    cdef size_t rec_depth = recursion_depth
     #omp_set_num_threads(n_threads);
     cdef size_t **shared_f = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
     cdef int dimension = face_iter[0][0].dimension

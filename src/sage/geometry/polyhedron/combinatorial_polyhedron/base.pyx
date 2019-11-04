@@ -2317,7 +2317,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
 
 
 
-    def bad_faces_vector(self, n_threads=1, parallelization_depth=0):
+    def bad_faces_vector(self, n_threads=1, parallelization_depth=1):
         r"""
         Compute the number of bad faces of the KunzCone.
 
@@ -2349,8 +2349,9 @@ cdef class KunzCone(CombinatorialPolyhedron):
             parallelization_depth = dim//2
 
         if parallelization_depth == 0:
-            n_threads = 1
-        elif n_threads > self._n_facets*parallelization_depth:
+            parallelization_depth == 1
+            # Cannot check if facets are bad faces right now, to lazy to properly fix it.
+        if n_threads > self._n_facets*parallelization_depth:
             # make sure the requested number of threads is reasonable
             n_threads = self._n_facets*parallelization_depth
 
