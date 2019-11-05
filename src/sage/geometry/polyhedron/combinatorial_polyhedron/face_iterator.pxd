@@ -71,6 +71,7 @@ cdef struct iter_struct:
     uint64_t *current_RHS
     size_t *first_orbit_facets # First in orbit, would have been a better name.
     size_t n_first_orbit_facets
+    size_t **PolyIneq
 
 
 @cython.final

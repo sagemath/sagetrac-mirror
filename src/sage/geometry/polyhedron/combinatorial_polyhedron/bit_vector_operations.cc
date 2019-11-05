@@ -663,7 +663,28 @@ size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
     return count_length;
 }
 
-inline int is_bad_face_cc(uint64_t *face, uint32_t *nonzero_face, int dimension, uint64_t ** coatoms, size_t n_coatoms, size_t face_length, uint64_t *LHS, uint64_t *RHS, uint64_t *current_LHS, uint64_t *current_RHS){
+size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
+                               size_t n_coatoms, uint32_t *nonzero_face, \
+                               size_t *output){
+    /*
+    Write the coatom-representation of face in output. Return length.
+    ``face_length`` is the length of ``face`` and ``coatoms[i]``
+    in terms of uint64_t.
+    ``n_coatoms`` length of ``coatoms``.
+    */
+    size_t count_length = 0;
+    for (size_t i = 0; i < n_coatoms; i++){
+        if (is_subset(face, coatoms[i], nonzero_face)){
+            // ``face`` is contain in ``coatoms[i]``,
+            // then ``i`` is an element in the coatom-represention.
+            output[count_length] = i;
+            count_length++;
+        }
+    }
+    return count_length;
+}
+
+inline size_t is_bad_face_cc(uint64_t *face, uint32_t *nonzero_face, int dimension, uint64_t ** coatoms, size_t n_coatoms, size_t face_length, uint64_t *LHS, uint64_t *RHS, uint64_t *current_LHS, uint64_t *current_RHS, size_t *pte, size_t * output){
     size_t i;
     for(i=0; i< n_coatoms; i++){
         if ((LHS[i] &~current_LHS[0]) + (RHS[i] & ~current_RHS[0])){
@@ -682,5 +703,7 @@ inline int is_bad_face_cc(uint64_t *face, uint32_t *nonzero_face, int dimension,
 
     if (2*e >= m)
         return 0;
-    return 1;
+    pte[0] = e;
+    size_t counter = 0;
+    return bit_repr_to_coatom_repr(face, coatoms, n_coatoms, nonzero_face, output);
 }

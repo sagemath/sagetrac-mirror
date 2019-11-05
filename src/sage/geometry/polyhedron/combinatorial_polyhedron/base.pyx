@@ -2171,7 +2171,11 @@ cdef class KunzCone(CombinatorialPolyhedron):
 
         Vrepr, self._orbit_first_element = self.kunz_cone_to_my_data(P, V_incidence, self.facets_LHS, self.facets_RHS)
 
-        facets = tuple(self.kunz_facet_string(self.facets_LHS[i], self.facets_RHS[i]) for i in range(P.n_Hrepresentation()))
+        self.PolyIneq = <size_t **> mem.calloc(P.n_Hrepresentation(), sizeof(size_t*))
+        for i in range(P.n_Hrepresentation()):
+            self.PolyIneq[i] = <size_t *> mem.calloc(3, sizeof(size_t))
+
+        facets = tuple(self.kunz_facet_string(self.facets_LHS[i], self.facets_RHS[i], self.PolyIneq[i]) for i in range(P.n_Hrepresentation()))
 
         # store vertices names
         self._V = tuple(Vrepr)
@@ -2259,7 +2263,6 @@ cdef class KunzCone(CombinatorialPolyhedron):
         Vrep = tuple(tuple(P.rays()[counter[i][1]].vector()) for i in range(P.n_rays()))
         return Vrep, orbit_first_element
 
-
     def sort_Hrep(self, P):
         """
         Expects a KunzCone and will return a tuple of
@@ -2288,6 +2291,21 @@ cdef class KunzCone(CombinatorialPolyhedron):
         for i in range(len(Hrep)):
             if not Hrep_taken[i]:
                 vector = vectorlist[i]
+                if not 2 in vector:
+                    # It appears to be a bit faster to do those entries first.
+                    continue
+                orbit_first_elements += (len(newHrep),)
+                for p in R:
+                    if p.is_unit():
+                        vector2 = perm(vector,p)
+                        index = vectorlist.index(vector2)
+                        if not Hrep_taken[index]:
+                            newHrep += (Hrep[index],)
+                            Hrep_taken[index] = True
+
+        for i in range(len(Hrep)):
+            if not Hrep_taken[i]:
+                vector = vectorlist[i]
                 orbit_first_elements += (len(newHrep),)
                 for p in R:
                     if p.is_unit():
@@ -2299,7 +2317,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
 
         return (newHrep, orbit_first_elements)
 
-    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS):
+    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS, size_t *Ineq):
         left = ()
         right = ()
         for i in range(64):
@@ -2312,7 +2330,13 @@ cdef class KunzCone(CombinatorialPolyhedron):
         assert(len(left) in (1,2), "trouble")
         assert(len(right) == 1, "trouble2")
         if len(left) == 1:
+            Ineq[0] = left[0] -1
+            Ineq[1] = left[0] -1
+            Ineq[2] = right[0] -1
             return "2*b_{} >= b_{}".format(left[0], right[0])
+        Ineq[0] = left[0] -1
+        Ineq[1] = left[1] -1
+        Ineq[2] = right[0] -1
         return "b_{} + b_{} >= b_{}".format(left[0], left[1], right[0])
 
 

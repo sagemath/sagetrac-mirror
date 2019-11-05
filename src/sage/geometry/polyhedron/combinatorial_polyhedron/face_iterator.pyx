@@ -169,6 +169,7 @@ from .bit_vector_operations cimport get_next_level, \
                                     get_next_level_with_nonzero
 from cysignals.memory       cimport sig_malloc, sig_realloc, sig_free, sig_calloc
 from cython.parallel        cimport prange, threadid
+from .check_bad_face        cimport check_bad_face
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -444,8 +445,8 @@ cdef inline int prepare_partial_bad_iter(iter_struct *face_iter, size_t i, size_
 cdef int parallel_bad_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
     cdef size_t i
     cdef int j
-    if recursion_depth > 2:
-        raise ValueError("recursion depth can be at most 2 at the moment, as I'm assuming everything with codimension recursion_depth to have high embeidding dimension")
+    if recursion_depth > 3 or (recursion_depth > 2 and face_iter[0][0].dimension < 13):
+        raise ValueError("recursion can be at most 2 at the moment, or at most 3 for m >= 15 (as ridges are not checked for recursion depth 3)")
     rec_depth = recursion_depth
     #omp_set_num_threads(n_threads);
     cdef size_t **shared_f = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
@@ -560,7 +561,7 @@ cdef inline int partial_bad(iter_struct **face_iter_all, size_t **f_vector_all, 
                 f_vector[d + 1] += 1
             d = next_dimension(face_iter)
 
-cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil:
+cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil except -1:
     cdef int dimension = face_iter[0].dimension
     cdef uint64_t ** coatoms = face_iter[0].newfaces[dimension-1]
     cdef size_t n_coatoms = face_iter[0].n_coatoms
@@ -568,7 +569,23 @@ cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil:
     cdef uint64_t *LHS = face_iter[0].LHS[dimension-1]
     cdef uint64_t *RHS = face_iter[0].RHS[dimension-1]
     cdef uint32_t *nonzero_face = face_iter[0].nonzero_face
-    return is_bad_face_cc(face, nonzero_face, dimension, coatoms, n_coatoms, face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS)
+    cdef size_t *coatom_repr = face_iter[0].coatom_repr
+    cdef size_t e
+    cdef size_t output
+    output = is_bad_face_cc(face, nonzero_face, dimension, coatoms, n_coatoms,
+                                 face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS,
+                                 &e, coatom_repr)
+    if output == 0:
+        return 0
+    cdef int test = check_bad_face(face_iter[0].PolyIneq, n_coatoms, dimension + 2, face_iter[0].current_LHS[0],
+                                   coatom_repr, output, e)
+    if unlikely(test == 1):
+        with gil:
+            print("Discovered non-empty face")
+    elif unlikely(test == 2):
+        with gil:
+            raise ValueError("Wilf conjection does not hold, counterexample: {}".format(tuple(coatom_repr[i] for i in range(output))))
+    return output
 
 cdef class FaceIterator(SageObject):
     r"""
@@ -947,6 +964,12 @@ cdef class FaceIterator(SageObject):
             for j in range(self.structure.n_coatoms):
                 self.structure.LHS[self.structure.dimension-1][j] = D.facets_LHS[j]
                 self.structure.RHS[self.structure.dimension-1][j] = D.facets_RHS[j]
+            self.structure.PolyIneq = <size_t **> self._mem.calloc(self.structure.n_coatoms, sizeof(size_t*))
+            for j in range(self.structure.n_coatoms):
+                self.structure.PolyIneq[j] = <size_t *> self._mem.calloc(3, sizeof(size_t))
+                self.structure.PolyIneq[j][0] = D.PolyIneq[j][0]
+                self.structure.PolyIneq[j][1] = D.PolyIneq[j][1]
+                self.structure.PolyIneq[j][2] = D.PolyIneq[j][2]
         else:
             self.structure.LHS = NULL
             self.structure.RHS = NULL

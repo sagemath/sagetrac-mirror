@@ -66,9 +66,10 @@ cdef class KunzCone(CombinatorialPolyhedron):
     cdef uint64_t *facets_LHS
     cdef uint64_t *facets_RHS
     cdef tuple _bad_vector
+    cdef size_t **PolyIneq
 
     cdef tuple kunz_cone_to_my_data(self, P, bint **facets_to_vertices, uint64_t *LHS, uint64_t *RHS)
 
-    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS)
+    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS, size_t *Ineq)
 
     cdef int _compute_bad_vector(self, size_t n_threads, size_t parallelization_depth) except -1
