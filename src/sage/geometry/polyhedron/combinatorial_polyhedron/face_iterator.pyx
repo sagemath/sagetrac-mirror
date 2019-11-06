@@ -585,7 +585,7 @@ cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil except
     elif unlikely(test == 2):
         with gil:
             raise ValueError("Wilf conjection does not hold, counterexample: {}".format(tuple(coatom_repr[i] for i in range(output))))
-    return output
+    return 1
 
 cdef class FaceIterator(SageObject):
     r"""
