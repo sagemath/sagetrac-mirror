@@ -446,7 +446,8 @@ cdef int parallel_bad_vector(iter_struct **face_iter, size_t *f_vector, size_t n
     cdef size_t i
     cdef int j
     if recursion_depth > 3 or (recursion_depth > 2 and face_iter[0][0].dimension < 13):
-        raise ValueError("recursion can be at most 2 at the moment, or at most 3 for m >= 15 (as ridges are not checked for recursion depth 3)")
+        pass
+        #raise ValueError("recursion can be at most 2 at the moment, or at most 3 for m >= 15 (as ridges are not checked for recursion depth 3)")
     rec_depth = recursion_depth
     #omp_set_num_threads(n_threads);
     cdef size_t **shared_f = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
@@ -534,20 +535,19 @@ cdef inline int partial_bad(iter_struct **face_iter_all, size_t **f_vector_all, 
     # Figuring out, wether we can safely skip this, as we have visited this orbit already.
     cdef size_t n = face_iter.n_first_orbit_facets
     cdef size_t *to_do = face_iter.first_orbit_facets
-    cdef size_t step
     cdef size_t j
-    cdef size_t prev = 0
 
-    if rec_depth > 0:
-        step = myPow(face_iter[0].n_coatoms, rec_depth-1)
+    cdef size_t current_i = 0
+    if (rec_depth > 0):
+        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
 
-        for j in range(1,n):
-            if to_do[j]*step <= i:
-                prev = to_do[j]*step
+    cdef int leave = 1
+    for j in range(n):
+        if to_do[j] == current_i:
+            leave = 0
 
-        if i - prev > step:
-            # ``i`` tells us to visit a facet, which is not the first of its orbit.
-            return 0
+    if leave:
+        return 0
 
     cdef size_t * f_vector = f_vector_all[ID]
     cdef int rec_depth2
