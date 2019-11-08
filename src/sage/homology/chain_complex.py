@@ -2236,6 +2236,69 @@ class ChainComplex_class(Parent):
 
         return ret
 
+    def _contraction_basis(self, degree):
+        r"""
+        Return a suitable basis to compute the chain contraction in the degree.
+
+        The basis has three parts:
+
+        - A basis of the image of the incoming differential
+        - An extension to a basis of the kernel of the outgoing differential
+        - An extension to a basis of the total free module
+        """
+        if not self.base_ring().is_field():
+            raise NotImplementedError
+        ker = self.differential(degree).right_kernel()
+        image = self.differential(degree - self.degree_of_differential()).transpose().image()
+        quotient_by_ker = self.free_module(degree).quotient(ker)
+        quotient_by_im = ker.quotient(image)
+        ker2 = self.differential(degree - self.degree_of_differential()).right_kernel()
+        quotient_by_ker2 = self.free_module(degree - self.degree_of_differential()).quotient(ker2)
+        basis = [self.differential(degree - self.degree_of_differential())*(quotient_by_ker2.lift(el)) for el in quotient_by_ker2.basis()]
+        basis += map(quotient_by_im.lift, quotient_by_im.basis())
+        basis+= map(quotient_by_ker.lift, quotient_by_ker.basis())
+        return basis, image.rank(), ker.rank()
+
+    def _contraction_pi(self, degree):
+        r"""
+        Return the matrix defining the pi in a chain contraction in the given degree
+        """
+        basis, ri, rk = self._contraction_basis(degree)
+        cohomrank = self.homology(degree).rank()
+        M = matrix(self.base_ring(), cohomrank, self.free_module(degree).rank())
+        for i in range(cohomrank):
+            M[i, i+ri] = 1
+        basis_matrix = matrix(self.base_ring(), basis)
+        return M*basis_matrix.transpose().inverse()
+
+    def _contraction_iota(self, degree):
+        r"""
+        Return the matrix defining the iota in a chain contraction in the given degree
+        """
+        basis, ri, rk = self._contraction_basis(degree)
+        cohomrank = self.homology(degree).rank()
+        M = matrix(self.base_ring(), cohomrank, self.free_module(degree).rank())
+        for i in range(cohomrank):
+            M[i, i+ri] = 1
+        basis_matrix = matrix(self.base_ring(), basis)
+        return basis_matrix.transpose()*M.transpose()
+
+    def _contraction_phi(self, degree):
+        r"""
+        Return the matrix defining the phi in a chain contraction in the given degree
+        """
+        basis, ri, rk = self._contraction_basis(degree)
+        basis2, ri2, rk2 = self._contraction_basis(degree-self.degree_of_differential())
+        rank1 = self.free_module(degree).rank()
+        rank2 = self.free_module(degree - self.degree_of_differential()).rank()
+        m = matrix(self.base_ring(), rank2, rank1)
+        for i in range(ri):
+            m[rank2-ri+i, i] = 1
+        M1 = matrix(self.base_ring(), basis)
+        M2 = matrix(self.base_ring(), basis2)
+        return M2.transpose()*m*M1.transpose().inverse()
+
+
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.homology.chain_complex', 'ChainComplex', ChainComplex_class)
 
