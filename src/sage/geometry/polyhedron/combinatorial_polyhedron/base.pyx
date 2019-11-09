@@ -2174,14 +2174,25 @@ cdef class KunzCone(CombinatorialPolyhedron):
 
         # Facets as list of vertices
         self._bitrep_facets = ListOfFaces(length_Hrepr, length_Vrepr)
+        cdef uint64_t zero = 0
 
         for i in range(length_Hrepr):
             fread(self._bitrep_facets.data[i], self._bitrep_facets.face_length, sizeof(uint64_t), fp)
+            for j in range((4 - self._bitrep_facets.face_length) % 4):
+                # Face lenght depends a bit on the architecture.
+                # We round up to the next multiple of four to allow loading and storing
+                # from different machines.
+                fread(&zero, 1, sizeof(uint64_t), fp)
 
         # Vertices as list of facets
         self._bitrep_Vrepr = ListOfFaces(length_Vrepr, length_Hrepr)
         for i in range(length_Vrepr):
             fread(self._bitrep_Vrepr.data[i], self._bitrep_Vrepr.face_length, sizeof(uint64_t), fp)
+            for j in range((4 - self._bitrep_Vrepr.face_length) % 4):
+                # Face lenght depends a bit on the architecture.
+                # We round up to the next multiple of four to allow loading and storing
+                # from different machines.
+                fread(&zero, 1, sizeof(uint64_t), fp)
 
         # Vertices aka extreme rays
         cdef int *foo = <int *> sig_calloc(length_Vrepr*(m-1), sizeof(int))
@@ -2488,12 +2499,23 @@ def kunz_input_file(path, m):
     fwrite(facets_RHS, length_Hrepr, sizeof(uint64_t), fp)
 
     # Facets as list of vertices
+    cdef uint64_t zero = 0;
     for i in range(length_Hrepr):
         fwrite(bitrep_facets.data[i], bitrep_facets.face_length, sizeof(uint64_t), fp)
+        for j in range((4 - bitrep_facets.face_length) % 4):
+            # Face lenght depends a bit on the architecture.
+            # We round up to the next multiple of four to allow loading and storing
+            # from different machines.
+            fwrite(&zero, 1, sizeof(uint64_t), fp)
 
     # Vertices as list of facets
     for i in range(length_Vrepr):
         fwrite(bitrep_Vrepr.data[i], bitrep_Vrepr.face_length, sizeof(uint64_t), fp)
+        for j in range((4 - bitrep_Vrepr.face_length) % 4):
+            # Face lenght depends a bit on the architecture.
+            # We round up to the next multiple of four to allow loading and storing
+            # from different machines.
+            fwrite(&zero, 1, sizeof(uint64_t), fp)
 
     # Write the vertices aka extreme rays
     cdef int foo
