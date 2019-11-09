@@ -31,20 +31,25 @@ using namespace std;
 using namespace libnormaliz;
 
 
-inline uint64_t bit_lookup(uint64_t F, size_t n){
+inline uint64_t bit_lookup(uint64_t F, size_t n, size_t mult, size_t group_action_inv){
     // Return True if F contains bit corresponding to n.
     uint64_t tmp = 1;
-    tmp = tmp << (64 - n - 1);
+    size_t new_n = (n*group_action_inv + group_action_inv - 1) % mult;
+    //size_t new_n = n;
+    tmp = tmp << (64 - new_n - 1);
     return tmp & F;
 }
 
-inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t mult, int is_equality){
+inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t mult, int is_equality, size_t group_action){
     // make Hrep inequality
     vector<MachineInteger> ineq(mult);
-    ineq[PolyIneq[0]] += 1;
-    ineq[PolyIneq[1]] += 1;
-    ineq[PolyIneq[2]] = -1;
-    if (PolyIneq[0] + PolyIneq[1] + 2 > mult - 1)
+    size_t first_left   = (PolyIneq[0]*group_action + group_action - 1) % mult;
+    size_t second_left  = (PolyIneq[1]*group_action + group_action - 1) % mult;
+    size_t right        = (PolyIneq[2]*group_action + group_action - 1) % mult;
+    ineq[first_left] += 1;
+    ineq[second_left] += 1;
+    ineq[right] = -1;
+    if (first_left + second_left + 2 > mult - 1)
         ineq[mult -1] += 1;
     if (!is_equality)
         ineq[mult -1] -= 1;
@@ -59,14 +64,17 @@ inline void addvector(vector<MachineInteger> *a, vector<MachineInteger> *b, Mach
     }
 }
 
-inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t mult, int is_equality, Matrix<MachineInteger> *Basis){
+inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t len, int is_equality, Matrix<MachineInteger> *Basis, size_t mult, size_t group_action){
     // make Hrep inequality
     // with Basis specified on input.
-    vector<MachineInteger> ineq(mult);
-    addvector(&ineq, &Basis[0][PolyIneq[0]], 1);
-    addvector(&ineq, &Basis[0][PolyIneq[1]], 1);
-    addvector(&ineq, &Basis[0][PolyIneq[2]], -1);
-    if (PolyIneq[0] + PolyIneq[1] + 2 > mult - 1)
+    vector<MachineInteger> ineq(len);
+    size_t first_left   = (PolyIneq[0]*group_action + group_action - 1) % mult;
+    size_t second_left  = (PolyIneq[1]*group_action + group_action - 1) % mult;
+    size_t right        = (PolyIneq[2]*group_action + group_action - 1) % mult;
+    addvector(&ineq, &Basis[0][first_left], 1);
+    addvector(&ineq, &Basis[0][second_left], 1);
+    addvector(&ineq, &Basis[0][right], -1);
+    if (first_left + second_left + 2 > mult - 1)
         addvector(&ineq, &Basis[0][mult-1], 1);
     if (!is_equality)
         addvector(&ineq, &Basis[0][mult-1], -1);
@@ -157,7 +165,7 @@ inline MachineInteger combine_score(vector<MachineInteger> *a, vector<MachineInt
     return ((neg_to_pos - pos_to_pos)*10000/prevpos - ((pos_to_neg)*10000/prevneg))/sum;
 }
 
-int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e){
+int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e, size_t group_action, size_t group_action_inv){
     // For a bad face in in the Kunz Cone we check
     // wether with the inequalites from (4.1) and negation
     // of (4.2)
@@ -188,8 +196,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
     // Make basis substition based on equalities.
     size_t length_new_basis = mult;
     for (size_t j=0;j<n_Hrep;j++){
-        vector<MachineInteger> equality = make_ineq(PolyIneq[Hrep[j]],mult,1,&Basis);
-        //cout << " vector " << equality << endl;
+        vector<MachineInteger> equality = make_ineq(PolyIneq[Hrep[j]],mult,1,&Basis, mult, group_action);
         for(size_t i=0;i<mult-1;i++){
             if (equality[i] == 1){
                 length_new_basis -= 1;
@@ -241,7 +248,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
             }
         }
         else {
-            FaceInEq2.append(make_ineq(PolyIneq[j],length_new_basis,0,&Basis2));
+            FaceInEq2.append(make_ineq(PolyIneq[j],length_new_basis,0,&Basis2, mult, group_action));
         }
     }
     if (verbose){
@@ -253,7 +260,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
     Matrix<MachineInteger> Frob(0,length_new_basis);
 
     for(size_t f0=0;f0<dim;f0++){  //f will run from 1
-        if (bit_lookup(FPos, f0))
+        if (bit_lookup(FPos, f0, mult, group_action_inv))
                 continue;
 
         // now we are in business
@@ -411,7 +418,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
     return output;
 }
 
-int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e){
+int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e, size_t group_action, size_t group_action_inv){
     // For a bad face in in the Kunz Cone we check
     // wether with the inequalites from (4.1) and negation
     // of (4.2)
@@ -437,20 +444,20 @@ int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint6
     for(size_t j=0;j<n_coatoms;++j){
 
         if(Hrep[counter] == j){
-            FaceEq.append(make_ineq(PolyIneq[j],mult,1));
+            FaceEq.append(make_ineq(PolyIneq[j],mult,1, group_action));
             if (counter < n_Hrep-1){
                 counter++;
             }
         }
         else {
-            FaceInEq.append(make_ineq(PolyIneq[j],mult,0));
+            FaceInEq.append(make_ineq(PolyIneq[j],mult,0, group_action));
         }
     }
 
     Matrix<MachineInteger> Frob(0,mult);
 
     for(size_t f0=0;f0<dim;f0++){  //f will run from 1
-        if (bit_lookup(FPos, f0))
+        if (bit_lookup(FPos, f0, mult, group_action_inv))
                 continue;
 
         // now we are in business
@@ -505,3 +512,18 @@ int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint6
     }
     return output;
 }
+
+int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e){
+    for(size_t i=1; i < m; i++){
+        for(size_t j=1; j < m; j++){
+            if ((i*j) % m == 1){
+                int value = check_bad_face(PolyIneq, n_coatoms, m, LHS, Hrep, n_Hrep, e, i, j);
+                if (value){
+                    return value;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
