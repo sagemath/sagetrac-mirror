@@ -314,7 +314,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
             // We have won the game.
             if (verbose)
                 cout << "Have won the game with " << Game << endl;
-            return 0;
+            continue;
         }
 
         // Creating a cleaned up version of Frob.
@@ -376,13 +376,17 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
                 // We have won the game.
                 if (verbose)
                     cout << "Have won the game with " << Game << endl;
-                return 0;
+                break;
             }
             // Maybe there is a positive entry that we
             // have not touched (or even raised).
             // In this case we force the
             // next run to lower that index.
             find_unchanged_pos(&Game, &Frob2[index], &maxindex);
+        }
+        if (maximum == -1){
+            // Go to next f.
+            continue;
         }
         if (verbose)
             cout << "Could not win game with " << Game << endl;
