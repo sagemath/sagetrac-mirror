@@ -1,5 +1,8 @@
 /*
-This code is mostly copied from https://github.com/Normaliz/Normaliz/blob/wilf/source/libnormaliz/cone.cpp
+Much of the code is copied from https://github.com/Normaliz/Normaliz/blob/wilf/source/libnormaliz/cone.cpp
+
+We refer to "Wilf's conjecture in fixed multiplicity" by
+Bruns, Garcia-Sanchez, O'Neill and Wilburne as [BGOW2019].
 
 #*****************************************************************************
 #
@@ -32,28 +35,17 @@ using namespace libnormaliz;
 
 
 inline uint64_t bit_lookup(uint64_t F, size_t n, size_t mult, size_t group_action_inv){
-    // Return True if F contains bit corresponding to n.
+    // Return True if g*F contains bit corresponding to n.
+    // g ist the group action, of which
+    // ``group_action_inv` is the invers.
     uint64_t tmp = 1;
+
+    // Apply ``group_action_inv`` to ``n``.
     size_t new_n = (n*group_action_inv + group_action_inv - 1) % mult;
+
     //size_t new_n = n;
     tmp = tmp << (64 - new_n - 1);
     return tmp & F;
-}
-
-inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t mult, int is_equality, size_t group_action){
-    // make Hrep inequality
-    vector<MachineInteger> ineq(mult);
-    size_t first_left   = (PolyIneq[0]*group_action + group_action - 1) % mult;
-    size_t second_left  = (PolyIneq[1]*group_action + group_action - 1) % mult;
-    size_t right        = (PolyIneq[2]*group_action + group_action - 1) % mult;
-    ineq[first_left] += 1;
-    ineq[second_left] += 1;
-    ineq[right] = -1;
-    if (first_left + second_left + 2 > mult - 1)
-        ineq[mult -1] += 1;
-    if (!is_equality)
-        ineq[mult -1] -= 1;
-    return ineq;
 }
 
 inline void addvector(vector<MachineInteger> *a, vector<MachineInteger> *b, MachineInteger times){
@@ -64,27 +56,106 @@ inline void addvector(vector<MachineInteger> *a, vector<MachineInteger> *b, Mach
     }
 }
 
-inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t len, int is_equality, Matrix<MachineInteger> *Basis, size_t mult, size_t group_action){
-    // make Hrep inequality
-    // with Basis specified on input.
-    vector<MachineInteger> ineq(len);
+inline vector<MachineInteger> make_eq(size_t *PolyIneq, size_t mult, size_t group_action){
+    // Return the defining equality induced by
+    // x_{g*i} and x_{g*j} on the LHS and
+    // x_{g*(i+j)} on the RHS,
+    // where g denotes the group action in (ZZ/mult*ZZ)^*
+    // and i,j,i+j the elements in PolyIneq[0..2] resp.
+    //
+    // See Definition 3.1 in [BGOW2019].
+    //
+    // The equality is given by
+    // x_{g*i} + x_{g*j} = x_{g*(i+j)}, if (g*i)+(g*j) < m
+    // and
+    // x_{g*i} + x_{g*j} + 1 = x_{g*(i+j)}, if (g*i)+(g*j) > m
+    //
+    // The output is a vector with the indices of the
+    // basis elements x_1,...,x_{mult},1.
+    vector<MachineInteger> eq(mult);
+
+    // Applying the group action.
     size_t first_left   = (PolyIneq[0]*group_action + group_action - 1) % mult;
     size_t second_left  = (PolyIneq[1]*group_action + group_action - 1) % mult;
     size_t right        = (PolyIneq[2]*group_action + group_action - 1) % mult;
-    addvector(&ineq, &Basis[0][first_left], 1);
-    addvector(&ineq, &Basis[0][second_left], 1);
-    addvector(&ineq, &Basis[0][right], -1);
+
+    eq[first_left] += 1;
+    eq[second_left] += 1;
+    eq[right] = -1;
+
     if (first_left + second_left + 2 > mult - 1)
-        addvector(&ineq, &Basis[0][mult-1], 1);
-    if (!is_equality)
-        addvector(&ineq, &Basis[0][mult-1], -1);
+        eq[mult -1] += 1;
+    return eq;
+}
+
+inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t mult, size_t group_action){
+    // Return the defining inequality induced by
+    // x_{g*i} and x_{g*j} on the LHS and
+    // x_{g*(i+j)} on the RHS
+    // for the interior of the face,
+    // where g denotes the group action in (ZZ/mult*ZZ)^*
+    // and i,j,i+j the elements in PolyIneq[0..2] resp.
+    //
+    // See Definition 3.1 in [BGOW2019].
+    //
+    // The inequality is given by
+    // x_{g*i} + x_{g*j} > x_{g*(i+j)}, if (g*i)+(g*j) < m
+    // and
+    // x_{g*i} + x_{g*j} + 1 > x_{g*(i+j)}, if (g*i)+(g*j) > m
+    //
+    // or equivalently (only integer interior points)
+    //
+    // x_{g*i} + x_{g*j} >= x_{g*(i+j)} + 1, if (g*i)+(g*j) < m
+    // and
+    // x_{g*i} + x_{g*j} + 1 >= x_{g*(i+j)} + 1, if (g*i)+(g*j) > m
+    //
+    // The output is a vector with the indices of the
+    // basis elements x_1,...,x_{mult},1.
+    //
+    // NOTE: This is the same as the corresponding
+    // inequality, but a -1 added to the LHS.
+    vector<MachineInteger> ineq = make_eq(PolyIneq, mult, group_action);
+    ineq[mult -1] -= 1;
+    return ineq;
+}
+
+inline vector<MachineInteger> make_eq(size_t *PolyIneq, size_t len, Matrix<MachineInteger> *Basis, \
+                                        size_t mult, size_t group_action){
+    // Return the defining equality with respect to a
+    // new basis,
+    // where the first element in the new Basis
+    // corresponds to x_1, the second to x_2 and so on.
+    vector<MachineInteger> eq(len);
+
+    // Applying the group action.
+    size_t first_left   = (PolyIneq[0]*group_action + group_action - 1) % mult;
+    size_t second_left  = (PolyIneq[1]*group_action + group_action - 1) % mult;
+    size_t right        = (PolyIneq[2]*group_action + group_action - 1) % mult;
+    addvector(&eq, &Basis[0][first_left], 1);
+    addvector(&eq, &Basis[0][second_left], 1);
+    addvector(&eq, &Basis[0][right], -1);
+
+    if (first_left + second_left + 2 > mult - 1)
+        addvector(&eq, &Basis[0][mult-1], 1);
+    return eq;
+}
+
+inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t len, Matrix<MachineInteger> *Basis, \
+                                        size_t mult, size_t group_action){
+    // Return the defining inequality with respect to a
+    // new basis,
+    // where the first element in the new Basis
+    // corresponds to x_1, the second to x_2 and so on.
+    vector<MachineInteger> ineq = make_eq(PolyIneq, len, Basis, mult, group_action);
+    addvector(&ineq, &Basis[0][mult-1], -1);
     return ineq;
 }
 
 inline MachineInteger maxpos(vector<MachineInteger> *a, size_t *index){
-    // Return the largest positive entry of a and set
+    // Return the largest positive entry of ``a`` and set
     // index to the corresponding entry.
-    // Return -1, if there is no positive entry.
+    // Return -1, if there is no positive entry
+    // and at least one negative entry.
     // (In this case we have already won our game.)
     MachineInteger output = 0;
     for(size_t i=0; i < a[0].size(); i++){
@@ -104,6 +175,9 @@ inline MachineInteger maxpos(vector<MachineInteger> *a, size_t *index){
 }
 
 inline void find_unchanged_pos(vector<MachineInteger> *Game, vector<MachineInteger> *a, size_t *index){
+    // Find a positive value of ``Game``,
+    // where the corresponding entry is not negative in
+    // ``a``.
     for(size_t i=0; i < a[0].size(); i++){
         if ((Game[0][i] > 0) && (a[0][i] >= 0)){
             index[0] = i;
@@ -123,7 +197,30 @@ inline int is_smaller(vector<MachineInteger> *a, vector<MachineInteger> *b){
 }
 
 inline MachineInteger combine_score(vector<MachineInteger> *a, vector<MachineInteger> *b){
-    //See if adding b to a will do any good.
+    // See if adding b to a will do any good.
+    //
+    // We try to add vectors to ``a`` such that ``a``
+    // becomes non-positive (and at least one negative).
+    //
+    // Every vector ``b`` will get a score, according to
+    // who good we think it is.
+    //
+    // We will get points for
+    // - subtracting from positive
+    // - negative for adding to positive
+    // (normalize the first two by the total number of
+    // positives)
+    // and negative points for
+    // - adding to negative
+    // (normalize by the total of negatives).
+    //
+    // However, we will not make something negative
+    // positive again ever.
+    // It seems that the negative entries in the negation
+    // of (4.2) see [BGOW2019] are really hard to get
+    // negative. As we start with the negation of (4.2)
+    // it seems pointless to make negative entries
+    // positive again.
     MachineInteger prevpos=0, prevneg=0, pos_to_pos=0, pos_to_neg=0, neg_to_pos=0, neg_to_neg=0, sum=0;
     for(size_t i=0; i<a[0].size();i++){
         if(a[0][i] > 0){
@@ -196,7 +293,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
     // Make basis substition based on equalities.
     size_t length_new_basis = mult;
     for (size_t j=0;j<n_Hrep;j++){
-        vector<MachineInteger> equality = make_ineq(PolyIneq[Hrep[j]],mult,1,&Basis, mult, group_action);
+        vector<MachineInteger> equality = make_eq(PolyIneq[Hrep[j]],mult,&Basis, mult, group_action);
         for(size_t i=0;i<mult-1;i++){
             if (equality[i] == 1){
                 length_new_basis -= 1;
@@ -248,7 +345,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
             }
         }
         else {
-            FaceInEq2.append(make_ineq(PolyIneq[j],length_new_basis,0,&Basis2, mult, group_action));
+            FaceInEq2.append(make_ineq(PolyIneq[j],length_new_basis,&Basis2, mult, group_action));
         }
     }
     if (verbose){
@@ -448,13 +545,13 @@ int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint6
     for(size_t j=0;j<n_coatoms;++j){
 
         if(Hrep[counter] == j){
-            FaceEq.append(make_ineq(PolyIneq[j],mult,1, group_action));
+            FaceEq.append(make_eq(PolyIneq[j],mult, group_action));
             if (counter < n_Hrep-1){
                 counter++;
             }
         }
         else {
-            FaceInEq.append(make_ineq(PolyIneq[j],mult,0, group_action));
+            FaceInEq.append(make_ineq(PolyIneq[j],mult, group_action));
         }
     }
 
@@ -518,16 +615,33 @@ int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint6
 }
 
 int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e){
+    // We are given a representative F of a bad orbit of the
+    // KunzCone.
+    //
+    // We check, wether for every face in the orbit, there
+    // is a counterexample to the Wilf conjecture (or
+    // not).
+    //
+    // Return 0 if all such polyhedra are empty.
+    // Return 1 if any such polyhedron is non-emtpy.
+    // Return 2 if any such polyhedron contains an integer
+    // point (yielding a counterexample to the Wilf
+    // conjecture.
+    int value = 0;
     for(size_t i=1; i < m; i++){
         for(size_t j=1; j < m; j++){
             if ((i*j) % m == 1){
-                int value = check_bad_face(PolyIneq, n_coatoms, m, LHS, Hrep, n_Hrep, e, i, j);
-                if (value){
-                    return value;
+                // i and j are inverse in (ZZ/mZZ)*.
+                // Hence, i*F is a face in the orbit.
+                // Check, wether the conjecture holds for
+                // i*F.
+                int new_value = check_bad_face(PolyIneq, n_coatoms, m, LHS, Hrep, n_Hrep, e, i, j);
+                if (new_value > value){
+                    value = new_value;
                 }
             }
         }
     }
-    return 0;
+    return value;
 }
 

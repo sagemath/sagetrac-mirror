@@ -13,7 +13,7 @@ cdef int parallel_f_vector(
 cdef int parallel_bad_vector(
         iter_struct **face_iter, size_t *bad_vector,
         size_t n_threads, size_t rec_depth,
-        bint orbit_only, bint check_faces,
+        bint orbit_only,
         size_t start, size_t end) except -1
 
 cdef struct iter_struct:

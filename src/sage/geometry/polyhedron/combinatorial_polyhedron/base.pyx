@@ -2287,9 +2287,23 @@ cdef class KunzCone(CombinatorialPolyhedron):
 
     def bad_faces_vector(
             self, size_t n_threads=1, size_t parallelization_depth=1,
-            orbit_only=True, check_faces=True, size_t start=0, size_t end=-1):
+            orbit_only=True, size_t start=0, size_t end=-1):
         r"""
         Compute the number of bad faces of the KunzCone.
+
+        INPUT:
+
+        - ``n_threads`` -- the number of threads to use
+        - ``parallelization_depth`` -- the codimension from which
+          the parallelization is begun
+        - ``orbit_only`` -- visit only the first facet of each orbit
+        - ``start`` -- startvalue
+        - ``end`` -- endvalue
+
+        The task is subdivided in `n_facets^parallelization_depth`
+        jobs. For example if you specify end to be
+        `n_facets^(parallization_depth -1)`, only the first facet
+        will be visited.
         """
         cdef FaceIterator face_iter = self._face_iter(False, -2)
         cdef MemoryAllocator mem = MemoryAllocator()
@@ -2323,7 +2337,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
         bad_vector[dim + 1] = 0   # Empty face is not bad.
         parallel_bad_vector(
                 iters, bad_vector, n_threads, parallelization_depth,
-                orbit_only, check_faces, start, end)
+                orbit_only, start, end)
 
         return tuple(smallInteger(bad_vector[i]) for i in range(dim+2))
 

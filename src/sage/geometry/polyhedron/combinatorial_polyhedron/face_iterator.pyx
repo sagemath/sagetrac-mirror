@@ -428,37 +428,38 @@ cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t job_ID, size
 cdef int parallel_bad_vector(
         iter_struct **face_iter, size_t *bad_vector,
         size_t n_threads, size_t rec_depth,
-        bint orbit_only, bint check_faces,
+        bint orbit_only,
         size_t start, size_t end) except -1:
+    """
+    Distribute computation of the bad faces to threads.
+
+    Sum up the partial results.
+    """
     cdef size_t i
     cdef int j
-    #cdef MemoryAllocator mem = MemoryAllocator()
+    cdef MemoryAllocator mem = MemoryAllocator()
 
     if rec_depth > 3:
         raise ValueError("recursion depth can be at most 3 (as ridges are not checked for recursion depth 3)")
 
-    cdef size_t **shared_bad = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
+    cdef size_t **shared_bad = <size_t **> mem.calloc(n_threads, sizeof(size_t *))
     cdef int dimension = face_iter[0][0].dimension
 
     for i in range(n_threads):
-        shared_bad[i] = <size_t *> sig_calloc(dimension + 2, sizeof(size_t))
+        shared_bad[i] = <size_t *> mem.calloc(dimension + 2, sizeof(size_t))
     cdef size_t n_faces = face_iter[0][0].n_coatoms
 
+    if myPow(n_faces, rec_depth) < end:
+        end = myPow(n_faces, rec_depth)
+
     cdef size_t l, ID
-    #omp_set_num_threads(n_threads);
-    #pragma omp parallel for shared(face_iter, shared_f) schedule(dynamic, 1)
-    for l in prange(myPow(n_faces, rec_depth), nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
-        partial_bad(face_iter, shared_bad, l, rec_depth, orbit_only, check_faces)
+    for l in prange(start, end, nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
+        partial_bad(face_iter, shared_bad, l, rec_depth, orbit_only)
 
     # Summing up the results..
     for i in range(n_threads):
         for j in range(dimension + 2):
             bad_vector[j] += shared_bad[i][j]
-
-        sig_free(shared_bad[i])
-
-    sig_free(shared_bad)
-
 
 cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
     cdef size_t i
@@ -511,8 +512,7 @@ cdef inline int partial_f(iter_struct **face_iter_all, size_t **f_vector_all, si
 
 cdef inline int partial_bad(
         iter_struct **face_iter_all, size_t **bad_vector_all,
-        size_t job_ID, size_t rec_depth, bint orbit_only,
-        int check_faces) nogil except -1:
+        size_t job_ID, size_t rec_depth, bint orbit_only) nogil except -1:
     cdef size_t ID
     with gil:
         ID = threadid()
@@ -545,11 +545,11 @@ cdef inline int partial_bad(
         d = next_dimension(face_iter)
         rec_depth2 = rec_depth
         while (d < dimension -rec_depth2):
-            if is_bad_face(face_iter, check_faces):
+            if is_bad_face(face_iter):
                 bad_vector[d + 1] += 1
             d = next_dimension(face_iter)
 
-cdef inline int is_bad_face(iter_struct *face_iter, int check_faces) nogil except -1:
+cdef inline int is_bad_face(iter_struct *face_iter) nogil except -1:
     """
     Return 1, if the current face is a bad face.
 
