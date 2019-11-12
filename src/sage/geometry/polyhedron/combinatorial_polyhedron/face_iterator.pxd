@@ -6,9 +6,15 @@ from .list_of_faces             cimport ListOfFaces
 from .combinatorial_face        cimport CombinatorialFace
 
 cdef inline int next_dimension(iter_struct *structure) nogil except -1
-cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1
+cdef int parallel_f_vector(
+        iter_struct **face_iter, size_t *f_vector,
+        size_t n_threads, size_t recursion_depth) except -1
 
-cdef int parallel_bad_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1
+cdef int parallel_bad_vector(
+        iter_struct **face_iter, size_t *bad_vector,
+        size_t n_threads, size_t rec_depth,
+        bint orbit_only, bint check_faces,
+        size_t start, size_t end) except -1
 
 cdef struct iter_struct:
     bint bounded

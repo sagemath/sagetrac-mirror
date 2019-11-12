@@ -62,12 +62,21 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef int _compute_face_lattice_incidences(self) except -1
 
 cdef class KunzCone(CombinatorialPolyhedron):
+    # Facets are sorted by orbits of the autorphism group.
+    # First all facets of the first orbit, then the next orbit and so on.
     cdef public tuple _orbit_first_element
+
+    # For each face we keep set a bit for each variable set on the LHS of the
+    # defining equation.
     cdef uint64_t *facets_LHS
-    cdef uint64_t *facets_RHS
-    cdef tuple _bad_vector
+    cdef uint64_t *facets_RHS # Same for RHS.
+
+    # Store for each facet the defining variables in order.
+    # E.g. for b_3 + b_3 = b_6 we will stored [2, 2, 5] (index shift),
+    # for b_2 + b_3 = b_5 we store [1, 2, 4].
     cdef size_t **PolyIneq
 
-    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS, size_t *Ineq)
-
-    cdef int _compute_bad_vector(self, size_t n_threads, size_t parallelization_depth) except -1
+    # Obtain a facet string for facet ``i``.
+    # Assumes attributes ``facets_LHS`` and ``facets_RHS``.
+    # While doing that set ``PolyIneq``.
+    cdef facet_string(self, size_t i)

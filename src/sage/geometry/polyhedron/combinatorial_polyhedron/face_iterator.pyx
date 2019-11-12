@@ -302,179 +302,162 @@ cdef inline size_t myPow(size_t x, size_t p) nogil:
     if (p%2 == 0) : return tmp * tmp
     else:  return x * tmp * tmp
 
-cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t i, size_t *f_vector, size_t rec_depth) nogil except -1:
+cdef inline int prepare_partial_iter(iter_struct *face_iter, size_t job_ID, size_t *f_vector, size_t rec_depth, bint bad) nogil except -1:
     r"""
-    Prepares the face iterator to not visit the facets 0,...,-1
-    """
-    cdef size_t j, k
-    cdef size_t current_i = 0
-    if (rec_depth > 0):
-        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
+    Prepares the face iterator to not visit the first faces of codimension ``rec_depth``.
 
-    cdef size_t rec
-    cdef int d
-    cdef int dimension = face_iter[0].dimension
-    cdef int add_a_face = 1
+    More precisly, we divide the job into parts as:
+    Visit the `i_1`-th facet, of that the `i_2` facet, of that the `i_3` facet.
+    The ``job_ID`` of that task `i_3 + i_2*r + i_1*r^2`, where `r` denotes recursion depth.
+    """
+    cdef size_t j, n_visited_all, n_newfaces
+    cdef int prep_dim
+
+    # Figuring out the facet by the job_ID.
+    cdef size_t facet_nr = 0
+    if (rec_depth > 0):
+        facet_nr = job_ID/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
+
     face_iter[0].face = NULL
-    if((current_i != face_iter[0].current_stadium[0])):
-        face_iter[0].face = NULL
-        face_iter[0].current_dimension = dimension -1
-        face_iter[0].lowest_dimension = 0
 
+    cdef size_t codim # We do recursion on codimension.
 
-        face_iter[0].n_visited_all[dimension -1] = 0
-        if not face_iter[0].bounded:
-            face_iter[0].n_visited_all[dimension - 1] = 1
-        face_iter[0].n_newfaces[dimension - 1] = face_iter[0].n_coatoms
-        face_iter[0].current_stadium[0] = 0
-        face_iter[0].first_time[dimension - 1] = 1
-        add_a_face = 0
-
-    cdef int rec2
-    cdef size_t missing_faces
-    cdef size_t old_number
-    for rec in range(rec_depth):
-        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
-        i = i%(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
-        rec2 = rec
-        if((current_i != face_iter[0].current_stadium[rec]) or (face_iter[0].current_dimension >= dimension - rec2 - 1) or (rec == rec_depth -1)):
-            if((rec == rec_depth - 1) and (add_a_face) and (rec > 0)):
-                face_iter[0].n_newfaces[dimension-rec-1] += 1
-
-            if((face_iter[0].current_dimension > dimension - rec2 - 1) or (current_i >= face_iter[0].n_newfaces[dimension-rec-1] + face_iter[0].current_stadium[rec])):
-                return 0
-
-            face_iter[0].current_dimension = dimension - rec2 - 1
-            if i == 0:
-                f_vector[dimension - rec] += 1
-
-            k = face_iter[0].n_visited_all[dimension - rec-1]
-            missing_faces = current_i - face_iter[0].current_stadium[rec]
-            for j in range(face_iter[0].n_newfaces[dimension-rec-1] - missing_faces, face_iter[0].n_newfaces[dimension -rec -1]):
-               face_iter[0].visited_all[k] = face_iter[0].newfaces[dimension -rec-1][j]
-               k += 1
-
-            face_iter[0].n_visited_all[dimension - rec-1] += missing_faces
-            face_iter[0].current_stadium[rec] = current_i
-            face_iter[0].current_stadium[rec+1] = 0
-
-            face_iter[0].n_newfaces[dimension - rec-1] -= missing_faces
-            face_iter[0].first_time[dimension - rec-1] = 1
-            face_iter[0].yet_to_visit = 0
-            face_iter[0].max_dimension = dimension - rec -1
-            add_a_face = 0
-            if rec < rec_depth -1:
-                old_number = face_iter[0].n_newfaces[dimension-rec-1]
-                d = next_dimension(face_iter)
-                face_iter[0].n_newfaces[dimension-rec-1] = old_number
-                face_iter[0].first_time[dimension - rec-1] = 1
-                face_iter[0].yet_to_visit = 0
-
-    return 1
-
-cdef inline int prepare_partial_bad_iter(iter_struct *face_iter, size_t i, size_t *f_vector, size_t rec_depth) nogil except -1:
-    r"""
-    Prepares the face iterator to not visit the facets 0,...,-1
-    """
-    cdef size_t j, k
-    cdef size_t current_i = 0
-    if (rec_depth > 0):
-        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
-
-    cdef size_t rec
     cdef int d
     cdef int dimension = face_iter[0].dimension
-    cdef int add_a_face = 1
-    if((current_i != face_iter[0].current_stadium[0])):
+    cdef bint only_preparing_last_level = True
+
+    if((facet_nr != face_iter[0].current_stadium[0])):
+        # The face iterator is in a completely different state.
+        # We start from scratch.
+        # Basically we initialize the face iterator again.
         face_iter[0].current_dimension = dimension -1
         face_iter[0].lowest_dimension = 0
 
-
         face_iter[0].n_visited_all[dimension -1] = 0
         if not face_iter[0].bounded:
+            # Adding the far face as visited_all.
             face_iter[0].n_visited_all[dimension - 1] = 1
+
         face_iter[0].n_newfaces[dimension - 1] = face_iter[0].n_coatoms
         face_iter[0].current_stadium[0] = 0
         face_iter[0].first_time[dimension - 1] = 1
-        add_a_face = 0
+        only_preparing_last_level = False
 
-    cdef int rec2
+    cdef int codim2
     cdef size_t missing_faces
     cdef size_t old_number
 
-    for rec in range(rec_depth):
-        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
-        i = i%(myPow(face_iter[0].n_coatoms, (rec_depth - rec - 1)))
-        rec2 = rec
-        if((current_i != face_iter[0].current_stadium[rec]) or (face_iter[0].current_dimension >= dimension - rec2 - 1) or (rec == rec_depth -1)):
-            if((rec == rec_depth - 1) and (add_a_face) and (rec > 0)):
-                face_iter[0].n_newfaces[dimension-rec-1] += 1
+    for codim in range(rec_depth):
+        codim2 = codim
+        prep_dim = dimension - codim2 - 1
 
-            if((face_iter[0].current_dimension > dimension - rec2 - 1) or (current_i >= face_iter[0].n_newfaces[dimension-rec-1] + face_iter[0].current_stadium[rec])):
+        # facet_nr and job_ID will go down recursively.
+        facet_nr = job_ID/(myPow(face_iter[0].n_coatoms, (rec_depth - codim - 1)))
+        job_ID = job_ID%(myPow(face_iter[0].n_coatoms, (rec_depth - codim - 1)))
+
+        if((facet_nr != face_iter[0].current_stadium[codim]) \
+                or (face_iter[0].current_dimension >= prep_dim) \
+                or (codim == rec_depth - 1)):
+            # In case the iterator in wrong state with respect to the current codim
+            # OR the iterator was already in the wrong state with respect to higher codim
+            # OR we are in the last instance of our recursion and must setup the iterator properly.
+
+            if((codim == rec_depth - 1) and (only_preparing_last_level) and (codim > 0)):
+                # We reset the iterator to the state, its claiming to be in.
+                # More precisly, the iterator has visited the last of the newfaces
+                # and reduced the corresponding number.
+                # We undo this.
+                face_iter[0].n_newfaces[prep_dim] += 1
+
+            if((face_iter[0].current_dimension > prep_dim) \
+                    or (facet_nr >= face_iter[0].n_newfaces[prep_dim] + face_iter[0].current_stadium[codim])):
+                # If the dimension of the face iterator has gone up,
+                # this is because there where no faces left in that dimension.
+                # OR
+                # The ``facet_nr`` is larger, than the number of newfaces.
                 return 0
 
-            face_iter[0].current_dimension = dimension - rec2 - 1
-            if i == 0:
-                # XXX for now I'm assuming this is zero anyway, as the face has high embedding dimension.
-                pass
+            face_iter[0].current_dimension = prep_dim
+            if job_ID == 0 and not bad:
+                # This is the first time we visit this face
+                # and we increase the f_vector accordingly.
 
-            k = face_iter[0].n_visited_all[dimension - rec-1]
-            missing_faces = current_i - face_iter[0].current_stadium[rec]
-            for j in range(face_iter[0].n_newfaces[dimension-rec-1] - missing_faces, face_iter[0].n_newfaces[dimension -rec -1]):
-               face_iter[0].visited_all[k] = face_iter[0].newfaces[dimension -rec-1][j]
-               k += 1
+                # In the bad_vector case, we allow only recursion depth,
+                # such that we know, that this face has high embedding dimension
+                # and is therefore not bad.
+                f_vector[prep_dim + 1] += 1
 
-            face_iter[0].n_visited_all[dimension - rec-1] += missing_faces
-            face_iter[0].current_stadium[rec] = current_i
-            face_iter[0].current_stadium[rec+1] = 0
+            # We mark faces as visited, to match the requested statium.
+            n_visited_all = face_iter[0].n_visited_all[prep_dim]
+            n_newfaces    = face_iter[0].n_newfaces[prep_dim]
+            missing_faces = facet_nr - face_iter[0].current_stadium[codim]
+            for j in range(n_newfaces - missing_faces, n_newfaces):
+               face_iter[0].visited_all[n_visited_all] \
+                       = face_iter[0].newfaces[prep_dim][j]
+               n_visited_all += 1
 
-            face_iter[0].n_newfaces[dimension - rec-1] -= missing_faces
-            face_iter[0].first_time[dimension - rec-1] = 1
+            face_iter[0].n_visited_all[prep_dim]  = n_visited_all
+            face_iter[0].current_stadium[codim]   = facet_nr
+            face_iter[0].n_newfaces[prep_dim]    -= missing_faces
+
+            # The face iterator is set up to
+            # visit the first face of codimension `codim + 1`.
+            face_iter[0].current_stadium[codim+1] = 0
+            face_iter[0].first_time[prep_dim] = 1
             face_iter[0].yet_to_visit = 0
-            face_iter[0].max_dimension = dimension - rec -1
-            add_a_face = 0
-            if rec < rec_depth -1:
-                old_number = face_iter[0].n_newfaces[dimension-rec-1]
+
+            # Make sure the iterator stops, once it has
+            # done its part.
+            face_iter[0].max_dimension = prep_dim
+            only_preparing_last_level = False
+
+            if codim < rec_depth -1:
+                # In case we are not done preparing.
+
+                # We keep the last face in ``newfaces``,
+                # such that the iterator can prepared for different states later.
+                old_number = face_iter[0].n_newfaces[dimension-codim-1]
                 d = next_dimension(face_iter)
-                face_iter[0].n_newfaces[dimension-rec-1] = old_number
-                face_iter[0].first_time[dimension - rec-1] = 1
+                face_iter[0].n_newfaces[prep_dim] = old_number
+
+                face_iter[0].first_time[prep_dim] = 1
                 face_iter[0].yet_to_visit = 0
 
     return 1
 
-cdef int parallel_bad_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
+cdef int parallel_bad_vector(
+        iter_struct **face_iter, size_t *bad_vector,
+        size_t n_threads, size_t rec_depth,
+        bint orbit_only, bint check_faces,
+        size_t start, size_t end) except -1:
     cdef size_t i
     cdef int j
-    if recursion_depth > 3 or (recursion_depth > 2 and face_iter[0][0].dimension < 13):
-        pass
-        #raise ValueError("recursion can be at most 2 at the moment, or at most 3 for m >= 15 (as ridges are not checked for recursion depth 3)")
-    rec_depth = recursion_depth
-    #omp_set_num_threads(n_threads);
-    cdef size_t **shared_f = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
+    #cdef MemoryAllocator mem = MemoryAllocator()
+
+    if rec_depth > 3:
+        raise ValueError("recursion depth can be at most 3 (as ridges are not checked for recursion depth 3)")
+
+    cdef size_t **shared_bad = <size_t **> sig_calloc(n_threads, sizeof(size_t *))
     cdef int dimension = face_iter[0][0].dimension
 
     for i in range(n_threads):
-        shared_f[i] = <size_t *> sig_calloc(dimension + 2, sizeof(size_t))
+        shared_bad[i] = <size_t *> sig_calloc(dimension + 2, sizeof(size_t))
     cdef size_t n_faces = face_iter[0][0].n_coatoms
 
-    #iter_struct *my_iter;
-    #size_t *my_f;
-    #for l in prange(0, n_faces ** rec_depth, schedule='dynamic', chunksize=1):
-    #pragma omp parallel for shared(face_iter, shared_f) schedule(dynamic, 1)
     cdef size_t l, ID
+    #omp_set_num_threads(n_threads);
+    #pragma omp parallel for shared(face_iter, shared_f) schedule(dynamic, 1)
     for l in prange(myPow(n_faces, rec_depth), nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
-        #partial_f(face_iter[openmp.omp_get_thread_num()], shared_f[openmp.omp_get_thread_num()], l)
-        #partial_f(face_iter[omp_get_thread_num()], shared_f[omp_get_thread_num()], l);
+        partial_bad(face_iter, shared_bad, l, rec_depth, orbit_only, check_faces)
 
-        partial_bad(face_iter, shared_f, l, rec_depth)
-
+    # Summing up the results..
     for i in range(n_threads):
         for j in range(dimension + 2):
-            f_vector[j] += shared_f[i][j]
+            bad_vector[j] += shared_bad[i][j]
 
-        sig_free(shared_f[i])
+        sig_free(shared_bad[i])
 
-    sig_free(shared_f)
+    sig_free(shared_bad)
 
 
 cdef int parallel_f_vector(iter_struct **face_iter, size_t *f_vector, size_t n_threads, size_t recursion_depth) except -1:
@@ -518,7 +501,7 @@ cdef inline int partial_f(iter_struct **face_iter_all, size_t **f_vector_all, si
     cdef int rec_depth2
     cdef int d, dimension
     cdef size_t j
-    if (prepare_partial_iter(face_iter, i, f_vector, rec_depth)):
+    if (prepare_partial_iter(face_iter, i, f_vector, rec_depth, False)):
         dimension = face_iter[0].dimension
         d = next_dimension(face_iter)
         rec_depth2 = rec_depth
@@ -526,7 +509,10 @@ cdef inline int partial_f(iter_struct **face_iter_all, size_t **f_vector_all, si
             f_vector[d + 1] += 1
             d = next_dimension(face_iter)
 
-cdef inline int partial_bad(iter_struct **face_iter_all, size_t **f_vector_all, size_t i, size_t rec_depth) nogil except -1:
+cdef inline int partial_bad(
+        iter_struct **face_iter_all, size_t **bad_vector_all,
+        size_t job_ID, size_t rec_depth, bint orbit_only,
+        int check_faces) nogil except -1:
     cdef size_t ID
     with gil:
         ID = threadid()
@@ -537,48 +523,65 @@ cdef inline int partial_bad(iter_struct **face_iter_all, size_t **f_vector_all, 
     cdef size_t *to_do = face_iter.first_orbit_facets
     cdef size_t j
 
-    cdef size_t current_i = 0
+    cdef size_t facet_nr = 0
     if (rec_depth > 0):
-        current_i = i/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
+        facet_nr = job_ID/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
 
-    cdef int leave = 1
+    # See if the face_nr corresponds to the first representative of an orbit.
+    cdef bint leave = True
     for j in range(n):
-        if to_do[j] == current_i:
-            leave = 0
+        if to_do[j] == facet_nr:
+            leave = False
 
-    if leave:
+    if leave and orbit_only:
+        # This is not the first facet of an orbit.
         return 0
 
-    cdef size_t * f_vector = f_vector_all[ID]
+    cdef size_t * bad_vector = bad_vector_all[ID]
     cdef int rec_depth2
     cdef int d, dimension
-    if (prepare_partial_bad_iter(face_iter, i, f_vector, rec_depth)):
+    if (prepare_partial_iter(face_iter, job_ID, bad_vector, rec_depth, True)):
         dimension = face_iter[0].dimension
         d = next_dimension(face_iter)
         rec_depth2 = rec_depth
         while (d < dimension -rec_depth2):
-            if is_bad_face(face_iter[0].face, face_iter):
-                f_vector[d + 1] += 1
+            if is_bad_face(face_iter, check_faces):
+                bad_vector[d + 1] += 1
             d = next_dimension(face_iter)
 
-cdef inline int is_bad_face(uint64_t *face, iter_struct *face_iter) nogil except -1:
-    cdef int dimension = face_iter[0].dimension
-    cdef uint64_t ** coatoms = face_iter[0].newfaces[dimension-1]
-    cdef size_t n_coatoms = face_iter[0].n_coatoms
-    cdef size_t face_length = face_iter[0].face_length
-    cdef uint64_t *LHS = face_iter[0].LHS[dimension-1]
-    cdef uint64_t *RHS = face_iter[0].RHS[dimension-1]
+cdef inline int is_bad_face(iter_struct *face_iter, int check_faces) nogil except -1:
+    """
+    Return 1, if the current face is a bad face.
+
+    If the corresponding polyhedron is non-empty, print a message.
+
+    If it contains a point (e.g. counterexample to Wilf conjecture),
+    raise an error.
+    """
+    # Obtain values from the iterator structure.
+    cdef int dimension          = face_iter[0].dimension
+    cdef uint64_t *face         = face_iter[0].face
+    cdef uint64_t ** coatoms    = face_iter[0].newfaces[dimension-1]
+    cdef size_t n_coatoms       = face_iter[0].n_coatoms
+    cdef size_t face_length     = face_iter[0].face_length
+    cdef uint64_t *LHS          = face_iter[0].LHS[dimension-1]
+    cdef uint64_t *RHS          = face_iter[0].RHS[dimension-1]
     cdef uint32_t *nonzero_face = face_iter[0].nonzero_face
-    cdef size_t *coatom_repr = face_iter[0].coatom_repr
-    cdef size_t e
+    cdef size_t *coatom_repr    = face_iter[0].coatom_repr
+
+    cdef size_t e  # The value for e is stored here, as ``check_bad_face`` needs it.
+
     cdef size_t output
     output = is_bad_face_cc(face, nonzero_face, dimension, coatoms, n_coatoms,
-                                 face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS,
-                                 &e, coatom_repr)
+                            face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS,
+                            &e, coatom_repr)
     if output == 0:
         return 0
-    cdef int test = check_bad_face(face_iter[0].PolyIneq, n_coatoms, dimension + 2, face_iter[0].current_LHS[0],
-                                   coatom_repr, output, e)
+
+    cdef int test = check_bad_face(
+            face_iter[0].PolyIneq, n_coatoms, dimension + 2,
+            face_iter[0].current_LHS[0],
+            coatom_repr, output, e)
     if unlikely(test == 1):
         with gil:
             print("Discovered non-empty face")

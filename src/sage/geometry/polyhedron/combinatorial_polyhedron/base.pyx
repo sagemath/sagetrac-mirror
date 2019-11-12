@@ -2235,7 +2235,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
         for i in range(length_Hrepr):
             self.PolyIneq[i] = <size_t *> mem.calloc(3, sizeof(size_t))
 
-        facets = tuple(self.kunz_facet_string(self.facets_LHS[i], self.facets_RHS[i], self.PolyIneq[i]) for i in range(length_Hrepr))
+        facets = tuple(self.facet_string(i) for i in range(length_Hrepr))
 
         # store vertices names
         Vinv = {v: i for i,v in enumerate(self._V)}
@@ -2249,9 +2249,20 @@ cdef class KunzCone(CombinatorialPolyhedron):
 
         self._n_facets = self.bitrep_facets().n_faces
 
-    cdef kunz_facet_string(self, uint64_t LHS, uint64_t RHS, size_t *Ineq):
+    cdef facet_string(self, size_t i):
+        """
+        Obtain a facet string for facet ``i``.
+        Assumes attributes ``facets_LHS`` and ``facets_RHS``.
+        While doing that set ``PolyIneq``.
+        """
+        cdef uint64_t LHS = self.facets_LHS[i]
+        cdef uint64_t RHS = self.facets_RHS[i]
+        cdef size_t *Ineq = self.PolyIneq[i]
         left = ()
         right = ()
+
+        # Figure out, which basis vectors are used on the
+        # LHS and the RHS of the defining equations.
         for i in range(64):
             if LHS >= (<uint64_t>1) << (64 - i -1):
                 left = (i+1,) + left
@@ -2259,76 +2270,62 @@ cdef class KunzCone(CombinatorialPolyhedron):
             if RHS >= (<uint64_t>1) << (64 - i -1):
                 right = (i+1,) + right
                 RHS -= (<uint64_t>1) << (64 -i -1)
+
         assert(len(left) in (1,2), "trouble")
         assert(len(right) == 1, "trouble2")
+
         if len(left) == 1:
             Ineq[0] = left[0] -1
             Ineq[1] = left[0] -1
             Ineq[2] = right[0] -1
             return "2*b_{} >= b_{}".format(left[0], right[0])
+
         Ineq[0] = left[0] -1
         Ineq[1] = left[1] -1
         Ineq[2] = right[0] -1
         return "b_{} + b_{} >= b_{}".format(left[0], left[1], right[0])
 
-    def bad_faces_vector(self, n_threads=1, parallelization_depth=1):
+    def bad_faces_vector(
+            self, size_t n_threads=1, size_t parallelization_depth=1,
+            orbit_only=True, check_faces=True, size_t start=0, size_t end=-1):
         r"""
         Compute the number of bad faces of the KunzCone.
-
-        Output: A vector, just like f_vector.
         """
-        if not self._bad_vector:
-            self._compute_bad_vector(n_threads, parallelization_depth)
-        if not self._bad_vector:
-            raise ValueError("could not determine f_vector")
-        from sage.modules.free_module_element import vector
-        from sage.rings.all                   import ZZ
-        return vector(ZZ, self._bad_vector)
-
-    cdef int _compute_bad_vector(self, size_t n_threads, size_t parallelization_depth) except -1:
-        r"""
-        Compute the bad faces of the cone.
-
-        See :meth:`bad_faces_vector`.
-        """
-        cdef bint dual = False
-        cdef FaceIterator face_iter = self._face_iter(dual, -2)
+        cdef FaceIterator face_iter = self._face_iter(False, -2)
+        cdef MemoryAllocator mem = MemoryAllocator()
 
         cdef int dim = self.dimension()
-        cdef MemoryAllocator mem = MemoryAllocator()
-        cdef int d  # dimension of the current face of the iterator
-        cdef int parallelization_depth2 = parallelization_depth
-        if dim//2 < parallelization_depth2:
+        if parallelization_depth > 3:
             # make sure we do not parallelize more than possible
-            parallelization_depth = dim//2
+            # at the moment depth at most 3 is implemented
+            # as we do not check faces of codimension parallelization depth
+            parallelization_depth = 3
 
         if parallelization_depth == 0:
             parallelization_depth = 1
             # Cannot check if facets are bad faces right now, to lazy to properly fix it.
-        if n_threads > self._n_facets*parallelization_depth:
-            # make sure the requested number of threads is reasonable
-            n_threads = self._n_facets*parallelization_depth
 
-        cdef iter_struct **iters = <iter_struct**> sig_calloc(n_threads, sizeof(iter_struct*))
+        if n_threads == 0:
+            n_threads = 1
+
+        cdef iter_struct **iters = <iter_struct**> mem.calloc(n_threads, sizeof(iter_struct*))
         cdef FaceIterator some_iter
 
-        a = tuple( self._face_iter(dual, -2) for _ in range(n_threads))
+        a = tuple(self._face_iter(False, -2) for _ in range(n_threads))
         cdef size_t i
         for i in range(n_threads):
             some_iter = a[i]
             iters[i] = &(some_iter.structure)
 
-        # Initialize ``f_vector``.
-        cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
-        f_vector[0] = 0         # Emtpy face is not bad.
-        f_vector[dim + 1] = 0   # Empty face is not bad.
-        parallel_bad_vector(iters, f_vector, n_threads, parallelization_depth)
+        # Initialize ``bad_vector``.
+        cdef size_t *bad_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
+        bad_vector[0] = 0         # Emtpy face is not bad.
+        bad_vector[dim + 1] = 0   # Empty face is not bad.
+        parallel_bad_vector(
+                iters, bad_vector, n_threads, parallelization_depth,
+                orbit_only, check_faces, start, end)
 
-        sig_free(iters)
-
-
-        # Copy ``bad_vector``.
-        self._bad_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
+        return tuple(smallInteger(bad_vector[i]) for i in range(dim+2))
 
 def kunz_cone(m, backend='normaliz'):
     r"""
@@ -2337,10 +2334,7 @@ def kunz_cone(m, backend='normaliz'):
     from sage.rings.all import ZZ
     V = ZZ**(m-1)
     B = V.basis()
-    #print B
     ieqs = [[0] +  list(B[i-1]+B[j-1]-B[(i+j-1) % m]) for j in range(1,m) for i in range(1,j+1) if i+j != m]
-    #print len(ieqs)
-    #return ieqs
     from sage.geometry.polyhedron.constructor import Polyhedron
     return Polyhedron(ieqs=ieqs, backend=backend)
 
@@ -2453,6 +2447,9 @@ cdef tuple kunz_cone_to_my_data(P, bint **facets_to_vertices, uint64_t *LHS, uin
     return Vrep, orbit_first_element
 
 def kunz_input_file(path, m):
+    """
+    Write an input file for ``KunzCone`` for multiplicity ``m`` into ``path``.
+    """
 
     P = kunz_cone(m)
     print('got cone')
