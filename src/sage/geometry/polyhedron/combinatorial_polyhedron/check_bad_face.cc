@@ -136,7 +136,7 @@ inline vector<MachineInteger> make_eq(size_t *PolyIneq, size_t len, Matrix<Machi
     addvector(&eq, &Basis[0][right], -1);
 
     if (first_left + second_left + 2 > mult - 1)
-        addvector(&eq, &Basis[0][mult-1], 1);
+        eq[len-1] += 1;
     return eq;
 }
 
@@ -147,7 +147,7 @@ inline vector<MachineInteger> make_ineq(size_t *PolyIneq, size_t len, Matrix<Mac
     // where the first element in the new Basis
     // corresponds to x_1, the second to x_2 and so on.
     vector<MachineInteger> ineq = make_eq(PolyIneq, len, Basis, mult, group_action);
-    addvector(&ineq, &Basis[0][mult-1], -1);
+    ineq[len -1] -= 1;
     return ineq;
 }
 
@@ -284,7 +284,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
 
     Matrix<MachineInteger> Basis(0,mult);
     // Make some basis vectors.
-    for(size_t j=0;j<mult;++j){
+    for(size_t j=0;j<mult-1;++j){
         vector<MachineInteger> bas(mult);
         bas[j] = 1;
         Basis.append(bas);
@@ -318,17 +318,24 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
 
     size_t counter = 0;
     Matrix<MachineInteger> Basis2(0,length_new_basis);
+    Matrix<MachineInteger> Signs(0,length_new_basis);
     // Make some basis vectors.
-    for(size_t j=0;j<mult;++j){
+    for(size_t j=0;j<mult-1;++j){
         vector<MachineInteger> bas(length_new_basis);
+        vector<MachineInteger> signs(length_new_basis);
         counter = 0;
-        for(size_t i=0;i<mult;i++){
+        for(size_t i=0;i<mult-1;i++){
             if (Basis[i][i] == 1){
                bas[counter] = Basis[j][i];
                counter++;
             }
         }
+        bas[length_new_basis -1] = Basis[j][mult-1];
+        addvector(&signs, &bas, 1);
+        signs[length_new_basis-1] += -1;
+
         Basis2.append(bas);
+        Signs.append(signs);
     }
     if (verbose){
         cout << "This is the transformed basis " << endl;
@@ -369,11 +376,9 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
                 continue;
             vector<MachineInteger> frob(length_new_basis);
             addvector(&frob, &Basis2[f0], 1);
-            //frob[f0]=1;
             addvector(&frob, &Basis2[i], -1);
-            //frob[i]=-1;
             if(i>f0)
-                addvector(&frob, &Basis2[dim], -1);
+                frob[length_new_basis -1] -= 1;
             Frob.append(frob);
         }
 
@@ -390,10 +395,10 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
                 //WilfNeg[i]=e;
         }
         long f=f0+1;
-        addvector(&WilfNeg, &Basis2[dim], f-mult-e*(f-mult)-e-1);
+        WilfNeg[length_new_basis - 1] += f-mult-e*(f-mult)-e-1;
         Frob.append(WilfNeg);
 
-        // Trying to play the game instead of creating the
+        // Trying to play a game instead of creating the
         // cone.
         vector<MachineInteger> Game(length_new_basis);
         addvector(&Game, &WilfNeg, 1);
@@ -415,7 +420,8 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
         }
 
         // Creating a cleaned up version of Frob.
-        // We delete all the vectors that are trivially
+        // We delete all the vectors that are strictly
+        // elementwise larger than others.
         Matrix<MachineInteger> Frob2(0,length_new_basis);
 
         size_t counter = 0;
@@ -442,7 +448,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
         Frob2.append(Frob[dim + n_coatoms - n_Hrep-1]);
 
         // How many rounds we try.
-        for(size_t j=0; j< 1000; j++){
+        for(size_t j=0; j< 200; j++){
             best_score = -1000000;
             for(size_t i=0; i< counter; i++){
                 // We are looking for a inequality, that
@@ -487,6 +493,8 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
         }
         if (verbose)
             cout << "Could not win game with " << Game << endl;
+
+        Frob2.append(Signs);
 
         Cone<MachineInteger> WilfPolyhedron(Type::inhom_inequalities, Frob2);
         WilfPolyhedron.setVerbose(false);
@@ -537,6 +545,10 @@ int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint6
     size_t dim = m-1;
     size_t mult = m;
     int output = 0;
+
+    vector<MachineInteger> all_one(dim,1);
+    Matrix<MachineInteger> StrictSigns(1,dim);
+    StrictSigns[0]=all_one;
 
     Matrix<MachineInteger> FaceEq(0,mult);
     Matrix<MachineInteger> FaceInEq(0,mult);
@@ -591,7 +603,8 @@ int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint6
         Frob.append(WilfNeg);
 
         Cone<MachineInteger> WilfPolyhedron(Type::inhom_inequalities, Frob,
-                                            Type::inhom_equations, FaceEq);
+                                            Type::inhom_equations, FaceEq,
+                                            Type::strict_signs, StrictSigns);
         WilfPolyhedron.setVerbose(false);
         WilfPolyhedron.compute(ConeProperty::ModuleGenerators);
         if(WilfPolyhedron.getAffineDim()>=0){
