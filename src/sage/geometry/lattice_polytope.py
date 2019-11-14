@@ -1973,6 +1973,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             def LPFace(vertices, facets):
                 if not facets:
                     return self
+                if len(facets) == 1:
+                    return self.facets()[facets[0]]
                 return LatticePolytopeClass(ambient=self,
                                             ambient_vertex_indices=vertices,
                                             ambient_facet_indices=facets)
@@ -2331,6 +2333,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         H = L.hasse_diagram()
         return self._sort_faces(f for f in H.neighbors_out(L(self)))
 
+    @cached_method
     def facets(self):
         r"""
         Return facets (faces of codimension 1) of ``self``.
