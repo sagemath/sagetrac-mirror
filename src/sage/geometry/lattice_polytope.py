@@ -2351,7 +2351,16 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
              2-d face of 3-d reflexive polytope in 3-d lattice M)
             sage: len(o.facets())
             8
+
+        TESTS::
+
+            sage: f = o.facets()[0]
+            sage: f.facets()[0].ambient_facet_indices()
+            (0, 5)
         """
+        if not self.ambient() is self:
+            return self.faces(codim=1)
+
         def LPFace(vertices, facets):
             return LatticePolytopeClass(ambient=self.ambient(),
                                         ambient_vertex_indices=vertices,
