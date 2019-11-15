@@ -262,7 +262,7 @@ inline MachineInteger combine_score(vector<MachineInteger> *a, vector<MachineInt
     return ((neg_to_pos - pos_to_pos)*10000/prevpos - ((pos_to_neg)*10000/prevneg))/sum;
 }
 
-int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e, size_t group_action, size_t group_action_inv){
+inline int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e, size_t group_action, size_t group_action_inv){
     // For a bad face in in the Kunz Cone we check
     // wether with the inequalites from (4.1) and negation
     // of (4.2)
@@ -496,6 +496,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
 
         Frob2.append(Signs);
 
+        continue;
         Cone<MachineInteger> WilfPolyhedron(Type::inhom_inequalities, Frob2);
         WilfPolyhedron.setVerbose(false);
         WilfPolyhedron.compute(ConeProperty::AffineDim);
@@ -515,6 +516,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
                 cout << "----------------" << endl;
                 output = 0;
             }
+            continue;
         }
 
         if(WilfPolyhedron.getNrModuleGenerators()>0){
@@ -527,7 +529,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
     return output;
 }
 
-int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e, size_t group_action, size_t group_action_inv){
+inline int check_bad_face_original(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, size_t *Hrep, size_t n_Hrep, size_t e, size_t group_action, size_t group_action_inv){
     // For a bad face in in the Kunz Cone we check
     // wether with the inequalites from (4.1) and negation
     // of (4.2)
@@ -642,6 +644,21 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
     // conjecture.
     int value = 0;
     for(size_t i=1; i < m; i++){
+        size_t j=1;
+        while (j < m){
+            if ((i*j) % m == 1){
+                break;
+            }
+            j++;
+        }
+        if ((i*j) % m != 1){
+            continue;
+        }
+        int new_value = check_bad_face(PolyIneq, n_coatoms, m, LHS, Hrep, n_Hrep, e, i, j);
+        if (new_value > value){
+            value = new_value;
+        }
+        /*
         for(size_t j=1; j < m; j++){
             if ((i*j) % m == 1){
                 // i and j are inverse in (ZZ/mZZ)*.
@@ -654,6 +671,7 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
                 }
             }
         }
+        */
     }
     return value;
 }
