@@ -2371,12 +2371,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return (LPFace([], []),)
 
         facet_to_vertices = [[] for _ in range(self.nfacets())]
-        for i, vertex in enumerate(self._ambient.vertices()):
-            if vertex in self.vertices():
-                facets = [j for j, normal in enumerate(self.facet_normals())
-                            if normal * vertex + self.facet_constant(j) == 0]
-                for j in facets:
-                    facet_to_vertices[j].append(i)
+        for i, vertex in enumerate(self.vertices()):
+            facets = [j for j, normal in enumerate(self.facet_normals())
+                        if normal * vertex + self.facet_constant(j) == 0]
+            for j in facets:
+                facet_to_vertices[j].append(i)
 
         return tuple(LPFace(facet_to_vertices[j], [j]) for j in range(self.nfacets()))
 
