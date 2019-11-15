@@ -763,6 +763,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         # vector(ZZ, constants) is slow
         self._facet_constants = (ZZ**len(constants))(constants)
         self._facet_constants.set_immutable()
+        self.is_reflexive.set_cache(self.dim() == self.lattice_dim() and
+                                    all(c == 1 for c in constants))
         if self.is_reflexive():
             polar = LatticePolytope(
                 self._facet_normals, compute_vertices=False)
