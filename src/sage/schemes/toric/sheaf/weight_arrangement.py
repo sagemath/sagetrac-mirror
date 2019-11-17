@@ -86,7 +86,17 @@ class WeightArrangement(object):
 
     def convex_hull(self):
         """
-        Return the convex hull of the vertices
+        Return the convex hull of the vertices.
+
+        EXAMPLES::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: arrangement = (x | x+1 | x+2 | x+y-3 | x-y+4)
+            sage: from sage.schemes.toric.sheaf.weight_arrangement import make_WeightArrangement
+            sage: w = make_WeightArrangement(arrangement)
+            sage: w.convex_hull()
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull
+            of 4 vertices
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron(self.vertices(exclude_sandwiched=True))
