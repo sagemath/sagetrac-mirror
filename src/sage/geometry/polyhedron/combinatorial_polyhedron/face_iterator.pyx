@@ -169,7 +169,7 @@ from .bit_vector_operations cimport get_next_level, \
                                     get_next_level_with_nonzero
 from cysignals.memory       cimport sig_malloc, sig_realloc, sig_free, sig_calloc
 from cython.parallel        cimport prange, threadid
-from .check_bad_face        cimport check_bad_face
+from .check_bad_face        cimport check_bad_face, check_bad_faces
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -549,6 +549,19 @@ cdef inline int partial_bad(
                 bad_vector[d + 1] += 1
             d = next_dimension(face_iter)
 
+    # Now checking the bad faces so far.
+    cdef size_t l = 0
+    cdef int test = check_bad_faces(
+            face_iter[l].PolyIneq, face_iter[l].n_coatoms, face_iter[l].dimension + 2,
+            face_iter[l].bad_faces_LHS,
+            face_iter[l].n_bad_faces,
+            face_iter[l].bad_faces_pt)
+
+    face_iter[0].n_bad_faces = 0
+    face_iter[0].len_bad_faces = 0
+
+
+
 cdef inline int is_bad_face(iter_struct *face_iter) nogil except -1:
     """
     Return 1, if the current face is a bad face.
@@ -567,21 +580,32 @@ cdef inline int is_bad_face(iter_struct *face_iter) nogil except -1:
     cdef uint64_t *LHS          = face_iter[0].LHS[dimension-1]
     cdef uint64_t *RHS          = face_iter[0].RHS[dimension-1]
     cdef uint32_t *nonzero_face = face_iter[0].nonzero_face
-    cdef size_t *coatom_repr    = face_iter[0].coatom_repr
+    cdef uint8_t *bad_faces     = face_iter[0].bad_faces
+    cdef size_t len_bad_faces   = face_iter[0].len_bad_faces
+    cdef uint64_t *bad_faces_LHS= face_iter[0].bad_faces_LHS
+    cdef size_t n_bad_faces     = face_iter[0].n_bad_faces
 
     cdef size_t e  # The value for e is stored here, as ``check_bad_face`` needs it.
 
     cdef size_t output
     output = is_bad_face_cc(face, nonzero_face, dimension, coatoms, n_coatoms,
                             face_length, LHS, RHS, face_iter[0].current_LHS, face_iter[0].current_RHS,
-                            &e, coatom_repr)
+                            &e, bad_faces + len_bad_faces)
     if output == 0:
         return 0
+
+    face_iter[0].bad_faces_pt[n_bad_faces] = bad_faces + len_bad_faces
+    face_iter[0].len_bad_faces += output + 2
+    bad_faces_LHS[n_bad_faces] = face_iter[0].current_LHS[0]
+    face_iter[0].n_bad_faces += 1
+    return 1
+
 
     cdef int test = check_bad_face(
             face_iter[0].PolyIneq, n_coatoms, dimension + 2,
             face_iter[0].current_LHS[0],
             coatom_repr, output, e)
+    return test
     if unlikely(test == 1):
         with gil:
             print("Discovered non-empty face")
@@ -973,6 +997,13 @@ cdef class FaceIterator(SageObject):
                 self.structure.PolyIneq[j][0] = D.PolyIneq[j][0]
                 self.structure.PolyIneq[j][1] = D.PolyIneq[j][1]
                 self.structure.PolyIneq[j][2] = D.PolyIneq[j][2]
+
+            # Space for the bad faces.
+            self.structure.bad_faces = <uint8_t *> self._mem.calloc(1000000, sizeof(uint8_t))
+            self.structure.bad_faces_pt = <uint8_t **> self._mem.calloc(100000, sizeof(uint8_t*))
+            self.structure.len_bad_faces = 0
+            self.structure.bad_faces_LHS = <uint64_t *> self._mem.calloc(100000, sizeof(uint64_t))
+            self.structure.n_bad_faces = 0
         else:
             self.structure.LHS = NULL
             self.structure.RHS = NULL

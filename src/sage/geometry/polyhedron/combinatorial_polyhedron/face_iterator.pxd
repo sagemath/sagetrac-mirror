@@ -1,5 +1,5 @@
 cimport cython
-from libc.stdint                cimport uint64_t, uint32_t
+from libc.stdint                cimport uint64_t, uint32_t, uint8_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
@@ -78,6 +78,11 @@ cdef struct iter_struct:
     size_t *first_orbit_facets # First in orbit, would have been a better name.
     size_t n_first_orbit_facets
     size_t **PolyIneq
+    uint8_t *bad_faces
+    size_t len_bad_faces
+    uint64_t *bad_faces_LHS
+    size_t n_bad_faces
+    uint8_t **bad_faces_pt
 
 
 @cython.final

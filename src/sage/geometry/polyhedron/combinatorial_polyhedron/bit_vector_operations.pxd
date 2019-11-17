@@ -1,7 +1,7 @@
 # distutils: language = c++
 
 cimport cython
-from libc.stdint                cimport uint64_t, uint32_t
+from libc.stdint                cimport uint64_t, uint32_t, uint8_t
 
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
@@ -69,4 +69,4 @@ cdef extern from "bit_vector_operations.cc":
 #        ``n_coatoms`` length of ``coatoms``.
 
     cdef inline size_t is_bad_face_cc(uint64_t *face, uint32_t *nonzero_face, int dimension, uint64_t ** coatoms, size_t n_coatoms, size_t face_length, uint64_t *LHS, uint64_t *RHS, uint64_t *current_LHS, uint64_t *current_RHS,
-            size_t *pte, size_t *output) nogil
+            size_t *pte, uint8_t *output) nogil
