@@ -2368,6 +2368,334 @@ class Partition(CombinatorialElement):
         else:
             return default
 
+
+    @staticmethod
+    def get_chi(lda, mu, alpha):
+        r"""
+        Return `\chi^{\lambda/\mu}(\alpha)` value in Murnaghan-Nakayama formula
+        (Enumerative Combinatorics (Stanley) equation 7.75)
+
+        `\lambda`: list of non-increasing integers
+
+        `\mu`: list of non-increasing integers, pass empty list to `\mu` if not applicable.
+
+        `\alpha`: list of non-negative integers (weak composition)
+
+
+        the function will
+
+        - perform validity check (return ``None`` if any check fails)
+
+        - zero-pad `\mu` and remove zeros in `\alpha`
+
+        - call/return the result of ``get_chi_recursive()`` with ``refDict`` that contains base case for recursive subroutine (where ``refDict`` is used for accelerating recursive algorithm and has nothing to do with Murnaghan-Nakayama formula)
+
+        EXAMPLES::
+
+            sage: # lda = [4,3,1], mu = [1,1], alpha = [2,2,2]
+            sage: Partition.get_chi([4,3,1], [1,1], [2,2,2])
+            0
+
+            sage: # lda = [4,3,1], no mu, alpha = [2,2,2,2]
+            sage: Partition.get_chi([4,3,1], [], [2,2,2,2])
+            -2
+
+
+        .. WARNING::
+            the function uses ``sum()`` built-in function.
+            If overrided, an "int object is not callable"
+            error will occur.
+
+
+        TESTS::
+
+            sage: # mainly test for input validity, algorithm check
+            sage: # done in get_chi_recursive()
+            sage: Partition.get_chi([9,1],[2,4,1],[1,2])
+
+            sage: Partition.get_chi([9,5,1],[2,4,1],[4,4])
+
+            sage: Partition.get_chi([9,5,1],[4,2,1],[4,4,-4,4])
+
+            sage: Partition.get_chi([9,5,1],[4,6,1],[2,2])
+
+            sage: Partition.get_chi([9,5,1],[4,4,1],[2,2,2,1])
+
+            sage: Partition.get_chi([],[],[])
+            1
+
+
+        """
+        debugToggle = False
+
+
+        if len(lda) >= len(mu):
+            # padding mu with zero (same length with lda)
+            mu += [0] * (len(lda)-len(mu))
+        else:
+            return None
+
+
+        # ensure lda and mu are integer partition
+        for i in range(1, len(lda)):
+            if lda[i] > lda[i-1] or mu[i] > mu[i-1] or \
+                lda[i] < 0 or mu[i] < 0:
+                return None
+
+        # ensure alpha is a weak composition
+        for i in range(1, len(alpha)):
+            if alpha[i] < 0:
+                return None
+
+        # alpha weak composition -> composition
+        alpha = [x for x in alpha if x != 0]
+
+
+        expectedBlocks = sum(alpha)
+
+        # ensure each row interval exists
+        for i in range(len(lda)):
+            if mu[i] > lda[i]:
+                return None
+            else:
+                expectedBlocks -= lda[i]-mu[i]
+
+        # ensure sum(lda)-sum(mu)=sum(alpha)
+        if expectedBlocks != 0:
+            return None
+
+        if debugToggle:
+            print("pass all check")
+        return Partition.get_chi_recursive(lda, mu, alpha, {"[][][]": 1})
+
+
+
+
+
+
+    @staticmethod
+    def get_chi_recursive(lda, mu, alpha, refDict):
+        r"""
+        Return `\chi^{\lambda/\mu}(\alpha)` value in Murnaghan-Nakayama formula
+        (Recursive subroutine for ``get_chi()``)
+
+        `\lambda`: list of non-increasing integers
+
+        `\mu`: list of non-increasing integers, pass empty list to `\mu` if not applicable.
+
+        `\alpha`: list of positive integers (composition)
+
+        refDict: dictionary with the format {str([``magn``][``conn``][``alpha``]):    ``ref_chi_value``}, where
+
+        - ``magn`` is a list of number of available blocks each row
+
+        - ``conn`` is a list of number of connected blocks between each pair of consecutive rows, ``conn[i] = 0`` when row `i-1` and `i` are not connected.
+
+        - both ``magn`` and ``conn`` assumes `\lambda[i]` > `\mu[i]` for all `i`.
+
+        - ``ref_chi_value`` is the value of `\chi` given ``magn``, ``conn`` and ``alpha``
+
+        EXAMPLES::
+
+            sage: # lda = [4,3,1], mu = [1,1], alpha = [2,2,2], no chi instance known other
+            sage: # than the trivial case
+            sage: Partition.get_chi_recursive([4,3,1], [1,1,0], [2,2,2], {"[][][]": 1})
+            0
+
+            sage: # lda = [4,3,1], no mu, alpha = [2,2,2,2], no chi instance known other
+            sage: # than the trivial case
+            sage: Partition.get_chi_recursive([4,3,1], [0,0,0], [2,2,2,2], {"[][][]": 1})
+            -2
+
+
+            sage: # lda = [13,9,5,5,2,2], no mu,
+            sage: # alpha = [2,2,2,2], know that case "[1,1][1][1,1]"
+            sage: # gives chi = 1 (notice space after comma in alpha)
+            sage: Partition.get_chi_recursive([8,6,5,4], [5,4,3,3], [2,1,1,1,1,1,1],
+            ....: {"[][][]": 1, "[1, 1][0][1, 1]": 2})
+            61
+            sage: Partition.get_chi_recursive([8,6,5,4], [5,4,3,3], [2,1,1,1,1,1,1],
+            ....: {"[][][]": 1, "[1, 1][0][1, 1]": 2}) == Partition.get_chi_recursive(
+            ....: [8,6,5,4], [5,4,3,3],[2,1,1,1,1,1,1], {"[][][]": 1})
+            True
+
+
+
+        ALGORITHM:
+
+            If exist in ``refDict``, just return that `\chi`.
+
+            Otherwise (inherently depth first search),
+            get each possibility (remain + strip) and
+            compute `\chi_{remain}*(-1)^{height(strip)}`.
+            Sum all these possibility up, store into ``refDict`` and return the
+            sum as `\chi`.
+
+
+        .. WARNING::
+
+            It is not recommended to directly call subroutine
+            (unless you have a lot of known instances of `\chi` to
+            put into ``refDict`` and all of your inputs are valid/padded)
+
+        TESTS::
+
+            # mainly test for edge case and consistency between
+            # skewed (mu != []) and normal (mu == []) case using littlewood
+            # richardson coefficient
+            # use get_chi to prevent padding errors
+            sage: Partition.get_chi_recursive([], [], [], {"[][][]": 1})
+            1
+            sage: import sage.libs.lrcalc.lrcalc as lrcalc
+            sage: lda = [12,9,5,4,1,1]
+            sage: mu = [6,4,4,4,1,0]
+            sage: alpha_repo = list(Compositions(sum(lda)-sum(mu)))
+            sage: # choose a random alpha
+            sage: alpha = alpha_repo[len(alpha_repo)/2]
+            sage: nu_repo = list(Partitions(sum(lda)-sum(mu)))
+            sage: sumLR = 0
+            sage: for nu in nu_repo:
+            ....:    # sum over nu -> lrcoef(lda, mu, nu)*psi(nu, alpha) = psi(lda, mu, alpha)
+            ....:    sumLR += lrcalc.lrcoef(lda,mu,nu)*Partition.get_chi(nu, [],alpha)
+            sage: sumLR == Partition.get_chi(lda, mu,alpha)
+            True
+
+        """
+
+        debugToggle = False
+
+
+        # return None if not connected
+        # if diminish case occur (normal check useless) and all later rows also
+        # diminish, then good
+        # if diminish case occur (normal check useless) and some later rows do
+        # not diminish, then bad
+        # if diminish case do not occur, then good/bad depends on normal check
+
+
+        # remove all rows with no available blocks
+        i = 0
+        while i < len(lda):
+            if lda[i] == mu[i]:
+                del lda[i]
+                del mu[i]
+            else:
+                i += 1
+
+
+        # use the following for refDict
+        # i.e. if magnitude/connection/alpha are the same -> same psi
+        magnitude = []
+        connection = []
+
+        i = 0
+        while i < len(lda):
+            magnitude.append(lda[i]-mu[i])
+            if i > 0:
+                # diff between current lda and last mu
+                diff = lda[i]-mu[i-1]
+                if diff > 0:
+                    connection.append(diff)
+                else:
+                    connection.append(0)
+            i += 1
+
+
+
+
+        # at this point, assume lda/mu valid and all
+        # magnitude is non-zero
+        if debugToggle:
+            print(lda, mu, "magnitude", magnitude, "connection", connection)
+
+
+        refPsi = refDict.get(str(magnitude)+str(connection)+str(alpha), None)
+        if refPsi is not None:
+            if debugToggle:
+                print("refDict used, psi = " + str(refPsi))
+            return refPsi
+
+
+
+        # at this point nothing is found in refPsi, which
+        # also ensures non empty magnitude
+        max_width_index = lda[0] - 1
+        max_height_index = len(lda) - 1
+
+        # start finding border (row, col) (index 0 based)
+        border = []
+        numBlocks = []
+
+        currentPt = (0, max_width_index)
+        # borderEnd = (max_height_index, mu[max_height_index])
+        # extra pt at the end of border
+        extraPt = (max_height_index, mu[max_height_index]-1)
+
+        while currentPt != extraPt:
+            # good pt
+            if currentPt[1] >= mu[currentPt[0]]:
+                border.append(currentPt)
+            # bad pt (in mu)
+            else:
+                border.append(currentPt)
+                numBlocks += list(range(len(border)-len(numBlocks)-1, -1, -1))
+
+            # if can go down
+            if currentPt[0] < max_height_index and currentPt[1] == lda[currentPt[0]+1]-1:
+                currentPt = (currentPt[0]+1, currentPt[1])
+            # cannot go down, then go left
+            else:
+                currentPt = (currentPt[0], currentPt[1]-1)
+
+        # append the extra bad block
+        border.append(extraPt)
+        numBlocks += list(range(len(border)-len(numBlocks)-1, -1, -1))
+
+
+
+
+        # possible start point's index in border list
+        # nothing to the right and is a good pt
+        start = [0]
+        for i in range(1, len(border)):
+            if border[i][1]+1 == lda[border[i][0]] and numBlocks[i] > 0:
+                start.append(i)
+
+
+
+        # use those points to derive possible subTableaux
+        # notice that the extra point ensures that ptIndex + numBlocks[ptIndex]
+        # at any start pt always stays in border
+        length = alpha[0]
+        psi = 0
+        count = 0
+        for ptIndex in start:
+            if length <= numBlocks[ptIndex]:
+                if border[ptIndex+length][1] < border[ptIndex+length-1][1]:
+                    if debugToggle:
+                        count += 1
+                        print("child", count, "of", lda, mu , alpha)
+
+                    subLda = list(lda)
+                    subMu = list(mu)
+                    for i in range(ptIndex, ptIndex+length):
+                        subLda[border[i][0]] -= 1
+
+
+                    # no need to check length of alpha, [1:] won't throw an error
+
+                    subPsi = Partition.get_chi_recursive(subLda, subMu, alpha[1:], refDict)
+                    stripHeight = border[ptIndex+length-1][0] - border[ptIndex][0]
+                    psi += subPsi * (-1)**stripHeight
+
+
+
+        refDict[str(magnitude)+str(connection)+str(alpha)] = psi
+        return psi
+
+
+
+
     @combinatorial_map(name="partition to minimal Dyck word")
     def to_dyck_word(self, n=None):
         r"""
