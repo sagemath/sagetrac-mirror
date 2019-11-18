@@ -19,7 +19,13 @@ dependencies:
     - c-compiler
     - cxx-compiler
     - fortran-compiler
+    ##
+    - patch
+    ## for polymake
     - ninja
+  ##- perl    # disable, creates conflicts
+    ##- perl-app-cpanminus        # conda does not package CPAN packages
+
   ## From https://github.com/conda-forge/sagelib-feedstock/tree/master/recipe
   #build:
     - libtool
