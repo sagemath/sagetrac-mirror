@@ -76,8 +76,8 @@ class PoissonVertexAlgebra_from_vertex_algebra(PoissonVertexAlgebra):
 
         category=kwds.get('category', None)
         category = PoissonVertexAlgebras(R).or_subcategory(category)
-        if V in VertexAlgebras(R).HGraded():
-            category = category.HGraded()
+        if V in VertexAlgebras(R).Graded():
+            category = category.Graded()
         category = category.FinitelyGenerated()
         kwds['category'] = category
         
@@ -449,7 +449,7 @@ class VertexAlgebraArcSpace(GradedCommutativeAlgebraWithDerivationQuotient):
         except ValueError:
             names = tuple("x{}".format(d) for d in range(V.ngens()))
         weights = [g.weight() for g in V.gens()]
-        category = PoissonVertexAlgebras(R).HGraded().Quotients()
+        category = PoissonVertexAlgebras(R).Graded().Quotients()
         A = AffineArcAlgebra(R, names, weights, termorder, category=category)
         igens = []
         for g in V.defining_ideal().gens():

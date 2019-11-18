@@ -21,7 +21,7 @@ from sage.combinat.partition_tuple import PartitionTuples, PartitionTuples_level
 
 class VertexAlgebraIdeal(Module):
     def __init__(self,V,gens):
-        if V not in VertexAlgebras(V.base_ring()).HGraded().FinitelyGenerated():
+        if V not in VertexAlgebras(V.base_ring()).Graded().FinitelyGenerated():
             raise ValueError ("V needs to be a finitely and strongly generated "
                     "vertex algebra, got {}".format(V) )
         gens = tuple(gens)

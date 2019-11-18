@@ -50,7 +50,8 @@ like :meth:`VirasoroLieConformalAlgebra` and :meth:`AffineLieConformalAlgebra`
         sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
         sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
         sage: V.category()
-        Category of Finitely generated H-graded Lie conformal algebra with basis over Rational Field
+        Category of finitely generated as lie conformal algebra H-graded Lie conformal
+        algebras with basis over Rational Field
         sage: V.inject_variables()
         Defining a, b, K
         sage: a.bracket(b)
@@ -178,7 +179,8 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
             sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
             sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
             sage: V.category()
-            Category of Finitely generated H-graded Lie conformal algebra with basis over Rational Field
+            Category of finitely generated as lie conformal algebra H-graded Lie conformal
+            algebras with basis over Rational Field
             sage: V.inject_variables()
             Defining a, b, K
             sage: a.bracket(b)
@@ -197,7 +199,8 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
             sage: e.bracket(f.T())
             {0: Th, 1: h, 2: 2*K}
             sage: V.category()
-            Category of Finitely generated H-graded Lie conformal algebra with basis over Rational Field
+            Category of finitely generated as lie conformal algebra H-graded Lie
+            conformal algebras with basis over Rational Field
             sage: e.degree()
             1
 
@@ -727,7 +730,7 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
           to.
 
         """
-        category = LieConformalAlgebras(R).HGraded().WithBasis()\
+        category = LieConformalAlgebras(R).Graded().WithBasis()\
                    .FinitelyGenerated().or_subcategory(category)
         LieConformalAlgebraWithStructureCoefficients.__init__(
             self,R, s_coeff,
@@ -780,7 +783,8 @@ def VirasoroLieConformalAlgebra(R):
 
             sage: Vir = VirasoroLieConformalAlgebra(QQ)
             sage: Vir.category()
-            Category of Finitely generated H-graded Lie conformal algebra with basis over Rational Field
+            Category of finitely generated as lie conformal algebra H-graded Lie
+            conformal algebras with basis over Rational Field
             sage: Vir.gens()
             (L, C)
             sage: L = Vir.0; L.bracket(L)

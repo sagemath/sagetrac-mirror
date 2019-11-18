@@ -17,7 +17,7 @@ AUTHORS
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_with_axiom import all_axioms as all_axioms
@@ -25,8 +25,9 @@ from sage.categories.quotients import QuotientsCategory
 from lie_conformal_algebras import LieConformalAlgebras
 from sage.algebras.vertex_algebras.vertex_algebra_quotient import VertexAlgebraQuotient
 from sage.functions.other import factorial
+from sage.categories.graded_modules import GradedModulesCategory
 
-all_axioms += ("FinitelyGeneratedAsVertexAlgebra","HGraded")
+all_axioms += ("FinitelyGeneratedAsVertexAlgebra",)
 class VertexAlgebras(Category_over_base_ring):
     """
     The category of vertex algebras.
@@ -219,7 +220,7 @@ class VertexAlgebras(Category_over_base_ring):
                 True
 
             """
-            return self in VertexAlgebras(self.base_ring()).HGraded()
+            return self in VertexAlgebras(self.base_ring()).Graded()
 
         @abstract_method
         def vacuum(self):
@@ -307,17 +308,6 @@ class VertexAlgebras(Category_over_base_ring):
 
 
     class SubcategoryMethods:
-        def Graded(self):
-            """
-            The subcategory of H-Graded vertex algebras
-            """
-            return self.HGraded()
-
-        def HGraded(self):
-            """
-            The subcategory of H-Graded vertex algebras
-            """
-            return self._with_axiom('HGraded')
 
         def FinitelyGeneratedAsVertexAlgebra(self):
             """
@@ -342,7 +332,8 @@ class VertexAlgebras(Category_over_base_ring):
             """
             The names of objects in this category
             """
-            return "vertex algebras with basis over {}".format(self.base_ring())
+            return "{} with basis".format(self.base_category().
+                                          _repr_object_bames())
 
         class ElementMethods:
             def monomials(self):
@@ -360,33 +351,14 @@ class VertexAlgebras(Category_over_base_ring):
                             self.monomial_coefficients().items())
  
 
-    class HGraded(CategoryWithAxiom_over_base_ring):
+    class Graded(GradedModulesCategory):
 
         def _repr_object_names(self):
             """
             The names of objects in this category
             """
-            return "H-graded vertex algebras over {}".format(self.base_ring())
-
-        class SubcategoryMethods:
-            def FinitelyGenerated(self):
-                """
-                The subcategory of finitely and strongly generated H-Graded
-                vertex algebras
-                """
-                return self._with_axiom("FinitelyGeneratedAsVertexAlgebra")
-
-        class WithBasis(CategoryWithAxiom_over_base_ring):
-            """
-            The subcategory of H-Graded vertex algebras with a preferred
-            basis
-            """
-            def _repr_object_names(self):
-                """
-                The names of objects in this category
-                """
-                return "H-graded vertex algebras with basis "\
-                            "over {}".format(self.base_ring())
+            return "H-graded {}".format(self.base_category().\
+                                        _repr_object_names())
 
 
         class ParentMethods:
@@ -428,207 +400,21 @@ class VertexAlgebras(Category_over_base_ring):
                 from sage.algebras.vertex_algebras.poisson_vertex_algebra import PoissonVertexAlgebra
                 return PoissonVertexAlgebra(self.base_ring(), self)
 
-        class ElementMethods:
-            #for compatibility with LCA as `self` is in LCA
-            def degree(self):
-                """
-                The conformal weight of this element
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-                    sage: L.degree()
-                    2
-                    sage: W = AffineVertexAlgebra(QQ, 'A1', 2); E = W.0
-                    sage: E.degree()
-                    1
-                    sage: L.T().degree()
-                    3
-                    sage: (L + L.T()).degree()
-                    Traceback (most recent call last):
-                    ...
-                    ValueError: L_-2|0>+L_-3|0> is not homogeneous!
-
-                """
-                return self.weight()
-
-            def filtered_degree(self):
-                """
-                The smallest space `F^p` in the Li filtration of this vertex
-                algebra containing this element
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-                    sage: L.li_filtration_degree()
-                    0
-                    sage: (L.T(2)*L.T()).li_filtration_degree()
-                    3
-
-                """
-                return max(m.weight() for m in self.monomial_coefficients())
-
-            @abstract_method
-            def weight(self):
-                """
-                The conformal weight of this element
-
-                This method is an alias of :meth:`degree`
-                """
-
-            def is_homogeneous(self):
-                """
-                Whether this element is homogeneous with respect to conformal
-                weight
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-                    sage: L.is_homogeneous()
-                    True
-                    sage: (L + L.T()).is_homogeneous()
-                    False
-
-                """
-                try:
-                    self.weight()
-                except ValueError:
-                    return False
-                return True
-
-            def nmodeproduct(self, other, n):
-                r"""
-                The shifted product of these two elements
-
-                The element needs to be homogeneous. 
-                If `a \in V_p`, then `a_n b` is defined as 
-                `a_{(n+p-1)}b`. 
-
-                EXAMPLES::
-                    
-                    sage: V = VirasoroVertexAlgebra(QQ, 1/2)
-                    sage: V.inject_variables()
-                    Defining L
-                    sage: L.nmodeproduct(L.T(),0)
-                    3*L_-3|0>
-
-                    sage: (L + V.vacuum()).nmodeproduct(L,0)
-                    Traceback (most recent call last):
-                    ...
-                    ValueError: Couldn't compute weight of L_-2|0>+|0>, it's not homogeneous?
-
-                """
-                try:
-                    weight = self.weight()
-                except ValueError:
-                    raise ValueError("Couldn't compute weight of {}, "\
-                                    "it's not homogeneous?".format(self))
-                return self.nproduct(other, n+weight-1)
-
-    class FinitelyGeneratedAsVertexAlgebra(CategoryWithAxiom_over_base_ring):
-
-        def _repr_object_names(self):
+        class WithBasis(CategoryWithAxiom_over_base_ring):
             """
-            The names of objects of this category
+            The category of graded vertex algebras with basis
             """
-            return "finitely and strongly generated" \
-                        " vertex algebras over {}".format(self.base_ring())
-        
-        class ParentMethods:
-            @abstract_method
-            def gens(self):
-                """
-                The list of generators of this vertex algebra
 
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
-                    sage: V.gens()
-                    (L_-2|0>,)
-                    sage: L = V.0; L in V
-                    True
-                    sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                    sage: Q = V.quotient(V.ideal(v))
-                    sage: Q.gens()
-                    (L_-2|0>,)
-                    sage: Q.gens()[0] in Q
-                    True
-                    sage: V = AffineVertexAlgebra(QQ, 'A1', 1); V
-                    The universal affine vertex algebra of CartanType ['A', 1] at level 1
-                    sage: V.gens()
-                    (E(alpha[1])_-1|0>, E(alphacheck[1])_-1|0>, E(-alpha[1])_-1|0>)          
-
-                """
-
-            @abstract_method
-            def ngens(self):
-                """
-                The number of generators of this vertex algebra
-                
-                EXAMPLES::
-
-                    sage: VirasoroVertexAlgebra(QQ,1/2).ngens()
-                    1
-                    sage: AffineVertexAlgebra(QQ,'A2',1).ngens()
-                    8
-
-                """
-
-            def hilbert_series(self,ord):
-                """
-                The graded dimension of this algebra
-
-                INPUT:
-
-                - ``ord`` -- integer; the precision order of the result
-
-                OUTPUT: The sum
-
-                .. MATH::
-                    \sum_{n = 0}^{ord} q^n \mathrm{dim} V_n
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
-                    sage: V.hilbert_series(8)
-                    1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 4*q^6 + 4*q^7 + 7*q^8
-                    sage: L = V.0; v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                    sage: Q = V.quotient(V.ideal(v))
-                    sage: Q.hilbert_series(9)
-                    1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 3*q^6 + 3*q^7 + 5*q^8 + 5*q^9
-
-                """
-                from sage.rings.power_series_ring import PowerSeriesRing
-                q = PowerSeriesRing(self.base_ring(),'q', 
-                                    default_prec = ord+1).gen()
-                return sum(self.dimension(n)*q**n for n in range(ord+1 ))     
-
-       
-        class SubcategoryMethods:
-            def HGraded(self):
-                """
-                The subcategory of finitely generated H-Graded vertex algebras
-                """
-                return self._with_axiom('HGraded')
-
-        class HGraded(CategoryWithAxiom_over_base_ring):
+        class FinitelyGeneratedAsVertexAlgebra(
+                                        CategoryWithAxiom_over_base_ring):
             def _repr_object_names(self):
-                return "H-graded finitely and strongly generated vertex"\
-                    " algebras over {}".format(self.base_ring())
-
-            class SubcategoryMethods:
-                def WithBasis(self):
-                    """
-                    The subcategory of finitely generated
-                    H-Graded Vertex algebras with a preferred
-                    basis
-                    """
-                    return self._with_axiom("WithBasis")
+                return "finitely generated {}".format(self.base_category().\
+                                                       _repr_object_names())
 
             class WithBasis(CategoryWithAxiom_over_base_ring):
                 def _repr_object_names(self):
-                    return "H-graded finitely and strongly generated vertex"\
-                        " algebras with basis over {}".format(self.base_ring())
+                    return "{} with basis".format(self.base_category().\
+                                                  _repr_object_names())
 
             class ParentMethods:
 
@@ -732,5 +518,181 @@ class VertexAlgebras(Category_over_base_ring):
                             else:
                                 ret = g.nmodeproduct(ret, n-1 )
                     return ret
+
+        class ElementMethods:   #VertexAlgebras.Graded
+            def degree(self):
+                """
+                The conformal weight of this element
+
+                EXAMPLES::
+
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
+                    sage: L.degree()
+                    2
+                    sage: W = AffineVertexAlgebra(QQ, 'A1', 2); E = W.0
+                    sage: E.degree()
+                    1
+                    sage: L.T().degree()
+                    3
+                    sage: (L + L.T()).degree()
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: L_-2|0>+L_-3|0> is not homogeneous!
+
+                """
+                return self.weight()
+
+            def filtered_degree(self):
+                """
+                The smallest space `F^p` in the Li filtration of this vertex
+                algebra containing this element
+
+                EXAMPLES::
+
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
+                    sage: L.li_filtration_degree()
+                    0
+                    sage: (L.T(2)*L.T()).li_filtration_degree()
+                    3
+
+                """
+                return max(m.weight() for m in self.monomial_coefficients())
+
+            @abstract_method
+            def weight(self):
+                """
+                The conformal weight of this element
+
+                This method is an alias of :meth:`degree`
+                """
+
+            def is_homogeneous(self):
+                """
+                Whether this element is homogeneous with respect to conformal
+                weight
+
+                EXAMPLES::
+
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
+                    sage: L.is_homogeneous()
+                    True
+                    sage: (L + L.T()).is_homogeneous()
+                    False
+
+                """
+                try:
+                    self.weight()
+                except ValueError:
+                    return False
+                return True
+
+            def nmodeproduct(self, other, n):
+                r"""
+                The shifted product of these two elements
+
+                The element needs to be homogeneous. 
+                If `a \in V_p`, then `a_n b` is defined as 
+                `a_{(n+p-1)}b`. 
+
+                EXAMPLES::
+                    
+                    sage: V = VirasoroVertexAlgebra(QQ, 1/2)
+                    sage: V.inject_variables()
+                    Defining L
+                    sage: L.nmodeproduct(L.T(),0)
+                    3*L_-3|0>
+
+                    sage: (L + V.vacuum()).nmodeproduct(L,0)
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: Couldn't compute weight of L_-2|0>+|0>, it's not homogeneous?
+
+                """
+                try:
+                    weight = self.weight()
+                except ValueError:
+                    raise ValueError("Couldn't compute weight of {}, "\
+                                    "it's not homogeneous?".format(self))
+                return self.nproduct(other, n+weight-1)
+
+    class FinitelyGeneratedAsVertexAlgebra(CategoryWithAxiom_over_base_ring):
+
+        def _repr_object_names(self):
+            """
+            The names of objects of this category
+            """
+            return "finitely generated {}".format(self.base_category().\
+                                                  _repr_object_names())
+        class WithBasis(CategoryWithAxiom_over_base_ring):
+            """The category of finitely generated vertex algebras with basis"""
+
+        class ParentMethods:
+            @abstract_method
+            def gens(self):
+                """
+                The list of generators of this vertex algebra
+
+                EXAMPLES::
+
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                    sage: V.gens()
+                    (L_-2|0>,)
+                    sage: L = V.0; L in V
+                    True
+                    sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+                    sage: Q = V.quotient(V.ideal(v))
+                    sage: Q.gens()
+                    (L_-2|0>,)
+                    sage: Q.gens()[0] in Q
+                    True
+                    sage: V = AffineVertexAlgebra(QQ, 'A1', 1); V
+                    The universal affine vertex algebra of CartanType ['A', 1] at level 1
+                    sage: V.gens()
+                    (E(alpha[1])_-1|0>, E(alphacheck[1])_-1|0>, E(-alpha[1])_-1|0>)          
+
+                """
+
+            @abstract_method
+            def ngens(self):
+                """
+                The number of generators of this vertex algebra
+                
+                EXAMPLES::
+
+                    sage: VirasoroVertexAlgebra(QQ,1/2).ngens()
+                    1
+                    sage: AffineVertexAlgebra(QQ,'A2',1).ngens()
+                    8
+
+                """
+
+            def hilbert_series(self,ord):
+                """
+                The graded dimension of this algebra
+
+                INPUT:
+
+                - ``ord`` -- integer; the precision order of the result
+
+                OUTPUT: The sum
+
+                .. MATH::
+                    \sum_{n = 0}^{ord} q^n \mathrm{dim} V_n
+
+                EXAMPLES::
+
+                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                    sage: V.hilbert_series(8)
+                    1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 4*q^6 + 4*q^7 + 7*q^8
+                    sage: L = V.0; v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+                    sage: Q = V.quotient(V.ideal(v))
+                    sage: Q.hilbert_series(9)
+                    1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 3*q^6 + 3*q^7 + 5*q^8 + 5*q^9
+
+                """
+                from sage.rings.power_series_ring import PowerSeriesRing
+                q = PowerSeriesRing(self.base_ring(),'q', 
+                                    default_prec = ord+1).gen()
+                return sum(self.dimension(n)*q**n for n in range(ord+1 ))     
 
 
