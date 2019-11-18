@@ -24,8 +24,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from lie_conformal_algebras import LieConformalAlgebras
 from sage.categories.commutative_algebras import CommutativeAlgebras
-all_axioms += ("HGraded",)
-
+from sage.categories.graded_modules import GradedModulesCategory
 
 class PoissonVertexAlgebras(Category_over_base_ring):
 
@@ -59,22 +58,6 @@ class PoissonVertexAlgebras(Category_over_base_ring):
         return "Poisson vertex algebras over {}".format(self.base_ring())
 
     class SubcategoryMethods:
-        def Graded(self):
-            """
-            The subcategory of H-Graded Poisson vertex algebras
-
-            These are graded by *conformal weight*
-            """
-            return self.HGraded()
-
-        def HGraded(self):
-            """
-            The subcategory of H-Graded Poisson vertex algebras
-
-            These are graded by *conformal weight*
-            """
-            return self._with_axiom('HGraded')
-
         def FinitelyGenerated(self):
             """
             The subcategory of finitely generated Poisson vertex algebras
@@ -95,8 +78,8 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             """
             The names of objects of this category
             """
-            return "poisson vertex algebra with basis over {}".format(
-                                                            self.base_ring())
+            return "{} with basis".format(self.base_category().\
+                                          _repr_object_names())
 
         class ParentMethods:
             @abstract_method
@@ -106,13 +89,22 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                 """
                 raise NotImplementedError("Not implemented")
 
+        class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
+            def _repr_object_names(self):
+                """
+                The names of objects of this category
+                """
+                return "finitely generated {}".format(self.base_category().\
+                                                      _repr_object_names())
+
+
     class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
         def _repr_object_names(self):
             """
             The names of objects of this category
             """
-            return "finitely generated poisson vertex algebras over {}"\
-                        .format(self.base_ring())
+            return "finitely generated {}".format(self.base_category().\
+                                                  _repr_object_names())
 
         class ParentMethods:
             @abstract_method
@@ -189,30 +181,47 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                 return tuple(v[1]*v[0] for v in 
                              self.monomial_coefficients().items())
 
-    class HGraded(CategoryWithAxiom_over_base_ring):
-        def extra_super_categories(self):
-            """
-            The extra super categories of this category
-
-            Every H-Graded Poisson vertex algebra is a graded commutative
-            algebra
-            """
-            return [CommutativeAlgebras(self.base_ring()).Graded(),]
-
+    class Graded(GradedModulesCategory):
         def _repr_object_names(self):
             """
             The names of objects of this category
+
+            TESTS::
+                sage: PoissonVertexAlgebras(QQ).WithBasis().Graded().__class__
+                <class 'sage.categories.poisson_vertex_algebras.PoissonVertexAlgebras.Graded.WithBasis_with_category'>
+                sage: PoissonVertexAlgebras(QQ).WithBasis().Graded() is
+                PoissonVertexAlgebras(QQ).Graded().WithBasis()
+                True
+
             """
-            return "H-graded poisson vertex algebra over {}"\
-                    .format(self.base_ring())
+            return "H-graded {}".format(self.base_category().\
+                                        _repr_object_names())
 
         class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
             def _repr_object_names(self):
                 """
                 The names of objects of this category
                 """
-                return "Finitely generated H-graded poisson vertex algebra "\
-                        "over {}".format(self.base_ring())
+                return "finitely generated {}".format(self.base_category().\
+                                                      _repr_object_names())
+
+            class WithBasis(CategoryWithAxiom_over_base_ring):
+                def _repr_object_names(self):
+                    """
+                    The names of objects of this category
+                    """
+                    return "{} with basis".format(self.base_category().\
+                                                  _repr_object_names())
+
+
+        class WithBasis(CategoryWithAxiom_over_base_ring):
+            def _repr_object_names(self):
+                """
+                The names of objects of this category
+                """
+                return "{} with basis".format(self.base_category().\
+                                              _repr_object_names())
+
 
         class ElementMethods:
             @abstract_method

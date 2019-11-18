@@ -73,8 +73,8 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         category = VertexAlgebras(R).FinitelyGenerated().WithBasis().\
            or_subcategory(category)
 
-        if L in LieConformalAlgebras(R).HGraded():
-            category = category.HGraded()
+        if L in LieConformalAlgebras(R).Graded():
+            category = category.Graded()
 
         kwds['category'] = category
 
