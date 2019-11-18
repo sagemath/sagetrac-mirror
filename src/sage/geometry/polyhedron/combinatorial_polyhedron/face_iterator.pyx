@@ -999,10 +999,10 @@ cdef class FaceIterator(SageObject):
                 self.structure.PolyIneq[j][2] = D.PolyIneq[j][2]
 
             # Space for the bad faces.
-            self.structure.bad_faces = <uint8_t *> self._mem.calloc(1000000, sizeof(uint8_t))
-            self.structure.bad_faces_pt = <uint8_t **> self._mem.calloc(100000, sizeof(uint8_t*))
+            self.structure.bad_faces = <uint8_t *> self._mem.calloc(10000000, sizeof(uint8_t))
+            self.structure.bad_faces_pt = <uint8_t **> self._mem.calloc(1000000, sizeof(uint8_t*))
             self.structure.len_bad_faces = 0
-            self.structure.bad_faces_LHS = <uint64_t *> self._mem.calloc(100000, sizeof(uint64_t))
+            self.structure.bad_faces_LHS = <uint64_t *> self._mem.calloc(1000000, sizeof(uint64_t))
             self.structure.n_bad_faces = 0
         else:
             self.structure.LHS = NULL
