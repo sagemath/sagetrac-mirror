@@ -3710,8 +3710,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         i, j = map(self._element_to_vertex, (x, y))
         return self._hasse_diagram.moebius_function(i, j)
 
-    mobius_function = deprecated_function_alias(19855, moebius_function)
-
     def moebius_function_matrix(self, ring=ZZ, sparse=False):
         r"""
         Return a matrix whose ``(i,j)`` entry is the value of the Möbius
@@ -8214,45 +8212,46 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Compute the discrete Morse theory of ``self``.
 
-        A discription of the discrete Morse theory, adapting this::
+        A description of the discrete Morse theory, adapting this:
 
+        INPUT:
 
-            INPUT:  List L of the maximal chains of a poset. If pure=true, then poset is
-                    assumed to be pure, that is, all chains in L are of the same length.
-                    If the poset is known to be pure then the code is faster.
-                    A boolean display to which if true causes results to be printed.
-            OUTPUT: Print whether the poset is a shelling and what the Mobius function
-                    is. Returns a tuple of four elements: 1) Boolean: True if is a
-                    shelling order 2) Integer: The Mobius function, 3) List of Integers:
-                    the indices of the critical chains and 4) List of Lists: The J
-                    intervals of the chains.
+        List L of the maximal chains of a poset.
 
-                    The function does the following:
+        OUTPUT: 
 
-                    1) Checks that L is a PL-ordering.
-                       If L is not a PL-ordering an error is returned, with the index
-                       of the first chain to violate the PL condition given.
+        Print whether the poset is a shelling and what the Mobius function
+        is. Return a tuple of four elements: 1) Boolean: True if is a
+        shelling order 2) Integer: The Mobius function, 3) List of Integers:
+        the indices of the critical chains and 4) List of Lists: The J
+        intervals of the chains.
 
-                    2) Computes the minimal skipped intervals M(C) of each chain C in L.
+        The function does the following:
 
-                    3) The J intervals J(C) are computed from M(C) for each chain C.
+        1) Checks that L is a PL-ordering.
+           If L is not a PL-ordering an error is returned, with the index
+           of the first chain to violate the PL condition given.
 
-                    4) Computes the critical chains, that is, the chains C that are
-                       covered by J(C).
+        2) Computes the minimal skipped intervals M(C) of each chain C in L.
 
-                    5) Checks whether the ordering is a shelling order, that is,
-                       whether there is an minimal skipped interval of size greater
-                       than 1.
+        3) The J intervals J(C) are computed from M(C) for each chain C.
 
-                    6) The Mobius function is computed by taking the sum (-1)^{|J(C)|}
-                       for all critical chains C.
+        4) Computes the critical chains, that is, the chains C that are
+           covered by J(C).
 
-                    7) Returns a tuple with the following elements:
-                       1 - Boolean: True if ordering is a shelling,
-                       2 - Int: Value of the Mobius function,
-                       3 - List: The indices of the critical chains,
-                       4 - List: J intervals for all of L,
-                       5 - List: Minimal skipped intervals for all of L.
+        5) Checks whether the ordering is a shelling order, that is,
+           whether there is an minimal skipped interval of size greater
+           than 1.
+
+        6) The Mobius function is computed by taking the sum (-1)^{|J(C)|}
+           for all critical chains C.
+
+        7) Returns a tuple with the following elements:
+           1 - Boolean: True if ordering is a shelling,
+           2 - Int: Value of the Mobius function,
+           3 - List: The indices of the critical chains,
+           4 - List: J intervals for all of L,
+           5 - List: Minimal skipped intervals for all of L.
 
         EXAMPLES::
 
@@ -8340,10 +8339,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: I[2]
             [15, 17, 23]
 
-            # An example where the J intervals differ from the minimal skipped
-            # intervals is given below. Note that in this case there are no critical
-            # chains even though L[4] is covered by its minimal skipped interval, as
-            # we only class a chain as critical if it is covered by its J intervals.
+        An example where the J intervals differ from the minimal skipped
+        intervals is given below. Note that in this case there are no critical
+        chains even though L[4] is covered by its minimal skipped interval, as
+        we only class a chain as critical if it is covered by its J intervals::
+
             sage: L = [[10, 6, 7],[10, 2, 7],[5, 6, 7],[5, 4, 3],[5, 4, 2, 7],
             ....:      [1, 9, 8, 4, 3],[1, 9, 8, 4, 2, 7]]
             sage: I=discrete_Morse_theory(L)
@@ -8383,8 +8383,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         shell, mob, crit, J, M = self._hasse_diagram.discrete_morse_theory(L)
         print(J)
         print(M)
-        J = [[[self._vertex_to_element(v) for v in I] for I in val] for val in J]
-        M = [[[self._vertex_to_element(v) for v in I] for I in val] for val in M]
+        J = [[[self._vertex_to_element(v) for v in I] for I in val]
+             for val in J]
+        M = [[[self._vertex_to_element(v) for v in I] for I in val]
+             for val in M]
         return (shell, mob, crit, J, M)
 
 
