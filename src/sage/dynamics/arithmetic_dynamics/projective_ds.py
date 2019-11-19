@@ -405,14 +405,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             polys = [PR(poly) for poly in polys]
             domain = ProjectiveSpace(PR)
         else:
-            # Check if we can coerce the given polynomials over the given domain 
+            # Check if we can coerce the given polynomials over the given domain
             PR = domain.ambient_space().coordinate_ring()
             try:
                 polys = [PR(poly) for poly in polys]
             except TypeError:
                 raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            raise ValueError('Number of polys does not match dimension of {}'.format(domain)) 
+            raise ValueError('Number of polys does not match dimension of {}'.format(domain))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")
@@ -1570,7 +1570,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     ((1/3*i)*x^2 + (1/2*i)*y^2 : (-i)*y^2)
 
         TESTS::
-        
+
             sage: R = ZZ
             sage: P.<x,y>=ProjectiveSpace(R,1)
             sage: f=DynamicalSystem_projective([x^2 + y^2,y^2])
@@ -1583,7 +1583,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Dynamical System of Projective Space of dimension 1 over Integer Ring
               Defn: Defined on coordinates by sending (x : y) to
                     (8*x^2 + 16*x*y + 7*y^2 : -24*x^2 - 40*x*y - 16*y^2)
-           
+
         """
         if not (M.is_square() == 1 and M.determinant() != 0
             and M.ncols() == self.domain().ambient_space().dimension_relative() + 1):
@@ -2594,7 +2594,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.minimal_model(prime_list=[3])
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (2*x^2 : y^2)            
+                    (2*x^2 : y^2)
 
         TESTS::
 
@@ -2660,7 +2660,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         R = f.domain().coordinate_ring()
         F = R(f[0].numerator())
         G = R(f[0].denominator())
-               
+
         if G.degree() == 0 or F.degree() == 0:
             #can use BM for polynomial
             from .endPN_minimal_model import HS_minimal
@@ -4063,7 +4063,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2 with w = 1.414213562373095?
-              Defn: Defined on coordinates by sending (x : y) to                                                                                   
+              Defn: Defined on coordinates by sending (x : y) to
                     (x^3 : (w)*y^3)                                                                                                                ,
             <BLANKLINE>
             [  1 -12]
@@ -4081,7 +4081,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^5 + x - 3 with w = 1.132997565885066?
-              Defn: Defined on coordinates by sending (x : y) to                                                                                       
+              Defn: Defined on coordinates by sending (x : y) to
                     (12*x^3 : (2334*w)*y^3)                                                                                                            ,
             <BLANKLINE>
             [  0  -1]
@@ -4347,6 +4347,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: F.is_chebyshev()
             True
 
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([2*x^2 - y^2, y^2])
+            sage: L.<i> = CyclotomicField(4)
+            sage: M = Matrix([[0,i],[-i,0]])
+            sage: F.conjugate(M)
+            Dynamical System of Projective Space of dimension 1 over Cyclotomic Field of order 4 and degree 2
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-i)*x^2 : (-i)*x^2 + (2*i)*y^2)
+            sage: F.is_chebyshev()
+            True
+
         REFERENCES:
 
         Algorithm obtained from Milnor. For more information, see Theorem 4.1 in
@@ -4367,8 +4378,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         # Get field of definition for critical points
         # Change base field
-        critical_field = self.field_of_definition_critical()
-        F_crit = self.change_ring(critical_field)
+        critical_field,phi = self.field_of_definition_critical(return_embedding=True)
+        F_crit = self.change_ring(phi)
 
         # Get the critical points and post-critical set
         crit_set = set(F_crit.critical_points())
@@ -4477,6 +4488,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: F.is_lattes()
             True
 
+            sage: f = P.Lattes_map(EllipticCurve([0,0,0,0,2]),2)
+            sage: f.is_lattes()
+            True
+
+            sage: f = P.Lattes_map(EllipticCurve([0,0,0,0,2]),2)
+            sage: L.<i> = CyclotomicField(4)
+            sage: M = Matrix([[i,0],[0,-i]])
+            sage: f.conjugate(M)
+            Dynamical System of Projective Space of dimension 1 over Cyclotomic Field of order 4 and degree 2
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-1/4*i)*x^4 + (-4*i)*x*y^3 : (-i)*x^3*y + (2*i)*y^4)
+            sage: f.is_lattes()
+            True
+
         REFERENCES:
 
         Algorithm obtained from Milnor. For more information, see Theorem 4.1 in
@@ -4496,8 +4521,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         # Get field of definition for critical points
         # Change base field
-        critical_field = self.field_of_definition_critical()
-        F_crit = self.change_ring(critical_field)
+        critical_field,phi = self.field_of_definition_critical(return_embedding=True)
+        F_crit = self.change_ring(phi)
 
         # Get the critical points and post-critical set
         crit = F_crit.critical_points()
@@ -5856,7 +5881,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
               From: Finite Field of size 3
               To:   Finite Field in z2 of size 3^2
               Defn: 1 |--> 1
-            
+
         """
         #defines the field of fixed points
         if self.codomain().dimension_relative() != 1:
