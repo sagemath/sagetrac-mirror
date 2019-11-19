@@ -368,6 +368,7 @@ from sage.categories.map import Map
 from sage.modules.free_module import FreeModule_ambient_pid 
 from sage.modules.free_module import FreeModule_generic
 from sage.modules.free_module import FreeModule_submodule_pid
+from sage.arith.functions import LCM_list
 import sage.groups.libgap_group
 import sage.matrix.matrix0
 from sage.categories.homset import Hom
@@ -419,150 +420,29 @@ def extended_xgcd(lst,result=[1]):
         return extended_xgcd([a]+[lst[i] for i in range(2,len(lst))],r+[c])
 
 
-def remove_duplicates(lst):
+
+
+def move_first(lst,elt):
     """
-    Takes a list and returns a copy without duplicate elements.
-
-
-    INPUT: 
-
-    - ``lst`` -- the list we want to get the sublist of.
-
-
-    EXAMPLES::
-       
-        sage: lst=[1,2,4,5,6,2,3,45,3,4,5,1]
-        sage: remove_duplicates(lst)
-        [1, 2, 4, 5, 6, 3, 45]
-
-    ::
-
-        sage: lst2=["hat","cat","bat","bat","cat","cat","cat"]
-        sage: remove_duplicates(lst2)
-        ['hat', 'cat', 'bat']
-    """
-    result=[]
-    for i in lst:
-        if not i in result:
-            result.append(i)
-    return result
-
-def coset_matrix_group(g,subgroup,left_or_right="Left"):
-    """
-    Takes an element ``g`` of a matrix group ``G``, a subgroup ``H`` 
-    and gives the list of elements corresponding to ``gH``
+    Takes a list and an element. If the element is found in the list, it is moved in the first position.
 
     INPUT:
 
-    - ``g`` -- an element of the bigger group 
-
-    - ``H`` -- the subgroup we want the coset of
-
-    - ``left_or_right`` -- "Left" is the default option and returns the 
-    left coset. Otherwise input "Right" for the right coset.
+    - ``lst`` -- the list we want to move elements in
+    - ``elt`` -- the element we want to move in the first position
 
     EXAMPLES::
 
-        sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
-        sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
-        sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
-        sage: G = MatrixGroup([m1,m2,m3])
-        sage: H = MatrixGroup([m1])
-        sage: coset_matrix_group(G.gens()[0],H)
-        [
-        [ 0  0  1]  [1 0 0]
-        [-1 -1 -1]  [0 1 0]
-        [ 1  0  0], [0 0 1]
-        ]
-
+        sage: List=[1,2,3,4]
+        sage: move_first(List, 3); List
+        [3, 2, 1, 4]
+        sage: move_first(List,5); List
+        [3, 2, 1, 4]
     """
-    if subgroup.order() is +Infinity: 
-        raise ValueError("The matrix group has to be finite")
-
-    elif left_or_right=="Left":
-        return [g.matrix()*h.matrix() for h in subgroup]
-    elif left_or_right=="Right":
-        return [h.matrix()*g.matrix() for h in subgroup]
-    else:
-        raise ValueError("Failed to specity Left or Right in the third argument") 
-
-def list_cosets_matrix_group(group,subgroup,left_or_right="Left"):
-    """ 
-    Returns the list of cosets of a subgroup of a matrix group.
-
-    INPUT: 
-
-    - ``group`` -- the matrix group we want to decompose into cosets
-
-    - ``subgroup`` -- the subgroup we take cosets of
-
-    - ``left_or_right`` -- "Left" if we want left cosets, "Right" for the 
-        right cosets. Default value is "Left"
-    
-
-    EXAMPLES::
-
-        sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
-        sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
-        sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
-        sage: G = MatrixGroup([m1,m2,m3])
-        sage: H = MatrixGroup([m1])
-        sage: list_cosets_matrix_group(G,H)
-        [[
-        [1 0 0]  [ 0  0  1]
-        [0 1 0]  [-1 -1 -1]
-        [0 0 1], [ 1  0  0]
-        ],
-         [
-        [-1  0  0]  [ 0  0 -1]
-        [ 0 -1  0]  [ 1  1  1]
-        [ 0  0 -1], [-1  0  0]
-        ],
-         [
-        [ 0 -1  0]  [ 1  1  1]
-        [-1  0  0]  [ 0  0 -1]
-        [ 1  1  1], [ 0 -1  0]
-        ],
-         [
-        [ 0  1  0]  [-1 -1 -1]
-        [ 1  0  0]  [ 0  0  1]
-        [-1 -1 -1], [ 0  1  0]
-        ]]
-
-    ::
-
-        sage: H2 = MatrixGroup([m1,m2])
-        sage: list_cosets_matrix_group(G,H2)
-        [[
-        [1 0 0]  [-1  0  0]  [ 0  0  1]  [ 0  0 -1]
-        [0 1 0]  [ 0 -1  0]  [-1 -1 -1]  [ 1  1  1]
-        [0 0 1], [ 0  0 -1], [ 1  0  0], [-1  0  0]
-        ],
-         [
-        [ 0 -1  0]  [ 0  1  0]  [ 1  1  1]  [-1 -1 -1]
-        [-1  0  0]  [ 1  0  0]  [ 0  0 -1]  [ 0  0  1]
-        [ 1  1  1], [-1 -1 -1], [ 0 -1  0], [ 0  1  0]
-        ]]
-
-
-    """
-
-    incl_elements=[]
-    result=[]
-    coset_builder=[]
-    for g in group:
-        if not g.matrix() in incl_elements:
-            for h in subgroup: 
-                if left_or_right=="Left":
-                    coset_builder.append(g.matrix()*h.matrix())
-                elif left_or_right=="Right":
-                    coset_builder.append(h.matrix()*g.matrix())
-                else:
-                    raise ValueError("the only possible options for the third argument are Left, Right, or it should be left blank")
-            incl_elements+=coset_builder
-            result.append(coset_builder)
-            coset_builder=[]
-    return result
+    for i in range(len(lst)):
+        if lst[i]==elt : 
+            lst[i]=lst[0]
+            lst[0]=elt
 
 
 
@@ -763,8 +643,9 @@ class Lattice_generic(FreeModule_generic):
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
         """
-
-        if type(galois)==list and type(galois[0]) is Integer:
+        if galois==[] : 
+            self.__init__(PermutationGroup([()]),action,check)
+        elif type(galois)==list and type(galois[0]) is Integer:
             counter=1
             perms=[]
             for i in galois: 
@@ -917,9 +798,22 @@ class Lattice_generic(FreeModule_generic):
         """
         return subgroup_lattice(self,subgp)
 
+
+    def sum_lattice(self,lat):
+        g=self.group()
+        act=[block_diagonal_matrix([self._action_matrices[i],lat._action_matrices[i]]) for i in range(len(self._action_matrices))]
+        ambi = Lattice_ambient(g,act)
+        base=ambi.basis()
+        base1=self.basis()
+        n1=len(base1[0])
+        base2=lat.basis()
+        n2=len(base2[0])
+        print("haha")
+        return n1
+
+
     def parent_lattice(self):
         return self.parent_lattice()
-
 
     def rational_characters(self):
         """
@@ -948,11 +842,14 @@ class Lattice_generic(FreeModule_generic):
             [1]
         """
 
-        kers=[kernel(m-matrix.identity(self._rank)) for m in self._action_matrices]
+        kers=[kernel((m-matrix.identity(self._rank)).transpose()) for m in self._action_matrices]
         res=self
         for i in kers: 
             res=res.intersection(i)
-        return res
+        if res.rank()==0 :
+            return res
+        else :
+            return SubLattice(self,res.basis())
 
     def isomorphic_ambient_lattice(self):
         """
@@ -1130,6 +1027,121 @@ class Lattice_generic(FreeModule_generic):
             H^5 :  [2, 2, 2, 2, 2, 2, 2]
         """
         return self.Tate_Cohomology(n)
+
+    def first_coboundary_space(self):
+        lat=self
+        r=lat.rank()
+        group=lat.group()
+        grouplist=[g for g in group]
+        actionmat=[matrix((gap.Image(lat._action_morphism,g)).sage()) for g in grouplist]
+        B=lat.basis()
+        Module=FreeModule_ambient_pid(ZZ,r*group.order())
+        coboundary_basis=[]
+        if not grouplist[0]==group.identity() :
+            grouplist = [group.identity()] + grouplist.remove(group.identity())
+        for b in B : 
+            l=[]
+            for i in actionmat:
+                l+=i*b-b
+            coboundary_basis.append(l)
+        return FreeModule_submodule_pid(Module,coboundary_basis)
+    
+
+
+
+    def first_cocycle_space(self):
+        lat=self 
+        r=lat.rank()
+        group=lat.group()
+        o=group.order()
+        rank=r*o
+        grouplist=[g for g in group]
+        actionmat=[matrix((gap.Image(lat._action_morphism,g)).sage()) for g in grouplist]
+        B=lat.basis()
+        Module=FreeModule_ambient_pid(ZZ,rank)
+        Basis=Module.basis()
+        if not grouplist[0]==group.identity() :
+            move_first(grouplist,group.identity())
+
+        cocycle_space=FreeModule_submodule_pid(Module, [Basis[i] for i in range(r,rank)])
+
+        #Now we apply the cocycle condition for every element of G
+        conditions=[]
+        for g in group.gens() :
+            ind=grouplist.index(g)
+            matbuild=[]
+            for i in range(o) :
+                mat=[matrix.zero(r)]*o 
+                k=grouplist.index(g.inverse()*grouplist[i])
+                mat[k]+=actionmat[ind]
+                mat[ind]+=matrix.identity(r)
+                matbuild.append(mat)
+            conditions.append(block_matrix(matbuild)-1)
+        for c in conditions : 
+            cocycle_space=cocycle_space.intersection(kernel(c.transpose()))
+        return cocycle_space
+
+    def first_cohomology_group(self):
+        lat=self
+        Coc = lat.first_cocycle_space()
+        Cob = lat.first_coboundary_space()
+        M = matrix(ZZ, [Coc.coordinate_vector(i) for i in Cob.basis()])
+
+
+        [a,b,c] = M.smith_form()
+
+        P = c.inverse().transpose()
+        list_torsion = []
+        list_generators = []
+        for i in range(a.nrows()) : 
+            if a[i,i] > 1 : 
+                list_torsion.append(a[i,i])
+                list_generators.append(sum(P[j,i]*Coc.basis()[j] for j in range(P.ncols()))) 
+
+        return [list_torsion,list_generators]
+
+
+
+    def Tate_Shafarevich_lattice(self,subgp_list):
+        """
+        Takes a lattice and list of subgroups (could make it the full list of proper subgroups if needed).
+        """
+        lat=self
+        [isom,gens] = lat.first_cohomology_group()
+        product = list(cartesian_product_iterator([range(i) for i in isom]))
+        tate_sha = [sum(k[i]*gens[i] for i in range(len(gens))) for k in product]
+        # We enter the full cohomology group in the Tate cohomology group, we will erase them 
+        # if they do not vanish on some subgroup.
+        #for i in range(len(isom)) : 
+        #    tate_sha += [k*gens[i] for k in range(1,isom[i])]
+
+
+        grouplist = [g for g in lat.group()]
+        for subgp in subgp_list :
+            subgp_index=[]
+            for h in subgp :
+                for i in range(len(grouplist)) : 
+                    if grouplist[i]==h : 
+                        subgp_index.append(i)
+
+
+            g_cocycles_basis = [matrix(len(grouplist),b) for b in tate_sha]
+
+            images_as_h_cocyles = [m[subgp_index] for m in g_cocycles_basis]
+            listified_images = [[i for j in m for i in j] for m in images_as_h_cocyles]
+
+            cobounds_h = (lat.subgroup_lattice(subgp)).first_coboundary_space()
+            DummyLat = Lattice_ambient(subgp,lat.rank()*subgp.order())
+            dummybasis = DummyLat.basis()
+            notcobounds = []
+            for e in range(len(tate_sha)) : 
+                elt = sum(listified_images[e][i]*dummybasis[i] for i in range(len(listified_images[e]))) 
+                if (not elt in cobounds_h) : 
+                    print("weeeee : "),print(subgp.gens())
+                    notcobounds.append(e)
+            tate_sha=[tate_sha[i] for i in range(len(tate_sha)) if i not in notcobounds]
+        return [len(tate_sha),tate_sha]
+        
 
     def induced_lattice(self,group,build = True):
         """
@@ -1359,7 +1371,6 @@ class Lattice_generic(FreeModule_generic):
         """
 
         return self.norm_one_restriction_of_scalars(self,group,ambient)
-
     def quotient_ambient_sublattice(self,sublattice,check=True):
         """
         Computes the quotient of an ambient lattice by a saturated proper sublattice.
@@ -1398,17 +1409,16 @@ class Lattice_generic(FreeModule_generic):
 
         """
 
-        M=matrix(sublattice.basis()).transpose()
+        M=matrix(sublattice.basis())
 
         SM=M.smith_form()
         #M is a matrix taking vectors in the basis of the sublattice and giving their vector in the ambient lattice.
 
-
-        if check and ((not SM[0][M.ncols()-1,M.ncols()-1]==1) or sublattice.rank()==self.rank()):
+        if check and ((not SM[0][sublattice.rank()-1,sublattice.rank()-1]==1) or sublattice.rank()==self.rank()):
             raise ValueError("The sublattice is not saturated or not proper"    ) 
         
 
-        P=SM[1]
+        P=SM[2].transpose()
 
         # P is a matrix such that there is a matrix with PMQ diagonal with 1's on the diagonal
 
@@ -1426,6 +1436,27 @@ class Lattice_generic(FreeModule_generic):
         return Lattice_ambient(self.group(),A)
 
  
+    def dim_shift(self, build=False):
+        lat=self.isomorphic_ambient_lattice()
+        GG=lat.group()
+        H=PermutationGroup([()])
+        G=[c[0] for c in GG.cosets(H,'left')]
+        TL=lat.subgroup_lattice(H).induced_lattice(GG)
+        Newbasis = []
+        Basiselt = 0
+        r=lat.rank()
+        Indbasis = TL.basis()
+        for b in lat.basis() :
+            for i in range(len(G)) : 
+                elt = lat._act(G[i].inverse(),b)
+                Basiselt += sum(elt[j]*Indbasis[j+i*r] for j in range(len(elt)))
+            Newbasis.append(Basiselt)
+            Basiselt = 0
+        ImageL = SubLattice(TL,Newbasis)
+        if build : 
+            return TL.quotient_lattice(ImageL)
+        else : 
+            return [TL,ImageL]
 
     def quotient_lattice(self,sublattice,check=True):
 
@@ -1515,7 +1546,7 @@ class Lattice_generic(FreeModule_generic):
             mat_builder=[]
             for i in oldBasis:
                 mat_builder.append(self.coordinate_vector(self._act(g,i)))
-            act_builder.append(matrix(mat_builder))
+            act_builder.append(matrix(mat_builder).transpose())
 
 
 
@@ -1535,10 +1566,12 @@ class Lattice_generic(FreeModule_generic):
 
         v=Pi[range(self.rank()),index]
 
-        A = [(P*i*v)[index] for i in act_builder]
 
+        n=A[0].nrows()
+        ide=matrix.identity(n)
+        J=matrix([ide[n-1-k] for k in range(n)])
         # This computes the action on the vectors of the complement of the sublattice
-        return Lattice_ambient(self.group(),A)
+        return Lattice_ambient(self.group(),[J*(a.transpose())*J for a in A])
 
 
 class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
@@ -1673,7 +1706,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         """
 
         mor=self._action_morphism
-        I=[gap.Image(mor,i).sage() for i in H.gens()]
+        I=[gap.Image(mor,i).sage() for i in subgp.gens()]
         a=[matrix(i) for i in I]
         return Lattice_ambient(subgp,a)
 
@@ -1776,7 +1809,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
                 gl=gap.Group([ [ [ -1 ] ] ])
             else:
                 gl=gap.GL(self._rank,ZZ)
-            mor=gap.GroupHomomorphismByImages(G,gl,gap(self._group.gens()),gap([m.transpose().inverse() for m in self._action_matrices]))
+            mor=gap.GroupHomomorphismByImages(G,gl,gap(self._group.gens()),gap([m for m in self._action_matrices]))
             if n>0:
                 #This computes the standard resolution of G in HAP
                 R = gap.ResolutionFiniteGroup(G,n+1)
@@ -1791,6 +1824,71 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
 
+
+
+    def dimension_shifted_lattice(self,group):
+
+        if isinstance(group,FinitelyGeneratedMatrixGroup_gap):
+            gapgroup=gap.Group([i.gap() for i in group.gens()])
+            iso = gap.IsomorphismPermGroup(gapgroup)
+            permg=gap.Image(iso)
+            genperm=gap.GeneratorsOfGroup(permg)
+            return self.induced_lattice(PermutationGroup(genperm),build)
+        else:
+            LCos=group.cosets(self._group,'left')
+        LCosReps=[i[0] for i in LCos]
+        LCosnum=len(LCos)
+         #get_coset_index will take an element g of G and return the index of the coset it belongs to
+        def get_coset_index(g):
+            for i in range(LCosnum):
+                if g in LCos[i]:
+                    return i
+            raise ValueError('Found an element which does not belong to any coset')
+
+        #decomp takes an element g of the big group G, and returns a pair
+        def decomp(g):
+            i=get_coset_index(g)
+            return [i, (LCosReps[i].inverse())*g]
+        r"""
+        decomp2(element,index) will do the main computation for the group action on the 
+        induced lattice (we deal with finite groups so induced is the same as coinduced)
+        ``\ZZ[G]\otimes_{\ZZ[H]} L ``
+
+         To do so, we look at the multiplication g*gi where gi is a representative of the
+         ith left coset
+        """
+
+
+        def decomp2(g,i):
+            return decomp(g*LCosReps[i])
+
+
+        #Now we create block matrices corresponding to actions of each generator of G, it 
+        #is the composition of a block unimodular matrix for permutation of blocks
+        #and the block diagonal matrix applying the correct element of H to each block
+
+        def make_matrix(g):
+            Lst=[]
+            Bigmatlist = []
+            for i in range(LCosnum): 
+                Lst.append(decomp2(g,i))
+            Matlist=[matrix.zero(self._rank) for j in range(LCosnum)]
+            Matlist=[ matrix((gap.Image(self._action_morphism,gap(j[1]))).sage())   for j in Lst]
+            for i in range(LCosnum):
+                Bigmatlist+=[Matlist[j] if Lst[j][0]==i else matrix.zero(self._rank)   for j in range(LCosnum)]
+            return block_matrix(LCosnum,LCosnum,Bigmatlist)
+
+
+
+
+
+
+
+
+        GGen=self._generators
+        gens_induced_act = [make_matrix(g) for g in group.gens()]
+
+        return Lattice_ambient(group,gens_induced_act)   
 
 
 
@@ -1808,6 +1906,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         - ``build`` -- boolean, True if we want to return the induced lattice, 
             otherwise the method just returns the set of matrices defining the 
             induced action. 
+
 
         NOTE::
 
@@ -2049,7 +2148,11 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             H^4 :  [2, 2, 2, 2, 2, 2, 2, 4, 4, 4]
             H^5 :  [2, 2, 2, 2, 2, 2, 6]
         """
-        return self.induced_lattice(group).zero_sum_sublattice(ambient)
+
+        IL = self.induced_lattice(group)
+        b = sum(i for i in IL.basis())
+        SL= SubLattice(IL,[b])
+        return IL.quotient_ambient_sublattice(SL)
 
 
  
@@ -2191,7 +2294,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
             mat_builder=[]
             for i in oldBasis:
                 mat_builder.append(self.coordinate_vector(self._act(g,i)))
-            act_builder.append(matrix(mat_builder))
+            act_builder.append(matrix(mat_builder).transpose())
         return Lattice_ambient(self._group,act_builder)
 
     def Tate_Cohomology(self,n):
