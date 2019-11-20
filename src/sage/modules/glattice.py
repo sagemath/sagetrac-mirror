@@ -39,7 +39,7 @@ You can define a lattice by giving a group and matrix actions for each generator
 We created the group `G` as `C_2 \times C_3`, and the action where `C_2` acts trivially.
 One has to be careful when defining the action to match sage's order of the generators::
 
-    sage: L = Lattice_ambient(G,act); L
+    sage: L = Lattice_ambient(G, act); L
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
     sage: L._action_matrices
@@ -241,6 +241,7 @@ from __future__ import print_function, absolute_import
 
 from sage.categories.action import PrecomposedAction
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 from sage.categories.map import Map
@@ -260,6 +261,113 @@ from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.combinat.permutation import Permutation
 from sage.groups.perm_gps.permgroup import load_hap
 
+
+def GLattice(*args, **kwds):
+    r"""
+    Create a `G`-lattice: a finite-rank free `Z`-module with an action of a finite group `G`
+
+    INPUT:
+
+    You can define a `G`-lattice by providing any of the following inputs:
+
+    - A group `G` and a list ``im_gens`` of `n \times n` matrices, one for each generator of `G`.
+
+    - A group `G` and an integer `n`.  Produces the rank `n` lattice with trivial `G`-action.
+
+    - An integer `n`.  As above, with the trivial group.
+
+    - A list ``im_gens`` of `n \times n` matrices.  `G` will be taken to be the generated matrix group.
+
+    - A finite matrix group `G`.
+
+    - A permutation group `G`, in which case the action will be by permutation matrices.
+
+    - A list of integers, in which case `G` will be taken to be the abelian group
+      with the corresponding invariants.  If `n` is also specified the action will be trivial;
+      if a list of matrices ``im_gens`` are given they will define the action;
+      otherwise it will be the permutation action.
+
+    By default the action will be checked to ensure that it is a homomorphism.
+    You can bypass this check by providing ``check=False`` as a keyword argument.
+    """
+    def kwd_set(xname, x):
+        if xname in kwds:
+            raise TypeError("GLattice() got multiple values for argument '%s'" % xname)
+        kwds[xname] = x
+    if len(args) == 1:
+        x = args[0]
+        if isinstance(x, (int, Integer)):
+            kwd_set('n', x)
+        elif isinstance(x, (list, tuple)):
+            if all(isinstance(i, (int, Integer)) for i in x):
+                kwd_set('G', x)
+            else:
+                kwd_set('im_gens', x)
+        else:
+            kwd_set('G', x)
+    elif len(args) == 2:
+        x, y = args
+        kwd_set('G', x)
+        if isinstance(y, (int, Integer)):
+            kwd_set('n', y)
+        elif isinstance(y, (list, tuple)):
+            kwd_set('im_gens', y)
+        else:
+            raise TypeError("Invalid type for second argument")
+    elif len(args) > 2:
+        raise TypeError("GLattice() takes 2 positional arguments but %s were given" % (len(args)))
+
+    def process_matrix_group(G):
+        iso = gap.Group([i.gap() for i in G.gens()]).IsomophismPermGroup()
+        G = PermutationGroup(iso.Image().GeneratorsOfGroup())
+        im_gens = [matrix(i) for i in iso.PreImage(G.gens()).sage()]
+        return G, im_gens
+
+    G = kwds.pop('G', None)
+    if isinstance(G, FinitelyGeneratedMatrixGroup_gap):
+        # Matrix groups implicitly specify the generators
+        G, im_gens = process_matrix_group(G)
+        kwd_set('im_gens', im_gens) # ensure that im_gens wasn't specified twice
+    elif isinstance(G, (list, tuple)):
+        if all(isinstance(i, (int, Integer)) for i in G):
+            partial_sums = [1]
+            for i in G:
+                partial_sums.append(partial_sums[-1] + i)
+            G = PermutationGroup([tuple(range(a,b)) for (a,b) in zip(partial_sums[:-1], partial_sums[1:])])
+        else:
+            raise ValueError("G must be a group or list of integers")
+    im_gens = kwds.pop('im_gens', None)
+    n = kwds.pop('n', None)
+    check = kwds.pop('check', True)
+    if kwds:
+        raise TypeError("GLattice() got an unexpected keyword argument '%s'" % ("', '".join(kwds)))
+
+    if im_gens is None and n is None:
+        # Try to use permutation action to produce an action
+        try:
+            n = G.largest_moved_point()
+            im_gens = [g.matrix() for g in G.gens()]
+        except AttributeError:
+            raise TypeError("For non-permutation groups, must specify at least one of 'im_gens' and 'n'")
+    if G is None and im_gens is None:
+        G = PermutationGroup([()])
+        im_gens = [matrix.identity(n)]
+    elif im_gens is None:
+        im_gens = [matrix.identity(n) for g in G.gens()]
+    elif G is None:
+        G = MatrixGroup(im_gens)
+        if G.base_ring() is not ZZ:
+            raise ValueError("Generators must be specified with integer entries")
+        G, im_gens = process_matrix_group(G)
+
+    # Check consistency
+    if n is None:
+        n = im_gens[0].nrows()
+    if not all(g.nrows() == n and g.ncols() == n for g in im_gens):
+        raise ValueError("Inconsistent value of n")
+    if len(im_gens) != G.ngens():
+        raise ValueError("im_gens must have the same length as the number of generators of G")
+    return Lattice_ambient(G, im_gens, check=check)
 
 def extended_xgcd(lst, result=[ZZ(1)]):
     """
@@ -341,22 +449,17 @@ class Lattice_generic(FreeModule_generic):
     """
     Generic classes for all lattices
     """
-    def __init__(self, galois, action=1, check=True):
+    def __init__(self, G, im_gens, check=True):
         """
         Constructs a generic lattice.
 
         INPUT:
 
-        - ``galois`` -- the permutation group acting on the lattice (often the Galois group of
-        an algebraic group hence the name). It can be a list of matrices or matrix group,
-        or even a list of integers corresponding to the isomorphism type of a finite abelian
-        group.
+        - ``G`` -- the permutation group acting on the lattice.
 
-        - ``action`` -- action of the group on the lattice. Can be an integer for the
-        trivial action on the standard lattice of dimension that number, or a set of
-        matrices, one for each generator, or left blank if we declare the group with matrices.
+        - ``im_gens`` -- action of the group on the lattice, given as a list of matrices.
 
-        - ``check`` -- boolean, by default True, in which case we check that the action is
+        - ``check`` -- boolean (defualt ``True``), whether to check that the action is
         compatible with the group structure.
 
         EXAMPLES::
@@ -396,73 +499,23 @@ class Lattice_generic(FreeModule_generic):
             sage: Lattice_ambient(H)
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        if galois == []:
-            self.__init__(PermutationGroup([()]),action,check)
-        elif isinstance(galois, list) and isinstance(galois[0], Integer):
-            counter = 1
-            perms = []
-            for i in galois:
-                perms.append([j for j in range(counter,counter+i)])
-                counter += i
-                group = PermutationGroup([tuple(k) for k in perms])
-                self.__init__(group,action,check)
-        elif isinstance(galois, list) and isinstance(galois[0], Matrix_integer_dense):
-            gp = MatrixGroup(galois)
-            self.__init__(gp)
-            #self._group = MatrixGroup(galois)
-            #self._generators=galois
-            #self._rank = galois[0].nrows()
-            #self._action_matrices = galois
-            #FreeModule_generic.__init__(self,ZZ,self._rank,self._rank)
-            #A = libgap(galois)
-            #G = gap.GroupByGenerators(A)
-            #self._action_morphism = gap.GroupHomomorphismByImages(G,G,A,A)
-        elif isinstance(galois, FinitelyGeneratedMatrixGroup_gap):
-            gapgroup = gap.Group([i.gap() for i in galois.gens()])
-            iso = gap.IsomorphismPermGroup(gapgroup)
-            permg = gap.Image(iso)
-            genperm = gap.GeneratorsOfGroup(permg)
-            goodgp = PermutationGroup(genperm)
-            mats = gap.PreImage(iso,goodgp.gens())
-            act = [matrix(i) for i in mats.sage()]
-            self.__init__(goodgp,act)
+        self._group = G
+        self._generators = G.gens()
+        self._action_matrices = im_gens
+        self._rank = im_gens[0].nrows()
+        FreeModule_generic.__init__(self, ZZ, self._rank, self._rank)
+        G = gap(G)
+        GenG = gap(self._generators)
+        Mats = gap(self._action_matrices)
+        if self._rank == 1:
+            gl = gap.Group([ [ [ -1 ] ] ])
         else:
-            self._group = galois
-            self._generators = galois.gens()
-            if action  in ZZ:
-                FreeModule_generic.__init__(self,ZZ,action,action)
-                self._rank = action
-                self._action_matrices = [matrix.identity(action) for i in range(len(self._generators))]
-            elif not len(action):
-                raise ValueError('The module is missing the action of the Galois group.')
-            else:
-                self._action_matrices = action
-                for x in action:
-                    if not x.nrows() == x.ncols():
-                        raise ValueError('The matrices for the action need to be squares.')
-                    elif not x.nrows() == action[0].nrows():
-                        raise ValueError('The matrices fot the action need to have same dimension.')
-                    elif not x in GL(action[0].nrows(),ZZ):
-                     raise ValueError('The matrices need to be invertible in ZZ.')
-                    else:
-                        self._rank = action[0].nrows()
-                        FreeModule_generic.__init__(self,ZZ,self._rank,self._rank)
-                if not len(self._generators) == len(action):
-                    raise ValueError('The number of action matrices needs to match the number of generators of the Galois group.')
-            G = gap(self._group)
-            GenG = gap(self._generators)
-            Mats = gap(self._action_matrices)
-            if self._rank == 1:
-                gl = gap.Group([ [ [ -1 ] ] ])
-            else:
-                gl = gap.GL(self._rank,ZZ)
-            self._action_morphism = gap.GroupHomomorphismByImages(G,gl,GenG,Mats)
-            if check and gap.IsBool(self._action_morphism):
-                raise ValueError('The action is not well defined')
-
+            gl = gap.GL(self._rank,ZZ)
+        self._action_morphism = gap.GroupHomomorphismByImages(G, gl, GenG, Mats)
+        if check and gap.IsBool(self._action_morphism):
+            raise ValueError('The action is not well defined')
         self._GAPMap = GAPMap_toGLn(self._group, self._rank, self._action_morphism)
-        MZ = MatrixSpace(ZZ,self._rank)
-        A = MZ.get_action(self)
+        A = MatrixSpace(ZZ, self._rank).get_action(self)
         self._action = PrecomposedAction(A, self._GAPMap, None)
 
     def _act(self, g, e):
@@ -1174,7 +1227,7 @@ class Lattice_generic(FreeModule_generic):
         index = range(sublattice.rank(),self.rank())
         v = Pi[range(self.rank()),index]
 
-        A = [(P*i*v)[index] for i in self._action_matrices]
+        A = [(P*i*v)[list(index)] for i in self._action_matrices]
         # This computes the action on the vectors of the complement of the sublattice
         return Lattice_ambient(self.group(),A)
 
@@ -1299,7 +1352,7 @@ class Lattice_generic(FreeModule_generic):
 
         v = Pi[range(self.rank()),index]
 
-
+        A = [(P*i*v)[list(index)] for i in act_builder]
         n = A[0].nrows()
         ide = matrix.identity(n)
         J = matrix([ide[n-1-k] for k in range(n)])
@@ -1846,8 +1899,8 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         """
         Initialization.
         """
-        Lattice_generic.__init__(self,lattice._group,lattice._action_matrices)
-        FreeModule_submodule_pid.__init__(self,lattice.parent_lattice(),basis)
+        Lattice_generic.__init__(self,lattice._group, lattice._action_matrices)
+        FreeModule_submodule_pid.__init__(self, lattice.parent_lattice(), basis)
 
         self._parent_lattice = lattice.parent_lattice()
         if check:
