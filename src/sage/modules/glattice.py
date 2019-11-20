@@ -1248,6 +1248,28 @@ class Lattice_generic(FreeModule_generic):
         else:
             return [TL,ImageL]
 
+    def sublattice(self,basis):
+        """
+        Constructs the sublattice spanned by a list of vectors.
+
+        INPUT:
+
+        - ``basis`` -- Desired basis for the sublattice
+        
+        -EXAMPLE:
+
+            sage: L = GLattice(SymmetricGroup(3))
+            sage: SL = L.sublattice([sum(i for i in L.basis())]); SL
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1 1 1]
+
+        """
+
+        return SubLattice(self, basis)
+
+
+
     def quotient_lattice(self, sublattice, check=True):
         """
         Returns an ambient lattice isomorphic to the quotient of two lattices.
@@ -1396,6 +1418,20 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         """
         Lattice_generic.__init__(self, galois, action)
         FreeModule_ambient_pid.__init__(self, ZZ, self._rank)
+
+    def _repr_(self):
+        """
+        The print representation of an ambient lattice.
+
+        EXAMPLES::
+
+            sage: GLattice(1)
+            Lattice of rank 1 with an action by a group of order 1
+            sage: GLattice(SymmetricGroup(3))
+            Lattice of rank 3 with an action by a group of order 6
+        """
+        return "Ambient lattice of rank %s"%(self.rank())+" with an action by a group of order %s"%(self.group().order())
+
 
     def subgroup_lattice(self, subgp):
         """
@@ -1897,6 +1933,25 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
                 for j in basis:
                     if not lattice._act(i,j) in self:
                         raise ValueError("The basis is not stable under the action of the group")
+
+    def _repr_(self):
+        """
+        The print representation of a  sublattice.
+
+        EXAMPLES::
+
+            sage: L = GLattice(3)
+            sage: SL = L.sublattice([sum(i for i in L.basis())]); SL
+            Sublattice of degree 3 and rank 1 with an action by a group of order 1 and echelon basis matrix
+            [1 1 1]
+            sage: SL2 = L.zero_sum_sublattice(); SL2
+            Sublattice of degree 3 and rank 2 with an action by a group of order 1 and echelon basis matrix
+            [ 1  0 -1]
+            [ 0  1 -1]
+
+        """
+        return "Sublattice of degree %s"%(self.degree())+" and rank %s"%(self.rank()) +" with an action by a group of order %s"%(self.group().order())+" and echelon basis matrix\n%s"%(self.echelonized_basis_matrix()
+)
 
     def parent_lattice(self):
         """
