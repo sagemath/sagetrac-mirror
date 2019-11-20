@@ -1359,7 +1359,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
     """
     Class for ambient lattices.
     """
-    def __init__(self, galois, action=1, check=True):
+    def __init__(self, galois, action):
         r"""
         Constructs an ambient lattice.
 
@@ -1372,9 +1372,6 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         - ``action`` -- the list of matrices by which the generators of the group
             act, or an integer for the trivial action on the ambient free
             ``\ZZ`` module of that rank.
-
-        - ``check`` -- boolean, defaults to True in which case we test if the action
-            is well defined.
 
         EXAMPLES::
 
@@ -1397,7 +1394,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             sage: Lattice_ambient([m1,m2,m3])
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        Lattice_generic.__init__(self, galois, action, check)
+        Lattice_generic.__init__(self, galois, action)
         FreeModule_ambient_pid.__init__(self, ZZ, self._rank)
 
     def subgroup_lattice(self, subgp):
@@ -1886,9 +1883,6 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
     - ``lattice`` -- the lattice (ambient or not) in which our lattice embeds
 
     - ``basis`` -- a set of generators of the sublattice
-
-    - ``check`` -- boolean, if True we check that the sublattice is stable under
-        the group action.
     """
     def __init__(self, lattice, basis, check=True):
         """
