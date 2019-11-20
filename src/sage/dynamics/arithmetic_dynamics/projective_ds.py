@@ -2329,7 +2329,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
         r"""
-        A recusive method to fill in ``n``-th preimage tree.
+        A recursive method to fill in ``n``-th preimage tree.
 
         This helper function is used by ``nth_preimage_tree`` below to actually compute the
         points of the tree and populate the dictionary used to create a ``DiGraph``
