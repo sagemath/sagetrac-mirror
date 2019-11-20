@@ -287,8 +287,7 @@ def GLattice(*args, **kwds):
       if a list of matrices ``im_gens`` are given they will define the action;
       otherwise it will be the permutation action.
 
-    By default the action will be checked to ensure that it is a homomorphism.
-    You can bypass this check by providing ``check=False`` as a keyword argument.
+    The action will be checked to ensure that it is a homomorphism.
     """
     def kwd_set(xname, x):
         if xname in kwds:
@@ -338,7 +337,6 @@ def GLattice(*args, **kwds):
             raise ValueError("G must be a group or list of integers")
     im_gens = kwds.pop('im_gens', None)
     n = kwds.pop('n', None)
-    check = kwds.pop('check', True)
     if kwds:
         raise TypeError("GLattice() got an unexpected keyword argument '%s'" % ("', '".join(kwds)))
 
@@ -367,7 +365,7 @@ def GLattice(*args, **kwds):
         raise ValueError("Inconsistent value of n")
     if len(im_gens) != G.ngens():
         raise ValueError("im_gens must have the same length as the number of generators of G")
-    return Lattice_ambient(G, im_gens, check=check)
+    return Lattice_ambient(G, im_gens)
 
 def extended_xgcd(lst, result=[ZZ(1)]):
     """
@@ -449,7 +447,7 @@ class Lattice_generic(FreeModule_generic):
     """
     Generic classes for all lattices
     """
-    def __init__(self, G, im_gens, check=True):
+    def __init__(self, G, im_gens):
         """
         Constructs a generic lattice.
 
@@ -458,9 +456,6 @@ class Lattice_generic(FreeModule_generic):
         - ``G`` -- the permutation group acting on the lattice.
 
         - ``im_gens`` -- action of the group on the lattice, given as a list of matrices.
-
-        - ``check`` -- boolean (defualt ``True``), whether to check that the action is
-        compatible with the group structure.
 
         EXAMPLES::
 
@@ -512,7 +507,7 @@ class Lattice_generic(FreeModule_generic):
         else:
             gl = gap.GL(self._rank,ZZ)
         self._action_morphism = gap.GroupHomomorphismByImages(G, gl, GenG, Mats)
-        if check and gap.IsBool(self._action_morphism):
+        if gap.IsBool(self._action_morphism):
             raise ValueError('The action is not well defined')
         self._GAPMap = GAPMap_toGLn(self._group, self._rank, self._action_morphism)
         A = MatrixSpace(ZZ, self._rank).get_action(self)
