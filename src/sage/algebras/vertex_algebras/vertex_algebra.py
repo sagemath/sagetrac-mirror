@@ -433,15 +433,24 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                 return ls[0]
             raise ValueError("{} is not homogeneous!".format(self))
 
+        def _li_filtration_monomial_degree(self):
+            """The li_filtration degree of this non-zero monomial"""
+            p = self.value.monomial_coefficients().keys()[0]
+            return p.size() - sum(j.length() for j in p.components())
+
+        def li_filtration_leading_terms(self):
+            if self.is_zero():
+                return self
+            lt = [(m._li_filtration_monomial_degree(),m) for m in
+                  self.monomials()]
+            lideg = min(k[0] for k in lt)
+            return sum(k[1] for k in lt if k[0]==lideg)
+
         def li_filtration_degree(self):
-            p = self.parent()
             if self.is_zero():
                 return Infinity
-            ls = []
-            for p in self.value.monomial_coefficients().keys():
-                ret = p.size() - sum(j.length() for j in p.components())
-                ls.append(ret)
-            return min(ls)
+            return min(m._li_filtration_monomial_degree() for m in 
+                       self.monomials())
            
 
         def PBW_filtration_degree(self):
