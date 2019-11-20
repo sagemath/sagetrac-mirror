@@ -849,8 +849,9 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
 
 
     OUTPUT: A number field defined by a quadratic polynomial. Unless
-    otherwise specified, it has an embedding into `\RR` or
-    `\CC` by sending the generator to the positive
+    otherwise specified, it has an embedding into the
+    algebraic real field or the algebraic field,
+    by sending the generator to the positive
     or upper-half-plane root.
 
     EXAMPLES::
@@ -926,6 +927,13 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         sage: K1 == K4
         False
 
+    Real quadratic fields allow coercion, see :trac:`28774`::
+
+        sage: f1 = QuadraticField(2)
+        sage: f2 = QuadraticField(3)
+        sage: f1.gen() + f2.gen()
+        3.146264369941973?
+
     TESTS::
 
         sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a', latex_name='Z')
@@ -941,9 +949,11 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
     f = R([-D, 0, 1])
     if embedding is True:
         if D > 0:
-            embedding = RLF(D).sqrt()
+            from sage.rings.qqbar import AA
+            embedding = AA(D).sqrt()
         else:
-            embedding = CLF(D).sqrt()
+            from sage.rings.qqbar import QQbar
+            embedding = QQbar(D).sqrt()
     if latex_name == 'sqrt':
         latex_name = r'\sqrt{%s}' % D
     return NumberField(f, name, check=False, embedding=embedding, latex_name=latex_name, **args)
@@ -5974,7 +5984,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if algorithm is None:
             algorithm = 'pari'
-        
+
         if algorithm == 'gp':
             from sage.lfunctions.all import Dokchitser
             r1, r2 = self.signature()
