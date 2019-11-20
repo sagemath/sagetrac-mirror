@@ -2,6 +2,7 @@ from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRin
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 from sage.rings.real_mpfr import RealField
 from sage.rings.padics.padic_base_leaves import pAdicFieldCappedRelative
+from sage.rings.padics.padic_valuation import pAdicValuation_padic
 
 class QpAlgebraElement(PolynomialQuotientRingElement):
     def __init__(self, parent, polynomial, check=True):
@@ -89,6 +90,7 @@ class QpAlgebra(PolynomialQuotientRing_field):
         self.defining_polynomial = f
         super(PolynomialQuotientRing_field,self).__init__(f.parent(), f, name=names, category=category)
 
+
     # Implement coercion from the base and from fraction fields
     # over a ring that coerces into the base
     def _coerce_map_from_(self,S):
@@ -106,4 +108,10 @@ class QpAlgebra(PolynomialQuotientRing_field):
 
     def defining_polynomial(self):
         return self.defining_polynomial
+
+    def valuation(self):
+        return pAdicValuation_padic(parent=self)
+
+    def domain(self):
+        return self.base_ring()
 

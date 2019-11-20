@@ -80,6 +80,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
 from sage.rings.padics.all import Qp
+from sage.rings.padics.QpAlgebra import QpAlgebra
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
@@ -405,14 +406,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             polys = [PR(poly) for poly in polys]
             domain = ProjectiveSpace(PR)
         else:
-            # Check if we can coerce the given polynomials over the given domain 
+            # Check if we can coerce the given polynomials over the given domain
             PR = domain.ambient_space().coordinate_ring()
             try:
                 polys = [PR(poly) for poly in polys]
             except TypeError:
                 raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            raise ValueError('Number of polys does not match dimension of {}'.format(domain)) 
+            raise ValueError('Number of polys does not match dimension of {}'.format(domain))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")
@@ -1612,7 +1613,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     ((1/3*i)*x^2 + (1/2*i)*y^2 : (-i)*y^2)
 
         TESTS::
-        
+
             sage: R = ZZ
             sage: P.<x,y>=ProjectiveSpace(R,1)
             sage: f=DynamicalSystem_projective([x^2 + y^2,y^2])
@@ -1625,7 +1626,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Dynamical System of Projective Space of dimension 1 over Integer Ring
               Defn: Defined on coordinates by sending (x : y) to
                     (8*x^2 + 16*x*y + 7*y^2 : -24*x^2 - 40*x*y - 16*y^2)
-           
+
         """
         if not (M.is_square() == 1 and M.determinant() != 0
             and M.ncols() == self.domain().ambient_space().dimension_relative() + 1):
@@ -1747,6 +1748,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         elif v == 0:
             K = R
             v = BR.places(prec=prec)[0]
+        elif isinstance(v, pAdicValuation_padic):
+            K = v.domain()
         else:
             raise ValueError("invalid valuation (=%s) entered"%v)
 
@@ -1826,15 +1829,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         #else - prime or prime ideal for non-archimedean
         for i in range(N + 1):
             if BR == QQ:
-                Qv = [ R(K(t).abs()) for t in Q ]
+                Qv = [ R(K(t).abs(prec)) for t in Q ]
+            elif isinstance(K,QpAlgebra):
+                Qv = [ t.abs(prec) for t in Q ]
             else:
-                Qv = [ R(t.abs_non_arch(v)) for t in Q ]
+                Qv = [ R(t.abs_non_arch(v,prec)) for t in Q ]
             m = -1
-            #compute the maximum absolute value of entries of a, and where it occurs
-            for n in range(dim + 1):
-                if Qv[n] > m:
-                    j = n
-                    m = Qv[n]
+            #compute the maximum absolute value of entries of Q, and where it occurs
+            m=max(Qv)
+            j=Qv.index(m)
+            #for n in range(dim + 1):
+            #    if Qv[n] > m:
+            #        j = n
+            #        m = Qv[n]
+
             # add to sum for the Green's function
             localht += (1/R(d))**R(i) * (R(m).log())
             #get the next iterate
@@ -1944,6 +1952,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.canonical_height(P(1,0))
             0.00000000000000000000000000000
         """
+
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
         error_bound = kwds.get("error_bound", None)
@@ -2636,7 +2645,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.minimal_model(prime_list=[3])
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (2*x^2 : y^2)            
+                    (2*x^2 : y^2)
 
         TESTS::
 
@@ -2702,7 +2711,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         R = f.domain().coordinate_ring()
         F = R(f[0].numerator())
         G = R(f[0].denominator())
-               
+
         if G.degree() == 0 or F.degree() == 0:
             #can use BM for polynomial
             from .endPN_minimal_model import HS_minimal
@@ -4116,7 +4125,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2 with w = 1.414213562373095?
-              Defn: Defined on coordinates by sending (x : y) to                                                                                   
+              Defn: Defined on coordinates by sending (x : y) to
                     (x^3 : (w)*y^3)                                                                                                                ,
             <BLANKLINE>
             [  1 -12]
@@ -4134,7 +4143,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^5 + x - 3 with w = 1.132997565885066?
-              Defn: Defined on coordinates by sending (x : y) to                                                                                       
+              Defn: Defined on coordinates by sending (x : y) to
                     (12*x^3 : (2334*w)*y^3)                                                                                                            ,
             <BLANKLINE>
             [  0  -1]
@@ -4606,20 +4615,20 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         INPUT:
 
         kwds:
-        
+
         - ``R`` -- (default: domain of dynamical system) the base ring
           over which the periodic points of the dynamical system are found
-        
+
         - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
           of positive integers that represent the limits of primes to use
           in the reduction step or an integer that represents the upper bound
 
         - ``lifting_prime`` -- (default: 23) a prime integer; argument that
           specifies modulo which prime to try and perform the lifting
-          
+
         - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
           (max period, max degree) for which the dynatomic polynomial should be solved for
-          
+
         - ``algorithm`` -- (optional) specifies which algorithm to use;
           current options are `dynatomic` and `lifting`; defaults to solving the
           dynatomic for low periods and degrees and lifts for everything else
@@ -4709,9 +4718,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (3/2 : -1/2 : 3/2 : 1),
              (3/2 : 3/2 : -1/2 : 1),
              (3/2 : 3/2 : 3/2 : 1)]
-             
+
         ::
-             
+
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
             sage: f = DynamicalSystem_projective([x^2 - (3/4)*w^2, y^2 - 3/4*w^2, z^2 - 3/4*w^2, w^2])
             sage: sorted(f.all_periodic_points(period_degree_bounds=[10,10]))
@@ -4730,7 +4739,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (3/2 : -1/2 : 3/2 : 1),
              (3/2 : 3/2 : -1/2 : 1),
              (3/2 : 3/2 : 3/2 : 1)]
-             
+
         TESTS::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
@@ -4843,7 +4852,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 pos_points = []
                 #check period, remove duplicates
                 for i in range(len(all_points)):
-                    if all_points[i][1] in periods and not (all_points[i] in pos_points): 
+                    if all_points[i][1] in periods and not (all_points[i] in pos_points):
                         pos_points.append(all_points[i])
                 periodic_points = DS.lift_to_rational_periodic(pos_points,B)
                 for p,n in periodic_points:
@@ -6045,7 +6054,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
               From: Finite Field of size 3
               To:   Finite Field in z2 of size 3^2
               Defn: 1 |--> 1
-            
+
         """
         #defines the field of fixed points
         if self.codomain().dimension_relative() != 1:

@@ -53,6 +53,7 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.rings.padics.QpAlgebra import QpAlgebra
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
@@ -1178,9 +1179,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             1.09861228866811
         """
         K = FractionField(self.domain().base_ring())
-        if K not in _NumberFields:
+        if isinstance(K, QpAlgebra):
+            return max([K(c).abs(prec) for f in self for c in f.coefficients()])
+        elif K not in _NumberFields:
             raise TypeError("must be over a number field or a number field order")
-        return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
+        else:
+            return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
 
     def local_height_arch(self, i, prec=None):
         r"""
