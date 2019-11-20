@@ -37,24 +37,26 @@ from sage.misc.cachefunc import cached_method
 
 class VertexAlgebra(Parent, UniqueRepresentation):
     @staticmethod
-    def __classcall_private__(cls, R=None, arg0 = None, **kwds):
+    def __classcall_private__(cls, R=None, arg0 = None, category=None,
+                              central_parameters=None, names=None):
         if R is None: 
             raise ValueError("First argument must be a ring!")
        
         try: 
             if R.has_coerce_map_from(arg0.base_ring()) and \
                 arg0 in LieConformalAlgebras(arg0.base_ring()):
-                return UniversalEnvelopingVertexAlgebra(R, arg0, **kwds)
+                return UniversalEnvelopingVertexAlgebra(R, arg0, 
+                        category=category, central_paramters=central_parameters,
+                        names=names)
         except AttributeError: 
             pass
 
         print "Nothing to construct"
 
-    def __init__(self, R, **kwds):
-        category = kwds.get('category', None)
+    def __init__(self, R, category=None,names=None):
         category = VertexAlgebras(R).or_subcategory(category)
-        super(VertexAlgebra, self).__init__(base=R, names = 
-            kwds.get('names', None), category = category)
+        super(VertexAlgebra, self).__init__(base=R, names=names,
+                                            category = category)
 
     def base_ring(self):
         return self.category().base_ring()
@@ -62,27 +64,25 @@ class VertexAlgebra(Parent, UniqueRepresentation):
 
 class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
-    def __init__(self, R, L, **kwds):
+    def __init__(self, R, L, category=None, central_parameters=None, names=None):
 
         if L not in LieConformalAlgebras(R).WithBasis().FinitelyGenerated():
             raise ValueError ( "L needs to be a finitely generated " \
                 "Lie conformal algebra with basis, got {}".format(L) )
 
-        category=kwds.get('category', None)
-        
         category = VertexAlgebras(R).FinitelyGenerated().WithBasis().\
            or_subcategory(category)
 
         if L in LieConformalAlgebras(R).Graded():
             category = category.Graded()
 
-        kwds['category'] = category
-
-        super(UniversalEnvelopingVertexAlgebra, self).__init__(R, **kwds)
+        super(UniversalEnvelopingVertexAlgebra, self).__init__(R, 
+            category=category, names=names)
 
         self._lca = L
-        cp = kwds.get('central_parameters', {})
-        if cp == {}:
+        if central_parameters:
+            cp = central_parameters
+        else: 
             cp = { i:0  for i in L.central_elements() }
         if set(cp.keys()) != set(L.central_elements()):
             raise ValueError ("central_parameters must be parametrized by "\
