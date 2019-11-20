@@ -1,7 +1,6 @@
 r"""
-*******************
 Classes of Lattices
-*******************
+===================
 
 Lattices for tori are defined by equipping the standard lattice in `\ZZ^n` with a group action.
 
@@ -26,7 +25,7 @@ One can define a lattice in 5 different ways:
 
 
 Lattice_ambient(group, actions)
-===============================
+-------------------------------
 
 You can define a lattice by giving a group and matrix actions for each generator::
 
@@ -51,7 +50,7 @@ One has to be careful when defining the action to match sage's order of the gene
     ]
 
 Lattice_ambient(group, n)
-=========================
+-------------------------
 
 If you provide a group and an integer `n`, you get the lattice of rank `n` with
 trivial action of the group::
@@ -65,7 +64,7 @@ trivial action of the group::
     ]
 
 Lattice_ambient(List_of_matrices) or Lattice_ambient(Matrix_Group)
-==================================================================
+------------------------------------------------------------------
 
 If you provide a list of matrices, Sage will construct the lattice with rank
 equal to the the size of the matrices, and the group will be understood to be
@@ -100,9 +99,8 @@ This subgroup should be finite::
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
 
-
-Lattice(list_of_integers,action)
-================================
+Lattice(list_of_integers, action)
+--------------------------------
 
 Providing a list of integers corresponding to a finite abelian group, and action
 matrices (or integer for the trivial action)::
@@ -115,7 +113,7 @@ matrices (or integer for the trivial action)::
 
 
 SubLattice(lattice, generators)
-===============================
+-------------------------------
 
 In order to create a sublattice, give a lattice and a list of vectors in the lattice::
 
@@ -129,6 +127,7 @@ In order to create a sublattice, give a lattice and a list of vectors in the lat
 
 The algorithm checks if the sublattice is stable under the group action::
 
+    sage: from sage.schemes.group_schemes.tori import Lattice_ambient
     sage: L = Lattice_ambient(SymmetricGroup(2), [matrix([[0,1], [1,0]])])
     sage: SubLattice(L, [L.basis()[0]])
     Traceback (most recent call last):
@@ -137,7 +136,7 @@ The algorithm checks if the sublattice is stable under the group action::
 
 
 Attributes of a lattice
-=======================
+-----------------------
 
 - ``lattice._group`` -- the group acting on the lattice
 
@@ -160,7 +159,7 @@ Attributes of a lattice
 
 
 Methods of a lattice
-====================
+--------------------
 
 - :meth:`Lattice_generic.group` -- the group acting on the lattice
 
@@ -225,21 +224,17 @@ an order 3 permutation for the second component.
 which is also the group of GAP ID (3,3,3,3)
 
 
-##################################################
-#
-#   CLASS FOR TORI
-#
-##################################################
+Algebraic Tori
+==============
 
 
 Tori are now only implemented as character lattices with an action of
-the Galois group (at least as large as the galois group of a splitting field).
+the Galois group (at least as large as the Galois group of a splitting field).
 For now this Galois group will just be an abstract group,
 either a permutation group or a finite matrix group in ``GL(n,ZZ)``.
 
 
-
-To define a torus we use AlgebraicTorus(character_lattice)
+To define a torus we use ``AlgebraicTorus(character_lattice)``
 
 ::
 
@@ -247,7 +242,7 @@ To define a torus we use AlgebraicTorus(character_lattice)
     sage: AlgebraicTorus(L)
     Algebraic Torus of rank 1 defined by the following lattice:
     Ambient free module of rank 1 over the principal ideal domain Integer Ring
-    and an action by the galois group of the form:
+    and an action by the Galois group of the form:
     Permutation Group with generators [()]
 
 This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois group.
@@ -258,10 +253,10 @@ This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois grou
     sage: AlgebraicTorus(LL)
     Algebraic Torus of rank 1 defined by the following lattice:
     Ambient free module of rank 1 over the principal ideal domain Integer Ring
-    and an action by the galois group of the form:
+    and an action by the Galois group of the form:
     Symmetric group of order 3! as a permutation group
 
-This is still ``\mathbb{G}_m``, with trivial action of a galois group isomorphic to S3. Note that
+This is still ``\mathbb{G}_m``, with trivial action of a Galois group isomorphic to `S_3`. Note that
 this Galois group is not necessarily the one of a minimal splitting extension.
 
 ::
@@ -272,10 +267,10 @@ this Galois group is not necessarily the one of a minimal splitting extension.
     sage: T3 = AlgebraicTorus(LLL); T3
     Algebraic Torus of rank 3 defined by the following lattice:
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
-    and an action by the galois group of the form:
+    and an action by the Galois group of the form:
     Symmetric group of order 3! as a permutation group
 
-This is a non-split anisotropic torus with galois group of splitting field isomorphic to ``S_3``.
+This is a non-split anisotropic torus with Galois group of splitting field isomorphic to ``S_3``.
 
 ::
 
@@ -285,10 +280,10 @@ This is a non-split anisotropic torus with galois group of splitting field isomo
     Free module of degree 1 and rank 1 over Integer Ring
     Echelon basis matrix:
     [2]
-    and an action by the galois group of the form:
+    and an action by the Galois group of the form:
     Permutation Group with generators [()]
 
-This torus is obtained from the sublattice of the first lattice L. The torus obtained is isomorphic.
+This torus is obtained from the sublattice of the first lattice `L`. The torus obtained is isomorphic to `L`.
 
 
 
@@ -310,7 +305,7 @@ Methods of a Torus
 
 - :meth:`AlgebraicTorus.rank` -- the rank of the torus.
 
-- :meth:`AlgebraicTorus.galois_group` -- the galois group (as abstract group)
+- :meth:`AlgebraicTorus.galois_group` -- the Galois group (as abstract group)
     of a splitting field of the torus.
 
 - :meth:`AlgebraicTorus.character_lattice` -- the character lattice of the torus
@@ -332,7 +327,7 @@ elements in the restriction of scalars
 """
 
 ###########################################################################
-#       Copyright (C) 2018 Thomas Rüd <tompa.rud@gmail.com>
+#       Copyright (C) 2018-2019 Thomas Rüd <tompa.rud@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -379,7 +374,7 @@ from sage.matrix.special import block_matrix
 from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
-def extended_xgcd(lst, result=[1]):
+def extended_xgcd(lst, result=[ZZ(1)]):
     """
     Takes a list of integers, and gives a 2-tuple giving their gcd, and
     a list of Bezout coefficients
@@ -396,15 +391,14 @@ def extended_xgcd(lst, result=[1]):
         sage: extended_xgcd([12,20,28,30])
         (2, [-14, 7, 0, 1])
     """
-
     if len(lst) == 0:
-        raise ValueError("Missing numbers to take the gcd")
+        return (ZZ(0), [])
     elif len(lst) == 1:
-        return (lst[0],result)
+        return (lst[0], result)
     else:
-        a,b,c = xgcd(lst[0],lst[1])
+        a, b, c = xgcd(lst[0], lst[1])
         r = [b*i for i in result]
-        return extended_xgcd([a]+[lst[i] for i in range(2,len(lst))],r+[c])
+        return extended_xgcd([a] + lst[2:], r + [c])
 
 ###############################################################################
 #
@@ -412,60 +406,6 @@ def extended_xgcd(lst, result=[1]):
 #
 ###############################################################################
 
-
-def is_GroupScheme(X):
-    """
-    Returns True if X inherits from GroupScheme
-
-    INPUT:
-
-    - ``X`` -- an object we want to test.
-
-    EXAMPLES::
-
-        sage: X1 = GroupScheme()
-        sage: X2 = Scheme()
-        sage: is_GroupScheme(X1)
-        True
-        sage: is_GroupScheme(X2)
-        False
-
-    ::
-
-        sage: L = Lattice_ambient(PermutationGroup([()]), 1)
-        sage: is_GroupScheme(L)
-        False
-        sage: T = AlgebraicTorus(L)
-        sage: is_GroupScheme(T)
-        True
-
-    """
-    return isinstance(X,GroupScheme)
-
-
-class GroupScheme(Scheme):
-    """Group_scheme"""
-    def __init__(self, X=None):
-        r"""
-        Creates a group scheme from a scheme.
-
-        INPUT:
-
-        -``X`` -- Can be None for ``\mathrm{Spec}(\ZZ)``, or a scheme,
-            scheme morphism or a commutative ring.
-
-        .. NOTE::
-
-            Currently, this class is just a particular scheme, with
-            no explicit extra structure.
-
-        EXAMPLES::
-
-            sage: GroupScheme()
-            <__main__.GroupScheme_with_category object at 0x7f1499aa4148>
-
-        """
-        Scheme.__init__(self,X)
 
 class GAPMap_toGLn(Map):
     r"""
@@ -523,11 +463,11 @@ class Lattice_generic(FreeModule_generic):
     """
     def __init__(self, galois, action=1, check=True):
         """
-        Constructs  a generic lattice.
+        Constructs a generic lattice.
 
         INPUT:
 
-        - ``galois`` -- the permutation group acting on the lattice (often the galois group of
+        - ``galois`` -- the permutation group acting on the lattice (often the Galois group of
         an algebraic group hence the name). It can be a list of matrices or matrix group,
         or even a list of integers corresponding to the isomorphism type of a finite abelian
         group.
@@ -597,7 +537,7 @@ class Lattice_generic(FreeModule_generic):
             #A = libgap(galois)
             #G = gap.GroupByGenerators(A)
             #self._action_morphism = gap.GroupHomomorphismByImages(G,G,A,A)
-        elif isinstance(galois,FinitelyGeneratedMatrixGroup_gap):
+        elif isinstance(galois, FinitelyGeneratedMatrixGroup_gap):
             gapgroup = gap.Group([i.gap() for i in galois.gens()])
             iso = gap.IsomorphismPermGroup(gapgroup)
             permg = gap.Image(iso)
@@ -640,12 +580,12 @@ class Lattice_generic(FreeModule_generic):
             if check and gap.IsBool(self._action_morphism):
                 raise ValueError('The action is not well defined')
 
-        self._GAPMap = GAPMap_toGLn(self._group,self._rank,self._action_morphism)
+        self._GAPMap = GAPMap_toGLn(self._group, self._rank, self._action_morphism)
         MZ = MatrixSpace(ZZ,self._rank)
         A = MZ.get_action(self)
         self._action = PrecomposedAction(A,self._GAPMap,None)
 
-    def _act(self,g,e):
+    def _act(self, g, e):
         """
         Computes the action of the group_element on a lattice element.
 
@@ -1453,8 +1393,6 @@ class Lattice_generic(FreeModule_generic):
             sage: Q7 = SSL.quotient_lattice(SSSL2); Q7; Q7._action_matrices
             Ambient free module of rank 1 over the principal ideal domain Integer Ring
             [[1]]
-            
-
         """
         oldBasis = self.basis()
         act_builder = []
@@ -1531,8 +1469,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             sage: Lattice_ambient([m1,m2,m3])
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        Lattice_generic.__init__(self,galois,action,check)
-        FreeModule_ambient_pid.__init__(self,ZZ,self._rank)
+        Lattice_generic.__init__(self, galois, action, check)
+        FreeModule_ambient_pid.__init__(self, ZZ, self._rank)
 
     def subgroup_lattice(self, subgp):
         """
@@ -2367,10 +2305,11 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         result = SubLattice(self._parent_lattice,newBasis)
         return result if not ambient else result.isomorphic_ambient_lattice()
 
+
 class AlgebraicTorus(GroupScheme):
     """
     Creates an algebraic torus through its equivalence of categories with the action
-    of a Galois Group on an integral lattice.
+    of a Galois group on an integral lattice.
     """
     def __init__(self, lattice, base_field=None, splitting_field=None):
         """
@@ -2378,7 +2317,7 @@ class AlgebraicTorus(GroupScheme):
 
         INPUT:
 
-        - ``lattice`` -- the character lattice with galois action
+        - ``lattice`` -- the character lattice with Galois action
          defining the torus.
 
         EXAMPLES::
@@ -2387,17 +2326,16 @@ class AlgebraicTorus(GroupScheme):
             sage: AlgebraicTorus(L)
             Algebraic Torus of rank 4 defined by the following lattice:
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Dihedral group of order 8 as a permutation group
         """
         GroupScheme.__init__(self)
         if lattice is None:
-        	raise ValueError('You have to specify a lattice.')
+            raise ValueError('You have to specify a lattice.')
         else:
             self._lattice = lattice
             self._base_field = base_field
             self._splitting_field = splitting_field
-
 
     def _repr_(self):
         """
@@ -2408,7 +2346,7 @@ class AlgebraicTorus(GroupScheme):
             sage: AlgebraicTorus(Lattice_ambient(CyclicPermutationGroup(3), 2))
             Algebraic Torus of rank 2 defined by the following lattice:
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Cyclic group of order 3 as a permutation group
 
         ::
@@ -2422,10 +2360,10 @@ class AlgebraicTorus(GroupScheme):
             [ 1  0  0 -1]
             [ 0  1  0 -1]
             [ 0  0  1 -1]
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Symmetric group of order 3! as a permutation group
         """
-        return "Algebraic Torus of rank %s defined by the following lattice:\n"%(self.rank())+self._lattice._repr_()+"\nand an action by the galois group of the form:\n"+self._lattice._group._repr_()
+        return "Algebraic Torus of rank %s defined by the following lattice:\n"%(self.rank())+self._lattice._repr_()+"\nand an action by the Galois group of the form:\n"+self._lattice._group._repr_()
 
     def rank(self):
         """
@@ -2494,7 +2432,7 @@ class AlgebraicTorus(GroupScheme):
         - ``ruple`` -- a point of the torus given as an r-tuple of points over the
         splitting field, where r is the rank of the torus.
 
-        - ``subgp`` -- optional, subgroup of the galois group corresponding to an
+        - ``subgp`` -- optional, subgroup of the Galois group corresponding to an
         intermediate extension. If specified, the algorithm will test the rationality
         over the intermediate extension.
 
@@ -2717,7 +2655,7 @@ class AlgebraicTorus(GroupScheme):
 
         INPUT:
 
-        - ``group`` -- the bigger group corresponding the the galois group
+        - ``group`` -- the bigger group corresponding the the Galois group
         of the splitting field over the subfield one wishes to restrict scalars.
 
         .. NOTE::
@@ -2744,7 +2682,7 @@ class AlgebraicTorus(GroupScheme):
             sage: T1.restriction_of_scalars(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
             Algebraic Torus of rank 16 defined by the following lattice:
             Ambient free module of rank 16 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
 
         ::
@@ -2752,7 +2690,7 @@ class AlgebraicTorus(GroupScheme):
             sage: T2.restriction_of_scalars(SymmetricGroup(4))
             Algebraic Torus of rank 4 defined by the following lattice:
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Symmetric group of order 4! as a permutation group
             sage: _.character_lattice()._action_matrices
             [
@@ -2770,7 +2708,7 @@ class AlgebraicTorus(GroupScheme):
             sage: T3.restriction_of_scalars(SymmetricGroup(4))
             Algebraic Torus of rank 12 defined by the following lattice:
             Ambient free module of rank 12 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Symmetric group of order 4! as a permutation group
             sage: _.character_lattice()._action_matrices
             [
@@ -2818,7 +2756,7 @@ class AlgebraicTorus(GroupScheme):
             sage: T1.norm_one_restriction(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
             Algebraic Torus of rank 15 defined by the following lattice:
             Ambient free module of rank 15 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
             sage: _.character_lattice()._action_matrices[0]
             [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0]
@@ -2839,7 +2777,7 @@ class AlgebraicTorus(GroupScheme):
             sage: T2.norm_one_restriction(SymmetricGroup(4))
             Algebraic Torus of rank 3 defined by the following lattice:
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Symmetric group of order 4! as a permutation group
             sage: _.character_lattice()._action_matrices
             [
@@ -2847,12 +2785,12 @@ class AlgebraicTorus(GroupScheme):
             [ 1  0  0]  [ 0  1  0]
             [ 0  1  0], [-1 -1 -1]
             ]
-            sage: T3.norm_one_restriction(SymmetricGroup(4))
+            sage: N1 = T3.norm_one_restriction(SymmetricGroup(4)); N1
             Algebraic Torus of rank 11 defined by the following lattice:
             Ambient free module of rank 11 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
+            and an action by the Galois group of the form:
             Symmetric group of order 4! as a permutation group
-            sage: _.character_lattice()._action_matrices
+            sage: N1.character_lattice()._action_matrices
             [
             [ 0  0  0  0  0  0  0  0  0  1  0]  [ 0  1  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  1]  [ 1  0  0  0  0  0  0  0  0  0  0]
@@ -2869,7 +2807,7 @@ class AlgebraicTorus(GroupScheme):
 
         We now compute the cohomologies of all those tori.
         For the two latter examples, we check that we get different cohomologies with the
-        same group, and the norm one restriction of the split torus has nontrivial cohomology.::
+        same group, and the norm one restriction of the split torus has nontrivial cohomology::
 
             sage: ROS = T1.norm_one_restriction(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
             sage: for i in range(-4, 6):
@@ -2885,7 +2823,7 @@ class AlgebraicTorus(GroupScheme):
             H^4:  [2, 2, 2, 2, 2, 2]
             H^5:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-        This torus ROS is the example of Ono where he applies his formula for the Tamagawa
+        This torus ``ROS`` is the example of Ono where he applies his formula for the Tamagawa
         number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
 
         ::
@@ -2918,4 +2856,4 @@ class AlgebraicTorus(GroupScheme):
             H^4:  [2]
             H^5:  [12]
         """
-        return AlgebraicTorus(self._lattice.norm_one_restriction_of_scalars(group,True))
+        return AlgebraicTorus(self._lattice.norm_one_restriction_of_scalars(group, True))
