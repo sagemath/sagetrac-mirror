@@ -1174,9 +1174,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Notice that if we set the noise_multiplier to 0, the accuracy is diminished::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f = H([x^2+4*y^2, y^2])
-            sage: g = H([x^2,y^2])
+            sage: f = DynamicalSystem_projective([x^2+4*y^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2,y^2])
             sage: pairingval = f.arakelov_zhang_pairing(g, n=6, noise_multiplier=0)
             sage: print pairingval
             0.650660018921632
@@ -1187,9 +1186,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         We compute the example of Prop. 18(d) from Petsche, Szpiro and Tucker::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f = H([y^2 - (y - x)^2, y^2])
-            sage: g = H([x^2,y^2])
+            sage: f = DynamicalSystem_projective([y^2 - (y - x)^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2,y^2])
             sage: f.arakelov_zhang_pairing(g)
             0.326954667248466
             sage: # Correct value should be = 0.323067...
@@ -1203,10 +1201,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<z> = PolynomialRing(ZZ)
             sage: K.<b> = NumberField(z^3 - 11)
             sage: P.<x,y> = ProjectiveSpace(K,1)
-            sage: H=Hom(P,P)
             sage: a = 7/(b-1)
-            sage: f = H([a*y^2 - (a*y - x)^2, y^2])
-            sage: g = H([x^2,y^2])
+            sage: f = DynamicalSystem_projective([a*y^2 - (a*y - x)^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2,y^2])
             sage: # If all archimedean absolute values of a have modulus > 2, then the pairing should be h(a).
             sage: f.arakelov_zhang_pairing(g, n=6)
             1.93846423207664
