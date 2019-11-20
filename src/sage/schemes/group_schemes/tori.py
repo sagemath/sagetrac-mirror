@@ -3,7 +3,7 @@ r"""
 Classes of Lattices
 *******************
 
-Lattices for tori are defined byy equipping the standard lattice in `\ZZ^n` with a group action.
+Lattices for tori are defined by equipping the standard lattice in `\ZZ^n` with a group action.
 
 We allow trivial group actions.
 
@@ -195,10 +195,6 @@ Methods of a lattice
     can also give an ambient lattice isomorphic to this zero sum sublattice.
 
 
-
-
-
-
 EXAMPLES::
 
     sage: G = PermutationGroup([(1,2), (3,4,5)])
@@ -229,11 +225,6 @@ an order 3 permutation for the second component.
 which is also the group of GAP ID (3,3,3,3)
 
 
-
-
-
-
-
 ##################################################
 #
 #   CLASS FOR TORI
@@ -248,19 +239,20 @@ either a permutation group or a finite matrix group in ``GL(n,ZZ)``.
 
 
 
- To define a torus we use AlgebraicTorus(character_lattice)
+To define a torus we use AlgebraicTorus(character_lattice)
 
+::
 
-EXAMPLES::
-
-    sage: L = Lattice_ambient(PermutationGroup([()]), 1)
+    sage: L = Lattice_ambient([], 1)
     sage: AlgebraicTorus(L)
     Algebraic Torus of rank 1 defined by the following lattice:
     Ambient free module of rank 1 over the principal ideal domain Integer Ring
     and an action by the galois group of the form:
     Permutation Group with generators [()]
 
-This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois group.::
+This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois group.
+
+::
 
     sage: LL = Lattice_ambient(SymmetricGroup(3), 1)
     sage: AlgebraicTorus(LL)
@@ -270,20 +262,22 @@ This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois grou
     Symmetric group of order 3! as a permutation group
 
 This is still ``\mathbb{G}_m``, with trivial action of a galois group isomorphic to S3. Note that
-this Galois group is not necessarily the one of a minimal splitting extension.::
+this Galois group is not necessarily the one of a minimal splitting extension.
+
+::
 
     sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
     sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
     sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
-    sage: AlgebraicTorus(LLL)
+    sage: T3 = AlgebraicTorus(LLL); T3
     Algebraic Torus of rank 3 defined by the following lattice:
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
     and an action by the galois group of the form:
     Symmetric group of order 3! as a permutation group
-    sage: T3=_
 
+This is a non-split anisotropic torus with galois group of splitting field isomorphic to ``S_3``.
 
-This is a non-split anisotropic torus with galois group of splitting field isomorphic to ``S_3``.::
+::
 
     sage: SL = SubLattice(L, [2*L.basis()[0]])
     sage: AlgebraicTorus(SL)
@@ -385,7 +379,7 @@ from sage.matrix.special import block_matrix
 from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
-def extended_xgcd(lst,result=[1]):
+def extended_xgcd(lst, result=[1]):
     """
     Takes a list of integers, and gives a 2-tuple giving their gcd, and
     a list of Bezout coefficients
@@ -403,13 +397,13 @@ def extended_xgcd(lst,result=[1]):
         (2, [-14, 7, 0, 1])
     """
 
-    if len(lst)==0:
+    if len(lst) == 0:
         raise ValueError("Missing numbers to take the gcd")
-    elif len(lst)==1:
+    elif len(lst) == 1:
         return (lst[0],result)
     else:
-        a,b,c=xgcd(lst[0],lst[1])
-        r=[b*i for i in result]
+        a,b,c = xgcd(lst[0],lst[1])
+        r = [b*i for i in result]
         return extended_xgcd([a]+[lst[i] for i in range(2,len(lst))],r+[c])
 
 ###############################################################################
@@ -429,7 +423,7 @@ def is_GroupScheme(X):
 
     EXAMPLES::
 
-        sage: X1=GroupScheme()
+        sage: X1 = GroupScheme()
         sage: X2 = Scheme()
         sage: is_GroupScheme(X1)
         True
@@ -506,15 +500,15 @@ class GAPMap_toGLn(Map):
                       To:   Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
         """
         Map.__init__(self,Hom(group,GL(rank,ZZ)))
-        self._morphism=hom
-        self._domain=group
-        self._codomain=GL(rank,ZZ)
+        self._morphism = hom
+        self._domain = group
+        self._codomain = GL(rank,ZZ)
 
-    def _call_(self,element):
+    def _call_(self, element):
         if element is tuple:
             Elt = Permutation(element)
         else:
-            Elt=element
+            Elt = element
         return matrix((gap.Image(self._morphism,Elt)).sage())
 
 ###############################################################################
@@ -547,9 +541,8 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES::
 
-            sage: Lattice_ambient(SymmetricGroup(3), 5)
+            sage: L = Lattice_ambient(SymmetricGroup(3), 5); L
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
-            sage: L=_
             sage: a,b,c,d,e = L.basis()
 
         ::
@@ -583,74 +576,74 @@ class Lattice_generic(FreeModule_generic):
             sage: Lattice_ambient(H)
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        if galois==[]:
+        if galois == []:
             self.__init__(PermutationGroup([()]),action,check)
-        elif type(galois)==list and type(galois[0]) is Integer:
-            counter=1
-            perms=[]
+        elif isinstance(galois, list) and isinstance(galois[0], Integer):
+            counter = 1
+            perms = []
             for i in galois:
                 perms.append([j for j in range(counter,counter+i)])
-                counter+=i
+                counter += i
                 group = PermutationGroup([tuple(k) for k in perms])
                 self.__init__(group,action,check)
-        elif type(galois)==list and type(galois[0]) is Matrix_integer_dense:
+        elif isinstance(galois, list) and isinstance(galois[0], Matrix_integer_dense):
             gp = MatrixGroup(galois)
             self.__init__(gp)
             #self._group = MatrixGroup(galois)
             #self._generators=galois
             #self._rank = galois[0].nrows()
-            #self._action_matrices=galois
+            #self._action_matrices = galois
             #FreeModule_generic.__init__(self,ZZ,self._rank,self._rank)
-            #A=libgap(galois)
-            #G=gap.GroupByGenerators(A)
-            #self._action_morphism=gap.GroupHomomorphismByImages(G,G,A,A)
+            #A = libgap(galois)
+            #G = gap.GroupByGenerators(A)
+            #self._action_morphism = gap.GroupHomomorphismByImages(G,G,A,A)
         elif isinstance(galois,FinitelyGeneratedMatrixGroup_gap):
-            gapgroup=gap.Group([i.gap() for i in galois.gens()])
+            gapgroup = gap.Group([i.gap() for i in galois.gens()])
             iso = gap.IsomorphismPermGroup(gapgroup)
-            permg=gap.Image(iso)
-            genperm=gap.GeneratorsOfGroup(permg)
+            permg = gap.Image(iso)
+            genperm = gap.GeneratorsOfGroup(permg)
             goodgp = PermutationGroup(genperm)
-            mats=gap.PreImage(iso,goodgp.gens())
-            act=[matrix(i) for i in mats.sage()]
+            mats = gap.PreImage(iso,goodgp.gens())
+            act = [matrix(i) for i in mats.sage()]
             self.__init__(goodgp,act)
         else:
-            self._group=galois
-            self._generators=galois.gens()
+            self._group = galois
+            self._generators = galois.gens()
             if action  in ZZ:
                 FreeModule_generic.__init__(self,ZZ,action,action)
-                self._rank=action
-                self._action_matrices=[matrix.identity(action) for i in range(len(self._generators))]
+                self._rank = action
+                self._action_matrices = [matrix.identity(action) for i in range(len(self._generators))]
             elif not len(action):
                 raise ValueError('The module is missing the action of the Galois group.')
             else:
-                self._action_matrices=action
+                self._action_matrices = action
                 for x in action:
-                    if not x.nrows()==x.ncols():
+                    if not x.nrows() == x.ncols():
                         raise ValueError('The matrices for the action need to be squares.')
-                    elif not x.nrows()==action[0].nrows():
+                    elif not x.nrows() == action[0].nrows():
                         raise ValueError('The matrices fot the action need to have same dimension.')
                     elif not x in GL(action[0].nrows(),ZZ):
                      raise ValueError('The matrices need to be invertible in ZZ.')
                     else:
-                        self._rank=action[0].nrows()
+                        self._rank = action[0].nrows()
                         FreeModule_generic.__init__(self,ZZ,self._rank,self._rank)
-                if not len(self._generators)==len(action):
+                if not len(self._generators) == len(action):
                     raise ValueError('The number of action matrices needs to match the number of generators of the Galois group.')
-            G=gap(self._group)
-            GenG=gap(self._generators)
-            Mats=gap(self._action_matrices)
-            if self._rank==1:
-                gl=gap.Group([ [ [ -1 ] ] ])
+            G = gap(self._group)
+            GenG = gap(self._generators)
+            Mats = gap(self._action_matrices)
+            if self._rank == 1:
+                gl = gap.Group([ [ [ -1 ] ] ])
             else:
-                gl=gap.GL(self._rank,ZZ)
-            self._action_morphism=gap.GroupHomomorphismByImages(G,gl,GenG,Mats)
+                gl = gap.GL(self._rank,ZZ)
+            self._action_morphism = gap.GroupHomomorphismByImages(G,gl,GenG,Mats)
             if check and gap.IsBool(self._action_morphism):
                 raise ValueError('The action is not well defined')
 
-        self._GAPMap=GAPMap_toGLn(self._group,self._rank,self._action_morphism)
+        self._GAPMap = GAPMap_toGLn(self._group,self._rank,self._action_morphism)
         MZ = MatrixSpace(ZZ,self._rank)
-        A=MZ.get_action(self)
-        self._action=PrecomposedAction(A,self._GAPMap,None)
+        A = MZ.get_action(self)
+        self._action = PrecomposedAction(A,self._GAPMap,None)
 
     def _act(self,g,e):
         """
@@ -729,13 +722,13 @@ class Lattice_generic(FreeModule_generic):
         return subgroup_lattice(self,subgp)
 
     def sum_lattice(self,lat):
-        g=self.group()
-        act=[block_diagonal_matrix([self._action_matrices[i],lat._action_matrices[i]]) for i in range(len(self._action_matrices))]
+        g = self.group()
+        act = [block_diagonal_matrix([self._action_matrices[i],lat._action_matrices[i]]) for i in range(len(self._action_matrices))]
         ambi = Lattice_ambient(g,act)
-        base=ambi.basis()
-        base1=self.basis()
-        n1=len(base1[0])
-        base2=lat.basis()
+        base = ambi.basis()
+        base1 = self.basis()
+        n1 = len(base1[0])
+        base2 = lat.basis()
         n2=len(base2[0])
         print("haha")
         return n1
