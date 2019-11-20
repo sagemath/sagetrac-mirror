@@ -1,8 +1,8 @@
 r"""
-Classes of Lattices
+Classes of G-Lattices
 ===================
 
-Lattices for tori are defined by equipping the standard lattice in `\ZZ^n` with a group action.
+G-Lattices are defined by equipping the standard lattice in `\ZZ^n` with a group action.
 
 We allow trivial group actions.
 
