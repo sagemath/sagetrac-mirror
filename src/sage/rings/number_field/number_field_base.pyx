@@ -51,6 +51,9 @@ cdef class NumberField(Field):
     # is rather confusing.
     def _pushout_(self, other):
         r"""
+        If ``self`` and/or ``other`` are embedded, use this embedding to
+        discover a common parent.
+
         TESTS:
 
         Pushout is implemented for number field embedded in ``AA``::
@@ -87,12 +90,66 @@ cdef class NumberField(Field):
             sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
             sage: (cbrt2 + a) * b
             4.231287179063857?
+            sage: sqrt2 + QQbar(-3).sqrt()
+            1.414213562373095? + 1.732050807568878?*I
+
+        Pushout is implemented for number field embedded in ``QQbar``::
+
+            sage: Km2.<sqrtm2> = NumberField(x^2 + 2, embedding=QQbar(-2).sqrt())
+            sage: b + sqrtm2
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + b
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + AA(3).sqrt()
+            1.732050807568878? + 1.414213562373095?*I
+
+        Pushout is implemented for number field embedded in ``RLF``::
+
+            sage: K.<a> = NumberField(x^3 - x^2 - x - 1, embedding=1)
+            sage: a + sqrt2
+            3.253500317587256?
+            sage: a + AA(2)
+            3.839286755214161?
         """
-        if isinstance(other, NumberField) and \
-            self._embedded_real and \
-            (<NumberField>other)._embedded_real:
-            from sage.rings.qqbar import AA
-            return AA
+        # Use the embedding of ``self``, if it exists.
+        if self._embedding:
+            codomain_self = self._embedding.codomain()
+        else:
+            codomain_self = self
+
+        # Use the embedding of ``other``, if it exists.
+        if isinstance(other, NumberField):
+            embedding = (<NumberField>other)._embedding
+            if embedding:
+                codomain_other = embedding.codomain()
+            else:
+                codomain_other = other
+        else:
+            codomain_other = other
+
+        if self is codomain_self and other is codomain_other:
+            # This method will not help in this case.
+            return
+
+        # We could use ``CoercionModel`` now.
+        # We quickly check some common cases.
+        if codomain_self is codomain_other:
+            return codomain_self
+
+        from sage.rings.qqbar import AA, QQbar
+        if codomain_self in (AA, QQbar) and codomain_other in (AA, QQbar):
+            return QQbar
+
+        from sage.rings.real_lazy import RLF
+        if codomain_self in (AA, RLF) and codomain_other in (AA, RLF):
+            return RLF
+
+        from sage.structure.coerce import CoercionModel
+        cm = CoercionModel()
+        try:
+            return cm.common_parent(codomain_self, codomain_other)
+        except TypeError:
+            pass
 
     def ring_of_integers(self, *args, **kwds):
         r"""
