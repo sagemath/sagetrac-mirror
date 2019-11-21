@@ -143,7 +143,6 @@ from . import structure
 from . import number_field_morphisms
 from itertools import count
 from builtins import zip
-from sage.misc.superseded import deprecated_function_alias
 
 
 _NumberFields = NumberFields()
@@ -2950,11 +2949,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
               Defn: a -> 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
         """
         embedding = self.coerce_embedding()
-        if embedding is not None:
-            from sage.rings.real_mpfr import mpfr_prec_min
-            from sage.rings.complex_field import ComplexField
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                 return embedding
+        if embedding is not None and embedding.codomain()._is_numerical():
+            return embedding
 
     def gen_embedding(self):
         """
@@ -8541,13 +8537,6 @@ class NumberField_absolute(NumberField_generic):
             [0.740078950105127]
             [ 3.7193258428...]
             [ 1.54308184421...]
-
-        TESTS::
-
-            sage: emb = F.Minkowski_embedding()
-            doctest:warning...:
-            DeprecationWarning: Minkowski_embedding is deprecated. Please use minkowski_embedding instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         n = self.degree()
         if prec is None:
@@ -8576,12 +8565,7 @@ class NumberField_absolute(NumberField_generic):
                 d[(r+2*i,col)] = z.real()*sqrt2
                 d[(r+2*i+1,col)] = z.imag()*sqrt2
 
-
-        M = sage.matrix.all.matrix(d)
-
-        return M
-
-    Minkowski_embedding = deprecated_function_alias(23685, minkowski_embedding)
+        return sage.matrix.all.matrix(d)
 
     def places(self, all_complex=False, prec=None):
         r"""
@@ -9419,7 +9403,7 @@ class NumberField_absolute(NumberField_generic):
         b = self(b)
         if b == 0:
             raise ValueError("second argument must be nonzero")
-        if len(S) % 2 != 0:
+        if len(S) % 2:
             raise ValueError("the list should be of even cardinality")
         if check:
             for p in S:

@@ -125,8 +125,7 @@ def FreeQuadraticModule(
         sage: M3 is M2
         True
 
-    For integral domains the inner product can have values in a larger ring than
-    the given base ring::
+    TESTS:
 
         sage: M4 = FreeQuadraticModule(ZZ,2,Matrix([[1,2],[3/7,4]]))
         sage: M4
