@@ -22,7 +22,6 @@
 # Change some environment variables, so SageMath's sanity checks pass:
 # > export AS=`cc -print-prog-name=as`
 # > export LD=`cc -print-prog-name=ld`
-# > export PKG_CONFIG_LIBDIR="$CONDA_PREFIX/lib/pkgconfig"
 # Enable faster parallel builds:
 # > export SAGE_NUM_THREADS=4
 # > export MAKEFLAGS=-j4
@@ -119,7 +118,7 @@ dependencies:
   # SPKG: pcre
   - pcre
   # SPKG: pkgconf
-  # does not seem to be available on conda-forge yet
+  - pkg-config
   # SPKG: readline
   - readline      8.0.*
   # SPKG: rw
