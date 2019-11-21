@@ -451,7 +451,20 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                 return Infinity
             return min(m._li_filtration_monomial_degree() for m in 
                        self.monomials())
-           
+        
+        def degrevlex_lm(self):
+            def dgrlcmp(a):
+                pa = a.value.monomial_coefficients().keys()[0]
+                bigest = max(p.get_part(0) for p in pa)
+                pa = pa.to_exp(bigest)
+                ret = [a.weight(),]
+                for j in range(bigest):
+                    for l in range(len(pa)):
+                        ret.append(pa[l][bigest-j-1])
+                return ret
+            if self.is_zero():
+                return self
+            return sorted(self.monomials(),key=dgrlcmp)[0]
 
         def PBW_filtration_degree(self):
             p = self.parent()
