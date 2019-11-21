@@ -1,311 +1,136 @@
-## This is a conda environment file.
-## Use it as follows:
-##
-##    conda env create -n sage -f environment.yml
-##
-## or
-##
-##    conda env update -n sage -f environment.yml
-##
-## See https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
-##
-## Derived from https://github.com/conda-forge/sage-feedstock/tree/master/recipe
-##          and https://github.com/conda-forge/sagelib-feedstock/tree/master/recipe
+# This is a conda[1] environment file[2].
+# You can use it to install some of SageMath's dependencies to speed up
+# compilation times when developing SageMath.
+#
+# Note that currently this is only available to Linux and macOS users working
+# on 64bit machines.
+
+# To use it, you need conda with conda-forge[3] enabled. If you don't know what
+# this means, install Miniconda[4] for Python 3, and run:
+# > conda config --add channels conda-forge
+# > conda config --set channel_priority strict 
+#
+# To create a new environment from this file, pick a name, say "sage" and run:
+# > conda env create -n sage -f environment.yml
+#
+# To update your environment later if this file has changed run:
+# > conda env update -n sage -f environment.yml
+#
+# Now you can build SageMath in this environment. To do so, enter your
+# environment:
+# > conda activate sage
+# Change some environment variables, so SageMath's sanity checks pass:
+# > export AS=`cc -print-prog-name=as`
+# > export LD=`cc -print-prog-name=ld`
+# > export PKG_CONFIG_LIBDIR="$CONDA_PREFIX/lib/pkgconfig"
+# Enable faster parallel builds:
+# > export SAGE_NUM_THREADS=4
+# > export MAKEFLAGS=-j4
+# Build SageMath:
+# > make 
+#
+# If you want to help improve this environment.yml file, add an
+# `spkg-configure.m4` to your favourite package in `build/pkgs/` and add that
+# package below. Since SageMath is packaged at conda-forge, all dependencies
+# should be available there[5, 6].
+#
+# [1]: https://conda.io/en/latest/
+# [2]: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+# [3]: https://conda-forge.org/
+# [4]: https://docs.conda.io/en/latest/miniconda.html
+# [5]: https://github.com/conda-forge/sagelib-feedstock/blob/master/recipe/meta.yaml
+# [6]: https://github.com/conda-forge/sage-feedstock/blob/master/recipe/meta.yaml
+
 name: sage
 channels:
   - conda-forge
   - defaults
 dependencies:
-    - c-compiler
-    - cxx-compiler
-    - fortran-compiler
-    ##
-    - patch
-    ## for polymake
-    - ninja
-  ##- perl    # disable, creates conflicts
-    ##- perl-app-cpanminus        # conda does not package CPAN packages
-
-  ## From https://github.com/conda-forge/sagelib-feedstock/tree/master/recipe
-  #build:
-    - libtool
-    - automake
-    ## - {{ compiler('cxx') }}
-    ## - {{ compiler('c') }}
-    - make
-  #host:
-    - pip
-    - setuptools
-    - libblas
-    - libcblas
-    - liblapack
-    - liblapacke
-    - arb           2.16.*
-    - boost-cpp
-    - brial         1.2.*
-    - libbrial      1.2.*
-    - cliquer       1.21.*
-    - cypari2       2.1.*
-    - cysignals     1.10.*
-    - cython        0.29.*
-    # There are issues with ecl 16.1.3
-    - ecl           16.1.2
-    - eclib         20190226
-    - ecm           7.*
-    - future
-    - gap-core      4.10.*
-    - glpk
-    - gmp
-    - gmpy2         2.1.*
-    - gsl
-    - iml           1.0.*
-    - jinja2        2.10.*
-    - jupyter_core  4.*
-    - lcalc         1.23
-    - lrcalc        1.2
-    - libbraiding   1.0
-    - libflint      2.5.*
-    - libgd         2.2.*
-    - libhomfly     1.02.*
-    - libpng
-    - linbox        1.6.*
-    - givaro        4.1.*
-    - fflas-ffpack  2.4.*
-    - m4ri          20140914
-    - m4rie         20150908
-    - mpc           1.1.*
-    - mpfi          1.5.*
-    - mpfr
-    - ntl
-    - numpy
-    - pari
-    - pkgconfig
-    - pkg-config
-    - planarity     3.*
-    - ppl           1.2
-    - pplpy         0.8.*
-    - pynac         0.7.26
-    - python
-    - ratpoints     2.1.*
-    - readline
-    - rw            0.7
-    - singular      4.1.1.*
-    - six
-    - symmetrica    2.0
-    - zlib
-    - zn_poly       0.9.*
-    # sageruntime deps
-    - ipython       >=5,<6
-    - psutil        >=5
-    - pexpect       >=4
-    # for the symlinks
-    - three.js
-    - notebook      >=5.7.6,<6
-    - jmol
-
-  # We can not include all actual runtime dependencies of Sage here as some of
-  # them require Sage to build, such as some of the database packages.
-  # The packages listed here are taken from the `SAGERUNTIME` variable in
-  # `build/make/Makefile`.
-  # These dependencies are enough to `import sage` and start `sage` but lots of
-  # things do not work. To get all the standard dependencies of Sage, install
-  # the "sage" package (which requires this "sagelib" package.)
-  #run:
-    - arb
-    - libbrial    # was pin_compatible
-    - cliquer    # was pin_compatible
-    - cypari2    # was pin_compatible
-    - cysignals    # was pin_compatible
-    - cython    # was pin_compatible
-    - ecl    # was pin_compatible
-    - eclib
-    - ecm    # was pin_compatible
-    - future
-    - gap-core    # was pin_compatible
-    - glpk
-    - gmp
-    - gmpy2    # was pin_compatible
-    - gsl
-    - iml    # was pin_compatible
-    - jinja2    # was pin_compatible
-    - jupyter_core    # was pin_compatible
-    - lcalc    # was pin_compatible
-    - lrcalc    # was pin_compatible
-    - libbraiding    # was pin_compatible
-    - libflint    # was pin_compatible
-    - libgd    # was pin_compatible
-    - libhomfly    # was pin_compatible
-    - libpng
-    - linbox    # was pin_compatible
-    - givaro
-    - fflas-ffpack
-    - m4ri
-    - m4rie    # was pin_compatible
-    - mpc
-    - mpfi
-    - mpfr
-    - ntl
-    - numpy    # was pin_compatible
-    - pari
-    - planarity    # was pin_compatible
-    - ppl    # was pin_compatible
-    - pplpy    # was pin_compatible
-    - pynac    # was pin_compatible
-    - python
-    - ratpoints    # was pin_compatible
-    - readline
-    - rw    # was pin_compatible
-    - singular
-    - six
-    - symmetrica    # was pin_compatible
-    - zlib
-    - zn_poly    # was pin_compatible
-    # sageruntime deps
-    - ipython       >=5,<6
-    - psutil        >=5
-    - pexpect       >=4
-
-
-  ### From https://github.com/conda-forge/sage-feedstock/tree/master/recipe
-  ##host:
-    - python
-  ##run:
-    # We require all dependencies with at least that version that upstream uses
-    # in their SPKGs. For packages that (seem to) use semantic versioning and
-    # are at least 1.0.0, we limit the version to the next major release.
-    - alabaster >=0.7.12
-    - appnope >=0.1.0                                   # [osx]
-    - arb
-    - babel >=2.6.0,<3
-    - backports.functools_lru_cache >=1.5,<2            # [py27]
-    - backports.shutil_get_terminal_size >=1.0.0,<2     # [py27]
-    - backports_abc >=0.5                               # [py27]
-    - bdw-gc >=7.6.4,<9
-    - bleach >=3.0.2,<4
-    - brial
-    - cddlib >=1!0.94j
-    - certifi >=2019.3.9
-    - cliquer
-    - configparser >=3.7.3,<4                           # [py27]
-    - cvxopt >=1.1.8,<2
-    - cycler >=0.10.0
-    - cypari2
-    - cysignals
-    - cython >=0.29.12
-    - decorator >=4.4.0,<5
-    - docutils >=0.14
-    # ecl 16.1.3 causes unhandled SIGFPEs, see https://github.com/conda-forge/sagelib-feedstock/issues/44
-    - ecl >=16.1.2,<16.1.3
-    - eclib
-    - ecm
-    - entrypoints >=0.3
-    - fflas-ffpack >=2.4.3
-    - flintqs >=1.0,<2
-    - fplll >=5.2.1,<6
-    - fpylll >=0.4.1dev
-    - freetype >=2.9.1,<3
-    - functools32 >=3.2.3,<4                            # [py27]
-    - future >=0.17.1
-    - gap-defaults >=4.10.2
-    - gf2x >=1.2,<2
-    - gfan >=0.6.2
-    - giac >=1.5.0.63,<2
-    - givaro >=4.1.1,<5
-    - glpk
-    - gmp
-    - gmpy2
-    - gsl
-    - iml
-    - ipykernel >=4.8.2,<5
-    - ipython >=5.8.0,<6
-    - ipython_genutils >=0.2.0
-    - ipywidgets >=7.4.2,<8
-    - jinja2
-    - jmol >=14.6.1,<15
-    - jsonschema >=2.6.0,<3
-    - jupyter_client >=5.2.4,<6
-    - jupyter_core
-    - lcalc
-    - libbraiding
-    - libflint
-    - libgd
-    - libhomfly
-    - libiconv >=1.15,<2
-    - libpng
-    - linbox >=1.6.3
-    - lrcalc
-    - m4ri
-    - m4rie
-    - matplotlib-base >=2.2.4,<3
-    - maxima >=5.42.2,<6
-    - mistune >=0.8.4
-    - mpc
-    - mpfi
-    - mpfr
-    - mpmath >=1.1.0,<2
-    - nauty >=2.6r7,<3
-    - nbconvert >=5.4.0,<6
-    - nbformat >=4.4.0,<5
-    - ncurses >=6.0,<7
-    - networkx >=2.2,<3
-    - notebook >=5.7.6,<6
-    - ntl
-    - numpy
-    - palp >=2.1,<3
-    - pari
-    # path.py 7 has not been built for Python3 on conda-forge, so we use the latest version
-    - path.py >=7
-    - pathlib2 >=2.3.3,<3
-    - pexpect >=4.6.0,<5
-    - pkg-config
-    - pkgconfig
-    - pickleshare >=0.7.5
-    - pillow >=5.3.0,<6
-    - planarity
-    - ppl
-    - pplpy
-    - prompt_toolkit >=1.0.15,<2
-    - psutil >=5.2.0,<6
-    - ptyprocess >=0.5.1
-    - pygments >=2.3.1,<3
-    - pynac >=0.7.26,<0.8
-    - pyparsing >=2.3.0,<3
-    - python
-    - python-dateutil >=2.5.3,<3
-    - pytz >=2018.7
-    - pyzmq >=18.1.0,<19
-    - ratpoints
-    - readline
-    - rpy2 >=2.8.6,<4
-    - rubiks >=20070912
-    - rw
-    ###### - sagelib {{ version }}
-    - sagemath-db-combinatorial-designs >=20140630
-    - sagemath-db-conway-polynomials >=0.5
-    - sagemath-db-elliptic-curves >=0.8
-    - sagemath-db-graphs >=20161026
-    - sagemath-db-polytopes >=20170220
-    - sagenb >=1.1.2,<1.2
-    - sagetex >=3.3
-    - scipy >=1.2.0
-    - simplegeneric >=0.8.1
-    - singledispatch >=3.4.0.3,<4
-    - singular
-    - six >=1.12.0,<2
-    - sphinx >=1.8.5,<2
-    - sqlite >=3.22,<4
-    - ssl_match_hostname >=3.5.0.1,<4                   # [py27]
-    - symmetrica
-    - sympow >=2.023.3,<3
-    - sympy >=1.4,<2
-    - tachyon 0.99.*
-    - terminado >=0.8.1
-    - three.js 105
-    - tornado >=4.5.2,<5
-    - traitlets >=4.3.2,<5
-    - twisted >=18.4.0,<19
-    - wcwidth >=0.1.7
-    - widgetsnbextension >=3.4.2,<4
-    - zeromq >=4.2.5,<5
-    - zlib
-    - zn_poly
+  # For all the standard SageMath Packages (SPKG) that have a
+  # spkg-configure.m4, we provide the corresponding conda-forge packages.
+  # SPKG: arb
+  - arb           2.16.*
+  # SPKG: bzip2
+  - bzip2         1.*
+  # SPKG: curl
+  - curl          7.64.*
+  # SPKG: eclib
+  - eclib         20190226
+  # SPKG: ecm
+  - ecm           7.*
+  # SPKG: flint
+  - libflint      2.5.*
+  # SPKG: freetype
+  - freetype      >=2.9.1,<3
+  # SPKG: gcc
+  - c-compiler
+  - cxx-compiler
+  # SPKG: gf2x
+  - gf2x          >=1.2,<2
+  # SPKG: gfortran (not standard)
+  - fortran-compiler
+  # SPKG: git
+  - git
+  # SPKG: givaro
+  - givaro        4.1.*
+  # SPKG: glpk
+  - glpk          4.65.*
+  # SPKG: iconv
+  - libiconv      >=1.15,<2
+  # SPKG: isl
+  - isl           >=0.20
+  # SPKG: lcalc
+  - lcalc         1.23.*
+  # SPKG: libffi
+  - libffi        3.2.*
+  # SPKG: libgd
+  - libgd         2.2.*
+  # SPKG: libpng
+  - libpng        1.6.*
+  # SPKG: libsemigroups
+  - libsemigroups 0.6.7
+  # SPKG: lrcalc
+  - lrcalc        1.2.*
+  # SPKG: m4ri
+  - m4ri          20140914
+  # SPKG: m4rie
+  - m4rie         20150908
+  # SPKG: mpc
+  - mpc           1.1.*
+  # SPKG: mpfi
+  - mpfi          1.5.*
+  # SPKG: mpfr
+  - mpfr          4.*
+  # SPKG: ncurses
+  - ncurses       >=6.0,<7
+  # SPKG: ntl
+  - ntl           11.3.2
+  # SPKG: pari
+  - pari          2.11.*
+  - pari-galpol
+  - pari-elldata
+  - pari-nftables
+  # SPKG: pari_galdata
+  - pari-galdata
+  # SPKG: pari_seadata_small
+  - pari-seadata-small
+  # SPKG: patch
+  - patch
+  # SPKG: pcre
+  - pcre
+  # SPKG: pkgconf
+  # does not seem to be available on conda-forge yet
+  # SPKG: readline
+  - readline      8.0.*
+  # SPKG: rw
+  - rw            0.7.*
+  # SPKG: symmetrica
+  - symmetrica    2.0.*
+  # SPKG: xz
+  - xz            5.2.*
+  # SPKG: yasm
+  - yasm
+  # SPKG: zeromq
+  - zeromq        >=4.2.5,<5
+  # SPKG: zlib
+  - zlib          1.2.*
