@@ -2150,7 +2150,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
             path += '.kunz_input'
 
         cdef FILE *fp
-        fp = fopen(path, "r")
+        fp = fopen(path.encode('utf-8'), "r")
         if (fp ==NULL):
             raise IOError("cannot open file {}".format(path))
 
@@ -2496,7 +2496,7 @@ def kunz_input_file(path, m):
 
     # Now write the actual data to the file.
     cdef FILE *fp
-    fp = fopen(path+'.kunz_input', "w")
+    fp = fopen(path+'.kunz_input'.encode('utf-8'), "w")
     if (fp==NULL):
         raise IOError("cannot open file {}".format(path))
 
