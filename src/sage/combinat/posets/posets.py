@@ -4122,7 +4122,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             except StopIteration:
                 break
 
-        M_ = self.subposet([x for x in self if not self.le(m)])
+        M_ = self.subposet([x for x in self if not self.le(x, m)])
         if len(M_.minimal_elements()) > 1:
             return False
         j = M_.minimal_elements()[0]
