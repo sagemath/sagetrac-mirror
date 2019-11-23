@@ -496,7 +496,6 @@ inline int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_
 
         Frob2.append(Signs);
 
-        continue;
         Cone<MachineInteger> WilfPolyhedron(Type::inhom_inequalities, Frob2);
         WilfPolyhedron.setVerbose(false);
         WilfPolyhedron.compute(ConeProperty::AffineDim);
