@@ -102,7 +102,7 @@ This subgroup should be finite::
     sage: m1 = matrix(3, [0, 0, 1, -1, -1, -1, 1, 0, 0])
     sage: m2 = matrix(3, [-1, 0, 0, 0, -1, 0, 0, 0, -1])
     sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
-    sage: G = MatrixGroup([m1,m2,m3]);G
+    sage: G = MatrixGroup([m1, m2, m3]);G
     Matrix group over Integer Ring with 3 generators (
     [ 0  0  1]  [-1  0  0]  [ 0  1  0]
     [-1 -1 -1]  [ 0 -1  0]  [ 1  0  0]
@@ -118,7 +118,7 @@ GLattice(list_of_integers, action)
 Providing a list of integers corresponding to a finite abelian group, and action
 matrices (or integer for the trivial action)::
 
-    sage: L = GLattice([2,2,2,2]); L
+    sage: L = GLattice([2, 2, 2, 2]); L
     Ambient lattice of rank 8 with an action by a group of order 16
     sage: L._group
     Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
@@ -174,7 +174,7 @@ Methods of a lattice
 
 - :meth:`Lattice_generic.group` -- the group acting on the lattice
 
-- :meth:`Lattice_generic.display_action`` -- displays the matrices corresponding to the group action
+- :meth:`Lattice_generic.display_action` -- displays the matrices corresponding to the group action
 
 - :meth:`Lattice_generic._act` -- the action of the group on the lattice
 
@@ -576,7 +576,7 @@ class Lattice_generic(FreeModule_generic):
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix.identity(3)
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
-            sage: GLattice(G, [act1,act2])
+            sage: GLattice(G, [act1, act2])
             Ambient lattice of rank 3 with an action by a group of order 6
 
         ::
@@ -631,13 +631,13 @@ class Lattice_generic(FreeModule_generic):
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix.identity(3)
-            sage: L1 = GLattice(G, [act1,act2])
+            sage: L1 = GLattice(G, [act1, act2])
             sage: L1._act(L1.group()[1], L1.basis()[0])
             (0, 1, 0)
 
         ::
 
-            sage: L2 = GLattice(PermutationGroup([(2,3), (1,6,3), (7,6,4,5)]), 1)
+            sage: L2 = GLattice(PermutationGroup([(2, 3), (1, 6, 3), (7, 6, 4, 5)]), 1)
             sage: L2._act(L2.group()[1], L2.basis()[0])
             (1)
         """
@@ -652,19 +652,19 @@ class Lattice_generic(FreeModule_generic):
 
             sage: L1 = GLattice(SymmetricGroup(3), 5)
             sage: L1.group()
-            Permutation Group with generators [(1,2,3), (1,2)]
+            Permutation Group with generators [(1, 2, 3), (1, 2)]
 
         ::
 
-            sage: L2 = GLattice(PermutationGroup([(2,3), (1,6,3), (7,6,4,5)]), 1)
+            sage: L2 = GLattice(PermutationGroup([(2, 3), (1, 6, 3), (7, 6, 4, 5)]), 1)
             sage: L2.group()
-            Permutation Group with generators [(4,5,7,6), (2,3), (1,6,3)]
+            Permutation Group with generators [(4, 5, 7, 6), (2, 3), (1, 6, 3)]
 
         ::
 
             sage: L3 = GLattice([-matrix.identity(3)])
             sage: L3.group()
-            Permutation Group with generators [(1,2)]
+            Permutation Group with generators [(1, 2)]
         """
         return self._group
 
@@ -780,7 +780,7 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES::
 
-            sage: G = PermutationGroup([(1,2),(3,4),(5,6),(7,8)])
+            sage: G = PermutationGroup([(1, 2),(3, 4),(5, 6),(7, 8)])
             sage: L = GLattice(1)
             sage: IL = L.induced_lattice(G)
             sage: ROS = L.norm_one_restriction_of_scalars(G)
@@ -822,7 +822,7 @@ class Lattice_generic(FreeModule_generic):
             sage: G=PermutationGroup([(1,2,3,4),(1,2)])
             sage: Gg=libgap(G)
             sage: Hom=gap.GroupHomomorphismByImages(Gg,Gg,G.gens(),G.gens())
-            sage: L=GLattice(G,3)
+            sage: L=GLattice(G, 3)
             sage: L.group_extend(Hom)
             Ambient lattice of rank 3 with an action by a group of order 24
             sage: _._action_matrices
@@ -874,7 +874,7 @@ class Lattice_generic(FreeModule_generic):
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix.identity(3)
-            sage: L1 = GLattice(G, [act1,act2])
+            sage: L1 = GLattice(G, [act1, act2])
 
         ::
 
@@ -915,14 +915,14 @@ class Lattice_generic(FreeModule_generic):
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix.identity(3)
-            sage: L1 = GLattice(G, [act1,act2])
+            sage: L1 = GLattice(G, [act1, act2])
             sage: L1.GAPMatrixGroup()
             Group([ [ [ 0, 1, 0 ], [ 0, 0, 1 ], [ 1, 0, 0 ] ],
               [ [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ] ] ])
 
         ::
 
-            sage: L2 = GLattice(PermutationGroup([(2,3), (1,6,3), (7,6,4,5)]), 1)
+            sage: L2 = GLattice(PermutationGroup([(2, 3), (1, 6, 3), (7, 6, 4, 5)]), 1)
             sage: L2.GAPMatrixGroup()
             Group([ [ [ 1 ] ], [ [ 1 ] ], [ [ 1 ] ] ])
 
@@ -949,7 +949,7 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES::
 
-            sage: L = GLattice(CyclicPermutationGroup(6), [matrix([[0,1], [-1,-1]])])
+            sage: L = GLattice(CyclicPermutationGroup(6), [matrix([[0, 1], [-1, -1]])])
             sage: L._action_matrices
             [
             [ 0  1]
@@ -1041,7 +1041,7 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES::
 
-            sage: G = PermutationGroup([(1,2,3),(4,5)])
+            sage: G = PermutationGroup([(1, 2, 3),(4, 5)])
             sage: GM = GLattice(1)
             sage: L = GM.norm_one_restriction_of_scalars(G)
             sage: CB = L.first_coboundary_space(); CB
@@ -1415,7 +1415,7 @@ class Lattice_generic(FreeModule_generic):
         is not stable under the group action::
 
             sage: G = SymmetricGroup(2)
-            sage: m = matrix(2, [-1,0,0,1])
+            sage: m = matrix(2, [-1, 0, 0, 1])
             sage: L = GLattice(G, [m])
             sage: L.zero_sum_sublattice()
             Traceback (most recent call last):
@@ -1612,7 +1612,7 @@ class Lattice_generic(FreeModule_generic):
         EXAMPLES::
 
             sage: m = matrix([[0,0,0,0,0,1],[0,0,0,0,1,0],[0,0,0,1,0,0],[0,0,1,0,0,0],[0,1,0,0,0,0],[1,0,0,0,0,0]])
-            sage: L = GLattice([2],[m]); L._action_matrices
+            sage: L = GLattice([2], [m]); L._action_matrices
             [
             [0 0 0 0 0 1]
             [0 0 0 0 1 0]
@@ -1729,7 +1729,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix.identity(3)
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
-            sage: GLattice(G, [act1,act2])
+            sage: GLattice(G, [act1, act2])
             Ambient lattice of rank 3 with an action by a group of order 6
 
         ::
@@ -1772,8 +1772,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             sage: H = CyclicPermutationGroup(3)
             sage: m1 = matrix(3, [0,1,0,0,0,1,1,0,0])
             sage: m2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: L = GLattice(G, [m1,m2])
-            sage: L1 = GLattice(G, [m1,m2])
+            sage: L = GLattice(G, [m1, m2])
+            sage: L1 = GLattice(G, [m1, m2])
 
         ::
 
@@ -1853,7 +1853,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         EXAMPLES::
 
-            sage: L = GLattice([2],5)
+            sage: L = GLattice([2], 5)
             sage: L.parent_lattice() == L
             True
 
@@ -1877,7 +1877,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
             sage: G = CyclicPermutationGroup(58)
-            sage: mat = matrix(2, [0,1,1,0])
+            sage: mat = matrix(2, [0, 1, 1, 0])
             sage: L = GLattice(G, [mat])
             sage: for i in range(-5, 6):
             ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
@@ -1959,7 +1959,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         EXAMPLES::
 
             sage: G = CyclicPermutationGroup(3)
-            sage: mat = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: mat = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: L = GLattice(G, [mat])
             sage: L.induced_lattice(SymmetricGroup(3))
             Ambient lattice of rank 6 with an action by a group of order 6
@@ -1979,8 +1979,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             sage: m1 = matrix(3, [0, 0, 1, -1, -1, -1, 1, 0, 0])
             sage: m2 = matrix(3, [-1, 0, 0, 0, -1, 0, 0, 0, -1])
             sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
-            sage: G = MatrixGroup([m1,m2,m3])
-            sage: H = MatrixGroup([m1,m2])
+            sage: G = MatrixGroup([m1, m2, m3])
+            sage: H = MatrixGroup([m1, m2])
             sage: L = GLattice(H)
             sage: L.induced_lattice(G)
             Ambient lattice of rank 6 with an action by a group of order 8
@@ -2242,7 +2242,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
         EXAMPLES::
 
-            sage: L = GLattice(DihedralGroup(4),4).zero_sum_sublattice()
+            sage: L = GLattice(DihedralGroup(4), 4).zero_sum_sublattice()
             sage: L.parent_lattice()
             Ambient lattice of rank 4 with an action by a group of order 8
         """
@@ -2261,9 +2261,9 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
             sage: G = SymmetricGroup(3)
             sage: H = CyclicPermutationGroup(2)
-            sage: m1 = matrix(3, [0,1,0,0,0,1,1,0,0])
-            sage: m2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: L = GLattice(G, [m1,m2])
+            sage: m1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
+            sage: m2 = matrix(3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
+            sage: L = GLattice(G, [m1, m2])
             sage: a,b,c = L.basis()
             sage: SL = L.sublattice([a+b+c])
             sage: SL2 = SL.subgroup_lattice(H); SL2
@@ -2302,7 +2302,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
             sage: L = GLattice(DihedralGroup(4), 4)
             sage: SL1 = L.zero_sum_sublattice()
             sage: L = GLattice(DihedralGroup(4), 4)
-            sage: SL1 = L.zero_sum_sublattice();SL1
+            sage: SL1 = L.zero_sum_sublattice(); SL1
             Sublattice of degree 4 and rank 3 with an action by a group of order 8 and echelon basis matrix
             [ 1  0  0 -1]
             [ 0  1  0 -1]
@@ -2348,9 +2348,9 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         ::
 
             sage: G = DihedralGroup(4)
-            sage: m1 = matrix(2, [0,1,1,0])
+            sage: m1 = matrix(2, [0, 1, 1, 0])
             sage: m2 = -matrix.identity(2)
-            sage: L = GLattice(G, [m1,m2])
+            sage: L = GLattice(G, [m1, m2])
             sage: for i in range(-5, 6):
             ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
             H^-5:  [2, 2, 2]
@@ -2504,7 +2504,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         is not stable under the group action::
 
             sage: G2 = CyclicPermutationGroup(2)
-            sage: m = matrix([[0,1,0,0,0], [1,0,0,0,0], [0,0,1,0,0], [0,0,0,-1,0], [0,0,0,0,-1]])
+            sage: m = matrix([[0, 1, 0, 0, 0], [1, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, -1, 0], [0, 0, 0, 0, -1]])
             sage: L2 = GLattice(G2, [m])
             sage: a,b,c,d,e = L2.basis()
             sage: SL2 = L2.sublattice([a,b,d]); SL2
