@@ -1,6 +1,6 @@
 r"""
 Classes of G-Lattices
-===================
+======================
 
 G-Lattices are defined by equipping the standard lattice in `\ZZ^n` with a group action.
 
@@ -63,7 +63,7 @@ trivial action of the group::
     [0 1], [0 1]
     ]
 
-If you do not provide an integer, it will give the natural permutation action of the group as permutation group.
+If you do not provide an integer, it will give the natural permutation action of the group as permutation group::
 
     sage: L = GLattice([2,3]); L; L._action_matrices
     Ambient lattice of rank 5 with an action by a group of order 6
@@ -113,7 +113,7 @@ This subgroup should be finite::
 
 
 GLattice(list_of_integers, action)
---------------------------------
+------------------------------------
 
 Providing a list of integers corresponding to a finite abelian group, and action
 matrices (or integer for the trivial action)::
@@ -126,7 +126,7 @@ matrices (or integer for the trivial action)::
 
 
 SubLattice(lattice, generators)
--------------------------------
+---------------------------------
 
 In order to create a sublattice, give a lattice and a list of vectors in the lattice::
 
@@ -147,7 +147,7 @@ The algorithm checks if the sublattice is stable under the group action::
 
 
 Attributes of a lattice
------------------------
+-------------------------
 
 - ``lattice._group`` -- the group acting on the lattice
 
@@ -158,7 +158,7 @@ Attributes of a lattice
 - ``lattice._action_matrices`` -- the matrices through which the group acts
 
 - ``lattice._action._morphism`` -- the map (as a group homomorphism in GAP) from
-    the group to ``GL(rank,ZZ)``
+    the group to `GL_n(\ZZ)`
 
 - ``lattice._GAPMap`` -- returns the Sage :class:`sage.categories.map.Map` element
     representing Lattice.action_morphism
@@ -170,47 +170,39 @@ Attributes of a lattice
 
 
 Methods of a lattice
---------------------
+----------------------
 
 - :meth:`Lattice_generic.group` -- the group acting on the lattice
 
 - :meth:`Lattice_generic.display_action` -- displays the matrices corresponding to the group action
 
-- :meth:`Lattice_generic._act` -- the action of the group on the lattice
-
-- :meth:`Lattice_generic.subgroup_lattice` -- restricts the action of
-    the group to a subgroup.
+- :meth:`Lattice_generic.subgroup_lattice` -- restricts the action of the group to a subgroup.
 
 - :meth:`Lattice_generic.sum_lattice` -- takes the direct sum of two lattices.
+
+- :meth:`Lattice_generic.dim_shift` -- returns a lattice with shifted cohomological groups
 
 - :meth:`Lattice_generic.parent_lattice` -- returns the parent ambient lattice.
 
 - :meth:`Lattice_generic.group_extend` -- returns a lattice with the pullback action of a group with map to the current lattice group.
 
-- :meth:`Lattice_generic.rational_characters` -- the sublattice of
-    elements fixed by the group.
+- :meth:`Lattice_generic.rational_characters` -- the sublattice of elements fixed by the group.
 
-- :meth:`Lattice_generic.quotient_ambient_sublattice` -- the quotient lattice
-    of an ambient lattice by some sublattice
+- :meth:`Lattice_generic.quotient_ambient_sublattice` -- the quotient lattice of an ambient lattice by some sublattice
 
-- :meth:`Lattice_generic.quotient_lattice` -- the quotient lattice
-    of a lattice by some sublattice
+- :meth:`Lattice_generic.quotient_lattice` -- the quotient lattice of a lattice by some sublattice
 
-- :meth:`Lattice_generic.isomorphic_ambient_lattice` -- gives an isomorphic
-    ambient lattice, returns the same lattice if it is already ambient.
+- :meth:`Lattice_generic.isomorphic_ambient_lattice` -- gives an isomorphic ambient lattice, returns the same lattice if it is already ambient.
 
--- :meth:`Lattice_generic.GAPMatrixgroup` -- the matrix group corresponding to
-    the action, as a GAP group.
+- :meth:`Lattice_generic.GAPMatrixGroup` -- the matrix group corresponding to the action, as a GAP group.
 
-- :meth:`Lattice_generic.colattice` -- the lattice where the action of the group
-    is composed with the inverse transpose automorphism.
+- :meth:`Lattice_generic.colattice` -- the lattice where the action of the group is composed with the inverse transpose automorphism.
 
 - :meth:`Lattice_generic.Tate_Cohomology` -- computes the Tate cohomology of the lattice
 
 - :meth:`Lattice_generic.induced_lattice` -- the induction of the lattice to a bigger group
 
-- :meth:`Lattice_generic.zero_sum_sublattice` -- the sublattice of zero sum vectors,
-    can also give an ambient lattice isomorphic to this zero sum sublattice.
+- :meth:`Lattice_generic.zero_sum_sublattice` -- the sublattice of zero sum vectors, can also give an ambient lattice isomorphic to this zero sum sublattice.
 
 - :meth:`Lattice_generic.first_coboundary_space` -- the space of 1-coboundaries.
 
@@ -306,7 +298,7 @@ from sage.arith.misc import xgcd
 
 def GLattice(*args, **kwds):
     r"""
-    Create a `G`-lattice: a finite-rank free `Z`-module with an action of a finite group `G`
+    Create a `G`-lattice: a finite-rank free `\ZZ`-module with an action of a finite group `G`
 
     INPUT:
 
@@ -472,7 +464,7 @@ def extended_xgcd(lst, result=[ZZ(1)]):
 
 class GAPMap_toGLn(Map):
     r"""
-    Sage Map class for a group homomorphism to ``GL(n,\ZZ)`` in GAP.
+    Sage Map class for a group homomorphism to `GL_n(\ZZ)` in GAP.
     """
 
     def __init__(self, group, rank, hom):
@@ -544,7 +536,7 @@ class GAPMap_toGLn(Map):
 ###############################################################################
 
 class Lattice_generic(FreeModule_generic):
-    """
+    r"""
     Generic classes for all lattices
     """
     def __init__(self, G, im_gens, check):
@@ -652,19 +644,19 @@ class Lattice_generic(FreeModule_generic):
 
             sage: L1 = GLattice(SymmetricGroup(3), 5)
             sage: L1.group()
-            Permutation Group with generators [(1, 2, 3), (1, 2)]
+            Permutation Group with generators [(1,2,3), (1,2)]
 
         ::
 
             sage: L2 = GLattice(PermutationGroup([(2, 3), (1, 6, 3), (7, 6, 4, 5)]), 1)
             sage: L2.group()
-            Permutation Group with generators [(4, 5, 7, 6), (2, 3), (1, 6, 3)]
+            Permutation Group with generators [(4,5,7,6), (2,3), (1,6,3)]
 
         ::
 
             sage: L3 = GLattice([-matrix.identity(3)])
             sage: L3.group()
-            Permutation Group with generators [(1, 2)]
+            Permutation Group with generators [(1,2)]
         """
         return self._group
 
@@ -907,11 +899,12 @@ class Lattice_generic(FreeModule_generic):
         return self.isomorphic_ambient_lattice()
 
     def GAPMatrixGroup(self):
-        """
+        r"""
         The image of the action of the group inside
-        ``GL(rank,ZZ)`` as a GAP group::
+        `GL_n(\ZZ)` as a GAP group.
 
         EXAMPLES::
+
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix.identity(3)
@@ -936,16 +929,15 @@ class Lattice_generic(FreeModule_generic):
             Group([ [ [ -1, 0, 0 ], [ 0, -1, 0 ], [ 0, 0, -1 ] ], 
               [ [ 0, 0, 1 ], [ -1, -1, -1 ], [ 1, 0, 0 ] ], 
               [ [ 0, 1, 0 ], [ 1, 0, 0 ], [ -1, -1, -1 ] ] ])
-
         """
         f = self._GAPMap
         return gap.Image(f._morphism)
 
 
     def colattice(self):
-        """
+        r"""
         Outputs the lattice with action of the same group, but its action is
-        composed with the inverse transpose automorphism of ``GL(n,ZZ)``
+        composed with the inverse transpose automorphism of `GL_n(\ZZ)`
 
         EXAMPLES::
 
@@ -1282,10 +1274,6 @@ class Lattice_generic(FreeModule_generic):
         - ``build`` -- boolean (default True).  If False, just returns the matrices
            that define the action on the induced lattice but doesn't build the lattice.
 
-        .. NOTE::
-
-            This is not yet implemented when a lattice is declared with a matrix group since
-            Sage doesn't handle cosets for matrix groups.
 
         EXAMPLES::
 
@@ -1332,7 +1320,6 @@ class Lattice_generic(FreeModule_generic):
         an ambient lattice isomorphic to the zero sum sublattice. If False or
         left blank, it will give the sublattice of zero sum vectors.
         (default option is True)
-
 
         .. NOTE::
 
@@ -1411,7 +1398,7 @@ class Lattice_generic(FreeModule_generic):
             [  5   3  -5  12 -15]
             [  0   4  -7  24 -21]
 
-        Here is an example of lattice whose zero sum submodule over ``\ZZ``
+        Here is an example of lattice whose zero sum submodule over `\ZZ`
         is not stable under the group action::
 
             sage: G = SymmetricGroup(2)
@@ -1431,7 +1418,6 @@ class Lattice_generic(FreeModule_generic):
         INPUT:
 
         - ``group`` -- the group used for the induction, when restricting scalars.
-
 
         .. NOTE::
 
@@ -1521,7 +1507,7 @@ class Lattice_generic(FreeModule_generic):
         return Lattice_ambient(self.group(),A)
 
     def dim_shift(self, build=False):
-        """
+        r"""
         Returns a lattice whose ``i``th Tate cohomology group is the ``i+1``th Tate cohomology group of the original lattice.
         
         INPUT:
@@ -1529,7 +1515,6 @@ class Lattice_generic(FreeModule_generic):
         - ``build`` -- boolean, if false, returns a pair of lattices whose quotient is the dimension-shifted lattice. If True, returns the dimension-shifted lattice itself
 
         EXAMPLES::
-
 
             sage: L = GLattice(1)
             sage: G = SymmetricGroup(2)
@@ -1549,9 +1534,6 @@ class Lattice_generic(FreeModule_generic):
             sage: DQL = QL.dim_shift(True)
             sage: DQL.Tate_Cohomology(1)
             [2]
-            
-
-
         """
         lat = self.isomorphic_ambient_lattice()
         GG = lat.group()
@@ -1581,16 +1563,15 @@ class Lattice_generic(FreeModule_generic):
         INPUT:
 
         - ``basis`` -- desired basis for the sublattice
-        - ``check`` -- boolean, false if we do not want to check 
-        that the lattice is stable under the action of the group.
+
+        - ``check`` -- boolean, false if we do not want to check that the lattice is stable under the action of the group.
         
-        -EXAMPLE:
+        EXAMPLES::
 
             sage: L = GLattice(SymmetricGroup(3))
             sage: SL = L.sublattice([sum(i for i in L.basis())]); SL
             Sublattice of degree 3 and rank 1 with an action by a group of order 6 and echelon basis matrix
             [1 1 1]
-
         """
 
         return SubLattice(self, basis, check)
@@ -1715,12 +1696,12 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         INPUT:
 
         - ``galois`` -- the group acting on the lattice, either permutation
-            group or finite sugroup of ``GL(n,\ZZ)`` for some n. It can be a list
+            group or finite sugroup of `GL_n(\ZZ)` for some n. It can be a list
             of integers for a finite abelian group of that type.
 
         - ``action`` -- the list of matrices by which the generators of the group
             act, or an integer for the trivial action on the ambient free
-            ``\ZZ`` module of that rank.
+            `\ZZ` module of that rank.
 
         - ``check`` -- boolean, True by default. If true, checks that the action of the group is a well-defined group action.
 
@@ -1866,7 +1847,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         INPUT:
 
-        -``n`` -- integer corresponding to the cohomology group to compute.
+        - ``n`` -- integer corresponding to the cohomology group to compute.
 
         .. NOTE::
 
@@ -1874,7 +1855,6 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             and in the AlgebraicTorus one.
 
         EXAMPLES::
-
 
             sage: G = CyclicPermutationGroup(58)
             sage: mat = matrix(2, [0, 1, 1, 0])
@@ -2115,9 +2095,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         INPUT:
 
-        -``group`` -- group for the induction, corresponding to the restriction
+        - ``group`` -- group for the induction, corresponding to the restriction
             of scalars.
-
 
         .. NOTE::
 
@@ -2405,7 +2384,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
         - ``group`` -- the larger group to induce the lattice to.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = DihedralGroup(4)
             sage: m1 = matrix(2, [0, 1, 1, 0])
