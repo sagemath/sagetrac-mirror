@@ -321,8 +321,8 @@ def GLattice(*args, **kwds):
       if a list of matrices ``im_gens`` are given they will define the action;
       otherwise it will be the permutation action.
 
-    The action will be checked to ensure that it is a homomorphism.
-
+    The keyword argument ``check`` (default ``True``) determines whether the action
+    will be checked to ensure that it is a homomorphism.
 
     EXAMPLES::
 
@@ -333,7 +333,7 @@ def GLattice(*args, **kwds):
         sage: GLattice([2, 3], 1).group()
         Permutation Group with generators [(3,4,5), (1,2)]
 
-    ::  
+    ::
 
         sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
         sage: act2 = matrix.identity(3)
@@ -348,9 +348,9 @@ def GLattice(*args, **kwds):
         sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
         sage: GLattice([m1, m2, m3])
         Ambient lattice of rank 3 with an action by a group of order 8
-    
+
     ::
-    
+
         sage: GLattice([2, 3])
         Ambient lattice of rank 5 with an action by a group of order 6
     """
@@ -442,11 +442,16 @@ def extended_xgcd(lst, result=[ZZ(1)]):
 
     INPUT:
 
-    - ``lst`` -- the list of integers we want the gdc and Bezout coefficients.
+    - ``lst`` -- the list of integers for which we want the gdc and Bezout coefficients.
     - ``result`` -- only used for recursion
 
+    OUTPUT:
+
+    - ``d`` -- the greatest common divisor of ``lst``
+    - ``coeffs`` -- a list of coefficients whose inner product with ``lst`` gives ``d``.
+
     EXAMPLES::
-    
+
         sage: from sage.modules.glattice import extended_xgcd
         sage: extended_xgcd([6,20,15])
         (1, [21, -7, 1])
@@ -506,7 +511,7 @@ class GAPMap_toGLn(Map):
 
     def _call_(self, element):
         """
-        Returns the action of a specific group element. 
+        Returns the action of a specific group element.
 
         INPUT:
 
@@ -538,54 +543,57 @@ class GAPMap_toGLn(Map):
 class Lattice_generic(FreeModule_generic):
     r"""
     Generic classes for all lattices
+
+    INPUT:
+
+    - ``G`` -- the permutation group acting on the lattice.
+
+    - ``im_gens`` -- action of the group on the lattice, given as a list of matrices.
+
+    EXAMPLES::
+
+        sage: L = GLattice(SymmetricGroup(3), 5); L
+        Ambient lattice of rank 5 with an action by a group of order 6
+        sage: a,b,c,d,e = L.basis()
+
+    ::
+
+        sage: L.sublattice([a, b, c+d+e])
+        Sublattice of degree 5 and rank 3 with an action by a group of order 6 and echelon basis matrix
+        [1 0 0 0 0]
+        [0 1 0 0 0]
+        [0 0 1 1 1]
+
+    ::
+
+        sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
+        sage: act2 = matrix.identity(3)
+        sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
+        sage: GLattice(G, [act1, act2])
+        Ambient lattice of rank 3 with an action by a group of order 6
+
+    ::
+
+        sage: m1 = matrix(3, [0, 0, 1, -1, -1, -1, 1, 0, 0])
+        sage: m2 = matrix(3, [-1, 0, 0, 0, -1, 0, 0, 0, -1])
+        sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
+        sage: GLattice([m1, m2, m3])
+        Ambient lattice of rank 3 with an action by a group of order 8
+
+    ::
+
+        sage: H = MatrixGroup([m1, m2, m3])
+        sage: GLattice(H)
+        Ambient lattice of rank 3 with an action by a group of order 8
     """
     def __init__(self, G, im_gens, check):
         """
         Constructs a generic lattice.
 
-        INPUT:
+        TESTS::
 
-        - ``G`` -- the permutation group acting on the lattice.
-
-        - ``im_gens`` -- action of the group on the lattice, given as a list of matrices.
-
-        EXAMPLES::
-
-            sage: L = GLattice(SymmetricGroup(3), 5); L
-            Ambient lattice of rank 5 with an action by a group of order 6
-            sage: a,b,c,d,e = L.basis()
-
-        ::
-
-            sage: L.sublattice([a, b, c+d+e])
-            Sublattice of degree 5 and rank 3 with an action by a group of order 6 and echelon basis matrix
-            [1 0 0 0 0]
-            [0 1 0 0 0]
-            [0 0 1 1 1]
-
-        ::
-
-            sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
-            sage: act2 = matrix.identity(3)
-            sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
-            sage: GLattice(G, [act1, act2])
-            Ambient lattice of rank 3 with an action by a group of order 6
-
-        ::
-
-            sage: m1 = matrix(3, [0, 0, 1, -1, -1, -1, 1, 0, 0])
-            sage: m2 = matrix(3, [-1, 0, 0, 0, -1, 0, 0, 0, -1])
-            sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
-            sage: GLattice([m1, m2, m3])
-            Ambient lattice of rank 3 with an action by a group of order 8
-
-        ::
-
-            sage: H = MatrixGroup([m1, m2, m3])
-            sage: GLattice(H)
-            Ambient lattice of rank 3 with an action by a group of order 8
+            sage: TestSuite(GLattice(SymmetricGroup(3), 5)).run()
         """
-
         self._group = G
         self._generators = G.gens()
         self._action_matrices = im_gens
@@ -1204,7 +1212,8 @@ class Lattice_generic(FreeModule_generic):
 
         INPUT:
 
-        - ``subgp_list`` -- list of subgroup we want to compute the kernel of corresponding restriction map of.
+        - ``subgp_list`` -- list of subgroup we want to compute the kernel
+            of corresponding restriction map of.
 
 
         EXAMPLES::
@@ -1317,9 +1326,9 @@ class Lattice_generic(FreeModule_generic):
         INPUT:
 
         - ``ambient`` -- boolean, if ambient is True the algorithm will give
-        an ambient lattice isomorphic to the zero sum sublattice. If False or
-        left blank, it will give the sublattice of zero sum vectors.
-        (default option is True)
+            an ambient lattice isomorphic to the zero sum sublattice. If False or
+            left blank, it will give the sublattice of zero sum vectors.
+            (default option is ``True``)
 
         .. NOTE::
 
@@ -1406,6 +1415,7 @@ class Lattice_generic(FreeModule_generic):
             sage: L = GLattice(G, [m])
             sage: L.zero_sum_sublattice()
             Traceback (most recent call last):
+            ...
             ValueError: The basis is not stable under the action of the group
         """
         return self.zero_sum_sublattice(ambient)
@@ -1508,11 +1518,13 @@ class Lattice_generic(FreeModule_generic):
 
     def dim_shift(self, build=False):
         r"""
-        Returns a lattice whose ``i``th Tate cohomology group is the ``i+1``th Tate cohomology group of the original lattice.
-        
+        Returns a lattice whose ``i`` th Tate cohomology group is the ``i+1`` th Tate cohomology group of the original lattice.
+
         INPUT:
 
-        - ``build`` -- boolean, if false, returns a pair of lattices whose quotient is the dimension-shifted lattice. If True, returns the dimension-shifted lattice itself
+        - ``build`` -- boolean.  If ``False``, returns a pair of lattices whose quotient
+          is the dimension-shifted lattice.  If ``True``, returns the dimension-shifted
+          lattice itself.
 
         EXAMPLES::
 
@@ -1564,8 +1576,9 @@ class Lattice_generic(FreeModule_generic):
 
         - ``basis`` -- desired basis for the sublattice
 
-        - ``check`` -- boolean, false if we do not want to check that the lattice is stable under the action of the group.
-        
+        - ``check`` -- boolean, false if we do not want to check that
+            the lattice is stable under the action of the group.
+
         EXAMPLES::
 
             sage: L = GLattice(SymmetricGroup(3))
@@ -1688,38 +1701,47 @@ class Lattice_generic(FreeModule_generic):
 class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
     """
     Class for ambient lattices.
+
+    INPUT:
+
+    - ``galois`` -- the group acting on the lattice, either permutation
+        group or finite sugroup of `GL_n(\ZZ)` for some n. It can be a list
+        of integers for a finite abelian group of that type.
+
+    - ``action`` -- the list of matrices by which the generators of the group
+        act, or an integer for the trivial action on the ambient free
+        `\ZZ` module of that rank.
+
+    - ``check`` -- boolean, True by default. If true, checks that the action
+        of the group is a well-defined group action.
+
+    EXAMPLES::
+
+        sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
+        sage: act2 = matrix.identity(3)
+        sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
+        sage: GLattice(G, [act1, act2])
+        Ambient lattice of rank 3 with an action by a group of order 6
+
+    ::
+
+        sage: m1 = matrix(3, [0, 0, 1, -1, -1, -1, 1, 0, 0])
+        sage: m2 = matrix(3, [-1, 0, 0, 0, -1, 0, 0, 0, -1])
+        sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
+        sage: GLattice([m1, m2, m3])
+        Ambient lattice of rank 3 with an action by a group of order 8
     """
     def __init__(self, galois, action, check=True):
         r"""
         Constructs an ambient lattice.
 
-        INPUT:
-
-        - ``galois`` -- the group acting on the lattice, either permutation
-            group or finite sugroup of `GL_n(\ZZ)` for some n. It can be a list
-            of integers for a finite abelian group of that type.
-
-        - ``action`` -- the list of matrices by which the generators of the group
-            act, or an integer for the trivial action on the ambient free
-            `\ZZ` module of that rank.
-
-        - ``check`` -- boolean, True by default. If true, checks that the action of the group is a well-defined group action.
-
-        EXAMPLES::
+        TESTS::
 
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix.identity(3)
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
-            sage: GLattice(G, [act1, act2])
-            Ambient lattice of rank 3 with an action by a group of order 6
-
-        ::
-
-            sage: m1 = matrix(3, [0, 0, 1, -1, -1, -1, 1, 0, 0])
-            sage: m2 = matrix(3, [-1, 0, 0, 0, -1, 0, 0, 0, -1])
-            sage: m3 = matrix(3, [0, 1, 0, 1, 0, 0, -1, -1, -1])
-            sage: GLattice([m1, m2, m3])
-            Ambient lattice of rank 3 with an action by a group of order 8
+            sage: X = GLattice(G, [act1, act2])
+            sage: TestSuite(X).run()
         """
         Lattice_generic.__init__(self, galois, action, check)
         FreeModule_ambient_pid.__init__(self, ZZ, self._rank)
@@ -1873,7 +1895,6 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             H^4:  [29]
             H^5:  []
         """
-     
         MG = self.GAPMatrixGroup()
         G = libgap(self.group())
         if n == 0:
@@ -2159,23 +2180,14 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
     """
     Class for sublattices of ambient lattices (or sublattices themselves).
 
-    INPUT:
-
-    - ``lattice`` -- the lattice (ambient or not) in which our lattice embeds
-
-    - ``basis`` -- a set of generators of the sublattice
-    """
-    def __init__(self, lattice, basis, check=True):
-        """
-        Initialization of sublattice.
-
         INPUTS:
 
-        - ``lattice`` -- lattice we want to take a sublattice of.
+        - ``lattice`` -- the lattice (ambient or not) in which our lattice embeds
 
         - ``basis`` -- basis generating the sublattice.
 
-        - ``check`` -- boolean, true by default. If true, checks that the sublattice is stable under the action of the group.
+        - ``check`` -- boolean (default ``True``). If ``True``, checks that
+            the sublattice is stable under the action of the group.
 
         EXAMPLES::
 
@@ -2185,6 +2197,16 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
             sage: L.sublattice([b])
             Sublattice of degree 10 and rank 1 with an action by a group of order 10 and echelon basis matrix
             [1 1 1 1 1 1 1 1 1 1]
+    """
+    def __init__(self, lattice, basis, check=True):
+        """
+        Initialization of sublattice.
+
+        TESTS::
+
+            sage: L = GLattice([10])
+            sage: b = sum(L.basis())
+            sage: TestSuite(L.sublattice([b])).run()
         """
         Lattice_generic.__init__(self,lattice._group, lattice._action_matrices, check)
         FreeModule_submodule_pid.__init__(self, lattice.parent_lattice(), basis)
@@ -2426,7 +2448,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         INPUT:
 
         - ``group`` -- the bigger group corresponding to the induction for
-        the restriction of scalars.
+            the restriction of scalars.
 
 
         EXAMPLES::
@@ -2493,6 +2515,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
             [0 0 0 1 0]
             sage: SL2.zero_sum_sublattice()
             Traceback (most recent call last):
+            ...
             ValueError: The basis is not stable under the action of the group
         """
         oldBasis = self.basis()
