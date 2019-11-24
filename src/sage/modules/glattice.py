@@ -443,6 +443,7 @@ def extended_xgcd(lst, result=[ZZ(1)]):
     INPUT:
 
     - ``lst`` -- the list of integers we want the gdc and Bezout coefficients.
+    
     - ``result`` -- only used for recursion
 
     EXAMPLES::
@@ -804,7 +805,7 @@ class Lattice_generic(FreeModule_generic):
         """
         Given a group homomorphism with target in the associated group of the lattice, we create a lattice with the pullback action.
 
-        INPUTS:
+        INPUT:
 
         -- ``hom`` -- GAP group homomorphism
 
@@ -2169,7 +2170,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         """
         Initialization of sublattice.
 
-        INPUTS:
+        INPUT:
 
         - ``lattice`` -- lattice we want to take a sublattice of.
 
