@@ -481,11 +481,11 @@ class GAPMap_toGLn(Map):
 
         INPUT:
 
-        - ``group`` -- The domain of the homomorphism
+        - ``group`` -- the domain of the homomorphism
 
-        - ``rank`` -- The rank of the target matrix group
+        - ``rank`` -- the rank of the target matrix group
 
-        - ``hom`` -- The group homomorphism as a GAP object
+        - ``hom`` -- the group homomorphism as a GAP object
 
         EXAMPLES::
 
@@ -514,7 +514,12 @@ class GAPMap_toGLn(Map):
 
     def _call_(self, element):
         """
-        
+        Returns the action of a specific group element. 
+
+        INPUT:
+
+        - ``element`` -- group element (possibly in tuple form) we want the action of.
+
         EXAMPLES::
 
             sage: L = GLattice([2, 2])
@@ -720,7 +725,7 @@ class Lattice_generic(FreeModule_generic):
 
          INPUT :
 
-         - ``lat`` -- Lattice we wish to sum with the current lattice.
+         - ``lat`` -- lattice we wish to sum with the current lattice.
 
          EXAMPLES::
 
@@ -1323,7 +1328,7 @@ class Lattice_generic(FreeModule_generic):
 
         INPUT:
 
-        - ``ambient`` -- Boolean, if ambient is True the algorithm will give
+        - ``ambient`` -- boolean, if ambient is True the algorithm will give
         an ambient lattice isomorphic to the zero sum sublattice. If False or
         left blank, it will give the sublattice of zero sum vectors.
         (default option is True)
@@ -1521,7 +1526,7 @@ class Lattice_generic(FreeModule_generic):
         
         INPUT:
 
-        - ``build`` -- Boolean, if false, returns a pair of lattices whose quotient is the dimension-shifted lattice. If True, returns the dimension-shifted lattice itself
+        - ``build`` -- boolean, if false, returns a pair of lattices whose quotient is the dimension-shifted lattice. If True, returns the dimension-shifted lattice itself
 
         EXAMPLES::
 
@@ -1575,8 +1580,8 @@ class Lattice_generic(FreeModule_generic):
 
         INPUT:
 
-        - ``basis`` -- Desired basis for the sublattice
-        - ``check`` -- Boolean, false if we do not want to check 
+        - ``basis`` -- desired basis for the sublattice
+        - ``check`` -- boolean, false if we do not want to check 
         that the lattice is stable under the action of the group.
         
         -EXAMPLE:
@@ -1716,6 +1721,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         - ``action`` -- the list of matrices by which the generators of the group
             act, or an integer for the trivial action on the ambient free
             ``\ZZ`` module of that rank.
+
+        - ``check`` -- boolean, True by default. If true, checks that the action of the group is a well-defined group action.
 
         EXAMPLES::
 
@@ -2183,7 +2190,13 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         """
         Initialization of sublattice.
 
+        INPUTS:
 
+        - ``lattice`` -- lattice we want to take a sublattice of.
+
+        - ``basis`` -- basis generating the sublattice.
+
+        - ``check`` -- boolean, true by default. If true, checks that the sublattice is stable under the action of the group.
 
         EXAMPLES::
 
