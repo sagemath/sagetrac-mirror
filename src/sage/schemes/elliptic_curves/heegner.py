@@ -3088,7 +3088,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             sage: E = EllipticCurve('389a'); y = E.heegner_point(-7,5)
             sage: y.map_to_complex_numbers()
-            1.49979679635196 + 0.369156204821526*I
+            1.49979679635196 + 0.369156204821527*I
             sage: y.map_to_complex_numbers(100)
             1.4997967963519640592142411892 + 0.36915620482152626830089145962*I
             sage: y.map_to_complex_numbers(10)
@@ -4092,7 +4092,7 @@ class KolyvaginPoint(HeegnerPoint):
             sage: P = EllipticCurve('37a1').kolyvagin_point(-7); P
             Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
             sage: P.numerical_approx() # approx. (0 : 0 : 1)
-            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
+            (...e-16 + ...e-16*I : ...e-16 - ...e-16*I : 1.00000000000000)
             sage: P.numerical_approx(100)[0].abs() < 2.0^-99
             True
 
@@ -6401,7 +6401,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
         sage: P.numerical_approx()  # abs tol 1e-14
-        (6.00000000000000 : -15.0000000000000 : 1.00000000000000)
+        (6.00000000000000 + ...e-15*I: -15.0000000000000 - ...e-15*I: 1.00000000000000)
         sage: P.index()
         6
         sage: g = E((0,-1,1)) # a generator

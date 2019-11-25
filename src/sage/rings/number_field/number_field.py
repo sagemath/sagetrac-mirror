@@ -1901,7 +1901,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.Hom(K) # indirect doctest
             Automorphism group of Number Field in i with defining polynomial x^2 + 1
             sage: Hom(K, QuadraticField(-1, 'b'))
-            Set of field embeddings from Number Field in i with defining polynomial x^2 + 1 to Number Field in b with defining polynomial x^2 + 1 with b = 1*I
+            Set of field embeddings from Number Field in i with defining polynomial x^2 + 1 to Number Field in b with defining polynomial x^2 + 1 with b = I
 
         CHECKME: handling of the case where codomain is not a number field?
 
@@ -2607,7 +2607,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         EXAMPLES::
 
             sage: QuadraticField(-1, 'I').complex_conjugation()
-            Ring endomorphism of Number Field in I with defining polynomial x^2 + 1 with I = 1*I
+            Ring endomorphism of Number Field in I with defining polynomial x^2 + 1 with I = I
               Defn: I |--> -I
             sage: CyclotomicField(8).complex_conjugation()
             Ring endomorphism of Cyclotomic Field of order 8 and degree 4

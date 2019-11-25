@@ -1300,7 +1300,7 @@ class AbsoluteOrder(Order):
             sage: K.<i> = QuadraticField(-1)
             sage: O3 = K.order(3*i); O5 = K.order(5*i)
             sage: R = O3 & O5; R
-            Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
+            Order in Number Field in i with defining polynomial x^2 + 1 with i = I
             sage: R.basis()
             [1, 15*i]
             sage: O3.intersection(O5).basis()

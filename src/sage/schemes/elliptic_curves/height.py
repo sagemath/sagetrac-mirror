@@ -780,7 +780,7 @@ class EllipticCurveCanonicalHeight:
             sage: K.<i>=QuadraticField(-1)
             sage: E = EllipticCurve([0,i,0,i,i])
             sage: EllipticCurveCanonicalHeight(E)
-            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 = x^3 + i*x^2 + i*x + i over Number Field in i with defining polynomial x^2 + 1 with i = 1*I
+            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 = x^3 + i*x^2 + i*x + i over Number Field in i with defining polynomial x^2 + 1 with i = I
 
         TESTS:
 
@@ -875,7 +875,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve(K, [0,0,0,1,-27])
             sage: H = E.height_function()
             sage: H.base_field()
-            Number Field in i with defining polynomial x^2 + 1 with i = 1*I
+            Number Field in i with defining polynomial x^2 + 1 with i = I
             sage: H((1,5*i))
             1.22257115164148
         """

@@ -873,8 +873,8 @@ def isogenies_5_1728(E, minimal_models=True):
         sage: K.<i> = QuadraticField(-1)
         sage: E = EllipticCurve(K,[0,0,0,1,0])
         sage: isogenies_5_1728(E)
-        [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I,
-         Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I]
+        [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = I to Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = I,
+         Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = I to Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 with i = I]
         sage: _[0].rational_maps()
         (((4/25*i + 3/25)*x^5 + (4/5*i - 2/5)*x^3 - x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
          ((11/125*i + 2/125)*x^6*y + (-23/125*i + 64/125)*x^4*y + (141/125*i + 162/125)*x^2*y + (3/25*i - 4/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
@@ -1296,8 +1296,8 @@ def isogenies_13_1728(E, minimal_models=True):
         sage: E = EllipticCurve([0,0,0,i,0]); E.ainvs()
         (0, 0, 0, i, 0)
         sage: isogenies_13_1728(E)
-        [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I,
-         Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I]
+        [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = I to Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = I,
+         Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = I to Elliptic Curve defined by y^2 = x^3 + i*x over Number Field in i with defining polynomial x^2 + 1 with i = I]
 
     ::
 
@@ -1869,8 +1869,8 @@ def isogenies_prime_degree_genus_plus_0_j1728(E, l, minimal_models=True):
         sage: i = QuadraticField(-1,'i').gen()
         sage: E = EllipticCurve([-1-2*i,0])
         sage: isogenies_prime_degree_genus_plus_0_j1728(E,17)
-        [Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + (-2*i-1)*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Elliptic Curve defined by y^2 = x^3 + (-82*i-641)*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I,
-         Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + (-2*i-1)*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Elliptic Curve defined by y^2 = x^3 + (-562*i+319)*x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I]
+        [Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + (-2*i-1)*x over Number Field in i with defining polynomial x^2 + 1 with i = I to Elliptic Curve defined by y^2 = x^3 + (-82*i-641)*x over Number Field in i with defining polynomial x^2 + 1 with i = I,
+         Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + (-2*i-1)*x over Number Field in i with defining polynomial x^2 + 1 with i = I to Elliptic Curve defined by y^2 = x^3 + (-562*i+319)*x over Number Field in i with defining polynomial x^2 + 1 with i = I]
         sage: Emin = E.global_minimal_model()
         sage: [(p,len(isogenies_prime_degree_genus_plus_0_j1728(Emin,p))) for p in [17, 29, 41]]
         [(17, 2), (29, 2), (41, 2)]

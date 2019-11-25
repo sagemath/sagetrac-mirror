@@ -499,7 +499,7 @@ class Polytopes():
             sage: d12.volume()
             -176*sqrt5 + 400
             sage: numerical_approx(_)
-            6.45203596003699
+            6.45203596003701
 
             sage: d12 = polytopes.dodecahedron(exact=False)
             sage: d12.base_ring()
@@ -2663,7 +2663,7 @@ class Polytopes():
         The ``'normaliz'`` is faster::
 
             sage: polytopes.one_hundred_twenty_cell(backend='normaliz')  # optional - pynormaliz
-            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining 
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
             polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 600 vertices
 
         It is also possible to realize it using the generalized permutahedron

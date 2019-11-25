@@ -2069,7 +2069,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: EK = EllipticCurve([0,0,0,i,i+3])
             sage: EK.torsion_subgroup ()
-            Torsion Subgroup isomorphic to Trivial group associated to the Elliptic Curve defined by y^2 = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1 with i = 1*I
+            Torsion Subgroup isomorphic to Trivial group associated to the Elliptic Curve defined by y^2 = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1 with i = I
         """
         from .ell_torsion import EllipticCurveTorsionSubgroup
         return EllipticCurveTorsionSubgroup(self)
@@ -2576,7 +2576,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve(K, [0,0,0,0,1])
             sage: C = E.isogeny_class(); C
-            Isogeny class of Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in i with defining polynomial x^2 + 1 with i = 1*I
+            Isogeny class of Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in i with defining polynomial x^2 + 1 with i = I
 
         The curves in the class (sorted)::
 
@@ -2630,7 +2630,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
             sage: C = E.isogeny_class(); C
-            Isogeny class of Elliptic Curve defined by y^2 + (i+1)*x*y + i*y = x^3 + (-i)*x^2 + x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I
+            Isogeny class of Elliptic Curve defined by y^2 + (i+1)*x*y + i*y = x^3 + (-i)*x^2 + x over Number Field in i with defining polynomial x^2 + 1 with i = I
             sage: len(C)
             6
             sage: C.matrix()

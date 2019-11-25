@@ -109,7 +109,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: c.has_rational_point()
             False
             sage: d = c.base_extend(QuadraticField(-1, 'i')); d
-            Projective Conic Curve over Number Field in i with defining polynomial x^2 + 1 with i = 1*I defined by x^2 + y^2 + z^2
+            Projective Conic Curve over Number Field in i with defining polynomial x^2 + 1 with i = I defined by x^2 + y^2 + z^2
             sage: d.rational_point(algorithm = 'rnfisnorm')
             (i : 1 : 0)
         """
@@ -332,11 +332,11 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             Traceback (most recent call last):
             ...
             ValueError: The conic self (= Projective Conic Curve over Finite Field of size 2 defined by x^2 + x*y + y^2 + x*z + y*z) has no symmetric matrix because the base field has characteristic 2
-        
+
         An example over a global function field:
-        
+
         ::
-        
+
             sage: K = FractionField(PolynomialRing(GF(7), 't'))
             sage: (t,) = K.gens()
             sage: C = Conic(K, [t/2,0, 1, 2, 0, 3])
@@ -448,9 +448,9 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: K.<i> = QuadraticField(-1)
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in i with defining polynomial x^2 + 1 with i = 1*I
-              To:   Complex Lazy Field
-              Defn: i -> 1*I
+              From: Number Field in i with defining polynomial x^2 + 1 with i = I
+              To:   Algebraic Field
+              Defn: i -> I
             sage: Conic(K, [1,1,1]).rational_point(algorithm='magma') # optional - magma
             (-i : 1 : 0)
 
@@ -660,11 +660,11 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             ValueError: The matrix x (= [  0   0 1/2]
             [  0   1   0]
             [  1   0   0]) does not define a map from self (= Projective Conic Curve over Rational Field defined by -x^2 + y^2 + z^2) to Y (= Projective Conic Curve over Rational Field defined by -x^2 + y^2 + z^2)
-        
+
         The identity map between two representations of the same conic:
-        
+
         ::
-        
+
             sage: C = Conic([1,2,3,4,5,6])
             sage: D = Conic([2,4,6,8,10,12])
             sage: C.hom(identity_matrix(3), D)
@@ -675,9 +675,9 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
                     (x : y : z)
 
         An example not over the rational numbers:
-        
+
         ::
-        
+
             sage: P.<t> = QQ[]
             sage: C = Conic([1,0,0,t,0,1/t])
             sage: D = Conic([1/t^2, 0, -2/t^2, t, 0, (t + 1)/t^2])
