@@ -1045,8 +1045,135 @@ class Lattice_generic(FreeModule_generic):
             H^3:  [2, 2, 2]
             H^4:  [2, 2, 2, 2]
             H^5:  [2, 2, 2, 2, 2, 2, 2]
+
+        ::
+
+            sage: G = CyclicPermutationGroup(58)
+            sage: mat = matrix(2, [0, 1, 1, 0])
+            sage: L = GLattice(G, [mat])
+            sage: for i in range(-5, 6):
+            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
+            H^-5:  []
+            H^-4:  [29]
+            H^-3:  []
+            H^-2:  [29]
+            H^-1:  []
+            H^0:  [29]
+            H^1:  []
+            H^2:  [29]
+            H^3:  []
+            H^4:  [29]
+            H^5:  []
+
+        ::
+
+            sage: L = GLattice(DihedralGroup(4), 4)
+            sage: SL = L.zero_sum_sublattice()
+            sage: for i in range(-5, 6):
+            ....:     print("H^"+str(i)+": "+str(SL.Tate_Cohomology(i)))
+            H^-5:  [2, 2, 2, 2, 2, 2]
+            H^-4:  [2, 2, 2, 2, 2, 2, 4, 4, 4]
+            H^-3:  [2, 2, 2]
+            H^-2:  [2, 2, 2, 2, 2, 2]
+            H^-1:  []
+            H^0:  [8, 8, 8]
+            H^1:  []
+            H^2:  [2, 2, 2, 2, 2, 2]
+            H^3:  [2, 2, 2]
+            H^4:  [2, 2, 2, 2, 2, 2, 4, 4, 4]
+            H^5:  [2, 2, 2, 2, 2, 2]
+
+        ::
+
+            sage: G = DihedralGroup(4)
+            sage: m1 = matrix(2, [0, 1, 1, 0])
+            sage: m2 = -matrix.identity(2)
+            sage: L = GLattice(G, [m1, m2])
+            sage: for i in range(-5, 6):
+            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
+            H^-5:  [2, 2, 2]
+            H^-4:  [2, 2]
+            H^-3:  [2, 2]
+            H^-2:  [2]
+            H^-1:  [2]
+            H^0:  []
+            H^1:  [2]
+            H^2:  [2]
+            H^3:  [2, 2]
+            H^4:  [2, 2]
+            H^5:  [2, 2, 2]
+            sage: SL1 = L.zero_sum_sublattice()
+            sage: a,b = L.basis()
+            sage: SL2 = L.sublattice([a+b])
+            sage: for i in range(-5, 6):
+            ....:     print("H^"+str(i)+": "+str(SL1.Tate_Cohomology(i)))
+            H^-5:  [2, 2, 2]
+            H^-4:  [2, 2]
+            H^-3:  [2, 2]
+            H^-2:  [2]
+            H^-1:  [2]
+            H^0:  []
+            H^1:  [2]
+            H^2:  [2]
+            H^3:  [2, 2]
+            H^4:  [2, 2]
+            H^5:  [2, 2, 2]
+            sage: for i in range(-5, 6):
+            ....:     print("H^"+str(i)+": "+str(SL2.Tate_Cohomology(i)))
+            H^-5:  [2, 2, 2]
+            H^-4:  [2, 2]
+            H^-3:  [2, 2]
+            H^-2:  [4]
+            H^-1:  [2]
+            H^0:  []
+            H^1:  [2]
+            H^2:  [4]
+            H^3:  [2, 2]
+            H^4:  [2, 2]
+            H^5:  [2, 2, 2]
         """
-        pass
+        if self._rank == 0:
+            return []
+        self = self.isomorphic_ambient_lattice()
+        MG = self.GAPMatrixGroup()
+        G = libgap(self.group())
+        if n == 0:
+            M = matrix.zero(self._rank)
+            Lst = [libgap(i) for i in self._group]
+            for i in Lst:
+                M += matrix(self._action_morphism.Image(i).sage())
+            #M = matrix((libgap.Sum(MG)).sage())
+            S = M.smith_form(False,True)
+            R = S.rank()
+            RR = [S[i][i] for i in range(R)]
+            return [i for i in RR if i>1]
+        elif n == -1:
+            m = libgap([])
+            for i in MG.GeneratorsOfGroup():
+                m = libgap.Concatenation(m,i-MG.Identity())
+            ms = matrix(m.sage())
+            s = ms.smith_form(False,True)
+            r = s.rank()
+            rr = libgap([s[i][i] for i in range(r)])
+            return [i for i in rr if i>1]
+        else:
+            load_hap()
+            if self._rank == 1:
+                gl = libgap.Group([ [ [ -1 ] ] ])
+            else:
+                gl = libgap.GL(self._rank,ZZ)
+            mor = libgap.GroupHomomorphismByImages(G,gl,gap(self.group().gens()),gap([m for m in self._action_matrices]))
+            if n>0:
+                #This computes the standard resolution of G in HAP
+                R = libgap.ResolutionFiniteGroup(G,n+1)
+                #Then applies the map to the action to the resolution
+                TR = libgap.HomToIntegralModule(R,mor)
+                #Might have a problem because gap does only right actions ?
+                return (libgap.Cohomology(TR,n)).sage()
+            else:
+                R = libgap.ResolutionFiniteGroup(G,-n)
+                TR = libgap.TensorWithIntegralModule(R,mor)
+                return (libgap.Homology(TR,-n-1)).sage()
 
     def first_coboundary_space(self):
         """
@@ -1472,73 +1599,6 @@ class Lattice_generic(FreeModule_generic):
         """
         return self.norm_one_restriction_of_scalars(self,group)
 
-    def quotient_ambient_sublattice(self, sublattice, check=True):
-        """
-        Computes the quotient of an ambient lattice by a saturated proper sublattice.
-
-        INPUT:
-
-        - ``sublattice`` -- sublattice by which we want to quotient
-
-        - ``check`` -- boolean, true if one wants to check that the
-            sublattice is saturated and proper
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(3)
-            sage: L = GLattice(2)
-            sage: LL = GLattice(G, 5)
-            sage: IL = L.induced_lattice(G)
-            sage: ZL = IL.zero_sum_sublattice()
-            sage: SL = LL.sublattice([LL.basis()[0], LL.basis()[1]+ LL.basis()[2], LL.basis()[4]])
-
-            ::
-
-            sage: QL1 = LL.quotient_ambient_sublattice(SL); QL1
-            Ambient lattice of rank 2 with an action by a group of order 6
-            sage: QL1._action_matrices
-            [
-            [1 0]  [1 0]
-            [0 1], [0 1]
-            ]
-
-            ::
-
-            sage: QL2 = IL.quotient_ambient_sublattice(ZL); QL2
-            Ambient lattice of rank 1 with an action by a group of order 6
-            sage: QL2._action_matrices
-            [[1], [1]]
-
-
-        """
-        if sublattice.rank() == 0:
-            return self.isomorphic_ambient_lattice()
-
-        M = matrix(sublattice.basis())
-
-        SM = M.smith_form()
-        #M is a matrix taking vectors in the basis of the sublattice and giving their vector in the ambient lattice.
-
-        if check and ((not SM[0][sublattice.rank()-1,sublattice.rank()-1] == 1) or sublattice.rank() == self.rank()):
-            raise ValueError("The sublattice is not saturated or not proper")
-
-
-        P = SM[2].transpose()
-
-        # P is a matrix such that there is a matrix with PMQ diagonal with 1's on the diagonal
-
-        Pi = P.inverse()
-        # if r is the rank of the sublattice,
-        # The columns of Pi are vectors of  a basis of the ambient lattice where the first r are a basis of the sublattice, and the rest
-        # are a basis of the complement (it is the complement as a Z-module, but need not be stable under the action of the group)
-
-        index = range(sublattice.rank(),self.rank())
-        v = Pi[range(self.rank()),index]
-
-        A = [(P*i*v)[list(index)] for i in self._action_matrices]
-        # This computes the action on the vectors of the complement of the sublattice
-        return Lattice_ambient(self.group(),A)
-
     def dim_shift(self, build=False):
         r"""
         Returns a lattice whose ``i`` th Tate cohomology group is the ``i+1`` th Tate cohomology group of the original lattice.
@@ -1618,8 +1678,6 @@ class Lattice_generic(FreeModule_generic):
         """
         Returns an ambient lattice isomorphic to the quotient of two lattices.
 
-        Slightly slower than quotient_ambient_lattice for ambient lattices
-
         INPUT:
 
         - ``sublattice`` -- sublattice by which we want to quotient
@@ -1689,6 +1747,32 @@ class Lattice_generic(FreeModule_generic):
             Ambient lattice of rank 1 with an action by a group of order 2
             [[1]]
 
+        ::
+
+            sage: G = SymmetricGroup(3)
+            sage: L = GLattice(2)
+            sage: LL = GLattice(G, 5)
+            sage: IL = L.induced_lattice(G)
+            sage: ZL = IL.zero_sum_sublattice()
+            sage: SL = LL.sublattice([LL.basis()[0], LL.basis()[1]+ LL.basis()[2], LL.basis()[4]])
+
+        ::
+
+            sage: QL1 = LL.quotient_ambient_sublattice(SL); QL1
+            Ambient lattice of rank 2 with an action by a group of order 6
+            sage: QL1._action_matrices
+            [
+            [1 0]  [1 0]
+            [0 1], [0 1]
+            ]
+
+        ::
+
+            sage: QL2 = IL.quotient_ambient_sublattice(ZL); QL2
+            Ambient lattice of rank 1 with an action by a group of order 6
+            sage: QL2._action_matrices
+            [[1], [1]]
+
         TESTS::
 
             sage: Q8 = GLattice(2)
@@ -1697,38 +1781,41 @@ class Lattice_generic(FreeModule_generic):
             Ambient lattice of rank 2 with an action by a group of order 1
         """
         if sublattice.rank() == 0:
-            return self
-        oldBasis = self.basis()
-        act_builder = []
-        for g in self._group.gens():
-            mat_builder = []
-            for i in oldBasis:
-                mat_builder.append(self.coordinate_vector(self._act(g,i)))
-            act_builder.append(matrix(mat_builder).transpose())
+            return self.isomorphic_ambient_lattice()
 
-
-
-        M = matrix([self.coordinate_vector(i) for i in sublattice.basis()]).transpose()
+        if self.is_ambient():
+            act_builder = self._action_matrices
+            M = matrix(sublattice.basis())
+        else:
+            oldBasis = self.basis()
+            act_builder = []
+            for g in self._group.gens():
+                mat_builder = []
+                for i in oldBasis:
+                    mat_builder.append(self.coordinate_vector(self._act(g,i)))
+                act_builder.append(matrix(mat_builder).transpose())
+            M = matrix([self.coordinate_vector(i) for i in sublattice.basis()])
 
         SM = M.smith_form()
 
         if check and ((not SM[0][M.ncols()-1,M.ncols()-1] == 1) or sublattice.rank() == self.rank()):
             raise ValueError("The sublattice is not saturated or not proper"    )
 
-        P = SM[1]
+        P = SM[2].transpose()
 
         Pi = P.inverse()
 
-        index = range(sublattice.rank(),self.rank())
-
-        v = Pi[range(self.rank()),index]
+        index = range(sublattice.rank(), self.rank())
+        v = Pi[range(self.rank()), index]
 
         A = [(P*i*v)[list(index)] for i in act_builder]
-        n = A[0].nrows()
-        ide = matrix.identity(n)
-        J = matrix([ide[n-1-k] for k in range(n)])
-        # This computes the action on the vectors of the complement of the sublattice
-        return Lattice_ambient(self.group(),[J*(a.transpose())*J for a in A])
+        if not self.is_ambient():
+            n = A[0].nrows()
+            ide = matrix.identity(n)
+            J = matrix([ide[n-1-k] for k in range(n)])
+            # This computes the action on the vectors of the complement of the sublattice
+            A = [J*(a.transpose())*J for a in A]
+        return Lattice_ambient(self.group(), A)
 
 
 class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
@@ -1779,7 +1866,6 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         Lattice_generic.__init__(self, galois, action, check)
         FreeModule_ambient_pid.__init__(self, ZZ, self._rank)
 
-
     def _repr_(self):
         """
         The print representation of an ambient lattice.
@@ -1792,7 +1878,6 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             Ambient lattice of rank 3 with an action by a group of order 6
         """
         return "Ambient lattice of rank %s"%(self.rank())+" with an action by a group of order %s"%(self.group().order())
-
 
     def subgroup_lattice(self, subgp):
         """
@@ -1824,7 +1909,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             [1 0 0]
             ]
 
-        Now we induce the lattice back to ``S_3`` and check we get different cohomologies::
+        Now we induce the lattice back to ``S_3`` and check that we get different cohomologies::
 
             sage: L3 = L2.induced_lattice(G)
             sage: L3._action_matrices
@@ -1905,81 +1990,6 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         """
         return self
-
-    def Tate_Cohomology(self,n):
-        """
-        Computes the Tate cohomology of an ambient character lattice.
-
-        INPUT:
-
-        - ``n`` -- integer corresponding to the cohomology group to compute.
-
-        .. NOTE::
-
-            More examples are done in Lattice_generic documentation,
-            and in the AlgebraicTorus one.
-
-        EXAMPLES::
-
-            sage: G = CyclicPermutationGroup(58)
-            sage: mat = matrix(2, [0, 1, 1, 0])
-            sage: L = GLattice(G, [mat])
-            sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
-            H^-5:  []
-            H^-4:  [29]
-            H^-3:  []
-            H^-2:  [29]
-            H^-1:  []
-            H^0:  [29]
-            H^1:  []
-            H^2:  [29]
-            H^3:  []
-            H^4:  [29]
-            H^5:  []
-        """
-        if self._rank == 0:
-            return []
-        MG = self.GAPMatrixGroup()
-        G = libgap(self.group())
-        if n == 0:
-            M = matrix.zero(self._rank)
-            Lst = [libgap(i) for i in self._group]
-            for i in Lst:
-                M += matrix(self._action_morphism.Image(i).sage())
-            #M = matrix((libgap.Sum(MG)).sage())
-            S = M.smith_form(False,True)
-            R = S.rank()
-            RR = [S[i][i] for i in range(R)]
-            return [i for i in RR if i>1]
-        elif n == -1:
-            m = libgap([])
-            for i in MG.GeneratorsOfGroup():
-                m = libgap.Concatenation(m,i-MG.Identity())
-            ms = matrix(m.sage())
-            s = ms.smith_form(False,True)
-            r = s.rank()
-            rr = libgap([s[i][i] for i in range(r)])
-            return [i for i in rr if i>1]
-        else:
-            load_hap()
-            if self._rank == 1:
-                gl = libgap.Group([ [ [ -1 ] ] ])
-            else:
-                gl = libgap.GL(self._rank,ZZ)
-            mor = libgap.GroupHomomorphismByImages(G,gl,gap(self.group().gens()),gap([m for m in self._action_matrices]))
-            if n>0:
-                #This computes the standard resolution of G in HAP
-                R = libgap.ResolutionFiniteGroup(G,n+1)
-                #Then applies the map to the action to the resolution
-                TR = libgap.HomToIntegralModule(R,mor)
-                #Might have a problem because gap does only right actions ?
-                return (libgap.Cohomology(TR,n)).sage()
-            else:
-                R = libgap.ResolutionFiniteGroup(G,-n)
-                TR = libgap.TensorWithIntegralModule(R,mor)
-                return (libgap.Homology(TR,-n-1)).sage()
-
 
     def induced_lattice(self, group, build=True):
         """
@@ -2371,83 +2381,6 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
                 mat_builder.append(self.coordinate_vector(self._act(g,i)))
             act_builder.append(matrix(mat_builder).transpose())
         return Lattice_ambient(self._group,act_builder)
-
-    def Tate_Cohomology(self,n):
-        """
-        Computes the isomorphism type of the Tate cohomology groups of the sublattice.
-
-        INPUT:
-
-        - ``n`` -- integer corresponding to the cohomology group we compute.
-
-        EXAMPLES::
-
-            sage: L = GLattice(DihedralGroup(4), 4)
-            sage: SL = L.zero_sum_sublattice()
-            sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(SL.Tate_Cohomology(i)))
-            H^-5:  [2, 2, 2, 2, 2, 2]
-            H^-4:  [2, 2, 2, 2, 2, 2, 4, 4, 4]
-            H^-3:  [2, 2, 2]
-            H^-2:  [2, 2, 2, 2, 2, 2]
-            H^-1:  []
-            H^0:  [8, 8, 8]
-            H^1:  []
-            H^2:  [2, 2, 2, 2, 2, 2]
-            H^3:  [2, 2, 2]
-            H^4:  [2, 2, 2, 2, 2, 2, 4, 4, 4]
-            H^5:  [2, 2, 2, 2, 2, 2]
-
-        ::
-
-            sage: G = DihedralGroup(4)
-            sage: m1 = matrix(2, [0, 1, 1, 0])
-            sage: m2 = -matrix.identity(2)
-            sage: L = GLattice(G, [m1, m2])
-            sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L.Tate_Cohomology(i)))
-            H^-5:  [2, 2, 2]
-            H^-4:  [2, 2]
-            H^-3:  [2, 2]
-            H^-2:  [2]
-            H^-1:  [2]
-            H^0:  []
-            H^1:  [2]
-            H^2:  [2]
-            H^3:  [2, 2]
-            H^4:  [2, 2]
-            H^5:  [2, 2, 2]
-            sage: SL1 = L.zero_sum_sublattice()
-            sage: a,b = L.basis()
-            sage: SL2 = L.sublattice([a+b])
-            sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(SL1.Tate_Cohomology(i)))
-            H^-5:  [2, 2, 2]
-            H^-4:  [2, 2]
-            H^-3:  [2, 2]
-            H^-2:  [2]
-            H^-1:  [2]
-            H^0:  []
-            H^1:  [2]
-            H^2:  [2]
-            H^3:  [2, 2]
-            H^4:  [2, 2]
-            H^5:  [2, 2, 2]
-            sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(SL2.Tate_Cohomology(i)))
-            H^-5:  [2, 2, 2]
-            H^-4:  [2, 2]
-            H^-3:  [2, 2]
-            H^-2:  [4]
-            H^-1:  [2]
-            H^0:  []
-            H^1:  [2]
-            H^2:  [4]
-            H^3:  [2, 2]
-            H^4:  [2, 2]
-            H^5:  [2, 2, 2]
-        """
-        return self.isomorphic_ambient_lattice().Tate_Cohomology(n)
 
     def induced_lattice(self,group):
         """
