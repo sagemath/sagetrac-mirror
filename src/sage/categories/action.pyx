@@ -479,6 +479,26 @@ cdef class PrecomposedAction(Action):
             s += "\nwith precomposition on right by %s" % self.right_precomposition._default_repr_()
         return s
 
+cdef class TrivialAction(Action):
+    cpdef _act_(self, g, x):
+        """
+        Let ``g`` act on ``x`` under this action, returning ``x``.
+
+        Regardless of whether this is a left or right action, the acting
+        element comes first.
+
+        INPUT:
+
+        - ``g`` -- an object with parent ``self.G``.
+
+        - ``x`` -- an object with parent ``self.US()``.
+
+        .. WARNING::
+
+            This is meant to be a fast internal function, so the
+            conditions on the input are not checked!
+        """
+        return x
 
 cdef class ActionEndomorphism(Morphism):
     """
