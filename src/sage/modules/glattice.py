@@ -751,6 +751,7 @@ class Lattice_generic(FreeModule_generic):
              ]
 
          """
+
          g = self.group()
          act = [block_diagonal_matrix([A, B])
                 for (A, B) in zip(self._action_matrices, lat._action_matrices)]
@@ -2237,9 +2238,17 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         return "Sublattice of degree %s"%(self.degree())+" and rank %s"%(self.rank()) +" with an action by a group of order %s"%(self.group().order())+" and echelon basis matrix\n%s"%(self.echelonized_basis_matrix()
 )
 
+    def __add__(self,other):
+        """
+        Return the sum of ``self`` and other.
+
+        """
+        s = FreeModule_submodule_pid.__add__(self,other)
+        return SubLattice(self.parent_lattice,s.basis())
+
     def parent_lattice(self):
         """
-        Returns the ambient lattice containing the sublattice ``self``.
+        Return the ambient lattice containing the sublattice ``self``.
 
         EXAMPLES::
 
