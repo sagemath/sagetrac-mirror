@@ -737,7 +737,7 @@ class Lattice_generic(FreeModule_generic):
         """
         Takes a lattice and outputs the sum of the two lattices.
 
-        INPUT :
+        INPUT:
 
         - ``lat`` -- lattice we wish to sum with the current lattice.
 
@@ -2299,9 +2299,54 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         return "Sublattice of degree %s"%(self.degree())+" and rank %s"%(self.rank()) +" with an action by a group of order %s"%(self.group().order())+" and echelon basis matrix\n%s"%(self.echelonized_basis_matrix()
 )
 
+    def __add__(self,other):
+        """
+        Return the sum of ``self`` and other.
+
+        EXAMPLES::
+
+            sage: L = GLattice([2,3])
+            sage: ROS = L.zero_sum_sublattice()
+            sage: FL = L.fixed_sublattice()
+            sage: ROS + FL
+            Sublattice of degree 5 and rank 5 with an action by a group of order 6 and echelon basis matrix
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+        """
+        s = FreeModule_submodule_pid.__add__(self,other)
+        return SubLattice(self.parent_lattice(),s.basis())
+
+    def _mul_(self, other, switch_sides=False):
+        """
+        Multiplication of the basis by ``other``.
+
+        EXAMPLES::
+
+            sage: L = GLattice([2,3])
+            sage: FL = L.fixed_sublattice()
+            sage: FL
+            Sublattice of degree 5 and rank 2 with an action by a group of order 6 and echelon basis matrix
+            [1 1 0 0 0]
+            [0 0 1 1 1]
+            sage: 2*FL
+            Sublattice of degree 5 and rank 2 with an action by a group of order 6 and echelon basis matrix
+            [2 2 0 0 0]
+            [0 0 2 2 2]
+            sage: FL*2
+            Sublattice of degree 5 and rank 2 with an action by a group of order 6 and echelon basis matrix
+            [2 2 0 0 0]
+            [0 0 2 2 2]
+        """
+
+        B = FreeModule_submodule_pid._mul_(self,other,switch_sides).basis()
+        return SubLattice(self.parent_lattice(),B)
+
     def parent_lattice(self):
         """
-        Returns the ambient lattice containing the sublattice ``self``.
+        Return the ambient lattice containing the sublattice ``self``.
 
         EXAMPLES::
 
