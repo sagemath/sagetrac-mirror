@@ -259,7 +259,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz
             [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
             sage: sorted(p._nmz_result(p._normaliz_cone, 'Generators')) # optional - pynormaliz
-            [[-1, a^2, 1], [-1/3*a^2, -1, 0], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
+            [[-a^2, -3, 0], [-1, a^2, 1], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
             sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz
             True
             sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') == 3 # optional - pynormaliz
@@ -296,7 +296,14 @@ class Polyhedron_normaliz(Polyhedron_base):
             normaliz_field = QQ
         self._normaliz_field = normaliz_field
 
-        if normaliz_cone and self._nmz_result(normaliz_cone, "AffineDim") < 0:
+        # There is a bug in normaliz 3.8.3 that converts
+        # 'AffineDim' to ``size_t``.
+        # We take this into account by identifying
+        # 2**64-1 with -1.
+        # This should be removed, once the bug is fixed in normaliz.
+        if (normaliz_cone and
+                (self._nmz_result(normaliz_cone, "AffineDim") < 0 or
+                 self._nmz_result(normaliz_cone, "AffineDim") == 2**64-1)):
             # Empty polyhedron. Special case because Normaliz defines the
             # recession cone of an empty polyhedron given by an
             # H-representation as the cone defined by the homogenized system.
