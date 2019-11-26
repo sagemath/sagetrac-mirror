@@ -4050,8 +4050,21 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
             b, _ = to_bernstein(factor, left, right)
 
-            oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), linear_map(left, right))
-            oc.find_roots()
+            # For some reason the following step is not determined to suceed.
+            # We give it multiple tries.
+            # See :trac:`28559`.
+            sucess = 0
+            counter = 0
+            while not sucess:
+                if counter > 20:
+                    raise AssertionError
+                try:
+                    oc = ocean(ctx, bernstein_polynomial_factory_ratlist(b), linear_map(left, right))
+                    oc.find_roots()
+                    sucess = 1
+                except AssertionError:
+                    counter += 1
+                    pass
             oceans.append((oc, factor, exp))
 
     while True:
