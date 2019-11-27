@@ -493,10 +493,14 @@ cdef class TrivialAction(Action):
 
         - ``x`` -- an object with parent ``self.US()``.
 
-        .. WARNING::
+        EXAMPLES::
 
-            This is meant to be a fast internal function, so the
-            conditions on the input are not checked!
+            sage: from sage.categories.action import TrivialAction
+            sage: G = SymmetricGroup(3)
+            sage: V = ZZ^3
+            sage: A = TrivialAction(G, V)
+            sage: A(G.gen(0), V.gen(0))
+            (1, 0, 0)
         """
         return x
 

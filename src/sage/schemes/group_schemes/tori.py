@@ -4,9 +4,9 @@ Algebraic Tori
 ==============
 
 
-Tori are now only implemented as character lattices with an action of
-the Galois group (at least as large as the Galois group of a splitting field).
-For now this Galois group will just be an abstract group,
+Tori are implemented using the equivalence of categories with  character lattices
+with an action of the Galois group (at least as large as the Galois group of
+a splitting field). For now this Galois group will just be an abstract group,
 either a permutation group or a finite matrix group in ``GL(n,ZZ)``.
 
 
@@ -21,7 +21,7 @@ To define a torus we use ``AlgebraicTorus(character_lattice)``
     and an action by the Galois group of the form:
     Permutation Group with generators [()]
 
-This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois group.
+This is the split torus ``\mathbb{G}_m``, with action of the trivial Galois group.
 
 ::
 
@@ -39,7 +39,7 @@ this Galois group is not necessarily the one of a minimal splitting extension.
 
     sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
     sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-    sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+    sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1, act2])
     sage: T3 = AlgebraicTorus(LLL); T3
     Algebraic Torus of rank 3 defined by the following lattice:
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
@@ -62,9 +62,6 @@ This is a non-split anisotropic torus with Galois group of splitting field isomo
 This torus is obtained from the sublattice of the first lattice `L`. The torus obtained is isomorphic to `L`.
 
 
-
-
-
 Attributes of a Torus
 =====================
 
@@ -73,7 +70,6 @@ Attributes of a Torus
 - ``torus._base_field`` -- optional, the field over which the torus is defined.
 
 - ``torus._splitting_field`` -- optional, a field over which the torus splits
-
 
 
 Methods of a Torus
@@ -101,12 +97,12 @@ with same base and splitting field.
 
 - :meth:`AlgebraicTorus.norm_one_restriction_of_scalars` -- the torus of norm 1
 elements in the restriction of scalars
-
-
 """
 
 ###########################################################################
 #       Copyright (C) 2018-2019 Thomas Rüd <tompa.rud@gmail.com>
+#                                David Roe <roed.math@gmail.com>
+
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -124,12 +120,12 @@ from sage.schemes.generic.scheme import Scheme
 from sage.matrix.constructor import matrix
 
 class AlgebraicTorus(Scheme):
-    """
+    r"""
     Creates an algebraic torus through its equivalence of categories with the action
     of a Galois group on an integral lattice.
     """
     def __init__(self, lattice, base_field=None, splitting_field=None):
-        """
+        r"""
         Constructs an object of the albegraic torus class.
 
         INPUT:
@@ -155,7 +151,7 @@ class AlgebraicTorus(Scheme):
             self._splitting_field = splitting_field
 
     def _repr_(self):
-        """
+        r"""
         The print representation of an algebraic torus.
 
         EXAMPLES::
@@ -183,7 +179,7 @@ class AlgebraicTorus(Scheme):
         return "Algebraic Torus of rank %s defined by the following lattice:\n"%(self.rank())+self._lattice._repr_()+"\nand an action by the Galois group of the form:\n"+self._lattice._group._repr_()
 
     def rank(self):
-        """
+        r"""
         The rank of the torus.
 
         EXAMPLES::
@@ -194,7 +190,7 @@ class AlgebraicTorus(Scheme):
             sage: T2 = AlgebraicTorus(LL)
             sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
             sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1, act2])
             sage: T3 = AlgebraicTorus(LLL)
 
         ::
@@ -209,7 +205,7 @@ class AlgebraicTorus(Scheme):
         return self._lattice._rank
 
     def galois_group(self):
-        """
+        r"""
         The abstract Galois group of a splitting field of the torus.
 
         .. NOTE::
@@ -239,9 +235,8 @@ class AlgebraicTorus(Scheme):
         """
         return self._lattice._group
 
-
     def is_rational(self, ruple, subgp=None):
-        """
+        r"""
         Detects if a point is rational over the base field.
 
         INPUT:
@@ -253,7 +248,6 @@ class AlgebraicTorus(Scheme):
         intermediate extension. If specified, the algorithm will test the rationality
         over the intermediate extension.
 
-
         EXAMPLES::
 
             sage: K.<w> = QuadraticField(5); G = K.galois_group()
@@ -263,17 +257,12 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: T = AlgebraicTorus(Lati, QQ, K)
-            sage: T.is_rational([w,w])
-            'The given point is not rational'
-            sage: T.is_rational([1,1])
-            'The given point is rational'
-            sage: T.is_rational([1,w])
-            'The given point is not rational'
-
-
-
-
-
+            sage: T.is_rational([w, w])
+            False
+            sage: T.is_rational([1, 1])
+            True
+            sage: T.is_rational([1, w])
+            False
         """
         if subgp is None:
             elt = matrix(self.rank(), ruple)
@@ -282,8 +271,8 @@ class AlgebraicTorus(Scheme):
             for g in range(len(galgen)):
                 res = self.cocharacter_lattice()._action_matrices[g] * matrix(self.rank(), [galgen[g](x) for x in ruple])
                 if not res == elt:
-                    return "The given point is not rational"
-            return "The given point is rational"
+                    return False
+            return True
 
         else:
             elt = matrix(self.rank(), ruple)
@@ -293,11 +282,11 @@ class AlgebraicTorus(Scheme):
             for g in range(len(hgen)):
                 res = colat._action_matrices[g] * matrix(self.rank(), [hgen[g](x) for x in ruple])
                 if not res == elt:
-                    return "The given point is not rational over this intermediate extension"
-            return "The given point is rational over this intermediate extension"
+                    return False
+            return True
 
     def character_lattice(self):
-        """
+        r"""
         The character lattice of the torus.
 
         EXAMPLES::
@@ -308,7 +297,7 @@ class AlgebraicTorus(Scheme):
             sage: T2 = AlgebraicTorus(LL)
             sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
             sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1, act2])
             sage: T3 = AlgebraicTorus(LLL)
 
         ::
@@ -323,7 +312,7 @@ class AlgebraicTorus(Scheme):
         return self._lattice
 
     def cocharacter_lattice(self):
-        """"
+        r""""
         The cocharacter lattice of the torus.
 
         EXAMPLES::
@@ -334,7 +323,7 @@ class AlgebraicTorus(Scheme):
             sage: T2 = AlgebraicTorus(LL)
             sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
             sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1, act2])
             sage: T3 = AlgebraicTorus(LLL)
 
         ::
@@ -374,7 +363,7 @@ class AlgebraicTorus(Scheme):
         return self._lattice.colattice()
 
     def Tate_Cohomology(self,n):
-        """
+        r"""
         Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality.
 
         INPUT:
@@ -394,7 +383,7 @@ class AlgebraicTorus(Scheme):
             sage: T2 = AlgebraicTorus(LL)
             sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
             sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1, act2])
             sage: T3 = AlgebraicTorus(LLL)
 
         ::
@@ -429,8 +418,8 @@ class AlgebraicTorus(Scheme):
             H^3:  []
             H^4:  [2]
 
-        We can recognize from class field theory that H^2, which is the Brauer group of
-        our extension is isomorphic to the cyclic group Cn where n is the order of the
+        We can recognize from class field theory that H^2 (the Brauer group of
+        our extension) is isomorphic to the cyclic group Cn where n is the order of the
         Galois group. Here the group is S3, which has order 6 so we get C6.
 
         Another way to see it is seeing this H^2 as H^0 of its character lattice. Since the group
@@ -456,25 +445,16 @@ class AlgebraicTorus(Scheme):
         In this example, we can see the 2-periodicity of the cohomology groups, consequence
         of the group being cyclic.
         """
+        return self._lattice.Tate_Cohomology(2 - n)
 
-        return self._lattice.Tate_Cohomology(2-n)
-
-        #gives the torus representing the Restriction of scalars.
-        #Right now, for a torus defined over K, splitting over L,
-        #to compute the restriction of scalars to k inside K,
-        #the user has to enter the galois group of the extension L/k
-        #In the future, when we will have a better notion for Galois group
-        #perhaps we can deal with fields directly.
-
-    def product(self,torus):
-        """
-        Returns the product of two tori defined and (for now) also splitting over the same field.
-
+    def product(self, torus):
+        r"""
+        Return the product of two tori defined and (for now) also splitting over the same field.
 
         INPUT:
 
-        - ``torus`` -- the algebraic torus to take a sum with. 
-            
+        - ``torus`` -- another algebraic torus
+
         EXAMPLES::
 
         sage: T1 = AlgebraicTorus(Lattice_ambient([], 1));
@@ -500,13 +480,18 @@ class AlgebraicTorus(Scheme):
         [ 0  0  0  0  0| 0  0  0  1  0  0]  [ 0  0  0  0  0| 0  1  0  0  0  0]
         [ 0  0  0  0  0| 0  1  0  0  0  0], [ 0  0  0  0  0| 0  0  0  1  0  0]
         ]
-
         """
-
         return AlgebraicTorus(self.character_lattice().sum_lattice(torus.character_lattice()))
 
-    def restriction_of_scalars(self,group):
-        """
+        #gives the torus representing the Restriction of scalars.
+        #Right now, for a torus defined over K, splitting over L,
+        #to compute the restriction of scalars to k inside K,
+        #the user has to enter the galois group of the extension L/k
+        #In the future, when we will have a better notion for Galois group
+        #perhaps we can deal with fields directly.
+
+    def restriction_of_scalars(self, group):
+        r"""
         The torus obtained through restriction of scalars.
 
         INPUT:
@@ -588,7 +573,7 @@ class AlgebraicTorus(Scheme):
         return AlgebraicTorus(self._lattice.induced_lattice(group))
 
     def norm_one_restriction(self,group):
-        """
+        r"""
         Torus of norm one elements in the restriction of scalars.
 
         INPUT:
