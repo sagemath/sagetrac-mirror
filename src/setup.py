@@ -154,7 +154,9 @@ class sage_build_cython(Command):
         ('parallel=', 'j',
          "run cythonize in parallel with N processes"),
         ('force=', 'f',
-         "force files to be cythonized even if the are not changed")
+         "force files to be cythonized even if the are not changed"),
+        ('require-features=', None,
+         "require presence of features such as sage.features.bliss.BlissLibrary (comma-separated list)")
     ]
 
     boolean_options = ['debug', 'profile', 'force']
@@ -176,6 +178,7 @@ class sage_build_cython(Command):
 
         self.build_lib = None
         self.cythonized_files = None
+        self.require_features = None
 
     def finalize_options(self):
         self.extensions = self.distribution.ext_modules
@@ -278,6 +281,19 @@ class sage_build_cython(Command):
         # otherwise use what we determined from reading the version file
         if self.force is None:
             self.force = force
+
+        # Handle --require-features=FEATURE1,FEATURE2,...
+        if self.require_features:
+            from importlib import import_module
+            for f in self.require_features.split(","):
+                try:
+                    module_name, feature_name = f.rsplit(".", 1)
+                except ValueError:
+                    raise RuntimeError("Features must be fully qualified names such as sage.features.bliss.BlissLibrary")
+                module = import_module(module_name)
+                feature_constructor = getattr(module, feature_name)
+                feature = feature_constructor()
+                feature.require()
 
     def get_cythonized_package_files(self):
         """
