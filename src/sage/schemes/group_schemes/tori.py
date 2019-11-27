@@ -457,31 +457,31 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
-        sage: T1 = AlgebraicTorus(Lattice_ambient([], 1));
-        sage: T2 = T1.norm_one_restriction(G)
-        sage: G = SymmetricGroup(3)
-        sage: T3 = T1.restriction_of_scalars(G)
-        sage: PT = T2.product(T3); PT; PT.character_lattice()._action_matrices
-        Algebraic Torus of rank 11 defined by the following lattice:
-        Ambient free module of rank 11 over the principal ideal domain Integer Ring
-        and an action by the galois group of the form:
-        Symmetric group of order 3! as a permutation group
-        [
-        [ 0 -1  0  0  1| 0  0  0  0  0  0]  [ 0  0  1 -1  0| 0  0  0  0  0  0]
-        [ 0 -1  1  0  0| 0  0  0  0  0  0]  [ 0  0  0 -1  1| 0  0  0  0  0  0]
-        [ 0 -1  0  0  0| 0  0  0  0  0  0]  [ 1  0  0 -1  0| 0  0  0  0  0  0]
-        [ 1 -1  0  0  0| 0  0  0  0  0  0]  [ 0  0  0 -1  0| 0  0  0  0  0  0]
-        [ 0 -1  0  1  0| 0  0  0  0  0  0]  [ 0  1  0 -1  0| 0  0  0  0  0  0]
-        [--------------+-----------------]  [--------------+-----------------]
-        [ 0  0  0  0  0| 0  0  0  0  1  0]  [ 0  0  0  0  0| 0  0  1  0  0  0]
-        [ 0  0  0  0  0| 0  0  1  0  0  0]  [ 0  0  0  0  0| 0  0  0  0  1  0]
-        [ 0  0  0  0  0| 0  0  0  0  0  1]  [ 0  0  0  0  0| 1  0  0  0  0  0]
-        [ 0  0  0  0  0| 1  0  0  0  0  0]  [ 0  0  0  0  0| 0  0  0  0  0  1]
-        [ 0  0  0  0  0| 0  0  0  1  0  0]  [ 0  0  0  0  0| 0  1  0  0  0  0]
-        [ 0  0  0  0  0| 0  1  0  0  0  0], [ 0  0  0  0  0| 0  0  0  1  0  0]
-        ]
-        """
-        return AlgebraicTorus(self.character_lattice().sum_lattice(torus.character_lattice()))
+            sage: T1 = AlgebraicTorus(Lattice_ambient([], 1));
+            sage: T2 = T1.norm_one_restriction(G)
+            sage: G = SymmetricGroup(3)
+            sage: T3 = T1.restriction_of_scalars(G)
+            sage: PT = T2.product(T3); PT; PT.character_lattice()._action_matrices
+            Algebraic Torus of rank 11 defined by the following lattice:
+            Ambient free module of rank 11 over the principal ideal domain Integer Ring
+            and an action by the galois group of the form:
+            Symmetric group of order 3! as a permutation group
+            [
+            [ 0 -1  0  0  1| 0  0  0  0  0  0]  [ 0  0  1 -1  0| 0  0  0  0  0  0]
+            [ 0 -1  1  0  0| 0  0  0  0  0  0]  [ 0  0  0 -1  1| 0  0  0  0  0  0]
+            [ 0 -1  0  0  0| 0  0  0  0  0  0]  [ 1  0  0 -1  0| 0  0  0  0  0  0]
+            [ 1 -1  0  0  0| 0  0  0  0  0  0]  [ 0  0  0 -1  0| 0  0  0  0  0  0]
+            [ 0 -1  0  1  0| 0  0  0  0  0  0]  [ 0  1  0 -1  0| 0  0  0  0  0  0]
+            [--------------+-----------------]  [--------------+-----------------]
+            [ 0  0  0  0  0| 0  0  0  0  1  0]  [ 0  0  0  0  0| 0  0  1  0  0  0]
+            [ 0  0  0  0  0| 0  0  1  0  0  0]  [ 0  0  0  0  0| 0  0  0  0  1  0]
+            [ 0  0  0  0  0| 0  0  0  0  0  1]  [ 0  0  0  0  0| 1  0  0  0  0  0]
+            [ 0  0  0  0  0| 1  0  0  0  0  0]  [ 0  0  0  0  0| 0  0  0  0  0  1]
+            [ 0  0  0  0  0| 0  0  0  1  0  0]  [ 0  0  0  0  0| 0  1  0  0  0  0]
+            [ 0  0  0  0  0| 0  1  0  0  0  0], [ 0  0  0  0  0| 0  0  0  1  0  0]
+            ]
+            """
+            return AlgebraicTorus(self.character_lattice().sum_lattice(torus.character_lattice()))
 
         #gives the torus representing the Restriction of scalars.
         #Right now, for a torus defined over K, splitting over L,

@@ -287,7 +287,6 @@ from sage.matrix.special import block_diagonal_matrix
 from sage.matrix.special import block_matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
-from sage.combinat.permutation import Permutation
 from sage.groups.perm_gps.permgroup import load_hap
 from sage.arith.misc import xgcd
 from sage.misc.abstract_method import abstract_method
