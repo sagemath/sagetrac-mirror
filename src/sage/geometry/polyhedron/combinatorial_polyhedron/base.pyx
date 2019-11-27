@@ -2150,7 +2150,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
             path += '.kunz_input'
 
         cdef FILE *fp
-        fp = fopen(path, "r")
+        fp = fopen(path.encode('utf-8'), "r")
         if (fp ==NULL):
             raise IOError("cannot open file {}".format(path))
 
@@ -2286,7 +2286,7 @@ cdef class KunzCone(CombinatorialPolyhedron):
         return "b_{} + b_{} >= b_{}".format(left[0], left[1], right[0])
 
     def bad_faces_vector(
-            self, size_t n_threads=1, size_t parallelization_depth=1,
+            self, path, size_t n_threads=1, size_t parallelization_depth=1,
             orbit_only=True, size_t start=0, size_t end=-1):
         r"""
         Compute the number of bad faces of the KunzCone.
@@ -2325,11 +2325,17 @@ cdef class KunzCone(CombinatorialPolyhedron):
         cdef iter_struct **iters = <iter_struct**> mem.calloc(n_threads, sizeof(iter_struct*))
         cdef FaceIterator some_iter
 
+        # Obtaining files for each thread.
+        cdef FILE **fp = <FILE **> mem.calloc(n_threads, sizeof(FILE *))
+
         a = tuple(self._face_iter(False, -2) for _ in range(n_threads))
         cdef size_t i
         for i in range(n_threads):
             some_iter = a[i]
             iters[i] = &(some_iter.structure)
+            fp[i] = fopen((path + "{}".format(i)).encode('utf-8'), "w")
+            if (fp[i]==NULL):
+                raise IOError("cannot open file {}".format(path))
 
         # Initialize ``bad_vector``.
         cdef size_t *bad_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
@@ -2337,9 +2343,22 @@ cdef class KunzCone(CombinatorialPolyhedron):
         bad_vector[dim + 1] = 0   # Empty face is not bad.
         parallel_bad_vector(
                 iters, bad_vector, n_threads, parallelization_depth,
-                orbit_only, start, end)
+                orbit_only, start, end, fp)
 
-        return tuple(smallInteger(bad_vector[i]) for i in range(dim+2))
+        cdef size_t zero = 0
+        try:
+            returnvalue = tuple(smallInteger(bad_vector[i]) for i in range(dim+2))
+        except:
+            for i in range(n_threads):
+                fwrite(&zero, 1, sizeof(size_t), fp[i])
+                fwrite(&zero, 1, sizeof(size_t), fp[i])
+                fclose(fp[i])
+            raise KeyboardInterrupt
+        for i in range(n_threads):
+            fwrite(&zero, 1, sizeof(size_t), fp[i])
+            fwrite(&zero, 1, sizeof(size_t), fp[i])
+            fclose(fp[i])
+        return returnvalue
 
 def kunz_cone(m, backend='normaliz'):
     r"""
@@ -2460,6 +2479,44 @@ cdef tuple kunz_cone_to_my_data(P, bint **facets_to_vertices, uint64_t *LHS, uin
     Vrep = tuple(tuple(P.rays()[counter[i][1]].vector()) for i in range(P.n_rays()))
     return Vrep, orbit_first_element
 
+def read_bad_faces(path):
+    """
+    For debugging
+    """
+    cdef FILE *fp
+    fp = fopen(path.encode('utf-8'), "r")
+    if (fp==NULL):
+        raise IOError("cannot open file {}".format(path))
+    cdef size_t len_bad_faces
+    cdef size_t n_bad_faces
+    cdef MemoryAllocator mem = MemoryAllocator()
+    fread(&len_bad_faces, 1, sizeof(size_t), fp)
+    fread(&n_bad_faces, 1, sizeof(size_t), fp)
+
+    cdef uint8_t *bad_faces = <uint8_t *> mem.calloc(1, sizeof(uint8_t))
+    cdef uint64_t *bad_faces_LHS = <uint64_t *> mem.calloc(1, sizeof(uint64_t))
+    cdef size_t i,j
+    cdef size_t counter
+    cdef size_t e
+    cdef size_t len_this_face
+    while len_bad_faces:
+        bad_faces = <uint8_t *> mem.reallocarray(<void *> bad_faces, len_bad_faces, sizeof(uint8_t))
+        bad_faces_LHS = <uint64_t *> mem.reallocarray(<void *> bad_faces_LHS, n_bad_faces, sizeof(uint64_t))
+        fread(bad_faces, len_bad_faces, sizeof(uint8_t), fp)
+        fread(bad_faces_LHS, n_bad_faces, sizeof(uint64_t), fp)
+        counter = 0
+        for i in range(n_bad_faces):
+            len_this_face = bad_faces[counter]
+            e = bad_faces[counter + 1]
+            counter += 2
+            print("e=", e)
+            print("Hrep", tuple(bad_faces[j] for j in range(counter, counter + len_this_face)))
+            counter += len_this_face
+        fread(&len_bad_faces, 1, sizeof(size_t), fp)
+        fread(&n_bad_faces, 1, sizeof(size_t), fp)
+    fclose(fp)
+
+
 def kunz_input_file(path, m):
     """
     Write an input file for ``KunzCone`` for multiplicity ``m`` into ``path``.
@@ -2496,7 +2553,7 @@ def kunz_input_file(path, m):
 
     # Now write the actual data to the file.
     cdef FILE *fp
-    fp = fopen(path+'.kunz_input', "w")
+    fp = fopen((path + '.kunz_input').encode('utf-8'), "w")
     if (fp==NULL):
         raise IOError("cannot open file {}".format(path))
 

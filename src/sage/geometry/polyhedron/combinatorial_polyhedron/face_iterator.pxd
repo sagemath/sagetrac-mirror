@@ -4,6 +4,7 @@ from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
 from .combinatorial_face        cimport CombinatorialFace
+from libc.stdio                     cimport FILE, fopen, fclose, fwrite, fread
 
 cdef inline int next_dimension(iter_struct *structure) nogil except -1
 cdef int parallel_f_vector(
@@ -14,7 +15,7 @@ cdef int parallel_bad_vector(
         iter_struct **face_iter, size_t *bad_vector,
         size_t n_threads, size_t rec_depth,
         bint orbit_only,
-        size_t start, size_t end) except -1
+        size_t start, size_t end, FILE **fp) except -1
 
 cdef struct iter_struct:
     bint bounded

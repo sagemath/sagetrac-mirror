@@ -429,7 +429,7 @@ cdef int parallel_bad_vector(
         iter_struct **face_iter, size_t *bad_vector,
         size_t n_threads, size_t rec_depth,
         bint orbit_only,
-        size_t start, size_t end) except -1:
+        size_t start, size_t end, FILE **fp) except -1:
     """
     Distribute computation of the bad faces to threads.
 
@@ -454,7 +454,7 @@ cdef int parallel_bad_vector(
 
     cdef size_t l, ID
     for l in prange(start, end, nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
-        partial_bad(face_iter, shared_bad, l, rec_depth, orbit_only)
+        partial_bad(face_iter, shared_bad, l, rec_depth, orbit_only, fp)
 
     # Summing up the results..
     for i in range(n_threads):
@@ -512,11 +512,12 @@ cdef inline int partial_f(iter_struct **face_iter_all, size_t **f_vector_all, si
 
 cdef inline int partial_bad(
         iter_struct **face_iter_all, size_t **bad_vector_all,
-        size_t job_ID, size_t rec_depth, bint orbit_only) nogil except -1:
+        size_t job_ID, size_t rec_depth, bint orbit_only, FILE **fps) nogil except -1:
     cdef size_t ID
     with gil:
         ID = threadid()
     cdef iter_struct * face_iter = face_iter_all[ID]
+    cdef FILE * fp = fps[ID]
 
     # Figuring out, wether we can safely skip this, as we have visited this orbit already.
     cdef size_t n = face_iter.n_first_orbit_facets
@@ -545,10 +546,11 @@ cdef inline int partial_bad(
         d = next_dimension(face_iter)
         rec_depth2 = rec_depth
         while (d < dimension -rec_depth2):
-            if is_bad_face(face_iter):
+            if is_bad_face(face_iter, fp):
                 bad_vector[d + 1] += 1
             d = next_dimension(face_iter)
 
+    '''
     # Now checking the bad faces so far.
     cdef size_t l = 0
     cdef int test = check_bad_faces(
@@ -559,10 +561,10 @@ cdef inline int partial_bad(
 
     face_iter[0].n_bad_faces = 0
     face_iter[0].len_bad_faces = 0
+    '''
+    write_bad_faces(face_iter, fp)
 
-
-
-cdef inline int is_bad_face(iter_struct *face_iter) nogil except -1:
+cdef inline int is_bad_face(iter_struct *face_iter, FILE *fp) nogil except -1:
     """
     Return 1, if the current face is a bad face.
 
@@ -598,6 +600,10 @@ cdef inline int is_bad_face(iter_struct *face_iter) nogil except -1:
     face_iter[0].len_bad_faces += output + 2
     bad_faces_LHS[n_bad_faces] = face_iter[0].current_LHS[0]
     face_iter[0].n_bad_faces += 1
+
+    if unlikely(face_iter[0].len_bad_faces + 200 > 10000000):
+        write_bad_faces(face_iter, fp)
+
     return 1
 
 
@@ -613,6 +619,21 @@ cdef inline int is_bad_face(iter_struct *face_iter) nogil except -1:
         with gil:
             raise ValueError("Wilf conjection does not hold, counterexample: {}".format(tuple(coatom_repr[i] for i in range(output))))
     return 1
+
+cdef inline int write_bad_faces(iter_struct *face_iter, FILE *fp) nogil except -1:
+    # Obtain values from the iterator structure.
+    cdef uint8_t *bad_faces     = face_iter[0].bad_faces
+    cdef size_t len_bad_faces   = face_iter[0].len_bad_faces
+    cdef uint64_t *bad_faces_LHS= face_iter[0].bad_faces_LHS
+    cdef size_t n_bad_faces     = face_iter[0].n_bad_faces
+    if len_bad_faces == 0:
+        return 0
+    fwrite(&len_bad_faces, 1, sizeof(size_t), fp)
+    fwrite(&n_bad_faces, 1, sizeof(size_t), fp)
+    fwrite(bad_faces, len_bad_faces, sizeof(uint8_t), fp)
+    fwrite(bad_faces_LHS, n_bad_faces, sizeof(uint64_t), fp)
+    face_iter[0].n_bad_faces = 0
+    face_iter[0].len_bad_faces = 0
 
 cdef class FaceIterator(SageObject):
     r"""
