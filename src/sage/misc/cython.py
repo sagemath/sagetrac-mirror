@@ -233,7 +233,13 @@ def cython(filename, verbose=0, compile_message=False,
             except OSError:
                 pass
     else:
-        from sage.misc.misc import sage_makedirs
+        #from sage.misc.misc import sage_makedirs
+        def sage_makedirs(dirname):
+            try:
+                os.makedirs(dirname)
+            except OSError:
+                if not os.path.isdir(dirname):
+                    raise
         sage_makedirs(target_dir)
 
     if create_local_so_file:
@@ -281,7 +287,19 @@ def cython(filename, verbose=0, compile_message=False,
     directives = dict(language_level=sys.version_info[0])
 
     try:
-        from sage.misc.sage_ostools import restore_cwd
+        #from sage.misc.sage_ostools import restore_cwd
+        import contextlib
+        @contextlib.contextmanager
+        def restore_cwd(chdir=None):
+            "From sage.misc.sage_ostools, without Cython dependency."
+            orig_cwd = os.getcwd()
+            if chdir is not None:
+                os.chdir(chdir)
+            try:
+                yield
+            finally:
+                os.chdir(orig_cwd)
+
         # Change directories to target_dir so that Cython produces the correct
         # relative path; https://trac.sagemath.org/ticket/24097
         with restore_cwd(target_dir):
