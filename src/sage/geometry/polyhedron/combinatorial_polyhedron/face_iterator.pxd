@@ -78,13 +78,17 @@ cdef struct iter_struct:
     uint64_t *current_RHS
     size_t *first_orbit_facets # First in orbit, would have been a better name.
     size_t n_first_orbit_facets
+    uint8_t n_units
+    uint8_t *units
+    uint8_t **orbit_dics
     size_t **PolyIneq
     uint8_t *bad_faces
     size_t len_bad_faces
     uint64_t *bad_faces_LHS
     size_t n_bad_faces
     uint8_t **bad_faces_pt
-
+    uint64_t *value_A
+    uint64_t *value_B
 
 @cython.final
 cdef class FaceIterator(SageObject):

@@ -2360,6 +2360,33 @@ cdef class KunzCone(CombinatorialPolyhedron):
             fclose(fp[i])
         return returnvalue
 
+    def facet_orbit_dic(self):
+        cdef size_t m = self._dimension + 2
+        cdef size_t i, j, k, face_index, face_index2
+        cdef uint64_t orbit_LHS, LHS
+        cdef size_t n_Hrep = self._length_Hrepr
+        dic = {}
+        for i in range(1,m):
+            for j in range(1,m):
+                if (i*j) % m == 1:
+                    # i is a unit mod m
+                    dic[i] = []
+                    for face_index in range(n_Hrep):
+                        LHS = self.facets_LHS[face_index]
+                        orbit_LHS = (<uint64_t>0)
+                        for k in range(1,m):
+                            if LHS >= (<uint64_t>1) << (64 - k ):
+                                LHS -= (<uint64_t>1) << (64 - k )
+                                orbit_LHS += (<uint64_t>1) << (64 - (k*i % m) )
+
+                        for face_index2 in range(n_Hrep):
+                            if orbit_LHS == self.facets_LHS[face_index2]:
+                                dic[i].append(face_index2)
+                                break
+        return dic
+
+
+
 def kunz_cone(m, backend='normaliz'):
     r"""
     Return the KunzCone for multiplicity ``m``.
@@ -2516,6 +2543,113 @@ def read_bad_faces(path):
         fread(&n_bad_faces, 1, sizeof(size_t), fp)
     fclose(fp)
 
+def sort_bad_faces(path, n_files, KunzCone C):
+    pass
+
+cdef first_rep_one_face(size_t len_this_face, uint8_t *Hrep, uint64_t *LHS, dict dic):
+    """
+    Make the orbit of a face and set Hrep and LHS to the first element of that orbit.
+
+    Return a unique key, by which to sort the face.
+    """
+    cdef size_t i, j, minimal_i
+    minimal_key = 2**200
+    value = 0
+    for i in dic.keys():
+        new_Hrep = tuple(sorted(list(dic[i][Hrep[j]] for j in range(len_this_face))))
+        value = 0
+        for j in range(len_this_face):
+            value += 2**new_Hrep[j]
+        if value < minimal_key:
+           minimal_i = i
+           minimal_key = value
+           best_Hrep = new_Hrep
+    for j in range(len_this_face):
+        Hrep[j] = best_Hrep[j]
+    cdef size_t m = max(dic.keys()) + 1
+    cdef uint64_t old_LHS = LHS[0]
+    for j in range(1,m):
+        if old_LHS >= (<uint64_t>1) << (64 - j):
+            old_LHS -= (<uint64_t>1) << (64 - j )
+            LHS[0] += (<uint64_t>1) << (64 - (j*minimal_i % m) )
+    return minimal_key
+
+def sort_one_file(path, KunzCone C):
+    cdef FILE *fp
+    fp = fopen(path.encode('utf-8'), "r")
+    if (fp==NULL):
+        raise IOError("cannot open file {}".format(path))
+    cdef size_t len_bad_faces
+    cdef size_t n_bad_faces
+    cdef MemoryAllocator mem = MemoryAllocator()
+    fread(&len_bad_faces, 1, sizeof(size_t), fp)
+    fread(&n_bad_faces, 1, sizeof(size_t), fp)
+
+    cdef uint8_t *bad_faces = <uint8_t *> mem.calloc(1, sizeof(uint8_t))
+    cdef uint64_t *bad_faces_LHS = <uint64_t *> mem.calloc(1, sizeof(uint64_t))
+    cdef size_t *bad_faces_index = <size_t *> mem.calloc(1, sizeof(size_t))
+    cdef size_t i,j
+    cdef size_t counter
+    cdef size_t e
+    cdef size_t len_this_face
+    cdef size_t total_len = 0
+    cdef size_t total_n = 0
+    while len_bad_faces:
+        bad_faces = <uint8_t *> mem.reallocarray(<void *> bad_faces, total_len + len_bad_faces, sizeof(uint8_t))
+        bad_faces_LHS = <uint64_t *> mem.reallocarray(<void *> bad_faces_LHS, total_n + n_bad_faces, sizeof(uint64_t))
+        bad_faces_index = <size_t *> mem.reallocarray(<void *> bad_faces_index, total_n + n_bad_faces, sizeof(size_t))
+        fread(&bad_faces[total_len], len_bad_faces, sizeof(uint8_t), fp)
+        fread(&bad_faces_LHS[total_n], n_bad_faces, sizeof(uint64_t), fp)
+        counter = total_len
+        for i in range(n_bad_faces):
+            bad_faces_index[i + total_n] = counter
+            len_this_face = bad_faces[counter]
+            e = bad_faces[counter + 1]
+            counter += 2
+            counter += len_this_face
+        total_len += len_bad_faces
+        total_n += n_bad_faces
+        fread(&len_bad_faces, 1, sizeof(size_t), fp)
+        fread(&n_bad_faces, 1, sizeof(size_t), fp)
+    fclose(fp)
+    dic = C.facet_orbit_dic()
+    ref = sorted([(first_rep_one_face(bad_faces[bad_faces_index[j]], &bad_faces[bad_faces_index[j] + 2], &bad_faces_LHS[j], dic), j) for j in range(total_n)])
+    fp = fopen((path + '_sorted').encode('utf-8'), "w")
+    prev_val = 0
+    cdef size_t new_total_n = 0
+    cdef size_t new_total_len = 0
+    cdef uint8_t *current_bad
+    # We loop twice, first obtain total number and total length
+    for j in range(total_n):
+        if ref[j][0] == prev_val:
+            # We have a duplicate in our list, i.e. two faces representing the same orbit
+            continue
+        prev_val = ref[j][0]
+        new_total_n += 1
+        current_bad = &bad_faces[bad_faces_index[ref[j][1]]]
+        new_total_len += current_bad[0] + 2
+
+    fwrite(&new_total_len, 1, sizeof(size_t), fp)
+    fwrite(&new_total_n, 1, sizeof(size_t), fp)
+    prev_val = 0
+    for j in range(total_n):
+        if ref[j][0] == prev_val:
+            # We have a duplicate in our list, i.e. two faces representing the same orbit
+            continue
+        prev_val = ref[j][0]
+        current_bad = &bad_faces[bad_faces_index[ref[j][1]]]
+        print("Hrep", tuple(current_bad[j + 2] for j in range(current_bad[0])))
+        fwrite(current_bad, current_bad[0] + 2, sizeof(uint8_t), fp)
+    for j in range(total_n):
+        if ref[j][0] == prev_val:
+            # We have a duplicate in our list, i.e. two faces representing the same orbit
+            continue
+        prev_val = ref[j][0]
+        fwrite(&bad_faces_LHS[ref[j][1]], 1, sizeof(uint64_t), fp)
+    cdef size_t zero = 0
+    fwrite(&zero, 1, sizeof(size_t), fp)
+    fwrite(&zero, 1, sizeof(size_t), fp)
+    fclose(fp)
 
 def kunz_input_file(path, m):
     """

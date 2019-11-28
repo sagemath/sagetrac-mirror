@@ -602,6 +602,60 @@ cdef inline int is_bad_face(iter_struct *face_iter, FILE *fp) nogil except -1:
     if output == 0:
         return 0
 
+    # Figure out, whether this face is actually the last of its orbit.
+    # If not, we have visited another representative already.
+
+    cdef uint64_t *value_A = face_iter[0].value_A
+    cdef uint64_t *value_B = face_iter[0].value_B
+    value_A[0] = 0
+    value_A[1] = 0
+    value_A[2] = 0
+    value_A[3] = 0
+
+    cdef size_t i,j
+    cdef uint8_t a, rem, pos, un
+    for i in range(output):
+        a = bad_faces[len_bad_faces + i + 2]
+        rem = a % 64
+        pos = a//64
+        value_A[pos] += 2**rem
+
+    cdef uint8_t *units = face_iter[0].units
+    cdef uint8_t n_units = face_iter[0].n_units
+    cdef uint8_t **dic = face_iter[0].orbit_dics
+    cdef bint is_last = True
+
+    for j in range(1,n_units):
+        value_B[0] = 0
+        value_B[1] = 0
+        value_B[2] = 0
+        value_B[3] = 0
+        for i in range(output):
+            a = dic[j][bad_faces[len_bad_faces + i + 2]]
+            rem = a % 64
+            pos = a//64
+            value_B[pos] += 2**rem
+
+        #if value_A[3] > value_B[3]:
+        #    continue
+        #if value_A[3] < value_B[3]:
+        #    return 0
+
+        if value_A[2] > value_B[2]:
+            continue
+        if value_A[2] < value_B[2]:
+            return 0
+
+        if value_A[1] > value_B[1]:
+            continue
+        if value_A[1] < value_B[1]:
+            return 0
+
+        if value_A[0] > value_B[0]:
+            continue
+        if value_A[0] < value_B[0]:
+            return 0
+
     face_iter[0].bad_faces_pt[n_bad_faces] = bad_faces + len_bad_faces
     face_iter[0].len_bad_faces += output + 2
     bad_faces_LHS[n_bad_faces] = face_iter[0].current_LHS[0]
@@ -1031,6 +1085,20 @@ cdef class FaceIterator(SageObject):
             self.structure.len_bad_faces = 0
             self.structure.bad_faces_LHS = <uint64_t *> self._mem.calloc(1000000, sizeof(uint64_t))
             self.structure.n_bad_faces = 0
+
+            dic = D.facet_orbit_dic()
+            self.structure.n_units = len(dic.keys())
+            self.structure.units = <uint8_t *> self._mem.calloc(len(dic.keys()), sizeof(uint8_t))
+            self.structure.orbit_dics = <uint8_t **> self._mem.allocarray(len(dic.keys()), sizeof(uint8_t *))
+            j = 0
+            for key, val in dic.items():
+                self.structure.units[j] = key
+                self.structure.orbit_dics[j] = <uint8_t *> self._mem.allocarray(self.structure.n_coatoms, sizeof(uint8_t))
+                for k in range(self.structure.n_coatoms):
+                    self.structure.orbit_dics[j][k] = val[k]
+                j += 1
+            self.structure.value_A = <uint64_t *> self._mem.allocarray(4, sizeof(uint64_t))
+            self.structure.value_B = <uint64_t *> self._mem.allocarray(4, sizeof(uint64_t))
         else:
             self.structure.LHS = NULL
             self.structure.RHS = NULL
