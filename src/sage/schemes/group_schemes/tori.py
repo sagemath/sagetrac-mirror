@@ -176,7 +176,17 @@ class AlgebraicTorus(Scheme):
             and an action by the Galois group of the form:
             Symmetric group of order 3! as a permutation group
         """
-        return "Algebraic Torus of rank %s defined by the following lattice:\n"%(self.rank())+self._lattice._repr_()+"\nand an action by the Galois group of the form:\n"+self._lattice._group._repr_()
+        split = self._lattice.action_is_trivial()
+        if split:
+            s = "Split algebraic"
+        else:
+            s = "Algebraic"
+        s += " torus of rank %s" % self.rank()
+        if self._base_field is not None:
+            s += " over %s" % (self._base_field)
+        if not split:
+            s += " split by a degree %s extension" % self.splitting_degree()
+        return s
 
     def rank(self):
         r"""
@@ -203,6 +213,9 @@ class AlgebraicTorus(Scheme):
             3
         """
         return self._lattice._rank
+
+    def splitting_degree(self):
+        return self._lattice._group.order() // self._lattice.action_kernel().order()
 
     def galois_group(self):
         r"""
@@ -362,13 +375,13 @@ class AlgebraicTorus(Scheme):
         """
         return self._lattice.colattice()
 
-    def Tate_Cohomology(self,n):
+    def Tate_Cohomology(self, n):
         r"""
         Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality.
 
         INPUT:
 
-        - ``n`` -- the integer corresponding to the cohomology group we wish to compute.
+        - ``n`` -- which cohomology group to compute
 
         NOTE::
 

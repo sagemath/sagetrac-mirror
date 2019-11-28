@@ -290,8 +290,6 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup import load_hap
 from sage.arith.misc import xgcd
-from sage.misc.abstract_method import abstract_method
-
 
 
 def GLattice(*args, **kwds):
@@ -674,6 +672,45 @@ class Lattice_generic(FreeModule_generic):
         """
         return self._group
 
+    def action_is_trivial(self):
+        r"""
+        Whether the group acts trivially.
+
+        EXAMPLES::
+
+            sage: L1 = GLattice(SymmetricGroup(3), 5)
+            sage: L1.action_is_trivial()
+            True
+
+            sage: L2 = GLattice([-matrix.identity(3)])
+            sage: L2.action_is_trivial()
+            False
+        """
+        return all(A == 1 for A in self._action_matrices)
+
+    def action_is_faithful(self):
+        r"""
+        Whether the group acts faithfully (the associated map to `GL(n, \ZZ)` is injective).
+
+        EXAMPLES::
+
+            sage: L1 = GLattice(SymmetricGroup(3), 2)
+            sage: L1.action_is_faithful()
+            False
+
+            sage: L2 = GLattice([-matrix.identity(3)])
+            sage: L2.action_is_faithful()
+            True
+        """
+        if self._rank == 0:
+            return self.group().order() == 1
+        else:
+            return bool(self._GAPMap._morphism.IsInjective())
+
+    def action_kernel(self):
+        # TODO: Need to return a Galois subgroup if self._group is a Galois group
+        return PermutationGroup(gap_group=self._GAPMap._morphism.Kernel())
+
     def display_action(self):
         r"""
         Shows information about the group and its action on the lattice.
@@ -704,8 +741,7 @@ class Lattice_generic(FreeModule_generic):
             for i in range(1, a.nrows()):
                 print(" " * (len(str(g)) + 10) + str(list(a[i])))
 
-    @abstract_method
-    def subgroup_lattice(self,subgp):
+    def subgroup_lattice(self, subgp):
         r"""
         Changes the group acting on the lattice to a subgroup.
 
@@ -718,12 +754,127 @@ class Lattice_generic(FreeModule_generic):
             sage: G = SymmetricGroup(4)
             sage: H = DihedralGroup(4)
             sage: L = GLattice(G, 5)
-            sage: L.subgroup_lattice(H)
+            sage: M = L.subgroup_lattice(H); M
             Ambient lattice of rank 5 with an action by a group of order 8
-            sage: _._group
+            sage: M._group
             Dihedral group of order 8 as a permutation group
+
+        ::
+
+            sage: G = SymmetricGroup(3)
+            sage: H = CyclicPermutationGroup(2)
+            sage: m1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
+            sage: m2 = matrix(3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
+            sage: L = GLattice(G, [m1, m2])
+            sage: a,b,c = L.basis()
+            sage: SL = L.sublattice([a+b+c])
+            sage: SL2 = SL.subgroup_lattice(H); SL2
+            Sublattice of degree 3 and rank 1 with an action by a group of order 2 and echelon basis matrix
+            [1 1 1]
+            sage: SL2._group
+            Cyclic group of order 2 as a permutation group
+            sage: SL2._action_matrices
+            [
+            [0 1 0]
+            [1 0 0]
+            [0 0 1]
+            ]
+
+        This time we can see that inducing this lattice back to ``G`` we
+        get a lattice isomorphic to ``L``::
+
+            sage: SL3 = SL2.induced_lattice(G)
+            sage: SL3._action_matrices
+            [
+            [0|0|1]  [1|0|0]
+            [-+-+-]  [-+-+-]
+            [1|0|0]  [0|0|1]
+            [-+-+-]  [-+-+-]
+            [0|1|0], [0|1|0]
+            ]
+
+        ::
+
+            sage: G = SymmetricGroup(3)
+            sage: H = CyclicPermutationGroup(3)
+            sage: m1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: m2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: L = GLattice(G, [m1, m2])
+            sage: L1 = GLattice(G, [m1, m2])
+
+        ::
+
+            sage: L2 = L1.subgroup_lattice(H); L2
+            Ambient lattice of rank 3 with an action by a group of order 3
+            sage: L2._group
+            Cyclic group of order 3 as a permutation group
+            sage: L2._action_matrices
+            [
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+            ]
+
+        Now we induce the lattice back to ``S_3`` and check that we get different cohomologies::
+
+            sage: L3 = L2.induced_lattice(G)
+            sage: L3._action_matrices
+            [
+            [0 1 0|0 0 0]  [0 0 0|0 0 1]
+            [0 0 1|0 0 0]  [0 0 0|1 0 0]
+            [1 0 0|0 0 0]  [0 0 0|0 1 0]
+            [-----+-----]  [-----+-----]
+            [0 0 0|0 0 1]  [0 1 0|0 0 0]
+            [0 0 0|1 0 0]  [0 0 1|0 0 0]
+            [0 0 0|0 1 0], [1 0 0|0 0 0]
+            ]
+            sage: for i in range(-5, 6):
+            ....:     print("H^"+str(i)+": "+str(L1.Tate_Cohomology(i)))
+            H^-5:  []
+            H^-4:  [2]
+            H^-3:  []
+            H^-2:  [2]
+            H^-1:  []
+            H^0:  [2]
+            H^1:  []
+            H^2:  [2]
+            H^3:  []
+            H^4:  [2]
+            H^5:  []
+            sage: for i in range(-5, 6):
+            ....:     print("H^"+str(i)+": "+str(L3.Tate_Cohomology(i)))
+            H^-5:  []
+            H^-4:  []
+            H^-3:  []
+            H^-2:  []
+            H^-1:  []
+            H^0:  []
+            H^1:  []
+            H^2:  []
+            H^3:  []
+            H^4:  []
+            H^5:  []
+
+        TESTS::
+
+            sage: G = SymmetricGroup(3)
+            sage: H = CyclicPermutationGroup(3)
+            sage: L = GLattice(G, [matrix(ZZ, 0), matrix(ZZ, 0)])
+            sage: L.subgroup_lattice(H)
+            Ambient lattice of rank 0 with an action by a group of order 3
         """
-        pass
+        lat = self.ambient_lattice()
+        if lat._rank == 0:
+            amb = Lattice_ambient(subgp, 0)
+        else:
+            mor = self._action_morphism
+            I = [mor.Image(i).sage() for i in subgp.gens()]
+            a = [matrix(i) for i in I]
+            amb = Lattice_ambient(subgp, a)
+        if self.is_ambient():
+            return amb
+        else:
+            return amb.sublattice(self.basis(), check=False)
 
     def sum_lattice(self, lat):
         r"""
@@ -760,11 +911,9 @@ class Lattice_generic(FreeModule_generic):
                for (A, B) in zip(self._action_matrices, lat._action_matrices)]
         return Lattice_ambient(g, act)
 
-    @abstract_method
     def ambient_lattice(self):
         r"""
-        Gives the parent ambient lattice, itself for an ambient lattice, and the ambient lattice for a sublattice.
-
+        Returns this lattice; for compatibility with the corresponding method of sublattices.
 
         EXAMPLES::
 
@@ -777,7 +926,7 @@ class Lattice_generic(FreeModule_generic):
             sage: ZL.ambient_lattice() is L
             True
         """
-        pass
+        return self
 
     def fixed_sublattice(self):
         r"""
@@ -860,17 +1009,19 @@ class Lattice_generic(FreeModule_generic):
             a = [matrix(mor.Image(i).sage()) for i in I]
         return Lattice_ambient(G, a)
 
-    @abstract_method
     def isomorphic_ambient_lattice(self):
         r"""
-        Return an isomorphic ambient lattice.
-
-        .. NOTE::
-
-            For ambient lattices it just returns the lattice itself,
-            so this method is motsly useful for sublattices.
+        Return an isomorphic ambient lattice, which is this lattice for ambient lattices.
 
         EXAMPLES::
+
+            sage: L = GLattice(1)
+            sage: LL = L.isomorphic_ambient_lattice(); LL
+            Ambient lattice of rank 1 with an action by a group of order 1
+            sage: LL is L
+            True
+
+        ::
 
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
@@ -905,7 +1056,7 @@ class Lattice_generic(FreeModule_generic):
             sage: X._action_matrices
             [[1]]
         """
-        pass
+        return self
 
     def GAPMatrixGroup(self):
         r"""
@@ -1699,17 +1850,15 @@ class Lattice_generic(FreeModule_generic):
         SL = SubLattice(IL,[b])
         return IL.quotient_lattice(SL)
 
-    @abstract_method
     def zero_sum_sublattice(self, ambient=False):
         r"""
         Return the sublattice of elements with coordinates summing up to zero.
 
         INPUT:
 
-        - ``ambient`` -- boolean, if ambient is True the algorithm will give
-            an ambient lattice isomorphic to the zero sum sublattice. If False or
-            left blank, it will give the sublattice of zero sum vectors.
-            (default option is ``True``)
+        - ``ambient`` -- boolean (default ``False``), whether to return
+            an ambient lattice isomorphic to the zero sum sublattice, as opposed
+            to the sublattice of zero sum vectors.
 
         .. NOTE::
 
@@ -1788,6 +1937,21 @@ class Lattice_generic(FreeModule_generic):
             [  5   3  -5  12 -15]
             [  0   4  -7  24 -21]
 
+        ::
+
+            sage: L = GLattice(DihedralGroup(4), 4)
+            sage: L.zero_sum_sublattice()
+            Sublattice of degree 4 and rank 3 with an action by a group of order 8 and echelon basis matrix
+            [ 1  0  0 -1]
+            [ 0  1  0 -1]
+            [ 0  0  1 -1]
+
+        ::
+
+            sage: L.zero_sum_sublattice(True)
+            Ambient lattice of rank 3 with an action by a group of order 8
+
+
         Here is an example of lattice whose zero sum submodule over `\ZZ`
         is not stable under the group action::
 
@@ -1798,8 +1962,31 @@ class Lattice_generic(FreeModule_generic):
             Traceback (most recent call last):
             ...
             ValueError: The basis is not stable under the action of the group
+
         """
-        pass
+        if ambient:
+            # This does the following, for each nxn matrix defining the action of the induced representation,
+            # it extracts two blocks
+            # (        |   )
+            # (    A   | B )     A which is of size n-1 x n-1
+            # (        |   ) and B which is of size n-1 x 1
+            # (------------)
+            # (    C   | D )
+
+            # Then it computes the action for the norm 1 restriction of scalars, which is
+            # A - B * (1,1,...,1)
+
+            # Indeed, since the norm 1 restriction lattice will be the sublattice
+            # of elements summing up to 0, so we only consider the first n-1 basis elements,
+            # doing the matrix computation, the element l = (l_1,...l_(n-1)) is sent to
+            # A *l + B * (-sum_i l_i), which is the transformation A-B*(1,...,1)
+            acts = self._action_matrices
+            newacts = [A[list(range(A.ncols() - 1)), list(range(A.ncols()-1))] - A[list(range(A.ncols() - 1)), [A.ncols() - 1]] * matrix(1, [1 for i in range(A.ncols() - 1)]) for A in acts]
+            return Lattice_ambient(self._group, newacts)
+        else:
+            oldBasis = self.basis()
+            newBasis = [v - oldBasis[-1] for v in oldBasis[:-1]]
+            return self.sublattice(newBasis)
 
     def dim_shift(self, build=False):
         r"""
@@ -2066,6 +2253,28 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         Lattice_generic.__init__(self, galois, action, check)
         FreeModule_ambient_pid.__init__(self, ZZ, self._rank)
 
+    def _action_repr(self):
+        r"""
+        A short string describing how the group acts.
+
+        EXAMPLES::
+
+            sage: GLattice(SymmetricGroup(3), 2)._action_repr()
+            'the trivial action of'
+            sage: GLattice(SymmetricGroup(3))._action_repr()
+            'a faithful action by'
+            sage: GLattice(0)._action_repr()
+            'an action by'
+        """
+        if self.rank() == 0 or self.group().order() == 1:
+            return "an action by"
+        elif self.action_is_trivial():
+            return "the trivial action of"
+        elif self.action_is_faithful():
+            return "a faithful action by"
+        else:
+            return "an action by"
+
     def _repr_(self):
         r"""
         The print representation of an ambient lattice.
@@ -2077,170 +2286,10 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             sage: GLattice(SymmetricGroup(3))
             Ambient lattice of rank 3 with an action by a group of order 6
         """
-        return "Ambient lattice of rank %s with an action by a group of order %s" % (self.rank(), self.group().order())
-
-    def subgroup_lattice(self, subgp):
-        r"""
-        Restrict the group acting on the lattice to a subgroup
-
-        INPUT:
-
-        - ``subgp`` -- the subgroup we want to restrict the lattice to
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(3)
-            sage: H = CyclicPermutationGroup(3)
-            sage: m1 = matrix(3, [0,1,0,0,0,1,1,0,0])
-            sage: m2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: L = GLattice(G, [m1, m2])
-            sage: L1 = GLattice(G, [m1, m2])
-
-        ::
-
-            sage: L2 = L1.subgroup_lattice(H); L2
-            Ambient lattice of rank 3 with an action by a group of order 3
-            sage: L2._group
-            Cyclic group of order 3 as a permutation group
-            sage: L2._action_matrices
-            [
-            [0 1 0]
-            [0 0 1]
-            [1 0 0]
-            ]
-
-        Now we induce the lattice back to ``S_3`` and check that we get different cohomologies::
-
-            sage: L3 = L2.induced_lattice(G)
-            sage: L3._action_matrices
-            [
-            [0 1 0|0 0 0]  [0 0 0|0 0 1]
-            [0 0 1|0 0 0]  [0 0 0|1 0 0]
-            [1 0 0|0 0 0]  [0 0 0|0 1 0]
-            [-----+-----]  [-----+-----]
-            [0 0 0|0 0 1]  [0 1 0|0 0 0]
-            [0 0 0|1 0 0]  [0 0 1|0 0 0]
-            [0 0 0|0 1 0], [1 0 0|0 0 0]
-            ]
-            sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L1.Tate_Cohomology(i)))
-            H^-5:  []
-            H^-4:  [2]
-            H^-3:  []
-            H^-2:  [2]
-            H^-1:  []
-            H^0:  [2]
-            H^1:  []
-            H^2:  [2]
-            H^3:  []
-            H^4:  [2]
-            H^5:  []
-            sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": "+str(L3.Tate_Cohomology(i)))
-            H^-5:  []
-            H^-4:  []
-            H^-3:  []
-            H^-2:  []
-            H^-1:  []
-            H^0:  []
-            H^1:  []
-            H^2:  []
-            H^3:  []
-            H^4:  []
-            H^5:  []
-
-        TESTS::
-
-            sage: G = SymmetricGroup(3)
-            sage: H = CyclicPermutationGroup(3)
-            sage: L = GLattice(G, [matrix(ZZ, 0), matrix(ZZ, 0)])
-            sage: L.subgroup_lattice(H)
-            Ambient lattice of rank 0 with an action by a group of order 3
-        """
-        if self._rank == 0:
-            return Lattice_ambient(subgp, 0)
-        mor = self._action_morphism
-        I = [mor.Image(i).sage() for i in subgp.gens()]
-        a = [matrix(i) for i in I]
-        return Lattice_ambient(subgp, a)
-
-    def isomorphic_ambient_lattice(self):
-        r"""
-        Gives an isomorphic ambient lattice, in this case it returns itself.
-
-        EXAMPLES::
-
-            sage: L = GLattice(1)
-            sage: LL = L.isomorphic_ambient_lattice(); LL
-            Ambient lattice of rank 1 with an action by a group of order 1
-            sage: LL is L
-            True
-        """
-        return self
-
-    def ambient_lattice(self):
-        r"""
-        Return the parent ambient lattice, in this case itself.
-
-        EXAMPLES::
-
-            sage: L = GLattice([2], 5)
-            sage: L.ambient_lattice() == L
-            True
-        """
-        return self
-
-    def zero_sum_sublattice(self, ambient=False):
-        r"""
-        Gives the lattice consisting of vectors with zero sum of coordinates.
-
-        INPUT:
-
-        - ``ambient`` -- boolean (default ``False``), whether to give an ambient lattice isomorphic to
-            the sublattice of vectors with zero sum of coordinates.
-
-        .. NOTE::
-
-            More examples are done in the Lattice_generic and SubLattice classes.
-
-        EXAMPLES::
-
-            sage: L = GLattice(DihedralGroup(4), 4)
-            sage: L.zero_sum_sublattice()
-            Sublattice of degree 4 and rank 3 with an action by a group of order 8 and echelon basis matrix
-            [ 1  0  0 -1]
-            [ 0  1  0 -1]
-            [ 0  0  1 -1]
-
-        ::
-
-            sage: L.zero_sum_sublattice(True)
-            Ambient lattice of rank 3 with an action by a group of order 8
-        """
-        if ambient:
-            # This does the following, for each nxn matrix defining the action of the induced representation,
-            # it extracts two blocks
-            # (        |   )
-            # (    A   | B )     A which is of size n-1 x n-1
-            # (        |   ) and B which is of size n-1 x 1
-            # (------------)
-            # (    C   | D )
-
-            # Then it computes the action for the norm 1 restriction of scalars, which is
-            # A - B * (1,1,...,1)
-
-            # Indeed, since the norm 1 restriction lattice will be the sublattice
-            # of elements summing up to 0, so we only consider the first n-1 basis elements,
-            # doing the matrix computation, the element l = (l_1,...l_(n-1)) is sent to
-            # A *l + B * (-sum_i l_i), which is the transformation A-B*(1,...,1)
-            acts = self._action_matrices
-            newacts = [A[list(range(A.ncols() - 1)), list(range(A.ncols()-1))] - A[list(range(A.ncols() - 1)), [A.ncols() - 1]] * matrix(1, [1 for i in range(A.ncols() - 1)]) for A in acts]
-            return Lattice_ambient(self._group, newacts)
-        else:
-            oldBasis = self.basis()
-            newBasis = [v - oldBasis[-1] for v in oldBasis[:-1]]
-            return self.sublattice(newBasis)
-
+        r = self.rank()
+        n = self.group().order()
+        arep = self._action_repr()
+        return "Ambient lattice of rank %s with %s a group of order %s" % (r, arep, n)
 
 class SubLattice(Lattice_generic, FreeModule_submodule_pid):
     r"""
@@ -2286,7 +2335,7 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
 
     def _repr_(self):
         r"""
-        The print representation of a  sublattice.
+        The print representation of a sublattice.
 
         EXAMPLES::
 
@@ -2299,7 +2348,12 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
             [ 1  0 -1]
             [ 0  1 -1]
         """
-        return "Sublattice of degree %s and rank %s with an action by a group of order %s and echelon basis matrix\n%s" % (self.degree(), self.rank(), self.group().order(), self.echelonized_basis_matrix())
+        d = self.degree()
+        r = self.rank()
+        n = self.group().order()
+        arep = self._action_repr()
+        E = self.echelonized_basis_matrix()
+        return "Sublattice of degree %s and rank %s with %s a group of order %s and echelon basis matrix\n%s" % (d, r, n, arep, E)
 
     def __add__(self, other):
         r"""
@@ -2354,52 +2408,15 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
             sage: L = GLattice(DihedralGroup(4), 4).zero_sum_sublattice()
             sage: L.ambient_lattice()
             Ambient lattice of rank 4 with an action by a group of order 8
+
+            sage: L = GLattice([2, 3])
+            sage: ZL = L.zero_sum_sublattice()
+            sage: ZL.ambient_lattice()
+            Ambient lattice of rank 5 with an action by a group of order 6
+            sage: ZL.ambient_lattice() is L
+            True
         """
         return self._ambient_lattice
-
-    def subgroup_lattice(self, subgp):
-        r"""
-        Restrict the group acting on the sublattice to a subgroup
-
-        INPUT:
-
-        - ``subgp`` -- the subgroup we want to restrict the lattice to
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(3)
-            sage: H = CyclicPermutationGroup(2)
-            sage: m1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
-            sage: m2 = matrix(3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
-            sage: L = GLattice(G, [m1, m2])
-            sage: a,b,c = L.basis()
-            sage: SL = L.sublattice([a+b+c])
-            sage: SL2 = SL.subgroup_lattice(H); SL2
-            Sublattice of degree 3 and rank 1 with an action by a group of order 2 and echelon basis matrix
-            [1 1 1]
-            sage: SL2._group
-            Cyclic group of order 2 as a permutation group
-            sage: SL2._action_matrices
-            [
-            [0 1 0]
-            [1 0 0]
-            [0 0 1]
-            ]
-
-        This time we can see that inducing this lattice back to ``G`` we
-        get a lattice isomorphic to ``L``::
-
-            sage: SL3 = SL2.induced_lattice(G)
-            sage: SL3._action_matrices
-            [
-            [0|0|1]  [1|0|0]
-            [-+-+-]  [-+-+-]
-            [1|0|0]  [0|0|1]
-            [-+-+-]  [-+-+-]
-            [0|1|0], [0|1|0]
-            ]
-        """
-        return self.ambient_lattice().subgroup_lattice(subgp).sublattice(self.basis(), check=False)
 
     def isomorphic_ambient_lattice(self):
         r"""
