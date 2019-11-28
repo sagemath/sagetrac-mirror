@@ -28,11 +28,6 @@ import pkgconfig
 
 from sage.env import (SAGE_LOCAL, cython_aliases,
                       sage_include_directories)
-from sage.misc.misc import SPYX_TMP, sage_makedirs
-from .temporary_file import tmp_filename
-from sage.repl.user_globals import get_globals
-from sage.misc.sage_ostools import restore_cwd, redirection
-
 
 # CBLAS can be one of multiple implementations
 cblas_pc = pkgconfig.parse('cblas')
@@ -238,6 +233,7 @@ def cython(filename, verbose=0, compile_message=False,
             except OSError:
                 pass
     else:
+        from sage.misc.misc import sage_makedirs
         sage_makedirs(target_dir)
 
     if create_local_so_file:
@@ -285,6 +281,7 @@ def cython(filename, verbose=0, compile_message=False,
     directives = dict(language_level=sys.version_info[0])
 
     try:
+        from sage.misc.sage_ostools import restore_cwd
         # Change directories to target_dir so that Cython produces the correct
         # relative path; https://trac.sagemath.org/ticket/24097
         with restore_cwd(target_dir):
@@ -438,6 +435,7 @@ def f(%s):
     """ % (v, expr)
     if verbose > 0:
         print(s)
+    from .temporary_file import tmp_filename
     tmpfile = tmp_filename(ext=".pyx")
     with open(tmpfile, 'w') as f:
         f.write(s)
@@ -599,6 +597,7 @@ def cython_compile(code, **kwds):
         Need to create a clever caching system so code only gets
         compiled once.
     """
+    from sage.repl.user_globals import get_globals
     tmpfile = tmp_filename(ext=".pyx")
     with open(tmpfile, 'w') as f:
         f.write(code)
