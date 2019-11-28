@@ -547,7 +547,13 @@ class CythonFeature(Feature):
             sage: empty.is_present()
             FeatureTestResult('empty', True)
         """
-        from sage.misc.temporary_file import tmp_filename
+        #from sage.misc.temporary_file import tmp_filename
+        def tmp_filename(name="tmp_", ext=""):
+            # Version without dependence on SAGE_TMP
+            import tempfile
+            handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext, dir=None)
+            os.close(handle)
+            return os.path.abspath(tmp)
         with open(tmp_filename(ext=".pyx"), 'w') as pyx:
             pyx.write(self.test_code)
         from sage.misc.cython import cython_import
