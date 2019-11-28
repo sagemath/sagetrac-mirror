@@ -548,17 +548,16 @@ class CythonFeature(Feature):
             FeatureTestResult('empty', True)
         """
         #from sage.misc.temporary_file import tmp_filename
-        def tmp_filename(name="tmp_", ext=""):
-            # Version without dependence on SAGE_TMP
-            import tempfile
-            handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext, dir=None)
-            os.close(handle)
-            return os.path.abspath(tmp)
-        with open(tmp_filename(ext=".pyx"), 'w') as pyx:
+        import tempfile
+        tmp_dir = tempfile.mkdtemp(prefix="tmp_sage_cython_feature")
+        with open(tmp_dir + "/featuretest.pyx", 'w') as pyx:
             pyx.write(self.test_code)
         from sage.misc.cython import cython_import
         try:
-            cython_import(pyx.name, verbose=-1)
+            cython_import(pyx.name, verbose=-1,
+                          create_local_so_file=True,      # No renaming necessary
+                          target_dir=tmp_dir + "/target", # Will be created by cython_import
+                          capture_stderr=False)           # capture_stderr=True depends on cythonized modules, avoid because we use features at build time
         except CCompilerError:
             return FeatureTestResult(self, False, reason="Failed to compile test code.")
         except ImportError:
