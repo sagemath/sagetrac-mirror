@@ -48,7 +48,6 @@ import time
 import resource
 import pdb
 import warnings
-import sage.misc.prandom as random
 from .lazy_string import lazy_string
 import sage.server.support
 
@@ -1263,6 +1262,7 @@ def random_sublist(X, s):
         sage: random_sublist(S, 0.5)
         [1, 3]
     """
+    import sage.misc.prandom as random
     return [a for a in X if random.random() <= s]
 
 
@@ -1335,6 +1335,7 @@ def _some_tuples_sampling(elements, repeat, max_samples, n):
         [0, 6, 9, 3]
     """
     from sage.rings.integer import Integer
+    import sage.misc.prandom as random
     N = n if repeat is None else n**repeat
     # We sample on range(N) and create tuples manually since we don't want to create the list of all possible tuples in memory
     for a in random.sample(range(N), max_samples):
