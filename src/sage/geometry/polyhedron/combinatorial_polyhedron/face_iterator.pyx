@@ -523,16 +523,22 @@ cdef inline int partial_bad(
     cdef size_t n = face_iter.n_first_orbit_facets
     cdef size_t *to_do = face_iter.first_orbit_facets
     cdef size_t j
+    cdef size_t n_facets = face_iter.n_facets
 
     cdef size_t facet_nr = 0
     if (rec_depth > 0):
         facet_nr = job_ID/(myPow(face_iter[0].n_coatoms, (rec_depth - 1)))
 
-    # See if the face_nr corresponds to the first representative of an orbit.
+    facet_nr = n_facets - facet_nr
+
+    # See if the face_nr corresponds to the last representative of an orbit.
+    # (We start with the last facet and work our way to the beginning!)
     cdef bint leave = True
     for j in range(n):
         if to_do[j] == facet_nr:
             leave = False
+    if facet_nr = n_facets:
+        leave = False
 
     if leave and orbit_only:
         # This is not the first facet of an orbit.
