@@ -558,12 +558,12 @@ class CythonFeature(Feature):
                           create_local_so_file=True,      # No renaming necessary
                           target_dir=tmp_dir + "/target", # Will be created by cython_import
                           capture_stderr=False)           # capture_stderr=True depends on cythonized modules, avoid because we use features at build time
-        except CCompilerError:
-            return FeatureTestResult(self, False, reason="Failed to compile test code.")
-        except ImportError:
-            return FeatureTestResult(self, False, reason="Failed to import test code.")
-        except Exception:
-            return FeatureTestResult(self, False, reason="Failed to run test code.")
+        except CCompilerError as e:
+            return FeatureTestResult(self, False, reason="Failed to compile test code: {}".format(e))
+        except ImportError as e:
+            return FeatureTestResult(self, False, reason="Failed to import test code: {}".format(e))
+        except Exception as e:
+            return FeatureTestResult(self, False, reason="Failed to run test code: {}".format(e))
         return FeatureTestResult(self, True, reason="Test code compiled and imported.")
 
 
