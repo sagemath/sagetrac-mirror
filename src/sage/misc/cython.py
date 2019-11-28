@@ -67,7 +67,7 @@ sequence_number = {}
 
 def cython(filename, verbose=0, compile_message=False,
            use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
-           create_local_so_file=False):
+           create_local_so_file=False, capture_stderr=True, target_dir=None):
     r"""
     Compile a Cython file. This converts a Cython file to a C (or C++ file),
     and then compiles that. The .c file and the .so file are
@@ -206,10 +206,12 @@ def cython(filename, verbose=0, compile_message=False,
         base = os.path.abspath(filename)
     base = sanitize(base)
 
-    # This is the *temporary* directory where we store the pyx file.
-    # This is deleted when Sage exits, which means pyx files must be
-    # rebuilt every time Sage is restarted at present.
-    target_dir = os.path.join(SPYX_TMP, base)
+    if target_dir is None:
+        # This is the *temporary* directory where we store the pyx file.
+        # This is deleted when Sage exits, which means pyx files must be
+        # rebuilt every time Sage is restarted at present
+        from sage.misc.misc import SPYX_TMP
+        target_dir = os.path.join(SPYX_TMP, base)
 
     # Build directory for Cython/distutils
     build_dir = os.path.join(target_dir, "build")
@@ -325,19 +327,23 @@ def cython(filename, verbose=0, compile_message=False,
     buildcmd.build_lib = target_dir
 
     try:
-        # Capture errors from distutils and its child processes
-        with open(os.path.join(target_dir, name + ".err"), 'w+') as errfile:
-            try:
-                # Redirect stderr to errfile.  We use the file descriptor
-                # number "2" instead of "sys.stderr" because we really
-                # want to redirect the messages from GCC. These are sent
-                # to the actual stderr, regardless of what sys.stderr is.
-                sys.stderr.flush()
-                with redirection(2, errfile, close=False):
-                    dist.run_command("build")
-            finally:
-                errfile.seek(0)
-                distutils_messages = errfile.read()
+        if capture_stderr:
+            # Capture errors from distutils and its child processes
+            from sage.misc.sage_ostools import redirection
+            with open(os.path.join(target_dir, name + ".err"), 'w+') as errfile:
+                try:
+                    # Redirect stderr to errfile.  We use the file descriptor
+                    # number "2" instead of "sys.stderr" because we really
+                    # want to redirect the messages from GCC. These are sent
+                    # to the actual stderr, regardless of what sys.stderr is.
+                    sys.stderr.flush()
+                    with redirection(2, errfile, close=False):
+                        dist.run_command("build")
+                finally:
+                    errfile.seek(0)
+                    distutils_messages = errfile.read()
+        else:
+            dist.run_command("build")
     except Exception as msg:
         msg = str(msg) + "\n" + distutils_messages
         raise RuntimeError(msg.strip())
