@@ -523,7 +523,7 @@ cdef inline int partial_bad(
     cdef size_t n = face_iter.n_first_orbit_facets
     cdef size_t *to_do = face_iter.first_orbit_facets
     cdef size_t j
-    cdef size_t n_facets = face_iter.n_facets
+    cdef size_t n_facets = face_iter.n_coatoms
 
     cdef size_t facet_nr = 0
     if (rec_depth > 0):
@@ -537,7 +537,7 @@ cdef inline int partial_bad(
     for j in range(n):
         if to_do[j] == facet_nr:
             leave = False
-    if facet_nr = n_facets:
+    if facet_nr == n_facets:
         leave = False
 
     if leave and orbit_only:
