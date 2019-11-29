@@ -305,8 +305,8 @@ ext_modules = [
               extra_compile_args=['-std=c++11']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.check_bad_face',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/check_bad_face.cc'],
-              extra_compile_args=['-std=c++11']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/check_bad_face.pyx'],
+              extra_compile_args=['-std=c++11', '-fopenmp']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx'],

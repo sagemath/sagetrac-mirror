@@ -664,20 +664,6 @@ int check_bad_face(size_t **PolyIneq, size_t n_coatoms, size_t m, uint64_t LHS, 
         if (new_value > value){
             value = new_value;
         }
-        /*
-        for(size_t j=1; j < m; j++){
-            if ((i*j) % m == 1){
-                // i and j are inverse in (ZZ/mZZ)*.
-                // Hence, i*F is a face in the orbit.
-                // Check, wether the conjecture holds for
-                // i*F.
-                int new_value = check_bad_face(PolyIneq, n_coatoms, m, LHS, Hrep, n_Hrep, e, i, j);
-                if (new_value > value){
-                    value = new_value;
-                }
-            }
-        }
-        */
     }
     return value;
 }
