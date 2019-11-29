@@ -429,7 +429,7 @@ cdef int parallel_bad_vector(
         iter_struct **face_iter, size_t *bad_vector,
         size_t n_threads, size_t rec_depth,
         bint orbit_only,
-        size_t start, size_t end, FILE **fp) except -1:
+        size_t start, size_t end, char **filename, char **filename2) except -1:
     """
     Distribute computation of the bad faces to threads.
 
@@ -454,7 +454,7 @@ cdef int parallel_bad_vector(
 
     cdef size_t l, ID
     for l in prange(start, end, nogil=True, num_threads=n_threads, schedule='dynamic', chunksize=1):
-        partial_bad(face_iter, shared_bad, l, rec_depth, orbit_only, fp)
+        partial_bad(face_iter, shared_bad, l, rec_depth, orbit_only, filename, filename2)
 
     # Summing up the results..
     for i in range(n_threads):
@@ -512,12 +512,12 @@ cdef inline int partial_f(iter_struct **face_iter_all, size_t **f_vector_all, si
 
 cdef inline int partial_bad(
         iter_struct **face_iter_all, size_t **bad_vector_all,
-        size_t job_ID, size_t rec_depth, bint orbit_only, FILE **fps) nogil except -1:
+        size_t job_ID, size_t rec_depth, bint orbit_only, char **filename, char **filename2) nogil except -1:
     cdef size_t ID
     with gil:
         ID = threadid()
     cdef iter_struct * face_iter = face_iter_all[ID]
-    cdef FILE * fp = fps[ID]
+    cdef FILE *fp = fopen(filename[job_ID], "w")
 
     # Figuring out, wether we can safely skip this, as we have visited this orbit already.
     cdef size_t n = face_iter.n_first_orbit_facets
@@ -540,8 +540,17 @@ cdef inline int partial_bad(
     if facet_nr == n_facets:
         leave = False
 
+    cdef size_t zero = 0
+
     if leave and orbit_only:
         # This is not the first facet of an orbit.
+        fclose(fp)
+
+        #Mark this job as being done.
+        fp = fopen(filename2[job_ID], "w")
+        fwrite(&zero, 1, sizeof(size_t), fp)
+        fwrite(&zero, 1, sizeof(size_t), fp)
+        fclose(fp)
         return 0
 
     cdef size_t * bad_vector = bad_vector_all[ID]
@@ -569,6 +578,16 @@ cdef inline int partial_bad(
     face_iter[0].len_bad_faces = 0
     '''
     write_bad_faces(face_iter, fp)
+    fwrite(&zero, 1, sizeof(size_t), fp)
+    fwrite(&zero, 1, sizeof(size_t), fp)
+    fclose(fp)
+
+    #Mark this job as being done.
+    fp = fopen(filename2[job_ID], "w")
+    fwrite(&zero, 1, sizeof(size_t), fp)
+    fwrite(&zero, 1, sizeof(size_t), fp)
+    fclose(fp)
+
 
 cdef inline int is_bad_face(iter_struct *face_iter, FILE *fp) nogil except -1:
     """

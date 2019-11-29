@@ -2326,17 +2326,24 @@ cdef class KunzCone(CombinatorialPolyhedron):
         cdef iter_struct **iters = <iter_struct**> mem.calloc(n_threads, sizeof(iter_struct*))
         cdef FaceIterator some_iter
 
-        # Obtaining files for each thread.
-        cdef FILE **fp = <FILE **> mem.calloc(n_threads, sizeof(FILE *))
-
         a = tuple(self._face_iter(False, -2) for _ in range(n_threads))
         cdef size_t i
+        cdef size_t n_files = len(self.Hrepresentation())**parallelization_depth
+        paths = tuple((path + "{}".format(i)).encode('utf-8') for i in range(n_files))
+        paths2 = tuple((path + "done_{}".format(i)).encode('utf-8') for i in range(n_files))
+        cdef char **filename = <char **> mem.allocarray(n_files, sizeof(char *))
+        cdef char **filename2 = <char **> mem.allocarray(n_files, sizeof(char *))
+        cdef char *some_file
+        for i in range(n_files):
+            some_file = paths[i]
+            filename[i] = some_file
+            some_file = paths2[i]
+            filename2[i] = some_file
+
+
         for i in range(n_threads):
             some_iter = a[i]
             iters[i] = &(some_iter.structure)
-            fp[i] = fopen((path + "{}".format(i)).encode('utf-8'), "w")
-            if (fp[i]==NULL):
-                raise IOError("cannot open file {}".format(path))
 
         # Initialize ``bad_vector``.
         cdef size_t *bad_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
@@ -2344,22 +2351,10 @@ cdef class KunzCone(CombinatorialPolyhedron):
         bad_vector[dim + 1] = 0   # Empty face is not bad.
         parallel_bad_vector(
                 iters, bad_vector, n_threads, parallelization_depth,
-                orbit_only, start, end, fp)
+                orbit_only, start, end, filename, filename2)
 
         cdef size_t zero = 0
-        try:
-            returnvalue = tuple(smallInteger(bad_vector[i]) for i in range(dim+2))
-        except:
-            for i in range(n_threads):
-                fwrite(&zero, 1, sizeof(size_t), fp[i])
-                fwrite(&zero, 1, sizeof(size_t), fp[i])
-                fclose(fp[i])
-            raise KeyboardInterrupt
-        for i in range(n_threads):
-            fwrite(&zero, 1, sizeof(size_t), fp[i])
-            fwrite(&zero, 1, sizeof(size_t), fp[i])
-            fclose(fp[i])
-        return returnvalue
+        return tuple(smallInteger(bad_vector[i]) for i in range(dim+2))
 
     def facet_orbit_dic(self):
         cdef size_t m = self._dimension + 2

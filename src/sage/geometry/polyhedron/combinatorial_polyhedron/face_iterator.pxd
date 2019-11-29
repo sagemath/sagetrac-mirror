@@ -15,7 +15,7 @@ cdef int parallel_bad_vector(
         iter_struct **face_iter, size_t *bad_vector,
         size_t n_threads, size_t rec_depth,
         bint orbit_only,
-        size_t start, size_t end, FILE **fp) except -1
+        size_t start, size_t end, char **filename, char **filename2) except -1
 
 cdef struct iter_struct:
     bint bounded
