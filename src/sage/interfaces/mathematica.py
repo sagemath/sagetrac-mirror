@@ -402,6 +402,14 @@ class Mathematica(ExtraTabCompletion, Expect):
     """
     def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None,
                  server_tmpdir=None, command=None, verbose_start=False):
+        r"""
+        TESTS:
+
+        Test that :trac:`28075` is fixed::
+
+            sage: repr(mathematica.eval("Print[1]; Print[2]; Print[3]"))  # optional - mathematica
+            '1\n2\n3'
+        """
         # We use -rawterm to get a raw text interface in Mathematica 9 or later.
         # This works around the following issues of Mathematica 9 or later
         # (tested with Mathematica 11.0.1 for Mac OS X x86 (64-bit))
@@ -426,13 +434,14 @@ class Mathematica(ExtraTabCompletion, Expect):
         else:
             command = 'sh -c "stty -echo; {}"'.format(command)
         Expect.__init__(self,
-                        name = 'mathematica',
-                        command = command,
-                        prompt = 'In[[0-9]+]:=',
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        verbose_start = verbose_start,
+                        name='mathematica',
+                        terminal_echo=False,
+                        command=command,
+                        prompt=r'In\[[0-9]+\]:= ',
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        verbose_start=verbose_start,
                         logfile=logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
 
@@ -600,10 +609,10 @@ remote connection to a server running Mathematica -- for hints, type
         self.eval('SetDirectory["%s"]'%dir)
 
     def _true_symbol(self):
-        return '         True'
+        return 'True'
 
     def _false_symbol(self):
-        return '         False'
+        return 'False'
 
     def _equality_symbol(self):
         return '=='
@@ -842,7 +851,7 @@ class MathematicaElement(ExpectElement):
         AUTHORS:
         - Felix Lawrence (2009-08-21)
         """
-        return self.Length()
+        return int(self.Length())
 
     @cached_method
     def _is_graphics(self):
@@ -967,6 +976,28 @@ class MathematicaElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
+    def __bool__(self):
+        """
+        Return whether this Mathematica element is not identical to ``False``.
+
+        EXAMPLES::
+
+            sage: bool(mathematica(True))  # optional - mathematica
+            True
+            sage: bool(mathematica(False))  # optional - mathematica
+            False
+
+        In Mathematica, `0` cannot be used to express falsity::
+
+            sage: bool(mathematica(0))  # optional - mathematica
+            True
+        """
+        P = self._check_valid()
+        cmd = '%s===%s' % (self._name, P._false_symbol())
+        return P.eval(cmd).strip() != P._true_symbol()
+
+    __nonzero__ = __bool__
 
     def N(self, precision=None):
         r"""

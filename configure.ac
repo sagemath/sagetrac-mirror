@@ -385,45 +385,20 @@ SAGE_CHECK_OSX_SUPPORTED()
 AC_MSG_CHECKING([Python version to install])
 AC_ARG_WITH([python],
 [AS_HELP_STRING([--with-python=2],
-    [build and use Python 2 (default)])]
+    [build and use Python 2])]
 [AS_HELP_STRING([--with-python=3],
-    [build and use Python 3])])
+    [build and use Python 3 (default)])])
 
 case "$with_python" in
     2*) SAGE_PYTHON_VERSION=2;;
     3*) SAGE_PYTHON_VERSION=3;;
-    "") SAGE_PYTHON_VERSION=2;;
+    "") SAGE_PYTHON_VERSION=3;;
     *)
         AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
 esac
 
 AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
 AC_SUBST(SAGE_PYTHON_VERSION)
-
-
-# Sage MP library
-AC_MSG_CHECKING([multiprecision library])
-AC_ARG_WITH([mp],
-[AS_HELP_STRING([--with-mp=mpir],
-    [use MPIR as multiprecision library (default)])]
-[AS_HELP_STRING([--with-mp=gmp],
-    [use GMP as multiprecision library])])
-
-case "$with_mp" in
-    MPIR|mpir) with_mp=MPIR;;
-    GMP|gmp) with_mp=GMP;;
-    "") with_mp=${SAGE_MP_LIBRARY:-MPIR};;
-    *)
-        AC_MSG_ERROR([allowed values for --with-mp are MPIR and GMP]) ;;
-esac
-
-AC_MSG_RESULT([$with_mp])
-
-if test $with_mp = MPIR; then
-    AC_SUBST([SAGE_MP_LIBRARY], [mpir])
-else
-    AC_SUBST([SAGE_MP_LIBRARY], [gmp])
-fi
 
 # BLAS library
 AC_MSG_CHECKING([BLAS library])

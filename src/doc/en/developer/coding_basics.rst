@@ -494,6 +494,8 @@ information. You can use the existing functions of Sage as templates.
     followed by a string of hyphens, equal signs, or other
     characters which are valid markers for reST
     headers: ``- = ` : ' " ~ _ ^ * + # < >``.
+    However, lines only containing double colons `::` do not
+    end "TESTS" blocks.
 
 Note about Sphinx directives vs. other blocks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1119,7 +1121,10 @@ framework. Here is a comprehensive list:
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: hash(2^31 + 2^13)
+      sage: hash(2^31 + 2^13)   # py3
+      8193                      # 32-bit
+      2147491840                # 64-bit
+      sage: hash(2^31 + 2^13)   # py2
       -2147475456               # 32-bit
       2147491840                # 64-bit
 

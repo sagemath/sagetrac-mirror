@@ -29,6 +29,8 @@ AUTHORS:
   method :meth:`TensorField.along`
 - Florentin Jaffredo (2018) : series expansion with respect to a given
   parameter
+- Michael Jung (2019): improve treatment of the zero element; add method
+  ``copy_from``
 
 REFERENCES:
 
@@ -38,7 +40,7 @@ REFERENCES:
 
 """
 
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -47,15 +49,15 @@ REFERENCES:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#******************************************************************************
+# *****************************************************************************
 from __future__ import print_function
-from six import itervalues
+from six import itervalues, string_types
 
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
-from sage.rings.integer_ring import ZZ
 
 class TensorField(ModuleElement):
     r"""
@@ -185,7 +187,7 @@ class TensorField(ModuleElement):
         sage: t[eV,1,0] = t[eVW,1,0,c_uvW].expr()  # long time
         sage: t[eV,1,1] = t[eVW,1,1,c_uvW].expr()  # long time
 
-    Actually, the above operation can by performed in a single line by means
+    Actually, the above operation can be performed in a single line by means
     of the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.add_comp_by_continuation`::
 
@@ -202,13 +204,11 @@ class TensorField(ModuleElement):
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
-        sage: a = M.vector_field(name='a')
-        sage: a[eU,:] = [-y,x]
+        sage: a = M.vector_field({eU: [-y, x]}, name='a')
         sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: a.display(eV)
         a = -v d/du + u d/dv
-        sage: b = M.vector_field(name='b')
-        sage: b[eU,:] = [y,-1]
+        sage: b = M.vector_field({eU: [y, -1]}, name='b')
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: b.display(eV)
         b = ((2*u + 1)*v^3 + (2*u^3 - u^2)*v)/(u^2 + v^2) d/du
@@ -260,14 +260,14 @@ class TensorField(ModuleElement):
         sage: t.parent().base_ring() is f.parent()
         True
         sage: s = f*t; s  # long time
-        Tensor field of type (0,2) on the 2-dimensional differentiable
+        Tensor field f*t of type (0,2) on the 2-dimensional differentiable
          manifold S^2
         sage: s[[0,0]] == f*t[[0,0]]  # long time
         True
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
         True
         sage: s = f*t.restrict(U); s
-        Tensor field of type (0,2) on the Open subset U of the 2-dimensional
+        Tensor field f*t of type (0,2) on the Open subset U of the 2-dimensional
          differentiable manifold S^2
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
@@ -281,8 +281,7 @@ class TensorField(ModuleElement):
 
     We define the tensor `t` as above::
 
-        sage: t = M.tensor_field(0,2, name='t')
-        sage: t[eU,:] = [[1,0], [-2,3]]
+        sage: t = M.tensor_field(0, 2, {eU:  [[1,0], [-2,3]]}, name='t')
         sage: t.display(eU)
         t = dx*dx - 2 dy*dx + 3 dy*dy
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
@@ -307,13 +306,11 @@ class TensorField(ModuleElement):
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
-        sage: a = M.vector_field(name='a')
-        sage: a[eU,:] = [-y,x]
+        sage: a = M.vector_field({eU: [-y, x]}, name='a')
         sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: a.display(eV)
         a = -v d/du + u d/dv
-        sage: b = M.vector_field(name='b')
-        sage: b[eU,:] = [y,-1]
+        sage: b = M.vector_field({eU: [y, -1]}, name='b')
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: b.display(eV)
         b = v*(2*u**3 - u**2 + 2*u*v**2 + v**2)/(u**2 + v**2) d/du
@@ -363,7 +360,6 @@ class TensorField(ModuleElement):
         sage: s = f*t.restrict(U)
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
-
 
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
@@ -417,6 +413,8 @@ class TensorField(ModuleElement):
         self._vmodule = vector_field_module
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
+        self._is_zero = False # a priori, may be changed below or via
+                              # method __bool__()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -510,7 +508,13 @@ class TensorField(ModuleElement):
             sage: t.is_zero()  # indirect doctest
             False
         """
-        return any(bool(rst) for rst in self._restrictions.values())
+        if self._is_zero:
+            return False
+        if any(bool(rst) for rst in self._restrictions.values()):
+            self._is_zero = False
+            return True
+        self._is_zero = True
+        return False
 
     __nonzero__ = __bool__  # For Python2 compatibility
 
@@ -677,6 +681,89 @@ class TensorField(ModuleElement):
         # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
 
+    def _del_restrictions(self):
+        r"""
+        Delete the restrictions defined on ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: t = M.tensor_field(1,2)
+            sage: U = M.open_subset('U', coord_def={c_xy: x<0})
+            sage: h = t.restrict(U)
+            sage: t._restrictions
+            {Open subset U of the 2-dimensional differentiable manifold M:
+             Tensor field of type (1,2) on the Open subset U of the
+             2-dimensional differentiable manifold M}
+            sage: t._del_restrictions()
+            sage: t._restrictions
+            {}
+
+        """
+        self._restrictions.clear()
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
+
+    def _init_components(self, *comp, **kwargs):
+        r"""
+        Initialize the tensor field components in some given vector frames.
+
+        INPUT:
+
+        - ``comp`` -- either the components of the tensor field with respect
+          to the vector frame specified by the argument ``frame`` or a
+          dictionary of components, the keys of which are vector frames or
+          pairs ``(f,c)`` where ``f`` is a vector frame and ``c`` a chart
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is a dictionary)
+          vector frame in which the components are given; if ``None``, the
+          default vector frame on the domain of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is a dictionary)
+          coordinate chart in which the components are expressed; if ``None``,
+          the default chart on the domain of ``frame`` is assumed
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: t = M.tensor_field(1, 1, name='t')
+            sage: t._init_components([[1+x, x*y], [-2, y^2]])
+            sage: t.display()
+            t = (x + 1) d/dx*dx + x*y d/dx*dy - 2 d/dy*dx + y^2 d/dy*dy
+            sage: Y.<u,v> = M.chart()
+            sage: t._init_components([[2*u, 3*v], [u+v, -u]], frame=Y.frame(),
+            ....:                    chart=Y)
+            sage: t.display(Y)
+            t = 2*u d/du*du + 3*v d/du*dv + (u + v) d/dv*du - u d/dv*dv
+            sage: t._init_components({X.frame(): [[2*x, 1-y],[0, x]]})
+            sage: t.display()
+            t = 2*x d/dx*dx + (-y + 1) d/dx*dy + x d/dy*dy
+            sage: t._init_components({(Y.frame(), Y): [[2*u, 0],[v^3, u+v]]})
+            sage: t.display(Y)
+            t = 2*u d/du*du + v^3 d/dv*du + (u + v) d/dv*dv
+
+        """
+        comp0 = comp[0]
+        self._is_zero = False  # a priori
+        if isinstance(comp0, dict):
+            for frame, components in comp0.items():
+                chart = None
+                if isinstance(frame, tuple):
+                    # frame is actually a pair (frame, chart):
+                    frame, chart = frame
+                self.add_comp(frame)[:, chart] = components
+        elif isinstance(comp0, string_types):
+            # For compatibility with previous use of tensor_field():
+            self.set_name(comp0)
+        else:
+            if hasattr(comp0, '__getitem__'):
+                # comp0 is a list/vector of components
+                # otherwise comp is the tuple of components in a specific frame
+                comp = comp0
+            frame = kwargs.get('frame')
+            chart = kwargs.get('chart')
+            self.add_comp(frame)[:, chart] = comp
+
     #### Simple accessors ####
 
     def domain(self):
@@ -838,6 +925,14 @@ class TensorField(ModuleElement):
             sage: t.restrict(U) == s
             True
 
+        If the restriction is defined on the very same domain, the tensor field
+        becomes a copy of it (see :meth:`copy_from`)::
+
+            sage: v = M.tensor_field(1, 2, name='v')
+            sage: v.set_restriction(t)
+            sage: v.restrict(U) == t.restrict(U)
+            True
+
         """
         if not isinstance(rst, TensorField):
             raise TypeError("the argument must be a tensor field")
@@ -860,9 +955,13 @@ class TensorField(ModuleElement):
         if rst._antisym != self._antisym:
             raise ValueError("the declared restriction has not the same " +
                              "antisymmetries as the current tensor field")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        if self._domain is rst._domain:
+            self.copy_from(rst)
+        else:
+            self._restrictions[rst._domain] = rst.copy()
+            self._restrictions[rst._domain].set_name(name=self._name,
+                                            latex_name=self._latex_name)
+        self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):
         r"""
@@ -906,8 +1005,7 @@ class TensorField(ModuleElement):
             sage: stereoN_W = W.atlas()[0]  # restriction of stereographic coord. from North pole to W
             sage: stereoS_W = W.atlas()[1]  # restriction of stereographic coord. from South pole to W
             sage: eN_W = stereoN_W.frame() ; eS_W = stereoS_W.frame()
-            sage: v = M.vector_field('v')
-            sage: v.set_comp(eN)[1] = 1  # given the default settings, this can be abriged to v[1] = 1
+            sage: v = M.vector_field({eN: [1, 0]}, name='v')
             sage: v.display()
             v = d/dx
             sage: vU = v.restrict(U) ; vU
@@ -1016,6 +1114,70 @@ class TensorField(ModuleElement):
 
         return self._restrictions[subdomain]
 
+    def _set_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are deleted, in order to avoid any
+        inconsistency. To keep them, use the method :meth:`_add_comp_unsafe`
+        instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 2, name='t')
+            sage: t._set_comp_unsafe(e_uv)
+            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: t._set_comp_unsafe(e_uv)[1,0,1] = u+v
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
+        Setting the components in a new frame (``e``)::
+
+            sage: e = V.vector_frame('e')
+            sage: t._set_comp_unsafe(e)
+            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: t._set_comp_unsafe(e)[0,1,1] = u*v
+            sage: t.display(e)
+            t = u*v e_0*e^1*e^1
+
+        Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
+        components w.r.t. ``e_uv`` have been erased::
+
+            sage: t.display(c_uv.frame())
+            Traceback (most recent call last):
+            ...
+            ValueError: no basis could be found for computing the components
+             in the Coordinate frame (V, (d/du,d/dv))
+
+        """
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst._set_comp_unsafe(basis)
+
     def set_comp(self, basis=None):
         r"""
         Return the components of ``self`` in a given vector frame
@@ -1071,12 +1233,83 @@ class TensorField(ModuleElement):
             ValueError: no basis could be found for computing the components
              in the Coordinate frame (V, (d/du,d/dv))
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.set_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
+        """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
+        if basis is None:
+            basis = self._domain._def_frame
+        self._del_derived() # deletes the derived quantities
+        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
+        return rst.set_comp(basis=basis)
+
+    def _add_comp_unsafe(self, basis=None):
+        r"""
+        Return the components of ``self`` in a given vector frame
+        for assignment. This private method invokes no security check. Use
+        this method at your own risk.
+
+        The components with respect to other frames having the same domain
+        as the provided vector frame are kept. To delete them, use the
+        method :meth:`_set_comp_unsafe` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if ``None``, the components are assumed
+          to refer to the tensor field domain's default frame
+
+        OUTPUT:
+
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 2, name='t')
+            sage: t._add_comp_unsafe(e_uv)
+            3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: t._add_comp_unsafe(e_uv)[1,0,1] = u+v
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
+        Setting the components in a new frame::
+
+            sage: e = V.vector_frame('e')
+            sage: t._add_comp_unsafe(e)
+            3-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: t._add_comp_unsafe(e)[0,1,1] = u*v
+            sage: t.display(e)
+            t = u*v e_0*e^1*e^1
+
+        The components with respect to ``e_uv`` are kept::
+
+            sage: t.display(e_uv)
+            t = (u + v) d/dv*du*dv
+
         """
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.set_comp(basis)
+        return rst._add_comp_unsafe(basis)
 
     def add_comp(self, basis=None):
         r"""
@@ -1129,12 +1362,24 @@ class TensorField(ModuleElement):
             sage: t.display(e_uv)
             t = (u + v) d/dv*du*dv
 
+        Since zero is a special element, its components cannot be changed::
+
+            sage: z = M.tensor_field_module((1, 1)).zero()
+            sage: z.add_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            AssertionError: the components of the zero element cannot be changed
+
         """
+        if self is self.parent().zero():
+            raise AssertionError("the components of the zero element "
+                                 "cannot be changed")
+        self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
         self._del_derived() # deletes the derived quantities
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.add_comp(basis)
+        return rst.add_comp(basis=basis)
 
     def add_comp_by_continuation(self, frame, subdomain, chart=None):
         r"""
@@ -1170,8 +1415,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V) # The complement of the two poles
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.vector_field('a')
-            sage: a[eU,:] = [x, 2+y]
+            sage: a = M.vector_field({eU: [x, 2+y]}, name='a')
 
         At this stage, the vector field has been defined only on the open
         subset ``U`` (through its components in the frame ``eU``)::
@@ -1209,7 +1453,7 @@ class TensorField(ModuleElement):
         sframe = frame.restrict(subdomain)
         schart = chart.restrict(subdomain)
         scomp = self.comp(sframe)
-        resu = self.add_comp(frame) # _del_derived is performed here
+        resu = self._add_comp_unsafe(frame) # _del_derived is performed here
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
@@ -1261,7 +1505,7 @@ class TensorField(ModuleElement):
         To define a vector field ``v`` along ``S`` taking its values in ``M``,
         we first set the components on ``U``::
 
-            sage: v = M.vector_field('v').along(phi)
+            sage: v = M.vector_field(name='v').along(phi)
             sage: vU = v.restrict(U)
             sage: vU[:] = [x,y,x**2+y**2]
 
@@ -1276,6 +1520,7 @@ class TensorField(ModuleElement):
             sage: sorted(v._components.values())[0]._comp[(0,)].display()
             S --> R
             on U: (x, y) |--> x
+            on W: (xp, yp) |--> xp/(xp^2 + yp^2)
 
         To fix that, we first extend the components from ``W`` to ``V`` using
         :meth:`add_comp_by_continuation`::
@@ -1294,6 +1539,7 @@ class TensorField(ModuleElement):
             S --> R
             on U: (x, y) |--> x^2 + y^2
             on V: (xp, yp) |--> 1/(xp^2 + yp^2)
+
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):
@@ -1302,13 +1548,13 @@ class TensorField(ModuleElement):
         if frame not in self.restrict(frame.domain())._components:
             raise ValueError("the tensor doesn't have an expression in "
                              "the frame"+frame._repr_())
-        comp = self.comp(frame)
+        comp = self._add_comp_unsafe(frame)
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
 
         rst = self._restrictions.copy()
-        self._del_derived()         # delete restrictions
+        self._del_derived()  # may delete restrictions
         self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):
@@ -1387,7 +1633,7 @@ class TensorField(ModuleElement):
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.comp(basis=basis, from_basis=from_basis)
 
-    def display(self, basis=None, chart=None):
+    def display(self, frame=None, chart=None):
         r"""
         Display the tensor field in terms of its expansion with respect
         to a given vector frame.
@@ -1397,78 +1643,139 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame with respect to
-          which the tensor is expanded; if ``None``, the default frame
-          of the domain of definition of the tensor field is assumed
+        - ``frame`` -- (default: ``None``) vector frame with respect to
+          which the tensor is expanded; if ``frame`` is ``None`` and ``chart``
+          is not ``None``, the coordinate frame associated with ``chart`` is
+          assumed; if both ``frame`` and ``chart`` are ``None``, the default
+          frame of the domain of definition of the tensor field is assumed
         - ``chart`` -- (default: ``None``) chart with respect to which the
           components of the tensor field in the selected frame are expressed;
           if ``None``, the default chart of the vector frame domain is assumed
 
         EXAMPLES:
 
-        Display of a type-`(1,1)` tensor field defined on two open subsets::
+        Display of a type-`(1,1)` tensor field on a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U')
-            sage: c_xy.<x, y> = U.chart()
-            sage: e = U.default_frame() ; e
-            Coordinate frame (U, (d/dx,d/dy))
-            sage: V = M.open_subset('V')
-            sage: c_uv.<u, v> = V.chart()
-            sage: f = V.default_frame() ; f
-            Coordinate frame (V, (d/du,d/dv))
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1,1, name='t')
-            sage: t[e,0,0] = - x + y^3
-            sage: t[e,0,1] = 2+x
-            sage: t[f,1,1] = - u*v
-            sage: t.display(e)
-            t = (y^3 - x) d/dx*dx + (x + 2) d/dx*dy
-            sage: t.display(f)
-            t = -u*v d/dv*dv
+            sage: t[e_xy,:] = [[x, 1], [y, 0]]
+            sage: t.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: t.display(e_xy)
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            sage: t.display(e_uv)
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
 
-        Since ``e`` is ``M``'s default frame, the argument ``e`` can
+        Since ``e_xy`` is ``M``'s default frame, the argument ``e_xy`` can
         be omitted::
 
-            sage: e is M.default_frame()
+            sage: e_xy is M.default_frame()
             True
             sage: t.display()
-            t = (y^3 - x) d/dx*dx + (x + 2) d/dx*dy
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
 
-        Similarly, since ``f`` is ``V``'s default frame, the argument ``f``
+        Similarly, since ``e_uv`` is ``V``'s default frame, the argument ``e_uv``
         can be omitted when considering the restriction of ``t`` to ``V``::
 
             sage: t.restrict(V).display()
-            t = -u*v d/dv*dv
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
 
-        Display with respect to a frame in which ``t`` has not been
-        initialized (automatic use of a change-of-frame formula)::
+        If the coordinate expression of the components are to be displayed in
+        a chart distinct from the default one on the considered domain, then
+        the chart has to be passed as the second argument of ``display``.
+        For instance, on `W = U \cap V`, two charts are available:
+        ``c_xy.restrict(W)`` (the default one) and ``c_uv.restrict(W)``.
+        Accordingly, one can have two views of the expansion of ``t`` in the
+        *same* vector frame ``e_uv.restrict(W)``::
+
+            sage: t.display(e_uv.restrict(W))  # W's default chart assumed
+            t = (1/2*x + 1/2*y + 1/2) d/du*du + (1/2*x + 1/2*y - 1/2) d/du*dv
+              + (1/2*x - 1/2*y + 1/2) d/dv*du + (1/2*x - 1/2*y - 1/2) d/dv*dv
+            sage: t.display(e_uv.restrict(W), c_uv.restrict(W))
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+
+        As a shortcut, one can pass just a chart to ``display``. It is then
+        understood that the expansion is to be performed with respect to the
+        coordinate frame associated with this chart. Therefore the above
+        command can be abridged to::
+
+            sage: t.display(c_uv.restrict(W))
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+
+        and one has::
+
+            sage: t.display(c_xy)
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            sage: t.display(c_uv)
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            sage: t.display(c_xy.restrict(W))
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            sage: t.restrict(W).display(c_uv.restrict(W))
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+
+        One can ask for the display with respect to a frame in which ``t`` has
+        not been initialized yet (this will automatically trigger the use of
+        the change-of-frame formula for tensors)::
 
             sage: a = V.automorphism_field()
             sage: a[:] = [[1+v, -u^2], [0, 1-u]]
-            sage: h = f.new_frame(a, 'h')
-            sage: t.display(h)
-            t = -u^3*v/(v + 1) h_0*h^1 - u*v h_1*h^1
+            sage: f = e_uv.new_frame(a, 'f')
+            sage: [f[i].display() for i in M.irange()]
+            [f_0 = (v + 1) d/du, f_1 = -u^2 d/du + (-u + 1) d/dv]
+            sage: t.display(f)
+            t = -1/2*(u^2*v + 1)/(u - 1) f_0*f^0
+              - 1/2*(2*u^3 - 5*u^2 - (u^4 + u^3 - u^2)*v + 3*u - 1)/((u - 1)*v + u - 1) f_0*f^1
+              - 1/2*(v^2 + 2*v + 1)/(u - 1) f_1*f^0
+              + 1/2*(u^2 + (u^2 + u - 1)*v - u + 1)/(u - 1) f_1*f^1
 
         A shortcut of ``display()`` is ``disp()``::
 
-            sage: t.disp(h)
-            t = -u^3*v/(v + 1) h_0*h^1 - u*v h_1*h^1
+            sage: t.disp(e_uv)
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
 
         """
-        if basis is None:
-            if self._vmodule._dest_map.is_identity():
-                basis = self._domain._def_frame
+        if frame is None:
+            if chart is not None:
+                frame = chart.frame()
             else:
-                for rst in self._restrictions.values():
-                    try:
-                        return rst.display()
-                    except ValueError:
-                        pass
-            if basis is None:  # should be "is still None" ;-)
-                raise ValueError("a frame must be provided for the display")
-        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.display(basis, chart)
+                if self._vmodule._dest_map.is_identity():
+                    frame = self._domain._def_frame
+                else:
+                    for rst in self._restrictions.values():
+                        try:
+                            return rst.display()
+                        except ValueError:
+                            pass
+                if frame is None:  # should be "is still None" ;-)
+                    raise ValueError("a frame must be provided for the display")
+        else:
+            try:
+                frame0 = frame.frame()
+                # if this succeeds, frame is actually not a vector frame, but
+                # a coordinate chart
+                if chart is None:
+                    chart = frame
+                frame = frame0
+            except AttributeError:
+                # case of a genuine vector frame
+                pass
+        rst = self.restrict(frame._domain, dest_map=frame._dest_map)
+        return rst.display(frame, chart)
 
     disp = display
 
@@ -1674,9 +1981,75 @@ class TensorField(ModuleElement):
                 frame = self._domain._def_frame
         self.set_comp(frame)[args] = value
 
-    def copy(self):
+    def copy_from(self, other):
+        r"""
+        Make ``self`` to a copy from ``other``.
+
+        INPUT:
+
+        - ``other`` -- other tensor field in the very same module from which
+          ``self`` should be a copy of
+
+        .. NOTE::
+
+            While the derived quantities are not copied, the name is kept.
+
+        .. WARNING::
+
+            All previous defined components and restrictions will be deleted!
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: t = M.tensor_field(1, 1, name='t')
+            sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
+            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: s = M.tensor_field(1, 1, name='s')
+            sage: s.copy_from(t)
+            sage: s.display(e_xy)
+            s = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            sage: s == t
+            True
+
+        If the original tensor field is modified, the copy is not::
+
+            sage: t[e_xy,0,0] = -1
+            sage: t.display(e_xy)
+            t = -d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            sage: s.display(e_xy)
+            s = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            sage: s == t
+            False
+
+        """
+        if other not in self.parent():
+            raise TypeError("the original must be an element "
+                            + "of {}".format(self.parent()))
+        self._del_derived()
+        self._del_restrictions() # delete restrictions
+        name, latex_name = self._name, self._latex_name # keep names
+        for dom, rst in other._restrictions.items():
+            self._restrictions[dom] = rst.copy()
+        self.set_name(name=name, latex_name=latex_name)
+        self._is_zero = other._is_zero
+
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         .. NOTE::
 
@@ -1699,8 +2072,8 @@ class TensorField(ModuleElement):
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = t.copy(); s
-            Tensor field of type (1,1) on
-             the 2-dimensional differentiable manifold M
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
             (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s == t
@@ -1720,6 +2093,8 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.copy()
+        resu.set_name(name=name, latex_name=latex_name)
+        resu._is_zero = self._is_zero
         return resu
 
     def _common_subdomains(self, other):
@@ -1920,10 +2295,11 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = + rst
-        if self._name is not None:
-            resu._name = '+' + self._name
-        if self._latex_name is not None:
-            resu._latex_name = '+' + self._latex_name
+        # Compose names:
+        from sage.tensor.modules.format_utilities import (format_unop_txt,
+                                                          format_unop_latex)
+        resu._name = format_unop_txt('+', self._name)
+        resu._latex_name = format_unop_latex(r'+', self._latex_name)
         return resu
 
     def __neg__(self):
@@ -1966,10 +2342,11 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = - rst
-        if self._name is not None:
-            resu._name = '-' + self._name
-        if self._latex_name is not None:
-            resu._latex_name = '-' + self._latex_name
+        # Compose names:
+        from sage.tensor.modules.format_utilities import (format_unop_txt,
+                                                          format_unop_latex)
+        resu._name = format_unop_txt('-', self._name)
+        resu._latex = format_unop_latex(r'-', self._latex_name)
         return resu
 
     ######### ModuleElement arithmetic operators ########
@@ -2024,6 +2401,12 @@ class TensorField(ModuleElement):
             True
 
         """
+        # Case zero:
+        if self._is_zero:
+            return other
+        if other._is_zero:
+            return self
+        # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
@@ -2087,6 +2470,12 @@ class TensorField(ModuleElement):
             True
 
         """
+        # Case zero:
+        if self._is_zero:
+            return -other
+        if other._is_zero:
+            return self
+        # Generic case:
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
@@ -2139,16 +2528,16 @@ class TensorField(ModuleElement):
             on U: (x, y) |--> 1/(x^2 + y^2 + 1)
             on V: (u, v) |--> 2/(u^2 + v^2 + 2)
             sage: s = a._rmul_(f); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable
+            Tensor field f*a of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: a.display(e_xy)
             a = x d/dx*dx + d/dx*dy + y d/dy*dx
             sage: s.display(e_xy)
-            x/(x^2 + y^2 + 1) d/dx*dx + 1/(x^2 + y^2 + 1) d/dx*dy + y/(x^2 + y^2 + 1) d/dy*dx
+            f*a = x/(x^2 + y^2 + 1) d/dx*dx + 1/(x^2 + y^2 + 1) d/dx*dy + y/(x^2 + y^2 + 1) d/dy*dx
             sage: a.display(e_uv)
             a = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
             sage: s.display(e_uv)
-            (u + 1)/(u^2 + v^2 + 2) d/du*du + (u - 1)/(u^2 + v^2 + 2) d/du*dv + (v + 1)/(u^2 + v^2 + 2) d/dv*du + (v - 1)/(u^2 + v^2 + 2) d/dv*dv
+            f*a = (u + 1)/(u^2 + v^2 + 2) d/du*du + (u - 1)/(u^2 + v^2 + 2) d/du*dv + (v + 1)/(u^2 + v^2 + 2) d/dv*du + (v - 1)/(u^2 + v^2 + 2) d/dv*dv
             sage: s == f*a  # indirect doctest
             True
             sage: z = a.parent().zero(); z
@@ -2160,9 +2549,23 @@ class TensorField(ModuleElement):
             True
 
         """
+        # Case zero:
+        if scalar._is_zero:
+            return self.parent().zero()
+        # Case one:
+        if scalar is self._domain._one_scalar_field:
+            return self
+        # Generic case:
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
+        # Compose names:
+        from sage.tensor.modules.format_utilities import (format_mul_txt,
+                                                          format_mul_latex)
+        resu_name = format_mul_txt(scalar._name, '*', self._name)
+        resu_latex = format_mul_latex(scalar._latex_name, r' \cdot ',
+                                      self._latex_name)
+        resu.set_name(name=resu_name, latex_name=resu_latex)
         return resu
 
     ######### End of ModuleElement arithmetic operators ########
@@ -2221,12 +2624,12 @@ class TensorField(ModuleElement):
             sage: f = M.scalar_field({c_xy: x*y}, name='f')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: s = a.__mul__(f); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable
+            Tensor field f*a of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            x^2*y d/dx*dx + x*y d/dx*dy + x*y^2 d/dy*dx
+            f*a = x^2*y d/dx*dx + x*y d/dx*dy + x*y^2 d/dy*dx
             sage: s.display(e_uv)
-            (1/8*u^3 - 1/8*(u + 1)*v^2 + 1/8*u^2) d/du*du
+            f*a = (1/8*u^3 - 1/8*(u + 1)*v^2 + 1/8*u^2) d/du*du
              + (1/8*u^3 - 1/8*(u - 1)*v^2 - 1/8*u^2) d/du*dv
              + (1/8*u^2*v - 1/8*v^3 + 1/8*u^2 - 1/8*v^2) d/dv*du
              + (1/8*u^2*v - 1/8*v^3 - 1/8*u^2 + 1/8*v^2) d/dv*dv
@@ -2255,12 +2658,12 @@ class TensorField(ModuleElement):
             sage: M.set_calculus_method('sympy')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: s = a.__mul__(f); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable
+            Tensor field f*a of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            x**2*y d/dx*dx + x*y d/dx*dy + x*y**2 d/dy*dx
+            f*a = x**2*y d/dx*dx + x*y d/dx*dy + x*y**2 d/dy*dx
             sage: s.display(e_uv)
-            (u**3/8 + u**2/8 - u*v**2/8 - v**2/8) d/du*du + (u**3/8 -
+            f*a = (u**3/8 + u**2/8 - u*v**2/8 - v**2/8) d/du*du + (u**3/8 -
             u**2/8 - u*v**2/8 + v**2/8) d/du*dv + (u**2*v/8 + u**2/8 -
             v**3/8 - v**2/8) d/dv*du + (u**2*v/8 - u**2/8 - v**3/8 +
             v**2/8) d/dv*dv
@@ -2268,6 +2671,9 @@ class TensorField(ModuleElement):
             True
 
         """
+        from sage.manifolds.differentiable.mixed_form import MixedForm
+        if isinstance(other, MixedForm):
+            return other.parent()(self)._mul_(other)
         if not isinstance(other, TensorField):
             # Multiplication by a scalar field or a number
             return other * self
@@ -2722,11 +3128,9 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(1,1, name='a')
-            sage: a[eU,:] = [[1,x], [0,2]]
+            sage: a = M.tensor_field(1, 1, {eU: [[1, x], [0, 2]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-            sage: b = M.tensor_field(2,0, name='b')
-            sage: b[eU,:] = [[y,-1], [x+y,2]]
+            sage: b = M.tensor_field(2, 0, {eU: [[y, -1], [x+y, 2]]}, name='b')
             sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: s = a.contract(b) ; s   # contraction on last index of a and first one of b
             Tensor field of type (2,0) on the 2-dimensional differentiable
@@ -2735,16 +3139,16 @@ class TensorField(ModuleElement):
         Check 1: components with respect to the manifold's default
         frame (``eU``)::
 
-            sage: [[bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
-            ....:   for j in M.irange()] for i in M.irange()]
-            [[True, True], [True, True]]
+            sage: all(bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
+            ....:     for i in M.irange() for j in M.irange())
+            True
 
         Check 2: components with respect to the frame ``eV``::
 
-            sage: [[bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
-            ....:                         for k in M.irange()))
-            ....:   for j in M.irange()] for i in M.irange()]
-            [[True, True], [True, True]]
+            sage: all(bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
+            ....:                           for k in M.irange()))
+            ....:      for i in M.irange() for j in M.irange())
+            True
 
         Instead of the explicit call to the method :meth:`contract`, one
         may use the index notation with Einstein convention (summation over
@@ -2807,7 +3211,10 @@ class TensorField(ModuleElement):
             sage: s = c.contract(2,3, b, 0,1) ; s  # long time
             Tensor field of type (2,0) on the 2-dimensional differentiable
              manifold M
-            sage: s == c['^.._kl']*b['^kl']  # the same double contraction in index notation; long time
+
+        The same double contraction using index notation::
+
+            sage: s == c['^.._kl']*b['^kl']  # long time
             True
 
         The symmetries are either conserved or destroyed by the contraction::
@@ -2823,11 +3230,9 @@ class TensorField(ModuleElement):
 
         Case of a scalar field result::
 
-            sage: a = M.one_form('a')
-            sage: a[eU,:] = [y, 1+x]
+            sage: a = M.one_form({eU: [y, 1+x]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-            sage: b = M.vector_field('b')
-            sage: b[eU,:] = [x, y^2]
+            sage: b = M.vector_field({eU: [x, y^2]}, name='b')
             sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a.display(eU)
             a = y dx + (x + 1) dy
@@ -2846,8 +3251,7 @@ class TensorField(ModuleElement):
 
         Case of a vanishing scalar field result::
 
-            sage: b = M.vector_field('b')
-            sage: b[eU,:] = [1+x, -y]
+            sage: b = M.vector_field({eU: [1+x, -y]}, name='b')
             sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: s = a.contract(b) ; s
             Scalar field zero on the 2-dimensional differentiable manifold M
@@ -2960,8 +3364,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(0,2, name='a')
-            sage: a[eU,:] = [[1,x], [2,y]]
+            sage: a = M.tensor_field(0,2, {eU: [[1,x], [2,y]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a[eV,:]
             [ 1/4*u + 3/4 -1/4*u + 3/4]
@@ -3022,8 +3425,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(0,2, name='a')
-            sage: a[eU,:] = [[1,x], [2,y]]
+            sage: a = M.tensor_field(0,2, {eU: [[1,x], [2,y]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a[eV,:]
             [ 1/4*u + 3/4 -1/4*u + 3/4]
@@ -3073,7 +3475,7 @@ class TensorField(ModuleElement):
         EXAMPLES:
 
         Lie derivative of a type-`(1,1)` tensor field along a vector field on
-        the 2-sphere::
+        a non-parallelizable 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -3084,11 +3486,9 @@ class TensorField(ModuleElement):
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t[e_xy,:] = [[x, 1], [y, 0]]
+            sage: t = M.tensor_field(1, 1, {e_xy: [[x, 1], [y, 0]]}, name='t')
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: w = M.vector_field(name='w')
-            sage: w[e_xy,:] = [-y, x]
+            sage: w = M.vector_field({e_xy: [-y, x]}, name='w')
             sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: lt = t.lie_derivative(w); lt
             Tensor field of type (1,1) on the 2-dimensional differentiable
@@ -3110,8 +3510,7 @@ class TensorField(ModuleElement):
 
         Lie derivative of a vector field::
 
-            sage: a = M.vector_field(name='a')
-            sage: a[e_xy,:] = [1-x, x-y]
+            sage: a = M.vector_field({e_xy: [1-x, x-y]}, name='a')
             sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: a.lie_der(w)
             Vector field on the 2-dimensional differentiable manifold M
@@ -3141,7 +3540,7 @@ class TensorField(ModuleElement):
             # the computation must be performed:
             resu_rst = []
             for dom, rst in self._restrictions.items():
-                resu_rst.append(rst.lie_der(vector.restrict(dom)))
+                resu_rst.append(rst.lie_derivative(vector.restrict(dom)))
             resu = self._vmodule.tensor(self._tensor_type,
                                         sym=resu_rst[0]._sym,
                                         antisym=resu_rst[0]._antisym)
@@ -3199,8 +3598,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(1,1, name='a')
-            sage: a[eU,:] = [[1+y,x], [0,x+y]]
+            sage: a = M.tensor_field(1, 1, {eU: [[1+y,x], [0,x+y]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a.display(eU)
             a = (y + 1) d/dx*dx + x d/dx*dy + (x + y) d/dy*dy
@@ -3272,8 +3670,7 @@ class TensorField(ModuleElement):
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
-            sage: w = M.one_form()
-            sage: w[:] = [-1, 2]
+            sage: w = M.one_form(-1, 2)
             sage: v = w.up(g) ; v
             Vector field on the 2-dimensional differentiable manifold M
             sage: v.display()
@@ -3304,8 +3701,7 @@ class TensorField(ModuleElement):
 
         Raising the indices of a tensor field of type (0,2)::
 
-            sage: t = M.tensor_field(0, 2)
-            sage: t[:] = [[1,2], [3,4]]
+            sage: t = M.tensor_field(0, 2, [[1,2], [3,4]])
             sage: tu0 = t.up(g, 0) ; tu0  # raising the first index
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
@@ -3421,8 +3817,7 @@ class TensorField(ModuleElement):
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
-            sage: v = M.vector_field()
-            sage: v[:] = [-1,2]
+            sage: v = M.vector_field(-1, 2)
             sage: w = v.down(g) ; w
             1-form on the 2-dimensional differentiable manifold M
             sage: w.display()
@@ -3442,8 +3837,7 @@ class TensorField(ModuleElement):
 
         Lowering the indices of a tensor field of type (2,0)::
 
-            sage: t = M.tensor_field(2, 0)
-            sage: t[:] = [[1,2], [3,4]]
+            sage: t = M.tensor_field(2, 0, [[1,2], [3,4]])
             sage: td0 = t.down(g, 0) ; td0  # lowering the first index
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M

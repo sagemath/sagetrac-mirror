@@ -136,13 +136,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E.change_ring(k2).is_isomorphic(Et.change_ring(k2))
             True
         """
-        K=self.base_ring()
-        char=K.characteristic()
+        K = self.base_ring()
+        char = K.characteristic()
 
         if D is None:
             if K.is_finite():
                 x = rings.polygen(K)
-                if char==2:
+                if char == 2:
                     # We find D such that x^2+x+D is irreducible. If the
                     # degree is odd we can take D=1; otherwise it suffices to
                     # consider odd powers of a generator.
@@ -150,14 +150,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     if K.degree()%2==0:
                         D = K.gen()
                         a = D**2
-                        while len((x**2+x+D).roots())>0:
+                        while (x**2 + x + D).roots():
                             D *= a
                 else:
                     # We could take a multiplicative generator but
                     # that might be expensive to compute; otherwise
                     # half the elements will do
                     D = K.random_element()
-                    while len((x**2-D).roots())>0:
+                    while (x**2 - D).roots():
                         D = K.random_element()
             else:
                 raise ValueError("twisting parameter D must be specified over infinite fields.")
@@ -645,7 +645,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: G.<a> = F.extension(x^3+5)
             sage: E = EllipticCurve(j=1728*b).change_ring(G)
             sage: EF = E.descend_to(F); EF
-            [Elliptic Curve defined by y^2 = x^3 + (27*b-621)*x + (-1296*b+2484) over Number Field in b with defining polynomial x^2 - 23]
+            [Elliptic Curve defined by y^2 = x^3 + (27*b-621)*x + (-1296*b+2484) over Number Field in b with defining polynomial x^2 - 23 with b = 4.795831523312720?]
             sage: all(Ei.change_ring(G).is_isomorphic(E) for Ei in EF)
             True
 
@@ -655,8 +655,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: K.<b> = NumberField(x^2 - 7, embedding=a^2)
             sage: E = EllipticCurve([a^6,0])
             sage: EK = E.descend_to(K); EK
-            [Elliptic Curve defined by y^2 = x^3 + b*x over Number Field in b with defining polynomial x^2 - 7,
-            Elliptic Curve defined by y^2 = x^3 + 7*b*x over Number Field in b with defining polynomial x^2 - 7]
+            [Elliptic Curve defined by y^2 = x^3 + b*x over Number Field in b with defining polynomial x^2 - 7 with b = a^2,
+             Elliptic Curve defined by y^2 = x^3 + 7*b*x over Number Field in b with defining polynomial x^2 - 7 with b = a^2]
             sage: all(Ei.change_ring(L).is_isomorphic(E) for Ei in EK)
             True
 

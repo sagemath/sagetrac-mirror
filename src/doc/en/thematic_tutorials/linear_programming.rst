@@ -253,13 +253,13 @@ We can now define the MILP itself
 
 ::
 
-    sage: p.add_constraint(sum(weight[o] * taken[o] for o in L) <= C)
+    sage: p.add_constraint(p.sum(weight[o] * taken[o] for o in L) <= C)
 
 .. link
 
 ::
 
-    sage: p.set_objective(sum(usefulness[o] * taken[o] for o in L))
+    sage: p.set_objective(p.sum(usefulness[o] * taken[o] for o in L))
 
 .. link
 
@@ -275,7 +275,7 @@ The solution found is (of course) admissible
 
 ::
 
-    sage: sum(weight[o] * taken[o] for o in L) # abs tol 1e-6
+    sage: sum(weight[o] * taken[o] for o in L)  # abs tol 1e-6
     0.6964959796619171
 
 Should we take a flashlight?
@@ -331,14 +331,14 @@ Let us write the Sage code of this MILP::
 
 ::
 
-    sage: p.set_objective(sum(matching[e] for e in g.edges(labels=False)))
+    sage: p.set_objective(p.sum(matching[e] for e in g.edges(labels=False)))
 
 .. link
 
 ::
 
     sage: for v in g:
-    ....:     p.add_constraint(sum(matching[e]
+    ....:     p.add_constraint(p.sum(matching[e]
     ....:         for e in g.edges_incident(v, labels=False)) <= 1)
 
 .. link
@@ -409,8 +409,8 @@ graph, in which all the edges have a capacity of 1::
     sage: for v in g:
     ....:     if v != s and v != t:
     ....:         p.add_constraint(
-    ....:             sum(f[(v,u)] for u in g.neighbors_out(v))
-    ....:             - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
+    ....:             p.sum(f[v,u] for u in g.neighbors_out(v))
+    ....:             - p.sum(f[u,v] for u in g.neighbors_in(v)) == 0)
 
 .. link
 
@@ -423,7 +423,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.set_objective(sum(f[(s,u)] for u in g.neighbors_out(s)))
+    sage: p.set_objective(p.sum(f[s,u] for u in g.neighbors_out(s)))
 
 .. link
 
@@ -455,6 +455,8 @@ following libraries are currently supported:
 
   Proprietary, but free for researchers and students.
 
+  Since :trac:`27790`, only versions 12.8 and above are supported.
+
 * `CVXOPT <http://cvxopt.org/>`_: an LP solver from Python Software for
   Convex Optimization, uses an interior-point method, always installed in Sage.
 
@@ -483,7 +485,6 @@ of several files to use it through Sage. In each case, the **expected** (it may
 change !) filename is joined.
 
 * A valid license file
-    * CPLEX : a ``.ilm`` file
     * GUROBI : a ``.lic`` file
 
 * A compiled version of the library
@@ -497,45 +498,55 @@ change !) filename is joined.
 The environment variable defining the licence's path must also be set when
 running Sage. You can append to your ``.bashrc`` file one of the following :
 
-    * For CPLEX ::
+* For GUROBI
 
-        export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
+  .. CODE-BLOCK:: bash
 
-    * For GUROBI ::
-
-        export GRB_LICENSE_FILE=/path/to/the/license/gurobi.lic
+    export GRB_LICENSE_FILE=/path/to/the/license/gurobi.lic
 
 
 As Sage also needs the files library and header files the easiest way is to
 create symbolic links to these files in the appropriate directories:
 
 * For CPLEX:
-    * ``libcplex.a`` -- in ``SAGE_ROOT/local/lib/``, type::
+    * ``libcplex.a`` -- in ``SAGE_ROOT/local/lib/``, type:
 
-        ln -s /path/to/lib/libcplex.a .
+      .. CODE-BLOCK:: shell-session
 
-    * ``cplex.h`` -- in ``SAGE_ROOT/local/include/``, type::
+        $ ln -s /path/to/lib/libcplex.a .
 
-        ln -s /path/to/include/cplex.h .
+    * ``cplex.h`` -- in ``SAGE_ROOT/local/include/``, type:
 
-    *  ``cpxconst.h`` (if it exists) -- in ``SAGE_ROOT/local/include/``, type::
+      .. CODE-BLOCK:: shell-session
 
-        ln -s /path/to/include/cpxconst.h .
+        $ ln -s /path/to/include/cplex.h .
+
+    *  ``cpxconst.h`` (if it exists) -- in ``SAGE_ROOT/local/include/``, type:
+
+      .. CODE-BLOCK:: shell-session
+
+        $ ln -s /path/to/include/cpxconst.h .
 
 * For GUROBI
 
-    * ``libgurobi56.so`` -- in ``SAGE_ROOT/local/lib/``, type::
+    * ``libgurobi56.so`` -- in ``SAGE_ROOT/local/lib/``, type:
 
-        ln -s /path/to/lib/libgurobi56.so libgurobi.so
+      .. CODE-BLOCK:: shell-session
 
-    * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type::
+        $ ln -s /path/to/lib/libgurobi56.so libgurobi.so
 
-        ln -s /path/to/include/gurobi_c.h .
+    * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type:
 
-**It is very important that the names of the symbolic links in Sage's folders**
-** be precisely as indicated. If the names differ, Sage will not notice that**
-**the files are present**
+      .. CODE-BLOCK:: shell-session
 
-Once this is done, Sage is to be asked to notice the changes by running::
+        $ ln -s /path/to/include/gurobi_c.h .
 
-    make
+**It is very important that the names of the symbolic links in Sage's folders
+be precisely as indicated. If the names differ, Sage will not notice that
+the files are present**
+
+Once this is done, Sage is to be asked to notice the changes by running:
+
+.. CODE-BLOCK:: shell-session
+
+    $ make

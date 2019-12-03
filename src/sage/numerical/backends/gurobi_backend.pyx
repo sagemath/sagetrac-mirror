@@ -29,8 +29,6 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
-
 from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.cpython.string cimport char_to_str, str_to_bytes
@@ -48,6 +46,12 @@ cdef class GurobiBackend(GenericBackend):
 
         sage: p = MixedIntegerLinearProgram(solver="Gurobi")                # optional - Gurobi
         sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - Gurobi
+
+    Ticket :trac:`28206` is fixed::
+
+        sage: G = graphs.PetersenGraph()
+        sage: G.maximum_average_degree(solver='gurobi')  # optional - Gurobi
+        3
     """
 
     def __init__(self, maximization = True):
@@ -163,8 +167,9 @@ cdef class GurobiBackend(GenericBackend):
         cdef char * c_name = ""
 
         if name is None:
-            name = "x_"+str(self.ncols())
-
+            name = b"x_" + bytes(self.ncols())
+        else:
+            name = str_to_bytes(name)
         c_name = name
 
         if upper_bound is None:
@@ -178,6 +183,7 @@ cdef class GurobiBackend(GenericBackend):
 
         if coefficients is not None:
 
+            coefficients = list(coefficients)
             nonzeros = len(coefficients)
             c_indices = <int *> sig_malloc(nonzeros * sizeof(int))
             c_coeff = <double *> sig_malloc(nonzeros * sizeof(double))
@@ -514,13 +520,15 @@ cdef class GurobiBackend(GenericBackend):
         """
 
         if lower_bound is None and upper_bound is None:
-            raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
+            raise ValueError("at least one of 'upper_bound' or 'lower_bound' must be set")
 
+        coefficients = list(coefficients)
+        cdef int n = len(coefficients)
         cdef int * row_i
         cdef double * row_values
 
-        row_i = <int *> sig_malloc((len(coefficients)) * sizeof(int))
-        row_values = <double *> sig_malloc((len(coefficients)) * sizeof(double))
+        row_i = <int *> sig_malloc(n * sizeof(int))
+        row_values = <double *> sig_malloc(n * sizeof(double))
 
 
         for i,(c,v) in enumerate(coefficients):
@@ -531,17 +539,21 @@ cdef class GurobiBackend(GenericBackend):
             name = ""
 
         if upper_bound is not None and lower_bound is None:
-            error = GRBaddconstr(self.model, len(coefficients), row_i, row_values, GRB_LESS_EQUAL, <double> upper_bound, name)
+            error = GRBaddconstr(self.model, n, row_i, row_values, GRB_LESS_EQUAL, <double> upper_bound, str_to_bytes(name))
 
         elif lower_bound is not None and upper_bound is None:
-            error = GRBaddconstr(self.model, len(coefficients), row_i, row_values, GRB_GREATER_EQUAL, <double> lower_bound, name)
+            error = GRBaddconstr(self.model, n, row_i, row_values, GRB_GREATER_EQUAL, <double> lower_bound, str_to_bytes(name))
 
         elif upper_bound is not None and lower_bound is not None:
             if lower_bound == upper_bound:
-                error = GRBaddconstr(self.model, len(coefficients), row_i, row_values, GRB_EQUAL, <double> lower_bound, name)
+                error = GRBaddconstr(self.model, n, row_i, row_values, GRB_EQUAL, <double> lower_bound, str_to_bytes(name))
 
             else:
-                error = GRBaddrangeconstr(self.model, len(coefficients), row_i, row_values, <double> lower_bound, <double> upper_bound, name)
+                error = GRBaddrangeconstr(self.model, n, row_i, row_values, <double> lower_bound, <double> upper_bound, str_to_bytes(name))
+
+        else:
+            # This case is repeated here to avoid compilation warnings
+            raise ValueError("at least one of 'upper_bound' or 'lower_bound' must be set")
 
         check(self.env,error)
 
@@ -749,7 +761,7 @@ cdef class GurobiBackend(GenericBackend):
 
         check(self.env,GRBgetdblattr(self.model, "ObjVal", <double* >p_value))
 
-        return p_value[0] + self.obj_constant_term
+        return p_value[0] + <double>self.obj_constant_term
 
     cpdef get_variable_value(self, int variable):
         """
@@ -844,7 +856,7 @@ cdef class GurobiBackend(GenericBackend):
         if name[0] == NULL:
             value = ""
         else:
-            value = str(name[0])
+            value = char_to_str(name[0])
         return value
 
     cpdef row_name(self, int index):
@@ -868,7 +880,7 @@ cdef class GurobiBackend(GenericBackend):
         if name[0] == NULL:
             value = ""
         else:
-            value = str(name[0])
+            value = char_to_str(name[0])
         return value
 
     cpdef bint is_variable_binary(self, int index):
@@ -1146,6 +1158,8 @@ cdef class GurobiBackend(GenericBackend):
             raise ValueError("This parameter is not available. "+
                              "Enabling it may not be so hard, though.")
 
+        name = str_to_bytes(name)
+
         if t == "int":
             if value is None:
                 check(self.env, GRBgetintparam(self.env, name, tmp_int))
@@ -1161,9 +1175,9 @@ cdef class GurobiBackend(GenericBackend):
         elif t == "string":
             if value is None:
                 check(self.env, GRBgetstrparam(self.env, name, c_name))
-                return str(c_name)
+                return char_to_str(c_name)
             else:
-                check(self.env, GRBsetstrparam(self.env, name, value))
+                check(self.env, GRBsetstrparam(self.env, name, str_to_bytes(value)))
         else:
             raise RuntimeError("This should not happen.")
 

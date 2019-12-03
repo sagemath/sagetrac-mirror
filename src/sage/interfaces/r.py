@@ -213,11 +213,11 @@ The RPy2 library allows the creation of an R cell in the Jupyter
 notebook analogous to the %r escape in command line or %r cell in a
 Sage notebook.
 
-The interface is loaded by a cell containing the sole code :
+The interface is loaded by a cell containing the sole code:
 
 "%load_ext rpy2.ipython"
 
-After execution of this code, the %R and %%R magics are available :
+After execution of this code, the %R and %%R magics are available:
 
 - %R allows the execution of a single line of R code. Data exchange is
    possible via the -i and -o options. Do "%R?" in a standalone cell
@@ -227,7 +227,7 @@ After execution of this code, the %R and %%R magics are available :
     similar options (do "%%R?" in a standalone cell for
     documentation).
 
-A few important points must be noted :
+A few important points must be noted:
 
 - The R interpreter launched by this interface IS (currently)
   DIFFERENT from the R interpreter used br other r... functions.
@@ -483,12 +483,12 @@ class R(ExtraTabCompletion, Interface):
         self._seed = seed
         self._initialized = False # done lazily
 
-
     def _lazy_init(self):
         """
-        Initialize the R interpreter. This will set the initial options and
-        implicitly (through lazy_import) import rpy2 if it is not alreay
-        imported.
+        Initialize the R interpreter.
+
+        This will set the initial options and implicitly (through
+        lazy_import) import rpy2 if it is not already imported.
 
         Importing rpy2 takes something in the order of hundreds of milliseconds.
         It also takes tens of megabytes of RAM. Since an instance of R is
@@ -537,7 +537,21 @@ class R(ExtraTabCompletion, Interface):
             self._r_to_sage_converter = _setup_r_to_sage_converter()
             self._start()
 
+    def _coerce_impl(self, x, use_special=True):
+        """
+        TESTS:
 
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: repr(r(True)) == r._true_symbol()  # indirect doctest
+            True
+        """
+        # We overwrite _coerce_impl here because r._true_symbol() and
+        # r._false_symbol() are output strings that start with "[1] " and thus
+        # cannot be used as input
+        if isinstance(x, bool):
+            return self('TRUE' if x else 'FALSE')
+        return super(R, self)._coerce_impl(x, use_special=use_special)
 
     def set_seed(self, seed=None):
         """
@@ -550,7 +564,7 @@ class R(ExtraTabCompletion, Interface):
             sage: r = R()
             sage: r.set_seed(1)
             1
-            sage: r.sample("1:10", 5)
+            sage: r.sample("1:10", 5) # random
             [1] 3 4 5 7 2
         """
         if seed is None:

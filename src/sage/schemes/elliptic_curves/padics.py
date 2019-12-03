@@ -701,9 +701,9 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: h = E.padic_height(7,10)
         sage: P = E.gen(0)
         sage: h(P)
-        2*7 + 7^2 + 5*7^3 + 6*7^4 + 2*7^5 + 3*7^6 + 7^7 + O(7^9)
+        2*7 + 7^2 + 5*7^3 + 6*7^4 + 2*7^5 + 3*7^6 + 7^7 + 4*7^9 + 5*7^10 + O(7^11)
         sage: h(P+P)
-        7 + 5*7^2 + 6*7^3 + 5*7^4 + 4*7^5 + 6*7^6 + 5*7^7 + O(7^9)
+        7 + 5*7^2 + 6*7^3 + 5*7^4 + 4*7^5 + 6*7^6 + 5*7^7 + 2*7^9 + 7^10 + O(7^11)
     """
     if check_hypotheses:
         if not p.is_prime():
@@ -1113,9 +1113,9 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     sigma = theta * theta.parent().gen()
 
     # Convert the answer to power series over p-adics; drop the precision
-    # of the $t^k$ coefficient to $p^(N-k+1)$.
+    # of the t^k coefficient to p^(N-k+1).
     # [Note: there are actually more digits available, but it's a bit
-    # tricky to figure out exactly how many, and we only need $p^(N-k+1)$
+    # tricky to figure out exactly how many, and we only need p^(N-k+1)
     # for p-adic height purposes anyway]
     K = rings.pAdicField(p, N + 1)
 
@@ -1302,7 +1302,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
     sigma = theta * theta.parent().gen()
 
     # Convert the answer to power series over p-adics; drop the precision
-    # of the $t^j$ coefficient to $p^{N - 2 + (3 - j)(lamb + 1)})$.
+    # of the t^j coefficient to p^{N - 2 + (3 - j)(lamb + 1)}).
     K = rings.pAdicField(p, N - 2 + 3*(lamb+1))
 
     sigma = sigma.padded_list(trunc+1)

@@ -419,7 +419,7 @@ lazy_import('sage.interfaces.maxima_lib','maxima')
 ########################################################
 def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
-    Returns the symbolic sum `\sum_{v = a}^b expression` with respect
+    Return the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
 
     INPUT:
@@ -592,7 +592,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
        Sage can currently only understand a subset of the output of Maxima,
        Maple and Mathematica, so even if the chosen backend can perform
-       the summation the result might not be convertable into a Sage
+       the summation the result might not be convertible into a Sage
        expression.
     """
     if not is_SymbolicVariable(v):
@@ -793,7 +793,7 @@ def nintegral(ex, x, a, b,
             raise TypeError(err)
 
     # Maxima returns unevaluated expressions when the underlying library fails
-    # to perfom numerical integration. See:
+    # to perform numerical integration. See:
     # http://www.math.utexas.edu/pipermail/maxima/2008/012975.html
     if 'quad_qags' in str(v):
         raise ValueError("Maxima (via quadpack) cannot compute the integral")
@@ -1006,7 +1006,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: eqn =  x^3 + sqrt(2)*x + 5 == 0
         sage: a = solve(eqn, x)[0].rhs()
         sage: QQ[a]
-        Number Field in a with defining polynomial x^6 + 10*x^3 - 2*x^2 + 25
+        Number Field in a with defining polynomial x^6 + 10*x^3 - 2*x^2 + 25 with a = 0.7185272465828846? - 1.721353471724806?*I
 
     Here we solve a cubic and then recover it from its complicated
     radical expansion.
@@ -1560,7 +1560,7 @@ def laplace(ex, t, s, algorithm='maxima'):
     Testing SymPy::
 
         sage: laplace(t^n, t, s, algorithm='sympy')
-        (gamma(n + 1)/(s*s^n), 0, -re(n) < 1)
+        (gamma(n + 1)/(s*s^n), 0, re(n) > -1)
 
     Testing Maxima::
 
