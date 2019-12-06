@@ -1,7 +1,7 @@
 r"""
 Multiple Zeta Values or Euler-Zagier numbers
 
-It computes multiple zeta values with very high accuracy for the
+This module computes multiple zeta values with very high accuracy for the
 composition input and also helps to find any possible relations
 between the multiple zeta values.
 
@@ -9,10 +9,9 @@ AUTHOR:
 
 - Akhilesh P., IMSc Chennai, INDIA (2016-08-22): initial version
 
-References:
+REFERENCES:
 
-P. Akhilesh, *Double tails of multiple zeta values*, Journal of Number Theory, Volume 170, January 2017, Pages 228-249
-http://www.sciencedirect.com/science/article/pii/S0022314X16301718
+  P. Akhilesh, *Double tails of multiple zeta values*, Journal of Number Theory, Volume 170, January 2017, Pages 228-249 http://www.sciencedirect.com/science/article/pii/S0022314X16301718
 """
 # ****************************************************************************
 #       Copyright (C) 2013 Akhilesh P. <akhileshp.clt@gmail.com>
@@ -31,10 +30,11 @@ from sage.rings.real_mpfi import RealIntervalField
 from sage.rings.real_mpfr import RealField
 from sage.functions.other import factorial
 
+
 #converting composition to binary word
 def comptobin(a):
     r"""
-    This program converts composition to binary word.
+    Convert a composition to a binary word.
 
     INPUT:
 
@@ -54,7 +54,7 @@ def comptobin(a):
     """
     word = []
     for i in range(len(a)):
-        word += [0] * (a[i]-1) + [1]
+        word += [0] * (a[i] - 1) + [1]
     return word
 
 
@@ -71,17 +71,14 @@ def dual(a):
         sage: dual([0,1,0,1,0,0,1])
         [0, 1, 1, 0, 1, 0, 1]
     """
-    b = list(reversed(a))
-    for i in range(len(b)):
-        b[i] = 1 - b[i]
-    return b
+    return [1 - x for x in reversed(a)]
 
 
 # The program compute multiplRIF=RealIntervalField(D)e zeta value.
 def multizeta(a, n, D):
     r"""
-    Compute multiple zeta values of the given composition a
-    and with n steps iteration each steps computed with accuracy D.
+    Compute multiple zeta values of the given composition ``a``
+    and with ``n`` steps iteration each steps computed with accuracy ``D``.
 
     EXAMPLES::
 
@@ -93,33 +90,33 @@ def multizeta(a, n, D):
         sage: multizeta([2,1],170,100)
         1.2020569031595942853997381615114499907649862923404988817922715553418382057863130901864558736093353?
     """
-    D=D*log(10)/log(2)
-    RIF=RealIntervalField(D)
-    w=comptobin(a)
-    wd=dual(w)
-    Z=0
-    U=RIF('1')/2
-    B=[]
-    S=[]
-    count=-1
-    k=len(w)
+    D = D*log(10)/log(2)
+    RIF = RealIntervalField(D)
+    w = comptobin(a)
+    wd = dual(w)
+    Z = 0
+    U = RIF('1')/2
+    B = []
+    S = []
+    count = -1
+    k = len(w)
     for i in range(k):
             B.append(RIF('0'))
-            if(w[i]==1 and i<k-1):
+            if w[i] == 1 and i < k - 1:
                     S.append(RIF('0'))
-                    count=count+1
-    Bd=[]
-    Sd=[]
-    countd=-1
-    kd=len(wd)
+                    count += 1
+    Bd = []
+    Sd = []
+    countd = -1
+    kd = len(wd)
     for i in range(kd):
             Bd.append(RIF('0'))
-            if(wd[i]==1 and i<kd-1):
+            if wd[i] == 1 and i < kd - 1:
                     Sd.append(RIF('0'))
-                    countd=countd+1
+                    countd += 1
 
-    for m in range(0,n+1):
-            B[k-1]=RIF('1')/(m+1)
+    for m in range(n + 1):
+            B[k-1] = RIF('1')/(m+1)
             j=count
             for i in range(k-2,-1,-1):
                     if(w[i]==0):
@@ -156,11 +153,15 @@ def multizeta(a, n, D):
 
 def bintocomp(a):
     r"""
-    This program converts binary word to composition
+    Convert a binary word to a composition.
 
-    Input- array  correspond to the binery word
+    INPUT:
 
-    Output- array correspond to the composition:
+    array corresponding to the binary word
+
+    OUTPUT:
+
+    array correspond to the composition
 
     EXAMPLES::
 
@@ -195,7 +196,7 @@ def numtocomp(n):
     """
     if n < 0:
         raise ValueError
-    if n != 0:
+    if n:
         w = [int(bin(n)[j]) for j in range(2, len(bin(n)))]
         w = [0] + w[1:len(w)] + [1]
         return bintocomp(w)
@@ -218,10 +219,10 @@ def IMF(N):
         [0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 1, 3, 0, 1, 0, 0, 0, 4, 2, 5],
         [0, 0, 1, 0, 2, 3, 1, 0, 4, 5, 6, 7, 2, 3, 1, 0, 8, 9, 10, 11])
     """
-    Int=[0]
-    Fin=[0]
-    for n in range(1,N):
-            t=2
+    Int = [0]
+    Fin = [0]
+    for n in range(1, N):
+            t = 2
             while(n%t==0):
                     t=2*t
             t=t/2
@@ -263,13 +264,13 @@ def allmultizeta(N, n, D):
         1.036927755143369926331365486457034168057080919501912811974192677903803589786281484560043106557133337?,
         0.0965511599894437344656455314289427640320103723436914152525630787528921454259587614177018405925170654?]
     """
-    L=[0,2,3,3]
-    t=4
-    t1=2
-    count=0
+    L = [0, 2, 3, 3]
+    t = 4
+    t1 = 2
+    count = 0
     for i in range(4,N):
             L=L+[t1+2]
-            count=count+1
+            count += 1
             if(count==t):
                     t=2*t
                     t1=t1+1
@@ -319,20 +320,22 @@ def allmultizetaprint(N, n, D):
 
 def Li(word, D):
      r"""
-     This intermediate program computes the polylogarithm at 1/2.
+     Compute the polylogarithm at 1/2.
+
+     Auxiliary function.
      """
-     DD=D+int(log(D)/log(10))+4
-     RIF=RealIntervalField(DD)
+     DD = D+int(log(D)/log(10))+4
+     RIF = RealIntervalField(DD)
      n=int(DD*log(10)/log(2))+1
-     B=[]
-     L=[]
-     S=[]
-     count=-1
-     k=len(word)
+     B = []
+     L = []
+     S = []
+     count = -1
+     k = len(word)
      for i in range(k):
           B.append(RIF('0'))
           L.append(RIF('0'))
-          if(word[i]==1 and i<k-1):
+          if word[i]==1 and i<k-1:
                S.append(RIF('0'))
                count=count+1
      T=RIF('1')
@@ -385,8 +388,8 @@ def mzeta(a, D=1000):
 
 def Rmultizeta(a, D=100, M=100, m=10000):
     r"""
-    This program allows you to find the linear relationship
-    between the multiple zeta values:
+    This program allows you to find the linear relationships
+    between the multiple zeta values.
 
     EXAMPLES::
 
@@ -402,5 +405,4 @@ def Rmultizeta(a, D=100, M=100, m=10000):
     for i in range(len(a)):
         r = multizeta(a[i],int(R(1.7)*D),int(R(3.14)*D))
         Z.append(mpf((r.lower()+r.upper())/2))
-    u=pslq(Z,tol=mpf(10)**-D,maxcoeff=M,maxsteps=m)
-    return u
+    return pslq(Z,tol=mpf(10)**-D,maxcoeff=M,maxsteps=m)
