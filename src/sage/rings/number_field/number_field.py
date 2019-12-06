@@ -5003,6 +5003,30 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                     rets.append(F)
         return rets
 
+    def _pushout_(self, other):
+        r"""
+        Print a message that points the user to ``composite_fields``.
+
+        Coercion does not work in many cases, as there is a choice involved.
+        See :trac:`28774` for details.
+
+        EXAMPLES::
+
+            sage: K2.<sqrt2> = QuadraticField(2)
+            sage: K3.<sqrt3> = QuadraticField(3)
+            sage: K2._pushout_(K3)
+            common parent not found; the method ``composite_fields`` might be useful to find a common parent for number fields
+        """
+        K = super(NumberField_generic, self)._pushout_(other)
+        if K:
+            return K
+        if isinstance(other, NumberField_generic):
+            if self._internal_coerce_map_from(other):
+                return self
+            if other._internal_coerce_map_from(self):
+                return other
+            print("common parent not found; the method ``composite_fields`` might be useful to find a common parent for number fields")
+
     def absolute_degree(self):
         r"""
         Return the degree of self over `\QQ`.
@@ -5974,7 +5998,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if algorithm is None:
             algorithm = 'pari'
-        
+
         if algorithm == 'gp':
             from sage.lfunctions.all import Dokchitser
             r1, r2 = self.signature()
