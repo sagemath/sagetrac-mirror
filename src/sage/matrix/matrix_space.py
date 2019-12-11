@@ -150,6 +150,9 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(CDF, 2, 3, False, 'numpy')
         <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
+        sage: get_matrix_class(GF(3), 2, 3, False, 'gap')
+        <class 'sage.matrix.matrix_gap.Matrix_gap'>
+
         sage: get_matrix_class(ZZ, 3, 5, False, 'crazy_matrix')
         Traceback (most recent call last):
         ...
@@ -180,6 +183,8 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: type(matrix(GF(64,'z'), 2, range(4)))
         <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional: meataxe
+        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        sage: type(matrix(GF(5), 2, range(4), implementation='meataxe')) # optional: meataxe
         <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
     """
     if isinstance(implementation, type):
@@ -216,6 +221,40 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                 from . import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
 
+        elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(R):
+            if implementation is None:
+                if R.characteristic() == 2 and R.order() <= 65536:
+                    implementation = 'm4ri'
+                elif R.order() <= 255:
+                    try:
+                        from . import matrix_gfpn_dense
+                    except ImportError:
+                        implementation = 'generic'
+                    else:
+                        implementation = 'meataxe'
+                else:
+                    implementation = 'generic'
+
+            if implementation == 'm4ri':
+                if R.characteristic() != 2 or R.order() > 65536:
+                    raise ValueError('m4ri matrices are only available in characteristic 2 and order <= 65536')
+                if R.order() == 2:
+                    return matrix_mod2_dense.Matrix_mod2_dense
+                else:
+                    return matrix_gf2e_dense.Matrix_gf2e_dense
+
+            elif implementation == 'meataxe':
+                if R.order() > 255:
+                    raise ValueError('meataxe library only deals with finite fields of order < 256')
+                else:
+                    try:
+                        from . import matrix_gfpn_dense
+                    except ImportError:
+                        from sage.misc.package import PackageNotFoundError
+                        raise PackageNotFoundError('meataxe')
+                    else:
+                        return matrix_gfpn_dense.Matrix_gfpn_dense
+
         elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
             from . import matrix_modn_dense_double, matrix_modn_dense_float
 
@@ -244,38 +283,6 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                     raise ValueError('linbox-double can only deal with order < %s' % matrix_modn_dense_double.MAX_MODULUS)
                 else:
                     return matrix_modn_dense_double.Matrix_modn_dense_double
-
-        elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(R):
-            if implementation is None:
-                if R.characteristic() == 2 and R.order() <= 65536:
-                    implementation = 'm4ri'
-                elif R.order() <= 255:
-                    try:
-                        from . import matrix_gfpn_dense
-                    except ImportError:
-                        implementation = 'generic'
-                    else:
-                        implementation = 'meataxe'
-                else:
-                    implementation = 'generic'
-
-            if implementation == 'm4ri':
-                if R.characteristic() != 2 or R.order() > 65536:
-                    raise ValueError('m4ri matrices are only available in characteristic 2 and order <= 65536')
-                else:
-                    return matrix_gf2e_dense.Matrix_gf2e_dense
-
-            elif implementation == 'meataxe':
-                if R.order() > 255:
-                    raise ValueError('meataxe library only deals with finite fields of order < 256')
-                else:
-                    try:
-                        from . import matrix_gfpn_dense
-                    except ImportError:
-                        from sage.misc.package import PackageNotFoundError
-                        raise PackageNotFoundError('meataxe')
-                    else:
-                        return matrix_gfpn_dense.Matrix_gfpn_dense
 
         elif sage.rings.polynomial.polynomial_ring.is_PolynomialRing(R) and R.base_ring() in _Fields:
             if implementation is None:
