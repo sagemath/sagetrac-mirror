@@ -182,9 +182,9 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: type(matrix(GF(64,'z'), 2, range(4)))
         <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
-        sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional: meataxe
+        sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional - meataxe
         <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
-        sage: type(matrix(GF(5), 2, range(4), implementation='meataxe')) # optional: meataxe
+        sage: type(matrix(GF(5), 2, range(4), implementation='meataxe')) # optional - meataxe
         <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
     """
     if isinstance(implementation, type):
@@ -432,6 +432,14 @@ class MatrixSpace(UniqueRepresentation, Parent):
         sage: M1 = MatrixSpace(GF(2), 5)
         sage: M1(m * m) == M1(m) * M1(m)
         True
+
+    Check the optional SharedMeatAxe backend::
+
+        sage: M3 = MatrixSpace(GF(2), 5, implementation='meataxe') # optional - meataxe
+        sage: m3 = M3.random_element()                             # optional - meataxe
+        sage: M1(m3 * m3) == M1(m3) * M1(m3)                       # optional - meataxe
+        True
+
     """
     _no_generic_basering_coercion = True
 
