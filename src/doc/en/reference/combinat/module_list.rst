@@ -145,7 +145,6 @@ Comprehensive Module list
     sage/combinat/k_tableau
     sage/combinat/kazhdan_lusztig
     sage/combinat/knutson_tao_puzzles
-    sage/combinat/lyndon_word
     sage/combinat/matrices/__init__
     sage/combinat/matrices/all
     sage/combinat/matrices/dancing_links
@@ -349,6 +348,7 @@ Comprehensive Module list
     sage/combinat/subsets_pairwise
     sage/combinat/subword
     sage/combinat/subword_complex
+    sage/combinat/super_tableau
     sage/combinat/superpartition
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
@@ -367,6 +367,7 @@ Comprehensive Module list
     sage/combinat/words/alphabet
     sage/combinat/words/finite_word
     sage/combinat/words/infinite_word
+    sage/combinat/words/lyndon_word
     sage/combinat/words/morphism
     sage/combinat/words/paths
     sage/combinat/words/shuffle_product
