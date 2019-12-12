@@ -80,7 +80,7 @@ from cpython.object cimport (PyObject, PyTypeObject,
         Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
-import gmpy2
+cimport gmpy2
 
 cdef add, mul, truediv
 from operator import add, mul, truediv
@@ -338,6 +338,18 @@ cpdef bint parent_is_integers(P) except -1:
         True
         sage: parent_is_integers(numpy.float)
         False
+
+        sage: import gmpy2
+        sage: parent_is_integers(gmpy2.mpz)
+        True
+        sage: parent_is_integers(gmpy2.mpq)
+        False
+
+    Ensure (:trac:`27893`) is fixed::
+
+        sage: K.<f> = QQ[]
+        sage: gmpy2.mpz(2) * f
+        2*f
     """
     if isinstance(P, type):
         if issubclass(P, int) or issubclass(P, long):
@@ -345,6 +357,8 @@ cpdef bint parent_is_integers(P) except -1:
         elif is_numpy_type(P):
             from numpy import integer
             return issubclass(P, integer)
+        elif issubclass(P, gmpy2.mpz):
+            return True
         else:
             return False
     else:
@@ -490,7 +504,7 @@ cdef class CoercionModel:
 
     - Robert Bradshaw
     """
-    def __init__(self, *args, **kwds):
+    def __init__(self):
         """
         EXAMPLES::
 
@@ -500,18 +514,10 @@ cdef class CoercionModel:
             sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
-
-        TESTS::
-
-            sage: cm = CoercionModel(4, .95)
-            doctest:...: DeprecationWarning: the 'lookup_dict_size' argument is deprecated
-            See http://trac.sagemath.org/24135 for details.
-            doctest:...: DeprecationWarning: the 'lookup_dict_threshold' argument is deprecated
-            See http://trac.sagemath.org/24135 for details.
         """
-        self.reset_cache(*args, **kwds)
+        self.reset_cache()
 
-    def reset_cache(self, lookup_dict_size=None, lookup_dict_threshold=None):
+    def reset_cache(self):
         """
         Clear the coercion cache.
 
@@ -529,12 +535,6 @@ cdef class CoercionModel:
             sage: cm.get_cache()
             ({}, {})
         """
-        if lookup_dict_size is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24135, "the 'lookup_dict_size' argument is deprecated")
-        if lookup_dict_threshold is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24135, "the 'lookup_dict_threshold' argument is deprecated")
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Map.
