@@ -637,7 +637,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # so we can ignore this see the discussion in
         # sage.combinat.root_system.weight_space.WeightSpace).
         special_node = Q_check.cartan_type().special_node()
-        scalar = (-self._q1*self._q2)**(-sum(signs)/2) * self._q**(-lambdacheck[special_node])
+        scalar = (-self._q1*self._q2)**(-sum(signs)//2) * self._q**(-lambdacheck[special_node])
         return self.Tw(word, signs, scalar)
 
     def Y(self, base_ring=ZZ):
