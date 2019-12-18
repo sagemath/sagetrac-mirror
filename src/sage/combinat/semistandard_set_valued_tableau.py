@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Semistandard set valued tableaux
+Set-valued tableaux
 
 AUTHORS:
 
@@ -28,6 +28,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.partition import Partition, Partitions, _Partitions, Partitions_n
 from sage.combinat.root_system.cartan_type import CartanType
@@ -59,18 +60,29 @@ class SetValuedTableau(Tableau):
     @staticmethod
     def __classcall_private__(self, t):
         """
-        
+        A semistandard set-valued tableau.
+
+        A semistandard set-valued tableau is a tableau whose cells are filled with
+        finite, nonempty subset of positive integers.
 
         EXAMPLES::
 
+            sage: SVT = SetValuedTableaux([3,2])
+            sage: SVT([[[2,1], [2], [3,4]], [[3], [4,3]]])[1]
+            ((3,), (3, 4))
+            sage: T = SetValuedTableau([[[2,1], [2], [3,4]], [[4,3], [4]]])
+            sage: T[0]
+            ((1, 2), (2,), (3, 4))
+            sage: SetValuedTableau([[[1], [1,3,2], [3], [4,3,5]], [[4], [5,4]], [[5]]])
+            [[[1], [1, 2, 3], [3], [3, 4, 5]], [[4], [4, 5]], [[5]]]
             sage: t = SetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
             sage: t.shape()
             [3, 2, 1]
 
         TESTS::
 
-            sage: SetValuedTableau([[[1,2],[2,3]],[[4,6]]])
-            [[[1, 2], [2, 3]], [[4, 6]]]
+            sage: SetValuedTableau([[[1,2],[1,3]],[[4,6]]])
+            [[[1, 2], [1, 3]], [[4, 6]]]
         """
 
         if isinstance(t, SetValuedTableau):
@@ -283,9 +295,8 @@ class SetValuedTableau(Tableau):
             ValueError: [[[1], [2, 3]], [[2, 4]]] is not an element of
             Set-valued tableaux of shape [2, 2].
         """
-        super(SetValuedTableau, self).check()
-
-        # Tableau() has checked that t is tableau, so it remains to check that
+        Tableau(self).check()
+        # Tableau() has checked that self is tableau, so it remains to check that
         # the entries of t are finite, nonempty sets
         for row in self:
             for cell in row:
@@ -472,36 +483,21 @@ class SetValuedTableaux(Tableaux):
             ...
             ValueError: the argument must be a non-negative integer or a partition
         """
-        max_entry = kwargs.get('max_entry')
         if args:
             p = args[0]
 
             # if p is size
             if isinstance(p,(int,Integer)) and p >= 0:
-                if max_entry is None or max_entry == PlusInfinity():
-                    return SemistandardSetValuedTableaux_size(Integer(p), max_entry=None)
-                elif isinstance(max_entry, (int,Integer)) == False or max_entry <= 0:
-                    raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
-                return SemistandardSetValuedTableaux_size(Integer(p), max_entry)
-
+                return SetValuedTableaux_size(Integer(p))
             # if p is shape
             elif p in _Partitions:
-                if max_entry is None or max_entry == PlusInfinity():
-                    return SemistandardSetValuedTableaux_shape(_Partitions(p), max_entry=None)
-                elif isinstance(max_entry, (int,Integer)) == False or max_entry <= 0:
-                    raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
-                return SemistandardSetValuedTableaux_shape(_Partitions(p), max_entry)
+                return SetValuedTableaux_shape(_Partitions(p))
             else:
                 raise ValueError("the argument must be a non-negative integer or a partition")
         else:
-            if max_entry is None or max_entry == PlusInfinity():
-                return SemistandardSetValuedTableaux_all(max_entry=None)
-            elif isinstance(max_entry, (int,Integer)) == False or max_entry <= 0:
-                raise ValueError("the maximum entry must be a positive integer, None, or PlusInfinity")
-            return SemistandardSetValuedTableaux_all(max_entry=max_entry)
+            return SetValuedTableaux_all()
 
     Element = SetValuedTableau
-    options = Tableaux.options
 
     def __init__(self, *args, **kwargs):
         """
@@ -701,7 +697,7 @@ class SetValuedTableaux_shape(SetValuedTableaux):
         shape = _Partitions(p)
         return SetValuedTableaux.__classcall__(cls, shape)
 
-    def __init__(self, p, max_entry):
+    def __init__(self, p):
         """
         Initialize a class of set-valued tableaux of given shape ``p``.
 
@@ -1655,7 +1651,6 @@ class SemistandardSetValuedTableaux(Tableaux):
             return SemistandardSetValuedTableaux_all(max_entry=max_entry)
 
     Element = SemistandardSetValuedTableau
-    options = Tableaux.options
 
     def __init__(self, *args, **kwargs):
         """

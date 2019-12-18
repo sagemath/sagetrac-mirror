@@ -104,8 +104,8 @@ lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])
 lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
                                                      'ShiftedPrimedTableau'])
-lazy_import('sage.combinat.semistandard_set_valued_tableau', ['SemistandardSetValuedTableaux',
-                                                     'SemistandardSetValuedTableau'])
+lazy_import('sage.combinat.semistandard_set_valued_tableau', ['SetValuedTableaux','SetValuedTableau','SemistandardSetValuedTableaux',
+                                                              'SemistandardSetValuedTableau'])
 
 #Words
 from .words.all import *
