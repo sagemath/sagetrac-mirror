@@ -1194,8 +1194,6 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: cg,cg_rev = graphs.PetersenGraph()._backend.c_graph()
             sage: cg
             <sage.graphs.base.sparse_graph.SparseGraph object at ...>
-            sage: cg_rev
-            <sage.graphs.base.sparse_graph.SparseGraph object at ...>
         """
         return (self._cg, self._cg_rev)
 
@@ -1388,7 +1386,10 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef int v_int = self.get_vertex(v)
 
-        return self._cg_rev.out_degrees[v_int]
+        if self._cg_rev is not None:
+            return self._cg_rev.out_degrees[v_int]
+
+        return self._cg.in_degrees[v_int]
 
     def add_vertex(self, name):
         """
@@ -1653,12 +1654,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
-        # Sparse
         if self._cg_rev is not None:
             for u_int in self._cg_rev.out_neighbors(v_int):
                 yield self.vertex_label(u_int)
 
-        # Dense
         else:
             for u_int in self._cg.in_neighbors(v_int):
                 yield self.vertex_label(u_int)
@@ -2051,12 +2050,12 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef set exclude_vertices_int = None
         cdef set exclude_edges_int = None
-        
+
         if exclude_v:
             exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
         if exclude_e:
             exclude_edges_int = {(self.get_vertex(v1), self.get_vertex(v2)) for v1, v2 in exclude_edges}
- 
+
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
         cdef dict pred_y = {}
@@ -2406,7 +2405,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef double distance
         cdef set exclude_vertices_int = None
         cdef set exclude_edges_int = None
-        
+
         if exclude_v:
             exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
         if exclude_e:
@@ -2486,7 +2485,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                     for n in nbr:
                         if include_v and n not in include_vertices_int:
                             continue
-                        neighbors.append(n)    
+                        neighbors.append(n)
                 else:
                     neighbors = []
                     for w in nbr:
