@@ -72,11 +72,12 @@ from sage.functions.other import floor, ceil
 from sage.misc.cachefunc import cached_method
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.misc_c import prod
+from sage.modular.hypergeometric_misc import hgm_coeffs
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer_ring import ZZ
-from sage.rings.padics.factory import Qp
-from sage.rings.padics.misc import gauss_sum as padic_gauss_sum
+from sage.rings.padics.factory import Qp, Zp
+from sage.rings.padics.padic_generic_element import gauss_table
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -84,7 +85,6 @@ from sage.rings.rational_field import QQ
 from sage.schemes.generic.spec import Spec
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-
 
 def characteristic_polynomial_from_traces(traces, d, q, i, sign):
     r"""
@@ -1063,7 +1063,7 @@ class HypergeometricData(object):
 
         .. SEEALSO::
 
-            :meth:`is_primitive`, :meth:`primitive_index`,
+            :meth:`is_primitive`, :meth:`primitive_index`
 
         EXAMPLES::
 
@@ -1077,15 +1077,123 @@ class HypergeometricData(object):
         d = gcd(g)
         return HypergeometricData(gamma_list=[x / d for x in g])
 
+### L-functions
+
+    def gauss_table(self, p, f, prec):
+        """
+        Return a table of Gauss sums used in the trace formula.
+
+        .. SEEALSO::
+
+            :meth:`gauss_table_full`
+
+        EXAMPLES::
+
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
+            sage: H = Hyp(cyclotomic=([3],[4]))
+            sage: H.gauss_table(2, 2, 4)
+            [(0, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3)]
+        """
+        try:
+            (prec1, gtab) = self._gauss_table[(p, f)]
+            if prec1 < prec: raise KeyError
+        except (AttributeError, KeyError) as err:
+            if err.__class__ == AttributeError:
+                self._gauss_table = {}
+            gtab = gauss_table(p, f, prec)
+            self._gauss_table[(p, f)] = (prec, gtab)
+        return gtab
+
+    def set_gauss_table(self, p, f, prec, gtab):
+        """
+        Specify a precomputed table of Gauss sums.
+
+        This table does not depend on the hypergeometric data. This function
+        can thus be used to transfer cached data for a single prime between
+        different hypergeometric data.
+
+        .. SEEALSO::
+
+            :meth:`set_gauss_table_full`
+
+        EXAMPLES::
+
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
+            sage: H1 = Hyp(cyclotomic=([3],[4]))
+            sage: H1.euler_factor(2, 7, cache_p=True)
+            7*T^2 - 3*T + 1
+            sage: (prec, gtab) = H1.gauss_table_full()[7, 1]
+            sage: H2 = Hyp(cyclotomic=([5],[12]))
+            sage: H2.set_gauss_table(7, 1, prec, gtab)
+            sage: H2.gauss_table_full()[(7, 1)][1]
+            [(0, 6 + 6*7), (1, 6 + 2*7), (2, 3 + 3*7), (3, 1), (4, 2), (5, 6 + 3*7)]
+        """
+        try:
+            self._gauss_table[(p, f)] = (prec, gtab)
+        except AttributeError:
+            self._gauss_table = {(p, f): (prec, gtab)}
+        return None
+
+    def gauss_table_full(self):
+        """
+        Return all stored tables of Gauss sums.
+
+        .. SEEALSO::
+
+            :meth:`gauss_table`
+
+        EXAMPLES::
+
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
+            sage: H = Hyp(cyclotomic=([3],[4]))
+            sage: H.euler_factor(2, 7, cache_p=True)
+            7*T^2 - 3*T + 1
+            sage: H.gauss_table_full()[(7, 1)][1]
+            [(0, 6 + 6*7), (1, 6 + 2*7), (2, 3 + 3*7), (3, 1), (4, 2), (5, 6 + 3*7)]
+        """
+        return self._gauss_table
+
+    def set_gauss_table_full(self, gtabdict):
+        """
+        Specify all tables of Gauss sums.
+
+        These tables do not depend on the hypergeometric data. This function
+        can thus be used to transfer cached data for multiple primes between
+        different hypergeometric data.
+
+        .. SEEALSO::
+
+            :meth:`set_gauss_table`
+
+        EXAMPLES::
+
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
+            sage: H1 = Hyp(cyclotomic=([3],[4]))
+            sage: H1.euler_factor(2, 7, cache_p=True)
+            7*T^2 - 3*T + 1
+            sage: gtabs = H1.gauss_table_full()
+            sage: H2 = Hyp(cyclotomic=([5],[12]))
+            sage: H2.set_gauss_table_full(gtabs)
+            sage: H2.gauss_table_full()[(7, 1)][1]
+            [(0, 6 + 6*7), (1, 6 + 2*7), (2, 3 + 3*7), (3, 1), (4, 2), (5, 6 + 3*7)]
+        """
+        self._gauss_table = gtabdict
+        return None
+
     # --- L-functions ---
     @cached_method
-    def padic_H_value(self, p, f, t, prec=None):
+    def padic_H_value(self, p, f, t, prec=None, cache_p=False):
         """
         Return the `p`-adic trace of Frobenius, computed using the
         Gross-Koblitz formula.
 
         If left unspecified, `prec` is set to the minimum `p`-adic precision
         needed to recover the Euler factor.
+
+        If `cache_p` is True, then the function caches an intermediate
+        result which depends only on `p` and `f`. This leads to a significant
+        speedup when iterating over `t`. (When iterating also over the
+        hypergeometric data, one should also use :meth:`set_gauss_table`.)
 
         INPUT:
 
@@ -1096,6 +1204,8 @@ class HypergeometricData(object):
         - `t` -- a rational parameter
 
         - ``prec`` -- precision (optional)
+
+        - ``cache_p`` - a boolean
 
         OUTPUT:
 
@@ -1141,48 +1251,38 @@ class HypergeometricData(object):
         t = QQ(t)
         if 0 in alpha:
             return self._swap.padic_H_value(p, f, ~t, prec)
-        gamma = self.gamma_array()
-        q = p**f
+        q = p ** f
 
-        # m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
-        m = array.array('i', [0] * (q - 1))
+        m = array.array('i', [0]) * int(q - 1)
         for b in beta:
             u = b * (q - 1)
-            if u.is_integer():
-                m[u] += 1
+            if u.is_integer(): m[u] += 1
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
         # also: D = (self.weight() + 1 - m[0]) // 2
 
         if prec is None:
-            prec = (self.weight() * f) // 2 + ceil(log(self.degree(), p)) + 1
-        # For some reason, working in Qp instead of Zp is much faster;
-        # it appears to avoid some costly conversions.
-        p_ring = Qp(p, prec=prec)
-        teich = p_ring.teichmuller(M / t)
+            prec = ceil((self.weight() * f) / 2 + log(2*self.degree()+1, p))
 
-        gauss_table = [None] * (q - 1)
-        for r in range(q - 1):
-            if gauss_table[r] is None:
-                gauss_table[r] = padic_gauss_sum(r, p, f, prec, factored=True,
-                                                 algorithm='sage', parent=p_ring)
-                r1 = (r * p) % (q - 1)
-                while r1 != r:
-                    gauss_table[r1] = gauss_table[r]
-                    r1 = (r1 * p) % (q - 1)
-
-        sigma = p_ring.zero()
-        u1 = p_ring.one()
-        for r in range(q - 1):
-            i = int(0)
-            u = u1
-            u1 *= teich
-            for v, gv in gamma.items():
-                r1 = (v * r) % (q - 1)
-                i += gauss_table[r1][0] * gv
-                u *= gauss_table[r1][1] ** gv
-            sigma += (-p)**(i // (p - 1)) * u << (f * (D + m[0] - m[r]))
-        resu = ZZ(-1) ** m[0] / (1 - q) * sigma
+        gamma = self._gamma_array
+        if cache_p:
+            try:
+                 trcoeffs = self._trace_coeffs[(p, f)]
+            except (AttributeError, KeyError) as err:
+                if err.__class__ == AttributeError:
+                    self._trace_coeffs = {}
+                gtab = self.gauss_table(p, f, prec)
+                trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab)
+                self._trace_coeffs[(p,f)] = trcoeffs
+        else:
+            gtab = gauss_table(p, f, prec)
+            trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab)
+        p_ring = gtab[0][1].parent()
+        teich = p_ring.teichmuller(M/t)
+        sigma = trcoeffs[q-2]
+        for i in range(q-3, -1, -1):
+            sigma = sigma * teich + trcoeffs[i]
+        resu = ZZ(-1) ** m[0] * sigma / (1 - q)
         return IntegerModRing(p**prec)(resu).lift_centered()
 
     @cached_method
@@ -1334,7 +1434,7 @@ class HypergeometricData(object):
         return sign
 
     @cached_method
-    def euler_factor(self, t, p):
+    def euler_factor(self, t, p, cache_p=False):
         """
         Return the Euler factor of the motive `H_t` at prime `p`.
 
@@ -1427,7 +1527,8 @@ class HypergeometricData(object):
         # now p is good
         d = self.degree()
         bound = d // 2
-        traces = [self.padic_H_value(p, i + 1, t) for i in range(bound)]
+        traces = [self.padic_H_value(p, i + 1, t, cache_p=cache_p)
+                  for i in range(bound)]
 
         w = self.weight()
         sign = self.sign(t, p)

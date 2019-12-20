@@ -1222,7 +1222,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #    """
     #    raise NotImplementedError
 
-    def dwork_expansion(self, bd=20, a=0):
+    cpdef dwork_expansion(self, int bd, int a):
         r"""
         Return the value of a function defined by Dwork.
 
@@ -1230,8 +1230,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         INPUT:
 
-        - ``bd`` -- integer. Is a bound for precision, defaults to 20
-        - ``a``  -- integer. Offset parameter, defaults to 0
+        - ``bd`` -- integer. Number of terms in the expansion to use
+        - ``a``  -- integer. Offset parameter
 
         OUTPUT:
 
@@ -1254,55 +1254,67 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(17)
             sage: x = R(5+3*17+13*17^2+6*17^3+12*17^5+10*17^(14)+5*17^(17)+O(17^(19)))
-            sage: x.dwork_expansion(18)
+            sage: x.dwork_expansion(18, 0)
             16 + 7*17 + 11*17^2 + 4*17^3 + 8*17^4 + 10*17^5 + 11*17^6 + 6*17^7 
             + 17^8 + 8*17^10 + 13*17^11 + 9*17^12 + 15*17^13  + 2*17^14 + 6*17^15 
             + 7*17^16 + 6*17^17 + O(17^18)
 
             sage: R = Zp(5)
             sage: x = R(3*5^2+4*5^3+1*5^4+2*5^5+1*5^(10)+O(5^(20)))
-            sage: x.dwork_expansion()
+            sage: x.dwork_expansion(20, 0)
             4 + 4*5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^7 + 3*5^9 + 4*5^10 + 3*5^11 
             + 5^13 + 4*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 3*5^18 + O(5^20)
+
+        TESTS:
 
         This test was added in :trac:`24433`::
 
             sage: F = Qp(7)
             sage: F(4).gamma()
             6 + O(7^20)
-            sage: -F(1).dwork_expansion(a=3)
+            sage: -F(1).dwork_expansion(20, 3)
             6 + 4*7^19 + O(7^20)
         """
+        from sage.rings.padics.factory import Qp
+
         R = self.parent()
         cdef int p = R.prime()
-        cdef int b = a
-        cdef int k
+        cdef int k, a1
 
-        s = R.zero().add_bigoh(bd)
-        t = R.one().add_bigoh(bd)
+        # If p == 2, must work in Qp rather than Zp.
+        if p == 2 and not R.is_field():
+            S = R.fraction_field()
+            return R(S(self).dwork_expansion(bd, a))
         try:
             v = R.dwork_coeffs
+            if len(v) < p*bd:
+                raise AttributeError
         except AttributeError:
-            v = None
-        if v is not None and len(v) < p * bd:
-            v = None
-        if v is not None:
-            for k in range(bd):
-                s += t * v[p*k+b]
-                t *= (self + k)
-        else:
-            u = [t]
-            v = []
-            for j in range(1, p):
-                u.append(u[j-1] / j)
-            for k in range(bd):
-                v += [x << k for x in u]
-                s += t * (u[a] << k)
-                t *= (self + k)
-                u[0] = ((u[-1] + u[0]) / (k+1)) >> 1
-                for j in range(1, p):
-                    u[j] = (u[j-1] + u[j]) / (j + (k+1) * p )
-            R.dwork_coeffs = v
+            v = [R.one()]
+            for k in range(1, p):
+                v.append(v[-1] / k)
+            if bd > 1:
+                R1 = Qp(p, prec=bd) # Need divisions in this calculation
+                u = [R1(x) for x in v]
+                for k in range(1, bd):
+                    u[0] = ((u[-1] + u[0]) / k) >> 1
+                    for j in range(1, p):
+                        u[j] = (u[j-1] + u[j]) / (j + k * p)
+                    for x in u:
+                        v.append(R(x << k))
+            R.dwork_coeffs = tuple(v)
+        # Evaluate the appropriate Mahler series at self.
+        if bd == 1:
+            return -v[a]
+        bd -= 1
+        a1 = a + bd*p
+        s = v[a1]
+        u = self + bd
+        w = R.one()
+        for k in range(bd):
+            a1 -= p
+            u -= w
+            s = s*u + v[a1]
         return -s
 
     def gamma(self, algorithm='pari'):
@@ -1410,11 +1422,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             p = parent.prime()
-            bd = -((-n*p)//(p-1))
+            bd = -((-n*p) // (p-1))
             k = (-self) % p
             x = (self+k) >> 1
-            if p==2 and n>=3:
-                x = x.lift_to_precision(n)
             return -x.dwork_expansion(bd, k.lift())
 
     @coerce_binop
@@ -4411,3 +4421,61 @@ def _compute_g(p, n, prec, terms):
     for i in range(n):
         g[i+1] = -(g[i]/(v-v**2)).integral()
     return [x.truncate(terms) for x in g]
+
+cpdef gauss_table(int p, int f, int prec):
+    r"""
+    Compute a table of Gauss sums using the Gross-Koblitz formula.
+
+    This is used in the computation of L-functions of hypergeometric motives.
+    The Gross-Koblitz formula is used as in `sage.rings.padics.misc.gauss_sum`,
+    but we call directly to `dwork_expansion` for efficiency.
+
+    INPUT:
+
+    - `p` - prime
+    - `f`, `prec` - positive integers
+
+    OUTPUT:
+
+    A list `l` of length `q-1=p^f-1`. Entries are `p`-adic units created
+    with absolute precision `prec`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_generic_element import gauss_table
+        sage: gauss_table(2,2,4)
+        [(0, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3)]
+        sage: gauss_table(3,2,4)[3]
+        (1, 2 + 3 + 2*3^2)
+
+    """
+    from sage.rings.padics.factory import Zp, Qp
+    cdef int i, j, bd, k
+    cdef long q1, r, r1, r2
+
+    q1 = p**f - 1
+    bd = (p*prec+p-2)//(p-1)-1
+    R = Zp(p, prec, 'fixed-mod')
+    u = R.one()
+
+    ans = [None for r in range(q1)]
+    ans[0] = (0, -u)
+    d = ~R(q1)
+    for r in range(1, q1):
+        if ans[r] is not None: continue
+        i = 0
+        s = u
+        r1 = r
+        for j in range(f):
+            k = r1 % p
+            i += k
+            r1 = (r1+q1*k) // p
+            # Use Dwork expansion to compute p-adic Gamma.
+            s *= -(R(r1)*d).dwork_expansion(bd, k)
+        ans[r] = (i, -s)
+        if f == 1: continue
+        r1 = r*p % q1
+        while r1 != r:
+            ans[r1] = ans[r]
+            r1 = r1*p % q1
+    return ans
