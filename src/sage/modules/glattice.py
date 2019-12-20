@@ -1808,14 +1808,17 @@ class Lattice_generic(FreeModule_generic):
             [0 1 0 0], [ 0  0  0 -1]
             ]
 
-        ::
+        If the base group is not a direct summand or the action is not trivial, then the method will not work 
+        because the norm map is not well defined::
 
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
             sage: act1 = matrix(3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
             sage: act2 = matrix(3, [1, 0, 0, 0, 1, 0, 0, 0, 1])
             sage: L1 = GLattice(G, [act1, act2])
             sage: L1.norm_one_restriction_of_scalars(SymmetricGroup(5))
-            Ambient lattice of rank 59 with an action by a group of order 120
+            Traceback (most recent call last):
+            ...
+            ValueError: The basis is not stable under the action of the group
 
         ::
 
