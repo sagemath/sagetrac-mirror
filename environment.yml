@@ -49,8 +49,16 @@ dependencies:
   # spkg-configure.m4, we provide the corresponding conda-forge packages.
   # SPKG: arb
   - arb           2.16.*
+  # SPKG: autotools
+  - autoconf
+  - automake
+  - m4
+  - gettext
+  - libtool
   # SPKG: bzip2
   - bzip2         1.*
+  # SPKG: cliquer
+  - cliquer
   # SPKG: curl
   - curl          7.64.*
   # SPKG: eclib
@@ -74,6 +82,8 @@ dependencies:
   - givaro        4.1.*
   # SPKG: glpk
   - glpk          4.65.*
+  # SPKG: gsl
+  - gsl
   # SPKG: iconv
   - libiconv      >=1.15,<2
   # SPKG: isl
@@ -104,6 +114,8 @@ dependencies:
   - ncurses       >=6.0,<7
   # SPKG: ntl
   - ntl           11.3.2
+  # SPKG: openblas
+  - openblas      >=0.3.7
   # SPKG: pari
   - pari          2.11.*
   - pari-galpol
@@ -119,6 +131,8 @@ dependencies:
   - pcre
   # SPKG: pkgconf
   - pkg-config
+  # SPKG: r
+  - r-base        3.6.*
   # SPKG: readline
   - readline      8.0.*
   # SPKG: rw
