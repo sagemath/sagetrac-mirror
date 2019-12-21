@@ -116,6 +116,7 @@ dependencies:
   - ntl           11.3.2
   # SPKG: openblas
   - openblas      >=0.3.7
+  - blas-devel    * *openblas
   # SPKG: pari
   - pari          2.11.*
   - pari-galpol
