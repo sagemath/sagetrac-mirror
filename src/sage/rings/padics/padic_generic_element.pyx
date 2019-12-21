@@ -4415,7 +4415,7 @@ cpdef evaluate_dwork_mahler(v, x, int p, int bd, int a):
         sage: x.dwork_expansion(a=1) # Same result
         2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
     """
-    cdef int k
+    cdef int k, a1
     bd -= 1
     a1 = a + bd*p
     s = v[a1]
