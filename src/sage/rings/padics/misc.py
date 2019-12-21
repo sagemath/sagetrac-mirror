@@ -257,6 +257,9 @@ def dwork_mahler_coeffs(R, bd=20):
     r"""
     Compute Dwork's formula for Mahler coefficients of `p`-adic Gamma.
 
+    This is called internally when one computes Gamma for a `p`-adic
+    integer. Normally there is no need to call it directly.
+
     INPUT:
 
     - ``R`` -- p-adic ring in which to compute
@@ -265,6 +268,18 @@ def dwork_mahler_coeffs(R, bd=20):
     OUTPUT:
 
     A list of `p`-adic integers.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.misc import dwork_mahler_coeffs
+        sage: from sage.rings.padics.padic_generic_element import evaluate_dwork_mahler
+        sage: R = Zp(3)
+        sage: v = dwork_mahler_coeffs(R)
+        sage: x = R(1/7)
+        sage: evaluate_dwork_mahler(v, x, 3, 20, 1)
+        2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
+        sage: x.dwork_expansion(a=1) # Same result
+        2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
     """
     from sage.rings.padics.factory import Qp
 

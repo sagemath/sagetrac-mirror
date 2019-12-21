@@ -4399,6 +4399,21 @@ def _compute_g(p, n, prec, terms):
 cpdef evaluate_dwork_mahler(v, x, int p, int bd, int a):
     """
     Evaluate Dwork's Mahler series for `p`-adic Gamma.
+
+    For `x` in a `p`-adic ring, this duplicates :meth:`dwork_expansion`
+    but can be called without Python overhead.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.misc import dwork_mahler_coeffs
+        sage: from sage.rings.padics.padic_generic_element import evaluate_dwork_mahler
+        sage: R = Zp(3)
+        sage: v = dwork_mahler_coeffs(R)
+        sage: x = R(1/7)
+        sage: evaluate_dwork_mahler(v, x, 3, 20, 1)
+        2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
+        sage: x.dwork_expansion(a=1) # Same result
+        2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
     """
     cdef int k
     bd -= 1
@@ -4437,7 +4452,6 @@ cpdef gauss_table(int p, int f, int prec):
         [(0, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3)]
         sage: gauss_table(3,2,4)[3]
         (1, 2 + 3 + 2*3^2)
-
     """
     from sage.rings.padics.factory import Zp, Qp
     cdef int i, j, bd, k
@@ -4471,7 +4485,7 @@ cpdef gauss_table(int p, int f, int prec):
             if bd == 1:
                 s *= v[k]
             else:
-                # Use Dwork expansion to compute p-adic Gamma.                
+                # Use Dwork expansion to compute p-adic Gamma.
                 s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
         ans[r] = (i, -s)
         if f == 1: continue
