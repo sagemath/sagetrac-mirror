@@ -6,16 +6,6 @@ significantly from Cythonization.
 from cpython cimport array
 import array
 
-# When e is known to be small and positive, it is faster to exponentiate
-# by repeated multiplication.
-cdef exp_inline(w, int e):
-    if e == 1: return w
-    x = w
-    while e > 1:
-        x *= w
-        e -= 1
-    return x
-
 cpdef hgm_coeffs(int p, int f, gamma, array.array m, int D, gtable):
     r"""
     Compute coefficients for the hypergeometric trace formula.
@@ -37,27 +27,40 @@ cpdef hgm_coeffs(int p, int f, gamma, array.array m, int D, gtable):
         sage: hgm_coeffs(7, 1, gamma, m, D, gtable)
         [7, 2*7, 6*7, 7, 6, 4*7]
     """
-    cdef int gl, i, k, q1, r, r1, v, gv
+    cdef int gl, i, j, k, q1, r, r1, v, gv, prec
 
     q1 = p ** f - 1
     gl = len(gamma)
     gamma_array1 = array.array('i', gamma.keys())
     gamma_array2 = array.array('i', gamma.values())
+    r_array = array.array('i', [0]) * gl
 
     R = gtable[0][1].parent()
+    prec = R.precision_cap()
     ans = []
     for r in range(q1):
+        # First determine whether this term is forced to be zero
+        # for divisibility reasons. If so, skip the p-adic arithmetic.
         i = 0
-        u = R.one()
-        u1 = R.one()
         for k in range(gl):
             v = gamma_array1[k]
             gv = gamma_array2[k]
             r1 = v * r % q1
+            r_array[k] = r1
             i += gtable[r1][0] * gv
-            if gv > 0: u *= exp_inline(gtable[r1][1], gv)
-            else: u1 *= exp_inline(gtable[r1][1], -gv)
         i //= (p - 1)
+        if (i + f * (D + m[0] - m[r])) >= prec:
+            ans.append(R.zero())
+            continue
+        u = R.one()
+        u1 = R.one()
+        for k in range(gl):
+            gv = gamma_array2[k]
+            r1 = r_array[k]
+            if gv > 0:
+                for j in range(gv): u *= gtable[r1][1]
+            else:
+                for j in range(-gv): u1 *= gtable[r1][1]
         if i % 2: u = -u
         ans.append((u / u1) << (i + f * (D + m[0] - m[r])))
     return ans
