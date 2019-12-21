@@ -252,3 +252,35 @@ def trim_zeros(L):
         else:
             break
     return L[:n]
+
+def dwork_mahler_coeffs(R, bd=20):
+    r"""
+    Compute Dwork's formula for Mahler coefficients of `p`-adic Gamma.
+
+    INPUT:
+
+    - ``R`` -- p-adic ring in which to compute
+    - ``bd`` -- integer. Number of terms in the expansion to use
+
+    OUTPUT:
+
+    A list of `p`-adic integers.
+    """
+    from sage.rings.padics.factory import Qp
+
+    v = [R.one()]
+    p = R.prime()
+    for k in range(1, p):
+        v.append(v[-1] / R(k))
+    if bd > 1:
+        R1 = Qp(p, prec=bd) # Need divisions in this calculation
+        u = [R1(x) for x in v]
+        for k in range(1, bd):
+            u[0] = ((u[-1] + u[0]) / k) >> 1
+            for j in range(1, p):
+                u[j] = (u[j-1] + u[j]) / (j + k * p)
+            for x in u:
+                v.append(R(x << k))
+    return v
+
+

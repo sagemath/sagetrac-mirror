@@ -39,6 +39,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.structure.element import coerce_binop
 from sage.structure.richcmp cimport rich_to_bool
+from sage.rings.padics.misc import dwork_mahler_coeffs
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -1222,7 +1223,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #    """
     #    raise NotImplementedError
 
-    cpdef dwork_expansion(self, int bd, int a):
+    def dwork_expansion(self, bd=20, a=0):
         r"""
         Return the value of a function defined by Dwork.
 
@@ -1230,8 +1231,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         INPUT:
 
-        - ``bd`` -- integer. Number of terms in the expansion to use
-        - ``a``  -- integer. Offset parameter
+        - ``bd`` -- integer. Precision bound, defaults to 20
+        - ``a``  -- integer. Offset parameter, defaults to 0
 
         OUTPUT:
 
@@ -1254,14 +1255,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(17)
             sage: x = R(5+3*17+13*17^2+6*17^3+12*17^5+10*17^(14)+5*17^(17)+O(17^(19)))
-            sage: x.dwork_expansion(18, 0)
+            sage: x.dwork_expansion(18)
             16 + 7*17 + 11*17^2 + 4*17^3 + 8*17^4 + 10*17^5 + 11*17^6 + 6*17^7 
             + 17^8 + 8*17^10 + 13*17^11 + 9*17^12 + 15*17^13  + 2*17^14 + 6*17^15 
             + 7*17^16 + 6*17^17 + O(17^18)
 
             sage: R = Zp(5)
             sage: x = R(3*5^2+4*5^3+1*5^4+2*5^5+1*5^(10)+O(5^(20)))
-            sage: x.dwork_expansion(20, 0)
+            sage: x.dwork_expansion()
             4 + 4*5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^7 + 3*5^9 + 4*5^10 + 3*5^11 
             + 5^13 + 4*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 3*5^18 + O(5^20)
 
@@ -1272,14 +1273,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: F = Qp(7)
             sage: F(4).gamma()
             6 + O(7^20)
-            sage: -F(1).dwork_expansion(20, 3)
+            sage: -F(1).dwork_expansion(a=3)
             6 + 4*7^19 + O(7^20)
         """
-        from sage.rings.padics.factory import Qp
-
         R = self.parent()
-        cdef int p = R.prime()
-        cdef int k, a1
+        p = R.prime()
 
         # If p == 2, must work in Qp rather than Zp.
         if p == 2 and not R.is_field():
@@ -1290,32 +1288,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if len(v) < p*bd:
                 raise AttributeError
         except AttributeError:
-            v = [R.one()]
-            for k in range(1, p):
-                v.append(v[-1] / k)
-            if bd > 1:
-                R1 = Qp(p, prec=bd) # Need divisions in this calculation
-                u = [R1(x) for x in v]
-                for k in range(1, bd):
-                    u[0] = ((u[-1] + u[0]) / k) >> 1
-                    for j in range(1, p):
-                        u[j] = (u[j-1] + u[j]) / (j + k * p)
-                    for x in u:
-                        v.append(R(x << k))
-            R.dwork_coeffs = tuple(v)
-        # Evaluate the appropriate Mahler series at self.
-        if bd == 1:
-            return -v[a]
-        bd -= 1
-        a1 = a + bd*p
-        s = v[a1]
-        u = self + bd
-        w = R.one()
-        for k in range(bd):
-            a1 -= p
-            u -= w
-            s = s*u + v[a1]
-        return -s
+            v = dwork_mahler_coeffs(R, bd)
+        return evaluate_dwork_mahler(v, self, p, bd, a)
 
     def gamma(self, algorithm='pari'):
         r"""
@@ -4422,6 +4396,22 @@ def _compute_g(p, n, prec, terms):
         g[i+1] = -(g[i]/(v-v**2)).integral()
     return [x.truncate(terms) for x in g]
 
+cpdef evaluate_dwork_mahler(v, x, int p, int bd, int a):
+    """
+    Evaluate Dwork's Mahler series for `p`-adic Gamma.
+    """
+    cdef int k
+    bd -= 1
+    a1 = a + bd*p
+    s = v[a1]
+    u = x + bd
+    w = x.parent().one()
+    for k in range(bd):
+        a1 -= p
+        u -= w
+        s = s*u + v[a1]
+    return -s
+
 cpdef gauss_table(int p, int f, int prec):
     r"""
     Compute a table of Gauss sums using the Gross-Koblitz formula.
@@ -4456,26 +4446,38 @@ cpdef gauss_table(int p, int f, int prec):
     q1 = p**f - 1
     bd = (p*prec+p-2)//(p-1)-1
     R = Zp(p, prec, 'fixed-mod')
-    u = R.one()
+    if p == 2: # Dwork expansion has denominators when p = 2
+        R1 = Qp(p, prec)
+    else:
+        R1 = R
+    u = R1.one()
 
     ans = [None for r in range(q1)]
     ans[0] = (0, -u)
-    d = ~R(q1)
+    d = ~R1(q1)
+    v = dwork_mahler_coeffs(R1, bd)
     for r in range(1, q1):
         if ans[r] is not None: continue
         i = 0
         s = u
         r1 = r
         for j in range(f):
-            k = r1 % p
+            if f == 1:
+                k = r1
+            else:
+                k = r1 % p
+                r1 = (r1+q1*k) // p
             i += k
-            r1 = (r1+q1*k) // p
-            # Use Dwork expansion to compute p-adic Gamma.
-            s *= -(R(r1)*d).dwork_expansion(bd, k)
+            if bd == 1:
+                s *= v[k]
+            else:
+                # Use Dwork expansion to compute p-adic Gamma.                
+                s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
         ans[r] = (i, -s)
         if f == 1: continue
         r1 = r*p % q1
         while r1 != r:
             ans[r1] = ans[r]
             r1 = r1*p % q1
-    return ans
+    if p != 2: return ans
+    return [(i, R(x)) for (i, x) in ans]

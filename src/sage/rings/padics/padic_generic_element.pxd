@@ -44,4 +44,3 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cpdef _floordiv_(self, right)
     cpdef bint _is_base_elt(self, p) except -1
 
-    cpdef dwork_expansion(self, int bd, int a)
