@@ -1267,7 +1267,7 @@ class HypergeometricData(object):
         gamma = self._gamma_array
         if cache_p:
             try:
-                 trcoeffs = self._trace_coeffs[(p, f)]
+                trcoeffs = self._trace_coeffs[(p, f)]
             except (AttributeError, KeyError) as err:
                 if err.__class__ == AttributeError:
                     self._trace_coeffs = {}
@@ -1277,9 +1277,9 @@ class HypergeometricData(object):
         else:
             gtab = gauss_table(p, f, prec)
             trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab)
-        p_ring = gtab[0][1].parent()
-        teich = p_ring.teichmuller(M/t)
         sigma = trcoeffs[q-2]
+        p_ring = sigma.parent()
+        teich = p_ring.teichmuller(M/t)
         for i in range(q-3, -1, -1):
             sigma = sigma * teich + trcoeffs[i]
         resu = ZZ(-1) ** m[0] * sigma / (1 - q)
