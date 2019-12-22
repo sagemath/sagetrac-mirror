@@ -4475,7 +4475,7 @@ cpdef gauss_table(int p, int f, int prec):
         i = 0
         s = u
         r1 = r
-        for j in range(f):
+        for j in range(1, f+1):
             if f == 1:
                 k = r1
             else:
@@ -4487,11 +4487,13 @@ cpdef gauss_table(int p, int f, int prec):
             else:
                 # Use Dwork expansion to compute p-adic Gamma.
                 s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
+            if r1 == r and j < f: # Early cycle
+                i *= f // j
+                s **= f // j
+                break
         ans[r] = (i, -s)
-        if f == 1: continue
-        r1 = r*p % q1
-        while r1 != r:
+        for k in range(j-1):
+            r1 = r1 * p % q1
             ans[r1] = ans[r]
-            r1 = r1*p % q1
     if p != 2: return ans
     return [(i, R(x)) for (i, x) in ans]
