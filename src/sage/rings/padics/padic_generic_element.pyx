@@ -4395,8 +4395,7 @@ def _compute_g(p, n, prec, terms):
         g[i+1] = -(g[i]/(v-v**2)).integral()
     return [x.truncate(terms) for x in g]
 
-
-cpdef dwork_mahler_coeffs(R, bd=20):
+cpdef dwork_mahler_coeffs(R, int bd=20):
     r"""
     Compute Dwork's formula for Mahler coefficients of `p`-adic Gamma.
 
@@ -4424,6 +4423,8 @@ cpdef dwork_mahler_coeffs(R, bd=20):
         2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
     """
     from sage.rings.padics.factory import Qp
+    cdef int i
+    cdef long k, p
 
     v = [R.one()]
     p = R.prime()
@@ -4432,16 +4433,15 @@ cpdef dwork_mahler_coeffs(R, bd=20):
     if bd > 1:
         R1 = Qp(p, prec=bd) # Need divisions in this calculation
         u = [R1(x) for x in v]
-        for k in range(1, bd):
-            u[0] = ((u[-1] + u[0]) / k) >> 1
+        for i in range(1, bd):
+            u[0] = ((u[-1] + u[0]) / i) >> 1
             for j in range(1, p):
-                u[j] = (u[j-1] + u[j]) / (j + k * p)
+                u[j] = (u[j-1] + u[j]) / (j + i * p)
             for x in u:
-                v.append(R(x << k))
+                v.append(R(x << i))
     return v
 
-
-cpdef evaluate_dwork_mahler(v, x, int p, int bd, int a):
+cpdef evaluate_dwork_mahler(v, x, long p, int bd, long a):
     """
     Evaluate Dwork's Mahler series for `p`-adic Gamma.
 
@@ -4459,19 +4459,32 @@ cpdef evaluate_dwork_mahler(v, x, int p, int bd, int a):
         sage: x.dwork_expansion(a=1) # Same result
         2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
     """
-    cdef int k, a1
+    cdef int k
+    cdef long a1
     bd -= 1
     a1 = a + bd*p
     s = v[a1]
     u = x + bd
-    w = x.parent().one()
     for k in range(bd):
         a1 -= p
-        u -= w
+        u -= 1
         s = s*u + v[a1]
     return -s
 
-cpdef gauss_table(int p, int f, int prec):
+cdef long evaluate_dwork_mahler_long(v, long x, long p, int bd, long a, long q):
+    cdef int k
+    cdef long a1, s, u
+    bd -= 1
+    a1 = a + bd*p
+    s = v[a1].lift()
+    u = x + bd
+    for k in range(bd):
+        a1 -= p
+        u -= 1
+        s = (s*u + v[a1].lift()) % q
+    return -s
+
+cpdef gauss_table(long p, int f, int prec, bint use_words):
     r"""
     Compute a table of Gauss sums using the Gross-Koblitz formula.
 
@@ -4492,17 +4505,20 @@ cpdef gauss_table(int p, int f, int prec):
     EXAMPLES::
 
         sage: from sage.rings.padics.padic_generic_element import gauss_table
-        sage: gauss_table(2,2,4)
+        sage: gauss_table(2,2,4,False)
         [(0, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3)]
-        sage: gauss_table(3,2,4)[3]
+        sage: gauss_table(3,2,4,False)[3]
         (1, 2 + 3 + 2*3^2)
     """
     from sage.rings.padics.factory import Zp, Qp
-    cdef int i, j, bd
-    cdef long q1, r, r1, r2, k
+    cdef int j, bd
+    cdef long i, q, q1, q2, r, r1, r2, s1, k
 
-    q1 = p**f - 1
-    bd = (p*prec+p-2)//(p-1)-1
+    q = p**f
+    q1 = q - 1
+    q2 = q // p
+    q3 = p**prec
+    bd = (p*prec+p-2) // (p-1) - 1
     R = Zp(p, prec, 'fixed-mod')
     if p == 2: # Dwork expansion has denominators when p = 2
         R1 = Qp(p, prec)
@@ -4513,31 +4529,37 @@ cpdef gauss_table(int p, int f, int prec):
     ans = [None for r in range(q1)]
     ans[0] = (0, -u)
     d = ~R1(q1)
+    if use_words:
+        r2 = d.lift() % q3
     v = dwork_mahler_coeffs(R1, bd)
     for r in range(1, q1):
+        if f == 1 and bd == 1:
+            ans[r] = (r, -v[r])
+            continue
         if ans[r] is not None: continue
         i = 0
         s = u
+        if use_words: s1 = 1
         r1 = r
         for j in range(1, f+1):
-            if f == 1:
-                k = r1
-            else:
-                k = r1 % p
-                r1 = (r1+q1*k) // p
+            k = r1 % p
+            r1 = r1 // p + k * q2
             i += k
-            if bd == 1:
-                s *= v[k]
+            # Use Dwork expansion to compute p-adic Gamma.
+            if use_words:
+                s1 *= -evaluate_dwork_mahler_long(v, r1*r2, p, bd, k, q3)
+                s1 %= q3
             else:
-                # Use Dwork expansion to compute p-adic Gamma.
-                y = R1(r1)*d
-                s *= -evaluate_dwork_mahler(v, y, p, bd, k)
-            if r1 == r and j < f: # Early cycle
-                i *= f // j
-                s **= f // j
+                if bd == 1: s *= -v[k]
+                else: s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
+            if r1 == r: # End the loop.
+                if use_words: s = R1(s1)
+                if j < f:
+                    i *= f // j
+                    s **= f // j
                 break
         ans[r] = (i, -s)
-        for k in range(j-1):
+        for i in range(j-1):
             r1 = r1 * p % q1
             ans[r1] = ans[r]
     if p != 2: return ans

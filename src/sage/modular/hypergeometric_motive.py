@@ -1100,7 +1100,7 @@ class HypergeometricData(object):
         except (AttributeError, KeyError) as err:
             if err.__class__ == AttributeError:
                 self._gauss_table = {}
-            gtab = gauss_table(p, f, prec)
+            gtab = gauss_table(p, f, prec, False)
             self._gauss_table[(p, f)] = (prec, gtab)
         return gtab
 
@@ -1252,6 +1252,8 @@ class HypergeometricData(object):
         if 0 in alpha:
             return self._swap.padic_H_value(p, f, ~t, prec)
         q = p ** f
+        if q * p > 2 ** 64:
+            return ValueError("p^(f+1) cannot exceed 2^64")
 
         m = array.array('i', [0]) * int(q - 1)
         for b in beta:
@@ -1263,6 +1265,7 @@ class HypergeometricData(object):
 
         if prec is None:
             prec = ceil((self.weight() * f) / 2 + log(2*self.degree()+1, p))
+        use_words = (p ** prec < 2 ** 31)
 
         gamma = self._gamma_array
         if cache_p:
@@ -1275,7 +1278,7 @@ class HypergeometricData(object):
                 trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab)
                 self._trace_coeffs[(p,f)] = trcoeffs
         else:
-            gtab = gauss_table(p, f, prec)
+            gtab = gauss_table(p, f, prec, use_words)
             trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab)
         sigma = trcoeffs[q-2]
         p_ring = sigma.parent()

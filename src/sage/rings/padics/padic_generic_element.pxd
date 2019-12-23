@@ -6,7 +6,7 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
-cpdef gauss_table(int p, int f, int prec)
+cpdef gauss_table(long p, int f, int prec, bint use_words)
 
 cdef class pAdicGenericElement(LocalGenericElement):
     cdef long valuation_c(self)
