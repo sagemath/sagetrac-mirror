@@ -1,16 +1,15 @@
 SAGE_SPKG_CONFIGURE([libpng], [
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_ZLIB])
-    AC_MSG_CHECKING([installing zlib? ])
-    if test x$sage_spkg_install_zlib = xyes; then
-      AC_MSG_RESULT([yes; install libpng as well])
-      sage_spkg_install_libpng=yes
-    else
-      AC_MSG_RESULT([no])
+    m4_pushdef([SAGE_LIBPNG_MINVER],[1.2])
+    SAGE_SPKG_DEPCHECK([zlib], [
       dnl First try checking for libpng with pkg-config
-      PKG_CHECK_MODULES([LIBPNG], [libpng >= 1.2], [], [
+      PKG_CHECK_MODULES([LIBPNG], [libpng >= $SAGE_LIBPNG_MINVER], [], [
         dnl Fallback to manually grubbing around for headers and libs
-        AC_CHECK_HEADERS([png.h], [break], [sage_spkg_install_libpng=yes])
-        AC_SEARCH_LIBS([png_get_io_ptr], [png], [], [sage_spkg_install_libpng=yes])
+        AC_CHECK_HEADERS([png.h], [
+           AC_SEARCH_LIBS([png_get_io_ptr], [png], [
+             dnl write out libpng.pc
+           ], [sage_spkg_install_libpng=yes])
+         ], [sage_spkg_install_libpng=yes])
       ])
-    fi
+    ])
+    m4_popdef([SAGE_LIBPNG_MINVER])
 ])

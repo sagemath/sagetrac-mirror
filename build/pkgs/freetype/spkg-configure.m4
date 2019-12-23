@@ -1,18 +1,12 @@
 SAGE_SPKG_CONFIGURE([freetype], [
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_LIBPNG])
-    AC_MSG_CHECKING([Installing libpng? ])
-    if test x$sage_spkg_install_libpng = xyes; then
-      AC_MSG_RESULT([yes; install freetype as well])
-      sage_spkg_install_freetype=yes
-    else
-      AC_MSG_RESULT([no])
-      PKG_CHECK_MODULES([FREETYPE], [freetype2 >= 2.4], [], [sage_spkg_install_freetype=yes])
-    fi
-    if test x$sage_spkg_install_freetype = xyes; then
-      AC_SUBST(SAGE_FREETYPE_PREFIX, ['$SAGE_LOCAL'])
-    else
-      AC_SUBST(SAGE_FREETYPE_PREFIX, [''])
-    fi
+    m4_pushdef([SAGE_FREETYPE_MINVER],[2.4])
+    SAGE_SPKG_DEPCHECK([libpng], [
+      PKG_CHECK_MODULES([FREETYPE], [freetype2 >= $SAGE_FREETYPE_MINVER], [], [sage_spkg_install_freetype=yes])
+    ])
+    AS_IF([test x$sage_spkg_install_freetype = xyes],
+      [AC_SUBST(SAGE_FREETYPE_PREFIX, ['$SAGE_LOCAL'])],
+      [AC_SUBST(SAGE_FREETYPE_PREFIX, [''])])
+    m4_popdef([SAGE_FREETYPE_MINVER])
 ])
 
 
