@@ -39,7 +39,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.structure.element import coerce_binop
 from sage.structure.richcmp cimport rich_to_bool
-from sage.rings.padics.misc import dwork_mahler_coeffs
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -4396,6 +4395,52 @@ def _compute_g(p, n, prec, terms):
         g[i+1] = -(g[i]/(v-v**2)).integral()
     return [x.truncate(terms) for x in g]
 
+
+cpdef dwork_mahler_coeffs(R, bd=20):
+    r"""
+    Compute Dwork's formula for Mahler coefficients of `p`-adic Gamma.
+
+    This is called internally when one computes Gamma for a `p`-adic
+    integer. Normally there is no need to call it directly.
+
+    INPUT:
+
+    - ``R`` -- p-adic ring in which to compute
+    - ``bd`` -- integer. Number of terms in the expansion to use
+
+    OUTPUT:
+
+    A list of `p`-adic integers.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_generic_element import dwork_mahler_coeffs, evaluate_dwork_mahler
+        sage: R = Zp(3)
+        sage: v = dwork_mahler_coeffs(R)
+        sage: x = R(1/7)
+        sage: evaluate_dwork_mahler(v, x, 3, 20, 1)
+        2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
+        sage: x.dwork_expansion(a=1) # Same result
+        2 + 2*3 + 3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 3^17 + 3^19 + O(3^20)
+    """
+    from sage.rings.padics.factory import Qp
+
+    v = [R.one()]
+    p = R.prime()
+    for k in range(1, p):
+        v.append(v[-1] / R(k))
+    if bd > 1:
+        R1 = Qp(p, prec=bd) # Need divisions in this calculation
+        u = [R1(x) for x in v]
+        for k in range(1, bd):
+            u[0] = ((u[-1] + u[0]) / k) >> 1
+            for j in range(1, p):
+                u[j] = (u[j-1] + u[j]) / (j + k * p)
+            for x in u:
+                v.append(R(x << k))
+    return v
+
+
 cpdef evaluate_dwork_mahler(v, x, int p, int bd, int a):
     """
     Evaluate Dwork's Mahler series for `p`-adic Gamma.
@@ -4405,8 +4450,7 @@ cpdef evaluate_dwork_mahler(v, x, int p, int bd, int a):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.misc import dwork_mahler_coeffs
-        sage: from sage.rings.padics.padic_generic_element import evaluate_dwork_mahler
+        sage: from sage.rings.padics.padic_generic_element import dwork_mahler_coeffs, evaluate_dwork_mahler
         sage: R = Zp(3)
         sage: v = dwork_mahler_coeffs(R)
         sage: x = R(1/7)
@@ -4454,8 +4498,8 @@ cpdef gauss_table(int p, int f, int prec):
         (1, 2 + 3 + 2*3^2)
     """
     from sage.rings.padics.factory import Zp, Qp
-    cdef int i, j, bd, k
-    cdef long q1, r, r1, r2
+    cdef int i, j, bd
+    cdef long q1, r, r1, r2, k
 
     q1 = p**f - 1
     bd = (p*prec+p-2)//(p-1)-1
@@ -4486,7 +4530,8 @@ cpdef gauss_table(int p, int f, int prec):
                 s *= v[k]
             else:
                 # Use Dwork expansion to compute p-adic Gamma.
-                s *= -evaluate_dwork_mahler(v, R1(r1)*d, p, bd, k)
+                y = R1(r1)*d
+                s *= -evaluate_dwork_mahler(v, y, p, bd, k)
             if r1 == r and j < f: # Early cycle
                 i *= f // j
                 s **= f // j
