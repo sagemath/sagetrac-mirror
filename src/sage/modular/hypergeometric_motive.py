@@ -1094,7 +1094,7 @@ class HypergeometricData(object):
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([3],[4]))
             sage: H.gauss_table(2, 2, 4)
-            [(0, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3)]
+            ([0, 1, 1], [1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3])
         """
         try:
             (prec1, gtab) = self._gauss_table[(p, f)]
@@ -1125,7 +1125,7 @@ class HypergeometricData(object):
             sage: H.euler_factor(2, 7, cache_p=True)
             7*T^2 - 3*T + 1
             sage: H.gauss_table_full()[(7, 1)][1]
-            [(0, 6 + 6*7), (1, 6 + 2*7), (2, 3 + 3*7), (3, 1), (4, 2), (5, 6 + 3*7)]
+            ([0, 1, 2, 3, 4, 5], [6 + 6*7, 6 + 2*7, 3 + 3*7, 1, 2, 6 + 3*7])
 
         Clearing cached values::
 
@@ -1236,11 +1236,11 @@ class HypergeometricData(object):
                 if err.__class__ == AttributeError:
                     self._trace_coeffs = {}
                 gtab = self.gauss_table(p, f, prec)
-                trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab)
+                trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab[0], gtab[1])
                 self._trace_coeffs[(p,f)] = trcoeffs
         else:
             gtab = gauss_table(p, f, prec, use_words)
-            trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab)
+            trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab[0], gtab[1])
         sigma = trcoeffs[q-2]
         p_ring = sigma.parent()
         teich = p_ring.teichmuller(M/t)

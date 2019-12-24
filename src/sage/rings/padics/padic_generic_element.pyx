@@ -42,6 +42,7 @@ from sage.structure.richcmp cimport rich_to_bool
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
+from cpython cimport array
 
 cdef class pAdicGenericElement(LocalGenericElement):
     cpdef _richcmp_(left, right, int op):
@@ -4499,18 +4500,20 @@ cpdef gauss_table(long p, int f, int prec, bint use_words):
 
     OUTPUT:
 
-    A list `l` of length `q-1=p^f-1`. Entries are `p`-adic units created
-    with absolute precision `prec`.
+    Two lists of length `q-1=p^f-1`. The entries of the first list are integers;
+    the entries of the second list are `p`-adic units created with absolute 
+    precision `prec`.
 
     EXAMPLES::
 
         sage: from sage.rings.padics.padic_generic_element import gauss_table
         sage: gauss_table(2,2,4,False)
-        [(0, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3), (1, 1 + 2 + 2^2 + 2^3)]
-        sage: gauss_table(3,2,4,False)[3]
-        (1, 2 + 3 + 2*3^2)
+        ([0, 1, 2], [1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3]
+        sage: gauss_table(3,2,4,False)[1][3]
+        2 + 3 + 2*3^2
     """
     from sage.rings.padics.factory import Zp, Qp
+    
     cdef int j, bd
     cdef long i, q, q1, q2, r, r1, r2, s1, k
 
@@ -4526,17 +4529,20 @@ cpdef gauss_table(long p, int f, int prec, bint use_words):
         R1 = R
     u = R1.one()
 
-    ans = [None for r in range(q1)]
-    ans[0] = (0, -u)
+    cdef array.array ans = array.array('l', [0]) * q1
+    ans2 = [None for r in range(q1)]
+    ans[0] = 0
+    ans2[0] = -u
     d = ~R1(q1)
     if use_words:
         r2 = d.lift() % q3
     v = dwork_mahler_coeffs(R1, bd)
     for r in range(1, q1):
         if f == 1 and bd == 1:
-            ans[r] = (r, -v[r])
+            ans[r] = r
+            ans2[r] = -v[r]
             continue
-        if ans[r] is not None: continue
+        if ans2[r] is not None: continue
         i = 0
         s = u
         if use_words: s1 = 1
@@ -4558,9 +4564,11 @@ cpdef gauss_table(long p, int f, int prec, bint use_words):
                     i *= f // j
                     s **= f // j
                 break
-        ans[r] = (i, -s)
+        ans[r] = i
+        ans2[r] = -s
         for i in range(j-1):
             r1 = r1 * p % q1
             ans[r1] = ans[r]
-    if p != 2: return ans
-    return [(i, R(x)) for (i, x) in ans]
+            ans2[r1] = ans2[r]
+    if p != 2: return ans, ans2
+    return ans, [R(x) for x in ans2]
