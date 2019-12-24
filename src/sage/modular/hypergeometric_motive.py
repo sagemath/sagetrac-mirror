@@ -396,6 +396,8 @@ def gamma_list_to_cyclotomic(galist):
 
 
 class HypergeometricData(object):
+    _gauss_table = {}
+    
     def __init__(self, cyclotomic=None, alpha_beta=None, gamma_list=None):
         r"""
         Creation of hypergeometric motives.
@@ -1081,7 +1083,7 @@ class HypergeometricData(object):
 
     def gauss_table(self, p, f, prec):
         """
-        Return a table of Gauss sums used in the trace formula.
+        Return (and cache) a table of Gauss sums used in the trace formula.
 
         .. SEEALSO::
 
@@ -1104,39 +1106,13 @@ class HypergeometricData(object):
             self._gauss_table[(p, f)] = (prec, gtab)
         return gtab
 
-    def set_gauss_table(self, p, f, prec, gtab):
-        """
-        Specify a precomputed table of Gauss sums.
-
-        This table does not depend on the hypergeometric data. This function
-        can thus be used to transfer cached data for a single prime between
-        different hypergeometric data.
-
-        .. SEEALSO::
-
-            :meth:`set_gauss_table_full`
-
-        EXAMPLES::
-
-            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
-            sage: H1 = Hyp(cyclotomic=([3],[4]))
-            sage: H1.euler_factor(2, 7, cache_p=True)
-            7*T^2 - 3*T + 1
-            sage: (prec, gtab) = H1.gauss_table_full()[7, 1]
-            sage: H2 = Hyp(cyclotomic=([5],[12]))
-            sage: H2.set_gauss_table(7, 1, prec, gtab)
-            sage: H2.gauss_table_full()[(7, 1)][1]
-            [(0, 6 + 6*7), (1, 6 + 2*7), (2, 3 + 3*7), (3, 1), (4, 2), (5, 6 + 3*7)]
-        """
-        try:
-            self._gauss_table[(p, f)] = (prec, gtab)
-        except AttributeError:
-            self._gauss_table = {(p, f): (prec, gtab)}
-        return None
-
     def gauss_table_full(self):
         """
-        Return all stored tables of Gauss sums.
+        Return a dict of all stored tables of Gauss sums.
+
+        The result is passed by reference, and is an attribute of the class;
+        consequently, modifying the result has global side effects. Use with
+        caution.
 
         .. SEEALSO::
 
@@ -1150,35 +1126,20 @@ class HypergeometricData(object):
             7*T^2 - 3*T + 1
             sage: H.gauss_table_full()[(7, 1)][1]
             [(0, 6 + 6*7), (1, 6 + 2*7), (2, 3 + 3*7), (3, 1), (4, 2), (5, 6 + 3*7)]
+
+        Clearing cached values::
+
+            sage: H = Hyp(cyclotomic=([3],[4]))
+            sage: H.euler_factor(2, 7, cache_p=True)
+            7*T^2 - 3*T + 1
+            sage: d = H.gauss_table_full()
+            sage: d.clear() # Delete all entries of this dict
+            sage: H1 = Hyp(cyclotomic=([5],[12]))
+            sage: d1 = H1.gauss_table_full()
+            sage: len(d1.keys()) # No cached values
+            0
         """
         return self._gauss_table
-
-    def set_gauss_table_full(self, gtabdict):
-        """
-        Specify all tables of Gauss sums.
-
-        These tables do not depend on the hypergeometric data. This function
-        can thus be used to transfer cached data for multiple primes between
-        different hypergeometric data.
-
-        .. SEEALSO::
-
-            :meth:`set_gauss_table`
-
-        EXAMPLES::
-
-            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
-            sage: H1 = Hyp(cyclotomic=([3],[4]))
-            sage: H1.euler_factor(2, 7, cache_p=True)
-            7*T^2 - 3*T + 1
-            sage: gtabs = H1.gauss_table_full()
-            sage: H2 = Hyp(cyclotomic=([5],[12]))
-            sage: H2.set_gauss_table_full(gtabs)
-            sage: H2.gauss_table_full()[(7, 1)][1]
-            [(0, 6 + 6*7), (1, 6 + 2*7), (2, 3 + 3*7), (3, 1), (4, 2), (5, 6 + 3*7)]
-        """
-        self._gauss_table = gtabdict
-        return None
 
     # --- L-functions ---
     @cached_method
