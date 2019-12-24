@@ -6,7 +6,7 @@ significantly from Cythonization.
 from cpython cimport array
 
 cpdef hgm_coeffs(long p, int f, gamma, array.array m, int D,
-                 array.array gtab0, gtab1):
+                 array.array gtab0, gtab1, bint use_words):
     r"""
     Compute coefficients for the hypergeometric trace formula.
 
@@ -27,18 +27,21 @@ cpdef hgm_coeffs(long p, int f, gamma, array.array m, int D,
         sage: hgm_coeffs(7, 1, gamma, m, D, gtable)
         [7, 2*7, 6*7, 7, 6, 4*7]
     """
-    cdef int gl, j, k, l, r, r1, v, gv, prec
-    cdef long i, q1
+    cdef int gl, j, k, l, v, gv, prec
+    cdef long i, q1, w, w1, q2, r, r1
 
     q1 = p ** f - 1
     gl = len(gamma)
     cdef array.array gamma_array1 = array.array('i', gamma.keys())
     cdef array.array gamma_array2 = array.array('i', gamma.values())
     cdef array.array r_array = array.array('i', [0]) * gl
+    cdef array.array gtab2
 
     R = gtab1[0].parent()
     prec = R.precision_cap()
     ans = []
+    if use_words:
+        gtab2 = array.array('l', [x.lift() for x in gtab1])
     for r in range(q1):
         # First determine whether this term is forced to be zero
         # for divisibility reasons. If so, skip the p-adic arithmetic.
@@ -54,15 +57,29 @@ cpdef hgm_coeffs(long p, int f, gamma, array.array m, int D,
         if l >= prec:
             ans.append(R.zero())
             continue
-        u = R.one()
-        u1 = R.one()
-        if i % 2: u = -u
+        if use_words:
+            w = 1
+            w1 = 1
+            q2 = p ** prec
+        else:
+            u = R.one()
+            u1 = R.one()
         for k in range(gl):
             gv = gamma_array2[k]
             r1 = r_array[k]
-            if gv > 0:
-                for j in range(gv): u *= gtab1[r1]
+            if use_words:
+                if gv > 0:
+                    for j in range(gv): w = w * gtab2[r1] % q2
+                else:
+                    for j in range(-gv): w1 = w1 * gtab2[r1] % q2
             else:
-                for j in range(-gv): u1 *= gtab1[r1]
+                if gv > 0:
+                    for j in range(gv): u *= gtab1[r1]
+                else:
+                    for j in range(-gv): u1 *= gtab1[r1]
+        if use_words:
+            u = R(w)
+            u1 = R(w1)
+        if i % 2: u = -u
         ans.append((u / u1) << l)
     return ans

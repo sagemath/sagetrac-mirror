@@ -1094,7 +1094,8 @@ class HypergeometricData(object):
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([3],[4]))
             sage: H.gauss_table(2, 2, 4)
-            ([0, 1, 1], [1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3])
+            (array('l', [0, 1, 1]),
+             [1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3, 1 + 2 + 2^2 + 2^3])
         """
         try:
             (prec1, gtab) = self._gauss_table[(p, f)]
@@ -1125,7 +1126,7 @@ class HypergeometricData(object):
             sage: H.euler_factor(2, 7, cache_p=True)
             7*T^2 - 3*T + 1
             sage: H.gauss_table_full()[(7, 1)][1]
-            ([0, 1, 2, 3, 4, 5], [6 + 6*7, 6 + 2*7, 3 + 3*7, 1, 2, 6 + 3*7])
+            (array('l', [0, 1, 2, 3, 4, 5]), [6 + 6*7, 6 + 2*7, 3 + 3*7, 1, 2, 6 + 3*7])
 
         Clearing cached values::
 
@@ -1236,11 +1237,11 @@ class HypergeometricData(object):
                 if err.__class__ == AttributeError:
                     self._trace_coeffs = {}
                 gtab = self.gauss_table(p, f, prec)
-                trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab[0], gtab[1])
+                trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab[0], gtab[1], use_words)
                 self._trace_coeffs[(p,f)] = trcoeffs
         else:
             gtab = gauss_table(p, f, prec, use_words)
-            trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab[0], gtab[1])
+            trcoeffs = hgm_coeffs(p, f, gamma, m, D, gtab[0], gtab[1], use_words)
         sigma = trcoeffs[q-2]
         p_ring = sigma.parent()
         teich = p_ring.teichmuller(M/t)
@@ -1458,6 +1459,12 @@ class HypergeometricData(object):
              130321*T^4 + 14440*T^3 + 969*T^2 + 40*T + 1,
              279841*T^4 - 25392*T^3 + 1242*T^2 - 48*T + 1,
              707281*T^4 - 7569*T^3 + 696*T^2 - 9*T + 1]
+
+        This is an example of higher degree::
+
+            sage: H = Hyp(cyclotomic=([11], [7, 12]))
+            sage: H.euler_factor(2, 13)
+            2476099*T^10 - 651605*T^9 + 233206*T^8 - 77254*T^7 + 20349*T^6 - 4611*T^5 + 1071*T^4 - 214*T^3 + 34*T^2 - 5*T + 1
 
         TESTS::
 
