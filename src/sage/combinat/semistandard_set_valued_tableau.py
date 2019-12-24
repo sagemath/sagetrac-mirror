@@ -311,15 +311,16 @@ class SetValuedTableau(Tableau):
 
             sage: T1 = SetValuedTableau([[[1,2],[2]],[[3]]])
             sage: T1.conjugate()
-            [[[1,2],[3]],[[2]]]
+            [[[1, 2], [3]], [[2]]]
 
             sage: T2 = SetValuedTableau([])
             sage: T2.conjugate()
             []
         """
-        T = Tableau(self).conjugate()
-        SVT = SetValuedTableaux()
-        return SVT.element_class(self,T)
+        T = super(SetValuedTableau,self).conjugate()
+        shape = T.shape().conjugate()
+        SVT = SetValuedTableaux(shape)
+        return SVT.element_class(SVT,T)
 
     def shape(self):
         """
@@ -552,6 +553,8 @@ class SetValuedTableaux(Tableaux):
                     # checks that the set consists of nonempty set of integers
                     if len(cell)==0 or not all(isinstance(elt,(int,Integer)) and elt>0 for elt in cell):
                         return False
+            return True
+
 
 class SetValuedTableaux_all(SetValuedTableaux):
     """
