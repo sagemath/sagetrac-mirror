@@ -295,7 +295,7 @@ class SetValuedTableau(Tableau):
             ValueError: [[[1], [2, 3]], [[2, 4]]] is not an element of
             Set-valued tableaux of shape [2, 2].
         """
-        Tableau(self).check()
+        super(SetValuedTableau,self).check()
         # Tableau() has checked that self is tableau, so it remains to check that
         # the entries of t are finite, nonempty sets
         for row in self:
