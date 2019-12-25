@@ -1,0 +1,11 @@
+libdir=@SAGE_ZLIB_LIBDIR@
+sharedlibdir=${libdir}
+includedir=@SAGE_ZLIB_INCLUDEDIR@
+
+Name: zlib
+Description: zlib compression library
+Version: 1.2.11
+
+Requires:
+Libs: -L${sharedlibdir} -lz
+Cflags: -I${includedir}
