@@ -286,6 +286,7 @@ from sage.matrix.constructor import matrix
 from sage.misc.mrange import cartesian_product_iterator
 from sage.matrix.special import block_diagonal_matrix
 from sage.matrix.special import block_matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup import load_hap
@@ -669,6 +670,10 @@ class Lattice_generic(FreeModule_generic):
             (1)
         """
         return  self._action.act(g,e)
+    
+    def _Hom_(self, Y, category):
+        from .glattice_morphism import GLatticeHomspace
+        return GLatticeHomspace(self,Y, category)
 
     def group(self):
         r"""
@@ -898,14 +903,17 @@ class Lattice_generic(FreeModule_generic):
         else:
             return amb.sublattice(self.basis(), check=False)
 
-    def direct_sum(self, lat):
+    def direct_sum(self, lat, param="interior"):
         r"""
         Takes a lattice and outputs the direct sum of the two lattices.
 
         INPUT:
 
         - ``lat`` -- lattice we wish to sum with the current lattice.
-
+        
+        - ``param`` -- parameter to determine if we want to compute the interior or exterior direct sum.
+        The two possible choices are ``interior`` and ``exterior``. It is by default interior, which requires
+        the two lattices to be acted on by the same group.
         EXAMPLES::
 
             sage: Lat = GLattice([2], 1)
@@ -928,11 +936,15 @@ class Lattice_generic(FreeModule_generic):
             [0|1 0]
             ]
         """
-        g = self.group()
-        act = [block_diagonal_matrix([A, B])
-               for (A, B) in zip(self._action_matrices, lat._action_matrices)]
-        return Lattice_ambient(g, act)
+        if param == "interior":
+            g = self.group()
+            act = [block_diagonal_matrix([A, B])
+                   for (A, B) in zip(self._action_matrices, lat._action_matrices)]
+            return Lattice_ambient(g, act)
+        elif param == "exterior":
 
+        else:
+            raise ValueError("the last argument must be either 'interior' or 'exterior'")
     def ambient_lattice(self):
         r"""
         Returns this lattice; for compatibility with the corresponding method of sublattices.
