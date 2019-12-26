@@ -6,46 +6,7 @@ AC_DEFUN([SAGE_ZLIB_GEN_PC],[dnl generate zlib.pc
      ]))
   ])
   AC_SUBST(SAGE_ZLIB_INCLUDEDIR, [`AS_DIRNAME($gl_cv_absolute_zlib_h)`])
-  AC_MSG_CHECKING([getting absolute path to libz...])
-  AC_LANG_PUSH(C)
-  ZLIB_SAVED_LIBS=$LIBS
-  LIBS="-lz -ldl"
-  AC_RUN_IFELSE([
-            AC_LANG_PROGRAM(
-            [[
-              #include <stdio.h>
-              #define __USE_GNU
-              #include <dlfcn.h>
-              #ifdef __APPLE__
-                 #define EXT "dylib"
-              #else
-                 #define EXT "so"
-              #endif
-            ]],
-            dnl run as $ cc -o conftest conftest.c -lz -ldl && ./conftest
-            dnl output should be like  /usr/lib/x86_64-linux-gnu/libz.so
-            [[ /* int main()... */
-             Dl_info  info;
-             int res;
-             void *ha;
-             void *z = dlopen("libz."EXT,  RTLD_LAZY); /* load zlib */
-             if (z) {
-               ha = dlsym(z, "inflateEnd");       /* get address of inflateEnd in libz */
-               res = dladdr(ha, &info);           /* get info for the function */
-               printf("%s\n", info.dli_fname);
-               return 0; /* dladdr return value on success is platform-dependent */
-             }
-             printf("dlopen() call failed!\n");
-             return 1;
-            ]])], [
-             computed_zlibdir=`./conftest$EXEEXT`
-             AC_MSG_RESULT([ got it: "$computed_zlibdir"])
-            ], [
-             AC_MSG_RESULT([ failure.])
-             computed_zlibdir="/usr/lib"dnl a pretty random choice
-  ])
-  LIBS=$ZLIB_SAVED_LIBS
-  AC_LANG_POP(C)
+  SAGE_ABSOLUTE_LIB([z], [inflateEnd])
   AC_SUBST(SAGE_ZLIB_LIBDIR, [`AS_DIRNAME($computed_zlibdir)`])
   cp build/pkgs/zlib/zlib.pc.in $SAGE_LOCAL/lib/pkgconfig/
 ])
