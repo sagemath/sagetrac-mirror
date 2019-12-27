@@ -53,9 +53,27 @@ class SetValuedTableau(Tableau):
     A set valued-tableau is a tableau whose cells are filled with finite, nonempty,
     subset of positive integers.
 
-        EXAMPLES::
+    EXAMPLES::
 
-        TESTS::
+        sage: SVT = SetValuedTableaux([3,2])
+        sage: SVT([[[2,1], [1,2], [3,4]], [[1], [2,4,3]]])[1]
+        ((1,), (2, 3, 4))
+        sage: T = SetValuedTableau([[[2,1], [1,2], [3,4]], [[1], [2,4,3]]])
+        sage: T[0]
+        ((1, 2), (1, 2), (3, 4))
+        sage: SetValuedTableau([[[3,1], [1,3,2], [3], [4,3,5]], [[1,4], [5,4]], [[5]]])
+        [[[1, 3], [1, 2, 3], [3], [3, 4, 5]], [[1, 4], [4, 5]], [[5]]]
+
+    TESTS::
+
+        sage: T = SetValuedTableau([[[1,2,2], [1,3]], [[3]]])
+        Traceback (most recent call last):
+        ...
+        TypeError: each cell should not have repeated entries
+        sage: T = SetValuedTableau([[[1,2], [2,3]], [[]]])
+        Traceback (most recent call last):
+        ...
+        TypeError: each cell should be a nonempty set
     """
     @staticmethod
     def __classcall_private__(self, t):
@@ -526,8 +544,10 @@ class SetValuedTableaux(Tableaux):
 
         sage: SVT2 = SetValuedTableaux([2,2]); SVT2
         Set-valued tableaux of shape [2, 2]
-    """
 
+        sage: SVT3 = SetValuedTableaux(); SVT3
+        Set-valued tableaux
+    """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
         """
