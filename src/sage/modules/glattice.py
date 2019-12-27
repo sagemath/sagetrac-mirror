@@ -942,7 +942,7 @@ class Lattice_generic(FreeModule_generic):
                    for (A, B) in zip(self._action_matrices, lat._action_matrices)]
             return Lattice_ambient(g, act)
         elif param == "exterior":
-
+            pass
         else:
             raise ValueError("the last argument must be either 'interior' or 'exterior'")
     def ambient_lattice(self):

@@ -124,7 +124,7 @@ class AlgebraicTorus(Scheme):
     Creates an algebraic torus through its equivalence of categories with the action
     of a Galois group on an integral lattice.
     """
-    def __init__(self, lattice, base_field=None, splitting_field=None):
+    def __init__(self, lattice):
         r"""
         Constructs an object of the albegraic torus class.
 
@@ -146,9 +146,11 @@ class AlgebraicTorus(Scheme):
         if lattice is None:
             raise ValueError('You have to specify a lattice.')
         else:
+            self._galois_group = lattice.group()
             self._lattice = lattice
-            self._base_field = base_field
-            self._splitting_field = splitting_field
+            self._field = self._galois_group.number_field()
+            self._base_field = self._field.base_field()
+            self._splitting_field = self._field
 
     def _repr_(self):
         r"""
@@ -377,7 +379,8 @@ class AlgebraicTorus(Scheme):
 
     def Tate_Cohomology(self, n):
         r"""
-        Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality.
+        Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality. 
+        Only works when the base field is local.
 
         INPUT:
 
@@ -493,8 +496,8 @@ class AlgebraicTorus(Scheme):
             [ 0  0  0  0  0| 0  0  0  1  0  0]  [ 0  0  0  0  0| 0  1  0  0  0  0]
             [ 0  0  0  0  0| 0  1  0  0  0  0], [ 0  0  0  0  0| 0  0  0  1  0  0]
             ]
-            """
-            return AlgebraicTorus(self.character_lattice().sum_lattice(torus.character_lattice()))
+        """
+        return AlgebraicTorus(self.character_lattice().sum_lattice(torus.character_lattice()))
 
         #gives the torus representing the Restriction of scalars.
         #Right now, for a torus defined over K, splitting over L,
