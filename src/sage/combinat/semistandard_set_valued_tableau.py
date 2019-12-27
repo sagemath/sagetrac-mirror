@@ -156,11 +156,10 @@ class SetValuedTableau(Tableau):
 
         EXAMPLES::
 
-            sage: T = SetValuedTableau([[(1,2),[3,2]],[(4,6,5)]])
-            sage: T
+            sage: T = SetValuedTableau([[(1,2),[3,2]],[(4,6,5)]]); T
             [[[1, 2], [2, 3]], [[4, 5, 6]]]
-            sage: U = SetValuedTableau([])
-            sage: U
+
+            sage: U = SetValuedTableau([]); U
             []
         """
         L = [[list(cell) for cell in row] for row in self.to_list()]
@@ -286,6 +285,7 @@ class SetValuedTableau(Tableau):
             sage: SVT1 = SetValuedTableaux([2,1])
             sage: T1 = SVT1([[[1],[2,3]], [[2,4]]])
             sage: T1.check()
+
             sage: SVT2 = SetValuedTableaux([2,2])
             sage: T2 = SVT2([[[1],[2,3]], [[2],[4]]])
             sage: T2.check()
@@ -294,6 +294,11 @@ class SetValuedTableau(Tableau):
             ...
             ValueError: [[[1], [2, 3]], [[2, 4]]] is not an element of
             Set-valued tableaux of shape [2, 2].
+            sage: T4 = SVT2([[[1],[2,3]], [[2,4],[4,4]]])
+            Traceback (most recent call last):
+            ...
+            ValueError: [[[1], [2, 3]], [[2, 4], [4, 4]]] is not an 
+            element of Set-valued tableaux of shape [2, 2].
         """
         super(SetValuedTableau,self).check()
         # Tableau() has checked that self is tableau, so it remains to check that
@@ -302,6 +307,8 @@ class SetValuedTableau(Tableau):
             for cell in row:
                 if not isinstance(cell,(tuple,list,set)) or len(cell)==0:
                     raise TypeError("each cell should be a nonempty set")
+                if len(cell)>len(set(cell)):
+                    raise TypeError("each cell should not have repeated entries")
 
     def conjugate(self):
         """
@@ -313,34 +320,42 @@ class SetValuedTableau(Tableau):
             sage: T1.conjugate()
             [[[1, 2], [3]], [[2]]]
 
-            sage: T2 = SetValuedTableau([])
+            sage: T2 = SetValuedTableau([[[1],[2,3]],[[2,3,5]],[[7]]])
             sage: T2.conjugate()
+            [[[1], [2, 3, 5], [7]], [[2, 3]]]
+
+            sage: T3 = SetValuedTableau([])
+            sage: T3.conjugate()
             []
         """
-        T = super(SetValuedTableau,self).conjugate()
-        shape = T.shape().conjugate()
-        SVT = SetValuedTableaux(shape)
-        return SVT.element_class(SVT,T)
+        tab = super(SetValuedTableau,self).conjugate()
+        try:
+            return self.parent().parent().Element(tab)
+        except Exception:
+            try:
+                return self.parent().Element(tab)
+            except Exception:
+                return SetValuedTableau(tab)
 
-    def shape(self):
-        """
-        Return the shape for ``self``.
+    # def shape(self):
+    #     """
+    #     Return the shape for ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: T1 = SetValuedTableau([])
-            sage: T1.shape()
-            []
+    #         sage: T1 = SetValuedTableau([])
+    #         sage: T1.shape()
+    #         []
 
-            sage: T2 = SetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
-            sage: T2.shape()
-            [2, 1]
+    #         sage: T2 = SetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
+    #         sage: T2.shape()
+    #         [2, 1]
 
-            sage: T3 = SetValuedTableau([[[1,2],[2],[3,4]], [[3]], [[4,5]]])
-            sage: T3.shape()
-            [3, 1, 1]
-        """
-        return Partition([len(row) for row in self])
+    #         sage: T3 = SetValuedTableau([[[1,2],[2],[3,4]], [[3]], [[4,5]]])
+    #         sage: T3.shape()
+    #         [3, 1, 1]
+    #     """
+    #     return Partition([len(row) for row in self])
 
     def excess(self):
         """
@@ -359,8 +374,7 @@ class SetValuedTableau(Tableau):
             sage: T.excess()
             4
 
-            sage: U = SetValuedTableau([])
-            sage: U.excess()
+            sage: SetValuedTableau([]).excess()
             0
         """
         tot = sum([len(cells) for cells in self.entries()])
@@ -378,7 +392,7 @@ class SetValuedTableau(Tableau):
 
         EXAMPLES::
 
-            sage: SetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]]).weight()
+            sage: SetValuedTableau([[[2],[8],[1]],[[2],[6,1]],[[3,7,4]]]).weight()
             [2, 2, 1, 1, 0, 1, 1, 1]
             sage: SetValuedTableau([]).weight()
             []
@@ -403,10 +417,10 @@ class SetValuedTableau(Tableau):
             sage: S.pp()
               -
 
-            sage: T = SetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
+            sage: T = SetValuedTableau([[[2],[8],[1]],[[2],[6,1]],[[3,7,4]]])
             sage: T.pp()
-            [   1   ][  1  ][ 8 ]
-            [   2   ][ 2,6 ]
+            [   2   ][  8  ][ 1 ]
+            [   2   ][ 1,6 ]
             [ 3,4,7 ]
 
             sage: U = [[[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[8,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[11,13],[16,17,18]]]
@@ -432,6 +446,57 @@ class SetValuedTableau(Tableau):
                     S+="[ "+'{st:{c}^{n}}'.format(st=s, c=" ", n=col_max[j])+" ]"
                 S += "\n"
             print(S)
+
+    def restrict(self,n):
+        """
+        Return the restriction of the set-valued tableau ``self``
+        to ``n``. If possible, the restricted tableau will have the same
+        parent as this tableau.
+
+        If `T` is a semistandard set-valued tableau and `n` is a 
+        nonnegative integer, then the restriction of `T` to `n` is 
+        defined as the (semistandard) tableau obtained by removing all
+        cells filled with entries greater than `n` from `T`.
+
+        EXAMPLES::
+
+            sage: SetValuedTableau([[[1],[1,2]],[[2,3],[3]],[[4]]]).restrict(2)
+            [[[1], [1, 2]], [[2]]]
+            sage: SetValuedTableau([[[1],[1,2]],[[1,3]],[[2,3]]]).restrict(0)
+            []
+            sage: SetValuedTableau([[[1],[1,2]],[[1,3]],[[2,3]]]).restrict(2)
+            [[[1], [1, 2]], [[1]], [[2]]]
+            sage: SetValuedTableau([[[1],[1,2]],[[1,3]],[[2,3]]]).restrict(4)
+            [[[1], [1, 2]], [[1, 3]], [[2, 3]]]
+
+        If possible the restricted tableau will belong to the same category as
+        the original tableau::
+
+            sage: T = SemistandardSetValuedTableau([[[1],[1,2]],[[2,3]],[[4,5]]]); T.category()
+            Category of elements of Semistandard set-valued tableaux of shape [2, 1, 1]
+            sage: T.restrict(5).category()
+            Category of elements of Semistandard set-valued tableaux of shape [2, 1, 1]
+            sage: T.restrict(2).category()
+            Category of elements of Semistandard set-valued tableaux of shape [2, 1]
+
+            sage: T = SetValuedTableau([[[1,2],[2,3],[1]],[[2,3],[4]],[[3]]]); T.category()
+            Category of elements of Set-valued tableaux of shape [3, 2, 1]
+            sage: T.restrict(2).category()
+            Category of elements of Set-valued tableaux of shape [3, 1]
+            sage: T.restrict(3).category()
+            Category of elements of Set-valued tableaux of shape [3, 1, 1]
+        """
+        tab = [[[x for x in cell if x<=n] for cell in row] for row in self]
+        tab = [[cell for cell in row if len(cell)>0] for row in tab]
+        tab = [row for row in tab if len(row)>0]
+        # attempt to return a tableau of the same type
+        try:
+            return self.parent()(tab)
+        except Exception:
+            try:
+                return self.parent().Element(tab)
+            except Exception:
+                return SetValuedTableau(tab)
 
 class SetValuedTableaux(Tableaux):
     """
@@ -519,7 +584,7 @@ class SetValuedTableaux(Tableaux):
 
             sage: T1 = [[[1], [1,2]], [[2]]]
             sage: T2 = Tableau([[[1], [1,3]], [[2]]])
-            sage: T3 = Tableau([[[1,2], [2]], [[2]]])
+            sage: T3 = Tableau([[[1,1,2], [2]], [[2]]])
             sage: T1 in SetValuedTableaux(3)
             True
             sage: T2 in SetValuedTableaux(3)
@@ -528,11 +593,7 @@ class SetValuedTableaux(Tableaux):
             False
             sage: T2 in SetValuedTableaux([2,1])
             True
-            sage: T1 in SetValuedTableaux([2,1,1])
-            False
-            sage: T1 in SetValuedTableaux(3)
-            True
-            sage: T2 in SetValuedTableaux(3)
+            sage: T1 in SetValuedTableaux([1,1,1])
             False
 
             sage: SVT = []
@@ -570,9 +631,11 @@ class SetValuedTableaux_all(SetValuedTableaux):
             sage: [[[1,2], [2]], [[3]]] in SVT
             True
             sage: [[[1,2], [2]], [[2]]] in SVT
+            True
+            sage: [[[1,2], [2,2]], [[2]]] in SVT
             False
             sage: [[[1,2], [1,3]], [[3]]] in SVT
-            False
+            True
             sage: [[[1,2], []], [[3]]] in SVT
             False
             sage: TestSuite(SVT).run()  # long time
@@ -596,18 +659,20 @@ class SetValuedTableaux_all(SetValuedTableaux):
 
         TESTS::
 
-            sage: SVT1 = SetValuedTableaux()
-            sage: [[[1,2]],[[2]],[[4]]] in SVT1
+            sage: SVT = SetValuedTableaux()
+            sage: [[[1,2]],[[2]],[[4]]] in SVT
+            True
+            sage: [[[1,2]],[[2,2]],[[4]]] in SVT
             False
-            sage: [[[1,2],[1,3]],[[2]],[[4]]] in SVT1
+            sage: [[[1,2],[1,3]],[[2]],[[4]]] in SVT
+            True
+            sage: [[[1,2],[1,3]],[[2]],[[]]] in SVT
             False
-            sage: [[[1,2]],[[3]],[[4]]] in SVT1
+            sage: [[[1,2],[2]],[[3]],[[4]]] in SVT
             True
-            sage: [[[1,2],[2]],[[3]],[[4]]] in SVT1
+            sage: [[[1,2],[3],[2,40]]] in SVT
             True
-            sage: [[[1,2],[3],[40]]] in SVT1
-            True
-            sage: [[[1]],[[3,40]],[[50]]] in SVT1
+            sage: [[[1]],[[3,40]],[[2,50]]] in SVT
             True
         """
         return SetValuedTableaux.__contains__(self, x)
@@ -658,14 +723,14 @@ class SetValuedTableaux_size(SetValuedTableaux):
 
             sage: SVT = SetValuedTableaux(3)
             sage: [[[1,2]],[[2]],[[3]]] in SVT
+            True
+            sage: [[[1,2]],[[2]],[[3,3]]] in SVT
             False
             sage: [[[1,2]],[[3]],[[4]]] in SVT
             True
             sage: [[[1,2],[2]],[[3]],[[4]]] in SVT
             False
-            sage: [[[1,2],[2],[3]]] in SVT
-            True
-            sage: [[[1]],[[3,4]],[[50]]] in SVT
+            sage: [[[1]],[[3,4]],[[2,50]]] in SVT
             True
         """
         return SetValuedTableaux.__contains__(self, x) and \
@@ -736,14 +801,14 @@ class SetValuedTableaux_shape(SetValuedTableaux):
         EXAMPLES::
 
             sage: SVT = SetValuedTableaux([2,1,1])
+            sage: [[[1,1,2],[2,3]],[[2]],[[3]]] in SVT
+            False
             sage: [[[1,2],[2,3]],[[2]],[[3]]] in SVT
-            False
-            sage: [[[1,2],[2,3]],[[3,4]],[[6]]] in SVT
             True
-            sage: [[[1],[2,3,4]],[[3,10]],[[100]]] in SVT
-            True
-            sage: [[[1,2],[1,3]],[[3,4]],[[6]]] in SVT
+            sage: [[[1,2],[1,3]],[[3,4],[10]]] in SVT
             False
+            sage: [[[1],[2,3,4]],[[3,10]],[[3,100]]] in SVT
+            True
             sage: [[[1,2],[2,3]],[[3,4],[4,5,6]],[[6]]] in SVT
             False
         """
@@ -765,7 +830,7 @@ class SetValuedTableaux_shape(SetValuedTableaux):
 # Semistandard Set-Valued Tableaux #
 ####################################
 
-class SemistandardSetValuedTableau(Tableau):
+class SemistandardSetValuedTableau(SetValuedTableau):
     r"""
     A semistandard set-valued tableau.
 
@@ -825,7 +890,7 @@ class SemistandardSetValuedTableau(Tableau):
             for j in range(len(T[i])):
                 T[i][j] =  tuple(sorted(T[i][j]))
 
-        SVT = SemistandardSetValuedTableaux(Tableau(T).shape())
+        SVT = SemistandardSetValuedTableaux(SetValuedTableau(T).shape())
         return SVT.element_class(SVT, T)
 
     def __init__(self, parent, t, check=True, preprocessed=False):
@@ -845,8 +910,8 @@ class SemistandardSetValuedTableau(Tableau):
             sage: T1 is T2  # identical shifted tableaux are distinct objects
             False
 
-        A semistandard set-valued tableau is deeply immutable as the cells are
-        stored as tuples::
+        A semistandard set-valued tableau is immutable as the cells are stored 
+        as tuples::
 
             sage: T = SemistandardSetValuedTableau([[[1], [1,2]], [[2]]])
             sage: T[0][1] = (1,2,3)
@@ -856,7 +921,7 @@ class SemistandardSetValuedTableau(Tableau):
         """
         if not preprocessed:
             T = self._preprocess(t)
-        Tableau.__init__(self, parent, T, check=check)
+        SetValuedTableau.__init__(self, parent, T, check=check)
 
     @staticmethod
     def _preprocess(t):
@@ -882,132 +947,132 @@ class SemistandardSetValuedTableau(Tableau):
                 T[i][j] = tuple(sorted(T[i][j]))
         return T
 
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
+    # def _repr_(self):
+    #     """
+    #     Return a string representation of ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: T = SemistandardSetValuedTableau([[(1,2),[3,2]],[(4,6,5)]])
-            sage: T
-            [[[1, 2], [2, 3]], [[4, 5, 6]]]
-            sage: U = SemistandardSetValuedTableau([])
-            sage: U
-            []
-        """
-        L = [[list(cell) for cell in row] for row in self.to_list()]
-        return repr(L)
+    #         sage: T = SemistandardSetValuedTableau([[(1,2),[3,2]],[(4,6,5)]])
+    #         sage: T
+    #         [[[1, 2], [2, 3]], [[4, 5, 6]]]
+    #         sage: U = SemistandardSetValuedTableau([])
+    #         sage: U
+    #         []
+    #     """
+    #     L = [[list(cell) for cell in row] for row in self.to_list()]
+    #     return repr(L)
 
-    def _repr_tab(self):
-        """
-        Return a nested list of string representation of ``self``.
+    # def _repr_tab(self):
+    #     """
+    #     Return a nested list of string representation of ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: T1 = SemistandardSetValuedTableau([[[1], [1, 2]], [[2, 4], [4]]])
-            sage: T1._repr_tab()
-            [['1', '1, 2'], ['2, 4', '4']]
-            sage: T2 = SemistandardSetValuedTableau([[[1], [1], [1], [1]], [[2], [2, 4, 5]], [[3, 4]]])
-            sage: T2._repr_tab()
-            [['1', '1', '1', '1'], ['2', '2, 4, 5'], ['3, 4']]
-            sage: T3 = SemistandardSetValuedTableau([])
-            sage: T3._repr_tab()
-            []
-        """
-        if len(self) > 0:
-            return [[repr(list(cell))[1:-1] for cell in row] for row in self]
-        return []
+    #         sage: T1 = SemistandardSetValuedTableau([[[1], [1, 2]], [[2, 4], [4]]])
+    #         sage: T1._repr_tab()
+    #         [['1', '1, 2'], ['2, 4', '4']]
+    #         sage: T2 = SemistandardSetValuedTableau([[[1], [1], [1], [1]], [[2], [2, 4, 5]], [[3, 4]]])
+    #         sage: T2._repr_tab()
+    #         [['1', '1', '1', '1'], ['2', '2, 4, 5'], ['3, 4']]
+    #         sage: T3 = SemistandardSetValuedTableau([])
+    #         sage: T3._repr_tab()
+    #         []
+    #     """
+    #     if len(self) > 0:
+    #         return [[repr(list(cell))[1:-1] for cell in row] for row in self]
+    #     return []
 
-    def _latex_(self):
-        r"""
-        Return LaTeX code for ``self``.
+    # def _latex_(self):
+    #     r"""
+    #     Return LaTeX code for ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: T = SemistandardSetValuedTableau([[[1], [1, 2]], [[2, 4], [4]]])
-            sage: latex(T)
-            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
-            \lr{1}&\lr{1, 2}\\\cline{1-2}
-            \lr{2, 4}&\lr{4}\\\cline{1-2}
-            \end{array}$}
-            }
+    #         sage: T = SemistandardSetValuedTableau([[[1], [1, 2]], [[2, 4], [4]]])
+    #         sage: latex(T)
+    #         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+    #         \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+    #         \lr{1}&\lr{1, 2}\\\cline{1-2}
+    #         \lr{2, 4}&\lr{4}\\\cline{1-2}
+    #         \end{array}$}
+    #         }
 
-            sage: T = SemistandardSetValuedTableau([])
-            sage: latex(T)
-            {\emptyset}
-        """
-        if len(self) > 0:
-            from sage.combinat.output import tex_from_array
-            L = [row for i, row in enumerate(self._repr_tab())]
-            return tex_from_array(L)
-        return r"{\emptyset}"
+    #         sage: T = SemistandardSetValuedTableau([])
+    #         sage: latex(T)
+    #         {\emptyset}
+    #     """
+    #     if len(self) > 0:
+    #         from sage.combinat.output import tex_from_array
+    #         L = [row for i, row in enumerate(self._repr_tab())]
+    #         return tex_from_array(L)
+    #     return r"{\emptyset}"
 
-    def __eq__(self, other):
-        """
-        Check whether ``self`` is equal to ``other``.
+        # def __eq__(self, other):
+        #     """
+        #     Check whether ``self`` is equal to ``other``.
 
-        INPUT:
+        #     INPUT:
 
-        - ``other`` -- the element that ``self`` is compared to
+        #     - ``other`` -- the element that ``self`` is compared to
 
-        OUTPUT: Boolean
+        #     OUTPUT: Boolean
 
-        EXAMPLES::
+        #     EXAMPLES::
 
-            sage: T = SemistandardSetValuedTableau([[[1], [2,1]], [[2]]])
-            sage: T == SemistandardSetValuedTableaux([2,1])([[[1], [2,1]], [[2]]])
-            True
-            sage: S = SemistandardSetValuedTableau([[[1,2], [3,2]], [[3,4], [4]]])
-            sage: S == [[[1,2], [3,2]], [[3,4], [4]]]
-            True
-        """
-        if isinstance(other, SemistandardSetValuedTableau):
-            t1 = tuple(tuple(tuple(cell) for cell in row) for row in self)
-            t2 = tuple(tuple(tuple(cell) for cell in row) for row in other)
-            return t1 == t2
-        try:
-            Tab = SemistandardSetValuedTableau(other)
-        except (ValueError, TypeError):
-            return False
-        t1 = tuple(tuple(tuple(cell) for cell in row) for row in self)
-        t2 = tuple(tuple(tuple(cell) for cell in row) for row in Tab)
-        return t1 == t2
+        #         sage: T = SemistandardSetValuedTableau([[[1], [2,1]], [[2]]])
+        #         sage: T == SemistandardSetValuedTableaux([2,1])([[[1], [2,1]], [[2]]])
+        #         True
+        #         sage: S = SemistandardSetValuedTableau([[[1,2], [3,2]], [[3,4], [4]]])
+        #         sage: S == [[[1,2], [3,2]], [[3,4], [4]]]
+        #         True
+        #     """
+        #     if isinstance(other, SemistandardSetValuedTableau):
+        #         t1 = tuple(tuple(tuple(cell) for cell in row) for row in self)
+        #         t2 = tuple(tuple(tuple(cell) for cell in row) for row in other)
+        #         return t1 == t2
+        #     try:
+        #         Tab = SemistandardSetValuedTableau(other)
+        #     except (ValueError, TypeError):
+        #         return False
+        #     t1 = tuple(tuple(tuple(cell) for cell in row) for row in self)
+        #     t2 = tuple(tuple(tuple(cell) for cell in row) for row in Tab)
+        #     return t1 == t2
 
-    def __ne__(self, other):
-        """
-        Check whether ``self`` is not equal to ``other``.
+        # def __ne__(self, other):
+        #     """
+        #     Check whether ``self`` is not equal to ``other``.
 
-        INPUT:
+        #     INPUT:
 
-        - ``other`` -- the element that ``self`` is compared to
+        #     - ``other`` -- the element that ``self`` is compared to
 
-        OUTPUT: Boolean
+        #     OUTPUT: Boolean
 
-        EXAMPLES::
+        #     EXAMPLES::
 
-            sage: T = SemistandardSetValuedTableau([[[1], [2]], [[3,2], [4]]])
-            sage: T != SemistandardSetValuedTableaux([2,2])([[[1], [2]], [[2], [4,3]]])
-            True
-            sage: S = SemistandardSetValuedTableau([[[1,2], [3,2]], [[3,4], [4]]])
-            sage: S != [[[1,2], [2,3]], [[3,4], [4]]]
-            False
-        """
-        return not (self == other)
+        #         sage: T = SemistandardSetValuedTableau([[[1], [2]], [[3,2], [4]]])
+        #         sage: T != SemistandardSetValuedTableaux([2,2])([[[1], [2]], [[2], [4,3]]])
+        #         True
+        #         sage: S = SemistandardSetValuedTableau([[[1,2], [3,2]], [[3,4], [4]]])
+        #         sage: S != [[[1,2], [2,3]], [[3,4], [4]]]
+        #         False
+        #     """
+        #     return not (self == other)
 
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
+    # def __hash__(self):
+    #     """
+    #     Return the hash of ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: T1 = SemistandardSetValuedTableau([[[1], [1, 2]], [[2, 4], [4]]])
-            sage: SVT = SemistandardSetValuedTableaux([2,2],max_entry=4)
-            sage: T2 = SVT([[[1], [2, 1]], [[4, 2], [4]]])
-            sage: hash(T1) == hash(T2)
-            True
-        """
-        return hash(tuple(tuple(tuple(cell) for cell in row) for row in self))
+    #         sage: T1 = SemistandardSetValuedTableau([[[1], [1, 2]], [[2, 4], [4]]])
+    #         sage: SVT = SemistandardSetValuedTableaux([2,2],max_entry=4)
+    #         sage: T2 = SVT([[[1], [2, 1]], [[4, 2], [4]]])
+    #         sage: hash(T1) == hash(T2)
+    #         True
+    #     """
+    #     return hash(tuple(tuple(tuple(cell) for cell in row) for row in self))
 
     def check(self):
         """
@@ -1029,9 +1094,8 @@ class SemistandardSetValuedTableau(Tableau):
         """
         super(SemistandardSetValuedTableau, self).check()
 
-        # Tableau() has checked that t is tableau, so it remains to check that
-        # the entries of t are positive integers which are weakly increasing
-        # along rows
+        # SetValuedTableau() has checked that self is tableau, so it remains to check that
+        # the entries of self are positive integers which are weakly increasing along rows
         for row in self:
             if any(max(row[c]) > min(row[c+1]) for c in range(len(row)-1)):
                 raise ValueError("entries in each row of semistandard set-valued tableau must be weakly increasing")
@@ -1041,49 +1105,47 @@ class SemistandardSetValuedTableau(Tableau):
                 if not all(max(row[c]) < min(next[c]) for c in range(len(next))):
                     raise ValueError("entries in each column of semistandard set-valued tableau must be strictly increasing")
 
-    def shape(self):
-        """
-        Return the shape for ``self``.
+    # def shape(self):
+    #     """
+    #     Return the shape for ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: T1 = SemistandardSetValuedTableau([])
-            sage: T1.shape()
-            []
+    #         sage: T1 = SemistandardSetValuedTableau([])
+    #         sage: T1.shape()
+    #         []
 
-            sage: T2 = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
-            sage: T2.shape()
-            [2, 1]
+    #         sage: T2 = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
+    #         sage: T2.shape()
+    #         [2, 1]
 
-            sage: T3 = SemistandardSetValuedTableau([[[1,2],[2],[3,4]], [[3]], [[4,5]]])
-            sage: T3.shape()
-            [3, 1, 1]
-        """
-        return Partition([len(row) for row in self])
+    #         sage: SemistandardSetValuedTableau([[[1,2],[2],[3,4]], [[3]], [[4,5]]]).shape()
+    #         [3, 1, 1]
+    #     """
+    #     return Partition([len(row) for row in self])
 
-    def excess(self):
-        """
-        Return the excess statistic for ``self``.
+    # def excess(self):
+    #     """
+    #     Return the excess statistic for ``self``.
 
-        The excess of a semistandard set-valued tableau `T` is the total
-        number of integers in `T` minus the size of `T`.
+    #     The excess of a semistandard set-valued tableau `T` is the total
+    #     number of integers in `T` minus the size of `T`.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: S = SemistandardSetValuedTableau([[[1],[3]],[[5]]])
-            sage: S.excess()
-            0
+    #         sage: S = SemistandardSetValuedTableau([[[1],[3]],[[5]]])
+    #         sage: S.excess()
+    #         0
 
-            sage: T = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
-            sage: T.excess()
-            4
+    #         sage: T = SemistandardSetValuedTableau([[[1,2],[2,3]],[[3,4,5]]])
+    #         sage: T.excess()
+    #         4
 
-            sage: U = SemistandardSetValuedTableau([])
-            sage: U.excess()
-            0
-        """
-        tot = sum([len(cells) for cells in self.entries()])
-        return tot - self.size()
+    #         sage: SemistandardSetValuedTableau([]).excess()
+    #         0
+    #     """
+    #     tot = sum([len(cells) for cells in self.entries()])
+    #     return tot - self.size()
 
     def weight(self):
         r"""
@@ -1274,45 +1336,45 @@ class SemistandardSetValuedTableau(Tableau):
                     result_tab[i][sk+a] = rem(result_tab[i][sk+a],k)
         return SemistandardSetValuedTableau(result_tab)
 
-    def pp(self):
-        """
-        Return the pretty print of ``self``.
+    # def pp(self):
+    #     """
+    #     Return the pretty print of ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: S = SemistandardSetValuedTableau([])
-            sage: S.pp()
-              -
+    #         sage: S = SemistandardSetValuedTableau([])
+    #         sage: S.pp()
+    #           -
 
-            sage: T = SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
-            sage: T.pp()
-            [   1   ][  1  ][ 8 ]
-            [   2   ][ 2,6 ]
-            [ 3,4,7 ]
+    #         sage: T = SemistandardSetValuedTableau([[[1],[1],[8]],[[2],[6,2]],[[3,7,4]]])
+    #         sage: T.pp()
+    #         [   1   ][  1  ][ 8 ]
+    #         [   2   ][ 2,6 ]
+    #         [ 3,4,7 ]
 
-            sage: U = [[[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[8,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[11,13],[16,17,18]]]
-            sage: SemistandardSetValuedTableau(U).pp()
-            [ 1,2,3,4,6 ][  6   ][  6,7   ][     8,9     ][ 9,11,12 ][ 12 ]
-            [     7     ][  7   ][ 8,9,10 ][ 10,11,13,14 ][   14    ]
-            [    8,9    ][ 9,10 ][ 11,13  ][  16,17,18   ]
-        """
-        if len(self.shape()) == 0:
-            print("  -  \n")
-        else:
-            max_len = max(len(row) for row in self)
-            str_len = [[sum([len(str(elt)) for elt in cell]) + len(cell) - 1 for cell in row] for row in self]
-            col_max = [max(row[j] for row in str_len if j < len(row)) for j in range(max_len)]
-            S = ""
-            for row in self:
-                for j in range(len(row)):
-                    s = ""
-                    for k in range(len(row[j])):
-                        s += str(row[j][k])
-                        if k < len(row[j])-1:
-                            s+=","
-                    S+="[ "+'{st:{c}^{n}}'.format(st=s, c=" ", n=col_max[j])+" ]"
-                S += "\n"
-            print(S)
+    #         sage: u = [[[1,2,3,4,6],[6],[6,7],[8,9],[9,11,12],[12]], [[7],[7],[8,9,10],[10,11,13,14],[14]], [[8,9],[9,10],[11,13],[16,17,18]]]
+    #         sage: SemistandardSetValuedTableau(u).pp()
+    #         [ 1,2,3,4,6 ][  6   ][  6,7   ][     8,9     ][ 9,11,12 ][ 12 ]
+    #         [     7     ][  7   ][ 8,9,10 ][ 10,11,13,14 ][   14    ]
+    #         [    8,9    ][ 9,10 ][ 11,13  ][  16,17,18   ]
+    #     """
+    #     if len(self.shape()) == 0:
+    #         print("  -  \n")
+    #     else:
+    #         max_len = max(len(row) for row in self)
+    #         str_len = [[sum([len(str(elt)) for elt in cell]) + len(cell) - 1 for cell in row] for row in self]
+    #         col_max = [max(row[j] for row in str_len if j < len(row)) for j in range(max_len)]
+    #         S = ""
+    #         for row in self:
+    #             for j in range(len(row)):
+    #                 s = ""
+    #                 for k in range(len(row[j])):
+    #                     s += str(row[j][k])
+    #                     if k < len(row[j])-1:
+    #                         s+=","
+    #                 S+="[ "+'{st:{c}^{n}}'.format(st=s, c=" ", n=col_max[j])+" ]"
+    #             S += "\n"
+    #         print(S)
 
     def uncrowding(self):
         """
@@ -1352,7 +1414,6 @@ class SemistandardSetValuedTableau(Tableau):
         for seq in sequences:
             P,Q = _uncrowding_insertion(seq, P, Q)
         return P,Q
-
 
 class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
     """
@@ -1526,7 +1587,7 @@ class CrystalElementSemistandardSetValuedTableau(SemistandardSetValuedTableau):
         return R
 
 
-class SemistandardSetValuedTableaux(Tableaux):
+class SemistandardSetValuedTableaux(SetValuedTableaux):
     """
 
     Return the class of semistandard set-valued tableaux.
@@ -1673,7 +1734,7 @@ class SemistandardSetValuedTableaux(Tableaux):
         else:
             self.max_entry = None
 
-        Tableaux.__init__(self, *args, **kwargs)
+        SetValuedTableaux.__init__(self, *args, **kwargs)
 
     def __contains__(self, t):
         """
