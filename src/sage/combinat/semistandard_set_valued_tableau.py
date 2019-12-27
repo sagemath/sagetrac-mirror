@@ -492,7 +492,7 @@ class SetValuedTableau(Tableau):
 
             sage: T = SemistandardSetValuedTableau([[[1],[1,2]],[[2,3]],[[4,5]]]); T.category()
             Category of elements of Semistandard set-valued tableaux of shape [2, 1, 1]
-            sage: T.restrict(5).category()
+            sage: T.restrict(4).category()
             Category of elements of Semistandard set-valued tableaux of shape [2, 1, 1]
             sage: T.restrict(2).category()
             Category of elements of Semistandard set-valued tableaux of shape [2, 1]
@@ -509,7 +509,7 @@ class SetValuedTableau(Tableau):
         tab = [row for row in tab if len(row)>0]
         # attempt to return a tableau of the same type
         try:
-            return self.parent()(tab)
+            return self.parent().parent().Element(tab)
         except Exception:
             try:
                 return self.parent().Element(tab)
@@ -697,6 +697,17 @@ class SetValuedTableaux_all(SetValuedTableaux):
         """
         return SetValuedTableaux.__contains__(self, x)
 
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+            sage: SVT = SetValuedTableaux() 
+            sage: SVT.an_element()
+            [[[1, 2], [1, 3]], [[2]]]
+        """
+        return self.element_class(self,[[[1,2],[1,3]],[[2]]])
+
 
 class SetValuedTableaux_size(SetValuedTableaux):
     """
@@ -755,6 +766,35 @@ class SetValuedTableaux_size(SetValuedTableaux):
         """
         return SetValuedTableaux.__contains__(self, x) and \
         sum(map(len, x)) == self._size
+
+    def size(self):
+        """
+        Return the size of ``self``.
+
+        EXAMPLES::
+            sage: SetValuedTableaux(2).size()
+            2
+            sage: SetValuedTableaux(0).size()
+            0
+        """
+        return self._size
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+            sage: SVT1 = SetValuedTableaux(5) 
+            sage: SVT1.an_element()
+            [[[1]], [[1]], [[1]], [[1]], [[1]]]
+
+            sage: SVT2 = SetValuedTableaux(0)
+            sage: SVT2.an_element()
+            []
+        """
+        size = self.size()
+        tab = [[[1] for i in range(entry)] for entry in [1]*size]
+        return self.element_class(self,tab)
 
 
 class SetValuedTableaux_shape(SetValuedTableaux):
@@ -845,6 +885,23 @@ class SetValuedTableaux_shape(SetValuedTableaux):
             [2, 2]
         """
         return self._shape
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+            sage: SVT1 = SetValuedTableaux([3,2]) 
+            sage: SVT1.an_element()
+            [[[1], [1], [1]], [[1], [1]]]
+
+            sage: SVT2 = SetValuedTableaux([])
+            sage: SVT2.an_element()
+            []
+        """
+        shape = self.shape()
+        tab = [[[1] for i in range(entry)] for entry in shape]
+        return self.element_class(self,tab)
 
 ####################################
 # Semistandard Set-Valued Tableaux #
