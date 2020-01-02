@@ -17,8 +17,9 @@ class MultipleZetaValue(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: maxima(hypergeometric)
-            hypergeometric
+            sage: from sage.functions.multizeta import multizeta
+            sage: pari(multizeta)
+            zetamult
         """
         BuiltinFunction.__init__(self, 'multizeta', nargs=1,
                                  conversions={'pari': 'zetamult'})
@@ -36,6 +37,28 @@ class MultipleZetaValue(BuiltinFunction):
             sage: from sage.functions.multizeta import multizeta
             sage: multizeta((4,2))
             multizeta((4, 2))
+
+        TESTS::
+
+            sage: multizeta(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: parameter must be a tuple
+
+            sage: multizeta([1/2, 1])
+            Traceback (most recent call last):
+            ...
+            TypeError: arguments must be integers
+
+            sage: multizeta([3, 0])
+            Traceback (most recent call last):
+            ...
+            ValueError: arguments must be positive integers
+
+            sage: multizeta([1, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: first argument must be at least 2
         """
         return BuiltinFunction.__call__(self, SR._force_pyobject(a))
 
@@ -61,13 +84,13 @@ class MultipleZetaValue(BuiltinFunction):
             multizeta((3, 3, 2))
         """
         if not isinstance(a, tuple):
-            raise TypeError("The parameters must be of type tuple")
+            raise TypeError("parameter must be a tuple")
         if not all(isinstance(y, Integer) for y in a):
             raise TypeError('arguments must be integers')
         if not all(y >= 1 for y in a):
-            raise TypeError('arguments must be positive integers')
+            raise ValueError('arguments must be positive integers')
         if a[0] == 1:
-            raise ValueError('divergence')
+            raise ValueError('first argument must be at least 2')
 
     def _evalf_(self, a, parent, algorithm=None):
         """
@@ -82,7 +105,7 @@ class MultipleZetaValue(BuiltinFunction):
             1.20205690315959
         """
         if not isinstance(a, tuple):
-            raise TypeError("The first parameters must be of type tuple")
+            raise TypeError("parameter must be a tuple")
 
         if algorithm is None:
             algorithm = "pari"
