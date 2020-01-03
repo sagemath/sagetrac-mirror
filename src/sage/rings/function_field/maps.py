@@ -1893,6 +1893,16 @@ class FunctionFieldCompletion(Map):
             sage: m(x, prec=20)  # indirect doctest
             s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + s^12 + s^13 + s^15
             + s^16 + s^17 + s^19 + O(s^22)
+
+            sage: R.<x> = FunctionField(QQbar)
+            sage: K.<Y> = R[]
+            sage: L.<y> = R.extension(Y^2 - (x^4 + 1))
+            sage: D = (1/(x*y)).divisor()
+            sage: pl = D.support()[4]
+            sage: L.completion(pl, prec=8)(x)      # indirect doctest
+            s
+            sage: L.completion(pl, prec=8)(x^2)    # indirect doctest
+            s^2
         """
         if prec is None:
             prec = self._precision
@@ -1934,6 +1944,20 @@ class FunctionFieldCompletion(Map):
                 series = s_series((self._expand(sep, prec=(prec-min_exponent+val), uvar=False)**QQ(p)).reverse())
             else:
                 series = s_series
+
+        # Check to see if expansion is exact.
+        # If so, return an exact result.
+
+        try:
+            poly = series.laurent_polynomial()
+            if uvar is None or uvar is False:
+                if poly(sep) == f:
+                    return self.codomain()(poly)
+            else:
+                if F(poly(uvar)) == f:
+                    return self.codomain()(poly)
+        except:
+            pass
 
         return series
 
