@@ -112,7 +112,7 @@ Function fields over the algebraic field are supported::
     sage: m(x)
     I + s
     sage: m(y)
-    -2*s + (-4 - I)*s^2 + (-15 - 4*I)*s^3 + (-75 - 23*I)*s^4 + (-413 - 154*I)*s^5 + O(s^6)
+    -2*s + (-4 - I)*s^2 + (-15 - 4*I)*s^3 + (-75 - 23*I)*s^4 + O(s^5)
     sage: m(y)^2 + m(y) + m(x) + 1/m(x)
     O(s^5)
 
@@ -1035,7 +1035,7 @@ class FunctionField(Field):
 
         - ``name`` -- string; name of the series variable
 
-        - ``prec`` -- positive integer; default relative precision
+        - ``prec`` -- positive integer; default absolute precision
 
         - ``gen_name`` -- string; name of the generator of the residue field;
           used only when the place is non-rational
@@ -1060,9 +1060,9 @@ class FunctionField(Field):
               From: Function field in y defined by y^2 + y + (x^2 + 1)/x
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x,10)
-            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + O(s^10)
             sage: m(y,10)
-            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
+            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + O(s^10)
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
@@ -1072,9 +1072,9 @@ class FunctionField(Field):
               From: Function field in y defined by y^2 + y + (x^2 + 1)/x
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x,10)
-            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + O(s^10)
             sage: m(y,10)
-            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
+            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + O(s^10)
 
             sage: K.<x> = FunctionField(GF(2))
             sage: p = K.places_finite()[0]; p
@@ -1152,9 +1152,9 @@ class FunctionField(Field):
             sage: m(x, 10)
             I + s^2
             sage: m(y, 10)
-            (I + 1)*s + (-1/4*I + 1/4)*s^3 + (1/32*I + 1/32)*s^5 + (1/128*I - 1/128)*s^7 + (-5/2048*I - 5/2048)*s^9 + O(s^11)
+            (I + 1)*s + (-1/4*I + 1/4)*s^3 + (1/32*I + 1/32)*s^5 + (1/128*I - 1/128)*s^7 + (-5/2048*I - 5/2048)*s^9 + O(s^10)
             sage: m(y/(x-I),10)
-            (I + 1)*s^-1 + (-1/4*I + 1/4)*s + (1/32*I + 1/32)*s^3 + (1/128*I - 1/128)*s^5 + (-5/2048*I - 5/2048)*s^7 + O(s^9)
+            (I + 1)*s^-1 + (-1/4*I + 1/4)*s + (1/32*I + 1/32)*s^3 + (1/128*I - 1/128)*s^5 + (-5/2048*I - 5/2048)*s^7 + (-7/8192*I + 7/8192)*s^9 + O(s^10)
 
         .. TODO:
             Remove the need to explicitly cast into SR when constructing
