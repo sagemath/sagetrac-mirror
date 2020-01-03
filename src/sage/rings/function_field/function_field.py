@@ -1025,7 +1025,7 @@ class FunctionField(Field):
         return PlaceSet(self)
 
     @cached_method
-    def completion(self, place, name=None, prec=None, gen_name=None):
+    def completion(self, place, name=None, prec=None, gen_name=None, uvar=None):
         """
         Return the completion of the function field at the place.
 
@@ -1035,10 +1035,20 @@ class FunctionField(Field):
 
         - ``name`` -- string; name of the series variable
 
-        - ``prec`` -- positive integer; default precision
+        - ``prec`` -- positive integer; default relative precision
 
         - ``gen_name`` -- string; name of the generator of the residue field;
           used only when the place is non-rational
+
+        - ``uvar`` -- uniformizing variable.  If ``None``, then an
+          arbitrary uniformizing variable is selected.  Must be either
+          an element of the function field, or an element of the
+          Symbolic Ring constructed from a root of such an element.
+          In either case, the specified variable is checked to see
+          if it has valuation one at the specified place, but in
+          the later case (element of the Symbolic Ring), no check
+          is made to see if such a variable actually exists in the
+          function field.
 
         EXAMPLES::
 
@@ -1119,9 +1129,39 @@ class FunctionField(Field):
             sage: ye = m(y)
             sage: ye^2 - xe == 0
             True
+
+            sage: QQbar.options.display_format = 'radical'
+            sage: R.<x> = FunctionField(QQbar)
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 - (x^2+1))
+            sage: D = (y/x).divisor()
+            sage: p = D.support()[0]
+
+            sage: I = sqrt(QQbar(-1))
+            sage: m = F.completion(p, uvar=(x-I))
+            Traceback (most recent call last):
+            ...
+            ValueError: x - I is not a uniformizing variable at Place (x - I, y)
+            sage: m = F.completion(p, uvar=SR(x-I)^(1/3))
+            Traceback (most recent call last):
+            ...
+            ValueError: (x - I)^(1/3) is not a uniformizing variable at Place (x - I, y)
+            sage: m = F.completion(p, uvar=sqrt(x-I))
+            sage: m(1, 10)
+            1
+            sage: m(x, 10)
+            I + s^2
+            sage: m(y, 10)
+            (I + 1)*s + (-1/4*I + 1/4)*s^3 + (1/32*I + 1/32)*s^5 + (1/128*I - 1/128)*s^7 + (-5/2048*I - 5/2048)*s^9 + O(s^11)
+            sage: m(y/(x-I),10)
+            (I + 1)*s^-1 + (-1/4*I + 1/4)*s + (1/32*I + 1/32)*s^3 + (1/128*I - 1/128)*s^5 + (-5/2048*I - 5/2048)*s^7 + O(s^9)
+
+        .. TODO:
+            Remove the need to explicitly cast into SR when constructing
+            roots of uniformizing variables.
         """
         from .maps import FunctionFieldCompletion
-        return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name)
+        return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name, uvar=uvar)
 
 
 class FunctionField_polymod(FunctionField):
