@@ -1899,9 +1899,9 @@ class FunctionFieldCompletion(Map):
             sage: L.<y> = R.extension(Y^2 - (x^4 + 1))
             sage: D = (1/(x*y)).divisor()
             sage: pl = D.support()[4]
-            sage: L.completion(pl, prec=8)(x)      # indirect doctest
+            sage: L.completion(pl)(x)      # indirect doctest
             s
-            sage: L.completion(pl, prec=8)(x^2)    # indirect doctest
+            sage: L.completion(pl)(x^2)    # indirect doctest
             s^2
         """
         if prec is None:
