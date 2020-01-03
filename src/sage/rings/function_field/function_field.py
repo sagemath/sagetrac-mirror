@@ -110,7 +110,7 @@ Function fields over the algebraic field are supported::
     sage: pl = I.divisor().support()[0]
     sage: m = L.completion(pl, prec=5)
     sage: m(x)
-    I + s + O(s^5)
+    I + s
     sage: m(y)
     -2*s + (-4 - I)*s^2 + (-15 - 4*I)*s^3 + (-75 - 23*I)*s^4 + (-413 - 154*I)*s^5 + O(s^6)
     sage: m(y)^2 + m(y) + m(x) + 1/m(x)
@@ -1094,7 +1094,7 @@ class FunctionField(Field):
               From: Rational function field in x over Finite Field of size 2
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x)
-            s^-1 + O(s^19)
+            s^-1
 
             sage: m = K.completion(p, prec=infinity); m
             Completion map:
