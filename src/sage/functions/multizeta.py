@@ -98,6 +98,8 @@ class MultipleZetaValue(BuiltinFunction):
 
             sage: from sage.functions.multizeta import multizeta
             sage: M = multizeta((3,))
+            sage: M.n()  # bug
+            1.20205690315959
             sage: pari(M)
             1.20205690315959
             sage: M = multizeta((2,1))
@@ -109,8 +111,10 @@ class MultipleZetaValue(BuiltinFunction):
 
         if algorithm is None:
             algorithm = "pari"
+
+        prec = parent.precision()
         if algorithm == "pari":
-            return pari(a).zetamult()
+            return parent(pari(a).zetamult(None, prec))
 
         raise ValueError("unknown algorithm")
 
