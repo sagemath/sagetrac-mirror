@@ -3809,10 +3809,10 @@ def local_modification(M, Lp, p, check=True):
 
     INPUT:
 
-    - ``M`` -- the gram matrix of a `ZZp`-maximal lattice
+    - ``M`` -- the gram matrix of a `\ZZ_p`-maximal lattice
 
-    - ``Lp`` -- gram matrix of a lattice with Lp `\QQ_p` rationally equivalent
-      to `M`
+    - ``Lp`` -- gram matrix of a lattice `L_p` which is `\QQ_p`-rationally
+      equivalent to `M`
 
     - ``p`` -- a prime number
 
@@ -3842,8 +3842,7 @@ def local_modification(M, Lp, p, check=True):
     """
     from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
     from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
-    from sage.rings.finite_rings.finite_field_constructor import GF
-    from sage.matrix.special import random_matrix
+    # notation
     M = matrix(M)
     Lp = matrix(Lp) # target lattice
     d = Lp.inverse().denominator()
