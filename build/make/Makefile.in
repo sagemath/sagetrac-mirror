@@ -17,6 +17,31 @@
 # Always use bash for make rules
 SHELL = @SHELL@
 
+# Use safe-but-efficient optimization flags, if the user does not
+# provide his own.
+ifeq ($(SAGE_FAT_BINARY), "yes")
+# No '-march=native' in this case.
+else
+# Tune the code generation to the machine we build on:
+
+# Test, if the compiler and assembler supports '-march=native'.
+$(shell echo "double d;" > foo.c)
+$(shell echo "unsigned long fancy_insns() { return (unsigned long) d; }" >> foo.c)
+$(shell echo "int main () { return 0; }" >> foo.c)
+ifeq ($(shell $(CC) -march=native -o foo foo.c &>/dev/null && ./foo >/dev/null && echo "ok"), ok)
+CFLAGS ?= -O2 -march=native
+CXXFLAGS ?= -O2 -march=native
+endif
+
+# Cleanup.
+$(shell rm -f foo.* foo)
+endif
+
+CFLAGS ?= -02
+CXXFLAGS ?= -02
+export CFLAGS
+export CXXFLAGS
+
 ifndef SAGE_SPKG_INST
 ifndef DEBUG_RULES
 $(error This Makefile needs to be invoked by build/make/install)
