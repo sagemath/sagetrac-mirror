@@ -40,13 +40,9 @@ case "$UNAME" in
     ;;
 # TODO: I don't think we even support these platforms anymore
 "AIX")
-    CFLAGS="$CFLAGS -g -O2"
-    export CFLAGS
     TARGET=aix-generic-thr
     ;;
 "HP-UX")
-    CFLAGS="$CFLAGS -g -O2"
-    export CFLAGS
     TARGET=hpux-generic-thr
     ;;
 esac

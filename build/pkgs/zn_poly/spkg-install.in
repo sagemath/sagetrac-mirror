@@ -4,11 +4,9 @@
 
 if [ "$SAGE_DEBUG" = yes ]; then
     echo >&2 "Warning: Setting SAGE_DEBUG to 'yes' completely disables optimization."
-    CFLAGS="-O0 -g $CFLAGS -fPIC"
-    CXXFLAGS="-O0 -g $CXXFLAGS -fPIC"
 else
-    CFLAGS="-O3 -g $CFLAGS -fPIC"
-    CXXFLAGS="-O3 -g $CXXFLAGS -fPIC"
+    CFLAGS="-O3 $CFLAGS -fPIC"
+    CXXFLAGS="-O3 $CXXFLAGS -fPIC"
 fi
 
 export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe.

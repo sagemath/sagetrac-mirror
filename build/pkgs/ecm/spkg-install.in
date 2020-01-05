@@ -79,7 +79,6 @@ fi
 if [ "$SAGE_DEBUG" = yes ]; then
     # Add debug symbols and disable optimization:
     echo >&2 "Warning: Setting SAGE_DEBUG=yes completely disables optimization."
-    CFLAGS="-g -O0 $CFLAGS"
     echo "You may in addition (or instead) pass '--enable-assert' and/or"
     echo "'--enable-memory-debug' to GMP-ECM's 'configure' by setting (and"
     echo "of course exporting) ECM_CONFIGURE accordingly."

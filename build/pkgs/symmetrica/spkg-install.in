@@ -4,7 +4,7 @@ cd src
 # as it has (syntactically) nothing in common with ours.
 cp -f ../patches/makefile makefile || exit $?
 
-export CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
+export CFLAGS="$CFLAGS -fPIC -DFAST -DALLTRUE"
 
 sdh_make
 sdh_install libsymmetrica.a "$SAGE_LOCAL/lib"

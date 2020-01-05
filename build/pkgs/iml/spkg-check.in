@@ -6,13 +6,6 @@ fi
 
 cd src
 
-if [ "$SAGE_DEBUG" = "yes" ]; then
-    export CFLAGS="-O0 -g $CFLAGS"
-else
-    export CFLAGS="-O2 -g $CFLAGS"
-fi
-
-
 echo "Testing the IML library"
 $MAKE check
 if [ $? -ne 0 ]; then
