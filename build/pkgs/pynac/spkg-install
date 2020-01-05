@@ -2,8 +2,6 @@
 ## pynac
 ###########################################
 
-export CXXFLAGS="-O2 -g $CXXFLAGS"
-
 WORKDIR=${PWD}/src
 PYNACDIR=${WORKDIR}
 

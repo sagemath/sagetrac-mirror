@@ -6,14 +6,6 @@ fi
 
 CUR=`pwd`
 
-if [ "x$SAGE_DEBUG" = xyes ] ; then
-    CFLAGS="$CFLAGS -g -O0" # No optimisation, aids debugging.
-else
-    CFLAGS="$CFLAGS -g -O2" # Normal optimisation.
-fi
-
-export CFLAGS
-
 dirsr="$CUR"/src
 echo "Testing in $dirsr"
 cd "$dirsr"

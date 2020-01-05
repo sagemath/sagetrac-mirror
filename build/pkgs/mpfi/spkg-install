@@ -1,4 +1,4 @@
-export CFLAGS="-O2 -g -fPIC $CFLAGS"
+export CFLAGS="-fPIC $CFLAGS"
 
 cd src
 

@@ -2,9 +2,8 @@ cd src
 
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of IML."
-    export CFLAGS="-O0 -g $CFLAGS"
 else
-    export CFLAGS="-O3 -g $CFLAGS"
+    export CFLAGS="-O3 $CFLAGS"
 fi
 
 # When using GMP from a standard system location it shouldn't really
