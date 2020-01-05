@@ -4,7 +4,7 @@ if [ -z "$SAGE_LOCAL" ] ; then
     exit 1
 fi
 
-CFLAGS="-O2 -g $CFLAGS -DFAST -DALLTRUE"
+CFLAGS="$CFLAGS -DFAST -DALLTRUE"
 export CFLAGS LDFLAGS # Currently redundant, but safe.
 
 
