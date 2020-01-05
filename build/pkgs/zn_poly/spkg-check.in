@@ -10,11 +10,11 @@
 
 if [ "$SAGE_DEBUG" = yes ]; then
     echo >&2 "Warning: Setting SAGE_DEBUG to 'yes' completely disables optimization."
-    CFLAGS="$CFLAGS -O0 -g -fPIC"
-    CXXFLAGS="$CXXFLAGS -O0 -g -fPIC"
+    CFLAGS="$CFLAGS -fPIC"
+    CXXFLAGS="$CXXFLAGS -fPIC"
 else
-    CFLAGS="-O3 -g $CFLAGS -fPIC"
-    CXXFLAGS="-O3 -g $CXXFLAGS -fPIC"
+    CFLAGS="-O3 $CFLAGS -fPIC"
+    CXXFLAGS="-O3 $CXXFLAGS -fPIC"
 fi
 
 # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs with
