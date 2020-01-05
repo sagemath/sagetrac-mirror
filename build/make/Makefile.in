@@ -19,6 +19,12 @@ SHELL = @SHELL@
 
 # Use safe-but-efficient optimization flags, if the user does not
 # provide his own.
+ifeq ($(SAGE_DEBUG), "yes")
+opt := -O0 -g
+else
+opt := -O2 -g
+endif
+
 ifeq ($(SAGE_FAT_BINARY), "yes")
 # No '-march=native' in this case.
 else
@@ -29,16 +35,16 @@ $(shell echo "double d;" > foo.c)
 $(shell echo "unsigned long fancy_insns() { return (unsigned long) d; }" >> foo.c)
 $(shell echo "int main () { return 0; }" >> foo.c)
 ifeq ($(shell $(CC) -march=native -o foo foo.c &>/dev/null && ./foo >/dev/null && echo "ok"), ok)
-CFLAGS ?= -O2 -march=native
-CXXFLAGS ?= -O2 -march=native
+CFLAGS ?= $(opt) -march=native
+CXXFLAGS ?= $(opt) -march=native
 endif
 
 # Cleanup.
 $(shell rm -f foo.* foo)
 endif
 
-CFLAGS ?= -02
-CXXFLAGS ?= -02
+CFLAGS ?= $(opt)
+CXXFLAGS ?= $(opt)
 export CFLAGS
 export CXXFLAGS
 
