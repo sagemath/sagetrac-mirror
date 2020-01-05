@@ -19,34 +19,33 @@ SHELL = @SHELL@
 
 # Use safe-but-efficient optimization flags, if the user does not
 # provide his own.
+
+# SAGE_DEBUG is a
+# three-state:
 ifeq ($(SAGE_DEBUG), "yes")
-opt := -O0 -g
+opt := -O0 -g -Wall
 else
-opt := -O2 -g
+ifeq ($(SAGE_DEBUG), "no")
+opt := -O2
+else
+opt := -O2 -g -Wall
+endif
 endif
 
 ifeq ($(SAGE_FAT_BINARY), "yes")
 # No '-march=native' in this case.
 else
+opt := $(opt) -march=native
 # Tune the code generation to the machine we build on:
-
-# Test, if the compiler and assembler supports '-march=native'.
-$(shell echo "double d;" > foo.c)
-$(shell echo "unsigned long fancy_insns() { return (unsigned long) d; }" >> foo.c)
-$(shell echo "int main () { return 0; }" >> foo.c)
-ifeq ($(shell $(CC) -march=native -o foo foo.c &>/dev/null && ./foo >/dev/null && echo "ok"), ok)
-CFLAGS ?= $(opt) -march=native
-CXXFLAGS ?= $(opt) -march=native
 endif
 
-# Cleanup.
-$(shell rm -f foo.* foo)
-endif
-
+# Test, which flags the compiler supports.
+opt := $(shell export CC=$(CC) && ../../src/bin/./testcflags.sh $(opt))
 CFLAGS ?= $(opt)
 CXXFLAGS ?= $(opt)
-export CFLAGS
-export CXXFLAGS
+FCFLAGS ?= $(opt)
+F77FLAGS ?= $(opt)
+export CFLAGS CXXFLAGS FCFLAGS F77FLAGS
 
 ifndef SAGE_SPKG_INST
 ifndef DEBUG_RULES
