@@ -1142,7 +1142,7 @@ class FunctionField(Field):
             Traceback (most recent call last):
             ...
             ValueError: x - I is not a uniformizing variable at Place (x - I, y)
-            sage: m = F.completion(p, uvar=SR(x-I)^(1/3))
+            sage: m = F.completion(p, uvar=(x-I)^(1/3))
             Traceback (most recent call last):
             ...
             ValueError: (x - I)^(1/3) is not a uniformizing variable at Place (x - I, y)
@@ -1155,10 +1155,6 @@ class FunctionField(Field):
             (I + 1)*s + (-1/4*I + 1/4)*s^3 + (1/32*I + 1/32)*s^5 + (1/128*I - 1/128)*s^7 + (-5/2048*I - 5/2048)*s^9 + O(s^10)
             sage: m(y/(x-I),10)
             (I + 1)*s^-1 + (-1/4*I + 1/4)*s + (1/32*I + 1/32)*s^3 + (1/128*I - 1/128)*s^5 + (-5/2048*I - 5/2048)*s^7 + (-7/8192*I + 7/8192)*s^9 + O(s^10)
-
-        .. TODO:
-            Remove the need to explicitly cast into SR when constructing
-            roots of uniformizing variables.
         """
         from .maps import FunctionFieldCompletion
         return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name, uvar=uvar)
