@@ -23,12 +23,12 @@ SHELL = @SHELL@
 # SAGE_DEBUG is a
 # three-state:
 ifeq ($(SAGE_DEBUG), "yes")
-opt := -O0 -g -Wall
+opt := -O0 -g
 else
 ifeq ($(SAGE_DEBUG), "no")
 opt := -O2
 else
-opt := -O2 -g -Wall
+opt := -O2 -g
 endif
 endif
 
