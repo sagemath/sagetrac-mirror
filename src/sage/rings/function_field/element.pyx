@@ -63,6 +63,9 @@ from sage.structure.element cimport FieldElement, RingElement, ModuleElement, El
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
+from sage.rings.integer import Integer
+from sage.rings.all import QQ
+
 def is_FunctionFieldElement(x):
     """
     Return ``True`` if ``x`` is any type of function field element.
@@ -124,6 +127,116 @@ cdef class FunctionFieldElement(FieldElement):
         cdef FunctionFieldElement x = <FunctionFieldElement>t.__new__(t)
         x._parent = self._parent
         return x
+
+    def __pow__(self, r, dummy):
+        """
+        Raise the element to an integer or rational power.  If no matching
+        element exists, return the result in the Symbolic Ring.
+
+        ALGORITHM:
+
+        Compute the divisor of the element, multiply each place's
+        multiplicity by the power, then use the Hess algorithm to find
+        an element with matching divisor, which may differ from the
+        desired result by a constant multiple, which is computed using
+        the powering operation in the constant base field.
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQ)
+            sage: S.<Y> = R[]
+            sage: L.<y> = R.extension(Y^2 - (x^4 + 1))
+            sage: L(x^4+1) ^ (1/2)
+            y
+            sage: L(x) ^ (1/2)
+            sqrt(x)
+
+        Note that the ``L`` is required to put the element into the
+        correct field.  There is no square root of `x^4+1` in ``R``:
+
+            sage: (x^4+1) ^ (1/2)
+            sqrt(x^4 + 1)
+
+        TESTS:
+
+        Check that roots are correctly taken (or not) when the element
+        is multiplied by a constant::
+
+            sage: L(4*(x^4+1)) ^ (3/2)
+            (8*x^4 + 8)*y
+            sage: L(2*(x^4+1)) ^ (1/2)
+            sqrt(2*x^4 + 2)
+
+        Exercise the ``IndexError`` exception, by trying to take the
+        square root of an element with second order poles and zeros,
+        but no element has matching first order poles and zeros::
+
+            sage: ((y+1)/x^2) ^ (1/2)
+            sqrt(1/x^2*y + 1/x^2)
+        """
+
+        try:
+            right = QQ.coerce(r)
+        except TypeError:
+            raise ValueError("exponent must be a rational number")
+
+        numer = right.numerator()
+        denom = right.denominator()
+
+        if denom == 1:
+            return self._pow_int(right)
+        else:
+            try:
+                D = self.divisor()
+                Droot = sum([Integer(m*right)*pl for pl,m in D.dict().items()])
+                basis = (-Droot).basis_function_space()
+                root = basis[0]
+                coeff = self.parent().constant_base_field()((self**numer)/(root**denom))**(1/denom)
+                return coeff*root
+            except (TypeError, IndexError):
+                from sage.symbolic.ring import SR
+                return SR(self)**(right)
+
+    def is_square(self, root=False):
+        """
+        Return whether or not the function field element ``self`` is a
+        square.
+
+        If the optional argument ``root`` is ``True``, then also
+        return the square root (or ``None``, if it is not a square).
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar)
+            sage: S.<Y> = R[]
+            sage: L.<y> = R.extension(Y^2 - (x^4 + 1))
+            sage: L(x^4+1).is_square()
+            True
+            sage: sqrt(L(x^4+1))  # indirect doctest
+            y
+            sage: L(x^4+2).is_square()
+            False
+            sage: L(x^4+2*x^2+1).is_square(root=True)
+            (True, x^2 + 1)
+
+        TESTS::
+
+            sage: L(x^4+1).is_square(root=True)
+            (True, y)
+            sage: L(x^4+2).is_square(root=True)
+            (False, None)
+        """
+        D = self.divisor()
+        from sage.misc.functional import is_even
+        is_sqr = all((is_even(m) for m in D.dict().values()))
+        if is_sqr:
+            sq_rt = self**(QQ(1)/QQ(2))
+        else:
+            sq_rt = None
+        if root:
+            return is_sqr, sq_rt
+        else:
+            return is_sqr
 
     def __pari__(self):
         r"""
