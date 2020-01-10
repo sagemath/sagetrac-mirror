@@ -148,10 +148,6 @@ latex_operators = [('&', '\\wedge '),
                    ('<->', '\\leftrightarrow '),
                    ('->', '\\rightarrow ')]
 
-# if you write a random function outside, it won't automatically exist when you run sage. 
-def booly():
-    print("booly is a cooly")
-
 
 class BooleanFormula(object):
     """
@@ -189,10 +185,6 @@ class BooleanFormula(object):
         self.__expression = exp.replace(' ', '')
         self.__tree = tree
         self.__vars_order = vo
-
-    # If you write a function inside a class, it will automatically exist when you run sage. 
-    def funny(self):
-        print("funny la")
 
     def __repr__(self):
         r"""
