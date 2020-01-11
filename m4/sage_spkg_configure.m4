@@ -65,8 +65,11 @@ $6
 
 $4
 
+AC_MSG_CHECKING([whether the SPKG was previously installed])
 AS_IF([test -n "`ls "${SAGE_SPKG_INST}/${sage_spkg_name}"-* 2>/dev/null`"],
+AC_MSG_RESULT([yes; install the SPKG])
 SPKG_INSTALL_VAR[=yes;] SPKG_USE_SYSTEM[=no], [
+AC_MSG_RESULT([no])
 m4_ifval(
 [$2],
 [AS_VAR_SET_IF(SPKG_INSTALL_VAR, [], SPKG_INSTALL_VAR[=no])],
@@ -117,7 +120,7 @@ AC_DEFUN([SAGE_SPKG_CONFIGURE], [
 AC_DEFUN([SAGE_SPKG_DEPCHECK], [
     m4_foreach_w([DEP], $1, [
        AC_REQUIRE([SAGE_SPKG_CONFIGURE_]m4_toupper(DEP))])
-    AC_MSG_CHECKING([installing any of $1? ])
+    AC_MSG_CHECKING([whether we are installing any of $1? ])
     AS_IF([test x = y m4_foreach_w([DEP], $1, [ -o [x$sage_spkg_install_]DEP = xyes])], [
         AC_MSG_RESULT([yes; install SPKG_NAME as well])
         [sage_spkg_install_]SPKG_NAME=yes], [
