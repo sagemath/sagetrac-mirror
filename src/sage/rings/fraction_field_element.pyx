@@ -794,7 +794,7 @@ cdef class FractionFieldElement(FieldElement):
 
     cpdef _pow_int(self, n):
         r"""
-        Returns self raised to the `n^{th}` power.
+        Return ``self`` raised to the `n^{th}` power.
 
         Note that we need to check whether or not n is negative so we
         don't set ``__numerator`` or ``__denominator`` to an element of the
