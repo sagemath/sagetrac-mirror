@@ -1090,7 +1090,7 @@ class Qepcad:
         if self.phase() != 'EXITED':
             raise ValueError("QEPCAD is not finished yet")
         final = self._qex.expect().before
-        match = re.search('\nAn equivalent quantifier-free formula:(.*)\n=+  The End  =+\r\n\r\n(.*)$', final, re.DOTALL)
+        match = re.search('\nAn equivalent quantifier-free formula:(.*)\n=+  The End  =+\r\n\r\n(.*)$', final.decode(), re.DOTALL)
 
         if match:
             return (match.group(1).strip(), match.group(2))
