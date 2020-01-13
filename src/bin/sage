@@ -936,6 +936,12 @@ install() {
     do
         # Check for options
         case "$PKG" in
+            -c|--check)
+                # This duplicates option handling in build/bin/sage-spkg,
+                # but is needed for packages of type=script.
+                INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG"
+                export SAGE_CHECK=yes
+                continue;;
             -*)
                 INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG"
                 continue;;

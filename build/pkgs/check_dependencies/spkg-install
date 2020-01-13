@@ -1,0 +1,7 @@
+#! /bin/sh
+# Because 'script' packages do not go through sage-spkg, SAGE_CHECK is not defined.
+# Working dir is SAGE_ROOT.
+echo "$0: SAGE_CHECK_PACKAGES=${SAGE_CHECK_PACKAGES} SAGE_CHECK=${SAGE_CHECK}"
+if [ "$SAGE_CHECK" == "yes" ]; then
+    sage-python23 -m pip install -r build/pkgs/check_dependencies/check-requirements.txt
+fi

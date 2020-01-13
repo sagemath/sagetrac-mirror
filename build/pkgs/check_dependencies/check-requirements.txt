@@ -1,0 +1,5 @@
+mock
+tox
+pytest
+nose
+pbr
