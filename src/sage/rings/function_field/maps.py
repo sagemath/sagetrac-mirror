@@ -1738,9 +1738,9 @@ class FunctionFieldCompletion(Map):
           To:   Laurent Series Ring in s over Finite Field of size 2
         sage: m(x)
         s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + s^12 + s^13
-        + s^15 + s^16 + s^17 + s^19 + O(s^20)
+        + s^15 + s^16 + s^17 + s^19 + O(s^22)
         sage: m(y)
-        s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + s^19 + O(s^20)
+        s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + O(s^19)
         sage: m(x*y) == m(x) * m(y)
         True
         sage: m(x+y) == m(x) + m(y)
@@ -1831,7 +1831,7 @@ class FunctionFieldCompletion(Map):
             sage: p = L.places_finite()[0]
             sage: m = L.completion(p)
             sage: m(y)
-            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + s^19 + O(s^20)
+            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + O(s^19)
         """
         if self._precision == infinity:
             return self._expand_lazy(f)
@@ -1849,7 +1849,7 @@ class FunctionFieldCompletion(Map):
             sage: p = L.places_finite()[0]
             sage: m = L.completion(p)
             sage: m(x+y, 10)  # indirect doctest
-            s^-1 + 1 + s^2 + s^4 + s^8 + O(s^10)
+            s^-1 + 1 + s^2 + s^4 + s^8 + O(s^9)
         """
         if self._precision == infinity:
             return self._expand_lazy(f, *args, **kwds)
@@ -1864,7 +1864,7 @@ class FunctionFieldCompletion(Map):
 
         - ``f`` -- element of the function field
 
-        - ``prec`` -- positive integer; absolute precision of the series
+        - ``prec`` -- positive integer; relative precision of the series
 
         - ``local_uniformizer`` -- uniformizing variable.  If
           ``None``, then the uniformizing variable specified with the
@@ -1880,7 +1880,7 @@ class FunctionFieldCompletion(Map):
             sage: m = L.completion(p)
             sage: m(x, prec=20)  # indirect doctest
             s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + s^12 + s^13 + s^15
-            + s^16 + s^17 + s^19 + O(s^20)
+            + s^16 + s^17 + s^19 + O(s^22)
 
             sage: R.<x> = FunctionField(QQbar)
             sage: K.<Y> = R[]
@@ -1888,9 +1888,9 @@ class FunctionFieldCompletion(Map):
             sage: D = (1/(x*y)).divisor()
             sage: pl = D.support()[4]
             sage: L.completion(pl)(x)      # indirect doctest
-            s + O(s^20)
+            s + O(s^21)
             sage: L.completion(pl)(x^2)    # indirect doctest
-            s^2 + O(s^20)
+            s^2 + O(s^22)
         """
         if prec is None:
             prec = self._precision
@@ -1912,8 +1912,8 @@ class FunctionFieldCompletion(Map):
         val = f.valuation(place)
         e = f * local_uniformizer **(-val)
 
-        coeffs = [to_k(der._derive(e, i, local_uniformizer)) for i in range(prec-val)]
-        series = self.codomain()(coeffs, val).add_bigoh(prec)
+        coeffs = [to_k(der._derive(e, i, local_uniformizer)) for i in range(prec)]
+        series = self.codomain()(coeffs, val).add_bigoh(prec + val)
 
         return series
 

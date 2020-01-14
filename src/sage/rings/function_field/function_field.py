@@ -112,7 +112,7 @@ Function fields over the algebraic field are supported::
     sage: m(x)
     I + s + O(s^5)
     sage: m(y)
-    -2*s + (-4 - I)*s^2 + (-15 - 4*I)*s^3 + (-75 - 23*I)*s^4 + O(s^5)
+    -2*s + (-4 - I)*s^2 + (-15 - 4*I)*s^3 + (-75 - 23*I)*s^4 + (-413 - 154*I)*s^5 + O(s^6)
     sage: m(y)^2 + m(y) + m(x) + 1/m(x)
     O(s^5)
 
@@ -1035,7 +1035,7 @@ class FunctionField(Field):
 
         - ``name`` -- string; name of the series variable
 
-        - ``prec`` -- positive integer; default absolute precision
+        - ``prec`` -- positive integer; default relative precision
 
         - ``gen_name`` -- string; name of the generator of the residue field;
           used only when the place is non-rational
@@ -1054,9 +1054,9 @@ class FunctionField(Field):
               From: Function field in y defined by y^2 + y + (x^2 + 1)/x
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x,10)
-            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + O(s^10)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
             sage: m(y,10)
-            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + O(s^10)
+            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
@@ -1066,9 +1066,9 @@ class FunctionField(Field):
               From: Function field in y defined by y^2 + y + (x^2 + 1)/x
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x,10)
-            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + O(s^10)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
             sage: m(y,10)
-            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + O(s^10)
+            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
 
             sage: K.<x> = FunctionField(GF(2))
             sage: p = K.places_finite()[0]; p
@@ -1088,7 +1088,7 @@ class FunctionField(Field):
               From: Rational function field in x over Finite Field of size 2
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x)
-            s^-1 + O(s^20)
+            s^-1 + O(s^19)
 
             sage: m = K.completion(p, prec=infinity); m
             Completion map:
@@ -1142,9 +1142,9 @@ class FunctionField(Field):
             sage: m(x, 10)
             I - 1/2*I*s^2 - 1/8*I*s^4 - 1/16*I*s^6 - 5/128*I*s^8 + O(s^10)
             sage: m(y, 10)
-            s + O(s^10)
+            s + O(s^11)
             sage: m(y/(x-I),10)
-            2*I*s^-1 - 1/2*I*s - 1/8*I*s^3 - 1/16*I*s^5 - 5/128*I*s^7 - 7/256*I*s^9 + O(s^10)
+            2*I*s^-1 - 1/2*I*s - 1/8*I*s^3 - 1/16*I*s^5 - 5/128*I*s^7 + O(s^9)
         """
         from .maps import FunctionFieldCompletion
         return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name, local_uniformizer=local_uniformizer)
