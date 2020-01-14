@@ -45,7 +45,8 @@ from sage.misc.all import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import cputime
 from sage.structure.element import parent
-from sage.rings.all import (QQ, ZZ, CDF, RDF, RR, infinity, xgcd, ComplexField)
+from sage.rings.all import (QQ, ZZ, CDF, RDF, RR, infinity, ComplexField, PolynomialRing)
+from sage.arith.all import xgcd
 
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.rational_field import is_RationalField
@@ -57,8 +58,8 @@ from .constructor import EllipticCurve
 from .ell_generic import is_EllipticCurve
 
 # Fast Cython functions specifically for this code.
-from sage.schemes.elliptic_curves.chow_heegner_fast import (
-    cdf_roots_of_rdf_poly, Polynomial_RDF_gsl, ComplexPolynomial)
+#from sage.schemes.elliptic_curves.chow_heegner_fast import (
+#    cdf_roots_of_rdf_poly, Polynomial_RDF_gsl, ComplexPolynomial)
 
 ######################################################################
 # Gamma0(N) equivalence of points in the upper half plane
@@ -123,9 +124,9 @@ def _slz2_rep_in_fundom_helper(z):
             n = (t + half).floor()  # avoid rounding error with 0.5
             z -= n
             if hasattr(n, 'center'):
-                k = round(n.center())
+                k = ZZ(round(n.center()))
             else:
-                k = n
+                k = ZZ(round(n))
             gamma *= T ** k
         if abs(z) < 1:
             change = True
@@ -133,6 +134,17 @@ def _slz2_rep_in_fundom_helper(z):
             gamma *= S
     return z, gamma ** (-1)
 
+def newton_wrap(f, x, max_iter=1000, max_err=1e-14):
+    try:
+        x = f.parent().base_ring()(x)
+    except TypeError:
+        f = f.change_ring(x.parent())
+    a = f.newton_raphson(max_iter, x)
+    for i in range(2,len(a)):
+        err = abs(a[i] - a[i - 1])
+        if err < max_err:
+            return (a[i], i + 1, err)
+    return (a[-1], max_iter, err)
 
 def sl2z_rep_in_fundom(z, eps=None):
     """
@@ -214,7 +226,7 @@ def sl2z_rep_in_fundom(z, eps=None):
         sage: sl2z_rep_in_fundom(CC(1+I), eps=1)   # must be small
         Traceback (most recent call last):
         ...
-        ValueError: prec (=0) must be >= 2 and <= -1.
+        ValueError: prec (=0) must be >= 1 and <= 9223372036854775551.
 
     TESTS:
 
@@ -693,11 +705,11 @@ class X0NPoint(object):
         The parameter q need not be a prime power::
 
             sage: z = CDF(1,1)
-            sage: P = X0NPoint(z,90,30) # N = 90 = 10*9
+            sage: P = X0NPoint(z,90,60) # N = 90 = 10*9
             sage: P.atkin_lehner(10)
-            [0.11049724 + 0.00055248619*I]
+            [0.11049723756906076 + 0.00055248618784530228*I]
             sage: P.atkin_lehner(10).atkin_lehner(10)
-            [0.10554020 + 0.000013888696*I]
+            [0.10554020083054401 + 0.000013888695990333430*I]
 
         This is because applying Atkin-Lehner results in substantial precision loss::
 
@@ -706,7 +718,7 @@ class X0NPoint(object):
 
         Using higher precision for the underlying point fixes the problem::
 
-            sage: P = X0NPoint(ComplexField(200)(1,1),90,30)
+            sage: P = X0NPoint(ComplexField(200)(1,1),90,60)
             sage: P.atkin_lehner(10).atkin_lehner(10) == P
             True
         """
@@ -768,7 +780,7 @@ def disk_to_h(q):
         sage: h_to_disk(disk_to_h(CDF(.5,.3)))  # abs tol 1e-10
         0.5 + 0.3*I
     """
-    K = q.parent()
+    K = parent(q)
     return q.log() / (2 * K.pi() * K.gen())
 
 
@@ -808,7 +820,7 @@ def h_to_disk(z):
         sage: disk_to_h(h_to_disk(CDF(0,1)))
         1.0*I
     """
-    K = z.parent()
+    K = parent(z)
     return (2 * K.pi() * K.gen() * z).exp()
 
 
@@ -954,8 +966,10 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
     first two converge to the same root, and the third to a different
     imaginary root::
 
-        sage: t = newton(f, [1, 5, -.6-1.4*I]); t  # abs tol 1e-10
-        [(1.21341166276, 6, 0.0), (1.21341166276, 9, 0.0), (-0.606705831381 - 1.45061224919*I, 5, 0.0)]
+        sage: t = newton(f, [1, 5, -.6-1.4*I]); t # abs tol 1e-10
+        [(1.21341166276, 6, 0.0),
+        (1.21341166276, 9, 0.0),
+        (-0.606705831381 - 1.45061224919*I, 5, 0.0)]
 
     An example in which f has precision less than 53 bits::
 
@@ -1020,7 +1034,10 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
             if C == CDF:
                 f = f.change_ring(ComplexField(53))
         else:
-            t = Polynomial_RDF_gsl(g).newton(x, max_iter=max_iter, max_err=max_err)
+            if type(x) is list:
+                t = [newton_wrap(g, xi, max_iter=max_iter, max_err=max_err) for xi in x]
+            else:
+                t = [newton_wrap(g, x, max_iter=max_iter, max_err=max_err)]
             if C != CDF:
                 t = [(C(v[0]), v[1], v[2]) for v in t]
             return t
@@ -1034,8 +1051,8 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
     # than a usual Sage polynomial over a higher precision complex
     # field, so we use it instead.
     tm = verbose("Running Newton refinement on degree %s polynomial to precision %s on %s roots" % (f.degree(), C.prec(), len(x)))
-    f = ComplexPolynomial(f)
-    f_prime = ComplexPolynomial(f_prime)
+    f = PolynomialRing(C,'x')(f)
+    f_prime = PolynomialRing(C,'x')(f_prime)
     ans = []
     for root in x:
         root = C(root)
@@ -1342,7 +1359,7 @@ class NumericalPoint(object):
 
             sage: c = EllipticCurve('57b').chow_heegner_point(EllipticCurve('57a')); c
             Chow-Heegner point on 57b1 associated to 57a1
-            sage: c.numerical_approx().identify()
+            sage: c.numerical_approx().identify() # long time
             (0 : 1 : 0)
         """
         if max(abs(self[0]), abs(self[1])) >= infinity or self._P == 0:
@@ -1470,7 +1487,7 @@ def label(E):
     """
     try:
         return E.cremona_label()
-    except RuntimeError:
+    except LookupError:
         return str(E)
 
 
@@ -1492,13 +1509,13 @@ def check_optimal(E):
     At least one of these curves is not optimal, but they have big
     conductor so they are not in the database::
 
-        sage: E = EllipticCurve([0,-10001,0,10000,0]); E.conductor()
-        266640
+        sage: E = EllipticCurve([0,-100001,0,100000,0]); E.conductor()
+        2666640
         sage: C = E.isogeny_class()
         sage: len(C)
-        8
+        4
         sage: [check_optimal(X) for X in C]
-        [None, None, None, None, None, None, None, None]
+        [None, None, None, None]
 
         sage: check_optimal(EllipticCurve('990h3'))
         True
@@ -1511,7 +1528,7 @@ def check_optimal(E):
             return lbl.endswith('3')
         if not lbl.endswith('1'):
             raise ValueError("curve must be optimal")
-    except RuntimeError:
+    except LookupError:
         pass
 
 
@@ -1550,10 +1567,10 @@ class ModularParametrization(object):
 
         sage: v = phi.points_in_h(1, 1e-3); v
         [[-0.3512 + 0.001870*I], [-0.04588 + 0.01936*I]]
-        sage: phi(v[0])
-        1.0 ...
-        sage: phi(v[1])
-        1.0
+        sage: phi(v[0]) # abs tol 1e-10
+        1.0 + 0.0*I
+        sage: phi(v[1]) # abs tol 1e-10
+        1.0 + 0.0*I
     """
     def __init__(self, E):
         """
@@ -1767,7 +1784,7 @@ class ModularParametrization(object):
             sage: phi = ModularParametrization(EllipticCurve('11a'))
             sage: phi(CDF(1,1))  # abs tol 1e-10
             0.0018639532246330697 + 0.0*I
-            sage: phi(ComplexField(100)(1,1))
+            sage: phi(ComplexField(100)(1,1)) # abs tol 1e-10
             0.0018639532246330691303545022211 - 6.3095154969118369542516994420e-34*I
             sage: phi([CDF(1,1), CDF(2,1), CDF(2,1/2)])  # abs tol 1e-10
             [0.0018639532246330697 + 0.0*I, 0.0018639532246330697 + 0.0*I,
@@ -1800,9 +1817,9 @@ class ModularParametrization(object):
             is_list = False
         f = phi_poly(self._E, d, base_field=z[0].parent())
         if z[0].prec() > 53:
-            f = ComplexPolynomial(f)
+            f = PolynomialRing(CDF,'x')(f)
         else:
-            f = Polynomial_RDF_gsl(f)
+            f = PolynomialRing(RDF,'x')(f)
         w = []
         for x in z:
             q = h_to_disk(x)
@@ -1845,7 +1862,7 @@ class ModularParametrization(object):
         z = CDF(z)
         f = phi_poly(self._E, deg1, base_field=CDF) - z
         try:
-            v = [x for x in cdf_roots_of_rdf_poly(f) if abs(x) < 1]
+            v = [x for x, _ in f.roots(CDF) if abs(x) < 1]
         except TypeError:
             v = [x for x, _ in f.roots() if abs(x) < 1]
         verbose('Number of double precision roots in upper half plane: %s' % len(v))
@@ -1863,21 +1880,24 @@ class ModularParametrization(object):
         t = verbose("deg of refinement poly = %s" % f.degree())
         w = []
         if z.imag() == 0:
-            roots = Polynomial_RDF_gsl(f).newton(v, max_iter)
+            roots = [newton_wrap(f, vi, max_iter) for vi in v]
+            for b, i, err in roots:
+                if abs(b) < 1:
+                    w.append(b)
         else:
             roots = newton(f, v, max_iter=max_iter)
+            for b, i, err in roots:
+                if abs(b) < 1 and i < max_iter:
+                    w.append(b)
 
-        for b, i, err in roots:
-            if abs(b) < 1 and i < max_iter:
-                w.append(b)
 
         verbose("found %s double prec roots that refined in %s seconds" % (len(w), cputime(t)))
         w.sort()
         w = throw_away_close(w, prec=45)
 
         # Put points in upper half plane.
-        w = [disk_to_h(zz) for zz in w]
-        w = [zz for zz in w if z.imag() >= min_imag]  # 1000 is effectively oo
+        w = [disk_to_h(CDF(zz)) for zz in w]
+        w = [zz for zz in w if zz.imag() >= min_imag]  # 1000 is effectively oo
         w.sort()
         return w
 
@@ -1946,14 +1966,14 @@ class ModularParametrization(object):
 
             sage: v = phi.points_in_h(RealField(100)(1), min_imag=1e-3); v
             [[-0.35115510977014 + 0.0018701266234958*I], [-0.045882897517034 + 0.019362756466571*I]]
-            sage: phi(v[0])
+            sage: phi(v[0]) # abs tol 1e-10
             1.0000000000000000000000000000 + 3.3526588471893001729998464025e-29*I
-            sage: phi(v[1])
+            sage: phi(v[1]) # abs tol 1e-10
             1.0000000000000000000000000000 + 2.7610131682735413189410499785e-30*I
 
         Consider points with smaller imaginary parts::
 
-            sage: phi.points_in_h(RDF(1), min_imag=1e-4)
+            sage: phi.points_in_h(RDF(1), min_imag=1e-4) # long time
             [[-0.3574 + 0.0004481*I], [-0.3512 + 0.001870*I]]
 
         Change the degree of the initial polynomial approximation to
@@ -1977,7 +1997,7 @@ class ModularParametrization(object):
         precision, which will result in falsely considering points as
         inequivalent::
 
-            sage: len(phi.points_in_h(RDF(1), equiv_prec=50, min_imag=1e-3))
+            sage: len(phi.points_in_h(RDF(1), equiv_prec=48, min_imag=1e-3))
             7
             sage: len(phi.points_in_h(RDF(1), equiv_prec=40, min_imag=1e-3))  # correct, since moddeg=2
             2
@@ -2030,8 +2050,8 @@ class ModularParametrization(object):
             w0 = throw_away_close(w0, prec=prec - 10)
 
             # transform and take distinct X0 points in upper half plane.
-            w = [disk_to_h(zz) for zz in w0]
-            w = [zz for zz in w if z.imag() >= min_imag and z.imag() <= 1]  # above 1 --> is point at oo
+            w = [disk_to_h(C(zz)) for zz in w0]
+            w = [zz for zz in w if zz.imag() >= min_imag and zz.imag() <= 1]  # above 1 --> is point at oo
             w = [X0NPoint(zz, N, prec=prec // 2) for zz in w]
             w = list(set(w))
 
@@ -2051,9 +2071,9 @@ class ChowHeegnerPoint(object):
 
         sage: P = EllipticCurve('57a').chow_heegner_point(EllipticCurve('57b')); P
         Chow-Heegner point on 57a1 associated to 57b1
-        sage: P.numerical_approx()
+        sage: P.numerical_approx() # long time
         (1.44444444444440...: -1.03703703703... : 1.00000000000000)
-        sage: P.point_exact()
+        sage: P.point_exact() # long time
         (13/9 : -28/27 : 1)
 
     You can recover the two curves used to define the point::
@@ -2243,13 +2263,13 @@ class ChowHeegnerPoint(object):
         EXAMPLES::
 
             sage: P = EllipticCurve('37a').chow_heegner_point(EllipticCurve('37b'))
-            sage: P.numerical_approx(deg1=130)
-            (6.00000000000... : 14.0000000000... : 1.00000000000000)
-            sage: P.numerical_approx(60, deg1=130)
-            (6.00000000000... : 14.000000000000... : 1.0000000000000000)
+            sage: P.numerical_approx(deg1=130) # abs tol 1e-10
+            (6.00000000000 + 0.0*I : 14.0000000000 + 0.0*I : 1.00000000000000)
+            sage: P.numerical_approx(60, deg1=130) # long time, abs tol 1e-10
+            (6.00000000000 + 0.0*I : 14.000000000000 + 0.0*I : 1.0000000000000000 + 0.0*I)
             sage: P = EllipticCurve('37b').chow_heegner_point(EllipticCurve('37a'))
-            sage: P.numerical_approx(deg1=100)
-            (8.00000000000... : 18.0000000000... : 1.00000000000000)
+            sage: P.numerical_approx(deg1=100) # long time, abs tol 1e-10
+            (8.00000000000 + 0.0*I : 18.0000000000 + 0.0*I : 1.00000000000000 + 0.0*I)
         """
         P, _, _ = self.compute(*args, **kwds)
         if P is not None:
@@ -2290,7 +2310,7 @@ class ChowHeegnerPoint(object):
         equivalence of points in the upper half plane::
 
             sage: P = EllipticCurve('99a').chow_heegner_point(EllipticCurve('99b'))
-            sage: P.point_exact()
+            sage: P.point_exact() # long time
             Traceback (most recent call last):
             ...
             RuntimeError: Found too many points (13 > 12) -- try (good) increasing precision of z (now=53) or (bad) *decreasing* equiv_prec (now=17)
@@ -2300,9 +2320,9 @@ class ChowHeegnerPoint(object):
         used for checking equivalence (faster, but less safe) both
         work in this case::
 
-            sage: P.point_exact(equiv_prec=12)
+            sage: P.point_exact(equiv_prec=9)
             (105/64 : -897/512 : 1)
-            sage: P.point_exact(prec=60)
+            sage: P.point_exact(prec=60) # long time
             (105/64 : -897/512 : 1)
             sage: P.index(equiv_prec=12)
             4

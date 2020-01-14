@@ -51,20 +51,22 @@ AUTHORS:
 from sage.libs.gsl.types cimport *
 from sage.libs.gsl.complex cimport *
 from sage.libs.gsl.poly cimport *
+from cysignals.signals cimport sig_on, sig_off
+from cysignals.memory cimport sig_free, sig_malloc
 
 cdef extern from "gsl/gsl_poly.h":
     gsl_complex gsl_poly_complex_eval (double c[], int n, gsl_complex z)
 
-include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
 
 from sage.rings.all import CDF
 from sage.rings.all import RR
 from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.stats.intlist cimport IntList
 
-from sage.rings.complex_number cimport (ComplexNumber,
-     mpfr_t, mpfr_init2, mpfr_mul, mpfr_sub, mpfr_add, mpfr_clear, GMP_RNDN)
+from sage.libs.mpfr cimport *
+
+from sage.rings.complex_number cimport ComplexNumber
+        #mpfr_t, mpfr_init2, mpfr_mul, mpfr_sub, mpfr_add, mpfr_clear, MPFR_RNDN)
 
 
 def required_series_prec(y, prec):
@@ -126,12 +128,12 @@ cdef int ComplexNumber_mul(ComplexNumber x, ComplexNumber left, ComplexNumber ri
     cdef mpfr_t t0, t1
     mpfr_init2(t0, left._prec)
     mpfr_init2(t1, left._prec)
-    mpfr_mul(t0, left.__re, right.__re,  GMP_RNDN)
-    mpfr_mul(t1, left.__im, right.__im,  GMP_RNDN)
-    mpfr_sub(x.__re, t0, t1,  GMP_RNDN)
-    mpfr_mul(t0, left.__re, right.__im,  GMP_RNDN)
-    mpfr_mul(t1, left.__im, right.__re,  GMP_RNDN)
-    mpfr_add(x.__im, t0, t1,  GMP_RNDN)
+    mpfr_mul(t0, left.__re, right.__re,  MPFR_RNDN)
+    mpfr_mul(t1, left.__im, right.__im,  MPFR_RNDN)
+    mpfr_sub(x.__re, t0, t1,  MPFR_RNDN)
+    mpfr_mul(t0, left.__re, right.__im,  MPFR_RNDN)
+    mpfr_mul(t1, left.__im, right.__re,  MPFR_RNDN)
+    mpfr_add(x.__im, t0, t1,  MPFR_RNDN)
     mpfr_clear(t0)
     mpfr_clear(t1)
 
@@ -139,8 +141,8 @@ cdef int ComplexNumber_add(ComplexNumber x, ComplexNumber left, ComplexNumber ri
     """
     Add two ComplexNumber objects.
     """
-    mpfr_add(x.__re, left.__re, right.__re,  GMP_RNDN)
-    mpfr_add(x.__im, left.__im, right.__im,  GMP_RNDN)
+    mpfr_add(x.__re, left.__re, right.__re,  MPFR_RNDN)
+    mpfr_add(x.__im, left.__im, right.__im,  MPFR_RNDN)
 
 cdef class ComplexPolynomial:
     """
@@ -334,7 +336,7 @@ cdef class Polynomial_RDF_gsl:
             <type 'sage.schemes.elliptic_curves.chow_heegner_fast.Polynomial_RDF_gsl'>
         """
         self.n = f.degree() + 1
-        self.c = <double*> sage_malloc(sizeof(double)*self.n)
+        self.c = <double*> sig_malloc(sizeof(double)*self.n)
         if not self.c:
             self.c = NULL
             raise MemoryError
@@ -354,8 +356,8 @@ cdef class Polynomial_RDF_gsl:
         return self.f.__repr__()
 
     def __dealloc__(self):
-        if self.c: sage_free(self.c)
-        if self.c_d: sage_free(self.c_d)        
+        if self.c: sig_free(self.c)
+        if self.c_d: sig_free(self.c_d)        
 
     def __call__(self, x):
         """
@@ -391,7 +393,7 @@ cdef class Polynomial_RDF_gsl:
         if self.c_d: return
         f_d = self.f.derivative()
         self.n_d = f_d.degree()+1
-        self.c_d = <double*> sage_malloc(sizeof(double)*self.n_d)
+        self.c_d = <double*> sig_malloc(sizeof(double)*self.n_d)
         cdef list v = f_d.list()
         cdef Py_ssize_t i
         for i in range(self.n_d):
@@ -487,8 +489,8 @@ cdef class Polynomial_RDF_gsl:
         cdef ComplexDoubleElement z
         for x in v:
             z=CDF(x)
-            GSL_SET_COMPLEX(&root, z._complex.dat[0], z._complex.dat[1])
-            GSL_SET_COMPLEX(&last_root, z._complex.dat[0], z._complex.dat[1])        
+            GSL_SET_COMPLEX(&root, z._complex.real, z._complex.imag)
+            GSL_SET_COMPLEX(&last_root, z._complex.real, z._complex.imag)        
             sig_on()
             for i in range(max_iter):
                 # We recode what would be the following simple Python
@@ -504,7 +506,7 @@ cdef class Polynomial_RDF_gsl:
                 err = gsl_complex_abs(gsl_complex_sub(last_root, root))
                 if err <= max_err:
                     break
-                GSL_SET_COMPLEX(&last_root, root.dat[0], root.dat[1])                    
+                GSL_SET_COMPLEX(&last_root, root.real, root.imag)                    
             sig_off()
             ans.append((z._new_c(root), i+1, err))
         return ans
@@ -539,12 +541,12 @@ def cdf_roots_of_rdf_poly(f):
         [-0.605829586188, -0.0720852069059 - 0.638326735148*I, -0.0720852069059 + 0.638326735148*I]    
     """
     cdef Py_ssize_t i, n = f.degree() + 1
-    cdef double* a = <double*> sage_malloc(sizeof(double)*n)
+    cdef double* a = <double*> sig_malloc(sizeof(double)*n)
     if not a:
         raise MemoryError
-    cdef double* z = <double*> sage_malloc(sizeof(double)*2*n)
+    cdef double* z = <double*> sig_malloc(sizeof(double)*2*n)
     if not z:
-        sage_free(a)
+        sig_free(a)
         raise MemoryError
     
     cdef list v = f.list()
@@ -560,7 +562,7 @@ def cdf_roots_of_rdf_poly(f):
     rts = [CDF(z[2 * i], z[2 * i + 1]) for i in range(n - 1)]
     rts.sort()
     
-    sage_free(a)
-    sage_free(z)
+    sig_free(a)
+    sig_free(z)
     
     return rts
