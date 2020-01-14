@@ -1900,9 +1900,9 @@ class FunctionFieldCompletion(Map):
             sage: D = (1/(x*y)).divisor()
             sage: pl = D.support()[4]
             sage: L.completion(pl)(x)      # indirect doctest
-            s
+            s + O(s^20)
             sage: L.completion(pl)(x^2)    # indirect doctest
-            s^2
+            s^2 + O(s^20)
         """
         if prec is None:
             prec = self._precision
@@ -1943,20 +1943,6 @@ class FunctionFieldCompletion(Map):
                 series = s_series((self._expand(sep, prec=(prec-min_exponent+1/p), uvar=False)**QQ(p)).reverse())
             else:
                 series = s_series
-
-        # Check to see if expansion is exact.
-        # If so, return an exact result.
-
-        try:
-            poly = series.laurent_polynomial()
-            if uvar is None or uvar is False:
-                if poly(sep) == f:
-                    return self.codomain()(poly)
-            else:
-                if F(poly(uvar)) == f:
-                    return self.codomain()(poly)
-        except:
-            pass
 
         return series
 
