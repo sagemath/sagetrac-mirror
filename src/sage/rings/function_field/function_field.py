@@ -1025,7 +1025,7 @@ class FunctionField(Field):
         return PlaceSet(self)
 
     @cached_method
-    def completion(self, place, name=None, prec=None, gen_name=None, uvar=None):
+    def completion(self, place, name=None, prec=None, gen_name=None, local_uniformizer=None):
         """
         Return the completion of the function field at the place.
 
@@ -1040,15 +1040,9 @@ class FunctionField(Field):
         - ``gen_name`` -- string; name of the generator of the residue field;
           used only when the place is non-rational
 
-        - ``uvar`` -- uniformizing variable.  If ``None``, then an
-          arbitrary uniformizing variable is selected.  Must be either
-          an element of the function field, or an element of the
-          Symbolic Ring constructed from a root of such an element.
-          In either case, the specified variable is checked to see
-          if it has valuation one at the specified place, but in
-          the later case (element of the Symbolic Ring), no check
-          is made to see if such a variable actually exists in the
-          function field.
+        - ``local_uniformizer`` -- uniformizing variable.  If
+          ``None``, then an arbitrary uniformizing variable is
+          selected.
 
         EXAMPLES::
 
@@ -1138,22 +1132,22 @@ class FunctionField(Field):
             sage: p = D.support()[0]
 
             sage: I = sqrt(QQbar(-1))
-            sage: m = F.completion(p, uvar=(x-I))
+            sage: m = F.completion(p, local_uniformizer=(x-I))
             Traceback (most recent call last):
             ...
             ValueError: x - I is not a uniformizing variable at Place (x - I, y)
-            sage: m = F.completion(p, uvar=sqrt(x-I))
+            sage: m = F.completion(p, local_uniformizer=y)
             sage: m(1, 10)
             1 + O(s^10)
             sage: m(x, 10)
-            I + s^2 + O(s^10)
+            I - 1/2*I*s^2 - 1/8*I*s^4 - 1/16*I*s^6 - 5/128*I*s^8 + O(s^10)
             sage: m(y, 10)
-            (I + 1)*s + (-1/4*I + 1/4)*s^3 + (1/32*I + 1/32)*s^5 + (1/128*I - 1/128)*s^7 + (-5/2048*I - 5/2048)*s^9 + O(s^10)
+            s + O(s^10)
             sage: m(y/(x-I),10)
-            (I + 1)*s^-1 + (-1/4*I + 1/4)*s + (1/32*I + 1/32)*s^3 + (1/128*I - 1/128)*s^5 + (-5/2048*I - 5/2048)*s^7 + (-7/8192*I + 7/8192)*s^9 + O(s^10)
+            2*I*s^-1 - 1/2*I*s - 1/8*I*s^3 - 1/16*I*s^5 - 5/128*I*s^7 - 7/256*I*s^9 + O(s^10)
         """
         from .maps import FunctionFieldCompletion
-        return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name, uvar=uvar)
+        return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name, local_uniformizer=local_uniformizer)
 
 
 class FunctionField_polymod(FunctionField):

@@ -1723,8 +1723,8 @@ class FunctionFieldCompletion(Map):
     - ``gen_name`` -- string; name of the generator of the residue
       field; used only when place is non-rational
 
-    - ``uvar`` -- uniformizing variable.  If ``None``, then an
-      arbitrary uniformizing variable is selected.
+    - ``local_uniformizer`` -- uniformizing variable.  If ``None``,
+      then an arbitrary uniformizing variable is selected.
 
     EXAMPLES::
 
@@ -1760,7 +1760,7 @@ class FunctionFieldCompletion(Map):
         b + b*t + b*t^3 + b*t^4 + (b + 1)*t^5 + (b + 1)*t^7 + b*t^9 + b*t^11
         + b*t^12 + b*t^13 + b*t^15 + b*t^16 + (b + 1)*t^17 + (b + 1)*t^19 + O(t^20)
     """
-    def __init__(self, field, place, name=None, prec=None, gen_name=None, uvar=None):
+    def __init__(self, field, place, name=None, prec=None, gen_name=None, local_uniformizer=None):
         """
         Initialize.
 
@@ -1781,25 +1781,15 @@ class FunctionFieldCompletion(Map):
         if gen_name is None:
             gen_name = 'a' # default
 
-        if uvar is not None:
-            if uvar.parent() is SR:
-                if uvar.operator() is operator.pow:
-                    u,p = uvar.operands()
-                    u = field(u)
-                else:
-                    u = field(uvar)
-                    p = 1
-            else:
-                u = uvar
-                p = 1
-            if u.valuation(place) != 1/p:
-                raise ValueError("{} is not a uniformizing variable at {}".format(uvar, place))
+        if local_uniformizer is not None:
+            if local_uniformizer.valuation(place) != 1:
+                raise ValueError("{} is not a uniformizing variable at {}".format(local_uniformizer, place))
 
         k, from_k, to_k = place.residue_field(name=gen_name)
 
         self._place = place
         self._gen_name = gen_name
-        self._uvar = uvar
+        self._local_uniformizer = local_uniformizer
 
         if prec == infinity:
             from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
@@ -1866,7 +1856,7 @@ class FunctionFieldCompletion(Map):
         else:
             return self._expand(f, *args, **kwds)
 
-    def _expand(self, f, prec=None, uvar=None):
+    def _expand(self, f, prec=None, local_uniformizer=None):
         """
         Return the laurent series expansion of f with precision ``prec``.
 
@@ -1876,13 +1866,11 @@ class FunctionFieldCompletion(Map):
 
         - ``prec`` -- positive integer; absolute precision of the series
 
-        - ``uvar`` -- uniformizing variable.  If ``None``, then the
-          uniformizing variable specified with the completion is
-          selected, or if no uniformizing variable was specified with
-          the completion, then an arbitrary one is selected.
-          ``False`` is used internally to force selection of an
-          arbitrary uniformizing variable, even if one was specified
-          when the completion was created.
+        - ``local_uniformizer`` -- uniformizing variable.  If
+          ``None``, then the uniformizing variable specified with the
+          completion is selected, or if no uniformizing variable was
+          specified with the completion, then an arbitrary one is
+          selected.
 
         EXAMPLES::
 
@@ -1913,36 +1901,19 @@ class FunctionFieldCompletion(Map):
 
         k,from_k,to_k = place.residue_field(name=self._gen_name)
 
-        if uvar is None:
-            uvar = self._uvar
-
-        if uvar is not None and uvar is not False:
-            if uvar.parent() is SR and uvar.operator() is operator.pow:
-                u,p = uvar.operands()
-                sep = F(u)
-            else:
-                sep = F(uvar)
-                p = 1
-            if sep.valuation(place) != 1/p:
-                raise ValueError("{} is not a uniformizing variable at {}".format(uvar, place))
+        if local_uniformizer is None:
+            local_uniformizer = self._local_uniformizer
+            if local_uniformizer is None:
+                local_uniformizer = place.local_uniformizer()
         else:
-            sep = place.local_uniformizer()
-            p = 1
+            if local_uniformizer.valuation(place) != 1:
+                raise ValueError("{} is not a uniformizing variable at {}".format(local_uniformizer, place))
 
-        if p == 1:
-            val = f.valuation(place)
-            e = f * sep **(-val)
+        val = f.valuation(place)
+        e = f * local_uniformizer **(-val)
 
-            coeffs = [to_k(der._derive(e, i, sep)) for i in range(prec-val)]
-            series = self.codomain()(coeffs, val).add_bigoh(prec)
-        else:
-            s_series = self._expand(f, prec=prec, uvar=False)
-            non_zero_exponents = [e for e in s_series.exponents() if e != 0]
-            if non_zero_exponents:
-                min_exponent = min(non_zero_exponents)
-                series = s_series((self._expand(sep, prec=(prec-min_exponent+1/p), uvar=False)**QQ(p)).reverse())
-            else:
-                series = s_series
+        coeffs = [to_k(der._derive(e, i, local_uniformizer)) for i in range(prec-val)]
+        series = self.codomain()(coeffs, val).add_bigoh(prec)
 
         return series
 
