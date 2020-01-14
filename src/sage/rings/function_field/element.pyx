@@ -131,7 +131,7 @@ cdef class FunctionFieldElement(FieldElement):
     def __pow__(self, r, dummy):
         """
         Raise the element to an integer or rational power.  If no matching
-        element exists, return the result in the Symbolic Ring.
+        element exists, raise a ValueError exception.
 
         ALGORITHM:
 
@@ -149,13 +149,17 @@ cdef class FunctionFieldElement(FieldElement):
             sage: L(x^4+1) ^ (1/2)
             y
             sage: L(x) ^ (1/2)
-            sqrt(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 2nd power
 
         Note that the ``L`` is required to put the element into the
         correct field.  There is no square root of `x^4+1` in ``R``:
 
             sage: (x^4+1) ^ (1/2)
-            sqrt(x^4 + 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 2nd power
 
         TESTS:
 
@@ -165,14 +169,18 @@ cdef class FunctionFieldElement(FieldElement):
             sage: L(4*(x^4+1)) ^ (3/2)
             (8*x^4 + 8)*y
             sage: L(2*(x^4+1)) ^ (1/2)
-            sqrt(2*x^4 + 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 2nd power
 
         Exercise the ``IndexError`` exception, by trying to take the
         square root of an element with second order poles and zeros,
         but no element has matching first order poles and zeros::
 
             sage: ((y+1)/x^2) ^ (1/2)
-            sqrt(1/x^2*y + 1/x^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 2nd power
         """
 
         try:
@@ -194,8 +202,8 @@ cdef class FunctionFieldElement(FieldElement):
                 coeff = self.parent().constant_base_field()((self**numer)/(root**denom))**(1/denom)
                 return coeff*root
             except (TypeError, IndexError):
-                from sage.symbolic.ring import SR
-                return SR(self)**(right)
+                pass
+            raise ValueError("not a %s power"%Integer(denom).ordinal_str())
 
     def is_square(self, root=False):
         """

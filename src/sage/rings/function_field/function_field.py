@@ -1142,10 +1142,6 @@ class FunctionField(Field):
             Traceback (most recent call last):
             ...
             ValueError: x - I is not a uniformizing variable at Place (x - I, y)
-            sage: m = F.completion(p, uvar=(x-I)^(1/3))
-            Traceback (most recent call last):
-            ...
-            ValueError: (x - I)^(1/3) is not a uniformizing variable at Place (x - I, y)
             sage: m = F.completion(p, uvar=sqrt(x-I))
             sage: m(1, 10)
             1 + O(s^10)
