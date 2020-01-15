@@ -130,6 +130,12 @@ def var(key, *fallbacks, **kwds):
         value = None
     else:
         value = os.environ.get(key)
+    if value is None:
+        try:
+            from . import env_config
+            value = getattr(env_config, key, None)
+        except ImportError:
+            pass
     # Try all fallbacks in order as long as we don't have a value
     for f in fallbacks:
         if value is not None:

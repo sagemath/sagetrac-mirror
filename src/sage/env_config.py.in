@@ -1,0 +1,8 @@
+###########################################################################
+#
+#  Set some environment variables for Sage.
+#  This file is generated from env_config.py.in by configure.
+#
+###########################################################################
+
+SAGE_LOCAL = "@prefix@"
