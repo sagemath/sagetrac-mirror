@@ -12,8 +12,8 @@
 # serve to show the default.
 
 import os
-from sage.env import SAGE_DOC_SRC, SAGE_DOC
-from sage.docs.conf import release, latex_elements, exclude_patterns
+import fileinput
+from sage.env import SAGE_SHARE
 from sage.docs.conf import *
 
 ref_src = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
@@ -70,3 +70,13 @@ multidocs_subdoc_list = sorted([x for x in os.listdir(ref_src)
 exclude_patterns += multidocs_subdoc_list + [
     'sage', 'sagenb', 'options'
     ]
+
+# Convert index.rst.in to index.rst. This may at some point be done
+# instead in the top-level configure file, but it's done here for now.
+if (not os.path.exists('index.rst') or
+    (os.path.getmtime('index.rst') <= os.path.getmtime('index.rst.in'))):
+    from sage.interfaces.maxima import maxima
+    with open('index.rst', 'w') as output:
+        for line in fileinput.FileInput('index.rst.in'):
+            l = line.replace('@SAGE_SHARE@', SAGE_SHARE).replace('@MAXIMA_VERSION@', maxima.version())
+            output.write(l)

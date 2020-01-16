@@ -14,7 +14,7 @@ User Interface
 
 * :doc:`Command Line Interface (REPL) <repl/index>`
 * For the Jupyter notebook interface, visit `its documentation <https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
-* For the legacy notebook interface, which is no longer actively maintained, visit the `source repository <https://github.com/sagemath/sagenb>`_.
+* The legacy notebook interface SageNB (no longer actively maintained and not supported in Python 3; `source repository <https://github.com/sagemath/sagenb>`_).
 
 Graphics
 ========
@@ -147,6 +147,21 @@ Interfaces
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Python technicalities <cpython/index>`
+
+Some external packages - work in progress
+-----------------------------------------
+
+An incomplete `list <@SAGE_SHARE@/doc>`_, e.g.
+
+* `GC garbage collector <@SAGE_SHARE@/doc/gc/overview.html>`_
+* `Giac/Xcas documentation <@SAGE_SHARE@/doc/giac/index.html>`_
+* `PPL User manual <@SAGE_SHARE@/doc/ppl/ppl-user-1.2-html/index.html>`_
+* `Python Wrapper for PPL (pplpy) <@SAGE_SHARE@/doc/pplpy/index.html>`_
+
+More in ``doc`` directories of individual packages `in <@SAGE_SHARE@>`_, e.g.
+
+* `Singular User Manual <@SAGE_SHARE@/singular/html/index.htm>`_
+* `Introduction to Maxima <@SAGE_SHARE@/maxima/@MAXIMA_VERSION@/doc/html/intromax.html>`_
 
 General Information
 ===================
