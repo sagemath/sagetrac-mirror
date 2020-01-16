@@ -272,6 +272,40 @@ class ManualIntegral(SageObject):
         """
         return integral(self._f, self._x, hold=True)._latex_()
 
+    def _ascii_art_(self):
+        r"""
+        The ascii_art expression of an object of this class is the same as the
+        integral it computes.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: M._ascii_art_()
+              /
+             |
+             | x*sin(x) dx
+             |
+            /
+        """
+        return integral(self._f, self._x, hold=True)._ascii_art_()
+
+        def _unicode_art_(self):
+        r"""
+        The unicode_art expression of an object of this class is the same as the
+        integral it computes.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.integration.manual import ManualIntegral
+            sage: M = ManualIntegral(x*sin(x), x)
+            sage: M._unicode_art_()
+            ⌠
+            ⎮ x⋅sin(x) dx
+            ⌡
+        """
+        return integral(self._f, self._x, hold=True)._unicode_art_()
+
     def next(self):
         r"""
         A ManualIntegral can be iterated over its hints. Each time the method
