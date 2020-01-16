@@ -2658,6 +2658,13 @@ cdef class ComplexBall(RingElement):
             Traceback (most recent call last):
             ...
             TypeError: shift should be an integer
+
+        :trac:`28817`: Test small and large Python ints::
+
+            sage: CBF(i) << int(2)
+            4.000000000000000*I
+            sage: CBF(i) << int(2**65)
+            [3.636549880934858e+11106046577046714264 +/- ...e+11106046577046714248]*I
         """
         cdef fmpz_t tmpz
         # the ComplexBall might be shift, not val
@@ -2667,8 +2674,14 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall self = val
         cdef ComplexBall res = self._new()
         if is_small_python_int(shift):
-             acb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
-        elif isinstance(shift, Integer):
+            sig_on()
+            acb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
+            sig_off()
+            return res
+        elif isinstance(shift, long):
+            shift = Integer(shift)
+
+        if isinstance(shift, Integer):
             sig_on()
             fmpz_init(tmpz)
             fmpz_set_mpz(tmpz, (<Integer> shift).value)
@@ -2804,6 +2817,18 @@ cdef class ComplexBall(RingElement):
             ...
             TypeError: no canonical coercion from Symbolic Ring to Complex ball
             field with 53 bits of precision
+
+        :trac:`28817`: Ensure small and large Python ints give the same results
+        as Sage Integers::
+
+            sage: CBF(-10).pow(-2)
+            [0.0100000000000000 +/- 7.78e-18]
+            sage: CBF(-10).pow(int(-2))
+            [0.0100000000000000 +/- 7.78e-18]
+            sage: CBF(-10).pow(2^65)
+            [1.000000000000000e+36893488147419103232 +/- 4.12e+36893488147419103214]
+            sage: CBF(-10).pow(int(2^65))
+            [1.000000000000000e+36893488147419103232 +/- 4.12e+36893488147419103214]
         """
         cdef fmpz_t tmpz
         cdef ComplexBall res = self._new()
@@ -2811,7 +2836,11 @@ cdef class ComplexBall(RingElement):
             if _do_sig(prec(self)): sig_on()
             acb_pow_si(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
             if _do_sig(prec(self)): sig_off()
-        elif isinstance(expo, Integer):
+            return res
+        elif isinstance(expo, long):
+            expo = Integer(expo)
+
+        if isinstance(expo, Integer):
             if _do_sig(prec(self)): sig_on()
             fmpz_init(tmpz)
             fmpz_set_mpz(tmpz, (<Integer> expo).value)

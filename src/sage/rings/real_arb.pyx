@@ -212,6 +212,7 @@ from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpq cimport *
 from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.pylong cimport *
 from sage.libs.mpfi cimport *
 from sage.libs.mpfr cimport *
 from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDU, MPFR_RNDD, MPFR_RNDZ
@@ -1322,8 +1323,22 @@ cdef class RealBall(RingElement):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion...
+
+        :trac:`28817`: Test that this constructor works the same for small and
+        large Python ints as it does for Sage Integers::
+
+            sage: from sage.rings.real_arb import RealBall
+            sage: RealBall(RBF, 2)
+            2.000000000000000
+            sage: RealBall(RBF, int(2))
+            2.000000000000000
+            sage: RealBall(RBF, 2^65)
+            [3.689348814741910e+19 +/- ...e+3]
+            sage: RealBall(RBF, int(2**65))
+            [3.689348814741910e+19 +/- ...e+3]
         """
         cdef fmpz_t tmpz
+        cdef mpz_t  tmpz2
         cdef fmpq_t tmpq
         cdef arf_t  tmpr
         cdef mag_t  tmpm
@@ -1337,6 +1352,16 @@ cdef class RealBall(RingElement):
             arb_set(self.value, (<RealBall> mid).value) # no rounding!
         elif is_small_python_int(mid):
             arb_set_si(self.value, PyInt_AS_LONG(mid)) # no rounding!
+        elif isinstance(mid, long):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            mpz_init(tmpz2)
+            mpz_set_pylong(tmpz2, mid)
+            fmpz_set_mpz(tmpz, tmpz2)
+            arb_set_fmpz(self.value, tmpz) # no rounding!
+            fmpz_clear(tmpz)
+            mpz_clear(tmpz2)
+            if _do_sig(prec(self)): sig_off()
         elif isinstance(mid, Integer):
             if _do_sig(prec(self)): sig_on()
             fmpz_init(tmpz)
@@ -2539,8 +2564,21 @@ cdef class RealBall(RingElement):
             sage: b.contains_exact(1r)
             True
 
+        :trac:`28817`: Test that this method works the same for small and large
+        Python ints as it does for Sage Integers::
+
+            sage: b = RBF(1)
+            sage: b.contains_exact(1)
+            True
+            sage: b.contains_exact(int(1))
+            True
+            sage: b.contains_exact(2^65)
+            False
+            sage: b.contains_exact(int(2^65))
+            False
         """
         cdef fmpz_t tmpz
+        cdef mpz_t tmpz2
         cdef fmpq_t tmpq
         if _do_sig(prec(self)): sig_on()
         try:
@@ -2548,6 +2586,14 @@ cdef class RealBall(RingElement):
                 res = arb_contains(self.value, (<RealBall> other).value)
             elif is_small_python_int(other):
                 res = arb_contains_si(self.value, PyInt_AS_LONG(other))
+            elif isinstance(other, long):
+                fmpz_init(tmpz)
+                mpz_init(tmpz2)
+                mpz_set_pylong(tmpz2, other)
+                fmpz_set_mpz(tmpz, tmpz2)
+                res = arb_contains_fmpz(self.value, tmpz)
+                mpz_clear(tmpz2)
+                fmpz_clear(tmpz)
             elif isinstance(other, Integer):
                 fmpz_init(tmpz)
                 fmpz_set_mpz(tmpz, (<Integer> other).value)
@@ -2829,8 +2875,21 @@ cdef class RealBall(RingElement):
             [7.38905609893065 +/- ...e-15]
             sage: RBF(e)**(-1r)
             [0.367879441171442 +/- ...e-16]
+
+        :trac:`28817`: Test that this method works the same for small and large
+        Python ints as it does for Sage Integers::
+
+            sage: RBF(e)^2
+            [7.38905609893065 +/- ...e-15]
+            sage: RBF(e)^int(2)
+            [7.38905609893065 +/- ...e-15]
+            sage: RBF(e)^(2^65)
+            [+/- ...e+16022638320587143290]
+            sage: RBF(e)^int(2^65)
+            [+/- ...e+16022638320587143290]
         """
         cdef fmpz_t tmpz
+        cdef mpz_t tmpz2
         if not isinstance(base, RealBall):
             return sage.structure.element.bin_op(base, expo, operator.pow)
         cdef RealBall self = base
@@ -2838,6 +2897,16 @@ cdef class RealBall(RingElement):
         if is_small_python_int(expo) and expo > 0:
             if _do_sig(prec(self)): sig_on()
             arb_pow_ui(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(expo, int):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            mpz_init(tmpz2)
+            mpz_set_pylong(tmpz2, expo)
+            fmpz_set_mpz(tmpz, tmpz2)
+            arb_pow_fmpz(res.value, self.value, tmpz, prec(self))
+            mpz_clear(tmpz2)
+            fmpz_clear(tmpz)
             if _do_sig(prec(self)): sig_off()
         elif isinstance(expo, Integer):
             if _do_sig(prec(self)): sig_on()
@@ -2995,6 +3064,18 @@ cdef class RealBall(RingElement):
             Traceback (most recent call last):
             ...
             TypeError: shift should be an integer
+
+        :trac:`28817`: Test that this method works the same for small and large
+        Python ints as it does for Sage Integers::
+
+            sage: RBF(e) << 2
+            [10.87312731383618 +/- 2.14e-15]
+            sage: RBF(e) << int(2)
+            [10.87312731383618 +/- 2.14e-15]
+            sage: RBF(e) << 2^65
+            [9.88516745963013e+11106046577046714264 +/- ...e+11106046577046714249]
+            sage: RBF(e) << int(2^65)
+            [9.88516745963013e+11106046577046714264 +/- ...e+11106046577046714249]
         """
         cdef fmpz_t tmpz
         # the RealBall might be shift, not val
@@ -3005,7 +3086,11 @@ cdef class RealBall(RingElement):
         cdef RealBall res = self._new()
         if is_small_python_int(shift):
             arb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
-        elif isinstance(shift, Integer):
+            return res
+        elif isinstance(shift, long):
+            shift = Integer(shift)
+
+        if isinstance(shift, Integer):
             sig_on()
             fmpz_init(tmpz)
             fmpz_set_mpz(tmpz, (<Integer> shift).value)
