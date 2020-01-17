@@ -36,6 +36,8 @@ if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
     export SAGE_PYTHON3=yes
 fi
 
+export SAGE_SYSTEM_PYTHON="@SAGE_SYSTEM_PYTHON@"
+
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
 export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"
 export SAGE_GMP_INCLUDE="@SAGE_GMP_INCLUDE@"

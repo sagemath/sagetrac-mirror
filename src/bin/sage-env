@@ -410,6 +410,13 @@ if [ -n "$PYTHONHOME" ]; then
     unset PYTHONHOME
 fi
 
+# If using the system python, treat $SAGE_LOCAL as though its a virtualenv
+# This environment variable is not used by Python directly, but it is used by
+# some third-party tools that work with Python virtualenvs
+if [ -n "$SAGE_SYSTEM_PYTHON" ]; then
+    export VIRTUAL_ENV="$SAGE_LOCAL"
+fi
+
 LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
 export LDFLAGS
 
