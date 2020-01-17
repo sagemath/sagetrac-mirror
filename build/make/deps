@@ -29,7 +29,31 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 	sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean doc-src-clean doc-output-clean \
-	clean sagelib-clean build-clean _clean-broken-gcc
+	clean sagelib-clean build-clean python3_venv _clean-broken-gcc
+
+
+define SAGE_make_venv
+import venv
+b = venv.EnvBuilder()
+c = b.ensure_directories("$(SAGE_LOCAL)")
+b.setup_python(c)
+b.create_configuration(c)
+endef
+
+
+ifdef SAGE_SYSTEM_PYTHON
+# Special rule for making the Python virtualenv from the system Python (Python
+# 3 only)
+# TODO: If we reconfigure to build our own Python after having used the system
+# Python, files installed to create the virtualenv should be *removed*.  That
+# could either be done here by the makefile, or in an spkg-preinst for python3
+PYTHON = python3_venv
+inst_python3_venv = $(SAGE_LOCAL)/pyvenv.cfg
+
+export SAGE_make_venv
+$(inst_python3_venv):
+	$(SAGE_SYSTEM_PYTHON) -c "$$SAGE_make_venv"
+endif
 
 # Build everything and start Sage.
 # Note that we put the "doc" target first in the rule below because
