@@ -192,6 +192,7 @@ var('MTXLIB',                        join(SAGE_SHARE, 'meataxe'))
 var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
 var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
+var('MAXIMA',                        'maxima')
 var('MAXIMA_FAS')
 
 # misc
