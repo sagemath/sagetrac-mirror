@@ -1,14 +1,14 @@
 SAGE_SPKG_CONFIGURE([python3], [
     SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [
         check_modules="sqlite3, ctypes, math, hashlib, crypt, readline, socket, zlib, distutils.core"
-        AC_CACHE_CHECK([for python3 >= 3.7, < 3.8 with sqlite3 module], [ac_cv_path_PYTHON3], [
+        AC_CACHE_CHECK([for python3 >= 3.6, < 3.8 with sqlite3 module], [ac_cv_path_PYTHON3], [
             AC_MSG_RESULT([])
-            AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3.7 python3], [
+            AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3.7 python3.6 python3], [
                 AC_MSG_CHECKING([... whether $ac_path_PYTHON3 is good])
                 python3_version=`"$ac_path_PYTHON3" --version 2>&1 \
                     | $SED -n -e 's/\([[0-9]]*\.[[0-9]]*\.[[0-9]]*\).*/\1/p'`
                 AS_IF([test -n "$python3_version"], [
-                    AX_COMPARE_VERSION([$python3_version], [ge], [3.7.0], [
+                    AX_COMPARE_VERSION([$python3_version], [ge], [3.6.0], [
                         AX_COMPARE_VERSION([$python3_version], [lt], [3.8.0], [
                             AS_IF(["$ac_path_PYTHON3" -S -c "import $check_modules"], [
                                 AC_LANG_PUSH([C])
@@ -51,7 +51,7 @@ EOF
                                     ac_path_PYTHON3_found=:
                                     AC_MSG_RESULT([yes])
                                     dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
-                                    AC_MSG_CHECKING([for python3 >= 3.7, < 3.8 with modules $check_modules])
+                                    AC_MSG_CHECKING([for python3 >= 3.6, < 3.8 with modules $check_modules])
                                 ], [
                                     AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build an extension])
                                 ])

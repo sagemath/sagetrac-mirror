@@ -38,6 +38,14 @@ fi
 
 export SAGE_SYSTEM_PYTHON="@SAGE_SYSTEM_PYTHON@"
 
+if [ -n "$SAGE_SYSTEM_PYTHON" ]; then
+    # Force LC_CTYPE to a UTF-8 locale to ensure that Python uses UTF-8 by
+    # default (on Python 3.7+ this is not necessary as UTF-8 is always the
+    # default encoding, so we only need this if using a system Python that
+    # is less than 3.7, since Sage's Python is 3.7+)
+    export LC_CTYPE="C.UTF-8"
+fi
+
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
 export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"
 export SAGE_GMP_INCLUDE="@SAGE_GMP_INCLUDE@"
