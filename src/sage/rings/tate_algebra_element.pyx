@@ -2221,7 +2221,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: A.<x,y> = TateAlgebra(R)
             sage: f = 2*x^2 + x
             sage: f.dict()
-            {(1, 0): ...0000000001, (2, 0): ...00000000010}
+            {(2, 0): ...00000000010, (1, 0): ...0000000001}
 
         """
         self._normalize()

@@ -662,7 +662,7 @@ cdef class LieSubalgebraElementWrapper(LieAlgebraElementWrapper):
             sage: b.monomial_coefficients()        # We set b._monomial_coefficients
             {0: 1, 1: 2}
             sage: (a + b).monomial_coefficients()  # This is now computed from a and b
-            {0: 1, 1: 4, 2: 4}
+            {1: 4, 2: 4, 0: 1}
         """
         cdef LieSubalgebraElementWrapper ret, other = <LieSubalgebraElementWrapper> right
         ret = type(self)(self._parent, self.value + other.value)
@@ -688,7 +688,7 @@ cdef class LieSubalgebraElementWrapper(LieAlgebraElementWrapper):
             sage: b.monomial_coefficients()        # We set b._monomial_coefficients
             {0: 1, 1: 2}
             sage: (a - b).monomial_coefficients()  # This is now computed from a and b
-            {0: -1, 2: 4}
+            {2: 4, 0: -1}
         """
         cdef LieSubalgebraElementWrapper ret, other = <LieSubalgebraElementWrapper> right
         ret = type(self)(self._parent, self.value - other.value)
@@ -1046,9 +1046,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             sage: L = lie_algebras.Affine(QQ, ['A',1,1])
             sage: x = L.an_element()
             sage: x.t_dict()
-            {-1: E[alpha[1]],
-             0: E[alpha[1]] + h1 + E[-alpha[1]],
-             1: E[-alpha[1]]}
+            {0: E[alpha[1]] + h1 + E[-alpha[1]], 1: E[-alpha[1]], -1: E[alpha[1]]}
         """
         return self._t_dict.copy()
 

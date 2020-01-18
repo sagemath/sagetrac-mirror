@@ -444,8 +444,8 @@ cdef class Map(Element):
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
             sage: f._extra_slots_test()
-            {'_codomain': Integer Ring,
-             '_domain': Rational Field,
+            {'_domain': Rational Field,
+             '_codomain': Integer Ring,
              '_is_coercion': False,
              '_repr_type_str': None}
         """

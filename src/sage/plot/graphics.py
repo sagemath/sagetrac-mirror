@@ -1219,8 +1219,8 @@ class Graphics(WithEqualityById, SageObject):
             sage: G_kwds = Graphics._extract_kwds_for_show(kwds, ignore='xmin')
             sage: kwds # Note how this action modifies the passed dictionary
             {'f': <function <lambda> at 0x...>,
-             'plot_points': (40, 40),
-             'xmin': 0}
+             'xmin': 0,
+             'plot_points': (40, 40)}
             sage: G_kwds
             {'figsize': [1, 1]}
 
@@ -2151,13 +2151,13 @@ class Graphics(WithEqualityById, SageObject):
 
             sage: l = line([(1e-19,-1), (-1e-19,+1)], aspect_ratio=1.0)
             sage: l.get_minmax_data()
-            {'xmax': 1.00010000000000e-15,
-             'xmin': -9.99900000000000e-16,
-             'ymax': 1.0,
-             'ymin': -1.0}
+            {'xmin': -9.99900000000000e-16,
+             'xmax': 1.00010000000000e-15,
+             'ymin': -1.0,
+             'ymax': 1.0}
             sage: l = line([(0,0), (1,1)], aspect_ratio=1e19)
             sage: l.get_minmax_data()
-            {'xmax': 5000.50000000000, 'xmin': -4999.50000000000, 'ymax': 1.0, 'ymin': 0.0}
+            {'xmin': -4999.50000000000, 'xmax': 5000.50000000000, 'ymin': 0.0, 'ymax': 1.0}
         """
         objects = self._objects
         if objects:
@@ -2210,18 +2210,18 @@ class Graphics(WithEqualityById, SageObject):
 
             sage: l = line([(0,0), (1,1)], aspect_ratio=1.0)
             sage: l._limit_output_aspect_ratio(1, 2, 1e19, 3)
-            {'xmax': -4999.50000000000,
-             'xmin': 5000.50000000000,
-             'ymax': 3,
-             'ymin': 1.00000000000000e19}
+            {'xmin': 5000.50000000000,
+             'xmax': -4999.50000000000,
+             'ymin': 1.00000000000000e19,
+             'ymax': 3}
             sage: l._limit_output_aspect_ratio(1, 2, 3, 1e19)
-            {'xmax': 5000.50000000000,
-             'xmin': -4999.50000000000,
-             'ymax': 1.00000000000000e19,
-             'ymin': 3}
+            {'xmin': -4999.50000000000,
+             'xmax': 5000.50000000000,
+             'ymin': 3,
+             'ymax': 1.00000000000000e19}
             sage: l = line([(0,0), (1,1)], aspect_ratio=1e16)
             sage: l._limit_output_aspect_ratio(0, 1, 2, 3)
-            {'xmax': 5.50000000000000, 'xmin': -4.50000000000000, 'ymax': 3, 'ymin': 2}
+            {'xmin': -4.50000000000000, 'xmax': 5.50000000000000, 'ymin': 2, 'ymax': 3}
         """
         aspect_ratio = self.aspect_ratio()
         if aspect_ratio != 'automatic':

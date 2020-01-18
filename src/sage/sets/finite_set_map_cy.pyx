@@ -311,7 +311,7 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
         EXAMPLES::
 
             sage: FiniteSetMaps(4, 3)([1, 0, 2, 1]).fibers()
-            {0: {1}, 1: {0, 3}, 2: {2}}
+            {1: {0, 3}, 0: {1}, 2: {2}}
             sage: F = FiniteSetMaps(["a", "b", "c"])
             sage: F.from_dict({"a": "b", "b": "a", "c": "b"}).fibers() == {'a': {'b'}, 'b': {'a', 'c'}}
             True

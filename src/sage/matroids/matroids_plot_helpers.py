@@ -121,8 +121,7 @@ def it(M, B1, nB1, lps):
         sage: pts,trilines,nontripts,curvedlines = mph.it(M,
         ....: B1,nB1,M.loops())
         sage: pts
-        {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0),
-         4: (0, 0), 5: (1, 2), 6: (2, 0)}
+        {4: (0, 0), 5: (1, 2), 6: (2, 0), 3: (0.5, 1.0), 2: (1.5, 1.0), 1: (1.0, 0.0)}
         sage: trilines
         [[3, 4, 5], [2, 5, 6], [1, 4, 6]]
         sage: nontripts

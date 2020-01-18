@@ -1417,7 +1417,7 @@ def distances_distribution(G):
         sage: g = graphs.PetersenGraph()
         sage: g.add_edge('good','wine')
         sage: g.distances_distribution()
-        {1: 8/33, 2: 5/11, +Infinity: 10/33}
+        {1: 8/33, +Infinity: 10/33, 2: 5/11}
 
     The de Bruijn digraph dB(2,3)::
 
@@ -1542,9 +1542,9 @@ def floyd_warshall(gg, paths=True, distances=False):
         sage: g = graphs.DiamondGraph()
         sage: floyd_warshall(g, paths=False, distances=True)
         {0: {0: 0, 1: 1, 2: 1, 3: 2},
-         1: {0: 1, 1: 0, 2: 1, 3: 1},
-         2: {0: 1, 1: 1, 2: 0, 3: 1},
-         3: {0: 2, 1: 1, 2: 1, 3: 0}}
+         1: {1: 0, 0: 1, 2: 1, 3: 1},
+         2: {2: 0, 0: 1, 1: 1, 3: 1},
+         3: {3: 0, 0: 2, 1: 1, 2: 1}}
 
     TESTS:
 

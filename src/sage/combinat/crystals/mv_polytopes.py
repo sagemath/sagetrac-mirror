@@ -452,10 +452,10 @@ class MVPolytopes(PBWCrystal):
 
             sage: MV = crystals.infinity.MVPolytopes(['F', 4])
             sage: MV.latex_options()
-            {'P': Ambient space of the Root system of type ['F', 4],
-             'circle_size': 0.1,
+            {'projection': True,
              'mark_endpoints': True,
-             'projection': True}
+             'P': Ambient space of the Root system of type ['F', 4],
+             'circle_size': 0.1}
         """
         from copy import copy
         return copy(self._latex_options)

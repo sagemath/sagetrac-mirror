@@ -343,8 +343,7 @@ class AdjointRepresentation(CyclicRepresentation):
             sage: R = ZZ['q'].fraction_field()
             sage: V = AdjointRepresentation(R, K)
             sage: V._zero_elts
-            {0: [], 1: [[2], [-2]], 2: [[3], [-3]],
-             3: [[4], [-4]], 4: [[-4], [4]]}
+            {0: [], 4: [[-4], [4]], 3: [[4], [-4]], 2: [[3], [-3]], 1: [[2], [-2]]}
         """
         C = self.basis().keys()
         ret = {}

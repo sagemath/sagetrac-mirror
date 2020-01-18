@@ -703,7 +703,7 @@ class GrowthDiagram(SageObject):
             sage: RuleRSK = GrowthDiagram.rules.RSK()
             sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
             sage: G.filling()
-            {(0, 1): 1, (1, 0): 1, (2, 1): 2}
+            {(1, 0): 1, (0, 1): 1, (2, 1): 2}
         """
         return self._filling
 
@@ -1358,7 +1358,7 @@ class GrowthDiagram(SageObject):
 
             sage: G = GrowthDiagram(RuleRSK, pi.to_matrix())  # indirect doctest
             sage: G._filling
-            {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
+            {(2, 0): 1, (0, 1): 1, (1, 2): 1, (4, 3): 1, (5, 4): 1, (3, 5): 1}
             sage: G.shape()
             [6, 6, 6, 6, 6, 6] / []
 
@@ -1382,7 +1382,7 @@ class GrowthDiagram(SageObject):
 
             sage: G = GrowthDiagram(RuleRSK, [[1,0,1],[0,1]])  # indirect doctest
             sage: G._filling
-            {(0, 0): 1, (1, 1): 1, (2, 0): 1}
+            {(0, 0): 1, (2, 0): 1, (1, 1): 1}
             sage: G.shape()
             [3, 2] / []
 
@@ -1390,7 +1390,7 @@ class GrowthDiagram(SageObject):
 
             sage: G = GrowthDiagram(RuleRSK, [[1,0,1],[0,1]], shape=SkewPartition([[3,2],[1]]))  # indirect doctest
             sage: G._filling
-            {(0, 0): 1, (1, 1): 1, (2, 0): 1}
+            {(0, 0): 1, (2, 0): 1, (1, 1): 1}
             sage: G.shape()
             [3, 2] / [1]
 
@@ -1538,14 +1538,14 @@ class GrowthDiagram(SageObject):
             sage: labels = [[], [1], [2], [2,1], [1,1], [1], []]
             sage: G = GrowthDiagram(RuleRSK, labels=labels)  # indirect doctest
             sage: G._filling
-            {(0, 1): 1, (1, 2): 1, (2, 0): 1}
+            {(1, 2): 1, (0, 1): 1, (2, 0): 1}
             sage: G._in_labels
             [[], [], [], [], [], [], []]
 
             sage: labels = [[], [1], [2], [3], [3, 1], [3, 2], [4, 2], [4, 1], [3, 1], [2, 1], [1, 1], [1], []]
             sage: G = GrowthDiagram(RuleRSK, labels=labels)  # indirect doctest
             sage: G._filling
-            {(0, 1): 1, (1, 2): 1, (2, 5): 1, (3, 0): 1, (4, 3): 1, (5, 4): 1}
+            {(2, 5): 1, (5, 4): 1, (4, 3): 1, (1, 2): 1, (0, 1): 1, (3, 0): 1}
 
             sage: labels = [[],[1],[1],[2],[2],[2,1],[2]]
             sage: G = GrowthDiagram(RuleRSK, labels=labels)

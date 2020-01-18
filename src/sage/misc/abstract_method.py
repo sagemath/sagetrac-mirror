@@ -260,8 +260,8 @@ def abstract_methods_of_class(cls):
         ....:     def required2(): pass
 
         sage: sage.misc.abstract_method.abstract_methods_of_class(AbstractClass)
-        {'optional': ['optional1', 'optional2'],
-         'required': ['required1', 'required2']}
+        {'required': ['required1', 'required2'],
+         'optional': ['optional1', 'optional2']}
 
     """
     result = { "required"  : [],

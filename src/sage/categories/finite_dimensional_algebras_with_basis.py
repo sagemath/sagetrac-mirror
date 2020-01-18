@@ -1276,9 +1276,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                     sage: S = SymmetricGroupAlgebra(QQ, 3)
                     sage: dict(S.cells())
-                    {[1, 1, 1]: Standard tableaux of shape [1, 1, 1],
+                    {[3]: Standard tableaux of shape [3],
                      [2, 1]: Standard tableaux of shape [2, 1],
-                     [3]: Standard tableaux of shape [3]}
+                     [1, 1, 1]: Standard tableaux of shape [1, 1, 1]}
                 """
                 from sage.sets.family import Family
                 return Family(self.cell_poset(), self.cell_module_indices)

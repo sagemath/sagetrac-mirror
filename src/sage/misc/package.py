@@ -193,17 +193,19 @@ def list_packages(*pkg_types, **opts):
          'zn_poly',
          'zope_interface']
         sage: L['ppl']  # optional - build
-        {'installed': True,
+        {'name': 'ppl',
+         'type': 'standard',
          'installed_version': '...',
-         'remote_version': '...',
-         'type': 'standard'}
+         'installed': True,
+         'remote_version': '...'}
 
         sage: L = list_packages('pip', local=True)  # optional - build
         sage: L['beautifulsoup4']                    # optional - build
-        {'installed': ...,
+        {'name': 'beautifulsoup4',
+         'type': 'pip',
          'installed_version': ...,
-         'remote_version': None,
-         'type': 'pip'}
+         'installed': ...,
+         'remote_version': None}
 
         sage: L = list_packages('pip')   # optional - build internet
         sage: L['beautifulsoup4']         # optional - build internet

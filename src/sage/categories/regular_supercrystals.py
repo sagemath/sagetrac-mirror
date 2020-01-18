@@ -55,7 +55,7 @@ class RegularSuperCrystals(Category_singleton):
         sage: from sage.misc.abstract_method import abstract_methods_of_class
         sage: from sage.categories.regular_supercrystals import RegularSuperCrystals
         sage: abstract_methods_of_class(RegularSuperCrystals().element_class)
-        {'optional': [], 'required': ['e', 'f', 'weight']}
+        {'required': ['e', 'f', 'weight'], 'optional': []}
 
     TESTS::
 

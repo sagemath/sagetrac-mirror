@@ -3817,7 +3817,7 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.CycleGraph(4).bipartite_color()
-            {0: 1, 1: 0, 2: 1, 3: 0}
+            {0: 1, 1: 0, 3: 0, 2: 1}
             sage: graphs.CycleGraph(5).bipartite_color()
             Traceback (most recent call last):
             ...
@@ -4100,10 +4100,10 @@ class Graph(GenericGraph):
             sage: G.plot(partition=P)
             Graphics object consisting of 16 graphics primitives
             sage: G.coloring(hex_colors=True, algorithm="MILP")
-            {'#0000ff': [4], '#00ff00': [0, 6, 5], '#ff0000': [2, 1, 3]}
+            {'#ff0000': [2, 1, 3], '#00ff00': [0, 6, 5], '#0000ff': [4]}
             sage: H = G.coloring(hex_colors=True, algorithm="DLX")
             sage: H
-            {'#0000ff': [4], '#00ff00': [1, 2, 3], '#ff0000': [0, 5, 6]}
+            {'#ff0000': [0, 5, 6], '#00ff00': [1, 2, 3], '#0000ff': [4]}
             sage: G.plot(vertex_colors=H)
             Graphics object consisting of 16 graphics primitives
 

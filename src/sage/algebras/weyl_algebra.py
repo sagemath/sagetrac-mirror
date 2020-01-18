@@ -590,7 +590,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: x
             t^3*dt^3 + t^4*dt^2 + 9*t^2*dt^2 + 8*t^3*dt + 18*t*dt + 12*t^2 + 6
             sage: x.factor_differentials()
-            {(0,): 12*t^2 + 6, (1,): 8*t^3 + 18*t, (2,): t^4 + 9*t^2, (3,): t^3}
+            {(3,): t^3, (2,): t^4 + 9*t^2, (1,): 8*t^3 + 18*t, (0,): 12*t^2 + 6}
             sage: D.zero().factor_differentials()
             {}
 
@@ -602,17 +602,17 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             x^3*dy^3 + x*y*z*dx*dy*dz + y^3*dx^3 + x^3*dx^3 - x*z*dx^3 + y*z*dy*dz
              + x*z*dx*dz + x*y*dx*dy + 9*x^2*dx^2 + z*dz + y*dy + 19*x*dx + 7
             sage: elt.factor_differentials()
-            {(0, 0, 0): 7,
-             (0, 0, 1): z,
-             (0, 1, 0): y,
+            {(0, 3, 0): x^3,
+             (1, 1, 1): x*y*z,
+             (3, 0, 0): x^3 + y^3 - x*z,
              (0, 1, 1): y*z,
-             (0, 3, 0): x^3,
-             (1, 0, 0): 19*x,
              (1, 0, 1): x*z,
              (1, 1, 0): x*y,
-             (1, 1, 1): x*y*z,
              (2, 0, 0): 9*x^2,
-             (3, 0, 0): x^3 + y^3 - x*z}
+             (0, 0, 1): z,
+             (0, 1, 0): y,
+             (1, 0, 0): 19*x,
+             (0, 0, 0): 7}
         """
         ret = {}
         DW = self.parent()

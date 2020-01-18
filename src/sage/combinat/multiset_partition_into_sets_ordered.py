@@ -1498,15 +1498,15 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
 
             sage: c = {"length":4, "max_order":6, "alphabet":[2,4,5,6]}
             sage: OrderedMultisetPartitionsIntoSets(**c).constraints
-            {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6}
+            {'length': 4, 'max_order': 6, 'alphabet': frozenset({2, 4, 5, 6})}
             sage: OrderedMultisetPartitionsIntoSets(17, **c).constraints
-            {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6}
+            {'length': 4, 'max_order': 6, 'alphabet': frozenset({2, 4, 5, 6})}
             sage: OrderedMultisetPartitionsIntoSets(17, **c).full_constraints
-            {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6, 'size': 17}
+            {'size': 17, 'length': 4, 'max_order': 6, 'alphabet': frozenset({2, 4, 5, 6})}
 
             sage: c = {"length":4, "min_length":5, "max_order":6, "order":5, "alphabet":4}
             sage: OrderedMultisetPartitionsIntoSets(**c).full_constraints
-            {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
+            {'alphabet': frozenset({1, 2, 3, 4}), 'order': 5, 'length': 4}
             sage: OrderedMultisetPartitionsIntoSets(**c).constraints
             {'length': 4}
             sage: OrderedMultisetPartitionsIntoSets(4, 5, **c).constraints

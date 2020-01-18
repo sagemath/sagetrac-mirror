@@ -78,7 +78,7 @@ def dict_difference(self, other):
         sage: D1 = DocTestDefaults()
         sage: D2 = DocTestDefaults(foobar="hello", timeout=100)
         sage: dict_difference(D2.__dict__, D1.__dict__)
-        {'foobar': 'hello', 'timeout': 100}
+        {'timeout': 100, 'foobar': 'hello'}
     """
     D = dict()
     for k, v in iteritems(self):

@@ -2197,7 +2197,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: f = (2*x*y^3*z^2 + (7)*x^2 + (3))
             sage: f.dict()
-            {(0, 0, 0): 3, (1, 2, 3): 2, (2, 0, 0): 7}
+            {(2, 0, 0): 7, (1, 2, 3): 2, (0, 0, 0): 3}
         """
         cdef poly *p
         cdef ring *r

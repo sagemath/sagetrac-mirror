@@ -75,7 +75,7 @@ class Histogram(GraphicPrimitive):
 
             sage: H = histogram([10,3,5], density=True); h = H[0]
             sage: h.get_minmax_data()  # rel tol 1e-15
-            {'xmax': 10.0, 'xmin': 3.0, 'ymax': 0.4761904761904765, 'ymin': 0}
+            {'xmin': 3.0, 'xmax': 10.0, 'ymin': 0, 'ymax': 0.47619047619047665}
             sage: G = histogram([random() for _ in range(500)]); g = G[0]
             sage: g.get_minmax_data() # random output
             {'xmax': 0.99729312925213209, 'xmin': 0.00013024562219410285, 'ymax': 61, 'ymin': 0}
@@ -94,7 +94,7 @@ class Histogram(GraphicPrimitive):
             sage: h.get_minmax_data()
             doctest:warning ...
             ...VisibleDeprecationWarning: Passing `normed=True` on non-uniform bins has always been broken, and computes neither the probability density function nor the probability mass function. The result is only correct if the bins are uniform, when density=True will produce the same result anyway. The argument will be removed in a future version of numpy.
-            {'xmax': 10.0, 'xmin': 3.0, 'ymax': 0.476190476190..., 'ymin': 0}
+            {'xmin': 3.0, 'xmax': 10.0, 'ymin': 0, 'ymax': 0.476190476190...}
         """
         import numpy
 

@@ -626,13 +626,13 @@ class SetPartition(AbstractSetPartition):
             sage: SP.set_latex_options(tikz_scale=2,plot='linear',fill=True,color='blue',angle=45)
             sage: SP.set_latex_options(plot='cyclic')
             sage: SP.latex_options()
-            {'angle': 45,
-             'color': 'blue',
-             'fill': True,
+            {'tikz_scale': 2,
              'plot': 'cyclic',
-             'radius': '1cm',
+             'fill': True,
+             'color': 'blue',
+             'angle': 45,
              'show_labels': True,
-             'tikz_scale': 2}
+             'radius': '1cm'}
 
         """
         valid_args = ['tikz_scale', 'plot', 'color', 'fill', 'show_labels',
@@ -660,13 +660,13 @@ class SetPartition(AbstractSetPartition):
         EXAMPLES::
 
             sage: SP = SetPartition([[1,6], [3,5,4]]); SP.latex_options()
-            {'angle': 0,
+            {'tikz_scale': 1,
+             'plot': None,
              'color': 'black',
              'fill': False,
-             'plot': None,
-             'radius': '1cm',
              'show_labels': True,
-             'tikz_scale': 1}
+             'radius': '1cm',
+             'angle': 0}
         """
         opts = self._latex_options.copy()
         if "tikz_scale" not in opts:

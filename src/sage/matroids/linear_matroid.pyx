@@ -2254,7 +2254,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             ....: [1, 0, 1], [0, 1, 1]])
             sage: N._linear_extension_chains(F=set([0, 1]),
             ....:                           fundamentals=set([1, -1, 1/2, 2]))
-            [{0: 1}, {}, {0: 1, 1: 1}, {0: -1, 1: 1}, {1: 1}]
+            [{0: 1}, {}, {1: 1, 0: 1}, {1: 1, 0: -1}, {1: 1}]
         """
 
         if len(F) == 0:
@@ -2341,7 +2341,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: len(M.linear_extension_chains(F=[0, 1], simple=True))
             0
             sage: M.linear_extension_chains(F=[0, 1, 2], simple=True)
-            [{0: 1, 1: 1, 2: 1}]
+            [{2: 1, 1: 1, 0: 1}]
             sage: N = Matroid(ring=QQ,
             ....:         reduced_matrix=[[-1, -1, 0], [1, 0, -1], [0, 1, 1]])
             sage: L = N.linear_extension_chains(F=[0, 1], simple=True,
@@ -2439,12 +2439,12 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: len(M.linear_coextension_cochains(F=[0, 1], cosimple=True))
             0
             sage: M.linear_coextension_cochains(F=[3, 4, 5], cosimple=True)
-            [{3: 1, 4: 1, 5: 1}]
+            [{5: 1, 4: 1, 3: 1}]
             sage: N = Matroid(ring=QQ,
             ....:         reduced_matrix=[[-1, -1, 0], [1, 0, -1], [0, 1, 1]])
             sage: N.linear_coextension_cochains(F=[0, 1], cosimple=True,
             ....:                           fundamentals=set([1, -1, 1/2, 2]))
-            [{0: 2, 1: 1}, {0: -1, 1: 1}, {0: 1/2, 1: 1}]
+            [{1: 1, 0: 2}, {1: 1, 0: -1}, {1: 1, 0: 1/2}]
         """
         return self.dual().linear_extension_chains(F=F, simple=cosimple, fundamentals=fundamentals)
 
@@ -3342,7 +3342,7 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2)
             True
             sage: M1._is_isomorphic(M2, certificate=True)
-            (True, {'a': 0, 'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 6})
+            (True, {'f': 5, 'a': 0, 'b': 1, 'd': 4, 'c': 2, 'g': 6, 'e': 3})
 
             sage: M1 = matroids.named_matroids.Fano().delete('a')
             sage: M2 = matroids.Whirl(3)
@@ -3353,7 +3353,7 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: M1._is_isomorphic(matroids.Wheel(3))
             True
             sage: M1._is_isomorphic(matroids.Wheel(3), certificate=True)
-            (True, {'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 0})
+            (True, {'d': 4, 'g': 0, 'e': 3, 'b': 1, 'c': 2, 'f': 5})
 
         """
         if certificate:
@@ -6077,7 +6077,7 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2)
             True
             sage: M1._is_isomorphic(M2, certificate=True)
-            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
+            (True, {4: 5, 0: 0, 3: 3, 1: 1, 2: 2, 5: 4})
 
             sage: M1 = matroids.Wheel(3)
             sage: M2 = matroids.named_matroids.Fano()
@@ -6086,7 +6086,7 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2.delete('a'))
             True
             sage: M1._is_isomorphic(M2.delete('a'), certificate=True)
-            (True, {0: 'g', 1: 'b', 2: 'c', 3: 'e', 4: 'd', 5: 'f'})
+            (True, {4: 'd', 0: 'g', 3: 'e', 1: 'b', 2: 'c', 5: 'f'})
 
         Check that :trac:`17316` was fixed::
 

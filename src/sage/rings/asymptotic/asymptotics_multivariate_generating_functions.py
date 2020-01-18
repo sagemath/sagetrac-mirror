@@ -3781,7 +3781,7 @@ def subs_all(f, sub, simplify=False):
         sage: a = {'foo': x**2 + y**2, 'bar': x - y}
         sage: b = {x: 1 , y: 2}
         sage: subs_all(a, b)
-        {'bar': -1, 'foo': 5}
+        {'foo': 5, 'bar': -1}
     """
     singleton = False
     if not isinstance(f, (list, tuple)):

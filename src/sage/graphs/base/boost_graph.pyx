@@ -1137,10 +1137,10 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
          3: {3: 0}}
         sage: g = DiGraph([(1,2,3),(2,3,2),(1,4,1),(4,2,1)], weighted=True)
         sage: johnson_shortest_paths(g, distances=False, predecessors=True)
-        {1: {1: None, 2: 4, 3: 2, 4: 1},
+        {1: {1: None, 4: 1, 3: 2, 2: 4},
          2: {2: None, 3: 2},
          3: {3: None},
-         4: {2: 4, 3: 2, 4: None}}
+         4: {4: None, 3: 2, 2: 4}}
 
     TESTS:
 
@@ -1292,10 +1292,10 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
          3: {3: 0}}
         sage: g = DiGraph([(1,2,3),(2,3,2),(1,4,1),(4,2,1)], weighted=True)
         sage: floyd_warshall_shortest_paths(g, distances=False, predecessors=True)
-        {1: {1: None, 2: 4, 3: 2, 4: 1},
+        {1: {1: None, 4: 1, 3: 2, 2: 4},
          2: {2: None, 3: 2},
          3: {3: None},
-         4: {2: 4, 3: 2, 4: None}}
+         4: {4: None, 3: 2, 2: 4}}
 
     TESTS:
 

@@ -1684,7 +1684,7 @@ class PartitionTuple(CombinatorialElement):
         EXAMPLES::
 
             sage: PartitionTuple([[2,2],[2,2]]).block(0,(0,0))
-            {-1: 2, 0: 4, 1: 2}
+            {0: 4, 1: 2, -1: 2}
             sage: PartitionTuple([[2,2],[2,2]]).block(2,(0,0))
             {0: 4, 1: 4}
             sage: PartitionTuple([[2,2],[2,2]]).block(2,(0,1))

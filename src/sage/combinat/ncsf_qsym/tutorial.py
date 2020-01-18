@@ -115,7 +115,7 @@ degrees, and the support::
     [M[1, 2], M[3, 3], M[6]]
 
     sage: z.monomial_coefficients()
-    {[1, 2]: 3, [3, 3]: 2, [6]: 1}
+    {[3, 3]: 2, [6]: 1, [1, 2]: 3}
 
 As with the symmetric functions package, the quasisymmetric function ``1``
 has several instantiations. However, the most obvious way to write ``1``

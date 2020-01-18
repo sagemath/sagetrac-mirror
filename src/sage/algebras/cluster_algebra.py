@@ -183,7 +183,7 @@ g-vectors and F-polynomials can be computed from elements of ``A`` only if
     sage: (t+s).is_homogeneous()
     False
     sage: (t+s).homogeneous_components()
-    {(-1, 1): (x1 + y0)/x0, (0, -1): (x0*y1 + 1)/x1}
+    {(0, -1): (x0*y1 + 1)/x1, (-1, 1): (x1 + y0)/x0}
 
 Each cluster algebra is endowed with a reference to a current seed;
 it could be useful to assign a name to it::
@@ -559,7 +559,7 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
             sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
             sage: x = A.cluster_variable((1, 0)) + A.cluster_variable((0, 1))
             sage: x.homogeneous_components()
-            {(0, 1): x1, (1, 0): x0}
+            {(1, 0): x0, (0, 1): x1}
         """
         deg_matrix = block_matrix([[identity_matrix(self.parent().rank()),
                                     -self.parent().b_matrix()]])

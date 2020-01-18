@@ -2671,7 +2671,7 @@ class DiGraph(GenericGraph):
         installed, so we don't test its relative values::
 
             sage: H.layout_acyclic()
-            {0: [..., ...], 1: [..., ...], 2: [..., ...], 3: [..., ...], 5: [..., ...], 6: [..., ...]}
+            {0: [..., ...], 5: [..., ...], 1: [..., ...], 6: [..., ...], 2: [..., ...], 3: [..., ...]}
 
             sage: H = DiGraph({0: [1]})
             sage: pos = H.layout_acyclic(rankdir='up')
@@ -2716,15 +2716,15 @@ class DiGraph(GenericGraph):
 
             sage: H = DiGraph({0: [1, 2], 1: [3], 2: [3], 3: [], 5: [1, 6], 6: [2, 3]})
             sage: H.layout_acyclic_dummy()
-            {0: [1.00..., 0], 1: [1.00..., 1], 2: [1.51..., 2], 3: [1.50..., 3], 5: [2.01..., 0], 6: [2.00..., 1]}
+            {0: [1.00..., 0], 5: [2.01..., 0], 1: [1.00..., 1], 6: [2.00..., 1], 2: [1.51..., 2], 3: [1.50..., 3]}
 
             sage: H = DiGraph({0: [1]})
             sage: H.layout_acyclic_dummy(rankdir='up')
             {0: [0.5..., 0], 1: [0.5..., 1]}
             sage: H.layout_acyclic_dummy(rankdir='down')
-            {0: [0.5..., 1], 1: [0.5..., 0]}
+            {1: [0.5..., 0], 0: [0.5..., 1]}
             sage: H.layout_acyclic_dummy(rankdir='left')
-            {0: [1, 0.5...], 1: [0, 0.5...]}
+            {1: [0, 0.5...], 0: [1, 0.5...]}
             sage: H.layout_acyclic_dummy(rankdir='right')
             {0: [0, 0.5...], 1: [1, 0.5...]}
             sage: H = DiGraph({0: [1, 2], 1: [3], 2: [3], 3: [1], 5: [1, 6], 6: [2, 3]})

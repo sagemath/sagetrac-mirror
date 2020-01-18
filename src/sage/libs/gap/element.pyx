@@ -3109,7 +3109,7 @@ cdef class GapElement_Record(GapElement):
     We can easily convert a Gap ``rec`` object into a Python ``dict``::
 
         sage: dict(rec)
-        {'a': 123, 'b': 456}
+        {'b': 456, 'a': 123}
         sage: type(_)
         <... 'dict'>
 
@@ -3217,15 +3217,15 @@ cdef class GapElement_Record(GapElement):
         EXAMPLES::
 
             sage: libgap.eval('rec(a:=1, b:=2)').sage()
-            {'a': 1, 'b': 2}
+            {'b': 2, 'a': 1}
             sage: all( isinstance(key,str) and val in ZZ for key,val in _.items() )
             True
 
             sage: rec = libgap.eval('rec(a:=123, b:=456, Sym3:=SymmetricGroup(3))')
             sage: rec.sage()
-            {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
+            {'b': 456,
              'a': 123,
-             'b': 456}
+             'Sym3': NotImplementedError('cannot construct equivalent Sage object'...)}
         """
         result = {}
         for key, val in self:
@@ -3254,7 +3254,7 @@ cdef class GapElement_RecordIterator(object):
         sage: sorted(rec)
         [('a', 123), ('b', 456)]
         sage: dict(rec)
-        {'a': 123, 'b': 456}
+        {'b': 456, 'a': 123}
     """
 
     def __cinit__(self, rec):

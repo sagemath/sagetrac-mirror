@@ -1514,7 +1514,7 @@ class DifferentialPrecisionGeneric(SageObject):
 
             sage: prec.history_clear()
             sage: prec.timings()
-            {'add': 0, 'del': 0, 'full reduce': 0, 'mark': 0, 'partial reduce': 0}
+            {'add': 0, 'del': 0, 'mark': 0, 'partial reduce': 0, 'full reduce': 0}
         """
         if self._history is None:
             raise ValueError("History is not tracked")

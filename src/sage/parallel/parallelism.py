@@ -297,13 +297,13 @@ class Parallelism(Singleton, SageObject):
 
             sage: Parallelism().reset()
             sage: Parallelism().get_all()
-            {'linbox': 1, 'tensor': 1}
+            {'tensor': 1, 'linbox': 1}
 
         Asking for parallelization on 4 cores::
 
             sage: Parallelism().set(nproc=4)
             sage: Parallelism().get_all()
-            {'linbox': 4, 'tensor': 4}
+            {'tensor': 4, 'linbox': 4}
 
         """
         return self._nproc

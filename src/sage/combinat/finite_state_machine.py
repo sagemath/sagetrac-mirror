@@ -2134,8 +2134,7 @@ class FSMState(SageObject):
             sage: A.state(0)._in_epsilon_cycle_(A)
             True
             sage: A.state(4)._epsilon_successors_(A)
-            {0: [['d', 'b', 'c']], 1: [['d'], ['d', 'b', 'c', 'a']],
-             2: [['d', 'b']]}
+            {1: [['d'], ['d', 'b', 'c', 'a']], 2: [['d', 'b']], 0: [['d', 'b', 'c']]}
             sage: A.state(4)._in_epsilon_cycle_(A)
             False
         """
@@ -7222,7 +7221,7 @@ class FiniteStateMachine(SageObject):
             sage: S.epsilon_successors(0)
             {0: [['a', 'b']], 1: [['a']]}
             sage: S.epsilon_successors(1)
-            {0: [['b']], 1: [['b', 'a']]}
+            {1: [['b', 'a']], 0: [['b']]}
         """
         return self.state(state)._epsilon_successors_(self)
 
@@ -15056,7 +15055,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
     This class has the additional attribute ``visited_states``::
 
         sage: it.visited_states
-        {0: [''], 1: ['bc'], 2: ['b']}
+        {0: [''], 2: ['b'], 1: ['bc']}
 
     This means the following (let us skip the state `0` for a moment):
     State `1` can be reached by a epsilon path which write ``'bc'`` as
@@ -15083,7 +15082,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         +-- tape at 0, [['c']]
         process (0 branches)
         sage: it.visited_states
-        {1: ['c'], 2: ['']}
+        {2: [''], 1: ['c']}
 
     TESTS::
 
@@ -15111,7 +15110,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         +-- tape at 0, [[]]
         process (0 branches)
         sage: it.visited_states
-        {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
+        {1: [[], []], 2: [[]], 4: [[], []], 3: [[]]}
 
     At this point note that in the previous output, state `1` (from
     which we started) was also reached by a non-trivial
@@ -15135,7 +15134,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         +-- tape at 0, [[]]
         process (0 branches)
         sage: it.visited_states
-        {1: [[]], 2: [[], []], 3: [[]], 4: [[], []]}
+        {2: [[], []], 3: [[]], 1: [[]], 4: [[], []]}
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(3))
         sage: for current in it:
         ....:     print(current)
@@ -15151,7 +15150,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         +-- tape at 0, [[]]
         process (0 branches)
         sage: it.visited_states
-        {1: [[]], 2: [[]], 3: [[], []], 4: [[], []]}
+        {3: [[], []], 1: [[]], 4: [[], []], 2: [[]]}
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(4))
         sage: for current in it:
         ....:     print(current)
@@ -15188,8 +15187,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         +-- tape at 0, [['b', 'c', 'e']]
         process (0 branches)
         sage: it.visited_states
-        {1: ['', 'bcd'], 2: ['b'],
-         3: ['bc'], 4: ['f', 'bce']}
+        {1: ['', 'bcd'], 2: ['b'], 4: ['f', 'bce'], 3: ['bc']}
         sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(2),
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
@@ -15207,8 +15205,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         +-- tape at 0, [['c', 'd', 'f']]
         process (0 branches)
         sage: it.visited_states
-        {1: ['cd'], 2: ['', 'cdb'],
-         3: ['c'], 4: ['ce', 'cdf']}
+        {2: ['', 'cdb'], 3: ['c'], 1: ['cd'], 4: ['ce', 'cdf']}
         sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(3),
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
@@ -15225,8 +15222,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         +-- tape at 0, [['d', 'f']]
         process (0 branches)
         sage: it.visited_states
-        {1: ['d'], 2: ['db'],
-         3: ['', 'dbc'], 4: ['e', 'df']}
+        {3: ['', 'dbc'], 1: ['d'], 4: ['e', 'df'], 2: ['db']}
         sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(4),
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
@@ -15373,9 +15369,9 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
             sage: T.state(0)._epsilon_successors_(T)  # indirect doctest
             {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
             sage: T.state(1)._epsilon_successors_(T)  # indirect doctest
-            {0: [['b', 'c']], 1: [['b', 'c', 'a']], 2: [['b']]}
+            {1: [['b', 'c', 'a']], 2: [['b']], 0: [['b', 'c']]}
             sage: T.state(2)._epsilon_successors_(T)  # indirect doctest
-            {0: [['c']], 1: [['c', 'a']], 2: [['c', 'a', 'b']]}
+            {2: [['c', 'a', 'b']], 0: [['c']], 1: [['c', 'a']]}
         """
         if state not in self.visited_states:
             self.visited_states[state] = []

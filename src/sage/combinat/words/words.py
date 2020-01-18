@@ -1668,8 +1668,8 @@ class FiniteOrInfiniteWords(AbstractLanguage):
         EXAMPLES::
 
             sage: Words('ab')._element_classes
-            {'iter': <class 'sage.combinat.words.word.Word_iter'>,
-             'iter_with_caching': <class 'sage.combinat.words.word.Word_iter_with_caching'>}
+            {'iter_with_caching': <class 'sage.combinat.words.word.Word_iter_with_caching'>,
+             'iter': <class 'sage.combinat.words.word.Word_iter'>}
         """
         import sage.combinat.words.word as word
         return {'iter_with_caching': word.Word_iter_with_caching,

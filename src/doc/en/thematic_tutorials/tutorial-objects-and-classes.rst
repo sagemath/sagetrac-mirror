@@ -230,7 +230,7 @@ combinatorial free module, the main attribute is called
 indices::
 
     sage: el._monomial_coefficients
-    {[1, 2, 3]: 1, [1, 3, 2]: 3}
+    {[1, 3, 2]: 3, [1, 2, 3]: 1}
 
 Modifying the attribute modifies the objects::
 
@@ -298,7 +298,7 @@ http://docs.python.org/library/ for a complete list. ::
         sage: el
         bla
         sage: el.__dict__
-        {'__custom_name': 'bla', 'value': 42}
+        {'value': 42, '__custom_name': 'bla'}
 
     Lots of Sage objects are not Python objects but compiled Cython
     objects. Python sees them as builtin objects and you do not have

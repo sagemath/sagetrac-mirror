@@ -3766,11 +3766,11 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: Partition([4,3,2]).block(0)
-            {-2: 1, -1: 2, 0: 2, 1: 2, 2: 1, 3: 1}
+            {0: 2, 1: 2, 2: 1, 3: 1, -1: 2, -2: 1}
             sage: Partition([4,3,2]).block(2)
             {0: 4, 1: 5}
             sage: Partition([4,3,2]).block(2, multicharge=(1,))
-            {0: 5, 1: 4}
+            {1: 4, 0: 5}
             sage: Partition([4,3,2]).block(3)
             {0: 3, 1: 3, 2: 3}
             sage: Partition([4,3,2]).block(4)

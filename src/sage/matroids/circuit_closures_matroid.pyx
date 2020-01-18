@@ -393,7 +393,7 @@ cdef class CircuitClosuresMatroid(Matroid):
             sage: M1._is_isomorphic(M2)
             True
             sage: M1._is_isomorphic(M2, certificate=True)
-            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
+            (True, {4: 5, 0: 0, 5: 4, 1: 1, 3: 3, 2: 2})
             sage: M1 = CircuitClosuresMatroid(matroids.named_matroids.Fano())
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)

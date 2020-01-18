@@ -874,7 +874,7 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         arguments in the instance dictionary upon construction::
 
             sage: x.__dict__
-            {'_reduction': (<class '__main__.MyClass'>, (), {'value': 1}), 'value': 1}
+            {'value': 1, '_reduction': (<class '__main__.MyClass'>, (), {'value': 1})}
 
         It is often easy in a derived subclass to reconstruct the constructor's
         arguments from the instance data structure. When this is the case,

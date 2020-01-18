@@ -559,16 +559,16 @@ EXAMPLES::
     ....: )
     sage: opt = ParallelogramPolyominoesOptions['tikz_options']
     sage: opt
-    {'color_bounce_0': u'red',
-     'color_bounce_1': u'blue',
+    {'scale': 1,
+     'line_size': 1,
+     'point_size': 3.5,
      'color_line': u'black',
      'color_point': u'black',
-     'line_size': 1,
-     'mirror': None,
-     'point_size': 3.5,
+     'color_bounce_0': u'red',
+     'color_bounce_1': u'blue',
+     'translation': [0, 0],
      'rotation': 0,
-     'scale': 1,
-     'translation': [0, 0]}
+     'mirror': None}
 """
 
 
@@ -2566,16 +2566,16 @@ class ParallelogramPolyomino(ClonableList):
 
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.get_tikz_options()
-            {'color_bounce_0': u'red',
-             'color_bounce_1': u'blue',
+            {'scale': 1,
+             'line_size': 1,
+             'point_size': 3.5,
              'color_line': u'black',
              'color_point': u'black',
-             'line_size': 1,
-             'mirror': None,
-             'point_size': 3.5,
+             'color_bounce_0': u'red',
+             'color_bounce_1': u'blue',
+             'translation': [0, 0],
              'rotation': 0,
-             'scale': 1,
-             'translation': [0, 0]}
+             'mirror': None}
         """
         return self.get_options()['tikz_options']
 

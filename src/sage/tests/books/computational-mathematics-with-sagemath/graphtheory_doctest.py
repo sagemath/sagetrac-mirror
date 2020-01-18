@@ -149,10 +149,10 @@ Sage example in ./graphtheory.tex, line 597::
 Sage example in ./graphtheory.tex, line 608::
 
   sage: C.coloring(hex_colors = True)
-  {'#00ffff': [3, 8, 5],
-     '#7f00ff': [11],
+    {'#ff0000': [0, 2, 7, 10],
      '#7fff00': [1, 4, 6, 9],
-     '#ff0000': [0, 2, 7, 10]}
+     '#00ffff': [3, 8, 5],
+     '#7f00ff': [11]}
   sage: C.show(vertex_colors = C.coloring(hex_colors = True))
 
 Sage example in ./graphtheory.tex, line 644::

@@ -2277,7 +2277,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         TESTS::
 
             sage: DirichletGroup(5)._zeta_dlog
-            {-1: 2, -zeta4: 3, zeta4: 1, 1: 0}
+            {1: 0, zeta4: 1, -1: 2, -zeta4: 3}
         """
         return {z: i for i, z in enumerate(self._zeta_powers)}
 

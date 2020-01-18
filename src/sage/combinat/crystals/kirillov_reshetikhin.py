@@ -1188,11 +1188,11 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: K.highest_weight_dict_inv()
-            {((-2, 0, 1, 0, 0, 0, 0), 1): [[(2, -1), (1,)]],
+            {((0, 0, 0, 0, 0, 0, 0), 0): [],
+             ((-2, 0, 1, 0, 0, 0, 0), 1): [[(2, -1), (1,)]],
              ((-1, -1, 0, 0, 0, 1, 0), 1): [[(5, -3), (-1, 3)]],
-             ((0, -2, 0, 1, 0, 0, 0), 1): [[(-1,), (-1, 3)]],
-             ((0, 0, 0, 0, 0, 0, 0), 0): [],
-             ((0, 0, 0, 0, 0, 0, 0), 1): [[(1, -3), (-1, 3)]]}
+             ((0, 0, 0, 0, 0, 0, 0), 1): [[(1, -3), (-1, 3)]],
+             ((0, -2, 0, 1, 0, 0, 0), 1): [[(-1,), (-1, 3)]]}
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(6) == 0]
         dic = {(self.affine_weight(x), len(x)): x for x in hw}
@@ -1944,8 +1944,8 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             sage: K.highest_weight_dict()
             {[]: [],
              [2]: [[1]],
-             [2, 2]: [[1], [2]],
              [4]: [[1, 1]],
+             [2, 2]: [[1], [2]],
              [4, 2]: [[1, 1], [2]],
              [4, 4]: [[1, 1], [2, 2]]}
         """
@@ -1964,8 +1964,8 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             sage: K.ambient_highest_weight_dict()
             {[]: [],
              [2]: [[1, 1]],
-             [2, 2]: [[1, 1], [2, 2]],
              [4]: [[1, 1, 1, 1]],
+             [2, 2]: [[1, 1], [2, 2]],
              [4, 2]: [[1, 1, 1, 1], [2, 2]],
              [4, 4]: [[1, 1, 1, 1], [2, 2, 2, 2]]}
         """

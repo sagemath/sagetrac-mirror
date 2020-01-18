@@ -112,13 +112,13 @@ def breadth_first_level_search(G, start):
         sage: H = digraphs.DeBruijn(3,2)
         sage: list(sage.graphs.partial_cube.breadth_first_level_search(H, '00'))
         [{'00': {'01', '02'}},
-         {'01': {'10', '11', '12'}, '02': {'20', '21', '22'}},
-         {'10': set(),
-          '11': set(),
-          '12': set(),
-          '20': set(),
-          '21': set(),
-          '22': set()}]
+         {...'01': {'10', '11', '12'}...},
+         {'...': set(),
+          '...': set(),
+          '...': set(),
+          '...': set(),
+          '...': set(),
+          '...': set()}]
 
     """
     neighbors = G.neighbor_out_iterator

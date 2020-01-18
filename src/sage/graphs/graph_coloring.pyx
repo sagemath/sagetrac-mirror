@@ -1029,10 +1029,10 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
         [(0, 5), (2, 7)],
         [(1, 6), (3, 4), (5, 8), (7, 9)]]
        sage: edge_coloring(g, value_only=False, hex_colors=True, solver='GLPK')
-       {'#00ffff': [(0, 5), (2, 7)],
-        '#7f00ff': [(1, 6), (3, 4), (5, 8), (7, 9)],
+       {'#ff0000': [(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
         '#7fff00': [(0, 4), (1, 2), (3, 8), (6, 9)],
-        '#ff0000': [(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)]}
+        '#00ffff': [(0, 5), (2, 7)],
+        '#7f00ff': [(1, 6), (3, 4), (5, 8), (7, 9)]}
 
     Complete graphs are colored using the linear-time round-robin coloring::
 

@@ -139,7 +139,7 @@ def init_sage():
     dictionary output::
 
         sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
-        {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
+        {'a': 23, 'b': 34, 'au': 56, 'bbf': 234, 'aaa': 234}
     """
     try:
         # We need to ensure that the Matplotlib font cache is built to
@@ -182,15 +182,6 @@ def init_sage():
     dm = get_display_manager()
     from sage.repl.rich_output.backend_doctest import BackendDoctest
     dm.switch_backend(BackendDoctest())
-
-    # IPython's pretty printer sorts the repr of dicts by their keys by default
-    # (or their keys' str() if they are not otherwise orderable).  However, it
-    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
-    # insertion order, which is preserved in those versions).  This makes for
-    # inconsistent results with Python 2 tests that return dicts, so here we
-    # force the Python 2 style dict printing
-    import IPython.lib.pretty
-    IPython.lib.pretty.DICT_IS_ORDERED = False
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug

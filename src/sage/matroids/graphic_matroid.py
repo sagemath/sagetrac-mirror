@@ -1058,7 +1058,7 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: N = Matroid(graph=graphs.DiamondGraph(), regular=True)
             sage: M._is_isomorphic(N, certificate=True)
-            (True, {0: (0, 1), 1: (0, 2), 2: (1, 2), 3: (1, 3), 4: (2, 3)})
+            (True, {4: (2, 3), 2: (1, 2), 0: (0, 1), 1: (0, 2), 3: (1, 3)})
             sage: O = Matroid(graphs.WheelGraph(5))
             sage: M._is_isomorphic(O, certificate=True)
             (False, None)
@@ -1081,7 +1081,7 @@ class GraphicMatroid(Matroid):
             sage: M._is_isomorphic(N, certificate=True)
             (True, {'a': 2, 'b': 4, 'c': 5, 'd': 0, 'e': 1, 'f': 3})
             sage: N._is_isomorphic(M, certificate=True)
-            (True, {0: 'd', 1: 'e', 2: 'a', 3: 'f', 4: 'b', 5: 'c'})
+            (True, {2: 'a', 4: 'b', 5: 'c', 0: 'd', 1: 'e', 3: 'f'})
             sage: O = Matroid(range(6), graphs.CycleGraph(6))
             sage: M._is_isomorphic(O)
             False
@@ -1146,10 +1146,10 @@ class GraphicMatroid(Matroid):
             sage: M2 = Matroid(range(4), graphs.CompleteBipartiteGraph(2,2))
             sage: M1._isomorphism(matroids.named_matroids.BetsyRoss())
             sage: M1._isomorphism(M2)
-            {0: 0, 1: 1, 2: 2, 3: 3}
+            {3: 3, 0: 0, 1: 1, 2: 2}
             sage: M3 = matroids.Uniform(3,4)
             sage: M1._isomorphism(M3)
-            {0: 0, 1: 1, 2: 2, 3: 3}
+            {3: 3, 0: 0, 1: 1, 2: 2}
 
         ::
 

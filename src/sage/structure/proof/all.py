@@ -219,8 +219,8 @@ def all(t=None):
          'elliptic_curve': True,
          'linear_algebra': True,
          'number_field': True,
-         'other': True,
-         'polynomial': True}
+         'polynomial': True,
+         'other': True}
         sage: proof.number_field(False)
         sage: proof.number_field()
         False
@@ -229,8 +229,8 @@ def all(t=None):
          'elliptic_curve': True,
          'linear_algebra': True,
          'number_field': False,
-         'other': True,
-         'polynomial': True}
+         'polynomial': True,
+         'other': True}
         sage: proof.number_field(True)
         sage: proof.number_field()
         True

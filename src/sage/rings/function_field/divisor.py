@@ -394,11 +394,11 @@ class FunctionFieldDivisor(ModuleElement):
             sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
             sage: f = x/(y + 1)
             sage: D = f.divisor()
-            sage: D.dict()
-            {Place (1/x, 1/x^3*y^2 + 1/x): -1,
-             Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1): 1,
-             Place (x, y): 3,
-             Place (x^3 + x + 1, y + 1): -1}
+            sage: sorted(D.dict().items())
+            [(Place (1/x, 1/x^3*y^2 + 1/x), -1),
+             (Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1), 1),
+             (Place (x, y), 3),
+             (Place (x^3 + x + 1, y + 1), -1)]
         """
         return self._data
 

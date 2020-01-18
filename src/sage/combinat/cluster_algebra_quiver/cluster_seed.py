@@ -2735,119 +2735,119 @@ class ClusterSeed(SageObject):
             sage: B = [[0, 4, 0, -1],[-4,0, 3, 0],[0, -3, 0, 1],[1, 0, -1, 0]]
             sage: S = ClusterSeed(matrix(B)); S.mutate([2,3,1,2,1,3,0,2])
             sage: S.mutation_analysis()
-            {0: {'d_matrix': [ 0  0  1  0]
-              [ 0 -1  0  0]
-              [ 0  0  0 -1]
-              [-1  0  0  0],
-              'denominators': [1, 1, x0, 1],
+            {0: {'edges': 13,
               'edge_diff': 6,
-              'edges': 13,
               'green_vertices': [0, 1, 3],
               'green_vertices_diff': {'added': [0], 'removed': []},
               'red_vertices': [2],
               'red_vertices_diff': {'added': [], 'removed': [0]},
-              'sinks': [],
-              'sinks_diff': {'added': [], 'removed': [2]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []},
               'sources': [],
               'sources_diff': {'added': [], 'removed': []},
-              'urban_renewals': [],
-              'urban_renewals_diff': {'added': [], 'removed': []}},
-             1: {'d_matrix': [ 1  4  1  0]
-              [ 0  1  0  0]
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [2]},
+              'denominators': [1, 1, x0, 1],
+              'd_matrix': [ 0  0  1  0]
+              [ 0 -1  0  0]
               [ 0  0  0 -1]
-              [ 1  4  0  0],
-              'denominators': [x0*x3, x0^4*x1*x3^4, x0, 1],
+              [-1  0  0  0]},
+             1: {'edges': 9,
               'edge_diff': 2,
-              'edges': 9,
               'green_vertices': [0, 3],
               'green_vertices_diff': {'added': [0], 'removed': [1]},
               'red_vertices': [1, 2],
               'red_vertices_diff': {'added': [1], 'removed': [0]},
-              'sinks': [2],
-              'sinks_diff': {'added': [], 'removed': []},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []},
               'sources': [],
               'sources_diff': {'added': [], 'removed': []},
-              'urban_renewals': [],
-              'urban_renewals_diff': {'added': [], 'removed': []}},
-             2: {'d_matrix': [ 1  0  0  0]
-              [ 0 -1  0  0]
+              'sinks': [2],
+              'sinks_diff': {'added': [], 'removed': []},
+              'denominators': [x0*x3, x0^4*x1*x3^4, x0, 1],
+              'd_matrix': [ 1  4  1  0]
+              [ 0  1  0  0]
               [ 0  0  0 -1]
-              [ 1  0  1  0],
-              'denominators': [x0*x3, 1, x3, 1],
+              [ 1  4  0  0]},
+             2: {'edges': 7,
               'edge_diff': 0,
-              'edges': 7,
               'green_vertices': [1, 2, 3],
               'green_vertices_diff': {'added': [2], 'removed': []},
               'red_vertices': [0],
               'red_vertices_diff': {'added': [], 'removed': [2]},
-              'sinks': [],
-              'sinks_diff': {'added': [], 'removed': [2]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []},
               'sources': [2],
               'sources_diff': {'added': [2], 'removed': []},
-              'urban_renewals': [],
-              'urban_renewals_diff': {'added': [], 'removed': []}},
-             3: {'d_matrix': [ 1  0  1  1]
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [2]},
+              'denominators': [x0*x3, 1, x3, 1],
+              'd_matrix': [ 1  0  0  0]
               [ 0 -1  0  0]
-              [ 0  0  0  1]
-              [ 1  0  0  1],
-              'denominators': [x0*x3, 1, x0, x0*x2*x3],
+              [ 0  0  0 -1]
+              [ 1  0  1  0]},
+             3: {'edges': 6,
               'edge_diff': -1,
-              'edges': 6,
               'green_vertices': [1],
               'green_vertices_diff': {'added': [], 'removed': [3]},
               'red_vertices': [0, 2, 3],
               'red_vertices_diff': {'added': [3], 'removed': []},
-              'sinks': [2],
-              'sinks_diff': {'added': [], 'removed': []},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []},
               'sources': [1],
               'sources_diff': {'added': [1], 'removed': []},
-              'urban_renewals': [],
-              'urban_renewals_diff': {'added': [], 'removed': []}}}
+              'sinks': [2],
+              'sinks_diff': {'added': [], 'removed': []},
+              'denominators': [x0*x3, 1, x0, x0*x2*x3],
+              'd_matrix': [ 1  0  1  1]
+              [ 0 -1  0  0]
+              [ 0  0  0  1]
+              [ 1  0  0  1]}}
 
             sage: S = ClusterSeed(['A',3]).principal_extension()
             sage: S.mutation_analysis()
-            {0: {'d_matrix': [ 1  0  0]
-              [ 0 -1  0]
-              [ 0  0 -1],
-              'denominators': [x0, 1, 1],
-              'green_vertices': [1, 2],
+            {0: {'green_vertices': [1, 2],
               'green_vertices_diff': {'added': [], 'removed': [0]},
               'red_vertices': [0],
               'red_vertices_diff': {'added': [0], 'removed': []},
-              'sinks': [],
-              'sinks_diff': {'added': [], 'removed': [1]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []},
               'sources': [4, 5],
               'sources_diff': {'added': [], 'removed': [3]},
-              'urban_renewals': [],
-              'urban_renewals_diff': {'added': [], 'removed': []}},
-             1: {'d_matrix': [-1  0  0]
-              [ 0  1  0]
-              [ 0  0 -1],
-              'denominators': [1, x1, 1],
-              'green_vertices': [0, 2],
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [1]},
+              'denominators': [x0, 1, 1],
+              'd_matrix': [ 1  0  0]
+              [ 0 -1  0]
+              [ 0  0 -1]},
+             1: {'green_vertices': [0, 2],
               'green_vertices_diff': {'added': [], 'removed': [1]},
               'red_vertices': [1],
               'red_vertices_diff': {'added': [1], 'removed': []},
-              'sinks': [0, 2, 4],
-              'sinks_diff': {'added': [0, 2, 4], 'removed': [1]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []},
               'sources': [1, 3, 5],
               'sources_diff': {'added': [1], 'removed': [4]},
-              'urban_renewals': [],
-              'urban_renewals_diff': {'added': [], 'removed': []}},
-             2: {'d_matrix': [-1  0  0]
-              [ 0 -1  0]
-              [ 0  0  1],
-              'denominators': [1, 1, x2],
-              'green_vertices': [0, 1],
+              'sinks': [0, 2, 4],
+              'sinks_diff': {'added': [0, 2, 4], 'removed': [1]},
+              'denominators': [1, x1, 1],
+              'd_matrix': [-1  0  0]
+              [ 0  1  0]
+              [ 0  0 -1]},
+             2: {'green_vertices': [0, 1],
               'green_vertices_diff': {'added': [], 'removed': [2]},
               'red_vertices': [2],
               'red_vertices_diff': {'added': [2], 'removed': []},
-              'sinks': [],
-              'sinks_diff': {'added': [], 'removed': [1]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []},
               'sources': [3, 4],
               'sources_diff': {'added': [], 'removed': [5]},
-              'urban_renewals': [],
-              'urban_renewals_diff': {'added': [], 'removed': []}}}
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [1]},
+              'denominators': [1, 1, x2],
+              'd_matrix': [-1  0  0]
+              [ 0 -1  0]
+              [ 0  0  1]}}
 
         """
 

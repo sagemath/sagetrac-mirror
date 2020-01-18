@@ -3567,11 +3567,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: loads(dumps(I)).__getstate__()
             (Monoid of ideals of Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
-             {'_Ideal_generic__gens': (x^2 + x, y),
-              '_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
-              '_cache__groebner_basis': {},
+             {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
+              '_Ideal_generic__gens': (x^2 + x, y),
               '_gb_by_ordering': {'degrevlex': [x^2 + x, y]},
               'gens': Pickle of the cached method "gens",
+              '_cache__groebner_basis': {},
               'groebner_basis': Pickle of the cached method "groebner_basis"})
 
         This example checks :trac:`12802`::

@@ -2990,7 +2990,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: R.<x,y,z> = QQ[]
             sage: f=2*x*y^3*z^2 + 1/7*x^2 + 2/3
             sage: f.dict()
-            {(0, 0, 0): 2/3, (1, 3, 2): 2, (2, 0, 0): 1/7}
+            {(1, 3, 2): 2, (2, 0, 0): 1/7, (0, 0, 0): 2/3}
         """
         cdef poly *p
         cdef ring *r = self._parent_ring

@@ -200,7 +200,7 @@ class SandpileExamples(object):
             [1, 1, 1, 1, 1, 2415]
             sage: s = sandpiles.Grid(1,1)
             sage: s.dict()
-            {(0, 0): {(1, 1): 4}, (1, 1): {(0, 0): 4}}
+            {(1, 1): {(0, 0): 4}, (0, 0): {(1, 1): 4}}
         """
         G = graphs.Grid2dGraph(m+2,n+2)
         G.allow_multiple_edges(True)  # to ensure each vertex ends up with degree 4

@@ -1109,8 +1109,8 @@ class MPowerSeries(PowerSeries):
             sage: s = m + m2
             sage: s.dict()
             {(1, 15, 0, 48): 2/3,
-             (12, 29, 46, 6): 1/2,
              (15, 21, 28, 5): -1,
+             (12, 29, 46, 6): 1/2,
              (39, 5, 23, 30): -1/4}
         """
         out_dict = {}
@@ -1202,9 +1202,9 @@ class MPowerSeries(PowerSeries):
             Multivariate Power Series Ring in s, t over Integer Ring
             sage: f = 1 + t + s + s*t + R.O(3)
             sage: f.coefficients()
-            {s*t: 1, t: 1, s: 1, 1: 1}
+            {1: 1, s: 1, t: 1, s*t: 1}
             sage: (f^2).coefficients()
-            {t^2: 1, s*t: 4, s^2: 1, t: 2, s: 2, 1: 1}
+            {1: 1, s: 2, t: 2, s^2: 1, s*t: 4, t^2: 1}
 
             sage: g = f^2 + f - 2; g
             3*s + 3*t + s^2 + 5*s*t + t^2 + O(s, t)^3

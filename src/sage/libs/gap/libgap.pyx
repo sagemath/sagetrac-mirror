@@ -119,7 +119,7 @@ Or get them as results of computations::
     sage: rec['Sym3']
     Sym( [ 1 .. 3 ] )
     sage: dict(rec)
-    {'Sym3': Sym( [ 1 .. 3 ] ), 'a': 123, 'b': 456}
+    {'b': 456, 'a': 123, 'Sym3': Sym( [ 1 .. 3 ] )}
 
 The output is a Sage dictionary whose keys are Sage strings and whose
 Values are instances of :meth:`~sage.libs.gap.element.GapElement`. So,
@@ -128,9 +128,9 @@ convert the entries into Sage objects, you should use the
 :meth:`~sage.libs.gap.element.GapElement.sage` method::
 
     sage: rec.sage()
-    {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
+    {'b': 456,
      'a': 123,
-     'b': 456}
+     'Sym3': NotImplementedError('cannot construct equivalent Sage object'...)}
 
 Now ``rec['a']`` is a Sage integer. We have not implemented the
 conversion of the GAP symmetric group to the Sage symmetric group yet,

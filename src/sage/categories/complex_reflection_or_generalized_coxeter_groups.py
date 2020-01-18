@@ -86,12 +86,13 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
         [Category of finitely generated enumerated groups]
 
         sage: C.required_methods()
-        {'element': {'optional': ['reflection_length'],
-                     'required': []},
-          'parent': {'optional': ['distinguished_reflection', 'hyperplane_index_set',
-                                  'irreducible_components',
-                                  'reflection', 'reflection_index_set'],
-                    'required':  ['__contains__', 'index_set']}}
+        {'parent': {'required': ['__contains__', 'index_set'],
+          'optional': ['distinguished_reflection',
+           'hyperplane_index_set',
+           'irreducible_components',
+           'reflection',
+           'reflection_index_set']},
+         'element': {'required': [], 'optional': ['reflection_length']}}
 
     TESTS::
 

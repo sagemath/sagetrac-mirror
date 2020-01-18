@@ -2411,10 +2411,10 @@ class BinaryQuintic(AlgebraicForm):
             sage: p = 2*x1^5 + 4*x1^4*x0 + 5*x1^3*x0^2 + 7*x1^2*x0^3 - 11*x1*x0^4 + x0^5
             sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
             sage: quintic.arithmetic_invariants()
-            {'I12': -1156502613073152,
-             'I18': -12712872348048797642752,
-             'I4': -138016,
-             'I8': 14164936192}
+            {'I4': -138016,
+             'I8': 14164936192,
+             'I12': -1156502613073152,
+             'I18': -12712872348048797642752}
 
         We can check that the coefficients of the invariants have no common divisor
         for a general quintic form::

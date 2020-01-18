@@ -2093,7 +2093,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: a = w^2*z^-1 +3
             sage: a.dict()  # indirect doctest
-            {(0, 0): 3, (2, -1): 1}
+            {(2, -1): 1, (0, 0): 3}
         """
         cdef dict D = <dict> self._poly._mpoly_dict_recursive(self._parent.variable_names(),
                                                               self._parent.base_ring())

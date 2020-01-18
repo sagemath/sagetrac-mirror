@@ -228,16 +228,16 @@ cdef class IntegerListsBackend(object):
             sage: from sage.combinat.integer_lists.base import IntegerListsBackend
             sage: C = IntegerListsBackend(2, length=3)
             sage: C.__getstate__()
-            {'ceiling': <sage.combinat.integer_lists.base.Envelope object at ...>,
-             'floor': <sage.combinat.integer_lists.base.Envelope object at ...>,
-             'max_length': 3,
-             'max_part': inf,
-             'max_slope': inf,
+            {'min_sum': 2,
              'max_sum': 2,
              'min_length': 3,
+             'max_length': 3,
              'min_part': 0,
+             'max_part': inf,
              'min_slope': -inf,
-             'min_sum': 2}
+             'max_slope': inf,
+             'floor': <sage.combinat.integer_lists.base.Envelope object at ...>,
+             'ceiling': <sage.combinat.integer_lists.base.Envelope object at ...>}
         """
         return {"min_sum": self.min_sum,
                 "max_sum": self.max_sum,

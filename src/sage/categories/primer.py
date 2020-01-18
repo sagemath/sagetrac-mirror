@@ -764,8 +764,8 @@ operations. In particular a list of mandatory and optional methods to
 be implemented can be found by introspection with::
 
     sage: Groups().required_methods()
-    {'element': {'optional': ['_mul_'], 'required': []},
-     'parent': {'optional': [], 'required': ['__contains__']}}
+    {'parent': {'required': ['__contains__'], 'optional': []},
+     'element': {'required': [], 'optional': ['_mul_']}}
 
 Documentation about those methods can be obtained with::
 
@@ -988,9 +988,9 @@ A (not yet complete) list of mandatory and optional methods to be
 implemented can be found by introspection with::
 
     sage: FiniteSemigroups().required_methods()
-    {'element': {'optional': ['_mul_'], 'required': []},
-     'parent': {'optional': ['semigroup_generators'],
-      'required': ['__contains__']}}
+    {'parent': {'required': ['__contains__'],
+      'optional': ['semigroup_generators']},
+     'element': {'required': [], 'optional': ['_mul_']}}
 
 ``product`` does not appear in the list because a default implementation
 is provided in term of the method ``_mul_`` on elements. Of course, at

@@ -587,7 +587,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
     TESTS::
 
         sage: V.embedding_morphism()._reverse_ray_map()
-        {N(-1): 3, N(1): 2}
+        {N(1): 2, N(-1): 3}
         sage: V.embedding_morphism()._defining_cone
         1-d cone of Rational polyhedral fan in 2-d lattice N
     """
@@ -647,9 +647,9 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             sage: P1 = P2_112.orbit_closure(Cone([(1,0)]))
             sage: f = P1.embedding_morphism()
             sage: f._ray_map
-            {N(-1, -2): (-2), N(0, 1): (1), N(1, 0): (0)}
+            {N(0, 1): (1), N(1, 0): (0), N(-1, -2): (-2)}
             sage: f._reverse_ray_map()
-            {N(-2): 2, N(1): 1}
+            {N(1): 1, N(-2): 2}
         """
         orbit = self.parent().domain()
         codomain_fan = self.parent().codomain().fan()
@@ -1815,7 +1815,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: fc = P1xP1.hom(matrix([[1],[0]]), P1).fiber_component(Cone([(1,0)]))
             sage: f = fc.embedding_morphism()
             sage: f._ray_index_map  # indirect doctest
-            {N(-1): 3, N(1): 2}
+            {N(1): 2, N(-1): 3}
 
         TESTS::
 
@@ -1955,7 +1955,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             N(1, -3) (9, 2)
             N(-1, 2) (11, 1)
             sage: f._ray_index_map
-            {N(-3, 4): 10, N(-1, 2): 11, N(0, 1): 5, N(1, 0): 4, N(2, -6): 9}
+            {N(2, -6): 9, N(-3, 4): 10, N(0, 1): 5, N(1, 0): 4, N(-1, 2): 11}
         """
         try:
             image_ray_index = self._ray_index_map[fiber_ray]

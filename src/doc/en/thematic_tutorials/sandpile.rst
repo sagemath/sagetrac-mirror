@@ -731,7 +731,7 @@ Representatives of all divisor classes with nontrivial homology::
 
     sage: p = S.betti_complexes()
     sage: p[0]
-    [{0: -8, 1: 5, 2: 4, 3: 1},
+    [{1: 5, 2: 4, 3: 1, 0: -8},
      Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
 
 The homology associated with the first divisor in the list::
@@ -1141,7 +1141,8 @@ EXAMPLES::
     sage: S = Sandpile({0:{},1:{0: 1, 2: 1, 3: 4},2:{3: 5},3:{1: 1, 2: 1}},0)
     sage: p = S.betti_complexes()
     sage: p[0]
-    [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
+    [{1: 5, 2: 4, 3: 1, 0: -8},
+     Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
     sage: S.resolution()
     'R^1 <-- R^5 <-- R^5 <-- R^1'
     sage: S.betti()
@@ -1682,7 +1683,7 @@ equivalent modulo the rowspan of the Laplacian matrix::
     sage: s.group_order()
     28
     sage: s.jacobian_representatives()
-    [{0: -5, 1: 3, 2: 2}, {0: -4, 1: 3, 2: 1}]
+    [{1: 3, 2: 2, 0: -5}, {1: 3, 2: 1, 0: -4}]
 
 Let `\tau` be the nonnegative generator of the kernel of the transpose of
 the Laplacian, and let `tau_s` be it sink component, then the sandpile
@@ -2167,13 +2168,13 @@ EXAMPLES::
 
     sage: S = Sandpile({0:[1], 2:[0,1], 1:[2]})
     sage: S.dict()
-    {0: {1: 1}, 1: {2: 1}, 2: {0: 1, 1: 1}}
+    {0: {1: 1}, 2: {0: 1, 1: 1}, 1: {2: 1}}
     sage: T = S.reorder_vertices()
 
 The vertices 1 and 2 have been swapped::
 
     sage: T.dict() 
-    {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
+    {2: {0: 1}, 1: {2: 1, 0: 1}, 0: {1: 1}}
 
 ---
 
@@ -4449,7 +4450,7 @@ EXAMPLES::
     sage: s = sandpiles.Complete(4)
     sage: D = SandpileDivisor(s,[2,-3,2,0])
     sage: D.q_reduced()
-    {0: -2, 1: 1, 2: 2, 3: 0}
+    {1: 1, 2: 2, 3: 0, 0: -2}
     sage: D.q_reduced(False)
     [-2, 1, 2, 0]
 

@@ -2013,10 +2013,10 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: p = C_Polyhedron(cs)
             sage: p.maximize( x+y )
             {'bounded': True,
-             'generator': point(10/3, 0/3),
-             'maximum': True,
+             'sup_n': 10,
              'sup_d': 3,
-             'sup_n': 10}
+             'maximum': True,
+             'generator': point(10/3, 0/3)}
 
         Unbounded case::
 
@@ -2027,10 +2027,10 @@ cdef class Polyhedron(_mutable_or_immutable):
             {'bounded': False}
             sage: p.maximize( -x )
             {'bounded': True,
-             'generator': closure_point(0/1),
-             'maximum': False,
+             'sup_n': 0,
              'sup_d': 1,
-             'sup_n': 0}
+             'maximum': False,
+             'generator': closure_point(0/1)}
         """
         cdef PPL_Coefficient sup_n
         cdef PPL_Coefficient sup_d
@@ -2092,10 +2092,10 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: p = C_Polyhedron(cs)
             sage: p.minimize( x+y )
             {'bounded': True,
-             'generator': point(0/1, 0/1),
-             'inf_d': 1,
              'inf_n': 0,
-             'minimum': True}
+             'inf_d': 1,
+             'minimum': True,
+             'generator': point(0/1, 0/1)}
 
         Unbounded case::
 
@@ -2104,10 +2104,10 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: p = NNC_Polyhedron(cs)
             sage: p.minimize( +x )
             {'bounded': True,
-             'generator': closure_point(0/1),
-             'inf_d': 1,
              'inf_n': 0,
-             'minimum': False}
+             'inf_d': 1,
+             'minimum': False,
+             'generator': closure_point(0/1)}
             sage: p.minimize( -x )
             {'bounded': False}
         """

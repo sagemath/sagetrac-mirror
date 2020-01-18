@@ -555,7 +555,7 @@ def parse_indices_names(names, index_set, prefix, kwds={}):
         sage: parse_indices_names('x,y,z', None, None, d)
         (('x', 'y', 'z'), {'x', 'y', 'z'}, '')
         sage: d
-        {'bracket': False, 'string_quotes': False}
+        {'string_quotes': False, 'bracket': False}
         sage: d = {}
         sage: parse_indices_names(None, ZZ, None, d)
         (None, Integer Ring, None)
@@ -568,11 +568,11 @@ def parse_indices_names(names, index_set, prefix, kwds={}):
         sage: parse_indices_names(['a','b','c'], ZZ, 'x', d)
         (('a', 'b', 'c'), Integer Ring, 'x')
         sage: d
-        {'bracket': '[', 'string_quotes': True}
+        {'string_quotes': True, 'bracket': '['}
         sage: parse_indices_names('x,y,z', None, 'A', d)
         (('x', 'y', 'z'), {'x', 'y', 'z'}, 'A')
         sage: d
-        {'bracket': '[', 'string_quotes': True}
+        {'string_quotes': True, 'bracket': '['}
     """
     if index_set is None:
         if names is None:

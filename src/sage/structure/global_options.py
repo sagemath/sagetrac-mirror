@@ -1311,9 +1311,9 @@ class GlobalOptions(object):
 
             sage: Partitions.options._reset()
             sage: Partitions.options.__getstate__()
-             {'convention': 'English',
-             'option_class': 'Partitions',
-             'options_module': 'sage.combinat.partition'}
+             {'option_class': 'Partitions',
+              'options_module': 'sage.combinat.partition',
+              'convention': 'English'}
         """
 
         # options classes can be pickled only if they are the options for an

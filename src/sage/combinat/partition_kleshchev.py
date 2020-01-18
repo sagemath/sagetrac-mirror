@@ -129,14 +129,14 @@ class KleshchevPartition(Partition):
 
             sage: KP = KleshchevPartitions(3, convention="regular")
             sage: KP([5,4,4,3,2]).conormal_cells()
-            {0: [(1, 4)], 1: [(5, 0), (4, 2)]}
+            {1: [(5, 0), (4, 2)], 0: [(1, 4)]}
             sage: KP([5,4,4,3,2]).conormal_cells(0)
             [(1, 4)]
             sage: KP([5,4,4,3,2]).conormal_cells(1)
             [(5, 0), (4, 2)]
             sage: KP = KleshchevPartitions(3, convention="restricted")
             sage: KP([5,4,4,3,2]).conormal_cells()
-            {0: [(1, 4), (3, 3)], 2: [(0, 5)]}
+            {2: [(0, 5)], 0: [(1, 4), (3, 3)]}
         """
         # We use a dictionary for the conormal nodes as the indexing set is Z when e=0
         conormals = defaultdict(list)   # the conormal cells of each residue
@@ -190,14 +190,14 @@ class KleshchevPartition(Partition):
 
             sage: KP = KleshchevPartitions(3, convention="regular")
             sage: KP([5,4,4,3,2]).cogood_cells()
-            {0: (1, 4), 1: (4, 2)}
+            {1: (4, 2), 0: (1, 4)}
             sage: KP([5,4,4,3,2]).cogood_cells(0)
             (1, 4)
             sage: KP([5,4,4,3,2]).cogood_cells(1)
             (4, 2)
             sage: KP = KleshchevPartitions(4, convention='restricted')
             sage: KP([5,4,4,3,2]).cogood_cells()
-            {1: (0, 5), 2: (4, 2), 3: (1, 4)}
+            {1: (0, 5), 3: (1, 4), 2: (4, 2)}
             sage: KP([5,4,4,3,2]).cogood_cells(0)
             sage: KP([5,4,4,3,2]).cogood_cells(2)
             (4, 2)
@@ -513,8 +513,8 @@ class KleshchevPartitionTuple(PartitionTuple):
 
             sage: KP = KleshchevPartitions(3, [0,1], convention="left regular")
             sage: KP([[4, 2], [5, 3, 1]]).conormal_cells()
-            {0: [(1, 2, 1), (1, 1, 3), (1, 0, 5)],
-            1: [(1, 3, 0), (0, 2, 0), (0, 1, 2), (0, 0, 4)]}
+            {1: [(1, 3, 0), (0, 2, 0), (0, 1, 2), (0, 0, 4)],
+             0: [(1, 2, 1), (1, 1, 3), (1, 0, 5)]}
             sage: KP([[4, 2], [5, 3, 1]]).conormal_cells(1)
             [(1, 3, 0), (0, 2, 0), (0, 1, 2), (0, 0, 4)]
             sage: KP([[4, 2], [5, 3, 1]]).conormal_cells(2)
@@ -583,13 +583,13 @@ class KleshchevPartitionTuple(PartitionTuple):
             sage: KP = KleshchevPartitions(3, [0,1])
             sage: pt = KP([[4, 2], [5, 3, 1]])
             sage: pt.cogood_cells()
-            {0: (1, 2, 1), 1: (1, 3, 0)}
+            {1: (1, 3, 0), 0: (1, 2, 1)}
             sage: pt.cogood_cells(0)
             (1, 2, 1)
             sage: KP = KleshchevPartitions(4, [0,1], convention="left regular")
             sage: pt = KP([[5, 2, 2], [6, 1, 1]])
             sage: pt.cogood_cells()
-            {1: (0, 0, 5), 2: (1, 3, 0)}
+            {2: (1, 3, 0), 1: (0, 0, 5)}
             sage: pt.cogood_cells(0) is None
             True
             sage: pt.cogood_cells(1) is None
@@ -711,7 +711,7 @@ class KleshchevPartitionTuple(PartitionTuple):
             sage: KP = KleshchevPartitions(4, [0,1], convention="left regular")
             sage: pt = KP([[5, 2, 2], [6, 2, 1]])
             sage: pt.good_cells()
-            {0: (0, 0, 4), 2: (1, 0, 5), 3: (0, 2, 1)}
+            {0: (0, 0, 4), 3: (0, 2, 1), 2: (1, 0, 5)}
             sage: pt.good_cells(1) is None
             True
         """

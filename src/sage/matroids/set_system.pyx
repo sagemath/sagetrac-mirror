@@ -662,7 +662,7 @@ cdef class SetSystem:
             sage: T = SetSystem(['a', 'b', 'c', 'd'], [['a', 'b'], ['c', 'd'],
             ....:                                      ['a', 'c', 'd']])
             sage: S._isomorphism(T)
-            {1: 'c', 2: 'd', 3: 'b', 4: 'a'}
+            {3: 'b', 4: 'a', 2: 'd', 1: 'c'}
             sage: S = SetSystem([], [])
             sage: S._isomorphism(S)
             {}
@@ -726,7 +726,7 @@ cdef class SetSystem:
             sage: T = SetSystem(['a', 'b', 'c', 'd'], [['a', 'b'], ['c', 'd'],
             ....:                                      ['a', 'c', 'd']])
             sage: S._equivalence(lambda self, other, morph:True, T)
-            {1: 'c', 2: 'd', 3: 'b', 4: 'a'}
+            {3: 'b', 4: 'a', 2: 'd', 1: 'c'}
 
         Check that :trac:`15189` is fixed::
 

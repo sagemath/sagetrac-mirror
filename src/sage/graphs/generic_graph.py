@@ -5212,7 +5212,7 @@ class GenericGraph(GenericGraph_pyx):
         This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
 
             sage: g.layout(layout = "planar", save_pos = True)
-            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
+            {1: [5, 1], 2: [0, 5], 3: [1, 0], 0: [1, 4], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
         """
         deprecation(24494, 'This method is replaced by the method layout. '
                            'Please use layout(layout="planar", save_pos=True) '
@@ -5266,16 +5266,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.PathGraph(10)
             sage: g.layout(layout='planar', save_pos=True, test=True)
-            {0: [3, 2],
+            {5: [8, 1],
+             7: [0, 8],
+             9: [1, 0],
+             0: [3, 2],
              1: [4, 3],
              2: [3, 4],
              3: [4, 4],
              4: [2, 6],
-             5: [8, 1],
              6: [1, 7],
-             7: [0, 8],
-             8: [1, 1],
-             9: [1, 0]}
+             8: [1, 1]}
             sage: g = graphs.BalancedTree(3, 4)
             sage: pos = g.layout(layout='planar', save_pos=True, test=True)
             sage: pos[0]
@@ -5284,7 +5284,7 @@ class GenericGraph(GenericGraph_pyx):
             [3, 64]
             sage: g = graphs.CycleGraph(7)
             sage: g.layout(layout='planar', save_pos=True, test=True)
-            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
+            {1: [5, 1], 2: [0, 5], 3: [1, 0], 0: [1, 4], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
             sage: g = graphs.CompleteGraph(5)
             sage: g.layout(layout='planar', save_pos=True, test=True, set_embedding=True)
             Traceback (most recent call last):
@@ -5295,9 +5295,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CompleteGraph(4)
             sage: g.layout(layout='planar', external_face=(0,1))
-            {0: [0, 2], 1: [2, 1], 2: [1, 0], 3: [1, 1]}
+            {1: [2, 1], 0: [0, 2], 2: [1, 0], 3: [1, 1]}
             sage: g.layout(layout='planar', external_face=(3,1))
-            {0: [2, 1], 1: [0, 2], 2: [1, 1], 3: [1, 0]}
+            {0: [2, 1], 1: [0, 2], 3: [1, 0], 2: [1, 1]}
 
         TESTS::
 
@@ -16515,7 +16515,26 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_paths(0)
-            {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 4: [0, 19, 3, 4], 5: [0, 1, 2, 6, 5], 6: [0, 1, 2, 6], 7: [0, 1, 8, 7], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 12: [0, 10, 11, 12], 13: [0, 10, 9, 13], 14: [0, 1, 8, 7, 14], 15: [0, 19, 18, 17, 16, 15], 16: [0, 19, 18, 17, 16], 17: [0, 19, 18, 17], 18: [0, 19, 18], 19: [0, 19]}
+            {0: [0],
+             10: [0, 10],
+             19: [0, 19],
+             1: [0, 1],
+             8: [0, 1, 8],
+             2: [0, 1, 2],
+             3: [0, 19, 3],
+             18: [0, 19, 18],
+             11: [0, 10, 11],
+             9: [0, 10, 9],
+             13: [0, 10, 9, 13],
+             12: [0, 10, 11, 12],
+             17: [0, 19, 18, 17],
+             4: [0, 19, 3, 4],
+             6: [0, 1, 2, 6],
+             7: [0, 1, 8, 7],
+             14: [0, 1, 8, 7, 14],
+             5: [0, 1, 2, 6, 5],
+             16: [0, 19, 18, 17, 16],
+             15: [0, 19, 18, 17, 16, 15]}
 
         All these paths are obviously induced graphs::
 
@@ -16525,7 +16544,16 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D.shortest_paths(0, cutoff=2)
-            {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 18: [0, 19, 18], 19: [0, 19]}
+            {0: [0],
+             10: [0, 10],
+             19: [0, 19],
+             1: [0, 1],
+             8: [0, 1, 8],
+             2: [0, 1, 2],
+             3: [0, 19, 3],
+             18: [0, 19, 18],
+             11: [0, 10, 11],
+             9: [0, 10, 9]}
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_paths(0, by_weight=True)
@@ -16535,7 +16563,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = DiGraph([(0,1,1),(1,2,3),(0,2,5)])
             sage: D.shortest_paths(0)
-            {0: [0], 1: [0, 1], 2: [0, 2]}
+            {0: [0], 2: [0, 2], 1: [0, 1]}
             sage: D.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2]}
 
@@ -16784,7 +16812,26 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_path_lengths(0)
-            {0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 3, 7: 3, 8: 2, 9: 2, 10: 1, 11: 2, 12: 3, 13: 3, 14: 4, 15: 5, 16: 4, 17: 3, 18: 2, 19: 1}
+            {0: 0,
+             10: 1,
+             19: 1,
+             1: 1,
+             8: 2,
+             2: 2,
+             3: 2,
+             18: 2,
+             11: 2,
+             9: 2,
+             13: 3,
+             12: 3,
+             17: 3,
+             4: 3,
+             6: 3,
+             7: 3,
+             14: 4,
+             5: 4,
+             16: 4,
+             15: 5}
 
         Weighted case::
 
@@ -18868,18 +18915,18 @@ class GenericGraph(GenericGraph_pyx):
              '#00ff00': [((1,3,2,4), (1,4)(2,3), 3), ...],
              '#ff0000': [((1,3,2,4), (1,3)(2,4), 1), ...]}
             sage: G._color_by_label()  # py3
-            {'#0000ff': [((), (1,2), 1), ...],
+            {'#ff0000': [((), (2,3), 2), ...],
              '#00ff00': [((), (3,4), 3), ...],
-             '#ff0000': [((), (2,3), 2), ...]}
+             '#0000ff': [((), (1,2), 1), ...]}
 
             sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})  # py2
             {'blue': [((1,3,2,4), (1,3)(2,4), 1), ...],
              'green': [((1,3,2,4), (1,4)(2,3), 3), ...],
              'red': [((1,3,2,4), (1,2,4), 2), ...]}
             sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})  # py3
-            {'blue': [((), (1,2), 1), ...],
+            {'red': [((), (2,3), 2), ...],
              'green': [((), (3,4), 3), ...],
-             'red': [((), (2,3), 2), ...]}
+             'blue': [((), (1,2), 1), ...]}
 
         TESTS:
 
@@ -19024,8 +19071,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.layout(layout="acyclic_dummy", save_pos=True)
             {('0', 0): [0.3..., 0],
-             ('0', 1): [0.3..., 1],
              ('1', 0): [0.6..., 0],
+             ('0', 1): [0.3..., 1],
              ('1', 1): [0.6..., 1]}
 
             sage: D3 = g.layout(dim=3); D3  # random
@@ -19161,10 +19208,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.LadderGraph(3)
             sage: g.layout_ranked(heights={i: (i, i+3) for i in range(3)})
             {0: [0.668..., 0],
-             1: [0.667..., 1],
-             2: [0.677..., 2],
              3: [1.34..., 0],
+             1: [0.667..., 1],
              4: [1.33..., 1],
+             2: [0.677..., 2],
              5: [1.33..., 2]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout="ranked", heights={i: (i, i+7) for i in range(7)})
@@ -19348,13 +19395,13 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.BalancedTree(2, 2)
             sage: G.layout_tree(tree_root=0)
-            {0: (1.5, 0),
-             1: (2.5, -1),
-             2: (0.5, -1),
-             3: (3.0, -2),
-             4: (2.0, -2),
+            {6: (0.0, -2),
              5: (1.0, -2),
-             6: (0.0, -2)}
+             2: (0.5, -1),
+             4: (2.0, -2),
+             3: (3.0, -2),
+             1: (2.5, -1),
+             0: (1.5, 0)}
 
             sage: G = graphs.BalancedTree(2, 4)
             sage: G.plot(layout="tree", tree_root=0, tree_orientation="up")
@@ -19366,15 +19413,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.set_embedding({0: [1, 6, 3], 1: [2, 5, 0], 2: [1], 3: [4, 7, 8, 0],
             ....:     4: [3], 5: [1], 6: [0], 7: [3], 8: [3]})
             sage: T.layout_tree()
-            {0: (2.166..., 0),
-             1: (3.5, -1),
-             2: (4.0, -2),
-             3: (1.0, -1),
-             4: (2.0, -2),
-             5: (3.0, -2),
-             6: (2.0, -1),
+            {8: (0.0, -2),
              7: (1.0, -2),
-             8: (0.0, -2)}
+             4: (2.0, -2),
+             3: (1.0, -1),
+             6: (2.0, -1),
+             5: (3.0, -2),
+             2: (4.0, -2),
+             1: (3.5, -1),
+             0: (2.166..., 0)}
             sage: T.plot(layout="tree", tree_root=3)
             Graphics object consisting of 18 graphics primitives
 
@@ -23534,7 +23581,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]})
             sage: G.katz_centrality(.85)
-            {1: 0.000000000000000,
+            {10: 20.9819819819820,
+             1: 0.000000000000000,
              2: 0.000000000000000,
              3: 0.000000000000000,
              4: 16.7319819819820,
@@ -23543,7 +23591,6 @@ class GenericGraph(GenericGraph_pyx):
              7: 0.000000000000000,
              8: 18.6846846846847,
              9: 0.000000000000000,
-             10: 20.9819819819820,
              11: 202.778914049184}
 
 
@@ -23563,7 +23610,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.PathGraph(4).katz_centrality(1/20,3)
             21/379
             sage: (graphs.PathGraph(3) + graphs.PathGraph(4)).katz_centrality(1/20)
-            {0: 11/199, 1: 21/199, 2: 11/199, 3: 21/379, 4: 41/379, 5: 41/379, 6: 21/379}
+            {3: 21/379, 4: 41/379, 5: 41/379, 6: 21/379, 0: 11/199, 1: 21/199, 2: 11/199}
 
         """
         n = self.order()

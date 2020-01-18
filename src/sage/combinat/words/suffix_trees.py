@@ -1654,7 +1654,12 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             sage: w = Word('abaababbabba')
             sage: T = DecoratedSuffixTree(w)
             sage: T._partial_labeling()
-            {(3, 4): [1], (5, 1): [3], (5, 6): [1], (11, 17): [1], (13, 8): [1], (15, 10): [2]}
+            {(3, 4): [1],
+             (5, 1): [3],
+             (5, 6): [1],
+             (15, 10): [2],
+             (13, 8): [1],
+             (11, 17): [1]}
         """
         def node_processing(node, parent, head):
             r"""

@@ -482,8 +482,8 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = XYPairs._default_policy
             sage: pol.self_element_constructor_attributes(XYPair)
-            {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
-             '_parent_for': 'self'}
+            {'_parent_for': 'self',
+             'Element': <class 'sage.structure.set_factories_example.XYPair'>}
         """
         return {'_parent_for': "self", 'Element': Element}
 
@@ -503,8 +503,8 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = XYPairs._default_policy
             sage: pol.facade_element_constructor_attributes(XYPairs())
-            {'_facade_for': AllPairs,
-             '_parent_for': AllPairs,
+            {'_parent_for': AllPairs,
+             '_facade_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
         """
         return {'_parent_for': parent,
@@ -533,11 +533,11 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = XYPairs._default_policy
             sage: pol.element_constructor_attributes(())
-            {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
-             '_parent_for': 'self'}
+            {'_parent_for': 'self',
+             'Element': <class 'sage.structure.set_factories_example.XYPair'>}
             sage: pol.element_constructor_attributes((1))
-            {'_facade_for': AllPairs,
-             '_parent_for': AllPairs,
+            {'_parent_for': AllPairs,
+             '_facade_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
         """
 
@@ -600,8 +600,8 @@ class SelfParentPolicy(SetFactoryPolicy):
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = SelfParentPolicy(XYPairs, XYPair)
             sage: pol.element_constructor_attributes(())
-            {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
-             '_parent_for': 'self'}
+            {'_parent_for': 'self',
+             'Element': <class 'sage.structure.set_factories_example.XYPair'>}
         """
         return self.self_element_constructor_attributes(self._Element)
 
@@ -667,11 +667,11 @@ class TopMostParentPolicy(SetFactoryPolicy):
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = TopMostParentPolicy(XYPairs, (), XYPair)
             sage: pol.element_constructor_attributes(())
-            {'Element': <class 'sage.structure.set_factories_example.XYPair'>,
-             '_parent_for': 'self'}
+            {'_parent_for': 'self',
+             'Element': <class 'sage.structure.set_factories_example.XYPair'>}
             sage: pol.element_constructor_attributes((1))
-            {'_facade_for': AllPairs,
-             '_parent_for': AllPairs,
+            {'_parent_for': AllPairs,
+             '_facade_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
         """
         factory = self._factory
@@ -768,12 +768,12 @@ class FacadeParentPolicy(SetFactoryPolicy):
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
             sage: pol = FacadeParentPolicy(XYPairs, XYPairs())
             sage: pol.element_constructor_attributes(())
-            {'_facade_for': AllPairs,
-             '_parent_for': AllPairs,
+            {'_parent_for': AllPairs,
+             '_facade_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
             sage: pol.element_constructor_attributes((1))
-            {'_facade_for': AllPairs,
-             '_parent_for': AllPairs,
+            {'_parent_for': AllPairs,
+             '_facade_for': AllPairs,
              'element_class': <class 'sage.structure.set_factories_example.AllPairs_with_category.element_class'>}
         """
         return self.facade_element_constructor_attributes(

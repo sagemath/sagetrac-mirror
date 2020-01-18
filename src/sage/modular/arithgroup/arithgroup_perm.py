@@ -2388,7 +2388,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: G.cusp_widths()
             [1, 1, 4]
             sage: G.cusp_widths(exp=True)
-            {1: 2, 4: 1}
+            {4: 1, 1: 2}
 
             sage: S2 = "(1,2)(3,4)(5,6)"
             sage: S3 = "(1,3,5)(2,4,6)"

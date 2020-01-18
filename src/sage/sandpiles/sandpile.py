@@ -265,7 +265,7 @@ Working with sandpile divisors::
     sage: D.is_linearly_equivalent(E)
     True
     sage: D.q_reduced()
-    {0: 4, 1: 0, 2: 0, 3: 1}
+    {1: 0, 2: 0, 3: 1, 0: 4}
     sage: S = sandpiles.Complete(4)
     sage: D = SandpileDivisor(S, [0,0,0,5])
     sage: E = D.stabilize(); E
@@ -273,7 +273,7 @@ Working with sandpile divisors::
     sage: D.is_linearly_equivalent(E)
     True
     sage: D.q_reduced()
-    {0: 4, 1: 0, 2: 0, 3: 1}
+    {1: 0, 2: 0, 3: 1, 0: 4}
     sage: D.rank()
     2
     sage: sorted(D.effective_div(), key=str)
@@ -550,7 +550,7 @@ class Sandpile(DiGraph):
             [-1 -2  3  0]
             [ 0  0  0  0]
             sage: s.dict()
-            {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
+            {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {1: 2, 0: 1, 2: 4}}
 
         Sandpiles can be created from Graphs and DiGraphs. ::
 
@@ -1978,13 +1978,13 @@ class Sandpile(DiGraph):
 
             sage: S = Sandpile({0:[1], 2:[0,1], 1:[2]})
             sage: S.dict()
-            {0: {1: 1}, 1: {2: 1}, 2: {0: 1, 1: 1}}
+            {0: {1: 1}, 2: {0: 1, 1: 1}, 1: {2: 1}}
             sage: T = S.reorder_vertices()
 
         The vertices 1 and 2 have been swapped::
 
             sage: T.dict()
-            {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
+            {2: {0: 1}, 1: {2: 1, 0: 1}, 0: {1: 1}}
         """
 
         # first order the vertices according to their distance from the sink
@@ -2079,7 +2079,7 @@ class Sandpile(DiGraph):
             sage: s.group_order()
             28
             sage: s.jacobian_representatives()
-            [{0: -5, 1: 3, 2: 2}, {0: -4, 1: 3, 2: 1}]
+            [{1: 3, 2: 2, 0: -5}, {1: 3, 2: 1, 0: -4}]
 
         Let `\tau` be the nonnegative generator of the kernel of the transpose of
         the Laplacian, and let `tau_s` be it sink component, then the sandpile
@@ -2427,7 +2427,8 @@ class Sandpile(DiGraph):
             sage: S = Sandpile({0:{},1:{0: 1, 2: 1, 3: 4},2:{3: 5},3:{1: 1, 2: 1}},0)
             sage: p = S.betti_complexes()
             sage: p[0]
-            [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
+            [{1: 5, 2: 4, 3: 1, 0: -8},
+             Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
             sage: S.resolution()
             'R^1 <-- R^5 <-- R^5 <-- R^1'
             sage: S.betti()
@@ -3005,9 +3006,9 @@ class SandpileConfig(dict):
             sage: c.equivalent_recurrent()
             {1: 1, 2: 1}
             sage: c.__dict__
-            {'_equivalent_recurrent': [{1: 1, 2: 1}, {1: 2, 2: 1}],
-             '_sandpile': Cycle sandpile graph: 3 vertices, sink = 0,
-             '_vertices': [1, 2]}
+            {'_sandpile': Cycle sandpile graph: 3 vertices, sink = 0,
+             '_vertices': [1, 2],
+             '_equivalent_recurrent': [{1: 1, 2: 1}, {1: 2, 2: 1}]}
 
         .. NOTE::
 
@@ -4326,12 +4327,12 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S,[0,1,1])
             sage: eff = D.effective_div()
             sage: D.__dict__
-            {'_effective_div': [{0: 0, 1: 1, 2: 1}, {0: 2, 1: 0, 2: 0}],
+            {'_sandpile': Cycle sandpile graph: 3 vertices, sink = 0,
+             '_vertices': [0, 1, 2],
+             '_weierstrass_rank_seq': {},
              '_polytope': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
              '_polytope_integer_pts': ((0, 0), (1, 1)),
-             '_sandpile': Cycle sandpile graph: 3 vertices, sink = 0,
-             '_vertices': [0, 1, 2],
-             '_weierstrass_rank_seq': {}}
+             '_effective_div': [{0: 0, 1: 1, 2: 1}, {0: 2, 1: 0, 2: 0}]}
             sage: D[0] += 1
             sage: D.__dict__
             {'_sandpile': Cycle sandpile graph: 3 vertices, sink = 0,
@@ -4928,7 +4929,7 @@ class SandpileDivisor(dict):
             sage: s = sandpiles.Complete(4)
             sage: D = SandpileDivisor(s,[2,-3,2,0])
             sage: D.q_reduced()
-            {0: -2, 1: 1, 2: 2, 3: 0}
+            {1: 1, 2: 2, 3: 0, 0: -2}
             sage: D.q_reduced(False)
             [-2, 1, 2, 0]
 
@@ -6360,13 +6361,13 @@ def glue_graphs(g, h, glue_g, glue_h):
         sage: glue_y = {0: 1, 1: 2, 3: 1}
         sage: z = glue_graphs(x,y,glue_x,glue_y); z
         {'sink': {},
-         'x0': {'sink': 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
          'x1': {'x0': 1},
          'x2': {'x0': 1, 'x1': 1},
          'x3': {'x0': 1, 'x1': 1, 'x2': 1},
          'y1': {'sink': 2},
          'y2': {'y1': 2},
-         'y3': {'sink': 1, 'y2': 1}}
+         'y3': {'sink': 1, 'y2': 1},
+         'x0': {'x1': 1, 'x3': 2, 'sink': 1, 'y1': 2, 'y3': 1}}
         sage: S = Sandpile(z,'sink')
         sage: S.h_vector()
         [1, 6, 17, 31, 41, 41, 31, 17, 6, 1]

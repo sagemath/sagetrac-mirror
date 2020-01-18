@@ -430,17 +430,17 @@ Here are the options for contour plots.
 ::
 
     sage: contour_plot.options
-    {'aspect_ratio': 1,
+    {'plot_points': 100,
+     'fill': True,
+     'contours': None,
+     'linewidths': None,
+     'linestyles': None,
+     'labels': False,
+     'frame': True,
      'axes': False,
      'colorbar': False,
-     'contours': None,
-     'fill': True,
-     'frame': True,
-     'labels': False,
      'legend_label': None,
-     'linestyles': None,
-     'linewidths': None,
-     'plot_points': 100,
+     'aspect_ratio': 1,
      'region': None}
 
 Let's change it so that all future contour plots don't have the fill.
@@ -451,17 +451,17 @@ the change happened.
 
     sage: contour_plot.options["fill"]=False
     sage: contour_plot.options
-    {'aspect_ratio': 1,
+    {'plot_points': 100,
+     'fill': False,
+     'contours': None,
+     'linewidths': None,
+     'linestyles': None,
+     'labels': False,
+     'frame': True,
      'axes': False,
      'colorbar': False,
-     'contours': None,
-     'fill': False,
-     'frame': True,
-     'labels': False,
      'legend_label': None,
-     'linestyles': None,
-     'linewidths': None,
-     'plot_points': 100,
+     'aspect_ratio': 1,
      'region': None}
 
 And it works!
@@ -476,17 +476,17 @@ We can always access the default options, of course, to remind us.
 ::
 
     sage: contour_plot.defaults()
-    {'aspect_ratio': 1,
+    {'plot_points': 100,
+     'fill': True,
+     'contours': None,
+     'linewidths': None,
+     'linestyles': None,
+     'labels': False,
+     'frame': True,
      'axes': False,
      'colorbar': False,
-     'contours': None,
-     'fill': True,
-     'frame': True,
-     'labels': False,
      'legend_label': None,
-     'linestyles': None,
-     'linewidths': None,
-     'plot_points': 100,
+     'aspect_ratio': 1,
      'region': None}
 
 .. _Vector:

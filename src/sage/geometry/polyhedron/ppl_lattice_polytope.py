@@ -1231,15 +1231,15 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: polygon.embed_in_reflexive_polytope('polytope')
             A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
             sage: polygon.embed_in_reflexive_polytope('points')
-            {(0, 0, 2, 1): (1, 0),
-             (0, 1, 2, 0): (0, 1),
-             (1, 0, 1, 2): (2, 0),
-             (1, 1, 1, 1): (1, 1),
+            {(0, 1, 2, 0): (0, 1),
              (1, 2, 1, 0): (0, 2),
-             (2, 0, 0, 3): (3, 0),
-             (2, 1, 0, 2): (2, 1),
+             (2, 3, 0, 0): (0, 3),
+             (0, 0, 2, 1): (1, 0),
+             (1, 1, 1, 1): (1, 1),
              (2, 2, 0, 1): (1, 2),
-             (2, 3, 0, 0): (0, 3)}
+             (1, 0, 1, 2): (2, 0),
+             (2, 1, 0, 2): (2, 1),
+             (2, 0, 0, 3): (3, 0)}
 
             sage: LatticePolytope_PPL((0,0), (4,0), (0,4)).embed_in_reflexive_polytope()
             Traceback (most recent call last):

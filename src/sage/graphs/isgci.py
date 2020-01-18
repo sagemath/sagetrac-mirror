@@ -761,7 +761,7 @@ class GraphClasses(UniqueRepresentation):
             sage: type(t)
             <... 'list'>
             sage: t[0]
-            {'sub': 'gc_1', 'super': 'gc_2'}
+            {'super': 'gc_2', 'sub': 'gc_1'}
         """
         self._get_ISGCI()
         return self.inclusions()
@@ -778,13 +778,13 @@ class GraphClasses(UniqueRepresentation):
 
             sage: t = graph_classes.smallgraphs()
             sage: t
-            {'2C_4': Graph on 8 vertices,
-             '2K_2': Graph on 4 vertices,
-             '2K_3': Graph on 6 vertices,
-             '2K_3 + e': Graph on 6 vertices,
-             '2K_4': Graph on 8 vertices,
-             '2P_3': Graph on 6 vertices,
-            ...
+            {'A \\cup K_1': Graph on 7 vertices,
+             '\\co{A \\cup K_1}': Graph on 7 vertices,
+             'gem \\cup K_1': Graph on 6 vertices,
+             '\\co{gem \\cup K_1}': Graph on 6 vertices,
+             'co-fork \\cup K_1': Graph on 6 vertices,
+             '\\co{co-fork \\cup K_1}': Graph on 6 vertices,
+             ...
             sage: t['fish']
             Graph on 6 vertices
         """

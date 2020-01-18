@@ -4832,9 +4832,9 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: Word([2,1,4,2,3,4,2]).evaluation_dict()
-            {1: 1, 2: 3, 3: 1, 4: 2}
+            {2: 3, 1: 1, 4: 2, 3: 1}
             sage: Word('badbcdb').evaluation_dict()
-            {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+            {'b': 3, 'a': 1, 'd': 2, 'c': 1}
             sage: Word().evaluation_dict()
             {}
 
@@ -7109,9 +7109,9 @@ def evaluation_dict(w):
 
         sage: from sage.combinat.words.finite_word import evaluation_dict
         sage: evaluation_dict([2,1,4,2,3,4,2])
-        {1: 1, 2: 3, 3: 1, 4: 2}
+        {2: 3, 1: 1, 4: 2, 3: 1}
         sage: evaluation_dict('badbcdb')
-        {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+        {'b': 3, 'a': 1, 'd': 2, 'c': 1}
         sage: evaluation_dict([])
         {}
 

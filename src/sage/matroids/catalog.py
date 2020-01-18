@@ -725,7 +725,7 @@ def TernaryDowling3():
         sage: len(list(M.linear_subclasses()))
         72
         sage: M.fundamental_cycle('abc', 'd')
-        {'a': 2, 'b': 1, 'd': 1}
+        {'d': 1, 'a': 2, 'b': 1}
 
     """
     A = Matrix(GF(3), [

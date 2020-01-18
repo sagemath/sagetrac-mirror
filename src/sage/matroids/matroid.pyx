@@ -3150,7 +3150,7 @@ cdef class Matroid(SageObject):
             sage: M1.is_isomorphic(M2)
             True
             sage: M1.is_isomorphic(M2, certificate=True)
-            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
+            (True, {4: 5, 0: 0, 3: 3, 1: 1, 2: 2, 5: 4})
             sage: G3 = graphs.CompleteGraph(4)
             sage: M1.is_isomorphic(G3)
             Traceback (most recent call last):
@@ -3196,7 +3196,7 @@ cdef class Matroid(SageObject):
             sage: M1._is_isomorphic(M2)
             True
             sage: M1._is_isomorphic(M2, certificate=True)
-            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
+            (True, {4: 5, 0: 0, 3: 3, 1: 1, 2: 2, 5: 4})
 
             sage: M1 = matroids.named_matroids.Fano()
             sage: M2 = matroids.named_matroids.NonFano()
@@ -3985,14 +3985,16 @@ cdef class Matroid(SageObject):
             sage: matroids.named_matroids.NonFano().has_minor(M)
             True
             sage: matroids.named_matroids.NonFano().has_minor(M, certificate=True)
-            (True, (frozenset(), frozenset({'g'}),
-                {0: 'b', 1: 'c', 2: 'a', 3: 'd', 4: 'e', 5: 'f'}))
+            (True,
+             (frozenset(),
+              frozenset({'g'}),
+              {5: 'f', 2: 'a', 3: 'd', 0: 'b', 4: 'e', 1: 'c'}))
             sage: M = matroids.named_matroids.Fano()
             sage: M.has_minor(M, True)
             (True,
              (frozenset(),
               frozenset(),
-              {'a': 'a', 'b': 'b', 'c': 'c', 'd': 'd', 'e': 'e', 'f': 'f', 'g': 'g'}))
+              {...'a': 'a'...}))
         """
         if not isinstance(N, Matroid):
             raise ValueError("N must be a matroid.")

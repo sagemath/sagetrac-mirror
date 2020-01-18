@@ -340,7 +340,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f = w^15 - w*3; f
             w^15 - 3*w
             sage: d = f._dict_unsafe(); d
-            {1: -3, 15: 1}
+            {15: 1, 1: -3}
             sage: d[1] = 10; f
             w^15 + 10*w
         """

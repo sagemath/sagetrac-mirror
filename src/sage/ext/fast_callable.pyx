@@ -2020,11 +2020,11 @@ cdef class InstructionStream:
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
             {'args': 1,
-             'code': [],
              'constants': [],
-             'domain': None,
              'py_constants': [],
-             'stack': 0}
+             'stack': 0,
+             'code': [],
+             'domain': None}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
             <type 'sage.ext.fast_callable.InterpreterMetadata'>
@@ -2241,11 +2241,11 @@ cdef class InstructionStream:
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
             {'args': 1,
-             'code': [],
              'constants': [],
-             'domain': None,
              'py_constants': [],
-             'stack': 0}
+             'stack': 0,
+             'code': [],
+             'domain': None}
             sage: instr_stream.instr('load_arg', 0)
             sage: instr_stream.instr('py_call', math.sin, 1)
             sage: instr_stream.instr('abs')
@@ -2254,11 +2254,11 @@ cdef class InstructionStream:
             [('load_arg', 0), ('py_call', <built-in function sin>, 1), 'abs', 'return']
             sage: instr_stream.get_current()
             {'args': 1,
-             'code': [0, 0, 3, 0, 1, 12, 2],
              'constants': [],
-             'domain': None,
              'py_constants': [<built-in function sin>],
-             'stack': 1}
+             'stack': 1,
+             'code': [0, 0, 3, 0, 1, 12, 2],
+             'domain': None}
         """
         d = {'args': self._n_args,
              'constants': self._constants,
@@ -2438,11 +2438,11 @@ cdef class Wrapper:
             sage: v = Wrapper_py(instr_stream.get_current())
             sage: v.get_orig_args()
             {'args': 1,
-             'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2],
              'constants': [pi, 1],
-             'domain': None,
              'py_constants': [],
-             'stack': 3}
+             'stack': 3,
+             'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2],
+             'domain': None}
             sage: v.op_list()
             [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
         """
@@ -2465,11 +2465,11 @@ cdef class Wrapper:
 
             sage: fast_callable(sin(x)/x, vars=[x], domain=RDF).get_orig_args()
             {'args': 1,
-             'code': [0, 0, 16, 0, 0, 8, 2],
              'constants': [],
-             'domain': Real Double Field,
              'py_constants': [],
-             'stack': 2}
+             'stack': 2,
+             'code': [0, 0, 16, 0, 0, 8, 2],
+             'domain': Real Double Field}
         """
         return self._orig_args
 

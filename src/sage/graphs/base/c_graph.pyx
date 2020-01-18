@@ -2890,7 +2890,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: all((not paths[v] or len(paths[v])-1 == g.distance(0,v)) for v in g)
             True
             sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
-            {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
+            {0: 0, 5: 1, 4: 1, 1: 1, 6: 2, 2: 2, 9: 2, 3: 2, 8: 2, 7: 2}
 
         On a disconnected graph ::
 

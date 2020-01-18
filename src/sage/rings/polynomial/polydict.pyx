@@ -285,7 +285,7 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.dict()
-            {(1, 2): 3, (2, 1): 4, (2, 3): 2}
+            {(2, 3): 2, (1, 2): 3, (2, 1): 4}
         """
         return self.__repn.copy()
 

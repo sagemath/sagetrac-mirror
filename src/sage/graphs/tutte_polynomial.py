@@ -389,7 +389,7 @@ class VertexOrder(EdgeSelection):
             sage: A.order
             [4, 6, 3, 2, 1, 7]
             sage: A.inverse_order
-            {1: 4, 2: 3, 3: 2, 4: 0, 6: 1, 7: 5}
+            {4: 0, 6: 1, 3: 2, 2: 3, 1: 4, 7: 5}
         """
         self.order = list(order)
         self.inverse_order = dict([reversed(_) for _ in enumerate(order)])

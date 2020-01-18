@@ -1206,7 +1206,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: R.<y,x,a42> = RR[]
             sage: R.gens_dict()
-            {'a42': a42, 'x': x, 'y': y}
+            {'y': y, 'x': x, 'a42': a42}
         """
         gens = self.gens()
         names = self.variable_names()

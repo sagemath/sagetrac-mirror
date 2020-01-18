@@ -855,16 +855,16 @@ def centrality_closeness_random_k(G, int k=1):
         sage: from sage.graphs.centrality import centrality_closeness_random_k
         sage: G = graphs.PetersenGraph()
         sage: centrality_closeness_random_k(G, 10)
-        {0: 0.6,
-         1: 0.6,
-         2: 0.6,
-         3: 0.6,
-         4: 0.6,
-         5: 0.6,
-         6: 0.6,
-         7: 0.6,
-         8: 0.6,
-         9: 0.6}
+        {...: 0.6,
+         ...: 0.6,
+         ...: 0.6,
+         ...: 0.6,
+         ...: 0.6,
+         ...: 0.6,
+         ...: 0.6,
+         ...: 0.6,
+         ...: 0.6,
+         ...: 0.6}
 
     TESTS::
 
