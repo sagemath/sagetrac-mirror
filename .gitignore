@@ -90,9 +90,3 @@ Untitled*.ipynb
 # GitLab CI generated files #
 #############################
 gitlab-build-docker.log
-
-/src/.cython_version
-/src/build
-/src/Makefile
-/src/bin/sage-env-config
-
