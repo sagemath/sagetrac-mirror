@@ -662,6 +662,7 @@ cd ..
 write_script_wrapper() {
     local script="$1"
     local script_dir="$2"
+    shift 2
 
     trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
 
@@ -707,6 +708,13 @@ fi
 
 __EOF__
 
+    while (( "$#" )); do
+        if [ -r "$1" ]; then
+            cat "$1" >> "$tmpscript"
+        fi
+        shift
+    done
+
     cat "$script" >> "$tmpscript"
     mv "$tmpscript" "$script"
     chmod +x "$script"
@@ -746,7 +754,12 @@ for script in $WRAPPED_SCRIPTS; do
                 fi
             fi
 
-            write_script_wrapper "$(pwd)/$script" "$script_dir"
+            if [ $script = build -o $script = install ]; then
+                write_script_wrapper "$(pwd)/$script" "$script_dir" "$(pwd)/spkg-env"
+            else
+                write_script_wrapper "$(pwd)/$script" "$script_dir"
+            fi
+
         else
             if [ ! -x "$script" ]; then
                 echo >&2 "WARNING: $script is not executable, making it executable"
