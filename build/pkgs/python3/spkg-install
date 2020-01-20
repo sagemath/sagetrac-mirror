@@ -2,15 +2,6 @@
 ## Python
 ###########################################
 
-# It is best to unset these environment variables, as they might confuse
-# the Python installer.
-unset PYTHONHOME
-unset PYTHONPATH
-
-# Prevent use of the system hg and svn as it might make the installation fail
-export HAS_HG=no
-export SVNVERSION=no
-
 cd src
 
 # Running 'make install' in parallel is a bad idea, so we use
