@@ -110,9 +110,9 @@ if [ -n "$2" ]; then
 cat >&2 <<MESSAGE
 If you want to try to fix the problem yourself, *don't* just cd to
 `pwd` and type '$2' or whatever is appropriate.
-Instead, the following commands setup all environment variables
-correctly and load a subshell for you to debug the error:
-  (cd '`pwd`' && '$SAGE_ROOT/sage' --sh)
+Instead, the following command sets up all environment variables
+correctly and loads a subshell for you to debug the error:
+  '`pwd`/spkg-buildsh'
 When you are done debugging, you can type "exit" to leave the subshell.
 MESSAGE
 fi
@@ -722,8 +722,12 @@ __EOF__
     trap - ERR
 }
 
+script=spkg-buildsh
+cat > "$(pwd)/$script" <<'EOF'
+    exec "$SAGE_ROOT/src/bin/sage" --sh "$@"
+EOF
 
-WRAPPED_SCRIPTS="build install check preinst postinst legacy-uninstall prerm postrm"
+WRAPPED_SCRIPTS="build buildsh install check preinst postinst legacy-uninstall prerm postrm"
 INSTALLED_SCRIPTS="prerm postrm"
 
 
