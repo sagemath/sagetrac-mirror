@@ -256,7 +256,6 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if x == 1:
             return self.identity()
 
-        from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
         if isinstance(x, NumberFieldHomomorphism_im_gens) and x.parent() == self.number_field().Hom(self.number_field()):
             l = [g for g in self if g.as_hom() == x]
             if len(l) != 1:
