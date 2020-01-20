@@ -45,6 +45,8 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  # Optional dependencies of python3
+  - openssl
   # For all the standard SageMath Packages (SPKG) that have a
   # spkg-configure.m4, we provide the corresponding conda-forge packages.
   # SPKG: arb
@@ -116,7 +118,6 @@ dependencies:
   - ntl           11.3.2
   # SPKG: openblas
   - openblas      >=0.3.7
-  - blas-devel    * *openblas
   # SPKG: pari
   - pari          2.11.*
   - pari-galpol
