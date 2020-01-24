@@ -211,14 +211,15 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
         index = tuple(self._x).index(self._entering)
 
         # Reverse signs for auxiliary variables
+        def reverse_sign_for_auxiliary(i_v):
+            i, v = i_v
+            return (i, v) if i < self._backend.nrows() else (i, -v)
         if index < self._backend.ncols():
-            tab_col = map(lambda (i, v):
-                          (i, v) if i < self._backend.nrows() else (i, -v),
+            tab_col = map(reverse_sign_for_auxiliary,
                           zip(*self._backend.eval_tab_col(
                               index + self._backend.nrows())))
         else:
-            tab_col = map(lambda (i, v):
-                          (i, v) if i < self._backend.nrows() else (i, -v),
+            tab_col = map(reverse_sign_for_auxiliary,
                           zip(*self._backend.eval_tab_col(
                               index - self._backend.ncols())))
 
@@ -278,18 +279,20 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
         index = tuple(self._x).index(self._leaving)
 
         # Reverse signs for auxiliary variables
+        def reverse_sign_for_auxiliary(i_v):
+            i, v = i_v
+            return (i, v) if i < self._backend.nrows() else (i, -v)
+        def reverse_sign_for_nonauxiliary(i_v):
+            i, v = i_v
+            return (i, -v) if i < self._backend.nrows() else (i, v)
         if index < self._backend.ncols():
             raw_row = self._backend.eval_tab_row(
                 index + self._backend.nrows())
-            tab_row = map(lambda (i, v):
-                          (i, v) if i < self._backend.nrows() else (i, -v),
-                          zip(*raw_row))
+            tab_row = map(reverse_sign_for_auxiliary, zip(*raw_row))
         else:
             raw_row = self._backend.eval_tab_row(
                 index - self._backend.ncols())
-            tab_row = map(lambda (i, v):
-                          (i, -v) if i < self._backend.nrows() else (i, v),
-                          zip(*raw_row))
+            tab_row = map(reverse_sign_for_nonauxiliary, zip(*raw_row))
 
         l = [0] * (self._backend.ncols())
         for (i, v) in tab_row:
