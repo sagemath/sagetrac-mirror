@@ -428,6 +428,17 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
         )
         return vector(col_coefs + row_coefs)
 
+    def objective_name(self):
+        r"""
+        Return the objective name of ``self``.
+
+        OUTPUT:
+
+        - a symbolic expression
+
+        """
+        return SR("obj")
+
     def update(self):
         r"""
         Update ``self`` using previously set entering and leaving variables.
