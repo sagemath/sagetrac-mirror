@@ -100,16 +100,16 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
             sage: b.solve()
             0
 
-        Use function in :class:`LPGLPKBackendDictionary`:
+        Use function in :class:`LPGLPKBackendDictionary`::
 
             sage: d = LPGLPKBackendDictionary(b)
 
-        Use function in :class:`InteractiveLPProblem`:
+        Use function in :class:`InteractiveLPProblem`::
 
             sage: lp, basis = p.interactive_lp_problem()
             sage: lpd = lp.dictionary(*basis)
 
-        Compare results:
+        Compare results::
 
             sage: d.basic_variables()
             (x_0, x_1)
@@ -332,11 +332,11 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
             sage: b.solve()
             0
 
-        Use function in :class:`LPGLPKBackendDictionary`:
+        Use function in :class:`LPGLPKBackendDictionary`::
 
             sage: d = LPGLPKBackendDictionary(b)
 
-        Use function in :class:`InteractiveLPProblem`:
+        Use function in :class:`InteractiveLPProblem`::
 
             sage: lp, basis = p.interactive_lp_problem()
             sage: lpd = lp.dictionary(*basis)
@@ -387,16 +387,16 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
             sage: b.solve()
             0
 
-        Use function in :class:`LPGLPKBackendDictionary`:
+        Use function in :class:`LPGLPKBackendDictionary`::
 
             sage: d = LPGLPKBackendDictionary(b)
 
-        Use function in :class:`InteractiveLPProblem`:
+        Use function in :class:`InteractiveLPProblem`::
 
             sage: lp, basis = p.interactive_lp_problem()
             sage: lpd = lp.dictionary(*basis)
 
-        Compare results:
+        Compare results::
 
             sage: d.objective_coefficients()
             (-0.58, -0.76)
