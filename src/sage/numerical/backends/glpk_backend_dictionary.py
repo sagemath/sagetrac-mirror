@@ -4,7 +4,7 @@ from sage.numerical.backends.glpk_backend \
 from sage.modules.all import vector
 from sage.numerical.backends.abstract_backend_dictionary \
     import LPAbstractBackendDictionary
-
+from sage.numerical.interactive_simplex_method import variable
 
 class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
     r"""
@@ -168,9 +168,14 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
         )
         return vector(col_const + row_const)
 
-    def entering_coefficients(self):
+    def column_coefficients(self, v):
         r"""
-        Return coefficients of the entering variable.
+        Return coefficients of a nonbasic variable.
+
+        INPUT:
+
+        - ``v`` -- a nonbasic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
 
         OUTPUT:
 
@@ -198,17 +203,17 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
             sage: vars
             (x_0, x_1, w_0, w_2)
             sage: d.enter(vars[0])
-            sage: d.entering_coefficients()
+            sage: d.entering_coefficients()   # indirect doctest
             (5.0, 36.0, 26.0)
             sage: d.enter(vars[1])
-            sage: d.entering_coefficients()
+            sage: d.entering_coefficients()   # indirect doctest
             (0.0, 1.0, 2.0)
         """
-        if self._entering is None:
-            raise ValueError("entering variable must be chosen to compute "
-                             "its coefficients")
-
-        index = tuple(self._x).index(self._entering)
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.nonbasic_variables():
+                raise ValueError("variable must be nonbasic")
+        index = tuple(self._x).index(v)
 
         # Reverse signs for auxiliary variables
         def reverse_sign_for_auxiliary(i_v):
@@ -236,9 +241,17 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
 
         return vector(l)
 
-    def leaving_coefficients(self):
+    def row_coefficients(self, v):
         r"""
-        Return coefficients of the leaving variable.
+        Return coefficients of the basic variable ``v``.
+
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
 
         OUTPUT:
 
@@ -266,17 +279,17 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
             sage: vars
             (x_2, x_3, w_1)
             sage: d.leave(vars[0])
-            sage: d.leaving_coefficients()
+            sage: d.leaving_coefficients()   # indirect doctest
             (5.0, 0.0, 0.0, 1.0)
             sage: d.leave(vars[1])
-            sage: d.leaving_coefficients()
+            sage: d.leaving_coefficients()   # indirect doctest
             (36.0, 1.0, 1.0, 7.0)
         """
-        if self._leaving is None:
-            raise ValueError("leaving variable must be chosen to compute "
-                             "its coefficients")
-
-        index = tuple(self._x).index(self._leaving)
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.basic_variables():
+                raise ValueError("variable must be basic")
+        index = tuple(self._x).index(v)
 
         # Reverse signs for auxiliary variables
         def reverse_sign_for_auxiliary(i_v):
@@ -398,10 +411,10 @@ class LPGLPKBackendDictionary(LPAbstractBackendDictionary):
 
         Compare results::
 
-            sage: d.objective_coefficients()
+            sage: d.objective_coefficients()   # rel tol 1e-9
             (-0.58, -0.76)
             sage: lpd.objective_coefficients() # rel tol 1e-9
-            (-0.5800000000000001, -0.76)
+            (-0.58, -0.76)
         """
         col_coefs = tuple(
             self._backend.get_col_dual(i)
