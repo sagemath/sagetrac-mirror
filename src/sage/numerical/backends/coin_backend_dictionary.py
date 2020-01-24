@@ -1,7 +1,7 @@
 from sage.modules.all import vector
 from sage.numerical.backends.abstract_backend_dictionary \
     import LPAbstractBackendDictionary
-
+from sage.numerical.interactive_simplex_method import variable
 
 class LPCoinBackendDictionary(LPAbstractBackendDictionary):
     r"""
@@ -147,9 +147,14 @@ class LPCoinBackendDictionary(LPAbstractBackendDictionary):
         )
         return vector(col_const + row_const)
 
-    def entering_coefficients(self):
+    def column_coefficients(self, v):
         r"""
-        Return coefficients of the entering variable.
+        Return coefficients of a nonbasic variable.
+
+        INPUT:
+
+        - ``v`` -- a nonbasic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
 
         OUTPUT:
 
@@ -174,23 +179,31 @@ class LPCoinBackendDictionary(LPAbstractBackendDictionary):
             sage: vars
             (x_0, x_1, w_0, w_2)
             sage: d.enter(vars[0])
-            sage: d.entering_coefficients()
+            sage: d.entering_coefficients()   # indirect doctest
             (36.0, 26.0, 5.0)
             sage: d.enter(vars[1])
-            sage: d.entering_coefficients()
+            sage: d.entering_coefficients()   # indirect doctest
             (1.0, 2.0, 0.0)
         """
-        if self._entering is None:
-            raise ValueError("entering variable must be chosen to compute "
-                             "its coefficients")
-
-        index = self._x.index(self._entering)
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.nonbasic_variables():
+                raise ValueError("variable must be nonbasic")
+        index = tuple(self._x).index(v)
 
         return vector(self._backend.get_binva_col(index))
 
-    def leaving_coefficients(self):
+    def row_coefficients(self, v):
         r"""
-        Return coefficients of the leaving variable.
+        Return coefficients of the basic variable ``v``.
+
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
 
         OUTPUT:
 
@@ -215,17 +228,18 @@ class LPCoinBackendDictionary(LPAbstractBackendDictionary):
             sage: vars
             (x_2, x_3, w_1)
             sage: d.leave(vars[0])
-            sage: d.leaving_coefficients()
+            sage: d.leaving_coefficients()   # indirect doctest
             (5.0, 0.0, 0.0, 1.0)
             sage: d.leave(vars[1])
-            sage: d.leaving_coefficients()
+            sage: d.leaving_coefficients()   # indirect doctest
             (36.0, 1.0, 1.0, 7.0)
         """
-        if self._leaving is None:
-            raise ValueError("leaving variable must be chosen to compute "
-                             "its coefficients")
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.basic_variables():
+                raise ValueError("variable must be basic")
+        var_index = tuple(self._x).index(v)
 
-        var_index = self._x.index(self._leaving)
         row_indices = self._backend.get_basics()
         row_index = tuple(row_indices).index(var_index)
         from sage.misc.flatten import flatten
