@@ -14,6 +14,7 @@ from sage.numerical.interactive_simplex_method \
 from sage.modules.all import vector
 from sage.rings.all import ZZ
 from sage.matrix.all import matrix
+from sage.misc.functional import round
 
 class LPCleanDictionary(LPAbstractDictionary):
     r"""
