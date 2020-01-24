@@ -138,6 +138,7 @@ class LPCleanDictionary(LPAbstractDictionary):
             sage: d.leaving()
             w_0
         """
+        super(LPCleanDictionary, self).leave(v)
         self._dict.leave(v)
 
     def enter(self, v):
@@ -168,6 +169,7 @@ class LPCleanDictionary(LPAbstractDictionary):
             sage: d._entering
             m_0
         """
+        super(LPCleanDictionary, self).enter(v)
         self._dict.enter(v)
 
     def _round_all_(self, iterable):
