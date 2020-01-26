@@ -1,0 +1,27 @@
+From f6b35965963b97642f89a7486ed2fe7bfd21ded3 Mon Sep 17 00:00:00 2001
+From: Dave Witte Morris <Dave.Morris@uleth.ca>
+Date: Sun, 26 Jan 2020 16:44:04 -0700
+Subject: [PATCH] allow leading plus
+
+---
+ mpz/set_str.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/mpz/set_str.c b/mpz/set_str.c
+index 915fbd13..a3577127 100644
+--- a/mpz/set_str.c
++++ b/mpz/set_str.c
+@@ -65,6 +65,10 @@ mpz_set_str (mpz_ptr x, const char *str, int base)
+       negative = 1;
+       c = (unsigned char) *str++;
+     }
++  else if (c == '+')
++    {
++      c = (unsigned char) *str++;
++    }
+ 
+   if (digit_value[c] >= (base == 0 ? 10 : base))
+     return -1;			/* error if no valid digits */
+-- 
+2.21.0 (Apple Git-122)
+

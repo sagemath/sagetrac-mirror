@@ -42,6 +42,13 @@ TESTS::
     sage: Q in Fields().Infinite()
     True
 
+    Verify that :trac:`29006` is fixed::
+
+    sage: QQ('+3')
+    3
+    sage: QQ('+3/5')
+    3/5
+
 AUTHORS:
 
 - Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on
