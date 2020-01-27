@@ -40,6 +40,10 @@ opt := $(opt) -march=native
 endif
 
 # Test, which flags the compiler supports.
+# We assume that all compilers are of the same suite,
+# or at least that if the C Compiler can handle
+# `march=native`, then so can the C++ and Fortran
+# compiler.
 opt := $(shell export CC=$(CC) && ../../src/bin/./testcflags.sh $(opt))
 CFLAGS ?= $(opt)
 CXXFLAGS ?= $(opt)
