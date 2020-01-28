@@ -329,6 +329,19 @@ AC_PROG_CC()
 AC_PROG_CPP()
 AC_PROG_CXX()
 AC_PROG_FC()
+dnl Check early, and outside of a SAGE_SPKG_CONFIGURE macro,
+dnl some properties of the Fortran compiler.
+dnl This is used in build/pkgs/{openblas,gfortran}/spkg-configure.m4
+if test -n "$FC" ; then
+  AC_FC_FREEFORM([
+    SAGE_HAVE_FC_FREEFORM=yes
+    dnl The following line makes sure that use of AC_FC_FUNC
+    dnl does not lead to errors when there is no FC.
+    dnl This is needed because AC_FC_FUNC uses AC_REQUIRE.
+    dnl on the following internal macro.
+    _AC_FC_NAME_MANGLING
+  ])
+fi
 
 AC_SUBST(CC)
 AC_SUBST(FC)
