@@ -6,20 +6,25 @@ SAGE_SPKG_CONFIGURE([openblas], [
        AC_SEARCH_LIBS([cblas_dgemm], [openblas], [dnl openblas works as cblas
              sage_install_cblas_pc=yes
              ], [
-             dnl openblas does not work as cblas; try to use system's cblas as is
+             dnl openblas does not work as cblas; try to use system cblas as is
              PKG_CHECK_MODULES([CBLAS], [cblas], [], [sage_spkg_install_openblas=yes])
           ])
-       AC_FC_FUNC([dgeqrf])
-       AC_SEARCH_LIBS([$dgeqrf], [openblas], [dnl openblas works as lapack
-             sage_install_lapack_pc=yes
-             ], [
-             dnl openblas does not work as lapack; try to use system's lapack as is
-             PKG_CHECK_MODULES([LAPACK], [lapack], [], [sage_spkg_install_openblas=yes])
-          ])
-       ], [
-       AC_MSG_WARN([Unable to locate the directory of openblas.pc. This should not happen!])
-       sage_spkg_install_openblas=yes
-       ])
+       if test "$SAGE_HAVE_FC_FREEFORM" = yes ; then dnl Have a suitable Fortran compiler
+         AC_FC_FUNC([dgeqrf])
+         AC_SEARCH_LIBS([$dgeqrf], [openblas], [dnl openblas works as lapack
+               sage_install_lapack_pc=yes
+            ], [
+               dnl openblas does not work as lapack; try to use system lapack as is
+               PKG_CHECK_MODULES([LAPACK], [lapack], [], [sage_spkg_install_openblas=yes])
+            ], [
+              AC_MSG_WARN([Unable to locate the directory of openblas.pc. This should not happen!])
+              sage_spkg_install_openblas=yes
+            ])
+       else dnl No suitable Fortran compiler
+           AC_MSG_WARN([Because we have not found a suitable Fortran compiler, "make" will install gfortran for you, and we will check whether we can use system BLAS in a "configure" run afterwards.])
+           sage_spkg_install_openblas=yes
+       fi
+     ]) dnl PKG_CHECK_VAR
     ], [sage_spkg_install_openblas=yes])
     AS_IF([test x$sage_spkg_install_openblas != xyes], [
        m4_foreach([blaslibnam], [blas, cblas, lapack], [
