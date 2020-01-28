@@ -44,6 +44,7 @@ AUTHORS:
 #from sage.structure.sage_object import SageObject
 #from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.rational import Rational
+from sage.graphs.graph import Graph
 from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace
 from copy import copy
@@ -580,6 +581,36 @@ class PlumbingGraph():
             if self.adj[e] <= S:
                 R.add_edge({D[i] for i in self.adj[e]}, self.epsilon[e])
         return R
+
+    def export_to_graph(self):
+        r"""
+        Return a Graph() with the same vertices and edges as the
+        plumbing graph.
+
+        OUTPUT:
+
+        Graph
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[2,2,2])
+            0
+            sage: P.export_to_graph()
+            Looped multi-graph on 4 vertices
+
+        """
+        G = Graph(loops=True, multiedges=True, weighted=True)
+        for v in self.vertices:
+            G.add_vertex(v)
+        for e in self.edges:
+            l = list(self.adj[e])
+            if len(l) == 1:
+                t = (l[0], l[0], self.epsilon[e])
+            else:
+                t = (l[0], l[1], self.epsilon[e])
+            G.add_edge(t)
+        return G
 
 ########################################################################
 # some useful queries
