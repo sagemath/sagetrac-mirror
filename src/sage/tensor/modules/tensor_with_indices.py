@@ -229,10 +229,6 @@ class TensorWithIndices(SageObject):
         Traceback (most recent call last):
         ...
         ValueError: index conventions not satisfied: repeated indices of same type
-        sage: (a*a)['^(ij)^(kl)']  # multiple indices group of the same type
-        Traceback (most recent call last):
-        ...
-        ValueError: index conventions not satisfied
         sage: a["^éa"]  # accentuated index name
         Traceback (most recent call last):
         ...
@@ -282,18 +278,20 @@ class TensorWithIndices(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: index conventions not satisfied: repeated indices of same type
-            sage: TensorWithIndices._parse_indices('^(ij)^(kl)')  # multiple indices group of the same type
-            Traceback (most recent call last):
-            ...
-            ValueError: index conventions not satisfied
             sage: TensorWithIndices._parse_indices("^éa")  # accentuated index name
             Traceback (most recent call last):
             ...
             ValueError: index conventions not satisfied
             sage: TensorWithIndices._parse_indices('^ij_kl')
             ('ij', 'kl')
+            sage: TensorWithIndices._parse_indices('^i_j^k_l')
+            ('ik', 'jl')
+            sage: TensorWithIndices._parse_indices('^i_k^j_l')
+            ('ij', 'kl')
             sage: TensorWithIndices._parse_indices('_kl^ij')
             ('ij', 'kl')
+            sage: TensorWithIndices._parse_indices('^(ij)^(kl)')  # multiple indices group of the same type
+            ('(ij)(kl)', '')
             sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,2))
             ('(ij)', 'ik')
             sage: TensorWithIndices._parse_indices("(ij)_ik",tensor_type=(2,0))
@@ -331,13 +329,11 @@ class TensorWithIndices(SageObject):
         elif re.match(mixed,indices) is not None:
             con = ""
             cov = ""
-            r"^(?P<type>(\_[\^))(?P<indices>" + allowed_pattern +")"
-            for indices_match in re.finditer(mixed,indices):
-                indices_match = re.match(mixed,indices[i:])
-                if indices_match.groupdict["type"] == "^":
-                    con += indices_match.groupdict[indices] 
+            for indices_match in re.finditer(r"(?P<T>(\_|\^))(?P<indices>" + allowed_pattern +")",indices):
+                if indices_match.groupdict()["T"] == "^":
+                    con += indices_match.groupdict()["indices"] 
                 else:
-                    cov += indices_match.groupdict[indices]     
+                    cov += indices_match.groupdict()["indices"]     
         else:
             try:
                 cov,con = indices.replace("_","").split("^")
