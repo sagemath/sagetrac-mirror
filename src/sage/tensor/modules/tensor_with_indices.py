@@ -317,15 +317,27 @@ class TensorWithIndices(SageObject):
         allowed_pattern = r"(\([a-zA-Z.]{2,}\)|\[[a-zA-Z.]{2,}\]|[a-zA-Z.]+)*"
         con_then_cov = r"^(\^|)" + allowed_pattern + r"(\_" + allowed_pattern + r"|)$"
         cov_then_con = r"^\_" + allowed_pattern + r"(\^" + allowed_pattern + r"|)$"
+        mixed = r"^((\_|\^)" + allowed_pattern +")+$"
         if (re.match(con_then_cov,indices) is None
-            and re.match(cov_then_con,indices) is None):
+            and re.match(cov_then_con,indices) is None
+            and re.match(mixed,indices) is None):
             raise ValueError("index conventions not satisfied")
-        elif re.match(con_then_cov,indices):
+        elif re.match(con_then_cov,indices) is not None:
             try:
                 con,cov = indices.replace("^","").split("_")
             except ValueError:
                 con = indices.replace("^","")
                 cov = ""
+        elif re.match(mixed,indices) is not None:
+            con = ""
+            cov = ""
+            r"^(?P<type>(\_[\^))(?P<indices>" + allowed_pattern +")"
+            for indices_match in re.finditer(mixed,indices):
+                indices_match = re.match(mixed,indices[i:])
+                if indices_match.groupdict["type"] == "^":
+                    con += indices_match.groupdict[indices] 
+                else:
+                    cov += indices_match.groupdict[indices]     
         else:
             try:
                 cov,con = indices.replace("_","").split("^")
