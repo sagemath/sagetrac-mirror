@@ -6,7 +6,8 @@ SAGE_SPKG_CONFIGURE([gsl], [
           AC_CONFIG_COMMANDS([GSLPCPROCESS], [
             $SED -e 's/\${GSL_CBLAS_LIB}\ //' \
                  -e 's/GSL_CBLAS_LIB.*/Requires: cblas/' $GSL_PC \
-                  > "$SAGE_SRC"/lib/pkgconfig/gsl.pc
+                  > build/pkgs/sage_system_blas_facade/src/gsl.pc
+            AS_VAR_APPEND([SAGE_SYSTEM_BLAS_FACADE_PC_FILES], [gsl.pc])
           ], [
             SED=$ac_cv_path_SED
             GSL_PC="$GSLPCDIR"/gsl.pc

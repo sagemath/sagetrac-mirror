@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+PCFILES="@SAGE_SYSTEM_BLAS_FACADE_PC_FILES@"
+SAGE_PKGCONFIG="$SAGE_LOCAL/lib/pkgconfig"
+mkdir -p "$SAGE_PKGCONFIG"
+if [ -n "$PCFILES" ]; then
+   cd build/pkgs/sage_system_blas_facade/src && cp -P $PCFILES "$SAGE_PKGCONFIG"
+fi

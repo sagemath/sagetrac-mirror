@@ -1,0 +1,2 @@
+#! /usr/bin/env bash
+rm -f build/pkgs/sage_system_blas_facade/src/*.pc

@@ -35,11 +35,6 @@ PYTHON = python@SAGE_PYTHON_VERSION@
 MP_LIBRARY = @SAGE_MP_LIBRARY@
 BLAS = @SAGE_BLAS@
 
-# Because some .pc files are generated at configure time we can't write their
-# names explicitly the Makefile, so we use the wildcard function here at make
-# runtime
-PCFILES = $(subst $(SAGE_SRC),$(SAGE_LOCAL),$(wildcard $(SAGE_SRC)/lib/pkgconfig/*.pc))
-
 # Files to track installation of packages
 BUILT_PACKAGES = @SAGE_BUILT_PACKAGES@
 DUMMY_PACKAGES = @SAGE_DUMMY_PACKAGES@
@@ -276,6 +271,14 @@ $$(INST)/$(1)-$(2): $(3)
 
 $(1): $$(INST)/$(1)-$(2)
 
+.PHONY: $(1)-distclean
+$(1)-distclean:
+	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
+		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-distclean'
+
+# The following should actually be $(1)-uninstall,
+# see https://trac.sagemath.org/ticket/29097
 $(1)-clean:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
 		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
