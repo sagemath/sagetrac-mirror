@@ -7161,10 +7161,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: E = QuadraticField(-1)
             sage: E.lmfdb_page()  # optional -- webbrowser
+
+        Even if the variable name is different it works::
+
+            sage: R.<y>= PolynomialRing(QQ, "y")
+            sage: K = NumberField(y^2 + 1 , "i")
+            sage: K.lmfdb_page()  # optional -- webbrowser
         """
         import webbrowser, urllib
         lmfdb_url = 'http://www.lmfdb.org/NumberField/?natural={}'
-        poly = pari(self.absolute_polynomial()).polredabs()
+        f = self.absolute_polynomial().parent().change_var('x')(self.absolute_polynomial())
+        poly = pari(f).polredabs()
         url = lmfdb_url.format(urllib.quote(str(poly)))
         webbrowser.open(url)
 
