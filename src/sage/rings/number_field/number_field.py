@@ -7162,10 +7162,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: E = QuadraticField(-1)
             sage: E.lmfdb_page()  # optional -- webbrowser
         """
-        import webbrowser, urllib.parse
+        import webbrowser, urllib
         lmfdb_url = 'http://www.lmfdb.org/NumberField/?natural={}'
         poly = pari(self.absolute_polynomial()).polredabs()
-        url = lmfdb_url.format(urllib.parse.quote(str(poly)))
+        url = lmfdb_url.format(urllib.quote(str(poly)))
         webbrowser.open(url)
 
 class NumberField_absolute(NumberField_generic):
