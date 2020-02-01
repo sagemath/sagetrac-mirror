@@ -183,6 +183,61 @@ class restricted_output(object):
         dm.preferences.supplemental_plot = self._original_prefs.supplemental_plot
 
 
+class display_context(object):
+
+    def __init__(self, **kwds):
+        """
+        Context manager for temporarily changing the display preferences.
+
+        INPUT:
+
+        - ``**kwds`` -- the display preferences to change. For allowed values,
+          see :mod:`sage.repl.rich_output.preferences`.
+
+        EXAMPLES::
+
+            sage: dm = get_display_manager()
+            sage: old_preferences = dm.preferences
+
+            sage: from sage.repl.rich_output.display_manager import display_context
+            sage: with display_context(text=None, graphics='disable'):
+            ....:     dm.preferences
+            Display preferences:
+            * graphics = disable
+            * supplemental_plot = never
+            * text is not specified
+
+            sage: dm.preferences
+            Display preferences:
+            * graphics is not specified
+            * supplemental_plot = never
+            * text is not specified
+            sage: dm.preferences == old_preferences
+            True
+        """
+        from sage.repl.rich_output import get_display_manager
+        self._display_manager = get_display_manager()
+        self._local_prefs = kwds
+
+    def __enter__(self):
+        """
+        Enter the display preferences context.
+        """
+        dm = self._display_manager
+        self._original_prefs = DisplayPreferences(dm.preferences)
+        for key in self._local_prefs:
+            dm.preferences.__setattr__(key, self._local_prefs[key])
+
+    def __exit__(self, exception_type, value, traceback):
+        """
+        Exit the display preferences context.
+        """
+        dm = self._display_manager
+        for key in self._local_prefs:
+            dm.preferences.__setattr__(key,
+                    self._original_prefs.__getattribute__(key))
+
+
 class DisplayManager(SageObject):
 
     _instance = None
