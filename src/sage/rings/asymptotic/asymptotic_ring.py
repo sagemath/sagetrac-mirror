@@ -1028,17 +1028,28 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         Nothing, the representation is printed directly on the
         screen.
 
+        Note that the output depends on the display preferences. For details,
+        see :func:`~sage.repl.rich_output.pretty_print.pretty_print`.
+
         EXAMPLES::
 
             sage: A.<x> = AsymptoticRing('QQ^x * x^QQ * log(x)^QQ', SR.subring(no_variables=True))
-            sage: (pi/2 * 5^x * x^(42/17) - sqrt(euler_gamma) * log(x)^(-7/8)).show()
+            sage: f = pi/2 * 5^x * x^(42/17) - sqrt(euler_gamma) * log(x)^(-7/8)
+            sage: f.show()
+            1/2*pi*5^x*x^(42/17) - sqrt(euler_gamma)*log(x)^(-7/8)
+
+            sage: from sage.repl.rich_output.display_manager import local_display_preferences
+            sage: with local_display_preferences(text=None):
+            ....:     f.show()
             <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2} \, \pi
             5^{x} x^{\frac{42}{17}} - \sqrt{\gamma_E} \log\left(x\right)^{-\frac{7}{8}}</script></html>
 
         TESTS::
 
             sage: A.<x> = AsymptoticRing('(e^x)^QQ * x^QQ', SR.subring(no_variables=True))
-            sage: (zeta(3) * (e^x)^(-1/2) * x^42).show()
+            sage: from sage.repl.rich_output.display_manager import local_display_preferences
+            sage: with local_display_preferences(text=None):
+            ....:     (zeta(3) * (e^x)^(-1/2) * x^42).show()
             <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\zeta(3)
             \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
         """

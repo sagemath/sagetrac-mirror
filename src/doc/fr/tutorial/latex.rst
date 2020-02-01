@@ -123,12 +123,28 @@ contrôler ce processus.
 
 La commande interne ``pretty_print()`` permet de convertir un objet Sage en code
 HTML utilisant MathJax. C'est le code qui sera ensuite utilisé dans le
-bloc-notes ::
+bloc-notes.
+
+.. skip
+
+::
 
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
+
+..
+    Test that the examples above work in the notebook as advertised::
+
+        sage: from sage.repl.rich_output.display_manager import local_display_preferences
+        sage: with local_display_preferences(text=None):
+        ....:     pretty_print(x^12)
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
+
+        sage: with local_display_preferences(text=None):
+        ....:     pretty_print(integrate(sin(x), x))
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 Le bloc-notes dispose de deux autres fonctionnalités pour appeler LaTeX.
 Premièrement, lorsque la case « Typeset » (juste au-dessus de la première

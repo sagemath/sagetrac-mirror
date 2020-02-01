@@ -151,7 +151,7 @@ class restricted_output(object):
             Display preferences:
             * graphics = disable
             * supplemental_plot = never
-            * text is not specified
+            * text = plain
             sage: dm.preferences.supplemental_plot = 'never'
         """
         dm = self._display_manager
@@ -208,7 +208,7 @@ class local_display_preferences(object):
             Display preferences:
             * graphics is not specified
             * supplemental_plot = never
-            * text is not specified
+            * text = plain
             sage: dm.preferences == old_preferences
             True
         """
@@ -396,7 +396,7 @@ class DisplayManager(SageObject):
             Display preferences:
             * graphics is not specified
             * supplemental_plot = never
-            * text is not specified
+            * text = plain
         """
         return self._preferences
 
@@ -553,7 +553,7 @@ class DisplayManager(SageObject):
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
-            sage: dm.preferences.text is None
+            sage: dm.preferences.text == 'plain'
             True
             sage: dm._preferred_text_formatter([1/42])
             OutputPlainText container

@@ -70,10 +70,10 @@ class BackendDoctest(BackendBase):
             Display preferences:
             * graphics is not specified
             * supplemental_plot = never
-            * text is not specified
+            * text = plain
         """
         from sage.repl.rich_output.preferences import DisplayPreferences
-        return DisplayPreferences(supplemental_plot='never')
+        return DisplayPreferences(supplemental_plot='never', text='plain')
 
     def install(self, **kwds):
         """

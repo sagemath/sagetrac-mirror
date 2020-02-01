@@ -126,12 +126,28 @@ werden. Die Einstellungen und Auswirkungen dieses Prozesses wird im
 Kapitel :ref:`sec-custom-generation` dargestellt.
 
 Der interne ``pretty_print()`` Befehl zeigt die Konvertierung von Sage
-Objekten in HTML Code der MathJax nutzt im Notebook.  ::
+Objekten in HTML Code, der MathJax nutzt im Notebook.
+
+.. skip
+
+::
 
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
+
+..
+    Test that the examples above work in the notebook as advertised::
+
+        sage: from sage.repl.rich_output.display_manager import local_display_preferences
+        sage: with local_display_preferences(text=None):
+        ....:     pretty_print(x^12)
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
+
+        sage: with local_display_preferences(text=None):
+        ....:     pretty_print(integrate(sin(x), x))
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 Das Notebook hat zwei weitere Möglichkeiten TeX zu nutzen. Die erste
 ist der "Typeset"-Knopf über der ersten Zelle eines Arbeitsblatts,
@@ -152,8 +168,8 @@ Text als Kommentar in einem  Arbeitsblatt unterzubringen. Text den Sie
 hier zwischen ``$...$`` oder ``$$...$$`` eingeben wird ebenfalls von
 MathJax in einer "inline" bzw. "display math" Umgebung gesetzt.
 
-.. _sec-custom-generation:
 
+.. _sec-custom-generation:
 
 Anpassen der LaTeX-Generierung
 ==============================

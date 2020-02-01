@@ -407,8 +407,7 @@ Sage example in ./combinat.tex, line 1466::
 
 Sage example in ./combinat.tex, line 1475::
 
-  sage: show(C.unrank(20))
-  <html>...</html>
+  sage: C.unrank(20).show()
 
 Sage example in ./combinat.tex, line 1496::
 
