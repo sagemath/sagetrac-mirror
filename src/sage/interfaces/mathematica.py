@@ -966,6 +966,11 @@ class MathematicaElement(ExpectElement):
 
             sage: Q = mathematica('Sin[x Cos[y]]/Sqrt[1-x^2]')   # optional - mathematica
             sage: show(Q)                                        # optional - mathematica
+            Sin[x*Cos[y]]/Sqrt[1 - x^2]
+
+            sage: from sage.repl.rich_output.display_manager import display_context
+            sage: with display_context(text=None):
+            ....:     show(Q)                                    # optional - mathematica
             <html><script type="math/tex">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</script></html>
 
         The following example starts a Mathematica frontend to do the rendering

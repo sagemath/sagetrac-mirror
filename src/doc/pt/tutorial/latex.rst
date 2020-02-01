@@ -130,12 +130,28 @@ esse processo é discutido abaixo na seção
 :ref:`sec-custom-generation`.
 
 O comando interno ``pretty_print()`` ilustra a conversão de objetos do
-Sage para HTML que emprega o MathJax no Notebook. ::
+Sage para HTML que emprega o MathJax no Notebook.
+
+.. skip
+
+::
 
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
+
+..
+    Test that the examples above work in the notebook as advertised::
+
+        sage: from sage.repl.rich_output.display_manager import display_context
+        sage: with display_context(text=None):
+        ....:     pretty_print(x^12)
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
+
+        sage: with display_context(text=None):
+        ....:     pretty_print(integrate(sin(x), x))
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 O Notebook tem outros dois recursos para empregar o TeX. O primeiro é
 o botão "Typeset" bem acima da primeira célula da folha de trabalho, à
