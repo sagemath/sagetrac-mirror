@@ -12170,19 +12170,28 @@ cdef class Expression(CommutativeRingElement):
 
     def show(self):
         r"""
-        Pretty-Print this symbolic expression
+        Pretty-print this symbolic expression.
 
-        This typeset it nicely and prints it immediately.
+        This typesets it nicely and prints it immediately.
 
         OUTPUT:
 
         This method does not return anything. Like ``print``, output
         is sent directly to the screen.
 
+        Note that the output depends on the display preferences. For details,
+        see :func:`~sage.repl.rich_output.pretty_print.pretty_print`.
+
         EXAMPLES::
 
             sage: (x^2 + 1).show()
             x^2 + 1
+
+            sage: from sage.repl.rich_output.display_manager import display_context
+            sage: with display_context(text='ascii_art'):
+            ....:     (x^2 + 1).show()
+             2
+            x  + 1
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)
