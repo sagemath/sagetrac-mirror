@@ -379,8 +379,8 @@ class RingExtensionFactory(UniqueFactory):
                 To:   Rational Field
                 Defn: 1 |--> 1, (), ()),
              {'constructors': [(<type 'sage.rings.ring_extension.RingExtension_generic'>,
-                {'is_backend_exposed': True,
-                 'print_options': {'print_elements_as': None, 'print_parent_as': None}})]})
+                {'print_options': {'print_elements_as': None, 'print_parent_as': None},
+                 'is_backend_exposed': True})]})
 
             sage: RingExtension.create_key_and_extra_args(GF(5^4), GF(5^2), names=('a',))
             ((Ring morphism:
@@ -388,7 +388,7 @@ class RingExtensionFactory(UniqueFactory):
                 To:   Finite Field in z4 of size 5^4
                 Defn: z2 |--> z4^3 + z4^2 + z4 + 3, (z4,), ('a',)),
              {'constructors': [(<type 'sage.rings.ring_extension.RingExtensionWithGen'>,
-                {'gen': z4, 'is_backend_exposed': True, 'names': ('a',)})]})
+                {'gen': z4, 'names': ('a',), 'is_backend_exposed': True})]})
         """
         use_generic_constructor = True
         is_backend_exposed = True
