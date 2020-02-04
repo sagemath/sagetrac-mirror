@@ -14,6 +14,14 @@ AUTHORS:
   implementation (:trac:`13352` and :trac:`16937`)
 - Simon King (2014-10-28): ``bitset_rshift`` and ``bitset_lshift`` respecting
   the size of the given bitsets (:trac:`15820`)
+
+TESTS:
+
+Check that :trac:`29139` is fixed::
+
+    sage: cython('''
+    ....: include "sage/data_structures/bitset.pxi"
+    ....: ''')
 """
 
 #*****************************************************************************
@@ -81,7 +89,7 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
         raise ValueError("bitset capacity must be greater than 0")
 
     bits.size = size
-    bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
+    bits.limbs = (size - 1) // (8 * sizeof(mp_limb_t)) + 1
     bits.bits = <mp_limb_t*>check_calloc(bits.limbs, sizeof(mp_limb_t))
 
 cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
@@ -96,7 +104,7 @@ cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     if size <= 0:
         raise ValueError("bitset capacity must be greater than 0")
 
-    cdef mp_size_t limbs_new = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
+    cdef mp_size_t limbs_new = (size - 1) // (8 * sizeof(mp_limb_t)) + 1
     bits.bits = <mp_limb_t*>check_reallocarray(bits.bits, limbs_new, sizeof(mp_limb_t))
     bits.size = size
     bits.limbs = limbs_new
