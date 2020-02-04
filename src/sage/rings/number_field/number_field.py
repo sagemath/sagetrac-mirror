@@ -7155,7 +7155,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         r"""
         Open the LMFDB web page of the number field in a browser.
 
-        See http://www.lmfdb.org
+        See https://www.lmfdb.org
 
         EXAMPLES::
 
@@ -7169,7 +7169,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.lmfdb_page()  # optional -- webbrowser
         """
         import webbrowser, urllib
-        lmfdb_url = 'http://www.lmfdb.org/NumberField/?natural={}'
+        lmfdb_url = 'https://www.lmfdb.org/NumberField/?natural={}'
         f = self.absolute_polynomial().parent().change_var('x')(self.absolute_polynomial())
         poly = pari(f).polredabs()
         url = lmfdb_url.format(urllib.quote(str(poly)))
