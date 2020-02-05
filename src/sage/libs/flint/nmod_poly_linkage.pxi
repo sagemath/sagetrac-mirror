@@ -7,6 +7,18 @@ templating.
 AUTHOR:
     -- Martin Albrecht (2009-01) another initial implementation
     -- Burcin Erocal (2008-11) initial implementation
+
+TESTS:
+
+Check that :trac:`29139` works::
+
+    sage: cython('''
+    ....: from sage.libs.flint.types cimport nmod_poly_struct
+    ....: ctypedef nmod_poly_struct celement
+    ....: from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
+    ....: from sage.structure.factorization import Factorization
+    ....: include "sage/libs/flint/nmod_poly_linkage.pxi"
+    ....: ''')  # long time
 """
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Burcin Erocal <burcin@erocal.org>

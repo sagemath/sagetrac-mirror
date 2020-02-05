@@ -5,6 +5,14 @@ AUTHORS:
 
 - Simon King (2015-08)
 
+TESTS:
+
+Check that :trac:`29139` works::
+
+    sage: cython('''
+    ....: from sage.quivers.algebra_elements cimport *
+    ....: include "sage/quivers/algebra_elements.pxi"
+    ....: ''')  # long time
 """
 
 # ****************************************************************************

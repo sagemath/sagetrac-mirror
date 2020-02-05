@@ -6,6 +6,23 @@ AUTHORS:
 
 - David Roe, Julian Rueth (2013-03-21) -- initial version
 
+TESTS:
+
+Check that :trac:`29139` works::
+
+    sage: cython('''
+    ....: from sage.libs.flint.types cimport fmpz_poly_t
+    ....: from sage.rings.padics.pow_computer_flint cimport PowComputer_flint_unram
+    ....: cdef class PowComputer_(PowComputer_flint_unram): pass
+    ....: ctypedef fmpz_poly_t celement
+    ....: from sage.libs.gmp.mpq cimport *
+    ....: from sage.libs.gmp.mpz cimport *
+    ....: cdef enum expansion_mode:
+    ....:     simple_mode, smallest_mode, teichmuller_mode
+    ....: cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
+    ....: from sage.rings.padics.misc import trim_zeros
+    ....: include "sage/libs/linkages/padics/fmpz_poly_unram.pxi"
+    ....: ''')  # long time
 """
 #*****************************************************************************
 #       Copyright (C) 2013 David Roe <roed.math@gmail.com>
@@ -189,7 +206,7 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     - ``a`` -- the element whose valuation and unit are desired.
     - ``prec`` -- a long, used if `a = 0`.
     - ``prime_pow`` -- the PowComputer for the ring.
-    - ``reduce_relative`` -- a bint: whether the final result          
+    - ``reduce_relative`` -- a bint: whether the final result
       should be reduced at precision ``prec`` (case ``False``)
       or ``prec - valuation`` (case ``True``)
 
