@@ -122,7 +122,7 @@ from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.structure.richcmp cimport rich_to_bool
 from sage.misc.randstate cimport randstate, current_randstate
 import sage.matrix.matrix_space as matrix_space
-from .args cimport MatrixArgs_init
+from sage.matrix.args cimport MatrixArgs_init
 
 
 from sage.cpython.string cimport char_to_str
@@ -146,7 +146,7 @@ cdef inline celement_invert(celement a, celement n):
         # always: gcd (n,residue) = gcd (x_int,y_int)
         #         sx*n + tx*residue = x_int
         #         sy*n + ty*residue = y_int
-        q = x_int / y_int # integer quotient
+        q = x_int // y_int # integer quotient
         temp = y_int
         y_int = x_int - q * y_int
         x_int = temp
@@ -2557,8 +2557,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef int a = <int>row1[start_col]
         cdef int b = <int>row2[start_col]
         g = ArithIntObj.c_xgcd_int (a,b,<int*>&s,<int*>&t)
-        v = a/g
-        w = -<int>b/g
+        v = a//g
+        w = -<int>b//g
         nc = self.ncols()
 
         for i from start_col <= i < nc:

@@ -18,6 +18,27 @@ The gluing file does the following:
 AUTHORS:
 
 - David Roe (2012-3-1) -- initial version
+
+TESTS:
+
+Check that :trac:`29139` is fixed;
+this also checks ``sage/libs/linkages/padics/Polynomial_ram.pxi``
+and implicitely ``sage/libs/linkages/padics/Polynomial_shared.pxi``::
+
+    sage: cython('''
+    ....: DEF CELEMENT_IS_PY_OBJECT = True
+    ....: from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense_inexact as celement
+    ....: from sage.rings.padics.pow_computer_relative cimport PowComputer_relative_eis as PowComputer_
+    ....: from sage.libs.gmp.mpq cimport *
+    ....: cdef enum expansion_mode:
+    ....:     simple_mode, smallest_mode, teichmuller_mode
+    ....: include "sage/libs/linkages/padics/Polynomial_ram.pxi"
+    ....: from sage.categories.morphism cimport Morphism
+    ....: from sage.rings.morphism cimport RingHomomorphism, RingMap
+    ....: from sage.rings.padics.relative_ramified_CR cimport CRElement
+    ....: from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
+    ....: include "sage/rings/padics/CA_template.pxi"
+    ....: ''')  # long time
 """
 
 #*****************************************************************************

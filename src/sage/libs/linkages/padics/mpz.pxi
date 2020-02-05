@@ -5,6 +5,21 @@ multiprecision integers.
 AUTHORS:
 
 - David Roe (2012-3-1) -- initial version
+
+TESTS:
+
+Check that :trac:`29139` works::
+
+    sage: cython('''
+    ....: from sage.libs.gmp.types cimport mpz_t
+    ....: ctypedef mpz_t celement
+    ....: from sage.rings.padics.pow_computer cimport PowComputer_base
+    ....: cdef class PowComputer_(PowComputer_base): pass
+    ....: cdef enum expansion_mode:
+    ....:     simple_mode, smallest_mode, teichmuller_mode
+    ....: from sage.libs.gmp.mpz cimport *
+    ....: include "sage/libs/linkages/padics/mpz.pxi"
+    ....: ''')  # long time
 """
 
 #*****************************************************************************
@@ -367,7 +382,7 @@ cdef inline int csetone(mpz_t out, PowComputer_ prime_pow) except -1:
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     mpz_set_ui(out, 1)
-    
+
 cdef inline int csetzero(mpz_t out, PowComputer_ prime_pow) except -1:
     """
     Sets to 0.
@@ -378,7 +393,7 @@ cdef inline int csetzero(mpz_t out, PowComputer_ prime_pow) except -1:
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     mpz_set_ui(out, 0)
-    
+
 cdef inline bint cisone(mpz_t out, PowComputer_ prime_pow) except -1:
     """
     Returns whether this element is equal to 1.

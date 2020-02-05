@@ -14,6 +14,14 @@ A ``binary_matrix_t`` structure contains:
 - ``bitset_t * rows`` -- ``rows[i]`` points toward a block of type ``bitset_t``
   containing the bits of row `i`.
 
+TESTS:
+
+Check that :trac:`29139` is fixed::
+
+    sage: cython('''
+    ....: include "sage/data_structures/binary_matrix.pxi"
+    ....: ''')
+
 """
 
 from sage.data_structures.binary_matrix cimport *
