@@ -35,16 +35,16 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from matroid cimport Matroid            # We'll need this for later.
+from .matroid cimport Matroid            # We'll need this for later.
 from sage.matrix.matrix import Matrix
 from sage.matrix.constructor import matrix
 from sage.graphs.digraph import DiGraph
 from sage.graphs.graph import Graph
-from sage.structure.sage_object import SageObject
+from sage.structure.sage_object cimport SageObject
 
 
 
-cdef class Node(sage.structure.sage_object.SageObject):
+cdef class Node(SageObject):
     """
     
 
@@ -696,7 +696,7 @@ cdef class Node(sage.structure.sage_object.SageObject):
 
 
 
-cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject):
+cdef class CunninghamEdmondsDecomposition(SageObject):
     """
     
 
@@ -1211,9 +1211,9 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
         else:
             G = Graph()
 
-            print N.get_graph().edge_labels()
-            print set(N.get_graph().edge_labels()).difference(L)
-            print L
+            print(N.get_graph().edge_labels())
+            print(set(N.get_graph().edge_labels()).difference(L))
+            print(L)
             for e in set(N.get_graph().edge_labels()).difference(L):
                 G.add_edge(N.get_named_edge(e))
             e2 = -1
@@ -1222,12 +1222,12 @@ cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject)
                     if e2 == -1:
                         e1 = v
                     e2 = v
-            print e1
-            print e2
-            print fp
-            print G.edges()
+            print(e1)
+            print(e2)
+            print(fp)
+            print(G.edges())
             G.add_edge(e1, e2, fp)
-            print G.edges()
+            print(G.edges())
             Gp = Graph()
             for e in L:
                 Gp.add_edge(N.get_named_edge(e))

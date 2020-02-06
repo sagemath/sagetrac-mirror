@@ -1,11 +1,11 @@
-from matroid cimport Matroid            # We'll need this for later.
+from .matroid cimport Matroid            # We'll need this for later.
 from sage.matrix.matrix import Matrix
 from sage.matrix.constructor import matrix
 from sage.graphs.digraph import DiGraph
 from sage.graphs.graph import Graph
-from sage.structure.sage_object import SageObject
+from sage.structure.sage_object cimport SageObject
 
-cdef class Node(sage.structure.sage_object.SageObject):
+cdef class Node(SageObject):
     cpdef public __custom_name
     cpdef public _custom_name
     cpdef public _cached_info
@@ -33,7 +33,7 @@ cdef class Node(sage.structure.sage_object.SageObject):
 
 
 
-cdef class CunninghamEdmondsDecomposition(sage.structure.sage_object.SageObject):
+cdef class CunninghamEdmondsDecomposition(SageObject):
     cpdef arborescence  # _T
     cdef list nodes  # _ND
     cdef int root
