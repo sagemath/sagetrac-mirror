@@ -29,6 +29,7 @@ all: sage
 ## TODO: Currently providing --install-base=$(SAGE_LOCAL) leads to this error:
 ## [sagelib-7.4.beta4] running install
 ## [sagelib-7.4.beta4] error: install-base or install-platbase supplied, but installation scheme is incomplete
+ifeq (,$(wildcard $(srcdir)/.norebuild))
 sage:
 	cd $(srcdir) && export                                    \
 	    SAGE_ROOT=/doesnotexist                               \
@@ -41,6 +42,10 @@ sage:
 	if [ "$$UNAME" = "CYGWIN" ]; then                         \
 	    sage-rebase.sh "$$SAGE_LOCAL" 2>/dev/null;            \
 	fi
+else
+sage:
+	@echo "Not rebuilding sagelib due to presence of $(srcdir)/.norebuild"
+endif
 
 clean:
 	@echo "Deleting Sage library build artifacts..."
