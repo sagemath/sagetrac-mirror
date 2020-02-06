@@ -135,7 +135,10 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     if test -f "$SPKG_TYPE_FILE"; then
         SPKG_TYPE=`cat $SPKG_TYPE_FILE`
     else
-        AC_MSG_ERROR(["$SPKG_TYPE_FILE" is missing.])
+        # This is probably a remnant of a partially removed package, see
+        # https://trac.sagemath.org/ticket/26753
+        AC_MSG_NOTICE(["$SPKG_TYPE_FILE" is missing. Ignoring package directory.])
+        continue
     fi
 
     SPKG_NAME=$(basename $DIR)
