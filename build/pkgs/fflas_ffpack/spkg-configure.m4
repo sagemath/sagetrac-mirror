@@ -3,7 +3,7 @@ SAGE_SPKG_CONFIGURE([fflas_ffpack], [
   dnl discovers these flags from the processor but fails to check whether
   dnl compiler (and assembler) actually support these instruction sets.
   m4_foreach([ISFLAG], [avx512f, avx512vl, avx512dq, fma, fma4], [
-    AX_CHECK_COMPILE_FLAG([-m]ISFLAG, [], [AS_VAR_APPEND]([SAGE_CONFIGURE_FFLAS_FFPACK], [ --disable-]ISFLAG[ ]))
+    AX_CHECK_COMPILE_FLAG([-m]ISFLAG, [], [AS_VAR_APPEND]([SAGE_CONFIGURE_FFLAS_FFPACK], [" --disable-]ISFLAG[ "]))
   ])
   AC_SUBST([SAGE_CONFIGURE_FFLAS_FFPACK])
 ])
