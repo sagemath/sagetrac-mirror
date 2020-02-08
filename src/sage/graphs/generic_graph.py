@@ -11749,6 +11749,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges_incident(0)
             [(0, 0, None)]
         """
+        self = self.copy()
+
         if vertices in self:
             vertices = [vertices]
 
