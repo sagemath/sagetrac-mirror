@@ -1326,7 +1326,7 @@ class PlumbingGraph():
 
         OUTPUT:
 
-        Returns the new vertex.
+        Vertex.
 
         EXAMPLES:
 
