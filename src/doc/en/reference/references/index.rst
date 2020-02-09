@@ -4569,6 +4569,10 @@ REFERENCES:
              Electronic Journal of Linear Algebra, 34:444-458, 2018,
              :doi:`10.13001/1081-3810.3782`.
 
+.. [Or2020] \M. Orlitzky. When a maximal angle among cones is nonobtuse.
+            Computational and Applied Mathematics 39(2), 2020.
+            :doi:`10.1007/s40314-020-1115-y`.
+
 .. [ORV] Grigori Olshanski, Amitai Regev, Anatoly Vershik,
          *Frobenius-Schur functions*,
          :arxiv:`math/0110077v1`.
