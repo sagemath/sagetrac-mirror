@@ -1,0 +1,521 @@
+From 18588ecb1110cf5b4a74390e10e80c430231bf3d Mon Sep 17 00:00:00 2001
+From: "E. Madison Bray" <erik.bray@lri.fr>
+Date: Mon, 10 Feb 2020 19:38:14 +0100
+Subject: [PATCH 2/2] fix building of shared libraries on Windows-bases hosts
+
+---
+ configure.ac    |   5 +-
+ lib/Makefile.am |   2 +-
+ configure       | 364 ++++++++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 340 insertions(+), 31 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 68cda7c..4319eb9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -4,6 +4,9 @@ AC_CONFIG_MACRO_DIR([m4])
+ AM_INIT_AUTOMAKE([foreign -Wall])
+ AM_PROG_AR
+ AC_PROG_CXX
+-LT_INIT
++LT_INIT([shared win32-dll])
++AC_CANONICAL_HOST
++AS_CASE([$host_os], [*cygwin* | *mingw*], [SIROCCO_LDFLAGS=-no-undefined])
++AC_SUBST(SIROCCO_LDFLAGS)
+ AC_CONFIG_FILES([Makefile lib/Makefile tests/Makefile])
+ AC_OUTPUT
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index ca6f06e..ed33318 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -1,5 +1,5 @@
+ lib_LTLIBRARIES = libsirocco.la
+ libsirocco_la_SOURCES = icomplex.cpp  interval.cpp $(top_srcdir)/include/list.hpp $(top_srcdir)/include/mp_complex.hpp $(top_srcdir)/include/mp_icomplex.hpp $(top_srcdir)/include/mp_interval.hpp $(top_srcdir)/include/polynomial.hpp $(top_srcdir)/include/sirocco.hpp $(top_srcdir)/include/icomplex.hpp $(top_srcdir)/include/interval.hpp mp_complex.cpp mp_icomplex.cpp mp_interval.cpp polynomial.cpp sirocco.cpp
+-libsirocco_la_LDFLAGS = -lm -lmpfr -lgmp
++libsirocco_la_LDFLAGS = $(SIROCCO_LDFLAGS) -lm -lmpfr -lgmp
+ AM_CPPFLAGS = -I$(top_srcdir)/include
+ include_HEADERS = $(top_srcdir)/include/sirocco.h
+diff --git a/configure b/configure
+index ea91e4a..b5f7570 100755
+--- a/configure
++++ b/configure
+@@ -635,6 +635,7 @@ ac_subst_vars='am__EXEEXT_FALSE
+ am__EXEEXT_TRUE
+ LTLIBOBJS
+ LIBOBJS
++SIROCCO_LDFLAGS
+ CXXCPP
+ CPP
+ LT_SYS_LIBRARY_PATH
+@@ -645,8 +646,6 @@ NMEDIT
+ DSYMUTIL
+ MANIFEST_TOOL
+ RANLIB
+-DLLTOOL
+-OBJDUMP
+ LN_S
+ NM
+ ac_ct_DUMPBIN
+@@ -665,6 +664,9 @@ build_vendor
+ build_cpu
+ build
+ LIBTOOL
++OBJDUMP
++DLLTOOL
++AS
+ am__fastdepCXX_FALSE
+ am__fastdepCXX_TRUE
+ CXXDEPMODE
+@@ -5654,9 +5656,6 @@ test -z "$OBJDUMP" && OBJDUMP=objdump
+ 
+ 
+ 
+-
+-
+-
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to recognize dependent libraries" >&5
+ $as_echo_n "checking how to recognize dependent libraries... " >&6; }
+ if ${lt_cv_deplibs_check_method+:} false; then :
+@@ -5999,9 +5998,6 @@ test -z "$DLLTOOL" && DLLTOOL=dlltool
+ 
+ 
+ 
+-
+-
+-
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to associate runtime and link libraries" >&5
+ $as_echo_n "checking how to associate runtime and link libraries... " >&6; }
+ if ${lt_cv_sharedlib_from_linklib_cmd+:} false; then :
+@@ -8254,16 +8250,7 @@ func_stripname_cnf ()
+ 
+ 
+ # Set options
+-
+-
+-
+-        enable_dlopen=no
+-
+-
+-  enable_win32_dll=no
+-
+-
+-            # Check whether --enable-shared was given.
++# Check whether --enable-shared was given.
+ if test "${enable_shared+set}" = set; then :
+   enableval=$enable_shared; p=${PACKAGE-default}
+     case $enableval in
+@@ -8292,6 +8279,312 @@ fi
+ 
+ 
+ 
++enable_win32_dll=yes
++
++case $host in
++*-*-cygwin* | *-*-mingw* | *-*-pw32* | *-*-cegcc*)
++  if test -n "$ac_tool_prefix"; then
++  # Extract the first word of "${ac_tool_prefix}as", so it can be a program name with args.
++set dummy ${ac_tool_prefix}as; ac_word=$2
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
++$as_echo_n "checking for $ac_word... " >&6; }
++if ${ac_cv_prog_AS+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  if test -n "$AS"; then
++  ac_cv_prog_AS="$AS" # Let the user override the test.
++else
++as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++    for ac_exec_ext in '' $ac_executable_extensions; do
++  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
++    ac_cv_prog_AS="${ac_tool_prefix}as"
++    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++  done
++IFS=$as_save_IFS
++
++fi
++fi
++AS=$ac_cv_prog_AS
++if test -n "$AS"; then
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $AS" >&5
++$as_echo "$AS" >&6; }
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++
++fi
++if test -z "$ac_cv_prog_AS"; then
++  ac_ct_AS=$AS
++  # Extract the first word of "as", so it can be a program name with args.
++set dummy as; ac_word=$2
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
++$as_echo_n "checking for $ac_word... " >&6; }
++if ${ac_cv_prog_ac_ct_AS+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  if test -n "$ac_ct_AS"; then
++  ac_cv_prog_ac_ct_AS="$ac_ct_AS" # Let the user override the test.
++else
++as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++    for ac_exec_ext in '' $ac_executable_extensions; do
++  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
++    ac_cv_prog_ac_ct_AS="as"
++    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++  done
++IFS=$as_save_IFS
++
++fi
++fi
++ac_ct_AS=$ac_cv_prog_ac_ct_AS
++if test -n "$ac_ct_AS"; then
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_AS" >&5
++$as_echo "$ac_ct_AS" >&6; }
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++  if test "x$ac_ct_AS" = x; then
++    AS="false"
++  else
++    case $cross_compiling:$ac_tool_warned in
++yes:)
++{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
++$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
++ac_tool_warned=yes ;;
++esac
++    AS=$ac_ct_AS
++  fi
++else
++  AS="$ac_cv_prog_AS"
++fi
++
++  if test -n "$ac_tool_prefix"; then
++  # Extract the first word of "${ac_tool_prefix}dlltool", so it can be a program name with args.
++set dummy ${ac_tool_prefix}dlltool; ac_word=$2
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
++$as_echo_n "checking for $ac_word... " >&6; }
++if ${ac_cv_prog_DLLTOOL+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  if test -n "$DLLTOOL"; then
++  ac_cv_prog_DLLTOOL="$DLLTOOL" # Let the user override the test.
++else
++as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++    for ac_exec_ext in '' $ac_executable_extensions; do
++  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
++    ac_cv_prog_DLLTOOL="${ac_tool_prefix}dlltool"
++    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++  done
++IFS=$as_save_IFS
++
++fi
++fi
++DLLTOOL=$ac_cv_prog_DLLTOOL
++if test -n "$DLLTOOL"; then
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DLLTOOL" >&5
++$as_echo "$DLLTOOL" >&6; }
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++
++fi
++if test -z "$ac_cv_prog_DLLTOOL"; then
++  ac_ct_DLLTOOL=$DLLTOOL
++  # Extract the first word of "dlltool", so it can be a program name with args.
++set dummy dlltool; ac_word=$2
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
++$as_echo_n "checking for $ac_word... " >&6; }
++if ${ac_cv_prog_ac_ct_DLLTOOL+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  if test -n "$ac_ct_DLLTOOL"; then
++  ac_cv_prog_ac_ct_DLLTOOL="$ac_ct_DLLTOOL" # Let the user override the test.
++else
++as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++    for ac_exec_ext in '' $ac_executable_extensions; do
++  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
++    ac_cv_prog_ac_ct_DLLTOOL="dlltool"
++    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++  done
++IFS=$as_save_IFS
++
++fi
++fi
++ac_ct_DLLTOOL=$ac_cv_prog_ac_ct_DLLTOOL
++if test -n "$ac_ct_DLLTOOL"; then
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_DLLTOOL" >&5
++$as_echo "$ac_ct_DLLTOOL" >&6; }
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++  if test "x$ac_ct_DLLTOOL" = x; then
++    DLLTOOL="false"
++  else
++    case $cross_compiling:$ac_tool_warned in
++yes:)
++{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
++$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
++ac_tool_warned=yes ;;
++esac
++    DLLTOOL=$ac_ct_DLLTOOL
++  fi
++else
++  DLLTOOL="$ac_cv_prog_DLLTOOL"
++fi
++
++  if test -n "$ac_tool_prefix"; then
++  # Extract the first word of "${ac_tool_prefix}objdump", so it can be a program name with args.
++set dummy ${ac_tool_prefix}objdump; ac_word=$2
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
++$as_echo_n "checking for $ac_word... " >&6; }
++if ${ac_cv_prog_OBJDUMP+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  if test -n "$OBJDUMP"; then
++  ac_cv_prog_OBJDUMP="$OBJDUMP" # Let the user override the test.
++else
++as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++    for ac_exec_ext in '' $ac_executable_extensions; do
++  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
++    ac_cv_prog_OBJDUMP="${ac_tool_prefix}objdump"
++    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++  done
++IFS=$as_save_IFS
++
++fi
++fi
++OBJDUMP=$ac_cv_prog_OBJDUMP
++if test -n "$OBJDUMP"; then
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OBJDUMP" >&5
++$as_echo "$OBJDUMP" >&6; }
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++
++fi
++if test -z "$ac_cv_prog_OBJDUMP"; then
++  ac_ct_OBJDUMP=$OBJDUMP
++  # Extract the first word of "objdump", so it can be a program name with args.
++set dummy objdump; ac_word=$2
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
++$as_echo_n "checking for $ac_word... " >&6; }
++if ${ac_cv_prog_ac_ct_OBJDUMP+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  if test -n "$ac_ct_OBJDUMP"; then
++  ac_cv_prog_ac_ct_OBJDUMP="$ac_ct_OBJDUMP" # Let the user override the test.
++else
++as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++    for ac_exec_ext in '' $ac_executable_extensions; do
++  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
++    ac_cv_prog_ac_ct_OBJDUMP="objdump"
++    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++  done
++IFS=$as_save_IFS
++
++fi
++fi
++ac_ct_OBJDUMP=$ac_cv_prog_ac_ct_OBJDUMP
++if test -n "$ac_ct_OBJDUMP"; then
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_OBJDUMP" >&5
++$as_echo "$ac_ct_OBJDUMP" >&6; }
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++fi
++
++  if test "x$ac_ct_OBJDUMP" = x; then
++    OBJDUMP="false"
++  else
++    case $cross_compiling:$ac_tool_warned in
++yes:)
++{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
++$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
++ac_tool_warned=yes ;;
++esac
++    OBJDUMP=$ac_ct_OBJDUMP
++  fi
++else
++  OBJDUMP="$ac_cv_prog_OBJDUMP"
++fi
++
++  ;;
++esac
++
++test -z "$AS" && AS=as
++
++
++
++
++
++test -z "$DLLTOOL" && DLLTOOL=dlltool
++
++
++
++
++
++test -z "$OBJDUMP" && OBJDUMP=objdump
++
++
++
++
++
++
++
++        enable_dlopen=no
++
++
+ 
+ 
+   # Check whether --enable-static was given.
+@@ -15853,6 +16146,14 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ # Only expand once:
+ 
+ 
++
++case $host_os in #(
++  *cygwin* | *mingw*) :
++    SIROCCO_LDFLAGS=-no-undefined ;; #(
++  *) :
++     ;;
++esac
++
+ ac_config_files="$ac_config_files Makefile lib/Makefile tests/Makefile"
+ 
+ cat >confcache <<\_ACEOF
+@@ -16603,6 +16904,9 @@ delay_variable_subst='$delay_variable_subst'
+ macro_version='`$ECHO "$macro_version" | $SED "$delay_single_quote_subst"`'
+ macro_revision='`$ECHO "$macro_revision" | $SED "$delay_single_quote_subst"`'
+ enable_shared='`$ECHO "$enable_shared" | $SED "$delay_single_quote_subst"`'
++AS='`$ECHO "$AS" | $SED "$delay_single_quote_subst"`'
++DLLTOOL='`$ECHO "$DLLTOOL" | $SED "$delay_single_quote_subst"`'
++OBJDUMP='`$ECHO "$OBJDUMP" | $SED "$delay_single_quote_subst"`'
+ enable_static='`$ECHO "$enable_static" | $SED "$delay_single_quote_subst"`'
+ pic_mode='`$ECHO "$pic_mode" | $SED "$delay_single_quote_subst"`'
+ enable_fast_install='`$ECHO "$enable_fast_install" | $SED "$delay_single_quote_subst"`'
+@@ -16634,12 +16938,10 @@ lt_cv_to_host_file_cmd='`$ECHO "$lt_cv_to_host_file_cmd" | $SED "$delay_single_q
+ lt_cv_to_tool_file_cmd='`$ECHO "$lt_cv_to_tool_file_cmd" | $SED "$delay_single_quote_subst"`'
+ reload_flag='`$ECHO "$reload_flag" | $SED "$delay_single_quote_subst"`'
+ reload_cmds='`$ECHO "$reload_cmds" | $SED "$delay_single_quote_subst"`'
+-OBJDUMP='`$ECHO "$OBJDUMP" | $SED "$delay_single_quote_subst"`'
+ deplibs_check_method='`$ECHO "$deplibs_check_method" | $SED "$delay_single_quote_subst"`'
+ file_magic_cmd='`$ECHO "$file_magic_cmd" | $SED "$delay_single_quote_subst"`'
+ file_magic_glob='`$ECHO "$file_magic_glob" | $SED "$delay_single_quote_subst"`'
+ want_nocaseglob='`$ECHO "$want_nocaseglob" | $SED "$delay_single_quote_subst"`'
+-DLLTOOL='`$ECHO "$DLLTOOL" | $SED "$delay_single_quote_subst"`'
+ sharedlib_from_linklib_cmd='`$ECHO "$sharedlib_from_linklib_cmd" | $SED "$delay_single_quote_subst"`'
+ AR='`$ECHO "$AR" | $SED "$delay_single_quote_subst"`'
+ AR_FLAGS='`$ECHO "$AR_FLAGS" | $SED "$delay_single_quote_subst"`'
+@@ -16803,7 +17105,10 @@ _LTECHO_EOF'
+ }
+ 
+ # Quote evaled strings.
+-for var in SHELL \
++for var in AS \
++DLLTOOL \
++OBJDUMP \
++SHELL \
+ ECHO \
+ PATH_SEPARATOR \
+ SED \
+@@ -16816,12 +17121,10 @@ LN_S \
+ lt_SP2NL \
+ lt_NL2SP \
+ reload_flag \
+-OBJDUMP \
+ deplibs_check_method \
+ file_magic_cmd \
+ file_magic_glob \
+ want_nocaseglob \
+-DLLTOOL \
+ sharedlib_from_linklib_cmd \
+ AR \
+ AR_FLAGS \
+@@ -17567,6 +17870,15 @@ macro_revision=$macro_revision
+ # Whether or not to build shared libraries.
+ build_libtool_libs=$enable_shared
+ 
++# Assembler program.
++AS=$lt_AS
++
++# DLL creation program.
++DLLTOOL=$lt_DLLTOOL
++
++# Object dumper program.
++OBJDUMP=$lt_OBJDUMP
++
+ # Whether or not to build static libraries.
+ build_old_libs=$enable_static
+ 
+@@ -17643,9 +17955,6 @@ to_host_file_cmd=$lt_cv_to_host_file_cmd
+ # convert \$build files to toolchain format.
+ to_tool_file_cmd=$lt_cv_to_tool_file_cmd
+ 
+-# An object symbol dumper.
+-OBJDUMP=$lt_OBJDUMP
+-
+ # Method to check whether dependent libraries are shared objects.
+ deplibs_check_method=$lt_deplibs_check_method
+ 
+@@ -17658,9 +17967,6 @@ file_magic_glob=$lt_file_magic_glob
+ # Find potential files using nocaseglob when deplibs_check_method = "file_magic".
+ want_nocaseglob=$lt_want_nocaseglob
+ 
+-# DLL creation program.
+-DLLTOOL=$lt_DLLTOOL
+-
+ # Command to associate shared and link libraries.
+ sharedlib_from_linklib_cmd=$lt_sharedlib_from_linklib_cmd
+ 
+-- 
+2.21.0
+
