@@ -1359,7 +1359,7 @@ class PlumbingGraph():
 
         OUTPUT:
         
-        Returns the new vertex.
+        The new vertex.
 
         EXAMPLES::
 
@@ -1391,7 +1391,7 @@ class PlumbingGraph():
 
         OUTPUT:
 
-        Returns the new vertex.
+        The new vertex.
 
         EXAMPLES::
 
@@ -1431,7 +1431,7 @@ class PlumbingGraph():
 
         OUTPUT:
 
-        Returns True if it really blows down a vertex, otherwise False.
+        True if it really blows down a vertex, otherwise False.
 
         EXAMPLES::
 
@@ -1477,7 +1477,7 @@ class PlumbingGraph():
 
         OUTPUT:
 
-        Returns True if i is a candidate for a blow-down, otherwise False.
+        True if i is a candidate for a blow-down, otherwise False.
 
         EXAMPLES::
 
