@@ -16,6 +16,8 @@ GPLv3+
 
 Miguel Marco (mmarco@unizar.es)
 
+https://github.com/miguelmarco/SIROCCO2
+
 == Dependencies ==
 
 * gcc

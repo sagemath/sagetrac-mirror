@@ -1,0 +1,67 @@
+From 0a1fae1a46a37f54c3cc49f0bcb42cd19cbfe818 Mon Sep 17 00:00:00 2001
+From: "E. Madison Bray" <erik.bray@lri.fr>
+Date: Mon, 10 Feb 2020 19:34:19 +0100
+Subject: [PATCH 1/2] remove brute-force disabling of optimizations
+
+declare these template specializations to ensure they will be used in modules that include polynomial.hpp
+
+we may be able to achieve better performance, however, if these are defined inline
+---
+ configure.ac           | 1 -
+ configure              | 1 -
+ include/polynomial.hpp | 8 ++++++++
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 64f87bb..68cda7c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,7 +1,6 @@
+ AC_INIT([libsirocco], [2.0], [mmarco@unizar.es])
+ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CONFIG_MACRO_DIR([m4])
+-: ${CXXFLAGS=-O0 -g}
+ AM_INIT_AUTOMAKE([foreign -Wall])
+ AM_PROG_AR
+ AC_PROG_CXX
+diff --git a/configure b/configure
+index b17a574..ea91e4a 100755
+--- a/configure
++++ b/configure
+@@ -2295,7 +2295,6 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
+ 
+ 
+ 
+-: ${CXXFLAGS=-O0 -g}
+ am__api_version='1.15'
+ 
+ # Find a good install program.  We prefer a C program (faster),
+diff --git a/include/polynomial.hpp b/include/polynomial.hpp
+index 88d1299..043e0cf 100644
+--- a/include/polynomial.hpp
++++ b/include/polynomial.hpp
+@@ -230,6 +230,10 @@ T Polynomial<T>::operator() (const T &x, const T &y) const {
+ 	return this->evalPolClassic (x,y);
+ }
+ 
++// Defined in lib/polynomial.cpp
++template <> IComplex Polynomial<IComplex>::operator() (const IComplex &x, const IComplex &y) const;
++template <> MPIComplex Polynomial<MPIComplex>::operator () (const MPIComplex &x, const MPIComplex &y) const;
++
+ template <class T>
+ T Polynomial<T>::diffX (const T &x, const T &y) const {
+ 		// coef[(i*(i+1))/2 + j] is coeficient of monomial of degree 'i',
+@@ -311,6 +315,10 @@ T Polynomial<T>::diffY (const T &x, const T &y) const {
+ 	return this->evalPolYClassic (x,y);
+ }
+ 
++// Defined in lib/polynomial.cpp
++template <> IComplex Polynomial<IComplex>::diffY (const IComplex &x, const IComplex &y) const;
++template <> MPIComplex Polynomial<MPIComplex>::diffY (const MPIComplex &x, const MPIComplex &y) const;
++
+ 
+ template <class T>
+ T Polynomial<T>::diffXX (const T &x, const T &y) const {
+-- 
+2.21.0
+
