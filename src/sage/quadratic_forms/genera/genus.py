@@ -7,6 +7,7 @@ AUTHORS:
 - David Kohel & Gabriele Nebe (2007): First created
 - Simon Brandhorst (2018): various bugfixes and printing
 - Simon Brandhorst (2018): enumeration of genera
+- Simon Brandhorst (2020): genus representative
 """
 # ****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -26,12 +27,11 @@ from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import FiniteField
-from bisect import bisect
-from copy import copy, deepcopy
-from sage.misc.misc import verbose
 from sage.interfaces.gp import gp
 from sage.libs.pari import pari
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
+from copy import copy, deepcopy
+from sage.misc.misc import verbose
 from sage.quadratic_forms.genera.normal_form import _min_nonsquare
 from sage.misc.cachefunc import cached_method
 
@@ -161,7 +161,7 @@ def genera(sig_pair, determinant, max_scale=None, even=False):
             genera.append(G)
     # render the output deterministic for testing
     genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
-    return(genera)
+    return genera
 
 all_genera_by_det = genera
 
@@ -262,7 +262,7 @@ def _local_genera(p, rank, det_val, max_scale, even):
                     # each equivalence class
                     if not g1 in symbols:
                         symbols.append(g1)
-    return(symbols)
+    return symbols
 
 
 def _blocks(b, even_only=False):
@@ -1302,25 +1302,6 @@ class Genus_Symbol_p_adic_ring(object):
     - ``prime`` -- a prime number
     - ``symbol`` -- the list of invariants for Jordan blocks `A_t,...,A_t` given
       as a list of lists of integers
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
-        sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
-
-        sage: A = diagonal_matrix(ZZ, [1,2,3,4])
-        sage: p = 2
-        sage: s2 = p_adic_symbol(A, p, 2); s2
-        [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
-        sage: G2 = Genus_Symbol_p_adic_ring(p,s2);G2
-        Genus symbol at 2:    [1^-2 2^1 4^1]_6
-
-        sage: A = diagonal_matrix(ZZ, [1,2,3,4])
-        sage: p = 3
-        sage: s3 = p_adic_symbol(A, p, 1); s3
-        [[0, 3, -1], [1, 1, 1]]
-        sage: G3 = Genus_Symbol_p_adic_ring(p,s3);G3
-        Genus symbol at 3:     1^-3 3^1
     """
     def __init__(self, prime, symbol, check = True):
         r"""
@@ -3102,10 +3083,10 @@ class GenusSymbol_global_ring(object):
         p, n = self.signature_pair()
         return p + n
 
-    rank = dimension
     dim = dimension
+    rank = dimension
 
-    def represents(self,other):
+    def represents(self, other):
         p1, m1 = self.signature_pair()
         p2, m2 = other.signature_pair()
         if not p1>=p2 and m1>=m2:
@@ -3153,7 +3134,6 @@ class GenusSymbol_global_ring(object):
         q = matrix.block_diagonal(qL)
         return TorsionQuadraticForm(q)
 
-
     def direct_sum(self, other):
         r"""
         Return the genus of the direct sum of ``self`` and ``other``.
@@ -3184,33 +3164,6 @@ class GenusSymbol_global_ring(object):
             local_symbols.append(sym_p)
         return GenusSymbol_global_ring(signature_pair, local_symbols)
 
-    def local_symbols(self, p=None):
-        r"""
-        Return the local symbols.
-
-        INPUT:
-
-        - ``p`` - a prime number; if given return only the symbol at `p`.
-
-        EXAMPLES::
-
-            sage: from sage.quadratic_forms.genera.genus import Genus
-            sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
-            sage: GS = Genus(A)
-            sage: GS.local_symbols()
-            [Genus symbol at 2:    [2^-2 4^1 8^1]_4,
-             Genus symbol at 3:     1^-3 3^-1]
-
-        """
-        if p is None:
-            return deepcopy(self._local_symbols)
-        p = ZZ(p)
-        for sym in self._local_symbols:
-            if p == sym.prime():
-                return deepcopy(sym)
-        assert p!=2
-        sym_p = [[0, self.rank(), self.det().kronecker(p)]]
-        return Genus_Symbol_p_adic_ring(p, sym_p)
 
     def rational_representative(self):
         r"""
@@ -3240,17 +3193,139 @@ class GenusSymbol_global_ring(object):
             [0 0 0 0 0 0 1 0]
             [0 0 0 0 0 0 0 2]
         """
-        from sage.quadratic_forms.all import QuadraticForm
+        from sage.quadratic_forms.all import QuadraticForm, quadratic_form_from_invariants
         sminus = self.signature_pair_of_matrix()[1]
         det = self.determinant()
         m = self.rank()
         P = []
         for sym in self._local_symbols:
             p = sym._prime
-            # it is important to use the definition of cassels here!
+            # it is important to use the definition of Cassels here!
             if QuadraticForm(QQ,2*sym.gram_matrix()).hasse_invariant(p) == -1:
                 P.append(p)
-        return rational_qf_from_invariants(m, det, P, sminus)
+        q = quadratic_form_from_invariants(F=QQ, rk=m, det=det,
+                                           P=P, sminus=sminus)
+        return q.Hessian_matrix()/2
+
+    def _compute_representative(self, LLL=True):
+        r"""
+        Compute a representative of this genus and cache it.
+
+        INPUT:
+
+        - ``LLL`` -- boolean (default: ``True``); whether or not to LLL reduce the result
+
+        TESTS::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: for det in range(1,5):
+            ....:     G = genera((4,0), det, even=False)
+            ....:     assert all(g==Genus(g.representative()) for g in G)
+            sage: for det in range(1,5):
+            ....:     G = genera((1,2), det, even=False)
+            ....:     assert all(g==Genus(g.representative()) for g in G)
+            sage: for det in range(1,9): # long time (8s, 2020)
+            ....:     G = genera((2,2), det, even=False) # long time
+            ....:     assert all(g==Genus(g.representative()) for g in G) # long time
+        """
+        from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice, local_modification
+        even = self.is_even()
+        q = self.rational_representative()
+        n = q.nrows()
+        # the associated quadratic form xGx.T/2 should be integral
+        L = IntegralLattice(4*q).maximal_overlattice()
+        p = 2
+        sym2 = self.local_symbols()[0]
+        if not self.is_even():
+            # the quadratic form of xGx.T/2 must be integral
+            # for things to work
+            # solve this by multiplying the basis by 2
+            L = local_modification(L, 4*sym2.gram_matrix(), p)
+            L = L.overlattice(L.basis_matrix()/2)
+        else:
+            L = local_modification(L, sym2.gram_matrix(), p)
+        for sym in self._local_symbols[1:]:
+            p = sym.prime()
+            L = local_modification(L, sym.gram_matrix(), p)
+        L = L.gram_matrix().change_ring(ZZ)
+        if LLL:
+            sig = self.signature_pair_of_matrix()
+            if sig[0]*sig[1] != 0:
+                from sage.env import SAGE_EXTCODE
+                m = pari(L)
+                gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
+                m = gp.eval('qflllgram_indefgoon(%s)'%m)
+                # convert the output string to sage
+                L = pari(m).sage()[0]
+            elif sig[1] != 0:
+                U = -(-L).LLL_gram()
+                L = U.T * L * U
+            else:
+                U = L.LLL_gram()
+                L = U.T * L * U
+        # confirm the computation
+        assert Genus(L) == self
+        L.set_immutable()
+        self._representative = L
+
+    def representative(self):
+        r"""
+        Return a representative in this genus.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: g = genera([1,3],24)[0]
+            sage: g
+            Genus of
+            None
+            Signature:  (1, 3)
+            Genus symbol at 2:    [1^-1 2^3]_0
+            Genus symbol at 3:     1^3 3^1
+
+        A representative of ``g`` is not known yet.
+        Let us trigger its computation:
+
+            sage: g.representative()
+            [ 0  0  0  2]
+            [ 0 -1  0  0]
+            [ 0  0 -6  0]
+            [ 2  0  0  0]
+            sage: g == Genus(g.representative())
+            True
+        """
+        if self._representative is None:
+            self._compute_representative()
+        return self._representative
+
+def local_symbols(self, p=None):
+        r"""
+        Return the local symbols.
+
+        INPUT:
+
+        - ``p`` - a prime number; if given return only the symbol at `p`.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import Genus
+            sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
+            sage: GS = Genus(A)
+            sage: GS.local_symbols()
+            [Genus symbol at 2:    [2^-2 4^1 8^1]_4,
+             Genus symbol at 3:     1^-3 3^-1]
+        """
+        if p is None:
+            return deepcopy(self._local_symbols)
+        p = ZZ(p)
+        for sym in self._local_symbols:
+            if p == sym.prime():
+                return deepcopy(sym)
+        assert p!=2
+        sym_p = [[0, self.rank(), self.det().kronecker(p)]]
+        return Genus_Symbol_p_adic_ring(p, sym_p)
+
+
 
     def _standard_mass(self):
         r"""
@@ -3331,25 +3406,6 @@ class GenusSymbol_global_ring(object):
             return QQ(L.Mass())
         else:
             raise ValueError("Unknown algorithm: %s"%backend)
-
-    def representative(self):
-        r"""
-        Return a representative in this genus.
-
-        EXAMPLES::
-
-            sage: from sage.quadratic_forms.genera.genus import all_genera_by_det, Genus
-            sage: g = all_genera_by_det([1,3],24)[0]
-
-        A representative is not know.
-        Let us trigger its computation::
-
-            sage: g == Genus(g.representative())
-            True
-        """
-        if self._representative is None:
-            self._compute_representative()
-        return self._representative
 
     def level(self):
         r"""
@@ -3733,142 +3789,6 @@ class SpaceSymbol_local(object):
         return True
 
 
-def rational_qf_from_invariants(m, det, P, sminus):
-    r"""
-    Return the gram matrix of a rational quadratic form with given invariants.
-
-    INPUT:
-
-    - ``m`` -- integer; the rank
-
-    - ``det`` -- rational; the determinant
-
-    - ``P`` -- a list of primes where cassels hasse invariant is negative
-
-    - ``sminus`` -- integer; negative part of the signature
-
-    OUTPUT:
-
-    - a symmetric matrix; the gram matrix
-
-    EXAMPLES::
-
-        sage:
-    """
-    from sage.arith.misc import hilbert_symbol
-    from sage.rings.infinity import Infinity
-    P = [ZZ(p) for p in P]
-    m = ZZ(m)
-    d = ZZ(det).squarefree_part()
-    sminus = ZZ(sminus)
-    if d.sign() != (-1)**sminus:
-        raise ValueError("Invariants do not define a rational quadratic form")
-    if m == 1 and len(P) != 0:
-        raise ValueError("Invariants do not define a rational quadratic form")
-    if m == 2:
-        for p in P:
-            if QQ(-d).is_padic_square(p):
-                raise ValueError("Invariants do not define a rational quadratic form")
-    if sminus % 4 in (2, 3) and len(P) % 2 == 0:
-        raise ValueError("")
-    D = []
-    while m >= 2:
-        if m >= 4:
-            if sminus > 0:
-                a = ZZ(-1)
-            else:
-                a = ZZ(1)
-        elif m == 3:
-            Pprime = [p for p in P if hilbert_symbol(-1, -d, p)==1]
-            Pprime += [p for p in (2*d).prime_divisors() if hilbert_symbol(-1, -d, p)==-1 and p not in P]
-            if sminus > 0:
-                a = ZZ(-1)
-            else:
-                a = ZZ(1)
-            for p in Pprime:
-                if d.valuation(p) % 2 == 0:
-                    a *= p
-            assert all([(a*d).valuation(p)%2==1 for p in Pprime])
-        elif m == 2:
-            S = P
-            if sminus == 2:
-                S += [-1]
-            a = QQ.hilbert_symbol_negative_at_S(S,-d)
-        P = [p for p in P if hilbert_symbol(a, -d, p) == 1] + [p for p in ZZ(2*a*d).prime_divisors() if hilbert_symbol(a, -d, p)==-1 and p not in P]
-        sminus = max(0, sminus-1)
-        m = m - 1
-        d = a*d
-        D.append(ZZ(a).squarefree_part())
-    d = ZZ(d).squarefree_part()
-    D.append(d.squarefree_part())
-    return matrix.diagonal(D)
-
-def local_modification(M, Lp, p, check=True):
-    r"""
-    Return a local modification of `M` that matches `Lp` at `p`.
-
-    INPUT:
-
-    - ``M`` -- the gram matrix of a `\ZZ_p`-maximal lattice
-
-    - ``Lp`` -- gram matrix of a lattice `L_p` which is `\QQ_p`-rationally
-      equivalent to `M`
-
-    - ``p`` -- a prime number
-
-    OUTPUT:
-
-    a gram matrix `M'` such that `M` and `M'` are locally equivalent at all
-    primes except `p` where `M'` is locally equivalent to `Lp`
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.genus import local_modification, Genus
-        sage: L = IntegralLattice("A3").twist(15)
-        sage: M = L.maximal_overlattice().gram_matrix()
-        sage: L = L.gram_matrix()
-        sage: for p in prime_divisors(L.det()):
-        ....:     M = local_modification(M, L, p)
-        sage: Genus(M) == Genus(L)
-        True
-        sage: from sage.quadratic_forms.genera.genus import local_modification
-        sage: L = IntegralLattice("D4").twist(3*4)
-        sage: M = L.maximal_overlattice()
-        sage: local_modification(M.gram_matrix(), L.gram_matrix(), 2)
-        [16  8  8 16]
-        [ 8  8  4 12]
-        [ 8  4 24  0]
-        [16 12  0 24]
-    """
-    from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
-    from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
-    # notation
-    M = matrix(M)
-    Lp = matrix(Lp) # target lattice
-    d = Lp.inverse().denominator()
-    n = M.rank()
-    scale = d.valuation(p)
-    d = p**scale
-
-    M = IntegralLattice(M)
-    Lp_max = IntegralLattice(Lp).maximal_overlattice(p=p)
-
-    # invert the gerstein operations
-    _, U = p_adic_normal_form(Lp_max.gram_matrix(), p, precision=scale+3)
-    B = (~Lp_max.basis_matrix()).change_ring(ZZ)*~U.change_ring(ZZ)
-
-    _, UM = p_adic_normal_form(M.gram_matrix(), p, precision=scale+3)
-    B = B * UM.change_ring(ZZ) * M.basis_matrix()
-
-    # the local modification
-    S = M.sublattice(((M.span(B) & M) + d * M).gens())
-    S = S.gram_matrix()
-    # confirm result
-    if check:
-        s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(S, p, scale))
-        s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Lp, p, scale))
-        assert s1 == s2, "oops"
-    return S
 
 def _gram_from_jordan_block(p, block, discr_form=False):
     r"""
@@ -3914,8 +3834,9 @@ def _gram_from_jordan_block(p, block, discr_form=False):
         [1/2   0   0   0]
         [  0   0 1/2   0]
         [  0   0   0 1/2]
-    """
-    scale = block[0]
+        """
+    from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+    level = block[0]
     rk = block[1]
     det = block[2]
     if p == 2:
@@ -3964,22 +3885,20 @@ def _gram_from_jordan_block(p, block, discr_form=False):
                     qL = qL[-2:]
         q = matrix.block_diagonal(qL)
         if discr_form:
-            q = q / 2**scale
+            q = q / 2**level
         else:
-            q = q * 2**scale
+            q = q * 2**level
     if p != 2 and discr_form:
         q = matrix.identity(QQ, rk)
         d = 2**(rk % 2)
         if Integer(d).kronecker(p) != det:
             u = ZZ(_min_nonsquare(p))
             q[0,0] = u
-        q = q * (2 / p**scale)
+        q = q * (2 / p**level)
     if p != 2 and not discr_form:
         q = matrix.identity(QQ, rk)
         if det != 1:
-            u = ZZ(_min_nonsquare(p))
+            u = _min_nonsquare(p)
             q[0,0] = u
-        q = q * p**scale
+        q = q * p**level
     return q
-
-
