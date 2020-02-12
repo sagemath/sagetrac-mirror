@@ -1446,6 +1446,38 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sub = codom.subgroup([codom(g) for g in gammaS])
             return f.preimage(sub)
 
+    def proj(self,S):
+        r"""
+        """
+        assert S <= self
+        K = self.orthogonal_complement(S)
+        SK = S.gens() + K.gens()
+        SK = self.span_of_basis(SK)
+        n = S.rank()
+        def proj(x):
+            c = SK.coordinates(x)
+            return sum(c[i]*SK.gen(i) for i in range(n))
+        return self.span([proj(g) for g in self.gens()])
+
+    def cone(self, H, square, intersection):
+        r"""
+        """
+        h = H.inner_product(H)
+        n = square
+        k = intersection
+        alpha = k/h
+        r = n - k**2*h
+        if r > 0:
+            raise ValueError()
+        R = self.proj(self.orthogonal_complement([H]))
+        assert self.signature_pair()[0]==1
+        assert h > 0
+        d = R.gram_matrix().denominator()
+        L = IntegralLattice(R.gram_matrix()*d)
+        SV = L.short_vectors(r*d + 1)[r*d]
+        return [alpha*H + V for V in sv]
+
+
     @cached_method
     def quadratic_form(self):
         r"""
