@@ -6783,53 +6783,53 @@ cdef class Matrix(Matrix1):
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
-        Return the echelon form of self.
-
-        .. NOTE::
-
-            This row reduction does not use division if the
-            matrix is not over a field (e.g., if the matrix is over
-            the integers).  If you want to calculate the echelon form
-            using division, then use :meth:`rref`, which assumes that
-            the matrix entries are in a field (specifically, the field
-            of fractions of the base ring of the matrix).
+        Return the echelon form of ``self``.
 
         INPUT:
 
-        - ``algorithm`` -- string. Which algorithm to use. Choices are
+        - ``algorithm`` -- one of
 
-          - ``'default'``: Let Sage choose an algorithm (default).
+          - ``'default'``: Sage choose an algorithm
 
-          - ``'classical'``: Gauss elimination.
+          - ``'classical'``: Gauss elimination
 
-          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting
-            (if base ring has absolute value)
+          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting,
+            if the base ring has absolute value
 
           - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
-            partial pivoting (if base ring has absolute value)
+            partial pivoting, if the base ring has absolute value
 
           - ``'scaled_partial_pivoting_valuation'``: Gauss elimination, using
-            scaled partial pivoting (if base ring has valuation)
+            scaled partial pivoting, if the base ring has valuation
 
-          - ``'strassen'``: use a Strassen divide and conquer
-            algorithm (if available)
+          - ``'strassen'``: use a Strassen divide and conquer algorithm, if
+            available
 
-        - ``cutoff`` -- integer. Only used if the Strassen algorithm is selected.
+        - ``cutoff`` -- integer, only used by the Strassen algorithm
 
-        - ``transformation`` -- boolean. Whether to also return the
-          transformation matrix. Some matrix backends do not provide
-          this information, in which case this option is ignored.
+        - ``kwds`` -- other optional keyword parameters are delivered to the
+          backend algorithm
 
         OUTPUT:
 
-        The reduced row echelon form of ``self``, as an immutable
-        matrix. Note that self is *not* changed by this command. Use
-        :meth:`echelonize` to change ``self`` in place.
+        The reduced row echelon form of ``self``, as an immutable matrix. Note
+        that ``self`` is *not* changed by this command. Use :meth:`echelonize`
+        to change ``self`` in place.
 
-        If the optional parameter ``transformation=True`` is
-        specified, the output consists of a pair `(E,T)` of matrices
-        where `E` is the echelon form of ``self`` and `T` is the
-        transformation matrix.
+        If the optional parameter ``transformation=True`` is specified and the
+        backend algorithm supports it, the output consists of a pair `(E,T)` of
+        matrices where `E` is the echelon form of ``self`` and `T` is the
+        transformation matrix. If the backend does not support it but you still
+        want the transformation matrix, then use
+        :meth:`extended_echelon_form()` method instead.
+
+        .. NOTE::
+
+            This row reduction does not use division if the matrix is not over
+            a field (e.g., if the matrix is over the integers).  If you want to
+            calculate the echelon form using division, then use :meth:`rref`,
+            which assumes that the matrix entries are in a field (specifically,
+            the field of fractions of the base ring of the matrix).
 
         EXAMPLES::
 
@@ -6843,13 +6843,28 @@ cdef class Matrix(Matrix1):
             [ 1  0 18]
             [ 0  1  2]
 
-        The matrix library used for `\ZZ/p`-matrices does not return
-        the transformation matrix, so the ``transformation`` option is
-        ignored::
+        The backend for matrices over `\ZZ/p` does not support the
+        ``transformation`` option::
 
             sage: C.echelon_form(transformation=True)
             [ 1  0 18]
             [ 0  1  2]
+
+        If you want the transformation matrix anyway, then do::
+
+            sage: E_augmented = C.extended_echelon_form()
+            sage: E = E_augmented.submatrix(ncols=C.ncols())
+            sage: E
+            [ 1  0 18]
+            [ 0  1  2]
+            sage: T = E_augmented.submatrix(0, C.ncols())
+            sage: T
+            [11  7]
+            [14  6]
+            sage: T * C == E
+            True
+
+        For matrices over integers, the optional parameter is well supported. ::
 
             sage: D = matrix(ZZ, 2, 3, [1,2,3,4,5,6])
             sage: D.echelon_form(transformation=True)
@@ -6858,30 +6873,34 @@ cdef class Matrix(Matrix1):
             [0 3 6], [ 4 -1]
             )
             sage: E, T = D.echelon_form(transformation=True)
-            sage: T*D == E
+            sage: T * D == E
             True
         """
         cdef bint transformation = ('transformation' in kwds and kwds['transformation'])
-        x = self.fetch('echelon_form')
-        if x is not None:
+
+        E = self.fetch('echelon_form')
+        if E is not None:
             if not transformation:
-                return x
-            y = self.fetch('echelon_transformation')
-            if y:
-                return (x, y)
+                return E
+            T = self.fetch('echelon_transformation')
+            if T:
+                return E, T
 
         E = self.__copy__()
         if algorithm == 'default':
-            v = E.echelonize(cutoff=cutoff, **kwds)
+            T = E.echelonize(cutoff=cutoff, **kwds)
         else:
-            v = E.echelonize(algorithm = algorithm, cutoff=cutoff, **kwds)
-        E.set_immutable()  # so we can cache the echelon form.
+            T = E.echelonize(algorithm = algorithm, cutoff=cutoff, **kwds)
+
+        E.set_immutable()  # so we can cache the echelon form
+
         self.cache('echelon_form', E)
-        if v is not None:
-            self.cache('echelon_transformation', v)
+        if T is not None:
+            self.cache('echelon_transformation', T)
         self.cache('pivots', E.pivots())
-        if transformation and v is not None:
-            return (E, v)
+
+        if transformation and T is not None:
+            return E, T
         else:
             return E
 
