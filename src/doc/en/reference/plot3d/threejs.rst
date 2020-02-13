@@ -6,7 +6,7 @@ Three.js JavaScript WebGL Renderer
 A web-based interactive viewer using the Three.js JavaScript library maintained
 by https://threejs.org.
 
-The viewer is invoked by adding the keyword argument ``viewer='threejs'`` to the command 
+The viewer is invoked by adding the keyword argument ``viewer='threejs'`` to the command
 ``show()`` or any three-dimensional graphic. The scene is rendered and displayed
 in the users's web browser. Interactivity includes
 
@@ -43,6 +43,12 @@ Options currently supported by the viewer:
   files are replaced by links to an online content delivery network
 
 - ``opacity`` -- (default: 1) numeric value for transparency of lines and surfaces
+
+- ``persist`` -- (default: False) whether to attempt to persist the state of the camera
+  over subsequent viewings. If working in a Jupyter notebook, it will key off of the current
+  cell; otherwise the location of the file on disk or online. Note, though, that many browsers
+  -- including Chrome -- won't allow this persistence for local files as a security measure.
+  ``persist`` is especially useful when using `interact <https://wiki.sagemath.org/interact>`_.
 
 - ``projection`` -- (default: 'perspective') the type of camera projection to use;
   'perspective' or 'orthographic'

@@ -8,14 +8,17 @@
 
     body { margin: 0px; overflow: hidden; }
 
-    #menu-container { position: absolute; bottom: 30px; right: 40px; }
+    #menu-container { position: absolute; bottom: 30px; right: 40px;
+                      user-select: none; cursor: pointer; }
 
     #menu-content { position: absolute; bottom: 0px; right: 0px;
                     display: none; background-color: #F5F5F5; border-bottom: 1px solid black;
                     border-right: 1px solid black; border-left: 1px solid black; }
 
     #menu-content div { border-top: 1px solid black; padding: 10px; white-space: nowrap; }
-  
+
+    #menu-content div:hover { color: rgb(49, 49, 255); }
+
 </style>
 </head>
 
@@ -201,11 +204,11 @@ SAGE_SCRIPTS
     controls.addEventListener( 'change', function() { if ( !animate ) render(); } );
 
     window.addEventListener( 'resize', function() {
-        
+
         renderer.setSize( window.innerWidth, window.innerHeight );
         updateCameraAspect( camera, window.innerWidth / window.innerHeight );
         if ( !animate ) render();
-        
+
     } );
 
     var texts = SAGE_TEXTS;
@@ -350,6 +353,7 @@ SAGE_SCRIPTS
     }
 
     var scratch = new THREE.Vector3();
+    var persist = initPersistence();
 
     function render() {
 
@@ -368,8 +372,12 @@ SAGE_SCRIPTS
                 }
             }
         }
+
+        persist.save();
+
     }
-    
+
+    persist.load();
     render();
     controls.update();
     if ( !animate ) render();
@@ -415,6 +423,171 @@ SAGE_SCRIPTS
 
     }
 
+    function resetCamera() {
+
+        camera.position.set( a[0]*(xMid+xRange), a[1]*(yMid+yRange), a[2]*(zMid+zRange) );
+        camera.zoom = 1;
+        camera.updateProjectionMatrix();
+
+        controls.target.set( a[0]*xMid, a[1]*yMid, a[2]*zMid );
+        controls.update();
+
+        if ( !animate ) render();
+
+    }
+
+    // Persistence
+
+    function initPersistence() {
+
+        var nop = function() {};
+        var persist = { "load": nop, "save": nop };
+        var storage, id;
+
+        if ( options.persist && storageAvailable( 'localStorage' ) ) {
+            storage = window.localStorage;
+            id = getNotebookCellId() || window.URL || window.top.URL;
+            if ( id ) {
+                id = 'sage.plot.plot3d.threejs:' + id; // Try to avoid key collisions.
+                persist.load = load;
+                persist.save = save;
+            }
+        }
+
+        return persist;
+
+        function load() {
+            var json = storage.getItem( id );
+            var state;
+            try {
+                state = JSON.parse( json );
+            } catch ( e ) {
+                if ( e instanceof SyntaxError ) console.warn( e );
+                else throw e;
+            }
+            if ( state ) setState( state );
+        }
+
+        function save() {
+            var state = getState();
+            var json;
+            try {
+                json = JSON.stringify( state );
+            } catch ( e ) {
+                if ( e instanceof TypeError ) console.warn( e );
+                else throw e;
+            }
+            if ( json ) storage.setItem( id, json );
+        }
+
+        function getState() {
+            return { "camera": getCameraState() };
+        }
+
+        function setState( state ) {
+            if ( state.camera ) setCameraState( state.camera );
+        }
+
+        function getCameraState() {
+            return {
+                "cameraPos": get( camera.position ),
+                "targetPos": get( controls.target ),
+                "zoom": camera.zoom
+            };
+            function get( v ) {
+                return { "x": v.x/a[0], "y": v.y/a[1], "z": v.z/a[2] };
+            }
+        }
+
+        function setCameraState( state ) {
+
+            if ( state.cameraPos )
+                set( camera.position, state.cameraPos );
+            if ( state.targetPos )
+                set( controls.target, state.targetPos );
+            if ( state.zoom && camera.isOrthographicCamera )
+                camera.zoom = state.zoom;
+
+            camera.updateProjectionMatrix();
+            controls.update();
+
+            function set( dest, v ) {
+                dest.copy( new THREE.Vector3( a[0]*v.x, a[1]*v.y, a[2]*v.z ) );
+            }
+
+        }
+
+    }
+
+    // "Using the Web Storage API"
+    // MDN web docs
+    // https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+    // Retrieved: February 12, 2020
+    function storageAvailable(type) {
+        var storage;
+        try {
+            storage = window[type];
+            var x = '__storage_test__';
+            storage.setItem(x, x);
+            storage.removeItem(x);
+            return true;
+        }
+        catch(e) {
+            return e instanceof DOMException && (
+                // everything except Firefox
+                e.code === 22 ||
+                // Firefox
+                e.code === 1014 ||
+                // test name field too, because code might not be present
+                // everything except Firefox
+                e.name === 'QuotaExceededError' ||
+                // Firefox
+                e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+                // acknowledge QuotaExceededError only if there's something already stored
+                (storage && storage.length !== 0);
+        }
+    }
+
+    function getNotebookCellId() {
+
+        // Note that this is a bit fragile since it relies on the document structure
+        // and CSS class names used by the Jupyter notebook page, which could change
+        // in future versions of the notebook.
+
+        var notebookPath = getNotebookPath();
+        if ( notebookPath ) {
+            var cellElement = getCellElement();
+            if ( cellElement ) {
+                var cellIndex = getCellIndex( cellElement );
+                return notebookPath + '[' + cellIndex + ']';
+            }
+        }
+
+        function getNotebookPath() {
+            // Check to see if we're embedded in another window.
+            if ( window.parent !== window ) {
+                var body = window.parent.document.body;
+                if ( body ) return body.getAttribute( 'data-notebook-path' );
+            }
+        }
+
+        function getCellElement() {
+            // Search our ancestors until we find a notebook cell, starting with
+            // the iframe element in which we're embedded.
+            var e = window.frameElement;
+            while ( e && !e.classList.contains( 'cell' ) ) e = e.parentElement;
+            return e;
+        }
+
+        function getCellIndex( cellElement ) {
+            // The index is simply the number of previous sibling cells.
+            for ( var i=0, e=cellElement.previousElementSibling ; e ; e = e.previousElementSibling )
+                if ( e.classList.contains( 'cell' ) ) i++;
+            return i;
+        }
+
+    }
+
 </script>
 
 <div id="menu-container" onclick="toggleMenu()">&#x24d8;
@@ -422,6 +595,7 @@ SAGE_SCRIPTS
 <div onclick="saveAsPNG()">Save as PNG</div>
 <div onclick="saveAsHTML()">Save as HTML</div>
 <div onclick="getViewpoint()">Camera Info</div>
+<div onclick="resetCamera()">Reset Camera</div>
 <div>Close Menu</div>
 </div></div>
 

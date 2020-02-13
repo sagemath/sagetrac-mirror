@@ -367,6 +367,7 @@ cdef class Graphics3d(SageObject):
         options.setdefault('axes_labels', ['x','y','z'])
         options.setdefault('decimals', 2)
         options.setdefault('online', False)
+        options.setdefault('persist', False)
         options.setdefault('projection', 'perspective')
         if options['projection'] not in ['perspective', 'orthographic']:
             import warnings
@@ -437,7 +438,7 @@ cdef class Graphics3d(SageObject):
 
         html = html.replace('SAGE_SCRIPTS', scripts)
         js_options = dict((key, options[key]) for key in
-            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame', 'projection'])
+            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame', 'persist', 'projection'])
         html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
