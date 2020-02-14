@@ -2807,8 +2807,29 @@ class Polytopes():
             Traceback (most recent call last):
             ...
             ValueError: the only allowed string is 'zero_one'
+
+        Check that we set up the hypercube correctly::
+
+            sage: ls = [randint(-100,100) for _ in range(4)]
+            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: ls = [randint(-100,100) for _ in range(4)]
+            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: P = polytopes.hypercube(4, intervals, backend='field')
+            sage: P1 = polytopes.hypercube(4, intervals, backend='ppl')
+            sage: assert P == P1
+
+        Check that coercion for input invervals is handled correctly::
+
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1.0]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, AA(2).sqrt()]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1.0]], backend='ppl')
+            Traceback (most recent call last):
+            ...
+            ValueError: specified backend ppl cannot handle the intervals
         """
         parent = Polyhedra(ZZ, dim, backend=backend)
+        convert = False
 
         # Preparing the inequalities:
         # If the intervals are (a_1,b_1), ..., (a_dim, b_dim),
@@ -2836,6 +2857,13 @@ class Polytopes():
             if not all(a < b for a,b in intervals):
                 raise ValueError("each interval must be a pair `(a, b)` with `a < b`")
             parent = parent.base_extend(sum(a + b for a,b in intervals))
+            if parent.base_ring() not in (ZZ, QQ):
+                convert = True
+            if backend and parent.backend() is not backend:
+                # If the parent changed backends, but a backend was specified,
+                # the specified backend cannot handle the intervals.
+                raise ValueError("specified backend {} cannot handle the intervals".format(backend))
+
             cp = list(itertools.product(*intervals))
             for i in range(dim):
                 ieqs[i][0]     =  intervals[i][1]  # An inequality -x_i + b_i >= 0
@@ -2843,7 +2871,7 @@ class Polytopes():
 
         else:
             raise ValueError("the dimension of the hypercube must match the number of intervals")
-        return parent.element_class(parent, [cp, [], []], [ieqs, []], Vrep_minimal=True, Hrep_minimal=True )
+        return parent([cp, [], []], [ieqs, []], convert=convert, Vrep_minimal=True, Hrep_minimal=True )
 
     def cube(self, intervals=None, backend=None):
         r"""

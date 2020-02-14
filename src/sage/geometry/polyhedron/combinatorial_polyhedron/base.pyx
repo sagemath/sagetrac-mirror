@@ -35,16 +35,16 @@ Construction::
 Obtaining edges and ridges::
 
     sage: C.edges()[:2]
-    ((A vertex at (1, 1, 1, -1), A vertex at (1, 1, 1, 1)),
-     (A vertex at (1, 1, -1, 1), A vertex at (1, 1, 1, 1)))
+    ((A vertex at (-1, -1, -1, 1), A vertex at (-1, -1, -1, -1)),
+     (A vertex at (-1, 1, -1, -1), A vertex at (-1, -1, -1, -1)))
     sage: C.edges(names=False)[:2]
-    ((14, 15), (13, 15))
+    ((14, 15), (10, 15))
 
     sage: C.ridges()[:2]
     ((An inequality (0, 0, 1, 0) x + 1 >= 0,
-      An inequality (0, 0, 0, 1) x + 1 >= 0),
-       (An inequality (0, 1, 0, 0) x + 1 >= 0,
-         An inequality (0, 0, 0, 1) x + 1 >= 0))
+      An inequality (0, 1, 0, 0) x + 1 >= 0),
+     (An inequality (0, 0, 0, 1) x + 1 >= 0,
+      An inequality (0, 1, 0, 0) x + 1 >= 0))
     sage: C.ridges(names=False)[:2]
     ((6, 7), (5, 7))
 
@@ -817,37 +817,37 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: C.facets()
-            ((A vertex at (-1, -1, 1),
-              A vertex at (-1, 1, 1),
-              A vertex at (1, -1, 1),
-              A vertex at (1, 1, 1)),
-             (A vertex at (-1, 1, -1),
-              A vertex at (-1, 1, 1),
+            ((A vertex at (1, -1, -1),
               A vertex at (1, 1, -1),
-              A vertex at (1, 1, 1)),
-             (A vertex at (1, -1, -1),
-              A vertex at (1, -1, 1),
-              A vertex at (1, 1, -1),
-              A vertex at (1, 1, 1)),
-             (A vertex at (-1, -1, -1),
-              A vertex at (-1, -1, 1),
+              A vertex at (1, 1, 1),
+              A vertex at (1, -1, 1)),
+             (A vertex at (1, 1, -1),
+              A vertex at (1, 1, 1),
               A vertex at (-1, 1, -1),
               A vertex at (-1, 1, 1)),
-             (A vertex at (-1, -1, -1),
-              A vertex at (-1, 1, -1),
-              A vertex at (1, -1, -1),
-              A vertex at (1, 1, -1)),
-             (A vertex at (-1, -1, -1),
+             (A vertex at (1, 1, 1),
+              A vertex at (1, -1, 1),
               A vertex at (-1, -1, 1),
-              A vertex at (1, -1, -1),
-              A vertex at (1, -1, 1)))
+              A vertex at (-1, 1, 1)),
+             (A vertex at (-1, -1, 1),
+              A vertex at (-1, -1, -1),
+              A vertex at (-1, 1, -1),
+              A vertex at (-1, 1, 1)),
+             (A vertex at (1, -1, -1),
+              A vertex at (1, 1, -1),
+              A vertex at (-1, -1, -1),
+              A vertex at (-1, 1, -1)),
+             (A vertex at (1, -1, -1),
+              A vertex at (1, -1, 1),
+              A vertex at (-1, -1, 1),
+              A vertex at (-1, -1, -1)))
             sage: C.facets(names=False)
-            ((1, 3, 5, 7),
-             (2, 3, 6, 7),
+            ((0, 1, 2, 3),
+             (1, 2, 6, 7),
+             (2, 3, 4, 7),
              (4, 5, 6, 7),
-             (0, 1, 2, 3),
-             (0, 2, 4, 6),
-             (0, 1, 4, 5))
+             (0, 1, 5, 6),
+             (0, 3, 4, 5))
         """
         if unlikely(self.dimension() == 0):
             # Special attention for this trivial case.
@@ -889,14 +889,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.cube()
             sage: C = P.combinatorial_polyhedron()
             sage: C.incidence_matrix()
-            [0 0 0 1 1 1]
-            [1 0 0 1 0 1]
-            [0 1 0 1 1 0]
-            [1 1 0 1 0 0]
-            [0 0 1 0 1 1]
-            [1 0 1 0 0 1]
-            [0 1 1 0 1 0]
+            [1 0 0 0 1 1]
+            [1 1 0 0 1 0]
             [1 1 1 0 0 0]
+            [1 0 1 0 0 1]
+            [0 0 1 1 0 1]
+            [0 0 0 1 1 1]
+            [0 1 0 1 1 0]
+            [0 1 1 1 0 0]
             sage: P.incidence_matrix() == C.incidence_matrix()
             True
 
