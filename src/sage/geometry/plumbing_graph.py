@@ -841,6 +841,7 @@ class PlumbingGraph():
 
         n = len(self.vertices)
         V = list(self.vertices)
+        W = { V[i]:i for i in range(0,n) }
         
         M = MatrixSpace(ZZ, n,n) 
         I  = copy(M.zero_matrix())
@@ -850,8 +851,8 @@ class PlumbingGraph():
             L = list(self.adj[e])
             if len(L) == 1:
                 L.append(L[0])
-            I[L[0],L[1]] += self.epsilon[e]
-            I[L[1],L[0]] += self.epsilon[e]
+            I[W[L[0]],W[L[1]]] += self.epsilon[e]
+            I[W[L[1]],W[L[0]]] += self.epsilon[e]
         return I
 
     def is_analytic_link(self):
