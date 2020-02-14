@@ -855,6 +855,33 @@ class PlumbingGraph():
             I[W[L[1]],W[L[0]]] += self.epsilon[e]
         return I
 
+    def det(self):
+        r"""
+        Return the determinant of the graph.
+        
+        If I is the intersection matrix of the graph P, then the determinant
+        of P is the determinant of -P.
+        
+        OUTPUT:
+        
+        Integer.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[2,3/2,3/2])
+            0
+            sage: P.det()
+            3
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(2,0,[2,3/2,3/2])
+            0
+            sage: P.det()
+            -69
+        """
+        
+        return (-self.intersection_matrix()).det()
+
     def is_analytic_link(self):
         r"""
         Check whether the plumbing graph is analytic.
