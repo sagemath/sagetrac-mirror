@@ -2760,7 +2760,7 @@ class Polytopes():
 
             sage: z_cube = polytopes.hypercube(4,intervals = 'zero_one')
             sage: z_cube.vertices()[0]
-            A vertex at (0, 0, 0, 0)
+            A vertex at (1, 0, 1, 1)
             sage: z_cube.is_simple()
             True
             sage: z_cube.base_ring()
@@ -2835,7 +2835,7 @@ class Polytopes():
         elif len(intervals) == dim:
             if not all(a < b for a,b in intervals):
                 raise ValueError("each interval must be a pair `(a, b)` with `a < b`")
-            parent = parent.base_extend(intervals)
+            parent = parent.base_extend(sum(a + b for a,b in intervals))
             cp = list(itertools.product(*intervals))
             for i in range(dim):
                 ieqs[i][0]     =  intervals[i][1]  # An inequality -x_i + b_i >= 0
@@ -2894,14 +2894,14 @@ class Polytopes():
 
             sage: cc = polytopes.cube(intervals ='zero_one')
             sage: cc.vertices_list()
-            [[0, 0, 0],
-            [0, 0, 1],
-            [0, 1, 0],
-            [0, 1, 1],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 1, 0],
-            [1, 1, 1]]
+            [[1, 0, 0],
+             [1, 1, 0],
+             [1, 1, 1],
+             [1, 0, 1],
+             [0, 0, 1],
+             [0, 0, 0],
+             [0, 1, 0],
+             [0, 1, 1]]
         """
         return self.hypercube(3, backend=backend, intervals=intervals)
 
