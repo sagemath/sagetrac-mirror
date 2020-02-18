@@ -3615,6 +3615,27 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         return self.nonzero_positions()
 
+    def length(self):
+        """
+        Return the number of nonzero positions of this vector.
+
+        EXAMPLES::
+
+            sage: v = vector([-1, 0, 2, 0])
+            sage: v.length()
+            2
+
+        Note that this is different from calling ``len()``::
+
+            sage: len(v)
+            4
+
+        .. SEEALSO::
+
+            :meth:`degree`
+        """
+        return len(self.nonzero_positions())
+
     cpdef int hamming_weight(self):
         """
         Return the number of positions ``i`` such that ``self[i] != 0``.
