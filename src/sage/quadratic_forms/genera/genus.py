@@ -3298,7 +3298,7 @@ class GenusSymbol_global_ring(object):
             self._compute_representative()
         return self._representative
 
-def local_symbols(self, p=None):
+    def local_symbols(self, p=None):
         r"""
         Return the local symbols.
 
@@ -3324,8 +3324,6 @@ def local_symbols(self, p=None):
         assert p!=2
         sym_p = [[0, self.rank(), self.det().kronecker(p)]]
         return Genus_Symbol_p_adic_ring(p, sym_p)
-
-
 
     def _standard_mass(self):
         r"""
@@ -3460,55 +3458,6 @@ def local_symbols(self, p=None):
             2
         """
         return prod([s.norm() for s in self.local_symbols()])
-
-    def _compute_representative(self, LLL=True):
-        r"""
-        Compute a representative of this genus and cache it.
-
-        INPUT:
-
-        - ``LLL`` -- boolean (default: ``True``); whether or not to LLL reduce
-        """
-        from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
-        even = self.is_even()
-        q = self.rational_representative()
-        n = q.nrows()
-        # the associated quadratic form xGx.T/2 should be integral
-        L = IntegralLattice(4*q).maximal_overlattice().gram_matrix()
-        p = 2
-        sym2 = self.local_symbols()[0]
-        if not self.is_even():
-            # the quadratic form of xGx.T/2 must be integral
-            # for things to work
-            # solve this by multiplying the basis by 2
-            L = local_modification(L, 4*sym2.gram_matrix(), p)
-            L = (L/4).change_ring(ZZ)
-        else:
-            L = local_modification(L, sym2.gram_matrix(), p)
-        for sym in self._local_symbols[1:]:
-            p = sym.prime()
-            L = local_modification(L, sym.gram_matrix(), p)
-        # confirm the computation
-        L = L.change_ring(ZZ)
-        if LLL:
-            sig = self.signature_pair_of_matrix()
-            if sig[0]*sig[1] != 0:
-                from sage.env import SAGE_EXTCODE
-                m = pari(L)
-                gp.read(SAGE_EXTCODE + "/pari/simon/qfsolve.gp")
-                m = gp.eval('qflllgram_indefgoon(%s)'%m)
-                # convert the output string to sage
-                L = pari(m).sage()[0]
-            elif sig[1] != 0:
-                U = -(-L).LLL_gram()
-                L = U.T * L * U
-            else:
-                U = L.LLL_gram()
-                L = U.T * L * U
-        assert Genus(L) == self
-        L = L.change_ring(ZZ)
-        L.set_immutable()
-        self._representative = L
 
     def representatives(self, backend='sage', algorithm=None):
         r"""

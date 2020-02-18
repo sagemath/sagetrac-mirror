@@ -34,6 +34,15 @@ class AdelicSquareClass(AbelianGroupElement_gap):
     Elements of the product over `C_2` x `\QQ_p* / (\QQ_p*)^2` at primes `p`.
     """
 
+    def __repr__(self):
+        r"""
+        """
+        P = self.parent()
+        r = ""
+        for p in P._S:
+            r += "%s_%s "%(self.component(p),p)
+        return r
+
     def component(self, p):
         r"""
         Return `(det, spin)` of the `p`-component.
@@ -59,11 +68,11 @@ class AdelicSquareClass(AbelianGroupElement_gap):
         if p == 2:
             det = (-1)**exp[0]
             spin *= 2**exp[1]
-            spin *= 3**(exp[2])
-            spin *= 7**(exp[3])
-            spin = spin % 8
+            spin0 = 3**(exp[2])
+            spin0 *= 7**(exp[3])
+            spin *= (spin0 % 8)
         else:
-            up = _min_nonsquare(p)
+            up = ZZ(_min_nonsquare(p))
             k = 1 + 3*self.parent()._S.index(p)
             det = (-1)**exp[k]
             spin *= p**exp[k+1]
