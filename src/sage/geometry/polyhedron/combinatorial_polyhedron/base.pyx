@@ -1568,7 +1568,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                         vertices[one] = 0
                         vertices[two] = 0
 
-        return all(x == 0 for x in vertices)
+        return not any(vertices)
 
     def is_pyramid(self, certificate=False):
         r"""
