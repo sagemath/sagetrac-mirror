@@ -173,7 +173,8 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/',
                 os.path.join(SAGE_DOC_SRC, "common",
                              "python{}.inv".format(python_version))),
-    'pplpy': (PPLPY_DOCS, None)}
+    'pplpy': (PPLPY_DOCS, None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None)}
 
 def set_intersphinx_mappings(app):
     """
@@ -852,6 +853,7 @@ def setup(app):
     if app.srcdir.startswith(SAGE_DOC_SRC):
         app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
+        app.add_config_value('intersphinx_timeout', None, False)
         # We do *not* fully initialize intersphinx since we call it by hand
         # in find_sage_dangling_links.
         #   app.connect('missing-reference', missing_reference)
