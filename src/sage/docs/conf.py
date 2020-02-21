@@ -169,12 +169,20 @@ todo_include_todos = True
 
 # Cross-links to other project's online documentation.
 python_version = sys.version_info.major
+python_inventory_file = os.path.join(SAGE_DOC_SRC, "common",
+                                     "python{}.inv".format(python_version))
+# If connected to the internet, the inventory file will be downloaded for
+# projects that have `None` as first argument to the second inventory tuple
+# item. To avoid docbuild failures when building Sage without internet
+# connection, we use the local python inventory file as a fallback for other
+# projects. Cross-references will not be resolved in that case, but the
+# docbuild will still succeed.
+dummy_inventory_file = python_inventory_file
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common",
-                             "python{}.inv".format(python_version))),
+    'python': ('https://docs.python.org/', python_inventory_file),
     'pplpy': (PPLPY_DOCS, None),
-    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None)}
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference/',
+              (None, dummy_inventory_file))}
 
 def set_intersphinx_mappings(app):
     """
