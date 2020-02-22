@@ -203,7 +203,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
     :meth:`~GenericGraph.lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
-    :meth:`~GenericGraph.lex_M` | Return an ordering of the vertices according the LexM graph traversal.
 
 **Distances:**
 
@@ -5978,12 +5977,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.CubeGraph(3)
             sage: for e in label_dict:
             ....:     g.set_edge_label(e[0], e[1], label_dict[e])
-            ....:
             sage: gd = g.planar_dual()
             sage: incident_labels = []
             sage: for v in gd:
             ....:     incident_labels.append(sorted([l for _, _, l in gd.edges_incident(v) if l]))
-            ....:
             sage: sorted(incident_labels)
             [[], [1], [1, 2, 3, 4], [2], [3], [4]]
 
@@ -11162,7 +11159,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.allow_loops(True); G.allow_multiple_edges(True)
             sage: for e in G.edges(sort=False):
             ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
-            ....:
             sage: G.contract_edge(0, 1); G.edges()
             [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
             sage: G.contract_edge(0, 2, 4); G.edges()
@@ -23370,7 +23366,6 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.traversals import lex_UP
     from sage.graphs.traversals import lex_DFS
     from sage.graphs.traversals import lex_DOWN
-    from sage.graphs.traversals import lex_M
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""
