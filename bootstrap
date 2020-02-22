@@ -155,7 +155,7 @@ save () {
     # Create configure tarball
     echo "Creating $NEWCONFBALL..."
     mkdir -p upstream
-    tar zcf "$NEWCONFBALL" configure config/* build/make/Makefile-auto.in src/doc/en/installation/*.txt
+    tar zcf "$NEWCONFBALL" configure config/* build/make/Makefile-auto.in src/requirements.txt src/constraints.txt src/install-requires.txt src/doc/en/installation/*.txt
     
     # Update version
     echo "$NEWCONFVERSION" >$PKG/package-version.txt
