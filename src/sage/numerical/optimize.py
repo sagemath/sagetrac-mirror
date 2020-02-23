@@ -357,7 +357,6 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
         sage: minimize(f, [.1, .3, .4], algorithm="ncg", verbose=True)
         Optimization terminated successfully.
         ...
-        (0.9999999..., 0.999999..., 0.999999...)
 
     Same example with just Python functions::
 
@@ -393,16 +392,16 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
                                             -200*x[0]**2 + 400*(x[1]**2 - x[2])*x[1] + 202*x[1] - 2, \
                                              -200*x[1]**2 + 200*x[2]])
         sage: x0 = [.1,.3,.4]
-        sage: minimize(f, x0, gradient, algorithm="ncg")
-        (0.999...,  0.999...,  0.999...)
+        sage: minimize(f, x0, gradient, algorithm="ncg")  # abs tol 1e-5
+        (1.0,  1.0,  1.0)
 
     The hessian can be passed as a list-of-lists-valued Python function::
 
         sage: hessian = lambda x : [[1200*x[0]^2 - 400*x[1] + 2, -400*x[0], 0], \
                         [-400*x[0], 1200*x[1]^2 - 400*x[2] + 202, -400*x[1]], \
                         [0, -400*x[1], 200]]
-        sage: minimize(f, x0, gradient, hessian, algorithm="ncg")
-        (0.999...,  0.999...,  0.999...)
+        sage: minimize(f, x0, gradient, hessian, algorithm="ncg")  # abs tol 1e-5
+        (1.0, 1.0, 1.0)
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
