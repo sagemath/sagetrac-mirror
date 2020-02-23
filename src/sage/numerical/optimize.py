@@ -405,45 +405,58 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
-    import numpy
+    import numpy as np
     from scipy import optimize
     if isinstance(func, Expression):
-        var_list=func.variables()
+        var_list = func.variables()
         var_names = [str(_) for _ in var_list]
-        fast_f=fast_callable(func, vars=var_names, domain=float)
-        f=lambda p: fast_f(*p)
-        gradient_list=func.gradient()
-        fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in range(len(gradient_list))]
-        gradient=lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
+        fast_f = fast_callable(func, vars=var_names, domain=float)
+        f = lambda p: fast_f(*p)
     else:
-        f=func
+        f = func
 
-    if algorithm=="default":
-        if gradient is None:
-            min = optimize.fmin(f, [float(_) for _ in x0], disp=verbose, **args)
+    x0 = np.array(x0, dtype=float)
+
+    def get_gradient(func, gradient):
+        if gradient is not None:
+            return gradient
+        elif isinstance(func, Expression):
+            gradient_list = func.gradient()
+            fast_gradient_functions = [fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in range(len(gradient_list))]
+            # TODO: Sage should have fast callable for np.arrays
+            return lambda p: np.array([a(*p) for a in fast_gradient_functions], dtype=float)
         else:
-            min= optimize.fmin_bfgs(f, [float(_) for _ in x0],fprime=gradient, disp=verbose, **args)
+            return None
+
+    def get_hessian(func, hessian):
+        if hessian is not None:
+            return hessian
+        elif isinstance(func, Expression):
+            hessian_matrix = func.hessian()
+            fast_hessian_functions = [[fast_callable(a, vars=var_names, domain=float) for a in row] for row in hessian_matrix]
+            # TODO: Sage should have fast callable for np.arrays
+            hessian = lambda p: np.array([[a(*p) for a in row] for row in fast_hessian_functions])
+        else:
+            return None
+
+    if algorithm == "default":
+        gradient = get_gradient(func, gradient)
+        min = optimize.fmin_bfgs(f, x0, fprime=gradient, disp=verbose, **args)
     else:
-        if algorithm=="simplex":
-            min= optimize.fmin(f, [float(_) for _ in x0], disp=verbose, **args)
-        elif algorithm=="bfgs":
-            min= optimize.fmin_bfgs(f, [float(_) for _ in x0], fprime=gradient, disp=verbose, **args)
-        elif algorithm=="cg":
-            min= optimize.fmin_cg(f, [float(_) for _ in x0], fprime=gradient, disp=verbose, **args)
-        elif algorithm=="powell":
-            min= optimize.fmin_powell(f, [float(_) for _ in x0], disp=verbose, **args)
-        elif algorithm=="ncg":
-            if isinstance(func, Expression):
-                hess=func.hessian()
-                hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
-                hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
-                hessian_p=lambda p,v: scipy.dot(numpy.array(hessian(p)),v)
-                min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
-                      fhess=hessian, fhess_p=hessian_p, disp=verbose, **args)
-            else:
-                if gradient is None:
-                    raise TypeError("the ncg method requires the gradient")
-            min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
+        if algorithm == "simplex":
+            min = optimize.fmin(f, x0, disp=verbose, **args)
+        elif algorithm == "bfgs":
+            gradient = get_gradient(func, gradient)
+            min = optimize.fmin_bfgs(f, x0, fprime=gradient, disp=verbose, **args)
+        elif algorithm == "cg":
+            gradient = get_gradient(func, gradient)
+            min = optimize.fmin_cg(f, x0, fprime=gradient, disp=verbose, **args)
+        elif algorithm == "powell":
+            min = optimize.fmin_powell(f, x0, disp=verbose, **args)
+        elif algorithm == "ncg":
+            gradient = get_gradient(func, gradient)
+            hessian = get_hessian(func, hessian)
+            min = optimize.fmin_ncg(f, x0, fprime=gradient,
                           fhess=hessian, disp=verbose, **args)
 
     return vector(RDF, min)
