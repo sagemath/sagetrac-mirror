@@ -838,14 +838,9 @@ def preparse_numeric_literals(code, extract=False):
         if not re.search(r"\d", num):
             continue
 
-        # Multiple consecutive underscores is invalid Python
-        # syntax. Do not preparse.
-        if num.find('__') != -1:
-            continue
-
-        # Trailing underscore is invalid Python syntax. Do not
-        # preparse.
-        if num.endswith('_'):
+        # Multiple consecutive underscores and trailing underscores
+        # are invalid Python syntax. Do not preparse.
+        if num.find('__') != -1 or num.endswith('_'):
             continue
 
         # In Python 3, integers should not begin with 0 unless they're
