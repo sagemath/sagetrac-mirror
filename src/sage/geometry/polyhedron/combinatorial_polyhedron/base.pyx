@@ -1869,7 +1869,7 @@ cdef class CombinatorialPolyhedron(SageObject):
              A 2-dimensional face of a 4-dimensional combinatorial polyhedron,
              A 3-dimensional face of a 4-dimensional combinatorial polyhedron]
             sage: [face.ambient_V_indices() for face in chain]
-            [(0,), (0, 8), (0, 4, 8, 12), (0, 2, 4, 6, 8, 10, 12, 14)]
+            [(15,), (6, 15), (5, 6, 14, 15), (0, 5, 6, 7, 8, 9, 14, 15)]
 
             sage: P = polytopes.permutahedron(4)
             sage: C = P.combinatorial_polyhedron()
