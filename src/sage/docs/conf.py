@@ -180,7 +180,9 @@ python_inventory_file = os.path.join(SAGE_DOC_SRC, "common",
 dummy_inventory_file = python_inventory_file
 intersphinx_mapping = {
     'python': ('https://docs.python.org/', python_inventory_file),
-    'pplpy': (PPLPY_DOCS, None),
+    'pplpy': ('https://www.labri.fr/perso/vdelecro/pplpy/latest/',
+              (None, os.path.join(PPLPY_DOCS, 'objects.inv'),
+               dummy_inventory_file)),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/',
               (None, dummy_inventory_file))}
 
