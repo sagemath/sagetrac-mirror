@@ -106,7 +106,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         return f.find_root(a=a,b=b,xtol=xtol,rtol=rtol,maxiter=maxiter,full_output=full_output)
     except AttributeError:
         pass
-    a = float(a); b = float(b)
+    a = float(a)
+    b = float(b)
     if a > b:
         a, b = b, a
     left = f(a)
@@ -415,7 +416,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
-                hessian_p=lambda p,v: scipy.dot(numpy.array(hessian(p)),v)
+                hessian_p=lambda p,v: numpy.dot(numpy.array(hessian(p)),v)
                 min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
                       fhess=hessian, fhess_p=hessian_p, disp=verbose, **args)
     return vector(RDF, min)
