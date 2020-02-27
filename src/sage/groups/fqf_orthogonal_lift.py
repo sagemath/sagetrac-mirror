@@ -50,7 +50,7 @@ def Hensel_qf(G, F, a, b):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import Hensel_qf, _min_val
+        sage: from sage.groups.fqf_orthogonal_lift import Hensel_qf, _min_val
         sage: R = Zp(3, type='fixed-mod', prec=7, print_mode='terse', show_prec=False)
         sage: G = matrix(R, 6, 6, [0, 243, 0, 0, 0, 0, 243, 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0])
         sage: F = matrix(R, 6, 6, [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 0, 1, 2, 1, 0, 0, 0, 2, -1, 6, 3, 0, 1, 1, 9, 3, 6, 1, 0])
@@ -124,7 +124,7 @@ def _reverse_homogeneous_blocks(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _reverse_homogeneous_blocks
+        sage: from sage.groups.fqf_orthogonal_lift import _reverse_homogeneous_blocks
         sage: R = Zp(3,type='fixed-mod',prec=4,print_mode='terse', show_prec=False, print_pos=False)
         sage: G = matrix.diagonal(R, [3^3,3^3,3^1,1,1,1])
         sage: U = _reverse_homogeneous_blocks(G)
@@ -152,7 +152,7 @@ def _reverse_homogeneous_blocks(G):
     ind.append(G.ncols())
     perm = []
     for k in range(len(ind)-1):
-        perm = range(ind[k] + 1, ind[k+1] + 1) + perm
+        perm = list(range(ind[k] + 1, ind[k+1] + 1)) + perm
     perm = Permutation(perm)
     perm = perm.to_matrix()
     return perm
@@ -173,7 +173,7 @@ def _last_block_index(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _last_block_index
+        sage: from sage.groups.fqf_orthogonal_lift import _last_block_index
         sage: G = matrix(Zp(2), 3, [4,0,0, 0,2,1, 0,1,2])
         sage: _last_block_index(G)
         (1, 0, 2)
@@ -198,7 +198,7 @@ def _block_indices_vals(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _block_indices_vals
+        sage: from sage.groups.fqf_orthogonal_lift import _block_indices_vals
         sage: G = matrix(Zp(2), 3, [4,0,0, 0,2,1, 0,1,2])
         sage: _block_indices_vals(G)
         ([0, 1], [2, 0])
@@ -222,7 +222,7 @@ def _min_val(M):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _min_val
+        sage: from sage.groups.fqf_orthogonal_lift import _min_val
         sage: G = matrix.diagonal(Zp(2), [2,6,8,20,14])
         sage: _min_val(G)
         1
@@ -261,7 +261,7 @@ def _Hensel_qf(Z, G, F, a, b):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _Hensel_qf
+        sage: from sage.groups.fqf_orthogonal_lift import _Hensel_qf
         sage: R = Zp(3, type='fixed-mod', prec=5, print_mode='terse', show_prec=False, print_pos=False)
         sage: G = matrix.diagonal(R, [3^2,1,1])
         sage: Z = G + matrix(R, 3, [0,3^2,0, 3^2,0,0, 0,0,3])
@@ -324,7 +324,7 @@ def _Hensel_qf_modular_odd(Z, G, F, a, b):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _Hensel_qf_modular_odd,_min_val
+        sage: from sage.groups.fqf_orthogonal_lift import _Hensel_qf_modular_odd,_min_val
         sage: R = Zp(3, type='fixed-mod', print_mode='terse', show_prec=False)
         sage: Gr = GO(3, 3, e=1)
         sage: G = Gr.invariant_bilinear_form().change_ring(R)
@@ -366,7 +366,7 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _Hensel_qf_modular_even, _min_val
+        sage: from sage.groups.fqf_orthogonal_lift import _Hensel_qf_modular_even, _min_val
         sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False)
         sage: G = matrix(R, 4, [0,1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,5])
         sage: G
@@ -480,7 +480,7 @@ def _solve_X(Y, b, g, ker=False):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _solve_X
+        sage: from sage.groups.fqf_orthogonal_lift import _solve_X
         sage: k = GF(2)
         sage: Y = matrix(k, 3, [0,0,1, 0,0,1, 1,1,0])
         sage: b = vector(k, [1, 0, 0])

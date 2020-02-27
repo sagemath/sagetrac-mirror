@@ -23,15 +23,18 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.rings.infinity import Infinity
-from sage.rings.all import GF, ZZ, mod, IntegerModRing
+from sage.rings.all import GF, ZZ, mod, IntegerModRing, Zp
 from copy import copy
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.groups.all import GO, Sp
-from sage.groups.fqf_orthogonal.lift import (Hensel_qf,
+from sage.groups.fqf_orthogonal_lift import (Hensel_qf,
                                              _block_indices_vals,
                                              _min_val,
                                              _solve_X)
+from sage.groups.matrix_gps.linear import GL
+from sage.matrix.matrix_space import MatrixSpace
+from copy import copy
 
 def _mod_p_to_a_kernel(G, a):
     r"""
@@ -156,7 +159,7 @@ def _gens_normal_form(O, R):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _gens_normal_form
+        sage: from sage.groups.fqf_orthogonal_gens import _gens_normal_form
         sage: R = Zp(3,type='fixed-mod', prec=2, print_mode='terse', show_prec=False, print_pos=False)
         sage: O = GO(4,3, e=1)
         sage: _gens_normal_form(O, R)
@@ -197,7 +200,7 @@ def _orthogonal_grp_gens_odd(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _orthogonal_grp_gens_odd
+        sage: from sage.groups.fqf_orthogonal_gens import _orthogonal_grp_gens_odd
         sage: R = Zp(3,type='fixed-mod', prec=2, print_mode='terse', show_prec=False, print_pos=False)
         sage: G = matrix.diagonal(R,[])
         sage: _orthogonal_grp_gens_odd(G)
@@ -274,7 +277,7 @@ def _orthogonal_gens_bilinear(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _orthogonal_gens_bilinear
+        sage: from sage.groups.fqf_orthogonal_gens import _orthogonal_gens_bilinear
         sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
         sage: V = matrix(R, 2, [2, 1, 1, 2])
@@ -363,7 +366,7 @@ def _orthogonal_grp_quadratic(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _orthogonal_grp_quadratic
+        sage: from sage.groups.fqf_orthogonal_gens import _orthogonal_grp_quadratic
         sage: R = Zp(2,type='fixed-mod', prec=3, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R,2,[0,1,1,0])
         sage: V = matrix(R,2,[2,1,1,2])
@@ -505,7 +508,7 @@ def _lift(q, f, a):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _lift
+        sage: from sage.groups.fqf_orthogonal_gens import _lift
         sage: R = Zp(2,type='fixed-mod',prec=2,print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R,2,[0,1,1,0])
         sage: W0 = matrix(R,2,[1,0,0,3])
@@ -597,7 +600,7 @@ def _gens_mod_p(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _gens_mod_p
+        sage: from sage.groups.fqf_orthogonal_gens import _gens_mod_p
         sage: R = Zp(3, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: G = matrix.diagonal(R, [3*1, 3*1])
         sage: _gens_mod_p(G)
@@ -685,7 +688,7 @@ def _gens_mod_2(G):
     EXAMPLES::
 
 
-        sage: from sage.groups.fqf_orthogonal.gens import _gens_mod_2
+        sage: from sage.groups.fqf_orthogonal_gens import _gens_mod_2
         sage: R = Zp(2,type='fixed-mod',print_mode='terse',show_prec=False,prec=6)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
         sage: V = matrix(R, 2, [2, 1, 1, 2])
@@ -803,8 +806,8 @@ def _ker_gens(G, i1, i2, parity):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _ker_gens
-        sage: from sage.groups.fqf_orthogonal.lift import Hensel_qf
+        sage: from sage.groups.fqf_orthogonal_gens import _ker_gens
+        sage: from sage.groups.fqf_orthogonal_lift import Hensel_qf
         sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
         sage: V = matrix(R, 2, [2, 1, 1, 2])
@@ -899,7 +902,7 @@ def _gens(G, b):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.gens import _gens
+        sage: from sage.groups.fqf_orthogonal_gens import _gens
         sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
         sage: V = matrix(R, 2, [2, 1, 1, 2])
@@ -944,4 +947,104 @@ def _gens(G, b):
     else:
         gen = _gens_mod_p(G)
     gens += [Hensel_qf(G, g, 1, b) for g in gen]
+    return gens
+
+def _compute_gens(T):
+    r"""
+    Return generators of the orthogonal group of ``T``.
+
+    INPUT:
+
+    - ``T`` -- torsion orthogonal module in normal form.
+
+    OUTPUT:
+
+    - a list of matrices -- the generators
+
+    EXAMPLES::
+
+        sage: from sage.groups.fqf_orthogonal_gens import _compute_gens
+        sage: T = TorsionQuadraticForm(matrix.diagonal([2/3,2/3]))
+        sage: _compute_gens(T)
+        [
+        [  1 726]  [0 1]  [0 1]
+        [  3   1], [2 0], [1 0]
+        ]
+    """
+    T = T.normal_form()
+    # corner case
+    invs = T.invariants()
+    if len(invs) == 0:
+        return []
+    # a well behaved degenerate case
+    if T.is_degenerate() and T.invariants()[-1].is_prime():
+        from sage.modules.torsion_quadratic_module import _normalize
+        p = T.invariants()[-1]
+        n = len(T.invariants())
+        N = _normalize(T)
+        q = N.gram_matrix_quadratic()
+        k = len([i for i in range(n) if q[:,i]==0])
+        r = n - k
+        Idk = matrix.identity(k)
+        Idr = matrix.identity(r)
+        NR = N.submodule_with_gens(N.gens()[k:])
+        gensNR = [NR._to_smith()*g*NR._to_gens() for g in _compute_gens(NR)]
+        if k > 0:
+            gens = [matrix.block_diagonal([Idk,g]) for g in gensNR]
+            gens += [matrix.block_diagonal([g.matrix(),Idr]) for g in GL(k,p).gens()]
+        else:
+            gens = gensNR
+        if k>0 and r>0:
+            h = matrix.identity(n)
+            for g in MatrixSpace(GF(p),r,k).basis():
+                h[k:,:k] = g
+                gens.append(h)
+                gens.append(copy(h))
+        return [N._to_gens() * g * N._to_smith() for g in gens]
+    if T.is_degenerate():
+        return sage.groups.fqf_orthogonal._isom_fqf(T)
+
+    # normal form gens for the different primes
+    blocks = []
+    gensT_orders = [t.order() for t in T.gens()]
+    n = len(T.gens())
+    P = T.annihilator().gen().prime_divisors()
+    for p in P:
+        indices = []
+        for k in range(len(gensT_orders)):
+            if mod(gensT_orders[k], p) == 0:
+                indices.append(k)
+        blocks.append([p, tuple(indices)])
+
+    to_smith = T.to_smith()
+    to_normal = T.to_gens()
+
+    # compute generators of the orthogonal groups
+    gens = []
+    for bl in blocks:
+        # compute the generators of the p-primary part
+        # the whole group is the direct product of the p-primary parts
+        p = bl[0]
+        indices = bl[1]
+        q_p = T.gram_matrix_quadratic()[indices, indices]
+        b = invs[-1].valuation(p)
+        G_p = q_p * p**b
+        if p != 2:
+            # make sure each homogeneous block of G_p stays in normal form
+            G_p = G_p/2
+
+        R = Zp(p, type='fixed-mod', prec=b+5, show_prec=False)
+        G_p = G_p.change_ring(R)
+
+        # the generators in matrix form
+        gens_mat = _gens(G_p, b)
+
+        # extend as identity on the orthogonal complement
+        E1 = matrix.identity(indices[0])
+        E2 = matrix.identity(n - indices[-1] - 1)
+        for g in gens_mat:
+            g = g.change_ring(ZZ)
+            g = matrix.block_diagonal([E1,g,E2])
+            g = to_normal * g * to_smith
+            gens.append(g)
     return gens

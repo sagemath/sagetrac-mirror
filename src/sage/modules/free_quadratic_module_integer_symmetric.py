@@ -1522,23 +1522,11 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L.genus_group().order()
             2
         """
-        sig = self.signature_pair()
-        rk = self.rank()
-        if False:#self.rank() < 3 or sig[0]*sig[1] == 0:
-            raise ValueError("lattice must be indefinite of rank > 2")
-        det = self.determinant()
-        q = self.discriminant_group()
-        from sage.groups.fqf_orthogonal.spinor import GammaA
-        S = ZZ(2*self.determinant()).prime_factors()
-        G = GammaA(S)
-        if self.rank() > 2:
-            f = q.orthogonal_group().det_spin_homomorphism(self.rank(),self.determinant())
-            codom = f.codomain()
-            Gamma = codom._cover
-            gammaS = Gamma.gammaS()
-            gens = list(f.image(f.domain()).gens()) + [codom(g) for g in gammaS]
-            sub = codom.subgroup(gens)
-            return codom.quotient(sub)
+        try:
+            from sage.groups.fqf_orthogonal_spin import genus_group
+        except ImportError:
+            raise NotImplementedError
+        return genus_group(self)
 
     def image_in_Oq(self):
         r"""
@@ -1563,7 +1551,11 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             gens = [Oq(g) for g in self.orthogonal_group().gens()]
             return Oq.subgroup(gens)
         if self.rank() > 2:
-            f = Oq.det_spin_homomorphism(self.rank(),self.determinant())
+            try:
+                from sage.groups.fqf_orthogonal_spin import det_spin_homomorphism
+            except ImportError:
+                raise NotImplementedError()
+            f = det_spin_homomorphism(self)
             codom = f.codomain()
             Gamma = codom._cover
             gammaS = Gamma.gammaS()
