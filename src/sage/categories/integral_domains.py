@@ -136,5 +136,27 @@ class IntegralDomains(CategoryWithAxiom):
                 z = self(x)
                 tester.assertEqual(x, z)
 
+        def _is_irreducible_univariate_polynomial(self, f):
+            r"""
+            Return whether the univariate polynomial ``f`` is irreducible.
+
+            EXAMPLES::
+
+                sage: K.<a> = QuadraticField(-5)
+                sage: R.<x> = K.maximal_order()[]
+                sage: f = 2*x + 3
+                sage: f.is_irreducible() # indirect doctest
+                True
+                sage: f = 2*x + 4
+                sage: f.is_irreducible() # indirect doctest
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            """
+            if f.content_ideal().is_trivial() and f.change_ring(self.fraction_field()).is_irreducible():
+                return True
+            return f._is_irreducible_generic()
+
     class ElementMethods:
         pass

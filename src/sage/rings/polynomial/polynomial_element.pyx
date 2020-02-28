@@ -8846,6 +8846,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if hasattr(B, '_is_irreducible_univariate_polynomial'):
             return B._is_irreducible_univariate_polynomial(self)
 
+        return self._is_irreducible_generic()
+
+    def _is_irreducible_generic(self):
+        r"""
+        Return whether this polynomial is irreducible.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: f = 2*x
+            sage: f.is_irreducible() # indirect doctest
+            False
+            sage: f = x^2 + 1
+            sage: f.is_irreducible() # indirect doctest
+            True
+
+        """
         F = self.factor()
         if len(F) > 1 or F[0][1] > 1:
             return False
