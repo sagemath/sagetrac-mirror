@@ -2716,7 +2716,7 @@ class Polyhedron_base(Element):
              A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices,
              A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 8 vertices]
             sage: [face.ambient_V_indices() for face in chain]
-            [(), (0,), (0, 4), (0, 1, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
+            [(), (5,), (0, 5), (0, 3, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
         """
         comb_chain = self.combinatorial_polyhedron().a_maximal_chain()
 
