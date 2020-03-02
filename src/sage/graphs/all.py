@@ -15,7 +15,7 @@ import sage.graphs.partial_cube
 from . import graph_list as graphs_list
 lazy_import("sage.graphs", "graph_coloring")
 lazy_import("sage.graphs.cliquer", ['all_max_clique', 'max_clique',
-                                    'clique_number'],
+                                    'clique_number', 'all_cliques'],
             deprecation=26200)
 from .graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
