@@ -1347,20 +1347,20 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = polytopes.hypercube(4).combinatorial_polyhedron()
             sage: C.flag_f_vector()
                 {(-1,): 1,
-                 (0,): 16,
-                 (0, 1): 64,
-                 (0, 1, 2): 192,
                  (0, 1, 2, 3): 384,
+                 (0, 1, 2): 192,
                  (0, 1, 3): 192,
-                 (0, 2): 96,
                  (0, 2, 3): 192,
-                 (0, 3): 64,
-                 (1,): 32,
-                 (1, 2): 96,
                  (1, 2, 3): 192,
+                 (0, 1): 64,
+                 (0, 2): 96,
+                 (1, 2): 96,
+                 (0, 3): 64,
                  (1, 3): 96,
-                 (2,): 24,
                  (2, 3): 48,
+                 (0,): 16,
+                 (1,): 32,
+                 (2,): 24,
                  (3,): 8,
                  (4,): 1}
 
@@ -1389,7 +1389,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: C = (Polyhedron(lines=[[1]]) * polytopes.hypercube(2)).combinatorial_polyhedron()
             sage: C.flag_f_vector()
-            {(-1,): 1, (0, 1): 0, (0, 2): 0, (0,): 0, (1, 2): 8, (1,): 4, (2,): 4, 3: 1}
+            {(-1,): 1, (0, 1): 0, (0, 2): 0, (1, 2): 8, (0,): 0, (1,): 4, (2,): 4, 3: 1}
 
         If the arguments are not stricly increasing or out of range, a key error is raised::
 
@@ -1426,7 +1426,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             sage: C = CombinatorialPolyhedron(3)
             sage: C._flag_f_vector()
-            {(-1,): 1, (0, 1): 0, (0, 2): 0, (0,): 0, (1, 2): 0, (1,): 0, (2,): 0, 3: 1}
+            {(-1,): 1, (0, 1): 0, (0, 2): 0, (1, 2): 0, (0,): 0, (1,): 0, (2,): 0, 3: 1}
         """
         poly = self.face_lattice().flag_f_polynomial()
         variables = poly.variables()
