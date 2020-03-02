@@ -155,6 +155,7 @@ This base class provides a lot more methods than a general parent::
      'is_prime_field',
      'is_subring',
      'krull_dimension',
+     'localization',
      'ngens',
      'one',
      'order',
@@ -449,7 +450,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
     81
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    120
+    121
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
