@@ -90,3 +90,5 @@ Untitled*.ipynb
 # GitLab CI generated files #
 #############################
 gitlab-build-docker.log
+
+/build/bin/sage-build-env-config
