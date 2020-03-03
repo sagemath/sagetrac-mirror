@@ -389,6 +389,8 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
     positions = []
     for c in M.columns():
         NZ = c.nonzero_positions()
+        if len(NZ) == 0:
+            continue
         if len(NZ) != 2:
             raise ValueError("there must be two nonzero entries (-1 & 1) per column")
         L = sorted(set(c.list()))
