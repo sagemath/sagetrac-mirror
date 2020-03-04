@@ -394,15 +394,15 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
         sage: list(G.edges(labels=False))
         [(1, 0)]
     
-    Handle incidence matrix [[1],[-1]] (:trac:`29276`)::
+    Handle incidence matrix [[1],[-1]] (:trac:`29275`)::
 
         sage: m = Matrix([[1],[-1]])
         sage: m
         [ 1]
         [-1]
-        sage: G = DiGraph(m,format='incidence_matrix') 
+        sage: G = DiGraph(m,format='incidence_matrix')
         sage: list(G.edges(labels=False))
-        [(1, 0)]      
+        [(1, 0)]
     """
     from sage.structure.element import is_Matrix
     assert is_Matrix(M)
