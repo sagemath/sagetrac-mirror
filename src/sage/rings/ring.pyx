@@ -86,6 +86,9 @@ cdef class Ring(ParentWithGens):
     """
     Generic ring class.
 
+    Rings are by definition associative and contain a unit element,
+    but are not necessarily commutative.
+
     TESTS:
 
     This is to test against the bug fixed in :trac:`9138`::
@@ -2375,8 +2378,12 @@ cdef class Field(PrincipalIdealDomain):
 
 
 cdef class Algebra(Ring):
-    """
-    Generic algebra
+    r"""
+    An associative unital algebra over a ring.
+
+    An associative unital algebra over a ring `R` is a ring `A`
+    equipped with a ring homomorphism `f\colon R \to A`.  We do not
+    require the image of `f` to be contained in the centre of `A`.
     """
     def __init__(self, base_ring, names=None, normalize=True, category=None):
         """

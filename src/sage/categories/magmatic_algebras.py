@@ -21,11 +21,25 @@ from sage.categories.modules import Modules
 
 
 class MagmaticAlgebras(Category_over_base_ring):
-    """
+    r"""
     The category of algebras over a given base ring.
 
-    An algebra over a ring `R` is a module over `R` endowed with a
-    bilinear multiplication.
+    An algebra over a (not necessarily commutative) ring `R` is a
+    bimodule `A` over `R` endowed with a map
+
+      `* \colon A \times A \to A`
+
+    that is
+
+      - `R`-bilinear, i.e. for all `x, y, z \in A` and all `r \in R`
+        we have `(x + y)*z = x*z + y*z`, `z*(x + y) = z*x + z*y` and
+        `(xr)*y = x*(ry)`;
+
+      - left and right `R`-linear, i.e. for all `x, y \in A` and all
+        `r \in R` we have `(rx)*y = r(x*y)` and `x*(yr) = (x*y)r`.
+
+    Equivalently, an algebra over `R` is an `R`-bimodule `A` together
+    with a homomorphism `m\colon A\otimes_R A\to A` of `R`-bimodules.
 
     .. WARNING::
 

@@ -30,8 +30,25 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     r"""
     The category of associative and unital algebras over a given base ring.
 
-    An associative and unital algebra over a ring `R` is a module over
-    `R` which is itself a ring.
+    An associative unital algebra over a ring `R` is an `R`-algebra
+    `A` (see :mod:`sage.categories.magmatic_algebras`) such that the
+    multiplication `* \colon A \times A \to A` is associative and
+    admits a two-sided unit element `e \in A`.
+
+    An associative unital `R`-algebra `A` is itself a ring, and for
+    all `r \in R` we have `re = e*(re) = (er)*e = er` by the
+    `R`-bilinearity of `*`.  There is a canonical ring homomorphism
+    `f \colon R \to A` defined by `f(r) = re = er`.  Therefore,
+    giving an associative unital `R`-algebra is equivalent to giving
+    a ring `A` together with a ring homomorphism `R \to A`.
+
+    .. NOTE::
+
+      We do not require the image of `f` to be contained in the centre
+      of `A`.  Thus, a skew polynomial ring `R[x, \sigma]` defined by
+      a base ring `R` and a ring automorphism `\sigma` of `R` (see
+      :mod:`sage.rings.polynomial.skew_polynomial_ring`) is an example
+      of an associative unital `R`-algebra.
 
     .. WARNING::
 
@@ -40,8 +57,6 @@ class Algebras(CategoryWithAxiom_over_base_ring):
         for consistency with e.g. :wikipedia:`Algebras` which assumes
         neither associativity nor the existence of a unit (see
         :trac:`15043`).
-
-    .. TODO:: Should `R` be a commutative ring?
 
     EXAMPLES::
 
