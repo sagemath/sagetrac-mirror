@@ -60,6 +60,7 @@ subgroups of index p
 
 -- ComplexReflectionGroup, the complex reflection group `G(m, p, n)` or
                            the exceptional complex reflection group `G_m`
+-- V(8n), The Group given by the presentation  $<a,b | a^{2n} = b^{4} = 1, aba = b^{-1}, ab^{-1}a=b>$
 
 AUTHOR:
 
@@ -1706,6 +1707,59 @@ class SemidihedralGroup(PermutationGroup_unique):
             The semidihedral group of order 64
         """
         return 'The semidihedral group of order %s' % (2**self.m)
+
+class GeneralVGroup(PermutationGroup_unique):
+    def __init__(self, m):
+        r"""
+        The V_8n group of order `8m`.
+
+        INPUT:
+
+        - ``m`` - a positive integer; the multiple of 8 which is
+        the order of the group
+
+        OUTPUT:
+
+        The V_8n, a group of order `8n`.
+
+        .. MATH::
+            \langle x, y\mid x^{2n} = y^{4} = e, xyx=y^{-1}, xy^{-1}x = y \rangle
+
+        EXAMPLES:
+        TODO
+
+        TESTS::
+        TODO
+        
+        AUTHOR:
+
+        - Siddharth Singh (2020-3-8)
+
+        """
+        if not isinstance(m, Integer):
+            raise TypeError("m must be an integer, not %s" % m)
+
+        if m < 1:
+            raise ValueError("m must be a positive integer, not %s" % m)
+
+        self.m = m
+        # 
+        x = list(range(2,2*m))
+        x.append(1)
+        y = [1]
+        # k = 1
+        # FIXME: TODO Implement a method to compute y!
+        PermutationGroup_unique.__init__(self, gens=[x, y])
+
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: G = GeneralVGroup(6);
+            The semidihedral group of order 48
+        """
+        return "The V group of order %s" % (8*self.m)
+
 
 class MathieuGroup(PermutationGroup_unique):
     def __init__(self, n):
