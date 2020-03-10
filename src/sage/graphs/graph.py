@@ -8670,6 +8670,7 @@ class Graph(GenericGraph):
     from sage.graphs.graph_decompositions.graph_products import is_cartesian_product
     from sage.graphs.distances_all_pairs import is_distance_regular
     from sage.graphs.base.static_dense_graph import is_strongly_regular
+    from sage.graphs.base.static_sparse_graph import TYY_diameter as diameter
     from sage.graphs.line_graph import is_line_graph
     from sage.graphs.tutte_polynomial import tutte_polynomial
     from sage.graphs.lovasz_theta import lovasz_theta
