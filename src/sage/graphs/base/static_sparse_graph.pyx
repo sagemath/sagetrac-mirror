@@ -553,61 +553,6 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
     sig_free(stack)
 
-cdef uint32_t TYY_diameter_C(short_digraph g):
-    cdef MemoryAllocator mem = MemoryAllocator()
-
-    cdef uint32_t u, v
-    cdef uint32_t D = 0, V = g.n
-    cdef uint32_t idx, aux, aux_ecc
-
-    cdef uint32_t *ecc = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
-    for idx in range(V):
-        ecc[idx] = INT_MAX
-
-    cdef bitset_t seen
-    bitset_init(seen, V)
-    cdef uint32_t *BFS_order = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
-    cdef uint32_t *distance_from = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
-    cdef uint32_t *distance_back = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
-
-    
-    for v in range(V):
-        aux = INT_MAX
-        for idx in range(g.neighbors[v+1]-g.neighbors[v+1]):
-            u = g.neighbors[v][idx]
-            aux = min(ecc[u] + 1, aux)
-            
-        ecc[v] = min(ecc[v], aux)
-
-        # DoubleSweep
-        # v = RANDOMVVERTEX
-        simple_BFS(g, v, distance_from, NULL, BFS_order, seen)
-        u = BFS_order[V-1]
-        simple_BFS(g, u, distance_back, NULL, BFS_order, seen)
-        D = distance_back[BFS_order[V-1]]
-
-        if ecc[v] <= D:
-            continue
-
-        # SearchAndBound(G, v)
-        simple_BFS(g, v, distance_from, NULL, BFS_order, seen)
-
-        aux_ecc = 0
-        for u in range(V):
-            if bitset_in(seen, u):
-                aux_ecc = max(distance_from[u], aux_ecc)
-
-        ecc[v] = aux_ecc
-        D = max(D, aux_ecc)
-
-        simple_BFS(g, v, distance_back, NULL, BFS_order, seen) # Diferent graph
-        for u in range(V):
-            ecc[u] = min(ecc[u], distance_back[u] + aux_ecc)
-
-    return D
-
-
-
 cdef int tarjan_strongly_connected_components_C(short_digraph g, int *scc):
     r"""
     The Tarjan algorithm to compute strongly connected components (SCCs).
@@ -807,7 +752,71 @@ def tarjan_strongly_connected_components(G):
         output[scc[i]].append(v)
     return output
 
+cdef uint32_t TYY_diameter_C(short_digraph g):
+    from sage.misc.prandom import randint
+    cdef MemoryAllocator mem = MemoryAllocator()
+
+    cdef uint32_t u, v
+    cdef uint32_t D = 0, V = g.n
+    cdef uint32_t idx, aux, aux_ecc
+
+    cdef uint32_t *ecc = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
+    for idx in range(V):
+        ecc[idx] = INT_MAX
+
+    cdef bitset_t seen
+    bitset_init(seen, V)
+    cdef uint32_t *BFS_order = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
+    cdef uint32_t *distance_from = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
+    cdef uint32_t *distance_back = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
+
+    
+    for v in range(V):
+        aux = INT_MAX
+        for idx in range(g.neighbors[v+1]-g.neighbors[v+1]):
+            u = g.neighbors[v][idx]
+            aux = min(ecc[u] + 1, aux)
+            
+        ecc[v] = min(ecc[v], aux)
+
+        # DoubleSweep
+        v = randint(0, V-1)
+        simple_BFS(g, v, distance_from, NULL, BFS_order, seen)
+        u = BFS_order[V-1]
+        simple_BFS(g, u, distance_back, NULL, BFS_order, seen)
+        D = distance_back[BFS_order[V-1]]
+
+        if ecc[v] <= D:
+            continue
+
+        # SearchAndBound(G, v)
+        simple_BFS(g, v, distance_from, NULL, BFS_order, seen)
+
+        aux_ecc = 0
+        for u in range(V):
+            if bitset_in(seen, u):
+                aux_ecc = max(distance_from[u], aux_ecc)
+
+        ecc[v] = aux_ecc
+        D = max(D, aux_ecc)
+
+        simple_BFS(g, v, distance_back, NULL, BFS_order, seen) # Diferent graph
+        for u in range(V):
+            ecc[u] = min(ecc[u], distance_back[u] + aux_ecc)
+
+    return D
+
 def TYY_diameter(G):
+    """
+    TESTS:
+        sage: from sage.graphs.base.static_sparse_graph import TYY_diameter
+        sage: G = Graph([[1,2], [2,3], [3,4], [4,2]])
+        sage: assert(TYY_diameter(G) == 2)
+        sage: G = Graph([[1,2], [2,3], [3,4], [4,1]])
+        sage: assert(TYY_diameter(G) == 2)
+        sage: G = Graph([[1,2], [2,3], [3,4], [4,5], [5,1]])
+        sage: assert(TYY_diameter(G) == 3)
+    """
     from sage.graphs.graph import Graph 
 
     if not isinstance(G, Graph):
