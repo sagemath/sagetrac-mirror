@@ -1181,7 +1181,7 @@ cdef uint32_t diameter_aik(short_digraph g,
         sig_free(distances)
         sig_free(scc)
         raise MemoryError()
-    memset(ecc, UINT32_MAX, n)
+    memset(ecc, n, n)
     
     
     # min_ecc_component[i] is the minimum eccentricity among vertices in  
@@ -1199,14 +1199,15 @@ cdef uint32_t diameter_aik(short_digraph g,
     # iterate over all vertices
     for v in range(n):
         # update eccentricity upper bound of vertex v using lemma 3 of [AIK2015]
-        memset(min_ecc_component, UINT32_MAX, k)
+        if(ecc[v]<=diameter):
+            continue
+        memset(min_ecc_component, n, k)
         p_tmp = p_vertices[v]
         end   = p_vertices[v+1]
         while p_tmp < end:
             w = p_tmp[0]
             p_tmp += 1
-            if(ecc[w] < UINT32_MAX ):
-                min_ecc_component[scc[w]] = min(min_ecc_component[scc[w]],ecc[w]+1)
+            min_ecc_component[scc[w]] = min(min_ecc_component[scc[w]],ecc[w]+1)
             
         ecc[v] = min(ecc[v] , max([min_ecc_component[x] for x in range(k)]))
         
