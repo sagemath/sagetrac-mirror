@@ -758,11 +758,11 @@ cdef uint32_t TYY_diameter_C(short_digraph g):
 
     cdef uint32_t u, v
     cdef uint32_t D = 0, V = g.n
-    cdef uint32_t idx, aux, aux_ecc
+    cdef uint32_t idx, aux_min, aux_max, aux_ecc
 
-    cdef uint32_t *ecc = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
-    for idx in range(V):
-        ecc[idx] = INT_MAX
+    cdef int *scc = <int*> mem.malloc(V * sizeof(int))
+    cdef int nscc = tarjan_strongly_connected_components_C(g, scc)
+    cdef uint32_t *ecc = <uint32_t*> mem.malloc(V * sizeof(uint32_t))
 
     cdef bitset_t seen
     bitset_init(seen, V)
@@ -770,21 +770,31 @@ cdef uint32_t TYY_diameter_C(short_digraph g):
     cdef uint32_t *distance_from = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
     cdef uint32_t *distance_back = <uint32_t *> mem.malloc(V * sizeof(uint32_t))
 
+    # Initialize distances
+    for idx in range(V):
+        ecc[idx] = INT_MAX
     
-    for v in range(V):
-        aux = INT_MAX
-        for idx in range(g.neighbors[v+1]-g.neighbors[v+1]):
-            u = g.neighbors[v][idx]
-            aux = min(ecc[u] + 1, aux)
-            
-        ecc[v] = min(ecc[v], aux)
+    # DoubleSweep
+    v = randint(0, V-1)
+    simple_BFS(g, v, distance_from, NULL, BFS_order, seen)
+    u = BFS_order[V-1]
+    simple_BFS(g, u, distance_back, NULL, BFS_order, seen)
+    D = distance_back[BFS_order[V-1]]
 
-        # DoubleSweep
-        v = randint(0, V-1)
-        simple_BFS(g, v, distance_from, NULL, BFS_order, seen)
-        u = BFS_order[V-1]
-        simple_BFS(g, u, distance_back, NULL, BFS_order, seen)
-        D = distance_back[BFS_order[V-1]]
+    for v in range(V):
+        for u in range(V):
+            print(ecc[u])
+
+        aux_max = 0
+        aux_min = INT_MAX
+        for comp in range(nscc):
+            for idx in range(g.neighbors[v+1]-g.neighbors[v+1]):
+                u = g.neighbors[v][idx]
+                if scc[v] == scc[u]:
+                    aux_min = min(ecc[u] + 1, aux_min)
+            aux_max = max(aux_max, aux_min)
+
+        ecc[v] = min(ecc[v], aux_max)
 
         if ecc[v] <= D:
             continue
@@ -804,6 +814,7 @@ cdef uint32_t TYY_diameter_C(short_digraph g):
         for u in range(V):
             ecc[u] = min(ecc[u], distance_back[u] + aux_ecc)
 
+
     return D
 
 def TYY_diameter(G):
@@ -818,8 +829,9 @@ def TYY_diameter(G):
         sage: assert(TYY_diameter(G) == 3)
     """
     from sage.graphs.graph import Graph 
+    from sage.graphs.digraph import DiGraph 
 
-    if not isinstance(G, Graph):
+    if not (isinstance(G, Graph) or isinstance(G, DiGraph)):
         raise ValueError("Not yet")
 
     cdef MemoryAllocator mem = MemoryAllocator()
