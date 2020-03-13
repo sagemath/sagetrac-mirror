@@ -136,7 +136,9 @@ from sage.graphs.base.static_sparse_graph cimport (short_digraph,
                                                    init_short_digraph,
                                                    free_short_digraph,
                                                    out_degree,
-                                                   simple_BFS)
+                                                   simple_BFS,
+                                                   tarjan_strongly_connected_components_C,
+                                                   init_reverse)
 
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short* predecessors,
@@ -1061,6 +1063,219 @@ cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
     return (LB, s, m, d)
 
 
+cdef uint32_t diameter_aik(short_digraph g,
+                           uint32_t source):
+    """
+    Compute the diameter of the input Graph using the ``aik`` algorithm.
+
+    The ``aik`` (Akiba, Iwata, Kawata) algorithm calculates the exact
+    value of the diameter of a unweighted directed graph [AIK2015]_. This
+    algorithm maintains and gradually tightens a diameter lower bound and 
+    eccentricity upper bounds. The algorithm uses new inequalities that 
+    propogate the eccentricity bounds of vertices in different SCCs. 
+    The worst case time complexity of the aik algorithm is `O(nm})`, but 
+    it can be very fast in practice on *large directed sparse graphs*. 
+    See the code's documentation and [AIK2015]_ for more details.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
+
+    - ``source`` -- starting node of the first BFS of double sweep
+
+    """        
+    # variable diameter is the lower bound on diameter
+    cdef uint32_t diameter, k
+    cdef uint32_t n = g.n
+            
+    # reverse of the graph, for reverse BFS
+    cdef short_digraph rev_g
+    init_reverse(rev_g, g)
+    
+    
+    # declaration of pointers to neighbours and for iteration over neighbors
+    # for both input graph g and it's reverse graph, rev_g
+    cdef uint32_t ** p_vertices = g.neighbors
+    cdef uint32_t ** p_vertices_rev = rev_g.neighbors
+    cdef uint32_t * p_tmp
+    cdef uint32_t * end
+
+
+    # Allocate some arrays and a bitset, will be mainly used in BFS
+    cdef bitset_t seen
+    bitset_init(seen, n)
+    cdef uint32_t * distances = <uint32_t *>sig_malloc(2 * n * sizeof(uint32_t))
+    if not distances:
+        bitset_free(seen)
+        raise MemoryError()
+    cdef uint32_t * waiting_list = distances + n
+    
+    cdef uint32_t waiting_beginning = 0
+    cdef uint32_t waiting_end = 0
+
+
+    # We perform a double sweep to get a lower bound on diameter. 
+    v = source
+    waiting_beginning = 0
+    waiting_end = 0
+    waiting_list[0] = v
+    distances[v]=0
+    bitset_clear(seen)
+    bitset_add(seen, v)
+    while waiting_beginning <= waiting_end:
+        w = waiting_list[waiting_beginning]
+        p_tmp = p_vertices[w]
+        end = p_vertices[w+1]
+        while p_tmp < end:
+            u = p_tmp[0]
+            if not bitset_in(seen, u):
+                distances[u] = distances[w] + 1
+                bitset_add(seen, u)
+                waiting_end += 1
+                waiting_list[waiting_end] = u        
+            p_tmp += 1
+        waiting_beginning += 1
+    LB_1 = distances[waiting_list[waiting_end]]
+    
+    waiting_beginning = 0
+    waiting_end = 0    
+    waiting_list[0] = waiting_list[waiting_end]
+    bitset_clear(seen)
+    bitset_add(seen, waiting_list[waiting_end])
+    distances[waiting_list[waiting_end]]=0
+    
+    while waiting_beginning <= waiting_end:
+        w = waiting_list[waiting_beginning]
+        p_tmp = p_vertices_rev[w]
+        end = p_vertices_rev[w+1]
+        while p_tmp < end:
+            u = p_tmp[0]
+            if not bitset_in(seen, u):
+                distances[u] = distances[w] + 1
+                bitset_add(seen, u)
+                waiting_end += 1
+                waiting_list[waiting_end] = u    
+            p_tmp += 1
+        waiting_beginning += 1
+    LB_2 = distances[waiting_list[waiting_end]]
+    
+    diameter = max(LB_1, LB_2)
+        
+        
+        
+    # if scc[i] = j, then the ith vertex belongs to the jth strongly connected 
+    # component of digraph g
+    # k is the total number of strongly connected components of g
+    cdef int * scc = <int *>sig_malloc(n * sizeof(int))
+    if not scc:
+        bitset_free(seen)
+        sig_free(distances)
+        raise MemoryError()
+    k = tarjan_strongly_connected_components_C(g, scc)
+    
+        
+    # ecc[i] holds the upper bound on eccentricity of vertex i
+    cdef uint32_t * ecc = <uint32_t *>sig_malloc(n * sizeof(uint32_t)) 
+    if not ecc:
+        bitset_free(seen)
+        sig_free(distances)
+        sig_free(scc)
+        raise MemoryError()
+    memset(ecc, UINT32_MAX, n)
+    
+    
+    # min_ecc_component[i] is the minimum eccentricity among vertices in  
+    # strongly connected component i of digraph g
+    cdef uint32_t * min_ecc_component =  <uint32_t *>sig_malloc( k * sizeof(uint32_t))
+    if not min_ecc_component:
+        bitset_free(seen)
+        sig_free(distances)
+        sig_free(scc)
+        sig_free(ecc)
+        raise MemoryError()
+        
+        
+        
+    # iterate over all vertices
+    for v in range(n):
+        # update eccentricity upper bound of vertex v using lemma 3 of [AIK2015]
+        memset(min_ecc_component, UINT32_MAX, k)
+        p_tmp = p_vertices[v]
+        end   = p_vertices[v+1]
+        while p_tmp < end:
+            w = p_tmp[0]
+            p_tmp += 1
+            if(ecc[w] < UINT32_MAX ):
+                min_ecc_component[scc[w]] = min(min_ecc_component[scc[w]],ecc[w]+1)
+            
+        ecc[v] = min(ecc[v] , max([min_ecc_component[x] for x in range(k)]))
+        
+        
+        if(ecc[v]> diameter):
+                # compute the exact eccentricity of vertex v with forward BFS
+                waiting_beginning = 0
+                waiting_end = 0
+                waiting_list[0] = v
+                distances[v]=0
+                bitset_clear(seen)
+                bitset_add(seen, v)
+                while waiting_beginning <= waiting_end:
+                    w = waiting_list[waiting_beginning]
+                    p_tmp = p_vertices[w]
+                    end = p_vertices[w+1]
+                    while p_tmp < end:
+                        u = p_tmp[0]
+                        if not bitset_in(seen, u):
+                            distances[u] = distances[w] + 1
+                            bitset_add(seen, u)
+                            waiting_end += 1
+                            waiting_list[waiting_end] = u    
+                        p_tmp += 1
+                    waiting_beginning += 1        
+                    
+                ecc[v] = distances[waiting_list[waiting_end]]    
+                
+                # compare exact eccentricity of vertex v with diameter lower 
+                # bound and update diameter lower bound if necessary
+                diameter = max(diameter, ecc[v])
+                
+                # perform a reverse BFS from v and update the eccentricity
+                # upper bounds for vertices in the strongly connected component
+                # of vertex v
+                waiting_beginning = 0
+                waiting_end = 0
+                waiting_list[0] = v
+                distances[v]=0
+                bitset_clear(seen)
+                bitset_add(seen, v)
+                while waiting_beginning <= waiting_end:
+                    w = waiting_list[waiting_beginning]
+                    p_tmp = p_vertices_rev[w]
+                    end = p_vertices_rev[w+1]
+                    # update eccentricity upper bound
+                    ecc[w] = min(ecc[w], distances[w] + ecc[v])
+                    while p_tmp < end:
+                        u = p_tmp[0]            
+                        # add vertex to waiting_list for updation only if it 
+                        # belongs to the scc of v
+                        if not bitset_in(seen, u) and scc[u]==scc[v]:
+                            distances[u] = distances[w] + 1
+                            bitset_add(seen, u)
+                            waiting_end += 1
+                            waiting_list[waiting_end] = u    
+                        p_tmp += 1
+                    waiting_beginning += 1
+
+    sig_free(ecc)
+    sig_free(scc)      
+    sig_free(distances)
+    sig_free(min_ecc_component)          
+    bitset_free(seen)
+    free_short_digraph(rev_g)
+    return(diameter)         
+
+
+
 cdef uint32_t diameter_iFUB(short_digraph g,
                             uint32_t source):
     """
@@ -1210,6 +1425,15 @@ def diameter(G, algorithm='iFUB', source=None):
         by the remark above. The worst case time complexity of the iFUB
         algorithm is `O(nm)`, but it can be very fast in practice.
 
+      - ``'aik'`` -- The ``aik`` (Akiba, Iwata, Kawata) algorithm calculates the
+        exact value of the diameter of a unweighted directed graph [AIK2015]_. 
+        This algorithm maintains and gradually tightens a diameter lower bound 
+        and eccentricity upper bounds. The algorithm uses new inequalities that 
+        propogate the eccentricity bounds of vertices in different SCCs. 
+        The worst case time complexity of the aik algorithm is `O(nm + n^{2})`, 
+        but it can be very fast in practice on **large directed sparse graphs**. 
+        See the code's documentation and [AIK2015]_ for more details.
+
     - ``source`` -- (default: None) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
@@ -1259,11 +1483,11 @@ def diameter(G, algorithm='iFUB', source=None):
     if not n:
         return 0
 
-    if algorithm == 'standard' or G.is_directed():
+    if algorithm == 'standard' or (G.is_directed() and algorithm != 'aik'):
         return max(G.eccentricity())
     elif algorithm is None:
         algorithm = 'iFUB'
-    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB']:
+    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'aik']:
         raise ValueError("unknown algorithm for computing the diameter")
 
     if source is None:
@@ -1302,7 +1526,10 @@ def diameter(G, algorithm='iFUB', source=None):
 
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
-
+        
+    elif algorithm == 'aik':
+        LB = diameter_aik(sd, isource)
+        
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)
 

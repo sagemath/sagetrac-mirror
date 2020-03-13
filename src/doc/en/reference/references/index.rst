@@ -147,6 +147,12 @@ REFERENCES:
              Multiplication and Related Operations.' The Design and
              Analysis of Computer Algorithms. Addison-Wesley, 1974.
 
+.. [AIK2015] \Akiba T., Iwata Y., Kawata Y.
+             An Exact Algorithm for Diameters of Large Real Directed Graphs. 
+             In: Bampis E. (eds) Experimental Algorithms. SEA 2015. 
+             Lecture Notes in Computer Science, vol 9125. Springer, Cham
+	     :doi:`10.1007/978-3-319-20086-6_5`.
+
 .. [AIKMMNT2001] \K. Aoki, T. Ichikawa, M. Kanda, M. Matsui, S. Moriai,
                  \J. Nakajima, and T. Tokita,
                  *Camellia: A 128-bit block cipher suitable for multiple
