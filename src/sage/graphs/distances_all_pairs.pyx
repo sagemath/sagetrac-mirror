@@ -771,7 +771,7 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
         cpt += 1
 
         # Compute the exact eccentricity of v
-        LB[v] = simple_BFS(sd, v, distances, NULL, waiting_list, seen)
+        LB[v] = simple_BFS(sd, v, distances, NULL, waiting_list, NULL, seen)
 
         if LB[v] == UINT32_MAX:
             # The graph is not connected. We set maximum value and exit.
@@ -967,7 +967,7 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
     cdef uint32_t LB, i, k, tmp
 
     # We do a first BFS from source and get the eccentricity of source
-    LB = simple_BFS(g, source, distances, NULL, waiting_list, seen)
+    LB = simple_BFS(g, source, distances, NULL, waiting_list, NULL, seen)
 
     # If the eccentricity of the source is infinite (very large number), the
     # graph is not connected and so its diameter is infinite.
@@ -976,7 +976,7 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
 
     # Then we perform a second BFS from the last visited vertex
     source = waiting_list[g.n - 1]
-    LB = simple_BFS(g, source, distances, predecessors, waiting_list, seen)
+    LB = simple_BFS(g, source, distances, predecessors, waiting_list, NULL, seen)
 
     # We return the computed lower bound
     return LB
@@ -1107,7 +1107,7 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We order the vertices by decreasing layers. This is the inverse order of a
     # BFS from m, and so the inverse order of array waiting_list. Distances are
     # stored in array layer.
-    LB = simple_BFS(g, m, layer, NULL, waiting_list, seen)
+    LB = simple_BFS(g, m, layer, NULL, waiting_list, NULL, seen)
     for i in range(n):
         order[i] = waiting_list[n - i - 1]
 
@@ -1133,7 +1133,7 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # eccentricity already found.
     i = 0
     while 2 * layer[order[i]] > LB and i < n:
-        tmp = simple_BFS(g, order[i], distances, NULL, waiting_list, seen)
+        tmp = simple_BFS(g, order[i], distances, NULL, waiting_list, NULL, seen)
         i += 1
 
         # We update the lower bound

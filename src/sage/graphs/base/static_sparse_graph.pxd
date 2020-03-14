@@ -36,4 +36,5 @@ cdef uint32_t simple_BFS(short_digraph g,
                          uint32_t *distances,
                          uint32_t *predecessors,
                          uint32_t *waiting_list,
+                         int *mask,
                          bitset_t seen)
