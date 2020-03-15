@@ -3674,7 +3674,6 @@ class DiGraph(GenericGraph):
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive
     from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components
-    from sage.graphs.base.static_sparse_graph import TYY_diameter as diameter 
     from sage.graphs.connectivity import is_strongly_connected
     from sage.graphs.connectivity import strongly_connected_components_digraph
     from sage.graphs.connectivity import strongly_connected_components_subgraphs

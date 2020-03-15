@@ -943,7 +943,7 @@ def centrality_closeness_random_k(G, int k=1):
         # Run BFS for random k vertices
         for i in range(k):
             farness = 0
-            simple_BFS(sd, l[i], distance, NULL, waiting_list, NULL, seen)
+            simple_BFS(sd, l[i], distance, NULL, waiting_list, seen)
             for j in range(n):
                 farness += distance[j]
                 partial_farness[j] += distance[j]

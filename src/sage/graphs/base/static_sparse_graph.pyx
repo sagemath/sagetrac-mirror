@@ -422,7 +422,6 @@ cdef uint32_t simple_BFS(short_digraph g,
                          uint32_t *distances,
                          uint32_t *predecessors,
                          uint32_t *waiting_list,
-                         int *mask,
                          bitset_t seen):
     """
     Perform a breadth first search (BFS) using the same method as in
@@ -452,12 +451,6 @@ cdef uint32_t simple_BFS(short_digraph g,
       vertices are visited during the BFS search from ``source``. This method
       assumes that this array has already been allocated. However, there is no
       need to initialize it.
-
-    - ``mask`` -- array of size ``n`` to indicate the vertex to be considered
-      during the BFS search from ``source``. These will be the vertex to 
-      which have the same value as the source. This method assumes that this 
-      array has already been allocated. However, it is possible to pass a 
-      ``NULL`` pointer in which case all vertices will be considered.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
       this method (i.e., bitset_init(seen, n)). However, there is no need to
@@ -499,7 +492,7 @@ cdef uint32_t simple_BFS(short_digraph g,
 
             # If we notice one of these neighbors is not seen yet, we set its
             # parameters and add it to the queue to be explored later.
-            if not bitset_in(seen, u) and (mask == NULL or mask[source] == mask[u]):
+            if not bitset_in(seen, u):
 
                 distances[u] = distances[v] + 1
                 bitset_add(seen, u)
@@ -759,112 +752,6 @@ def tarjan_strongly_connected_components(G):
     for i,v in enumerate(int_to_vertex):
         output[scc[i]].append(v)
     return output
-
-cdef uint32_t TYY_diameter_C(short_digraph g):
-    from sage.misc.prandom import randint
-    cdef MemoryAllocator mem = MemoryAllocator()
-
-    cdef uint32_t u, v
-    cdef uint32_t D = 0, n = g.n
-    cdef uint32_t idx, aux_min, aux_max, aux_ecc
-
-    cdef short_digraph rev_g
-    init_reverse(rev_g, g)
-
-    cdef int *scc = <int*> mem.malloc(n * sizeof(int))
-    cdef int nscc = tarjan_strongly_connected_components_C(g, scc)
-    cdef uint32_t *ecc = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
-
-    cdef bitset_t seen
-    bitset_init(seen, n)
-    cdef uint32_t *BFS_order = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
-    cdef uint32_t *distance_from = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
-    cdef uint32_t *distance_back = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
-
-    # Initialize distances
-    for idx in range(n):
-        ecc[idx] = UINT32_MAX-1 # so that the first loop will not overflow
-    
-    # DoubleSweep
-    v = randint(0, n-1)
-    simple_BFS(g, v, distance_from, NULL, BFS_order, NULL, seen)
-
-    cdef uint32_t scc_sz = 0
-    for u in range(n):
-        if scc[v] == scc[u]:
-            scc_sz += 1
-
-    u = BFS_order[scc_sz-1]
-    simple_BFS(g, u, distance_back, NULL, BFS_order, NULL, seen)
-    D = distance_back[u]
-
-    for v in range(n):
-        aux_max = 0
-        aux_min = UINT32_MAX
-        for comp in range(nscc):
-            for idx in range(g.neighbors[v]-g.neighbors[v+1]):
-                u = g.neighbors[v][idx]
-                if scc[v] == scc[u]:
-                    aux_min = min(ecc[u] + 1, aux_min)
-            aux_max = max(aux_max, aux_min)
-
-        ecc[v] = min(ecc[v], aux_max)
-
-        if ecc[v] <= D:
-            continue
-
-        # SearchAndBound(G, v)
-        simple_BFS(g, v, distance_from, NULL, BFS_order, NULL, seen)
-
-        aux_ecc = 0
-        u = bitset_first(seen)
-        while u != UINT32_MAX:
-            aux_ecc = max(distance_from[u], aux_ecc)
-            u = bitset_next(seen, u+1)
-
-        ecc[v] = aux_ecc
-        D = max(D, aux_ecc)
-
-        simple_BFS(rev_g, v, distance_back, NULL, BFS_order, scc, seen) # Different graph
-        u = bitset_first(seen)
-        while u != UINT32_MAX:
-            ecc[u] = min(ecc[u], distance_back[u] + aux_ecc)
-            u = bitset_next(seen, u+1)
-
-    return D
-
-def TYY_diameter(G):
-    """
-    TESTS:
-        sage: from sage.graphs.base.static_sparse_graph import TYY_diameter
-        sage: G = Graph([[1,2], [2,3], [3,4], [4,2]])
-        sage: assert(TYY_diameter(G) == 2)
-        sage: G = Graph([[1,2], [2,3], [3,4], [4,1]])
-        sage: assert(TYY_diameter(G) == 2)
-        sage: G = Graph([[1,2], [2,3], [3,4], [4,5], [5,1]])
-        sage: assert(TYY_diameter(G) == 2)
-        sage: G = DiGraph([[1,1], [2,2], [3,3], [4,4]], loops=True)
-        sage: assert(TYY_diameter(G) == 0)
-        sage: G = DiGraph([[1,2], [2,3], [3,1], [1,3], [2,4]])
-        sage: assert(TYY_diameter(G) == 3)
-    """
-    from sage.graphs.graph import Graph 
-    from sage.graphs.digraph import DiGraph 
-
-    if not (isinstance(G, Graph) or isinstance(G, DiGraph)):
-        raise ValueError("G must be either a graph or a digraph")
-
-    cdef MemoryAllocator mem = MemoryAllocator()
-    cdef list int_to_vertex = list(G)
-    cdef short_digraph g
-    init_short_digraph(g, G, edge_labelled=False, vertex_list=int_to_vertex)
-    cdef int *ecc = <int*> mem.malloc(g.n * sizeof(int))
-    sig_on()
-    cdef int D = TYY_diameter_C(g)
-    sig_off()
-    free_short_digraph(g)
-
-    return D
 
 cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int *scc, short_digraph output):
     r"""
