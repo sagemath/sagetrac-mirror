@@ -35,6 +35,20 @@ SAGE_SPKG_CONFIGURE([ntl], [
                        NTL_MINOR_VERSION >=]] SAGE_NTL_VERSION_MINOR[[) return 0;
               else return 1;
             ]])], [], [sage_spkg_install_ntl=yes])
+        AC_MSG_CHECKING([NTL is configured without NTL_THREADS, with NTL_GMP_LIP, and with NTL_GF2X_LIB])
+        AC_RUN_IFELSE([
+            AC_LANG_PROGRAM(
+            [[#include <NTL/config.h>
+            ]], [[
+              #if !defined (NTL_THREADS) && defined(NTL_GMP_LIP) && defined(NTL_GF2X_LIB)
+                return 0;
+              #else
+                return 1;
+              #endif
+            ]])], [AC_MSG_RESULT(yes)], [
+              AC_MSG_RESULT([no])
+              sage_spkg_install_ntl=yes
+            ])
     fi
 
     m4_popdef([SAGE_NTL_VERSION_MAJOR])
