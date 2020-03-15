@@ -134,6 +134,7 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 
 from sage.graphs.base.static_sparse_graph cimport (short_digraph,
                                                    init_short_digraph,
+                                                   init_reverse,
                                                    free_short_digraph,
                                                    out_degree,
                                                    simple_BFS)
@@ -1060,6 +1061,113 @@ cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
 
     return (LB, s, m, d)
 
+cdef uint32_t diameter_TYY(short_digraph g,
+                           uint32_t source):
+    """
+    Compute the diameter of the input (di)graph using the ``TYY`` algorithm.
+
+    The ``TYY`` (Takuya A., Yoichi I., Yuki K.) algorithm calculates the exact
+    value of the diameter of an unweighted directed or undirected graph. Note
+    that we consider that the diameter of a digraph which is not strongly 
+    connected is ``Infinity``. For this reason we can simplify the described
+    algorithm. The worst case time complexity of this algorithm is `O(nm)`,
+    although it can be much faster for large real graphs.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
+
+    - ``source`` -- index of the starting node for the first BFS
+
+    """
+
+    cdef uint32_t u, v
+    cdef uint32_t LB = 0, n = g.n
+    cdef uint32_t idx, aux_min, aux_max, aux_ecc
+
+    # Allocate needed arrays and bitset for 2sweep
+    cdef bitset_t seen
+    bitset_init(seen, n)
+    cdef uint32_t *BFS_order = <uint32_t *> sig_malloc(4 * n * sizeof(uint32_t))
+
+    if not BFS_order:
+        bitset_free(seen)
+        raise MemoryError()
+
+    cdef uint32_t *distances_forward = BFS_order + n
+    cdef uint32_t *distances_backwards = BFS_order + 2*n
+
+    # 2sweep from the given source 
+    LB = diameter_lower_bound_2sweep(g, source, distances_forward, NULL, BFS_order, seen)
+
+    # If LB is the largest possible number the graph is not connected and the
+    # diameter is infinite
+    if LB == UINT32_MAX:
+        sig_free(BFS_order)
+        bitset_free(seen)
+        return LB
+
+    # Upper bounds for the eccentricities
+    cdef uint32_t *ecc = BFS_order + 3*n
+
+    # Getting the directed graph with reversed edges
+    cdef short_digraph rev_g = g
+    init_reverse(rev_g, g)
+
+    # SearchAndBound(G, v) is the method we use to update bounds by BFS
+    # It will find the exact value for the eccentricity of v and hopefully
+    # lower the bounds for the remaining vertices. The lower bound for the
+    # diameter might also be updated depending on the eccentricity of v
+
+    # SearchAndBound(G, 0)
+    simple_BFS(g, v, distances_forwards, NULL, BFS_order, seen)
+
+    aux_ecc = 0
+    for u in range(n):
+        aux_ecc = max(distances_forwards[u], aux_ecc)
+
+    ecc[0] = aux_ecc
+    LB = max(LB, aux_ecc)
+
+    # Using the reversed graph
+    simple_BFS(rev_g, v, distances_backwards, NULL, BFS_order, seen) 
+    for u in range(n):
+        ecc[u] = min(ecc[u], distances_backwards[u] + aux_ecc)
+
+    # Loop for every vertex in no particular order. Better performance
+    # might be achieved if a different ordering is used.
+    for v in range(1, n):
+        aux_max = 0
+        aux_min = UINT32_MAX
+        for idx in range(g.neighbors[v]-g.neighbors[v+1]):
+            u = g.neighbors[v][idx]
+            aux_min = min(ecc[u] + 1, aux_min)
+        aux_max = max(aux_max, aux_min)
+
+        ecc[v] = min(ecc[v], aux_max)
+
+        # Only find v's exact eccentricity if there is a chance it will
+        # give us a better lower bound for the diameter
+
+        if ecc[v] <= LB:
+            continue
+
+        # SearchAndBound(G, v)
+        simple_BFS(g, v, distances_forwards, NULL, BFS_order, seen)
+
+        aux_ecc = 0
+        for u in range(n):
+            aux_ecc = max(distances_forwards[u], aux_ecc)
+
+        ecc[v] = aux_ecc
+        LB = max(LB, aux_ecc)
+
+        # Using the reversed graph
+        simple_BFS(rev_g, v, distances_backwards, NULL, BFS_order, seen) 
+        for u in range(n):
+            ecc[u] = min(ecc[u], distances_backwards[u] + aux_ecc)
+
+    return LB
 
 cdef uint32_t diameter_iFUB(short_digraph g,
                             uint32_t source):
@@ -1210,6 +1318,11 @@ def diameter(G, algorithm='iFUB', source=None):
         by the remark above. The worst case time complexity of the iFUB
         algorithm is `O(nm)`, but it can be very fast in practice.
 
+    - ``'TYY'`` -- The ``TYY`` (Takuya A., Yoichi I., Yuki K.) algorithm 
+      calculates the exact value of the diameter of an unweighted directed or 
+      undirected graph. Note that we consider that the diameter of a digraph
+      which is not strongly connected is ``Infinity``.
+
     - ``source`` -- (default: None) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
@@ -1259,11 +1372,11 @@ def diameter(G, algorithm='iFUB', source=None):
     if not n:
         return 0
 
-    if algorithm == 'standard' or G.is_directed():
+    if algorithm == 'standard' or (G.is_directed() and algorithm != 'TYY'):
         return max(G.eccentricity())
     elif algorithm is None:
         algorithm = 'iFUB'
-    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB']:
+    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'TYY']:
         raise ValueError("unknown algorithm for computing the diameter")
 
     if source is None:
@@ -1303,8 +1416,11 @@ def diameter(G, algorithm='iFUB', source=None):
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
 
-    else: # algorithm == 'iFUB'
+    elif algorithm == 'iFUB': 
         LB = diameter_iFUB(sd, isource)
+
+    else: # algorithm == 'TYY'
+        LB = diameter_TYY(sd, isource)
 
 
     free_short_digraph(sd)
