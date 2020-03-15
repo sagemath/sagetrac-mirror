@@ -1321,7 +1321,9 @@ def diameter(G, algorithm='iFUB', source=None):
     - ``'TYY'`` -- The ``TYY`` (Takuya A., Yoichi I., Yuki K.) algorithm 
       calculates the exact value of the diameter of an unweighted directed or 
       undirected graph. Note that we consider that the diameter of a digraph
-      which is not strongly connected is ``Infinity``.
+      which is not strongly connected is ``Infinity``. The worst case time
+      complexity of this algorithm is `O(nm)`, but for sparse graphs and can
+      be very fast.
 
     - ``source`` -- (default: None) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
