@@ -1120,11 +1120,11 @@ cdef uint32_t diameter_TYY(short_digraph g,
     # diameter might also be updated depending on the eccentricity of v
 
     # SearchAndBound(G, 0)
-    simple_BFS(g, v, distances_forwards, NULL, BFS_order, seen)
+    simple_BFS(g, v, distances_forward, NULL, BFS_order, seen)
 
     aux_ecc = 0
     for u in range(n):
-        aux_ecc = max(distances_forwards[u], aux_ecc)
+        aux_ecc = max(distances_forward[u], aux_ecc)
 
     ecc[0] = aux_ecc
     LB = max(LB, aux_ecc)
@@ -1153,11 +1153,11 @@ cdef uint32_t diameter_TYY(short_digraph g,
             continue
 
         # SearchAndBound(G, v)
-        simple_BFS(g, v, distances_forwards, NULL, BFS_order, seen)
+        simple_BFS(g, v, distances_forward, NULL, BFS_order, seen)
 
         aux_ecc = 0
         for u in range(n):
-            aux_ecc = max(distances_forwards[u], aux_ecc)
+            aux_ecc = max(distances_forward[u], aux_ecc)
 
         ecc[v] = aux_ecc
         LB = max(LB, aux_ecc)
@@ -1367,6 +1367,12 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: G = graphs.PathGraph(1)
         sage: diameter(G, algorithm='iFUB')
         0
+        sage: G = DiGraph([[1,1]], loops=True)
+        sage: diameter(G) == diameter(G, algorithm='TYY') == 0
+        True
+        sage: G.add_edge([2,2])
+        sage: diameter(G) == diameter(G, algorithm='TYY') == +Infinity
+        True
     """
     cdef int n = G.order()
     if not n:

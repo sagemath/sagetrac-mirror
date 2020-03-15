@@ -14880,6 +14880,13 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: algorithm 'iFUB' does not work on weighted graphs
+            sage: G = DiGraph([[1,2], [2,3], [3,1], [1,3], [2,4]])
+            sage: G.diameter(algorithm='TYY')
+            +Infinity
+            sage: G.add_edge([4,5])
+            sage: G.add_edge([5,3])
+            sage: G.diameter(algorithm='TYY')
+            4
         """
         if not self.order():
             raise ValueError("diameter is not defined for the empty graph")
