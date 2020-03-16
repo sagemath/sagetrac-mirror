@@ -14824,7 +14824,7 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
-          - ``'standard'``, ``'2sweep'``, ``'multi-sweep'``, ``'iFUB'``, ``'TYY'``: these
+          - ``'standard'``, ``'2sweep'``, ``'multi-sweep'``, ``'iFUB'``, ``'AIK'``: these
             algorithms are implemented in
             :func:`sage.graphs.distances_all_pairs.diameter`
             They work only if ``by_weight==False``. See the function
@@ -14881,11 +14881,11 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: algorithm 'iFUB' does not work on weighted graphs
             sage: G = DiGraph([[1,2], [2,3], [3,1], [1,3], [2,4]])
-            sage: G.diameter(algorithm='TYY')
+            sage: G.diameter(algorithm='AIK')
             +Infinity
             sage: G.add_edge([4,5])
             sage: G.add_edge([5,3])
-            sage: G.diameter(algorithm='TYY')
+            sage: G.diameter(algorithm='AIK')
             4
         """
         if not self.order():
@@ -14899,7 +14899,7 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == 'BFS':
             algorithm = 'standard'
 
-        if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB', 'TYY']:
+        if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB', 'AIK']:
             if by_weight:
                 raise ValueError("algorithm '" + algorithm + "' does not work" +
                                  " on weighted graphs")

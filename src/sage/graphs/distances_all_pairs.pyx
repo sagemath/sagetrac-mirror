@@ -1061,12 +1061,12 @@ cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
 
     return (LB, s, m, d)
 
-cdef uint32_t diameter_TYY(short_digraph g,
+cdef uint32_t diameter_AIK(short_digraph g,
                            uint32_t source):
     """
-    Compute the diameter of the input (di)graph using the ``TYY`` algorithm.
+    Compute the diameter of the input (di)graph using the ``AIK`` algorithm.
 
-    The ``TYY`` (Takuya A., Yoichi I., Yuki K.) algorithm calculates the exact
+    The ``AIK`` (Akiba T., Iwata Y., Kawata Y.) algorithm calculates the exact
     value of the diameter of an unweighted directed or undirected graph. Note
     that we consider that the diameter of a digraph which is not strongly 
     connected is ``Infinity``. For this reason we can simplify the described
@@ -1111,7 +1111,7 @@ cdef uint32_t diameter_TYY(short_digraph g,
     cdef uint32_t *ecc = BFS_order + 3*n
 
     # Getting the directed graph with reversed edges
-    cdef short_digraph rev_g = g
+    cdef short_digraph rev_g
     init_reverse(rev_g, g)
 
     # SearchAndBound(G, v) is the method we use to update bounds by BFS
@@ -1166,6 +1166,10 @@ cdef uint32_t diameter_TYY(short_digraph g,
         simple_BFS(rev_g, v, distances_backwards, NULL, BFS_order, seen) 
         for u in range(n):
             ecc[u] = min(ecc[u], distances_backwards[u] + aux_ecc)
+
+    sig_free(BFS_order)
+    bitset_free(seen)
+    free_short_digraph(rev_g)
 
     return LB
 
@@ -1318,12 +1322,12 @@ def diameter(G, algorithm='iFUB', source=None):
         by the remark above. The worst case time complexity of the iFUB
         algorithm is `O(nm)`, but it can be very fast in practice.
 
-    - ``'TYY'`` -- The ``TYY`` (Takuya A., Yoichi I., Yuki K.) algorithm 
-      calculates the exact value of the diameter of an unweighted directed or 
-      undirected graph. Note that we consider that the diameter of a digraph
-      which is not strongly connected is ``Infinity``. The worst case time
-      complexity of this algorithm is `O(nm)`, but for sparse graphs and can
-      be very fast.
+    - ``'AIK'`` -- The ``AIK`` (Akiba T., Iwata Y., Kawata Y.) algorithm,
+      proposed in [AIK2015] calculates the exact value of the diameter of an 
+      unweighted directed or undirected graph. Note that we consider that the
+      diameter of a digraph which is not strongly connected is ``Infinity``.
+      The worst case time complexity of this algorithm is `O(nm)`, but for
+      sparse graphs can be very fast.
 
     - ``source`` -- (default: None) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
@@ -1370,21 +1374,21 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: diameter(G, algorithm='iFUB')
         0
         sage: G = DiGraph([[1,1]], loops=True)
-        sage: diameter(G) == diameter(G, algorithm='TYY') == 0
+        sage: diameter(G) == diameter(G, algorithm='AIK') == 0
         True
         sage: G.add_edge([2,2])
-        sage: diameter(G) == diameter(G, algorithm='TYY') == +Infinity
+        sage: diameter(G) == diameter(G, algorithm='AIK') == +Infinity
         True
     """
     cdef int n = G.order()
     if not n:
         return 0
 
-    if algorithm == 'standard' or (G.is_directed() and algorithm != 'TYY'):
+    if algorithm == 'standard' or (G.is_directed() and algorithm != 'AIK'):
         return max(G.eccentricity())
     elif algorithm is None:
         algorithm = 'iFUB'
-    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'TYY']:
+    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'AIK']:
         raise ValueError("unknown algorithm for computing the diameter")
 
     if source is None:
@@ -1427,8 +1431,8 @@ def diameter(G, algorithm='iFUB', source=None):
     elif algorithm == 'iFUB': 
         LB = diameter_iFUB(sd, isource)
 
-    else: # algorithm == 'TYY'
-        LB = diameter_TYY(sd, isource)
+    else: # algorithm == 'AIK'
+        LB = diameter_AIK(sd, isource)
 
 
     free_short_digraph(sd)
