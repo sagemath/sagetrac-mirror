@@ -1082,9 +1082,17 @@ cdef uint32_t diameter_aik(short_digraph g,
     - ``g`` -- a short_digraph
 
     - ``source`` -- starting node of the first BFS of double sweep
+    
+    .. NOTE::
+
+        This algorithm returns a finite valued diameter for non strongly 
+        connected graphs too. This differs significantly from the usual 
+        definition of a diameter where it is assumed that diameter of non 
+        strongly connected graph is infinity. 
 
     """        
     # variable diameter is the lower bound on diameter
+    # variable k is the number of strongly connected components in G
     cdef uint32_t diameter, k
     cdef uint32_t n = g.n
             
@@ -1431,14 +1439,25 @@ def diameter(G, algorithm='iFUB', source=None):
         This algorithm maintains and gradually tightens a diameter lower bound 
         and eccentricity upper bounds. The algorithm uses new inequalities that 
         propogate the eccentricity bounds of vertices in different SCCs. 
-        The worst case time complexity of the aik algorithm is `O(nm + n^{2})`, 
+        The worst case time complexity of the aik algorithm is `O(nm)`, 
         but it can be very fast in practice on **large directed sparse graphs**. 
         See the code's documentation and [AIK2015]_ for more details.
+
+      .. NOTE::
+
+        The ``'aik'`` algorithm returns a finite valued diameter for 
+        non strongly connected graphs too. This differs significantly from the 
+        usual definition of a diameter where it is assumed that diameter of non 
+        strongly connected graph is infinity. Thus, the ``'aik'`` algorithm will 
+        output a finite diameter for non strongly connected digraphs, while 
+        the default sage implementation will return infinity.
 
     - ``source`` -- (default: None) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
       when ``algorithm=='standard'``.
+      
+
 
     EXAMPLES::
 

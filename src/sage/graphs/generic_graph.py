@@ -14829,6 +14829,16 @@ class GenericGraph(GenericGraph_pyx):
             :func:`sage.graphs.distances_all_pairs.diameter`
             They work only if ``by_weight==False``. See the function
             documentation for more information.
+            
+            .. NOTE::
+
+                The ``'aik'`` algorithm returns a finite valued diameter for non 
+                strongly connected graphs too. This differs significantly from 
+                the usual definition of a diameter where it is assumed that 
+                diameter of non strongly connected graph is infinity. Thus, the 
+                ``'aik'`` algorithm will output a finite diameter for 
+                non strongly connected digraphs,while the default sage 
+                implementation will return infinity.
 
           - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
