@@ -8,18 +8,20 @@
 # to run various types of test suites, and to remove parts of the build etc.
 
 default: all
+MAX-JOBS=$(nproc)
+# TODO Add a check if nproc has succeeded.
 
 all: base-toolchain
-	$(MAKE) all-start
+	$(MAKE) all-start -j${MAX-JOBS}
 
 build: base-toolchain
-	$(MAKE) all-build
+	$(MAKE) all-build -j${MAX-JOBS}
 
 start: base-toolchain
-	$(MAKE) build-start
+	$(MAKE) build-start -j${MAX-JOBS}
 
 sageruntime: base-toolchain
-	$(MAKE) all-sageruntime
+	$(MAKE) all-sageruntime -j${MAX-JOBS}
 
 
 # The --stop flag below is just a random flag to induce graceful
