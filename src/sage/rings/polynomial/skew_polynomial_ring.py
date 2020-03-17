@@ -22,16 +22,15 @@ AUTHOR:
   doctest errors
 
 """
-
-#############################################################################
+# ***************************************************************************
 #    Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from __future__ import print_function, absolute_import, division
 
@@ -40,16 +39,14 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.rings.ring import Algebra
-from sage.categories.rings import Rings
+from sage.categories.algebras import Algebras
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.ring import Field
-from sage.structure.category_object import normalize_names
-from sage.categories.morphism import Morphism
-from sage.categories.morphism import IdentityMorphism
-from sage.rings.polynomial.skew_polynomial_element import (SkewPolynomial,
-                                                           SkewPolynomialBaseringInjection)
+from sage.categories.morphism import Morphism, IdentityMorphism
+from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
 
-#########################################################################################
+############################################################################
 
 def _base_ring_to_fraction_field(S):
     """
@@ -266,20 +263,6 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         sage: loads(dumps(R['x',sigma])) == R['x',sigma]
         True
 
-    There is a coercion map from the base ring of the skew polynomial rings::
-
-        sage: S.has_coerce_map_from(R)
-        True
-        sage: x.parent()
-        Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring
-         twisted by t |--> t + 1
-        sage: t.parent()
-        Univariate Polynomial Ring in t over Integer Ring
-        sage: y = x+t; y
-        x + t
-        sage: y.parent() is S
-        True
-
     .. SEEALSO::
 
         :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
@@ -339,6 +322,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: R.<t> = ZZ[]
             sage: sigma = R.hom([t+1])
             sage: S.<x> = SkewPolynomialRing(R,sigma)
+            sage: S.category()
+            Category of algebras over (unique factorization domains and commutative algebras over (euclidean domains and infinite enumerated sets and metric spaces) and infinite sets)
             sage: S([1]) + S([-1])
             0
             sage: TestSuite(S).run()
@@ -346,8 +331,9 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: T.<x> = k['x', Frob]; T
-            Skew Polynomial Ring in x over Finite Field in t of size 5^3
-             twisted by t |--> t^5
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            sage: T.category()
+            Category of algebras over finite enumerated fields
 
         We skip the pickling tests currently because ``Frob`` does not
         pickle correctly (see note on :trac:`13215`)::
@@ -358,13 +344,8 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         self._polynomial_class = element_class
         self._map = twist_map
         self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
-        self._no_generic_basering_coercion = True
-        Algebra.__init__(self, base_ring, names=name,
-                         normalize=True, category=Rings())
-        base_inject = SkewPolynomialBaseringInjection(base_ring, self)
-        self._populate_coercion_lists_(
-                coerce_list = [base_inject],
-                convert_list = [list, base_inject])
+        Algebra.__init__(self, base_ring, names=name, normalize=True,
+                         category=Algebras(base_ring.category()))
 
     def _element_constructor_(self, a=None, check=True, construct=False, **kwds):
         r"""
@@ -428,6 +409,29 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
                 raise TypeError("unable to coerce string")
         return C(self, a, check, construct=construct, **kwds)
 
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: S.<x> = SkewPolynomialRing(R, R.hom([t + 1]))
+            sage: S.coerce_map_from(R)
+            Skew Polynomial base injection morphism:
+              From: Univariate Polynomial Ring in t over Integer Ring
+              To:   Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: x.parent()
+            Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
+            sage: t.parent()
+            Univariate Polynomial Ring in t over Integer Ring
+            sage: y = x + t; y
+            x + t
+            sage: y.parent() is S
+            True
+        """
+        return SkewPolynomialBaseringInjection(self.base_ring(), self)
+
     def _coerce_map_from_(self, P):
         r"""
         Check whether ``self`` has a coerce map from ``P``.
@@ -473,24 +477,18 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             sage: S.coerce_map_from(S)
             Identity endomorphism of Skew Polynomial Ring in x over Univariate Polynomial Ring in t over Integer Ring twisted by t |--> t + 1
         """
+        base_ring = self.base_ring()
         try:
-            connecting = self.base_ring().coerce_map_from(P)
+            connecting = base_ring.coerce_map_from(P)
             if connecting is not None:
-                return self.coerce_map_from(self.base_ring()) * connecting
+                return self.coerce_map_from(base_ring) * connecting
         except TypeError:
             pass
-        try:
-            if isinstance(P, SkewPolynomialRing_general):
-                if self.__is_sparse and not P.is_sparse():
-                    return False
-                if P.variable_name() == self.variable_name():
-                    if (P.base_ring() is self.base_ring()
-                            and self.base_ring() is ZZ_sage):
-                       if self._implementation_names == ('NTL',):
-                            return False
-                    return self.base_ring().has_coerce_map_from(P.base_ring())
-        except AttributeError:
-            pass
+        if isinstance(P, SkewPolynomialRing_general):
+            if self.__is_sparse and not P.is_sparse():
+                return False
+            if P.variable_name() == self.variable_name():
+                return base_ring.has_coerce_map_from(P.base_ring())
 
     def _repr_(self):
         r"""

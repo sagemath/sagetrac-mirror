@@ -129,17 +129,6 @@ fi
 # Make NEW_SAGE_ROOT absolute
 NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
 
-# Sanity check NEW_SAGE_ROOT
-if [ -f "$NEW_SAGE_ROOT/sage" -a -d "$NEW_SAGE_ROOT/build" ]; then
-    :
-else
-    echo >&2 "Error: SAGE_ROOT is set to a bad value:"
-    echo >&2 "SAGE_ROOT=$SAGE_ROOT"
-    echo >&2 "You must correct it or erase it and run this script from the SAGE_ROOT"
-    echo >&2 "or SAGE_ROOT/local/bin/ directory."
-    return 1
-fi
-
 # Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
 if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
     echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
@@ -294,7 +283,7 @@ fi
 # depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
-export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
+export SAGE_PKGCONFIG="$SAGE_LOCAL/lib/pkgconfig"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
@@ -352,19 +341,6 @@ export LIBRARY_PATH="${LIBRARY_PATH}$SAGE_LOCAL/lib"
 # adding the gcc option -I $SAGE_LOCAL/include.
 [ -z "$CPATH" ] || CPATH="${CPATH}:"
 export CPATH="${CPATH}$SAGE_LOCAL/include"
-
-# Add Debian multi-arch directories if applicable.
-# See http://wiki.debian.org/Multiarch
-MULTI_ARCH=`dpkg-architecture -qDEB_BUILD_MULTIARCH 2>/dev/null`
-if [ -n "$MULTI_ARCH" ]; then
-    LIBRARY_PATH="${LIBRARY_PATH}:/usr/lib/$MULTI_ARCH"
-    CPATH="${CPATH}:/usr/include/$MULTI_ARCH"
-fi
-
-# For PARI/GP
-GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
-GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
-GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
 
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
@@ -524,7 +500,7 @@ fi
 
 # Set AS to assembler used by $CC ("as" by default)
 if [ "$AS" = "" ]; then
-    CC_as=`$CC -print-file-name=as 2>/dev/null`
+    CC_as=`$CC -print-prog-name=as 2>/dev/null`
     if command -v $CC_as >/dev/null 2>/dev/null; then
         AS="$CC_as"
     fi
@@ -536,7 +512,7 @@ export AS
 
 # Set LD to linker used by $CC ("ld" by default)
 if [ "$LD" = "" ]; then
-    CC_ld=`$CC -print-file-name=ld 2>/dev/null`
+    CC_ld=`$CC -print-prog-name=ld 2>/dev/null`
     if command -v $CC_ld >/dev/null 2>/dev/null; then
         LD="$CC_ld"
     fi

@@ -79,12 +79,13 @@ config()
                   --bindir="$SAGE_LOCAL/bin" \
                   $SAGE_CONFIGURE_GMP \
                   $SAGE_CONFIGURE_NTL \
-                  --with-flint="$SAGE_LOCAL" \
+                  $SAGE_CONFIGURE_FLINT \
                   --enable-gfanlib \
                   --enable-Singular \
                   --enable-factory \
                   --disable-doc \
                   --disable-polymake \
+                  --with-python=sage-python23 \
                   $SINGULAR_CONFIGURE
 }
 

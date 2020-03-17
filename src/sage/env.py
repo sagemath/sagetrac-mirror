@@ -130,6 +130,12 @@ def var(key, *fallbacks, **kwds):
         value = None
     else:
         value = os.environ.get(key)
+    if value is None:
+        try:
+            import sage_conf
+            value = getattr(sage_conf, key, None)
+        except ImportError:
+            pass
     # Try all fallbacks in order as long as we don't have a value
     for f in fallbacks:
         if value is not None:
@@ -158,10 +164,11 @@ var('SAGE_SHARE',          join(SAGE_LOCAL, 'share'))
 var('SAGE_DOC',            join(SAGE_SHARE, 'doc', 'sage'))
 var('SAGE_SPKG_INST',      join(SAGE_LOCAL, 'var', 'lib', 'sage', 'installed'))
 var('SAGE_LIB',            os.path.dirname(os.path.dirname(sage.__file__)))
+var('SAGE_EXTCODE',        join(SAGE_LIB, 'sage', 'ext_data'))
 
 var('SAGE_ROOT')           # no fallback for SAGE_ROOT
 var('SAGE_SRC',            join(SAGE_ROOT, 'src'), SAGE_LIB)
-var('SAGE_DOC_SRC',        join(SAGE_SRC, 'doc'))
+var('SAGE_DOC_SRC',        join(SAGE_ROOT, 'src', 'doc'), SAGE_DOC)
 var('SAGE_PKGS',           join(SAGE_ROOT, 'build', 'pkgs'))
 var('SAGE_ROOT_GIT',       join(SAGE_ROOT, '.git'))
 
@@ -169,7 +176,6 @@ var('DOT_SAGE',            join(os.environ.get('HOME'), '.sage'))
 var('SAGE_STARTUP_FILE',   join(DOT_SAGE, 'init.sage'))
 
 # installation directories for various packages
-var('SAGE_EXTCODE',                  join(SAGE_SHARE, 'sage', 'ext'))
 var('CONWAY_POLYNOMIALS_DATA_DIR',   join(SAGE_SHARE, 'conway_polynomials'))
 var('GRAPHS_DATA_DIR',               join(SAGE_SHARE, 'graphs'))
 var('ELLCURVE_DATA_DIR',             join(SAGE_SHARE, 'ellcurves'))
@@ -182,9 +188,13 @@ var('CREMONA_LARGE_DATA_DIR',        join(SAGE_SHARE, 'cremona'))
 var('JMOL_DIR',                      join(SAGE_SHARE, 'jmol'))
 var('JSMOL_DIR',                     join(SAGE_SHARE, 'jsmol'))
 var('MATHJAX_DIR',                   join(SAGE_SHARE, 'mathjax'))
+var('MTXLIB',                        join(SAGE_SHARE, 'meataxe'))
 var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
+var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
+var('MAXIMA',                        'maxima')
 var('MAXIMA_FAS')
+var('SAGE_NAUTY_BINS_PREFIX', '')
 
 # misc
 var('SAGE_BANNER', '')
@@ -209,7 +219,7 @@ def _get_shared_lib_filename(libname, *additional_libnames):
     For distributions like Debian that use a multiarch layout, we also try the
     multiarch lib paths (i.e. ``/usr/lib/<arch>/``).
 
-    Returns ``None`` if the file does not exist.
+    This returns ``None`` if the file does not exist.
 
     EXAMPLES::
 
@@ -361,7 +371,8 @@ def cython_aliases():
         sage: cython_aliases()
         {...}
         sage: sorted(cython_aliases().keys())
-        ['FFLASFFPACK_CFLAGS',
+        ['ARB_LIBRARY',
+         'FFLASFFPACK_CFLAGS',
          'FFLASFFPACK_INCDIR',
          'FFLASFFPACK_LIBDIR',
          'FFLASFFPACK_LIBRARIES',
@@ -405,5 +416,5 @@ def cython_aliases():
     # This is not a problem in practice since LinBox depends on
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
     aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
-
+    aliases["ARB_LIBRARY"] = os.environ.get('SAGE_ARB_LIBRARY', 'arb')
     return aliases

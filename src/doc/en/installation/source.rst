@@ -100,7 +100,7 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python >= 2.6.
+- **python**: Python >= 3.6.
 
 
 Libraries
@@ -156,7 +156,8 @@ In any case, you always need at least a C/C++ compiler to build the GCC
 package and its prerequisites before the compilers it provides can be used.
 
 Note that you can always override this behavior through the configure
-options `--without-system-gcc` and `--with-system-gcc`, see :ref:`section_compilers`.
+options ``--without-system-gcc`` and ``--with-system-gcc``, see
+:ref:`section_compilers`.
 
 Other notes
 ^^^^^^^^^^^
@@ -220,30 +221,27 @@ The method of installing additional software varies from distribution to
 distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 `Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
 you would use
-`apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
+`apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_.
 
-     # debian (Stretch or newer) / ubuntu
-     $ sudo apt-get install binutils pixz gcc g++ gfortran make m4 perl tar \
-       git patch openssl libssl-dev libz-dev bc libbz2-dev liblzma-dev libgmp-dev \
-       libffi-dev libgf2x-dev libcurl4-openssl-dev curl yasm
+On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
-     # redhat / fedora / centos
-     $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
-       tar git patch perl-ExtUtils-MakeMaker openssl openssl-devel zlib-devel \
-       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm
+.. literalinclude:: debian.txt
+
+On Fedora / Redhat / CentOS:
+
+.. literalinclude:: fedora.txt
 
 (These examples suppose that you choose to use a systemwide OpenSSL library.)
-In addition, if you don't want Sage to build other packages that might be available from
-your OS, cf. the growing list of such packages on :trac:`27330`, install::
 
-     # debian / ubuntu
-     $ sudo apt-get install libntl-dev libmpfr-dev libmpc-dev libflint-dev \
-       libpcre3-dev libgd-dev \
-       cmake libterm-readline-gnu-perl ninja-build librw-dev # not for standard Sage spkgs
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
-     # redhat / fedora / centos
-     $ sudo yum install ntl-devel mpfr-devel libmpc-devel \
-       cmake perl-Term-ReadLine-Gnu ninja-build rw-devel # not for standard Sage spkgs
+.. literalinclude:: debian-optional.txt
+
+On Fedora / Redhat / CentOS:
+
+.. literalinclude:: fedora-optional.txt
 
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
@@ -410,7 +408,7 @@ Sage notebook.
 Notebook additional features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**attention: Sage's notebook is deprecated. Use Jupyter notebook instead**
+**attention: Sage's notebook is deprecated, and notebook() command has been removed. Use Jupyter notebook instead**
 
 By default, the Sage notebook uses the
 `HTTP <https://en.wikipedia.org/wiki/HTTP>`_
@@ -463,7 +461,7 @@ or similar commands.
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    $ sage -f python2  # rebuild Python
+    $ sage -f python3  # rebuild Python3
     $ make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
@@ -618,11 +616,10 @@ Running Sage from a directory with spaces in its name will also fail.
    You should see the Sage prompt, which will look something like this::
 
        $ sage
-       ----------------------------------------------------------------------
-       | Sage Version 5.8, Release Date: 2013-03-15                         |
-       | Type "notebook()" for the browser-based notebook interface.        |
-       | Type "help()" for help.                                            |
-       ----------------------------------------------------------------------
+       ┌────────────────────────────────────────────────────────────────────┐
+       │ SageMath version 8.8, Release Date: 2019-06-26                     │
+       │ Using Python 3.7.3. Type "help()" for help.                        │
+       └────────────────────────────────────────────────────────────────────┘
        sage:
 
    Note that Sage should take well under a minute when it starts for the first
@@ -801,7 +798,7 @@ Starting from a fresh Sage tarball::
 And if you've already built Sage::
 
     $ ./sage -i openssl
-    $ ./sage -f python2
+    $ ./sage -f python3
     $ make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
@@ -998,8 +995,8 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python2``, then always run the test suite for
-  MPIR, but always skip the test suite for Python 2.
+  So if this is set to ``mpir,!python3``, then always run the test suite for
+  MPIR, but always skip the test suite for Python 3.
 
   .. note::
 
@@ -1424,4 +1421,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in September 2017 (Sage 8.1).**
+**This page was last updated in August 2019 (Sage 9.0).**

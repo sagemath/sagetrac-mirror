@@ -174,7 +174,6 @@ native PolyBoRi counterparts. For instance, sets of points can be
 represented as tuples of tuples (Sage) or as ``BooleSet`` (PolyBoRi)
 and naturally the second option is faster.
 """
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 from cython.operator cimport dereference as deref
@@ -4765,7 +4764,7 @@ cdef class PolynomialConstruct:
             # So, it is just a conversion. [Simon King]
             return (<BooleanPolynomialRing>ring)._element_constructor_(x)
 
-        raise TypeError("Cannot generate Boolean polynomial from %s , %s%" %
+        raise TypeError("Cannot generate Boolean polynomial from %s , %s" %
                         (type(x), type(ring)))
 
 
