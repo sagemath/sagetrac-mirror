@@ -25,7 +25,6 @@ from sage.structure.set_factories import (SetFactory, ParentWithSetFactory, TopM
 from sage.structure.element import parent
 from sage.structure.list_clone import ClonableIntArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.misc import uniq
 
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -568,9 +567,9 @@ class PackedWord(ClonableIntArray):
         The ``right`` inversions are taken on ``positions`` by default,
         whereas the ``left`` inversions are taken by default on ``values``.
 
-        Exemples when ``side`` is "right" and ``support`` is "position".
+        EXAMPLES:
 
-        EXAMPLES::
+        Exemples when ``side`` is "right" and ``support`` is "position"::
 
             sage: PackedWord([]).inversions()
             set()
@@ -585,9 +584,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions()
             {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
 
-        Exemples when ``side`` is "right" and ``support`` is "value".
-
-        EXAMPLES::
+        Exemples when ``side`` is "right" and ``support`` is "value"::
 
             sage: PackedWord([]).inversions(support = "value")
             set()
@@ -602,9 +599,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions(support = "value")
             {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
 
-        Exemples when ``side`` is "left" and ``support`` is "value".
-
-        EXAMPLES::
+        Exemples when ``side`` is "left" and ``support`` is "value"::
 
             sage: PackedWord([]).inversions(side = "left")
             set()
@@ -619,9 +614,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 4, 1, 2]).inversions(side = "left")
             {(3, 1), (3, 2), (4, 2)}
 
-        Exemples when ``side`` is "left" and ``support`` is "position".
-
-        EXAMPLES::
+        Exemples when ``side`` is "left" and ``support`` is "position"::
 
             sage: PackedWord([]).inversions(side = "left", support = "position")
             set()
@@ -638,7 +631,7 @@ class PackedWord(ClonableIntArray):
         """
         if not side in ["left", "right"]:
             raise ValueError("option 'side' must be 'left' or 'right'")
-        if support == None:
+        if support is None:
             support = "position" if side == "right" else "value"
         if not support in ["position", "value"]:
             raise ValueError("option 'support' must be 'position' or 'value'")
@@ -1069,7 +1062,15 @@ class PackedWord(ClonableIntArray):
 
     def is_gequal(self, pw, side="right"):
         r"""
-        Return whether ``pw`` is greater than
+        Return whether ``pw`` is greater than ``self`` under the ``side`` weak order.
+
+        .. SEEALSO::
+
+            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`, 
+            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred` 
+            for more information on the weak order.
+        
+        EXAMPLES::
 
             sage: u = PackedWord([3, 1, 1, 2])
             sage: v = PackedWord([3, 1, 2, 1])
@@ -1114,7 +1115,15 @@ class PackedWord(ClonableIntArray):
 
     def is_lequal(self, pw, side="right"):
         r"""
-        Return whether ``pw`` is greater than
+        Return whether ``pw`` is lower than ``self`` under the ``side`` weak order.
+
+        .. SEEALSO::
+
+            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`, 
+            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred` 
+            for more information on the weak order.
+        
+        EXAMPLES::
 
             sage: u = PackedWord([3, 1, 1, 2])
             sage: v = PackedWord([3, 1, 2, 1])
@@ -1150,30 +1159,38 @@ class PackedWord(ClonableIntArray):
 
 class PackedWordsFactory(SetFactory):
     r"""
+    This class is the set factory for Packed Words.
+
+    .. SEEALSO::
+
+        :mod:`~sage.structure.set_factories` for an introduction to set factories.
     """
     def __call__(self, n=None, policy=None):
         r"""
-        TODO comments with new tests
-        Construct the correct parent based upon input ``n``.
+        Construct the subset based upon input ``n``.
+
+        INPUT:
+
+        - ``n`` -- (optional) an integer
+        - ``policy`` -- the policy passed to the created set.
+
+        .. SEEALSO::
+
+            :class:`.set_factories.SetFactoryPolicy`
+
+
 
         TESTS::
 
-            # sage: from sage.combinat.packed_words import PackedWords_size, PackedWords_all
-            # sage: isinstance(PackedWords(2), PackedWords)
-            # True
-            # sage: isinstance(PackedWords(), PackedWords)
-            # True
-            # sage: PackedWords(2) is PackedWords_size(2)
-            # True
-            # sage: PackedWords(5).cardinality()
-            # 541
-            # sage: PackedWords() is PackedWords_all()
-            # True
-
-            # sage: PackedWords(3/2)
-            # Traceback (most recent call last):
-            # ...
-            # ValueError: n must be a non-negative integer
+            sage: from sage.combinat.packed_words import PackedWordsFactory
+            sage: PackedWords == PackedWordsFactory()
+            True
+            sage: PackedWords(5).cardinality()
+            541
+            sage: PackedWords(3/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non-negative integer
         """
         if policy is None:
             policy = TopMostParentPolicy(self, (), PackedWord)
@@ -1186,26 +1203,54 @@ class PackedWordsFactory(SetFactory):
     @lazy_attribute
     def _default_policy(self):
         r"""
-        TODO: update this documentation.
+        This is the default policy for Packed Words.
+
         TESTS::
 
-            sage: from sage.structure.set_factories_example import XYPairsFactory
-            sage: XYPairs = XYPairsFactory()
-            sage: XYPairs._default_policy
-            Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
+            sage: PackedWords._default_policy
+            Set factory policy for <class 'sage.combinat.packed_words.PackedWord'> with parent Packed words[=Factory for Packed Words(())]
         """
         return TopMostParentPolicy(self, (), PackedWord)
+    
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: PackedWords   # indirect doctest
+            Factory for Packed Words
+        """
+        return "Factory for Packed Words"
 
     def add_constraints(self, cons, args_opts):
         """
-        TODO: instead of returning an error, should we return an "empty family?"
+        Add constraints to the set ``cons`` as per
+        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
+
+        Here we just have the constraint for the size of the packed words and we have no 
+        possible option yet.
+
+        EXAMPLES::
+
+            sage: PackedWords.add_constraints((), (() ,{}))
+            ()
+            sage: PackedWords.add_constraints((), ((3,), {}))
+            (3,)
+            sage: PackedWords.add_constraints((2,), ((2,), {}))
+            (2,)
+            sage: PackedWords.add_constraints((2,), ((3,), {}))
+            Traceback (most recent call last):
+            ...
+            ValueError: Constraint size=3 cannot replace constraint size=2
         """
         args, opts = args_opts
         if len(args + cons) > 1 and args[0] != cons[0]:
             raise ValueError("Constraint size={} cannot replace constraint size={}".format(args[0], cons[0]))
         res = args + cons
-        return (res[0],)
-
+        if (res):
+            return (res[0],)
+        else:
+            return ()
+    
 PackedWords = PackedWordsFactory()
 
 class PackedWordsBaseClass(ParentWithSetFactory):
@@ -1215,10 +1260,9 @@ class PackedWordsBaseClass(ParentWithSetFactory):
     A word `u` over the positive integers is a *packed word* if for each
     number `k > 1` appearing in `u`, the number `k - 1` also appears in `u`.
 
-    TODO:
+    .. TODO::
 
         - perhaps reformat the display of packed words of sizes 0..3.
-          (I need to look at the documentation to see.)
 
     Packed words are in bijection with ordered set partitions as follows.
     Given an ordered set partition `O`, the corresponding packed word `u`
@@ -1309,7 +1353,7 @@ class PackedWordsBaseClass(ParentWithSetFactory):
             sage: PackedWords().pack([11, 4, 1, 11, 4])
             [3, 2, 1, 3, 2]
         """
-        l = uniq(li)
+        l = sorted(set(li))
         return PackedWord([l.index(i) + 1 for i in li])
 
     def permutation_to_packed_words(self, sigma):
@@ -1482,51 +1526,6 @@ class PackedWords_all(PackedWordsBaseClass, DisjointUnionEnumeratedSets, UniqueR
             Packed words
         """
         return "Packed words"
-
-    # def __iter__(self):
-    #     """
-    #     Iterate over ``self``.
-
-    #     EXAMPLES::
-
-    #         sage: it = iter(PackedWords())
-    #         sage: [next(it) for _ in range(10)]
-    #         [[], [1], [1, 2], [2, 1], [1, 1], [1, 2, 3],
-    #          [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
-    #     """
-    #     n = 0
-    #     while True:
-    #         for w in PackedWords(n):
-    #             yield self._element_constructor_(list(w))
-    #         n += 1
-
-    #def subset(self, size=None):
-        r"""
-        Return the set of packed words of size ``size``.
-
-        EXAMPLES::
-
-            sage: P = PackedWords()
-            sage: P.subset(6) is PackedWords(6)
-            True
-            sage: P.subset(0)
-            Packed words of size 0
-
-        TESTS::
-
-            sage: P.subset(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: n must be a non-negative integer
-            sage: P.subset(3/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: n must be a non-negative integer
-        """
-        #if size is None:
-        #    return self
-        #return PackedWords(size)
-
 
 #==============================================================================
 # Enumerated set of packed words of a given size
