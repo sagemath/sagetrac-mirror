@@ -22,7 +22,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from six import add_metaclass
 
@@ -311,7 +311,7 @@ class OrderedSetPartition(ClonableArray):
             sage: y.to_composition()
             [2, 1, 2]
         """
-        return Composition([len(_) for _ in self])
+        return Composition([len(p) for p in self])
 
 
     @staticmethod
@@ -704,7 +704,7 @@ class OrderedSetPartition(ClonableArray):
         """
         co1 = self
         if co1.base_set() != co2.base_set():
-            raise ValueError("ordered set partitions self (= %s) and co2 (= %s) must be of the same set"%(self, co2))
+            raise ValueError("ordered set partitions self (= %s) and co2 (= %s) must be of the same set" % (self, co2))
 
         i1 = 0
         for j2 in co2:
@@ -819,7 +819,8 @@ class OrderedSetPartition(ClonableArray):
         for i in range(len(self)):
             for letter in self[i]:
                 out[letter] = i
-        return Words()([out[letter]+1 for letter in X])
+        return Words()([out[letter] + 1 for letter in X])
+
 
 class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
@@ -861,22 +862,25 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: OS = OrderedSetPartitions("cat"); OS
+        sage: OS = OrderedSetPartitions("cat")
+        sage: OS # py2
         Ordered set partitions of {'a', 'c', 't'}
-        sage: OS.list()
-        [[{'a'}, {'c'}, {'t'}],
-         [{'a'}, {'t'}, {'c'}],
-         [{'c'}, {'a'}, {'t'}],
-         [{'t'}, {'a'}, {'c'}],
-         [{'c'}, {'t'}, {'a'}],
-         [{'t'}, {'c'}, {'a'}],
-         [{'a'}, {'c', 't'}],
-         [{'c'}, {'a', 't'}],
-         [{'t'}, {'a', 'c'}],
+        sage: OS # py3 random
+        Ordered set partitions of {'a', 't', 'c'}
+        sage: sorted(OS.list(), key=str)
+        [[{'a', 'c', 't'}],
          [{'a', 'c'}, {'t'}],
          [{'a', 't'}, {'c'}],
+         [{'a'}, {'c', 't'}],
+         [{'a'}, {'c'}, {'t'}],
+         [{'a'}, {'t'}, {'c'}],
          [{'c', 't'}, {'a'}],
-         [{'a', 'c', 't'}]]
+         [{'c'}, {'a', 't'}],
+         [{'c'}, {'a'}, {'t'}],
+         [{'c'}, {'t'}, {'a'}],
+         [{'t'}, {'a', 'c'}],
+         [{'t'}, {'a'}, {'c'}],
+         [{'t'}, {'c'}, {'a'}]]
     """
     @staticmethod
     def __classcall_private__(cls, s=None, c=None):
@@ -952,7 +956,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             sage: [set([1,2]), set([3,4])] in OS
             Traceback (most recent call last):
             ...
-            TypeError: X (=set([1, 2])) must be a Set
+            TypeError: X (=...1, 2...) must be a Set
         """
         #x must be a list
         if not isinstance(x, (OrderedSetPartition, list, tuple)):
@@ -1014,7 +1018,7 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4])
             Ordered set partitions of {1, 2, 3, 4}
         """
-        return "Ordered set partitions of %s"%Set(self._set)
+        return "Ordered set partitions of %s" % Set(self._set)
 
     def cardinality(self):
         """
@@ -1035,7 +1039,8 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
             sage: OrderedSetPartitions(5).cardinality()
             541
         """
-        return sum([factorial(k)*stirling_number2(len(self._set),k) for k in range(len(self._set)+1)])
+        return sum([factorial(k)*stirling_number2(len(self._set), k)
+                    for k in range(len(self._set)+1)])
 
     def __iter__(self):
         """
@@ -1128,7 +1133,8 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4], 2)
             Ordered set partitions of {1, 2, 3, 4} into 2 parts
         """
-        return "Ordered set partitions of %s into %s parts"%(Set(self._set),self.n)
+        return "Ordered set partitions of %s into %s parts" % (Set(self._set),
+                                                               self.n)
 
     def cardinality(self):
         """
@@ -1145,7 +1151,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
             sage: OrderedSetPartitions(4,1).cardinality()
             1
         """
-        return factorial(self.n)*stirling_number2(len(self._set), self.n)
+        return factorial(self.n) * stirling_number2(len(self._set), self.n)
 
     def __iter__(self):
         """
@@ -1168,8 +1174,9 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
              [{4}, {1, 2, 3}]]
         """
         for x in Compositions(len(self._set),length=self.n):
-            for z in OrderedSetPartitions_scomp(self._set,x):
+            for z in OrderedSetPartitions_scomp(self._set, x):
                 yield self.element_class(self, z)
+
 
 class OrderedSetPartitions_scomp(OrderedSetPartitions):
     def __init__(self, s, comp):
@@ -1230,7 +1237,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: OrderedSetPartitions(5, [2,0,3]).cardinality()
             10
         """
-        return factorial(len(self._set))/prod([factorial(i) for i in self.c])
+        return factorial(len(self._set)) / prod([factorial(i) for i in self.c])
 
     def __iter__(self):
         """
@@ -1405,7 +1412,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         return "Ordered set partitions"
 
     class Element(OrderedSetPartition):
-        def _richcmp_(left, right, op):
+        def _richcmp_(self, other, op):
             """
             TESTS::
 
@@ -1417,7 +1424,8 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
                 sage: el1 <= el2, el1 >= el2, el2 <= el1    # indirect doctest
                 (False, True, True)
             """
-            return richcmp([sorted(s) for s in left], [sorted(s) for s in right], op)
+            return richcmp([sorted(s) for s in self],
+                           [sorted(s) for s in other], op)
 
 ##########################################################
 # Deprecations
@@ -1445,4 +1453,3 @@ class SplitNK(OrderedSetPartitions_scomp):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.split_nk", "SplitNK_nk", SplitNK)
-

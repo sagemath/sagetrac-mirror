@@ -50,8 +50,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
-
 cimport cython
 from cpython cimport *
 from cpython.object cimport Py_EQ, Py_NE
@@ -85,8 +83,9 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 
-from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
-from sage.structure.element import bin_op, coerce_binop
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element
+from sage.structure.element import coerce_binop
 from sage.structure.parent cimport Parent
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
@@ -114,9 +113,8 @@ cdef object numpy_double_interface = {'typestr': '=f8'}
 from libc.math cimport ldexp
 from sage.libs.gmp.all cimport *
 
-IF HAVE_GMPY2:
-    cimport gmpy2
-    gmpy2.import_gmpy2()
+cimport gmpy2
+gmpy2.import_gmpy2()
 
 
 cdef class Rational(sage.structure.element.FieldElement)
@@ -455,15 +453,24 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     Conversions from gmpy2::
 
-        sage: from gmpy2 import *  # optional - gmpy2
-        sage: QQ(mpq('3/4'))       # optional - gmpy2
+        sage: from gmpy2 import *
+        sage: QQ(mpq('3/4'))
         3/4
-        sage: QQ(mpz(42))          # optional - gmpy2
+        sage: QQ(mpz(42))
         42
-        sage: Rational(mpq(2/3))   # optional - gmpy2
+        sage: Rational(mpq(2/3))
         2/3
-        sage: Rational(mpz(5))     # optional - gmpy2
+        sage: Rational(mpz(5))
         5
+
+    TESTS:
+
+    Check that :trac:`28321` is fixed::
+
+        sage: QQ((2r^100r, 3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
+        sage: QQ((-2r^100r, -3r^100r))
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
     """
     def __cinit__(self):
         r"""
@@ -500,8 +507,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             2/3
             sage: a.__init__('-h/3ki', 32); a
             -17/3730
-            sage: from gmpy2 import mpq      # optional - gmpy2
-            sage: a.__init__(mpq('3/5')); a  # optional - gmpy2
+            sage: from gmpy2 import mpq
+            sage: a.__init__(mpq('3/5')); a
             3/5
 
         TESTS:
@@ -612,20 +619,28 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif isinstance(x, tuple) and len(x) == 2:
             num = x[0]
             denom = x[1]
-            if isinstance(num, int) and isinstance(denom, int):
-                if denom >= 0:
-                    mpq_set_si(self.value, num, denom)
-                else:
-                    mpq_set_si(self.value, -num, -denom)
+
+            if isinstance(num, long):
+                mpz_set_pylong(mpq_numref(self.value), num)
+            elif isinstance(num, int):  # Python 2 only
+                mpz_set_si(mpq_numref(self.value), num)
             else:
                 if not isinstance(num, integer.Integer):
                     num = integer.Integer(num, base)
+                mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
+
+            if isinstance(denom, long):
+                mpz_set_pylong(mpq_denref(self.value), denom)
+            elif isinstance(denom, int):  # Python 2 only
+                mpz_set_si(mpq_denref(self.value), denom)
+            else:
                 if not isinstance(denom, integer.Integer):
                     denom = integer.Integer(denom, base)
-                mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
                 mpz_set(mpq_denref(self.value), (<integer.Integer>denom).value)
+
             if mpz_sgn(mpq_denref(self.value)) == 0:
                 raise ValueError("denominator must not be 0")
+
             mpq_canonicalize(self.value)
 
         elif isinstance(x, pari_gen):
@@ -660,10 +675,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
             mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
 
-        elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+        elif type(x) is gmpy2.mpq:
             mpq_set(self.value, (<gmpy2.mpq>x).q)
 
-        elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+        elif type(x) is gmpy2.mpz:
             mpq_set_z(self.value, (<gmpy2.mpz>x).z)
 
         else:
@@ -988,10 +1003,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: q = 6/2
-            sage: q.__mpz__()  # optional - gmpy2
+            sage: q.__mpz__()
             mpz(3)
             sage: q = 1/4
-            sage: q.__mpz__()  # optional - gmpy2
+            sage: q.__mpz__()
             Traceback (most recent call last):
             ...
             TypeError: unable to convert rational 1/4 to an integer
@@ -1014,23 +1029,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: r = 5/3
-            sage: r.__mpq__()            # optional - gmpy2
+            sage: r.__mpq__()
             mpq(5,3)
-            sage: from gmpy2 import mpq  # optional - gmpy2
-            sage: mpq(r)                 # optional - gmpy2
+            sage: from gmpy2 import mpq
+            sage: mpq(r)
             mpq(5,3)
-
-        TESTS::
-
-            sage: r.__mpq__(); raise NotImplementedError("gmpy2 is not installed")
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: gmpy2 is not installed
         """
-        IF HAVE_GMPY2:
-            return gmpy2.GMPy_MPQ_From_mpq(self.value)
-        ELSE:
-            raise NotImplementedError("gmpy2 is not installed")
+        return gmpy2.GMPy_MPQ_From_mpq(self.value)
 
     def _magma_init_(self, magma):
         """
@@ -1094,7 +1099,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mathml(abs(self.numer())), mathml(self.denom()))
             return t
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the homomorphism from the rational
         field to ``codomain``.
@@ -1988,7 +1993,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         `t`, where `s` and `t` are the smallest numbers satisfying
         `10^s=10^{s+t} \mod d`. In general if `d=2^a 5^b m` where `m`
         is coprime to 10, then `s=\max(a,b)` and `t` is the order of
-        10 modulo `d`.
+        10 modulo `m`.
 
         EXAMPLES::
 
@@ -2197,7 +2202,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         Test that conversion agrees with `RR`::
 
             sage: Q = [a/b for a in [-99..99] for b in [1..99]]
-            sage: all([RDF(q) == RR(q) for q  in Q])
+            sage: all(RDF(q) == RR(q) for q in Q)
             True
 
         Test that the conversion has correct rounding on simple rationals::
@@ -2210,14 +2215,14 @@ cdef class Rational(sage.structure.element.FieldElement):
         Test larger rationals::
 
             sage: Q = continued_fraction(pi).convergents()[:100]
-            sage: all([RDF(q) == RR(q) for q in Q])
+            sage: all(RDF(q) == RR(q) for q in Q)
             True
 
         At some point, the continued fraction and direct conversion
         to ``RDF`` should agree::
 
             sage: RDFpi = RDF(pi)
-            sage: all([RDF(q) == RDFpi for q in Q[20:]])
+            sage: all(RDF(q) == RDFpi for q in Q[20:])
             True
         """
         return mpq_get_d_nearest(self.value)
@@ -3060,6 +3065,22 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Define an alias for denominator
     denom = denominator
 
+    def as_integer_ratio(self):
+        """
+        Return the pair ``(self.numerator(), self.denominator())``.
+
+        EXAMPLES::
+
+            sage: x = -12/29
+            sage: x.as_integer_ratio()
+            (-12, 29)
+        """
+        n = <Integer>Integer.__new__(Integer)
+        d = <Integer>Integer.__new__(Integer)
+        n.set_from_mpz(mpq_numref(self.value))
+        d.set_from_mpz(mpq_denref(self.value))
+        return (n, d)
+
     def factor(self):
         """
         Return the factorization of this rational number.
@@ -3154,19 +3175,30 @@ cdef class Rational(sage.structure.element.FieldElement):
             3
             sage: (125/8).log(5/2,prec=53)
             3.00000000000000
+            
+        TESTS::
+        
+            sage: (25/2).log(5/2)
+            log(25/2)/log(5/2)
+            sage: (-1/2).log(3)
+            (I*pi + log(1/2))/log(3)
         """
-        if self.denom() == ZZ.one():
+        cdef int self_sgn
+        if self.denom().is_one():
             return ZZ(self.numer()).log(m, prec)
-        if mpz_sgn(mpq_numref(self.value)) < 0:
-            from sage.symbolic.all import SR
-            return SR(self).log()
         if m is not None and m <= 0:
             raise ValueError("log base must be positive")
+        self_sgn = mpz_sgn(mpq_numref(self.value))
+        if self_sgn < 0 and prec is None:
+            from sage.symbolic.all import SR
+            return SR(self).log(m)
         if prec:
-            from sage.rings.real_mpfr import RealField
-            if m is None:
-                return RealField(prec)(self).log()
-            return RealField(prec)(self).log(m)
+            if self_sgn >= 0:
+                from sage.rings.real_mpfr import RealField
+                return RealField(prec)(self).log(m)
+            else:
+                from sage.rings.complex_field import ComplexField
+                return ComplexField(prec)(self).log(m)
 
         from sage.functions.log import function_log
         if m is None:
@@ -3182,29 +3214,34 @@ cdef class Rational(sage.structure.element.FieldElement):
         bnp = bnum.perfect_power()
         adp = aden.perfect_power()
         bdp = bden.perfect_power()
-        if (anp[0] == bnp[0] and adp[0] == bdp[0]):
-            nu_ratio = Rational((anp[1], bnp[1]))
-            de_ratio = Rational((adp[1], bdp[1]))
-            if nu_ratio == de_ratio:
-                return nu_ratio
-            if nu_ratio == ZZ.one():
-                return de_ratio
-            if de_ratio == ZZ.one():
-                return nu_ratio
-        elif (anp[0] == bdp[0] and adp[0] == bnp[0]):
-            up_ratio = Rational((anp[1], bdp[1]))
-            lo_ratio = Rational((adp[1], bnp[1]))
-            if up_ratio == lo_ratio:
-                return -up_ratio
-            if up_ratio == ZZ.one():
-                return -lo_ratio
-            if lo_ratio == ZZ.one():
-                return -up_ratio
+
+        if anum.is_one():
+            a_exp=adp[1]
+            a_base=1/adp[0]
+        # we already know that aden!=0
+        else:
+            a_exp=anp[1].gcd(adp[1])
+            a_base=(anp[0]**(anp[1]//a_exp))/(adp[0]**(adp[1]//a_exp))
+
+        if bnum.is_one():
+            b_exp=bdp[1]
+            b_base=1/bdp[0]
+        elif bden.is_one():
+            b_exp=bnp[1]
+            b_base=bnp[0]
+        else:
+            b_exp=bnp[1].gcd(bdp[1])
+            b_base=(bnp[0]**(bnp[1]//b_exp))/(bdp[0]**(bdp[1]//b_exp))
+
+        if a_base == b_base:
+            return a_exp/b_exp
+        elif a_base*b_base == 1:
+            return -a_exp/b_exp
 
         return (function_log(self, dont_call_method_on_arg=True) /
                 function_log(m, dont_call_method_on_arg=True))
 
-    def gamma(self, prec=None):
+    def gamma(self, *, prec=None):
         """
         Return the gamma function evaluated at ``self``. This value is exact
         for integers and half-integers, and returns a symbolic value
@@ -3229,6 +3266,15 @@ cdef class Rational(sage.structure.element.FieldElement):
             2.6789385347077476336556929410
             sage: (1/2).gamma(prec=100)
             1.7724538509055160272981674833
+
+        TESTS:
+
+        This is not the incomplete gamma function! ::
+
+            sage: (1/2).gamma(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: gamma() takes exactly 0 positional arguments (1 given)
         """
         if prec:
             return self.n(prec).gamma()
@@ -3672,7 +3718,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError("denominator must be 1")
                 return (<Rational>x)._lshift(y)
-        return bin_op(x, y, operator.lshift)
+        return coercion_model.bin_op(x, y, operator.lshift)
 
     cdef _rshift(self, long int exp):
         r"""
@@ -3720,7 +3766,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError("denominator must be 1")
                 return (<Rational>x)._rshift(y)
-        return bin_op(x, y, operator.rshift)
+        return coercion_model.bin_op(x, y, operator.rshift)
 
     def conjugate(self):
         """

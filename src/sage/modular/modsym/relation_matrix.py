@@ -245,7 +245,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
                 v[j0] += s0
             else:
                 v[j0] = s0
-        for j0 in v.keys():
+        for j0 in v:
             entries[(row, j0)] = v[j0]
         row += 1
 
@@ -496,8 +496,8 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
         # Let rels = rels union I relations.
         rels.update(modI_relations(syms, sign))
 
-    rels = list(rels)
-    # should be sorted(rels), but this breaks many doctests
+    rels = sorted(rels)
+    # required for stability of doctests with python3
 
     if syms._apply_S_only_0pm1() and is_RationalField(field):
         from . import relation_matrix_pyx
