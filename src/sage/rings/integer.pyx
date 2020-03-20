@@ -5450,6 +5450,93 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return res != 0
         return mpz_perfect_power_p(self.value)
 
+    def is_smooth(self, B=None, P=None, td_bound=1000000, proof=None):
+        r"""
+        Test whether the integer is only divisible by primes up to B (or in P).
+
+        INPUT:
+
+        - ``B`` -- an integer bound: smoothness is determined
+          by the condition `p \le B`
+        - ``P`` -- a sorted list of primes: smoothness is determined
+          by `p \in P`
+        - ``td_bound`` -- a bound up to which to use trial division
+        - ``proof`` -- flag passed on to factoring algorithms
+
+        .. NOTE::
+
+            Testing smoothness sequentially is generally slower than
+            batch methods or sieves.
+
+        .. SEEALSO::
+
+            :meth:`sage.arith.misc.smooth_parts`
+            :meth:`smooth_part`
+
+        EXAMPLES::
+
+            sage: n = 1001
+            sage: factor(n)
+            7 * 11 * 13
+            sage: n.is_smooth(B=10)
+            False
+            sage: n.is_smooth(B=20)
+            True
+            sage: n.is_smooth(P=[5, 11, 13])
+            False
+            sage: (-45).is_smooth(B=5)
+            True
+        """
+        from sage.misc.misc_c import prod
+        return self.abs() == prod(self.smooth_part(B, P, proof))
+
+    def smooth_part(self, B=None, P=None, td_bound=1000000, proof=None):
+        r"""
+        Return the smooth part of the integer, as a factorization into small primes.
+
+        INPUT:
+
+        - ``B`` -- an integer bound: smoothness determined
+          by the condition `p \le B`
+        - ``P`` -- a sorted list of primes: smoothness determined by `p \in P`
+        - ``td_bound`` -- a bound up to which to use trial division
+        - ``proof`` -- flag passed on to factoring algorithms
+
+        .. SEEALSO::
+
+            :meth:`sage.arith.misc.smooth_parts`
+            :meth:`is_smooth`
+
+        EXAMPLES::
+
+            sage: n = factorial(40)
+            sage: n.smooth_part(B = 10)
+            2^38 * 3^18 * 5^9 * 7^5
+            sage: n.smooth_part(P = [7, 11, 13])
+            7^5 * 11^3 * 13^3
+        """
+        if (P is None) == (B is None):
+            raise ValueError("you must provide one of P or B")
+        if B is None:
+            B = P[-1]
+        from sage.structure.factorization_integer import IntegerFactorization
+        if self.abs() <= 1:
+            return IntegerFactorization([])
+
+        def smooth_part(fac):
+            if P is None:
+                return IntegerFactorization([(p, e) for (p, e) in fac if p <= B])
+            return IntegerFactorization([(p, e) for (p, e) in fac if p in P])
+
+        F = self.factor(limit=min(B, td_bound))
+        n, e = F[-1]
+        if n <= B or B <= td_bound:
+            # factorization complete
+            return smooth_part(F)
+        assert e == 1  # the remainder in trial division occurs with exponent 1
+        F = F[:-1] + list(n.factor(proof=proof))
+        return smooth_part(F)
+
     def is_norm(self, K, element=False, proof=True):
         r"""
         See ``QQ(self).is_norm()``.

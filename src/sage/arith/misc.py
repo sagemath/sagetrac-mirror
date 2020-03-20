@@ -6134,3 +6134,125 @@ def dedekind_psi(N):
     """
     N = Integer(N)
     return Integer(N * prod(1 + 1 / p for p in N.prime_divisors()))
+
+
+def product_tree(L, bound=None):
+    """
+    Compute the product tree for a list of values.
+
+    INPUT:
+
+    - ``L`` -- a list of objects that can be multiplied
+    - ``bound`` -- a bound above which the values will be set to ``None``
+      (to save time)
+
+    OUTPUT:
+
+    A list ``M`` of twice the length with ``M[i] = M[2*i] * M[2*i+1]``
+    for `i > 0` (``M[0] = None``) and the last half of the list given by ``L``.
+
+    ..SEEALSO::
+
+        :meth:`~sage.misc.misc_c.prod`
+
+    EXAMPLES::
+
+        sage: product_tree([2,3,4,5,6])
+        [None, 720, 60, 12, 30, 2, 3, 4, 5, 6]
+        sage: product_tree([2,3,4,5,6,7,8], 50)
+        [None, None, None, None, 12, 30, None, 2, 3, 4, 5, 6, 7, 8]
+    """
+    n = len(L)
+    if isinstance(L, list):
+        M = [None] * n + L
+    else:
+        M = [None] * n + list(L)
+    for i in range(n - 1, 0, -1):
+        a = M[2 * i]
+        b = M[2 * i + 1]
+        if a is not None and b is not None:
+            M[i] = M[2 * i] * M[2 * i + 1]
+            if bound is not None and M[i] > bound:
+                M[i] = None
+    return M
+
+
+def remainders(x, moduli):
+    """
+    Compute the remainders for the division of the integer x by many moduli.
+
+    INPUT:
+
+    - ``x`` -- an integer
+    - ``moduli`` -- a list of integers `m_i`
+
+    OUTPUT:
+
+    The list of integers `x mod m_i`
+
+    ALGORITHM:
+
+    This uses a remainder tree, reducing `x` modulo the product.
+
+    EXAMPLES::
+
+        sage: remainders(factorial(40), range(120, 130))
+        [0, 0, 48, 81, 0, 0, 0, 64, 0, 21]
+        sage: [factorial(40) % m for m in range(120, 130)]
+        [0, 0, 48, 81, 0, 0, 0, 64, 0, 21]
+    """
+    n = len(moduli)
+    M = product_tree(moduli, bound=x)
+    R = [None] * len(M)
+
+    def mymod(a, b):
+        if b is None:
+            return a
+        return a % b
+
+    R[1] = mymod(x, M[1])
+    for i in range(1, n):
+        R[2 * i] = mymod(R[i], M[2 * i])
+        R[2 * i + 1] = mymod(R[i], M[2 * i + 1])
+        R[i] = None  # delete to save memory
+    return R[n:]
+
+
+def smooth_parts(L, B=None, P=None):
+    r"""
+    Return the smooth parts of the integers in the list `L`.
+
+    INPUT:
+
+    - ``L`` -- a list of positive integers `x_i`
+    - ``B`` -- a bound: smoothness is determined by the condition `p <= B`
+    - ``P`` -- a sorted list of primes: smoothness is determined by `p \in P`
+
+    OUTPUT:
+
+    A list of integers `y_i`, the `B` or `P`-smooth part of `x_i`.
+
+    ALGORITHM:
+
+    This uses Dan Bernstein's algorithm [Ber2004]_.
+
+    EXAMPLES::
+
+        sage: smooth_parts(range(1000,1020), 20)
+        [1000, 1001, 6, 17, 4, 15, 2, 19, 1008, 1, 10, 3, 44, 1, 1014, 35, 8, 9, 2, 1]
+    """
+    if (P is None) == (B is None):
+        raise ValueError("you must provide one of P or B")
+    if P is None:
+        P = prime_range(B + 1)
+    if not P:
+        return [Integer(1)] * len(L)
+    z = prod(P)
+    R = remainders(z, L)
+    ans = []
+    for r, x in zip(R, L):
+        e = Integer(x.nbits()).nbits()
+        for j in range(e):
+            r = (r**2) % x
+        ans.append(x.gcd(r))
+    return ans

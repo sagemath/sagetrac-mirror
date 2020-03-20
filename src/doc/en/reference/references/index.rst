@@ -648,6 +648,9 @@ REFERENCES:
              approximants on arbitrary staircases". J. Comput. Appl. Math.,
              40(1):19-42, 1992. :doi:`10.1016/0377-0427(92)90039-Z`.
 
+.. [Ber2004] Daniel Bernstein, *How to find the smooth parts of integers*,
+             preprint available at https://cr.yp.to/factorization/smoothparts-20040510.pdf.
+
 .. [BeCoMe] Frits Beukers, Henri Cohen, Anton Mellit,
    *Finite hypergeometric functions*,
    :arxiv:`1505.02900`
