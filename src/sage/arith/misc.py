@@ -5981,13 +5981,14 @@ def dedekind_psi(N):
     N = Integer(N)
     return Integer(N * prod(1 + 1 / p for p in N.prime_divisors()))
 
-def product_tree(L):
+def product_tree(L, bound=None):
     """
     Compute the product tree for a list of values.
 
     INPUT:
 
     - ``L`` -- a list of objects that can be multiplied
+    - ``bound`` -- a bound above which the values will be set to None (to save time)
 
     OUTPUT:
 
@@ -6002,6 +6003,8 @@ def product_tree(L):
 
         sage: product_tree([2,3,4,5,6])
         [None, 720, 60, 12, 30, 2, 3, 4, 5, 6]
+        sage: product_tree([2,3,4,5,6,7,8], 50)
+        [None, None, None, None, 12, 30, None, 2, 3, 4, 5, 6, 7, 8]
     """
     n = len(L)
     if isinstance(L, list):
@@ -6009,7 +6012,12 @@ def product_tree(L):
     else:
         M = [None] * n + list(L)
     for i in range(n-1, 0, -1):
-        M[i] = M[2*i] * M[2*i+1]
+        a = M[2*i]
+        b = M[2*i+1]
+        if a is not None and b is not None:
+            M[i] = M[2*i] * M[2*i+1]
+            if bound is not None and M[i] > bound:
+                M[i] = None
     return M
 
 def remainders(x, moduli):
@@ -6037,12 +6045,16 @@ def remainders(x, moduli):
         [0, 0, 48, 81, 0, 0, 0, 64, 0, 21]
     """
     n = len(moduli)
-    M = product_tree(moduli)
+    M = product_tree(moduli, bound=x)
     R = [None] * len(M)
-    R[1] = x % M[1]
+    def mymod(a, b):
+        if b is None:
+            return a
+        return a % b
+    R[1] = mymod(x, M[1])
     for i in range(1, n):
-        R[2*i] = R[i] % M[2*i]
-        R[2*i+1] = R[i] % M[2*i+1]
+        R[2*i] = mymod(R[i], M[2*i])
+        R[2*i+1] = mymod(R[i], M[2*i+1])
         R[i] = None # delete to save memory
     return R[n:]
 
