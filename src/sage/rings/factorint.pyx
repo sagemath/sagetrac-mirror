@@ -245,7 +245,7 @@ def factor_cunningham(m, proof=None):
 
 cpdef factor_trial_division(m, long limit=LONG_MAX):
     r"""
-    Return partial factorization of self obtained using trial division
+    Return partial factorization of an integer obtained using trial division
     for all primes up to limit, where limit must fit in a C signed long.
 
     INPUT:

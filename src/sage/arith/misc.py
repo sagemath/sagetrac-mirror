@@ -5980,3 +5980,109 @@ def dedekind_psi(N):
     """
     N = Integer(N)
     return Integer(N * prod(1 + 1 / p for p in N.prime_divisors()))
+
+def product_tree(L):
+    """
+    Compute the product tree for a list of values.
+
+    INPUT:
+
+    - ``L`` -- a list of objects that can be multiplied
+
+    OUTPUT:
+
+    A list ``M`` of twice the length with ``M[i] = M[2*i] * M[2*i+1]`` for `i > 0` (``M[0] = None``)
+    and the last half of the list given by ``L``.
+
+    ..SEEALSO::
+
+        :meth:`~sage.misc.misc_c.prod`
+
+    EXAMPLES::
+
+        sage: product_tree([2,3,4,5,6])
+        [None, 720, 60, 12, 30, 2, 3, 4, 5, 6]
+    """
+    n = len(L)
+    if isinstance(L, list):
+        M = [None] * n + L
+    else:
+        M = [None] * n + list(L)
+    for i in range(n-1, 0, -1):
+        M[i] = M[2*i] * M[2*i+1]
+    return M
+
+def remainders(x, moduli):
+    """
+    Compute the remainders for the division of a single integer x by many moduli.
+
+    INPUT:
+
+    - ``x`` -- an integer
+    - ``moduli`` -- a list of integers `m_i`
+
+    OUTPUT:
+
+    The list of integers `x mod m_i`
+
+    ALGORITHM:
+
+    Uses a remainder tree, reducing `x` modulo the product
+
+    EXAMPLES::
+
+        sage: remainders(factorial(40), range(120, 130))
+        [0, 0, 48, 81, 0, 0, 0, 64, 0, 21]
+        sage: [factorial(40) % m for m in range(120, 130)]
+        [0, 0, 48, 81, 0, 0, 0, 64, 0, 21]
+    """
+    n = len(moduli)
+    M = product_tree(moduli)
+    R = [None] * len(M)
+    R[1] = x % M[1]
+    for i in range(1, n):
+        R[2*i] = R[i] % M[2*i]
+        R[2*i+1] = R[i] % M[2*i+1]
+        R[i] = None # delete to save memory
+    return R[n:]
+
+def smooth_parts(L, B=None, P=None):
+    r"""
+    Return the smooth parts of the integers in the list `L`.
+
+    INPUT:
+
+    - ``L`` -- a list of positive integers `x_i`
+    - ``B`` -- a bound: smoothness is determined by the condition `p <= B`
+    - ``P`` -- a sorted list of primes: smoothness is determined by `p \in P`
+
+    OUTPUT:
+
+    A list of integers `y_i`, the `B` or `P`-smooth part of `x_i`.
+
+    ALGORITHM:
+
+    Uses Dan Bernstein's algorithm [Ber2004]_.
+
+    EXAMPLES::
+
+        sage: smooth_parts(range(1000,1020), 20)
+        [1000, 1001, 6, 17, 4, 15, 2, 19, 1008, 1, 10, 3, 44, 1, 1014, 35, 8, 9, 2, 1]
+    """
+    if (P is None) == (B is None):
+        raise ValueError("Must provide one of P or B")
+    if P is None:
+        P = prime_range(B+1)
+    if not P:
+        return [Integer(1)] * len(L)
+    z = prod(P)
+    R = remainders(z, L)
+    ans = []
+    for r, x in zip(R, L):
+        if not isinstance(x, Integer):
+            x = Integer(x)
+        e = Integer(x.nbits()).nbits()
+        for j in range(e):
+            r = (r**2) % x
+        ans.append(x.gcd(r))
+    return ans
