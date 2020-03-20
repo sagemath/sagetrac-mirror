@@ -25,7 +25,7 @@ SAGE_SPKG_CONFIGURE([openblas], [dnl CHECK
        m4_foreach([blaslibnam], [blas, cblas, lapack], [
         AS_IF([test x$sage_install_]blaslibnam[_pc = xyes], [
          AC_CONFIG_LINKS([build/pkgs/sage_system_blas_facade/src/]blaslibnam[.pc:$OPENBLASPCDIR/openblas.pc])
-         AS_VAR_APPEND([SAGE_SYSTEM_BLAS_FACADE_PC_FILES], blaslibnam[.pc])])
+         AS_VAR_APPEND([SAGE_SYSTEM_BLAS_FACADE_PC_FILES], [blaslibnam[.pc]' '])])
          AC_SUBST([SAGE_BLAS], [sage_system_blas_facade])
        ])
     ])
