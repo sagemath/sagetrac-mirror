@@ -1746,20 +1746,25 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         this is a multi-valued function, and the algorithm used
         affects the value returned, as follows:
 
-        - "pari": Call the :pari:`agm` function from the pari library.
-
         - "optimal": Use the AGM sequence such that at each stage
-              `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
-              where the sign is chosen so that `|a_1-b_1|\le|a_1+b_1|`, or
-              equivalently `\Re(b_1/a_1)\ge 0`.  The resulting limit is
-              maximal among all possible values.
+          `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
+          where the sign is chosen so that `|a_1-b_1|\le|a_1+b_1|`, or
+          equivalently `\Re(b_1/a_1)\ge 0`.  The resulting limit is
+          maximal (in absolute value) among all possible values.
 
         - "principal": Use the AGM sequence such that at each stage
-              `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
-              where the sign is chosen so that `\Re(b_1)\ge 0` (the
-              so-called principal branch of the square root).
+          `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
+          where the sign is chosen so that `\Re(b_1)\ge 0` (the
+          so-called principal branch of the square root).
+
+        - "pari": Call the :pari:`agm` function from the pari library.
+          This is another implementation of the "optimal" algorithm, but will
+          sometimes give substantially different results, due to differences
+          in rounding.
 
         The values `AGM(a,0)`, `AGM(0,a)`, and `AGM(a,-a)` are all taken to be 0.
+        However, the "pari" algorithm does not guarantee that `AGM(a,-a)` is 0,
+        due to the possibility of substantial rounding errors.
 
         EXAMPLES::
 
@@ -1774,23 +1779,43 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a.agm(b, algorithm="pari")
             1.62780548487271 + 0.136827548397369*I
 
-        An example to show that the returned value depends on the algorithm
+        Examples to show that the returned value depends on the algorithm
         parameter::
 
             sage: a = CC(-0.95,-0.65)
             sage: b = CC(0.683,0.747)
             sage: a.agm(b, algorithm="optimal")
             -0.371591652351761 + 0.319894660206830*I
-            sage: a.agm(b, algorithm="principal")
-            0.338175462986180 - 0.0135326969565405*I
-            sage: a.agm(b, algorithm="pari")
+            sage: a.agm(b, algorithm="pari") # same as previous
             -0.371591652351761 + 0.319894660206830*I
-            sage: a.agm(b, algorithm="optimal").abs()
-            0.490319232466314
-            sage: a.agm(b, algorithm="principal").abs()
-            0.338446122230459
-            sage: a.agm(b, algorithm="pari").abs()
-            0.490319232466314
+            sage: a.agm(b, algorithm="principal") # very different
+            0.338175462986180 - 0.0135326969565405*I
+            sage: a.agm(a, algorithm="optimal")
+            -0.950000000000000 - 0.650000000000000*I
+            sage: a.agm(a, algorithm="principal")
+            0.000000000000000
+            sage: CC(1).agm(-1, algorithm="optimal")
+            0.000000000000000
+            sage: CC(1).agm(-1, algorithm="pari") # nonzero, because of rounding errors
+            -0.0156250000000000*I
+
+        Examples to show that rounding errors can be very significant (because
+        the function has discontinuities and instabilities)::
+
+            sage: CC(1).agm(0)
+            0.000000000000000
+            sage: CC(1).agm(1e-15)
+            0.0437242375237692
+            sage: CC(1).agm(1e-100)
+            0.00678105574557545
+            sage: CC(2).agm(-1)
+            0.422966208408802 + 0.661266183461805*I
+            sage: CC(2).agm(-1 - 1e-15*I)
+            0.422966208408802 - 0.661266183461805*I
+            sage: CC(I).agm(I, algorithm="principal")
+            1.00000000000000*I
+            sage: CC(I).agm(I - 1e-15, algorithm="principal")
+            0.000000000000000
 
         TESTS:
 
@@ -1823,6 +1848,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.00000000000000000000000000000000000000000000000000000000000
             sage: ComplexField(500)(a).agm(b) - ComplexField(1000)(a).agm(b)
             0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+        Check that the issues in :trac:`29321` are fixed::
+
+            sage: CC(-1).agm(1)
+            0.000000000000000
+            sage: CC(-1 + I).agm(-1 + I, algorithm="principal")
+            0.000000000000000
         """
         if algorithm=="pari":
             t = self._parent(right).__pari__()
@@ -1843,14 +1875,14 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 return self
             elif mpfr_zero_p((<ComplexNumber>right).__re) and mpfr_zero_p((<ComplexNumber>right).__im):
                 return right
-            elif (mpfr_cmpabs(self.__re, (<ComplexNumber>right).__re) == 0 and
-                  mpfr_cmpabs(self.__im, (<ComplexNumber>right).__im) == 0 and
-                  mpfr_cmp(self.__re, (<ComplexNumber>right).__re) != 0 and
-                  mpfr_cmp(self.__im, (<ComplexNumber>right).__im) != 0):
-                # self = -right
-                mpfr_set_ui(res.__re, 0, rnd)
-                mpfr_set_ui(res.__im, 0, rnd)
-                return res
+            else:
+                a = ComplexNumber(self.parent(), -self)
+                if (mpfr_cmp(a.__re, (<ComplexNumber>right).__re) == 0 and
+                  mpfr_cmp(a.__im, (<ComplexNumber>right).__im) == 0):
+                    # self = -right so the AGM is 0
+                    mpfr_set_ui(res.__re, 0, rnd)
+                    mpfr_set_ui(res.__im, 0, rnd)
+                    return res
 
             # Do the computations to a bit higher precision so rounding error
             # won't obscure the termination condition.
@@ -1869,62 +1901,58 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpfr_set(b.__re, (<ComplexNumber>right).__re, rnd)
             mpfr_set(b.__im, (<ComplexNumber>right).__im, rnd)
 
-            if optimal:
-                mpfr_add(e.__re, a.__re, b.__re, rnd)
-                mpfr_add(e.__im, a.__im, b.__im, rnd)
-
             while True:
 
-                # a1 = (a+b)/2
-                if optimal:
-                    mpfr_swap(a1.__re, e.__re)
-                    mpfr_swap(a1.__im, e.__im)
-                else:
-                    mpfr_add(a1.__re, a.__re, b.__re, rnd)
-                    mpfr_add(a1.__im, a.__im, b.__im, rnd)
+                # let a1 = (a + b)/2
+                mpfr_add(a1.__re, a.__re, b.__re, rnd)
+                mpfr_add(a1.__im, a.__im, b.__im, rnd)
                 mpfr_mul_2si(a1.__re, a1.__re, -1, rnd)
                 mpfr_mul_2si(a1.__im, a1.__im, -1, rnd)
 
-                # b1 = sqrt(a*b)
+                # let b1 = sqrt(a * b)
                 mpfr_mul(d.__re, a.__re, b.__re, rnd)
                 mpfr_mul(d.__im, a.__im, b.__im, rnd)
                 mpfr_sub(b1.__re, d.__re, d.__im, rnd)
                 mpfr_mul(d.__re, a.__re, b.__im, rnd)
                 mpfr_mul(d.__im, a.__im, b.__re, rnd)
                 mpfr_add(b1.__im, d.__re, d.__im, rnd)
-                b1 = b1.sqrt() # this would be a *lot* of code duplication
+                b1 = b1.sqrt() # we call sqrt to avoid a *lot* of code duplication
 
-                # d = a1 - b1
+                # let d = a1 - b1
                 mpfr_sub(d.__re, a1.__re, b1.__re, rnd)
                 mpfr_sub(d.__im, a1.__im, b1.__im, rnd)
-                if mpfr_zero_p(d.__re) and mpfr_zero_p(d.__im):
+                if mpfr_zero_p(d.__re) and mpfr_zero_p(d.__im): # a1 == b1
                     mpfr_set(res.__re, a1.__re, rnd)
                     mpfr_set(res.__im, a1.__im, rnd)
                     return res
 
-                if optimal:
-                    # e = a1+b1
+                if optimal: # algorithm is "optimal", choose correct sign for sqrt(a * b)
+                    # let e = a1 + b1
                     mpfr_add(e.__re, a1.__re, b1.__re, rnd)
                     mpfr_add(e.__im, a1.__im, b1.__im, rnd)
                     if mpfr_zero_p(e.__re) and mpfr_zero_p(e.__im):
                         mpfr_set(res.__re, a1.__re, rnd)
                         mpfr_set(res.__im, a1.__im, rnd)
                         return res
-
-                    # |e| < |d|
-                    if cmp_abs(e, d) < 0:
-                        mpfr_swap(d.__re, e.__re)
-                        mpfr_swap(d.__im, e.__im)
+                    if cmp_abs(e, d) < 0: # |a1 + b1| < |a1 - b1|, so choose the other sign
                         mpfr_neg(b1.__re, b1.__re, rnd)
                         mpfr_neg(b1.__im, b1.__im, rnd)
+                        mpfr_swap(d.__re, e.__re)
+                        mpfr_swap(d.__im, e.__im)
+
+                else: # algorithm is "principal", do quick check to see if a1 or b1 is (near) 0
+                    if -min_exp_t(max_exp(a1), max_exp(b1)) > self._prec + 3:
+                        mpfr_set_ui(res.__re, 0, rnd)
+                        mpfr_set_ui(res.__im, 0, rnd)
+                        return res
 
                 rel_prec = min_exp_t(max_exp(a1), max_exp(b1)) - max_exp(d)
-                if rel_prec > self._prec:
+                if rel_prec > self._prec: # relative difference is small so we terminate
                     mpfr_set(res.__re, a1.__re, rnd)
                     mpfr_set(res.__im, a1.__im, rnd)
                     return res
 
-                # a, b = a1, b1
+                # let a, b = a1, b1
                 mpfr_swap(a.__re, a1.__re)
                 mpfr_swap(a.__im, a1.__im)
                 mpfr_swap(b.__re, b1.__re)
