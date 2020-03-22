@@ -1,4 +1,5 @@
 # distutils: depends = NTL/ZZ.h
+# distutils: extra_compile_args = -std=c++11
 
 cdef extern from "ntlwrap.h":
     long NTL_OVFBND, NTL_SP_BOUND
