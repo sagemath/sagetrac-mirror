@@ -244,6 +244,10 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             return type(self)(self.parent(), -self.value)
 
         def _bracket_(self, other):
+            # sum over monomials for other. Use non-commutative Wick formula to 
+            # Reduce to other being a generator or a derivative. 
+            # Use Skew-Symmetry to reduce to self being a generator or a
+            # derivative.
             p = self.parent()
             ret = {}
             svmc = other.value.monomial_coefficients()
@@ -264,6 +268,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                         l2 = [Partition([]),]*p.ngens()
                         l2[i2] = Partition([k2[i2].get_part(0)])
                         if k2 == l2:
+                            #Here we only use T from LieConformalAlgebras
                             br = p._lca.gen(i2).T(l2[i2].size()-1) \
                                 ._bracket_(p._lca.gen(i).T(l[i].size()-1))
                             for j in br.keys():
@@ -272,6 +277,10 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                                 factorial(l2[i2].size()-1)**(-1)*c*c2*p(br[j])
                         else:
                             #skew-symmetry
+                            #Here is the only place we use T from VertexAlgebra
+                            #We need T^j (other_(n) self)
+                            #Note however that these terms are lower in the PBW
+                            #filtration. 
                             br = p(k)._bracket_(p(k2))
                             for cl in range(max(br.keys())+1):
                                 rec = ret.get(cl, p.zero())
@@ -304,6 +313,9 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             returns the normally ordered product :`self``right`:
             This is where the magic happens
             """
+            #Use quasi-associativity to reduce to self being a generator. This
+            #uses T and bracket from Vertex Algebra, but for terms lower in the
+            #PBW filtration
             p = self.parent()
             ret = p.zero()
             svmc = self.value.monomial_coefficients()
@@ -336,6 +348,8 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                                 #T^(n)a_{(-1)} = a_{(-1-n)} and the commutator 
                                 #formula. Given the implementation it's faster
                                 #to compute the bracket in the other direction
+                                #We only use T from LieConformalAlgebra and we 
+                                #only use the bracket in LieConformalAlgebra
                                 br = p._lca.gen(i2).bracket(p._lca.gen(i))
                                 if br:
                                     ret -= c*c2*sum( binomial(-ni2,j)*\
@@ -349,6 +363,10 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                                 ret += c*c2*p(sf)
                     else:
                         #quasi-associativity
+                        #This uses bracket in VerteAlgebra and T in Vertex
+                        #algebra but it computes T in terms lower in the PBW
+                        #filtration. 
+
                         l = p(l)
                         sf = k.to_list()
                         sf[i] = Partition(Partition(sf[i]).to_list()[1:])
@@ -370,18 +388,25 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                 return self
             if n > 1:
                 return self.T().T(n-1)
-            coef = self.value.monomial_coefficients()
+
             p = self.parent()
-            ret = p.zero()
-            for k in coef.keys():
-                c = coef[k]
-                for i in range(len(k)):
-                    jdic = partderiv(k[i])
-                    for j in jdic.keys():
-                        pt = k.components()
-                        pt[i] = j
-                        ret += c*jdic[j]*p(pt)
-            return ret
+            if self.is_zero() or self == p.vacuum():
+                return p.zero()
+
+            selfmon = self.monomials()
+            if len(selfmon) > 1:
+                return sum( m.T() for m in selfmon)
+
+            #Now we just have a monomial to compute. 
+            k,c = self.value.monomial_coefficients().items()[0]
+            kl = k.to_list()
+            i = next((i for i,x in enumerate(k) if x))
+            g = kl[i].pop(0)
+            PT = PartitionTuples_level(k.level())
+            return factorial(g-1)**(-1)*c*p(p._lca.gen(i).T(g))._mul_(
+                        p(PT(kl)))+ factorial(g-1)**(-1)*c*\
+                        p(p._lca.gen(i).T(g-1))._mul_(p(PT(kl)).T())
+
 
         def __getitem__(self, i):
             return self.value.__getitem__(i)
@@ -547,19 +572,4 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
             return "The universal affine vertex algebra of CartanType {} at critical level".format(self.cartan_type())
         else:
             return "The universal affine vertex algebra of CartanType {0} at level {1}".format(self.cartan_type(), self.level())
-    
-def partderiv(p):
-    l = p.to_exp()
-    ret = {}
-    for i in range(len(l)):
-        if l[i] > 0:
-            l2 = list(l)
-            l2[i] -= 1 
-            try:
-                l2[i+1]+=1 
-            except IndexError:
-                l2.append(1)
-            ret[Partition(exp=l2)] = l[i]*(i+1)
-    return ret
-        
 
