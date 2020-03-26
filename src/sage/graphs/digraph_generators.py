@@ -65,14 +65,12 @@ from __future__ import print_function, division
 from six.moves import range
 from six import PY2
 from sage.cpython.string import bytes_to_str
-from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import sys
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph
 from sage.graphs.graph import Graph
 import subprocess
-import os
 
 class DiGraphGenerators():
     r"""
@@ -530,7 +528,7 @@ class DiGraphGenerators():
 
         nauty_input +=  " " + str(n) + " "
 
-        sp = subprocess.Popen(nautyprefix+"gentourng {0}".format(nauty_input), shell=True,
+        sp = subprocess.Popen("gentourng {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
 
@@ -644,7 +642,7 @@ class DiGraphGenerators():
 
         # Build directg input (graphs6 format)
         input = ''.join(g.graph6_string()+'\n' for g in graphs)
-        sub = subprocess.Popen(nautyprefix+'directg {0}'.format(options),
+        sub = subprocess.Popen('directg {0}'.format(options),
                                shell=True,
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE,
@@ -867,25 +865,19 @@ class DiGraphGenerators():
             W = Words(list(range(k)) if isinstance(k, Integer) else k, n)
             A = Words(list(range(k)) if isinstance(k, Integer) else k, 1)
             g = DiGraph(loops=True)
-            if not os.path.exists("sample"):
-                os.mkdir("sample")
-            file=open("sample/lol.tsv",mode='w')
+
             if not n:
                 g.allow_multiple_edges(True)
                 v = W[0]
                 vs = v.string_rep()
                 for a in A:
                     g.add_edge(vs, vs, a.string_rep())
-                    file.write(str(vs)+'\t'+str(vs)+'\n')
-                file.close()
             else:
                 for w in W:
                     ww = w[1:]
                     ws = w.string_rep()
                     for a in A:
                         g.add_edge(ws, (ww * a).string_rep(), a.string_rep())
-                        file.write(str(ws)+'\t'+str((ww * a).string_rep())+'\n')
-                file.close()
 
         elif vertices == 'integers':
             d = k if isinstance(k, Integer) else len(list(k))
@@ -954,14 +946,9 @@ class DiGraphGenerators():
 
         GB = DiGraph(n, loops=True, multiedges=True,
                      name="Generalized de Bruijn digraph (n={}, d={})".format(n, d))
-        if not os.path.exists("sample"):
-            os.mkdir("sample")
-        file=open("sample/lol.tsv",mode='w')
         for u in range(n):
             for a in range(u * d, u * d + d):
                 GB.add_edge(u, a % n)
-                file.write(str(u)+'\t'+str(a % n)+'\n')
-        file.close()
         return GB
 
 
@@ -1025,14 +1012,9 @@ class DiGraphGenerators():
 
         II = DiGraph(n, loops=True, multiedges=True,
                      name="Imase and Itoh digraph (n={}, d={})".format(n, d))
-        if not os.path.exists("sample"):
-            os.mkdir("sample")
-        file=open("sample/lol.tsv",mode='w')
         for u in range(n):
             for a in range(-u * d - d, -u * d):
                 II.add_edge(u, a % n)
-                file.write(str(u)+'\t'+str(a % n)+'\n')
-        file.close()
         return II
 
 

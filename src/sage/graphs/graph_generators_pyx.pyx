@@ -13,7 +13,7 @@ AUTHORS:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-import os
+
 from sage.misc.randstate cimport random
 
 def RandomGNP(n, p, bint directed=False, bint loops=False):
@@ -78,14 +78,10 @@ def RandomGNP(n, p, bint directed=False, bint loops=False):
 
     # Standard random GNP generator for Graph and DiGraph
     cdef int i, j
-    if not os.path.exists("sample"):
-        os.mkdir("sample")
-    file=open("sample/lol.tsv",mode='w')
     for i in range(n):
         for j in range((0 if directed else i + 1), n):
             if random() < pp:
                 if i != j or loops:
                     G.add_edge(i, j)
-                    file.write(str(i)+'\t'+str(j)+'\n')
-    file.close()
+
     return G
