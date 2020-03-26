@@ -15,7 +15,7 @@ from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 
 from sage.misc.unknown import Unknown
 
-def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="OA"):
+def is_orthogonal_array(OA, int k, int n, int t=2, int lmbda=1, verbose=False, terminology="OA"):
     r"""
     Check that the integer matrix `OA` is an `OA(k,n,t)`.
 
@@ -26,7 +26,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
 
     - ``OA`` -- the Orthogonal Array to be tested
 
-    - ``k,n,t`` (integers) -- only implemented for `t=2`.
+    - ``k,n,t,\lambda`` (integers) -- only implemented for `t=2`.
 
     - ``verbose`` (boolean) -- whether to display some information when ``OA``
       is not an orthogonal array `OA(k,n)`.
@@ -84,10 +84,11 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
         48
     """
     cdef int n2 = n*n
+    cdef int nRows = lmbda*n2
     cdef int x
 
     if t != 2:
-        raise NotImplementedError("only implemented for t=2")
+        raise NotImplementedError("only implemented for t=2 or lmbda != 1")
 
     for R in OA:
         if len(R) != k:
@@ -96,7 +97,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
                        "MOLS" : "The number of squares is not "+str(k-2)}[terminology])
             return False
 
-    if len(OA) != n2:
+    if len(OA) != nRows:
         if verbose:
             print({"OA"   : "The number of rows is {} instead of {}^2={}".format(len(OA),n,n2),
                    "MOLS" : "All squares do not have dimension n^2={}^2".format(n)}[terminology])
@@ -105,10 +106,10 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     if n == 0:
         return True
 
-    cdef int i,j,l
+    cdef int i,j,l,l2
 
     # A copy of OA
-    cdef unsigned short * OAc = <unsigned short *> sig_malloc(k*n2*sizeof(unsigned short))
+    cdef unsigned short * OAc = <unsigned short *> sig_malloc(k*nRows*sizeof(unsigned short))
 
     cdef unsigned short * C1
     cdef unsigned short * C2
@@ -126,21 +127,36 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
                            "MOLS" : "Entry {} was expected to be in the interval [0..{}]".format(x,n-1)}[terminology])
                 sig_free(OAc)
                 return False
-            OAc[j*n2+i] = x
+            OAc[j*nRows+i] = x
 
     # A bitset to keep track of pairs of values
+    # A pair (i,j) is represented by the number i*n+j (concatenation mod n)
+    # We need to find each pair lmbda times. So each pair has lmbda bits
+    # so the pair (i,j) has bits [lmbda*(i*n+j).. lmbda*(i*n+j)+lmbda)
     cdef bitset_t seen
-    bitset_init(seen, n2)
+    bitset_init(seen, nRows)
 
     for i in range(k): # For any column C1
-        C1 = OAc+i*n2
+        C1 = OAc+i*nRows
         for j in range(i+1,k): # For any column C2 > C1
-            C2 = OAc+j*n2
+            C2 = OAc+j*nRows
             bitset_set_first_n(seen, 0) # No pair has been seen yet
-            for l in range(n2):
-                bitset_add(seen,n*C1[l]+C2[l])
+            for l in range(nRows):
+                #count how many times (C1[l],C2[l]) was seen
+                l2 = 0
+                while bitset_in(seen, lmbda*(n*C1[l]+C2[l])+l2):
+                    l2 +=1
+                if l2 > lmbda+1: #the pair (C1[l],C2[l]) has already appeared lmbda times
+                    sig_free(OAc)
+                    bitset_free(seen)
+                    if verbose:
+                        print({"OA" : "In columns {} and {} the pair ({},{}) appears more than {} times".format(i,j,C1[l],C2[l],lmbda),
+                               "MOLS": "In columns {} and {} the pair ({},{}) appears more than once".format(i,j,C1[l],C2[l])}[terminology])
+                    return False
+                #otherwise:
+                bitset_add(seen,lmbda*(n*C1[l]+C2[l])+l2)
 
-            if bitset_len(seen) != n2: # Have we seen all pairs ?
+            if bitset_len(seen) != nRows: # Have we seen all pairs ?
                 sig_free(OAc)
                 bitset_free(seen)
                 if verbose:
@@ -150,7 +166,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
 
     sig_free(OAc)
     bitset_free(seen)
-    return True
+    return True#this looks wrong, I need to check the bitset crap
 
 def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=False):
     r"""
@@ -598,6 +614,7 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         False
     """
     from .difference_family import group_law
+    from sage.categories.vector_spaces import VectorSpaces
 
     assert k>=2
     assert lmbda >=1
@@ -628,6 +645,10 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
 
     # Map group element with integers
     cdef list int_to_group = list(G)
+    if G in VectorSpaces:
+        for v in int_to_group:
+            v.set_immutable()
+
     cdef dict group_to_int = {v:i for i,v in enumerate(int_to_group)}
 
     # Allocations
@@ -657,7 +678,9 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         minus_Gj = inv(Gj)
         assert op(Gj, minus_Gj) == zero
         for i,Gi in enumerate(int_to_group):
-            x_minus_y[i][j] = group_to_int[op(Gi,minus_Gj)]
+            res = op(Gi,minus_Gj)
+            if G in VectorSpaces: res.set_immutable()
+            x_minus_y[i][j] = group_to_int[res]
 
     # Empty values
     for i in range(n+1):
@@ -667,7 +690,12 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
     # A copy of the matrix
     for i,R in enumerate(M):
         for j,x in enumerate(R):
-            M_c[i*k+j] = group_to_int[G(x)] if x is not None else n
+            if x is not None:
+                e = G(x)
+                if G in VectorSpaces: e.set_immutable()
+                M_c[i*k+j] = group_to_int[e]
+            else:
+                M_c[i*k+j] = n
 
     # Each row contains at most one empty entry
     if u:

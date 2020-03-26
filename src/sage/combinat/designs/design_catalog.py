@@ -99,7 +99,7 @@ lazy_import('sage.combinat.designs.latin_squares',
             'mutually_orthogonal_latin_squares')
 
 lazy_import('sage.combinat.designs.orthogonal_arrays',
-            ('transversal_design', 'incomplete_orthogonal_array'))
+            ('transversal_design', 'incomplete_orthogonal_array', 'symmetric_net'))
 
 lazy_import('sage.combinat.designs.difference_family', 'difference_family')
 lazy_import('sage.combinat.designs.difference_matrices', 'difference_matrix')

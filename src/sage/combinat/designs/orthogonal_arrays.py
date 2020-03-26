@@ -60,29 +60,194 @@ from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
 
 
-def transversal_design(k, n, resolvable=False, check=True, existence=False):
-    r"""
-    Return a transversal design of parameters `k,n`.
+def my_is_transversal_design(TD,k,g,lmbda,verbose=True):
+    assert lmbda != 0
 
-    A transversal design of parameters `k, n` is a collection `\mathcal{S}` of
+    if TD.num_points() != k*g:
+        if verbose:
+            print("wrong number of points")
+        return False
+
+    if verbose: print("correct num points")
+
+    for b in TD.block_sizes():
+        if b != k:
+            if verbose: print("block with wrong length: {}".format(b))
+            return False
+
+    if verbose: print("correct block length")
+
+    #assuming TD is a TD, then we construct
+    #a partition of TD.ground_set()
+    #then check is that partition is correct
+    b = TD.blocks()[0]
+    groups = [ [i] for i in b]
+    #each block intersects each point class exactly once
+    points = set(TD.ground_set())
+    points = points.difference(b) #remove already sorted points
+    while points:
+        p = points.pop()
+        for gr in groups:
+            #is p in g?
+            p2 = gr[0]
+            #is |(p,p2)| == 0? -> yes!
+            for b in TD.blocks()[1:]:
+                if (p in b) and (p2 in b):
+                    #|(p,p2)| > 0
+                    break
+            else:
+                #we didn't break!
+                #so p and p2 are in same group
+                gr.append(p)
+                break
+        else:
+            #we didn't break
+            #so p is in a new group
+            #this is wrong
+            if verbose: print("{} is not in any group {}".format(p,groups))
+            return False
+
+    if verbose: print("found partition, checking if valid")
+    
+    #if we reach this point, then we have found a partition
+    #we should check that the partition is good
+    #i.e. p,q in same group => |(p,q)|= 0
+    #     p,q in different groups => |(p,q)| = lambda
+    #     each block intersects each group
+    #     each group has size g
+    for gr in groups:
+        if len(gr) != g:
+            if verbose: print("group has wrong size {}".format(gr))
+            return False
+
+    if verbose: print("parition has valid group length")
+
+    #check first and third at once
+    for b in TD.blocks():
+        groupsIndex = set(range(k))
+        for x in b:
+            for i in groupsIndex:
+                if x in groups[i]:
+                    groupsIndex.remove(i)
+                    break
+            else:
+                #x is in no group left!
+                #so x is in a group already taken
+                if verbose: print("in block {} 2 points are in same group, {} is one of those 2".format(b,x))
+                return False
+            
+    if verbose: print("each block intersects each group and equivalent points are not joint by block")
+
+    #now we need to check condition 2 involving lambda
+    count = {}#dictionary (p,q) => |(p,q)|
+    for b in TD.blocks():
+        #go through all pairs
+        for i in range(k):
+            for j in range(i+1,k):
+                if frozenset([b[i],b[j]]) not in count:
+                    count[frozenset([b[i],b[j]])] = 1
+                else:
+                    count[frozenset([b[i],b[j]])] += 1
+    #now count send all pairs found to how many time we saw it
+
+    #does all p,q in distinct groups appear in count?
+    #there are k choose 2 * g^2 possible pairs from distinct groups (there are k groups)
+    if len(count) != (k*(k-1))//2 * g*g:
+        if verbose: print("some pair of points in different groups has |(p,q)|=0")
+        return False
+
+    if verbose: print("all pairs of non-equivalent points are covered by some block")
+    
+    for pair,val in iteritems(count):
+        if val != lmbda:
+            if verbose: print("pair {} appers {} times".format(pair,val))
+            return False
+
+    if verbose: print("all pairs of non-equivalent points are covered by lambda blocks")
+    return True
+        
+
+
+def symmetric_net(n, lmbda=1, check=True, existence=False):
+    r"""
+    Return a symmetric net of parameters `n,\lambda`.
+
+    A symmetric net is a transversal design whose dual is
+    a transversal design with the same parameters.
+    Equivalently is a resolvable transversal design with `k = \lambda*n`.
+
+    INPUT:
+
+    - ``n,\lambda`` -- integers
+
+    - ``check`` -- boolean. If true it checks the output before returning it.
+      This is expected to be useless, so to gain speed set it to ``False``
+      Set to ``True`` by default
+
+    - ``existence`` -- bolean. Instead of returnig a symmetric net, return:
+      - ``True`` -- such a net can be constructed by Sage
+      - ``False`` -- no such a net exists
+      - ``Unknown`` -- Sage does not know how to build such a design
+        so such design may or may not exist
+
+    EXAMPLES::
+    
+        sage: from sage.combinat.designs.orthogonal_arrays import is_transversal_design
+        sage: SN = designs.symmetric_net(25,2)
+        sage: SN.is_resolvable()
+        True
+        sage: is_transversal_design(SN,50,25,2)
+        True
+        sage: from sage.combinat.designs.designs_pyx import is_group_divisible_design
+        sage: from sage.combinat.designs.orthogonal_arrays import find_groups
+        sage: SND = SN.dual()
+        sage: groups = find_groups(SND,50,25)
+        sage: is_group_divisible_design(groups,SND,50*25,G=[25],K=[50],lambd=2)
+        True
+
+    TESTS::
+
+        sage: SN = designs.symmetric_net(8,4)
+        sage: SN.is_resolvable()
+        True
+
+        sage: designs.symmetric_net(25,125,existence=True)
+        True
+        sage: SN = designs.symmetric_net(25,125) #long time
+
+        sage: designs.symmetric_net(49,2,existence=True)
+        True
+        sage: SN = designs.symmetric_net(49,2)
+
+        sage: designs.symmetric_net(9,6,existence=True)
+        True
+        sage: SN = designs.symmetric_net(9,6)
+
+    """
+    
+    return transversal_design(n*lmbda,n,lmbda=lmbda, resolvable=True,check=check,existence=existence)   
+
+def transversal_design(k, n,lmbda=1, resolvable=False, check=True, existence=False):
+    r"""
+    Return a transversal design of parameters `k,n,\lambda`.
+
+    A transversal design of parameters `k, n,\lambda` is a collection `\mathcal{S}` of
     subsets of `V = V_1 \cup \cdots \cup V_k` (where the *groups* `V_i` are
     disjoint and have cardinality `n`) such that:
 
     * Any `S \in \mathcal{S}` has cardinality `k` and intersects each group on
-      exactly one element.
+      exactly one elements.
 
-    * Any two elements from distincts groups are contained in exactly one
+    * Any two elements from distincts groups are contained in exactly `lambda`
       element of `\mathcal{S}`.
-
-    More general definitions sometimes involve a `\lambda` parameter, and we
-    assume here that `\lambda=1`.
+.
 
     For more information on transversal designs, see
     `<http://mathworld.wolfram.com/TransversalDesign.html>`_.
 
     INPUT:
 
-    - `n,k` -- integers. If ``k is None`` it is set to the largest value
+    - `n,k,\lambda` -- integers. If ``k is None`` it is set to the largest value
       available.
 
     - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
@@ -132,7 +297,7 @@ def transversal_design(k, n, resolvable=False, check=True, existence=False):
     EXAMPLES::
 
         sage: TD = designs.transversal_design(5,5); TD
-        Transversal Design TD(5,5)
+        Transversal Design TD_1(5,5)
         sage: TD.blocks()
         [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23],
          [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 5, 14, 18, 22],
@@ -221,6 +386,17 @@ def transversal_design(k, n, resolvable=False, check=True, existence=False):
         6
         sage: designs.transversal_design(None, 120, existence=True)
         9
+
+    An example where `\lambda` is not 1::
+
+       sage: designs.transversal_design(8,4,lmbda=2,existence=True)
+       True
+       sage: TD = designs.transversal_design(8,4,lmbda=2,resolvable=True)
+       sage: TD.is_resolvable()
+       True
+       sage: TD2 = designs.transversal_design(9,4,lmbda=2)
+       sage: TD2.is_resolvable()
+       False
 
     TESTS:
 
@@ -313,63 +489,50 @@ def transversal_design(k, n, resolvable=False, check=True, existence=False):
     """
     if resolvable:
         if existence:
-            return orthogonal_array(k,n,resolvable=True,existence=True)
+            return orthogonal_array(k,n,lmbda=lmbda,resolvable=True,existence=True)
         else:
-            OA = orthogonal_array(k,n,resolvable=True,check=False)
+            OA = orthogonal_array(k,n,lmbda=lmbda,resolvable=True,check=False)
             # the call to TransversalDesign will sort the block so we can not
             # rely on the order *after* the call
             blocks = [[i*n+c for i,c in enumerate(B)] for B in OA]
-            classes = [blocks[i:i+n] for i in range(0,n*n,n)]
-            TD = TransversalDesign(blocks,k,n,check=check,copy=False)
+            classes = [blocks[i:i+n] for i in range(0,lmbda*n*n,n)]
+            TD = TransversalDesign(blocks,k,n,lmbda,check=check,copy=False)
             TD._classes = classes
             return TD
 
     # Is k is None we find the largest available
+    # not sure about this when lambda >1
     if k is None:
-        if n == 0 or n == 1:
+        if n == 0 or (n == 1 and lmbda == 1):
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
             raise ValueError("there is no upper bound on k when 0<=n<=1")
 
-        k = orthogonal_array(None,n,existence=True)
+        k = orthogonal_array(None,n,lmbda=lmbda,existence=True)
         if existence:
             return k
 
-    if existence and _OA_cache_get(k,n) is not None:
+    if existence and _OA_cache_get(k,n) is not None and lmbda == 1:
         return _OA_cache_get(k,n)
 
-    if n == 1:
-        if existence:
-            return True
-        TD = [list(range(k))]
+    possible = orthogonal_array(k, n, lmbda=lmbda, existence=True)
 
-    elif k >= n+2:
-        if existence:
-            return False
-        raise EmptySetError("No Transversal Design exists when k>=n+2 if n>=2")
+    if existence:
+        return possible
 
-    # Section 6.6 of [Stinson2004]
-    elif orthogonal_array(k, n, existence=True) is not Unknown:
-
-        # Forwarding non-existence results
-        if orthogonal_array(k, n, existence=True):
-            if existence:
-                return True
-        else:
-            if existence:
-                return False
-            raise EmptySetError("There exists no TD({},{})!".format(k,n))
-
-        OA = orthogonal_array(k,n, check = False)
-        TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
-
-    else:
-        if existence:
-            return Unknown
+    if possible is Unknown:
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
 
-    return TransversalDesign(TD,k,n,check=check)
+    elif not possible:
+        raise EmptySetError("There exists no TD({},{})!".format(k,n))
+
+    #else build it!
+    # Section 6.6 of [Stinson2004]
+    OA = orthogonal_array(k,n,lmbda=lmbda,check = False)
+    TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
+    
+    return TransversalDesign(TD,k,n,lmbda,check=check)
 
 
 class TransversalDesign(GroupDivisibleDesign):
@@ -390,20 +553,20 @@ class TransversalDesign(GroupDivisibleDesign):
     EXAMPLES::
 
         sage: designs.transversal_design(None,5)
-        Transversal Design TD(6,5)
+        Transversal Design TD_1(6,5)
         sage: designs.transversal_design(None,30)
-        Transversal Design TD(6,30)
+        Transversal Design TD_1(6,30)
         sage: designs.transversal_design(None,36)
-        Transversal Design TD(10,36)
+        Transversal Design TD_1(10,36)
     """
-    def __init__(self, blocks, k=None,n=None,check=True,**kwds):
+    def __init__(self, blocks, k=None,n=None,lmbda=1,check=True,**kwds):
         r"""
         Constructor of the class
 
         EXAMPLES::
 
             sage: designs.transversal_design(None,5)
-            Transversal Design TD(6,5)
+            Transversal Design TD_1(6,5)
         """
         from math import sqrt
         if k is None:
@@ -416,14 +579,16 @@ class TransversalDesign(GroupDivisibleDesign):
 
         self._n = n
         self._k = k
+        self._lmbda = lmbda
 
         if check:
-            assert is_transversal_design(blocks,k,n)
+            assert is_transversal_design(blocks,k,n,lmbda)
 
         GroupDivisibleDesign.__init__(self,
                                       k*n,
                                       [list(range(i*n,(i+1)*n)) for i in range(k)],
                                       blocks,
+                                      lambd=lmbda,
                                       check=False,
                                       **kwds)
 
@@ -434,16 +599,61 @@ class TransversalDesign(GroupDivisibleDesign):
         EXAMPLES::
 
             sage: designs.transversal_design(None,5)
-            Transversal Design TD(6,5)
+            Transversal Design TD_1(6,5)
             sage: designs.transversal_design(None,30)
-            Transversal Design TD(6,30)
+            Transversal Design TD_1(6,30)
             sage: designs.transversal_design(None,36)
-            Transversal Design TD(10,36)
+            Transversal Design TD_1(10,36)
         """
-        return "Transversal Design TD({},{})".format(self._k,self._n)
+        return "Transversal Design TD_{}({},{})".format(self._lmbda,self._k,self._n)
+
+def find_groups(TD,k,n):
+    r"""
+    Return the groups of the given transversal design.
+
+    If ``TD`` is a transversal design, then the set of points
+    can be partitions into groups s.t. two points in the same
+    group are not covered by a single block
+
+    INPUT:
+
+    - ``TD`` -- (incidence structure) a transversal design
+    
+    - ``k,n`` -- (integers) parameters of the transversal design
+      a third parameter `\lambda` exists, but is not used in this function
+
+    NOTE::
+
+        If the incidence structure given is not a transversal design
+        then the output is garbage
+
+    """
+
+    b = TD.blocks()[0]
+    groups = [ [i] for i in b]
+    #each block intersects each point class exactly once
+    points = set(TD.ground_set())
+    points = points.difference(b) #remove already sorted points
+    while points:
+        p = points.pop()
+        for gr in groups:
+            #is p in gr?
+            p2 = gr[0]
+            #is |(p,p2)| == 0? -> yes!
+            for b in TD.blocks()[1:]:
+                if (p in b) and (p2 in b):
+                    #|(p,p2)| > 0
+                    break
+            else:
+                #we didn't break!
+                #so p and p2 are in same group
+                gr.append(p)
+                break
+    #after the loop we are done
+    return groups
 
 
-def is_transversal_design(B, k, n, verbose=False):
+def is_transversal_design(B, k, n,lmbda=1, verbose=False):
     r"""
     Check that a given set of blocks ``B`` is a transversal design.
 
@@ -454,7 +664,7 @@ def is_transversal_design(B, k, n, verbose=False):
 
     - ``B`` -- the list of blocks
 
-    - ``k, n`` -- integers
+    - ``k, n, \lambda`` -- integers
 
     - ``verbose`` (boolean) -- whether to display information about what is
       going wrong.
@@ -474,7 +684,7 @@ def is_transversal_design(B, k, n, verbose=False):
         sage: is_transversal_design(TD, 4, 4)
         False
     """
-    return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
+    return is_orthogonal_array([[x%n for x in R] for R in B],k,n,lmbda=lmbda,verbose=verbose)
 
 def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
     r"""
@@ -729,17 +939,14 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
     return TD
 
-def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explain_construction=False):
+def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=False,explain_construction=False):
     r"""
-    Return an orthogonal array of parameters `k,n,t`.
+    Return an orthogonal array of parameters `k,n,t,\lambda`.
 
     An orthogonal array of parameters `k,n,t` is a matrix with `k` columns
     filled with integers from `[n]` in such a way that for any `t` columns, each
-    of the `n^t` possible rows occurs exactly once. In
-    particular, the matrix has `n^t` rows.
-
-    More general definitions sometimes involve a `\lambda` parameter, and we
-    assume here that `\lambda=1`.
+    of the `n^t` possible rows occurs exactly `\lambda` times. In
+    particular, the matrix has `\lambda n^t` rows.
 
     An orthogonal array is said to be *resolvable* if it corresponds to a
     resolvable transversal design (see
@@ -756,6 +963,8 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
     - ``n`` -- (integer) number of symbols
 
     - ``t`` -- (integer; default: 2) -- strength of the array
+
+    - ``\lambda`` -- (integer; default: 1) -- index of the array
 
     - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
       resolvable. The `n` classes of the resolvable design are obtained as the
@@ -836,7 +1045,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
     assert n>=0, "n(={}) must be nonnegative".format(n)
 
     # A resolvable OA(k,n) is an OA(k+1,n)
-    if resolvable:
+    if resolvable and lmbda == 1:
         assert t==2, "resolvable designs are only handled when t=2"
         if existence and k is not None:
             return orthogonal_array(k+1,n,existence=True)
@@ -850,16 +1059,16 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
     # If k is set to None we find the largest value available
     if k is None:
         if existence:
-            return largest_available_k(n,t)
-        elif n == 0 or n == 1:
+            return largest_available_k(n,t,lmbda=lmbda)
+        elif n == 0 or (n == 1 and lmbda == 1):
             raise ValueError("there is no upper bound on k when 0<=n<=1")
         else:
-            k = largest_available_k(n,t)
+            k = largest_available_k(n,t,lmbda=lmbda)
 
     if k < t:
         raise ValueError("undefined for k<t")
-
-    if existence and _OA_cache_get(k,n) is not None and t == 2:
+        
+    if existence and _OA_cache_get(k,n) is not None and t == 2 and lmbda == 1:
         return _OA_cache_get(k,n)
 
     from .block_design import projective_plane
@@ -869,7 +1078,41 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
 
-    if n <= 1:
+    if lmbda != 1:
+        #only constructions from difference matrices are available at the moment
+        #each diff matrix gives rise to 2 possible OA
+        possible = False if resolvable else difference_matrix(n,k-1,lmbda,existence=True)
+        possible2 = False if possible is True else difference_matrix(n,k,lmbda,existence=True)
+        if possible is True:
+            if existence:
+                return True
+            if explain_construction:
+                return "from a ({},{},{})-difference matrix".format(n,k-1,lmbda)
+            G,M = difference_matrix(n,k-1,lmbda)
+            OA = OA_from_quasi_difference_matrix(M,G,add_col=True)
+        elif possible2 is True:
+            if existence:
+                return True
+            if explain_construction:
+                return "from a ({},{},{})-difference matrix".format(n,k,lmbda)
+            G,M = difference_matrix(n,k,lmbda)
+            OA = OA_from_quasi_difference_matrix(M,G,add_col=False)             
+        elif (possible is False) and (possible2 is False):
+            if existence:
+                return False
+            raise EmptySetError("There exists no OA_{}({},{})".format(lmbda,k,n))
+        else:
+            if existence:
+                return Unknown
+            elif explain_construction:
+                return "No idea"
+            raise NotImplementedError("I don't know how to build an OA_{}({},{})!".format(lmbda,k,n))
+        if check:
+             assert is_orthogonal_array(OA,k,n,t,lmbda,verbose=1), "Sage built an incorrect OA_{}({},{}) O_o".format(lmbda,k,n)
+        return OA
+            
+
+    elif n <= 1:
         if existence:
             return True
         if explain_construction:
@@ -900,7 +1143,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
     elif t != 2:
         if existence:
             return Unknown
-        msg = "Only trivial orthogonal arrays are implemented for t>=2"
+        msg = "Only trivial orthogonal arrays are implemented for t>2"
         if explain_construction:
             return msg
         raise NotImplementedError(msg)
@@ -988,6 +1231,16 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         G,M = difference_matrix(n,k-1)
         OA = OA_from_quasi_difference_matrix(M,G,add_col=True)
 
+    elif may_be_available and difference_matrix(n,k,existence=True) is True:
+        _OA_cache_set(k,n,True)
+        if existence:
+            return True
+        if explain_construction:
+            return "from a ({},{},1)-difference matrix".format(n,k)
+        print("hey")
+        G,M = difference_matrix(n,k)
+        OA = OA_from_quasi_difference_matrix(M,G,add_col=False)
+        
     elif may_be_available and find_recursive_construction(k,n):
         _OA_cache_set(k,n,True)
         if existence:
@@ -1010,7 +1263,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
 
     return OA
 
-def largest_available_k(n,t=2):
+def largest_available_k(n,t=2,lmbda=1):
     r"""
     Return the largest `k` such that Sage can build an `OA(k,n)`.
 
@@ -1019,6 +1272,8 @@ def largest_available_k(n,t=2):
     - ``n`` (integer)
 
     - ``t`` -- (integer; default: 2) -- strength of the array
+
+    - ``\lambda`` -- (integer; default: 1) -- index of the array
 
     EXAMPLES::
 
@@ -1042,10 +1297,13 @@ def largest_available_k(n,t=2):
         raise ValueError("n(={}) was expected to be >=0".format(n))
     if t<0:
         raise ValueError("t(={}) was expected to be >=0".format(t))
-    if n == 0 or n == 1:
+    if lmbda<0:
+        raise ValueError("lmbda(={}) was expected to be >=0".format(lmbda))
+    
+    if n == 0 or (n == 1 and lmbda== 1):
         from sage.rings.infinity import Infinity
         return Infinity
-    elif t == 2:
+    elif t == 2 and lmbda == 1:
         if projective_plane(n,existence=True) is True:
             return n+1
         else:
@@ -1055,7 +1313,7 @@ def largest_available_k(n,t=2):
     else:
         k=t-1
 
-    while orthogonal_array(k+1,n,t,existence=True) is True:
+    while orthogonal_array(k+1,n,t,lmbda,existence=True) is True:
         k += 1
     return k
 
@@ -1770,10 +2028,27 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
 
         sage: _ = designs.orthogonal_arrays.build(6,20) # indirect doctest
     """
+    from sage.categories.vector_spaces import VectorSpaces
+    
     Gn = int(G.cardinality())
     k = len(M[0])+bool(add_col)
 
-    G_to_int = {x:i for i,x in enumerate(G)}
+    if G in VectorSpaces:
+        #create special dictionary that set vectors
+        #to immutable before using a dictionary
+        class SpecialDict(dict):
+            def __getitem__(self,key):
+                key.set_immutable()
+                return dict.__getitem__(self,key)
+            def __setitem__(self,key,value):
+                key.set_immutable()
+                return dict.__setitem__(self,key,value)
+        
+        G_to_int = SpecialDict()
+        for i,x in enumerate(G):
+            G_to_int[x]=i
+    else:
+        G_to_int = {x:i for i,x in enumerate(G)}
 
     # A cache for addition in G
     G_sum = [[0] * Gn for _ in range(Gn)]
@@ -1788,7 +2063,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     # with integers. Missing values are also handled.
     new_M = []
     for line in zip(*M):
-        inf = Gn
+        inf = Gn 
         new_line = []
         for x in line:
             if x is None:
@@ -1799,7 +2074,8 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
         new_M.append(new_line)
 
     if add_col:
-        new_M.append([i//Gn for i in range(len(new_line))])
+        nR = len(M)
+        new_M.append([i//nR for i in range(len(new_line))])
 
     # new_M = transpose(new_M)
     new_M = list(zip(*new_M))
@@ -2080,13 +2356,13 @@ class OAMainFunctions():
     largest_available_k  = staticmethod(largest_available_k)
 
     @staticmethod
-    def explain_construction(k,n,t=2):
+    def explain_construction(k,n,t=2,lmbda=1):
         r"""
         Return a string describing how to builds an `OA(k,n)`
 
         INPUT:
 
-        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+        - ``k,n,t,\lambda`` (integers) -- parameters of the orthogonal array.
 
         EXAMPLES::
 
@@ -2095,27 +2371,24 @@ class OAMainFunctions():
             sage: designs.orthogonal_arrays.explain_construction(10,154)
             'the database contains a (137,10;1,0;17)-quasi difference matrix'
         """
-        return orthogonal_array(k,n,t,explain_construction=True)
+        return orthogonal_array(k,n,t,lmbda,explain_construction=True)
 
     @staticmethod
-    def build(k,n,t=2,resolvable=False):
+    def build(k,n,t=2,lmbda=1,resolvable=False):
         r"""
         Return an `OA(k,n)` of strength `t`
 
         An orthogonal array of parameters `k,n,t` is a matrix with `k`
         columns filled with integers from `[n]` in such a way that for any
         `t` columns, each of the `n^t` possible rows occurs exactly
-        once. In particular, the matrix has `n^t` rows.
-
-        More general definitions sometimes involve a `\lambda` parameter, and we
-        assume here that `\lambda=1`.
+        ``\lambda`` times. In particular, the matrix has `n^t` rows.
 
         For more information on orthogonal arrays, see
         :wikipedia:`Orthogonal_array`.
 
         INPUT:
 
-        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+        - ``k,n,t,\lambda`` (integers) -- parameters of the orthogonal array.
 
         - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
           resolvable. The `n` classes of the resolvable design are obtained as the
@@ -2137,16 +2410,16 @@ class OAMainFunctions():
             sage: OA_7_50 = designs.orthogonal_arrays.build(7,50)      # indirect doctest
 
         """
-        return orthogonal_array(k,n,t,resolvable=resolvable)
+        return orthogonal_array(k,n,t,lmbda,resolvable=resolvable)
 
     @staticmethod
-    def exists(k,n,t=2):
+    def exists(k,n,t=2,lmbda=1):
         r"""
-        Return the existence status of an `OA(k,n)`
+        Return the existence status of an `OA_\lambda(k,n)`
 
         INPUT:
 
-        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+        - ``k,n,t,\lambda`` (integers) -- parameters of the orthogonal array.
 
         .. WARNING::
 
@@ -2166,16 +2439,16 @@ class OAMainFunctions():
             sage: designs.orthogonal_arrays.exists(7,6) # indirect doctest
             False
         """
-        return orthogonal_array(k,n,t,existence=True)
+        return orthogonal_array(k,n,t,lmbda,existence=True)
 
     @staticmethod
-    def is_available(k,n,t=2):
+    def is_available(k,n,t=2,lmbda=1):
         r"""
         Return whether Sage can build an `OA(k,n)`.
 
         INPUT:
 
-        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+        - ``k,n,t,\lambda`` (integers) -- parameters of the orthogonal array.
 
         .. SEEALSO::
 
@@ -2188,4 +2461,4 @@ class OAMainFunctions():
             sage: designs.orthogonal_arrays.is_available(4,6) # indirect doctest
             False
         """
-        return orthogonal_array(k,n,t,existence=True) is True
+        return orthogonal_array(k,n,t,lmbda,existence=True) is True
