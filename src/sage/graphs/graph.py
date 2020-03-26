@@ -86,6 +86,9 @@ AUTHORS:
 - Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
   most_common_neighbors and common_neighbors_matrix added.
 
+- Jean-Florent Raymond (2019-04): is_redundant, is_dominating,
+   private_neighbors
+
 Graph Format
 ------------
 
@@ -1774,6 +1777,9 @@ class Graph(GenericGraph):
         # Special cases
         if self.order() < 4:
             return True
+
+        if self.size() > 3 * (self.order() - 1) / 2:
+            return False
 
         # Every cactus graph is outerplanar
         if not self.is_circular_planar():
@@ -6972,7 +6978,7 @@ class Graph(GenericGraph):
         if with_labels:
             return core
         else:
-            return list(six.itervalues(core))
+            return list(core.values())
 
     @doc_index("Leftovers")
     def modular_decomposition(self, algorithm='habib'):
@@ -8597,6 +8603,59 @@ class Graph(GenericGraph):
                     if M[v, w] == maximum:
                         output.append((verts[v], verts[w]))
         return output
+    @doc_index("Leftovers")
+    def arboricity(self, certificate=False):
+        r"""
+        Return the arboricity of the graph and an optional certificate.
+
+        The arboricity is the minimum number of forests that covers the
+        graph.
+
+        See :wikipedia:`Arboricity`
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return 
+          a certificate.
+
+        OUTPUT:
+
+        When ``certificate = True``, then the function returns `(a, F)`
+        where `a` is the arboricity and `F` is a list of `a` disjoint forests 
+        that partitions the edge set of `g`. The forests are represented as 
+        subgraphs of the original graph.
+
+        If ``certificate = False``, the function returns just a integer
+        indicating the arboricity.
+
+        ALGORITHM:
+
+        Represent the graph as a graphical matroid, then apply matroid
+        :meth:`sage.matroid.partition` algorithm from the matroids module.
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: a,F = G.arboricity(True)
+            sage: a
+            2
+            sage: all([f.is_forest() for f in F])
+            True
+            sage: len(set.union(*[set(f.edges()) for f in F])) == G.size()
+            True
+
+        TESTS::
+
+            sage: g = Graph()
+            sage: g.arboricity(True)
+            (0, []) 
+        """
+        from sage.matroids.constructor import Matroid
+        P = Matroid(self).partition()
+        if certificate:
+          return (len(P), [self.subgraph(edges=forest) for forest in P])
+        else:
+          return len(P)
 
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
@@ -8604,6 +8663,7 @@ class Graph(GenericGraph):
     from sage.graphs.chrompoly import chromatic_polynomial
     from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
     from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+    from sage.graphs.graph_decompositions.clique_separators import atoms_and_clique_separators
     from sage.graphs.matchpoly import matching_polynomial
     from sage.graphs.cliquer import all_max_clique as cliques_maximum
     from sage.graphs.spanning_tree import random_spanning_tree
@@ -8619,7 +8679,12 @@ class Graph(GenericGraph):
     from sage.graphs.connectivity import is_triconnected
     from sage.graphs.comparability import is_comparability
     from sage.graphs.comparability import is_permutation
-
+    from sage.graphs.domination import is_dominating
+    from sage.graphs.domination import is_redundant
+    from sage.graphs.domination import private_neighbors
+    from sage.graphs.domination import minimal_dominating_sets
+    from sage.graphs.traversals import (lex_M, maximum_cardinality_search,
+                                        maximum_cardinality_search_M)
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -8632,6 +8697,7 @@ _additional_categories = {
     "matching_polynomial"       : "Algorithmically hard stuff",
     "all_max_clique"            : "Clique-related methods",
     "cliques_maximum"           : "Clique-related methods",
+    "atoms_and_clique_separators" : "Clique-related methods",
     "random_spanning_tree"      : "Connectivity, orientations, trees",
     "is_cartesian_product"      : "Graph properties",
     "is_distance_regular"       : "Graph properties",
@@ -8647,7 +8713,14 @@ _additional_categories = {
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
     "spqr_tree"                 : "Connectivity, orientations, trees",
-    "is_triconnected"           : "Connectivity, orientations, trees"
+    "is_triconnected"           : "Connectivity, orientations, trees",
+    "is_dominating"             : "Domination",
+    "is_redundant"              : "Domination",
+    "private_neighbors"         : "Domination",
+    "minimal_dominating_sets"   : "Domination",
+    "lex_M"                     : "Traversals",
+    "maximum_cardinality_search" : "Traversals",
+    "maximum_cardinality_search_M" : "Traversals"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))
