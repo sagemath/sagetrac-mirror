@@ -265,7 +265,7 @@ def difference_matrix(g,k,lmbda=1,existence=False,check=True):
         M = hadamard_matrix(k)
 
         #we have a problem: can't create multiplicative group {1,-1}
-        #we we change M over Z_2
+        #we change M over Z_2
 
         # M = map (map (1->0; -1->1)) M 
         M = list(map( lambda r: list(map(lambda x: 0 if x == 1 else 1,r )), M ) )
@@ -276,7 +276,7 @@ def difference_matrix(g,k,lmbda=1,existence=False,check=True):
         (p,j) = is_prime_power(lmbda,get_data=True)
         (q,i) = is_prime_power(g,get_data=True)
         assert (p == q and p**(i+j) == k)
-            
+
         if existence:
             return True
         G,M = prime_power_difference_matrix(p,i,j)
@@ -324,7 +324,7 @@ def prime_power_difference_matrix(p,i,j):
     - ``i,j`` -- (integer)
 
     TESTS::
-    
+
         sage: from sage.combinat.designs.difference_matrices import prime_power_difference_matrix, is_difference_matrix
         sage: G,M = prime_power_difference_matrix(2,2,3)
         sage: is_difference_matrix(M,G,2^5,2^3)
@@ -335,17 +335,14 @@ def prime_power_difference_matrix(p,i,j):
         sage: G,M = prime_power_difference_matrix(5,2,1)
         sage: is_difference_matrix(M,G,5^3,5)
         True
-    
     """
 
     from sage.modules.free_module_element import vector
-    
 
-    
     G = FiniteField(p**(i+j))
     elemsG = [x for x in G]
     K = [ [ x*y for y in elemsG] for x in elemsG]
-    
+
     #we need to map G to (Z_p)^(i+j)
     x = G.gen()
     Fp = FiniteField(p)
@@ -357,7 +354,8 @@ def prime_power_difference_matrix(p,i,j):
         for l in range(i+j):
             y += v[l]*(x**l)
         iso[y] = v
-    
+
+    #now we can map G to (Z_p)^(i+j) to (Z_p)^i
     H = [ [ tuple(iso[x][:i]) for x in row] for row in K ]
 
     #So H is Over (Z_p)^i
@@ -388,7 +386,6 @@ def prime_power_and_2_difference_matrix(q):
         sage: G,M = prime_power_and_2_difference_matrix(5)
         sage: is_difference_matrix(M,G,10,2)
         True
-
     """
 
     if q % 2 == 0:
@@ -418,7 +415,7 @@ def prime_power_and_2_difference_matrix(q):
                 D[x + rowshift][y + colshift] = d
 
     return Fq,D
-                
+
 def subgroup_construction(g,k,lmbda,existence=False):
     r"""
     Return a `(g,k,\lambda)` difference matrix using a subgroup construction
@@ -450,7 +447,6 @@ def subgroup_construction(g,k,lmbda,existence=False):
         sage: designs.difference_matrix(25,50,2,existence=True)
         True
 
-
     TESTS::
 
         sage: from sage.combinat.designs.difference_matrices import subgroup_construction, is_difference_matrix
@@ -465,12 +461,10 @@ def subgroup_construction(g,k,lmbda,existence=False):
         True
         sage: subgroup_construction(8,32,5,existence=True)
         False
-
     """
 
     #here we assume (g,k,lmbda) = (g2/s,k,lmbda2*s)
     #and try to construct (g2,k,lmbda2)
-    
     possibleS = divisors(lmbda)
     possibleS = possibleS[1:] #remove s=1
 

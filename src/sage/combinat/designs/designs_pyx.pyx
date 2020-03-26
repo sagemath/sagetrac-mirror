@@ -88,7 +88,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, int lmbda=1, verbose=False, t
     cdef int x
 
     if t != 2:
-        raise NotImplementedError("only implemented for t=2 or lmbda != 1")
+        raise NotImplementedError("only implemented for t=2")
 
     for R in OA:
         if len(R) != k:
@@ -166,7 +166,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, int lmbda=1, verbose=False, t
 
     sig_free(OAc)
     bitset_free(seen)
-    return True#this looks wrong, I need to check the bitset crap
+    return True
 
 def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=False):
     r"""
