@@ -521,7 +521,7 @@ def find_groups(TD,k,n):
         sage: from sage.combinat.designs.orthogonal_arrays import find_groups
         sage: TD = designs.transversal_design(18,9,2)
         sage: groups = find_groups(TD,18,9)
-        sage: set(map(lambda l: set(l), groups)) == set([ set(range(i*9,(i+1)*9)) for i in range(18)])
+        sage: set(map(lambda l: frozenset(l), groups)) == set([ frozenset(range(i*9,(i+1)*9)) for i in range(18)])
         True
 
         sage: from sage.combinat.designs.orthogonal_arrays import find_groups
@@ -529,7 +529,7 @@ def find_groups(TD,k,n):
         sage: SN = designs.symmetric_net(9,3)
         sage: SND = SN.dual()
         sage: groups = find_groups(SND,27,9)
-        sage: is_group_divisible_design(groups,SND,9*27,G=[9],K=[27],lmbda=3)
+        sage: is_group_divisible_design(groups,SND,9*27,G=[9],K=[27],lambd=3)
         True
     """
 
@@ -964,7 +964,7 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
     if k is None:
         if existence:
             return largest_available_k(n,t,lmbda=lmbda)
-        elif n == 0 or (n == 1 and lmbda == 1):
+        elif n == 0 or n == 1:
             raise ValueError("there is no upper bound on k when 0<=n<=1")
         else:
             k = largest_available_k(n,t,lmbda=lmbda)
@@ -982,7 +982,31 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
 
-    if lmbda != 1:
+    if n <= 1:
+        if existence:
+            return True
+        if explain_construction:
+            return "Trivial construction"
+        OA = [[0]*k]*(lmbda*n)
+
+    elif k == t:
+        if existence:
+            return True
+        if explain_construction:
+            return "Trivial construction [n]^k"
+
+        from itertools import product
+        return [list(x) for x in product(range(n), repeat=k) for _ in range(lmbda)]
+
+    elif t != 2:
+        if existence:
+            return Unknown
+        msg = "Only trivial orthogonal arrays are implemented for t>2"
+        if explain_construction:
+            return msg
+        raise NotImplementedError(msg)
+
+    elif lmbda != 1:
         #only constructions from difference matrices are available at the moment
         #each diff matrix gives rise to 2 possible OA
         possible = False if resolvable else difference_matrix(n,k-1,lmbda,existence=True)
@@ -1001,10 +1025,6 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
                 return "from a ({},{},{})-difference matrix".format(n,k,lmbda)
             G,M = difference_matrix(n,k,lmbda)
             OA = OA_from_quasi_difference_matrix(M,G,add_col=False)
-        elif (possible is False) and (possible2 is False):
-            if existence:
-                return False
-            raise EmptySetError("There exists no OA_{}({},{})".format(lmbda,k,n))
         else:
             if existence:
                 return Unknown
@@ -1014,13 +1034,6 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
         if check:
              assert is_orthogonal_array(OA,k,n,t,lmbda,verbose=1), "Sage built an incorrect OA_{}({},{}) O_o".format(lmbda,k,n)
         return OA
-
-    elif n <= 1:
-        if existence:
-            return True
-        if explain_construction:
-            return "Trivial construction"
-        OA = [[0]*k]*n
 
     elif k >= n+t:
         # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
@@ -1033,23 +1046,6 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
         if explain_construction:
             return msg
         raise EmptySetError(msg)
-
-    elif k <= t:
-        if existence:
-            return True
-        if explain_construction:
-            return "Trivial construction [n]^k"
-
-        from itertools import product
-        return [list(x) for x in product(range(n), repeat=k)]
-
-    elif t != 2:
-        if existence:
-            return Unknown
-        msg = "Only trivial orthogonal arrays are implemented for t>2"
-        if explain_construction:
-            return msg
-        raise NotImplementedError(msg)
 
     elif k <= 3:
         if existence:
