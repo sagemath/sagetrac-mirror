@@ -115,7 +115,7 @@ def symmetric_net(n, lmbda=1, check=True, existence=False):
         sage: SN = designs.symmetric_net(9,6)
     """
 
-    return transversal_design(n*lmbda,n,lmbda=lmbda, resolvable=True,check=check,existence=existence)   
+    return transversal_design(n*lmbda,n,lmbda=lmbda, resolvable=True,check=check,existence=existence)
 
 def transversal_design(k, n,lmbda=1, resolvable=False, check=True, existence=False):
     r"""
@@ -126,11 +126,10 @@ def transversal_design(k, n,lmbda=1, resolvable=False, check=True, existence=Fal
     disjoint and have cardinality `n`) such that:
 
     * Any `S \in \mathcal{S}` has cardinality `k` and intersects each group on
-      exactly one elements.
+      exactly one element.
 
     * Any two elements from distincts groups are contained in exactly `lambda`
       element of `\mathcal{S}`.
-.
 
     For more information on transversal designs, see
     `<http://mathworld.wolfram.com/TransversalDesign.html>`_.
@@ -421,7 +420,7 @@ def transversal_design(k, n,lmbda=1, resolvable=False, check=True, existence=Fal
     # Section 6.6 of [Stinson2004]
     OA = orthogonal_array(k,n,lmbda=lmbda,check = False)
     TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
-    
+
     return TransversalDesign(TD,k,n,lmbda,check=check)
 
 
@@ -508,7 +507,7 @@ def find_groups(TD,k,n):
     INPUT:
 
     - ``TD`` -- (incidence structure) a transversal design
-    
+
     - ``k,n`` -- (integers) parameters of the transversal design
       a third parameter `\lambda` exists, but is not used in this function
 
@@ -517,6 +516,21 @@ def find_groups(TD,k,n):
         If the incidence structure given is not a transversal design
         then the output is garbage
 
+    TESTS::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import find_groups
+        sage: TD = designs.transversal_design(18,9,2)
+        sage: groups = find_groups(TD,18,9)
+        sage: set(map(lambda l: set(l), groups)) == set([ set(range(i*9,(i+1)*9)) for i in range(18)])
+        True
+
+        sage: from sage.combinat.designs.orthogonal_arrays import find_groups
+        sage: from sage.combinat.designs.designs_pyx import is_group_divisible_design
+        sage: SN = designs.symmetric_net(9,3)
+        sage: SND = SN.dual()
+        sage: groups = find_groups(SND,27,9)
+        sage: is_group_divisible_design(groups,SND,9*27,G=[9],K=[27],lmbda=3)
+        True
     """
 
     b = TD.blocks()[0]
@@ -957,7 +971,7 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
 
     if k < t:
         raise ValueError("undefined for k<t")
-        
+
     if existence and _OA_cache_get(k,n) is not None and t == 2 and lmbda == 1:
         return _OA_cache_get(k,n)
 
@@ -986,7 +1000,7 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
             if explain_construction:
                 return "from a ({},{},{})-difference matrix".format(n,k,lmbda)
             G,M = difference_matrix(n,k,lmbda)
-            OA = OA_from_quasi_difference_matrix(M,G,add_col=False)             
+            OA = OA_from_quasi_difference_matrix(M,G,add_col=False)
         elif (possible is False) and (possible2 is False):
             if existence:
                 return False
@@ -1000,7 +1014,6 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
         if check:
              assert is_orthogonal_array(OA,k,n,t,lmbda,verbose=1), "Sage built an incorrect OA_{}({},{}) O_o".format(lmbda,k,n)
         return OA
-            
 
     elif n <= 1:
         if existence:
@@ -1130,7 +1143,7 @@ def orthogonal_array(k,n,t=2,lmbda=1,resolvable=False, check=True,existence=Fals
         print("hey")
         G,M = difference_matrix(n,k)
         OA = OA_from_quasi_difference_matrix(M,G,add_col=False)
-        
+
     elif may_be_available and find_recursive_construction(k,n):
         _OA_cache_set(k,n,True)
         if existence:
@@ -1187,9 +1200,9 @@ def largest_available_k(n,t=2,lmbda=1):
         raise ValueError("n(={}) was expected to be >=0".format(n))
     if t<0:
         raise ValueError("t(={}) was expected to be >=0".format(t))
-    if lmbda<0:
-        raise ValueError("lmbda(={}) was expected to be >=0".format(lmbda))
-    
+    if lmbda<=0:
+        raise ValueError("lmbda(={}) was expected to be >0".format(lmbda))
+
     if n == 0 or (n == 1 and lmbda== 1):
         from sage.rings.infinity import Infinity
         return Infinity
@@ -1919,7 +1932,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
         sage: _ = designs.orthogonal_arrays.build(6,20) # indirect doctest
     """
     from sage.categories.vector_spaces import VectorSpaces
-    
+
     Gn = int(G.cardinality())
     k = len(M[0])+bool(add_col)
 
@@ -1933,7 +1946,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
             def __setitem__(self,key,value):
                 key.set_immutable()
                 return dict.__setitem__(self,key,value)
-        
+
         G_to_int = SpecialDict()
         for i,x in enumerate(G):
             G_to_int[x]=i
@@ -1953,7 +1966,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     # with integers. Missing values are also handled.
     new_M = []
     for line in zip(*M):
-        inf = Gn 
+        inf = Gn
         new_line = []
         for x in line:
             if x is None:
