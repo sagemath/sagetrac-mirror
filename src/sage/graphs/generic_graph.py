@@ -14892,7 +14892,7 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == 'BFS':
             algorithm = 'standard'
 
-        if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB']:
+        if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB', 'DiFUB']:
             if by_weight:
                 raise ValueError("algorithm '" + algorithm + "' does not work" +
                                  " on weighted graphs")

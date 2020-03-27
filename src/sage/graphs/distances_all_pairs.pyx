@@ -136,7 +136,8 @@ from sage.graphs.base.static_sparse_graph cimport (short_digraph,
                                                    init_short_digraph,
                                                    free_short_digraph,
                                                    out_degree,
-                                                   simple_BFS)
+                                                   simple_BFS,
+                                                   init_reverse)
 
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short* predecessors,
@@ -982,6 +983,105 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
     return LB
 
 
+cdef uint32_t diameter_lower_bound_directed_2sweep(short_digraph g,
+                                                   short_digraph g_rev,
+                                                   uint32_t source,
+                                                   uint32_t* distances,
+                                                   uint32_t* predecessors,
+                                                   uint32_t* waiting_list,
+                                                   bitset_t seen):
+    """
+    Compute a lower bound on the diameter using the directed 2-sweep algorithm.
+
+    This method computes a lower bound on the diameter of an unweighted
+    directed graph using 4 BFS, as proposed in [CGLM2014]_. 
+    1. Run a forward bfs from a random node source: let a1 be the farthest node
+    2. Run a backward bfs from a1: let b1 be the farthest node
+    3. Run a backward bfs from source: let a2 be the farthest node
+    4. Run a forward bfs from a2: let b2 be the farthest node.
+    5. return maximum between d(a1,b1) and d(a2,b2) as the lower bound
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
+    
+    - ``g_rev`` -- a short_digraph which is the reverse of g
+
+    - ``source`` -- starting node of the BFS
+
+    - ``distances`` -- array of size ``n`` to store BFS distances from `v`, the
+      vertex at largest distance from ``source`` from which we start the second
+      BFS. This method assumes that this array has already been allocated.
+      However, there is no need to initialize it.
+
+    - ``predecessors`` -- array of size ``n`` to store the first predecessor of
+      each vertex during the BFS search from `v`. The predecessor of `v` is
+      itself. This method assumes that this array has already been allocated.
+      However, it is possible to pass a ``NULL`` pointer in which case the
+      predecessors are not recorded. 
+
+    - ``waiting_list`` -- array of size ``n`` to store the order in which the
+      vertices are visited during the BFS search from `v`. This method assumes
+      that this array has already been allocated. However, there is no need to
+      initialize it.
+
+    - ``seen`` -- bitset of size ``n`` that must be initialized before calling
+      this method (i.e., bitset_init(seen, n)). However, there is no need to
+      clear it.
+
+    """
+    cdef uint32_t LB1 ,LB2, i, k, tmp, LB
+    cdef uint32_t n = g.n
+    
+    # Allocate some arrays for the second sweep, 
+    # The arrays for the first sweep are in the arguments of the function
+    
+    cdef uint32_t * distances1 = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
+    if not distances1:
+        raise MemoryError()
+    cdef uint32_t * predecessors1 = distances1 + n
+    cdef uint32_t * waiting_list1 = distances1 + 2 * n
+
+
+    # Perform the first sweep to calculate LB1
+    # Perform a bfs from source, and find point v which is farthest from source 
+    # in forward direction. From v, perform a reverse BFS and find LB1
+    tmp = source
+    LB1 = simple_BFS(g, source, distances, NULL, waiting_list, seen)
+    if LB1 == UINT32_MAX:
+        return UINT32_MAX
+    source = waiting_list[g.n - 1]
+    LB1 = simple_BFS(g_rev, source, distances, predecessors, waiting_list, seen)
+    if LB1 == UINT32_MAX:
+        return UINT32_MAX
+        
+    source = tmp
+    
+    # Perform the second sweep to caluclate LB2
+    # Perform a bfs from source, and find point v which is farthest from source 
+    # in reverse direction. From v, perform a forward BFS and find LB2
+    
+    LB2 = simple_BFS(g_rev, source, distances1, NULL, waiting_list1, seen)
+    if LB2 == UINT32_MAX:
+        return UINT32_MAX
+    source = waiting_list1[g.n - 1]
+    LB2 = simple_BFS(g, source, distances1, predecessors1, waiting_list1, seen)
+    if LB2 == UINT32_MAX:
+        return UINT32_MAX
+        
+    # return the greater lower bound of LB1 and LB2
+    if(LB1>LB2):
+        LB = LB1
+    else:
+        LB = LB2
+        distances = distances1
+        waiting_list = waiting_list1
+        predecessor = predecessors1
+        
+    sig_free(distances1)
+        
+    return LB
+
 cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
                                             uint32_t source):
     """
@@ -1147,6 +1247,105 @@ cdef uint32_t diameter_iFUB(short_digraph g,
     # We finally return the computed diameter
     return LB
 
+cdef uint32_t diameter_DiFUB(short_digraph g,
+                             uint32_t source):
+    """
+    Compute the diameter of the input Graph using the ``DiFUB`` algorithm.
+
+    The ``DiFUB`` (iterative Fringe Upper Bound) algorithm calculates the exact
+    value of the diameter of a unweighted directed graph [CGLM2014]_. This
+    algorithms starts with a vertex found through a directed 2 sweep. 
+    The worst case time complexity of the DiFUB algorithm is `O(nm)`, 
+    but it can be very fast in practice on real graphs. See the code's
+    documentation and [CGLM2014]_ for more details.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
+
+    - ``source`` -- starting node of the first BFS
+
+    """
+    cdef uint32_t i, LB, s, m, d
+    cdef uint32_t n = g.n
+    
+    # reverse of graph    
+    cdef short_digraph g_rev
+    init_reverse(g_rev,g)
+    
+    # We allocate some arrays and a bitset
+    cdef bitset_t seen
+    bitset_init(seen, n)    
+    cdef uint32_t * distances = <uint32_t *>sig_malloc(4 * n * sizeof(uint32_t))
+    if not distances:
+        bitset_free(seen)
+        raise MemoryError()
+    cdef uint32_t * waiting_list = distances + n
+    cdef uint32_t * order        = distances + 2 * n
+    cdef uint32_t * predecessors = distances + 3 * n
+    
+    # We find the lower bound on diameter using directed 2-sweep
+    LB =  diameter_lower_bound_directed_2sweep(g, g_rev, source, distances, predecessors, waiting_list, seen)
+    if LB == UINT32_MAX:
+        return LB
+    
+    # Now we find the middle node m of the lowerbound distance we computed using
+    # directed 2sweep
+    # node m has a low eccentricity
+    
+    s = waiting_list[0]
+    d = waiting_list[n - 1]
+    LB_2 = LB / 2
+    m = d
+    while distances[m] > LB_2:
+        m = predecessors[m]
+    
+    # We store the reverse bfs tree of vertex m as a list of lists in Bb, 
+    # indexed by the distance from x to m.
+    # Thus if d(x,m) = j, then x is appended to the list Bb[j]
+    eccb_m = simple_BFS(g_rev, m, distances, NULL, waiting_list, seen)
+    Bb = [[] for i in range(n)]
+    for i in range(n):
+        x = waiting_list[i]
+        Bb[distances[x]].append(x)
+
+    # We store the forward bfs tree of vertex m as a list of lists in Bf, 
+    # indexed by the distance from m to x.
+    # Thus if d(m,x) = j, then x is appended to the list Bf[j]
+    eccf_m = simple_BFS(g, m, distances, NULL, waiting_list, seen)
+    Bf = [[] for i in range(n)]
+    for i in range(n):
+        x = waiting_list[i]
+        Bf[distances[x]].append(x)
+
+    # initialize upper bound, lowerbound and i 
+    i = max(eccb_m, eccf_m)
+    lb = max(eccb_m, eccf_m, LB)
+    ub = 2 * i
+
+    while (ub-lb > 0):
+        
+        tmp = 0
+        tmp1 = 0
+        if(Bb[i]):
+            # find the maximum forward eccentricity of node v, for all v
+            #  such that d(v, m) = i in graph g
+            tmp = max([simple_BFS(g, j, distances, NULL, waiting_list, seen) for j in Bb[i]])        
+        if(Bf[i]):
+            # find the maximum backward eccentricity of node v, for all v
+            #  such that d(m, v) = i in graph g
+            tmp1 = max([simple_BFS(g_rev, j, distances, NULL, waiting_list, seen) for j in Bf[i]])
+            
+        lb = max(tmp, tmp1, lb)    
+        
+        if lb > 2*i-2 :
+            return (lb)  
+        else:
+            ub = 2*i-2
+            
+        i = i-1
+        
+    return(lb)
 
 def diameter(G, algorithm='iFUB', source=None):
     r"""
@@ -1210,6 +1409,12 @@ def diameter(G, algorithm='iFUB', source=None):
         by the remark above. The worst case time complexity of the iFUB
         algorithm is `O(nm)`, but it can be very fast in practice.
 
+      - ``'DiFUB'`` -- The DiFUB (Directed iterative Fringe Upper Bound) 
+        algorithm, proposed in [CGLM2014]_, computes the exact value of the 
+        diameter of an unweighted directed graph. This algorithm works very 
+        well on real world graph. In the worst case it may make twice as many 
+        bfs calls as the naive algorithm. 
+
     - ``source`` -- (default: None) vertex from which to start the first BFS.
       If ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
@@ -1258,12 +1463,11 @@ def diameter(G, algorithm='iFUB', source=None):
     cdef int n = G.order()
     if not n:
         return 0
-
-    if algorithm == 'standard' or G.is_directed():
+    if algorithm == 'standard' or (G.is_directed() and algorithm !='DiFUB'):
         return max(G.eccentricity())
     elif algorithm is None:
         algorithm = 'iFUB'
-    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB']:
+    elif not algorithm in ['2sweep', 'multi-sweep', 'iFUB', 'DiFUB']:
         raise ValueError("unknown algorithm for computing the diameter")
 
     if source is None:
@@ -1302,7 +1506,10 @@ def diameter(G, algorithm='iFUB', source=None):
 
     elif algorithm == 'multi-sweep':
         LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
-
+        
+    elif algorithm == 'DiFUB':
+        LB = diameter_DiFUB(sd, isource)
+        
     else: # algorithm == 'iFUB'
         LB = diameter_iFUB(sd, isource)
 
