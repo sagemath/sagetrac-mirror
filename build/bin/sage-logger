@@ -81,7 +81,7 @@ if [ -n "$SAGE_SILENT_BUILD" -a ${use_prefix} = true ]; then
         tail -n 40 "$logfile" | sed "/Please email sage-devel/,$ d;s;^;  [$logname]   ;" >&2
         echo "  [$logname] Full log file: $logfile"
     else
-        echo "  [$logname] successfully installed."
+        echo "  [$logname] successfully installed.  $(echo $(tail -n 40 "$logfile" | grep -E '^(real|user|sys)'))"
     fi
     exit $status
 else
