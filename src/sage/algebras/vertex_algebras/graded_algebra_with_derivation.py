@@ -144,7 +144,7 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation):
     def _element_constructor_(self,x):
         #we first try to see if it coerces to some polynomial approximation
         if isinstance(x,MPolynomial_libsingular):
-            d = max(m.degree() for m in x.monomials())
+            d = x.degree()
             P = self._polynomial_ring(d)
             try:
                 x = P(x)
@@ -163,13 +163,13 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation):
                            range(v.degree(), d+1)] 
                 if self._termorder == "wdegrevlex":
                     varlist = sorted(varlist,
-                                     key = lambda x : (x[1], pgens[v]))
+                                     key = lambda x : (x[1], pgens[x[0]]))
                 if self._termorder == "wdeglex":
                     varlist = sorted(varlist,
-                                     key = lambda x : (-x[1],pgens[v]))
+                                     key = lambda x : (-x[1],pgens[x[0]]))
                 if self._termorder == "lexwdeg":
                     varlist = sorted(varlist,
-                                     key = lambda x : (pgens[v],-x[1]))
+                                     key = lambda x : (pgens[x[0]],-x[1]))
                 ret = self.zero()
                 for k in P(x).dict().items():
                     etup = {varlist[i]:k[0][i] for i in range(len(k[0]))}
@@ -177,6 +177,10 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation):
                                 range(v.degree(), d+1)])
                                 for v in self.gens()])
                 return ret
+        #Now the ring:
+        if x in self.base_ring():
+            return self.one()._acted_upon(self.base_ring()(x))
+
         #Now partition tuples:
         if x in PartitionTuples_level(self._ngens):
             v = self._module(x)
@@ -258,6 +262,9 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation):
         return [self(m) for m in self._monomial_basis(n)]
 
     class Element(ElementWrapper):
+        def _lmul_(self,scalar):
+            return self._acted_upon_(scalar)
+
         def _repr_(self):
             ord = max([m.degree() for m in self.monomials()],default=0)
             return repr(self._to_polynomial(ord))
@@ -270,9 +277,6 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation):
 
         def _neg_(self):
             return type(self)(self.parent(), -self.value)
-
-        def _lmul_(self,c):
-            return type(self)(self.parent(), c*self.value)
 
         def _mul_(self,other):
             p = self.parent()
