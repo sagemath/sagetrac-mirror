@@ -826,7 +826,10 @@ class Point(PrimitiveObject):
             sage: P = point3d((1,2,3), color=(0,1,0), opacity=0.5, size=10)
             sage: P.threejs_repr(P.default_render_params())
             [('point',
-              {'color': '#00ff00', 'opacity': 0.5, 'point': (1.0, 2.0, 3.0), 'size': 10.0})]
+              {'point': (1.0, 2.0, 3.0),
+               'size': 10.0,
+               'color': '#00ff00',
+               'opacity': 0.5})]
 
         TESTS:
 
@@ -835,7 +838,7 @@ class Point(PrimitiveObject):
             sage: P = point3d((1,2,3)).translate(-1, -2, -3)
             sage: P.threejs_repr(P.default_render_params())
             [('point',
-              {'color': '#6666ff', 'opacity': 1.0, 'point': (0.0, 0.0, 0.0), 'size': 5.0})]
+              {'point': (0.0, 0.0, 0.0), 'size': 5.0, 'color': '#6666ff', 'opacity': 1.0})]
 
         """
         transform = render_params.transform
@@ -1134,10 +1137,10 @@ class Line(PrimitiveObject):
             sage: L = line3d([(1,2,3), (4,5,6)], thickness=10, color=(1,0,0), opacity=0.5)
             sage: L.threejs_repr(L.default_render_params())
             [('line',
-              {'color': '#ff0000',
-               'linewidth': 10.0,
+              {'points': [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)],
+               'color': '#ff0000',
                'opacity': 0.5,
-               'points': [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)]})]
+               'linewidth': 10.0})]
 
         TESTS:
 
@@ -1146,10 +1149,10 @@ class Line(PrimitiveObject):
             sage: L = line3d([(1,2,3), (4,5,6)]).translate(-1, -2, -3)
             sage: L.threejs_repr(L.default_render_params())
             [('line',
-              {'color': '#6666ff',
-               'linewidth': 1.0,
+              {'points': [(0.0, 0.0, 0.0), (3.0, 3.0, 3.0)],
+               'color': '#6666ff',
                'opacity': 1.0,
-               'points': [(0.0, 0.0, 0.0), (3.0, 3.0, 3.0)]})]
+               'linewidth': 1.0})]
 
         When setting ``arrow_head=True``, the last line segment is replaced by
         an arrow with a width half the thickness of the line::
@@ -1158,10 +1161,10 @@ class Line(PrimitiveObject):
             sage: L_repr = L.threejs_repr(L.default_render_params())
             sage: L_repr[-1]
             ('line',
-              {'color': '#6666ff',
-               'linewidth': 4.0,
-               'opacity': 1.0,
-               'points': [(0.0, 0.0, 0.0), (1.0, 1.0, 1.0)]})
+             {'points': [(0.0, 0.0, 0.0), (1.0, 1.0, 1.0)],
+              'color': '#6666ff',
+              'opacity': 1.0,
+              'linewidth': 4.0})
             sage: A = arrow3d((1,1,1), (2,2,2), width=2)
             sage: A_repr = A.threejs_repr(A.default_render_params())
             sage: A_repr == L_repr[:-1]
@@ -1175,10 +1178,10 @@ class Line(PrimitiveObject):
             sage: L_repr = L.threejs_repr(L.default_render_params())
             sage: L_repr[-1]
             ('line',
-              {'color': '#ff0000',
-               'linewidth': 4.0,
-               'opacity': 0.5,
-               'points': [(-1.0, -1.0, -1.0), (0.0, 0.0, 0.0)]})
+             {'points': [(-1.0, -1.0, -1.0), (0.0, 0.0, 0.0)],
+              'color': '#ff0000',
+              'opacity': 0.5,
+              'linewidth': 4.0})
             sage: A = arrow3d((1,1,1), (2,2,2), width=2, color=(1,0,0), opacity=0.5)
             sage: A = A.translate(-1, -1, -1)
             sage: A_repr = A.threejs_repr(A.default_render_params())

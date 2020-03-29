@@ -1295,12 +1295,12 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: G.threejs_repr(G.default_render_params())
             [('surface',
-              {'color': '#0000ff',
-               'faces': [[0, 1, 2]],
-               'opacity': 1.0,
-               'vertices': [{'x': 0.0, 'y': 0.0, 'z': 1.0},
+              {'vertices': [{'x': 0.0, 'y': 0.0, 'z': 1.0},
                 {'x': 1.0, 'y': 1.0, 'z': 1.0},
-                {'x': 2.0, 'y': 0.0, 'z': 1.0}]})]
+                {'x': 2.0, 'y': 0.0, 'z': 1.0}],
+               'faces': [[0, 1, 2]],
+               'color': '#0000ff',
+               'opacity': 1.0})]
 
         The same but with more options applied::
 
@@ -1309,16 +1309,16 @@ cdef class IndexFaceSet(PrimitiveObject):
             ....:             single_side=True, mesh=True)
             sage: G.threejs_repr(G.default_render_params())
             [('surface',
-              {'color': '#ff0000',
+              {'vertices': [{'x': 0.0, 'y': 0.0, 'z': 1.0},
+                {'x': 1.0, 'y': 1.0, 'z': 1.0},
+                {'x': 2.0, 'y': 0.0, 'z': 1.0}],
                'faces': [[0, 1, 2]],
+               'color': '#ff0000',
                'opacity': 0.5,
                'renderOrder': 2.0,
-               'showMeshGrid': True,
                'singleSide': True,
                'useFlatShading': True,
-               'vertices': [{'x': 0.0, 'y': 0.0, 'z': 1.0},
-                {'x': 1.0, 'y': 1.0, 'z': 1.0},
-                {'x': 2.0, 'y': 0.0, 'z': 1.0}]})]
+               'showMeshGrid': True})]
 
         TESTS:
 
@@ -1327,12 +1327,12 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)]).scale(2,1,-1)
             sage: G.threejs_repr(G.default_render_params())
             [('surface',
-              {'color': '#0000ff',
-               'faces': [[0, 1, 2]],
-               'opacity': 1.0,
-               'vertices': [{'x': 0.0, 'y': 0.0, 'z': -1.0},
+              {'vertices': [{'x': 0.0, 'y': 0.0, 'z': -1.0},
                 {'x': 2.0, 'y': 1.0, 'z': -1.0},
-                {'x': 4.0, 'y': 0.0, 'z': -1.0}]})]
+                {'x': 4.0, 'y': 0.0, 'z': -1.0}],
+               'faces': [[0, 1, 2]],
+               'color': '#0000ff',
+               'opacity': 1.0})]
 
         Per-face colors::
 
@@ -1345,15 +1345,15 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.threejs_repr(S.default_render_params())
             [('surface',
-              {'faceColors': ['#ff0000', '#ff9900', '#cbff00', '#33ff00'],
-               'faces': [[0, 4, 5], [3, 4, 5], [2, 3, 4], [1, 3, 5]],
-               'opacity': 1.0,
-               'vertices': [{'x': 2.0, 'y': 0.0, 'z': 0.0},
+              {'vertices': [{'x': 2.0, 'y': 0.0, 'z': 0.0},
                 {'x': 0.0, 'y': 2.0, 'z': 0.0},
                 {'x': 0.0, 'y': 0.0, 'z': 2.0},
                 {'x': 0.0, 'y': 1.0, 'z': 1.0},
                 {'x': 1.0, 'y': 0.0, 'z': 1.0},
-                {'x': 1.0, 'y': 1.0, 'z': 0.0}]})]
+                {'x': 1.0, 'y': 1.0, 'z': 0.0}],
+               'faces': [[0, 4, 5], [3, 4, 5], [2, 3, 4], [1, 3, 5]],
+               'faceColors': ['#ff0000', '#ff9900', '#cbff00', '#33ff00'],
+               'opacity': 1.0})]
 
         """
         surface = {}

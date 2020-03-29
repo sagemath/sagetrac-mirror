@@ -1170,7 +1170,7 @@ class Text(PrimitiveObject):
 
             sage: T = text3d("Hi", (1, 2, 3), color='red')
             sage: T.threejs_repr(T.default_render_params())
-            [('text', {'color': '#ff0000', 'text': 'Hi', 'x': 1.0, 'y': 2.0, 'z': 3.0})]
+            [('text', {'text': 'Hi', 'x': 1.0, 'y': 2.0, 'z': 3.0, 'color': '#ff0000'})]
 
         TESTS:
 
@@ -1180,7 +1180,7 @@ class Text(PrimitiveObject):
             sage: from sage.plot.plot3d.shapes import Text
             sage: T = Text("Hi")
             sage: T.threejs_repr(T.default_render_params())
-            [('text', {'color': '#6666ff', 'text': 'Hi', 'x': 0.0, 'y': 0.0, 'z': 0.0})]
+            [('text', {'text': 'Hi', 'x': 0.0, 'y': 0.0, 'z': 0.0, 'color': '#6666ff'})]
 
         """
         center = (float(0), float(0), float(0))

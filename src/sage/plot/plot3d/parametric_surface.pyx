@@ -319,13 +319,13 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: P.threejs_repr(P.default_render_params())
             [('surface',
-              {'color': '#6666ff',
-               'faces': [[0, 1, 2, 3],
+              {'vertices': [{'x': -2.0, 'y': -2.0, 'z': 0.0},
                 ...
-               'opacity': 1.0,
-               'vertices': [{'x': -2.0, 'y': -2.0, 'z': 0.0},
+                {'x': 2.0, 'y': 2.0, 'z': 0.0}],
+                'faces': [[0, 1, 2, 3],
                 ...
-                {'x': 2.0, 'y': 2.0, 'z': 0.0}]})]
+                'color': '#6666ff',
+                'opacity': 1.0})]
 
         """
         self.triangulate(render_params)

@@ -2141,14 +2141,14 @@ class Graphics3dGroup(Graphics3d):
             sage: G = point3d((1,2,3)) + point3d((4,5,6)) + line3d([(1,2,3), (4,5,6)])
             sage: G.threejs_repr(G.default_render_params())
             [('point',
-              {'color': '#6666ff', 'opacity': 1.0, 'point': (1.0, 2.0, 3.0), 'size': 5.0}),
+              {'point': (1.0, 2.0, 3.0), 'size': 5.0, 'color': '#6666ff', 'opacity': 1.0}),
              ('point',
-              {'color': '#6666ff', 'opacity': 1.0, 'point': (4.0, 5.0, 6.0), 'size': 5.0}),
+              {'point': (4.0, 5.0, 6.0), 'size': 5.0, 'color': '#6666ff', 'opacity': 1.0}),
              ('line',
-              {'color': '#6666ff',
-               'linewidth': 1.0,
+              {'points': [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)],
+               'color': '#6666ff',
                'opacity': 1.0,
-               'points': [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)]})]
+               'linewidth': 1.0})]
 
         """
         reprs = []
@@ -2422,12 +2422,12 @@ class TransformGroup(Graphics3dGroup):
             sage: G = G.translate(-1, -2, -3).scale(10)
             sage: G.threejs_repr(G.default_render_params())
             [('point',
-              {'color': '#6666ff', 'opacity': 1.0, 'point': (0.0, 0.0, 0.0), 'size': 5.0}),
+              {'point': (0.0, 0.0, 0.0), 'size': 5.0, 'color': '#6666ff', 'opacity': 1.0}),
              ('point',
-              {'color': '#6666ff',
-               'opacity': 1.0,
-               'point': (30.0, 30.0, 30.0),
-               'size': 5.0})]
+              {'point': (30.0, 30.0, 30.0),
+               'size': 5.0,
+               'color': '#6666ff',
+               'opacity': 1.0})]
 
         """
         render_params.push_transform(self.get_transformation())
@@ -2643,12 +2643,12 @@ cdef class PrimitiveObject(Graphics3d):
             sage: G = SimpleTriangle()
             sage: G.threejs_repr(G.default_render_params())
             [('surface',
-              {'color': '#0000ff',
-               'faces': [[0, 1, 2]],
-               'opacity': 1.0,
-               'vertices': [{'x': 0.0, 'y': 0.0, 'z': 0.0},
+              {'vertices': [{'x': 0.0, 'y': 0.0, 'z': 0.0},
                 {'x': 1.0, 'y': 0.0, 'z': 0.0},
-                {'x': 0.0, 'y': 1.0, 'z': 0.0}]})]
+                {'x': 0.0, 'y': 1.0, 'z': 0.0}],
+               'faces': [[0, 1, 2]],
+               'color': '#0000ff',
+               'opacity': 1.0})]
 
         """
         return self.triangulation().threejs_repr(render_params)
