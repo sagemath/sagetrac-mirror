@@ -1292,10 +1292,9 @@ REFERENCES:
                :doi:`10.1007/978-3-642-15775-2_26`.
                
 .. [CGLM2014] \P. Crescenzi, R. Grossi, L. Lanzi, and A. Marino.
-               *On computing the diameter of real-world (weighted) directed 
-               graphs*, 
-               https://courses.cs.ut.ee/MTAT.03.238/2014_fall/uploads/Main/diameter.pdf
-
+              *On computing the diameter of real-world (weighted) directed 
+              graphs*, 
+              https://courses.cs.ut.ee/MTAT.03.238/2014_fall/uploads/Main/diameter.pdf
 
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
