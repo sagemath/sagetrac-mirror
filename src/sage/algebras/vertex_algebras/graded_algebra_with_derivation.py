@@ -360,7 +360,12 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation):
                                       p.termorder()))
                 ret += PR({k:m[1]})
             return ret
-                    
+            
+        def lm(self):
+            p = self.parent()
+            pol = self._to_polynomial()
+            return p(pol.lm())
+
 class GradedCommutativeAlgebraWithDerivationQuotient(
                             GradedCommutativeAlgebraWithDerivation):
     def __init__(self, I, names=None, category=None):
