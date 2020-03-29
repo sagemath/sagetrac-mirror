@@ -22,7 +22,7 @@ from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from lie_conformal_algebras import LieConformalAlgebras
+from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.graded_modules import GradedModulesCategory
 

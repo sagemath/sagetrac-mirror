@@ -22,7 +22,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_with_axiom import all_axioms as all_axioms
 from sage.categories.quotients import QuotientsCategory
-from lie_conformal_algebras import LieConformalAlgebras
+from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.algebras.vertex_algebras.vertex_algebra_quotient import VertexAlgebraQuotient
 from sage.functions.other import factorial
 from sage.categories.graded_modules import GradedModulesCategory

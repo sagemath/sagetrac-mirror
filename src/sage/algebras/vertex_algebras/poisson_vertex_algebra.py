@@ -26,8 +26,8 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.cachefunc import cached_method 
 from sage.categories.vertex_algebras import VertexAlgebras
 from sage.categories.poisson_vertex_algebras import PoissonVertexAlgebras
-from vertex_algebra import UniversalEnvelopingVertexAlgebra
-from vertex_algebra_quotient import VertexAlgebraQuotient
+from sage.algebras.vertex_algebras.vertex_algebra import UniversalEnvelopingVertexAlgebra
+from sage.algebras.vertex_algebras.vertex_algebra_quotient import VertexAlgebraQuotient
 from sage.combinat.partition import Partition
 from sage.sets.family import Family
 from sage.algebras.vertex_algebras.graded_algebra_with_derivation import \
@@ -50,7 +50,7 @@ class PoissonVertexAlgebra(Parent, UniqueRepresentation):
         except AttributeError: 
             pass
 
-        print "Nothing to construct"
+        print ("Nothing to construct")
 
     def __init__(self, R, **kwds):
         category = kwds.get('category', None)

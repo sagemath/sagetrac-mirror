@@ -51,7 +51,7 @@ class VertexAlgebra(Parent, UniqueRepresentation):
         except AttributeError: 
             pass
 
-        print "Nothing to construct"
+        print ("Nothing to construct")
 
     def __init__(self, R, category=None,names=None):
         category = VertexAlgebras(R).or_subcategory(category)
