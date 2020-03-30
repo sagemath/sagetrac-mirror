@@ -1,0 +1,11 @@
+= PACKAGE_NAME = Graph Diameter
+
+== Description ==
+
+Graph Diameter is a new algorithm for computing diameters of real directed graphs.
+
+== Dependencies ==
+
+  * None
+
+
