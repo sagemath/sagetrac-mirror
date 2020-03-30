@@ -14782,7 +14782,11 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not self.order():
             raise ValueError("radius is not defined for the empty graph")
-
+            
+        if(algorithm == "certificate"):
+            from sage.graphs.distances_all_pairs import radius
+            return radius(self, algorithm="certificate")
+            
         return min(self.eccentricity(v=list(self), by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
