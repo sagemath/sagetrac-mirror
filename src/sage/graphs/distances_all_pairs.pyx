@@ -1659,3 +1659,104 @@ def floyd_warshall(gg, paths=True, distances=False):
         return d_prec
     if distances:
         return d_dist
+
+
+##########
+# radius #
+##########
+
+cdef uint32_t radius_certificate(short_digraph g,
+                                uint32_t source):
+
+    cdef uint32_t i, LB, s, m, d
+    cdef uint32_t n = g.n
+    
+    L = []
+    K = []
+    
+    cdef bitset_t seen
+    bitset_init(seen, n)    
+    cdef uint32_t * distances = <uint32_t *>sig_malloc(4 * n * sizeof(uint32_t))
+    if not distances:
+        bitset_free(seen)
+        raise MemoryError()
+    cdef uint32_t* waiting_list = distances + n
+    cdef uint32_t* e_L        = distances + 2 * n
+    cdef uint32_t* e        = distances + 3 * n
+    
+    memset(e_L, 0, n*sizeof(uint32_t))
+    memset(e, 0, n*sizeof(uint32_t))
+    
+    while True:
+        min_e_L = UINT32_MAX
+        u = 0
+
+        for i in range(n):
+            if(min_e_L>e_L[i]):
+                min_e_L = e_L[i]
+                u = i
+        
+        e[u] = simple_BFS(g, u, distances, NULL, waiting_list, seen)
+        
+        if(e[u]==e_L[u]):
+            r = e[u]
+            sig_free(distances)
+            return r
+        else:
+            max_Duv = 0
+            a = 0
+            for i in range(n):
+                if(max_Duv<distances[i]):
+                    max_Duv = distances[i]
+                    a = i
+            x = simple_BFS(g, a, distances, NULL, waiting_list, seen)
+            K.append(u)
+            L.append(a)
+            for i in range(n):
+                e_L[i]= max(e_L[i], distances[i])
+            
+            min_e_L = min([e_L[p] for p in range(n)])
+            min_e_k = min([e[h] for h in K])
+        
+        if(min_e_k <= min_e_L) :    
+            break
+
+    r = UINT32_MAX
+    for h in K:
+        if(e[h]<r):
+            r = e[h]
+    sig_free(distances)
+    return r
+
+
+def radius(G, algorithm='certificate', source=None):
+
+    cdef int n = G.order()
+    if not n:
+        return 0
+
+    if source is None:
+        source = next(G.vertex_iterator())
+    elif not G.has_vertex(source):
+        raise ValueError("the specified source is not a vertex of the input Graph")
+
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors. This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
+    cdef list int_to_vertex = list(G)
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
+
+    # and we map the source to an int in [0,n-1] 
+    cdef uint32_t isource = 0 if source is None else int_to_vertex.index(source)
+
+    cdef bitset_t seen
+    cdef uint32_t* tab
+    cdef int LB 
+    
+    if(algorithm=='certificate'):
+        LB =radius_certificate(sd, isource)
+    
+    free_short_digraph(sd)
+    return LB
