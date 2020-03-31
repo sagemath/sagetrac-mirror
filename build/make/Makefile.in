@@ -44,7 +44,7 @@ endif
 # or at least that if the C Compiler can handle
 # `march=native`, then so can the C++ and Fortran
 # compiler.
-opt := $(shell export CC=$(CC) && ../../src/bin/./testcflags.sh $(opt))
+opt := $(shell export CC=$(CC) && ../../build/bin/./testcflags.sh $(opt))
 CFLAGS ?= $(opt)
 CXXFLAGS ?= $(opt)
 FCFLAGS ?= $(opt)
