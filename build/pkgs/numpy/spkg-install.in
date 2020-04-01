@@ -11,10 +11,6 @@ else
     export LDFLAGS="${LDFLAGS} -shared"
 fi
 
-# LDSHARED is set by sage-env to fix CXX linking problems - #29408
-# But it causes errors in libraries using numpy: undefined symbol: __cpu_model
-unset LDSHARED
-
 sage-python23 ../lapack_conf.py
 
 # Make sure that the fortran objects are compiled with -fPIC
