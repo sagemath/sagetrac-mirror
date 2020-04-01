@@ -42,14 +42,6 @@ def frobenius_unram(self, arithmetic=True):
         Traceback (most recent call last):
         ...
         NotImplementedError: Frobenius automorphism only implemented for unramified extensions
-
-    TESTS:
-
-    Check that :trac:`29139` works::
-
-        sage: cython('''
-        ....: include "sage/libs/linkages/padics/unram_shared.pxi"
-        ....: ''')  # long time
     """
     if self == 0:
         return self

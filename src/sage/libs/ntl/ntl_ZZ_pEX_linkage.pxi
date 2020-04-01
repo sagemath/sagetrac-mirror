@@ -6,17 +6,6 @@ templating.
 
 AUTHOR:
     -- Yann Laigle-Chapuy (2010-01): initial version
-
-TESTS:
-
-Check that :trac:`29139` works::
-
-    sage: cython('''
-    ....: # distutils: language = c++
-    ....: from sage.libs.ntl.ntl_ZZ_pEContext cimport ZZ_pEContext_ptrs
-    ....: ctypedef ZZ_pEContext_ptrs *cparent
-    ....: include "sage/libs/ntl/ntl_ZZ_pEX_linkage.pxi"
-    ....: ''')  # long time
 """
 
 #*****************************************************************************

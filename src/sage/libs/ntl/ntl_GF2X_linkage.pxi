@@ -6,15 +6,6 @@ templating.
 
 AUTHOR:
     -- Martin Albrecht (2008-10): initial version
-
-TESTS:
-
-Check that :trac:`29139` works::
-
-    sage: cython('''
-    ....: # distutils: language = c++
-    ....: include "sage/libs/ntl/ntl_GF2X_linkage.pxi"
-    ....: ''')
 """
 
 #*****************************************************************************
