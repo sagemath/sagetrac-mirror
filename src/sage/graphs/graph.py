@@ -4440,7 +4440,7 @@ class Graph(GenericGraph):
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(W[frozenset(e)] for e in d)
+                    return float(sum(W[frozenset(e)] for e in d))
                 else:
                     return Integer(len(d))
             else:
