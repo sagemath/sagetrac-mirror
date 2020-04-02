@@ -1757,6 +1757,11 @@ REFERENCES:
               algorithms," in "Algebra, geometry, and software
               systems" (2003), 177-206.
 
+.. [DHV2018] Feodor Dragan, Michel Habib, Laurent Viennot.
+             Revisiting Radius, Diameter, and all Eccentricity Computation in 
+             Graphs through Certificates. 
+             :arxiv:`1803.04660v1`
+
 .. [DI1989]  Dan Gusfield and Robert W. Irving. *The stable marriage
              problem: structure and algorithms*. Vol. 54. Cambridge:
              MIT press, 1989.

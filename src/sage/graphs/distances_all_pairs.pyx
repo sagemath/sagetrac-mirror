@@ -1665,82 +1665,154 @@ def floyd_warshall(gg, paths=True, distances=False):
 # radius #
 ##########
 
-cdef uint32_t radius_certificate(short_digraph g,
-                                uint32_t source):
+cdef uint32_t radius_certificate(short_digraph g):
+    """
+    Compute the radius of the input Graph using the algorithm.
 
-    cdef uint32_t i, LB, s, m, d
+    The ``radius-certificate``  algorithm 
+    calculates the exact value of the radius of a unweighted undirected graph 
+    [DHV2018]_. THis algorithm maintains lower bounds on eccentricities of all 
+    nodes and performs one-to-all distance queries from nodes with minimal lower
+    bound. It then performs one-to-all distance queries from antipodes of the
+    previous query source, which it uses to update the lower bound. 
+    It iterates until an exact solution is obtained. It can be very fast in 
+    practice. See the code's documentation and [DHV2018]_ for more details.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph
+
+    """
+    cdef uint32_t i, LB
     cdef uint32_t n = g.n
     
+    # L is the lower certificate
     L = []
+    # K is the antipode inverse list. 
+    # for all i, vertex L[i] is the antipode of vertex K[i]
     K = []
     
+    # allocate some arrays for BFS
+    cdef MemoryAllocator mem = MemoryAllocator()
     cdef bitset_t seen
-    bitset_init(seen, n)    
-    cdef uint32_t * distances = <uint32_t *>sig_malloc(4 * n * sizeof(uint32_t))
+    bitset_init(seen, n)
+    cdef uint32_t * distances = <uint32_t *>mem.malloc(4 * n * sizeof(uint32_t))
     if not distances:
         bitset_free(seen)
         raise MemoryError()
-    cdef uint32_t* waiting_list = distances + n
-    cdef uint32_t* e_L        = distances + 2 * n
-    cdef uint32_t* e        = distances + 3 * n
+    cdef uint32_t * waiting_list = distances + n
     
+    # e_L[i] lowerbound on eccentricity of vertex i
+    cdef uint32_t* e_L = distances + 2 * n
     memset(e_L, 0, n*sizeof(uint32_t))
+    
+    # e[i] is the exact eccentricity of vertex i, for i in set K
+    cdef uint32_t* e = distances + 3 * n         
     memset(e, 0, n*sizeof(uint32_t))
     
+    # if graph is unconnected, radius is infinity
+    LB = simple_BFS(g, 0, distances, NULL, waiting_list, seen)
+    if(LB==UINT32_MAX):
+        bitset_free(seen)
+        return LB
+    
     while True:
+        # select vertex u with a minimal eccentricity lower bound 
         min_e_L = UINT32_MAX
         u = 0
-
         for i in range(n):
             if(min_e_L>e_L[i]):
                 min_e_L = e_L[i]
                 u = i
         
+        # find the exact eccentricity of vertex u
         e[u] = simple_BFS(g, u, distances, NULL, waiting_list, seen)
         
+        # if the exact eccentricity of u equals the minimal lower bound of 
+        # eccentricities, terminate and return eccentricity of u as radius since
+        # the radius can't be any lower than the minimal lower bound. 
         if(e[u]==e_L[u]):
-            r = e[u]
-            sig_free(distances)
-            return r
+            bitset_free(seen)
+            return e[u]
+        
+        # if the eccentricity lower bounds are not tight, we try to  improve 
+        # them
         else:
             max_Duv = 0
             a = 0
+            # select any vertex a, such that dist(u,a) = eccentricity(u)
+            # thus a is the antipode of u
             for i in range(n):
                 if(max_Duv<distances[i]):
                     max_Duv = distances[i]
                     a = i
+            
+            # calculate the distances from a, 
             x = simple_BFS(g, a, distances, NULL, waiting_list, seen)
+            
+            # add u to the antipode_inverse list
             K.append(u)
+            # add a to the lower certificate
             L.append(a)
+            
+            # update the lower bounds using distance from a
             for i in range(n):
                 e_L[i]= max(e_L[i], distances[i])
             
+            # find -minimal eccentricity lowerbound of all vertices
             min_e_L = min([e_L[p] for p in range(n)])
-            min_e_k = min([e[h] for h in K])
+            # find minimum of exact eccentricities of vertices in set K
+            min_e_K = min([e[h] for h in K])
         
-        if(min_e_k <= min_e_L) :    
-            break
-
-    r = UINT32_MAX
-    for h in K:
-        if(e[h]<r):
-            r = e[h]
-    sig_free(distances)
-    return r
+        # if minimum eccentricity lower bound is greater than minimum of exact 
+        # eccentricities of K, then return minimum exact eccentricity
+        # from K as the radius
+            if(min_e_K <= min_e_L) :
+                bitset_free(seen)
+                return min_e_K
 
 
-def radius(G, algorithm='certificate', source=None):
+def radius(G, algorithm="radius-certificate"):
+    r"""
+    Return the radius of `G`.
+
+    This algorithm returns Infinity if the (di)graph is not connected. 
+
+    INPUT:
+
+    - ``algorithm`` -- (default: ``'radius-certificate'``) specifies the 
+      algorithm to use among:
+
+      - ``'radius-certificate'`` -- The radius algorithm,
+        proposed in [DHV2018]_, computes the exact value of the radius of an
+        unweighted undirected graph. 
+        It can be very fast in practice.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.distances_all_pairs import radius
+        sage: G = Graph(4)
+        sage: while not G.is_connected():
+        ....:   G = graphs.RandomGNP(1000,0.008)
+        sage: radius(G, algorithm='radius-certificate')
+        4
+        sage: G = Graph({0: [], 1: [], 2: [1]})
+        sage: radius(G, algorithm='radius-certificate')
+        +Infinity
+        
+    """
+
 
     cdef int n = G.order()
     if not n:
         return 0
-
-    if source is None:
-        source = next(G.vertex_iterator())
-    elif not G.has_vertex(source):
-        raise ValueError("the specified source is not a vertex of the input Graph")
-
-
+    if algorithm not in ['radius-certificate']:
+        raise ValueError("unknown algorithm for computing the radius")
+    else:
+        if G.is_directed():
+            raise ValueError("algorithm '" + algorithm + "' does not work" +
+                             " on directed graphs")
+    
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
     # module sage.graphs.base.static_sparse_graph
@@ -1748,15 +1820,14 @@ def radius(G, algorithm='certificate', source=None):
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
 
-    # and we map the source to an int in [0,n-1] 
-    cdef uint32_t isource = 0 if source is None else int_to_vertex.index(source)
-
-    cdef bitset_t seen
-    cdef uint32_t* tab
-    cdef int LB 
+    cdef int LB =0
     
-    if(algorithm=='certificate'):
-        LB =radius_certificate(sd, isource)
+    if(algorithm=='radius-certificate'):
+        LB =radius_certificate(sd)
     
     free_short_digraph(sd)
-    return LB
+    if LB < 0 or LB > n:
+        from sage.rings.infinity import Infinity
+        return +Infinity
+    else:
+        return int(LB)

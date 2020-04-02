@@ -14742,8 +14742,14 @@ class GenericGraph(GenericGraph_pyx):
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, edge
           weights are taken into account; if False, all edges have weight 1
 
-        - ``algorithm`` -- string (default: ``None``); see method
-          :meth:`eccentricity` for the list of available algorithms
+        - ``algorithm`` -- string (default: ``None``); in addition to the list 
+          of algorithms in method :meth:`eccentricity`, the following algorithms 
+          are available:
+          
+          - ``'radius-certificate'``: this algorithm is implemented in
+            :func:`sage.graphs.distances_all_pairs.radius`
+            It works only if ``by_weight==False`` and graph is undirected. 
+            See the function documentation for more information. 
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
@@ -14782,11 +14788,20 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not self.order():
             raise ValueError("radius is not defined for the empty graph")
-            
-        if(algorithm == "certificate"):
+
+        if weight_function is not None:
+            by_weight = True
+
+        if algorithm in ['radius-certificate']:
+            if by_weight:
+                raise ValueError("algorithm '" + algorithm + "' does not work" +
+                                 " on weighted graphs")
+            if self.is_directed():
+                raise ValueError("algorithm '" + algorithm + "' does not work" +
+                                 " on directed graphs")
             from sage.graphs.distances_all_pairs import radius
-            return radius(self, algorithm="certificate")
-            
+            return radius(self, algorithm=algorithm)     
+                   
         return min(self.eccentricity(v=list(self), by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
