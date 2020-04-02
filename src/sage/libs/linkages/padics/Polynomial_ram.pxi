@@ -16,6 +16,7 @@ is independent of ramification is in Polynomial_shared.pxi.
 AUTHORS:
 
 - David Roe, Julian Rüth (2017-06-11): initial version
+
 """
 #*****************************************************************************
 #       Copyright (C) 2017 David Roe <roed.math@gmail.com>
@@ -57,7 +58,7 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime
         out.__coeffs = ared.__coeffs[:]
     else:
         out.__coeffs = ared.__coeffs
-    cdef long coeff_prec = prec // prime_pow.e + 1
+    cdef long coeff_prec = prec / prime_pow.e + 1
     cdef long break_pt = prec % prime_pow.e
     for i in range(len(out.__coeffs)):
         if i == break_pt:
@@ -214,7 +215,7 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
     if n > 0:
         a *= prime_pow.uniformizer_pow(n)
     elif n < 0:
-        q = -n // prime_pow.e # ≥ 0
+        q = -n / prime_pow.e # ≥ 0
         r = -n % prime_pow.e # ≥ 0
         # As 0 > n = -q*e - r, π^n = p^-q * (p/π^e)^q * π^-r
         if q:

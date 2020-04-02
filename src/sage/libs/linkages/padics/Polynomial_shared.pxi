@@ -112,7 +112,7 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
             if coeffs[i] and coeffs[i].valuation() < prec:
                 return 1
     else:
-        coeff_prec = prec // prime_pow.e + 1
+        coeff_prec = prec / prime_pow.e + 1
         break_pt = prec % prime_pow.e
         for i in range(len(coeffs)):
             if coeffs[i] and (i < break_pt and coeffs[i].valuation() < coeff_prec or
@@ -127,14 +127,14 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     INPUT:
 
     - ``out`` -- a ``celement`` to store the unit part
-
+ 
     - ``a`` -- the ``celement`` whose valuation and unit are desired
-
+ 
     - ``prec`` -- a ``long``, the return value if ``a`` is zero
-
+ 
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
-    - ``reduce_relative`` -- a bint: whether the final result
+    - ``reduce_relative`` -- a bint: whether the final result          
       should be reduced at precision ``prec`` (case ``False``)
       or ``prec - valuation`` (case ``True``)
 
