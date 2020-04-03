@@ -1,5 +1,5 @@
 SAGE_SPKG_CONFIGURE([flintqs], [
-  SAGE_SPKG_DEPCHECK([gmp], [
+  SAGE_SPKG_DEPCHECK([gmp mpir], [
     # FlintQS only builds against GMP, not MPIR. If we're using the
     # system GMP, then we check for the QuadraticSieve program, which
     # is the only interface to FlintQS that sagelib uses.
