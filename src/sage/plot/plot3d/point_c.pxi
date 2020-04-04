@@ -1,14 +1,3 @@
-"""
-TESTS:
-
-Check that :trac:`29139` works::
-
-    sage: cython('''
-    ....: from sage.plot.plot3d.base cimport *
-    ....: from sage.plot.plot3d.transform cimport Transformation, point_c, face_c
-    ....: include "sage/plot/plot3d/point_c.pxi"
-    ....: ''')  # long time
-"""
 # ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
