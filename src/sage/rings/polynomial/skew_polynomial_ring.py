@@ -409,18 +409,23 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         except IndexError:
             raise NotImplementedError("multivariate skew polynomials rings not supported")
 
-        # We check if the twisting morphism has finite order
+        # We find the best constructor
+        constructor = None
         if base_ring in Fields():
             try:
                 order = twist_map.order()
                 if order is not Infinity:
-                    from sage.rings.polynomial.skew_polynomial_ring import SkewPolynomialRing_finite_order
-                    return SkewPolynomialRing_finite_order(base_ring, twist_map, names, sparse)
+                    if base_ring.is_finite():
+                        constructor = SkewPolynomialRing_finite_field
+                    else:
+                        constructor = SkewPolynomialRing_finite_order
             except AttributeError:
                 pass
-
-        # We fallback to generic implementation
-        return cls.__classcall__(cls, base_ring, twist_map, names, sparse)
+        if constructor is not None:
+            return constructor(base_ring, twist_map, names, sparse)
+        else:
+            # We fallback to generic implementation
+            return cls.__classcall__(cls, base_ring, twist_map, names, sparse)
 
     def __init__(self, base_ring, twist_map, name, sparse, category=None):
         r"""
@@ -1544,8 +1549,9 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
             sage: TestSuite(S).run()
         """
-        from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
-        self.Element = SkewPolynomial_finite_order_dense
+        if not hasattr(self, 'Element') or self.Element is None:
+            from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
+            self.Element = SkewPolynomial_finite_order_dense
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
 
@@ -1730,7 +1736,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         Add methods related to center of skew polynomial ring, irreducibility, karatsuba
         multiplication and factorization.
     """
-    def __init__(self, base_ring, twist_map, names, sparse, category=None, element_class=None):
+    def __init__(self, base_ring, twist_map, names, sparse, category=None):
         """
         This method is a constructor for a general, dense univariate skew polynomial ring
         over a finite field.
@@ -1758,10 +1764,10 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
             sage: T.<x> = k['x', Frob]; T
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
-        if element_class is None:
+        if not hasattr(self, 'Element') or self.Element is None:
             from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field
-            element_class = SkewPolynomial_finite_field
-        SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, name, sparse, category, element_class)
+            self.Element = SkewPolynomial_finite_field
+        SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, name, sparse, category)
 
     def _new_retraction_map(self, alea=None):
         """
