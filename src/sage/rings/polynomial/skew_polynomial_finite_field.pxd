@@ -1,5 +1,5 @@
 from sage.rings.polynomial.skew_polynomial_finite_order cimport SkewPolynomial_finite_order_dense
-from sage.rings.polynomial.polynomial_element cimport Polynomial as CenterSkewPolynomial_generic_dense
+from sage.rings.polynomial.skew_polynomial_element cimport CenterSkewPolynomial_generic_dense
 from sage.matrix.matrix_dense cimport Matrix_dense
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_finite_order_dense):

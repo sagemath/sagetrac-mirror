@@ -23,7 +23,9 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from cysignals.signals cimport sig_on, sig_off
+#from cysignals.signals cimport sig_on, sig_off
+def sig_on(): pass
+def sig_off(): pass
 
 import copy
 import cysignals
@@ -33,7 +35,7 @@ from sage.matrix.matrix_dense cimport Matrix_dense
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.rings.polynomial.polynomial_element cimport Polynomial as CenterSkewPolynomial_generic_dense
+from sage.rings.polynomial.skew_polynomial_element cimport CenterSkewPolynomial_generic_dense
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport RingElement
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1044,7 +1046,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef skew_ring = self._parent
         cdef Py_ssize_t degQ, degrandom, m, mP, i
         cdef CenterSkewPolynomial_generic_dense N
-        cdef SkewPolynomial_finite_field_dense poly = <SkewPolynomial_finite_field_dense>self.rmonic()
+        cdef SkewPolynomial_finite_field_dense poly = <SkewPolynomial_finite_field_dense>self.right_monic()
         cdef val = poly._val_inplace_unit()
         if val == -1:
             return Factorization([], sort=False, unit=skew_ring.zero_element())
@@ -1425,7 +1427,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         if self.is_zero():
             raise ValueError("factorization of 0 not defined")
         unit = self.leading_coefficient()
-        poly = self.rmonic()
+        poly = self.right_monic()
         for factors in self._factorizations_rec():
             yield Factorization(factors,sort=False,unit=unit)
 

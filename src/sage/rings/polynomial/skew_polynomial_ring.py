@@ -388,7 +388,7 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         - Multivariate Skew Polynomial Ring
         - Add derivations.
     """
-    Element = sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense
+    # Element = sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense
 
     def __classcall_private__(cls, base_ring, twist_map=None, names=None, sparse=False):
         if base_ring not in CommutativeRings():
@@ -455,6 +455,9 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             0
             sage: TestSuite(S).run()
         """
+        if not hasattr(self, 'Element') or self.Element is None:
+            from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial_generic_dense
+            self.Element = SkewPolynomial_generic_dense
         self.__is_sparse = sparse
         self._map = twist_map
         self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
@@ -1765,9 +1768,9 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
         if not hasattr(self, 'Element') or self.Element is None:
-            from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field
-            self.Element = SkewPolynomial_finite_field
-        SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, name, sparse, category)
+            from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field_dense
+            self.Element = SkewPolynomial_finite_field_dense
+        SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, names, sparse, category)
 
     def _new_retraction_map(self, alea=None):
         """
