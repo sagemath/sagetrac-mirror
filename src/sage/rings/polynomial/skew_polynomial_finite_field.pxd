@@ -8,17 +8,6 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_finite_order_dense)
     cdef dict _types
     cdef _factorization
 
-    cdef SkewPolynomial_finite_field_dense _rgcd(self,SkewPolynomial_finite_field_dense other)
-    cdef void _inplace_lrem(self, SkewPolynomial_finite_field_dense other)
-    cdef void _inplace_rrem(self, SkewPolynomial_finite_field_dense other)
-    cdef void _inplace_lfloordiv(self, SkewPolynomial_finite_field_dense other)
-    cdef void _inplace_rfloordiv(self, SkewPolynomial_finite_field_dense other)
-    cdef void _inplace_lmonic(self)
-    cdef void _inplace_rmonic(self)
-    cdef void _inplace_rgcd(self,SkewPolynomial_finite_field_dense other)
-    cdef Py_ssize_t _val_inplace_unit(self)
-    cdef SkewPolynomial_finite_field_dense _rquo_inplace_rem(self, SkewPolynomial_finite_field_dense other)
-
     # Finding divisors
     cdef SkewPolynomial_finite_field_dense _rdivisor_c(P, CenterSkewPolynomial_generic_dense N)
 
