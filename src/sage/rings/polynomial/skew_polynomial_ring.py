@@ -1581,7 +1581,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing_general):
 # Special class for skew polynomial over finite fields
 ######################################################
 
-class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
+class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
     """
     A specialized class for skew polynomial rings over finite fields.
 
@@ -1596,17 +1596,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
         Add methods related to center of skew polynomial ring, irreducibility, karatsuba
         multiplication and factorization.
     """
-    @staticmethod
-    def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
-        if not element_class:
-            if sparse:
-                raise NotImplementedError("sparse skew polynomials are not implemented")
-            else:
-                from sage.rings.polynomial import skew_polynomial_finite_field
-                element_class = skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
-                return super(SkewPolynomialRing_general,cls).__classcall__(cls,base_ring,map,name,sparse,element_class)
-
-    def __init__(self, base_ring, map, name, sparse, element_class):
+    def __init__(self, base_ring, twist_map, names, sparse, category=None, element_class=None):
         """
         This method is a constructor for a general, dense univariate skew polynomial ring
         over a finite field.
@@ -1634,64 +1624,21 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
             sage: T.<x> = k['x', Frob]; T
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
-        self._order = -1
-        try:
-            self._order = map.order()
-        except (AttributeError,NotImplementedError):
-            pass
-        if self._order < 0:
-            try:
-                if map.is_identity():
-                    self._order = 1
-            except (AttributeError,NotImplementedError):
-                pass
-        if self._order < 0:
-            raise NotImplementedError("unable to determine the order of %s" % map)
-        SkewPolynomialRing_general.__init__ (self, base_ring, map, name, sparse, element_class)
-        self._maps = [ map**i for i in range(self._order) ]
+        if element_class is None:
+            from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field
+            element_class = SkewPolynomial_finite_field
+        SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, name, sparse, category, element_class)
 
-    def twist_map(self, n=1):
-        """
-        Return the twist map, otherwise known as the automorphism over the base ring of
-        ``self``, iterated `n` times.
-
-        INPUT:
-
-        -  ``n`` - a relative integer (default: 1)
-
-        OUTPUT:
-
-        -  The `n`-th iterative of the twist map of this skew polynomial ring.
-
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: S.twist_map()
-            Frobenius endomorphism t |--> t^5 on Finite Field in t of size 5^3
-            sage: S.twist_map(11)
-            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
-            sage: S.twist_map(3)
-            Identity endomorphism of Finite Field in t of size 5^3
-
-        It also works if `n` is negative::
-
-            sage: S.twist_map(-1)
-            Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
-        """
-        return self._maps[n%self._order]
-
-    def _new_retraction_map(self,alea=None):
+    def _new_retraction_map(self, alea=None):
         """
         This is an internal function used in factorization.
         """
         k = self.base_ring()
         base = k.base_ring()
-        (kfixed,embed) = self._maps[1].fixed_points()
+        (kfixed, embed) = self._maps[1].fixed_points()
         section = embed.section()
         if not kfixed.has_coerce_map_from(base):
-            raise NotImplementedError("No coercion map from %s to %s" % (base,kfixed))
+            raise NotImplementedError("No coercion map from %s to %s" % (base, kfixed))
         if alea is None:
             alea = k.random_element()
         self._alea_retraction = alea
@@ -1705,9 +1652,10 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_general):
                 tr += x
             elt *= k.gen()
             trace.append(section(tr))
-        self._matrix_retraction = MatrixSpace(kfixed,1,k.degree())(trace)
+        self._matrix_retraction = MatrixSpace(kfixed, 1, k.degree())(trace)
 
-    def _retraction(self,x,newmap=False,alea=None): # Better to return the retraction map but more difficult
+    def _retraction(self, x, newmap=False, alea=None):
+        # Better to return the retraction map but more difficult
         """
         This is an internal function used in factorization.
         """
