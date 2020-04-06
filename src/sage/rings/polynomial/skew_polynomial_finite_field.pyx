@@ -242,12 +242,13 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef Py_ssize_t e = P.degree()/d
         cdef SkewPolynomial_finite_field_dense D
         if e == 1:
-            D = <SkewPolynomial_finite_field_dense>P._new_c(list(P.__coeffs), skew_ring)
+            D = <SkewPolynomial_finite_field_dense>P._new_c(list(P._coeffs), skew_ring)
             D = D.right_monic()
             return D
 
-        E = N.parent().base_ring().extension(N,name='xr')
-        PE = PolynomialRing(E,name='T')
+        Z = PolynomialRing(N.parent().base_ring(), name='xr')
+        E = Z.quo(Z(N.list()))
+        PE = PolynomialRing(E, name='T')
         cdef Integer exp
         if skew_ring.characteristic() != 2:
             exp = Integer((E.cardinality()-1)/2)
@@ -260,16 +261,16 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef Py_ssize_t i, j, t, r = skew_ring._order
         cdef Polynomial dd, xx, yy, zz
 
-        while 1:
+        while True:
             R = <SkewPolynomial_finite_field_dense>skew_ring.random_element((e*r-1,e*r-1))
-            R = R*Q # R._inplace_lmul(Q)
-            X = <SkewPolynomial_finite_field_dense>Q._new_c(Q.__coeffs[:],Q._parent)
+            R = Q*R
+            X = <SkewPolynomial_finite_field_dense>Q._new_c(Q._coeffs[:],Q._parent)
             for j from 0 <= j < e:
                 for i from 0 <= i < e:
-                    M.set_unsafe(i, j, E([skew_ring._retraction(X[t*r+i]) for t in range(d)]))
-                X = (X*R) % NS
-                # X._inplace_lmul(R)
-                # X._inplace_rrem(NS)
+                    coeffs = [skew_ring._retraction(X[t*r+i]) for t in range(d)]
+                    value = E(coeffs)
+                    M.set_unsafe(i, j, value)
+                X = (R*X) % NS
             for i from 0 <= i < e:
                 V.set_unsafe(i, 0, E([skew_ring._retraction(X[t*r+i]) for t in range(d)]))
             W = M._solve_right_nonsingular_square(V)
@@ -283,14 +284,14 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
                 for i from 1 <= i < d:
                     zz = (zz*zz) % xx
                     yy += zz
-                dd = xx.right_gcd(yy)
+                dd = xx.gcd(yy)
                 if dd.degree() != 1: continue
             else:
                 yy = PE.gen().__pow__(exp,xx) - 1
-                dd = xx.right_gcd(yy)
+                dd = xx.gcd(yy)
                 if dd.degree() != 1:
                     yy += 2
-                    dd = xx.right_gcd(yy)
+                    dd = xx.gcd(yy)
                     if dd.degree() != 1: continue
             D = P.right_gcd(R + skew_ring.center()((dd[0]/dd[1]).list()))
             if D.degree() == 0:
@@ -399,10 +400,10 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
                     break
         else:
             N = self.reduced_norm_factor()[0][0]
-        return self.irreducible_divisor_with_norm(N,right=right,distribution=distribution)
+        return self.irreducible_divisor_with_norm(N, right=right, distribution=distribution)
 
 
-    def irreducible_divisor_with_norm(self,N,right=True,distribution=None):
+    def irreducible_divisor_with_norm(self, N, right=True, distribution=None):
         """
         INPUT:
 
@@ -770,56 +771,53 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef Py_ssize_t p = skew_ring.characteristic()
         cdef F = self.reduced_norm_factor()
 
-        for N,m in F:
+        for N, m in F:
             if N == gencenter:
                 continue
             degN = N.degree()
             if poly.degree() == degN:
-                factors.append((poly,1))
+                factors.append((poly, 1))
                 break
             NS = <SkewPolynomial_finite_field_dense>skew_ring(N)
             P1 = None
-            while 1:
+            while True:
                 P = <SkewPolynomial_finite_field_dense>poly.right_gcd(NS)
                 P = P.right_monic()
                 mP = P.degree() / degN
                 if mP == 0: break
                 if mP == 1:
                     factors.append((P,1))
-                    poly = poly // P # poly._inplace_rfloordiv(P)
+                    poly = poly // P
                     for i from 1 <= i < m:
                         if poly.degree() == degN:
                             factors.append((poly,1))
                             break
                         P = poly.right_gcd(NS).right_monic()
-                        factors.append((P,1))
+                        factors.append((P, 1))
                         poly = poly // P
                     break
                 if P1 is None:
                     P1 = P._rdivisor_c(N)
-                Q = <SkewPolynomial_finite_field_dense>NS._new_c(NS.__coeffs[:], NS._parent)
-                Q = (Q // P) * P1
-                # Q._inplace_rfloordiv(P)
-                # Q._inplace_lmul(P1)
-                factors.append((P1,1))
-                right = <SkewPolynomial_finite_field_dense>P1._new_c(P1.__coeffs[:], P1._parent)
+                Q = <SkewPolynomial_finite_field_dense>NS._new_c(NS._coeffs[:], NS._parent)
+                Q = P1 * (Q // P)
+                factors.append((P1, 1))
+                right = <SkewPolynomial_finite_field_dense>P1._new_c(P1._coeffs[:], P1._parent)
                 m -= (mP-1)
                 degrandom = P.degree()
                 while mP > 2:
-                    while 1:
-                        g = <SkewPolynomial_finite_field_dense>skew_ring.random_element((degrandom,degrandom))
-                        g = (g*Q).right_gcd(P)
-                        #g._inplace_lmul(Q)
-                        #g._inplace_rgcd(P)
+                    while True:
+                        g = <SkewPolynomial_finite_field_dense>skew_ring.random_element((degrandom, degrandom))
+                        g = (Q*g).right_gcd(P)
                         Pn = right.left_lcm(g)
+                        Pn, _ = Pn.right_quo_rem(right)
                         if Pn.degree() == degN: break
                     Pn = Pn.right_monic()
-                    factors.append((Pn,1))
-                    right = right * Pn # right._inplace_lmul(Pn)
+                    factors.append((Pn, 1))
+                    right = Pn * right
                     degrandom -= degN
                     mP -= 1
-                poly = poly // right # ._inplace_rfloordiv(right)
-                P1,_ = P.right_quo_rem(right)
+                poly = poly // right
+                P1, _ = P.right_quo_rem(right)
         factors.reverse()
         return Factorization(factors, sort=False, unit=unit)
 
@@ -852,7 +850,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef list indices = list(Permutations(len(factorsN)).random_element())
 
         cdef RingElement unit = self.leading_coefficient()
-        cdef SkewPolynomial_finite_field_dense left = self._new_c(self.__coeffs[:],skew_ring)
+        cdef SkewPolynomial_finite_field_dense left = self._new_c(self._coeffs[:],skew_ring)
         left = left.right_monic()
         cdef SkewPolynomial_finite_field_dense right = <SkewPolynomial_finite_field_dense>skew_ring(1)
         cdef SkewPolynomial_finite_field_dense L, R
@@ -873,8 +871,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
                 if type[0] == 1:
                     D1 = P
                 else:
-                    R = right._new_c(right.__coeffs[:],skew_ring)
-                    R = R // dict_right[N] # R._inplace_rfloordiv(dict_right[N])
+                    R = right._new_c(right._coeffs[:],skew_ring)
+                    R = R // dict_right[N]
                     D = R._coeff_llcm(dict_divisor[N])
                     maxtype = list(type)
                     maxtype[-1] -= 1
@@ -886,44 +884,44 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
                     while 1:
                         while 1:
                             R = <SkewPolynomial_finite_field_dense>skew_ring.random_element((deg,deg))
-                            R = R*Q # R._inplace_lmul(Q)
+                            R = Q*R
                             if P.right_gcd(R).degree() == 0:
                                 break
-                        D1 = P.right_gcd(D*R).right_monic() # D1._inplace_rmonic()
+                        D1 = P.right_gcd(D*R).right_monic()
 
-                        L = left._new_c(list(left.__coeffs),skew_ring)
-                        L = L // D1 # L._inplace_rfloordiv(D1)
+                        L = left._new_c(list(left._coeffs),skew_ring)
+                        L = L // D1
                         degN = N.degree()
                         for j in range(len(type)):
                             if type[j] == 1:
                                 newtype = type[:-1]
                                 break
-                            d = L.right_gcd(NS).right_monic() # d._inplace_rmonic()
+                            d = L.right_gcd(NS).right_monic()
                             deg = d.degree() / degN
                             if deg < type[j]:
                                 newtype = type[:]
                                 newtype[j] = deg
                                 break
-                            L = L // d # L._inplace_rfloordiv(d)
+                            L = L // d
                         count = q_jordan(Partition(newtype),cardE)
                         if ZZ.random_element(maxcount) < count:
                             break
                     dict_type[N] = newtype
 
-                    D2 = D._new_c(list(D.__coeffs),skew_ring)
+                    D2 = D._new_c(list(D._coeffs),skew_ring)
                     D2 = D2.right_monic()
                     while D2 == D1:
-                        while 1:
+                        while True:
                             R = <SkewPolynomial_finite_field_dense>skew_ring.random_element((deg,deg))
-                            R = Q*R # R._inplace_lmul(Q)
+                            R = Q*R
                             if P.right_gcd(R).degree() == 0:
                                 break
                         D2 = P.right_gcd(D*R).right_monic()
                     dict_divisor[N] = D1.left_lcm(D2)
             factors.append((D1,1))
-            left = left // D1 # left_inplace_rfloordiv(D1)
-            right = right * D1 # right._inplace_lmul(D1)
-            dict_right[N] = right._new_c(list(right.__coeffs),skew_ring)
+            left = left // D1
+            right = D1 * right
+            dict_right[N] = right._new_c(list(right._coeffs),skew_ring)
 
         factors.reverse()
         return Factorization(factors,sort=False,unit=unit)

@@ -1371,9 +1371,9 @@ class CenterSkewPolynomialRing(PolynomialRing_general, UniqueRepresentation):
                 self._latex_variable_name = skew_ring.latex_variable_names()[0]
                 self._parenthesis = False
             else:
-                self._variable_name = skew_ring.variable_name() + "^" + str(order)
-                self._latex_variable_name = skew_ring.latex_variable_names()[0] + "^{" + str (order) + "}"
-                self._parenthesis = True
+                self._variable_name = skew_ring.variable_name() + str(order)
+                self._latex_variable_name = skew_ring.latex_variable_names()[0] + "_{" + str (order) + "}"
+                self._parenthesis = False
         else:
             self._pickling_variable_name = self._variable_name = Algebra.variable_name(self)
             self._latex_variable_name = Algebra.latex_variable_names(self)[0]
@@ -1771,6 +1771,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
             from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field_dense
             self.Element = SkewPolynomial_finite_field_dense
         SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, names, sparse, category)
+        self._matrix_retraction = None
 
     def _new_retraction_map(self, alea=None):
         """
@@ -1778,7 +1779,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         """
         k = self.base_ring()
         base = k.base_ring()
-        (kfixed, embed) = self._maps[1].fixed_points()
+        (kfixed, embed) = self._maps[1].fixed_field()
         section = embed.section()
         if not kfixed.has_coerce_map_from(base):
             raise NotImplementedError("No coercion map from %s to %s" % (base, kfixed))
@@ -1795,6 +1796,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
                 tr += x
             elt *= k.gen()
             trace.append(section(tr))
+        from sage.matrix.matrix_space import MatrixSpace
         self._matrix_retraction = MatrixSpace(kfixed, 1, k.degree())(trace)
 
     def _retraction(self, x, newmap=False, alea=None):
