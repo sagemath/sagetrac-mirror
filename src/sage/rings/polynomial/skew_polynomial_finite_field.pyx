@@ -752,7 +752,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         Compute a factorization of ``self``
         """
         cdef skew_ring = self._parent
-        cdef list a = (<SkewPolynomial_finite_field_dense>self)._coeffs
+        cdef SkewPolynomial_finite_field_dense poly = self.right_monic()
+        cdef list a = poly._coeffs
         cdef Py_ssize_t val = 0
         if len(a) < 0:
             return Factorization([], sort=False, unit=skew_ring.zero_element())
@@ -762,10 +763,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
         cdef Py_ssize_t degQ, degrandom, m, mP, i
         cdef CenterSkewPolynomial_generic_dense N
-        cdef SkewPolynomial_finite_field_dense poly = <SkewPolynomial_finite_field_dense>self.right_monic()
         cdef list factors = [ (skew_ring.gen(), val) ]
         cdef SkewPolynomial_finite_field_dense P, Q, P1, NS, g, right, Pn
-        cdef SkewPolynomial_finite_field_dense right2 = skew_ring(1) << val
         cdef RingElement unit = <RingElement>self.leading_coefficient()
         cdef Polynomial gencenter = skew_ring.center().gen()
         cdef Py_ssize_t p = skew_ring.characteristic()
@@ -808,8 +807,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
                     while True:
                         g = <SkewPolynomial_finite_field_dense>skew_ring.random_element((degrandom, degrandom))
                         g = (Q*g).right_gcd(P)
-                        Pn = right.left_lcm(g)
-                        Pn, _ = Pn.right_quo_rem(right)
+                        Pn = right._left_lcm_cofactor(g)
                         if Pn.degree() == degN: break
                     Pn = Pn.right_monic()
                     factors.append((Pn, 1))
@@ -873,7 +871,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
                 else:
                     R = right._new_c(right._coeffs[:],skew_ring)
                     R = R // dict_right[N]
-                    D = R._coeff_llcm(dict_divisor[N])
+                    D = R._left_lcm_cofactor(dict_divisor[N])
                     maxtype = list(type)
                     maxtype[-1] -= 1
                     degN = N.degree()
