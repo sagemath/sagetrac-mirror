@@ -153,7 +153,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         sage: are_mutually_orthogonal_latin_squares([m2,m3])
         True
         sage: are_mutually_orthogonal_latin_squares([m1,m2,m3], verbose=True)
-        Squares 0 and 2 are not orthogonal
+        In columns 0 and 2 the pair (2,2) appears more than once
         False
 
         sage: m = designs.mutually_orthogonal_latin_squares(7,8)
