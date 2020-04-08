@@ -1,7 +1,7 @@
 SAGE_SPKG_CONFIGURE([symmetrica], [
     AC_LANG_PUSH(C)
     AC_CHECK_HEADER([symmetrica/def.h], [
-dnl check for one of its many functions 
+dnl check for one of its many functions
      AC_SEARCH_LIBS([zykelind_tetraeder_edges_extended], [symmetrica], [
      AC_MSG_CHECKING([that we have a properly patched Symmetrica version... ])
      AC_RUN_IFELSE([AC_LANG_PROGRAM([dnl this crashes on unpatched Symmetrica
@@ -9,6 +9,11 @@ dnl check for one of its many functions
          [#include "symmetrica/macro.h"]],
 	 [[OP b,n;]
           [anfang();]
+          [n = callocobject();]
+	  [b = callocobject();]
+          [sscan_integer("3",n);]
+          [kostka_tafel(n, b);]
+          [println(b);]
           [n = callocobject();]
 	  [b = callocobject();]
           [sscan_integer("4",n);]
