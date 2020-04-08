@@ -13,6 +13,7 @@ from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.regular_supercrystals import RegularSuperCrystals
 from sage.categories.crystals import CrystalMorphism
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.homset import Hom
@@ -94,7 +95,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         ValueError: x cannot be in reduced word of s0*s3*s2
     """
     @staticmethod
-    def __classcall_private__(cls, w, n, x = None, k = None):
+    def __classcall_private__(cls, w, n, x=None, k=None, queer=False):
         r"""
         Classcall to mend the input.
 
@@ -117,9 +118,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             w0 = W.from_reduced_word(w[0].from_kbounded_to_reduced_word(k))
             w1 = W.from_reduced_word(w[1].from_kbounded_to_reduced_word(k))
             w = w0*(w1.inverse())
-        return super(AffineFactorizationCrystal, cls).__classcall__(cls, w, n, x)
+        return super(AffineFactorizationCrystal, cls).__classcall__(cls, w, n, x, queer)
 
-    def __init__(self, w, n, x = None):
+    def __init__(self, w, n, x=None, queer=False):
         r"""
         EXAMPLES::
 
@@ -145,11 +146,18 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.AffineFactorization(w,3)
             sage: TestSuite(B).run()
         """
-        Parent.__init__(self, category = ClassicalCrystals())
+        if queer:
+            category = RegularSuperCrystals()
+        else:
+            category = ClassicalCrystals()
+        Parent.__init__(self, category=category)
         self.n = n
         self.k = w.parent().n-1
         self.w = w
-        cartan_type = CartanType(['A',n-1])
+        if queer:
+            cartan_type = CartanType(['Q', n])
+        else:
+            cartan_type = CartanType(['A', n-1])
         self._cartan_type = cartan_type
         from sage.combinat.sf.sf import SymmetricFunctions
         from sage.rings.all import QQ
@@ -161,7 +169,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         #generators = [tuple(p) for p in affine_factorizations(w, n)]
         self.module_generators = [self(t) for t in generators]
         if x is None:
-            if generators != []:
+            if queer:
+                x = 0
+            elif generators != []:
                 x = min( set(range(self.k+1)).difference(set(
                             sum([i.reduced_word() for i in generators[0]],[]))))
             else:
@@ -223,6 +233,24 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         phi.register_as_coercion()
         return phi
 
+    @lazy_attribute
+    def _long_element(self):
+        r"""
+        Return the long element in `S_n`.
+
+        This method is used in the construction of the crystal operators
+        `e_i` and `f_i`.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q', 4])
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: T._long_element()
+            (3, 2, 1, 3, 2, 3)
+        """
+        from sage.combinat.permutation import Permutations
+        return tuple(Permutations(self._n).long_element().reduced_word())
+
     class Element(ElementWrapper):
 
         def e(self, i):
@@ -240,13 +268,49 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             """
             if i not in self.index_set():
                 raise ValueError("i must be in the index set")
+            n = self.parent().n
+            W = self.parent().w.parent()
+            if i == -1:
+                left = sorted(self.value[-2].reduced_word(), reverse=True)
+                right = sorted(self.value[-1].reduced_word(), reverse=True)
+                if (not left) or (right and left[-1] >= right[-1]):
+                    return None
+                t = list(self.value)
+                t[-2] = W.from_reduced_word(left[:-1])
+                t[-1] = W.from_reduced_word(right + [left[-1]])
+                return self.parent()(tuple(t))
+            if i < -1 and i >= -n:
+                j = -i
+                b = self
+                for a in range(j-1, 0, -1):
+                    b = b.s(a)
+                for a in range(j, 1, -1):
+                    b = b.s(a)
+                b = b.e(-1)
+                if b is None:
+                   return None
+                for a in range(2, j+1):
+                    b = b.s(a)
+                for a in range(1, j):
+                    b = b.s(a)
+                return b
+            if i < -n:
+               j = -(i+n)
+               w = self._parent._long_element
+               b = self
+               for a in w:
+                   b = b.s(a)
+               b = b.f(-(n+1-j))
+               if b is None:
+                   return None
+               for a in w:
+                   b = b.s(a)
+               return b
             b = self.bracketing(i)
             if not b[0]:
                 return None
-            W = self.parent().w.parent()
             x = self.parent().x
             k = self.parent().k
-            n = self.parent().n
             a = min(b[0])
             left = [j for j in (self.value[n-i-1]).reduced_word() if j != (a+x)%(k+1)]
             right = [(j-x)%(k+1) for j in (self.value[n-i]).reduced_word()]
@@ -274,13 +338,49 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             """
             if i not in self.index_set():
                 raise ValueError("i must be in the index set")
+            n = self.parent().n
+            W = self.parent().w.parent()
+            if i == -1:
+                left = sorted(self.value[-2].reduced_word(), reverse=True)
+                right = sorted(self.value[-1].reduced_word(), reverse=True)
+                if (not right) or (left and left[-1] <= right[-1]):
+                    return None
+                t = list(self.value)
+                t[-2] = W.from_reduced_word(left + [right[-1]])
+                t[-1] = W.from_reduced_word(right[:-1])
+                return self.parent()(tuple(t))
+            if i < -1 and i >= -n:
+                j = -i
+                b = self
+                for a in range(j-1, 0, -1):
+                    b = b.s(a)
+                for a in range(j, 1, -1):
+                    b = b.s(a)
+                b = b.f(-1)
+                if b is None:
+                   return None
+                for a in range(2, j+1):
+                    b = b.s(a)
+                for a in range(1, j):
+                    b = b.s(a)
+                return b
+            if i < -n:
+               j = -(i+n)
+               w = self._parent._long_element
+               b = self
+               for a in w:
+                   b = b.s(a)
+               b = b.e(-(n+1-j))
+               if b is None:
+                   return None
+               for a in w:
+                   b = b.s(a)
+               return b
             b = self.bracketing(i)
             if not b[1]:
                 return None
-            W = self.parent().w.parent()
             x = self.parent().x
             k = self.parent().k
-            n = self.parent().n
             a = max(b[1])
             right = [j for j in (self.value[n-i]).reduced_word() if j != (a+x)%(k+1)]
             left = [(j-x)%(k+1) for j in (self.value[n-i-1]).reduced_word()]
