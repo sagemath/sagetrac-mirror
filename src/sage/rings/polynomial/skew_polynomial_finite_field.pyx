@@ -35,7 +35,6 @@ from sage.matrix.matrix_dense cimport Matrix_dense
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.rings.polynomial.skew_polynomial_element cimport CenterSkewPolynomial_generic_dense
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport RingElement
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -225,7 +224,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
     # Finding divisors
     # ----------------
 
-    cdef SkewPolynomial_finite_field_dense _rdivisor_c(P, CenterSkewPolynomial_generic_dense N):
+    cdef SkewPolynomial_finite_field_dense _rdivisor_c(P, N):
         """
         cython procedure computing an irreducible monic right divisor
         of `P` whose reduced norm is `N`
@@ -246,8 +245,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             D = D.right_monic()
             return D
 
-        Z = PolynomialRing(N.parent().base_ring(), name='xr')
-        E = Z.quo(Z(N.list()))
+        center = N.parent()
+        E = center.quo(N)
         PE = PolynomialRing(E, name='T')
         cdef Integer exp
         if skew_ring.characteristic() != 2:
@@ -293,7 +292,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
                     yy += 2
                     dd = xx.gcd(yy)
                     if dd.degree() != 1: continue
-            D = P.right_gcd(R + skew_ring.center()((dd[0]/dd[1]).list()))
+            D = P.right_gcd(R + skew_ring(center((dd[0]/dd[1]).list())))
             if D.degree() == 0:
                 continue
             D = D.right_monic()
@@ -467,7 +466,6 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             x + 2*t^2 + 4*t
         """
         cdef SkewPolynomial_finite_field_dense cP1
-        cdef CenterSkewPolynomial_generic_dense cN
         if self.is_zero():
             raise "No irreducible divisor having given reduced norm"
         skew_ring = self._parent
@@ -491,7 +489,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         except (KeyError, TypeError):
             if N.is_irreducible():
                 cP1 = <SkewPolynomial_finite_field_dense>self.right_gcd(self._parent(N))
-                cN = <CenterSkewPolynomial_generic_dense>N
+                cN = N
                 if cP1.degree() > 0:
                     D = cP1._rdivisor_c(cN)
             if self._rdivisors is None:
@@ -762,7 +760,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             val += 1
 
         cdef Py_ssize_t degQ, degrandom, m, mP, i
-        cdef CenterSkewPolynomial_generic_dense N
+        cdef N
         cdef list factors = [ (skew_ring.gen(), val) ]
         cdef SkewPolynomial_finite_field_dense P, Q, P1, NS, g, right, Pn
         cdef RingElement unit = <RingElement>self.leading_coefficient()
@@ -826,14 +824,13 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         """
         skew_ring = self._parent
         cdef Integer cardE, cardcenter = skew_ring.center().base_ring().cardinality()
-        cdef CenterSkewPolynomial_generic_dense gencenter = <CenterSkewPolynomial_generic_dense>skew_ring.center().gen()
+        cdef gencenter = skew_ring.center().gen()
         cdef SkewPolynomial_finite_field_dense gen = <SkewPolynomial_finite_field_dense>skew_ring.gen()
 
         cdef list factorsN = [ ]
         cdef dict dict_divisor = { }
         cdef dict dict_type = { }
         cdef dict dict_right = { }
-        cdef CenterSkewPolynomial_generic_dense N
         cdef Py_ssize_t m
         cdef list type
 
@@ -1055,37 +1052,9 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             count /= factorial(m)
         return count * factorial(summ)
 
-    def count_factorisations(self):
-        """
-        Return the number of factorisations (as a product of a
-        unit and a product of irreducible monic factors) of this
-        skew polynomial.
 
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = x^4 + (4*t + 3)*x^3 + t^2*x^2 + (4*t^2 + 3*t)*x + 3*t
-            sage: a.count_factorisations()
-            216
-
-        We illustrate that an irreducible polynomial in the center have
-        in general a lot of distinct factorisations in the skew polynomial
-        ring::
-
-            sage: Z = S.center(); x3 = Z.gen()
-            sage: N = x3^5 + 4*x3^4 + 4*x3^2 + 4*x3 + 3; N
-            (x^3)^5 + 4*(x^3)^4 + 4*(x^3)^2 + 4*(x^3) + 3
-            sage: N.is_irreducible()
-            True
-            sage: S(N).count_factorisations()
-            30537115626
-        """
-        return self.count_factorizations()
-
-
-    # Not optimized (many calls to reduced_norm, reduced_norm_factor,_rdivisor_c, which are slow)
+    # Not optimized:
+    # many calls to reduced_norm, reduced_norm_factor,_rdivisor_c, which are slow
     def factorizations(self):
         """
         Return an iterator over all factorizations (as a product
@@ -1132,65 +1101,16 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         """
         if self.is_zero():
             raise ValueError("factorization of 0 not defined")
-        unit = self.leading_coefficient()
-        poly = self.right_monic()
-        for factors in self._factorizations_rec():
+        def factorizations_rec(P):
+            if P.is_irreducible():
+                yield [ (P,1) ]
+            else:
+                for div in P._irreducible_divisors(True):
+                    poly = self // div
+                    # Here, we should update poly._norm, poly._norm_factor, poly._rdivisors
+                    for factors in P._factorizations_rec():
+                        factors.append((div,1))
+                        yield factors
+        for factors in factorizations_rec(self):
             yield Factorization(factors,sort=False,unit=unit)
 
-    def _factorizations_rec(self):
-        if self.is_irreducible():
-            yield [ (self,1) ]
-        else:
-            for div in self._irreducible_divisors(True):
-                poly = self // div
-                # Here, we should update poly._norm, poly._norm_factor, poly._rdivisors
-                for factors in poly._factorizations_rec():
-                    factors.append((div,1))
-                    yield factors
-
-
-    def factorisations(self):
-        """
-        Return an iterator over all factorisations (as a product
-        of a unit and a product of irreducible monic factors) of
-        this skew polynomial.
-
-        .. NOTE::
-
-            The algorithm is probabilistic. As a consequence, if
-            we execute two times with the same input we can get
-            the list of all factorizations in two differents orders.
-
-        EXAMPLES::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism()
-            sage: S.<x> = k['x',Frob]
-            sage: a = x^3 + (t^2 + 1)*x^2 + (2*t + 3)*x + t^2 + t + 2
-            sage: iter = a.factorisations(); iter
-            <generator object at 0x...>
-            sage: iter.next()   # random
-            (x + 3*t^2 + 4*t) * (x + 2*t^2) * (x + 4*t^2 + 4*t + 2)
-            sage: iter.next()   # random
-            (x + 3*t^2 + 4*t) * (x + 3*t^2 + 2*t + 2) * (x + 4*t^2 + t + 2)
-
-        We can use this function to build the list of factorizations
-        of `a`::
-
-            sage: factorisations = [ F for F in a.factorisations() ]
-
-        We do some checks::
-
-            sage: len(factorisations) == a.count_factorisations()
-            True
-            sage: len(factorisations) == len(Set(factorisations))  # check no duplicates
-            True
-            sage: for F in factorisations:
-            ...       if F.value() != a:
-            ...           print "Found %s which is not a correct factorization" % d
-            ...           continue
-            ...       for d,_ in F:
-            ...           if not d.is_irreducible():
-            ...               print "Found %s which is not a correct factorization" % d
-        """
-        return self.factorizations()
