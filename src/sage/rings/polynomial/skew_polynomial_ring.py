@@ -38,20 +38,15 @@ AUTHOR:
 import sage
 
 from sage.structure.richcmp import op_EQ
-from sage.structure.parent import Parent
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 from sage.structure.category_object import normalize_names
-import sage.misc.latex as latex
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
-from sage.rings.ring import Algebra
-from sage.rings.ring import Field
+from sage.rings.ring import Algebra, Field
 from sage.rings.integer import Integer
 
-from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.algebras import Algebras
 from sage.categories.fields import Fields
@@ -61,7 +56,6 @@ from sage.rings.morphism import RingHomomorphism
 from sage.categories.homset import Hom
 from sage.categories.map import Section
 
-from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
 
@@ -389,7 +383,7 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         - Multivariate Skew Polynomial Ring
         - Add derivations.
     """
-    # Element = sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense
+    Element = None
 
     @staticmethod
     def __classcall_private__(cls, base_ring, twist_map=None, names=None, sparse=False):
@@ -489,9 +483,8 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             0
             sage: TestSuite(S).run()
         """
-        if not hasattr(self, 'Element') or self.Element is None:
-            from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial_generic_dense
-            self.Element = SkewPolynomial_generic_dense
+        if self.Element is None:
+            self.Element = sage.rings.polynomial.skew_polynomial_element.SkewPolynomial_generic_dense
         self.__is_sparse = sparse
         self._map = twist_map
         self._maps = {0: IdentityMorphism(base_ring), 1: self._map}
@@ -538,7 +531,7 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
         C = self.Element
         if isinstance(a, list):
             return C(self, a, check=check, construct=construct)
-        if isinstance(a, Element):
+        if isinstance(a, sage.structure.element.Element):
             P = a.parent()
             def build(check):
                 if a.is_zero():
@@ -1267,7 +1260,7 @@ class SkewPolynomialCenterInjection(RingHomomorphism):
             sage: S.convert_map_from(Z)   # indirect doctest
             Embedding of the center of Skew Polynomial Ring in x over Finite Field in a of size 5^3 twisted by a |--> a^5 into this ring
         """
-        RingHomomorphism.__init__(self, Hom(domain, codomain))  # category=Rings()
+        RingHomomorphism.__init__(self, Hom(domain, codomain))
         self._embed = embed
         self._order = order
         self._codomain = codomain
@@ -1359,9 +1352,6 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         :class:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing`
         :mod:`sage.rings.polynomial.skew_polynomial_finite_order`
     """
-    # This doesn't work, but I don't understand why:
-    # Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
-
     def __init__(self, base_ring, twist_map, name, sparse, category=None):
         r"""
         Initialize this skew polynomial
@@ -1377,14 +1367,14 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
             sage: TestSuite(S).run()
         """
-        if not hasattr(self, 'Element') or self.Element is None:
-            from sage.rings.polynomial.skew_polynomial_finite_order import SkewPolynomial_finite_order_dense
-            self.Element = SkewPolynomial_finite_order_dense
+        if self.Element is None:
+            import sage.rings.polynomial.skew_polynomial_finite_order
+            self.Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()
 
-    def center(self, name='z', names=None, coerce=False):
+    def center(self, name='z', names=None, coerce=True):
         r"""
         Return the center of this skew polynomial ring.
 
@@ -1430,12 +1420,21 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: y.parent() is Zy
             True
 
-        By default, conversion maps between the center and the skew
-        polynomial ring are set in both directions, but no coercion
-        map is defined::
+        By default, the canonical inclusion of the center into the skew
+        polynomial ring is a coercion map::
+            
+            sage: S.has_coerce_map_from(Zy)
+            True
 
-            sage: S(y^2 + 2*y + 3)
-            x^6 + 2*x^3 + 3
+            sage: P = y + x; P
+            x^3 + x
+            sage: P.parent()
+            Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+            sage: P.parent() is S
+            True
+
+        Moreover, a conversion map in the other direction is set::
+
             sage: Zy(x^6 + 2*x^3 + 3)
             y^2 + 2*y + 3
 
@@ -1444,32 +1443,24 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             ...
             ValueError: x^2 is not in the center
 
-        We now illustrate the fact that no coercion map is set::
+        It is possible to disable the coercion by passing in the
+        argument ``coerce=False``::
 
-            sage: S.has_coerce_map_from(Zy)
-            False
-            sage: Zy.has_coerce_map_from(S)
-            False
-            
-            sage: P = y + x; P
-            y + x
-            sage: P.parent()
-            Univariate Polynomial Ring in y over Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-            sage: P.parent() is S
-            False
-        
-        Nevertheless, if the user wants to promote the embedding from the
-        center to the skew polynomial ring as a coercion map, he/she can
-        pass in the argument ``coerce=True``::
-
-            sage: Zu.<u> = S.center(coerce=True)
+            sage: Zu.<u> = S.center(coerce=False)
             sage: S.has_coerce_map_from(Zu)
-            True
+            False
 
             sage: Q = u + x; Q
-            x^3 + x
+            u + x
+            sage: Q.parent()
+            Univariate Polynomial Ring in u over Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
             sage: Q.parent() is S
-            True
+            False
+
+        However, in this case, convertion continues to work::
+
+            sage: S(u)
+            x^3
 
         TESTS::
 
@@ -1483,15 +1474,17 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         names = normalize_names(1, names)
         center = PolynomialRing(self._constants, names)
         embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
-        if coerce:
-            self.register_coercion(embed)
-            center.register_conversion(embed.section())
-        else:
-            try:
+        try:
+            if coerce:
+                self.register_coercion(embed)
+            else:
                 self.register_conversion(embed)
-                center.register_conversion(embed.section())
-            except AssertionError:
-                pass
+        except AssertionError:
+            pass
+        try:
+            center.register_conversion(embed.section())
+        except AssertionError:
+            pass
         return center
 
 
@@ -1541,9 +1534,9 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
             sage: T.<x> = k['x', Frob]; T
             Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
         """
-        if not hasattr(self, 'Element') or self.Element is None:
-            from sage.rings.polynomial.skew_polynomial_finite_field import SkewPolynomial_finite_field_dense
-            self.Element = SkewPolynomial_finite_field_dense
+        if self.Element is None:
+            import sage.rings.polynomial.skew_polynomial_finite_field
+            self.Element = sage.rings.polynomial.skew_polynomial_finite_field.SkewPolynomial_finite_field_dense
         SkewPolynomialRing_finite_order.__init__(self, base_ring, twist_map, names, sparse, category)
         self._matrix_retraction = None
 
@@ -1574,10 +1567,10 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         self._matrix_retraction = MatrixSpace(kfixed, 1, k.degree())(trace)
 
     def _retraction(self, x, newmap=False, alea=None):
-        # Better to return the retraction map but more difficult
         """
         This is an internal function used in factorization.
         """
+        # Better to return the retraction map but more difficult
         if newmap or alea is not None or self._matrix_retraction is None:
             self._new_retraction_map()
         return (self._matrix_retraction*self.base_ring()(x)._vector_())[0]
