@@ -100,9 +100,13 @@ files installed
 
        tar zxvf sage-*.tar.gz
 
-1. cd into the Sage directory and type make
+1. cd into the Sage directory and type ./configure
 
        cd sage-*/
+       ./configure
+
+1. Type make
+
        make
 
    That's it! Everything is automatic and non-interactive. The build
