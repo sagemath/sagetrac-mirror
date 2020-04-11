@@ -43,6 +43,10 @@ Supported Platforms
 Sage fully supports all major Linux distributions, recent versions of
 Mac OS X, and Windows (using Cygwin or using virtualization).
 
+We highly appreciate contributions to Sage that fix portability bugs
+and help port Sage to new platforms; let us know at the [sage-devel
+mailing list](https://groups.google.com/group/sage-devel).
+
 Quick Instructions to Build from Source
 ---------------------------------------
 
