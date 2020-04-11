@@ -40,15 +40,8 @@ If you'd like to contribute to Sage, be sure to read the
 Supported Platforms
 -------------------
 
-Sage fully supports several Linux distributions, recent versions of
-Mac OS X, Windows (using virtualization), as well as a number of
-Solaris and OpenSolaris releases.
-
-Ports are in progress to some other, less common platforms. The list of
-supported platforms and their current statuses are given in [our wiki](https://wiki.sagemath.org/SupportedPlatforms).
-
-If you are interested in helping port Sage to a new platform, please let
-us know at the [sage-devel mailing list](https://groups.google.com/group/sage-devel).
+Sage fully supports all major Linux distributions, recent versions of
+Mac OS X, and Windows (using Cygwin or using virtualization).
 
 Quick Instructions to Build from Source
 ---------------------------------------
@@ -151,10 +144,6 @@ More Detailed Instructions to Build from Source
    sign up, and download the free Xcode package. Usually, Xcode's command line
    tools suffice to build Sage, although several times new releases of Xcode broke this.
    Only OS X >= 10.4 is supported, and (as of May 2019) we only test Sage on OS X >= 10.6.
-
-   * __Solaris and OpenSolaris:__ Building Sage on these platforms is more
-   tricky than on Linux or OS X. For details on how to build Sage on
-   these platforms, see [our wiki](https://wiki.sagemath.org/solaris) (outdated as of May 2019).
 
    * __Windows:__ [Download and install VirtualBox](https://www.virtualbox.org/wiki/Downloads),
    and then download the [Sage virtual appliance](https://wiki.sagemath.org/SageAppliance).
