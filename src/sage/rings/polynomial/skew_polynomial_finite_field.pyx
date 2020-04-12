@@ -224,13 +224,13 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
     cdef SkewPolynomial_finite_field_dense _rdivisor_c(self, N):
         """
-        cython procedure computing an irreducible monic right divisor
-        of this skew polynomial whose reduced norm is `N`
+        Return a right divisor of this skew polynomial whose
+        reduced norm is `N`
 
         .. WARNING::
 
             `N` needs to be an irreducible factor of the
-            reduced norm of `P`. This function does not check
+            reduced norm. This function does not check
             this (and his behaviour is not defined if the
             require property doesn't hold).
         """
@@ -297,6 +297,12 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def _reduced_norm_factor_uniform(self):
+        r"""
+        Return a factor of the reduced norm of this skew
+        polynomial, the probability of a given factor to
+        show up being proportional to the number of irreducible
+        divisors of ``self`` having this norm
+        """
         skew_ring = self._parent
         F = self.reduced_norm_factor()
         center = F[0][0].parent()
@@ -321,6 +327,27 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
 
     def _irreducible_divisor_with_norm(self, N, right, uniform):
+        r"""
+        Return an irreducible divisor of this skew polynomial 
+        with norm `N`
+
+        INPUT:
+
+        - ``N`` -- an irreducible polynomial lying in the center
+
+        - ``right`` -- a boolean; if ``True``, return a right divisor,
+        otherwise, return a left divisor
+
+        - ``uniform`` -- a boolean; whether the output irreducible
+        divisor should be uniformly distributed among all possibilities
+
+        .. WARNING::
+
+            `N` needs to be an irreducible factor of the
+            reduced norm. This function does not check
+            this (and his behaviour is not defined if the
+            require property doesn't hold).
+        """
         skew_ring = self._parent
         NS = skew_ring(N)
         degN = N.degree()
@@ -357,10 +384,16 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
     def _irreducible_divisors(self, right):
         """
         Return an iterator over all irreducible monic
-        divisors of this skew polynomial.
+        divisors of this skew polynomial
 
         Do not use this function. Use instead
-        ``self.irreducible_divisors()``.
+        :meth:`right_irreducible_divisors` and
+        :meth:`left_irreducible_divisors`.
+
+        INPUT:
+
+        - ``right`` -- a boolean; if ``True``, return right divisors,
+        otherwise, return left divisors
         """
         if self.is_zero():
             return
@@ -375,7 +408,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             gcd = SkewPolynomial_finite_field_dense.right_gcd
             def mul(a,b): return b*a
         skew_ring = self._parent
-        center = skew_ring.center()
+        center = skew_ring.center(coerce=False)
         kfixed = center.base_ring()
         F = self.reduced_norm_factor()
         for N,_ in F:
@@ -423,24 +456,13 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
     def right_irreducible_divisor(self, uniform=False):
         """
+        Return a right irreducible divisor of this skew polynomial
+
         INPUT:
 
-        -  ``side`` -- ``Left`` or ``Right`` (default: Right)
-
-        -  ``distribution`` -- None (default) or ``uniform``
-
-           - None: no particular specification
-
-           - ``uniform``: the returned irreducible divisor is
-             uniformly distributed
-
-        .. NOTE::
-
-            ``uniform`` is a little bit slower.
-
-        OUTPUT:
-
-        -  an irreducible monic ``side`` divisor of ``self``
+        - ``uniform`` -- a boolean (default: ``False``); whether the 
+        output irreducible divisor should be uniformly distributed
+        among all possibilities
 
         EXAMPLES::
 
@@ -449,37 +471,32 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             sage: S.<x> = k['x',Frob]
             sage: a = x^6 + 3*t*x^5 + (3*t + 1)*x^3 + (4*t^2 + 3*t + 4)*x^2 + (t^2 + 2)*x + 4*t^2 + 3*t + 3
 
-            sage: dr = a.irreducible_divisor(); dr  # random
+            sage: dr = a.right_irreducible_divisor(); dr  # random
             x^3 + (2*t^2 + t + 4)*x^2 + (4*t + 1)*x + 4*t^2 + t + 1
-            sage: a.is_divisible_by(dr)
-            True
-
-            sage: dl = a.irreducible_divisor(side=Left); dl  # random
-            x^3 + (2*t^2 + t + 1)*x^2 + (4*t^2 + 3*t + 3)*x + 4*t^2 + 2*t + 1
-            sage: a.is_divisible_by(dl,side=Left)
+            sage: a.is_right_divisible_by(dr)
             True
 
         Right divisors are cached. Hence, if we ask again for a
         right divisor, we will get the same answer::
 
-            sage: a.irreducible_divisor()  # random
+            sage: a.right_irreducible_divisor()  # random
             x^3 + (2*t^2 + t + 4)*x^2 + (4*t + 1)*x + 4*t^2 + t + 1
 
         However the algorithm is probabilistic. Hence, if we first
-        reinitialiaze `a`, we may get a different answer::
+        reinitialize `a`, we may get a different answer::
 
             sage: a = x^6 + 3*t*x^5 + (3*t + 1)*x^3 + (4*t^2 + 3*t + 4)*x^2 + (t^2 + 2)*x + 4*t^2 + 3*t + 3
-            sage: a.irreducible_divisor()  # random
+            sage: a.right_irreducible_divisor()  # random
             x^3 + (t^2 + 3*t + 4)*x^2 + (t + 2)*x + 4*t^2 + t + 1
 
         We can also generate uniformly distributed irreducible monic
         divisors as follows::
 
-            sage: a.irreducible_divisor(distribution="uniform")  # random
+            sage: a.right_irreducible_divisor(distribution="uniform")  # random
             x^3 + (4*t + 2)*x^2 + (2*t^2 + 2*t + 2)*x + 2*t^2 + 2
-            sage: a.irreducible_divisor(distribution="uniform")  # random
+            sage: a.right_irreducible_divisor(distribution="uniform")  # random
             x^3 + (t^2 + 2)*x^2 + (3*t^2 + 1)*x + 4*t^2 + 2*t
-            sage: a.irreducible_divisor(distribution="uniform")  # random
+            sage: a.right_irreducible_divisor(distribution="uniform")  # random
             x^3 + x^2 + (4*t^2 + 2*t + 4)*x + t^2 + 3
 
         By convention, the zero skew polynomial has no irreducible
@@ -606,8 +623,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         if self.is_zero():
             return 0
         skew_ring = self.parent()
-        cardcenter = skew_ring.center().base_ring().cardinality()
-        gencenter = skew_ring.center().gen()
+        cardcenter = skew_ring.center(coerce=False).base_ring().cardinality()
+        gencenter = skew_ring.center(coerce=False).gen()
         F = self.reduced_norm_factor()
         val = self.valuation()
         self >>= val
@@ -647,7 +664,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef list factors = [ (skew_ring.gen(), val) ]
         cdef SkewPolynomial_finite_field_dense P, Q, P1, NS, g, right, Pn
         cdef RingElement unit = <RingElement>self.leading_coefficient()
-        cdef Polynomial gencenter = skew_ring.center().gen()
+        cdef Polynomial gencenter = skew_ring.center(coerce=False).gen()
         cdef Py_ssize_t p = skew_ring.characteristic()
         cdef F = self.reduced_norm_factor()
 
@@ -706,8 +723,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         Compute a uniformly distrbuted factorization of ``self``
         """
         skew_ring = self._parent
-        cdef Integer cardE, cardcenter = skew_ring.center().base_ring().cardinality()
-        cdef gencenter = skew_ring.center().gen()
+        cdef Integer cardE, cardcenter = skew_ring.center(coerce=False).base_ring().cardinality()
+        cdef gencenter = skew_ring.center(coerce=False).gen()
         cdef SkewPolynomial_finite_field_dense gen = <SkewPolynomial_finite_field_dense>skew_ring.gen()
 
         cdef list factorsN = [ ]
@@ -919,8 +936,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         """
         if self.is_zero():
             raise ValueError("factorization of 0 not defined")
-        cardcenter = self._parent.center().base_ring().cardinality()
-        gencenter = self._parent.center().gen()
+        cardcenter = self._parent.center(coerce=False).base_ring().cardinality()
+        gencenter = self._parent.center(coerce=False).gen()
         F = self.reduced_norm_factor()
         summ = 0
         count = 1
