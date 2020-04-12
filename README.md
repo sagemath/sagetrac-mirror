@@ -232,16 +232,6 @@ More Detailed Instructions to Build from Source
    ImageMagick tools (e.g. the "convert" command) installed since some
    plotting functionality benefits from it.
 
-1. Optional: Read this if you are intending to run a Sage notebook
-   server for multiple users. For security (i.e., to run
-   `notebook(secure=True)`) you want to access the server using the
-   HTTPS protocol. First, install OpenSSL and the OpenSSL development
-   headers on your system if they are not already installed. Then
-   install pyOpenSSL by building Sage and then typing
-   `./sage -i pyopenssl`.
-   Note that this command requires internet access. Alternatively,
-   `make ssl` builds Sage and installs pyOpenSSL.
-
 Troubleshooting
 ---------------
 
