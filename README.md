@@ -104,10 +104,26 @@ files installed
 
        tar zxvf sage-*.tar.gz
 
-1. cd into the Sage directory and type ./configure
+1. cd into the Sage directory and
 
        cd sage-*/
+
+1. Optionally, review the configuration options, which includes
+   many optional packages:
+
+       ./configure --help
+
+1. type ./configure
+
        ./configure
+
+1. At the end of a successful ./configure run, you may see messages
+   recommending to install extra system packages using your package
+   manager.  Only the most recent releases of your distribution will
+   have all of these packages.  If you choose to install the system
+   packages, a re-run of ./configure will test whether the versions
+   installed are usable for Sage; if they are, this will reduce the
+   compilation time and disk space needed by Sage.
 
 1. Type make
 
