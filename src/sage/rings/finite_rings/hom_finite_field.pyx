@@ -439,13 +439,13 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
              (<class 'sage.rings.finite_rings.hom_prime_finite_field.FiniteFieldHomomorphism_prime'>,
               Set of field embeddings from Finite Field of size 5 to Finite Field in t of size 5^3,
               {},
-              {'__im_gens': [1],
-               '_base_map': None,
+              {'_domain': Finite Field of size 5,
                '_codomain': Finite Field in t of size 5^3,
-               '_domain': Finite Field of size 5,
                '_is_coercion': False,
-               '_lift': None,
                '_repr_type_str': None,
+               '_lift': None,
+               '__im_gens': [1],
+               '_base_map': None,
                '_section_class': <class 'sage.rings.finite_rings.hom_prime_finite_field.SectionFiniteFieldHomomorphism_prime'>}))
         """
         cdef dict slots
@@ -826,12 +826,12 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
              (<class 'sage.rings.finite_rings.hom_finite_field_givaro.FrobeniusEndomorphism_givaro'>,
               Automorphism group of Finite Field in t of size 5^3,
               {},
-              {'_codomain': Finite Field in t of size 5^3,
-               '_domain': Finite Field in t of size 5^3,
+              {'_domain': Finite Field in t of size 5^3,
+               '_codomain': Finite Field in t of size 5^3,
                '_is_coercion': False,
+               '_repr_type_str': None,
                '_lift': None,
-               '_power': 2,
-               '_repr_type_str': None}))
+               '_power': 2}))
         """
         cdef dict slots
         slots = FrobeniusEndomorphism_generic._extra_slots(self)
