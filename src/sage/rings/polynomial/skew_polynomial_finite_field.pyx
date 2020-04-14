@@ -48,7 +48,7 @@ from sage.combinat.q_analogues import q_jordan
 
 
 cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
-    def reduced_norm_factor(self):
+    def _reduced_norm_factor(self):
         """
         Return the reduced norm of this polynomial
         factorized in the centre.
@@ -64,7 +64,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             ((x^3) + 3) * ((x^3) + 2)^2
         """
         if self._norm_factor is None:
-            self._norm_factor = self.reduced_norm().factor()
+            N = self._parent._working_center(self.reduced_norm(var=False))
+            self._norm_factor = N.factor()
         return self._norm_factor
 
     def is_irreducible(self):
@@ -109,7 +110,10 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             sage: S(0).is_irreducible()
             False
         """
-        return self.reduced_norm().is_irreducible()
+        if self._norm_factor is not None:
+            return len(self._norm_factor) == 1 and self._norm_factor[0][1] == 1
+        N = self._parent._working_center(self.reduced_norm(var=False))
+        return N.is_irreducible()
 
 
     def type(self,N):
@@ -185,12 +189,14 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             ...
             ValueError: N is not irreducible
         """
+        skew_ring = self._parent
+        if N.parent() is not skew_ring._working_center:
+            N = skew_ring._working_center(N)
         try:
             return self._types[N]
         except (KeyError, TypeError):
             if not N.is_irreducible():
                 raise ValueError("N is not irreducible")
-            skew_ring = self._parent
             if self._norm_factor is None:
                 m = -1
             else:
@@ -304,7 +310,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         divisors of ``self`` having this norm
         """
         skew_ring = self._parent
-        F = self.reduced_norm_factor()
+        F = self._reduced_norm_factor()
         center = F[0][0].parent()
         cardcenter = center.base_ring().cardinality()
         gencenter = center.gen()
@@ -408,9 +414,9 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
             gcd = SkewPolynomial_finite_field_dense.right_gcd
             def mul(a,b): return b*a
         skew_ring = self._parent
-        center = skew_ring.center(coerce=False)
+        center = skew_ring._working_center
         kfixed = center.base_ring()
-        F = self.reduced_norm_factor()
+        F = self._reduced_norm_factor()
         for N,_ in F:
             if N == center.gen():
                 yield skew_ring.gen()
@@ -512,7 +518,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         if uniform:
             N = self._reduced_norm_factor_uniform()
         else:
-            N = self.reduced_norm_factor()[0][0]
+            N = self._reduced_norm_factor()[0][0]
         return self._irreducible_divisor_with_norm(N, True, uniform)
 
     def left_irreducible_divisor(self, uniform=False):
@@ -521,7 +527,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         if uniform:
             N = self._reduced_norm_factor_uniform()
         else:
-            N = self.reduced_norm_factor()[0][0]
+            N = self._reduced_norm_factor()[0][0]
         return self._irreducible_divisor_with_norm(N, False, uniform)
 
 
@@ -623,9 +629,9 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         if self.is_zero():
             return 0
         skew_ring = self.parent()
-        cardcenter = skew_ring.center(coerce=False).base_ring().cardinality()
-        gencenter = skew_ring.center(coerce=False).gen()
-        F = self.reduced_norm_factor()
+        cardcenter = skew_ring._working_center.base_ring().cardinality()
+        gencenter = skew_ring._working_center.gen()
+        F = self._reduced_norm_factor()
         val = self.valuation()
         self >>= val
         count = 0
@@ -664,9 +670,9 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef list factors = [ (skew_ring.gen(), val) ]
         cdef SkewPolynomial_finite_field_dense P, Q, P1, NS, g, right, Pn
         cdef RingElement unit = <RingElement>self.leading_coefficient()
-        cdef Polynomial gencenter = skew_ring.center(coerce=False).gen()
+        cdef Polynomial gencenter = skew_ring._working_center.gen()
         cdef Py_ssize_t p = skew_ring.characteristic()
-        cdef F = self.reduced_norm_factor()
+        cdef F = self._reduced_norm_factor()
 
         for N, m in F:
             if N == gencenter:
@@ -723,8 +729,8 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         Compute a uniformly distrbuted factorization of ``self``
         """
         skew_ring = self._parent
-        cdef Integer cardE, cardcenter = skew_ring.center(coerce=False).base_ring().cardinality()
-        cdef gencenter = skew_ring.center(coerce=False).gen()
+        cdef Integer cardE, cardcenter = skew_ring._working_center.base_ring().cardinality()
+        cdef gencenter = skew_ring._working_center.gen()
         cdef SkewPolynomial_finite_field_dense gen = <SkewPolynomial_finite_field_dense>skew_ring.gen()
 
         cdef list factorsN = [ ]
@@ -734,7 +740,7 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         cdef Py_ssize_t m
         cdef list type
 
-        for N,m in self.reduced_norm_factor():
+        for N, m in self._reduced_norm_factor():
             factorsN += m * [N]
             if N == gencenter: continue
             type = list(self.type(N))
@@ -936,12 +942,12 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         """
         if self.is_zero():
             raise ValueError("factorization of 0 not defined")
-        cardcenter = self._parent.center(coerce=False).base_ring().cardinality()
-        gencenter = self._parent.center(coerce=False).gen()
-        F = self.reduced_norm_factor()
+        cardcenter = self._parent._working_center.base_ring().cardinality()
+        gencenter = self._parent._working_center.gen()
+        F = self._reduced_norm_factor()
         summ = 0
         count = 1
-        for N,m in F:
+        for N, m in F:
             summ += m
             if m == 1: continue
             if N != gencenter:
