@@ -1565,11 +1565,16 @@ class HyperplaneArrangementElement(Element):
                           base_ring=self.parent().base_ring())
 
     @cached_method
-    def regions(self):
+    def regions(self,backend=None):
         r"""
         Return the regions of the hyperplane arrangement.
 
         The base field must have characteristic zero.
+        
+        INPUT:
+
+        - ``backend`` -- string (optional; default: ``None``); the backend to
+          use for the polyhedra.
 
         OUTPUT:
 
@@ -1601,18 +1606,35 @@ class HyperplaneArrangementElement(Element):
             sage: chessboard = H(chessboard)
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
             64
+
+        It is possible to specify the backend::
+
+            sage: K.<q> = CyclotomicField(9)
+            sage: L.<r9> = NumberField((q+q^(-1)).minpoly(),embedding = AA(q+q^-1))
+            sage: norms = [[1,1/3*(-2*r9^2-r9+1),0],[1,-r9^2-r9,0],
+                           [1,-r9^2+1,0],[1,-r9^2,0],[1,r9^2-4,-r9^2+3]]
+            sage: H.<x,y,z> = HyperplaneArrangements(L)
+            sage: A = H()
+            sage: for v in norms:
+            ....:     a,b,c = v
+            ....:     A = A.add_hyperplane(a*x + b*y + c*z)
+            sage: R = A.regions(backend='normaliz')               # optional - pynormaliz
+            sage: R[0].backend()
+            'normaliz'
         """
         if self.base_ring().characteristic() != 0:
             raise ValueError('base field must have characteristic zero')
         from sage.geometry.polyhedron.constructor import Polyhedron
         R = self.base_ring()
         dim = self.dimension()
-        universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
+        universe = Polyhedron(eqns=[[0] + [0] * dim],
+                              base_ring=R,
+                              backend=backend)
         regions = [universe]
         for hyperplane in self:
             ieq = vector(R, hyperplane.dense_coefficient_list())
-            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
-            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
+            pos_half = Polyhedron(ieqs=[ ieq], base_ring=R, backend=backend)
+            neg_half = Polyhedron(ieqs=[-ieq], base_ring=R, backend=backend)
             subdivided = []
             for region in regions:
                 for half_space in pos_half, neg_half:
@@ -1623,7 +1645,7 @@ class HyperplaneArrangementElement(Element):
         return tuple(regions)
 
     @cached_method
-    def poset_of_regions(self, B=None, numbered_labels=True):
+    def poset_of_regions(self, B=None, numbered_labels=True, backend=None):
         r"""
         Return the poset of regions for a central hyperplane arrangement.
 
@@ -1640,6 +1662,9 @@ class HyperplaneArrangementElement(Element):
         - ``numbered_labels`` -- bool (optional; default: ``True``); if ``True``,
           then the elements of the poset are numbered. Else they are labelled
           with the regions themselves.
+
+        - ``backend`` -- string (optional; default: ``None``); the backend to
+          use for the polyhedra.
 
         OUTPUT:
 
@@ -1668,10 +1693,19 @@ class HyperplaneArrangementElement(Element):
             sage: A.poset_of_regions(B=base_region)
             Finite poset containing 14 elements
 
+        It is possible to specify the backend::
+
+            sage: R = A.regions(backend='normaliz')   #  optional - pynormaliz
+            sage: base_region = R[3]                  #  optional - pynormaliz
+            sage: PR = A.poset_of_regions(B=base_region,
+                                          numbered_labels=False, 
+                                          backend='normaliz')  #  optional - pynormaliz
+            sage: PR.an_element().backend()                    #  optional - pynormaliz
+            'normaliz'
         """
         # We use RX to keep track of indexes and R to keep track of which regions
         # we've already hit. This poset is graded, so we can go one set at a time
-        RX = self.regions()
+        RX = self.regions(backend=backend)
         R = set(RX)
         if B in R:
             R.discard(B)
