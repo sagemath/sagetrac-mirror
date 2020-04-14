@@ -1373,8 +1373,10 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         SkewPolynomialRing.__init__(self, base_ring, twist_map, name, sparse, category)
         self._order = twist_map.order()
         (self._constants, self._embed_constants) = twist_map.fixed_field()
+        self._center = { }
+        self._center_variable_name = None
 
-    def center(self, name='z', names=None, coerce=True):
+    def center(self, name=None, names=None, default=False):
         r"""
         Return the center of this skew polynomial ring.
 
@@ -1386,15 +1388,11 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
 
         INPUT:
 
-        - ``name`` -- a string (default: ``z``); a variable name  
+        - ``name`` -- a string or ``None`` (default: ``None``); 
+          the name for the central variable (namely `x^r`)
 
-        - ``coerce`` -- a boolean (default: ``False``); whether the 
-          embedding of the center into this ring should be registered
-          as a coercion map
-
-        OUTPUT:
-
-        The center of this skew polynomial ring.
+        - ``default`` -- a boolean (default: ``False``); if ``True``,
+          set the default variable name for the center to ``name``
 
         EXAMPLES::
 
@@ -1420,9 +1418,8 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: y.parent() is Zy
             True
 
-        By default, the canonical inclusion of the center into the skew
-        polynomial ring is a coercion map::
-            
+        A coercion map from the center to the skew polynomial ring is set::   
+
             sage: S.has_coerce_map_from(Zy)
             True
 
@@ -1433,7 +1430,7 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: P.parent() is S
             True
 
-        Moreover, a conversion map in the other direction is set::
+        together with a converion map in the reverse direction::
 
             sage: Zy(x^6 + 2*x^3 + 3)
             y^2 + 2*y + 3
@@ -1443,24 +1440,42 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             ...
             ValueError: x^2 is not in the center
 
-        It is possible to disable the coercion by passing in the
-        argument ``coerce=False``::
+        Two different skew polynomial rings can share the same center::
 
-            sage: Zu.<u> = S.center(coerce=False)
-            sage: S.has_coerce_map_from(Zu)
-            False
+            sage: S1.<x1> = k['x1', Frob]
+            sage: S2.<x2> = k['x2', Frob]
+            sage: S1.center() is S2.center()
+            True
 
-            sage: Q = u + x; Q
-            u + x
-            sage: Q.parent()
-            Univariate Polynomial Ring in u over Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
-            sage: Q.parent() is S
-            False
+        ABOUT THE DEFAULT NAME OF THE CENTRAL VARIABLE:
 
-        However, in this case, convertion continues to work::
+        A priori, the default is ``z``.
 
-            sage: S(u)
-            x^3
+        However, a variable name is given the first time this method is 
+        called, the given name become the default for the next calls::
+
+            sage: K.<t> = GF(11^3)
+            sage: phi = K.frobenius_endomorphism()
+            sage: A.<X> = K['X', phi]
+
+            sage: C.<u> = A.center()  # first call
+            sage: C
+            Univariate Polynomial Ring in u over Finite Field of size 11
+            sage: A.center()  # second call: the variable name is still u
+            Univariate Polynomial Ring in u over Finite Field of size 11
+            sage: A.center() is C
+            True
+
+        We can update the default variable name by passing in the argument
+        ``default=True``::
+
+            sage: D.<v> = A.center(default=True)
+            sage: D
+            Univariate Polynomial Ring in v over Finite Field of size 11
+            sage: A.center()
+            Univariate Polynomial Ring in v over Finite Field of size 11
+            sage: A.center() is D
+            True
 
         TESTS::
 
@@ -1469,22 +1484,29 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             ...
             IndexError: the number of names must equal the number of generators
         """
+        if name is not None and names is not None:
+            raise ValueError
         if names is None:
+            if name is None:
+                name = self._center_variable_name
+            if name is None:
+                name = 'z'
             names = (name,)
         names = normalize_names(1, names)
-        center = PolynomialRing(self._constants, names)
-        embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
-        try:
-            if coerce:
+        name = names[0]
+        if name in self._center:
+            center = self._center[name]
+        else:
+            center = PolynomialRing(self._constants, names)
+            embed = SkewPolynomialCenterInjection(center, self, self._embed_constants, self._order)
+            try:
                 self.register_coercion(embed)
-            else:
-                self.register_conversion(embed)
-        except AssertionError:
-            pass
-        try:
-            center.register_conversion(embed.section())
-        except AssertionError:
-            pass
+                center.register_conversion(embed.section())
+            except AssertionError:
+                raise ValueError("creation of coercion map fails; consider using another variable name")
+            self._center[name] = center
+        if default or (self._center_variable_name is None):
+            self._center_variable_name = name
         return center
 
 
