@@ -284,8 +284,10 @@ class sage_build_cython(Command):
 
         # Handle --require-features=FEATURE1,FEATURE2,...
         if self.require_features:
+            print('========== Running feature tests ==========', file=sys.stderr)
             from importlib import import_module
             for f in self.require_features.split(","):
+                print("{}:".format(f))
                 try:
                     module_name, feature_name = f.rsplit(".", 1)
                 except ValueError:
@@ -294,6 +296,7 @@ class sage_build_cython(Command):
                 feature_constructor = getattr(module, feature_name)
                 feature = feature_constructor()
                 feature.require()
+            print('========= Completed feature tests =========', file=sys.stderr)
 
     def get_cythonized_package_files(self):
         """
