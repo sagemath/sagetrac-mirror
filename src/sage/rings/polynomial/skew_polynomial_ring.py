@@ -409,14 +409,14 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             sage: S is T
             True
 
-        When the twisting morphism has finite order, a special class
+        When the twisting morphism is a Frobenius over a finite field, a special class
         is used::
 
             sage: k.<a> = GF(7^5)
             sage: Frob = k.frobenius_endomorphism(2)
             sage: S.<x> = SkewPolynomialRing(k, Frob)
             sage: type(S)
-            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order_with_category'>
+            <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field_with_category'>
         """
         if base_ring not in CommutativeRings():
             raise TypeError('base_ring must be a commutative ring')
