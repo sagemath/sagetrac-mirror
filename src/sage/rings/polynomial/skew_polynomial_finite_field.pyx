@@ -23,9 +23,7 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-#from cysignals.signals cimport sig_on, sig_off
-def sig_on(): pass
-def sig_off(): pass
+from cysignals.signals cimport sig_on, sig_off
 
 import copy
 import cysignals
