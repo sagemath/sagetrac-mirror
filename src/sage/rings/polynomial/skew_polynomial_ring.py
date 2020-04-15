@@ -59,6 +59,8 @@ from sage.categories.map import Section
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.skew_polynomial_element import SkewPolynomialBaseringInjection
 
+WORKING_CENTER_MAX_TRIES = 1000
+
 
 # Helper functions
 
@@ -1380,7 +1382,6 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
             sage: S.center() is Z
             True
         """
-        import random, string
         if self.Element is None:
             import sage.rings.polynomial.skew_polynomial_finite_order
             self.Element = sage.rings.polynomial.skew_polynomial_finite_order.SkewPolynomial_finite_order_dense
@@ -1391,13 +1392,15 @@ class SkewPolynomialRing_finite_order(SkewPolynomialRing):
         # Configure and create center
         self._center = { }
         self._center_variable_name = 'z'
-        while self._center_variable_name is not None:
+        for i in range(WORKING_CENTER_MAX_TRIES):
             try:
                 self._working_center = self.center()
                 self._center_variable_name = None
+                break
             except ValueError:
-                varname = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
-                pass
+                self._center_variable_name = "z%s_" % i
+        if self._center_variable_name is not None:
+            raise NotImplementedError("unable to create the center")
 
 
     def center(self, name=None, names=None, default=False):
