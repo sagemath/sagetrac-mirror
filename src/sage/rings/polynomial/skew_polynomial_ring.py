@@ -1022,7 +1022,6 @@ class SkewPolynomialRing(Algebra, UniqueRepresentation):
             sage: B.is_irreducible()
             True
         """
-        R = self.base_ring()
         if isinstance(degree, (list, tuple)):
             if len(degree) != 2:
                 raise ValueError("degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)")
@@ -1561,7 +1560,7 @@ class SkewPolynomialRing_finite_field(SkewPolynomialRing_finite_order):
         This method is a constructor for a general, dense univariate skew polynomial ring
         over a finite field.
 
-        INPUT::
+        INPUT:
 
         - ``base_ring`` -- a commutative ring
 
