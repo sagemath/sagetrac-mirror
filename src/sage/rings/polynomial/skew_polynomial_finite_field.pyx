@@ -381,6 +381,32 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
         - ``right`` -- a boolean; if ``True``, return right divisors,
         otherwise, return left divisors
+
+        TESTS::
+
+            sage: k.<a> = GF(7^4)
+            sage: Frob = k.frobenius_endomorphism(2)
+            sage: S.<x> = k['x', Frob]
+
+            sage: P = S.random_element(degree=10)
+            sage: rightdiv = [ f for f in P.right_irreducible_divisors() ]   # indirect doctest
+            sage: len(rightdiv) == P.count_irreducible_divisors()
+            True
+            sage: len(rightdiv) == Set(rightdiv).cardinality()  # check no duplicates
+            True
+            sage: for D in rightdiv:
+            ....:     assert P.is_right_divisible_by(D), "not right divisible"
+            ....:     assert D.is_irreducible(), "not irreducible"
+        
+            sage: P = S.random_element(degree=10)
+            sage: leftdiv = [ f for f in P.left_irreducible_divisors() ]   # indirect doctest
+            sage: len(leftdiv) == P.count_irreducible_divisors()
+            True
+            sage: len(leftdiv) == Set(leftdiv).cardinality()  # check no duplicates
+            True
+            sage: for D in leftdiv:
+            ....:     assert P.is_left_divisible_by(D), "not left divisible"
+            ....:     assert D.is_irreducible(), "not irreducible"
         """
         if self.is_zero():
             return
@@ -616,16 +642,6 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
 
             sage: rightdiv = [ d for d in a.right_irreducible_divisors() ]
 
-        We do some checks::
-
-            sage: len(rightdiv) == a.count_irreducible_divisors()
-            True
-            sage: len(rightdiv) == Set(rightdiv).cardinality()  # check no duplicates
-            True
-            sage: for d in rightdiv:
-            ....:     assert a.is_right_divisible_by(d), "not right divisible"
-            ....:     assert d.is_irreducible(), "not irreducible"
-
         Note that the algorithm is probabilistic. As a consequence, if we
         build again the list of right monic irreducible divisors of `a`, we
         may get a different ordering::
@@ -660,16 +676,6 @@ cdef class SkewPolynomial_finite_field_dense(SkewPolynomial_finite_order_dense):
         irreducible divisors of `a`::
 
             sage: leftdiv = [ d for d in a.left_irreducible_divisors() ]
-
-        We do some checks::
-
-            sage: len(leftdiv) == a.count_irreducible_divisors()
-            True
-            sage: len(leftdiv) == Set(leftdiv).cardinality()  # check no duplicates
-            True
-            sage: for d in leftdiv:
-            ....:     assert a.is_left_divisible_by(d), "not left divisible"
-            ....:     assert d.is_irreducible(), "not irreducible"
 
         Note that the algorithm is probabilistic. As a consequence, if we
         build again the list of left monic irreducible divisors of `a`, we
