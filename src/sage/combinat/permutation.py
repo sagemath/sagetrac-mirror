@@ -229,14 +229,12 @@ Classes and methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
 from builtins import zip
 from six.moves import range
-
-from six import itervalues
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -248,7 +246,7 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
-from sage.arith.all import factorial
+from sage.arith.all import factorial, multinomial
 from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
@@ -3917,9 +3915,9 @@ class Permutation(CombinatorialElement):
             sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3])) # indirect doctest
             [[2, 4, 5, 1, 3], [2, 4, 1, 5, 3], [2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
         """
-        if len(self) != len(other) :
+        if len(self) != len(other):
             raise ValueError("len({}) and len({}) must be equal".format(self, other))
-        if not self.permutohedron_lequal(other) :
+        if not self.permutohedron_lequal(other):
             raise ValueError("{} must be lower or equal than {} for the right permutohedron order".format(self, other))
         d = DiGraph()
         d.add_vertices(range(1, len(self) + 1))
@@ -4253,11 +4251,11 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: P=Permutations(6)
-            sage: p=P([4,5,1,6,3,2])
-            sage: pl= [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
+            sage: P = Permutations(6)
+            sage: p = P([4,5,1,6,3,2])
+            sage: pl = [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
             sage: for q in pl:
-            ....:     s=p.simion_schmidt(q)
+            ....:     s = p.simion_schmidt(q)
             ....:     print("{} {}".format(s, s.has_pattern(q)))
             [4, 6, 1, 5, 3, 2] False
             [4, 2, 1, 3, 5, 6] False
@@ -4981,12 +4979,12 @@ class Permutation(CombinatorialElement):
             sage: Permutation([2, 4, 1, 3]).shifted_concatenation(Permutation([3, 1, 2]), "left")
             [7, 5, 6, 2, 4, 1, 3]
         """
-        if side == "right" :
+        if side == "right":
             return Permutations()(list(self) + [a + len(self) for a in other])
-        elif side == "left" :
+        elif side == "left":
             return Permutations()([a + len(self) for a in other] + list(self))
-        else :
-            raise ValueError("%s must be \"left\" or \"right\"" %(side))
+        else:
+            raise ValueError("%s must be \"left\" or \"right\"" % side)
 
     def shifted_shuffle(self, other):
         r"""
@@ -5507,8 +5505,8 @@ class Permutations_nk(Permutations):
             sage: Permutations(3,4).cardinality()
             0
         """
-        if self._k <= self.n and self._k >= 0:
-            return factorial(self.n) // factorial(self.n-self._k)
+        if 0 <= self._k <= self.n:
+            return factorial(self.n) // factorial(self.n - self._k)
         return ZZ.zero()
 
     def random_element(self):
@@ -5684,11 +5682,8 @@ class Permutations_mset(Permutations):
         for i in mset_list:
             d[i] = d.get(i, 0) + 1
 
-        c = factorial(len(lmset))
-        for i in itervalues(d):
-            if i != 1:
-                c //= factorial(i)
-        return ZZ(c)
+        return ZZ(multinomial(d.values()))
+
 
 class Permutations_set(Permutations):
     """

@@ -2204,8 +2204,20 @@ class MPolynomialIdeal_singular_repr(
             sage: J = ideal(R(1))
             sage: I.quotient(J)
             Ideal (z, x) of Multivariate Polynomial Ring in x, y, z over Algebraic Field
+
+        Check that :trac:`12803` is fixed::
+
+            sage: R.<xe,xv> = ZZ[]
+            sage: J = ideal(4*xv^3 + 3*xv^2, 3*xe*xv^2 + xe - 2*xv)
+            sage: I  = ideal(-3, -3*xv - 1, -3)
+            sage: I2 = ideal(-3, -3*xv - 1)
+            sage: I == I2
+            True
+            sage: Q1 = J.quotient(I)
+            sage: Q2 = J.quotient(I2)
+            sage: Q1 == Q2
+            True
         """
-        from sage.misc.stopgap import stopgap
         R = self.ring()
 
         if not isinstance(J, MPolynomialIdeal):
@@ -2215,8 +2227,6 @@ class MPolynomialIdeal_singular_repr(
             raise TypeError("base rings do not match")
 
         import sage.libs.singular.function_factory
-        if self.base_ring() == ZZ:
-            stopgap("Singular's quotient()-routine for rings over ZZ contains bugs and may be mathematically unreliable", 12803)
         quotient = sage.libs.singular.function_factory.ff.quotient
         return R.ideal(quotient(self, J))
 
@@ -3901,7 +3911,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: A9=PolynomialRing(QQ,9,'x') # optional - giacpy_sage
             sage: I9=sage.rings.ideal.Katsura(A9) # optional - giacpy_sage
             sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy_sage, long time (3s)
-            Running a probabilistic check for the reconstructed Groebner basis...
+            ...Running a probabilistic check for the reconstructed Groebner basis...
             Polynomial Sequence with 143 Polynomials in 9 Variables
 
         The list of available Giac options is provided at :func:`sage.libs.giac.groebner_basis`.
@@ -4611,15 +4621,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.misc.misc_c import prod
         from sage.rings.power_series_ring import PowerSeriesRing
 
-        R = PowerSeriesRing(QQ,'z', default_prec=sum(degs))
-        z = R.gen()
-        dreg = 0
+        z = PowerSeriesRing(QQ, 'z', default_prec=sum(degs)).gen()
         s = prod([1-z**d for d in degs]) / (1-z)**n
         for dreg in range(sum(degs)):
             if s[dreg] <= 0:
                 return ZZ(dreg)
-        else:
-            raise ValueError("BUG: Could not compute the degree of semi-regularity")
+        raise ValueError("BUG: Could not compute the degree of semi-regularity")
 
     def plot(self, *args, **kwds):
         """

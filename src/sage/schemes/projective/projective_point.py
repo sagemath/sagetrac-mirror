@@ -411,7 +411,63 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         #a constant value
         return hash(self.codomain())
 
-    def scale_by(self, t):
+    def _matrix_times_point_(self, mat, dom):
+        r"""
+        Multiplies the point by a matrix ``mat`` on the left.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        - ``dom`` -- point set of the resulting point
+
+        OUTPUT: a scheme point given by ``mat*self``
+
+        EXAMPLES::
+
+            sage: P = ProjectiveSpace(QQ,1)
+            sage: Q = P(1,1)
+            sage: m = matrix(QQ, 2, 2, [1,1,0,1])
+            sage: m*Q
+            (2 : 1)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme(x-y)
+            sage: Q = X(1,1)
+            sage: m = matrix(CC, 3, 3, [1,CC.0,0,CC.0,1,0,1,1,1])
+            sage: m*Q
+            (0.333333333333333 + 0.333333333333333*I : 0.333333333333333
+            + 0.333333333333333*I : 1.00000000000000)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQbar,1)
+            sage: Q = P(QQbar(sqrt(2)),1)
+            sage: m = matrix(ZZ, 2, 2, [1,-1,0,1])
+            sage: m*Q
+            (0.4142135623730951? : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ,1)
+            sage: Q = P(1,1)
+            sage: m = matrix(QQ, 3, 2, [1,1,0,1,1,1])
+            sage: m*Q
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix must be square
+        """
+        from sage.modules.free_module_element import vector
+        if not mat.is_square():
+            raise ValueError("matrix must be square")
+        if mat.ncols() != self.codomain().ngens():
+            raise ValueError("matrix size is incompatible")
+        X = mat * vector(list(self))
+        return dom.codomain()(list(X))
+
+    def scale_by(self,t):
         """
         Scale the coordinates of the point by ``t``.
 
@@ -604,10 +660,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         PS = self.codomain()
         A = PS.affine_patch(n)
         Q = []
-        for i in range(0,PS.ambient_space().dimension_relative()+1):
-            if i !=n:
-                Q.append(self[i]/self[n])
-        return(A.point(Q))
+        for i in range(PS.ambient_space().dimension_relative() + 1):
+            if i != n:
+                Q.append(self[i] / self[n])
+        return A.point(Q)
 
     def global_height(self, prec=None):
         r"""
@@ -667,7 +723,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 P = self._number_field_from_algebraics()
             except TypeError:
                 raise TypeError("must be defined over an algebraic field")
-        return(max([P[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
+        return max([P[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)])
 
     def local_height(self, v, prec=None):
         r"""
@@ -1129,7 +1185,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             P = [ psi(p) for p in P ] # The elements of P were elements of K_pre
         from sage.schemes.projective.projective_space import ProjectiveSpace
         PS = ProjectiveSpace(K,self.codomain().dimension_relative(),'z')
-        return(PS(P))
+        return PS(P)
 
     def clear_denominators(self):
         r"""

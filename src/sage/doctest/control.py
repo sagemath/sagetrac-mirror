@@ -35,6 +35,7 @@ from .forker import DocTestDispatcher
 from .reporting import DocTestReporter
 from .util import Timer, count_noun, dict_difference
 from .external import external_software, available_software
+from sage.features import PythonModule
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -190,7 +191,7 @@ def skipdir(dirname):
         sage: skipdir(os.path.join(sage.env.SAGE_SRC, "sage", "doctest", "tests"))
         True
     """
-    if os.path.exists(os.path.join(dirname, "nodoctest.py")):
+    if os.path.exists(os.path.join(dirname, "nodoctest.py")) or os.path.exists(os.path.join(dirname, "nodoctest")):
         return True
     return False
 
@@ -355,7 +356,7 @@ class DocTestController(SageObject):
                     options.optional.discard('optional')
                     from sage.misc.package import list_packages
                     for pkg in list_packages('optional', local=True).values():
-                        if pkg['installed_version'] == pkg['remote_version']:
+                        if pkg['installed'] and pkg['installed_version'] == pkg['remote_version']:
                             options.optional.add(pkg['name'])
 
                 # Check that all tags are valid
@@ -612,18 +613,6 @@ class DocTestController(SageObject):
         """
         Test that the given directory is safe to run Python code from.
 
-        We use the check added to Python for this, which gives a
-        warning when the current directory is considered unsafe.  We promote
-        this warning to an error with ``-Werror``.  See
-        ``sage/tests/cmdline.py`` for a doctest that this works, see
-        also :trac:`13579`.
-
-        .. NOTE::
-
-            This is only relevant with Python 2, because Sage's Python
-            2 is patched to give a warning when the current directory
-            is unsafe, but Python 3 is not.
-
         TESTS::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
@@ -633,20 +622,20 @@ class DocTestController(SageObject):
             sage: d = os.path.join(tmp_dir(), "test")
             sage: os.mkdir(d)
             sage: os.chmod(d, 0o777)
-            sage: DC.test_safe_directory(d) # py2
+            sage: DC.test_safe_directory(d)
             Traceback (most recent call last):
             ...
             RuntimeError: refusing to run doctests...
         """
-        import subprocess
-        with open(os.devnull, 'w') as dev_null:
-            if subprocess.call([sys.executable, '-Werror', '-c', ''],
-                    stdout=dev_null, stderr=dev_null, cwd=dir) != 0:
-                raise RuntimeError(
-                      "refusing to run doctests from the current "
-                      "directory '{}' since untrusted users could put files in "
-                      "this directory, making it unsafe to run Sage code from"
-                      .format(os.getcwd()))
+        import os
+        import stat
+        is_world_writeable = bool(os.stat(dir or os.getcwd()).st_mode & stat.S_IWOTH)
+        if is_world_writeable:
+            raise RuntimeError(
+                  "refusing to run doctests from the current "
+                  "directory '{}' since untrusted users could put files in "
+                  "this directory, making it unsafe to run Sage code from"
+                  .format(os.getcwd()))
 
     def create_run_id(self):
         """
@@ -692,9 +681,9 @@ class DocTestController(SageObject):
 
             sage: DD = DocTestDefaults(sagenb = True)
             sage: DC = DocTestController(DD, [])
-            sage: DC.add_files()  # py2
+            sage: DC.add_files()  # py2 # optional - sagenb
             Doctesting the Sage notebook.
-            sage: DC.files[0][-6:]  # py2
+            sage: DC.files[0][-6:]  # py2 # optional - sagenb
             'sagenb'
         """
         opj = os.path.join
@@ -741,7 +730,7 @@ class DocTestController(SageObject):
                          filename.endswith(".rst"))):
                     self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
-            if six.PY3:
+            if six.PY3 or not PythonModule('sagenb').is_present():
                 if not self.options.all:
                     self.log("Skipping doctesting of the Sage notebook: "
                              "not installed on Python 3")

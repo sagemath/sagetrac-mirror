@@ -232,12 +232,12 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
         m, n = latin_squares_graph_parameters(v,k,l,mu)
     except Exception:
         return
-    if orthogonal_array(m,n,existence=True):
+    if orthogonal_array(m,n,existence=True) is True:
         from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
         return (lambda m,n : OrthogonalArrayBlockGraph(m, n), m,n)
 
-    elif n>2 and skew_hadamard_matrix(n+1, existence=True):
-        if m==(n+1)//2:
+    elif n>2 and skew_hadamard_matrix(n+1, existence=True) is True:
+        if m==(n+1)/2:
             from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph as G
         elif m==(n-1)//2:
             from sage.graphs.generators.families import PasechnikGraph as G
@@ -318,10 +318,11 @@ def is_steiner(int v,int k,int l,int mu):
         return
     m = int(sqrt(mu))
     n = (k*(m-1))//m+m
-    if (v == (n*(n-1))//(m*(m-1)) and
-        k == m*(n-m)//(m-1) and
-        l == (m-1)**2 + (n-1)//(m-1)-2 and
-        balanced_incomplete_block_design(n,m,existence=True)):
+
+    if (v == (n*(n-1))/(m*(m-1)) and
+        k == m*(n-m)/(m-1) and
+        l == (m-1)**2 + (n-1)/(m-1)-2 and
+        balanced_incomplete_block_design(n,m,existence=True) is True):
         from sage.graphs.generators.intersection import IntersectionGraph
         return (lambda n, m: IntersectionGraph([frozenset(b) for b in balanced_incomplete_block_design(n, m)]), n, m)
 
@@ -526,8 +527,8 @@ def is_goethals_seidel(int v,int k,int l,int mu):
     if (v   == v_bibd*(r_bibd+1)                  and
         2*k == v+r_bibd-1                         and
         4*l == -2*v + 6*k -v_bibd -k_bibd         and
-        hadamard_matrix(r_bibd+1, existence=True) and
-        balanced_incomplete_block_design(v_bibd, k_bibd, existence = True)):
+        hadamard_matrix(r_bibd+1, existence=True) is True and
+        balanced_incomplete_block_design(v_bibd, k_bibd, existence = True) is True):
         from sage.graphs.generators.families import GoethalsSeidelGraph
         return [GoethalsSeidelGraph, k_bibd, r_bibd]
 
@@ -1142,7 +1143,7 @@ def is_RSHCD(int v,int k,int l,int mu):
         (64, 27, 10, 12)
 
     """
-    if SRG_from_RSHCD(v,k,l,mu,existence=True):
+    if SRG_from_RSHCD(v,k,l,mu,existence=True) is True:
         return [SRG_from_RSHCD,v,k,l,mu]
 
 def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
@@ -1202,10 +1203,10 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
     t = abs(a//2)
 
     if (e**2 == 1              and
-        k == (n-1-a+e)//2       and
-        l == (n-2*a)//4 - (1-e) and
-        mu== (n-2*a)//4         and
-        regular_symmetric_hadamard_matrix_with_constant_diagonal(n,sgn(a)*e,existence=True)):
+        k == (n-1-a+e)/2       and
+        l == (n-2*a)/4 - (1-e) and
+        mu== (n-2*a)/4         and
+        regular_symmetric_hadamard_matrix_with_constant_diagonal(n,sgn(a)*e,existence=True) is True):
         if existence:
             return True
         from sage.matrix.constructor import identity_matrix as I
@@ -1482,14 +1483,15 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
         for kf in [(-D+b)//4, (D+b)//4]:
             k = int(kf)
             if k == kf and \
-                strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True):
+                strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True) is True:
                 def la(vv):
                     from sage.combinat.designs.twographs import twograph_descendant
                     g = strongly_regular_graph(vv, k, l - 2*mu + k)
                     return twograph_descendant(g, next(g.vertex_iterator()),
                                                name=True)
-                return(la, v + 1)
+                return la, v + 1
     return
+
 
 @cached_function
 def is_taylor_twograph_srg(int v,int k,int l,int mu):
@@ -1581,7 +1583,7 @@ def is_switch_skewhad(int v, int k, int l, int mu):
     if  int(r) == 2*n-1         and \
         v == (4*n-1)**2 + 1     and \
         k == (4*n-1)*(2*n-1)    and \
-        skew_hadamard_matrix(4*n, existence=True):
+        skew_hadamard_matrix(4*n, existence=True) is True:
             return (SwitchedSquaredSkewHadamardMatrixGraph, n)
 
 def is_switch_OA_srg(int v, int k, int l, int mu):
@@ -1635,7 +1637,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
     if (k % n                            or
         l != c*c-1                       or
         k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
-        not orthogonal_array(c+1,n,existence=True,resolvable=True)):
+        not orthogonal_array(c+1,n,existence=True,resolvable=True) is True):
         return None
 
     def switch_OA_srg(c, n):
@@ -1972,13 +1974,14 @@ def SRG_144_39_6_12():
         sage: G.is_strongly_regular(parameters=True)
         (144, 39, 6, 12)
     """
-
     from sage.libs.gap.libgap import libgap
-    g=libgap.ProjectiveGeneralLinearGroup(3,3)
-    ns=g.Normalizer(g.SylowSubgroup(13))
-    G=g.Action(g.RightCosets(ns),libgap.OnRight)
-    H=G.Stabilizer(1)
-    for o in filter(lambda x: len(x)==39, H.Orbits()):
+    g = libgap.ProjectiveGeneralLinearGroup(3, 3)
+    ns = g.Normalizer(g.SylowSubgroup(13))
+    G = g.Action(g.RightCosets(ns), libgap.OnRight)
+    H = G.Stabilizer(1)
+    for o in H.Orbits():
+        if len(o) != 39:
+            continue
         h = Graph()
         h.add_edges(G.Orbit([1,o[0]],libgap.OnSets))
         if h.is_strongly_regular():
@@ -2239,19 +2242,17 @@ def SRG_280_135_70_60():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_280_135_70_60
-        sage: g=SRG_280_135_70_60()                  # long time # optional - gap_packages
-        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
+        sage: g=SRG_280_135_70_60()                  # long time # optional - internet
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - internet
         (280, 135, 70, 60)
     """
-    from sage.interfaces.gap import gap
-    from sage.groups.perm_gps.permgroup import PermutationGroup
+    from sage.libs.gap.libgap import libgap
     from sage.graphs.graph import Graph
 
-    gap.load_package("AtlasRep")
-
+    libgap.load_package("AtlasRep")
     # A representation of J2 acting on a 3.PGL(2,9) it contains.
-    J2    = PermutationGroup(gap('AtlasGenerators("J2",2).generators'))
-    edges = J2.orbit((1,2),"OnSets")
+    J2    = libgap.AtlasGroup("J2", libgap.NrMovedPoints, 280)
+    edges = J2.Orbit([1,2], libgap.OnSets)
     g     = Graph()
     g.add_edges(edges)
     g.relabel()
@@ -2346,15 +2347,13 @@ def SRG_416_100_36_20():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_416_100_36_20
-        sage: g = SRG_416_100_36_20()                # optional - gap_packages # long time
-        sage: g.is_strongly_regular(parameters=True) # optional - gap_packages # long time
+        sage: g = SRG_416_100_36_20()                # long time # optional - internet
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - internet
         (416, 100, 36, 20)
     """
     from sage.libs.gap.libgap import libgap
-    libgap.eval("SetInfoLevel(InfoWarning,0)") # silence #I warnings from GAP (without IO pkg)
-    libgap.LoadPackage("AtlasRep")
+    libgap.load_package("AtlasRep")
     g=libgap.AtlasGroup("G2(4)",libgap.NrMovedPoints,416)
-    libgap.eval("SetInfoLevel(InfoWarning,1)") # restore #I warnings
     h = Graph()
     h.add_edges(g.Orbit([1,5],libgap.OnSets))
     h.relabel()
@@ -2376,7 +2375,7 @@ def SRG_560_208_72_80():
         (560, 208, 72, 80)
     """
     from sage.libs.gap.libgap import libgap
-    libgap.LoadPackage("AtlasRep")
+    libgap.load_package("AtlasRep")
     g=libgap.AtlasGroup("Sz8",libgap.NrMovedPoints,560)
 
     h = Graph()
@@ -2802,7 +2801,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
 
         sage: from sage.graphs.strongly_regular_db import apparently_feasible_parameters
         sage: for p in sorted(apparently_feasible_parameters(1300)):   # not tested
-        ....:     if graphs.strongly_regular_graph(*p,existence=True): # not tested
+        ....:     if graphs.strongly_regular_graph(*p,existence=True) is True: # not tested
         ....:         try:                                             # not tested
         ....:             _ = graphs.strongly_regular_graph(*p)        # not tested
         ....:             print(p, "built successfully")               # not tested
@@ -2953,14 +2952,14 @@ def apparently_feasible_parameters(int n):
          (16, 9, 4, 6),
          (16, 10, 6, 6),
          (17, 8, 3, 4)}
-        sage: all(graphs.strongly_regular_graph(*x,existence=True) for x in small_feasible)
+        sage: all(graphs.strongly_regular_graph(*x,existence=True) is True for x in small_feasible)
         True
 
     But that becomes wrong for `v<60` (because of the non-existence of a
     `(49,16,3,6)`-strongly regular graph)::
 
         sage: small_feasible = apparently_feasible_parameters(60)
-        sage: all(graphs.strongly_regular_graph(*x,existence=True) for x in small_feasible)
+        sage: all(graphs.strongly_regular_graph(*x,existence=True) is True for x in small_feasible)
         False
 
     """
@@ -3193,7 +3192,7 @@ def _check_database():
     for params,dic in sorted(saved_database.items()):
         sage_answer = strongly_regular_graph(*params,existence=True)
         if dic['status'] == 'open':
-            if sage_answer:
+            if sage_answer is True:
                 print("Sage can build a {}, Brouwer's database cannot".format(params))
             assert sage_answer is not False
         elif dic['status'] == 'exists':
