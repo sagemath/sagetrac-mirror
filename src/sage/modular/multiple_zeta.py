@@ -414,35 +414,6 @@ def basis_f_iterator(n):
             yield (k, Word(['f{}'.format(d) for d in start]))
 
 
-def base_brown(n):
-    r"""
-    Return a basis of the algebra of multiple zeta values in weight ``n``.
-
-    It was proved by Francis Brown that this is a basis of motivic
-    multiple zeta values.
-
-    This is made of all `\zeta(n_1, ..., n_r)` with parts in {2,3}.
-
-    INPUT:
-
-    - ``n`` -- an integer
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta import base_brown
-        sage: base_brown(3)
-        [ζ(3)]
-        sage: base_brown(4)
-        [ζ(2,2)]
-        sage: base_brown(5)
-        [ζ(3,2), ζ(2,3)]
-        sage: base_brown(6)
-        [ζ(3,3), ζ(2,2,2)]
-    """
-    M = Multizetas(QQ)
-    return [M(tuple(c)) for c in IntegerVectors(n, min_part=2, max_part=3)]
-
-
 def base_data(n):
     """
     Return an iterator for a basis in weight ``n``.
@@ -760,7 +731,15 @@ class Multizetas(CombinatorialFreeModule):
         """
         Return the morphism ``phi``.
 
-        This sends multiple zeta values to the algebra :func:`F_ring`.
+        This sends multiple zeta values to the algebra :func:`F_ring`,
+        which is a shuffle algebra in odd generators `f_3,f_5,f_7,\dots`
+        over the polynomial ring in one variable `f_2`.
+
+        This is a ring isomorphism, that depends on the choice of a
+        multiplicative basis for the ring of motivic multiple zeta
+        values. Here we use one specific hardcoded basis.
+
+        For the precise definition of ``phi`` by induction, see [Brown2012]_.
 
         EXAMPLES::
 
@@ -820,6 +799,34 @@ class Multizetas(CombinatorialFreeModule):
         if x == 0:
             return self.element_class(self, {})
         return self.from_base_ring_from_one_basis(x)
+
+    def base_brown(self, n):
+        r"""
+        Return a basis of the algebra of multiple zeta values in weight ``n``.
+
+        It was proved by Francis Brown that this is a basis of motivic
+        multiple zeta values.
+
+        This is made of all `\zeta(n_1, ..., n_r)` with parts in {2,3}.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: M = Multizetas(QQ)
+            sage: M.base_brown(3)
+            [ζ(3)]
+            sage: M.base_brown(4)
+            [ζ(2,2)]
+            sage: M.base_brown(5)
+            [ζ(3,2), ζ(2,3)]
+            sage: M.base_brown(6)
+            [ζ(3,3), ζ(2,2,2)]
+        """
+        return [self(tuple(c))
+                for c in IntegerVectors(n, min_part=2, max_part=3)]
 
     class Element(CombinatorialFreeModule.Element):
         def iterated(self):
