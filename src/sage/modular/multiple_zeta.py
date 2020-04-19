@@ -414,27 +414,6 @@ def basis_f_iterator(n):
             yield (k, Word(['f{}'.format(d) for d in start]))
 
 
-def compositions_23(n):
-    """
-    Return the set of compositions of ``n`` with parts 2 and 3.
-
-    INPUT:
-
-    - ``n`` -- an integer
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta import compositions_23
-        sage: list(compositions_23(6))
-        [[3, 3], [2, 2, 2]]
-        sage: list(compositions_23(7))
-        [[3, 2, 2], [2, 3, 2], [2, 2, 3]]
-        sage: list(compositions_23(9))
-        [[3, 3, 3], [3, 2, 2, 2], [2, 3, 2, 2], [2, 2, 3, 2], [2, 2, 2, 3]]
-    """
-    return IntegerVectors(n, min_part=2, max_part=3)
-
-
 def base_brown(n):
     r"""
     Return a basis of the algebra of multiple zeta values in weight ``n``.
@@ -461,7 +440,7 @@ def base_brown(n):
         [ζ(3,3), ζ(2,2,2)]
     """
     M = Multizetas(QQ)
-    return [M(tuple(c)) for c in compositions_23(n)]
+    return [M(tuple(c)) for c in IntegerVectors(n, min_part=2, max_part=3)]
 
 
 def base_data(n):
@@ -2201,29 +2180,6 @@ def vector_to_f(vec, N):
     return sum(cf * bi for cf, bi in zip(vec, base_F))
 
 
-def vector_to_multizeta(vec, N):
-    """
-    Convert a vector to a multiple zeta value.
-
-    This is done using the hardcoded basis.
-
-    INPUT:
-
-    - ``vec`` -- rational vector
-
-    - ``N`` -- integer, the weight
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta import vector_to_multizeta
-        sage: vector_to_multizeta((1,0),6)
-        12*ζ(1,5) + 6*ζ(2,4) + 2*ζ(3,3)
-        sage: vector_to_multizeta((0,1),6)
-        36*ζ(1,1,4) + 24*ζ(1,2,3) + 12*ζ(1,3,2) + 12*ζ(2,1,3) + 6*ζ(2,2,2)
-    """
-    return sum(cf * b for cf, b in zip(vec, base_data(N)))
-
-
 @cached_function
 def rho_matrix_inverse(n):
     """
@@ -2234,7 +2190,7 @@ def rho_matrix_inverse(n):
 
     INPUT:
 
-    - n - an integer
+    - ``n`` -- an integer
 
     EXAMPLES::
 
@@ -2285,4 +2241,4 @@ def rho_inverse(elt):
 
     v = f_to_vector(elt)
     w = v * rho_matrix_inverse(N)
-    return vector_to_multizeta(w, N)
+    return sum(cf * b for cf, b in zip(w, base_data(N)))
