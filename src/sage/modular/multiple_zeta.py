@@ -101,11 +101,12 @@ Then one can compute the space of relations::
 
 and check that the first relation holds::
 
-    sage: relation = L[0]-2*L[2]+1/16*L[3]
+    sage: relation = L[0]-2*L[2]+1/16*L[3]; relation
+    ζ(1,1,4) - 2*ζ(1,5) + 1/16*ζ(6)
     sage: relation.phi()
     0
-    sage: relation.n()
-    0.000000000000...
+    sage: relation.is_zero()
+    True
 
 .. WARNING::
 
@@ -303,31 +304,6 @@ def dual_composition(c):
     i = composition_to_iterated(c)
     ri = [1 - x for x in reversed(i)]
     return iterated_to_composition(ri)
-
-
-def numerical_MZV(indice, prec=53):
-    r"""
-    Return the numerical value of `\zeta(n_1,...n_r)` as a Sage real.
-
-    The computation is done by :pari:`zetamult`.
-
-    INPUT:
-
-    - ``indice`` -- a composition
-
-    - ``prec`` -- precision
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta import numerical_MZV
-        sage: numerical_MZV((1,2))
-        1.20205690315959429
-        sage: numerical_MZV((3,))
-        1.20205690315959429
-        sage: numerical_MZV((1,3,2),80)
-        0.079221397565207165999032810077801091674
-    """
-    return numerical_MZV_pari(indice, prec=prec).sage()
 
 
 @cached_function
@@ -572,25 +548,22 @@ def Multizeta(*args):
 
     EXAMPLES::
 
-        sage: MZV = Multizeta
-        sage: MZV(1,0,1,0)
+        sage: Z = Multizeta
+        sage: Z(1,0,1,0)
         I(1010)
-        sage: MZV(3,2,2)
+        sage: Z(3,2,2)
         ζ(3,2,2)
 
     TESTS::
 
-        sage: MZV(3,2,2).iterated().composition()
+        sage: Z(3,2,2).iterated().composition()
         ζ(3,2,2)
-        sage: MZV(1,0,1,0).composition().iterated()
+        sage: Z(1,0,1,0).composition().iterated()
         I(1010)
     """
     if 0 in args:
         return Multizetas_iterated(QQ)(tuple(args))
     return Multizetas(QQ)(tuple(args))
-
-
-MZV = Multizeta
 
 
 class Multizetas(CombinatorialFreeModule):
@@ -949,7 +922,7 @@ class Multizetas(CombinatorialFreeModule):
             """
             if prec is None:
                 prec = 53
-            return sum(cf * numerical_MZV(tuple(w), prec=prec)
+            return sum(cf * numerical_MZV_pari(tuple(w), prec=prec).sage()
                        for w, cf in self.monomial_coefficients().items())
 
         def numerical_approx_pari(self, prec=None, digits=None):
