@@ -81,6 +81,32 @@ and 1. For example, one has the equality
 
 The implementation follows closely the conventions from [Brown2012]_.
 
+All this can be used to find linear dependencies between any set of
+multiple zeta values. Let us illustrate this by an example.
+
+Let us first build our sample set::
+
+    sage: Z = Multizeta
+    sage: L = [Z(*c) for c in [(1, 1, 4), (1, 2, 3), (1, 5), (6,)]]
+
+Then one can compute the space of relations::
+
+    sage: from sage.modular.multiple_zeta import f_to_vector
+    sage: M = matrix([f_to_vector(Zc.phi()) for Zc in L])
+    sage: K = M.kernel(); K
+    Vector space of degree 4 and dimension 2 over Rational Field
+    Basis matrix:
+    [     1      0     -2   1/16]
+    [     0      1      6 -13/48]
+
+and check that the first relation holds::
+
+    sage: relation = L[0]-2*L[2]+1/16*L[3]
+    sage: relation.phi()
+    0
+    sage: relation.n()
+    0.000000000000...
+
 .. WARNING::
 
     Because this code uses an hardcoded multiplicative basis that is
