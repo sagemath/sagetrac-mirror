@@ -2262,4 +2262,4 @@ def rho_inverse(elt):
 
     v = f_to_vector(elt)
     w = v * rho_matrix_inverse(N)
-    return sum(cf * b for cf, b in zip(w, base_data(BR, N)))
+    return sum(cf * b for cf, b in zip(w, basis_data(BR, N)))
