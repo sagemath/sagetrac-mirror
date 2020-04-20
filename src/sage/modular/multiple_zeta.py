@@ -307,11 +307,18 @@ def dual_composition(c):
 
 
 @cached_function
+def numerical_MZV_all_pari(n=15, prec=53):
+    """
+    Compute all numerical values up to weight ``n``.
+    """
+    return pari.zetamultall(n, prec)
+
+
 def numerical_MZV_pari(indice, prec=53):
     r"""
     Return the numerical value of `\zeta(n_1,...n_r)` as a Pari real.
 
-    The computation is done by :pari:`zetamult`.
+    The computation is done by :pari:`zetamultall`.
 
     Because Pari uses the opposite convention for conversion between
     composition and words in 0 and 1, one needs to be careful in the
@@ -332,7 +339,8 @@ def numerical_MZV_pari(indice, prec=53):
         <class 'cypari2.gen.Gen'>
     """
     revindice = reversed(indice)
-    return pari(revindice).zetamult(None, prec)
+    index = pari.zetamultconvert(revindice, 2)
+    return numerical_MZV_all_pari(prec=prec)[index - 1]
 
 
 def basis_f_odd_iterator(n):
@@ -920,11 +928,11 @@ class Multizetas(CombinatorialFreeModule):
 
                 sage: M = Multizetas(QQ)
                 sage: M(Word((3,2))).n()  # indirect doctest
-                0.711566197550572432
+                0.71156619755057243209697380608600211751
                 sage: (M((3,)) * M((2,))).n(prec=80)
-                1.9773043502972961181970854414851255721
+                1.97730435029729611819708544148512557208215146665950424034
                 sage: M((1,2)).n(70)
-                1.2020569031595942853997381615114499908
+                1.20205690315959428539973816151144999076498629234049063812
             """
             if prec is None:
                 prec = 53
@@ -1459,7 +1467,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 sage: x = M((1,0,1,0))
                 sage: y = M((1, 0, 0))
                 sage: (3*x+y).n()  # indirect doctest
-                1.23317037269046665
+                1.2331703726904666455112701557058366776
             """
             return self.composition().numerical_approx(prec=prec)
 
