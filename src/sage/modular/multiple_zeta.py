@@ -414,7 +414,7 @@ def basis_f_iterator(n):
             yield (k, Word(['f{}'.format(d) for d in start]))
 
 
-def base_data(n):
+def base_data(basering, n):
     """
     Return an iterator for a basis in weight ``n``.
 
@@ -427,33 +427,12 @@ def base_data(n):
     EXAMPLES::
 
         sage: from sage.modular.multiple_zeta import base_data
-        sage: list(base_data(4))
+        sage: list(base_data(QQ, 4))
         [4*ζ(1,3) + 2*ζ(2,2)]
     """
-    M = Multizetas(QQ)
+    M = Multizetas(basering)
     base_MZV = extend_multiplicative_basis(B_data, n)
     return (prod(M(compo) for compo in term) for term in base_MZV)
-
-
-def base_multi(n):
-    """
-    Return a set of multiplicative generators in weight ``n``.
-
-    This is obtained from hardcoded data, available only up to weight 17.
-
-    INPUT:
-
-    - ``n`` -- an integer
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta import base_multi
-        sage: base_multi(5)
-        [ζ(5)]
-        sage: base_multi(8)
-        [ζ(3,5)]
-    """
-    return [Multizeta(*b) for b in B_data[n]]
 
 
 def extend_multiplicative_basis(B, n):
@@ -532,6 +511,14 @@ class Multizetas(CombinatorialFreeModule):
         sage: x*y
         6*ζ(1,4,4) + 8*ζ(1,5,3) + 3*ζ(2,3,4) + 4*ζ(2,4,3) + 3*ζ(3,2,4)
         + 2*ζ(3,3,3) + 6*ζ(4,1,4) + 3*ζ(4,2,3) + ζ(4,3,2)
+
+    TESTS::
+
+        sage: A = QQ['u']
+        sage: u = A.gen()
+        sage: M = Multizetas(A)
+        sage: (u*M((2,))+M((3,)))*M((2,))
+        4*u*ζ(1,3) + 6*ζ(1,4) + 2*u*ζ(2,2) + 3*ζ(2,3) + ζ(3,2)
     """
     def __init__(self, R):
         """
@@ -799,6 +786,26 @@ class Multizetas(CombinatorialFreeModule):
         if x == 0:
             return self.element_class(self, {})
         return self.from_base_ring_from_one_basis(x)
+
+    def algebra_generators(self, n):
+        """
+        Return a set of multiplicative generators in weight ``n``.
+
+        This is obtained from hardcoded data, available only up to weight 17.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: M = Multizetas(QQ)
+            sage: M.algebra_generators(5)
+            [ζ(5)]
+            sage: M.algebra_generators(8)
+            [ζ(3,5)]
+        """
+        return [self(b) for b in B_data[n]]
 
     def base_brown(self, n):
         r"""
@@ -1304,7 +1311,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         prec = 1000
         f = F_ring_generator
         if not w:
-            F = F_ring()
+            F = F_ring(self.base_ring())
             empty = F.indices()([])
             return F.monomial(empty)
         N = len(w)
@@ -1346,7 +1353,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: [M.phi(b.iterated()) for b in B6]
             [Z[f3,f3], 1/6*f2^3*Z[]]
         """
-        return self.module_morphism(self.phi_extended, codomain=F_ring())
+        cod = F_ring(self.base_ring())
+        return self.module_morphism(self.phi_extended, codomain=cod)
 
     def _element_constructor_(self, x):
         r"""
@@ -1820,7 +1828,7 @@ class All_iterated(CombinatorialFreeModule):
 # **************** procedures after F. Brown ************
 
 
-def F_ring(N=18):
+def F_ring(basering, N=18):
     r"""
     Return the free Zinbiel algebra on many generators `f_3,f_5,\dots`
     over the polynomial ring with generator `f_2`.
@@ -1834,11 +1842,11 @@ def F_ring(N=18):
     EXAMPLES::
 
         sage: from sage.modular.multiple_zeta import F_ring
-        sage: F_ring()
+        sage: F_ring(QQ)
         Free Zinbiel algebra on generators (Z[f3], Z[f5], Z[f7], Z[f9], ...)
         over Univariate Polynomial Ring in f2 over Rational Field
     """
-    ring = PolynomialRing(QQ, ['f2'])
+    ring = PolynomialRing(basering, ['f2'])
     return FreeZinbielAlgebra(ring, ['f{}'.format(k)
                                      for k in range(3, N, 2)])
 
@@ -1869,7 +1877,7 @@ def F_prod(a, b):
         sage: F_prod(3*f2+5*f3,6*f2+f3)
         18*f2^2*Z[] + 33*f2*Z[f3] + 10*Z[f3,f3]
     """
-    F = F_ring()
+    F = a.parent()
     empty = F.indices()([])
     one = F.monomial(empty)
     ct_a = a.coefficient(empty)
@@ -1899,7 +1907,7 @@ def F_ring_generator(i):
         sage: [F_ring_generator(i) for i in range(2,8)]
         [f2*Z[], Z[f3], 2/5*f2^2*Z[], Z[f5], 8/35*f2^3*Z[], Z[f7]]
     """
-    F = F_ring()
+    F = F_ring(QQ)
     one = F.monomial(Word([]))
     f2 = F.base_ring().gen()
     if i == 2:
@@ -1969,7 +1977,7 @@ def phi_on_multiplicative_basis(compo):
         Z[f3]
     """
     f = F_ring_generator
-    F = F_ring()
+    F = F_ring(QQ)
     one = F.monomial(Word([]))
 
     if tuple(compo) == (2,):
@@ -2007,7 +2015,7 @@ def phi_on_basis(L):
         2*f2*Z[f3,f3]
     """
     # beware that the default * is the half-shuffle !
-    F = F_ring()
+    F = F_ring(QQ)
     resu = F.monomial(Word([]))
     for compo in L:
         resu = F_prod(resu, phi_on_multiplicative_basis(compo))
@@ -2110,7 +2118,7 @@ def compute_u_on_basis(w):
         + 75/8*Z[f7,f3]
     """
     M = Multizetas_iterated(QQ)
-    F = F_ring()
+    F = F_ring(QQ)
     f = F_ring_generator
     N = len(w)
     xi_dict = {}
@@ -2137,7 +2145,7 @@ def f_to_vector(elt):
     EXAMPLES::
 
         sage: from sage.modular.multiple_zeta import F_ring, vector_to_f, f_to_vector
-        sage: F = F_ring()
+        sage: F = F_ring(QQ)
         sage: f2 = F.base_ring().gen()
         sage: x = f2**4*F.monomial(Word([]))+f2*F.monomial(Word(['f3','f3']))
         sage: f_to_vector(x)
@@ -2151,10 +2159,11 @@ def f_to_vector(elt):
         (1, 0, 0, 0, 0, 0, 0, 0, 0)
     """
     F = elt.parent()
+    BR = F.base_ring().base_ring()
     a, b = next(iter(elt))
     N = sum(int(x[1:]) for x in a) + 2 * b.degree()
     W = F.basis().keys()
-    return vector(QQ, [elt.coefficient(W(b)).lc()
+    return vector(BR, [elt.coefficient(W(b)).lc()
                        for _, b in basis_f_iterator(N)])
 
 
@@ -2180,7 +2189,10 @@ def vector_to_f(vec, N):
         sage: f_to_vector(_)
         (4, 5)
     """
-    F = F_ring()
+    if isinstance(vec, (list, tuple)):
+        vec = vector(vec)
+    BR = vec.base_ring()
+    F = F_ring(BR)
     f2 = F.base_ring().gen()
     base_F = (f2**k * F.monomial(b)
               for k, b in basis_f_iterator(N))
@@ -2240,12 +2252,14 @@ def rho_inverse(elt):
         sage: rho_inverse(f(9))
         ζ(9)
     """
-    if elt == elt.parent().zero():
-        return Multizetas(QQ).zero()
+    pa = elt.parent()
+    BR = pa.base_ring().base_ring()
+    if elt == pa.zero():
+        return Multizetas(BR).zero()
 
     a, b = next(iter(elt))
     N = sum(int(x[1]) for x in a) + 2 * b.degree()
 
     v = f_to_vector(elt)
     w = v * rho_matrix_inverse(N)
-    return sum(cf * b for cf, b in zip(w, base_data(N)))
+    return sum(cf * b for cf, b in zip(w, base_data(BR, N)))
