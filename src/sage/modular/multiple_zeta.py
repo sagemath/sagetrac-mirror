@@ -414,7 +414,7 @@ def basis_f_iterator(n):
             yield (k, Word(['f{}'.format(d) for d in start]))
 
 
-def base_data(basering, n):
+def basis_data(basering, n):
     """
     Return an iterator for a basis in weight ``n``.
 
@@ -426,13 +426,13 @@ def base_data(basering, n):
 
     EXAMPLES::
 
-        sage: from sage.modular.multiple_zeta import base_data
-        sage: list(base_data(QQ, 4))
+        sage: from sage.modular.multiple_zeta import basis_data
+        sage: list(basis_data(QQ, 4))
         [4*ζ(1,3) + 2*ζ(2,2)]
     """
     M = Multizetas(basering)
-    base_MZV = extend_multiplicative_basis(B_data, n)
-    return (prod(M(compo) for compo in term) for term in base_MZV)
+    basis_MZV = extend_multiplicative_basis(B_data, n)
+    return (prod(M(compo) for compo in term) for term in basis_MZV)
 
 
 def extend_multiplicative_basis(B, n):
@@ -715,7 +715,7 @@ class Multizetas(CombinatorialFreeModule):
 
     @lazy_attribute
     def phi(self):
-        """
+        r"""
         Return the morphism ``phi``.
 
         This sends multiple zeta values to the algebra :func:`F_ring`,
@@ -807,7 +807,7 @@ class Multizetas(CombinatorialFreeModule):
         """
         return [self(b) for b in B_data[n]]
 
-    def base_brown(self, n):
+    def basis_brown(self, n):
         r"""
         Return a basis of the algebra of multiple zeta values in weight ``n``.
 
@@ -823,13 +823,13 @@ class Multizetas(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: M = Multizetas(QQ)
-            sage: M.base_brown(3)
+            sage: M.basis_brown(3)
             [ζ(3)]
-            sage: M.base_brown(4)
+            sage: M.basis_brown(4)
             [ζ(2,2)]
-            sage: M.base_brown(5)
+            sage: M.basis_brown(5)
             [ζ(3,2), ζ(2,3)]
-            sage: M.base_brown(6)
+            sage: M.basis_brown(6)
             [ζ(3,3), ζ(2,2,2)]
         """
         return [self(tuple(c))
@@ -2194,9 +2194,9 @@ def vector_to_f(vec, N):
     BR = vec.base_ring()
     F = F_ring(BR)
     f2 = F.base_ring().gen()
-    base_F = (f2**k * F.monomial(b)
-              for k, b in basis_f_iterator(N))
-    return sum(cf * bi for cf, bi in zip(vec, base_F))
+    basis_F = (f2**k * F.monomial(b)
+               for k, b in basis_f_iterator(N))
+    return sum(cf * bi for cf, bi in zip(vec, basis_F))
 
 
 @cached_function
