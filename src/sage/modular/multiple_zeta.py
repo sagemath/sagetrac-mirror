@@ -1913,8 +1913,8 @@ def F_prod(a, b):
 
 
 def F_ring_generator(i):
-    """
-    Return the generator of the F ring over QQ.
+    r"""
+    Return the generator of the F ring over `\QQ`.
 
     INPUT:
 
@@ -2050,6 +2050,8 @@ def D_on_compo(k, compo):
     """
     Return the value of the operator `D_k` on a multiple zeta value.
 
+    This is now only used as a place to keep many doctests.
+
     INPUT:
 
     - ``k`` -- an odd integer
@@ -2089,7 +2091,7 @@ def D_on_compo(k, compo):
 
 
 def compute_u_on_compo(compo):
-    """
+    r"""
     Compute the value of the map ``u`` on a multiple zeta value.
 
     INPUT:
@@ -2098,7 +2100,7 @@ def compute_u_on_compo(compo):
 
     OUTPUT:
 
-    an element of :func:`F_ring` over QQ
+    an element of :func:`F_ring` over `\QQ`
 
     EXAMPLES::
 
@@ -2115,7 +2117,7 @@ def compute_u_on_compo(compo):
 
 
 def compute_u_on_basis(w):
-    """
+    r"""
     Compute the value of ``u`` on a multiple zeta value.
 
     INPUT:
@@ -2124,7 +2126,7 @@ def compute_u_on_basis(w):
 
     OUTPUT:
 
-    an element of :func:`F_ring` over QQ
+    an element of :func:`F_ring` over `\QQ`
 
     EXAMPLES::
 
