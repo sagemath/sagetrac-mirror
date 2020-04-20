@@ -414,27 +414,6 @@ def basis_f_iterator(n):
             yield (k, Word(['f{}'.format(d) for d in start]))
 
 
-def basis_data(basering, n):
-    """
-    Return an iterator for a basis in weight ``n``.
-
-    This is obtained from hardcoded data, available only up to weight 17.
-
-    INPUT:
-
-    - ``n`` -- an integer
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta import basis_data
-        sage: list(basis_data(QQ, 4))
-        [4*ζ(1,3) + 2*ζ(2,2)]
-    """
-    M = Multizetas(basering)
-    basis_MZV = extend_multiplicative_basis(B_data, n)
-    return (prod(M(compo) for compo in term) for term in basis_MZV)
-
-
 def extend_multiplicative_basis(B, n):
     """
     Extend a multiplicative basis into a basis.
@@ -446,6 +425,10 @@ def extend_multiplicative_basis(B, n):
     - ``B`` -- function mapping integer to list of tuples of compositions
 
     - ``n`` -- an integer
+
+    OUTPUT:
+
+    Each term is a tuple of tuples of compositions.
 
     EXAMPLES::
 
@@ -467,13 +450,15 @@ def extend_multiplicative_basis(B, n):
 
 
 def Multizeta(*args):
-    """
+    r"""
     Common entry point for multiple zeta values.
 
     If the argument is a sequence of 0 and 1, an element of
     :class:`Multizetas_iterated` will be returned.
 
     Otherwise, an element of :class:`Multizetas` will be returned.
+
+    The base ring is `\QQ`.
 
     EXAMPLES::
 
@@ -499,7 +484,7 @@ class Multizetas(CombinatorialFreeModule):
     r"""
     Main class for the algebra of multiple zeta values.
 
-    The convention is chosen so that `\zeta(1,2)`is convergent.
+    The convention is chosen so that `\zeta(1,2)` is convergent.
 
     EXAMPLES::
 
@@ -807,6 +792,25 @@ class Multizetas(CombinatorialFreeModule):
         """
         return [self(b) for b in B_data[n]]
 
+    def basis_data(self, basering, n):
+        """
+        Return an iterator for a basis in weight ``n``.
+
+        This is obtained from hardcoded data, available only up to weight 17.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: M = Multizetas(QQ)
+            sage: list(M.basis_data(QQ, 4))
+            [4*ζ(1,3) + 2*ζ(2,2)]
+        """
+        basis_MZV = extend_multiplicative_basis(B_data, n)
+        return (prod(self(compo) for compo in term) for term in basis_MZV)
+
     def basis_brown(self, n):
         r"""
         Return a basis of the algebra of multiple zeta values in weight ``n``.
@@ -896,6 +900,15 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M = Multizetas(QQ)
                 sage: M((1,2)).phi()
                 Z[f3]
+
+            TESTS::
+
+                sage: A = QQ['u']
+                sage: u = A.gen()
+                sage: M = Multizetas(A)
+                sage: tst = u*M((1,2))+M((3,))
+                sage: tst.phi()
+                (u+1)*Z[f3]
             """
             return self.parent().phi(self)
         
@@ -1161,9 +1174,13 @@ class Multizetas_iterated(CombinatorialFreeModule):
         cod = Multizetas(self.base_ring())
         return self.module_morphism(self.composition_on_basis, codomain=cod)
 
-    def composition_on_basis(self, w):
+    def composition_on_basis(self, w, basering=None):
         """
         Convert to the algebra of multiple zeta values of composition style.
+
+        INPUT:
+
+        - ``basering`` -- optional choice of the coefficient ring
 
         EXAMPLES::
 
@@ -1176,7 +1193,9 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M.composition_on_basis(x)
             -ζ(2,3,2)
         """
-        codomain = Multizetas(self.base_ring())
+        if basering is None:
+            basering = self.base_ring()
+        codomain = Multizetas(basering)
         return (-1)**w.count(1) * codomain(iterated_to_composition(w))
 
     def dual_on_basis(self, w):
@@ -1226,7 +1245,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
 
         This is one main tool in the procedure that allows
         to map the algebra of multiple zeta values to
-        the
+        the F Ring.
 
         INPUT:
 
@@ -1270,6 +1289,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
         OUTPUT:
 
         an element in the algebra :func:`F_ring`
+
+        The coefficients are in the base ring.
 
         EXAMPLES::
 
@@ -1316,16 +1337,19 @@ class Multizetas_iterated(CombinatorialFreeModule):
             return F.monomial(empty)
         N = len(w)
         compo = tuple(iterated_to_composition(w))
+        BRf2 = PolynomialRing(self.base_ring(), 'f2')
         if compo in B_data[N]:
             # do not forget the sign
-            return (-1)**len(compo) * phi_on_multiplicative_basis(compo)
+            result_QQ = (-1)**len(compo) * phi_on_multiplicative_basis(compo)
+            return result_QQ.base_extend(BRf2)
         u = compute_u_on_basis(w)
         rho_inverse_u = rho_inverse(u)
-        xi = self.composition_on_basis(w)
+        xi = self.composition_on_basis(w, QQ)
         c_xi = (xi - rho_inverse_u).numerical_approx_pari(prec)
         c_xi /= Multizeta(N).numerical_approx_pari(prec)
         c_xi = c_xi.bestappr().sage()  # in QQ
-        return u + c_xi * f(N)
+        result_QQ = u + c_xi * f(N)
+        return result_QQ.base_extend(BRf2)
 
     @lazy_attribute
     def phi(self):
@@ -1890,7 +1914,7 @@ def F_prod(a, b):
 
 def F_ring_generator(i):
     """
-    Return the generator of the F ring.
+    Return the generator of the F ring over QQ.
 
     INPUT:
 
@@ -1966,7 +1990,7 @@ def phi_on_multiplicative_basis(compo):
 
     OUTPUT:
 
-    an element in :func:`F_ring`
+    an element in :func:`F_ring` with rational coefficients
 
     EXAMPLES::
 
@@ -2072,6 +2096,10 @@ def compute_u_on_compo(compo):
 
     - ``compo`` -- a composition
 
+    OUTPUT:
+
+    an element of :func:`F_ring` over QQ
+
     EXAMPLES::
 
         sage: from sage.modular.multiple_zeta import compute_u_on_compo
@@ -2096,7 +2124,7 @@ def compute_u_on_basis(w):
 
     OUTPUT:
 
-    an element of :func:`F_ring`
+    an element of :func:`F_ring` over QQ
 
     EXAMPLES::
 
@@ -2134,11 +2162,11 @@ def f_to_vector(elt):
 
     INPUT:
 
-    an homogeneous element of :func:`F_ring`
+    an homogeneous element of :func:`F_ring` over some base ring
 
     OUTPUT:
 
-    a vector with rational coefficients
+    a vector with coefficients in the base ring
 
     .. SEEALSO:: :func:`vector_to_f`
 
@@ -2173,11 +2201,11 @@ def vector_to_f(vec, N):
 
     INPUT:
 
-    a vector with rational coefficients
+    a vector with coefficients in some base ring
 
     OUTPUT:
 
-    an homogeneous element of :func:`F_ring`
+    an homogeneous element of :func:`F_ring` over this base ring
 
     .. SEEALSO:: :func:`f_to_vector`
 
@@ -2254,12 +2282,13 @@ def rho_inverse(elt):
     """
     pa = elt.parent()
     BR = pa.base_ring().base_ring()
+    M_BR = Multizetas(BR)
     if elt == pa.zero():
-        return Multizetas(BR).zero()
+        return M_BR.zero()
 
     a, b = next(iter(elt))
     N = sum(int(x[1]) for x in a) + 2 * b.degree()
 
     v = f_to_vector(elt)
     w = v * rho_matrix_inverse(N)
-    return sum(cf * b for cf, b in zip(w, basis_data(BR, N)))
+    return sum(cf * b for cf, b in zip(w, M_BR.basis_data(BR, N)))
