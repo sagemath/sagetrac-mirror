@@ -91,8 +91,7 @@ Let us first build our sample set::
 
 Then one can compute the space of relations::
 
-    sage: from sage.modular.multiple_zeta import f_to_vector
-    sage: M = matrix([f_to_vector(Zc.phi()) for Zc in L])
+    sage: M = matrix([Zc.phi_as_vector() for Zc in L])
     sage: K = M.kernel(); K
     Vector space of degree 4 and dimension 2 over Rational Field
     Basis matrix:
@@ -867,7 +866,7 @@ class Multizetas(CombinatorialFreeModule):
             """
             Test for equality.
 
-            This means equality as motivic multiple zeta value, computing
+            This means equality as motivic multiple zeta value, computed
             using the morphism ``phi``.
 
             EXAMPLES::
@@ -885,7 +884,7 @@ class Multizetas(CombinatorialFreeModule):
             """
             Test for non-equality.
 
-            This means non-equality as motivic multiple zeta value, computing
+            This means non-equality as motivic multiple zeta value, computed
             using the morphism ``phi``.
 
             EXAMPLES::
@@ -919,7 +918,34 @@ class Multizetas(CombinatorialFreeModule):
                 (u+1)*Z[f3]
             """
             return self.parent().phi(self)
-        
+
+        def phi_as_vector(self):
+            """
+            Return the image of ``self`` by the morphism ``phi`` as a vector.
+
+            The morphism ``phi`` sends multiple zeta values to the algebra
+            :func:`F_ring`. Then the image is expressed as a vector in
+            a fixed basis of one graded component of this algebra.
+
+            This is only defined for homogeneous elements.
+
+            EXAMPLES::
+
+                sage: M = Multizetas(QQ)
+                sage: M((3,2)).phi_as_vector()
+                (9/2, -2)
+
+            TESTS::
+
+                sage: (M((4,))+M((1,2))).phi_as_vector()
+                Traceback (most recent call last):
+                ...
+                ValueError: only defined for homogeneous elements
+            """
+            if not self.is_homogeneous():
+                raise ValueError('only defined for homogeneous elements')
+            return f_to_vector(self.parent().phi(self))
+
         def numerical_approx(self, prec=None, digits=None, algorithm='pari'):
             """
             Return a numerical value for this element.
@@ -1505,7 +1531,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             """
             Test for equality.
 
-            This means equality as motivic multiple zeta value, computing
+            This means equality as motivic multiple zeta value, computed
             using the morphism ``phi``.
 
             EXAMPLES::
@@ -1527,7 +1553,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             """
             Test for non-equality.
 
-            This means non-equality as motivic multiple zeta value, computing
+            This means non-equality as motivic multiple zeta value, computed
             using the morphism ``phi``.
 
             EXAMPLES::
