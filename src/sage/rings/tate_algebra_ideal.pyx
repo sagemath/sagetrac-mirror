@@ -39,7 +39,7 @@ from cysignals.signals cimport sig_check
 
 class TateAlgebraIdeal(Ideal_generic):
     r"""
-    Initialize a class for ideals in a Tate series algebra
+    An ideal in a Tate series algebra.
 
     EXAMPLES::
 
@@ -55,7 +55,7 @@ class TateAlgebraIdeal(Ideal_generic):
     #@cached_method
     def groebner_basis(self, prec=None, algorithm='VaPoTe', **options):
         r"""
-        Compute a Groebner basis of the ideal
+        Compute a Groebner basis of the ideal.
 
         INPUT:
 
@@ -82,7 +82,7 @@ class TateAlgebraIdeal(Ideal_generic):
           of these algorithms.
 
         - ``options`` -- extra arguments that are passed in to the
-          algorithm; this notably include the keyword ``verbose`` (only 
+          algorithm; this notably includes the keyword ``verbose`` (only 
           available for ``PoTe`` and ``VaPoTe``) which is an integer
           defining the verbosity level:
 
@@ -173,7 +173,7 @@ class TateAlgebraIdeal(Ideal_generic):
 
     def _contains_(self, x):
         r"""
-        Return ``True`` if ``x`` lies in this ideal
+        Return ``True`` if ``x`` lies in this ideal.
 
         INPUT:
 
@@ -204,7 +204,7 @@ class TateAlgebraIdeal(Ideal_generic):
 
     def _contains_ideal(self, I):
         r"""
-        Return ``True`` if ``I`` is contained in this ideal
+        Return ``True`` if ``I`` is contained in this ideal.
 
         INPUT:
 
@@ -236,7 +236,7 @@ class TateAlgebraIdeal(Ideal_generic):
     def _richcmp_(self, other, op):
         r"""
         Compare this ideal with ``other`` for the rich comparison
-        operator ``op``
+        operator ``op``.
 
         INPUT:
 
@@ -413,13 +413,13 @@ class TateAlgebraIdeal(Ideal_generic):
 
 def groebner_basis_buchberger(I, prec, py_integral):
     r"""
-    Compute a Groebner basis of the Tate algebra ideal I using Buchberger's algorithm
+    Compute a Groebner basis of the Tate algebra ideal I using Buchberger's algorithm.
 
     INPUT:
 
-    - ``I`` - an ideal in a Tate series algebra
+    - ``I`` -- an ideal in a Tate series algebra
 
-    - ``prec`` - the related precision at which the initial generators
+    - ``prec`` -- the related precision at which the initial generators
       are truncated
 
     - ``integral`` -- a boolean; if ``True``, first compute a
@@ -446,7 +446,7 @@ def groebner_basis_buchberger(I, prec, py_integral):
 
     """
     cdef list gb, rgb, indices, ts, S = [ ]
-    cdef int i, j, l
+    cdef Py_ssize_t i, j, l
     cdef TateAlgebraTerm ti, tj, t
     cdef TateAlgebraElement f, g, r, s
     cdef bint do_reduce = True
@@ -575,18 +575,13 @@ def groebner_basis_buchberger(I, prec, py_integral):
 
 cdef Jpair(p1, p2):
     r"""
-    Return the J-pair of ``p1`` and ``p2``
+    Return the J-pair of ``p1`` and ``p2``.
 
     INPUT:
 
     - ``p1`` -- a pair (signature, series)
 
     - ``p2`` -- a pair (signature, series)
-
-    TESTS::
-
-
-
     """
     cdef TateAlgebraTerm s1, s2
     cdef TateAlgebraElement v1, v2
@@ -656,8 +651,8 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
     cdef TateAlgebraTerm lt, factor
     cdef list ltds = [ (<TateAlgebraElement>(d[1]))._terms_c()[0] for d in sgb ]
     cdef list terms = v._terms_c()
-    cdef int index = 0
-    cdef int i
+    cdef Py_ssize_t index = 0
+    cdef Py_ssize_t i
     cdef bint in_rem
 
     f = v._new_c()
@@ -695,7 +690,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
 
 cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
     r"""
-    Return the result of the reduction of ``v`` by ``gb``
+    Return the result of the reduction of ``v`` by ``gb``.
 
     INPUT:
 
@@ -729,8 +724,8 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
     cdef TateAlgebraTerm lt, factor
     cdef list ltds = [ (<TateAlgebraElement>d)._terms_c()[0] for d in gb ]
     cdef list terms = v._terms_c()
-    cdef int index = 0
-    cdef int i
+    cdef Py_ssize_t index = 0
+    cdef Py_ssize_t i
 
     f = v._new_c()
     f._poly = PolyDict(v._poly.__repn, None)
@@ -760,7 +755,7 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
 
 def print_pair(p, verbose):
     r"""
-    Return a string representation of the pair ``p``
+    Return a string representation of the pair ``p``.
 
     INPUT:
 
@@ -797,7 +792,7 @@ def print_pair(p, verbose):
 def groebner_basis_pote(I, prec, verbose=0):
     r"""
     Run the PoTe algorithm to compute the Groebner basis of ``I``
-    and return it
+    and return it.
 
     INPUT:
 
@@ -1018,7 +1013,7 @@ def groebner_basis_pote(I, prec, verbose=0):
 def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, interrupt_interred_with_val=False):
     r"""
     Run the VaPoTe algorithm to compute the Groebner basis of ``I``
-    and return it
+    and return it.
 
     INPUT:
 
