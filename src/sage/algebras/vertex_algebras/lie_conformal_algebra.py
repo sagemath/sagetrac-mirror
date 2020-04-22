@@ -217,7 +217,7 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
             return self.zero()
         try: 
             x = self.module()(x)
-        except TypeError, ValueError:
+        except (TypeError, ValueError) as e:
             raise ValueError("Don't know how to convert {0} into an element"\
                              " of {1}".format(x,self))
         return self.element_class(self,x)
