@@ -605,11 +605,11 @@ class Triangulation(Element):
 
             sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
-            {(1, 3): ((0, 1, 3),),
-             (0, 3): ((0, 1, 3), (0, 2, 3)),
+            {(1, 3): ((0, 1, 3), (1, 2, 3)),
+             (0, 3): ((0, 1, 3),),
              (0, 1): ((0, 1, 3),),
-             (2, 3): ((0, 2, 3),),
-             (0, 2): ((0, 2, 3),)}
+             (2, 3): ((1, 2, 3),),
+             (1, 2): ((1, 2, 3),)}
 
             sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
@@ -750,12 +750,10 @@ class Triangulation(Element):
             (-1,  0,  0, -1),
             ( 0,  1,  0, -1),
             ( 0, -1,  0,  1)
-            in Ambient free module of rank 4
-            over the principal ideal domain Integer Ring
+            in Ambient free module of rank 4 over the principal ideal domain Integer Ring
             sage: N.dual().rays()
             (1, -1, 1, -1)
-            in Ambient free module of rank 4
-            over the principal ideal domain Integer Ring
+            in Ambient free module of rank 4 over the principal ideal domain Integer Ring
 
         TESTS::
 
