@@ -440,7 +440,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             if not self.is_monomial():
                 raise ValueError ("index can only be computed for"
                          " monomials")
-            return self.value.monomial_coefficients().keys()[0]
+            return list(self.value.monomial_coefficients().keys())[0]
 
         def weight(self):
             p = self.parent()
@@ -460,7 +460,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
         def _li_filtration_monomial_degree(self):
             """The li_filtration degree of this non-zero monomial"""
-            p = self.value.monomial_coefficients().keys()[0]
+            p = list(self.value.monomial_coefficients().keys())[0]
             return p.size() - sum(j.length() for j in p.components())
 
         def li_filtration_leading_terms(self):
@@ -479,7 +479,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         
         def degrevlex_lm(self):
             def dgrlcmp(a):
-                pa = a.value.monomial_coefficients().keys()[0]
+                pa = list(a.value.monomial_coefficients().keys())[0]
                 bigest = max(p.get_part(0) for p in pa)
                 pa = pa.to_exp(bigest)
                 ret = [a.weight(),]
@@ -507,7 +507,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             svmc = self.value.monomial_coefficients()
             if len(svmc) != 1:
                 raise ValueError("{} is not a monomial.".format(self))
-            k = svmc.keys()[0]
+            k = list(svmc.keys())[0]
             c = svmc[k] 
             p = self.parent()
             i = next((j for j,x in enumerate(k) if x), None)
@@ -522,7 +522,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         
 class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
     def __init__(self, R, c, arg0 = None, names="L"):
-        from lie_conformal_algebra import VirasoroLieConformalAlgebra
+        from .lie_conformal_algebra import VirasoroLieConformalAlgebra
         ML = VirasoroLieConformalAlgebra(R)
         if arg0 is not None:
             c = 1  - 6*(c-arg0)**2/(c*arg0)
