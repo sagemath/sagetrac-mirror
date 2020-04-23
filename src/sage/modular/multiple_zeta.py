@@ -305,12 +305,34 @@ def dual_composition(c):
     return iterated_to_composition(ri)
 
 
-@cached_function
-def numerical_MZV_all_pari(n=15, prec=53):
+# numerical values
+
+class MultizetaValues():
     """
-    Compute all numerical values up to weight ``n``.
+    Custom cache for numerical values, computed using :pari:`zetamultall`
     """
-    return pari.zetamultall(n, prec)
+    def __init__(self):
+        self.max_weight = 0
+        self.prec = 0
+        self.update(8, 53)
+    def update(self, max_weight, prec):
+        if self.prec < prec or self.max_weight < max_weight:
+            self.max_weight = max_weight
+            self.prec = prec
+            self._data = pari.zetamultall(max_weight, prec)
+    def query(self, index):
+        return self._data[index]
+
+
+Values = MultizetaValues()
+
+
+# @cached_function
+# def numerical_MZV_all_pari(n=15, prec=53):
+#     """
+#     Compute all numerical values up to weight ``n``.
+#     """
+#     return pari.zetamultall(n, prec)
 
 
 def numerical_MZV_pari(indice, prec=53):
@@ -339,7 +361,11 @@ def numerical_MZV_pari(indice, prec=53):
     """
     revindice = reversed(indice)
     index = pari.zetamultconvert(revindice, 2)
-    return numerical_MZV_all_pari(prec=prec)[index - 1]
+    weight = sum(indice)
+    if weight > Values.max_weight or prec > Values.prec:
+        Values.update(weight, prec)
+    return Values.query(index - 1)
+    # return numerical_MZV_all_pari(prec=prec)[index - 1]
 
 
 def basis_f_odd_iterator(n):
