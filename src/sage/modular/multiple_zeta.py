@@ -1158,7 +1158,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M.product_on_basis(y,x)
             I(10110) + 3*I(11010) + 6*I(11100)
         """
-        return sum(self.basis()[u] for u in w1.shuffle(w2))  # .simplify() ?
+        return sum(self.basis()[u] for u in w1.shuffle(w2))
 
     def half_product_on_basis(self, w1, w2):
         r"""
@@ -1181,7 +1181,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         assert w1
         u1 = Word([w1[0]])
         r1 = w1[1:]
-        return sum(self.basis()[u1 + u] for u in r1.shuffle(w2)).simplify()
+        return sum(self.basis()[u1 + u] for u in r1.shuffle(w2))
 
     @lazy_attribute
     def half_product(self):
