@@ -936,6 +936,21 @@ class Multizetas(CombinatorialFreeModule):
             """
             return self.parent().iterated(self)
 
+        def simplify(self):
+            """
+            Gather terms using the duality relations.
+
+            This can help to lower the number of monomials.
+
+            EXAMPLES::
+
+                sage: M = Multizetas(QQ)
+                sage: z = 3*M((3,)) + 5*M((1,2))
+                sage: z.simplify()
+                8*ζ(1,2)
+            """
+            return self.iterated().simplify().composition()
+
         def __eq__(self, other):
             """
             Test for equality.
