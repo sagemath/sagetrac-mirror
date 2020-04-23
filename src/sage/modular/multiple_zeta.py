@@ -132,6 +132,7 @@ REFERENCES:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.algebras.free_zinbiel_algebra import FreeZinbielAlgebra
 from sage.arith.misc import bernoulli
 from sage.categories.cartesian_product import cartesian_product
@@ -307,66 +308,73 @@ def dual_composition(c):
 
 # numerical values
 
-class MultizetaValues():
+class MultizetaValues(UniqueRepresentation):
     """
     Custom cache for numerical values, computed using :pari:`zetamultall`
+
+    EXAMPLES::
+
+        sage: from sage.modular.multiple_zeta import MultizetaValues
+        sage: M = MultizetaValues()
+
+        sage: M((1,2))
+        1.202056903159594285399738161511449990764986292340...
+        sage: parent(M((2,3)))
+        Real Field with 1024 bits of precision
+
+        sage: M((2,3), prec=53)
+        0.228810397603354
+        sage: parent(M((2,3), prec=53))
+        Real Field with 53 bits of precision
+
+        sage: M((2,3), reverse=False) == M((3,2))
+        True
+
+        sage: M((2,3,4,5))
+        2.9182061974731261426525583710934944310404272413...e-6
+        sage: M((2,3,4,5), reverse=False)
+        0.0011829360522243605614404196778185433287651...
+
+        sage: parent(M((2,3,4,5)))
+        Real Field with 1024 bits of precision
+        sage: parent(M((2,3,4,5), prec=128))
+        Real Field with 128 bits of precision
     """
     def __init__(self):
         self.max_weight = 0
         self.prec = 0
-        self.update(8, 53)
+        self.update(8, 1024)
+
     def update(self, max_weight, prec):
         if self.prec < prec or self.max_weight < max_weight:
             self.max_weight = max_weight
             self.prec = prec
             self._data = pari.zetamultall(max_weight, prec)
-    def query(self, index):
-        return self._data[index]
 
+    def pari_eval(self, index):
+        prec = self.prec
+        weight = sum(index)
+        index = list(reversed(index))
+        if weight < self.max_weight and (prec is None or prec <= self.prec):
+            index = pari.zetamultconvert(index, 2)
+            return  self._data[index - 1]
+        else:
+            return pari.zetamult(index, precision=self.prec)
+
+    def __call__(self, index, prec=None, reverse=True):
+        if reverse:
+            index = list(reversed(index))
+        if prec is None:
+            prec = self.prec
+        weight = sum(index)
+        if weight < self.max_weight and (prec is None or prec <= self.prec):
+            index = pari.zetamultconvert(index, 2)
+            value = self._data[index - 1]
+            return value.sage().n(prec=prec)
+        else:
+            return pari.zetamult(index, precision=prec).sage().n(prec=prec)
 
 Values = MultizetaValues()
-
-
-# @cached_function
-# def numerical_MZV_all_pari(n=15, prec=53):
-#     """
-#     Compute all numerical values up to weight ``n``.
-#     """
-#     return pari.zetamultall(n, prec)
-
-
-def numerical_MZV_pari(indice, prec=53):
-    r"""
-    Return the numerical value of `\zeta(n_1,...n_r)` as a Pari real.
-
-    The computation is done by :pari:`zetamultall`.
-
-    Because Pari uses the opposite convention for conversion between
-    composition and words in 0 and 1, one needs to be careful in the
-    conversion of the argument.
-
-    INPUT:
-
-    - ``indice`` -- a composition
-
-    - ``prec`` -- precision
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta import numerical_MZV_pari
-        sage: numerical_MZV_pari((1,2))
-        1.20205690315959
-        sage: type(numerical_MZV_pari((3,)))
-        <class 'cypari2.gen.Gen'>
-    """
-    revindice = reversed(indice)
-    index = pari.zetamultconvert(revindice, 2)
-    weight = sum(indice)
-    if weight > Values.max_weight or prec > Values.prec:
-        Values.update(weight, prec)
-    return Values.query(index - 1)
-    # return numerical_MZV_all_pari(prec=prec)[index - 1]
-
 
 def basis_f_odd_iterator(n):
     """
@@ -972,7 +980,10 @@ class Multizetas(CombinatorialFreeModule):
                 raise ValueError('only defined for homogeneous elements')
             return f_to_vector(self.parent().phi(self))
 
-        def numerical_approx(self, prec=None, digits=None, algorithm='pari'):
+        def _numerical_approx_pari(self):
+            return sum(cf * Values.pari_eval(tuple(w)) for w, cf in self.monomial_coefficients().items())
+
+        def numerical_approx(self, prec=None, digits=None, algorithm=None):
             """
             Return a numerical value for this element.
 
@@ -980,36 +991,38 @@ class Multizetas(CombinatorialFreeModule):
 
                 sage: M = Multizetas(QQ)
                 sage: M(Word((3,2))).n()  # indirect doctest
-                0.71156619755057243209697380608600211751
-                sage: (M((3,)) * M((2,))).n(prec=80)
-                1.97730435029729611819708544148512557208215146665950424034
-                sage: M((1,2)).n(70)
-                1.20205690315959428539973816151144999076498629234049063812
-            """
-            if prec is None:
-                prec = 53
-            return sum(cf * numerical_MZV_pari(tuple(w), prec=prec).sage()
-                       for w, cf in self.monomial_coefficients().items())
-
-        def numerical_approx_pari(self, prec=None, digits=None):
-            """
-            Return a numerical value for this element as a Pari real.
-
-            EXAMPLES::
-
-                sage: M = Multizetas(QQ)
-                sage: M(Word((3,2))).numerical_approx_pari()
                 0.711566197550572
-                sage: (M((3,)) * M((2,))).numerical_approx_pari(prec=80)
-                1.97730435029730
-                sage: M((1,2)).numerical_approx_pari(70)
-                1.20205690315959
+                sage: parent(M(Word((3,2))).n())
+                Real Field with 53 bits of precision
+
+                sage: (M((3,)) * M((2,))).n(prec=80)
+                1.9773043502972961181971
+                sage: M((1,2)).n(70)
+                1.2020569031595942854
+
+                sage: M((3,)).n(digits=10)
+                1.202056903
+
+            If you need plan to use intensively numerical approximation at high precision,
+            you might want to add more values and/or accuracy to the cache::
+
+                sage: from sage.modular.multiple_zeta import MultizetaValues
+                sage: M = MultizetaValues()
+                sage: M.update(max_weight=12, prec=256)
             """
             if prec is None:
-                prec = 53
-            return sum(cf * numerical_MZV_pari(tuple(w), prec=prec)
-                       for w, cf in self.monomial_coefficients().items())
-
+                if digits:
+                    from sage.arith.numerical_approx import digits_to_bits
+                    prec = digits_to_bits(digits)
+                else:
+                    prec = 53
+            if algorithm is not None:
+                raise ValueError("unknown algorithm")
+            if prec < Values.prec:
+                s = sum(cf * Values(tuple(w)) for w, cf in self.monomial_coefficients().items())
+                return s.n(prec=prec)
+            else:
+                return sum(cf * Values(tuple(w), prec=prec) for w, cf in self.monomial_coefficients().items())
 
 class Multizetas_iterated(CombinatorialFreeModule):
     r"""
@@ -1389,7 +1402,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
            sage: M.phi_extended(tuple([]))
            Z[]
         """
-        prec = 1000
+        # this is now hardcoded
+        # prec = 1024
         f = F_ring_generator
         if not w:
             F = F_ring(self.base_ring())
@@ -1405,8 +1419,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
         u = compute_u_on_basis(w)
         rho_inverse_u = rho_inverse(u)
         xi = self.composition_on_basis(w, QQ)
-        c_xi = (xi - rho_inverse_u).numerical_approx_pari(prec)
-        c_xi /= Multizeta(N).numerical_approx_pari(prec)
+        c_xi = (xi - rho_inverse_u)._numerical_approx_pari()
+        c_xi /= Multizeta(N)._numerical_approx_pari()
         c_xi = c_xi.bestappr().sage()  # in QQ
         result_QQ = u + c_xi * f(N)
         return result_QQ.base_extend(BRf2)
@@ -1508,7 +1522,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             """
             return self.parent().composition(self)
 
-        def numerical_approx(self, prec=None, digits=None, algorithm='pari'):
+        def numerical_approx(self, prec=None, digits=None, algorithm=None):
             """
             Return a numerical approximation as a sage real.
 
@@ -1519,24 +1533,9 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 sage: x = M((1,0,1,0))
                 sage: y = M((1, 0, 0))
                 sage: (3*x+y).n()  # indirect doctest
-                1.2331703726904666455112701557058366776
-            """
-            return self.composition().numerical_approx(prec=prec)
-
-        def numerical_approx_pari(self, prec=None, digits=None):
-            """
-            Return a numerical approximation as a pari real.
-
-            EXAMPLES::
-
-                sage: from sage.modular.multiple_zeta import Multizetas_iterated
-                sage: M = Multizetas_iterated(QQ)
-                sage: x = M((1,0,1,0))
-                sage: y = M((1, 0, 0))
-                sage: (3*x+y).numerical_approx_pari()
                 1.23317037269047
             """
-            return self.composition().numerical_approx_pari(prec=prec)
+            return self.composition().numerical_approx(prec=prec, digits=digits, algorithm=algorithm)
 
         def phi(self):
             """
