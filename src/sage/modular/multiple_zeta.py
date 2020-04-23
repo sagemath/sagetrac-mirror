@@ -169,6 +169,9 @@ B_data = [[], [], [(2,)], [(3,)], [], [(5,)], [], [(7,)], [(3, 5)], [(9,)],
            (5, 3, 3, 3, 3), (5, 5, 3, 2, 2)]]
 
 
+Words10 = Words((1, 0), infinite=False)
+
+
 def coproduct_iterator(paire):
     """
     Return an iterator for terms in the coproduct.
@@ -305,6 +308,42 @@ def dual_composition(c):
     return iterated_to_composition(ri)
 
 
+def minimize_term(w, cf):
+    """
+    Return the smallest among w and the dual word of w.
+
+    INPUT:
+
+    - w -- a word in the letters 0 and 1
+
+    - cf -- a coefficient
+
+    OUTPUT:
+
+    (word, coefficient)
+
+    The chosen order is lexicographic with 1 < 0.
+
+    If the dual word is chosen, the sign of the coefficient is changed,
+    otherwise the coefficient is returned unchanged.
+
+    EXAMPLES::
+
+        sage: from sage.modular.multiple_zeta import minimize_term, Words10
+        sage: minimize_term(Words10((1,1,0)), 1)
+        (word: 110, 1)
+        sage: minimize_term(Words10((1,0,0)), 1)
+        (word: 110, -1)
+    """
+    reverse_w = tuple(1 - t for t in reversed(w))
+    for x, y in zip(w, reverse_w):
+        if x > y:
+            return (w, cf)
+        if x < y:
+            return (Words10(reverse_w), (-1)**len(w) * cf)
+    return (w, cf)
+
+
 # numerical values
 
 class MultizetaValues():
@@ -312,15 +351,24 @@ class MultizetaValues():
     Custom cache for numerical values, computed using :pari:`zetamultall`
     """
     def __init__(self):
+        """
+        When first called, pre-compute up to weight 8 at precision 53.
+        """
         self.max_weight = 0
         self.prec = 0
         self.update(8, 53)
     def update(self, max_weight, prec):
+        """
+        Compute and store more values if needed.
+        """
         if self.prec < prec or self.max_weight < max_weight:
             self.max_weight = max_weight
             self.prec = prec
             self._data = pari.zetamultall(max_weight, prec)
     def query(self, index):
+        """
+        Return the required value.
+        """
         return self._data[index]
 
 
@@ -1047,9 +1095,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         cat = GradedAlgebrasWithBasis(R).Commutative()
         if R in Domains():
             cat = cat & Domains()
-        CombinatorialFreeModule.__init__(self, R,
-                                         Words((1, 0), infinite=False),
-                                         prefix="I",
+        CombinatorialFreeModule.__init__(self, R, Words10, prefix="I",
                                          category=cat)
 
     def _repr_(self):
@@ -1090,7 +1136,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             word:
         """
         return self.basis().keys()([])
-
+    
     def product_on_basis(self, w1, w2):
         r"""
         Compute the product of two monomials.
@@ -1112,7 +1158,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M.product_on_basis(y,x)
             I(10110) + 3*I(11010) + 6*I(11100)
         """
-        return sum(self.basis()[u] for u in w1.shuffle(w2))
+        return sum(self.basis()[u] for u in w1.shuffle(w2))  # .simplify() ?
 
     def half_product_on_basis(self, w1, w2):
         r"""
@@ -1135,7 +1181,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         assert w1
         u1 = Word([w1[0]])
         r1 = w1[1:]
-        return sum(self.basis()[u1 + u] for u in r1.shuffle(w2))
+        return sum(self.basis()[u1 + u] for u in r1.shuffle(w2)).simplify()
 
     @lazy_attribute
     def half_product(self):
@@ -1486,6 +1532,24 @@ class Multizetas_iterated(CombinatorialFreeModule):
             return self.from_base_ring_from_one_basis(x)
 
     class Element(CombinatorialFreeModule.Element):
+        def simplify(self):
+            """
+            Gather terms using the duality relations.
+
+            This can help to lower the number of monomials.
+
+            EXAMPLES::
+
+                sage: from sage.modular.multiple_zeta import Multizetas_iterated
+                sage: M = Multizetas_iterated(QQ)
+                sage: z = 4*M((1,0,0)) + 3*M((1,1,0))
+                sage: z.simplify()
+                -I(110)
+            """
+            summing = self.parent().sum_of_terms
+            return summing(minimize_term(w, cf)
+                           for w, cf in self.monomial_coefficients().items())
+
         def composition(self):
             """
             Convert to the algebra of multiple zeta values of composition style.
@@ -1631,9 +1695,7 @@ class All_iterated(CombinatorialFreeModule):
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        CombinatorialFreeModule.__init__(self, R,
-                                         Words((1, 0), infinite=False),
-                                         prefix="I")
+        CombinatorialFreeModule.__init__(self, R, Words10, prefix="I")
 
     def _repr_(self):
         """
