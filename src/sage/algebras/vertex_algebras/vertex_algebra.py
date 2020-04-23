@@ -46,7 +46,7 @@ class VertexAlgebra(Parent, UniqueRepresentation):
             if R.has_coerce_map_from(arg0.base_ring()) and \
                 arg0 in LieConformalAlgebras(arg0.base_ring()):
                 return UniversalEnvelopingVertexAlgebra(R, arg0, 
-                        category=category, central_paramters=central_parameters,
+                        category=category, central_parameters=central_parameters,
                         names=names)
         except AttributeError: 
             pass
@@ -211,7 +211,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
             p = self.parent()
             if self == p.zero():
                 return "0";
-            coeff = self.value.monomial_coefficients().items()
+            coeff = list(self.value.monomial_coefficients().items())
             ret = ""
             for i in range(len(coeff)):
                 if i > 0  and coeff[i][1] > 0:
@@ -398,7 +398,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                 return sum( m.T() for m in selfmon)
 
             #Now we just have a monomial to compute. 
-            k,c = self.value.monomial_coefficients().items()[0]
+            k,c = list(self.value.monomial_coefficients().items())[0]
             kl = k.to_list()
             i = next((i for i,x in enumerate(k) if x))
             g = kl[i].pop(0)

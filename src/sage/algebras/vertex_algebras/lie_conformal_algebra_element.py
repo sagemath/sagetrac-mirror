@@ -237,7 +237,7 @@ class LCAStructureCoefficientsElement(LieConformalAlgebraElementWrapper):
 
         if self == self.parent().zero():
             return "0";
-        coeff = self.value.monomial_coefficients().items()
+        coeff = list(self.value.monomial_coefficients().items())
         ret = ""
         p = self.parent()
         try:
