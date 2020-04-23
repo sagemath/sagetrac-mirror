@@ -239,7 +239,7 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
         return self.element_class(self, {})
 
     def monomial(self,i):
-        """
+        r"""
         The monomial of this Lie conformal algebra parametrized by this index
 
         EXAMPLES::
@@ -265,7 +265,7 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
 
     @cached_method
     def lie_conformal_algebra_basis(self):
-        """ 
+        r""" 
         The basis of this Lie conformal algebra
 
         EXAMPLES::
@@ -286,7 +286,7 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
         return Family(self._indices, self.monomial, name="basis map")
 
     def indices(self):
-        """
+        r"""
         The index set that parametrizes the basis of this Lie conformal algebra
 
         EXAMPLES::
@@ -302,7 +302,7 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
         return self._indices
 
     def module(self):
-        """
+        r"""
         The underlying `R` module for this Lie conformal algebra
 
         EXAMPLES::
@@ -349,7 +349,7 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
         return self.element_class(self, self.module().zero())
 
 class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
-    """
+    r"""
     Base class for a Lie conformal algebra with distinguished generators.
 
     .. NOTE::
@@ -377,7 +377,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
 
     @cached_method
     def lie_conformal_algebra_generators(self):
-        """
+        r"""
         The generators of this Lie conformal algebra
 
         EXAMPLES::
@@ -396,7 +396,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
 
     @cached_method
     def gens(self):
-        """
+        r"""
         A tuple of generators for this Lie conformal algebra
 
         .. NOTE::
@@ -417,8 +417,8 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             return tuple(G)
 
     def gen(self,i):
-        """
-        The i-th generator of this Lie conformal algebra
+        r"""
+        The `i`-th generator of this Lie conformal algebra
 
         EXAMPLES::
 
