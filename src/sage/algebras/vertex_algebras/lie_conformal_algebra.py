@@ -30,7 +30,7 @@ like :meth:`VirasoroLieConformalAlgebra` and :meth:`AffineLieConformalAlgebra`
         sage: L*L
         L_-2L_-2|0>
         sage: L.bracket(L*L)
-        {0: L_-5|0>+2*L_-3L_-2|0>,
+        {0: 2*L_-3L_-2|0>+L_-5|0>,
          1: 4*L_-2L_-2|0>,
          2: 3*L_-3|0>,
          3: 17/2*L_-2|0>,
