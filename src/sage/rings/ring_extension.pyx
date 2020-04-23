@@ -377,9 +377,11 @@ class RingExtensionFactory(UniqueFactory):
             ((Ring morphism:
                 From: Integer Ring
                 To:   Rational Field
-                Defn: 1 |--> 1, (), ()),
-             {'constructors': [(<type 'sage.rings.ring_extension.RingExtension_generic'>,
-                {'print_options': {'print_elements_as': None, 'print_parent_as': None},
+                Defn: 1 |--> 1,
+              (),
+              ()),
+             {'constructors': [(<class 'sage.rings.ring_extension.RingExtension_generic'>,
+                {'print_options': {'print_parent_as': None, 'print_elements_as': None},
                  'is_backend_exposed': True})]})
 
             sage: RingExtension.create_key_and_extra_args(GF(5^4), GF(5^2), names=('a',))
