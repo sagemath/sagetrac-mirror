@@ -4,7 +4,7 @@ AUTHORS
 
 - Reimundo Heluani (08-09-2019): Initial implementation
 
-.. include:: ../../../vertex_algebras/vertex_algebra_desc.rst
+.. include:: ../../../vertex_algebras/vertex_algebra_desc.inc
 
 """
 
