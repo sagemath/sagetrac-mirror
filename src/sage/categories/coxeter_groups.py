@@ -734,7 +734,6 @@ class CoxeterGroups(Category_singleton):
                 sage: W = WeylGroup(["A", 1, 1])
                 sage: W.sign_representation()
                 Sign representation of Weyl Group of type ['A', 1, 1] (as a matrix group acting on the root space) over Integer Ring
-                
             """
             if base_ring is None:
                 from sage.rings.all import ZZ
