@@ -44,7 +44,8 @@ class VertexAlgebraIdeal(Module):
         if V not in VertexAlgebras(V.base_ring()).Graded().FinitelyGenerated():
             raise ValueError ("V needs to be a finitely and strongly generated "
                     "vertex algebra, got {}".format(V) )
-        gens = tuple(gens)
+        if type(gens[0]) in [tuple,list]:
+            gens = tuple(gens[0])
         if not all(g.is_singular() for g in gens):
             raise ValueError ("Generators must be singular vectors of {}"\
                 .format(V))
