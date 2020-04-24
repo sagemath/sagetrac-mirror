@@ -644,8 +644,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             Let `\lambda` be a partition. The *Gessel-Reutenauer
             symmetric function* `\mathbf{GR}_\lambda` corresponding to
             `\lambda` is the symmetric function denoted `L_\lambda` in
-            [GR1993]_ and in Exercise 7.89 of [STA]_. It can be defined
-            in several ways:
+            [GR1993]_ and in Exercise 7.89 of [EnumComb2]_. It can be
+            defined in several ways:
 
             - It is the sum of the monomials `\mathbf{x}_w` over all
               words `w` over the alphabet
@@ -4505,13 +4505,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:      for lam in Partitions(4) )
             True
 
-        By Exercise 7.61 in Stanley's EC2 [STA]_ (see the errata on his
-        website), `\mathbf{f}_n(h_m)` is a linear combination of
-        Schur polynomials (of straight shapes) using coefficients `0`,
-        `1` and `-1` only; moreover, all partitions whose Schur
-        polynomials occur with coefficient `\neq 0` in this
-        combination have empty `n`-cores. Let us check this on
-        examples::
+        By Exercise 7.61 in Stanley's EC2 [EnumComb2]_ (see the
+        errata on his website), `\mathbf{f}_n(h_m)` is a linear
+        combination of Schur polynomials (of straight shapes)
+        using coefficients `0`, `1` and `-1` only; moreover, all
+        partitions whose Schur polynomials occur with coefficient
+        `\neq 0` in this combination have empty `n`-cores. Let us
+        check this on examples::
 
             sage: all( all( all( (coeff == -1 or coeff == 1)
             ....:                and lam.core(n) == Partition([])
@@ -4530,7 +4530,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             bases, while all other bases get converted to the
             monomial basis. For most bases, this is probably the
             quickest way to do, but at least the Schur basis should
-            have a better option. (Quoting from Stanley's EC2 [STA]_:
+            have a better option. (Quoting from Stanley's EC2 [EnumComb2]_:
             "D. G. Duncan, J. London Math. Soc. 27 (1952), 235-236,
             or Y. M. Chen, A. M. Garsia, and J. B. Remmel, Contemp.
             Math. 34 (1984), 109-153".)
@@ -4583,7 +4583,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         The action of the `n`-th Verschiebung operator on the Schur basis
         can also be computed explicitly. The following (probably clumsier
         than necessary) description can be obtained by solving exercise
-        7.61 in Stanley's [STA]_.
+        7.61 in Stanley's [EnumComb2]_.
 
         Let `\lambda` be a partition. Let `n` be a positive integer. If
         the `n`-core of `\lambda` is nonempty, then
