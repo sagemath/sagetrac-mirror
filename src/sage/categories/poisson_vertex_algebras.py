@@ -40,12 +40,12 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             sage: C.super_categories()
             [Category of commutative algebras over Rational Field,
              Category of Lie conformal algebras over Rational Field]
-            sage: C.HGraded()
-            Category of H-graded poisson vertex algebra over Rational Field
-            sage: C.HGraded().super_categories()
+            sage: C.Graded()
+            Category of H-graded Poisson vertex algebras over Rational Field
+            sage: C.Graded().super_categories()
             [Category of graded algebras over Rational Field,
              Category of Poisson vertex algebras over Rational Field,
-             Category of H-graded Lie conformal algebra over Rational Field]
+             Category of H-graded Lie conformal algebras over Rational Field]
 
         """
         return [CommutativeAlgebras(self.base_ring()), 
@@ -189,8 +189,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             TESTS::
                 sage: PoissonVertexAlgebras(QQ).WithBasis().Graded().__class__
                 <class 'sage.categories.poisson_vertex_algebras.PoissonVertexAlgebras.Graded.WithBasis_with_category'>
-                sage: PoissonVertexAlgebras(QQ).WithBasis().Graded() is
-                PoissonVertexAlgebras(QQ).Graded().WithBasis()
+                sage: PoissonVertexAlgebras(QQ).WithBasis().Graded() is PoissonVertexAlgebras(QQ).Graded().WithBasis()
                 True
 
             """
