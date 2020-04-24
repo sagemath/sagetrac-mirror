@@ -94,6 +94,11 @@ class VertexAlgebraQuotient_space_element(ElementWrapper):
         r"""Return the number of monomials in this element"""
         return len(self.monomial_coefficients())
 
+    def monomials(self):
+        """The list of monomials in this element"""
+        p = self.parent()
+        return tuple(v[1]*p(v[0]) for v in self.monomial_coefficients().items())
+
     def is_monomial(self):
         """return whether this element is a monomial"""
         return self.length() == 1 
