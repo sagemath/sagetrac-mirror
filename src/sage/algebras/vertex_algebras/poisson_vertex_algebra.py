@@ -31,7 +31,7 @@ from sage.algebras.vertex_algebras.vertex_algebra_quotient import VertexAlgebraQ
 from sage.combinat.partition import Partition
 from sage.sets.family import Family
 from sage.algebras.vertex_algebras.graded_algebra_with_derivation import \
-            AffineArcAlgebra, GradedCommutativeAlgebraWithDerivationQuotient
+            AffineArcAlgebra
 
 class PoissonVertexAlgebra(Parent, UniqueRepresentation):
     @staticmethod
@@ -603,32 +603,48 @@ class PoissonVertexAlgebra_from_quotient(
             """
             return self.parent()(self.lift().T(n))
 
-class VertexAlgebraArcSpace(GradedCommutativeAlgebraWithDerivationQuotient):
-    def __init__(self, V, termorder):
-        if not isinstance(V, VertexAlgebraQuotient):
-            #We assume here that V is a quotient of a chiral envelope
-            raise ValueError ("V needs to be a quotient of a chiral "\
-                              "envelope, got {}".format(V))
-        if not V.is_graded():
-            raise ValueError ("V needs to be an H-Graded vertex algebra "\
-                              ",got {}".format(V))
-        R = V.base_ring()
-        try:
+def VertexAlgebraArcSpace(V,termorder):
+    r"""The underlying graded commutative algebra with derivation of this
+    Poisson Vertex Algebra. 
+
+    INPUT:
+
+    - ``V`` A Vertex algebra. Currently we only support quotients of
+      universal enveloping vertex algebras
+
+    - ``termorder`` a Term Order (Default `wdegrevlex`) accepted values are 
+      `wdeglex`, `lex`, `revlex`. 
+
+    """
+    if not ( isinstance(V, VertexAlgebraQuotient) or 
+             isinstance(V, UniversalEnvelopingVertexAlgebra) ):
+        #We assume here that V is a quotient of a chiral envelope
+        raise ValueError ("V needs to be a quotient of a chiral "\
+                          "envelope, got {}".format(V))
+    if not V.is_graded():
+        raise ValueError ("V needs to be an H-Graded vertex algebra "\
+                          ",got {}".format(V))
+    R = V.base_ring()
+    try:
+        if isinstance(V,VertexAlgebraQuotient):
             names = V.ambient().variable_names()
-        except ValueError:
-            names = tuple("x{}".format(d) for d in range(V.ngens()))
-        weights = [g.weight() for g in V.gens()]
+        else:
+            names = V.variable_names()
+    except ValueError:
+        names = tuple("x{}".format(d) for d in range(V.ngens()))
+    weights = [g.weight() for g in V.gens()]
+    if isinstance(V,VertexAlgebraQuotient):
         category = PoissonVertexAlgebras(R).Graded().Quotients()
-        A = AffineArcAlgebra(R, names, weights, termorder, category=category)
+    else:
+        category = PoissonVertexAlgebras(R).Graded()
+    A = AffineArcAlgebra(R, names, weights, termorder, category=category)
+    if isinstance(V,UniversalEnvelopingVertexAlgebra):
+        return A
+    else:
         igens = []
         for g in V.defining_ideal().gens():
             d = g.li_filtration_degree()
             igens.append(sum(A(m.value) for m in g.monomials() if
                              m.li_filtration_degree() == d))
         I = A.differential_ideal(igens)
-        super(VertexAlgebraArcSpace,self).__init__(I)
-
-
-
-        
-
+        return A.quotient(I)
