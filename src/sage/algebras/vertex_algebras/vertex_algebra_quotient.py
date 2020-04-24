@@ -76,7 +76,16 @@ class VertexAlgebraQuotient_space_element(ElementWrapper):
                             (self.value[0],scalar*self.value[1]))
 
     def monomial_coefficients(self):
-        r"""The monomial coefficients of this elements"""
+        r"""The monomial coefficients of this elements
+
+        EXAMPLES::
+
+            sage: V = VirasoroVertexAlgebra(QQ, 1/2); Q=V.quotient(V.ideal(V.find_singular(6)[0]))
+            sage: L = Q(Q.gen(0))
+            sage: v = L*L.T()*L; v.monomial_coefficients()
+            {(7, B[([4, 1])]): 49/8, (7, B[([3, 2])]): 7/16, (7, B[([6])]): 35/32}
+
+        """
         p = self.value[1].parent()
         return { (self.value[0],p(k)):v for k,v in 
                             self.value[1].monomial_coefficients().items()}
@@ -98,6 +107,11 @@ class VertexAlgebraQuotient_space_element(ElementWrapper):
 
     def lift(self):
         return self.parent().lift(self)
+
+    def is_zero(self):
+        """Whether this element is zero or not"""
+        #for some reason need to implement here the otherwise default
+        return not self.__nonzero__()
 
     def __eq__(self,other):
         return (self - other).is_zero()
