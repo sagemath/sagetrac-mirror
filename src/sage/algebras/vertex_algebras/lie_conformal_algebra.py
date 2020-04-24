@@ -29,12 +29,12 @@ like :meth:`VirasoroLieConformalAlgebra` and :meth:`AffineLieConformalAlgebra`
         L_-2|0>
         sage: L*L
         L_-2L_-2|0>
-        sage: L.bracket(L*L)
-        {0: 2*L_-3L_-2|0>+L_-5|0>,
-         1: 4*L_-2L_-2|0>,
-         2: 3*L_-3|0>,
-         3: 17/2*L_-2|0>,
-         5: 3/2*|0>}
+        sage: sorted(L.bracket(L*L).items())
+        [(0, 2*L_-3L_-2|0>+L_-5|0>),
+         (1, 4*L_-2L_-2|0>),
+         (2, 3*L_-3|0>),
+         (3, 17/2*L_-2|0>),
+         (5, 3/2*|0>)]
 
 - We construct the Current algebra for `\mathfrak{sl}_2`::
 
@@ -277,8 +277,8 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
             Lazy family (basis map(i))_{i in Disjoint union of Family (The Cartesian product of ({'L'}, Non negative integers), The Cartesian product of ({'C'}, {0}))}
             sage: B[('L',2)]
             T^(2)L
-            sage: B[('L',3)].bracket(L)
-            {3: -TL, 4: -8*L, 6: -10*C}
+            sage: sorted(B[('L',3)].bracket(L).items())
+            [(3, -TL), (4, -8*L), (6, -10*C)]
             sage: B[('L',0)] == L
             True
 
@@ -787,8 +787,9 @@ def VirasoroLieConformalAlgebra(R):
             conformal algebras with basis over Rational Field
             sage: Vir.gens()
             (L, C)
-            sage: L = Vir.0; L.bracket(L)
-            {0: TL, 1: 2*L, 3: 1/2*C} 
+            sage: L = Vir.0
+            sage: sorted(L.bracket(L).items())
+            [(0, TL), (1, 2*L), (3, 1/2*C)]
 
     """
     

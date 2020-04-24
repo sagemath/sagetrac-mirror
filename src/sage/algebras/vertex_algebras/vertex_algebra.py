@@ -22,12 +22,12 @@ like :meth:`VirasoroVertexAlgebra` and :meth:`AffineVertexAlgebra`
     L_-2L_-2|0>
     sage: (L*L).T()
     2*L_-3L_-2|0>+L_-5|0>
-    sage: L.bracket(L*L)
-    {0: 2*L_-3L_-2|0>+L_-5|0>,
-     1: 4*L_-2L_-2|0>,
-     2: 3*L_-3|0>,
-     3: 17/2*L_-2|0>,
-     5: 3/2*|0>}
+    sage: sorted(L.bracket(L*L).items())
+    [(0, 2*L_-3L_-2|0>+L_-5|0>),
+     (1, 4*L_-2L_-2|0>),
+     (2, 3*L_-3|0>),
+     (3, 17/2*L_-2|0>),
+     (5, 3/2*|0>)]
 
 - We compute it's irreducible quotient::
 
