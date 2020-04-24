@@ -43,6 +43,13 @@ class DifferentialIdeal(MonoidElement):
         self._gens = gens
         MonoidElement.__init__(self,ambient.ideal_monoid())
 
+    def __nonzero__(self):
+        return not all(v.is_zero() for v in self._gens)
+
+    def is_zero(self):
+        #Why are we force to implement this?
+        return not self.__nonzero__()
+
     def ambient(self):
         return self._ambient
 
@@ -212,6 +219,8 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation):
         return self._ngens
 
     def quotient(self,I,names=None):
+        if I.is_zero():
+            return self
         return GradedCommutativeAlgebraWithDerivationQuotient(I,names=names)
 
     def _weights(self):
