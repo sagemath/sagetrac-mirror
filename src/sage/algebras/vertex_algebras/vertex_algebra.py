@@ -24,10 +24,10 @@ like :meth:`VirasoroVertexAlgebra` and :meth:`AffineVertexAlgebra`
     2*L_-3L_-2|0>+L_-5|0>
     sage: L.bracket(L*L)
     {0: 2*L_-3L_-2|0>+L_-5|0>,
+     1: 4*L_-2L_-2|0>,
      2: 3*L_-3|0>,
      3: 17/2*L_-2|0>,
-     5: 3/2*|0>,
-     1: 4*L_-2L_-2|0>}
+     5: 3/2*|0>}
 
 - We compute it's irreducible quotient::
 
@@ -161,14 +161,14 @@ class VertexAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = VirasoroLieConformalAlgebra(CC)
             sage: Vir.inject_variables()
             Defining L, C
-            sage: cp = Family({C:1/2})
-            sage: V = VertexAlgebra(QQ,Vir,central_parameters=cp)
+            sage: cp = Family({C:1/3})
+            sage: V = VertexAlgebra(CC,Vir,central_parameters=cp)
             sage: V
             The universal enveloping vertex algebra of Lie conformal algebra on 2 generators
-            (L, C) over Rational Field.
+            (L, C) over Complex Field with 53 bits of precision.
 
         """
         category = VertexAlgebras(R).or_subcategory(category)
@@ -701,7 +701,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
                 sage: (f*e).weight()
                 2
                 sage: (e*f + e).weight()
-                Traceback (most recent call last)
+                Traceback (most recent call last):
                 ...
                 ValueError: E(alpha[1])_-1E(-alpha[1])_-1|0>+E(alpha[1])_-1|0> is not homogeneous!
 
@@ -756,8 +756,8 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
             EXAMPLES::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2); V.inject_variables
-                sage: Defining L
+                sage: V = VirasoroVertexAlgebra(QQ,1/2); V.inject_variables()
+                Defining L
                 sage: V.find_singular(6)
                 [L_-2L_-2L_-2|0>-33/8*L_-4L_-2|0>+93/64*L_-3L_-3|0>-27/16*L_-6|0>]
                 sage: v = _[0]
@@ -799,7 +799,8 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
             EXAMPLES::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2); 
+                sage: V = VirasoroVertexAlgebra(QQ,1/2);  V.inject_variables()
+                Defining L
                 sage: v = L*L*L + L.T()*L.T() + L.T(4)
                 sage: v
                 3*L_-3L_-3|0>+4*L_-4L_-2|0>+49/2*L_-6|0>+L_-2L_-2L_-2|0>
