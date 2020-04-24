@@ -261,7 +261,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     In the multiplicative bases (that is, :math:`e`, :math:`h` and :math:`p`),
     the product of two basis elements is obtained simply by combining the
-    corresponding partitions (i.e., by concnatenating them and sorting the
+    corresponding partitions (i.e., by concatenating them and sorting the
     result in nondecreasing order)::
 
         sage: p([2,1,1])*p([5,2])==p([5,2,2,1,1])
@@ -336,6 +336,12 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: p.one()
             p[]
+
+    .. note:: All bases actually share the same multiplicative
+        identity, as shown below in the case of power sums and Schur functions::
+
+            sage: s.one() == p.one()
+            True
 
     .. rubric:: Concrete symmetric functions
 
@@ -441,22 +447,28 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Convert a concrete symmetric polynomial into an abstract symmetric function
 
-    Conversely, a "concrete" symmetric polynomial, i.e.: explicitly expressed
-    in the variables, may be written as a formal symmetric function in any chosen basis.
-
-    ::
+    Conversely, a "concrete" symmetric polynomial in finitely many
+    variables may be written as a formal symmetric function in any
+    chosen basis, using the ``from_polynomial()`` method on the
+    basis. For example, let us expand :math:`p_2 + e_{2,1}`
+    in three variables and recover it back::
 
         sage: pol1 = (p([2])+e([2,1])).expand(3)
         sage: pol1
         x0^2*x1 + x0*x1^2 + x0^2*x2 + 3*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2 + x0^2 + x1^2 + x2^2
+        sage: e.from_polynomial(pol1) == p([2])+e([2,1])
+        True
+
+    Let us write the symmetric polynomial
+    :math:`\prod_{1 \leq j < k \leq 3} (x_k - x_j)^2`
+    (the discriminant) in three variables `x_0, x_1, x_2` as a
+    symmetric function in the elementary basis::
+
         sage: n = 3
         sage: R = PolynomialRing(FractionField(QQ['q','t']),'x',n)
-        sage: X=R.gens()
+        sage: X = R.gens()
         sage: R.inject_variables()
         Defining x0, x1, x2
-
-    ::
-
         sage: Discr=mul(mul((X[k]-X[j])^2 for j in range(k)) for k in range(1,n))
         sage: Discr
         x0^4*x1^2 + (-2)*x0^3*x1^3 + x0^2*x1^4 + (-2)*x0^4*x1*x2 + 2*x0^3*x1^2*x2 + 2*x0^2*x1^3*x2 + (-2)*x0*x1^4*x2 + x0^4*x2^2 + 2*x0^3*x1*x2^2 + (-6)*x0^2*x1^2*x2^2 + 2*x0*x1^3*x2^2 + x1^4*x2^2 + (-2)*x0^3*x2^3 + 2*x0^2*x1*x2^3 + 2*x0*x1^2*x2^3 + (-2)*x1^3*x2^3 + x0^2*x2^4 + (-2)*x0*x1*x2^4 + x1^2*x2^4
@@ -485,18 +497,15 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         2*m[1, 1, 1] + m[2, 1]
 
     In the preceding example, the base ring of polynomials is the same as the base
-    ring of symmetric polynomials considered, as checked by the following.
-
-    ::
+    ring of symmetric polynomials considered, as checked by the following::
 
         sage: print(s.base_ring())
         Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
         sage: print(pol2.base_ring())
         Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
 
-    Thus a concrete symmetric polynomial over :math:`\mathbb{Q}(q,t)` may be transformed into an abstract symmetric function in any basis.
-
-    ::
+    Thus a concrete symmetric polynomial over :math:`\mathbb{Q}(q,t)` may be
+    transformed into an abstract symmetric function in any basis::
 
         sage: R = PolynomialRing(QQ['q','t'],'y',3)
         sage: R.inject_variables()
@@ -505,20 +514,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s.from_polynomial(pol2)
         s[] + (q+t)*s[1, 1] + q*t*s[1, 1, 1]
 
-    .. note:: All bases actually share the same multiplicative
-        identity, as shown below in the case of power sums and Schur functions::
-
-            sage: s.one() == p.one()
-            True
-
     .. rubric:: Changes of bases
 
     Many calculations on symmetric functions involve a change of (linear) basis.
 
-    For example, we compute here :math:`p_{22}+m_{11}s_{21}` in the elementary basis.
-
-
-    ::
+    For example, we compute here :math:`p_{22}+m_{11}s_{21}` in the elementary basis::
 
         sage: e(p([2,2])+m([1,1])*s([2,1]))
         e[1, 1, 1, 1] - 4*e[2, 1, 1] + 4*e[2, 2] + e[2, 2, 1] - e[3, 2]
@@ -552,7 +552,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TOPIC:: Exercise
 
-        Compute the sum of the homogeneous functions on partitions of size 4 in the power sum basis.
+        Compute the sum of the complete homogeneous functions on partitions of size 4 in the power sum basis.
 
     .. TOPIC:: Solution
 
