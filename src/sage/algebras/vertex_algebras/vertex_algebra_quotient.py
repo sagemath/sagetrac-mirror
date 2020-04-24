@@ -81,9 +81,9 @@ class VertexAlgebraQuotient_space_element(ElementWrapper):
         EXAMPLES::
 
             sage: V = VirasoroVertexAlgebra(QQ, 1/2); Q=V.quotient(V.ideal(V.find_singular(6)[0]))
-            sage: L = Q(Q.gen(0))
-            sage: v = L*L.T()*L; v.monomial_coefficients()
-            {(7, B[([4, 1])]): 49/8, (7, B[([3, 2])]): 7/16, (7, B[([6])]): 35/32}
+            sage: L = Q.gen(0)
+            sage: v = L*L.T()*L; sorted(v.monomial_coefficients().items())
+            [((7, B[([3, 2])]), 7/16), ((7, B[([4, 1])]), 49/8), ((7, B[([6])]), 35/32)]
 
         """
         p = self.value[1].parent()
