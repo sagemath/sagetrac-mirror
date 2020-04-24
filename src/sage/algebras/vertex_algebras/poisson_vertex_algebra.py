@@ -544,7 +544,7 @@ class PoissonVertexAlgebra_from_quotient(
             """
             if len(self.value) != 1:
                 raise ValueError("{} is not homogeneous".format(self))
-            return self.value.keys()[0]
+            return list(self.value.keys())[0]
 
         def li_filtration_degree(self):
             r"""Let `F_p P` be the Li-filtration of this Poisson vertex algebra.
