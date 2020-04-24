@@ -576,10 +576,10 @@ class PoissonVertexAlgebra_from_quotient(
                 return (0,0)
             if len(self.value) != 1:
                 raise ValueError("{} is not a monomial".format(self))
-            if len(self.value.items()[0][1]) != 1:
+            if len(list(self.value.items())[0][1]) != 1:
                 raise ValueError("{} is not a monomial".format(self))
-            return (self.value.items()[0][0],
-                                        self.value.items()[0][1].items()[0][0])
+            return (list(self.value.items())[0][0],
+                        list(list(self.value.items())[0][1].items())[0][0])
 
         def _get_bigraded_term(self,m,n):
             v = self.value.get(m,{})
