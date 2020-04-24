@@ -51,11 +51,12 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     The first part of this document consists of a tutorial on symmetric functions.
     It is then followed by the documentation.
-    The aim of this tutorial is to present what it is possible to do in Sage with symmetric functions.
-    We suppose that the reader knows only the basics about symmetric functions, but if one wants to learn
-    more on symmetric functions, [Mac1995]_ and [EnumComb2]_, Chapter 7, are two excellent references.
+    The aim of this tutorial is to present what can be done in Sage with symmetric functions.
+    We suppose that the reader knows only the basics about symmetric functions;
+    more can be learned from the excellent resources
+    [Mac1995]_ and [EnumComb2]_, Chapter 7.
 
-    **Caveat:** in this tutorial, the term symmetric "functions" will
+    **Caveat:** in this tutorial, the term "symmetric functions" will
     mostly stand for "abstract" symmetric polynomials, in which variables
     are not made explicit. Indeed, for most practical calculations,
     variables need not appear. Moreover, one may show that this does not
@@ -74,16 +75,17 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     a quick example of what we can do in Sage.
 
     We recall that the **complete homogeneous** symmetric functions
-    :math:`h_d` are defined in terms of the **power sum** symmetric functions
-    :math:`p_{\mu}` by the formula:
+    :math:`h_d` can be expressed in terms of the **power sum** symmetric
+    functions :math:`p_{\mu}` by the formula:
 
     .. MATH:: h_d = \sum \limits_{\mu \vdash d} \dfrac{1}{z_{\mu}} p_{\mu}
 
-    where :math:`z_\mu` is the number of "automorphisms" of a permutation having
-    cycle structure :math:`\mu`.
+    where :math:`z_\mu` is the number of "automorphisms" of a permutation
+    having cycle structure :math:`\mu` (that is, the size of the
+    centralizer of such a permutation).
 
-    Here is how to obtain both sides of this equality in the ring of symmetric
-    function :math:`\mathrm{Sym}` over :math:`\mathbb{Q}` ::
+    Here is how to obtain both sides of this equality in the ring
+    :math:`\mathrm{Sym}` of symmetric functions over :math:`\mathbb{Q}` ::
 
         sage: Sym = SymmetricFunctions(QQ)
         sage: Sym.inject_shorthands()
@@ -101,17 +103,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: sum((1/Partition(i).aut())*p(i) for i in Partitions(6).list())
         1/720*p[1, 1, 1, 1, 1, 1] + 1/48*p[2, 1, 1, 1, 1] + 1/16*p[2, 2, 1, 1] + 1/48*p[2, 2, 2] + 1/18*p[3, 1, 1, 1] + 1/6*p[3, 2, 1] + 1/18*p[3, 3] + 1/8*p[4, 1, 1] + 1/8*p[4, 2] + 1/5*p[5, 1] + 1/6*p[6]
 
-        sage: Sym.category()
-        Join of Category of hopf algebras over Rational Field
-            and Category of graded algebras over Rational Field
-            and Category of monoids with realizations
-            and Category of graded coalgebras over Rational Field
-            and Category of coalgebras over Rational Field with realizations
-
     .. note:: The algebra of symmetric functions is the unique free commutative graded
-        connected algebra over the given ring, with one generator in each degree.  It
-        can also be thought of as the inverse limit (in the category of graded
-        algebras) of the algebra of symmetric polynomials in `n` variables as `n \rightarrow \infty`.
+        connected algebra over the given ring, with one generator in each positive
+        degree.  It can also be thought of as the inverse limit (in the category of
+        graded algebras) of the algebra of symmetric polynomials in `n` variables as
+        `n \rightarrow \infty`.
         Sage allows us to construct the algebra of symmetric functions over
         any ring.  We will use a base ring of rational numbers in these first
         examples::
@@ -120,13 +116,17 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: Sym
             Symmetric Functions over Rational Field
 
-        Sage knows certain categorical information about this algebra::
+        Sage knows that :math:`\mathrm{Sym}` is not just an algebra, but
+        has many other structures implemented in Sage::
 
             sage: Sym.category()
             Join of Category of hopf algebras over Rational Field
                 and Category of graded algebras over Rational Field
                 and Category of monoids with realizations
-                and Category of coalgebras over Rational Field with realizations
+                and Category of graded coalgebras over Rational Field
+
+        Most of this structure will be explained in the sections that
+        follow.
 
         Note that ``Sym`` is an *abstract* algebra.  This reflects the fact that
         there are multiple natural bases.  To work with specific
@@ -135,15 +135,22 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Abstract symmetric functions
 
-    We first describe how to manipulate "variable free" symmetric functions (with coefficients in the ring of rational coefficients fractions in :math:`q` and :math:`t`).
-    Such functions are linear combinations of one of the six classical bases of symmetric functions; all indexed by integer partitions :math:`\mu=\mu_1\mu_2\cdots \mu_k`.
+    We first describe how to manipulate "variable-free" symmetric functions
+    (with coefficients in the field :math:`\mathbb{Q}(q,t)` of rational
+    functions in :math:`q` and :math:`t` with rational coefficients).
+    Such functions are linear combinations of one of the six classical
+    bases of symmetric functions; all indexed by integer partitions
+    :math:`\mu = \left(\mu_1, \mu_2, \ldots \mu_k\right)`
+    (with :math:`\mu_1 \geq \mu_2 \geq \cdots \geq \mu_k > 0`).
 
-    -   The **power sum** symmetric functions :math:`p_\mu=p_{\mu_1}p_{\mu_2}\cdots p_{\mu_2}`
-    -   The **(complete) homogeneous** symmetric functions :math:`h_\mu=h_{\mu_1}h_{\mu_2}\cdots h_{\mu_2}`
-    -   The **elementary** symmetric functions :math:`e_\mu=e_{\mu_1}e_{\mu_2}\cdots e_{\mu_2}`
-    -   The **monomial** functions :math:`m_{\mu}`
+    -   The **power sum** symmetric functions :math:`p_\mu=p_{\mu_1}p_{\mu_2}\cdots p_{\mu_k}`
+    -   The **(complete) homogeneous** symmetric functions :math:`h_\mu=h_{\mu_1}h_{\mu_2}\cdots h_{\mu_k}`
+    -   The **elementary** symmetric functions :math:`e_\mu=e_{\mu_1}e_{\mu_2}\cdots e_{\mu_k}`
+    -   The **monomial** symmetric functions :math:`m_{\mu}`
     -   The **Schur** functions :math:`s{\mu}`
     -   The **forgotten** symmetric functions :math:`f_{\mu}`
+
+    (or various other bases).
 
     ::
 
@@ -160,27 +167,19 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-    Another often used coefficient ring is :math:`\mathbb{Q}(q,t)`. 
-    Thus, declaring first this ring (and "injecting" variables :math:`q` and 
-    :math:`t` to make them available), one may introduce the ring of symmetric
-    functions over :math:`\mathbb{Q}(q,t)` as follows. The ``Symqt.inject_shorthands()``
-    command makes the "usual" short names (as in Macdonald's book) available
-    (with Sage < 8.0, it will display a warning message you can ignore.).
+    In the first line here, we have defined ``F`` to be the
+    field :math:`\mathbb{Q}(q, t)`.
+    In the second, we have "injected" the variables :math:`q` and 
+    :math:`t` in order to make them available as ``q`` and ``t``.
+    Then, we have defined ``Symqt`` to be the ring of symmetric
+    functions over :math:`\mathbb{Q}(q,t)`. Finally, the
+    ``Symqt.inject_shorthands()`` command makes the "usual"
+    short names (as in Macdonald's book) available.
     The keyword `verbose` allows you to make the injection quiet.
 
-    ::
-
-        sage: h[2,1],p[2,1]
-        (h[2, 1], p[2, 1])
-
-    ::
-
-        sage: (q+t)*s[2,1,1]
-        (q+t)*s[2, 1, 1]
-
     Now that we have access to all the bases we need, we can start manipulating them.
-    Symmetric functions are indexed by partitions :math:`\mu`, with integers considered
-    as partitions having size one (don't forget the brackets!)::
+    The basis elements are indexed by partitions :math:`\mu`, with integers
+    considered as partitions having size :math:`1` (don't forget the brackets!)::
 
         sage: s[101,14,13,11]
         s[101, 14, 13, 11]
@@ -189,6 +188,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: e[3,2,1]
         e[3, 2, 1]
+
+    ::
+
+        sage: h[2,1],p[2,1]
+        (h[2, 1], p[2, 1])
 
     .. note::In the special case of the empty partition, due to a limitation in
        Python syntax, one cannot use::
@@ -211,21 +215,34 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p.basis()['something']
         p'something'
 
-    Elements of ``p`` are linear combinations of such compositions::
+    Elements of ``p`` (that is, symmetric functions written in the power-sum
+    basis) are linear combinations of such basis elements::
 
-      sage: p.an_element()
-      2*p[] + 2*p[1] + 3*p[2]
+        sage: p.an_element()
+        2*p[] + 2*p[1] + 3*p[2]
+
+    Likewise for the other bases::
+
+        sage: (q+t)*s[2,1,1]
+        (q+t)*s[2, 1, 1]
+        sage: q*s[2,1,1] + t*s[2,1,1]
+        (q+t)*s[2, 1, 1]
+        sage: q*s[2,1,1] + t*s[2]
+        t*s[2] + q*s[2,1,1]
 
     .. rubric:: The ring structure
 
-    Note that for the multiplicative bases (ie: :math:`e`, :math:`h` and :math:`p`),
-    products are replaced by the corresponding partition indexed expression::
+    In the multiplicative bases (that is, :math:`e`, :math:`h` and :math:`p`),
+    the product of two basis elements is obtained simply by combining the
+    corresponding partitions (i.e., taking the multiset union)::
 
         sage: p([2,1,1])*p([5,2])==p([5,2,2,1,1])
         True
 
     For the non-multiplicative bases, such as the Schur functions, products
-    are expanded as linear combinations in the same (linear) basis::
+    are expanded as linear combinations in the same (linear) basis
+    according to combinatorial rules (such as the Littlewood-Richardson
+    rule for the Schur basis)::
 
         sage: s([5])^2*s([1,1,1])
         s[5, 5, 1, 1, 1] + s[6, 4, 1, 1, 1] + 2*s[6, 5, 1, 1] + s[6, 6, 1] + s[7, 3, 1, 1, 1] + 2*s[7, 4, 1, 1] + s[7, 5, 1] + s[8, 2, 1, 1, 1] + 2*s[8, 3, 1, 1] + s[8, 4, 1] + s[9, 1, 1, 1, 1] + 2*s[9, 2, 1, 1] + s[9, 3, 1] + 2*s[10, 1, 1, 1] + s[10, 2, 1] + s[11, 1, 1]
@@ -256,6 +273,25 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s(m([1,1])*s([2,1])+p([2,2]))
         s[1, 1, 1, 1] - s[2, 1, 1] + s[2, 1, 1, 1] + 2*s[2, 2] + s[2, 2, 1] - s[3, 1] + s[3, 1, 1] + s[3, 2] + s[4]
 
+    In general, if ``f`` is a symmetric function expressed in some
+    basis, then ``p(f)`` will return ``f`` expressed in the power-sum
+    basis; ``m(f)`` will return ``f`` expressed in the monomial basis;
+    and so on. We will see more of this below in the "Change of bases"
+    section.
+
+    Internally, each of the bases ``s``, ``m``, ... of
+    :math:`\mathrm{Sym}` is an algebra in its own right; all of these
+    algebras are isomorphic, and the syntax ``p(f)`` or ``m(f)``
+    used above applies these isomorphisms to an element ``f``.
+
+    .. note:: These isomorphisms need to be called in order to
+        convert a symmetric function into a different basis; but they
+        need not to be called to compare two symmetric functions written
+        in different bases. Sage knows how to do it already::
+
+            sage: m[1,1] - m[2] == 2*s[1,1] - s[2]
+            True
+
     .. note:: Let us explore the other operations of ``p``. We can ask for
         the mathematical properties of ``p``::
 
@@ -267,7 +303,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
              ...]
 
         To start with, ``p`` is a graded algebra, the grading being induced
-        by the size of the partitions. Due to this, the multiplicative identity is the 
+        by the size of the partitions. The multiplicative identity is the 
         basis element indexed by the empty partition::
 
             sage: p.one()
@@ -276,10 +312,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. rubric:: Concrete symmetric functions
 
     Our above abstract symmetric functions represent (possibly very large)
-    concrete multivariate polynomials that are invariant upon any permutation
+    concrete multivariate polynomials that are invariant under any permutation
     of their variables. Simple examples include
 
-    .. MATH:: p_k(x_1,x_2,\ldots, x_n)= x_1^k+x_2^k+\ldots +x_n^k,\ (\hbox{for any } k\in\mathbb{N}),\ {\rm or}
+    .. MATH:: p_k(x_1,x_2,\ldots, x_n)= x_1^k+x_2^k+\ldots +x_n^k,\ (\hbox{for any } k > 0),\ {\rm or}
 
     .. MATH:: e_n(x_1,x_2,\ldots, x_n) = x_1x_2\cdots x_n.
 
@@ -323,14 +359,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. TOPIC:: Exercise
 
         Let :math:`e_k(n) = e_k(x_0,x_1, \dots , x_{n-1})` and similarly for
-        the homogeneous functions.
+        the complete homogeneous functions.
         Then we have the following recursion relations for :math:`n \geq 1`:
 
         .. MATH::
 
-            e_k(n) = e_k(n-1) + x_ne_{k-1}(n-1), \\
-            h_k(n) = h_k(n-1) + x_nh_{k-1}(n), \\
-            e_k(0)=h_k(0) = \delta_{k,0},
+            e_k(n) = e_k(n-1) + x_n e_{k-1}(n-1), \\
+            h_k(n) = h_k(n-1) + x_n h_{k-1}(n), \\
+            e_k(0) = h_k(0) = \delta_{k,0},
 
         where :math:`\delta_{k,0}` is the Kronecker delta.
 
@@ -344,8 +380,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         ::
 
-            sage: k=3
-            sage: R = PolynomialRing(QQ,'x',5)
+            sage: k = 3
+            sage: R = PolynomialRing(QQ, 'x', 5)
             sage: R.inject_variables()
             Defining x0, x1, x2, x3, x4
             sage: l = list(R.gens())
@@ -399,9 +435,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: e.from_polynomial(Discr)
         e[2, 2, 1, 1] - 4*e[2, 2, 2] - 4*e[3, 1, 1, 1] + 18*e[3, 2, 1] - 27*e[3, 3] - 8*e[4, 1, 1] + 24*e[4, 2]
 
-
     The ``pol`` input of the method ``from_polynomial()`` is assumed to
-    lie in a polynomial ring over the same base field as that used for the symmetric
+    lie in a polynomial ring over the same base ring as that used for the symmetric
     functions, which therefore has to be declared beforehand.
 
     ::
@@ -411,10 +446,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: R.inject_variables()
         Defining y0, y1, y2
         
-    Here, we will work with three variables (:math:`y_0, y_1` and :math:`y_2`).
+    Here, we will work with three variables (:math:`y_0, y_1, y_2`).
     Finally, we can declare our polynomial and convert it into a symmetric function
     in the monomial basis for example.
-
 
     ::
 
@@ -422,8 +456,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: m.from_polynomial(pol2)
         2*m[1, 1, 1] + m[2, 1]
 
-
-    In the preceeding example, the base ring of polynomials is the same as the base
+    In the preceding example, the base ring of polynomials is the same as the base
     ring of symmetric polynomials considered, as checked by the following.
 
     ::
@@ -432,7 +465,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
         sage: print(pol2.base_ring())
         Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-
 
     Thus a concrete symmetric polynomial over :math:`\mathbb{Q}(q,t)` may be transformed into an abstract symmetric function in any basis.
 
@@ -445,11 +477,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s.from_polynomial(pol2)
         s[] + (q+t)*s[1, 1] + q*t*s[1, 1, 1]
 
+    .. note:: All bases actually share the same multiplicative
+        identity, as shown below in the case of power sums and Schur functions::
 
-    .. note::All bases actually share the same multiplicative identity, as shown below in the case of power sums and Schur functions::
-
-        sage: s.one() == p.one()
-        True
+            sage: s.one() == p.one()
+            True
 
     .. rubric:: Changes of bases
 
@@ -462,7 +494,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: e(p([2,2])+m([1,1])*s([2,1]))
         e[1, 1, 1, 1] - 4*e[2, 1, 1] + 4*e[2, 2] + e[2, 2, 1] - e[3, 2]
-
 
     .. TOPIC:: Exercise
 
@@ -509,7 +540,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         It is well known that  :math:`h_n(X) = \sum \limits_{\mu \vdash n} \dfrac{p_{\mu}(x)}{z_{\mu}}`. Verify this result for  :math:`n \in \{1,2,3,4\}`
 
         Note that there exists a function ``zee()`` which takes a partition  :math:`\mu` and returns the value of  :math:`z_{\mu}`. To use this function, you should import it from* ``sage.combinat.sf.sfa``.
-
 
     ::
 
