@@ -708,7 +708,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                     return tuple()
                 if not self.is_monomial():
                     raise ValueError ("index can only be computed for monomials")
-                return self.value.monomial_coefficients().keys()[0]
+                return list(self.value.monomial_coefficients().keys())[0]
 
     class FinitelyGeneratedAsLieConformalAlgebra(
                                             CategoryWithAxiom_over_base_ring):
