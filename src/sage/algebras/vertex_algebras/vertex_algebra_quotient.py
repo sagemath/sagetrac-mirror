@@ -388,6 +388,10 @@ class VertexAlgebraQuotient(VertexAlgebraQuotient_space):
         r"""The vacuum vector of this vertex algebra"""
         return self.retract(self._ambient.vacuum())
 
+    def ngens(self):
+        r"""The number of generators of this vertex algebra"""
+        return self._ambient.ngens()
+
     def gens(self):
         r"""The generators of this vertex algebra"""
         return [self(v) for v in self._ambient.gens()]
