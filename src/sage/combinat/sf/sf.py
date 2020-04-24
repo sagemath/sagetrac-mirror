@@ -194,15 +194,30 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: h[2,1],p[2,1]
         (h[2, 1], p[2, 1])
 
-    .. note::In the special case of the empty partition, due to a limitation in
+    .. note:: There are several ways to have Sage produce a basis element
+       corresponding to a given partition::
+       
+            sage: p[2, 1, 1]
+            p[2, 1, 1]
+            sage: p[[2, 1, 1]]
+            p[2, 1, 1]
+            sage: p[Partition([2, 1, 1])]
+            p[2, 1, 1]
+            sage: p.basis()[Partition([2,1,1])]
+            p[2, 1, 1]
+
+       The first is the most convenient for direct use; the others
+       are more suited for programming.
+    
+       In the special case of the empty partition, due to a limitation in
        Python syntax, one cannot use::
 
-       sage: p[]       # todo: not implemented
+           sage: p[]       # todo: not implemented
 
        Please use instead::
 
-       sage: p[[]]
-       p[]
+           sage: p[[]]
+           p[]
 
     .. note:: When elements are constructed using the ``p[something ]`` syntax ,
        an error will be raised if the input cannot be interpreted as a partition.
@@ -215,8 +230,20 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p.basis()['something']
         p'something'
 
+    Strictly speaking, ``p`` is not the power-sum basis itself in the
+    mathematical sense (the latter can be obtained by writing
+    ``p.basis()``), but rather the ring of symmetric functions written in
+    the power-sum basis:
+
+        sage: p # The ring
+        Symmetric Functions over Rational Field in the powersum basis
+        sage: p.basis() # The basis
+        Lazy family (Term map from Partitions to Symmetric Functions over Rational Field in the powersum basis(i))_{i in Partitions}
+        sage: p.basis().keys() # The partitions indexing the basis
+        Partitions
+
     Elements of ``p`` (that is, symmetric functions written in the power-sum
-    basis) are linear combinations of such basis elements::
+    basis) are linear combinations of basis elements::
 
         sage: p.an_element()
         2*p[] + 2*p[1] + 3*p[2]
@@ -234,7 +261,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     In the multiplicative bases (that is, :math:`e`, :math:`h` and :math:`p`),
     the product of two basis elements is obtained simply by combining the
-    corresponding partitions (i.e., taking the multiset union)::
+    corresponding partitions (i.e., by concnatenating them and sorting the
+    result in nondecreasing order)::
 
         sage: p([2,1,1])*p([5,2])==p([5,2,2,1,1])
         True
@@ -572,14 +600,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     - The zonal basis
 
     The well-known Macdonald symmetric functions are also implemented in Sage.
-    For more details, you can consult the following Sage reference :
+    For more details, you can consult the following Sage reference:
     http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/sf/macdonald.html
 
     For more information, see the documentation of the individual bases.
 
     Here are some examples involving the "combinatorial" Macdonald symmetric functions.
-    These are eigenfunctions of the operator :math:`\nabla`.
-    (See below for more information about :math:`\nabla`.)
+    These are eigenfunctions of the operator :math:`\nabla`
+    discussed further below.
 
     ::
 
