@@ -632,11 +632,8 @@ def VertexAlgebraArcSpace(V,termorder):
             names = V.variable_names()
     except ValueError:
         names = tuple("x{}".format(d) for d in range(V.ngens()))
-    weights = [g.weight() for g in V.gens()]
-    if isinstance(V,VertexAlgebraQuotient):
-        category = PoissonVertexAlgebras(R).Graded().Quotients()
-    else:
-        category = PoissonVertexAlgebras(R).Graded()
+    weights = tuple(g.weight() for g in V.gens())
+    category = PoissonVertexAlgebras(R).Graded()
     A = AffineArcAlgebra(R, names, weights, termorder, category=category)
     if isinstance(V,UniversalEnvelopingVertexAlgebra):
         return A
