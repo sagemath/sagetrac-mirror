@@ -17,6 +17,40 @@
 # Always use bash for make rules
 SHELL = @SHELL@
 
+# Use safe-but-efficient optimization flags, if the user does not
+# provide his own.
+
+# SAGE_DEBUG is a
+# three-state:
+ifeq ($(SAGE_DEBUG), "yes")
+opt := -O0 -g
+else
+ifeq ($(SAGE_DEBUG), "no")
+opt := -O2
+else
+opt := -O2 -g
+endif
+endif
+
+ifeq ($(SAGE_FAT_BINARY), "yes")
+# No '-march=native' in this case.
+else
+opt := $(opt) -march=native
+# Tune the code generation to the machine we build on:
+endif
+
+# Test, which flags the compiler supports.
+# We assume that all compilers are of the same suite,
+# or at least that if the C Compiler can handle
+# `march=native`, then so can the C++ and Fortran
+# compiler.
+opt := $(shell export CC=$(CC) && ../../build/bin/./testcflags.sh $(opt))
+CFLAGS ?= $(opt)
+CXXFLAGS ?= $(opt)
+FCFLAGS ?= $(opt)
+F77FLAGS ?= $(opt)
+export CFLAGS CXXFLAGS FCFLAGS F77FLAGS
+
 ifndef SAGE_SPKG_INST
 ifndef DEBUG_RULES
 $(error This Makefile needs to be invoked by build/make/install)
