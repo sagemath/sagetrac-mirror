@@ -1,6 +1,9 @@
 # Exit on error
 set -e
 
+export CFLAGS=$ORIGINAL_CFLAGS
+export FCFLAGS=$ORIGINAL_FCFLAGS
+
 . ./set-library-path
 
 cd gcc-build

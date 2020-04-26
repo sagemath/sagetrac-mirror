@@ -3,8 +3,10 @@
 ###########################################
 
 if [ "x$SAGE_DEBUG" = xyes ] ; then
+    CFLAGS="$ORIGINAL_CFLAGS -O0 -g" # Disable optimisation, add debug symbols. Good
+                            # for debugging or working around compiler bugs.
 else
-    CFLAGS="-O3 $CFLAGS" # Default optimisation, with debug symbols.
+    CFLAGS="-O3 -g $ORIGINAL_CFLAGS" # Default optimisation, with debug symbols.
                             # Prepend to not override user's setting.
 fi
 

@@ -32,11 +32,20 @@ opt := -O2 -g
 endif
 endif
 
-ifeq ($(SAGE_FAT_BINARY), "yes")
-# No '-march=native' in this case.
+# No '-march=native' for fat binaries.
+ifneq ($(SAGE_FAT_BINARY), "yes")
+
+# Tune the code generation to the machine we build on:
+ifeq ($(CC), "gcc")
+GCC_GTE_51 := $(shell $(vers_gcc) =~ [[[0-4]].*|5.[0].*] && echo "yes")
+ifeq ($(GCC_GTE_51), "yes")
+opt := $(opt) -march=native
+# No '-march=native` for
+# gcc <= 5.0
+endif
 else
 opt := $(opt) -march=native
-# Tune the code generation to the machine we build on:
+endif
 endif
 
 # Test, which flags the compiler supports.
@@ -45,11 +54,18 @@ endif
 # `march=native`, then so can the C++ and Fortran
 # compiler.
 opt := $(shell export CC=$(CC) && ../../build/bin/./testcflags.sh $(opt))
+
+ORIGINAL_CFLAGS := $(CFLAGS)
+ORIGINAL_CXXFLAGS := $(CXXFLAGS)
+ORIGINAL_FCFLAGS := $(FCFLAGS)
+ORIGINAL_F77FLAGS := $(F77FLAGS)
+
 CFLAGS ?= $(opt)
 CXXFLAGS ?= $(opt)
 FCFLAGS ?= $(opt)
 F77FLAGS ?= $(opt)
 export CFLAGS CXXFLAGS FCFLAGS F77FLAGS
+export ORIGINAL_CFLAGS ORIGINAL_CXXFLAGS ORIGINAL_FCFLAGS ORIGINAL_F77FLAGS
 
 ifndef SAGE_SPKG_INST
 ifndef DEBUG_RULES

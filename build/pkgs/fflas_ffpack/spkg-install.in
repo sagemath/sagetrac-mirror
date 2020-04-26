@@ -1,3 +1,6 @@
+export CFLAGS=ORIGNAL_CFLAGS
+export CXXFLAGS=ORIGNAL_CXXFLAGS
+
 cd src
 
 if [ "$LINBOX_BLAS" != "" ]; then
