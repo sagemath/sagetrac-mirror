@@ -700,7 +700,7 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation,
             return ret
             
         def lm(self):
-            r"""The leading monomials of this element with respect to the
+            r"""The leading monomial of this element with respect to the
             monomial ordering
 
             EXAMPLES::
@@ -718,6 +718,30 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation,
             p = self.parent()
             pol = self._to_polynomial()
             return p(pol.lm())
+
+        def lt(self):
+            r"""The leading term of this element with respect to the
+            monomial ordering
+
+            EXAMPLES::
+
+                sage: A = AffineArcAlgebra(QQ,'L',weights=(2,)); A.inject_variables()
+                Defining L
+                sage: pol = L.T(2)*L +  L.T()**2
+                sage: pol
+                L_3^2 + 2*L_2*L_4
+                sage: pol.lt()
+                L_3^2
+                sage: pol.T(3)
+                120*L_4*L_5 + 120*L_3*L_6 + 120*L_2*L_7
+                sage: pol.T(3).lt()
+                120*L_4*L_5
+
+            """
+            p = self.parent()
+            pol = self._to_polynomial()
+            return p(pol.lt())
+
 
 class GradedCommutativeAlgebraWithDerivationQuotient(
                             GradedCommutativeAlgebraWithDerivation):
