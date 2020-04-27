@@ -111,7 +111,7 @@ EOF
 case "$IGNORE_MISSING_SYSTEM_PACKAGES" in
     no)
         cat <<EOF
-RUN $UPDATE $INSTALL $SYSTEM_PACKAGES $CLEAN
+RUN $UPDATE ( while : ; do if $INSTALL $SYSTEM_PACKAGES ; then break; fi; done ) $CLEAN
 EOF
         ;;
     yes)
