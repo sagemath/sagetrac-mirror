@@ -1,0 +1,13 @@
+https://bitbucket.org/malb/m4rie/pull-requests/4/do-not-interfere-with-ldflags-while
+
+--- m4rie-20200115/tests/Makefile.am.old	2020-04-27 03:46:40.283668933 +0000
++++ m4rie-20200115/tests/Makefile.am	2020-04-27 03:46:53.955804875 +0000
+@@ -2,7 +2,7 @@
+ 
+ AM_CFLAGS = ${SIMD_FLAGS} ${OPENMP_CFLAGS} ${DEBUG_FLAGS} ${M4RIE_M4RI_CFLAGS} ${M4RI_CFLAGS} -I${top_srcdir}
+ LDADD = ${top_builddir}/libm4rie.la -lm4ri -lm
+-LDFLAGS = ${M4RIE_M4RI_LDFLAGS} -no-install
++AM_LDFLAGS = ${M4RIE_M4RI_LDFLAGS} -no-install
+ 
+ EXTRA_DIST = testing.h
+ 
