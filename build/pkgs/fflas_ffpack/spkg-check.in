@@ -1,5 +1,5 @@
-export CFLAGS=ORIGNAL_CFLAGS
-export CXXFLAGS=ORIGNAL_CXXFLAGS
+export CFLAGS=$ORIGINAL_CFLAGS
+export CXXFLAGS=$ORIGINAL_CXXFLAGS
 
 cd src
 # Do not use sdh_make or sdh_make_check here because we are doing our own error
