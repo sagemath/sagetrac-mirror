@@ -1,1 +1,2 @@
+export CFLAGS=$ORIGINAL_CFLAGS
 cd src && sdh_pip_install .
