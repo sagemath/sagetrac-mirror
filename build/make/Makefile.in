@@ -36,9 +36,9 @@ endif
 ifneq ($(SAGE_FAT_BINARY), "yes")
 
 # Tune the code generation to the machine we build on:
-ifeq ($(CC), "gcc")
-GCC_GTE_51 := $(shell $(vers_gcc) =~ [[[0-4]].*|5.[0].*] && echo "yes")
-ifeq ($(GCC_GTE_51), "yes")
+ifeq ( $(shell ../../build/bin/./testcc.sh $(CC)), "GCC" )
+GCC_GTE_51 := $(shell expr `$(CC) --version | grep ^gcc | sed 's/^.* //g' | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'` \>= 50100)
+ifeq ($(GCC_GTE_51), "1")
 opt := $(opt) -march=native
 # No '-march=native` for
 # gcc <= 5.0
@@ -59,13 +59,13 @@ ORIGINAL_CFLAGS := $(CFLAGS)
 ORIGINAL_CXXFLAGS := $(CXXFLAGS)
 ORIGINAL_FCFLAGS := $(FCFLAGS)
 ORIGINAL_F77FLAGS := $(F77FLAGS)
+export ORIGINAL_CFLAGS ORIGINAL_CXXFLAGS ORIGINAL_FCFLAGS ORIGINAL_F77FLAGS
 
 CFLAGS ?= $(opt)
 CXXFLAGS ?= $(opt)
 FCFLAGS ?= $(opt)
 F77FLAGS ?= $(opt)
 export CFLAGS CXXFLAGS FCFLAGS F77FLAGS
-export ORIGINAL_CFLAGS ORIGINAL_CXXFLAGS ORIGINAL_FCFLAGS ORIGINAL_F77FLAGS
 
 ifndef SAGE_SPKG_INST
 ifndef DEBUG_RULES
