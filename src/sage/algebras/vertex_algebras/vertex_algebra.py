@@ -29,7 +29,7 @@ like :meth:`VirasoroVertexAlgebra` and :meth:`AffineVertexAlgebra`
      (3, 17/2*L_-2|0>),
      (5, 3/2*|0>)]
 
-- We compute it's irreducible quotient::
+- We compute its irreducible quotient::
 
     sage: V.find_singular(6)
     [L_-2L_-2L_-2|0>-33/8*L_-4L_-2|0>+93/64*L_-3L_-3|0>-27/16*L_-6|0>]

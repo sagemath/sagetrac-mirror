@@ -18,7 +18,7 @@ f_i \}`, `i \in I, j \geq 0`.
 EXAMPLES::
 
 - We construct the algebra of functions of the arc space of the *fat origin of
-  the line* `\mathbb{A}^1` over the rationals and compute it's graded
+  the line* `\mathbb{A}^1` over the rationals and compute its graded
   dimension::
 
     sage: A = AffineArcAlgebra(QQ,'x'); A
