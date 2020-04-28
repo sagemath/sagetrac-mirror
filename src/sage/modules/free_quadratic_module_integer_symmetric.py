@@ -1562,8 +1562,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sub = codom.subgroup([codom(g) for g in gammaS])
             return f.preimage(sub)
 
-    def proj(self,S):
+    def proj(self,S, x=None):
         r"""
+        Return the basis matrix of the projection to the sublattice `S`
+        with respect to the basis of self and seen as an endomorphism of the ambient space.
         """
         assert S <= self
         K = self.orthogonal_complement(S)
@@ -1573,7 +1575,11 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         def proj(x):
             c = SK.coordinates(x)
             return sum(c[i]*SK.gen(i) for i in range(n))
-        return self.span([proj(g) for g in self.gens()])
+        if x is not None:
+            x = self(x)
+            return proj(x)
+        from sage.matrix.all import matrix
+        return matrix([proj(g) for g in self.gens()])
 
     def cone(self, H, square, intersection):
         r"""
