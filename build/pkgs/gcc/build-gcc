@@ -9,6 +9,9 @@
 # configure script.
 set -e
 
+export CFLAGS=$ORIGINAL_CFLAGS
+export FCFLAGS=$ORIGINAL_FCFLAGS
+
 # Build in a separate directory, not in src/ (a.k.a. a VPATH build).
 # This is the recommended way to build GCC.
 mkdir -p gcc-build
@@ -20,7 +23,7 @@ GCC_CONFIGURE="$@ $GCC_CONFIGURE"
 if [ "$UNAME" = "Darwin" ]; then
     # /usr/include is the latest victim in Apple's quest to get rid of standard locations
     SDK_PATH=$(xcrun --show-sdk-path)
-    GCC_CONFIGURE="--with-sysroot=$SDK_PATH $GCC_CONFIGURE" 
+    GCC_CONFIGURE="--with-sysroot=$SDK_PATH $GCC_CONFIGURE"
     echo "Building with XCode SDK at $SDK_PATH."
 
     # isl/cloog libraries are almost certainly from Homebrew and won't work

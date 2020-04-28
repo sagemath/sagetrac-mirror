@@ -8,4 +8,7 @@ case $(uname -m),"$ARCH" in
         ;;
 esac
 
+export CFLAGS=$ORIGINAL_CFLAGS
+export FCFLAGS=$ORIGINAL_FCFLAGS
+
 ./build-gcc --disable-bootstrap --enable-languages=fortran $EXTRA_GCC_CONFIGURE
