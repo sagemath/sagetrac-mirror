@@ -1581,7 +1581,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         A `p`-adic square class `r` is called automorphous if it is
         the spinor norm of a proper `p`-adic integral automorphism of this form.
-        These classes form a group. See [CS1999]_ chapter 15 §9.6 for details.
+        These classes form a group. See [Co1999]_ Chapter 15, 9.6 for details.
 
         OUTPUT:
 
@@ -1911,7 +1911,7 @@ class Genus_Symbol_p_adic_ring(object):
             #if p != 2 and u == -1:
             #    u = least_quadratic_nonresidue(p)
             # D *= u
-            D = fundamental_discriminant(D)
+            D = fundamental_discriminant(D) # here is a difference to CWS
             epsilon = D.kronecker(p)
             std *= (1- epsilon*p**(-s))
         return QQ(1) / std
