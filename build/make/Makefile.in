@@ -17,35 +17,45 @@
 # Always use bash for make rules
 SHELL = @SHELL@
 
+# Keep original flags, so that individual packages can still use them.
+ORIGINAL_CFLAGS := $(CFLAGS)
+ORIGINAL_CXXFLAGS := $(CXXFLAGS)
+ORIGINAL_FCFLAGS := $(FCFLAGS)
+ORIGINAL_F77FLAGS := $(F77FLAGS)
+export ORIGINAL_CFLAGS ORIGINAL_CXXFLAGS ORIGINAL_FCFLAGS ORIGINAL_F77FLAGS
+
 # Use safe-but-efficient optimization flags, if the user does not
 # provide his own.
 
 # SAGE_DEBUG is a
 # three-state:
-ifeq ($(SAGE_DEBUG), "yes")
+ifeq ($(SAGE_DEBUG), yes)
 opt := -O0 -g
 else
-ifeq ($(SAGE_DEBUG), "no")
+ifeq ($(SAGE_DEBUG), no)
 opt := -O2
 else
 opt := -O2 -g
 endif
 endif
 
-# No '-march=native' for fat binaries.
-ifneq ($(SAGE_FAT_BINARY), "yes")
-
 # Tune the code generation to the machine we build on:
-ifeq ( $(shell ../../build/bin/./testcc.sh $(CC)), "GCC" )
-GCC_GTE_51 := $(shell expr `$(CC) --version | grep ^gcc | sed 's/^.* //g' | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$/&00/'` \>= 50100)
-ifeq ($(GCC_GTE_51), "1")
+# We add 'march=native' unless we build fat binaries
+# or gcc version <  5.1
+ifneq ($(SAGE_FAT_BINARY), yes)
+
+compiler := $(shell export SAGE_ROOT=$(SAGE_ROOT) && ../../build/bin/./testcc.sh $(CC))
+ifeq ($(compiler), GCC)
+
+GCC_GTE_51 := $(shell expr `$(CC) --version | grep ^cc | sed 's/^.* //g' | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([1-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/'` \>= 50100)
+ifeq ($(GCC_GTE_51), 1)
 opt := $(opt) -march=native
-# No '-march=native` for
-# gcc <= 5.0
 endif
+
 else
 opt := $(opt) -march=native
 endif
+
 endif
 
 # Test, which flags the compiler supports.
@@ -54,12 +64,6 @@ endif
 # `march=native`, then so can the C++ and Fortran
 # compiler.
 opt := $(shell export CC=$(CC) && ../../build/bin/./testcflags.sh $(opt))
-
-ORIGINAL_CFLAGS := $(CFLAGS)
-ORIGINAL_CXXFLAGS := $(CXXFLAGS)
-ORIGINAL_FCFLAGS := $(FCFLAGS)
-ORIGINAL_F77FLAGS := $(F77FLAGS)
-export ORIGINAL_CFLAGS ORIGINAL_CXXFLAGS ORIGINAL_FCFLAGS ORIGINAL_F77FLAGS
 
 CFLAGS ?= $(opt)
 CXXFLAGS ?= $(opt)
