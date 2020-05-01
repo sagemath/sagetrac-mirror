@@ -359,6 +359,17 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation,
         return self.element_class(self,v)
 
     def _element_constructor_(self,x):
+        r"""
+        TESTS:
+
+        Check that scalars are converted::
+
+            sage: A = AffineArcAlgebra(QQ,'L',weights=(2,));A.inject_variables()
+            Defining L
+            sage: A(3)
+            3
+        
+        """
         #we first try to see if it coerces to some polynomial approximation
         if isinstance(x,MPolynomial_libsingular):
             d = x.degree()
@@ -396,7 +407,7 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation,
                 return ret
         #Now the ring:
         if x in self.base_ring():
-            return self.one()._acted_upon(self.base_ring()(x))
+            return self.one()._acted_upon_(self.base_ring()(x))
 
         #Now partition tuples:
         if x in PartitionTuples_level(self._ngens):
@@ -597,12 +608,7 @@ class AffineArcAlgebra(GradedCommutativeAlgebraWithDerivation,
             return ret
 
         def _acted_upon_(self, scalar, self_on_left=False):
-            try:
-                r = self.base_ring()(scalar)
-            except TypeError:
-                raise TypeError("Do not know how to act by {0} on {1}"\
-                                .format(scalar,self))
-            return type(self)(self.parent(), r*self.value)
+            return type(self)(self.parent(), scalar*self.value)
 
         def monomial_coefficients(self):
             r"""The monomial coefficients of this element 
