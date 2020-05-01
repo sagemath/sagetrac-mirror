@@ -87,14 +87,6 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
         Return the product ``scalar`` times this element of the Lie conformal
         algebra
         """
-        scalar_parent = parent(scalar)
-        if scalar_parent != self.parent().base_ring():
-            if self.parent().base_ring().has_coerce_map_from(scalar_parent):
-                scalar = self.parent().base_ring()( scalar )
-            else:
-                return None
-        if self_on_left:
-            return type(self)(self.parent(), self.value * scalar)
         return type(self)(self.parent(), scalar * self.value)
 
     def monomial_coefficients(self):
