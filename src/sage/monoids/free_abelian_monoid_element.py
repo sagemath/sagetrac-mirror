@@ -26,17 +26,19 @@ The list is a copy, so changing the list does not change the element::
     a^7*b^2*d*e
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.structure.richcmp import richcmp
 from sage.rings.integer import Integer
+from sage.rings.polynomial.polydict import ETuple
 from sage.structure.element import MonoidElement
+
 
 def is_FreeAbelianMonoidElement(x):
     r"""
@@ -52,6 +54,7 @@ def is_FreeAbelianMonoidElement(x):
       ``False`` otherwise.
     """
     return isinstance(x, FreeAbelianMonoidElement)
+
 
 class FreeAbelianMonoidElement(MonoidElement):
     def __init__(self, F, x):
@@ -78,13 +81,14 @@ class FreeAbelianMonoidElement(MonoidElement):
         MonoidElement.__init__(self, F)
         n = F.ngens()
         if isinstance(x, (int, Integer)) and x == 1:
-            self._element_vector = tuple([0]*n)
-        elif isinstance(x, (list, tuple)):
-            if len(x) != n:
-                raise IndexError("argument length (= %s) must be %s"%(len(x), n))
-            self._element_vector = tuple(x)
+            self._element_vector = ETuple([0] * n)
         else:
-            raise TypeError("argument x (= %s) is of wrong type"%x)
+            if not isinstance(x, ETuple):
+                x = ETuple(x)
+            if len(x) != n:
+                raise IndexError("argument length (= %s) must be %s"
+                                 % (len(x), n))
+            self._element_vector = x
 
     def _repr_(self):
         """
@@ -96,26 +100,13 @@ class FreeAbelianMonoidElement(MonoidElement):
             sage: F(1)
             1
             sage: a, b, c, d, e = F.gens()
-            sage: a^2 * b^3 * a^2 * b^4
-            a^4*b^7
+            sage: a^2 * b^3 * a^2 * b^4 * d
+            a^4*b^7*d
         """
-        s = ""
-        A = self.parent()
-        n = A.ngens()
-        x = A.variable_names()
-        v = self._element_vector
-        for i in range(n):
-            if v[i] == 0:
-                continue
-            elif v[i] == 1:
-                if len(s) > 0: s += "*"
-                s += "%s"%x[i]
-            else:
-                if len(s) > 0: s += "*"
-                s += "%s^%s"%(x[i],v[i])
-        if not s:
-            s = "1"
-        return s
+        x = self.parent().variable_names()
+        s = "*".join(("%s" % x[i]) if vi == 1 else ("%s^%s" % (x[i], vi))
+                     for i, vi in self._element_vector.sparse_iter())
+        return "1" if not s else s
 
     def _richcmp_(self, other, op):
         """
@@ -144,14 +135,17 @@ class FreeAbelianMonoidElement(MonoidElement):
         return richcmp(self._element_vector, other._element_vector, op)
 
     def __mul__(self, y):
+        """
+        EXAMPLES::
+
+            sage: F = FreeAbelianMonoid(4, 'abcd')
+            sage: F([1, 1, 3, 4]) * F([4, 0, 0, 1]) * F(1)
+            a^5*b*c^3*d^5
+        """
         if not isinstance(y, FreeAbelianMonoidElement):
-            raise TypeError("argument y (= %s) is of wrong type"%y)
+            raise TypeError("argument y (= %s) is of wrong type" % y)
         M = self.parent()
-        z = M.element_class(M, 1)
-        xelt = self._element_vector
-        yelt = y._element_vector
-        z._element_vector = tuple([xelt[i]+yelt[i] for i in range(len(xelt))])
-        return z
+        return M.element_class(M, self._element_vector.eadd(y._element_vector))
 
     def __pow__(self, n):
         """
@@ -174,18 +168,13 @@ class FreeAbelianMonoidElement(MonoidElement):
             1
         """
         if not isinstance(n, (int, Integer)):
-            raise TypeError("argument n (= %s) must be an integer"%(n,))
+            raise TypeError("argument n (= %s) must be an integer" % (n,))
         if n < 0:
-            raise IndexError("argument n (= %s) must be positive"%n)
+            raise IndexError("argument n (= %s) must be positive" % n)
         elif n == 1:
             return self
         M = self.parent()
-        z = M.element_class(M, 1)
-        if n == 0:
-            return z
-        else:
-            z._element_vector = tuple([i*n for i in self._element_vector])
-            return z
+        return M.element_class(M, self._element_vector.emul(n))
 
     def __hash__(self):
         """
@@ -203,7 +192,7 @@ class FreeAbelianMonoidElement(MonoidElement):
 
     def list(self):
         """
-        Return (a reference to) the underlying list used to represent this
+        Return a copy of the underlying list used to represent this
         element. If this is a monoid in an abelian monoid on `n`
         generators, then this is a list of nonnegative integers of length
         `n`.
@@ -216,5 +205,4 @@ class FreeAbelianMonoidElement(MonoidElement):
             [1, 0, 0, 0, 0]
         """
         return list(self._element_vector)
-
 
