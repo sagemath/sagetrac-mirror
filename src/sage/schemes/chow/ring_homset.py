@@ -89,7 +89,7 @@ class ChowRingHomSet(RingHomset_generic):
             if not im_gens:
                 phi = pi.domain().hom([], self.codomain())
             else:
-                if isinstance(im_gens, basestring):
+                if isinstance(im_gens, str):
                     im_gens = [im_gens]
                 im_gens = [self.codomain()(x) for x in im_gens]
                 phi = pi.domain().hom(im_gens, check=check)

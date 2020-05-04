@@ -161,13 +161,12 @@ AUTHORS:
 
 from sage.all import QQ
 from sage.modules.all import vector
-from sage.matrix.constructor import matrix
+from sage.matrix.all import matrix
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_generic
-from sage.rings.polynomial.multi_polynomial_ring_generic import \
-    is_MPolynomialRing
-from sage.libs.singular.function import singular_function, lib as singular_lib
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.libs.singular.function_factory import singular_function, lib as singular_lib
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import is_Integer
 
@@ -343,10 +342,10 @@ def ChowRing(generators=None, degrees=None, relations=None,
     """
     # Construct a quotient ring by generators and relations.
     if generators:  # Not None neither []
-        if isinstance(generators, basestring):
+        if isinstance(generators, str):
             generators = [generators]
         for gen in generators:
-            if not isinstance(gen, basestring):
+            if not isinstance(gen, str):
                 raise TypeError("Expect list of strings for generators.")
         if is_Integer(degrees) or isinstance(degrees, int):
             degrees = [int(degrees)]
@@ -362,7 +361,7 @@ def ChowRing(generators=None, degrees=None, relations=None,
                            order=TermOrder('wdegrevlex', tuple(degrees)))
         I = R.ideal(0)
         if relations:
-            if isinstance(relations, basestring):
+            if isinstance(relations, str):
                 relations = [relations]
             if not all(isinstance(r, str) for r in relations):
                 raise TypeError("Expect list of strings as relations")
@@ -425,6 +424,12 @@ class ChowRing_generic(QuotientRing_generic):
         # Options
         self._dimension = None
         self._point_class = None
+
+    def _cache_key(self):
+        return(self.parent(),str(self))
+
+    def __hash__(self):
+        return hash(type(self))
 
     def __eq__(self, other):
         """
@@ -965,7 +970,7 @@ class ChowRing_generic(QuotientRing_generic):
         if self.krull_dimension() != 0:
             return 0
         # Compute max degree:
-        return max([x.lift().degree() for x in self.basis()])
+        return max([self(x).lift().degree() for x in self.basis()])
 
     @cached_method
     def basis_by_degree(self):
@@ -997,7 +1002,7 @@ class ChowRing_generic(QuotientRing_generic):
             return [[1]]
         bbd = [[] for _ in range(self.max_degree() + 1)]
         for e in self.basis():
-            d = e.lift().degree()
+            d = self(e).lift().degree()
             bbd[d].append(e)
         return bbd
 
@@ -1043,7 +1048,6 @@ class ChowRing_generic(QuotientRing_generic):
              for i in range(n) for j in range(n)]
         return matrix(QQ, n, n, m)
 
-    @cached_method
     def dual_basis_slow(self):
         """
         Returns the basis dual to self.basis() with respect to the intersection
@@ -1121,7 +1125,7 @@ class ChowRing_generic(QuotientRing_generic):
         division = singular_function('division')
         #  We will compute the dictionary degree by degree.
         rbbd, maxdeg = self.basis_by_degree(), len(self.basis_by_degree())
-        for d in range(1 + maxdeg / 2):
+        for d in range(1 + maxdeg // 2):
             # Ring basis in degree d and complementary degree maxdeg - d - 1
             rbd, rbdc, n = rbbd[d], rbbd[maxdeg - d - 1], len(rbbd[d])
             if verbose:

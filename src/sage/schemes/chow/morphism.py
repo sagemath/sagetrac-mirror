@@ -492,7 +492,7 @@ class ChowSchemeMorphism(Element):
             sage: i.upperstar(Y.tangent_bundle())
             Bundle(X, 3, [1, 12*w])
         """
-        from sheaf import Sheaf, is_sheaf
+        from .sheaf import Sheaf, is_sheaf
         if is_sheaf(v):
             # Return a sheaf if the argument is a sheaf
             if not v.chowscheme() is self.codomain():
@@ -566,7 +566,7 @@ class ChowSchemeMorphism(Element):
             3
         """
         X, Y = self.domain(), self.codomain()
-        from sheaf import Sheaf, is_sheaf
+        from .sheaf import Sheaf, is_sheaf
         if is_sheaf(v):
             # Return a sheaf if the argument is a sheaf
             if not v.chowscheme() is self.domain():

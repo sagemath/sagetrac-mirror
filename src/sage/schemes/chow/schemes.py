@@ -20,11 +20,9 @@ AUTHORS:
 
 from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base
-from sage.categories.homsets import HomsetsCategory
 from sage.categories.sets_cat import Sets
 
 
-# noinspection PyAbstractClass
 class ChowSchemes(Category):
     r"""
     Construct a category of ChowSchemes.
@@ -33,7 +31,7 @@ class ChowSchemes(Category):
     @staticmethod
     def __classcall_private__(cls, X=None):
         if X is not None:
-            from scheme import is_chowScheme
+            from .scheme import is_chowScheme
             if not is_chowScheme(X):
                 X = ChowSchemes()(X)
             return ChowSchemes_over_base(X)
@@ -44,20 +42,16 @@ class ChowSchemes(Category):
         return [Sets()]
 
     def _call_(self, x):
-        from scheme import is_chowScheme
+        from .scheme import is_chowScheme
         if is_chowScheme(x):
             return x
-        from morphism import is_chowSchemeMorphism
+        from .morphism import is_chowSchemeMorphism
         if is_chowSchemeMorphism(x):
             return x
         else:
             m = "Can't create an object or morphism in %s from %s" % (self, x)
             raise TypeError(m)
 
-    # noinspection PyAbstractClass
-    class HomCategory(HomsetsCategory):
-        def extra_super_categories(self):
-            return []
 
 
 #############################################################

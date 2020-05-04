@@ -284,7 +284,7 @@ class ChowScheme_generic(Parent):
 
         TESTS::
 
-            sage: P1 = ChowScheme(1, 'h', 1, 'h^2', latex_name='\mathbb{P}^1')
+            sage: P1 = ChowScheme(1, 'h', 1, 'h^2', latex_name='\\mathbb{P}^1')
             sage: P1._latex_()
             '\\mathbb{P}^1'
 
@@ -292,6 +292,12 @@ class ChowScheme_generic(Parent):
         if self._latex_name:
             return self._latex_name
         return self._repr_()
+
+    def _cache_key(self):
+        return(self.parent(),str(self))
+
+    def __hash__(self):
+        return hash(type(self))
 
     def __eq__(self, other):
         """
@@ -396,7 +402,7 @@ class ChowScheme_generic(Parent):
             sage: B.betti_numbers()
             [1, 2, 4, 7, 8, 7, 4, 2, 1]
         """
-        from bundle import Bundle
+        from .bundle import Bundle
         dimension = self.dimension() + other.dimension()
         generators = self.variable_names() + other.variable_names()
         degrees = self.degs() + other.degs()
@@ -1168,7 +1174,7 @@ class ChowScheme_generic(Parent):
         if not isinstance(n, int):
             raise ValueError('Only integers allowed here.')
         if n == 0:
-            from bundle import Bundle
+            from .bundle import Bundle
             return Bundle(self, 1, [1])
 
         if 'o1' not in self.sheaves:

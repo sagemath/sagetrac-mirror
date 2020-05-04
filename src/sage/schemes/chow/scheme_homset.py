@@ -61,7 +61,7 @@ class ChowSchemeHomsetFactory(UniqueFactory):
         if not is_chowScheme(base):
             raise ValueError("Expect a ChowScheme as base")
         if not category:
-            from schemes import ChowSchemes
+            from .schemes import ChowSchemes
             category = ChowSchemes(base)
         key = tuple([id(X), id(Y), category])
         extra = {'X': X, 'Y': Y, 'base_chowscheme': base, 'check': check}
