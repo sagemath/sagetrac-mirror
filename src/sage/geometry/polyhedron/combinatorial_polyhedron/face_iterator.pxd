@@ -5,8 +5,7 @@ from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
 from .combinatorial_face        cimport CombinatorialFace
 
-@cython.final
-cdef class FaceIterator(SageObject):
+cdef class FaceIterator_base(SageObject):
     cdef readonly bint dual         # if 1, then iterate over dual Polyhedron
     cdef uint64_t *face             # the current face of the iterator
     cdef size_t *atom_rep           # a place where atom-representation of face will be stored
@@ -68,3 +67,13 @@ cdef class FaceIterator(SageObject):
     cdef size_t n_atom_rep(self) except -1
     cdef size_t set_coatom_rep(self) except -1
     cdef size_t set_atom_rep(self) except -1
+
+@cython.final
+cdef class FaceIterator(FaceIterator_base):
+    pass
+
+@cython.final
+cdef class FaceIterator_geom(FaceIterator_base):
+    cdef int _trivial_faces     # Whether to yield the trivial faces.
+    cdef object _requested_dim  # Dimension requested on init.
+    cdef readonly object P      # The original polyhedron.
