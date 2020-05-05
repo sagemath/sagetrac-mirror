@@ -18,10 +18,17 @@ if [ "$SAGE_FAT_BINARY" = yes ]; then
     LINBOX_CONFIGURE="--disable-sse --disable-sse2 --disable-sse3 --disable-ssse3 --disable-sse41 --disable-sse42 --disable-fma --disable-fma4 --disable-avx --disable-avx2 --without-ocl $LINBOX_CONFIGURE"
 fi
 
-# Disable fplll as version 5.x is not supported by linbox <= 1.5.0.
-# This is harmless as no functionality using fplll is exposed in Sage.
-# See trac ticket #21221.
-LINBOX_CONFIGURE="--without-fplll $LINBOX_CONFIGURE"
+# Disable all additional features of linbox that aren't needed by sage.
+# This helps keep the dependency list small, and makes it more likely
+# that we can use the system copy of linbox (which may be missing some
+# of these features). Flint is enabled because if you try to disable it,
+# the build system ignores you and links it in anyway (as of linbox-1.6.3).
+LINBOX_CONFIGURE="--with-flint \
+	--without-fplll \
+	--without-iml \
+	--without-mpfr \
+	--without-ntl \
+	$LINBOX_CONFIGURE"
 
 # We disable openmp because of build failures, see
 # http://trac.sagemath.org/ticket/17635#comment:67
