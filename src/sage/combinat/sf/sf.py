@@ -165,8 +165,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: Symqt = SymmetricFunctions(F)
         sage: Symqt.inject_shorthands(verbose=False)
 
-    ::
-
     In the first line here, we have defined ``F`` to be the
     field :math:`\mathbb{Q}(q, t)`.
     In the second, we have "injected" the variables :math:`q` and 
@@ -579,7 +577,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: for n in range (1,5) :
+        sage: for n in range (1,5):
         ....:     print(p(h([n])) == sum(p(mu)/zee(mu) for mu in Partitions(n)))
         True
         True
@@ -923,7 +921,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: for n in range(1,7) :
+        sage: for n in range(1,7):
         ....:     print(e([n]).nabla().is_schur_positive())
         True
         True
@@ -2500,7 +2498,7 @@ class SymmetricaConversionOnBasis:
 
             sage: Sym = SymmetricFunctions(QQ['x'])
             sage: p = Sym.p(); s = Sym.s()
-            sage: def t(x) : [(p,c)] = x; return [ (p,2*c), (p.conjugate(), c) ]
+            sage: def t(x): [(p,c)] = x; return [ (p,2*c), (p.conjugate(), c) ]
             sage: f = sage.combinat.sf.sf.SymmetricaConversionOnBasis(t, p, s)
             sage: f(Partition([3,1]))
             s[2, 1, 1] + 2*s[3, 1]
