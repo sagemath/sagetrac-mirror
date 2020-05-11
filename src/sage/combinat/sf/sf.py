@@ -194,9 +194,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ``s = Symqt.s()`` for the Schur basis,
     ``p = Symqt.p()`` for the powersum basis, etc.
 
-    Now that we have access to all the bases we need, we can start manipulating them.
-    The basis elements are indexed by partitions :math:`\mu`, with integers
-    considered as partitions having size :math:`1` (don't forget the brackets!)::
+    Now that we have access to all the bases we need,
+    we can start manipulating them.
+    The basis elements are indexed by partitions::
 
         sage: s[101,14,13,11]
         s[101, 14, 13, 11]
@@ -208,8 +208,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: h[2,1],p[2,1]
-        (h[2, 1], p[2, 1])
+        sage: h[2,1],p[2,1],m[1]
+        (h[2, 1], p[2, 1], m[1])
 
     .. note:: There are several ways to have Sage produce a basis element
        corresponding to a given partition::
@@ -219,6 +219,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: p[[2, 1, 1]]
             p[2, 1, 1]
             sage: p[Partition([2, 1, 1])]
+            p[2, 1, 1]
+            sage: p(Partition([2, 1, 1]))
             p[2, 1, 1]
             sage: p.basis()[Partition([2,1,1])]
             p[2, 1, 1]
@@ -247,8 +249,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p.basis()['something']
         p'something'
 
-    Strictly speaking, ``p`` is not the power-sum basis itself in the
-    mathematical sense (the latter can be obtained by writing
+    Strictly speaking, ``p`` is not the power-sum *basis* in the
+    linear-algebraic sense (the latter can be obtained by writing
     ``p.basis()``), but rather the ring of symmetric functions written in
     the power-sum basis (a realization of :math:`\mathrm{Sym}`):
 
@@ -264,8 +266,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p.basis().keys() # The partitions indexing the basis
         Partitions
 
-    Elements of ``p`` (that is, symmetric functions written in the power-sum
-    basis) are linear combinations of basis elements::
+    Elements of ``p`` (that is, symmetric functions written
+    in the power-sum basis) are linear combinations of basis
+    elements::
 
         sage: p.an_element()
         2*p[] + 2*p[1] + 3*p[2]
@@ -286,8 +289,12 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     corresponding partitions (i.e., by concatenating them and sorting the
     result in nondecreasing order)::
 
-        sage: p([2,1,1])*p([5,2])==p([5,2,2,1,1])
+        sage: p([2,1,1])*p([5,2]) == p([5,2,2,1,1])
         True
+        sage: h[4, 2] * h[3, 2]
+        h[4, 3, 2, 2]
+        sage: e.one()
+        e[]
         sage: p[2,1,1] + 2 * p[1] * (p[4] + p[2,1])
         3*p[2, 1, 1] + 2*p[4, 1]
         sage: (p.one() + 2 * p[3,1]) * p[4, 2]
@@ -322,7 +329,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p([2,2])+m([1,1])*s([2,1])
         1/6*p[1, 1, 1, 1, 1] - 1/6*p[2, 1, 1, 1] + p[2, 2] - 1/6*p[3, 1, 1] + 1/6*p[3, 2]
 
-    We can force the answer to be expressed with respect to a particular basis as follows::
+    We can force the answer to be expressed with respect to a
+    particular basis as follows::
 
         sage: s(m([1,1])*s([2,1])+p([2,2]))
         s[1, 1, 1, 1] - s[2, 1, 1] + s[2, 1, 1, 1] + 2*s[2, 2] + s[2, 2, 1] - s[3, 1] + s[3, 1, 1] + s[3, 2] + s[4]
@@ -366,7 +374,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. note:: All bases actually share the same multiplicative
         identity, as shown below in the case of power sums and Schur functions::
 
-            sage: s.one() == p.one()
+            sage: p.one() == s.one()
             True
 
     .. rubric:: Concrete symmetric functions
@@ -375,9 +383,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     concrete multivariate polynomials that are invariant under any permutation
     of their variables. Simple examples include
 
-    .. MATH:: p_k(x_1,x_2,\ldots, x_n)= x_1^k+x_2^k+\ldots +x_n^k,\ (\hbox{for any } k > 0),\ {\rm or}
+    .. MATH:: p_k(x_1,x_2,\ldots, x_n) = x_1^k + x_2^k + \ldots + x_n^k,
+                \ (\hbox{for any } k > 0),\ {\rm or}
 
-    .. MATH:: e_n(x_1,x_2,\ldots, x_n) = x_1x_2\cdots x_n.
+    .. MATH:: e_n(x_1,x_2,\ldots, x_n) = x_1 x_2 \cdots x_n.
 
     To expand a symmetric function into a concrete polynomial in the set of
     variables :math:`x_0, x_1, \dots, x_{n-1}`, one proceeds as follows::
@@ -410,10 +419,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: f[3,1,1].expand(4)
         3*x0^5 + 2*x0^4*x1 + x0^3*x1^2 + x0^2*x1^3 + 2*x0*x1^4 + 3*x1^5 + 2*x0^4*x2 + x0^3*x1*x2 + x0*x1^3*x2 + 2*x1^4*x2 + x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 + x0*x1*x2^3 + x1^2*x2^3 + 2*x0*x2^4 + 2*x1*x2^4 + 3*x2^5 + 2*x0^4*x3 + x0^3*x1*x3 + x0*x1^3*x3 + 2*x1^4*x3 + x0^3*x2*x3 + x1^3*x2*x3 + x0*x2^3*x3 + x1*x2^3*x3 + 2*x2^4*x3 + x0^3*x3^2 + x1^3*x3^2 + x2^3*x3^2 + x0^2*x3^3 + x0*x1*x3^3 + x1^2*x3^3 + x0*x2*x3^3 + x1*x2*x3^3 + x2^2*x3^3 + 2*x0*x3^4 + 2*x1*x3^4 + 2*x2*x3^4 + 3*x3^5
 
-    For sure, one may use any other set of variables via the optional "alphabet" keyword::
+    One may also use any other set of variables via the optional "alphabet" keyword::
 
         sage: g = s[2,1]
-        sage: g.expand(3, alphabet =['x','y','z'])
+        sage: g.expand(3, alphabet=['x','y','z'])
         x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
 
     .. TOPIC:: Exercise
@@ -485,8 +494,16 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: e.from_polynomial(pol1) == p([2])+e([2,1])
         True
 
+    In general, expansion in finitely many variables is a lossy
+    (i.e., non-injective) operation, so this process will not
+    always recover the original symmetric function. For example::
+
+        sage: pol1 = p[1, 1, 1].expand(2)
+        sage: p.from_polynomial(pol1)
+        3*p[2, 1] - 2*p[3]
+
     Let us write the symmetric polynomial
-    :math:`\prod_{1 \leq j < k \leq 3} (x_k - x_j)^2`
+    :math:`\prod_{0 \leq j < k \leq 2} (x_k - x_j)^2`
     (the discriminant) in three variables `x_0, x_1, x_2` as a
     symmetric function in the elementary basis::
 
@@ -514,9 +531,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         
     Here, we will work with three variables (:math:`y_0, y_1, y_2`).
     Finally, we can declare our polynomial and convert it into a symmetric function
-    in the monomial basis for example.
-
-    ::
+    in the monomial basis for example. ::
 
         sage: pol2 = y0^2*y1 + y0*y1^2 + y0^2*y2 + 2*y0*y1*y2 + y1^2*y2 + y0*y2^2 + y1*y2^2
         sage: m.from_polynomial(pol2)
@@ -542,11 +557,22 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Changes of bases
 
-    Many calculations on symmetric functions involve a change of (linear) basis.
+    Many calculations on symmetric functions involve
+    a change of (linear) basis. As mentioned above, Sage
+    will make such changes automatically if the user
+    enters an expression that involves elements of
+    different bases. For example, let us compute
+    :math:`p_{22}+m_{11}s_{21}` in the elementary basis::
 
-    For example, we compute here :math:`p_{22}+m_{11}s_{21}` in the elementary basis::
+        sage: x = p([2,2])+m([1,1])*s([2,1]); x
+        1/6*p[1, 1, 1, 1, 1] - 1/6*p[2, 1, 1, 1] + p[2, 2] - 1/6*p[3, 1, 1] + 1/6*p[3, 2]
 
-        sage: e(p([2,2])+m([1,1])*s([2,1]))
+    A change of basis can also be forced explicitly:
+    If ``f`` is a symmetric function, and ``b`` is a basis
+    of :math:`\mathrm{Sym}`, then ``b(f)`` will compute
+    the expansion of ``f`` in the basis ``b``::
+
+        sage: e(x)
         e[1, 1, 1, 1] - 4*e[2, 1, 1] + 4*e[2, 2] + e[2, 2, 1] - e[3, 2]
 
     .. TOPIC:: Exercise
@@ -591,13 +617,16 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TOPIC:: Exercise
 
-        It is well known that  :math:`h_n(X) = \sum \limits_{\mu \vdash n} \dfrac{p_{\mu}(x)}{z_{\mu}}`. Verify this result for  :math:`n \in \{1,2,3,4\}`
+        It is well-known that :math:`h_n(X) = \sum \limits_{\mu \vdash n} \dfrac{p_{\mu}(x)}{z_{\mu}}` for every integer :math:`n \geq 0`.
+        Verify this result for :math:`n \in \{1,2,3,4\}`.
 
-        Note that there exists a function ``zee()`` which takes a partition  :math:`\mu` and returns the value of  :math:`z_{\mu}`. To use this function, you should import it from* ``sage.combinat.sf.sfa``.
+        Note that there exists a function ``zee()`` which takes a partition
+        :math:`\mu` and returns the value of  :math:`z_{\mu}`. To use this
+        function, you should import it from ``sage.combinat.sf.sfa``.
 
     ::
 
-        sage: from sage.combinat.sf.sfa import *
+        sage: from sage.combinat.sf.sfa import zee
         sage: zee([4,4,2,1])
         64
 
@@ -605,7 +634,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: for n in range (1,5):
+        sage: for n in range(1,5):
         ....:     print(p(h([n])) == sum(p(mu)/zee(mu) for mu in Partitions(n)))
         True
         True
@@ -616,7 +645,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Other well-known bases
 
-    Other important bases of symmetric functions are implemented in Sage.
+    Other bases of symmetric functions are implemented in Sage:
 
     - The Hall-littlewood basis
     - The Jack basis
@@ -661,11 +690,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     We can see that the terms of an expression are always listed in a specific order on the partitions. This order can be changed.
 
-    First, the method  ``get_print_style()``  applied to a basis hands the order used on partitions for this basis. Then, with  ``set_print_style()``  we can set another printing order. The possible orders are:
+    First, the method  ``get_print_style()`` applied to a basis hands the order used on partitions for this basis. Then, with  ``set_print_style()`` we can set another printing order. The possible orders are:
 
     -  ``lex``   : lexicographic order.
     -  ``length``   : by partition length, and then by lexicographic order for partitions of same length.
-    -  ``maximal_part`` :  by value of the biggest part of the partition.
+    -  ``maximal_part`` :  by value of the biggest part of the partition, then by length, then by lexicographic order.
 
     ::
 
