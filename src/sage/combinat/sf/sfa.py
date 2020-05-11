@@ -18,145 +18,7 @@ integer partitions::
     sage: s.basis().keys()
     Partitions
 
-Let us compute with some elements in different bases::
-
-    sage: f1 = s([2,1]); f1
-    s[2, 1]
-    sage: f2 = e(f1); f2 # basis conversion
-    e[2, 1] - e[3]
-    sage: f1 == f2
-    True
-    sage: f1.expand(3, alphabet=['x','y','z'])
-    x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
-    sage: f2.expand(3, alphabet=['x','y','z'])
-    x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
-
 ::
-
-    sage: m = SymmetricFunctions(QQ).monomial()
-    sage: m([3,1])
-    m[3, 1]
-    sage: m(4) # This is the constant 4, not the partition 4.
-    4*m[]
-    sage: m([4]) # This is the partition 4.
-    m[4]
-    sage: 3*m([3,1])-1/2*m([4])
-    3*m[3, 1] - 1/2*m[4]
-
-::
-
-    sage: p = SymmetricFunctions(QQ).power()
-    sage: f = p(3)
-    sage: f
-    3*p[]
-    sage: f.parent()
-    Symmetric Functions over Rational Field in the powersum basis
-    sage: f + p([3,2])
-    3*p[] + p[3, 2]
-
-One can convert symmetric functions to symmetric polynomials and vice versa::
-
-    sage: Sym = SymmetricFunctions(QQ)
-    sage: p = Sym.powersum()
-    sage: h = Sym.homogeneous()
-    sage: f = h[2,1] + 2*p[3,1]
-    sage: poly = f.expand(3); poly
-    2*x0^4 + 2*x0^3*x1 + 2*x0*x1^3 + 2*x1^4 + 2*x0^3*x2 + 2*x1^3*x2 + 2*x0*x2^3 + 2*x1*x2^3 + 2*x2^4
-    + x0^3 + 2*x0^2*x1 + 2*x0*x1^2 + x1^3 + 2*x0^2*x2 + 3*x0*x1*x2 + 2*x1^2*x2 + 2*x0*x2^2 + 2*x1*x2^2 + x2^3
-    sage: Sym.from_polynomial(poly)
-    3*m[1, 1, 1] + 2*m[2, 1] + m[3] + 2*m[3, 1] + 2*m[4]
-    sage: Sym.from_polynomial(poly) == f
-    True
-    sage: g = h[1,1,1,1]
-    sage: poly = g.expand(3)
-    sage: Sym.from_polynomial(poly) == g
-    False
-
-::
-
-    sage: Sym = SymmetricFunctions(QQ)
-    sage: s = Sym.s()
-    sage: h = Sym.h()
-    sage: p = Sym.p()
-    sage: e = Sym.e()
-    sage: m = Sym.m()
-    sage: a = s([3,1])
-    sage: s(a)
-    s[3, 1]
-    sage: h(a)
-    h[3, 1] - h[4]
-    sage: p(a)
-    1/8*p[1, 1, 1, 1] + 1/4*p[2, 1, 1] - 1/8*p[2, 2] - 1/4*p[4]
-    sage: e(a)
-    e[2, 1, 1] - e[2, 2] - e[3, 1] + e[4]
-    sage: m(a)
-    3*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2] + m[3, 1]
-    sage: a.expand(4)
-    x0^3*x1 + x0^2*x1^2 + x0*x1^3 + x0^3*x2 + 2*x0^2*x1*x2 + 2*x0*x1^2*x2 + x1^3*x2 + x0^2*x2^2 + 2*x0*x1*x2^2 + x1^2*x2^2 + x0*x2^3 + x1*x2^3 + x0^3*x3 + 2*x0^2*x1*x3 + 2*x0*x1^2*x3 + x1^3*x3 + 2*x0^2*x2*x3 + 3*x0*x1*x2*x3 + 2*x1^2*x2*x3 + 2*x0*x2^2*x3 + 2*x1*x2^2*x3 + x2^3*x3 + x0^2*x3^2 + 2*x0*x1*x3^2 + x1^2*x3^2 + 2*x0*x2*x3^2 + 2*x1*x2*x3^2 + x2^2*x3^2 + x0*x3^3 + x1*x3^3 + x2*x3^3
-
-Here are further examples::
-
-    sage: h(m([1]))
-    h[1]
-    sage: h( m([2]) +m([1,1]) )
-    h[2]
-    sage: h( m([3]) + m([2,1]) + m([1,1,1]) )
-    h[3]
-    sage: h( m([4]) + m([3,1]) + m([2,2]) + m([2,1,1]) + m([1,1,1,1]) )
-    h[4]
-    sage: k = 5
-    sage: h( sum([ m(part) for part in Partitions(k)]) )
-    h[5]
-    sage: k = 10
-    sage: h( sum([ m(part) for part in Partitions(k)]) )
-    h[10]
-
-::
-
-    sage: P3 = Partitions(3)
-    sage: P3.list()
-    [[3], [2, 1], [1, 1, 1]]
-    sage: m = SymmetricFunctions(QQ).monomial()
-    sage: f = sum([m(p) for p in P3])
-    sage: m.get_print_style()
-    'lex'
-    sage: f
-    m[1, 1, 1] + m[2, 1] + m[3]
-    sage: m.set_print_style('length')
-    sage: f
-    m[3] + m[2, 1] + m[1, 1, 1]
-    sage: m.set_print_style('maximal_part')
-    sage: f
-    m[1, 1, 1] + m[2, 1] + m[3]
-    sage: m.set_print_style('lex')
-
-::
-
-    sage: Sym = SymmetricFunctions(QQ)
-    sage: s = Sym.s()
-    sage: m = Sym.m()
-    sage: m([3])*s([2,1])
-    2*m[3, 1, 1, 1] + m[3, 2, 1] + 2*m[4, 1, 1] + m[4, 2] + m[5, 1]
-    sage: s(m([3])*s([2,1]))
-    s[2, 1, 1, 1, 1] - s[2, 2, 2] - s[3, 3] + s[5, 1]
-    sage: s(s([2,1])*m([3]))
-    s[2, 1, 1, 1, 1] - s[2, 2, 2] - s[3, 3] + s[5, 1]
-    sage: e = Sym.e()
-    sage: e([4])*e([3])*e([1])
-    e[4, 3, 1]
-
-::
-
-    sage: s = SymmetricFunctions(QQ).s()
-    sage: z = s([2,1]) + s([1,1,1])
-    sage: z.coefficient([2,1])
-    1
-    sage: z.length()
-    2
-    sage: sorted(z.support())
-    [[1, 1, 1], [2, 1]]
-    sage: z.degree()
-    3
 
 TESTS:
 
@@ -782,8 +644,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             Let `\lambda` be a partition. The *Gessel-Reutenauer
             symmetric function* `\mathbf{GR}_\lambda` corresponding to
             `\lambda` is the symmetric function denoted `L_\lambda` in
-            [GR1993]_ and in Exercise 7.89 of [STA]_. It can be defined
-            in several ways:
+            [GR1993]_ and in Exercise 7.89 of [EnumComb2]_. It can be
+            defined in several ways:
 
             - It is the sum of the monomials `\mathbf{x}_w` over all
               words `w` over the alphabet
@@ -4643,13 +4505,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:      for lam in Partitions(4) )
             True
 
-        By Exercise 7.61 in Stanley's EC2 [STA]_ (see the errata on his
-        website), `\mathbf{f}_n(h_m)` is a linear combination of
-        Schur polynomials (of straight shapes) using coefficients `0`,
-        `1` and `-1` only; moreover, all partitions whose Schur
-        polynomials occur with coefficient `\neq 0` in this
-        combination have empty `n`-cores. Let us check this on
-        examples::
+        By Exercise 7.61 in Stanley's EC2 [EnumComb2]_ (see the
+        errata on his website), `\mathbf{f}_n(h_m)` is a linear
+        combination of Schur polynomials (of straight shapes)
+        using coefficients `0`, `1` and `-1` only; moreover, all
+        partitions whose Schur polynomials occur with coefficient
+        `\neq 0` in this combination have empty `n`-cores. Let us
+        check this on examples::
 
             sage: all( all( all( (coeff == -1 or coeff == 1)
             ....:                and lam.core(n) == Partition([])
@@ -4668,7 +4530,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             bases, while all other bases get converted to the
             monomial basis. For most bases, this is probably the
             quickest way to do, but at least the Schur basis should
-            have a better option. (Quoting from Stanley's EC2 [STA]_:
+            have a better option. (Quoting from Stanley's EC2 [EnumComb2]_:
             "D. G. Duncan, J. London Math. Soc. 27 (1952), 235-236,
             or Y. M. Chen, A. M. Garsia, and J. B. Remmel, Contemp.
             Math. 34 (1984), 109-153".)
@@ -4721,7 +4583,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         The action of the `n`-th Verschiebung operator on the Schur basis
         can also be computed explicitly. The following (probably clumsier
         than necessary) description can be obtained by solving exercise
-        7.61 in Stanley's [STA]_.
+        7.61 in Stanley's [EnumComb2]_.
 
         Let `\lambda` be a partition. Let `n` be a positive integer. If
         the `n`-core of `\lambda` is nonempty, then
