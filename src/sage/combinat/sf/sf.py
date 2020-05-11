@@ -124,20 +124,24 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
                 and Category of graded algebras over Rational Field
                 and Category of monoids with realizations
                 and Category of graded coalgebras over Rational Field
+                and Category of coalgebras over Rational Field with realizations
 
         Most of this structure will be explained in the sections that
         follow.
 
-        Note that ``Sym`` is an *abstract* algebra.  This reflects the fact that
-        there are multiple natural bases.  To work with specific
-        elements, one needs a *realization* of this algebra.  In practice, this
-        means one needs to specify a basis.
+        Note that ``Sym`` is an *abstract* algebra.  This reflects the
+        fact that it has multiple natural bases.  SageMath
+        implements the algebra in each of these bases separately,
+        calling it a *realization* of ``Sym``.  For example, the
+        realization ``Sym.m()`` is the algebra of symmetric functions
+        in the basis of the monomial symmetric functions.
+        Elements between different realizations can be easily
+        converted and compared (e.g., it makes sense to write
+        ``e[2] - h[1,1]`` or ``e[1] == h[1]``).
 
     .. rubric:: Abstract symmetric functions
 
-    We first describe how to manipulate "variable-free" symmetric functions
-    (with coefficients in the field :math:`\mathbb{Q}(q,t)` of rational
-    functions in :math:`q` and :math:`t` with rational coefficients).
+    We first describe how to manipulate "variable-free" symmetric functions.
     Such functions are linear combinations of one of the six classical
     bases of symmetric functions; all indexed by integer partitions
     :math:`\mu = \left(\mu_1, \mu_2, \ldots \mu_k\right)`
@@ -154,10 +158,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     ::
 
-        sage: from sage.combinat.q_analogues import *
         sage: from sage.combinat.sf.sfa import *
 
-    ::
+    As our base ring, we take the field :math:`\mathbb{Q}(q,t)`
+    of rational functions in two variables :math:`q` and
+    :math:`t` with rational coefficients. ::
 
         sage: F = QQ['q','t'].fraction_field()
         sage: F.inject_variables()
@@ -234,9 +239,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     the power-sum basis:
 
         sage: p # The ring
-        Symmetric Functions over Rational Field in the powersum basis
+        Symmetric Functions over Fraction Field of Multivariate
+         Polynomial Ring in q, t over Rational Field in the
+         powersum basis
         sage: p.basis() # The basis
-        Lazy family (Term map from Partitions to Symmetric Functions over Rational Field in the powersum basis(i))_{i in Partitions}
+        Lazy family (Term map from Partitions to Symmetric
+         Functions over Fraction Field of Multivariate
+         Polynomial Ring in q, t over Rational Field in the
+         powersum basis(i))_{i in Partitions}
         sage: p.basis().keys() # The partitions indexing the basis
         Partitions
 
@@ -253,7 +263,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: q*s[2,1,1] + t*s[2,1,1]
         (q+t)*s[2, 1, 1]
         sage: q*s[2,1,1] + t*s[2]
-        t*s[2] + q*s[2,1,1]
+        t*s[2] + q*s[2, 1, 1]
 
     .. rubric:: The ring structure
 
@@ -655,8 +665,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: s.set_print_style('length')
         sage: s(p[4,1,1])
-        s[6] - s[3, 3] - s[4, 2] + s[5, 1] + s[2, 2, 2] + s[2, 2, 1, 1] - s[2, 1, 1, 1, 1] - s[1, 1, 1, 1, 1, 1]
-
+        s[6] + s[5, 1] - s[4, 2] - s[3, 3] + s[2, 2, 2] + s[2, 2, 1, 1] - s[2, 1, 1, 1, 1] - s[1, 1, 1, 1, 1, 1]
 
     ::
 
@@ -667,7 +676,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: s.set_print_style('maximal_part')
         sage: s(p[4,1,1])
-        -s[1, 1, 1, 1, 1, 1] + s[2, 2, 2] - s[2, 1, 1, 1, 1] + s[2, 2, 1, 1] - s[3, 3] - s[4, 2] + s[5, 1] + s[6]
+        -s[1, 1, 1, 1, 1, 1] - s[2, 1, 1, 1, 1] + s[2, 2, 1, 1] + s[2, 2, 2] - s[3, 3] - s[4, 2] + s[5, 1] + s[6]
 
 
 
@@ -1066,7 +1075,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ::
 
         sage: s[4](X/(1-q)).map_coefficients(factor)
-        ((q-1)^-4*(q+1)^-2*q^6*(q^2+1)^-1*(q^2+q+1)^-1)*s[1, 1, 1, 1] + ((q-1)^-4*(q+1)^-2*q^2*(q^2+q+1)^-1)*s[2, 2] + ((q-1)^-4*(q+1)^-2*q^3*(q^2+1)^-1)*s[2, 1, 1] + ((q-1)^-4*(q+1)^-2*q*(q^2+1)^-1)*s[3, 1] + ((q-1)^-4*(q+1)^-2*(q^2+1)^-1*(q^2+q+1)^-1)*s[4]
+        ((q-1)^-4*(q+1)^-2*q^6*(q^2+1)^-1*(q^2+q+1)^-1)*s[1, 1, 1, 1] + ((q-1)^-4*(q+1)^-2*q^3*(q^2+1)^-1)*s[2, 1, 1] + ((q-1)^-4*(q+1)^-2*q^2*(q^2+q+1)^-1)*s[2, 2] + ((q-1)^-4*(q+1)^-2*q*(q^2+1)^-1)*s[3, 1] + ((q-1)^-4*(q+1)^-2*(q^2+1)^-1*(q^2+q+1)^-1)*s[4]
 
     ::
 
@@ -1122,7 +1131,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ::
 
         sage: (-s([2,2,1])).nabla()
-        (q^6*t^3+q^5*t^4+q^4*t^5+q^3*t^6)*s[1, 1, 1, 1, 1] + (q^5*t^2+2*q^4*t^3+2*q^3*t^4+q^2*t^5)*s[2, 2, 1] + (q^6*t^2+2*q^5*t^3+2*q^4*t^4+2*q^3*t^5+q^2*t^6+q^4*t^3+q^3*t^4)*s[2, 1, 1, 1] + (q^4*t^2+q^3*t^3+q^2*t^4)*s[3, 2] + (q^5*t^2+q^4*t^3+q^3*t^4+q^2*t^5+q^4*t^2+2*q^3*t^3+q^2*t^4)*s[3, 1, 1] + (q^3*t^2+q^2*t^3)*s[4, 1]
+            (q^6*t^3+q^5*t^4+q^4*t^5+q^3*t^6)*s[1, 1, 1, 1, 1] + (q^6*t^2+2*q^5*t^3+2*q^4*t^4+2*q^3*t^5+q^2*t^6+q^4*t^3+q^3*t^4)*s[2, 1, 1, 1] + (q^5*t^2+2*q^4*t^3+2*q^3*t^4+q^2*t^5)*s[2, 2, 1] + (q^5*t^2+q^4*t^3+q^3*t^4+q^2*t^5+q^4*t^2+2*q^3*t^3+q^2*t^4)*s[3, 1, 1] + (q^4*t^2+q^3*t^3+q^2*t^4)*s[3, 2] + (q^3*t^2+q^2*t^3)*s[4, 1]
 
     .. TOPIC:: Exercise
 
@@ -1349,15 +1358,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     The first part of this tutorial was meant to present general use of symmetric functions in Sage.
     Here are now more specific applications.
-
-
-    Sage knows some categorical information about this algebra.
-
-    ::
-
-        sage: Sym.category()
-        Join of Category of hopf algebras over Rational Field and Category of graded algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
-
 
     Let us explore the other operations of :math:`p`. We can ask for the mathematical properties of :math:`p`.
 
