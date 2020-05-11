@@ -56,8 +56,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     more can be learned from the excellent resources
     [Mac1995]_ and [EnumComb2]_, Chapter 7.
 
-    **Caveat:** in this tutorial, the term "symmetric functions" will
-    mostly stand for "abstract" symmetric polynomials, in which variables
+    **Caveat:** In this tutorial, the term "symmetric functions" will
+    mostly stand for "abstract" symmetric functions, in which variables
     are not made explicit. Indeed, for most practical calculations,
     variables need not appear. Moreover, one may show that this does not
     cause any trouble in the calculations.
@@ -135,9 +135,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         calling it a *realization* of ``Sym``.  For example, the
         realization ``Sym.m()`` is the algebra of symmetric functions
         in the basis of the monomial symmetric functions.
-        Elements between different realizations can be easily
-        converted and compared (e.g., it makes sense to write
-        ``e[2] - h[1,1]`` or ``e[1] == h[1]``).
+        Elements can be easily combined, converted and compared
+        between different realizations (e.g., you can write
+        ``e[2] - h[1,1]`` or ``e[1] == h[1]``; see below for
+        conversion).
 
     .. rubric:: Abstract symmetric functions
 
@@ -673,7 +674,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: s.set_print_style('length')
         sage: s(p[4,1,1])
-        s[6] + s[5, 1] - s[4, 2] - s[3, 3] + s[2, 2, 2] + s[2, 2, 1, 1] - s[2, 1, 1, 1, 1] - s[1, 1, 1, 1, 1, 1]
+        s[6] - s[3, 3] - s[4, 2] + s[5, 1] + s[2, 2, 2] + s[2, 2, 1, 1] - s[2, 1, 1, 1, 1] - s[1, 1, 1, 1, 1, 1]
 
     ::
 
@@ -684,9 +685,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: s.set_print_style('maximal_part')
         sage: s(p[4,1,1])
-        -s[1, 1, 1, 1, 1, 1] - s[2, 1, 1, 1, 1] + s[2, 2, 1, 1] + s[2, 2, 2] - s[3, 3] - s[4, 2] + s[5, 1] + s[6]
-
-
+        -s[1, 1, 1, 1, 1, 1] + s[2, 2, 2] + s[2, 2, 1, 1] - s[2, 1, 1, 1, 1] - s[3, 3] - s[4, 2] + s[5, 1] + s[6]
+        sage: s.set_print_style('lex')
 
     The method ``coefficient()`` returns the coefficient associated to a given partition.
 
