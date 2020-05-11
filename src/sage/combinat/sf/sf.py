@@ -74,9 +74,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     Before going into details with symmetric functions in Sage, here is
     a quick example of what we can do in Sage.
 
-    We recall that the **complete homogeneous** symmetric functions
-    :math:`h_d` can be expressed in terms of the **power sum** symmetric
-    functions :math:`p_{\mu}` by the formula:
+    We recall that the **complete homogeneous** symmetric function
+    :math:`h_d` (for a given nonnegative integer :math:`d`)
+    can be expressed in terms of the **power sum** symmetric
+    functions :math:`p_{\mu}` (corresponding to the partitions
+    :math:`\mu` of :math:`d`) by the formula:
 
     .. MATH:: h_d = \sum \limits_{\mu \vdash d} \dfrac{1}{z_{\mu}} p_{\mu}
 
@@ -102,6 +104,17 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         1/720*p[1, 1, 1, 1, 1, 1] + 1/48*p[2, 1, 1, 1, 1] + 1/16*p[2, 2, 1, 1] + 1/48*p[2, 2, 2] + 1/18*p[3, 1, 1, 1] + 1/6*p[3, 2, 1] + 1/18*p[3, 3] + 1/8*p[4, 1, 1] + 1/8*p[4, 2] + 1/5*p[5, 1] + 1/6*p[6]
         sage: sum((1/Partition(i).aut())*p(i) for i in Partitions(6).list())
         1/720*p[1, 1, 1, 1, 1, 1] + 1/48*p[2, 1, 1, 1, 1] + 1/16*p[2, 2, 1, 1] + 1/48*p[2, 2, 2] + 1/18*p[3, 1, 1, 1] + 1/6*p[3, 2, 1] + 1/18*p[3, 3] + 1/8*p[4, 1, 1] + 1/8*p[4, 2] + 1/5*p[5, 1] + 1/6*p[6]
+
+    On the first line, we defined ``Sym`` to be the ring
+    :math:`\mathrm{Sym}`. On the second, we used
+    ``Sym.inject_shorthands()`` to introduce the standard
+    notations for its classical bases -- ``e`` for the
+    elementary symmetric functions, ``p`` for the power-sum
+    symmetric functions, etc. Then, we expanded :math:`h_6`
+    in the power-sum basis (by writing ``p(h[6])``; here,
+    ``h[6]`` computes `h_6`, and then the ``p`` converts
+    it into the  power-sum basis). Finally, we computed
+    the right hand side directly in the power-sum basis.
 
     .. note:: The algebra of symmetric functions is the unique free commutative graded
         connected algebra over the given ring, with one generator in each positive
@@ -156,10 +169,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     -   The **forgotten** symmetric functions :math:`f_{\mu}`
 
     (or various other bases).
-
-    ::
-
-        sage: from sage.combinat.sf.sfa import *
 
     As our base ring, we take the field :math:`\mathbb{Q}(q,t)`
     of rational functions in two variables :math:`q` and
