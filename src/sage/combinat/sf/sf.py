@@ -1517,7 +1517,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p[2].coproduct()
         p[] # p[2] + p[2] # p[]
 
-    The coproduct, being cocommutative on the generators, is cocommutative everywhere::
+    The coproduct, being cocommutative on the generators,
+    is cocommutative everywhere::
 
         sage: p[2, 1].coproduct()
         p[] # p[2, 1] + p[1] # p[2] + p[2] # p[1] + p[2, 1] # p[]
@@ -1542,7 +1543,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         -s[5, 1, 1]
 
     The graded connected bialgebra of symmetric functions over a :math:`\mathbb{Q}`-algebra
-    has a rather simply-understood structure: It is (isomorphic to) the
+    has a rather simple structure: It is (isomorphic to) the
     symmetric algebra of its space of primitives (which is spanned by the
     power-sum symmetric functions).
 
@@ -1556,7 +1557,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: g.coproduct().apply_multilinear_morphism( lambda x,y: x*y.antipode() )
         0
 
-    In this interpretation of symmetric functions as characters on the symmetric group,
+    In the interpretation of symmetric functions as characters on the symmetric group,
     the multiplication and comultiplication are interpreted as induction
     (from :math:`S_n\times S_m` to :math:`S_{n+m}`) and restriction, respectively.
     The Schur functions can also be interpreted as characters of :math:`GL_n`, 
@@ -1601,25 +1602,38 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Cauchy kernel formula
 
-    The Cauchy kernel is the expression
+    Consider the family
+
+    .. MATH:: \mathbf{x}\mathbf{y} := (x_i y_j)_{i \geq 1,\ j \geq 1}
+
+    of indeterminates. The Cauchy kernel is the expression
 
     .. MATH:: \sum_{n\geq 0} h_n(\mathbf{x}\mathbf{y}) = \prod_{i,j}\frac{1}{1-x_iy_j}
 
-    written here using plethystic notation. Its degree-:math:`n` homogeneous component plays a crucial role in the description 
-    of "dual bases" with respect to the scalar product. We have
+    written here using plethystic notation.
+    Its degree-:math:`n` homogeneous component plays a crucial role in the description 
+    of "dual bases" with respect to the scalar product.
+    We can embed the tensor product
+    :math:`\mathrm{Sym} \otimes \mathrm{Sym}` into
+    the ring of formal power series in the indeterminates
+    :math:`x_1, x_2, x_3, \ldots, y_1, y_2, y_3, \ldots` by
+    identifying each pure tensor :math:`f \otimes g` with
+    the power series :math:`f(x_1, x_2, x_3, \ldots, y_1, y_2, y_3, \ldots)`;
+    then, we have
 
     .. MATH:: h_n(\mathbf{x}\mathbf{y})=\sum_{\mu\vdash n} F_\mu\otimes G_\mu
         \qquad {\rm iff}\qquad
-        \langle F_\mu,G_\lambda\rangle=\delta_{\mu\lambda}, \qquad
-        (\delta_{\mu \lambda}:\ \hbox{Kronecker "delta"})`
+        \langle F_\mu,G_\lambda\rangle=\delta_{\mu, \lambda}
+        \qquad \text{for all } \mu \text{ and } \lambda ,
 
-    where one "thinks" :math:`\mathbf{x}=s_1\otimes \mathbb{1}` and
-     :math:`\mathbf{y}= \mathbb{1}\otimes s_1`. One says that
-     :math:`\{F_\mu\}_\mu` and :math:`\{G_\lambda\}_\lambda` are **dual bases**.
-      Schur functions are self dual, the dual of the :math:`h_{\mu}` are the
-      :math:`m_\mu`, that of the :math:`p_\mu` are the :math:`p_{\mu}/z_{\mu}`.
-      The "forgotten" symmetric function :math:`f_{\mu}` appear as the dual of
-      the :math:`e_{\mu}`.
+    where :math:`\delta_{\mu, \lambda}` is the Kronecker
+    delta. One says that :math:`\{F_\mu\}_\mu` and
+    :math:`\{G_\lambda\}_\lambda` are **dual bases**.
+    Schur functions are self-dual; the dual of the
+    :math:`h_{\mu}` are the :math:`m_\mu`, that of the
+    :math:`p_\mu` are the :math:`p_{\mu}/z_{\mu}`.
+    The "forgotten" symmetric function :math:`f_{\mu}`
+    appear as the dual of the :math:`e_{\mu}`.
 
     ::
 
