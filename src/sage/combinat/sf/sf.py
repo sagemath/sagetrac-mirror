@@ -179,6 +179,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     ``Symqt.inject_shorthands()`` command makes the "usual"
     short names (as in Macdonald's book) available.
     The keyword `verbose` allows you to make the injection quiet.
+    Instead of using ``Symqt.inject_shorthands()``, you could
+    also manually define the bases you need: e.g.,
+    ``s = Symqt.s()`` for the Schur basis,
+    ``p = Symqt.p()`` for the powersum basis, etc.
 
     Now that we have access to all the bases we need, we can start manipulating them.
     The basis elements are indexed by partitions :math:`\mu`, with integers
@@ -236,7 +240,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     Strictly speaking, ``p`` is not the power-sum basis itself in the
     mathematical sense (the latter can be obtained by writing
     ``p.basis()``), but rather the ring of symmetric functions written in
-    the power-sum basis:
+    the power-sum basis (a realization of :math:`\mathrm{Sym}`):
 
         sage: p # The ring
         Symmetric Functions over Fraction Field of Multivariate
@@ -274,6 +278,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: p([2,1,1])*p([5,2])==p([5,2,2,1,1])
         True
+        sage: p[2,1,1] + 2 * p[1] * (p[4] + p[2,1])
+        3*p[2, 1, 1] + 2*p[4, 1]
+        sage: (p.one() + 2 * p[3,1]) * p[4, 2]
+        p[4, 2] + 2*p[4, 3, 2, 1]
 
     For the non-multiplicative bases, such as the Schur functions, products
     are expanded as linear combinations in the same (linear) basis
