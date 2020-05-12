@@ -263,6 +263,17 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: p.basis()['something']
             p'something'
 
+    .. WARNING::
+
+        Do not confuse ``p[4]`` (the power-sum symmetric function
+        :math:`p_4`) with ``p(4)`` (the scalar :math:`4`, regarded
+        as a symmetric function in the ``p``-basis)::
+
+            sage: p(4) # This is the constant 4, not the partition 4.
+            4*p[]
+            sage: p([4]) # This is the partition 4.
+            p[4]
+
     Note that ``Sym`` is an *abstract* algebra.  This reflects the
     fact that it has multiple natural bases, and no basis is
     "privileged".  SageMath implements the algebra in each of
