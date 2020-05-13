@@ -80,7 +80,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     functions :math:`p_{\mu}` (corresponding to the partitions
     :math:`\mu` of :math:`d`) by the formula:
 
-    .. MATH:: h_d = \sum \limits_{\mu \vdash d} \dfrac{1}{z_{\mu}} p_{\mu}
+    .. MATH:: h_d = \sum\limits_{\mu \vdash d} \dfrac{1}{z_{\mu}} p_{\mu} ,
 
     where :math:`z_\mu` is the number of "automorphisms" of a permutation
     having cycle structure :math:`\mu` (that is, the size of the
@@ -252,7 +252,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. NOTE::
 
-        When elements are constructed using the ``p[something ]`` syntax ,
+        When elements are constructed using the ``p[something ]`` syntax,
         an error will be raised if the input cannot be interpreted as a partition.
         This is *not* the case when ``p.basis()`` is used::
 
@@ -288,7 +288,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     Thus, strictly speaking, ``p`` is not the power-sum *basis* in the
     linear-algebraic sense (the latter can be obtained by writing
     ``p.basis()``), but rather the ring of symmetric functions written in
-    the power-sum basis (a realization of :math:`\operatorname{Sym}`):
+    the power-sum basis (a realization of :math:`\operatorname{Sym}`) ::
 
         sage: p # The ring
         Symmetric Functions over Fraction Field of Multivariate
@@ -345,7 +345,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     rule for the Schur basis)::
 
         sage: s([5])^2*s([1,1,1])
-        s[5, 5, 1, 1, 1] + s[6, 4, 1, 1, 1] + 2*s[6, 5, 1, 1] + s[6, 6, 1] + s[7, 3, 1, 1, 1] + 2*s[7, 4, 1, 1] + s[7, 5, 1] + s[8, 2, 1, 1, 1] + 2*s[8, 3, 1, 1] + s[8, 4, 1] + s[9, 1, 1, 1, 1] + 2*s[9, 2, 1, 1] + s[9, 3, 1] + 2*s[10, 1, 1, 1] + s[10, 2, 1] + s[11, 1, 1]
+        s[5, 5, 1, 1, 1] + s[6, 4, 1, 1, 1] + 2*s[6, 5, 1, 1] + s[6, 6, 1]
+         + s[7, 3, 1, 1, 1] + 2*s[7, 4, 1, 1] + s[7, 5, 1]
+         + s[8, 2, 1, 1, 1] + 2*s[8, 3, 1, 1] + s[8, 4, 1]
+         + s[9, 1, 1, 1, 1] + 2*s[9, 2, 1, 1] + s[9, 3, 1]
+         + 2*s[10, 1, 1, 1] + s[10, 2, 1] + s[11, 1, 1]
 
         sage: m([3,1])*m([2,2])
         m[3, 2, 2, 1] + 2*m[3, 3, 2] + m[5, 2, 1] + m[5, 3]
@@ -447,10 +451,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     concrete multivariate polynomials that are invariant under any permutation
     of their variables. Simple examples include
 
-    .. MATH:: p_k(x_1,x_2,\ldots, x_n) = x_1^k + x_2^k + \ldots + x_n^k,
-                \ (\hbox{for any } k > 0),\ {\rm or}
+    .. MATH::
 
-    .. MATH:: e_n(x_1,x_2,\ldots, x_n) = x_1 x_2 \cdots x_n.
+        p_k(x_1,x_2,\ldots, x_n) = x_1^k + x_2^k + \cdots + x_n^k
+              \quad (\text{for any } k > 0), \quad \text{ or }
+
+    .. MATH::
+
+        e_n(x_1,x_2,\ldots, x_n) = x_1 x_2 \cdots x_n.
 
     To expand a symmetric function into a concrete polynomial in the set of
     variables :math:`x_0, x_1, \dots, x_{n-1}`, one proceeds as follows::
@@ -691,14 +699,12 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Verify this result for :math:`n \in \{1,2,3,4\}`.
 
         Note that there exists a function ``zee()`` which takes a partition
-        :math:`\mu` and returns the value of  :math:`z_{\mu}`. To use this
-        function, you should import it from ``sage.combinat.sf.sfa``.
+        :math:`\mu` and returns the value of :math:`z_{\mu}`. To use this
+        function, you should import it from ``sage.combinat.sf.sfa``::
 
-    ::
-
-        sage: from sage.combinat.sf.sfa import zee
-        sage: zee([4,4,2,1])
-        64
+            sage: from sage.combinat.sf.sfa import zee
+            sage: zee([4,4,2,1])
+            64
 
     .. TOPIC:: Solution
 
@@ -1046,7 +1052,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. MATH:: \langle p_{\mu},p_{\mu}\rangle_{q,t} = z_\mu\,\prod_i\frac{1-q^{\mu_i}}{1-t^{\mu_i}}.
 
-    This is already refined as `scalar_qt()`::
+    This is already refined as ``scalar_qt()``::
 
         sage: Matrix([[p(mu).scalar_qt(p(nu)/zee(mu)) for nu in Partitions(3)] for mu in Partitions(3)])
         [                            (-q^3 + 1)/(-t^3 + 1)                                                 0                                                 0]
@@ -1310,35 +1316,37 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         Check this relation for :math:`1 \leq n \leq 5`
 
-        *Note that the n-th q,t-Catalan number can be computed using the command ``qt_catalan_number(n)``, which has to be imported from* ``sage.combinat.q_analogues`` if not done yet*.
+        Note that the :math:`n`-th q,t-Catalan number can be computed
+        using the command ``qt_catalan_number(n)``, which has to be
+        imported from ``sage.combinat.q_analogues`` if not done yet.
 
-    ::
+        ::
 
-        sage: from sage.combinat.q_analogues import *
-        sage: for n in range (1,6):
-        ....:     print((n,qt_catalan_number(n)))
-        (1, 1)
-        (2, q + t)
-        (3, q^3 + q^2*t + q*t^2 + t^3 + q*t)
-        (4, q^6 + q^5*t + q^4*t^2 + q^3*t^3 + q^2*t^4 + q*t^5 + t^6 + q^4*t + q^3*t^2 + q^2*t^3 + q*t^4 + q^3*t + q^2*t^2 + q*t^3)
-        (5, q^10 + q^9*t + q^8*t^2 + q^7*t^3 + q^6*t^4 + q^5*t^5 + q^4*t^6 + q^3*t^7 + q^2*t^8 + q*t^9 + t^10 + q^8*t + q^7*t^2 + q^6*t^3 + q^5*t^4 + q^4*t^5 + q^3*t^6 + q^2*t^7 + q*t^8 + q^7*t + 2*q^6*t^2 + 2*q^5*t^3 + 2*q^4*t^4 + 2*q^3*t^5 + 2*q^2*t^6 + q*t^7 + q^6*t + q^5*t^2 + 2*q^4*t^3 + 2*q^3*t^4 + q^2*t^5 + q*t^6 + q^4*t^2 + q^3*t^3 + q^2*t^4)
-        sage: for n in range (1,6):
-        ....:     print((n,e([n]).nabla().scalar(e([n])).substitute({q:1,t:1})))
-        (1, 1)
-        (2, 2)
-        (3, 5)
-        (4, 14)
-        (5, 42)
+            sage: from sage.combinat.q_analogues import *
+            sage: for n in range (1,6):
+            ....:     print((n,qt_catalan_number(n)))
+            (1, 1)
+            (2, q + t)
+            (3, q^3 + q^2*t + q*t^2 + t^3 + q*t)
+            (4, q^6 + q^5*t + q^4*t^2 + q^3*t^3 + q^2*t^4 + q*t^5 + t^6 + q^4*t + q^3*t^2 + q^2*t^3 + q*t^4 + q^3*t + q^2*t^2 + q*t^3)
+            (5, q^10 + q^9*t + q^8*t^2 + q^7*t^3 + q^6*t^4 + q^5*t^5 + q^4*t^6 + q^3*t^7 + q^2*t^8 + q*t^9 + t^10 + q^8*t + q^7*t^2 + q^6*t^3 + q^5*t^4 + q^4*t^5 + q^3*t^6 + q^2*t^7 + q*t^8 + q^7*t + 2*q^6*t^2 + 2*q^5*t^3 + 2*q^4*t^4 + 2*q^3*t^5 + 2*q^2*t^6 + q*t^7 + q^6*t + q^5*t^2 + 2*q^4*t^3 + 2*q^3*t^4 + q^2*t^5 + q*t^6 + q^4*t^2 + q^3*t^3 + q^2*t^4)
+            sage: for n in range (1,6):
+            ....:     print((n,e([n]).nabla().scalar(e([n])).substitute({q:1,t:1})))
+            (1, 1)
+            (2, 2)
+            (3, 5)
+            (4, 14)
+            (5, 42)
 
-    ::
+        ::
 
-        sage: for n in range (1,6):
-        ....:     print((n,factor(e([n]).nabla().scalar(e([n])).substitute({t:1/q}))))
-        (1, 1)
-        (2, q^-1 * (q^2 + 1))
-        (3, q^-3 * (q^2 - q + 1) * (q^4 + q^3 + q^2 + q + 1))
-        (4, q^-6 * (q^2 - q + 1) * (q^4 + 1) * (q^6 + q^5 + q^4 + q^3 + q^2 + q + 1))
-        (5, q^-10 * (q^4 + 1) * (q^4 - q^3 + q^2 - q + 1) * (q^6 + q^3 + 1) * (q^6 + q^5 + q^4 + q^3 + q^2 + q + 1))
+            sage: for n in range (1,6):
+            ....:     print((n,factor(e([n]).nabla().scalar(e([n])).substitute({t:1/q}))))
+            (1, 1)
+            (2, q^-1 * (q^2 + 1))
+            (3, q^-3 * (q^2 - q + 1) * (q^4 + q^3 + q^2 + q + 1))
+            (4, q^-6 * (q^2 - q + 1) * (q^4 + 1) * (q^6 + q^5 + q^4 + q^3 + q^2 + q + 1))
+            (5, q^-10 * (q^4 + 1) * (q^4 - q^3 + q^2 - q + 1) * (q^6 + q^3 + 1) * (q^6 + q^5 + q^4 + q^3 + q^2 + q + 1))
 
 
     .. TOPIC:: Solution
@@ -1465,7 +1473,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     basis and the dual `k`-Schur elements are equal to the affine Schur basis.  The
     `k`-bounded monomial basis and affine Schur functions are faster and should be used
     instead of the `k`-bounded Hall-Littlewood P basis and dual `k`-Schur functions when
-    `t=1`.::
+    `t=1`. ::
 
         sage: SymQ3 = Sym.kBoundedQuotient(3,t=1)
         sage: dks = SymQ3.dual_k_Schur()
@@ -1616,12 +1624,15 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     that can be defined by
 
     .. MATH::
+
         \Delta(g) = \sum_{\mu, \nu} a_{\mu,\nu}\, s_\mu\otimes s_\nu
 
     where
 
     .. MATH::
-        g(\mathbf{x},\mathbf{y})= \sum_{\mu, \nu} a_{\mu,\nu}\, s_\mu(\mathbf{x}) s_\nu(\mathbf{y}),
+
+        g(\mathbf{x},\mathbf{y})
+        = \sum_{\mu, \nu} a_{\mu,\nu}\, s_\mu(\mathbf{x}) s_\nu(\mathbf{y}),
 
     where :math:`\mathbf{x} = (x_1, x_2, x_3, \ldots)` and
     :math:`\mathbf{y} = (y_1, y_2, y_3, \ldots)` are two
