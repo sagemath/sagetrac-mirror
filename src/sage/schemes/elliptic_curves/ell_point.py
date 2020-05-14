@@ -256,6 +256,15 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             (0 : 1 : 0)
             sage: P=E(2, -4, 2); P
             (1 : -2 : 1)
+
+        TESTS:
+
+        Check that :trac:`29690` is fixed::
+        
+            sage: E = EllipticCurve([0,0,1,-1,0]);E4 = E.change_ring(Integers(4))
+            sage: E4(2,-3,8)
+            (2 : 1 : 0)
+
         """
         point_homset = curve.point_homset()
         if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
@@ -294,7 +303,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
             x, y, z = v
             if z == 0:
-                test = x
+                test = x**3
             else:
                 a1, a2, a3, a4, a6 = curve.ainvs()
                 test = y**2 + (a1*x+a3)*y - (((x+a2)*x+a4)*x+a6)
