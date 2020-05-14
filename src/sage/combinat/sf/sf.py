@@ -88,7 +88,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     Here is how to obtain both sides of this equality in the ring
     :math:`\operatorname{Sym}` of symmetric functions over
-    :math:`\mathbb{Q}` ::
+    :math:`\QQ` ::
 
         sage: Sym = SymmetricFunctions(QQ)
         sage: Sym.inject_shorthands()
@@ -176,7 +176,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     (or various other bases).
 
-    As our base ring, we take the field :math:`\mathbb{Q}(q,t)`
+    As our base ring, we take the field :math:`\QQ (q,t)`
     of rational functions in two variables :math:`q` and
     :math:`t` with rational coefficients. ::
 
@@ -187,11 +187,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: Symqt.inject_shorthands(verbose=False)
 
     In the first line here, we have defined ``F`` to be the
-    field :math:`\mathbb{Q}(q, t)`.
+    field :math:`\QQ (q, t)`.
     In the second, we have "injected" the variables :math:`q` and 
     :math:`t` in order to make them available as ``q`` and ``t``.
     Then, we have defined ``Symqt`` to be the ring of symmetric
-    functions over :math:`\mathbb{Q}(q,t)`. Finally, the
+    functions over :math:`\QQ (q,t)`. Finally, the
     ``Symqt.inject_shorthands()`` command makes the "usual"
     short names (as in Macdonald's book [Mac1995]_) for the bases
     of :math:`\operatorname{Sym}` available.
@@ -617,7 +617,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: print(pol2.base_ring())
         Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
 
-    Thus a concrete symmetric polynomial over :math:`\mathbb{Q}(q,t)` may be
+    Thus a concrete symmetric polynomial over :math:`\QQ (q,t)` may be
     transformed into an abstract symmetric function in any basis::
 
         sage: R = PolynomialRing(QQ['q','t'],'y',3)
@@ -1065,10 +1065,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     Sometimes one wants to check whether a given symmetric
     function is Schur-positive or not. In our current
-    setup, this means that the coefficients are
-    polynomials in :math:`\mathbb{N}[q,t]`. The following
-    function returns ``True`` if the given symmetric
-    function is Schur-positive and ``False`` if not. ::
+    setup, this means that when the function is expanded
+    in the Schur basis :math:`(s_\lambda)`, the
+    coefficients are polynomials in :math:`\NN [q,t]`.
+    If we worked over :math:`\QQ` instead, it would simply
+    mean that the coefficients are nonnegative integers.
+    The following function returns ``True`` if the given
+    symmetric function is Schur-positive and ``False`` if
+    not. ::
 
         sage: f = s([4,1])+s([3,2])
         sage: print(f.is_schur_positive())
@@ -1085,7 +1089,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         ....:         if (s(mu)*s(nu)).is_schur_positive():
         ....:             print('The product of ', s(mu),' and ',s(nu),' is Schur positive.')
         ....:         else:
-        ....:             print('The product of ', s(mu),' and ',s(nu),'is not Schur positive.')
+        ....:             print('The product of ', s(mu),' and ',s(nu),' is not Schur positive.')
         The product of  s[2]  and  s[3]  is Schur positive.
         The product of  s[2]  and  s[2, 1]  is Schur positive.
         The product of  s[2]  and  s[1, 1, 1]  is Schur positive.
@@ -1158,7 +1162,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. rubric:: Plethysm
 
     **Plethysm** of symmetric functions is a binary operation (defined
-    when the base ring is a :math:`\mathbb{Q}`-algebra, and in some
+    when the base ring is a :math:`\QQ`-algebra, and in some
     other situations) on :math:`\operatorname{Sym}` that is
     characterized by the properties
     - :math:`(f_1+f_2)\circ g = (f_1\circ g) + (f_2\circ g)`,
@@ -1274,10 +1278,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. MATH:: \nabla H_{\mu} = t^{n(\mu)} q^{n(\mu')} H_{\mu},
 
-    where :math:`\mu` is a partition, :math:`\mu'` its conjugate, and :math:`n(\mu)`
-    is defined as :math:`\sum_i (i-1)\mu_i`.
-    This operator :math:`\nabla` is thus defined over symmetric functions with
-    coefficients in the fraction field :math:`\mathbb{Q}[q,t]`, as declared above.
+    where :math:`\mu` is a partition, :math:`\mu'` its conjugate, and
+    :math:`n(\mu)` is defined as :math:`\sum_i (i-1)\mu_i`.
+    This operator :math:`\nabla` is thus defined on the symmetric
+    functions with coefficients in the fraction field of
+    :math:`\QQ [q,t]`, as declared above.
 
     It has been shown by Mark Haiman that :math:`\nabla(e_n)` is the Frobenius transform
     of the bigraded character of the :math:`S_n`-module of diagonal harmonic
@@ -1396,7 +1401,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: ks(Qp[2,1,1,1])
         ks3[2, 1, 1, 1] + (t^2+t)*ks3[2, 2, 1] + (t^3+t^2)*ks3[3, 1, 1] + t^4*ks3[3, 2]
 
-    The subspace spanned by the `k`-Schur functions with a parameter `t` are not known
+    The subspace spanned by the `k`-Schur functions with a parameter `t` is not known
     to form a natural algebra.  However it is known that the product of a `k`-Schur
     function and an `\ell`-Schur function is in the linear span of the `k+\ell`-Schur
     functions::
@@ -1709,7 +1714,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s[3,1,1,1,1](-X)
         -s[5, 1, 1]
 
-    If the base ring is a :math:`\mathbb{Q}`-algebra, then
+    If the base ring is a :math:`\QQ`-algebra, then
     the graded connected bialgebra :math:`\operatorname{Sym}`
     has a rather simple structure: It is (isomorphic to) the
     symmetric algebra of its space of primitives (which is spanned by the
@@ -1721,7 +1726,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: g.antipode()
         s[1, 1, 1, 1] + s[2, 1, 1] + s[2, 2]
         sage: g.coproduct()
-        s[] # s[2, 2] + s[] # s[3, 1] + s[] # s[4] + 2*s[1] # s[2, 1] + 2*s[1] # s[3] + s[1, 1] # s[1, 1] + s[1, 1] # s[2] + s[2] # s[1, 1] + 3*s[2] # s[2] + 2*s[2, 1] # s[1] + s[2, 2] # s[] + 2*s[3] # s[1] + s[3, 1] # s[] + s[4] # s[]
+        s[] # s[2, 2] + s[] # s[3, 1] + s[] # s[4] + 2*s[1] # s[2, 1]
+         + 2*s[1] # s[3] + s[1, 1] # s[1, 1] + s[1, 1] # s[2]
+         + s[2] # s[1, 1] + 3*s[2] # s[2] + 2*s[2, 1] # s[1]
+         + s[2, 2] # s[] + 2*s[3] # s[1] + s[3, 1] # s[] + s[4] # s[]
         sage: g.coproduct().apply_multilinear_morphism( lambda x,y: x*y.antipode() )
         0
 
