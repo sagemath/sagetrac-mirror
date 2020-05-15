@@ -292,6 +292,16 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup import load_hap
 from sage.arith.misc import xgcd
 
+def minmaxgroup(group):
+    m=0
+    M=0
+    for g in group.gens():
+        for i in g:
+            if i<m:
+                m=i
+            elif i>M:
+                M=i
+    return (m,M)
 
 def GLattice(*args, **kwds):
     r"""
@@ -490,7 +500,7 @@ class GAPMap_toGLn(Map):
 
         - ``rank`` -- the rank of the target matrix group
 
-        - ``hom`` -- the group homomorphism as a GAP object
+        - ``hom`` -- the group homomorphism as a libgap object
 
         EXAMPLES::
 
@@ -512,7 +522,7 @@ class GAPMap_toGLn(Map):
                       From: General Linear Group of degree 3 over Integer Ring
                       To:   Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
         """
-        Map.__init__(self, Hom(group, GL(rank, ZZ)))
+        Map.__init__(self, Hom(group,GL(rank, ZZ)))
         self._morphism = hom
 
     def _call_(self, x):
@@ -670,7 +680,16 @@ class Lattice_generic(FreeModule_generic):
             (1)
         """
         return  self._action.act(g,e)
-    
+    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None):
+        C = codomain
+        if is_Matrix(im_gens) and im_gens.ncols() == im_gens.nrows():
+            C = self
+        else:
+            C = codomain
+        from sage.structure.parent import Parent
+        return Parent.hom(self, im_gens, C, check, base_map, category)
+        
+
     def _Hom_(self, Y, category):
         from .glattice_morphism import GLatticeHomspace
         return GLatticeHomspace(self,Y, category)
@@ -698,6 +717,7 @@ class Lattice_generic(FreeModule_generic):
             Permutation Group with generators [(1,2)]
         """
         return self._group
+
 
     def action_is_trivial(self):
         r"""
@@ -935,6 +955,24 @@ class Lattice_generic(FreeModule_generic):
             [0|0 1]
             [0|1 0]
             ]
+
+        ::
+
+            sage: L1 = GLattice(SymmetricGroup(3))
+            sage: L2 = GLattice(CyclicPermutationGroup(4))
+            sage: L = L1.direct_sum(L2, "exterior")
+            sage: L = L1.direct_sum(L2, "exterior"); L; L._action_matrices
+            Ambient lattice of rank 7 with a faithful action by a group of order 24
+            [
+            [1 0 0|0 0 0 0]  [0 1 0|0 0 0 0]  [0 1 0|0 0 0 0]
+            [0 1 0|0 0 0 0]  [1 0 0|0 0 0 0]  [0 0 1|0 0 0 0]
+            [0 0 1|0 0 0 0]  [0 0 1|0 0 0 0]  [1 0 0|0 0 0 0]
+            [-----+-------]  [-----+-------]  [-----+-------]
+            [0 0 0|0 1 0 0]  [0 0 0|1 0 0 0]  [0 0 0|1 0 0 0]
+            [0 0 0|0 0 1 0]  [0 0 0|0 1 0 0]  [0 0 0|0 1 0 0]
+            [0 0 0|0 0 0 1]  [0 0 0|0 0 1 0]  [0 0 0|0 0 1 0]
+            [0 0 0|1 0 0 0], [0 0 0|0 0 0 1], [0 0 0|0 0 0 1]
+            ]
         """
         if param == "interior":
             g = self.group()
@@ -942,9 +980,16 @@ class Lattice_generic(FreeModule_generic):
                    for (A, B) in zip(self._action_matrices, lat._action_matrices)]
             return Lattice_ambient(g, act)
         elif param == "exterior":
-            pass
+            g1 = self.group()
+            g2 = lat.group()
+            G = g1.direct_product(g2)
+            hom1 = self._action_morphism
+            hom2 = lat._action_morphism
+            action = [block_diagonal_matrix(matrix(hom1.Image(G[3](g))),matrix(hom2.Image(G[4](g)))) for g in G[0].gens()]
+            return GLattice(G[0],action)
         else:
             raise ValueError("the last argument must be either 'interior' or 'exterior'")
+
     def ambient_lattice(self):
         r"""
         Returns this lattice; for compatibility with the corresponding method of sublattices.
@@ -998,7 +1043,7 @@ class Lattice_generic(FreeModule_generic):
 
         INPUT:
 
-        -- ``hom`` -- GAP group homomorphism
+        - ``hom`` -- GAP group homomorphism
 
         EXAMPLES::
 
@@ -2359,14 +2404,15 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
             sage: b = sum(L.basis())
             sage: TestSuite(L.sublattice([b])).run(skip=['_test_pickling'])
         """
-        Lattice_generic.__init__(self, lattice._group, lattice._action_matrices, check)
+        Lattice_generic.__init__(self, lattice.group(), lattice._action_matrices, check)
         FreeModule_submodule_pid.__init__(self, lattice.ambient_lattice(), basis)
 
+        Submod = FreeModule_submodule_pid(lattice.ambient_lattice(), basis)
         self._ambient_lattice = lattice.ambient_lattice()
         if check:
-            for i in lattice._group.gens():
+            for i in lattice.group().gens():
                 for j in basis:
-                    if not lattice._act(i,j) in self:
+                    if not lattice._act(i,j) in Submod:
                         raise ValueError("The basis is not stable under the action of the group")
 
     def _repr_(self):
@@ -2473,12 +2519,12 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
         """
         oldBasis = self.basis()
         act_builder = []
-        for g in self._group.gens():
+        for g in self.group().gens():
             mat_builder = []
             for i in oldBasis:
                 mat_builder.append(self.coordinate_vector(self._act(g,i)))
             act_builder.append(matrix(mat_builder).transpose())
-        return Lattice_ambient(self._group,act_builder)
+        return Lattice_ambient(self.group(),act_builder)
 
     def zero_sum_sublattice(self, ambient=False):
         r"""

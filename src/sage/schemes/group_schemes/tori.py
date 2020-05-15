@@ -118,20 +118,104 @@ from __future__ import print_function, absolute_import
 
 from sage.schemes.generic.scheme import Scheme
 from sage.matrix.constructor import matrix
+from sage.modules.glattice import GLattice
+from sage.rings.rational_field import QQ
+
+
+
+
+def AlgebraicTorusBuilder(char_lattice):
+    """
+    Creates an algebraic torus with a specific character lattice.
+
+    INPUT:
+
+    - ``char_lattice`` -- the character lattice of the torus.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.group_schemes.tori import AlgebraicTorusBuilder
+        sage: F.<a> = QuadraticField([2])
+        sage: G = F.galois_group()
+        sage: T1 = AlgebraicTorusBuilder(GLattice(G)); T1
+        Algebraic torus of rank 2 over Rational Field split by a degree 2 extension
+        sage: T2 = AlgebraicTorusBuilder(GLattice(G,4)); T2
+        Split algebraic torus of rank 4 over Rational Field
+    """
+    return AlgebraicTorus(char_lattice)
+
+
+def RestrictionOfScalars(nfield, rk = 1):
+    """
+    Creates the torus defined by restriction of scalars of a split torus to the field of rational numbers.
+
+    INPUT:
+
+    - ``nfield`` -- Number field corresponding to the restriction of scalars.
+
+    - ``rk`` -- rank of the split torus of which we take the restriction of scalars. The default value is 1.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
+        sage: F.<a> = QuadraticField([2])
+        sage: T1 = RestrictionOfScalars(F); T1
+        Algebraic torus of rank 2 over Rational Field split by a degree 2 extension
+        sage: K.<t> = NumberField(x^4+x^3+x^2+x+1)
+        sage: T2 = RestrictionOfScalars(K); T2
+        Algebraic torus of rank 4 over Rational Field split by a degree 4 extension
+        sage: T2.galois_group()
+        Galois group 4T1 (4) with order 4 of x^4 + x^3 + x^2 + x + 1
+        sage: T3 = RestrictionOfScalars(K,3); T3
+        Algebraic torus of rank 12 over Rational Field split by a degree 4 extension
+    """
+    L = GLattice(rk).induced_lattice(nfield.galois_group())
+    return AlgebraicTorusBuilder(L)
+
+def NormOneRestrictionOfScalars(nfield, rk = 1):
+    """
+    Creates the torus of norm one elements inside the restriction of scalars of a split torus to the field of rational numbers.
+
+    INPUT:
+
+    - ``nfield`` -- Number field corresponding to the restriction of scalars.
+
+    - ``rk`` -- rank of the split torus of which we take the restriction of scalars. The default value is 1.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+        sage: F.<a> = QuadraticField([2])
+        sage: T1 = NormOneRestrictionOfScalars(F); T1
+        Algebraic torus of rank 1 over Rational Field split by a degree 2 extension
+        sage: T1.character_lattice()._action_matrices
+        [[-1]]
+        sage: T2 = NormOneRestrictionOfScalars(K); T2
+        Algebraic torus of rank 3 over Rational Field split by a degree 4 extension
+        sage: T3 = NormOneRestrictionOfScalars(K,3); T3
+        Algebraic torus of rank 12 over Rational Field split by a degree 4 extension
+    """
+    L = GLattice(rk).induced_lattice(nfield.galois_group())
+    return AlgebraicTorusBuilder(L)
+
+    L = GLattice(rk).norm_one_restriction_of_scalars(nfield.galois_group())
+    return AlgebraicTorusBuilder(L)
+
+
 
 class AlgebraicTorus(Scheme):
     r"""
     Creates an algebraic torus through its equivalence of categories with the action
     of a Galois group on an integral lattice.
+
+    INPUT:
+
+    - ``lattice`` -- the character lattice with Galois action
+      defining the torus.
     """
     def __init__(self, lattice):
         r"""
-        Constructs an object of the albegraic torus class.
-
-        INPUT:
-
-        - ``lattice`` -- the character lattice with Galois action
-         defining the torus.
+        Construct an object of the albegraic torus class.
 
         EXAMPLES::
 
@@ -143,14 +227,11 @@ class AlgebraicTorus(Scheme):
             Dihedral group of order 8 as a permutation group
         """
         Scheme.__init__(self)
-        if lattice is None:
-            raise ValueError('You have to specify a lattice.')
-        else:
-            self._galois_group = lattice.group()
-            self._lattice = lattice
-            self._field = self._galois_group.number_field()
-            self._base_field = self._field.base_field()
-            self._splitting_field = self._field
+        self._galois_group = lattice.group()
+        self._lattice = lattice
+        self._field = self._galois_group.number_field()
+        self._base_field = self._field.base_field()
+        self._splitting_field = self._field
 
     def _repr_(self):
         r"""
@@ -252,26 +333,22 @@ class AlgebraicTorus(Scheme):
 
     def is_rational(self, ruple, subgp=None):
         r"""
-        Detects if a point is rational over the base field.
+        Detect if a point is rational over the base field.
 
         INPUT:
 
         - ``ruple`` -- a point of the torus given as an r-tuple of points over the
-        splitting field, where r is the rank of the torus.
+          splitting field, where r is the rank of the torus
 
         - ``subgp`` -- optional, subgroup of the Galois group corresponding to an
-        intermediate extension. If specified, the algorithm will test the rationality
-        over the intermediate extension.
+          intermediate extension; if specified, the algorithm will test the rationality
+          over the intermediate extension
 
         EXAMPLES::
 
             sage: K.<w> = QuadraticField(5); G = K.galois_group()
-            sage: Lat = Lattice_ambient(PermutationGroup([()]),1)
-            sage: Lati = Lat.induced_lattice(G)
-
-        ::
-
-            sage: T = AlgebraicTorus(Lati, QQ, K)
+            sage: Lat = GLattice(G, 1)
+            sage: T = AlgebraicTorus(Lat)
             sage: T.is_rational([w, w])
             False
             sage: T.is_rational([1, 1])
