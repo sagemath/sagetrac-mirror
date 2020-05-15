@@ -526,6 +526,42 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: T = E.torsion_subgroup()
             sage: [E(t) for t in T]
             [(0 : 1 : 0)]
+
+        TESTS:
+
+        Check that :trac:`29691` is fixed::
+
+            sage: E = EllipticCurve(ZZ,[0,0,1,-1,0]);E4 = E.change_ring(Integers(4)); P = E(2,-3,8); P
+            (2 : -3 : 8)
+            sage: E4(P)
+            (2 : 1 : 0)
+            sage: E = EllipticCurve([0,0,1,-1,0]);E4 = E.change_ring(Integers(4)); P = E(2,-3,8); P
+            (1/4 : -3/8 : 1)
+            sage: E4(P)
+            (2 : 1 : 0)
+
+        Suppose we have a point with large height on a rational elliptic curve
+        whose denominator contains a factor of 11::
+
+            sage: E = EllipticCurve([1,-1,0,94,9])
+            sage: R = E([0,3]) + 5*E([8,31])
+            sage: factor(R.xy()[0].denominator())
+            2^2 * 11^2 * 1457253032371^2
+
+        Since 11 is a factor of the denominator, this point corresponds to the
+        point at infinity on the same curve but reduced modulo 11. The reduce
+        function tells us this::
+
+            sage: E11 = E.change_ring(GF(11))
+            sage: S = E11(R)
+            sage: E11(S)
+            (0 : 1 : 0)
+
+        The 0 point reduces as expected::
+
+            sage: E11(E(0))
+            (0 : 1 : 0)
+
         """
         if len(args) == 1 and args[0] == 0:
             R = self.base_ring()
@@ -543,65 +579,13 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             characteristic = self.base_ring().characteristic()
             if characteristic != 0 and isinstance(args[0][0], rings.Rational) and isinstance(args[0][1], rings.Rational):
                 if rings.mod(args[0][0].denominator(),characteristic) == 0 or rings.mod(args[0][1].denominator(),characteristic) == 0:
-                    return self._reduce_point(args[0], characteristic)
+                    x, y = args[0].xy()
+                    d = lcm(x.denominator(), y.denominator())
+                    args = ([x*d, y*d, d],)
+
             args = tuple(args[0])
 
         return plane_curve.ProjectivePlaneCurve.__call__(self, *args, **kwds)
-
-    def _reduce_point(self, R, p):
-        r"""
-        Reduces a point R on an elliptic curve to the corresponding point on
-        the elliptic curve reduced modulo p.
-
-        Used to coerce points between
-        curves when p is a factor of the denominator of one of the
-        coordinates.
-
-        This functionality is used internally in the ``call`` method for
-        elliptic curves.
-
-        INPUT:
-
-        - R -- a point on an elliptic curve
-        - p -- a prime
-
-        OUTPUT:
-
-        S -- the corresponding point of the elliptic curve containing
-           R, but reduced modulo p
-
-        EXAMPLES:
-
-        Suppose we have a point with large height on a rational elliptic curve
-        whose denominator contains a factor of 11::
-
-            sage: E = EllipticCurve([1,-1,0,94,9])
-            sage: R = E([0,3]) + 5*E([8,31])
-            sage: factor(R.xy()[0].denominator())
-            2^2 * 11^2 * 1457253032371^2
-
-        Since 11 is a factor of the denominator, this point corresponds to the
-        point at infinity on the same curve but reduced modulo 11. The reduce
-        function tells us this::
-
-            sage: E11 = E.change_ring(GF(11))
-            sage: S = E11._reduce_point(R, 11)
-            sage: E11(S)
-            (0 : 1 : 0)
-
-        The 0 point reduces as expected::
-
-            sage: E11._reduce_point(E(0), 11)
-            (0 : 1 : 0)
-
-        Note that one need not explicitly call
-        \code{EllipticCurve._reduce_point}
-        """
-        if R.is_zero():
-            return R.curve().change_ring(rings.GF(p))(0)
-        x, y = R.xy()
-        d = lcm(x.denominator(), y.denominator())
-        return R.curve().change_ring(rings.GF(p))([x*d, y*d, d])
 
     def is_x_coord(self, x):
         r"""
