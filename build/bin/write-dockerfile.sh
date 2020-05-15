@@ -53,8 +53,8 @@ EOF
 ARG BASE_IMAGE=fedora:latest
 FROM \${BASE_IMAGE} as with-system-packages
 EOF
-        EXISTS="2>/dev/null >/dev/null yum install -y --downloadonly"
-        INSTALL="yum install -y"
+        EXISTS="2>/dev/null >/dev/null yum install -y --nogpgcheck --downloadonly"
+        INSTALL="yum install -y --nogpgcheck"
         ;;
     slackware*)
         # https://docs.slackware.com/slackbook:package_management
