@@ -29,7 +29,7 @@ from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.list_clone import ClonableArray
-from sage.structure.parent import Parent
+#from sage.structure.parent import Parent
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.tableau import Tableau
@@ -194,7 +194,7 @@ class OscillatingTableau(ClonableArray,PathTableau):
                 c = [ k for k, r in enumerate(tb) if i in r ]
                 if len(c) == 1:
                     k = c[0]
-                    tc = map(list,tb)
+                    tc = [ list(x) for x in tb ]
                     tc[k].remove(i)
                     if tc[k] == []:
                         tc.remove(tc[k])
@@ -248,11 +248,11 @@ class OscillatingTableau(ClonableArray,PathTableau):
             """
             This is the rule on a sequence of three partitions.
             """
-            y = map(list,x)
-            m = max([ len(u) for u in y ])
-            z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
+#            y = map(list,x)
+            m = max(len(u) for u in x)
+            z = [ vector(u + [0]*(m-len(u)) ) for u in x ]
             result = z[0]-z[1]+z[2]
-            result = map(abs,result)
+            result = [ abs(_) for _ in result ]
             result.sort(reverse=True)
             return Partition(result)
 
@@ -336,7 +336,7 @@ class OscillatingTableau(ClonableArray,PathTableau):
         """
         n = len(self)
         result = [0]*(n-1)
-        l = map(len, self)
+        l = [ len(_) for _ in self ]
 
         for i in range(n-1):
             if l[i] > l[i+1]:
