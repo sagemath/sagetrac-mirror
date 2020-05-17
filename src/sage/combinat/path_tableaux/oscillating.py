@@ -34,9 +34,9 @@ from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition
-from sage.modules.free_module_element import vector
+#from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
-
+from itertools import zip_longest
 """
 Here we illustrate one of the main theorems of [PRW2018]_ that
 promotion for oscillating tableaux corresponds to inverse rotation of perfect matchings.
@@ -243,15 +243,14 @@ class OscillatingTableau(ClonableArray,PathTableau):
             sage: t._local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
         """
-
         def _rule(x):
             """
             This is the rule on a sequence of three partitions.
             """
 #            y = map(list,x)
-            m = max(len(u) for u in x)
-            z = [ vector(u + [0]*(m-len(u)) ) for u in x ]
-            result = z[0]-z[1]+z[2]
+#            m = max(len(u) for u in x)
+#            result = z[0]-z[1]+z[2]
+            result = [ i-j+k for i,j,k in zip_longest(*x,fillvalue=0)]
             result = [ abs(_) for _ in result ]
             result.sort(reverse=True)
             return Partition(result)
