@@ -490,7 +490,7 @@ class CylindricalDiagram(SageObject):
             ValueError: 2 must be a path tableau
         """
         if not isinstance(T,PathTableau):
-            raise ValueError('{0} must be a path tableau'.format(str(T)))
+            raise ValueError('{!s} must be a path tableau'.format(T))
         n = len(T)
         result = [[None]*(2*n-1)]*n
         for i in range(n):

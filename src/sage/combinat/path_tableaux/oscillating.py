@@ -26,22 +26,18 @@ AUTHORS:
 #*****************************************************************************
 
 from six import add_metaclass
-
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.list_clone import ClonableArray
-#from sage.structure.parent import Parent
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
-from sage.combinat.tableau import Tableau
+from sage.combinat.tableau import Tableau, StandardTableau
 from sage.combinat.partition import Partition
-#from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
 from itertools import zip_longest
 """
 Here we illustrate one of the main theorems of [PRW2018]_ that
 promotion for oscillating tableaux corresponds to inverse rotation of perfect matchings.
 
-    TEST::
+    TESTS::
 
         sage: all(OscillatingTableau(pm) == OscillatingTableau(pm.rotate()).promotion() for pm in PerfectMatchings(6))
         True
@@ -59,15 +55,15 @@ REFERENCES:
 
 EXAMPLES::
 
-    sage: t = OscillatingTableau([1,2,-2,-1])
-    sage: SkewTableau(t.cylindrical_diagram()).pp()
-     [][1][1, 1][1] []
-      . [][1][1, 1][1] []
-      .  . [][1][1, 1][1] []
-      .  .  . [][1][1, 1][1] []
-      .  .  .  . [][1][1, 1][1] []
+    sage: ot = OscillatingTableau([1,2,-2,-1])
+    sage: CylindricalDiagram(ot)
+     [[], [1], [1, 1], [1], []]
+     ['', [], [1], [1, 1], [1], []]
+     ['', '', [], [1], [1, 1], [1], []]
+     ['', '', '', [], [1], [1, 1], [1], []]
+     ['', '', '', '', [], [1], [1, 1], [1], []]
 
-    sage: TestSuite(t).run()
+    sage: TestSuite(ot).run()
 
     sage: t = OscillatingTableau([1,2,1,-1,-2,-1])
     sage: len(t.orbit())
@@ -76,7 +72,7 @@ EXAMPLES::
 """
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class OscillatingTableau(ClonableArray,PathTableau):
+class OscillatingTableau(PathTableau):
     """
     An oscillating tableau is a sequence of partitions such that at
     each step either a single box is added or a single box is removed.
@@ -116,18 +112,18 @@ class OscillatingTableau(ClonableArray,PathTableau):
 
     EXAMPLES::
 
-    sage: OscillatingTableau([Partition([]), Partition([1]), Partition([])])
-    [[], [1], []]
+        sage: OscillatingTableau([Partition([]), Partition([1]), Partition([])])
+        [[], [1], []]
 
-    sage: OscillatingTableau([[], [1], []])
-    [[], [1], []]
+        sage: OscillatingTableau([[], [1], []])
+        [[], [1], []]
 
-    sage: pm = PerfectMatching([[1,2]])
-    sage: OscillatingTableau(pm)
-    [[], [1], []]
+        sage: pm = PerfectMatching([[1,2]])
+        sage: OscillatingTableau(pm)
+        [[], [1], []]
 
-    sage: OscillatingTableau([1,-1])
-    [[], [1], []]
+        sage: OscillatingTableau([1,-1])
+        [[], [1], []]
 
     """
 
@@ -145,16 +141,28 @@ class OscillatingTableau(ClonableArray,PathTableau):
 
         EXAMPLES::
 
-        sage: pm = PerfectMatching([[1,2]])
-        sage: OscillatingTableau(pm)
-        [[], [1], []]
+            sage: pm = PerfectMatching([[1,2]])
+            sage: OscillatingTableau(pm)
+            [[], [1], []]
 
-        sage: pm = PerfectMatching([[1,3],[2,4]])
-        sage: OscillatingTableau(pm)
-        [[], [1], [1, 1], [1], []]
+            sage: pm = PerfectMatching([[1,3],[2,4]])
+            sage: OscillatingTableau(pm)
+            [[], [1], [1, 1], [1], []]
 
-        sage: OscillatingTableau([1,-1])
-        [[], [1], []]
+            sage: OscillatingTableau([1,-1])
+            [[], [1], []]
+
+        TESTS::
+
+            sage: OscillatingTableau([1,0,-1])
+            Traceback (most recent call last):
+            ...
+            ValueError: list may not contain zero
+
+            sage: OscillatingTableau([Permutation(1,2),Permutation(2,1)])
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
 
         if isinstance(ot, OscillatingTableau):
@@ -171,7 +179,7 @@ class OscillatingTableau(ClonableArray,PathTableau):
             try:
                 ot = tuple([Integer(a) for a in ot])
                 if any([a==0 for a in ot]):
-                    raise ValueError("List may not contain zero.")
+                    raise ValueError("list may not contain zero")
 
                 w = [Partition([])]*(len(ot)+1)
 
@@ -208,27 +216,47 @@ class OscillatingTableau(ClonableArray,PathTableau):
                     raise RuntimeError("tableau must be standard")
 
         if w is None:
-            raise ValueError("invalid input %s" % ot)
+            raise ValueError("invalid input {!s}".format(ot))
 
         return OscillatingTableaux()(w)
 
-    def _hash_(self):
-        return hash(tuple(map(tuple, self)))
-
     def check(self):
+        r"""
+        Check that ``self`` is a valid oscillating tableau.
+
+        EXAMPLES::
+
+            sage: ot = OscillatingTableau([[], [1], [2], [1], [], [1], []])
+            sage: ot.check()
+
+        TESTS::
+
+            sage: ot = OscillatingTableau([[], [1], [3], [1], [], [1], []])
+            Traceback (most recent call last):
+            ...
+            ValueError: adjacent partitions differ by more than one box
+            sage: ot = OscillatingTableau([[], [1], [2], [2,1], [4]])
+            Traceback (most recent call last):
+            ...
+            ValueError: next partition is not obtained by adding a cell
+            sage: ot = OscillatingTableau([[], [1], [2], [3], [1,1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: next partition is not obtained by removing a cell
+        """
         n = len(self)
         for i in range(n-1):
             h = self[i]
             t = self[i+1]
 
             if abs(t.size()-h.size()) != 1:
-                    raise ValueError("Adjacent partitions differ by more than one box.")
+                    raise ValueError("adjacent partitions differ by more than one box")
             if t.size() == h.size()+1:
                 if not t.contains(h):
-                    raise ValueError("Next partition is not obtained by adding a cell.")
+                    raise ValueError("next partition is not obtained by adding a cell")
             if h.size() == t.size()+1:
                 if not h.contains(t):
-                    raise ValueError("Next partition is not obtained by removing a cell.")
+                    raise ValueError("next partition is not obtained by removing a cell")
 
     def _local_rule(self,i):
         """
@@ -247,9 +275,6 @@ class OscillatingTableau(ClonableArray,PathTableau):
             """
             This is the rule on a sequence of three partitions.
             """
-#            y = map(list,x)
-#            m = max(len(u) for u in x)
-#            result = z[0]-z[1]+z[2]
             result = [ i-j+k for i,j,k in zip_longest(*x,fillvalue=0)]
             result = [ abs(_) for _ in result ]
             result.sort(reverse=True)
@@ -267,19 +292,23 @@ class OscillatingTableau(ClonableArray,PathTableau):
         """
         Returns True if Tableau is skew and False if not.
 
-        EXAMPLE:
-        sage: T = OscillatingTableau([[],[1],[2],[1],[]])
-        sage: T.is_skew()
-        False
+        EXAMPLES::
+
+            sage: T = OscillatingTableau([[],[1],[2],[1],[]])
+            sage: T.is_skew()
+            False
         """
         return self[0] != Partition([])
 
     def crossing_number(self):
         """
         Returns the crossing number.
-        sage: T = OscillatingTableau([[],[1],[2],[1],[]])
-        sage: T.crossing_number()
-        1
+
+        EXAMPLES::
+
+            sage: T = OscillatingTableau([[],[1],[2],[1],[]])
+            sage: T.crossing_number()
+            1
         """
         return max( a.length() for a in self )
 
@@ -287,10 +316,11 @@ class OscillatingTableau(ClonableArray,PathTableau):
         """
         Returns the nesting number.
 
-        EXAMPLE:
-        sage: T = OscillatingTableau([[],[1],[2],[1],[]])
-        sage: T.nesting_number()
-        2
+        EXAMPLES::
+
+            sage: T = OscillatingTableau([[],[1],[2],[1],[]])
+            sage: T.nesting_number()
+            2
         """
 
         v = (a for a in self if a.length() > 0)
@@ -321,7 +351,7 @@ class OscillatingTableau(ClonableArray,PathTableau):
         Converts an oscillating tableau to a word in the alphabet
         ...,-2,-1,1,2,...
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = OscillatingTableau([[],[1],[2],[1],[]])
             sage: T.to_word()
@@ -355,10 +385,11 @@ class OscillatingTableau(ClonableArray,PathTableau):
         """
         Returns the descent set. This is defined in [RSW2013]_
 
-        EXAMPLE:
-        sage: T = OscillatingTableau([[],[1],[2],[1],[]])
-        sage: T.descents()
-        {2}
+        EXAMPLES::
+
+            sage: T = OscillatingTableau([[],[1],[2],[1],[]])
+            sage: T.descents()
+            {2}
 
         """
         result = set()
@@ -387,36 +418,48 @@ class OscillatingTableau(ClonableArray,PathTableau):
 
         OUTPUT: A pair (S,M); S is a Tableau and M is a PerfectMatching
 
-        sage: t = OscillatingTableau([[],[1],[1,1],[1],[]])
-        sage: t.sundaram()
-        ([], [(1, 3), (2, 4)])
+        EXAMPLES::
 
-        sage: t = OscillatingTableau([[],[1],[1,1],[2,1],[2],[1],[2],[2,1],[2,1,1],[2,1]])
-        sage: t.sundaram()
-        ([[2, 7], [8]], [(1, 4), (3, 5), (6, 9)])
+            sage: t = OscillatingTableau([[],[1],[1,1],[1],[]])
+            sage: t.sundaram()
+            ([], [(1, 3), (2, 4)])
 
-        sage: s = OscillatingTableau([[],[1],[2],[2,1],[1,1],[1],[1,1],[2,1],[3,1],[2,1]])
-        sage: s.sundaram()
-        ([[3, 7], [6]], [(1, 5), (2, 4), (8, 9)])
+            sage: t = OscillatingTableau([[],[1],[1,1],[2,1],[2],[1],[2],[2,1],[2,1,1],[2,1]])
+            sage: t.sundaram()
+            ([[2, 7], [8]], [(1, 4), (3, 5), (6, 9)])
 
+            sage: s = OscillatingTableau([[],[1],[2],[2,1],[1,1],[1],[1,1],[2,1],[3,1],[2,1]])
+            sage: s.sundaram()
+            ([[3, 7], [6]], [(1, 5), (2, 4), (8, 9)])
+
+        TESTS::
+
+            sage: T = OscillatingTableau([[1],[2],[1],[]])
+            sage: T.sundaram()
+            Traceback (most recent call last):
+            ...
+            ValueError: this has only been implemented for straight oscillating tableaux
+
+            sage: T = OscillatingTableau([[],[1],[2],[1]])
+            sage: T.sundaram()
+            ([[1]], [(2, 3)])
         """
         if self.is_skew():
-            raise ValueError("This has only been implemented for straight oscillating tableaux.")
+            raise ValueError("this has only been implemented for straight oscillating tableaux")
         tb = Tableau([])
         pm = set([])
 
-        for i in range(1,len(self)):
-            lb = self[i]
-            mu = self[i-1]
+        for i, u in enumerate(zip(self,self[1:])):
+            mu, lb = u
             if lb.contains(mu):
                 cell = [ c for c in lb.corners() if c not in mu.corners() ][0]
-                tb = tb.add_entry(cell,i)
+                tb = tb.add_entry(cell,i+1)
             else:
                 cell = [ c for c in mu.corners() if c not in lb.corners() ][0]
                 tb, x = tb.reverse_bump(cell)
-                pm.add((i,x))
+                pm.add((i+1,x))
 
-        return (tb,PerfectMatching(pm))
+        return (StandardTableau(tb),PerfectMatching(pm))
 
 ###############################################################################
 
