@@ -38,19 +38,22 @@ AUTHORS:
 
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.categories.sets_cat import Sets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 #from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_graded
-from sage.rings.integer import Integer
+from sage.structure.sage_object import SageObject
+from sage.structure.list_clone import ClonableArray
+from sage.misc.latex import latex
 #from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 #from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class PathTableau():
-
+class PathTableau(ClonableArray):
+    """
+    This is the abstract base class for path tableaux.
+    """
     @abstract_method(optional=False)
     def _local_rule(self,i):
         """
@@ -67,8 +70,8 @@ class PathTableau():
             sage: t._local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
         """
-        
-################################# Book Keeping ################################
+
+    ################################# Book Keeping ############################
 
     def size(self):
         """
@@ -106,7 +109,7 @@ class PathTableau():
         """
         return self[-1]
 
-############################# Jeu de taquin ###################################
+    ############################# Jeu de taquin ###############################
 
     def promotion(self):
         """
@@ -169,6 +172,27 @@ class PathTableau():
             [1, 2, 3, 2, 1]
             [0, 1, 2, 1, 0]
             ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
+
+        TESTS::
+
+            sage: t1 = CatalanTableau([])
+            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1.commutor(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: this requires nonempty lists
+            sage: t1 = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t2 = CatalanTableau([])
+            sage: t1.commutor(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: this requires nonempty lists
+            sage: t1 = CatalanTableau([0,1,2,3,2,1])
+            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1.commutor(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 1, 2, 3, 2, 1],[0, 1, 2, 1, 0] is not a composable pair
         """
         n = len(self)
         m = len(other)
@@ -196,16 +220,16 @@ class PathTableau():
         return (self.parent()(path[:m]),self.parent()(path[m-1:]))
 
     def cactus(self,i,j):
-        """
+        r"""
         Return the action of the generators of the cactus group on ``self``.
         These generators are involutions and are usually denoted by
-        `s_{i,j}`.
+        $s_{i,j}$.
 
         INPUT:
 
-        - ``i`` -- a positive integer
+        ``i`` -- a positive integer
 
-        - ``j`` -- a positive integer strictly greater than ``i``
+        ``j`` -- a positive integer weakly greater than ``i``
 
 
         EXAMPLES::
@@ -219,12 +243,22 @@ class PathTableau():
 
             sage: t.cactus(1,7) == t.evacuation()
             True
-
             sage: t.cactus(1,7).cactus(1,6) == t.promotion()
             True
 
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.cactus(1,8)
+            Traceback (most recent call last):
+            ...
+            ValueError: integers out of bounds
+            sage: t.cactus(0,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: integers out of bounds
         """
-        if not 0 < i < j <= self.size():
+        if not 0 < i <= j <= self.size():
             raise ValueError("integers out of bounds")
 
         if i == j:
@@ -239,38 +273,7 @@ class PathTableau():
 
         return self.cactus(1,j).cactus(1,j-i+1).cactus(1,j)
 
-########################### Visualisation and checking ########################
-
-    def cylindrical_diagram(self):
-        """
-        Return the cylindrical growth diagram associated to ``self``.
-
-        This provides a visual summary of several operations simultaneously.
-        The operations which can be read off directly from this diagram
-        are the powers of the promotion operator (which form the rows)
-        and the cactus group operators `s_{1,j}` (which form the
-        first half of the columns).
-
-        EXAMPLES::
-
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: SkewTableau(t.cylindrical_diagram()).pp()
-            0  1  2  3  2  1  0
-            .  0  1  2  1  0  1  0
-            .  .  0  1  0  1  2  1  0
-            .  .  .  0  1  2  3  2  1  0
-            .  .  .  .  0  1  2  1  0  1  0
-            .  .  .  .  .  0  1  0  1  2  1  0
-            .  .  .  .  .  .  0  1  2  3  2  1  0
-        """
-        n = len(self)
-        result = [[None]*(2*n-1)]*n
-        T = self
-        for i in range(n):
-            result[i] = [None]*i + list(T)
-            T = T.promotion()
-
-        return result
+    ########################### Visualisation and checking ####################
 
     def _test_involution_rule(self, **options):
         """
@@ -280,11 +283,11 @@ class PathTableau():
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t._test_involution_rule()
-
         """
         tester = self._tester(**options)
-        tester.assertTrue(all( self._local_rule(i+1)._local_rule(i+1) == self
-                               for i in range(self.size()-2) ))
+        for i in range(self.size()-2):
+            tester.assertTrue(self._local_rule(i+1)._local_rule(i+1) == self)
+
 
     def _test_involution_cactus(self, **options):
         """
@@ -296,8 +299,8 @@ class PathTableau():
             sage: t._test_involution_cactus()
         """
         tester = self._tester(**options)
-        tester.assertTrue(all( self.cactus(1,i).cactus(1,i) == self
-                               for i in range(2,self.size()+1) ))
+        for i in range(2,self.size()+1):
+            tester.assertTrue(self.cactus(1,i).cactus(1,i) == self)
 
     def _test_promotion(self, **options):
         """
@@ -310,7 +313,7 @@ class PathTableau():
         """
         tester = self._tester(**options)
         n = self.size()-1
-        tester.assertTrue( self.cactus(1,n-1).cactus(1,n).promotion() == self )
+        tester.assertTrue(self.cactus(1,n-1).cactus(1,n).promotion() == self)
 
     def _test_commutation(self, **options):
         """
@@ -421,7 +424,6 @@ class PathTableau():
              ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 1, 2, 1, 0], '4,7'),
              ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,7'),
              ([0, 1, 2, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,6')]
-
         """
         from sage.graphs.graph import Graph
         from itertools import combinations
@@ -437,9 +439,171 @@ class PathTableau():
         return G
 
 class PathTableaux(UniqueRepresentation,Parent):
+    """ The abstract parent class for PathTableau."""
+    def __init__(self):
+        """
+        Initializes the abstract class of all PathTableaux
 
-    def __init(self):
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,1,0])
+            sage: t.parent() # indirect test
+            <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+        """
         Parent.__init__(self, category=Sets())
 
-    def _element_constructor_(self, *args, **keywords):
-        return self.element_class(self, *args, **keywords)
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Constructs an object as an element of ``self``, if possible.
+
+        TESTS::
+
+            sage: CatalanTableau([0,1,2,1,0]) # indirect doctest
+            [0, 1, 2, 1, 0]
+        """
+        return self.element_class(self, *args, **kwds)
+
+class CylindricalDiagram(SageObject):
+    """
+    A class for cylindrical growth diagrams.
+
+    """
+    def __init__(self,T):
+        """
+        Initialise an object of ``self`` from the PathTableau object T
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: CylindricalDiagram(t)
+             [0, 1, 2, 3, 2, 1, 0]
+             ['', 0, 1, 2, 1, 0, 1, 0]
+             ['', '', 0, 1, 0, 1, 2, 1, 0]
+             ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+             ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+             ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+             ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+
+            sage: CylindricalDiagram(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 must be a path tableau
+        """
+        if not isinstance(T,PathTableau):
+            raise ValueError('{0} must be a path tableau'.format(str(T)))
+        n = len(T)
+        result = [[None]*(2*n-1)]*n
+        for i in range(n):
+            result[i] = [""]*i + list(T)
+            T = T.promotion()
+
+        self.diagram = result
+
+    def __repr__(self):
+        """
+        Return a string representation of ``self``
+
+        TESTS::
+
+            sage: print(CatalanTableau([0,1,2,1,2,1,0])) # indirect test
+            [0, 1, 2, 1, 2, 1, 0]
+        """
+        dg = self.diagram
+        return ' '+str(dg[0])+''.join('\n ' + str(x) for x in dg[1:])
+
+    def _latex_(self):
+        r"""
+        Return a `\LaTeX` representation of ``self``
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: latex(CylindricalDiagram(t))
+            \begin{array}{ccccccccccccc}
+            0 & 1 & 2 & 3 & 2 & 1 & 0\\
+             & 0 & 1 & 2 & 1 & 0 & 1 & 0\\
+             &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
+             &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0\\
+             &  &  &  & 0 & 1 & 2 & 1 & 0 & 1 & 0\\
+             &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
+             &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
+             \end{array}
+        """
+        D = self.diagram
+        m = len(D[-1])
+        result = "\\begin{array}{"+"c"*m + "}\n"
+        result += "\\\\ \n".join( " & ".join(latex(a) for a in x) for x in D )
+        result += "\n \\end{array}\n"
+        return result
+
+    def __len__(self):
+        """Return the length of ``self``
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: len(CylindricalDiagram(t))
+            7
+        """
+        return len(self.diagram)
+
+    def _ascii_art_(self):
+        """
+        Return an ascii art representation of ``self``
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: ascii_art(CylindricalDiagram(t))
+            0 1 2 3 2 1 0
+             0 1 2 1 0 1 0
+              0 1 0 1 2 1 0
+               0 1 2 3 2 1 0
+                0 1 2 1 0 1 0
+                 0 1 0 1 2 1 0
+                  0 1 2 3 2 1 0
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        D = [ map(str,x) for x in self.diagram ]
+        S = [ ' '.join(x) for x in D ]
+        return AsciiArt(S)
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art representation of ``self``
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: unicode_art(CylindricalDiagram(t))
+            0 1 2 3 2 1 0
+             0 1 2 1 0 1 0
+              0 1 0 1 2 1 0
+               0 1 2 3 2 1 0
+                0 1 2 1 0 1 0
+                 0 1 0 1 2 1 0
+                  0 1 2 3 2 1 0
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        D = [ map(str,x) for x in self.diagram ]
+        S = [ ' '.join(x) for x in D ]
+        return UnicodeArt(S)
+
+    def pp(self):
+        """
+        A pretty print utility method.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: CylindricalDiagram(t).pp()
+            0 1 2 3 2 1 0
+              0 1 2 1 0 1 0
+                0 1 0 1 2 1 0
+                  0 1 2 3 2 1 0
+                    0 1 2 1 0 1 0
+                      0 1 0 1 2 1 0
+                        0 1 2 3 2 1 0
+
+        """
+        print('\n'.join(' '.join('{:0<}'.format(a) for a in x)  for x in self.diagram ))
