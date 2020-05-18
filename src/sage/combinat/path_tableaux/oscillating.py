@@ -425,8 +425,21 @@ class OscillatingTableau(PathTableau):
         return result
 
     def descents(self):
-        """
+        r"""
         Return the descent set. This is defined in [RSW2013]_
+
+        It is defined in terms of the word $w$ by $i$ is a descent if
+        $w[i-1] > 0$ and $w[i] < 0$ or $0 < w[i-1] < w[i]$ or w[i-1] < w[i] < 0$
+
+        Equivalently, it is defined in terms of the sequence of partitions by:
+        $i$ is a descent if
+        * step $i$ is an expansion and step $i+1$ is a a contraction, or
+        * steps $i$ and $i$ are both expansions and the row for the box added
+        at step $i$ is strictly above the row for the box added
+        at step $i+1$, or
+        * steps $i$ and $i$ are both contractions and the row for the box added
+        at step $i$ is strictly below the row for the box added
+        at step $i+1$
 
         EXAMPLES::
 
@@ -434,17 +447,19 @@ class OscillatingTableau(PathTableau):
             sage: T.descents()
             {2}
 
+        TESTS::
+
+            all(OscillatingTableau(pm).descents() == set(pm.to_permutation().descents())
+                for pm in PerfectMatchings(6))
+            True
         """
         result = set()
         w = self.to_word()
 
-        for i in range(1,len(w)):
-            if w[i-1] > 0 and w[i] < 0:
-                result.add(i)
-            if 0 < w[i-1] < w[i]:
-                result.add(i)
-            if w[i-1] < w[i] < 0:
-                result.add(i)
+        for i, x in enumerate(zip(w,w[1:])):
+            u, v = x
+            if (u > 0 and v < 0) or (0 < u < v) or (u < v < 0):
+                result.add(i+1)
 
         return result
 
@@ -511,6 +526,28 @@ class OscillatingTableau(PathTableau):
                 pm.add((i+1,x))
 
         return (Tableau(tb),PerfectMatching(pm))
+
+    def _test_descents(self, **options):
+        r"""
+        Check the property of descent sets proved in [RSW2013]_
+
+        TESTS::
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: t._test_descents()
+        """
+        tester = self._tester(**options)
+
+        lhs = self.descents()
+        tb, pm = self.sundaram()
+        rhs = set(tb.standardization().standard_descents())
+        rhs = rhs.union(pm.to_permutation().descents())
+        wt = tb.weight()
+        for i, x in enumerate(zip(wt,wt[1:])):
+            if x[0]>x[1]:
+                rhs.add(i+1)
+
+        tester.assertTrue(lhs == rhs)
 
 ###############################################################################
 
