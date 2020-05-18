@@ -98,16 +98,16 @@ class OscillatingTableau(PathTableau):
 
     INPUT:
 
-        - a sequence of partitions
-        - a sequence of lists
-            each list is converted to a partition
-        - a sequence of nonzero integers
-            this is converted to a sequence of partitions by starting with
-            the empty partition and at each step adding a box in row i
-            or removing a box in row -i
-        - a perfect matching
-            this is converted to a sequence of partitions by the
-            Sundaram bijection
+    - a sequence of partitions
+    - a sequence of lists
+        each list is converted to a partition
+    - a sequence of nonzero integers
+        this is converted to a sequence of partitions by starting with
+        the empty partition and at each step adding a box in row i
+        or removing a box in row -i
+    - a perfect matching
+        this is converted to a sequence of partitions by the
+        Sundaram bijection
 
 
     EXAMPLES::
@@ -134,10 +134,10 @@ class OscillatingTableau(PathTableau):
 
         INPUT:
 
-            - a sequence of partitions
-            - a sequence of lists
-            - a sequence of nonzero integers
-            - a perfect matching
+        - a sequence of partitions
+        - a sequence of lists
+        - a sequence of nonzero integers
+        - a perfect matching
 
         EXAMPLES::
 
@@ -267,9 +267,21 @@ class OscillatingTableau(PathTableau):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = OscillatingTableau([[],[1],[2],[2,1],[1,1]])
             sage: t._local_rule(3)
-            [0, 1, 2, 1, 2, 1, 0]
+            [[], [1], [2], [1], [1, 1]]
+
+        TESTS::
+
+            sage: t = OscillatingTableau([[],[1],[2],[1],[]])
+            sage: t._local_rule(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 is not a valid integer
+            sage: t._local_rule(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: 4 is not a valid integer
         """
         def _rule(x):
             """
@@ -280,7 +292,7 @@ class OscillatingTableau(PathTableau):
             result.sort(reverse=True)
             return Partition(result)
 
-        if not (i > 0 and i < len(self) ):
+        if not (i > 0 and i < len(self)-1 ):
             raise ValueError("%d is not a valid integer" % i)
 
         with self.clone() as result:
@@ -290,37 +302,52 @@ class OscillatingTableau(PathTableau):
 
     def is_skew(self):
         """
-        Returns True if Tableau is skew and False if not.
+        Return ``True`` if Tableau is skew and ``False`` if not.
 
         EXAMPLES::
 
             sage: T = OscillatingTableau([[],[1],[2],[1],[]])
             sage: T.is_skew()
             False
+
+            sage: T = OscillatingTableau([[1],[2],[1],[]])
+            sage: T.is_skew()
+            True
         """
         return self[0] != Partition([])
 
     def crossing_number(self):
         """
-        Returns the crossing number.
+        Returns
+        the crossing number.
 
         EXAMPLES::
 
             sage: T = OscillatingTableau([[],[1],[2],[1],[]])
             sage: T.crossing_number()
             1
+
+        TESTS::
+
+            sage: [ OscillatingTableau(pm).crossing_number() for pm in PerfectMatchings(6) ]
+            [1, 2, 1, 2, 1, 2, 2, 3, 2, 2, 1, 2, 2, 2, 1]
         """
         return max( a.length() for a in self )
 
     def nesting_number(self):
         """
-        Returns the nesting number.
+        Return the nesting number.
 
         EXAMPLES::
 
             sage: T = OscillatingTableau([[],[1],[2],[1],[]])
             sage: T.nesting_number()
             2
+
+        TESTS::
+
+            sage: [ OscillatingTableau(pm).nesting_number() for pm in PerfectMatchings(6) ]
+            [1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 3]
         """
 
         v = (a for a in self if a.length() > 0)
@@ -343,7 +370,14 @@ class OscillatingTableau(PathTableau):
             sage: all(pm == OscillatingTableau(pm).to_perfect_matching()  for pm in PerfectMatchings(6) )
             True
 
+            sage: OscillatingTableau([[], [1], [1, 1], [2, 1], [1, 1]]).to_perfect_matching()
+            Traceback (most recent call last):
+            ...
+            ValueError: the final shape of [[], [1], [1, 1], [2, 1], [1, 1]] must be the empty shape
         """
+        if self[-1]:
+            raise ValueError("the final shape of {!s} must be the empty shape".format(self))
+
         return self.sundaram()[1]
 
     def to_word(self):
@@ -383,7 +417,7 @@ class OscillatingTableau(PathTableau):
 
     def descents(self):
         """
-        Returns the descent set. This is defined in [RSW2013]_
+        Return the descent set. This is defined in [RSW2013]_
 
         EXAMPLES::
 
@@ -414,7 +448,12 @@ class OscillatingTableau(PathTableau):
         perfect matching on the complement of the set of entries
         of S.
 
-        INPUT: A straight oscillating tableau.
+        In particular if the final shape of the oscillating tableau
+        is empty this gives the empty tableau and a perfect matching.
+        This is an inverse bijection to the map which constructs an
+        oscillating tableau from a perfect matching.
+
+        INPUT: An oscillating tableau which starts with the empty partition.
 
         OUTPUT: A pair (S,M); S is a Tableau and M is a PerfectMatching
 
@@ -443,6 +482,9 @@ class OscillatingTableau(PathTableau):
             sage: T = OscillatingTableau([[],[1],[2],[1]])
             sage: T.sundaram()
             ([[1]], [(2, 3)])
+
+            sage: all(OscillatingTableau(pm).sundaram()[1]==pm for pm in PerfectMatchings(6))
+            True
         """
         if self.is_skew():
             raise ValueError("this has only been implemented for straight oscillating tableaux")
@@ -459,7 +501,7 @@ class OscillatingTableau(PathTableau):
                 tb, x = tb.reverse_bump(cell)
                 pm.add((i+1,x))
 
-        return (StandardTableau(tb),PerfectMatching(pm))
+        return (Tableau(tb),PerfectMatching(pm))
 
 ###############################################################################
 
