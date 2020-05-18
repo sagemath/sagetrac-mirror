@@ -158,6 +158,11 @@ class OscillatingTableau(PathTableau):
             Traceback (most recent call last):
             ...
             ValueError: list may not contain zero
+            
+            sage: t = OscillatingTableau([1,1,2,2,-1])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2] is not an element of Partitions            
 
             sage: OscillatingTableau([Permutation(1,2),Permutation(2,1)])
             Traceback (most recent call last):
@@ -318,8 +323,7 @@ class OscillatingTableau(PathTableau):
 
     def crossing_number(self):
         """
-        Returns
-        the crossing number.
+        Return the crossing number.
 
         EXAMPLES::
 
@@ -396,6 +400,11 @@ class OscillatingTableau(PathTableau):
             sage: OscillatingTableau([[2,1],[2,2]]).to_word()
             [2]
 
+        TESTS::
+
+            sage: ots = [ OscillatingTableau(pm) for pm in PerfectMatchings(6) ]
+            sage: all( OscillatingTableau(ot.to_word())==ot for ot in ots )
+            True
         """
         n = len(self)
         result = [0]*(n-1)

@@ -94,6 +94,10 @@ class PathTableau(ClonableArray):
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t.initial_shape()
             0
+
+            sage: t = OscillatingTableau([[2],[1],[1,1]])
+            sage: t.initial_shape()
+            [2]
         """
         return self[0]
 
@@ -106,6 +110,10 @@ class PathTableau(ClonableArray):
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t.final_shape()
             0
+
+            sage: t = OscillatingTableau([[2],[1],[1,1]])
+            sage: t.final_shape()
+            [1, 1]
         """
         return self[-1]
 
@@ -120,6 +128,10 @@ class PathTableau(ClonableArray):
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t.promotion()
             [0, 1, 2, 1, 0, 1, 0]
+
+            sage: t = OscillatingTableau([1,1,2,-1])
+            sage: t.promotion()
+            [[], [1], [1, 1], [1], [1, 1]]
         """
         with self.clone() as result:
             for i in range(1,len(result)-1):
@@ -136,6 +148,10 @@ class PathTableau(ClonableArray):
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t.evacuation()
             [0, 1, 2, 3, 2, 1, 0]
+
+            sage: t = OscillatingTableau([1,1,2,-1])
+            sage: t.evacuation()
+            [[], [1], [1, 1], [1], [1, 1]]
         """
         if self.size() < 3:
             return self
@@ -173,6 +189,17 @@ class PathTableau(ClonableArray):
             [0, 1, 2, 1, 0]
             ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
 
+            sage: t1 = OscillatingTableau([1,2,1])
+            sage: t2 = OscillatingTableau([[2,1],[3,1]])
+            sage: t1.commutor(t2)
+            ([[], [1]], [[1], [2], [2, 1], [3, 1]])
+            sage: t1.commutor(t2,verbose=True)
+            [[2, 1], [3, 1]]
+            [[1, 1], [2, 1]]
+            [[1], [2]]
+            [[], [1]]
+            ([[], [1]], [[1], [2], [2, 1], [3, 1]])
+
         TESTS::
 
             sage: t1 = CatalanTableau([])
@@ -193,6 +220,13 @@ class PathTableau(ClonableArray):
             Traceback (most recent call last):
             ...
             ValueError: [0, 1, 2, 3, 2, 1],[0, 1, 2, 1, 0] is not a composable pair
+
+            sage: t1 = OscillatingTableau([1,2,1])
+            sage: t2 = OscillatingTableau([1,1,1])
+            sage: t1.commutor(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: [[], [1], [1, 1], [2, 1]],[[], [1], [2], [3]] is not a composable pair
         """
         n = len(self)
         m = len(other)
@@ -283,6 +317,9 @@ class PathTableau(ClonableArray):
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t._test_involution_rule()
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: t._test_involution_rule()
         """
         tester = self._tester(**options)
         for i in range(self.size()-2):
@@ -297,6 +334,9 @@ class PathTableau(ClonableArray):
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t._test_involution_cactus()
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: t._test_involution_cactus()
         """
         tester = self._tester(**options)
         for i in range(2,self.size()+1):
@@ -310,6 +350,9 @@ class PathTableau(ClonableArray):
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t._test_promotion()
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: t._test_promotion()
         """
         tester = self._tester(**options)
         n = self.size()-1
@@ -322,6 +365,9 @@ class PathTableau(ClonableArray):
         TESTS::
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._test_commutation()
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
             sage: t._test_commutation()
         """
         from itertools import combinations
@@ -342,6 +388,9 @@ class PathTableau(ClonableArray):
         TESTS::
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._test_coboundary()
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
             sage: t._test_coboundary()
         """
         from itertools import combinations
@@ -368,6 +417,29 @@ class PathTableau(ClonableArray):
              [0, 1, 2, 1, 0, 1, 0],
              [0, 1, 2, 1, 2, 1, 0],
              [0, 1, 2, 3, 2, 1, 0]}
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: t.orbit()
+            {[[], [1], [], [1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [1, 1], [1], [], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [1, 1], [1], [1, 1], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [1, 1], [1], [2], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [1, 1], [2, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [1, 1], [2, 1], [2], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [2, 1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [2, 1, 1], [2, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [1, 1, 1], [2, 1, 1], [2, 1], [2], [1], []],
+             [[], [1], [1, 1], [2, 1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [2, 1], [2, 1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [2, 1], [2, 1, 1], [2, 1], [1, 1], [1], []],
+             [[], [1], [1, 1], [2, 1], [2, 1, 1], [2, 1], [2], [1], []],
+             [[], [1], [2], [1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [2], [2, 1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [2], [2, 1], [2, 1, 1], [1, 1, 1], [1, 1], [1], []],
+             [[], [1], [2], [2, 1], [2, 1, 1], [2, 1], [1, 1], [1], []],
+             [[], [1], [2], [2, 1], [2, 1, 1], [2, 1], [2], [1], []]}
         """
 
         orb = set([])
@@ -424,6 +496,24 @@ class PathTableau(ClonableArray):
              ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 1, 2, 1, 0], '4,7'),
              ([0, 1, 2, 1, 0, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,7'),
              ([0, 1, 2, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0], '3,6')]
+
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: t.dual_equivalence_graph().adjacency_matrix()
+            20 x 20 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: sorted(t.dual_equivalence_graph().edges())
+            [([[], [1], [], [1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+              [[], [1], [1, 1], [1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+              '2,5'),
+             ([[], [1], [], [1], [1, 1], [1, 1, 1], [1, 1], [1], []],
+              [[], [1], [1, 1], [1, 1, 1], [1, 1], [1], [], [1], []],
+              '2,8'),
+             ...
+             ([[], [1], [2], [2, 1], [2, 1, 1], [2, 1], [1, 1], [1], []],
+              [[], [1], [2], [2, 1], [2, 1, 1], [2, 1], [2], [1], []],
+              '6,9')]
+
         """
         from sage.graphs.graph import Graph
         from itertools import combinations
@@ -449,6 +539,10 @@ class PathTableaux(UniqueRepresentation,Parent):
             sage: t = CatalanTableau([0,1,2,1,0])
             sage: t.parent() # indirect test
             <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+
+            sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
+            sage: t.parent() # indirect test
+            <sage.combinat.path_tableaux.oscillating.OscillatingTableaux_with_category object at ...>
         """
         Parent.__init__(self, category=Sets())
 
@@ -460,6 +554,9 @@ class PathTableaux(UniqueRepresentation,Parent):
 
             sage: CatalanTableau([0,1,2,1,0]) # indirect doctest
             [0, 1, 2, 1, 0]
+
+            sage: OscillatingTableau([1,1,2,3,-1,-3,-2,-1]) # indirect doctest
+            [[], [1], [2], [2, 1], [2, 1, 1], [1, 1, 1], [1, 1], [1], []]
         """
         return self.element_class(self, *args, **kwds)
 
@@ -528,6 +625,42 @@ class CylindricalDiagram(SageObject):
              &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\
              &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
              \end{array}
+
+            sage: t = OscillatingTableau([[],[1],[1,1]])
+            sage: latex(CylindricalDiagram(t))
+            \begin{array}{ccccc}
+            {\emptyset} & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            } & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }\\
+             & {\emptyset} & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            } & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }\\
+             &  & {\emptyset} & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            } & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+             \end{array}
+            <BLANKLINE>
         """
         D = self.diagram
         m = len(D[-1])
