@@ -29,7 +29,7 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
-from sage.combinat.tableau import Tableau, StandardTableau
+from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition
 from sage.rings.integer import Integer
 from itertools import zip_longest
@@ -158,11 +158,11 @@ class OscillatingTableau(PathTableau):
             Traceback (most recent call last):
             ...
             ValueError: list may not contain zero
-            
+
             sage: t = OscillatingTableau([1,1,2,2,-1])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 2] is not an element of Partitions            
+            ValueError: [1, 2] is not an element of Partitions
 
             sage: OscillatingTableau([Permutation(1,2),Permutation(2,1)])
             Traceback (most recent call last):
