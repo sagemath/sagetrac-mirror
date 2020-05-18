@@ -562,7 +562,8 @@ class PathTableaux(UniqueRepresentation,Parent):
 
 class CylindricalDiagram(SageObject):
     """
-    A class for cylindrical growth diagrams.
+    A class for cylindrical growth diagrams. This is basically a class whose methods
+    give various ways of displaying this two dimensional diagram.
 
     """
     def __init__(self,T):
@@ -585,6 +586,15 @@ class CylindricalDiagram(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: 2 must be a path tableau
+
+            sage: ot = OscillatingTableau([[],[1],[2],[2,1],[1,1]])
+            sage: CylindricalDiagram(ot)
+             [[], [1], [2], [2, 1], [1, 1]]
+             ['', [], [1], [1, 1], [1], [1, 1]]
+             ['', '', [], [1], [1, 1], [2, 1], [1, 1]]
+             ['', '', '', [], [1], [2], [1], [1, 1]]
+             ['', '', '', '', [], [1], [], [1], [1, 1]]
+
         """
         if not isinstance(T,PathTableau):
             raise ValueError('{!s} must be a path tableau'.format(T))
@@ -604,6 +614,9 @@ class CylindricalDiagram(SageObject):
 
             sage: print(CatalanTableau([0,1,2,1,2,1,0])) # indirect test
             [0, 1, 2, 1, 2, 1, 0]
+
+            sage: print(OscillatingTableau([1,1,2,3,-1,-3,-2,-1])) # indirect test
+            [[], [1], [2], [2, 1], [2, 1, 1], [1, 1, 1], [1, 1], [1], []]
         """
         dg = self.diagram
         return ' '+str(dg[0])+''.join('\n ' + str(x) for x in dg[1:])
@@ -639,26 +652,7 @@ class CylindricalDiagram(SageObject):
             \lr{\phantom{x}}\\\cline{1-1}
             \end{array}$}
             }\\
-             & {\emptyset} & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
-            \lr{\phantom{x}}\\\cline{1-1}
-            \end{array}$}
-            } & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
-            \lr{\phantom{x}}\\\cline{1-1}
-            \lr{\phantom{x}}\\\cline{1-1}
-            \end{array}$}
-            }\\
-             &  & {\emptyset} & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
-            \lr{\phantom{x}}\\\cline{1-1}
-            \end{array}$}
-            } & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
-            \lr{\phantom{x}}\\\cline{1-1}
-            \lr{\phantom{x}}\\\cline{1-1}
-            \end{array}$}
-            }
+            ...
              \end{array}
             <BLANKLINE>
         """
@@ -738,5 +732,13 @@ class CylindricalDiagram(SageObject):
                       0 1 0 1 2 1 0
                         0 1 2 3 2 1 0
 
+            sage: ot = OscillatingTableau([[],[1],[2],[2,1],[1,1]])
+            sage: CylindricalDiagram(ot).pp()
+            [] [1] [2] [2, 1] [1, 1]
+             [] [1] [1, 1] [1] [1, 1]
+              [] [1] [1, 1] [2, 1] [1, 1]
+               [] [1] [2] [1] [1, 1]
+                [] [1] [] [1] [1, 1]
+
         """
-        print('\n'.join(' '.join('{:0<}'.format(a) for a in x)  for x in self.diagram ))
+        print('\n'.join(' '.join('{!s}'.format(a) for a in x)  for x in self.diagram))
