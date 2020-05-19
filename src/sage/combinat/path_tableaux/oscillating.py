@@ -9,7 +9,9 @@ of partitions such that at each step either one box is added or one box
 is removed.
 
 The purpose is to define promotion, evacuation and the action of
-the cactus group on oscillating tableaux.
+the cactus group on oscillating tableaux. 
+
+For further information see [RSW2013]_ and [PRW2018]_ . 
 
 AUTHORS:
 - Bruce Westbury (2018): initial version
@@ -33,7 +35,7 @@ from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition
 from sage.rings.integer import Integer
 from itertools import zip_longest
-"""
+r"""
 Here we illustrate one of the main theorems of [PRW2018]_ that
 promotion for oscillating tableaux corresponds to inverse rotation of perfect matchings.
 
@@ -73,7 +75,7 @@ EXAMPLES::
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OscillatingTableau(PathTableau):
-    """
+    r"""
     An oscillating tableau is a sequence of partitions such that at
     each step either a single box is added or a single box is removed.
     These are also known as up-down tableaux.
@@ -82,15 +84,15 @@ class OscillatingTableau(PathTableau):
     but this is not a requirement.
 
     These arise in the representation theory of the symplectic groups.
-    Let C be the crystal of the vector representation of Sp(2n).
-    This has 2n vertices which we label 1, 2, ... ,n, -n, ... ,-1.
-    Consider the r-th tensor power of C. This has vertices words of
-    length r in this alphabet. The analogue of the Robinson-Schensted
+    Let 'C' be the crystal of the vector representation of 'Sp(2n)'.
+    This has '2n' vertices which we label '1, 2,\ldots ,n, -n,\ldots ,-1'.
+    Consider the 'r'-th tensor power of 'C'. This has vertices words of
+    length 'r' in this alphabet. The analogue of the Robinson-Schensted
     correspondence is a bijection between these words and pairs
-    (P,Q) where P, the insertion tableau, is a symplectic tableau
-    and Q, the recording tableau, is an oscillating tableau.
+    '(P,Q)' where 'P', the insertion tableau, is a symplectic tableau
+    and 'Q', the recording tableau, is an oscillating tableau.
     The oscillating tableau has initial shape the empty partition
-    and the final shape is the shape of P.
+    and the final shape is the shape of 'P'.
 
     There is a bijection between oscillating tableaux whose initial
     and final shape is the empty partition and perfect matchings.
@@ -264,7 +266,7 @@ class OscillatingTableau(PathTableau):
                     raise ValueError("next partition is not obtained by removing a cell")
 
     def _local_rule(self,i):
-        """
+        r"""
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
         `i`-th and `(i+1)`-term and applies the rule. It then replaces
@@ -306,7 +308,7 @@ class OscillatingTableau(PathTableau):
         return result
 
     def is_skew(self):
-        """
+        r"""
         Return ``True`` if Tableau is skew and ``False`` if not.
 
         EXAMPLES::
@@ -439,18 +441,18 @@ class OscillatingTableau(PathTableau):
         r"""
         Return the descent set. This is defined in [RSW2013]_
 
-        It is defined in terms of the word $w$ by $i$ is a descent if
-        $w[i-1] > 0$ and $w[i] < 0$ or $0 < w[i-1] < w[i]$ or w[i-1] < w[i] < 0$
+        It is defined in terms of the word 'w' by 'i' is a descent if
+        'w[i-1] > 0' and 'w[i] < 0' or '0 < w[i-1] < w[i]' or 'w[i-1] < w[i] < 0'.
 
         Equivalently, it is defined in terms of the sequence of partitions by:
-        $i$ is a descent if
-        * step $i$ is an expansion and step $i+1$ is a a contraction, or
-        * steps $i$ and $i$ are both expansions and the row for the box added
-        at step $i$ is strictly above the row for the box added
-        at step $i+1$, or
-        * steps $i$ and $i$ are both contractions and the row for the box added
-        at step $i$ is strictly below the row for the box added
-        at step $i+1$
+        'i' is a descent if
+        * step 'i' is an expansion and step 'i+1' is a a contraction, or
+        * steps 'i' and 'i+1' are both expansions and the row for the box added
+        at step 'i' is strictly above the row for the box added
+        at step 'i+1', or
+        * steps 'i' and 'i+1' are both contractions and the row for the box added
+        at step 'i' is strictly below the row for the box added
+        at step 'i+1'
 
         EXAMPLES::
 
@@ -476,13 +478,13 @@ class OscillatingTableau(PathTableau):
         return result
 
     def sundaram(self):
-        """
+        r"""
         This implements the bijection due to S. Sundaram between
         oscillating tableaux with empty initial shape and pairs
-        (S,M) where S is a partial standard tableaux whose shape
+        '(S,M)' where 'S' is a partial standard tableaux whose shape
         is the final shape of the oscillating tableau and a
         perfect matching on the complement of the set of entries
-        of S.
+        of 'S'.
 
         In particular if the final shape of the oscillating tableau
         is empty this gives the empty tableau and a perfect matching.
@@ -491,7 +493,7 @@ class OscillatingTableau(PathTableau):
 
         INPUT: An oscillating tableau which starts with the empty partition.
 
-        OUTPUT: A pair (S,M); S is a Tableau and M is a PerfectMatching
+        OUTPUT: A pair '(S,M)'; 'S' is a Tableau and 'M' is a PerfectMatching
 
         EXAMPLES::
 
