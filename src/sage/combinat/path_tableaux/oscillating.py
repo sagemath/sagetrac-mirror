@@ -321,6 +321,17 @@ class OscillatingTableau(PathTableau):
         """
         return self[0] != Partition([])
 
+    def conjugate(self):
+        r"""
+        Return the oscillating tableau obtained by conjugating all partitions in ''self''.
+
+        EXAMPLES::
+
+            sage: OscillatingTableau([[],[1],[2],[1],[]]).conjugate()
+            [[], [1], [1, 1], [1], []]
+        """
+        return OscillatingTableau([p.conjugate() for p in self])
+
     def crossing_number(self):
         """
         Return the crossing number.
@@ -449,8 +460,9 @@ class OscillatingTableau(PathTableau):
 
         TESTS::
 
-            all(OscillatingTableau(pm).descents() == set(pm.to_permutation().descents())
-                for pm in PerfectMatchings(6))
+            all(OscillatingTableau(pm).conjugate().descents()
+                == set(pm.to_permutation().inverse().descents())
+                    for pm in PerfectMatchings(6))
             True
         """
         result = set()
@@ -530,6 +542,7 @@ class OscillatingTableau(PathTableau):
     def _test_descents(self, **options):
         r"""
         Check the property of descent sets proved in [RSW2013]_
+        Namely that the Sundaram map preserves descent sets.
 
         TESTS::
 
@@ -539,9 +552,9 @@ class OscillatingTableau(PathTableau):
         tester = self._tester(**options)
 
         lhs = self.descents()
-        tb, pm = self.sundaram()
+        tb, pm = self.conjugate().sundaram()
         rhs = set(tb.standardization().standard_descents())
-        rhs = rhs.union(pm.to_permutation().descents())
+        rhs = rhs.union(pm.to_permutation().inverse().descents())
         wt = tb.weight()
         for i, x in enumerate(zip(wt,wt[1:])):
             if x[0]>x[1]:
