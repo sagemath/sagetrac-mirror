@@ -35,6 +35,7 @@ from subprocess import Popen, PIPE
 
 import six
 
+from sage.env import SAGE_PALP_CLASS_EXE as palp_class_exe
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ
 
@@ -478,7 +479,7 @@ class Reflexive4dHodge(PALPreader):
                 'errors': 'surrogateescape'
             }
 
-        return Popen(['class-4d.x', '-He',
+        return Popen([palp_class_exe, '-He',
                       'H{}:{}L100000000'.format(self._h21, self._h11),
                       '-di', self._data_basename], stdout=PIPE,
                       **encoding_kwargs)

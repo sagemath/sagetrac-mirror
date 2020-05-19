@@ -8,6 +8,8 @@ ARB_LIBRARY = "@SAGE_ARB_LIBRARY@"
 
 SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 
+SAGE_PALP_CLASS_EXE = "@SAGE_PALP_CLASS_EXE@"
+
 # The following must not be used during build to determine source or installation
 # location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in
 SAGE_LOCAL = "@prefix@"
