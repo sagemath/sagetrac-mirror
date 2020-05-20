@@ -90,6 +90,7 @@ code = setup(name = 'sage',
       author_email= 'https://groups.google.com/group/sage-support',
       url         = 'https://www.sagemath.org',
       packages    = python_packages,
+      py_modules  = python_modules,
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
           'sage.doctest':  ['tests/*'],

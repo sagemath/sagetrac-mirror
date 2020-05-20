@@ -80,7 +80,8 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     - the list of package names (corresponding to directories with
       ``__init__.py``),
 
-    - Python module names (corresponding to other ``*.py`` files).
+    - Python module names (corresponding to other ``*.py`` files except for
+      those below directories with a file named ``nonamespace`` in it).
 
     - Cython extensions (corresponding to ``*.pyx`` files).
 
@@ -110,6 +111,26 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     Subdirectory without any Python files::
 
         sage: ['sage.doctest.tests' in L for L in (py_packages, py_modules)]
+        [False, False]
+
+    Native namespace package (no ``__init__.py``, PEP 420)::
+
+        sage: ['sage.graphs.graph_decompositions' in L for L in (py_packages, py_modules)]
+        [False, False]
+
+    Python module in a native namespace package::
+
+        sage: ['sage.graphs.graph_decompositions.modular_decomposition' in L for L in (py_packages, py_modules)]
+        [False, True]
+
+    Subdirectory marked with a ``nonamespace`` file::
+
+        sage: ['sage.extdata' in L for L in (py_packages, py_modules)]
+        [False, False]
+
+    Python file (not module) below a directory with a ``nonamespace`` file::
+
+        sage: ['sage.ext_data.nbconvert.postprocess' in L for L in (py_packages, py_modules)]
         [False, False]
 
     Filtering by distribution (distutils package)::
@@ -145,7 +166,10 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
                     # Ordinary package.
                     if distributions is None or '' in distributions:
                         python_packages.append(package)
-                else:
+                if os.path.exists(os.path.join(dirpath, 'nonamespace')):
+                    # Marked as "not a namespace package"
+                    # (similar to nodoctest in sage.doctest.control)
+                    dirnames.clear()
                     continue
 
                 def is_in_distributions(filename):
