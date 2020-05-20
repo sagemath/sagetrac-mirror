@@ -3927,12 +3927,24 @@ class RationalFunctionField(FunctionField):
             sage: I.groebner_basis()
             [x^2 - t^2, y - t]
 
+        Check that :trac:`29713` is fixed::
+
+            sage: F = FunctionField(QQ, 'a')
+            sage: a = F.gen()
+            sage: polynomial_ring = PolynomialRing(F, 'x')
+            sage: FF = FractionField(polynomial_ring)
+            sage: el = F(-1/2*1/(a**2+a))
+            sage: F(FF(el))
+            -1/2/(a^2 + a)
+
         """
         if isinstance(x, FunctionFieldElement):
             return self.element_class(self, self._field(x._x))
         try:
             x = self._field(x)
         except TypeError as Err:
+            if str(Err) == "fraction must have unit denominator":
+                return self.element_class(self,x)
             try:
                 if x.parent() is self.polynomial_ring():
                     return x[0]
