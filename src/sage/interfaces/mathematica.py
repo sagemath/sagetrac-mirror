@@ -969,7 +969,7 @@ class MathematicaElement(ExpectElement):
             Sin[x*Cos[y]]/Sqrt[1 - x^2]
 
             sage: from sage.repl.rich_output.display_manager import display_context
-            sage: with display_context(text=None):
+            sage: with display_context(text=None):               # optional - mathematica
             ....:     show(Q)                                    # optional - mathematica
             <html><script type="math/tex">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</script></html>
 
