@@ -292,16 +292,6 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup import load_hap
 from sage.arith.misc import xgcd
 
-def minmaxgroup(group):
-    m=0
-    M=0
-    for g in group.gens():
-        for i in g:
-            if i<m:
-                m=i
-            elif i>M:
-                M=i
-    return (m,M)
 
 def GLattice(*args, **kwds):
     r"""
@@ -982,11 +972,11 @@ class Lattice_generic(FreeModule_generic):
         elif param == "exterior":
             g1 = self.group()
             g2 = lat.group()
-            G = g1.direct_product(g2)
+            [G, inj1, inj2, proj1, proj2] = g1.direct_product(g2)
             hom1 = self._action_morphism
             hom2 = lat._action_morphism
-            action = [block_diagonal_matrix(matrix(hom1.Image(G[3](g))),matrix(hom2.Image(G[4](g)))) for g in G[0].gens()]
-            return GLattice(G[0],action)
+            action = [block_diagonal_matrix(matrix(hom1.Image(proj1(g))),matrix(hom2.Image(proj2(g)))) for g in G.gens()]
+            return GLattice(G,action)
         else:
             raise ValueError("the last argument must be either 'interior' or 'exterior'")
 
@@ -1589,7 +1579,7 @@ class Lattice_generic(FreeModule_generic):
 
         INPUT:
 
-        - ``subgp_list`` -- list of subgroups
+        - ``subgp_list`` -- list of subgroups.
 
         OUTPUT:
 

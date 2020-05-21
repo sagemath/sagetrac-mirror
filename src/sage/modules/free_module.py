@@ -3563,7 +3563,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: type(H)
             <class 'sage.modules.vector_space_homspace.VectorSpaceHomspace_with_category'>
             sage: H
-            Set of Morphismfs (Linear Transformations) from Vector space of dimension 2 over Rational Field to Vector space of dimension 3 over Rational Field
+            Set of Morphism (Linear Transformations) from Vector space of dimension 2 over Rational Field to Vector space of dimension 3 over Rational Field
 
             sage: V = QQ^2
             sage: W = ZZ^3

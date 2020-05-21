@@ -124,27 +124,6 @@ from sage.rings.rational_field import QQ
 
 
 
-def AlgebraicTorusBuilder(char_lattice):
-    """
-    Creates an algebraic torus with a specific character lattice.
-
-    INPUT:
-
-    - ``char_lattice`` -- the character lattice of the torus.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.group_schemes.tori import AlgebraicTorusBuilder
-        sage: F.<a> = QuadraticField([2])
-        sage: G = F.galois_group()
-        sage: T1 = AlgebraicTorusBuilder(GLattice(G)); T1
-        Algebraic torus of rank 2 over Rational Field split by a degree 2 extension
-        sage: T2 = AlgebraicTorusBuilder(GLattice(G,4)); T2
-        Split algebraic torus of rank 4 over Rational Field
-    """
-    return AlgebraicTorus(char_lattice)
-
-
 def RestrictionOfScalars(nfield, rk = 1):
     """
     Creates the torus defined by restriction of scalars of a split torus to the field of rational numbers.
@@ -170,7 +149,7 @@ def RestrictionOfScalars(nfield, rk = 1):
         Algebraic torus of rank 12 over Rational Field split by a degree 4 extension
     """
     L = GLattice(rk).induced_lattice(nfield.galois_group())
-    return AlgebraicTorusBuilder(L)
+    return AlgebraicTorus(L)
 
 def NormOneRestrictionOfScalars(nfield, rk = 1):
     """
@@ -195,11 +174,9 @@ def NormOneRestrictionOfScalars(nfield, rk = 1):
         sage: T3 = NormOneRestrictionOfScalars(K,3); T3
         Algebraic torus of rank 12 over Rational Field split by a degree 4 extension
     """
-    L = GLattice(rk).induced_lattice(nfield.galois_group())
-    return AlgebraicTorusBuilder(L)
 
     L = GLattice(rk).norm_one_restriction_of_scalars(nfield.galois_group())
-    return AlgebraicTorusBuilder(L)
+    return AlgebraicTorus(L)
 
 
 
@@ -598,7 +575,10 @@ class AlgebraicTorus(Scheme):
             More concretely, if the torus is defined over K, splits over L, and
             is defined by the action of Gal(L/K) on its character lattice, then
             if one wants the restriction of scalars to a smaller field k,
-            one has to enter Gal(L/k) as argument of this method.
+            one has to enter Gal(L/k) as argument of this method. This is because 
+            galois groups of relative extensions are not supported so far. For 
+            now the user has to input the Galois group of the relative extension
+            as abstract group.
 
         EXAMPLES::
 
