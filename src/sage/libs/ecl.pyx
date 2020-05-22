@@ -15,7 +15,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #adapted to work with pure Python types.
 
 from libc.stdlib cimport abort
-from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
+from libc.signal cimport SIGINT, SIGBUS, SIGSEGV
 from libc.signal cimport raise_ as signal_raise
 from posix.signal cimport sigaction, sigaction_t
 cimport cysignals.signals
@@ -139,7 +139,6 @@ def test_ecl_options():
         ECL_OPT_TRAP_SIGINT = 1
         ECL_OPT_TRAP_SIGILL = 1
         ECL_OPT_TRAP_SIGBUS = 1
-        ECL_OPT_TRAP_SIGCHLD = 0
         ECL_OPT_TRAP_SIGPIPE = 1
         ECL_OPT_TRAP_INTERRUPT_SIGNAL = 1
         ECL_OPT_SIGNAL_HANDLING_THREAD = 0
@@ -153,7 +152,6 @@ def test_ecl_options():
         ECL_OPT_LISP_STACK_SAFETY_AREA = ...
         ECL_OPT_C_STACK_SIZE = ...
         ECL_OPT_C_STACK_SAFETY_AREA = ...
-        ECL_OPT_SIGALTSTACK_SIZE = 1
         ECL_OPT_HEAP_SIZE = ...
         ECL_OPT_HEAP_SAFETY_AREA = ...
         ECL_OPT_THREAD_INTERRUPT_SIGNAL = ...
@@ -171,8 +169,6 @@ def test_ecl_options():
         ecl_get_option(ECL_OPT_TRAP_SIGILL)))
     print('ECL_OPT_TRAP_SIGBUS = {0}'.format(
         ecl_get_option(ECL_OPT_TRAP_SIGBUS)))
-    print('ECL_OPT_TRAP_SIGCHLD = {0}'.format(
-        ecl_get_option(ECL_OPT_TRAP_SIGCHLD)))
     print('ECL_OPT_TRAP_SIGPIPE = {0}'.format(
         ecl_get_option(ECL_OPT_TRAP_SIGPIPE)))
     print('ECL_OPT_TRAP_INTERRUPT_SIGNAL = {0}'.format(
@@ -199,8 +195,6 @@ def test_ecl_options():
         ecl_get_option(ECL_OPT_C_STACK_SIZE)))
     print('ECL_OPT_C_STACK_SAFETY_AREA = {0}'.format(
         ecl_get_option(ECL_OPT_C_STACK_SAFETY_AREA)))
-    print('ECL_OPT_SIGALTSTACK_SIZE = {0}'.format(
-        ecl_get_option(ECL_OPT_SIGALTSTACK_SIZE)))
     print('ECL_OPT_HEAP_SIZE = {0}'.format(
         ecl_get_option(ECL_OPT_HEAP_SIZE)))
     print('ECL_OPT_HEAP_SAFETY_AREA = {0}'.format(
@@ -243,9 +237,6 @@ def init_ecl():
     if ecl_has_booted:
         raise RuntimeError("ECL is already initialized")
 
-    # we need it to stop handling SIGCHLD
-    ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
-
     #we keep our own GMP memory functions. ECL should not claim them
     ecl_set_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS,0);
 
@@ -265,12 +256,6 @@ def init_ecl():
     sigaction(SIGINT, NULL, &ecl_sigint_handler)
     sigaction(SIGBUS, NULL, &ecl_sigbus_handler)
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
-
-    #verify that no SIGCHLD handler was installed
-    cdef sigaction_t sig_test
-    sigaction(SIGCHLD, NULL, &sig_test)
-    assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
-    assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 
 
     #and put the Sage signal handlers back
     for i in range(1,32):
