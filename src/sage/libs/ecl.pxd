@@ -30,7 +30,7 @@ cdef extern from "ecl/ecl.h":
     ctypedef long int cl_fixnum
     ctypedef cl_fixnum cl_narg
     ctypedef void *cl_object
-    ctypedef unsigned int cl_index
+    ctypedef unsigned long int cl_index
 
     ctypedef enum ecl_option:
         ECL_OPT_INCREMENTAL_GC = 0,
@@ -125,6 +125,7 @@ cdef extern from "ecl/ecl.h":
     cl_object cl_cddr(cl_object x)
     cl_object cl_rplaca(cl_object x, cl_object v)
     cl_object cl_rplacd(cl_object x, cl_object v)
+    cl_object ecl_list1(cl_object a)
 
     # string parsing and string IO
 
@@ -145,6 +146,10 @@ cdef extern from "ecl/ecl.h":
     int ecl_nvalues "NVALUES"
     cl_object ecl_values "VALUES"(int n)
 
-    #Common Lisp "EQUAL" compatible hash function
+    # Common Lisp "EQUAL" compatible hash function
 
     cl_object cl_sxhash(cl_object key)
+
+    # symbols
+
+    cl_object ecl_make_symbol(const char *name, const char *package)
