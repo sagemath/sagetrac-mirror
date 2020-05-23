@@ -415,11 +415,13 @@ them through the method ``coerce_to_sl`` as follows::
     A2(0,0,0) + A2(1,0,-1)
 
 Sage is not confused by the fractional weights. Note that if you use
-coroot notation, you are working with `SL` automatically::
+coroot notation, you are working with `SL` automatically. We also
+sort the resulting dictionary so the weight multiplicities are always
+presented in the same order::
 
     sage: A2 = WeylCharacterRing("A2", style="coroots")
-    sage: A2(1,0).weight_multiplicities()
-    {(-1/3, -1/3, 2/3): 1, (-1/3, 2/3, -1/3): 1, (2/3, -1/3, -1/3): 1}
+    sage: sorted(A2(1,0).weight_multiplicities().items())
+    [((-1/3, -1/3, 2/3), 1), ((-1/3, 2/3, -1/3), 1), ((2/3, -1/3, -1/3), 1)]
 
 There is no convenient way to create the determinant in the Weyl
 character ring if you adopt the coroot style.

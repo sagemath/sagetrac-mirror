@@ -229,7 +229,8 @@ combinatorial free module, the main attribute is called
 ``_monomial_coefficients``. It is a dictionary associating coefficients to
 indices::
 
-    sage: el._monomial_coefficients
+    sage: from pprint import pprint
+    sage: pprint(el._monomial_coefficients)
     {[1, 2, 3]: 1, [1, 3, 2]: 3}
 
 Modifying the attribute modifies the objects::
@@ -297,7 +298,8 @@ http://docs.python.org/library/ for a complete list. ::
         sage: el.rename("bla")
         sage: el
         bla
-        sage: el.__dict__
+        sage: from pprint import pprint
+        sage: pprint(el.__dict__)
         {'__custom_name': 'bla', 'value': 42}
 
     Lots of Sage objects are not Python objects but compiled Cython

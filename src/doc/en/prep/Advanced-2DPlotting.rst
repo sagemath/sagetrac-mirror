@@ -425,11 +425,12 @@ Here are the options for contour plots.
   ``contour_plot`` object.
 
 - They are given as a dictionary (see :ref:`the programming tutorial
-  <Advanced>`).
+  <Advanced>`). The following is marked as random because the order
+  in which the dictionary is printed may vary.
 
 ::
 
-    sage: contour_plot.options
+    sage: contour_plot.options # random 
     {'aspect_ratio': 1,
      'axes': False,
      'colorbar': False,
@@ -450,19 +451,8 @@ the change happened.
 ::
 
     sage: contour_plot.options["fill"]=False
-    sage: contour_plot.options
-    {'aspect_ratio': 1,
-     'axes': False,
-     'colorbar': False,
-     'contours': None,
-     'fill': False,
-     'frame': True,
-     'labels': False,
-     'legend_label': None,
-     'linestyles': None,
-     'linewidths': None,
-     'plot_points': 100,
-     'region': None}
+    sage: contour_plot.options["fill"]
+    False
 
 And it works!
 
@@ -472,10 +462,11 @@ And it works!
     Graphics object consisting of 1 graphics primitive
 
 We can always access the default options, of course, to remind us.
+Again, it is marked as random as the order of the output may vary.
 
 ::
 
-    sage: contour_plot.defaults()
+    sage: contour_plot.defaults() # random
     {'aspect_ratio': 1,
      'axes': False,
      'colorbar': False,

@@ -103,11 +103,11 @@ ask the category (TODO: find a slicker idiom for this)::
     sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class) # py2
     {'optional': ['_add_', '_mul_'],
      'required': ['__nonzero__', 'monomial_coefficients']}
-    sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class) # py3
-    {'optional': ['_add_', '_mul_'],
-     'required': ['__bool__', 'monomial_coefficients']}
-    sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).parent_class)
-    {'optional': ['one_basis', 'product_on_basis'], 'required': ['__contains__']}
+    sage: sorted(abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class).items()) # py3
+    [('optional', ['_add_', '_mul_']),
+     ('required', ['__bool__', 'monomial_coefficients'])]
+    sage: sorted(abstract_methods_of_class(AlgebrasWithBasis(QQ).parent_class).items())
+    [('optional', ['one_basis', 'product_on_basis']), ('required', ['__contains__'])]
 
 .. WARNING::
 
