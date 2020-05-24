@@ -1846,34 +1846,6 @@ class Genus_Symbol_p_adic_ring(object):
                 nI_I += ZZ(1)
         return m_p * ZZ(2)**(nI_I - nII)
 
-    def _standard_mass(self):
-        r"""
-        Return the standard p-mass of this local genus.
-
-        EXAMPLES::
-
-            sage: G = Genus(matrix.diagonal([1,3,9]))
-            sage: g3 = G.local_symbols(3)
-            sage: g3._standard_mass()
-            9/16
-        """
-        from sage.arith.misc import fundamental_discriminant
-        from sage.quadratic_forms.extras import least_quadratic_nonresidue
-        n = self.dimension()
-        p = self.prime()
-        s = (n + 1) // ZZ(2)
-        std = QQ(2) * QQ.prod(ZZ(1)-p**ZZ(-2*k) for k in range(1, s))
-        if n % 2 == 0:
-            D = ZZ(-1)**s*self.determinant()
-            #u = ZZ.prod(fq[2] for fq in self._symbol)
-            #if p != 2 and u == -1:
-            #    u = least_quadratic_nonresidue(p)
-            # D *= u
-            D = fundamental_discriminant(D) # here is a difference to CWS
-            epsilon = D.kronecker(p)
-            std *= (1- epsilon*p**(-s))
-        return QQ(1) / std
-
     def _species_list(self):
         r"""
         Return the species list.
@@ -3408,35 +3380,6 @@ class GenusSymbol_global_ring(object):
         sym_p = [[0, self.rank(), self.det().kronecker(p)]]
         return Genus_Symbol_p_adic_ring(p, sym_p)
 
-    def _standard_mass(self):
-        r"""
-        Return the standard mass of this genus.
-
-        EXAMPLES::
-
-            sage:
-        """
-        from sage.functions.gamma import gamma
-        from sage.functions.transcendental import zeta
-        from sage.symbolic.constants import pi
-        from sage.symbolic.ring import SR
-        n = self.dimension()
-        if n % 2 == 0:
-            s = n // 2
-        else:
-            s = (n // 2) + 1
-        d = self.determinant()
-        std = QQ(2) * pi**(-n*(n+1)/QQ(4))
-        std *= SR.prod(gamma(QQ(j)/QQ(2)) for j in range(1, n+1))
-        std *= SR.prod(zeta(ZZ(2)*ZZ(k)) for k in range(1, s))
-        if n % 2 == 0:
-            from sage.quadratic_forms.special_values import quadratic_L_function__exact
-            D = ZZ(-1)**(s)*self.determinant()
-            L = quadratic_L_function__exact(ZZ(s), D)
-            std *= L
-        return std
-
-
     def mass(self, backend='sage'):
         r"""
         Return the mass of this genus.
@@ -3669,157 +3612,6 @@ class GenusSymbol_global_ring(object):
         self._representatives = representatives
         assert len(representatives) > 0, self
         return copy(representatives)
-
-class SpaceSymbol_global(object):
-    def __init__(self, field, local_symbols):
-        self._field = field
-        self._local_symbols = local_symbols
-
-    def __eq__(self,other):
-        if self._field != other._field:
-            raise ValueError('quadratic spaces over different fields do not compare')
-        raise NotImplementedError()
-
-    def representative(self):
-        raise NotImplementedError()
-
-class SpaceSymbol_local(object):
-    def __init__(self, field, place, rank, det, excess):
-        if field is not QQ:
-            raise NotImplementedError('TODO: change the excess for the witt invariant. ')
-        det = field(det)
-        v, u = det.val_unit(place)
-        det = QQ(place)**(v%2)
-        if place == 2:
-            det *= u % 8
-        else:
-            det *= u % place
-        self._field = field
-        self._place = place
-        self._rank = ZZ(rank)
-        self._det = det
-        self._excess = ZZ(excess).mod(8)
-
-    def __eq__(self, other):
-        if self is other:
-            return True
-        if self._field != other._field:
-            raise ValueError('quadratic spaces over different fields do not compare')
-        if self._place != other._place:
-            raise ValueError('different places')
-        if self._rank != other._rank:
-            return False
-        d = self._det*other._det
-        p = self._place
-        if not d.is_padic_square(p):
-            return False
-        if self._excess!=other._excess:
-            return False
-        return True
-
-    def __add__(self,other):
-        if not self._field == other._field:
-            raise ValueError()
-        if not self._place == other._place:
-            raise ValueError()
-        rank = self._rank + other._rank
-        det = self._det * other._det
-        excess = self._excess + other._excess
-        return SpaceSymbol_local(
-            field=self._field,
-            place=self._place,
-            rank=rank,
-            det=det,
-            excess=excess
-            )
-
-    def __sub__(self,other):
-        if not self._field == other._field:
-            raise ValueError()
-        if not self._place == other._place:
-            raise ValueError()
-        rank = self._rank - other._rank
-        det = self._det * other._det
-        excess = self._excess - other._excess
-        return SpaceSymbol_local(
-            field=self._field,
-            place=self._place,
-            rank=rank,
-            det=det,
-            excess=excess
-            )
-
-    def __ge__(self,other):
-        return self.represents(other)
-    def __le__(self,other):
-        return other.__ge__(self)
-    def __lt__(self, other):
-        return self <= other and not self==other
-    def __gt__(self, other):
-        return self >= other and not self==other
-    def __neq__(self,other):
-        return not self==other
-
-    def __repr__(self):
-        return "p: %s, rk: %s, det: %s, excess: %s"%(self._place,self._rank,self._det,self._excess)
-
-    def determinant(self):
-        return self._det
-
-    det = determinant
-
-    def rank(self):
-        return self._rank
-
-    def excess(self):
-        return self._excess
-
-    def hasse_invariant(self):
-        r"""
-        Return Cassel's hasse invariant.
-        """
-        if self.rank() > 0:
-            g = matrix.diagonal([self.det()]+(self.rank()-1)*[1])
-        else:
-            g = matrix([])
-        p = self._place
-        from sage.quadratic_forms.all import QuadraticForm
-        qf = QuadraticForm(QQ,2*g)
-        hasse1 = qf.hasse_invariant(p)
-        std = LocalGenusSymbol(g,self.prime())
-        if std.excess() == self.excess():
-            return hasse1
-        else:
-            return -hasse1
-
-    def represents(self,other):
-        r"""
-        Return if self represents other.
-        """
-        if not type(other) is SpaceSymbol_local:
-            if other == 0:
-                return True
-            other = LocalGenusSymbol(matrix(self._field,[other]),self._place).space()
-        if self._place != other._place:
-            raise ValueError("different place")
-        p = self._place
-        if other.rank() > self.rank():
-            return False
-
-        K = self._field
-
-        d = K(self._det * other._det)
-        if self._rank == other._rank:
-            return self==other
-        if other._rank+1 == self._rank:
-            rk1 = LocalGenusSymbol(matrix([d]),p).space()
-            return other + rk1 == self
-        if (other.rank()+2 == self.rank()
-             and (-d).is_padic_square(p,check=False)):
-            rk2 = LocalGenusSymbol(matrix(QQ,2,[0,1,1,0]),p).space()
-            return other + rk2 == self
-        return True
-
 
     def local_symbol(self, p):
         r"""
@@ -4142,3 +3934,157 @@ def M_p(species, p):
     if n % 2 == 0:
         mp *= ZZ(1) - species.sign() * p**(-s)
     return QQ(1) / mp
+
+####################
+# Quadratic spaces
+###################
+
+class SpaceSymbol_global(object):
+    def __init__(self, field, local_symbols):
+        self._field = field
+        self._local_symbols = local_symbols
+
+    def __eq__(self,other):
+        if self._field != other._field:
+            raise ValueError('quadratic spaces over different fields do not compare')
+        raise NotImplementedError()
+
+    def representative(self):
+        raise NotImplementedError()
+
+class SpaceSymbol_local(object):
+    def __init__(self, field, place, rank, det, excess):
+        if field is not QQ:
+            raise NotImplementedError('TODO: change the excess for the witt invariant. ')
+        det = field(det)
+        v, u = det.val_unit(place)
+        det = QQ(place)**(v%2)
+        if place == 2:
+            det *= u % 8
+        else:
+            det *= u % place
+        self._field = field
+        self._place = place
+        self._rank = ZZ(rank)
+        self._det = det
+        self._excess = ZZ(excess).mod(8)
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if self._field != other._field:
+            raise ValueError('quadratic spaces over different fields do not compare')
+        if self._place != other._place:
+            raise ValueError('different places')
+        if self._rank != other._rank:
+            return False
+        d = self._det*other._det
+        p = self._place
+        if not d.is_padic_square(p):
+            return False
+        if self._excess!=other._excess:
+            return False
+        return True
+
+    def __add__(self,other):
+        if not self._field == other._field:
+            raise ValueError()
+        if not self._place == other._place:
+            raise ValueError()
+        rank = self._rank + other._rank
+        det = self._det * other._det
+        excess = self._excess + other._excess
+        return SpaceSymbol_local(
+            field=self._field,
+            place=self._place,
+            rank=rank,
+            det=det,
+            excess=excess
+            )
+
+    def __sub__(self,other):
+        if not self._field == other._field:
+            raise ValueError()
+        if not self._place == other._place:
+            raise ValueError()
+        rank = self._rank - other._rank
+        det = self._det * other._det
+        excess = self._excess - other._excess
+        return SpaceSymbol_local(
+            field=self._field,
+            place=self._place,
+            rank=rank,
+            det=det,
+            excess=excess
+            )
+
+    def __ge__(self,other):
+        return self.represents(other)
+    def __le__(self,other):
+        return other.__ge__(self)
+    def __lt__(self, other):
+        return self <= other and not self==other
+    def __gt__(self, other):
+        return self >= other and not self==other
+    def __neq__(self,other):
+        return not self==other
+
+    def __repr__(self):
+        return "p: %s, rk: %s, det: %s, excess: %s"%(self._place,self._rank,self._det,self._excess)
+
+    def determinant(self):
+        return self._det
+
+    det = determinant
+
+    def rank(self):
+        return self._rank
+
+    def excess(self):
+        return self._excess
+
+    def hasse_invariant(self):
+        r"""
+        Return Cassel's hasse invariant.
+        """
+        if self.rank() > 0:
+            g = matrix.diagonal([self.det()]+(self.rank()-1)*[1])
+        else:
+            g = matrix([])
+        p = self._place
+        from sage.quadratic_forms.all import QuadraticForm
+        qf = QuadraticForm(QQ,2*g)
+        hasse1 = qf.hasse_invariant(p)
+        std = LocalGenusSymbol(g,self.prime())
+        if std.excess() == self.excess():
+            return hasse1
+        else:
+            return -hasse1
+
+    def represents(self,other):
+        r"""
+        Return if self represents other.
+        """
+        if not type(other) is SpaceSymbol_local:
+            if other == 0:
+                return True
+            other = LocalGenusSymbol(matrix(self._field,[other]),self._place).space()
+        if self._place != other._place:
+            raise ValueError("different place")
+        p = self._place
+        if other.rank() > self.rank():
+            return False
+
+        K = self._field
+
+        d = K(self._det * other._det)
+        if self._rank == other._rank:
+            return self==other
+        if other._rank+1 == self._rank:
+            rk1 = LocalGenusSymbol(matrix([d]),p).space()
+            return other + rk1 == self
+        if (other.rank()+2 == self.rank()
+             and (-d).is_padic_square(p,check=False)):
+            rk2 = LocalGenusSymbol(matrix(QQ,2,[0,1,1,0]),p).space()
+            return other + rk2 == self
+        return True
