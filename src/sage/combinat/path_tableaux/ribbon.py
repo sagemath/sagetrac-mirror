@@ -24,9 +24,12 @@ EXAMPLES::
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
+from sage.categories.sets_cat import Sets
+from sage.structure.parent import Parent
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
-from sage.combinat.skewtableau import SkewTableau
+from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.ribbon_tableau import RibbonTableau
 from sage.combinat.combinatorial_map import combinatorial_map
 
 ###############################################################################
@@ -37,12 +40,30 @@ class RibbonPathTableau(PathTableau):
 
     INPUT:
 
+    EXAMPLES::
+
+        sage: RibbonPathTableau([],3)
+        []
+        sage: RibbonPathTableau([[],[3]],3)
+        [[], [3]]
+
+    TESTS::
+
+        sage: RibbonPathTableau([[],[3]],2)
+
+sage: 
+
+        sage: RibbonPathTableau([],0)
+        Traceback (most recent call last):
+        ...
+        ValueError: 0 is not a valid ribbon size
+
     """
     @staticmethod
     def __classcall_private__(cls, rt, k=None):
         r"""
         """
-        return RibbonPathTableaux(k)(rt)
+        return RibbonPathTableaux()(rt)
 
     def __init__(self, parent, rt, check=True):
         r"""
@@ -51,28 +72,28 @@ class RibbonPathTableau(PathTableau):
         INPUT:
 
         Can be any of:
-        
+
         * a list or tuple of partitions
         * a tableau or skew tableau
         * a ribbon tableau
-        
+
         """
         w = None
 
-        if isinstance(rt, [list,tuple]):
-            w = [ Partition(a) for a in rt ]
-                
-        if isinstance(rt, [SkewTableau,Tableau]):
-            w = [ Partition(a) for a in rt.to_chain() ]
+        if isinstance(rt, (list,tuple)):
+            w = tuple([ Partition(a) for a in rt ])
+
+        if isinstance(rt, (SkewTableau,Tableau)):
+            w = tuple([ Partition(a) for a in rt.to_chain() ])
 
         if w is None:
             raise ValueError(f"invalid input {rt}")
 
-        if not k:
-            if not w:
-                raise ValueError("k must be defined for the empty sequence")
-            else:
-                k = w[0].size()
+#        if not k:
+#            if not w:
+#                raise ValueError("k must be defined for the empty sequence")
+#            else:
+#                k = w[0].size()
 
         ClonableArray.__init__(self, parent, w, check=check)
 
@@ -83,7 +104,7 @@ class RibbonPathTableau(PathTableau):
 
         """
         k = self.parent().k
-        
+
         for u, v in zip(self,self[1:]):
             if not v.contains(u):
                 return False
@@ -95,7 +116,7 @@ class RibbonPathTableau(PathTableau):
             cb.sort()
             if not cb == list(range(cb[0],cb[0]+k)):
                 return False
-            
+
         return True
 
     def _local_rule(self,i):
@@ -124,7 +145,7 @@ class RibbonPathTableau(PathTableau):
                 return rtx.pop()
             else:
                 return x[1]
-            
+
 
         if not (i > 0 and i < len(self)-1):
             raise ValueError(f"{i} is not a valid integer")
@@ -139,10 +160,29 @@ class RibbonPathTableau(PathTableau):
         r"""
         Return ''self'' as a ribbon tableau.
         """
-        return RibbonPathTableau(list(self))
-        
+        return RibbonTableau(list(self))
+
 class RibbonPathTableaux(PathTableaux):
     """
     The parent class for RibbonPathTableau.
     """
+
+    @staticmethod
+    def __classcall_private__(cls, k):
+        return super(RibbonPathTableaux, cls).__classcall__(cls, k)
+
+    def __init__(self, k):
+        if k<1:
+            raise ValueError(f"{k} is not a valid ribbon size")
+            
+        if not k:
+            if not self:
+                raise ValueError("k must be defined for the empty sequence")
+            elif len(self) == 1:
+                k = self[0].size()
+            else:
+                k = self[1].size() - self[0].size()
+        self.k = k
+        Parent.__init__(self, category=Sets())
+
     Element = RibbonPathTableau
