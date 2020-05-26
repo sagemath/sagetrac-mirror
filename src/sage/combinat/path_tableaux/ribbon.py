@@ -24,41 +24,80 @@ EXAMPLES::
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
-#from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.partition import Partition
+from sage.combinat.tableau import Tableau
+from sage.combinat.skewtableau import SkewTableau
+from sage.combinat.combinatorial_map import combinatorial_map
 
 ###############################################################################
 
-class RibbonTableau(PathTableau):
+class RibbonPathTableau(PathTableau):
     r"""
     An instance is a sequence of partitions representing a ribbon tableau.
 
     INPUT:
-        
+
     """
     @staticmethod
-    def __classcall_private__(cls, rt):
+    def __classcall_private__(cls, rt, k=None):
         r"""
         """
-        return RibbonTableaux()(rt)
+        return RibbonPathTableaux(k)(rt)
 
     def __init__(self, parent, rt, check=True):
         r"""
-        Initialize a Catalan tableau.
+        Initialize a ribbon tableau.
 
         INPUT:
 
         Can be any of:
-        """
         
+        * a list or tuple of partitions
+        * a tableau or skew tableau
+        * a ribbon tableau
+        
+        """
+        w = None
+
+        if isinstance(rt, [list,tuple]):
+            w = [ Partition(a) for a in rt ]
+                
+        if isinstance(rt, [SkewTableau,Tableau]):
+            w = [ Partition(a) for a in rt.to_chain() ]
+
+        if w is None:
+            raise ValueError(f"invalid input {rt}")
+
+        if not k:
+            if not w:
+                raise ValueError("k must be defined for the empty sequence")
+            else:
+                k = w[0].size()
+
         ClonableArray.__init__(self, parent, w, check=check)
 
     def check(self):
         r""" Checks that ``self`` is a valid path.
 
         TESTS::
-            
+
         """
+        k = self.parent().k
         
+        for u, v in zip(self,self[1:]):
+            if not v.contains(u):
+                return False
+            if not v.size() == u.size() + k:
+                return False
+            cu = set(u.cells())
+            cv = set(v.cells())
+            cb = list({a[0]-a[1] for a in cv if not a in cu})
+            cb.sort()
+            if not cb == list(range(cb[0],cb[0]+k)):
+                return False
+            
+        return True
+
     def _local_rule(self,i):
         """
         This has input a list of objects. This method first takes
@@ -70,13 +109,22 @@ class RibbonTableau(PathTableau):
 
         TESTS::
 
+        Test this agrees with Darij's Bender-Knuth involution.
+
         """
 
         def _rule(x):
             """
-            This is the rule on a sequence of three letters.
+            This is the rule on a sequence of three partitions.
             """
-            return abs(x[0]-x[1]+x[2])
+            k = self.parent().k
+            rtx = set(RibbonTableaux([x[2],x[0]],k)) # Do we need weight as well?
+            rtx.remove(x[1])
+            if rtx:
+                return rtx.pop()
+            else:
+                return x[1]
+            
 
         if not (i > 0 and i < len(self)-1):
             raise ValueError(f"{i} is not a valid integer")
@@ -86,8 +134,15 @@ class RibbonTableau(PathTableau):
 
         return result
 
-class RibbonTableaux(PathTableaux):
+    @combinatorial_map(name='to ribbon tableau')
+    def to_ribbon(self):
+        r"""
+        Return ''self'' as a ribbon tableau.
+        """
+        return RibbonPathTableau(list(self))
+        
+class RibbonPathTableaux(PathTableaux):
     """
-    The parent class for RibbonTableau.
+    The parent class for RibbonPathTableau.
     """
-    Element = RibbonTableau
+    Element = RibbonPathTableau
