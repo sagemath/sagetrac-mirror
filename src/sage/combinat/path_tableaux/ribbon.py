@@ -15,21 +15,20 @@ EXAMPLES::
 #*****************************************************************************
 #       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
 #
-# This program is free software: you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modifyde
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.list_clone import ClonableArray
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
 from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.ribbon_tableau import RibbonTableau
+from sage.combinat.ribbon_tableau import RibbonTableau, RibbonTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
 
 ###############################################################################
@@ -50,57 +49,49 @@ class RibbonPathTableau(PathTableau):
     TESTS::
 
         sage: RibbonPathTableau([[],[3]],2)
-
-sage: 
+        [[], [3]]
 
         sage: RibbonPathTableau([],0)
         Traceback (most recent call last):
         ...
         ValueError: 0 is not a valid ribbon size
 
+        sage: RibbonPathTableau([1/2],2)
+        Traceback (most recent call last):
+        ...
+        ValueError: all parts of [1/2] should be nonnegative integers
+
+        sage: RibbonPathTableau([],1/2)
+        Traceback (most recent call last):
+        ...
+        ValueError: 1/2 is not a valid ribbon size
+
+        sage: [ RibbonPathTableau(T,1) for T in StandardTableaux(4) ]
+        [[[], [1], [2], [3], [4]],
+        ...
+        [[], [1], [1, 1], [1, 1, 1], [1, 1, 1, 1]]]
+
+        sage: RibbonPathTableau(Partition([2]),2)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid input [2]
+
     """
     @staticmethod
     def __classcall_private__(cls, rt, k=None):
         r"""
         """
-        return RibbonPathTableaux()(rt)
-
-    def __init__(self, parent, rt, check=True):
-        r"""
-        Initialize a ribbon tableau.
-
-        INPUT:
-
-        Can be any of:
-
-        * a list or tuple of partitions
-        * a tableau or skew tableau
-        * a ribbon tableau
-
-        """
-        w = None
-
-        if isinstance(rt, (list,tuple)):
-            w = tuple([ Partition(a) for a in rt ])
-
-        if isinstance(rt, (SkewTableau,Tableau)):
-            w = tuple([ Partition(a) for a in rt.to_chain() ])
-
-        if w is None:
-            raise ValueError(f"invalid input {rt}")
-
-#        if not k:
-#            if not w:
-#                raise ValueError("k must be defined for the empty sequence")
-#            else:
-#                k = w[0].size()
-
-        ClonableArray.__init__(self, parent, w, check=check)
+        return RibbonPathTableaux(k)(rt)
 
     def check(self):
-        r""" Checks that ``self`` is a valid path.
+        r""" Checks that ``self`` is a valid ribbon tableau.
 
         TESTS::
+
+            sage: RibbonPathTableau([],0) # indirect test
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 is not a valid ribbon size
 
         """
         k = self.parent().k
@@ -168,21 +159,50 @@ class RibbonPathTableaux(PathTableaux):
     """
 
     @staticmethod
-    def __classcall_private__(cls, k):
+    def __classcall_private__(cls, k=None):
+        if k<1:
+            raise ValueError(f"{k} is not a valid ribbon size")
+
         return super(RibbonPathTableaux, cls).__classcall__(cls, k)
 
     def __init__(self, k):
-        if k<1:
-            raise ValueError(f"{k} is not a valid ribbon size")
-            
-        if not k:
-            if not self:
-                raise ValueError("k must be defined for the empty sequence")
-            elif len(self) == 1:
-                k = self[0].size()
-            else:
-                k = self[1].size() - self[0].size()
+
         self.k = k
         Parent.__init__(self, category=Sets())
+
+    def __contains__(self,rt):
+        return all(v.size() == u.size()+self.k for u,v in zip(rt,rt[1:]))
+
+    def _element_constructor_(self, rt):
+        r"""
+        Construct an element of ``self`` from ``rt``.
+        """
+        if isinstance(rt, RibbonPathTableau) and rt.parent() == self:
+            return rt
+
+        w = None
+
+        if isinstance(rt, (list,tuple)):
+            w = tuple([ Partition(a) for a in rt ])
+
+        if isinstance(rt, (SkewTableau,Tableau)):
+            w = tuple([ Partition(a) for a in rt.to_chain() ])
+
+        if w is None:
+            raise ValueError(f"invalid input {rt}")
+
+        return self.element_class(self, w, check=True)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: RibbonPathTableaux(4)
+            4-Ribbon Tableaux
+
+        """
+        return f"{self.k}-Ribbon Tableaux"
 
     Element = RibbonPathTableau
