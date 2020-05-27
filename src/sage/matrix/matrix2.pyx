@@ -214,8 +214,8 @@ cdef class Matrix(Matrix1):
 
         - ``check`` -- boolean (default: ``True``); verify the answer
           if the system is non-square or rank-deficient, and if its
-          entries lie in an exact ring. Meaningless over inexact rings,
-          or when the system is square and of full rank.
+          entries lie in an exact ring. Meaningless over most inexact
+          rings, or when the system is square and of full rank.
 
         OUTPUT:
 
@@ -229,12 +229,13 @@ cdef class Matrix(Matrix1):
         If the system is not square or does not have full rank, then a
         solution is attempted via other means. For example, over
         ``RDF`` or ``CDF`` a least-squares solution is returned, as
-        with MATLAB's "backslash" operator. For inexact rings, the
+        with MATLAB's "backslash" operator. For most inexact rings, the
         ``check`` parameter is ignored because an approximate solution
         will be returned in any case. Over exact rings, on the other
         hand, setting the ``check`` parameter results in an additional
         test to determine whether or not the answer actually solves the
-        system exactly.
+        system exactly. If a symbolic system involves only exact elements,
+        its solution can still be checked.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -419,8 +420,8 @@ cdef class Matrix(Matrix1):
 
         - ``check`` -- boolean (default: ``True``); verify the answer
           if the system is non-square or rank-deficient, and if its
-          entries lie in an exact ring. Meaningless over inexact rings,
-          or when the system is square and of full rank.
+          entries lie in an exact ring. Meaningless over most inexact
+          rings, or when the system is square and of full rank.
 
         OUTPUT:
 
@@ -434,12 +435,13 @@ cdef class Matrix(Matrix1):
         If the system is not square or does not have full rank, then a
         solution is attempted via other means. For example, over
         ``RDF`` or ``CDF`` a least-squares solution is returned, as
-        with MATLAB's "backslash" operator. For inexact rings, the
+        with MATLAB's "backslash" operator. For most inexact rings, the
         ``check`` parameter is ignored because an approximate solution
         will be returned in any case. Over exact rings, on the other
         hand, setting the ``check`` parameter results in an additional
         test to determine whether or not the answer actually solves the
-        system exactly.
+        system exactly. If a symbolic system involves only exact elements,
+        its solution can still be checked.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -766,6 +768,24 @@ cdef class Matrix(Matrix1):
             sage: A = matrix(RF, [[0.24, 1, 0], [1, 0, 0]])
             sage: 0 < (A * A.solve_right(B) - B).norm() < 1e-14
             True
+
+        Over the inexact ring ``SR``, we can sometimes verify the
+        solution if all of the elements involved were exact to begin
+        with; if any are inexact, however, the ``check`` is still
+        skipped (:trac:`29729`)::
+
+            sage: m = matrix(SR, [0])
+            sage: b = vector(SR, [1])
+            sage: m.solve_right(b, check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+            sage: m.solve_right(b, check=False)
+            (0)
+            sage: m = matrix(SR, [0.0])
+            sage: m.solve_right(b, check=True)
+            (0)
+
         """
         try:
             L = B.base_ring()
@@ -798,8 +818,17 @@ cdef class Matrix(Matrix1):
             K = P
             self = self.change_ring(P)
 
-        # If our field is inexact, checking the answer is doomed anyway.
-        check = (check and K.is_exact())
+        # If our field is inexact, checking the answer is doomed in
+        # most cases. But here we handle the special ones.
+        from sage.symbolic.ring import SR
+        if K is SR:
+            # Elements of SR "remember" whether or not they are exact.
+            # If every element in the system is exact, we can probably
+            # still check the solution over the inexact ring SR.
+            check = (check and all( e.is_exact()
+                                    for e in self.list() + B.list() ))
+        else:
+            check = (check and K.is_exact())
 
         if not K.is_integral_domain():
             # The non-integral-domain case is handled almost entirely
