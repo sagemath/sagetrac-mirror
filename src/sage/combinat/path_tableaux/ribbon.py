@@ -25,6 +25,7 @@ EXAMPLES::
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
+from sage.structure.list_clone import ClonableArray
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
 from sage.combinat.skew_tableau import SkewTableau
@@ -48,13 +49,32 @@ class RibbonPathTableau(PathTableau):
 
     TESTS::
 
+
         sage: RibbonPathTableau([[],[3]],2)
-        [[], [3]]
+        Traceback (most recent call last):
+        ...
+        ValueError: partition sizes must increase by 2 at each step
+
+        sage: RibbonPathTableau([],2)
+        []
+
+        sage: RibbonPathTableau([[1]],2)
+        [[1]]
+
+        sage: RibbonPathTableau([[1]])
+        Traceback (most recent call last):
+        ...
+        ValueError: the ribbon size k must be specified for [[1]]
 
         sage: RibbonPathTableau([],0)
         Traceback (most recent call last):
         ...
         ValueError: 0 is not a valid ribbon size
+
+        sage: RibbonPathTableau(Tableau([[1, 2, 3], [4]]),2)
+        Traceback (most recent call last):
+        ...
+        ValueError: partition sizes must increase by 2 at each step
 
         sage: RibbonPathTableau([1/2],2)
         Traceback (most recent call last):
@@ -81,10 +101,45 @@ class RibbonPathTableau(PathTableau):
     def __classcall_private__(cls, rt, k=None):
         r"""
         """
+        if k == None:
+            if len(rt) == 0:
+                raise ValueError(f"the ribbon size k must be specified for {rt}")
+
+            if isinstance(rt, (list,tuple)):
+                if len(rt) == 1:
+                    raise ValueError(f"the ribbon size k must be specified for {rt}")
+                k = Partition(rt[1]).size() - Partition(rt[0]).size
+
+            if isinstance(rt, (SkewTableau,Tableau)):
+                k = rt.weight()[0]
+
+        if k < 1:
+            raise ValueError(f"{k} is not a valid ribbon size")
+
         return RibbonPathTableaux(k)(rt)
 
+    def __init__(self, parent, rt, check=True):
+        r"""
+        Construct an element of ``self`` from ``rt``.
+        """
+        if isinstance(rt, RibbonPathTableau) and rt.parent() == self:
+            return rt
+
+        w = None
+
+        if isinstance(rt, (list,tuple)):
+            w = tuple([ Partition(a) for a in rt ])
+
+        if isinstance(rt, (SkewTableau,Tableau)):
+            w = tuple([ Partition(a) for a in rt.to_chain() ])
+
+        if w is None:
+            raise ValueError(f"invalid input {rt}")
+
+        ClonableArray.__init__(self, parent, w, check=check)
+
     def check(self):
-        r""" Checks that ``self`` is a valid ribbon tableau.
+        r""" Checks that ``self`` is a valid¨ ribbon tableau.
 
         TESTS::
 
@@ -95,20 +150,18 @@ class RibbonPathTableau(PathTableau):
 
         """
         k = self.parent().k
+        if k and any(v.size() != u.size()+k for u,v in zip(self,self[1:])):
+            raise ValueError(f"partition sizes must increase by {k} at each step")
 
         for u, v in zip(self,self[1:]):
             if not v.contains(u):
-                return False
-            if not v.size() == u.size() + k:
-                return False
+                raise ValueError(f"partition {v} does not contain {u}")
             cu = set(u.cells())
             cv = set(v.cells())
             cb = list({a[0]-a[1] for a in cv if not a in cu})
             cb.sort()
-            if not cb == list(range(cb[0],cb[0]+k)):
-                return False
-
-        return True
+            if not cb == list(range(cb[0],cb[-1]+1)):
+                raise ValueError(f"the skew shape {v}\{u} is not a ribbon shape")
 
     def _local_rule(self,i):
         """
@@ -171,27 +224,9 @@ class RibbonPathTableaux(PathTableaux):
         Parent.__init__(self, category=Sets())
 
     def __contains__(self,rt):
-        return all(v.size() == u.size()+self.k for u,v in zip(rt,rt[1:]))
-
-    def _element_constructor_(self, rt):
         r"""
-        Construct an element of ``self`` from ``rt``.
+        Return ''True'' if ''rt'' is in ''self''.
         """
-        if isinstance(rt, RibbonPathTableau) and rt.parent() == self:
-            return rt
-
-        w = None
-
-        if isinstance(rt, (list,tuple)):
-            w = tuple([ Partition(a) for a in rt ])
-
-        if isinstance(rt, (SkewTableau,Tableau)):
-            w = tuple([ Partition(a) for a in rt.to_chain() ])
-
-        if w is None:
-            raise ValueError(f"invalid input {rt}")
-
-        return self.element_class(self, w, check=True)
 
     def _repr_(self):
         """
