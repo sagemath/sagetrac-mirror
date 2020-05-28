@@ -2585,6 +2585,35 @@ class IntegralProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_finite_fiel
     """
     _point = IntegralProjectivePlaneCurvePoint_finite_field
 
+    def delta_invariant(self, point):
+        """
+        Return the delta invariant of ``point``.
+
+        INPUT:
+
+        - ``point`` -- a closed point of the curve
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(2), 2)
+            sage: C = Curve(y^3 - x^5, A)
+            sage: Cb = C.projective_closure()
+            sage: Cb.singular_closed_points()
+            [Point (x1, x2), Point (x0, x1)]
+            sage: p1, p2 = _
+            sage: Cb.delta_invariant(p1)
+            4
+            sage: Cb.delta_invariant(p2)
+            2
+            sage: Cb.arithmetic_genus()
+            6
+            sage: 6 - (4 + 2) == Cb.geometric_genus()
+            True
+        """
+        pa = point.affine()
+        Ca = pa.curve()
+        return Ca.delta_invariant(pa)
+
 def Hasse_bounds(q, genus=1):
     r"""
     Return the Hasse-Weil bounds for the cardinality of a nonsingular

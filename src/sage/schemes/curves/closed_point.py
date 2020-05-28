@@ -59,6 +59,25 @@ closed point is of degree one::
     sage: _ == p3
     True
 
+If the closed point is regular, then it is associated with a place of the
+function field of the curve. If the closed point is singular, then there could
+be several places on the closed point. Each of those places represents a branch
+of the curve at the closed point. For plane curves, Sage can analyze branches
+of a closed point and compute its delta invariant. ::
+
+    sage: A.<x,y> = AffineSpace(GF(2), 2)
+    sage: C = Curve(y^3 - x^5, A)
+    sage: Cb = C.projective_closure()
+    sage: p1, p2 = Cb.singular_closed_points()
+    sage: p1.delta_invariant()
+    4
+    sage: p2.delta_invariant()
+    2
+    sage: Cb.arithmetic_genus()
+    6
+    sage: 6 - (4 + 2) == Cb.geometric_genus()
+    True
+
 AUTHORS:
 
 - Kwankyu Lee (2019-03): initial version
@@ -338,6 +357,31 @@ class IntegralAffineCurveClosedPoint(IntegralCurveClosedPoint):
         Cp = C.projective_closure(i)
         return Cp._closed_point(Cp, prime, self.degree())
 
+    def delta_invariant(self):
+        """
+        Return the delta invariant of the point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(2), 2)
+            sage: C = Curve(y^2 - x^3, A)
+            sage: C.singular_closed_points()
+            [Point (x, y)]
+            sage: p, = C.singular_closed_points()
+            sage: p.degree()
+            1
+            sage: p.delta_invariant()
+            1
+            sage: [p.delta_invariant() for p in C.closed_points(1)]
+            [1, 0]
+            sage: [p.delta_invariant() for p in C.closed_points(2)]
+            [0]
+            sage: [p.delta_invariant() for p in C.closed_points(3)]
+            [0, 0]
+        """
+        return self.curve().delta_invariant(self)
+
+
 
 class IntegralProjectiveCurveClosedPoint(IntegralCurveClosedPoint):
     """
@@ -421,4 +465,32 @@ class IntegralProjectiveCurveClosedPoint(IntegralCurveClosedPoint):
 
         Ca = C.affine_patch(i)
         return Ca._closed_point(Ca, prime, self.degree())
+
+    def delta_invariant(self):
+        """
+        Return the delta invariant of ``point``.
+
+        INPUT:
+
+        - ``point`` -- a closed point of the curve
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(2), 2)
+            sage: C = Curve(y^3 - x^5, A)
+            sage: Cb = C.projective_closure()
+            sage: p1, p2 = Cb.singular_closed_points()
+            sage: p1.delta_invariant()
+            4
+            sage: p2.delta_invariant()
+            2
+        """
+        return self.affine().delta_invariant()
+
+
+
+
+
+
+
 

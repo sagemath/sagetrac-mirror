@@ -95,6 +95,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
+import itertools
+
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
@@ -2642,3 +2644,149 @@ class IntegralAffinePlaneCurve_finite_field(AffinePlaneCurve_finite_field, Integ
         hn.append((R.series(coefficient=f, valuation=0), vx)) # vx is 1
 
         return (initialization, hn)
+
+    def delta_invariant(self, point):
+        """
+        Return the delta invariant of ``point``.
+
+        INPUT:
+
+        - ``point`` -- a closed point of the curve
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(7^2),2)
+            sage: C = Curve(x^2 - x^4 - y^4)
+            sage: p, = C.singular_closed_points()
+            sage: C.delta_invariant(p)
+            2
+
+        ALGORITHM:
+
+        The delta invariant of the point is computed using the
+        Hamburger-Noether expansions of the branches of the curve at the point.
+        The procedure is explained in [Cam2006]_.
+        """
+        x0, y0 = [var + '0' for var in self.ambient_space().variable_names()]
+
+        # compute the delta invariant of a branch represented by a
+        # hamburger-noether expansion hn
+        def delta_invariant_of_branch(hn):
+            d = 0
+            for row in hn[1]:
+                n = row[1]
+                if n > 1:
+                    h = len(row[0])
+                    d += h*n*(n-1) // 2
+            return d
+
+        # compute intersection multiplicity of the branches represented by
+        # hamburger-noether expansions hn1, hn2
+        def intersection_multiplicity(hn1, hn2):
+            exp1 = hn1[0]
+            exp2 = hn2[0]
+
+            vy1 = exp1[y0].valuation()
+            vx1 = exp1[x0].valuation()
+
+            vy2 = exp2[y0].valuation()
+            vx2 = exp2[x0].valuation()
+
+            if vy1 >= vx1:
+                if vy2 < vx2:
+                    return vx1*vy2
+                else:
+                    m = vx1*vx2
+            elif vy2 >= vx2:
+                return vy1*vx2
+            else:
+                m = vy1*vy2
+
+            rows1 = hn1[1]
+            rows2 = hn2[1]
+
+            r = 0
+            while True:
+                s1, n1 = rows1[r]
+                s2, n2 = rows2[r]
+
+                if n1 == 1 and n2 == 1:
+                    i = 1
+                    while s1.coefficient(i) == s2.coefficient(i):
+                        m += n1*n2
+                        i += 1
+                    return m
+                elif n1 > 1 and n2 == 1:
+                    for i in range(len(s1)):
+                        if s1[i] == s2.coefficient(i+1):
+                            m += n1*n2
+                        else:
+                            return m
+                    return m
+                elif n1 == 1 and n2 > 1:
+                    for i in range(len(s2)):
+                        if s2[i] == s1.coefficient(i+1):
+                            m += n1*n2
+                        else:
+                            return m
+                    return m
+                elif n1 > 1 and n2 > 1:
+                    if len(s1) < len(s2):
+                        for i in range(len(s1)):
+                            if s1[i] == s2[i]:
+                                m += n1*n2
+                            else:
+                                return m
+                        return m
+                    elif len(s1) > len(s2):
+                        for i in range(len(s2)):
+                            if s1[i] == s2[i]:
+                                m += n1*n2
+                            else:
+                                return m
+                        return m
+                    else:
+                        for i in range(len(s2)):
+                            if s1[i] == s2[i]:
+                                m += n1*n2
+                            else:
+                                return m
+                        r += 1
+
+        pls = point.places()
+        hns = []
+        d = 0
+        for p in pls:
+            m = p.degree() // p.degree()
+            hn = self._hamburger_noether_expansion(p)
+            d += m * delta_invariant_of_branch(hn)
+
+            # add conjugated hamburger-noether expansions
+            hns.append(hn)
+            if m > 1:
+                E = p.residue_field()[0]
+                frob = E.frobenius_endomorphism(self.base_ring().degree()*p.degree())
+                while m > 1:
+                    initialization = hn[0]
+                    x0 = initialization[x0]
+                    y0 = initialization[y0]
+
+                    new_initialization = {x0: x0.apply_coefficient_map(frob),
+                                          y0: y0.apply_coefficient_map(frob)}
+
+                    new_hn = []
+                    for row in hn[1]:
+                        s, n = row
+                        if n > 1:
+                            new_hn.append(([frob(c) for c in s], n))
+                        else:
+                            new_hn.append((s.apply_coefficient_map(frob), n))
+
+                    hns.append( (new_initialization, new_hn) )
+                    hn = new_hn
+                    m -= 1
+
+        for pair in itertools.combinations(hns, 2):
+            d += intersection_multiplicity(pair[0],pair[1])
+
+        return d
