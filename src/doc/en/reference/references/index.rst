@@ -1180,6 +1180,9 @@ REFERENCES:
 .. [dCa2007] \C. de Canniere: *Analysis and Design of Symmetric Encryption
              Algorithms*, PhD Thesis, 2007.
 
+.. [Cam2006] Antonio Campillo. *Algebroid curves in positive characteristics*,
+             Vol. 813. Springer, 2006.
+
 .. [Can1990] \J. Canny. Generalised characteristic polynomials.
              J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
 
