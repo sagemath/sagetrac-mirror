@@ -28,9 +28,10 @@ from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
-from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.ribbon_tableau import RibbonTableau, RibbonTableaux
+from sage.combinat.skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
+from sage.combinat.ribbon_tableau import RibbonTableau
 from sage.combinat.combinatorial_map import combinatorial_map
+from contextlib import suppress
 
 ###############################################################################
 
@@ -90,6 +91,13 @@ class RibbonPathTableau(PathTableau):
         [[[], [1], [2], [3], [4]],
         ...
         [[], [1], [1, 1], [1, 1, 1], [1, 1, 1, 1]]]
+
+        sage: [ RibbonPathTableau(T,1) for T in StandardSkewTableaux([[2,2,1],[1]]) ]
+        [[[1], [1, 1], [2, 1], [2, 1, 1], [2, 2, 1]],
+         [[1], [1, 1], [1, 1, 1], [2, 1, 1], [2, 2, 1]],
+         [[1], [2], [2, 1], [2, 1, 1], [2, 2, 1]],
+         [[1], [2], [2, 1], [2, 2], [2, 2, 1]],
+         [[1], [1, 1], [2, 1], [2, 2], [2, 2, 1]]]
 
         sage: RibbonPathTableau(Partition([2]),2)
         Traceback (most recent call last):
@@ -183,13 +191,19 @@ class RibbonPathTableau(PathTableau):
             This is the rule on a sequence of three partitions.
             """
             k = self.parent().k
-            rtx = set(RibbonTableaux([x[2],x[0]],k)) # Do we need weight as well?
-            rtx.remove(x[1])
-            if rtx:
-                return rtx.pop()
-            else:
+            stx = list(SemistandardSkewTableaux([x[2],x[0]],[k,k]))
+            if len(stx) == 1:
                 return x[1]
-
+            rtx = []
+            for T in stx:
+                with suppress(ValueError):
+                    RibbonPathTableau(T)
+                rtx.append(T)
+            if len(rtx) == 1:
+                return x[1]
+            else:
+                rtx.remove(x)
+                return rtx[0][1]
 
         if not (i > 0 and i < len(self)-1):
             raise ValueError(f"{i} is not a valid integer")
@@ -203,8 +217,16 @@ class RibbonPathTableau(PathTableau):
     def to_ribbon(self):
         r"""
         Return ''self'' as a ribbon tableau.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]])
+            sage: RibbonPathTableau(T).to_ribbon()
+            [[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]]
+
         """
-        return RibbonTableau(list(self))
+        from sage.combinat.tableau import from_chain
+        return RibbonTableau(from_chain(self))
 
 class RibbonPathTableaux(PathTableaux):
     """
