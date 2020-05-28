@@ -119,9 +119,6 @@ class MW:
         self._A_RR = [M.echelon_form() for M in self._A]
         self._bases = [M.T.kernel().basis() for M in self._A]
         self._N = fan.lattice()
-        self._subalgebra_generated = False
-        self._subalgebra_ranks = None
-        self._products = {}
         
     def basis(self,k):
         """Returns a basis for MW^k.
