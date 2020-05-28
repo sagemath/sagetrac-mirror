@@ -19,5 +19,4 @@ Home page: https://github.com/aaren/notedown
 * setuptools
 * nbformat
 * nbconvert
-* six
 * pandoc_attributes

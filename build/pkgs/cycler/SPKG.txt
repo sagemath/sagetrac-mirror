@@ -20,5 +20,4 @@ is at http://tacaswell.github.io/cycler/
 
  * python
  * setuptools
- * six
 
