@@ -116,7 +116,7 @@ class RibbonPathTableau(PathTableau):
             if isinstance(rt, (list,tuple)):
                 if len(rt) == 1:
                     raise ValueError(f"the ribbon size k must be specified for {rt}")
-                k = Partition(rt[1]).size() - Partition(rt[0]).size
+                k = Partition(rt[1]).size() - Partition(rt[0]).size()
 
             if isinstance(rt, (SkewTableau,Tableau)):
                 k = rt.weight()[0]
@@ -191,14 +191,16 @@ class RibbonPathTableau(PathTableau):
             This is the rule on a sequence of three partitions.
             """
             k = self.parent().k
-            stx = list(SemistandardSkewTableaux([x[2],x[0]],[k,k]))
+            stx = [ T.to_chain() for T in SemistandardSkewTableaux([x[2],x[0]],[k,k]) ]
             if len(stx) == 1:
                 return x[1]
             rtx = []
             for T in stx:
-                with suppress(ValueError):
+                try:
                     RibbonPathTableau(T)
-                rtx.append(T)
+                    rtx.append(T)
+                except ValueError:
+                    pass
             if len(rtx) == 1:
                 return x[1]
             else:
@@ -209,7 +211,7 @@ class RibbonPathTableau(PathTableau):
             raise ValueError(f"{i} is not a valid integer")
 
         with self.clone() as result:
-            result[i] = _rule(self[i-1:i+2])
+            result[i] = Partition(_rule(self[i-1:i+2]))
 
         return result
 
