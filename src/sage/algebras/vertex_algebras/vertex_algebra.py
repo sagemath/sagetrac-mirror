@@ -105,7 +105,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.partition_tuple import PartitionTuples_level
 from sage.categories.vertex_algebras import VertexAlgebras
-from sage.categories.lie_conformal_algebras import LieConformalAlgebras, LiftMorphism
+from sage.categories.lie_conformal_algebras import LieConformalAlgebras, _LiftMorphism
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.partition import Partition
 from sage.combinat.partition_tuple import PartitionTuples
@@ -241,7 +241,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
     def register_lift(self):
         from sage.categories.homset import Hom
-        self._lca.lift = LiftMorphism(Hom(self._lca, self, category = 
+        self._lca.lift = _LiftMorphism(Hom(self._lca, self, category = 
                         LieConformalAlgebras(self._lca.base_ring())))
         try: 
             self._lca.lift.register_as_coercion()
