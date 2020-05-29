@@ -8,7 +8,9 @@ AUTHORS:
 
 - Bruce Westbury (2020): initial version
 
-EXAMPLES::
+TEST::
+    
+    sage: TestSuite(RibbonPathTableau(Tableau([[1,1,2,2],[3,3,5,5],[4,4,6,6]]))).run()
 
     """
 
@@ -28,10 +30,9 @@ from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
-from sage.combinat.skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
+from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.ribbon_tableau import RibbonTableau
 from sage.combinat.combinatorial_map import combinatorial_map
-from contextlib import suppress
 
 ###############################################################################
 
