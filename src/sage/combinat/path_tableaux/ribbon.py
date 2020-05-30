@@ -172,7 +172,7 @@ class RibbonPathTableau(PathTableau):
             if not cb == list(range(cb[0],cb[-1]+1)):
                 raise ValueError(f"the skew shape {v}\{u} is not a ribbon shape")
 
-    def _local_rule(self,i):
+    def local_rule(self,i):
         """
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
