@@ -55,7 +55,7 @@ class PathTableau(ClonableArray):
     This is the abstract base class for path tableaux.
     """
     @abstract_method(optional=False)
-    def _local_rule(self,i):
+    def local_rule(self,i):
         r"""
         This is the abstract local rule defined in any coboundary category.
 
@@ -66,8 +66,8 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: t._local_rule(3)
+            sage: t = DyckPath([0,1,2,3,2,1,0])
+            sage: t.local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
         """
 
@@ -79,7 +79,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.size()
             7
         """
@@ -91,7 +91,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.initial_shape()
             0
 
@@ -107,7 +107,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.final_shape()
             0
 
@@ -125,7 +125,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.promotion()
             [0, 1, 2, 1, 0, 1, 0]
 
@@ -135,7 +135,7 @@ class PathTableau(ClonableArray):
         """
         with self.clone() as result:
             for i in range(1,len(result)-1):
-                result = result._local_rule(i)
+                result = result.local_rule(i)
 
         return result
 
@@ -145,7 +145,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.evacuation()
             [0, 1, 2, 3, 2, 1, 0]
 
@@ -175,8 +175,8 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t1 = CatalanTableau([0,1,2,3,2,1,0])
-            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1 = DyckPath([0,1,2,3,2,1,0])
+            sage: t2 = DyckPath([0,1,2,1,0])
             sage: t1.commutor(t2)
             ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
             sage: t1.commutor(t2,verbose=True)
@@ -202,20 +202,20 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t1 = CatalanTableau([])
-            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1 = DyckPath([])
+            sage: t2 = DyckPath([0,1,2,1,0])
             sage: t1.commutor(t2)
             Traceback (most recent call last):
             ...
             ValueError: this requires nonempty lists
-            sage: t1 = CatalanTableau([0,1,2,3,2,1,0])
-            sage: t2 = CatalanTableau([])
+            sage: t1 = DyckPath([0,1,2,3,2,1,0])
+            sage: t2 = DyckPath([])
             sage: t1.commutor(t2)
             Traceback (most recent call last):
             ...
             ValueError: this requires nonempty lists
-            sage: t1 = CatalanTableau([0,1,2,3,2,1])
-            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1 = DyckPath([0,1,2,3,2,1])
+            sage: t2 = DyckPath([0,1,2,1,0])
             sage: t1.commutor(t2)
             Traceback (most recent call last):
             ...
@@ -246,7 +246,7 @@ class PathTableau(ClonableArray):
             if verbose:
                 print(path[n-i:n+m-i])
             for j in range(m-1):
-                path = path._local_rule(n+j-i)
+                path = path.local_rule(n+j-i)
         if verbose:
             print(path[:m])
 
@@ -268,7 +268,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.cactus(1,5)
             [0, 1, 0, 1, 2, 1, 0]
 
@@ -282,7 +282,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.cactus(1,8)
             Traceback (most recent call last):
             ...
@@ -315,7 +315,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t._test_involution_rule()
 
             sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
@@ -323,7 +323,7 @@ class PathTableau(ClonableArray):
         """
         tester = self._tester(**options)
         for i in range(self.size()-2):
-            tester.assertTrue(self._local_rule(i+1)._local_rule(i+1) == self)
+            tester.assertTrue(self.local_rule(i+1).local_rule(i+1) == self)
 
 
     def _test_involution_cactus(self, **options):
@@ -332,7 +332,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t._test_involution_cactus()
 
             sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
@@ -348,7 +348,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t._test_promotion()
 
             sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
@@ -364,7 +364,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t._test_commutation()
 
             sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
@@ -387,7 +387,7 @@ class PathTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t._test_coboundary()
 
             sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
@@ -410,7 +410,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: t.orbit()
             {[0, 1, 0, 1, 0, 1, 0],
              [0, 1, 0, 1, 2, 1, 0],
@@ -469,7 +469,7 @@ class PathTableau(ClonableArray):
 
         EXAMPLES::
 
-            sage: s = CatalanTableau([0,1,2,3,2,3,2,1,0])
+            sage: s = DyckPath([0,1,2,3,2,3,2,1,0])
             sage: s.dual_equivalence_graph().adjacency_matrix()
             [0 1 1 1 0 1 0 1 1 0 0 0 0 0]
             [1 0 1 1 1 1 1 0 1 0 0 1 1 0]
@@ -485,7 +485,7 @@ class PathTableau(ClonableArray):
             [0 1 1 1 0 0 1 1 1 1 1 0 1 1]
             [0 1 0 1 1 1 0 1 1 1 1 1 0 1]
             [0 0 0 0 1 0 1 0 0 1 1 1 1 0]
-            sage: s = CatalanTableau([0,1,2,3,2,1,0])
+            sage: s = DyckPath([0,1,2,3,2,1,0])
             sage: sorted(s.dual_equivalence_graph().edges())
             [([0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 2, 1, 0], '4,7'),
              ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 0, 1, 0], '2,5'),
@@ -538,9 +538,9 @@ class PathTableaux(UniqueRepresentation,Parent):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,1,0])
+            sage: t = DyckPath([0,1,2,1,0])
             sage: t.parent() # indirect test
-            <sage.combinat.path_tableaux.catalan.CatalanTableaux_with_category object at ...>
+            <sage.combinat.path_tableaux.dyck_path.DyckPaths_with_category object at ...>
 
             sage: t = OscillatingTableau([1,1,2,3,-1,-3,-2,-1])
             sage: t.parent() # indirect test
@@ -554,7 +554,7 @@ class PathTableaux(UniqueRepresentation,Parent):
 
         TESTS::
 
-            sage: CatalanTableau([0,1,2,1,0]) # indirect doctest
+            sage: DyckPath([0,1,2,1,0]) # indirect doctest
             [0, 1, 2, 1, 0]
 
             sage: OscillatingTableau([1,1,2,3,-1,-3,-2,-1]) # indirect doctest
@@ -574,7 +574,7 @@ class CylindricalDiagram(SageObject):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: CylindricalDiagram(t)
              [0, 1, 2, 3, 2, 1, 0]
              ['', 0, 1, 2, 1, 0, 1, 0]
@@ -614,7 +614,7 @@ class CylindricalDiagram(SageObject):
 
         TESTS::
 
-            sage: print(CatalanTableau([0,1,2,1,2,1,0])) # indirect test
+            sage: print(DyckPath([0,1,2,1,2,1,0])) # indirect test
             [0, 1, 2, 1, 2, 1, 0]
 
             sage: print(OscillatingTableau([1,1,2,3,-1,-3,-2,-1])) # indirect test
@@ -629,7 +629,7 @@ class CylindricalDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: latex(CylindricalDiagram(t))
             \begin{array}{ccccccccccccc}
             0 & 1 & 2 & 3 & 2 & 1 & 0\\
@@ -670,7 +670,7 @@ class CylindricalDiagram(SageObject):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: len(CylindricalDiagram(t))
             7
         """
@@ -682,7 +682,7 @@ class CylindricalDiagram(SageObject):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: ascii_art(CylindricalDiagram(t))
             0 1 2 3 2 1 0
              0 1 2 1 0 1 0
@@ -703,7 +703,7 @@ class CylindricalDiagram(SageObject):
 
         TESTS::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: unicode_art(CylindricalDiagram(t))
             0 1 2 3 2 1 0
              0 1 2 1 0 1 0
@@ -724,7 +724,7 @@ class CylindricalDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = DyckPath([0,1,2,3,2,1,0])
             sage: CylindricalDiagram(t).pp()
             0 1 2 3 2 1 0
               0 1 2 1 0 1 0
