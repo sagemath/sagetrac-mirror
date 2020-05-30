@@ -183,8 +183,6 @@ class RibbonPathTableau(PathTableau):
 
         TESTS::
 
-        Test this agrees with Darij's Bender-Knuth involution.
-
         """
 
         def _rule(x):
