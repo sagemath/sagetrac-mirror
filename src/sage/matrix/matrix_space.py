@@ -185,6 +185,8 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
         sage: type(matrix(GF(16007), 2, range(4)))
         <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+        sage: type(matrix(RBF, 2, range(4)))
+        <type 'sage.matrix.matrix_real_ball_dense.Matrix_real_ball_dense'>
         sage: type(matrix(CBF, 2, range(4)))
         <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
         sage: type(matrix(GF(2), 2, range(4)))
@@ -244,6 +246,11 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if R is SR:
                 from . import matrix_symbolic_dense
                 return matrix_symbolic_dense.Matrix_symbolic_dense
+
+            from sage.rings.real_arb import RealBallField
+            if isinstance(R, RealBallField):
+                from . import matrix_real_ball_dense
+                return matrix_real_ball_dense.Matrix_real_ball_dense
 
             from sage.rings.complex_arb import ComplexBallField
             if isinstance(R, ComplexBallField):

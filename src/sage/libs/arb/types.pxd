@@ -1,4 +1,4 @@
-# distutils: depends = mag.h arf.h arb.h acb.h acb_mat.h acb_poly.h acb_calc.h
+# distutils: depends = mag.h arf.h arb.h acb.h arb_mat.h acb_mat.h acb_poly.h acb_calc.h
 
 # mag.h
 cdef extern from "arb_wrap.h":
@@ -38,6 +38,12 @@ cdef extern from "arb_wrap.h":
     ctypedef acb_struct[1] acb_t
     ctypedef acb_struct * acb_ptr
     ctypedef const acb_struct * acb_srcptr
+
+# arb_mat.h
+cdef extern from "arb_wrap.h":
+    ctypedef struct arb_mat_struct:
+        pass
+    ctypedef arb_mat_struct[1] arb_mat_t
 
 # acb_mat.h
 cdef extern from "arb_wrap.h":

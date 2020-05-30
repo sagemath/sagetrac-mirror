@@ -795,6 +795,10 @@ ext_modules = [
     Extension('sage.matrix.matrix2',
               sources = ['sage/matrix/matrix2.pyx']),
 
+    Extension("sage.matrix.matrix_real_ball_dense",
+              ["sage/matrix/matrix_real_ball_dense.pyx"],
+              libraries=[arb_dylib_name]),
+
     Extension("sage.matrix.matrix_complex_ball_dense",
               ["sage/matrix/matrix_complex_ball_dense.pyx"],
               libraries=[arb_dylib_name]),
