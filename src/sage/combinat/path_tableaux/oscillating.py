@@ -285,7 +285,7 @@ class OscillatingTableau(PathTableau):
             Traceback (most recent call last):
             ...
             ValueError: 0 is not a valid integer
-            sage: t._local_rule(4)
+            sage: t.local_rule(4)
             Traceback (most recent call last):
             ...
             ValueError: 4 is not a valid integer
