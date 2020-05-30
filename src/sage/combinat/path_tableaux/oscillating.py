@@ -9,9 +9,9 @@ of partitions such that at each step either one box is added or one box
 is removed.
 
 The purpose is to define promotion, evacuation and the action of
-the cactus group on oscillating tableaux. 
+the cactus group on oscillating tableaux.
 
-For further information see [RSW2013]_ and [PRW2018]_ . 
+For further information see [RSW2013]_ and [PRW2018]_ .
 
 AUTHORS:
 - Bruce Westbury (2018): initial version
@@ -265,7 +265,7 @@ class OscillatingTableau(PathTableau):
                 if not h.contains(t):
                     raise ValueError("next partition is not obtained by removing a cell")
 
-    def _local_rule(self,i):
+    def local_rule(self,i):
         r"""
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
@@ -275,13 +275,13 @@ class OscillatingTableau(PathTableau):
         EXAMPLES::
 
             sage: t = OscillatingTableau([[],[1],[2],[2,1],[1,1]])
-            sage: t._local_rule(3)
+            sage: t.local_rule(3)
             [[], [1], [2], [1], [1, 1]]
 
         TESTS::
 
             sage: t = OscillatingTableau([[],[1],[2],[1],[]])
-            sage: t._local_rule(0)
+            sage: t.local_rule(0)
             Traceback (most recent call last):
             ...
             ValueError: 0 is not a valid integer
