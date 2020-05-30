@@ -9,8 +9,12 @@ AUTHORS:
 - Bruce Westbury (2020): initial version
 
 TEST::
-    
-    sage: TestSuite(RibbonPathTableau(Tableau([[1,1,2,2],[3,3,5,5],[4,4,6,6]]))).run()
+
+    sage: R = RibbonPathTableau(Tableau([[1,1,2,2],[3,3,5,5],[4,4,6,6]]))
+    #sage: TestSuite(R).run()
+
+    sage: R = RibbonPathTableau([[1],[4,2],[4,3,3,1],[6,5,4,1],[6,5,4,4,2],[7,7,6,4,2]])
+    #sage: TestSuite(R).run()
 
     """
 
@@ -48,6 +52,10 @@ class RibbonPathTableau(PathTableau):
         []
         sage: RibbonPathTableau([[],[3]],3)
         [[], [3]]
+
+        sage: T = SkewTableau([[None,1,1,1,3,3,5],[1,1,2,3,3,5,5],[2,2,2,3,5,5],[2,4,4,4],[4,4]])
+        sage: RibbonPathTableau(T)
+        [[1], [4, 2], [4, 3, 3, 1], [6, 5, 4, 1], [6, 5, 4, 4, 2], [7, 7, 6, 4, 2]]
 
     TESTS::
 
@@ -105,6 +113,11 @@ class RibbonPathTableau(PathTableau):
         ...
         ValueError: invalid input [2]
 
+        sage: rt = RibbonTableau([[None,None,0,0,0],[None,0,0,2],[1,0,1]])
+        sage: RibbonPathTableau(rt)
+        Traceback (most recent call last):
+        ...        
+        ValueError: a ribbon tableau is not valid input
     """
     @staticmethod
     def __classcall_private__(cls, rt, k=None):
@@ -140,6 +153,8 @@ class RibbonPathTableau(PathTableau):
             w = tuple([ Partition(a) for a in rt ])
 
         if isinstance(rt, (SkewTableau,Tableau)):
+            if isinstance(rt, RibbonTableau):
+                raise ValueError("a ribbon tableau is not valid input")
             w = tuple([ Partition(a) for a in rt.to_chain() ])
 
         if w is None:
@@ -181,30 +196,22 @@ class RibbonPathTableau(PathTableau):
 
         EXAMPLES::
 
-        TESTS::
+            sage: R = RibbonPathTableau([[1],[4,2],[4,3,3,1],[6,5,4,1],[6,5,4,4,2],[7,7,6,4,2]])
+            sage: R.local_rule(2)
+            [[1], [4, 2], [6, 5], [6, 5, 4, 1], [6, 5, 4, 4, 2], [7, 7, 6, 4, 2]]
 
         """
-
         def _rule(x):
-            """
-            This is the rule on a sequence of three partitions.
-            """
-            k = self.parent().k
-            stx = [ T.to_chain() for T in SemistandardSkewTableaux([x[2],x[0]],[k,k]) ]
-            if len(stx) == 1:
-                return x[1]
-            rtx = []
-            for T in stx:
-                try:
-                    RibbonPathTableau(T)
-                    rtx.append(T)
-                except ValueError:
-                    pass
-            if len(rtx) == 1:
-                return x[1]
-            else:
-                rtx.remove(x)
-                return rtx[0][1]
+            cells = [c for c in x[2].cells() if c not in x[1].cells()]
+            data = list(x[0])
+            for i,j in cells:
+                if (i-1,j-1) in x[0].cells() or i == 0 or j == 0:
+                    if i >= len(data):
+                        data += [0]*(i-len(data)+1)
+                    data[i] += 1
+                else:
+                    data[i-1] += 1
+            return Partition(data)
 
         if not (i > 0 and i < len(self)-1):
             raise ValueError(f"{i} is not a valid integer")
@@ -215,19 +222,19 @@ class RibbonPathTableau(PathTableau):
         return result
 
     @combinatorial_map(name='to ribbon tableau')
-    def to_ribbon(self):
+    def to_tableau(self):
         r"""
         Return ''self'' as a ribbon tableau.
 
         EXAMPLES::
 
             sage: T = Tableau([[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]])
-            sage: RibbonPathTableau(T).to_ribbon()
+            sage: RibbonPathTableau(T).to_tableau()
             [[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]]
 
         """
         from sage.combinat.tableau import from_chain
-        return RibbonTableau(from_chain(self))
+        return Tableau(from_chain(self))
 
 class RibbonPathTableaux(PathTableaux):
     """
