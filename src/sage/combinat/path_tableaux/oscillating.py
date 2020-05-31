@@ -223,7 +223,7 @@ class OscillatingTableau(PathTableau):
                     raise RuntimeError("tableau must be standard")
 
         if w is None:
-            raise ValueError("invalid input {!s}".format(ot))
+            raise ValueError(f"invalid input {ot}")
 
         return OscillatingTableaux()(w)
 
@@ -393,7 +393,7 @@ class OscillatingTableau(PathTableau):
             ValueError: the final shape of [[], [1], [1, 1], [2, 1], [1, 1]] must be the empty shape
         """
         if self[-1]:
-            raise ValueError("the final shape of {!s} must be the empty shape".format(self))
+            raise ValueError(f"the final shape of {self} must be the empty shape")
 
         return self.sundaram()[1]
 
