@@ -994,48 +994,58 @@ def stirling_number2(n, k, algorithm=None):
 def binomial_transform(seq, n=None):
     r'''
     Returns the binomial transform (or element of the transform) of a sequence `seq`.
+    The binomial transform maps a sequence `(a_i)` to and from a sequence `(b_i)` via the two-way mapping
+
+    .. MATH::
+
+       b_n = \sum_{k=0}^{n} \left(\begin{array}{c}n\\k\end{array}\right)a_k,
+
+    and
+
+    .. MATH::
+
+       a_n = \sum_{k=0}^{n} \left(-1\right)^{n-k}\left(\begin{array}{c}n\\k\end{array}\right)b_k.
 
     INPUT:
 
-    - ``seq`` -- iterable; sequence to transform
+    - ``seq`` -- iterable; the sequence to transform
 
-    - ``n`` -- integer (default: None); If set, outputs only element of binomial transform at index `n`.
-      Must be greater than `-len(seq)`, less than size of `seq`
+    - ``n`` -- integer (default: None); If set, outputs only the element at index `n` of the 
+      binomial transform. Must be greater than `-len(seq)` and less than `len(seq)`
 
-    OUTPUT: Binomial transform as list, or an element of binomial transform
+    OUTPUT: Binomial transform as a list, or an element of the binomial transform
 
     EXAMPLES::
 
-        sage: binomial_transform([2^n for n in [0..9]])
+        sage: binomial_transform([2^n for n in range(10)])
         [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683]
 
-        sage: binomial_transform([catalan_number(n) for n in [0..9]])
-        [1, 2, 5, 15, 51, 188, 731, 2950, 12235, 51822]
-
-        sage: binomial_transform([fibonacci(n) for n in [0..9]])
-        [0, 1, 3, 8, 21, 55, 144, 377, 987, 2584]
-
-        sage: binomial_transform([euler_number(n) for n in [0..9]])
-        [1, 1, 0, -2, 0, 16, 0, -272, 0, 7936]
-
-        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]])
-        [0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912]
-
-        sage: binomial_transform([2^n for n in [0..9]], 5)
+        sage: binomial_transform([2^n for n in range(10)], 5)
         243
 
-        sage: binomial_transform([catalan_number(n) for n in [0..9]], 2)
+        sage: binomial_transform([catalan_number(n) for n in range(10)])
+        [1, 2, 5, 15, 51, 188, 731, 2950, 12235, 51822]
+
+        sage: binomial_transform([catalan_number(n) for n in range(10)], 2)
         5
 
-        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]], 9)
-        6912
+        sage: binomial_transform([fibonacci(n) for n in range(10)])
+        [0, 1, 3, 8, 21, 55, 144, 377, 987, 2584]
 
-        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]], 10)
+        sage: binomial_transform([(n*(n+1))/2 for n in range(10)])
+        [0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912]
+
+        sage: binomial_transform([(n*(n+1))/2 for n in range(10)], 5.5)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be an integer
+
+        sage: binomial_transform([(n*(n+1))/2 for n in range(10)], 10)
         Traceback (most recent call last):
         ...
         ValueError: Index out of range
 
-        sage: binomial_transform([(n*(n+1))/2 for n in [0..9]], -12)
+        sage: binomial_transform([(n*(n+1))/2 for n in range(10)], -12)
         Traceback (most recent call last):
         ...
         ValueError: Index out of range
@@ -1048,57 +1058,68 @@ def binomial_transform(seq, n=None):
         https://oeis.org/wiki/Binomial_transform
     '''
     if n == None:
-        return [sum(binomial(k,j) * seq[j] for j in range(0,k+1)) for k in range(0,len(seq))]
-    n = ZZ(n)
+        return [sum(Integer(k).binomial(j) * seq[j] for j in range(k+1)) for k in range(len(seq))]
+    if not isinstance(n, Integer):
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise ValueError('n must be an integer')
     if n < 0:
         n = len(seq) + n + 1
     if n >= len(seq) or n < 0:
         raise ValueError("Index out of range")
-    return sum(binomial(n,j) * seq[j] for j in range(0,n+1))
+    return sum(n.binomial(j) * seq[j] for j in range(0, n+1))
 
 
 def binomial_transform_inverse(seq, n=None):
     r'''
     Returns the inverse binomial transform (or element of the transform) of a sequence `seq`.
+    The binomial transform maps a sequence `(a_i)` to and from a sequence `(b_i)` via the two-way mapping
+
+    .. MATH::
+
+       b_n = \sum_{k=0}^{n} \left(\begin{array}{c}n\\k\end{array}\right)a_k,
+
+    and
+
+    .. MATH::
+
+       a_n = \sum_{k=0}^{n} \left(-1\right)^{n-k}\left(\begin{array}{c}n\\k\end{array}\right)b_k.
 
     INPUT:
 
-    - ``seq`` -- iterable; sequence to transform
+    - ``seq`` -- iterable; the sequence to transform
 
-    - ``n`` -- integer (default: None) If set, outputs only element of binomial transform inverse 
-        at index `n`. Must be at least `-len(seq)`, and less than `len(seq)`
+    - ``n`` -- integer (default: None) If set, outputs only the element at index `n` of the
+      inverse binomial transform. Must be at least `-len(seq)` and less than `len(seq)`
 
-    OUTPUT: Inverse binomial transform as list, or element of inverse binomial transform
+    OUTPUT: Inverse binomial transform as a list, or an element of inverse binomial transform
 
     EXAMPLES::
 
-        sage: binomial_transform_inverse(binomial_transform([0,1,2,3,4,5]))
-        [0, 1, 2, 3, 4, 5]
-
-        sage: binomial_transform_inverse([4^n for n in [0..9]])
-        [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683]
-
-        sage: binomial_transform_inverse([0, 1, 5, 18, 56, 160, 432, 1120, 2816, 6912])
-        [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
-
-        sage: binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584])
+        sage: binomial_transform_inverse(binomial_transform([fibonacci(n) for n in range(10)]))
         [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 
-        sage: binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], 5)
-        5
+        sage: binomial_transform_inverse([4^n for n in range(10)])
+        [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683]
 
-        sage: [binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], n) for n in [6..8]]
-        [8, 13, 21]
+        sage: [binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], n) for n in range(3)]
+        [0, 1, 1]
 
-        sage: binomial_transform_inverse([(n*(n+1))/2 for n in [0..9]], 10)
+        sage: binomial_transform_inverse([0, 1, 3, 8, 21, 55, 144, 377, 987, 2584], 5.5)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be an integer
+
+        sage: binomial_transform_inverse([(n*(n+1))/2 for n in range(10)], 10)
         Traceback (most recent call last):
         ...
         ValueError: Index out of range
 
-        sage: binomial_transform_inverse([(n*(n+1))/2 for n in [0..9]], -2)
+        sage: binomial_transform_inverse([(n*(n+1))/2 for n in range(10)], -2)
         0
 
-        sage: binomial_transform_inverse([(n*(n+1))/2 for n in [0..9]], -12)
+        sage: binomial_transform_inverse([(n*(n+1))/2 for n in range(10)], -12)
         Traceback (most recent call last):
         ...
         ValueError: Index out of range
@@ -1111,13 +1132,17 @@ def binomial_transform_inverse(seq, n=None):
         https://oeis.org/wiki/Binomial_transform
     '''
     if n == None:
-        return [sum((-1)**(k-j) * binomial(k,j) * seq[j] for j in range(0,k+1)) for k in range(0,len(seq))]
-    n = ZZ(n)
+        return [sum((-1)**(k-j) * Integer(k).binomial(j) * seq[j] for j in range(k+1)) for k in range(len(seq))]
+    if not isinstance(n, Integer):
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise ValueError('n must be an integer')
     if n < 0:
         n = len(seq) + n + 1
     if n >= len(seq) or n < 0:
         raise ValueError("Index out of range")
-    return sum((-1)**(n-j) * binomial(n,j) * seq[j] for j in range(0,n+1))
+    return sum((-1)**(n-j) * n.binomial(j) * seq[j] for j in range(0, n+1))
 
 
 class CombinatorialObject(SageObject):
