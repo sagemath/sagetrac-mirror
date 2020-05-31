@@ -34,7 +34,7 @@ from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
-from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
+from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.ribbon_tableau import RibbonTableau
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -116,7 +116,7 @@ class RibbonPathTableau(PathTableau):
         sage: rt = RibbonTableau([[None,None,0,0,0],[None,0,0,2],[1,0,1]])
         sage: RibbonPathTableau(rt)
         Traceback (most recent call last):
-        ...        
+        ...
         ValueError: a ribbon tableau is not valid input
     """
     @staticmethod
@@ -224,17 +224,46 @@ class RibbonPathTableau(PathTableau):
     @combinatorial_map(name='to ribbon tableau')
     def to_tableau(self):
         r"""
-        Return ''self'' as a ribbon tableau.
+        Return ''self'' as a skew tableau.
+        
+        NOTES: This always returns an element of :class:`SkewTableau`
+        (and never an element of :class:`Tableau`).
 
         EXAMPLES::
 
             sage: T = Tableau([[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]])
             sage: RibbonPathTableau(T).to_tableau()
-            [[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]]
+            [[None, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]]
 
         """
-        from sage.combinat.tableau import from_chain
-        return Tableau(from_chain(self))
+        return SkewTableau(chain=self)
+
+    def to_ribbon_tableau(self):
+        """
+        Convert ``self`` to a ribbon tableau.
+
+        EXAMPLES::
+
+            sage: R = RibbonPathTableau([[1],[4,2],[4,3,3,1],[6,5,4,1],[6,5,4,4,2],[7,7,6,4,2]])
+            sage: R.to_ribbon_tableau()
+            [[None, 0, 0, 0, 0, 0, 0],
+             [1, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 3, 5, 0],
+             [2, 0, 0, 0],
+             [4, 0]]
+        """
+        inner = self[0]
+        outer = self[-1]
+        result =[[None]*i + [0]*(j-i) for i,j in zip(inner,outer)]
+        if len(outer) > len(inner):
+            result += [[0]*a for a in outer[len(inner):]]
+
+        for r, (u,v) in enumerate(zip(self,self[1:])):
+            new  = { a for a in v.cells() if not a in u.cells() }
+            m = max(a[0]-a[1] for a in new)
+            i,j = [ a for a in new if a[0]-a[1] == m ][0]
+            result[i][j] = r+1
+        return RibbonTableau(result)
 
 class RibbonPathTableaux(PathTableaux):
     """
