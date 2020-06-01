@@ -59,6 +59,10 @@ class RibbonPathTableau(PathTableau):
 
     TESTS::
 
+        sage: RibbonPathTableau([[2,2,1,1],[5,4,1,1]])
+        Traceback (most recent call last):
+        ...
+        ValueError: the skew shape [5, 4, 1, 1]\[2, 2, 1, 1] is not a ribbon shape
 
         sage: RibbonPathTableau([[],[3]],2)
         Traceback (most recent call last):
