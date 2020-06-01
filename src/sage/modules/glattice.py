@@ -291,6 +291,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup import load_hap
 from sage.arith.misc import xgcd
+from . import matrix_morphism
 
 
 def GLattice(*args, **kwds):
@@ -670,19 +671,129 @@ class Lattice_generic(FreeModule_generic):
             (1)
         """
         return  self._action.act(g,e)
-    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None):
+
+
+
+    def stabilizer(self, elt):
+        """
+        Return the subgroup stabilizing an element or a sublattice
+        """
+        G = self.group()
+        H = []
+        if isinstance(elt, SubLattice):
+            B = elt.basis()
+            test = True
+            for g in G: 
+                for b in B:
+                    if self._action(g)(b) != b:
+                        test = False
+                if test:
+                    H.append(g)
+                test = True
+        else:
+            for g in G: 
+                if self._action(g)(elt) == elt:
+                    H.append(g)
+        HG = PermutationGroup(H)
+        for g in G.subgroups(): 
+            if HG == g:
+                return g
+
+
+    def orbit(self, elt, subgroup = None, build = False):
+        o = []
+        subgroup = self.group() if subgroup == None else subgroup
+        for g in subgroup:
+            e = self._action(g)(elt)
+            if not(e in o):
+                o.append(e)
+        return self.sublattice(o) if build else o  
+
+    def orbit_permutation_cover(self, elt):
+        """
+        Create an ambient permutation lattice freely spanned by elements of an orbit, and output a 
+        surjective morphism onto the orbit.
+        """
+        o = self.orbit(elt)
+        rank = len(o)
+        G = self.group()
+        action = []
+        from sage.matrix.special import zero_matrix
+        for g in G.gens(): 
+            mat = zero_matrix(rank)
+            for e in range(len(o)):
+                index = o.index(self._action(g)(o[e]))
+                mat[index, e] = 1
+            action.append(mat)
+        Lat = GLattice(G, action)
+
+        morphism_mat = block_matrix(1, rank, [b.column() for b in o])
+        morphism = Lat.left_morphism(morphism_mat, self)
+        return [morphism.domain(), morphism]
+
+    def permutation_cover(self):
+        """
+        Create a permutation lattice (not of minimal dimension) and return a surjective morphism from that lattice
+        to self.
+        """
+        orbits = []
+        representatives = []
+        from sage.modules.free_module import span
+        for b in self.basis():
+            if not(b in span(orbits, ZZ)):
+                orbits += self.orbit(b)
+                representatives.append(b)
+
+        initial_map = self.orbit_permutation_cover(representatives[0])[1]
+        morphisms = [self.orbit_permutation_cover(r)[1] for r in representatives[1:]]
+        hom = initial_map + morphisms
+        return [hom.domain(), hom]
+
+    def left_morphism(self, mat, codomain=None):
+        """
+        Create a homomorphism of lattices. 
+
+        INPUT:
+
+        - ``mat`` -- matrix representing the linear transformation
+
+        - ``codomain`` -- codomain of the homomorphism, if left empty it will assume it is assumed
+          to be an endomorphism.
+
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3)
+            sage: L1 = GLattice(G)
+            sage: L2 = GLattice(G,3)
+            sage: h1 = L1.hom(identity_matrix(3),L2); h1
+            Traceback (most recent call last):
+            ...
+            TypeError: The morphism does not preserve the action of the group
+            sage: h2 = L1.hom(identity_matrix(3)); h2
+            Lattice morphism defined by the matrix
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            Domain: Ambient lattice of rank 3 with a faithful action by a group of order 6
+            Codomain: Ambient lattice of rank 3 with a faithful action by a group of order 6
+            sage: m = matrix(3, [1, 1, 1, 1, 1, 1, 1, 1, 1])
+            sage: h3 = L2.hom(m,L1); h3
+            Lattice morphism defined by the matrix
+            [1 1 1]
+            [1 1 1]
+            [1 1 1]
+            Domain: Ambient lattice of rank 3 with the trivial action of a group of order 6
+            Codomain: Ambient lattice of rank 3 with a faithful action by a group of order 6
+        """
         C = codomain
-        if is_Matrix(im_gens) and im_gens.ncols() == im_gens.nrows():
+        if is_Matrix(mat) and mat.ncols() == mat.nrows() and codomain == None:
             C = self
         else:
             C = codomain
-        from sage.structure.parent import Parent
-        return Parent.hom(self, im_gens, C, check, base_map, category)
+        from .glattice_morphism import GLatticeMorphism_left
+        return GLatticeMorphism_left(mat, self, C)
         
-
-    def _Hom_(self, Y, category):
-        from .glattice_morphism import GLatticeHomspace
-        return GLatticeHomspace(self,Y, category)
 
     def group(self):
         r"""
@@ -708,6 +819,25 @@ class Lattice_generic(FreeModule_generic):
         """
         return self._group
 
+    def action_matrix(self, g):
+        """
+        Matrix through which the element in the input acts.
+
+        INPUT:
+
+        - ``g`` -- element of the group acting on self.
+
+        EXAMPLES::
+
+            sage: L = GLattice([3])
+            sage: G = L.group()
+            sage: g = G[1]
+            sage: L.action_matrix(g)
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+        """
+        return matrix(self._action_morphism.Image(g))
 
     def action_is_trivial(self):
         r"""
@@ -746,7 +876,8 @@ class Lattice_generic(FreeModule_generic):
 
     def action_kernel(self):
         # TODO: Need to return a Galois subgroup if self._group is a Galois group
-        return PermutationGroup(gap_group=self._GAPMap._morphism.Kernel())
+        G = PermutationGroup(gap_group=self._GAPMap._morphism.Kernel())
+        return self.group().subgroup(G.gens())
 
     def display_action(self):
         r"""
@@ -964,21 +1095,28 @@ class Lattice_generic(FreeModule_generic):
             [0 0 0|1 0 0 0], [0 0 0|0 0 0 1], [0 0 0|0 0 0 1]
             ]
         """
-        if param == "interior":
-            g = self.group()
-            act = [block_diagonal_matrix([A, B])
-                   for (A, B) in zip(self._action_matrices, lat._action_matrices)]
-            return Lattice_ambient(g, act)
-        elif param == "exterior":
-            g1 = self.group()
-            g2 = lat.group()
-            [G, inj1, inj2, proj1, proj2] = g1.direct_product(g2)
-            hom1 = self._action_morphism
-            hom2 = lat._action_morphism
-            action = [block_diagonal_matrix(matrix(hom1.Image(proj1(g))),matrix(hom2.Image(proj2(g)))) for g in G.gens()]
-            return GLattice(G,action)
+        if isinstance(lat, list):
+            if len(lat) == 0:
+                return self
+            else:
+                L = self.direct_sum(lat[0], param)
+                return L.direct_sum(lat[1:], param)
         else:
-            raise ValueError("the last argument must be either 'interior' or 'exterior'")
+            if param == "interior":
+                g = self.group()
+                act = [block_diagonal_matrix([A, B])
+                       for (A, B) in zip(self._action_matrices, lat._action_matrices)]
+                return Lattice_ambient(g, act)
+            elif param == "exterior":
+                g1 = self.group()
+                g2 = lat.group()
+                [G, inj1, inj2, proj1, proj2] = g1.direct_product(g2)
+                hom1 = self._action_morphism
+                hom2 = lat._action_morphism
+                action = [block_diagonal_matrix(matrix(hom1.Image(proj1(g))),matrix(hom2.Image(proj2(g)))) for g in G.gens()]
+                return GLattice(G,action)
+            else:
+                raise ValueError("the last argument must be either 'interior' or 'exterior'")
 
     def ambient_lattice(self):
         r"""
@@ -997,9 +1135,17 @@ class Lattice_generic(FreeModule_generic):
         """
         return self
 
-    def fixed_sublattice(self):
+
+    def fixed_sublattice(self, subgp = None):
         r"""
-        Computes the sublattice of elements fixed by the group.
+        Compute the sublattice of elements fixed by the group, or a specified subgroup.
+
+        INPUT:
+
+        - ``subgp`` -- the subgroup we want to compute fixed vectors of. If left empty, the 
+          method will return the fixed vectors of the whole group. If the subgroup is not normal
+          then the submodule of fixed vectors will fail to be a GLattice, so the output will be a 
+          free module. 
 
         EXAMPLES::
 
@@ -1019,12 +1165,66 @@ class Lattice_generic(FreeModule_generic):
             sage: L.fixed_sublattice()
             Sublattice of degree 1 and rank 1 with an action by a group of order 1 and echelon basis matrix
             [1]
+
+        ::
+
+            sage: G = SymmetricGroup(3)
+            sage: [H1,H2] = [G.subgroups()[0],G.subgroups()[1]]
+            sage: L = GLattice(G)
+            sage: L.fixed_sublattice()
+            Sublattice of degree 3 and rank 1 with a faithful action by a group of order 6 and echelon basis matrix
+            [1 1 1]
+            sage: L.fixed_sublattice(H1)
+            Sublattice of degree 3 and rank 3 with a faithful action by a group of order 6 and echelon basis matrix
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.fixed_sublattice(H2)
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 0 0]
+            [0 1 1]
         """
-        kers = [kernel((m - matrix.identity(self._rank)).transpose()) for m in self._action_matrices]
+        if subgp is None:
+            a = self._action_matrices
+        else:
+            mor = self._action_morphism
+            I = [mor.Image(i).sage() for i in subgp.gens()]
+            a = [matrix(i) for i in I]
+        kers = [kernel((m - matrix.identity(self._rank)).transpose()) for m in a]
         res = self
         for K in kers:
             res = res.intersection(K)
-        return SubLattice(self, res.basis())
+        try:
+            return SubLattice(self, res.basis())
+        except ValueError:
+            return res
+
+
+    def complete_submodule(self, submod):
+        """
+        Complete a submodule into a sublattice by adding the orbits of basis vectors. 
+
+        INPUT:
+
+        - ``submod`` -- a submodule we want to complete into a sublattice.
+
+        EXAMPLES::
+        sage: L = GLattice([2, 2])
+        sage: [a, b, c, d] = L.basis()
+        sage: SL = L.submodule([a+b+c])
+        sage: L.complete_submodule(SL)
+        Sublattice of degree 4 and rank 2 with a faithful action by a group of order 4 and echelon basis matrix
+        [ 1  1  0  1]
+        [ 0  0  1 -1]
+        """
+
+        B = submod.basis()
+        oB = []
+        for g in self.group():
+            for b in B:
+                oB.append(self._action(g)(b))
+        return self.sublattice(oB)
 
     def pullback_lattice(self, hom):
         r"""
@@ -1033,7 +1233,7 @@ class Lattice_generic(FreeModule_generic):
 
         INPUT:
 
-        - ``hom`` -- GAP group homomorphism
+        - ``hom`` -- GAP group homomorphism.
 
         EXAMPLES::
 
@@ -1077,6 +1277,7 @@ class Lattice_generic(FreeModule_generic):
             I = [hom.Image(i) for i in G.gens()]
             a = [matrix(mor.Image(i).sage()) for i in I]
         return Lattice_ambient(G, a)
+
 
     def isomorphic_ambient_lattice(self):
         r"""
@@ -1941,6 +2142,63 @@ class Lattice_generic(FreeModule_generic):
         B=[sum(IB[i+g*r] for g in range(n)) for i in range(r)]
         return IL.quotient_lattice(IL.sublattice(B))
 
+
+    def coflabby_resolution(self, reduce=True):
+        from sage.modules.free_module import span
+        orbits = []
+        representatives = []
+        G = self.group()
+        sbgps = G.conjugacy_classes_subgroups()
+        for h in sbgps:
+            fixed_lat = self.fixed_sublattice(h)
+            if orbits == []:
+                testspace = span([tuple([0 for i in range(self.rank())])], ZZ)
+            else:
+                testspace = span([sum(self.orbit(o, h)) for o in orbits], ZZ)
+            for e in fixed_lat.basis():
+                if not(e in testspace):
+                    orb = self.orbit(e)
+                    orbits += orb
+                    representatives.append(e)
+                    sumorb = [sum(self.orbit(o, h)) for o in orb]
+                    testspace += span(sumorb, ZZ)
+        if reduce:
+            reducedreps = []
+            for r in representatives:
+                representativesminusr = [x for x in representatives if x != r]
+                check = True
+                for h in sbgps:
+                    fixlat =  self.fixed_sublattice(h)
+                    bas = [sum(self.orbit(rr, h)) for rr in representativesminusr]
+                    if not(span(bas), ZZ) == fixlat:
+                        check = False
+                if not(check):
+                    reducedreps.append(r)
+            representatives = reducedreps
+        initial_hom = self.orbit_permutation_cover(representatives[0])[1]
+        homs = [self.orbit_permutation_cover(r)[1] for r in representatives[1:]]
+        hom = initial_hom + homs
+        return [hom.kernel(), hom.domain(), hom]
+
+
+    def is_flabby(self):
+        check = True
+        for h in self.group().conjugacy_classes_subgroups(): 
+            if self.subgroup_lattice(h).Tate_Cohomology(-1) != []:
+                check = False
+        return check
+
+    def is_coflabby(self):
+        check = True
+        for h in self.group().conjugacy_classes_subgroups(): 
+            if self.subgroup_lattice(h).Tate_Cohomology(1) != []:
+                check = False
+        return check
+    
+    def flabby_resolution(self, check = True):
+        [K, P, hom] = self.colattice().coflabby_resolution(check)
+        return [P.colattice(), K.colattice(), hom.dual()]
+
     def zero_sum_sublattice(self, ambient=False):
         r"""
         Return the sublattice of elements with coordinates summing up to zero.
@@ -2518,7 +2776,7 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
 
     def zero_sum_sublattice(self, ambient=False):
         r"""
-        Creates the sublattice of the vectors with zero sum of coordinates
+        Create the sublattice of the vectors with zero sum of coordinates
         in the ambient module.
 
         INPUT:

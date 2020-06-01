@@ -126,7 +126,7 @@ from sage.rings.rational_field import QQ
 
 def RestrictionOfScalars(nfield, rk = 1):
     """
-    Creates the torus defined by restriction of scalars of a split torus to the field of rational numbers.
+    Create the torus defined by restriction of scalars of a split torus to the field of rational numbers.
 
     INPUT:
 
@@ -153,7 +153,7 @@ def RestrictionOfScalars(nfield, rk = 1):
 
 def NormOneRestrictionOfScalars(nfield, rk = 1):
     """
-    Creates the torus of norm one elements inside the restriction of scalars of a split torus to the field of rational numbers.
+    Create the torus of norm one elements inside the restriction of scalars of a split torus to the field of rational numbers.
 
     INPUT:
 
@@ -182,7 +182,7 @@ def NormOneRestrictionOfScalars(nfield, rk = 1):
 
 class AlgebraicTorus(Scheme):
     r"""
-    Creates an algebraic torus through its equivalence of categories with the action
+    Create an algebraic torus through its equivalence of categories with the action
     of a Galois group on an integral lattice.
 
     INPUT:
