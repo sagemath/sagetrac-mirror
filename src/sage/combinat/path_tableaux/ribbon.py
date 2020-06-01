@@ -29,7 +29,6 @@ TEST::
 #*****************************************************************************
 
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
-from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.partition import Partition, Partitions
@@ -37,6 +36,8 @@ from sage.combinat.tableau import Tableau
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.ribbon_tableau import RibbonTableau
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 
 ###############################################################################
 
@@ -297,7 +298,7 @@ class RibbonPathTableaux(PathTableaux):
     def __init__(self, k):
 
         self.k = k
-        Parent.__init__(self, category=Sets())
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
 
     def __contains__(self,rt):
         r"""
@@ -315,5 +316,40 @@ class RibbonPathTableaux(PathTableaux):
 
         """
         return f"{self.k}-Ribbon Tableaux"
+
+    def __iter__(self):
+        """
+        An iterator function.
+
+        TESTS::
+
+            sage: RibbonPathTableaux(2)[0]
+            {[[]]}
+
+            sage: RibbonPathTableaux(3)[1]
+            {[[], [1, 1, 1]], [[], [2, 1]], [[], [3]]}
+
+            sage: [ len(RibbonPathTableaux(2)[i]) for i in range(5) ]
+            [1, 2, 6, 20, 76]
+
+            sage: [ len(RibbonPathTableaux(2)[i]) for i in range(5) ]
+            [1, 3, 12, 54, 270]
+
+        """
+        k = self.k
+        def succ(self):
+            p = self[-1]
+            result = []
+            for a in Partitions(p.size()+k,inner=p):
+                try:
+                    RibbonPathTableau([p,a])
+                    new= list(self)
+                    new.append(a)
+                    result.append(RibbonPathTableau(new,k))
+                except ValueError:
+                    pass
+            return result
+        R = RecursivelyEnumeratedSet([RibbonPathTableau([[]],k)], succ, structure='graded')
+        return R.graded_component_iterator()
 
     Element = RibbonPathTableau
