@@ -543,9 +543,6 @@ ext_modules = [
               sources = ["sage/libs/flint/arith.pyx"],
               extra_compile_args = ["-D_XPG6"]),
 
-    Extension("sage.libs.glpk.error",
-             ["sage/libs/glpk/error.pyx"]),
-
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
 
