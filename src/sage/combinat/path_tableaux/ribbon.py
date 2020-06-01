@@ -11,10 +11,10 @@ AUTHORS:
 TEST::
 
     sage: R = RibbonPathTableau(Tableau([[1,1,2,2],[3,3,5,5],[4,4,6,6]]))
-    #sage: TestSuite(R).run()
+    sage: TestSuite(R).run()
 
     sage: R = RibbonPathTableau([[1],[4,2],[4,3,3,1],[6,5,4,1],[6,5,4,4,2],[7,7,6,4,2]])
-    #sage: TestSuite(R).run()
+    sage: TestSuite(R).run()
 
     """
 
@@ -32,7 +32,7 @@ from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
-from sage.combinat.partition import Partition
+from sage.combinat.partition import Partition, Partitions
 from sage.combinat.tableau import Tableau
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.ribbon_tableau import RibbonTableau
@@ -182,7 +182,7 @@ class RibbonPathTableau(PathTableau):
                 raise ValueError(f"partition {v} does not contain {u}")
             cu = set(u.cells())
             cv = set(v.cells())
-            cb = list({a[0]-a[1] for a in cv if not a in cu})
+            cb = [ a[0]-a[1] for a in cv if not a in cu ]
             cb.sort()
             if not cb == list(range(cb[0],cb[-1]+1)):
                 raise ValueError(f"the skew shape {v}\{u} is not a ribbon shape")
@@ -202,16 +202,23 @@ class RibbonPathTableau(PathTableau):
 
         """
         def _rule(x):
-            cells = [c for c in x[2].cells() if c not in x[1].cells()]
-            data = list(x[0])
-            for i,j in cells:
-                if (i-1,j-1) in x[0].cells() or i == 0 or j == 0:
-                    if i >= len(data):
-                        data += [0]*(i-len(data)+1)
-                    data[i] += 1
-                else:
-                    data[i-1] += 1
-            return Partition(data)
+            P = Partitions(x[1].size(),inner=x[0],outer=x[2])
+            pt = set([])
+            for a in P:
+                try:
+                    RibbonPathTableau([x[0],a,x[2]])
+                    pt.add(a)
+                except ValueError:
+                    pass
+            assert(x[1] in pt)
+            if len(pt) == 1:
+                return x[1]
+            else:
+                if len(pt) > 2:
+                    print(x,P,pt)
+                    raise RuntimeError
+                pt.remove(x[1])
+                return pt.pop()
 
         if not (i > 0 and i < len(self)-1):
             raise ValueError(f"{i} is not a valid integer")
@@ -221,11 +228,17 @@ class RibbonPathTableau(PathTableau):
 
         return result
 
+    def conjugate(self):
+        """
+        Return the conjugate of ``self``.
+        """
+        return RibbonTableau([a.conjugate() for a in self])
+
     @combinatorial_map(name='to ribbon tableau')
     def to_tableau(self):
         r"""
         Return ''self'' as a skew tableau.
-        
+
         NOTES: This always returns an element of :class:`SkewTableau`
         (and never an element of :class:`Tableau`).
 
@@ -233,7 +246,7 @@ class RibbonPathTableau(PathTableau):
 
             sage: T = Tableau([[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]])
             sage: RibbonPathTableau(T).to_tableau()
-            [[None, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]]
+            [[1, 1, 2, 2], [3, 3, 5, 5], [4, 4, 6, 6]]
 
         """
         return SkewTableau(chain=self)
