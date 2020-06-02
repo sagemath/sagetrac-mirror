@@ -124,6 +124,59 @@ class VacillatingTableau(ClonableArray):
             if self[2*i+2].size() > self[2*i+1].size() +1:
                 raise ValueError(f"the even partition {self[2*i+2]} is too large")
 
+    def final_shape(self):
+        """
+        Return the final shape of ``self``.
+
+        EXAMPLES::
+
+            sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).final_shape()
+            [2, 1]
+        """
+        return self[-1]
+
+    def crossing_number(self):
+        """
+        Return the crossing number of ``self``.
+
+        EXAMPLES::
+
+            sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).crossing_number()
+            2
+        """
+        return max(len(a) for a in self)
+
+    def nesting_number(self):
+        """
+        Return the nesting number of ``self``.
+
+        EXAMPLES::
+
+            sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).nesting_number()
+            2
+        """
+        if self[-1] == []:
+            return 0
+        else:
+            return max(a[0] for a in self if a)
+
+    def conjugate(self):
+        """
+        Return the conjugate of ``self``. This is given by simply conjugating each
+        partition in the sequence.
+
+        EXAMPLES::
+
+            sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).conjugate()
+            [[], [], [1], [1], [1], [1], [1, 1], [1, 1], [2, 1]]
+        """
+        return VacillatingTableau([a.conjugate() for a in self])
+
+    def to_set_partition(self):
+        """
+        Return the set partition associated to ''self''.
+        """
+
 ###############################################################################
 
 class VacillatingTableaux(UniqueRepresentation,Parent):
