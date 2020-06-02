@@ -69,7 +69,7 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
 
     # Need to bypass the coercion model
     def _mul_(left, right):
-        return left.lift()*right
+        return left.lift()*right.lift()
 
     def __neg__(self):
         """
