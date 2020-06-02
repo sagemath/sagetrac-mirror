@@ -144,7 +144,16 @@ class VacillatingTableau(ClonableArray):
             sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).crossing_number()
             2
         """
-        return max(len(a) for a in self)
+        if self[-1] == []:
+            return 0
+        else:
+            return max(a[0] for a in self if a)
+
+    def is_noncrossing(self):
+        """
+        Return True if ``self`` is noncrossing.
+        """
+        return self.crossing_number() < 2
 
     def nesting_number(self):
         """
@@ -155,15 +164,18 @@ class VacillatingTableau(ClonableArray):
             sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).nesting_number()
             2
         """
-        if self[-1] == []:
-            return 0
-        else:
-            return max(a[0] for a in self if a)
+        return max(len(a) for a in self)
+
+    def is_nonnesting(self):
+        """
+        Return True if ``self`` is nonnesting.
+        """
+        return self.nesting_number() < 2
 
     def conjugate(self):
         """
         Return the conjugate of ``self``. This is given by simply conjugating each
-        partition in the sequence.
+        partition in the sequence. This interchanges the crossing and nesting numbers.
 
         EXAMPLES::
 
@@ -172,9 +184,43 @@ class VacillatingTableau(ClonableArray):
         """
         return VacillatingTableau([a.conjugate() for a in self])
 
+    def stabilise(self,n=None):
+        """
+        Return 
+        """
+        pt = [ list(a) for a in self.partitions ]
+        k = self.size
+        if not n:
+            n = 2*k
+        # Add first line so all even partitions are partitions of n
+        sz = [ sum( i for i in a ) for a in pt ]
+        for i in range(k+1):
+           if pt[2*i] == []:
+               pt[2*i] = [n]
+           elif n-sz[2*i] < pt[2*i][0]:
+               raise ValueError(f"The value of {n} is too small for the vacillating tableau")
+           else:
+               pt[2*i].insert(0,n-sz[2*i])
+        # Add first line so all odd partitions are partitions of n-1
+        for i in range(k):
+           if pt[2*i+1] == []:
+               pt[2*i+1] = [n-1]
+           elif n-sz[2*i+1]-1 < pt[2*i+1][0]:
+               raise ValueError(f"The value of {n} is too small for the vacillating tableau")
+           else:
+               pt[2*i+1].insert(0,n-sz[2*i+1]-1)
+        pt = [ a + [0]*(n-len(a)) for a in pt ]
+        return pt
+
     def to_set_partition(self):
         """
-        Return the set partition associated to ''self''.
+        Return a pair (P,T) where P is a set partition of [n] and T
+        is a partial tableau (a semistandard tableau with no repeated entries)
+        with content(T) a subset of max(P). The shape of T
+        is the final shape of ``self``. In particular, if the final shape of
+        ``self`` is the empty partition then this is just a set partition of [n].
+        This map between vacillating tableau whose final shape is the empty partition
+        and set partitions is a bijection.
         """
 
 ###############################################################################
@@ -193,10 +239,5 @@ class VacillatingTableaux(UniqueRepresentation,Parent):
             <sage.combinat.vacillating.VacillatingTableaux_with_category object at ...>
         """
         Parent.__init__(self, category=Sets())
-
-    def from_setpartition(self,S):
-        """
-        Construct a vacillating tableau from a set partition.
-        """
 
     Element = VacillatingTableau
