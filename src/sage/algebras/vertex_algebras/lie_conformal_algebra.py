@@ -24,7 +24,7 @@ like :meth:`VirasoroLieConformalAlgebra` and :meth:`AffineLieConformalAlgebra`
         sage: cp = Family({C:1/2}) 
         sage: V = Vir.universal_enveloping_algebra(cp)
         sage: V
-        The universal enveloping vertex algebra of Lie conformal algebra on 2 generators (L, C) over Rational Field.
+        The universal enveloping vertex algebra of Lie conformal algebra with generators (L, C) over Rational Field.
         sage: L.lift()
         L_-2|0>
         sage: L*L
@@ -50,8 +50,7 @@ like :meth:`VirasoroLieConformalAlgebra` and :meth:`AffineLieConformalAlgebra`
         sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
         sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
         sage: V.category()
-        Category of finitely generated as lie conformal algebra H-graded Lie conformal
-        algebras with basis over Rational Field
+        Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
         sage: V.inject_variables()
         Defining a, b, K
         sage: a.bracket(b)
@@ -87,6 +86,9 @@ from sage.functions.other import binomial
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.categories.commutative_rings import CommutativeRings
+from sage.structure.indexed_generators import (IndexedGenerators, 
+                                               standardize_names_index_set)
+
 
 class LieConformalAlgebra(Parent, UniqueRepresentation):
     @staticmethod
@@ -95,7 +97,8 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
         weights=None, **kwds):
         
         if not R in CommutativeRings():
-            raise ValueError("First argument must be a ring!")
+            raise ValueError("First argument must be a commutative ring" + 
+                             " got {}".format(R))
 
         if isinstance(arg0, dict):
             graded=kwds.get("graded", False)
@@ -105,12 +108,17 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
                     #    weights, graded=True)
                 return GradedLieConformalAlgebra(R, arg0,
                      names=names, index_set=index_set, 
-                    central_elements=central_elements,category=category,weights=weights, **kwds)
+                    central_elements=central_elements,
+                    category=category,weights=weights, **kwds)
             else:
                 #if not arg0:
                 #    return AbelianLieConformalAlgebra(R, names, index_set)
                 return LieConformalAlgebraWithStructureCoefficients(R, arg0,
-                     names=names, index_set=index_set,central_elements=central_elements,category=category, **kwds)
+                     names=names, index_set=index_set,
+                     central_elements=central_elements,
+                     category=category, **kwds)
+
+        return NotImplementedError("Not implemented")
 
     def __init__(self, R, names=None, category=None):
         r"""
@@ -118,70 +126,73 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``R`` -- a ring (Default: None); The base ring of this Lie conformal algebra.
-          Behaviour is undefined if it is not a field of characteristic zero. 
+        - ``R`` -- a commutative ring (Default: None); The base ring of
+          this Lie conformal algebra. Behaviour is undefined if it is
+          not a field of characteristic zero. 
 
         - ``arg0`` -- Dictionary (Default: None); 
           a dictionary containing the `\lambda` brackets of the
-          generators of this Lie conformal algebra. The keys of this dictionary
-          are pairs of either names or indices of the generators and
-          the values are themselves dictionaries. For a pair of generators `a`
-          and `b`, the value of ``arg0[('a','b')]`` is a dictionary whose
-          keys are positive integer numbers and the corresponding value for the
+          generators of this Lie conformal algebra. The keys of this 
+          dictionary are pairs of either names or indices of the 
+          generators and the values are themselves dictionaries. For a 
+          pair of generators `a` and `b`, the value of 
+          ``arg0[('a','b')]`` is a dictionary whose keys are positive 
+          integer numbers and the corresponding value for the
           key `j` is a dictionary itself representing the j-th product
-          `a_{(j)}b`. Thus, for a positive integer number `j`, the value of
-          ``arg0[('a','b')][j]`` is a dictionary whose entries are pairs 
-          ``('c',n)`` where ``'c'`` is the name of a generator and `n` is 
-          a positive number. The value for this key is the coefficient of
-          `\frac{T^{n}}{n!} c` in `a_{(j)}b`. For example the ``arg0`` for the
-          *Virasoro* Lie conformal algebra is::
+          `a_{(j)}b`. Thus, for a positive integer number `j`, the 
+          value of ``arg0[('a','b')][j]`` is a dictionary whose entries
+          are pairs ``('c',n)`` where ``'c'`` is the name of a generator
+          and `n` is a positive number. The value for this key is the 
+          coefficient of `\frac{T^{n}}{n!} c` in `a_{(j)}b`. For 
+          example the ``arg0`` for the *Virasoro* Lie conformal algebra
+          is::
 
                 {('L','L'):{0:{('L',1):1}, 1:{('L',0):2}, 3:{('C',0):1/2}}}
 
 
-          Do not include central elements in this dictionary. Also, if the key
-          ``('a','b')`` is present, there is no need to include ``('b','a')`` as
-          it is defined by skew-symmetry. Any missing pair (besides the ones
-          defined by skew-symmetry) is assumed to have vanishing
-          `\lambda`-bracket. 
+          Do not include central elements in this dictionary. Also, if 
+          the key ``('a','b')`` is present, there is no need to include
+          ``('b','a')`` as it is defined by skew-symmetry. Any missing 
+          pair (besides the ones defined by skew-symmetry) is assumed 
+          to have vanishing `\lambda`-bracket. 
 
-        - ``names`` -- tuple of ``str`` (Default: None); The list of names for generators of
-          this Lie conformal algebra. Do not include central elements in this
-          list.
+        - ``names`` -- tuple of ``str`` (Default: None); The list of 
+          names for generators of this Lie conformal algebra. Do not 
+          include central elements in this list.
 
         - ``central_elements`` -- tuple of ``str`` (Default: None); 
-          A list of names for central
-          elements of this Lie conformal algebra. 
+          A list of names for central elements of this Lie conformal 
+          algebra. 
 
-        - ``index_set`` -- enumerated set (Default: None); 
-          an indexing set for the generators of this Lie
-          conformal algebra. Do not include central elements in this list. 
+        - ``index_set`` -- enumerated set (Default: None); an indexing 
+          set for the generators of this Lie conformal algebra. Do not 
+          include central elements in this list. 
 
-        - ``weights`` -- tuple of non-negative integers (Default: None); a list
-          of degrees for this Lie conformal algebra. The returned Lie conformal
-          algebra is H-Graded. This tuple needs to have the same cardinality as
-          ``index_set`` or ``names``. Central elements are assumed to have
-          weight `0`. 
+        - ``weights`` -- tuple of non-negative integers (Default: None);
+          a list of degrees for this Lie conformal algebra. The 
+          returned Lie conformal algebra is H-Graded. This tuple needs
+          to have the same cardinality as ``index_set`` or ``names``.
+          Central elements are assumed to have weight `0`. 
 
-        - ``category`` The category that this Lie conformal algebra belongs 
-          to.
+        - ``category`` The category that this Lie conformal algebra 
+          belongs to.
 
         In addition we accept the following keywords:
 
-        - ``graded`` -- bool (Default: False) if present, the returned algebra
-          is H-Graded. If ``weights`` is not specified, all non-central
-          generators are assigned degree `1`.
-          This keyword is unnecessary if ``weights`` is specified
+        - ``graded`` -- if present, the returned algebra is H-Graded.
+          If ``weights`` is not specified, all non-central generators 
+          are assigned degree `1`. This keyword is unnecessary if 
+          ``weights`` is specified
 
         EXAMPLES:
 
-        We construct the `\beta-\gamma` system or *Weyl* Lie conformal algebra::
+        We construct the `\beta-\gamma` system or *Weyl* Lie conformal 
+        algebra::
 
             sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
-            sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
+            sage: V = LieConformalAlgebra(QQbar, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
             sage: V.category()
-            Category of finitely generated as lie conformal algebra H-graded Lie conformal
-            algebras with basis over Rational Field
+            Category of finitely generated H-graded Lie conformal algebras with basis over Algebraic Field
             sage: V.inject_variables()
             Defining a, b, K
             sage: a.bracket(b)
@@ -200,8 +211,7 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
             sage: e.bracket(f.T())
             {0: Th, 1: h, 2: 2*K}
             sage: V.category()
-            Category of finitely generated as lie conformal algebra H-graded Lie
-            conformal algebras with basis over Rational Field
+            Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
             sage: e.degree()
             1
 
@@ -211,6 +221,19 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
                                                  category=category)
 
     def _element_constructor_(self,x):
+        """
+        Construct an element of this Lie conformal algebra.
+
+        EXAMPLES::
+
+            sage: R = VirasoroLieConformalAlgebra(QQbar)
+            sage: R(0)
+            0
+            sage: R(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only convert the scalar 0 into a Lie conformal algebra element
+        """
         if x in self.base_ring():
             if not self.base_ring()(x).is_zero():
                 raise ValueError("can only convert the scalar 0 into a"\
@@ -227,23 +250,28 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
     def __init__(self,R, names=None, index_set=None, 
                  category=None, prefix='B', **kwds):
         """
-        Base class for a Lie conformal algebra with a preferred basis
+        Base class for a Lie conformal algebra with a preferred basis.
+
+        EXAMPLES::
+            
+            sage: R = VirasoroLieConformalAlgebra(QQbar);R
+            Lie conformal algebra with generators (L, C) over Algebraic Field.
         """
         self._indices = index_set
         category = LieConformalAlgebras(R).WithBasis().or_subcategory(category)
         super(LieConformalAlgebraWithBasis,self).__init__(R, names, category)
 
     @cached_method
-    def lie_conformal_algebra_basis(self):
+    def basis(self):
         r""" 
-        The basis of this Lie conformal algebra
+        The basis of this Lie conformal algebra.
 
         EXAMPLES::
 
             sage: Vir = VirasoroLieConformalAlgebra(QQ)
             sage: Vir.inject_variables()
             Defining L, C
-            sage: B = Vir.lie_conformal_algebra_basis(); B
+            sage: B = Vir.basis(); B
             Lazy family (basis map(i))_{i in Disjoint union of Family (The Cartesian product of ({'L'}, Non negative integers), The Cartesian product of ({'C'}, {0}))}
             sage: B[('L',2)]
             T^(2)L
@@ -256,8 +284,9 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
         return Family(self._indices, self.monomial, name="basis map")
 
     def indices(self):
-        r"""
-        The index set that parametrizes the basis of this Lie conformal algebra
+        """
+        The index set that parametrizes the basis of this Lie conformal 
+        algebra.
 
         EXAMPLES::
 
@@ -273,7 +302,7 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
 
     def module(self):
         r"""
-        The underlying `R` module for this Lie conformal algebra
+        The underlying `R` module for this Lie conformal algebra.
 
         EXAMPLES::
 
@@ -289,7 +318,7 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
 
     def monomial(self,i):
         """
-        The monomial of this Lie conformal algebra parametrized by this index
+        The monomial of this Lie conformal algebra parametrized by this index.
 
         EXAMPLES::
 
@@ -305,7 +334,7 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
     
     def zero(self): 
         """
-        The zero element of this Lie conformal algebra
+        The zero element of this Lie conformal algebra.
 
         EXAMPLES::
 
@@ -314,22 +343,23 @@ class LieConformalAlgebraWithBasis(LieConformalAlgebra):
             0
             sage: L = Vir.0; L.nproduct(L,2) == Vir.zero()
             True
-
         """
         return self.element_class(self, self.module().zero())
 
 class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
-    r"""
-    Base class for a Lie conformal algebra with distinguished generators.
-
-    .. NOTE::
-
-        We now only accept direct sums of free modules plus some generators `C` 
-        such that `TC = 0`.
-
-    """
     def __init__(self,R, names=None, index_set=None, central_elements=None,      
                  category=None, prefix='B', **kwds):
+        """
+        Base class for a Lie conformal algebra with distinguished
+        generators.
+
+        .. NOTE::
+
+            We now only accept direct sums of free modules plus 
+            finitely many central
+            generators `C_i` such that `TC_i = 0`.
+        """
+
         self._generators = tuple(index_set)
 
         E = cartesian_product([index_set, NonNegativeIntegers()])
@@ -339,16 +369,17 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
                 tuple(central_elements), {Integer(0)}])))
     
         super(LieConformalAlgebraWithGenerators,self).__init__(
-            R,names=names, index_set=E, category=category, 
-            prefix=prefix, **kwds
-            )
+                R,names=names, index_set=E, category=category, 
+                prefix=prefix, **kwds)
 
         self._central_elements = tuple(central_elements)
 
-    @cached_method
     def lie_conformal_algebra_generators(self):
-        r"""
-        The generators of this Lie conformal algebra
+        """
+        The generators of this Lie conformal algebra.
+        
+        OUTPUT: a (possibly infinite) family of generators (as an 
+        `R[T]`-module) of this Lie conformal algebra.
 
         EXAMPLES::
 
@@ -358,52 +389,14 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             sage: V = AffineLieConformalAlgebra(QQ,'A1')
             sage: V.lie_conformal_algebra_generators()
             Finite family {alpha[1]: alpha[1], alphacheck[1]: alphacheck[1], -alpha[1]: -alpha[1], 'K': K}
-
         """
         return Family(self._generators, 
                       lambda i: self.monomial((i,Integer(0))), 
                       name = "generator map")
 
-    @cached_method
-    def gens(self):
-        r"""
-        A tuple of generators for this Lie conformal algebra
-
-        .. NOTE::
-
-            This fails if this algebra is not finitely generated
-
-        EXAMPLES::
-
-            sage: Vir = VirasoroLieConformalAlgebra(QQ);
-            sage: Vir.gens()
-            (L, C)
-
-        """
-        G = self.lie_conformal_algebra_generators()
-        try:
-            return tuple(G[i] for i in self._generators)
-        except (KeyError, ValueError):
-            return tuple(G)
-
-    def gen(self,i):
-        r"""
-        The `i`-th generator of this Lie conformal algebra
-
-        EXAMPLES::
-
-            sage: V = AffineLieConformalAlgebra(QQ, 'A1')
-            sage: V.0
-            alpha[1]
-            sage: V.gen(0)
-            alpha[1]
-
-        """
-        return self.gens()[i]
-
     def central_elements(self):
         """
-        The central generators of this Lie conformal algebra
+        The central generators of this Lie conformal algebra.
 
         EXAMPLES::
 
@@ -413,21 +406,17 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             sage: V = AffineLieConformalAlgebra(QQ, 'A1')
             sage: V.central_elements()
             (K,)
-
         """
         G = self.lie_conformal_algebra_generators()
         return tuple(G[i] for i in self._central_elements)
 
 
-from sage.structure.indexed_generators import (IndexedGenerators, 
-                                               standardize_names_index_set)
-
 class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
-    """
-    A finitely generated Lie conformal algebra.
-    """
     def __init__(self,R, names=None, index_set=None, central_elements=None,      
             category=None, prefix='B', **kwds):
+        """
+        Base class for finitely generated Lie conformal algebras.
+        """
         super(FinitelyGeneratedLieConformalAlgebra,self).__init__(R,names=names,
             index_set=index_set,central_elements=central_elements, 
             category=category, prefix=prefix, **kwds)
@@ -442,16 +431,8 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
                 self.gen(0), self.base_ring())
         return "Lie conformal algebra with generators {0} over {1}.".format(
                                                  self.gens(), self.base_ring()) 
-
-    @lazy_attribute
-    def _ordered_generators(self):
-        """
-        The names of the generators of this Lie conformal algebra
-        """
-        return tuple(self.lie_conformal_algebra_generators().keys())
-
     def _an_element_(self):
-        return self.sum(self.lie_conformal_algebra_generators())
+        return self.sum(self.gens())
 
     def ngens(self):
         """
@@ -463,48 +444,74 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
             2
             sage: V = AffineLieConformalAlgebra(QQ, 'A1'); V.ngens()
             4
-
         """
         return self.__ngens
+
+    @cached_method
+    def gens(self):
+        """
+        The generators for this Lie conformal algebra.
+        
+        OUTPUT: This method returns a tuple with the (finite) generators
+        of this Lie conformal algebra. 
+
+        EXAMPLES::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQ);
+            sage: Vir.gens()
+            (L, C)
+
+        .. SEEALSO::
+
+            :meth:`lie_conformal_algebra_generators<LieConformalAlgebraWithGenerators.lie_conformal_algebra_generators>`
+        """
+        G = self.lie_conformal_algebra_generators()
+        try:
+            return tuple(G[i] for i in self._generators)
+        except (KeyError, ValueError):
+            return tuple(G)
  
 class LieConformalAlgebraWithStructureCoefficients(
-    FinitelyGeneratedLieConformalAlgebra, IndexedGenerators):
+            FinitelyGeneratedLieConformalAlgebra, IndexedGenerators):
     r"""
-    A Lie conformal algebra with a set of specified structure coefficients.
-
+    A Lie conformal algebra with a set of specified structure
+    coefficients.
 
     INPUT:
  
-    - ``R`` -- a ring (Default: None); The base ring of this Lie conformal algebra.
-      Behaviour is undefined if it is not a field of characteristic zero. 
+    - ``R`` -- a ring (Default: None); The base ring of this Lie 
+      conformal algebra. Behaviour is undefined if it is not a field
+      of characteristic zero. 
 
     - ``s_coeff`` -- Dictionary (Default: None); 
       a dictionary containing the `\lambda` brackets of the
-      generators of this Lie conformal algebra. The keys of this dictionary
-      are pairs of either names or indices of the generators and
-      the values are themselves dictionaries. For a pair of generators `a`
-      and `b`, the value of ``s_coeff[('a','b')]`` is a dictionary whose
-      keys are positive integer numbers and the corresponding value for the
-      key `j` is a dictionary itself representing the j-th product
-      `a_{(j)}b`. Thus, for a positive integer number `j`, the value of
+      generators of this Lie conformal algebra. The keys of this 
+      dictionary are pairs of either names or indices of the generators 
+      and the values are themselves dictionaries. For a pair of 
+      generators `a` and `b`, the value of ``s_coeff[('a','b')]`` is a 
+      dictionary whose keys are positive integer numbers and the 
+      corresponding value for the key `j` is a dictionary itself 
+      representing the j-th product `a_{(j)}b`. 
+      Thus, for a positive integer number `j`, the value of
       ``s_coeff[('a','b')][j]`` is a dictionary whose entries are pairs 
       ``('c',n)`` where ``'c'`` is the name of a generator and `n` is 
       a positive number. The value for this key is the coefficient of
-      `\frac{T^{n}}{n!} c` in `a_{(j)}b`. For example the ``s_coeff`` for the
-      *Virasoro* Lie conformal algebra is::
+      `\frac{T^{n}}{n!} c` in `a_{(j)}b`. For example the ``s_coeff`` 
+      for the *Virasoro* Lie conformal algebra is::
 
             {('L','L'):{0:{('L',1):1}, 1:{('L',0):2}, 3:{('C',0):1/2}}}
 
 
-      Do not include central elements in this dictionary. Also, if the key
-      ``('a','b')`` is present, there is no need to include ``('b','a')`` as
-      it is defined by skew-symmetry. Any missing pair (besides the ones
+      Do not include central elements in this dictionary. Also, if the 
+      key ``('a','b')`` is present, there is no need to include
+      ``('b','a')`` as it is defined by skew-symmetry.
+      Any missing pair (besides the ones
       defined by skew-symmetry) is assumed to have vanishing
       `\lambda`-bracket. 
 
-    - ``names`` -- tuple of ``str`` (Default: None); The list of names for generators of
-      this Lie conformal algebra. Do not include central elements in this
-      list.
+    - ``names`` -- tuple of ``str`` (Default: None); The list of names 
+      for generators of this Lie conformal algebra. Do not include 
+      central elements in this list.
 
     - ``central_elements`` -- tuple of ``str`` (Default: None); 
       A list of names for central
@@ -513,9 +520,7 @@ class LieConformalAlgebraWithStructureCoefficients(
     - ``index_set`` -- enumerated set (Default: None); 
       an indexing set for the generators of this Lie
       conformal algebra. Do not include central elements in this list. 
-
     """
-
     @staticmethod
     def __classcall__(cls,R,s_coeff, names=None,
             index_set=None, central_elements=None, **kwds):
@@ -528,20 +533,17 @@ class LieConformalAlgebraWithStructureCoefficients(
                 Family(tuple(central_elements))))
             d = {x:index_set2[i] for i,x in enumerate(names2)}
             try:
+                #If we are given a dictionary with names as keys, 
+                #convert to index_set as keys
                 s_coeff = {(d[k[0]],d[k[1]]):{a:{(d[x],y): 
                     s_coeff[k][a][(d[x],y)] for (x,y) in 
                     s_coeff[k][a]} for a in s_coeff[k]} for k in s_coeff}
 
             except KeyError:
-                # At this point we assume they are given by the index set
+                # We assume the dictionary was given with keys in the 
+                # index_set
                 pass
 
-        if names is None:
-            ngens=index_set.cardinality()
-        else:
-            ngens= len(names)
-
-        names,index_set = standardize_names_index_set(names, index_set,ngens)
 
         s_coeff = LieConformalAlgebraWithStructureCoefficients\
                     ._standardize_s_coeff(s_coeff, index_set, central_elements)
@@ -558,10 +560,26 @@ class LieConformalAlgebraWithStructureCoefficients(
 
     @staticmethod
     def _standardize_s_coeff(s_coeff, index_set, ce):
+        """
+        Convert an input dictionary to structure constants of this 
+        Lie conformal algebra.
+
+        INPUT:
+
+        - ``s_coeff`` -- a dictionary as in 
+          :class:`LieConformalAlgebraWithStructureCoefficients`.
+        - ``index_set` -- A finite enumerated set indexing the 
+          generators not counting the central elements. 
+        - ``ce`` -- a tuple of ``str``; a list of names for the central
+          generators of this Lie conformal algebra
+
+        OUTPUT: a Finite Family representing ``s_coeff`` in the input, 
+        with the indexes ordered by applying skew-symmetry if necessary.
+        """
         index_to_pos = {k:i for i,k in enumerate(index_set)}
 
         sc = {}
-        #k has a pair of generators
+        #mypair has a pair of generators
         for mypair in s_coeff.keys():
             #e.g.  v = { 0: { (L,2):3, (G,3):1}, 1:{(L,1),2} }
             v = s_coeff[mypair]
@@ -576,10 +594,12 @@ class LieConformalAlgebraWithStructureCoefficients(
                             for i in v[k+j].keys():
                                 if (i[0] not in ce) or (
                                     i[0] in ce and i[1] + j == 0):
-                                    kth_product[(i[0],i[1]+j)] = kth_product.get((i[0], i[1]+j), 0)
-                                    kth_product[(i[0],i[1]+j)] += v[k+j][i]*(-1)**(k+j+1)*binomial(i[1]+j,j)
+                                    kth_product[(i[0],i[1]+j)] = \
+                                            kth_product.get((i[0], i[1]+j), 0)
+                                    kth_product[(i[0],i[1]+j)] += \
+                                    v[k+j][i]*(-1)**(k+j+1)*binomial(i[1]+j,j)
                     kth_product = {k:v for k,v in kth_product.items() if v}
-                    if kth_product is not {}:
+                    if kth_product:
                         vals[k]=kth_product
             else:
                 if not index_to_pos[mypair[0]] < index_to_pos[mypair[1]]:
@@ -590,7 +610,7 @@ class LieConformalAlgebraWithStructureCoefficients(
                 vals={}
                 for l in v.keys():
                     lth_product = {k:y for k,y in v[l].items() if y}
-                    if lth_product is not {}:
+                    if lth_product:
                         vals[l]=lth_product
 
             myvals = tuple((i, tuple((x,v) for x,v in vals[i].items())) 
@@ -609,16 +629,20 @@ class LieConformalAlgebraWithStructureCoefficients(
                  latex_bracket=False, string_quotes=False, prefix='', **kwds):
         
         self._index_to_pos = {k: i for i,k in enumerate(index_set)}
+        #Add central parameters to index_to_pos so that we can 
+        #represent names
         for i,ce in enumerate(central_elements):
             self._index_to_pos[ce] = len(index_set)+i
 
         if "sorting_key" not in kwds:
             kwds["sorting_key"] = self._index_to_pos.__getitem__
 
-        category = LieConformalAlgebras(R).WithBasis().FinitelyGenerated().or_subcategory(category)
-        FinitelyGeneratedLieConformalAlgebra.__init__(self, R, names=names, 
-            index_set=index_set, category=category,
+        category = LieConformalAlgebras(R).WithBasis().FinitelyGenerated().\
+                                                       or_subcategory(category)
+        FinitelyGeneratedLieConformalAlgebra.__init__(
+            self, R, names=names, index_set=index_set, category=category,
             central_elements=central_elements, prefix=prefix, **kwds)
+
         IndexedGenerators.__init__(self, self._indices, prefix=prefix,
                                    bracket=bracket, latex_bracket=latex_bracket,
                                    string_quotes=string_quotes)
@@ -626,76 +650,73 @@ class LieConformalAlgebraWithStructureCoefficients(
         #at this stage we have access to self.module(). We convert the values
         #of s_coeff to be elements in self.
    
-        self._s_coeff = Family({ k: tuple( (p[0], sum( c[1]*self.monomial(c[0]) for
-                c in p[1] )) for p in s_coeff[k] ) for k in s_coeff.keys() })
+        self._s_coeff = Family({k: tuple((p[0], sum(c[1]*self.monomial(c[0]) 
+                for c in p[1] )) for p in s_coeff[k]) for k in s_coeff.keys()})
 
-        #Add central parameters to index_to_pos so that we can represent names
     
     Element = LCAStructureCoefficientsElement
     _repr_term = IndexedGenerators._repr_generator
     _latex_term = IndexedGenerators._latex_generator
 
     def structure_coefficients(self):
+        """
+        The structure coefficients of this Lie conformal algebra.
+
+        EXAMPLES::
+
+            sage: R = AffineLieConformalAlgebra(QQbar, 'A1')
+            sage: scoef = R.structure_coefficients()
+            sage: sorted(scoef)
+            [((0, -2*alpha[1]),),
+             ((0, alphacheck[1]), (1, K)),
+             ((0, -2*-alpha[1]),),
+             ((1, 2*K),)]
+
+            sage: Vir = VirasoroLieConformalAlgebra(AA)
+            sage: scoef = Vir.structure_coefficients()
+            sage: sorted(scoef)
+            [((0, TL), (1, 2*L), (3, 1/2*C))]
+        """
         return self._s_coeff
 
 class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
     def __init__(self, R, s_coeff, names=None, index_set=None,
             category=None, central_elements=None,  bracket=False,
             latex_bracket=False, string_quotes=False, prefix='', 
-            weights=None, **kwds):
+            weights=None,**kwds):
         r"""
         An H-Graded Lie conformal algebra
 
         INPUT:
 
-        - ``R`` -- a ring (Default: None); The base ring of this Lie conformal algebra.
-          Behaviour is undefined if it is not a field of characteristic zero. 
+        - ``R`` -- a commutative ring (Default: None); The base ring of
+          this Lie conformal algebra. Behaviour is undefined if it is 
+          not a field of characteristic zero. 
 
-        - ``s_coeff`` -- Dictionary (Default: None); 
-          a dictionary containing the `\lambda` brackets of the
-          generators of this Lie conformal algebra. The keys of this dictionary
-          are pairs of either names or indices of the generators and
-          the values are themselves dictionaries. For a pair of generators `a`
-          and `b`, the value of ``s_coeff[('a','b')]`` is a dictionary whose
-          keys are positive integer numbers and the corresponding value for the
-          key `j` is a dictionary itself representing the j-th product
-          `a_{(j)}b`. Thus, for a positive integer number `j`, the value of
-          ``s_coeff[('a','b')][j]`` is a dictionary whose entries are pairs 
-          ``('c',n)`` where ``'c'`` is the name of a generator and `n` is 
-          a positive number. The value for this key is the coefficient of
-          `\frac{T^{n}}{n!} c` in `a_{(j)}b`. For example the ``s_coeff`` for the
-          *Virasoro* Lie conformal algebra is::
+        - ``s_coeff`` -- Dictionary (Default: None); As in the input of
+          :class:`LieConformalAlgebraStructureCoefficients` 
 
-            {('L','L'):{0:{('L',1):1}, 1:{('L',0):2}, 3:{('C',0):1/2}}}
+        - ``names`` -- tuple of ``str`` (Default: None); as in the
+          input of 
+          :class:`LieConformalAlgebraStructureCoefficients` 
 
+        - ``central_elements`` -- tuple of ``str`` (Default: None); as 
+          in the input of 
+          :class:`LieConformalAlgebraStructureCoefficients` 
+
+        - ``index_set`` -- enumerated set (Default: None); As in the 
+          input of 
+          :class:`LieConformalAlgebraStructureCoefficients` 
           
-          Do not include central elements in this dictionary. Also, if the key
-          ``('a','b')`` is present, there is no need to include ``('b','a')`` as
-          it is defined by skew-symmetry. Any missing pair (besides the ones
-          defined by skew-symmetry) is assumed to have vanishing
-          `\lambda`-bracket. 
-
-        - ``names`` -- tuple of ``str`` (Default: None); The list of names for generators of
-          this Lie conformal algebra. Do not include central elements in this
-          list.
-
-        - ``central_elements`` -- tuple of ``str`` (Default: None); 
-          A list of names for central
-          elements of this Lie conformal algebra. 
-
-        - ``index_set`` -- enumerated set (Default: None); 
-          an indexing set for the generators of this Lie
-          conformal algebra. Do not include central elements in this list. 
-
-        - ``weights`` -- tuple of non-negative integers (Default: None); a list
-          of degrees for this Lie conformal algebra. The returned Lie conformal
-          algebra is H-Graded. This tuple needs to have the same cardinality as
-          ``index_set`` or ``names``. Central elements are assumed to have
-          weight `0`. 
+        - ``weights`` -- tuple of non-negative integers 
+          (Default: None); a list of degrees for this Lie conformal 
+          algebra. The returned Lie conformal algebra is H-Graded. 
+          This tuple needs to have the same cardinality as
+          ``index_set`` or ``names``. Central elements are assumed 
+          to have weight `0`. 
 
         - ``category`` The category that this Lie conformal algebra belongs 
           to.
-
         """
         category = LieConformalAlgebras(R).Graded().WithBasis()\
                    .FinitelyGenerated().or_subcategory(category)
@@ -706,9 +727,9 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             string_quotes=string_quotes, prefix=prefix, **kwds)
         if weights is None:
             weights = (1,)* (len(self._generators) - 
-                    len(self.central_elements()))
+                             len(self.central_elements()))
         if len (weights) != (len(self._generators) - 
-                    len(self.central_elements())):
+                                len(self.central_elements())):
             raise ValueError("weights and (non-central) generator lists "\
                              "must be of same length")
         self._weights = weights
@@ -727,7 +748,6 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
                 0
                 sage: L.T(4).degree()
                 6
-
             """
             if self.is_zero():
                 return Infinity
@@ -742,16 +762,23 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
                 return ls[0]
             raise ValueError("{} is not homogeneous!".format(self))
  
-def VirasoroLieConformalAlgebra(R):
+class VirasoroLieConformalAlgebra(GradedLieConformalAlgebra):
+    #This is the problem of following the Lie algebra Factory design
+    #To have a named algebra represented in a different way we need to 
+    #go over all of this trouble instead of a simple def Viras...
     """
     The Virasoro Lie Conformal algebra over `R`
+
+    INPUT:
+
+    - ``R``: a commutative Ring. Behaviour is undefined if `R` is not 
+      a Field of characteristic zero. 
 
     EXAMPLES::
 
             sage: Vir = VirasoroLieConformalAlgebra(QQ)
             sage: Vir.category()
-            Category of finitely generated as lie conformal algebra H-graded Lie
-            conformal algebras with basis over Rational Field
+            Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
             sage: Vir.gens()
             (L, C)
             sage: L = Vir.0
@@ -759,13 +786,26 @@ def VirasoroLieConformalAlgebra(R):
             [(0, TL), (1, 2*L), (3, 1/2*C)]
 
     """
-    
-    virdict =  {('L','L'):{0:{('L',1):1}, 1:{('L',0): 2}, 
-                3:{('C', 0):R(2).inverse_of_unit()}}}
-    return LieConformalAlgebra(R, virdict, names = ('L',), 
-        central_elements = ('C'), weights = (2,))
+    @staticmethod
+    def __classcall__(cls,R):
+        virdict =  {('L','L'):{0:{('L',1):1}, 1:{('L',0): 2}, 
+                    3:{('C', 0):R(2).inverse_of_unit()}}}
+        return GradedLieConformalAlgebra.__classcall__(cls,R, virdict, 
+            names = ('L',), central_elements = ('C'), weights = (2,))
 
-def AffineLieConformalAlgebra(R, ct, **kwds):
+    def __init__(self, R, s_coeff, names=None, index_set=None,
+            category=None, central_elements=None, weights=None):
+        GradedLieConformalAlgebra.__init__(self,R,s_coeff, 
+            names=names, index_set=index_set,
+            central_elements=central_elements,weights=weights)
+
+    def _repr_(self):
+        return "The Virasoro Lie conformal algebra over {}".format(
+                                                            self.base_ring())
+
+
+
+class AffineLieConformalAlgebra(GradedLieConformalAlgebra):
     r"""
     The current Lie conformal algebra
 
@@ -780,7 +820,7 @@ def AffineLieConformalAlgebra(R, ct, **kwds):
 
             sage: V = AffineLieConformalAlgebra(QQ, 'A1')
             sage: V
-            Lie conformal algebra on 4 generators (alpha[1], alphacheck[1], -alpha[1], K) over Rational Field.
+            Lie conformal algebra with generators (alpha[1], alphacheck[1], -alpha[1], K) over Rational Field.
             sage: AffineLieConformalAlgebra(QQ, CartanType('A1')) is V
             True
 
@@ -790,38 +830,67 @@ def AffineLieConformalAlgebra(R, ct, **kwds):
             ValueError: Only affine algebras of simple finite dimensionalLie algebras are implemented
 
     """
-    if type(ct) is str: 
-        from sage.combinat.root_system.cartan_type import CartanType
-        ct = CartanType(ct)
-    if not ( ct.is_finite() and ct.is_irreducible ):
-        raise ValueError("Only affine algebras of simple finite dimensional"
-            "Lie algebras are implemented")
-    hv = Integer(ct.dual_coxeter_number())
-    g = LieAlgebra(R, cartan_type=ct)
-    B = g.basis()
-    gdict = {}
-    for k1 in B.keys():
-        for k2 in B.keys():
-            myb = B[k1].bracket(B[k2]).monomial_coefficients()
-            myf = R(2).inverse_of_unit()*R(hv).inverse_of_unit()\
-                  *g.killing_form(B[k1],B[k2])
-            if myb or myf:
-                gdict[(k1,k2)] = {}
-                if myb:
-                    gdict[(k1,k2)][0] = {(nk,0):myb[nk] for nk in
-                                         myb.keys()} 
-                if myf:
-                    gdict[(k1,k2)][1] = {('K',0):myf}
+    @staticmethod
+    def __classcall__(cls,R,ct,**kwds):
+        if type(ct) is str: 
+            from sage.combinat.root_system.cartan_type import CartanType
+            ct = CartanType(ct)
+        if not ( ct.is_finite() and ct.is_irreducible ):
+            raise ValueError("Only affine algebras of simple finite dimensional"
+                "Lie algebras are implemented")
+        hv = Integer(ct.dual_coxeter_number())
+        g = LieAlgebra(R, cartan_type=ct)
+        B = g.basis()
+        S = B.keys()
+        gdict = {}
+        for k1 in S:
+            for k2 in S:
+                if S.rank(k2) < S.rank(k1):
+                    myb = B[k1].bracket(B[k2]).monomial_coefficients()
+                    myf = R(2).inverse_of_unit()*R(hv).inverse_of_unit()\
+                          *g.killing_form(B[k1],B[k2])
+                    if myb or myf:
+                        gdict[(k1,k2)] = {}
+                        if myb:
+                            gdict[(k1,k2)][0] = {(nk,0):myb[nk] for nk in
+                                                 myb.keys()} 
+                        if myf:
+                            gdict[(k1,k2)][1] = {('K',0):myf}
 
-    weights = (1,)*B.cardinality()
-    prefix = kwds.get('prefix','E')
-    bracket = kwds.get('bracket','[')
-    names = kwds.get('names', None)
-    return LieConformalAlgebra(
-                R, gdict, index_set=B.keys(),  
-                central_elements=('K',), weights = weights, 
-                prefix=prefix, bracket=bracket, names=names)
+        weights = (1,)*B.cardinality()
+        prefix = kwds.get('prefix','E')
+        bracket = kwds.get('bracket','[')
+        names = kwds.get('names', None)
+        return GradedLieConformalAlgebra.__classcall__(cls,
+                    R, gdict, index_set=B.keys(),  
+                    central_elements=('K',), weights=weights, 
+                    prefix=prefix, bracket=bracket, names=names, 
+                    cartan_type=ct)
 
-    
+    def __init__(self, R, s_coeff, names=None, index_set=None,
+            category=None, central_elements=None, weights=None,
+            cartan_type=None, prefix=None, bracket=None):
+        
+        self._ct = cartan_type
+        GradedLieConformalAlgebra.__init__(self,R,s_coeff, 
+            names=names, index_set=index_set,
+            central_elements=central_elements,weights=weights,
+            bracket=bracket,prefix=prefix)
 
+    def cartan_type(self):
+        """
+        The Cartan type of this Lie conformal algbera.
+
+        EXAMPLES::
+            sage: R = AffineLieConformalAlgebra(QQ, 'B3') 
+            sage: R
+            The affine Lie conformal algebra of type ['B', 3] over Rational Field
+            sage: R.cartan_type()
+            ['B', 3]     
+        """
+        return self._ct
+
+    def _repr_(self):
+        return "The affine Lie conformal algebra of "\
+            "type {} over {}".format(self._ct,self.base_ring())
 
