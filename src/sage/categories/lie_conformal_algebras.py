@@ -162,7 +162,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 sage: Vir = VirasoroLieConformalAlgebra(CC)
                 sage: V = Vir.universal_enveloping_algebra(); V
-                The universal enveloping vertex algebra of Lie conformal algebra with generators (L, C) over Complex Field with 53 bits of precision.
+                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
                 sage: V.0.bracket(V.0)
                 {0: L_-3|0>, 1: 2.00000000000000*L_-2|0>}
 
@@ -340,7 +340,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                 NotImplementedError: In order to lift an element first need to construct the universal enveloping vertex algebra
                 sage: V = R.universal_enveloping_algebra()
                 sage: e.nproduct(f,-1)
-                E[alpha[1]]_-1E[-alpha[1]]_-1|0>
+                alpha[1]_-1-alpha[1]_-1|0>
 
             .. NOTE::
 
@@ -427,13 +427,14 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: L.lift().__class__
                 <class 'sage.algebras.vertex_algebras.vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category.element_class'>
                 sage: L.lift().parent()
-                The universal enveloping vertex algebra of Lie conformal algebra with generators (L, C) over Rational Field.
+                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
 
             Notice that the target of the ``lift`` morphism changes when
             we construct another universal enveloping vertex algebra::
 
                 sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of Lie conformal algebra with generators (L, C) over Rational Field.
+                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+
                 sage: V = VirasoroVertexAlgebra(QQ,1/2)
                 sage: Vir.lift.codomain()
                 The Virasoro vertex algebra at central charge 1/2
@@ -446,10 +447,12 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 sage: cp = Family({Vir.1:1/2}); V = Vir.universal_enveloping_algebra(cp)
                 sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of Lie conformal algebra with generators (L, C) over Rational Field.
+                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+
                 sage: V = VirasoroVertexAlgebra(QQ,1/2)
                 sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of Lie conformal algebra with generators (L, C) over Rational Field.
+                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+
                 sage: V.register_lift()
                 sage: Vir.lift.codomain()
                 The Virasoro vertex algebra at central charge 1/2                
@@ -744,7 +747,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                     sage: V = VirasoroLieConformalAlgebra(QQ)
                     sage: V.is_super()
                     Traceback (most recent call last):
-                    AttributeError: 'GradedLieConformalAlgebra_with_category' object has no attribute 'is_super'
+                    AttributeError: 'VirasoroLieConformalAlgebra_with_category' object has no attribute 'is_super'
                 """
                 return True
 
@@ -894,7 +897,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                     sage: Vir = VirasoroLieConformalAlgebra(QQ)
                     sage: Vir
-                    Lie conformal algebra with generators (L, C) over Rational Field.
+                    The Virasoro Lie conformal algebra over Rational Field
                     sage: Vir.is_graded()
                     True
                 """
@@ -1024,13 +1027,12 @@ class _LiftMorphism(Morphism):
         sage: V = Vir.universal_enveloping_algebra(cp)
         sage: Vir.lift
         Generic morphism:
-          From: Lie conformal algebra with generators (L, C) over Algebraic Real Field.
-          To:   The universal enveloping vertex algebra of Lie conformal algebra with generators (L, C) over Algebraic Real Field.
-
+          From: The Virasoro Lie conformal algebra over Algebraic Real Field
+          To:   The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Algebraic Real Field
         sage: W = VirasoroVertexAlgebra(AA,1)
         sage: Vir.lift
         Generic morphism:
-          From: Lie conformal algebra with generators (L, C) over Algebraic Real Field.
+          From: The Virasoro Lie conformal algebra over Algebraic Real Field
           To:   The Virasoro vertex algebra at central charge 1
     """
     def _call_(self,x):
