@@ -27,7 +27,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
-from sage.categories.sets_cat import Sets
+from sage.sets.finite_enumerated_set import InfiniteEnumeratedSets
 from sage.combinat.partition import Partition
 from sage.combinat.set_partition import SetPartition
 
@@ -186,7 +186,7 @@ class VacillatingTableau(ClonableArray):
 
     def stabilise(self,n=None):
         """
-        Return 
+        Return
         """
         pt = [ list(a) for a in self.partitions ]
         k = self.size
@@ -238,6 +238,29 @@ class VacillatingTableaux(UniqueRepresentation,Parent):
             sage: VacillatingTableau([[]]).parent() # indirect test
             <sage.combinat.vacillating.VacillatingTableaux_with_category object at ...>
         """
-        Parent.__init__(self, category=Sets())
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
+
+    def __iter__(self):
+        """
+        An iterator function.
+
+        TESTS::
+
+            sage: VacillatingTableaux()[0]
+            {[[]]}
+
+            sage: VacillatingTableaux()[1]
+            {[[], [1, 1, 1]], [[], [2, 1]], [[], [3]]}
+
+            sage: [ len(VacillatingTableaux()[i]) for i in range(5) ]
+            [1, 2, 6, 20, 76]
+        """
+        def succ(self):
+            p = self[-1]
+            first_step = [p]+[p.remove_cell(c) for c in p.removable_cells()]
+            second_step = sum([ [[r,r]]+[(r,r.add_cell(c)) for c in r.addable_cells()] for r in first_step ],[])
+            return [VacillatingTableau(list(self)+x) for x in second_step]
+        R = RecursivelyEnumeratedSet([VacillatingTableau([[]])], succ, structure='graded')
+        return R.graded_component_iterator()
 
     Element = VacillatingTableau
