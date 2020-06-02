@@ -68,7 +68,7 @@ class VacillatingTableau(ClonableArray):
             raise ValueError(f"{vt} is not a sequence of partitions.")
         return VacillatingTableaux()(vt)
 
-        raise ValueError(f"{vt} is not valid inpt")
+        raise ValueError(f"{vt} is not valid input")
 
     def check(self):
         """
@@ -89,6 +89,22 @@ class VacillatingTableau(ClonableArray):
             Traceback (most recent call last):
             ...
             ValueError: the partition [] must contain the partition [1]
+            sage: VacillatingTableau([[],[2],[2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the partition [] must contain the partition [2]
+            sage: VacillatingTableau([[],[1],[]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the partition [] must contain the partition [1]
+            sage: VacillatingTableau([[],[],[2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the even partition [2] is too large
+            sage: VacillatingTableau([[],[],[1],[1],[2],[],[]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the odd partition [] is too small
         """
         if self[0] != Partition([]):
             raise ValueError(f"the first partition {self[0]} must be the empty partition")
@@ -99,14 +115,14 @@ class VacillatingTableau(ClonableArray):
         for i in range(k):
             if not self[2*i].contains(self[2*i+1]):
                 raise ValueError(f"the partition {self[2*i]} must contain the partition {self[2*i+1]}")
-            if self[2*i+1].size() > self[2*i].size() + 1:
-                raise ValueError(f"the odd partition {self[2*i+1]} is too large")
+            if self[2*i+1].size() + 1 < self[2*i].size():
+                raise ValueError(f"the odd partition {self[2*i+1]} is too small")
         # Check the even steps
-        for i in range(k-1):
+        for i in range(k):
             if not self[2*i+2].contains(self[2*i+1]):
                 raise ValueError(f"the partition {self[2*i+2]} must contain the partition {self[2*i+1]}")
-            if self[2*i+1].size() > self[2*i+2].size() + 1:
-                raise ValueError("the even partition {self[2*i+2]} is too small")
+            if self[2*i+2].size() > self[2*i+1].size() +1:
+                raise ValueError(f"the even partition {self[2*i+2]} is too large")
 
 ###############################################################################
 
