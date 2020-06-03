@@ -107,7 +107,20 @@ class LieConformalAlgebraElementWrapper(ElementWrapper):
         p = self.parent()
         return { p.monomial(k):v for k,v in 
                 self.value.monomial_coefficients().items() }
-             
+
+    def monomials(self):
+        """
+        The monomials in this element
+
+        EXAMPLES::
+
+            sage: R = NeveuSchwarzLieConformalAlgebra(QQ); R.inject_variables()
+            Defining L, G, C
+            sage: (L + G.T(2)).monomials()
+            (L, 2*T^(2)G)
+        """
+        coefs = self.monomial_coefficients()
+        return tuple(coefs[k]*k for k in coefs.keys())
 
 class LCAWithGeneratorsElement(LieConformalAlgebraElementWrapper):
         """
@@ -300,48 +313,31 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         """
         p = self.parent()
-        l1 = self.value.monomial_coefficients()
-        l2 = right.value.monomial_coefficients()
-        s_coeff = p.structure_coefficients()
+        if self.is_monomial() and right.is_monomial():
+            s_coeff = p._s_coeff
+            a,k = self.index()
+            coefa = self.value.monomial_coefficients()[(a,k)]
+            b,m = right.index()
+            coefb = right.value.monomial_coefficients()[(b,m)]
+            try:
+                mbr = dict(s_coeff[(a,b)])
+            except KeyError:
+                return {}
+            pole = max(mbr.keys())
+            ret =  {l: coefa*coefb*(-1)**k/factorial(k)*sum(factorial(l)\
+                    /factorial(m+k+j-l)/factorial(l-k-j)/factorial(j)*\
+                    mbr[j].T(m+k+j-l) for j in mbr.keys() if j >= l-m-k and\
+                    j <= l-k) for l in range(m+k+pole+1)}
+            return {k:v for k,v in ret.items() if v}
+
+        diclist = [ i._bracket_(j) for i in self.monomials() for
+                j in right.monomials() ]
         ret = {}
-        for i in l1.keys():
-            if i[0] in p._central_elements:
-                continue
-            for j in l2.keys():
-                if j[0] in p._central_elements:
-                    continue
-                if p._index_to_pos[i[0]] > p._index_to_pos[j[0]]:
-                    try:
-                        v = { k[0]: k[1] for k in s_coeff[j[0],i[0]] }
-                    except KeyError:
-                        v = {}
-                    maxpole = max(v.keys())
-                    vals={} 
-                    for k in range(maxpole+1):
-                        #Do we need characteristic zero or is it the fact that
-                        #we chose divided powers as basis?
-                        kth_product = sum ( (-1)**(k+j+1)*prod(
-                            Integer(1)/i for i in range(1 ,j+1))*
-                            v[j+k].T(j) for j in range(maxpole+1 -k) if
-                            (j+k) in v.keys() )
-                        if kth_product is not p.zero():
-                            vals[k]=kth_product
-                    myvals = tuple( vals.items() ) 
-                else:
-                    try:
-                        myvals = s_coeff[(i[0],j[0])]
-                    except KeyError:
-                        myvals = tuple()
-                for l in range(j[1]+1):
-                    for b in myvals:
-                        prev=ret.get(b[0]+j[1]+i[1]-l, p.zero())
-                        ret[b[0]+j[1]+i[1]-l]=prev+ \
-                            prod(range(b[0]+1 ,b[0]+j[1]+i[1]-l+1))*\
-                            (-1)**i[1]*binomial(j[1],l)*\
-                            factorial(i[1])**(-1)*factorial(j[1])**(-1)*\
-                            l1[i]*l2[j]*b[1].T(l) 
-        return { k:ret[k] for k in ret.keys() if ret[k] }
-        
+        pz = p.zero()
+        for d in diclist:
+            for k in d.keys():
+                ret[k] = ret.get(k,pz) + d[k]
+        return ret
 
     def __getitem__(self, i):
         """

@@ -492,8 +492,9 @@ class LieConformalAlgebraWithStructureCoefficients(
         - ``ce`` -- a tuple of ``str``; a list of names for the central
           generators of this Lie conformal algebra
 
-        OUTPUT: a Finite Family representing ``s_coeff`` in the input, 
-        with the indexes ordered by applying skew-symmetry if necessary.
+        OUTPUT: a Finite Family representing ``s_coeff`` in the input. 
+        It contains superfluous information that can be obtained by 
+        skew-symmetry 
         """
         index_to_pos = {k:i for i,k in enumerate(index_set)}
 
@@ -502,39 +503,50 @@ class LieConformalAlgebraWithStructureCoefficients(
         for mypair in s_coeff.keys():
             #e.g.  v = { 0: { (L,2):3, (G,3):1}, 1:{(L,1),2} }
             v = s_coeff[mypair]
-            if index_to_pos[mypair[0]] > index_to_pos[mypair[1]]:
-                key=(mypair[1],mypair[0])
-                maxpole = max(v.keys())
-                vals={} 
-                for k in range(maxpole+1):
-                    kth_product = {}
-                    for j in range(maxpole+1-k):
-                        if k+j in v.keys():
-                            for i in v[k+j].keys():
-                                if (i[0] not in ce) or (
-                                    i[0] in ce and i[1] + j == 0):
-                                    kth_product[(i[0],i[1]+j)] = \
-                                            kth_product.get((i[0], i[1]+j), 0)
-                                    kth_product[(i[0],i[1]+j)] += \
-                                    v[k+j][i]*(-1)**(k+j+1)*binomial(i[1]+j,j)
-                    kth_product = {k:v for k,v in kth_product.items() if v}
-                    if kth_product:
-                        vals[k]=kth_product
-            else:
-                if not index_to_pos[mypair[0]] < index_to_pos[mypair[1]]:
-                    if mypair[0] == mypair[1]:
-                        #Here I should check skew-symmetry!
-                        pass
-                key = tuple(mypair)
-                vals={}
-                for l in v.keys():
-                    lth_product = {k:y for k,y in v[l].items() if y}
-                    if lth_product:
-                        vals[l]=lth_product
+
+            if mypair[0] == mypair[1]:
+                #Here I should check skew-symmetry!
+                pass
+            key = tuple(mypair)
+            vals={}
+            for l in v.keys():
+                lth_product = {k:y for k,y in v[l].items() if y}
+                if lth_product:
+                    vals[l]=lth_product
 
             myvals = tuple((i, tuple((x,v) for x,v in vals[i].items())) 
                             for i in vals.keys() if vals[i])
+
+            if key in sc.keys():
+                if sorted(sc[key]) != sorted(myvals): 
+                        raise ValueError("two distinct values given for one "\
+                                         "and the same bracket")
+            if myvals:
+                sc[key] = myvals
             
+            #We now add the skew-symmetric part to optimize 
+            #brackets computations later
+            key=(mypair[1],mypair[0])
+            maxpole = max(v.keys())
+            vals={} 
+            for k in range(maxpole+1):
+                kth_product = {}
+                for j in range(maxpole+1-k):
+                    if k+j in v.keys():
+                        for i in v[k+j].keys():
+                            if (i[0] not in ce) or (
+                                i[0] in ce and i[1] + j == 0):
+                                kth_product[(i[0],i[1]+j)] = \
+                                        kth_product.get((i[0], i[1]+j), 0)
+                                kth_product[(i[0],i[1]+j)] += \
+                                v[k+j][i]*(-1)**(k+j+1)*binomial(i[1]+j,j)
+                kth_product = {k:v for k,v in kth_product.items() if v}
+                if kth_product:
+                    vals[k]=kth_product
+           
+            myvals = tuple((i, tuple((x,v) for x,v in vals[i].items())) 
+                            for i in vals.keys() if vals[i])
+
             if key in sc.keys():
                 if sorted(sc[key]) != sorted(myvals): 
                         raise ValueError("two distinct values given for one "\
