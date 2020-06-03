@@ -28,9 +28,12 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.combinat.partition import Partition
-from sage.combinat.set_partition import SetPartition
+from sage.combinat.tableau import SemistandardTableau
+from sage.combinat.set_partition import SetPartitions
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+from sage.typeset.ascii_art import AsciiArt
+from sage.typeset.unicode_art import UnicodeArt
 
 ###############################################################################
 
@@ -125,6 +128,18 @@ class VacillatingTableau(ClonableArray):
             if self[2*i+2].size() > self[2*i+1].size() +1:
                 raise ValueError(f"the even partition {self[2*i+2]} is too large")
 
+    def size(self):
+        """
+        Return the size of ``self``. This is ``k`` when ``self`` has length ``2k+1``.
+
+        EXAMPLES::
+
+            sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).size()
+            4
+
+        """
+        return len(self) // 2
+
     def final_shape(self):
         """
         Return the final shape of ``self``.
@@ -173,6 +188,48 @@ class VacillatingTableau(ClonableArray):
         """
         return self.nesting_number() < 2
 
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: V = VacillatingTableau([[],[],[1]])
+            sage: latex(V) # indirect test
+        """
+        result = "\\left( \\begin{array}{"+'l'*len(self)+"}\n"+latex(self[0])+"\n"
+        for p in self[1:]:
+            result += "& "+latex(p)+"\n"
+        result += "\\end{array} \\right)"
+        return result
+
+    def _ascii_art_(self):
+        r"""
+        Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: V = VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]])
+            sage: AsciiArt(V) # indirect test
+            [                           ** ]
+            [ -, -, *, *, *, *, **, **, *  ]
+        """
+        return AsciiArt([AsciiArt(p) for p in self])
+
+    def _unicode_art_(self):
+        r"""
+        Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: V = VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]])
+            sage: UnicodeArt(V) # indirect test
+            ⎡                                 ┌┬┐ ⎤
+            ⎢       ┌┐  ┌┐  ┌┐  ┌┐  ┌┬┐  ┌┬┐  ├┼┘ ⎥
+            ⎣ ∅, ∅, └┘, └┘, └┘, └┘, └┴┘, └┴┘, └┘  ⎦
+        """
+        return UnicodeArt([UnicodeArt(p) for p in self])
+
     def conjugate(self):
         """
         Return the conjugate of ``self``. This is given by simply conjugating each
@@ -191,31 +248,33 @@ class VacillatingTableau(ClonableArray):
 
     def stabilise(self,n=None):
         """
-        Return
+        Convert ``self`` to a list of partitions all of size `n`.
+        If the parameter `n` is not specified it defaults to the minimal valid
+        number.
+
+        EXAMPLES::
+
+            sage: V = VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]])
+            sage: V.stabilise()
+            [[5], [5], [4, 1], [4, 1], [4, 1], [4, 1], [3, 2], [3, 2], [2, 2, 1]]
+
+        TESTS::
+
+            sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).stabilise(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: 4 is too small
         """
-        pt = [ list(a) for a in self.partitions ]
-        k = self.size
-        if not n:
-            n = 2*k
-        # Add first line so all even partitions are partitions of n
-        sz = [ sum( i for i in a ) for a in pt ]
-        for i in range(k+1):
-           if pt[2*i] == []:
-               pt[2*i] = [n]
-           elif n-sz[2*i] < pt[2*i][0]:
-               raise ValueError(f"The value of {n} is too small for the vacillating tableau")
-           else:
-               pt[2*i].insert(0,n-sz[2*i])
-        # Add first line so all odd partitions are partitions of n-1
-        for i in range(k):
-           if pt[2*i+1] == []:
-               pt[2*i+1] = [n-1]
-           elif n-sz[2*i+1]-1 < pt[2*i+1][0]:
-               raise ValueError(f"The value of {n} is too small for the vacillating tableau")
-           else:
-               pt[2*i+1].insert(0,n-sz[2*i+1]-1)
-        pt = [ a + [0]*(n-len(a)) for a in pt ]
-        return pt
+        if n == None:
+            if all(p == [] for p in self):
+                return list(self)
+            else:
+                n = max(p.size()+p[0] for p in self if p != [])
+
+        if any(n-p.size() < p[0] for p in self if p != []):
+            raise ValueError(f"{n} is too small")
+
+        return [ Partition([n-p.size()]+list(p)) for p in self ]
 
     def to_set_partition(self):
         """
@@ -226,7 +285,29 @@ class VacillatingTableau(ClonableArray):
         ``self`` is the empty partition then this is just a set partition of [n].
         This map between vacillating tableau whose final shape is the empty partition
         and set partitions is a bijection.
+        
+        EXAMPLES::
+            
+            sage: V = VacillatingTableau([[],[],[1],[1],[2],[2],[2],[2],[2,1],[2,1],[2,1,1],[2,1],[2,1],[1,1],[2,1]])
+            sage: V.to_set_partition()
+            ({{1}, {2, 6}, {3}, {4, 7}, {5}}, [[1, 7], [5]])            
         """
+        P = set() # empty set
+        T = SemistandardTableau([]) # empty tableau
+        for i, (lam, mu) in enumerate(zip(self,self[1:])):
+            if mu.size() == lam.size()+1:
+                assert(mu.contains(lam))
+                cell = [c for c in mu.cells() if not c in lam.cells()][0]
+                T = T.add_entry(cell,(i+1)//2)
+            elif lam.size() == mu.size()+1:
+                assert(lam.contains(mu))
+                cell = [c for c in lam.cells() if not c in mu.cells()][0]
+                T, j = T.reverse_bump(cell)
+                P.add((j,i//2+1))
+            else:
+                assert(lam==mu)
+
+        return SetPartitions().from_arcs(P, self.size()), T
 
 ###############################################################################
 
