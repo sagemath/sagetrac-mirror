@@ -32,8 +32,9 @@ from sage.combinat.tableau import SemistandardTableau
 from sage.combinat.set_partition import SetPartitions
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-from sage.typeset.ascii_art import AsciiArt
-from sage.typeset.unicode_art import UnicodeArt
+from sage.misc.latex import latex
+from sage.typeset.ascii_art import AsciiArt, ascii_art
+from sage.typeset.unicode_art import UnicodeArt, unicode_art
 
 ###############################################################################
 
@@ -192,10 +193,19 @@ class VacillatingTableau(ClonableArray):
         r"""
         Return a LaTeX representation of ``self``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: V = VacillatingTableau([[],[],[1]])
             sage: latex(V) # indirect test
+            \left( \begin{array}{lll}
+             {\emptyset}
+             & {\emptyset}
+             & {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+             \end{array} \right)
         """
         result = "\\left( \\begin{array}{"+'l'*len(self)+"}\n"+latex(self[0])+"\n"
         for p in self[1:]:
@@ -210,11 +220,12 @@ class VacillatingTableau(ClonableArray):
         EXAMPLES::
 
             sage: V = VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]])
-            sage: AsciiArt(V) # indirect test
-            [                           ** ]
-            [ -, -, *, *, *, *, **, **, *  ]
+            sage: ascii_art(V) # indirect test
+              |   |   |   |   |   |    |    | **
+            - | - | * | * | * | * | ** | ** | *
         """
-        return AsciiArt([AsciiArt(p) for p in self])
+        sep_line = ascii_art('\n'.join(' | ' for _ in range(self.nesting_number())), baseline=0)
+        return ascii_art(*self, separator=sep_line, sep_baseline=0)
 
     def _unicode_art_(self):
         r"""
@@ -223,12 +234,13 @@ class VacillatingTableau(ClonableArray):
         EXAMPLES::
 
             sage: V = VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]])
-            sage: UnicodeArt(V) # indirect test
-            ⎡                                 ┌┬┐ ⎤
-            ⎢       ┌┐  ┌┐  ┌┐  ┌┐  ┌┬┐  ┌┬┐  ├┼┘ ⎥
-            ⎣ ∅, ∅, └┘, └┘, └┘, └┘, └┴┘, └┴┘, └┘  ⎦
+            sage: unicode_art(V) # indirect test
+                                                    ┌┬┐
+              |   | ┌┐ | ┌┐ | ┌┐ | ┌┐ | ┌┬┐ | ┌┬┐ | ├┼┘
+            ∅ | ∅ | └┘ | └┘ | └┘ | └┘ | └┴┘ | └┴┘ | └┘
         """
-        return UnicodeArt([UnicodeArt(p) for p in self])
+        sep_line = unicode_art('\n'.join(' | ' for _ in range(self.nesting_number())), baseline=0)
+        return unicode_art(*self, separator=sep_line, sep_baseline=0)
 
     def conjugate(self):
         """
@@ -285,12 +297,12 @@ class VacillatingTableau(ClonableArray):
         ``self`` is the empty partition then this is just a set partition of [n].
         This map between vacillating tableau whose final shape is the empty partition
         and set partitions is a bijection.
-        
+
         EXAMPLES::
-            
+
             sage: V = VacillatingTableau([[],[],[1],[1],[2],[2],[2],[2],[2,1],[2,1],[2,1,1],[2,1],[2,1],[1,1],[2,1]])
             sage: V.to_set_partition()
-            ({{1}, {2, 6}, {3}, {4, 7}, {5}}, [[1, 7], [5]])            
+            ({{1}, {2, 6}, {3}, {4, 7}, {5}}, [[1, 7], [5]])
         """
         P = set() # empty set
         T = SemistandardTableau([]) # empty tableau
