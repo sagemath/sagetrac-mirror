@@ -679,33 +679,6 @@ ext_modules = [
     Extension("sage.numerical.sdp",
               ["sage/numerical/sdp.pyx"]),
 
-    Extension("sage.numerical.backends.generic_backend",
-              ["sage/numerical/backends/generic_backend.pyx"]),
-
-    Extension("sage.numerical.backends.generic_sdp_backend",
-              ["sage/numerical/backends/generic_sdp_backend.pyx"]),
-
-    Extension("sage.numerical.backends.glpk_backend",
-              ["sage/numerical/backends/glpk_backend.pyx"]),
-
-    Extension("sage.numerical.backends.glpk_exact_backend",
-              ["sage/numerical/backends/glpk_exact_backend.pyx"]),
-
-    Extension("sage.numerical.backends.ppl_backend",
-              ["sage/numerical/backends/ppl_backend.pyx"]),
-
-    Extension("sage.numerical.backends.cvxopt_backend",
-              ["sage/numerical/backends/cvxopt_backend.pyx"]),
-
-    Extension("sage.numerical.backends.cvxopt_sdp_backend",
-              ["sage/numerical/backends/cvxopt_sdp_backend.pyx"]),
-
-    Extension("sage.numerical.backends.glpk_graph_backend",
-              ["sage/numerical/backends/glpk_graph_backend.pyx"]),
-
-    Extension("sage.numerical.backends.interactivelp_backend",
-              ["sage/numerical/backends/interactivelp_backend.pyx"]),
-
     ################################
     ##
     ## sage.plot
