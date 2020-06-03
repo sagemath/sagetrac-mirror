@@ -27,9 +27,10 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
-from sage.sets.finite_enumerated_set import InfiniteEnumeratedSets
 from sage.combinat.partition import Partition
 from sage.combinat.set_partition import SetPartition
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
 ###############################################################################
 
@@ -181,6 +182,10 @@ class VacillatingTableau(ClonableArray):
 
             sage: VacillatingTableau([[],[],[1],[1],[1],[1],[2],[2],[2,1]]).conjugate()
             [[], [], [1], [1], [1], [1], [1, 1], [1, 1], [2, 1]]
+
+        TESTS::
+
+
         """
         return VacillatingTableau([a.conjugate() for a in self])
 
@@ -250,16 +255,19 @@ class VacillatingTableaux(UniqueRepresentation,Parent):
             {[[]]}
 
             sage: VacillatingTableaux()[1]
-            {[[], [1, 1, 1]], [[], [2, 1]], [[], [3]]}
+            {[[], [], []], [[], [], [1]]}
 
             sage: [ len(VacillatingTableaux()[i]) for i in range(5) ]
-            [1, 2, 6, 20, 76]
+            [1, 2, 7, 31, 164]
         """
-        def succ(self):
-            p = self[-1]
-            first_step = [p]+[p.remove_cell(c) for c in p.removable_cells()]
-            second_step = sum([ [[r,r]]+[(r,r.add_cell(c)) for c in r.addable_cells()] for r in first_step ],[])
-            return [VacillatingTableau(list(self)+x) for x in second_step]
+        def succ(tableau):
+            """
+            Return a list of the successors to the VacillatingTableau ``tableau``.
+            """
+            p = tableau[-1]
+            first_step = [p]+[p.remove_cell(*c) for c in p.removable_cells()]
+            second_step = sum([ [[r,r]]+[[r,r.add_cell(*c)] for c in r.addable_cells()] for r in first_step ],[])
+            return [VacillatingTableau(list(tableau)+x) for x in second_step]
         R = RecursivelyEnumeratedSet([VacillatingTableau([[]])], succ, structure='graded')
         return R.graded_component_iterator()
 
