@@ -192,6 +192,35 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         os.chdir(cwd)
     return python_packages, python_modules, cython_modules
 
+def is_package_or_namespace_package_dir(dirpath):
+    """
+    True when ``dirpath`` is a regular or namespace package.
+
+    EXAMPLES::
+
+        sage: from sage.env import SAGE_SRC
+        sage: from sage_setup.find import is_package_or_namespace_package_dir
+        sage: is_package_or_namespace_package_dir(SAGE_SRC)
+        False
+
+    An ordinary package::
+
+        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'structure'))
+        True
+
+    A namespace package::
+
+        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'numerical', 'backends')
+        True
+
+    """
+    PACKAGE_FILES = ("__init__.py", "__init__.pyc", "__init__.pyx", "__init__.pxd")
+    for filename in PACKAGE_FILES:
+        path = os.path.join(dirpath, filename)
+        if os.path.exists(path):
+            return True
+    return os.path.exists(os.path.join(dirpath, 'namespace'))
+
 def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
     """
     Find all extra files which should be installed.

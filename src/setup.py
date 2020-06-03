@@ -67,7 +67,7 @@ distributions += ['sage-{}'.format(pkg)
 
 log.warn('distributions = {0}'.format(distributions))
 
-from sage_setup.find import find_python_sources
+from sage_setup.find import find_python_sources, is_package_or_namespace_package_dir
 python_packages, python_modules, cython_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'], distributions=distributions)
 
@@ -75,6 +75,10 @@ log.debug('python_packages = {0}'.format(python_packages))
 
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
+import Cython.Build.Dependencies
+import Cython.Build.Cythonize
+import Cython.Utils
+Cython.Utils.is_package_dir = Cython.Build.Cythonize.is_package_dir = Cython.Build.Dependencies.is_package_dir = is_package_or_namespace_package_dir
 
 from sage_setup.command.sage_install import sage_install
 
