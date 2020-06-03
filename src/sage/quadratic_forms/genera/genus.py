@@ -2382,18 +2382,28 @@ class Genus_Symbol_p_adic_ring(object):
             Genus symbol at 2:    [1^-2 2^1 4^1]_6
             sage: G2.direct_sum(G2)
             Genus symbol at 2:    [1^4 2^2 4^2]_4
+
+        TESTS::
+
+            sage: G = Genus(matrix([6]))
+            sage: G2 = G.local_symbol(2)
+            sage: G3 = G.local_symbol(3)
+            sage: G2.direct_sum(G3)
+            Traceback (most recent call last):
+            ...
+            ValueError: the local genus symbols must be over the same prime
         """
         if self.prime() != other.prime():
             raise ValueError("the local genus symbols must be over the same prime")
         sym1 = self.symbol_tuple_list()
         sym2 = other.symbol_tuple_list()
-        m = max(sym1[-1][0],sym2[-1][0])
-        sym1 = dict([[s[0],s] for s in sym1])
-        sym2 = dict([[s[0],s] for s in sym2])
+        m = max(sym1[-1][0], sym2[-1][0])
+        sym1 = dict([[s[0], s] for s in sym1])
+        sym2 = dict([[s[0], s] for s in sym2])
 
         symbol = []
-        for k in range(m+1):
-            if self.prime()==2:
+        for k in range(m + 1):
+            if self.prime() == 2:
                 b = [k, 0, 1, 0, 0]
             else:
                 b = [k, 0, 1]
@@ -2402,7 +2412,7 @@ class Genus_Symbol_p_adic_ring(object):
                     s = sym[k]
                     b[1] += s[1]
                     b[2] *= s[2]
-                    if self.prime()==2:
+                    if self.prime() == 2:
                         b[2] = b[2] % 8
                         if s[3] == 1:
                             b[3] = s[3]
@@ -2413,7 +2423,7 @@ class Genus_Symbol_p_adic_ring(object):
                 symbol.append(b)
         if self.rank() == other.rank() == 0:
             symbol = self.symbol_tuple_list()
-        return Genus_Symbol_p_adic_ring(self.prime(), symbol, check=True)
+        return Genus_Symbol_p_adic_ring(self.prime(), symbol)
 
     def excess(self):
         r"""
@@ -3159,6 +3169,36 @@ class GenusSymbol_global_ring(object):
                    return False
         return True
 
+    def direct_sum(self, other):
+        r"""
+        Return the genus of the direct sum of ``self`` and ``other``.
+
+        The direct sum is defined as the direct sum of representatives.
+
+        EXAMPLES::
+
+            sage: G = IntegralLattice("A4").twist(3).genus()
+            sage: G.direct_sum(G)
+            Genus of
+            None
+            Signature:  (8, 0)
+            Genus symbol at 2:    1^8
+            Genus symbol at 3:     3^8
+            Genus symbol at 5:     1^6 5^2
+        """
+        p1, n1 = self.signature_pair()
+        p2, n2 = other.signature_pair()
+        signature_pair = (p1 + p2, n1 + n2)
+
+        primes = [s.prime() for s in self.local_symbols()]
+        primes += [s.prime() for s in other.local_symbols() if not s.prime() in primes]
+        primes.sort()
+        local_symbols = []
+        for p in primes:
+            sym_p = self.local_symbol(p=p).direct_sum(other.local_symbol(p=p))
+            local_symbols.append(sym_p)
+        return GenusSymbol_global_ring(signature_pair, local_symbols)
+
     def discriminant_form(self):
         r"""
         Return the discriminant form associated to this genus.
@@ -3191,36 +3231,6 @@ class GenusSymbol_global_ring(object):
                 qL.append(_gram_from_jordan_block(p, block, True))
         q = matrix.block_diagonal(qL)
         return TorsionQuadraticForm(q)
-
-    def direct_sum(self, other):
-        r"""
-        Return the genus of the direct sum of ``self`` and ``other``.
-
-        The direct sum is defined as the direct sum of representatives.
-
-        EXAMPLES::
-
-            sage: G = IntegralLattice("A4").twist(3).genus()
-            sage: G.direct_sum(G)
-            Genus of
-            None
-            Signature:  (8, 0)
-            Genus symbol at 2:    1^8
-            Genus symbol at 3:     3^8
-            Genus symbol at 5:     1^6 5^2
-        """
-        p1, n1 = self.signature_pair()
-        p2, n2 = other.signature_pair()
-        signature_pair = (p1 + p2, n1 + n2)
-
-        primes = [s.prime() for s in self.local_symbols()]
-        primes += [s.prime() for s in other.local_symbols() if not s.prime() in primes]
-        primes.sort()
-        local_symbols = []
-        for p in primes:
-            sym_p = self.local_symbols(p=p).direct_sum(other.local_symbols(p=p))
-            local_symbols.append(sym_p)
-        return GenusSymbol_global_ring(signature_pair, local_symbols)
 
 
     def rational_representative(self):
@@ -3721,7 +3731,7 @@ class GenusSymbol_global_ring(object):
             sage: G.mass(backend='foo')
             Traceback (most recent call last):
             ...
-            ValueError: Unknown backend: foo
+            ValueError: unknown backend: foo
             sage: G = Genus(matrix(ZZ, 2, [0, 1, 1, 0]))
             sage: G.mass()
             Traceback (most recent call last):
@@ -3747,7 +3757,7 @@ class GenusSymbol_global_ring(object):
             L = L.LatticeWithGram()
             return QQ(L.Mass())
         else:
-            raise ValueError("Unknown backend: %s"%backend)
+            raise ValueError("unknown backend: %s"%backend)
 
 
 def _gram_from_jordan_block(p, block, discr_form=False):

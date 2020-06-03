@@ -162,7 +162,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function, absolute_import
-from six import integer_types
 from itertools import islice
 
 from . import free_module_element
@@ -1014,7 +1013,7 @@ done from the right side.""")
             sage: N((0,0,0,1), check=False) in N
             True
         """
-        if (isinstance(x, integer_types + (sage.rings.integer.Integer,)) and
+        if (isinstance(x, (int, sage.rings.integer.Integer)) and
             x == 0):
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
