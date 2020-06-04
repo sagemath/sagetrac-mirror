@@ -351,7 +351,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
 
     def module(self):
-        r"""Return the `CombinatorialFreeModule` underlying this vertex
+        r"""Return the ``CombinatorialFreeModule`` underlying this vertex
         algebra"""
         return self._module
 
@@ -894,8 +894,9 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
           `p` coprime with `q` and this vertex algebra returns the irreducible
           quotient of the Virasoro vertex algebra at central charge 
 
-        ..MATH::
-            c = 1 - 6 \\frac{(p-q)^2}{pq}
+        .. MATH::
+
+            c = 1 - 6 \frac{(p-q)^2}{pq}
 
 
         EXAMPLES::
@@ -904,7 +905,8 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
             The Virasoro vertex algebra at central charge 1/2
 
         """
-        from .lie_conformal_algebra import VirasoroLieConformalAlgebra
+        from sage.algebras.lie_conformal_algebras.virasoro_lie_conformal_algebra import\
+                                                    VirasoroLieConformalAlgebra
         ML = VirasoroLieConformalAlgebra(R)
         if arg0 is not None:
             c = 1  - 6*(c-arg0)**2/(c*arg0)

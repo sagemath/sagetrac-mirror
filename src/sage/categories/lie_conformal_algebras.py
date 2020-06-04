@@ -5,7 +5,11 @@ AUTHORS:
 
 - Reimundo Heluani (2019-10-05): Initial implementation
 
-.. include:: ../../../algebras/vertex_algebras/lie_conformal_algebra_desc.rst
+.. include:: ../../../algebras/lie_conformal_algebras/lie_conformal_algebra_desc.rst
+
+.. SEEALSO::
+
+    :mod:`sage.algebras.lie_conformal_algebras.lie_conformal_algebra` 
 
 """
 
@@ -164,7 +168,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: V = Vir.universal_enveloping_algebra(); V
                 The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
                 sage: V.0.bracket(V.0)
-                {0: L_-3|0>, 1: 2.00000000000000*L_-2|0>}
+                {0: 1.00000000000000*L_-3|0>, 1: 2.00000000000000*1.00000000000000*L_-2|0>}
 
             We construct the universal enveloping vertex algebra of the
             Virasoro Lie conformal algebra at central charge 2 over the
