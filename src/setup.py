@@ -58,7 +58,9 @@ distributions = ['']
 
 from sage_setup.optional_extension import is_package_installed_and_updated
 
-optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
+optional_packages_with_extensions = ['mcqd', 'bliss',
+                                     #'tdlib',   ## handled by sage_tdlib
+                                     'primecount',
                                      'coxeter3', 'fes', 'sirocco', 'meataxe']
 
 distributions += ['sage-{}'.format(pkg)

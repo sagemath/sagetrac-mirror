@@ -221,7 +221,8 @@ def is_package_or_namespace_package_dir(dirpath):
             return True
     return os.path.exists(os.path.join(dirpath, 'namespace'))
 
-def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
+def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[],
+                     distributions=None):
     """
     Find all extra files which should be installed.
 
@@ -265,6 +266,10 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
         ['.../src/sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...]
     """
     from Cython.Utils import is_package_dir
+
+    if not (distributions is None or '' in distributions):
+        # FIXME: This is only a 0th order approximation of what we need
+        return []
 
     data_files = {}
     cy_exts = ('.pxd', '.pxi', '.pyx')
