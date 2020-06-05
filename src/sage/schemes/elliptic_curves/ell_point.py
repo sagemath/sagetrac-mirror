@@ -260,11 +260,19 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         TESTS:
 
         Check that :trac:`29690` is fixed::
-        
+
             sage: E = EllipticCurve([0,0,1,-1,0]);E4 = E.change_ring(Integers(4))
             sage: E4(2,-3,8)
             (2 : 1 : 0)
 
+            sage: E = EllipticCurve([0,1,1,1,1]); E6 = E.change_ring(Integers(6))
+            sage: E6(3,2,3)
+            (3 : 2 : 3)
+
+            sage: E6(3,3,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: [3, 3, 3] does not define a valid point since all entries do not generate the unit ideal of Ring of integers modulo 6
         """
         point_homset = curve.point_homset()
         if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
@@ -290,23 +298,30 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             all_zero = True
             for i in range(n):
                 c = v[n-1-i]
-                if c:
+                if c.is_unit():
                     all_zero = False
                     if c == 1:
                         break
-                    for j in range(n-i):
+                    for j in range(n):
                         v[j] /= c
                     break
             if all_zero:
-                raise ValueError("%s does not define a valid point "
-                                 "since all entries are 0" % repr(v))
+                if all(a.is_zero() for a in v):
+                    raise ValueError("%s does not define a valid point "
+                                     "since all entries are 0" % repr(v))
+                from sage.arith.misc import gcd
+                if gcd(v + [point_homset.value_ring().characteristic()]) != 1:
+                    raise ValueError("{0} does not define a valid point "
+                                     "since all entries do not generate "
+                                     "the unit ideal of {1}".format(v,
+                                                    point_homset.value_ring()))
 
             x, y, z = v
             if z == 0:
                 test = x**3
             else:
                 a1, a2, a3, a4, a6 = curve.ainvs()
-                test = y**2 + (a1*x+a3)*y - (((x+a2)*x+a4)*x+a6)
+                test = (y**2+(a1*x+a3*z)*y)*z - (((x+a2*z)*x+a4*z**2)*x+a6*z**3)
             if not test == 0:
                 raise TypeError("Coordinates %s do not define a point on %s" % (list(v), curve))
 
