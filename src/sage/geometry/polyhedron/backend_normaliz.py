@@ -1681,8 +1681,8 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         EXAMPLES::
 
             sage: C = Polyhedron(backend='normaliz',rays=[[1,3],[2,1]]) # optional - pynormaliz
-            sage: HS = C._hilbert_series_normalize([1,1]) # optional - pynormaliz
-            ((1,1), 't')
+            sage: C._hilbert_series_normalize([1,1]) # optional - pynormaliz
+            ((1, 1), 't')
         """
         return tuple(grading), variable
 
@@ -1753,8 +1753,8 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         Check that the Hilbert series is pickled::
 
-            sage: new_magic = loads(dumps(magic_square))  # optional - pynormaliz
-            sage: new_magic.hilbert_series.is_in_cache()  # optional - pynormaliz
+            sage: new_magic = loads(dumps(magic_square))         # optional - pynormaliz
+            sage: new_magic.hilbert_series.is_in_cache(grading)  # optional - pynormaliz
             True
         """
         if self.is_empty():
