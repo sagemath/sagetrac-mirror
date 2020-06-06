@@ -222,7 +222,7 @@ from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
-from sage.misc.all import prod, uniq
+from sage.misc.all import prod
 from copy import copy
 from functools import reduce
 
@@ -300,8 +300,6 @@ def is_SymmetricFunction(x):
 
 from sage.categories.realizations import Category_realization_of_parent
 
-import six
-
 
 class SymmetricFunctionsBases(Category_realization_of_parent):
     r"""
@@ -352,7 +350,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             [Category of realizations of Symmetric Functions over Rational Field,
              Category of commutative hopf algebras with basis over Rational Field,
              Join of Category of realizations of hopf algebras over Rational Field
-                 and Category of graded algebras over Rational Field]
+                 and Category of graded algebras over Rational Field
+                 and Category of graded coalgebras over Rational Field]
         """
         # FIXME: The last one should also be commutative, but this triggers a
         #   KeyError when doing the C3 algorithm!!!
@@ -406,7 +405,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
         def is_commutative(self):
             """
-            Returns whether this symmetric function algebra is commutative.
+            Return whether this symmetric function algebra is commutative.
 
             INPUT:
 
@@ -542,7 +541,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
         @cached_method
         def one_basis(self):
             r"""
-            Returns the empty partition, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
+            Return the empty partition, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
 
             INPUT:
 
@@ -1487,7 +1486,7 @@ class GradedSymmetricFunctionsBases(Category_realization_of_parent):
 
         def degree_zero_coefficient(self):
             r"""
-            Returns the degree zero coefficient of ``self``.
+            Return the degree zero coefficient of ``self``.
 
             EXAMPLES::
 
@@ -1566,7 +1565,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
     _print_style = 'lex'
 
     # Todo: share this with ncsf and over algebras with basis indexed by word-like elements
-    def __getitem__(self, c, *rest):
+    def __getitem__(self, c):
         r"""
         This method implements the abuses of notations ``p[2,1]``,
         ``p[[2,1]]``, ``p[Partition([2,1])]``.
@@ -1589,16 +1588,21 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             s[2, 1]
             sage: s[Partition([2,1])]
             s[2, 1]
+
+        TESTS:
+
+        Check that a single number which is in ``ZZ`` can be used::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s[QQbar(2)]
+            s[2]
         """
         C = self.basis().keys()
-        if isinstance(c, C.element_class):
-            if rest:
-                raise ValueError("invalid number of arguments")
-        else:
-            if rest or isinstance(c, (int, Integer)):
-                c = C([c] + list(rest))
+        if not isinstance(c, C.element_class):
+            if c in ZZ:
+                c = C([c])
             else:
-                c = C(list(c))
+                c = C(c)
         return self.monomial(c)
 
     def _change_by_proportionality(self, x, function):
@@ -1628,7 +1632,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         BR = self.base_ring()
         z_elt = {}
-        for m, c in six.iteritems(x._monomial_coefficients):
+        for m, c in x._monomial_coefficients.items():
             coeff = function(m)
             z_elt[m] = BR( c*coeff )
         return self._from_dict(z_elt)
@@ -1713,7 +1717,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if orthogonal:
             # could check which of x and y has less terms
             # for mx, cx in x:
-            for mx, cx in six.iteritems(x._monomial_coefficients):
+            for mx, cx in x._monomial_coefficients.items():
                 if mx not in y._monomial_coefficients:
                     continue
                 else:
@@ -1723,8 +1727,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 res += cx*cy*f(mx, mx)
             return res
         else:
-            for mx, cx in six.iteritems(x._monomial_coefficients):
-                for my, cy in six.iteritems(y._monomial_coefficients):
+            for mx, cx in x._monomial_coefficients.items():
+                for my, cy in y._monomial_coefficients.items():
                     res += cx*cy*f(mx,my)
             return res
 
@@ -1808,13 +1812,13 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         BR = self.base_ring()
         zero = BR.zero()
         z_elt = {}
-        for part, c in six.iteritems(element.monomial_coefficients()):
+        for part, c in element.monomial_coefficients().items():
             if sum(part) not in cache_dict:
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
             #   needed for the old kschur functions - TCS
             part = _Partitions(part)
-            for part2, c2 in six.iteritems(cache_dict[sum(part)][part]):
+            for part2, c2 in cache_dict[sum(part)][part].items():
                 if hasattr(c2,'subs'): # c3 may be in the base ring
                     c3 = c*BR(c2.subs(**subs_dict))
                 else:
@@ -2365,7 +2369,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         p = self.realization_of().p()
         res = 0
-        degrees = uniq([ sum(m) for m in g.support() ])
+        degrees = sorted(set(sum(m) for m in g.support()))
         for d in degrees:
             for mu in Partitions_n(d):
                 mu_k = mu.power(k)
@@ -2432,7 +2436,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if not nu._list:
             s = self.realization_of().s()
             degrees = [ part.size() for part in p_x.support() ]
-            degrees = uniq(degrees)
+            degrees = sorted(set(degrees))
             if 0 in degrees:
                 ext = self([])
             else:
@@ -2450,7 +2454,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
     def _dual_basis_default(self):
         """
-        Returns the default value for ``self.dual_basis()``
+        Return the default value for ``self.dual_basis()``
 
         .. SEEALSO:: :meth:`dual_basis`
 
@@ -3088,8 +3092,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         p = parent.realization_of().power()
         cache = {}
         ip_pnu_g = parent._inner_plethysm_pnu_g
-        return parent.sum( c*ip_pnu_g(p(x), cache, nu)
-                           for (nu, c) in six.iteritems(p(self).monomial_coefficients()) )
+        return parent.sum(c*ip_pnu_g(p(x), cache, nu)
+                          for (nu, c) in p(self).monomial_coefficients().items())
 
 
     def omega(self):
@@ -3414,7 +3418,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
 
         Let us check (on examples) Proposition 5.2 of Gelfand, Krob, Lascoux, Leclerc,
-        Retakh, Thibon, "Noncommutative symmetric functions", :arXiv:`hep-th/9407124`, for
+        Retakh, Thibon, "Noncommutative symmetric functions", :arxiv:`hep-th/9407124`, for
         `r = 2`::
 
             sage: e = SymmetricFunctions(FiniteField(29)).e()
@@ -3435,7 +3439,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
 
         Some examples from Briand, Orellana, Rosas, "The stability of the Kronecker
-        products of Schur functions." :arXiv:`0907.4652`::
+        products of Schur functions." :arxiv:`0907.4652`::
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: s[2,2].itensor(s[2,2])
@@ -3497,7 +3501,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).itensor(s(1))
             s[]
 
-        Theorem 2.1 in Bessenrodt, van Willigenburg, :arXiv:`1105.3170v2`::
+        Theorem 2.1 in Bessenrodt, van Willigenburg, :arxiv:`1105.3170v2`::
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: all( all( max( r[0] for r in s(p).itensor(s(q)).monomial_coefficients().keys() )
@@ -3833,11 +3837,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         This notion of left-padded Kronecker product can be lifted to the
         non-commutative symmetric functions
-        (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmeticFunctions.Bases.ElementMethods.left_padded_kronecker_product`).
+        (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.left_padded_kronecker_product`).
 
         .. WARNING::
 
-            Don't mistake this product for the reduced Kronecker product
+            Do not mistake this product for the reduced Kronecker product
             (:meth:`reduced_kronecker_product`), which uses the Schur
             functions instead of the complete homogeneous functions in
             its definition.
@@ -4355,7 +4359,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar_qt(self, x, q = None, t = None):
         r"""
-        Returns the `q,t`-deformed standard Hall-Littlewood scalar product of
+        Return the `q,t`-deformed standard Hall-Littlewood scalar product of
         ``self`` and ``x``.
 
         INPUT:
@@ -4437,7 +4441,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar_jack(self, x, t=None):
         r"""
-        Return the Jack-scalar product beween ``self`` and ``x``.
+        Return the Jack-scalar product between ``self`` and ``x``.
 
         This scalar product is defined so that the power sum elements
         `p_{\mu}` are orthogonal and `\langle p_{\mu}, p_{\mu} \rangle =
@@ -5439,7 +5443,7 @@ SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Elem
 ###################
 def _lmax(x):
     r"""
-    Returns the max of ``x`` where ``x`` is a list.
+    Return the max of ``x`` where ``x`` is a list.
 
     If ``x`` is the empty list, ``_lmax`` returns 0.
 
@@ -5453,9 +5457,10 @@ def _lmax(x):
     """
     return max(x) if x else 0
 
+
 def _nonnegative_coefficients(x):
     r"""
-    Returns ``True`` if ``x`` has nonnegative coefficients.
+    Return ``True`` if ``x`` has nonnegative coefficients.
 
     EXAMPLES::
 
@@ -5474,4 +5479,3 @@ def _nonnegative_coefficients(x):
         return all(c >= 0 for c in x.coefficients(sparse=False))
     else:
         return x >= 0
-

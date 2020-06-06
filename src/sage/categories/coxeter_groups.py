@@ -10,13 +10,12 @@ Coxeter Groups
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
-from six.moves import range
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.misc import attrcall, uniq
+from sage.misc.misc import attrcall
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -720,6 +719,28 @@ class CoxeterGroups(Category_singleton):
             from sage.sets.family import Family
             return Family(self.index_set(), lambda i: self.simple_projection(i, side=side, length_increasing=length_increasing))
 
+        def sign_representation(self, base_ring=None, side="twosided"):
+            r"""
+            Return the sign representation of ``self`` over ``base_ring``.
+
+            INPUT:
+
+            - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
+            - ``side`` -- ignored
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 1, 1])
+                sage: W.sign_representation()
+                Sign representation of Weyl Group of type ['A', 1, 1] (as a matrix group acting on the root space) over Integer Ring
+                
+            """
+            if base_ring is None:
+                from sage.rings.all import ZZ
+                base_ring = ZZ
+            from sage.modules.with_basis.representation import SignRepresentationCoxeterGroup
+            return SignRepresentationCoxeterGroup(self, base_ring)
+
         def demazure_product(self, Q):
             r"""
             Return the Demazure product of the list ``Q`` in ``self``.
@@ -1019,11 +1040,11 @@ class CoxeterGroups(Category_singleton):
                 opi = self.simple_projections(side=side, length_increasing=False)
                 for i in self.index_set():
                     for w in tester.some_elements():
-                        tester.assertTrue(pi[i](w) == w.apply_simple_projection(i, side=side))
-                        tester.assertTrue(pi[i](w) == w.apply_simple_projection(i, side=side, length_increasing=True))
-                        tester.assertTrue(opi[i](w) == w.apply_simple_projection(i, side=side, length_increasing=False))
+                        tester.assertEqual(pi[i](w), w.apply_simple_projection(i, side=side))
+                        tester.assertEqual(pi[i](w), w.apply_simple_projection(i, side=side, length_increasing=True))
+                        tester.assertEqual(opi[i](w), w.apply_simple_projection(i, side=side, length_increasing=False))
                         tester.assertTrue(pi[i](w).has_descent(i, side=side))
-                        tester.assertTrue(not opi[i](w).has_descent(i, side=side))
+                        tester.assertFalse(opi[i](w).has_descent(i, side=side))
                         tester.assertEqual(set([pi[i](w), opi[i](w)]),
                                            set([w, w.apply_simple_reflection(i, side=side)]))
 
@@ -1341,13 +1362,7 @@ class CoxeterGroups(Category_singleton):
 
             The algorithm uses the Matsumoto property that any two
             reduced expressions are related by braid relations, see
-            [Theorem 3.3.1(ii), BB2005].
-
-            REFERENCES:
-
-            .. [BB2005] A. Björner, F. Brenti *Combinatorics of Coxeter groups.*
-               Graduate Texts in Mathematics, 231. Springer, New York, 2005,
-               (MR2133266).
+            Theorem 3.3.1(ii) in [BB2005]_.
 
             .. SEEALSO::
 
@@ -1664,10 +1679,10 @@ class CoxeterGroups(Category_singleton):
                 sage: w1 = s[1]*s[2]*s[3]
                 sage: w0.absolute_covers()
                 [
-                [0 0 1 0]  [0 1 0 0]  [0 0 0 1]  [0 1 0 0]  [0 1 0 0]
-                [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [0 0 1 0]  [0 0 0 1]
-                [0 1 0 0]  [0 0 0 1]  [0 0 1 0]  [1 0 0 0]  [0 0 1 0]
-                [0 0 0 1], [0 0 1 0], [0 1 0 0], [0 0 0 1], [1 0 0 0]
+                [0 0 1 0]  [0 1 0 0]  [0 1 0 0]  [0 0 0 1]  [0 1 0 0]
+                [1 0 0 0]  [1 0 0 0]  [0 0 1 0]  [1 0 0 0]  [0 0 0 1]
+                [0 1 0 0]  [0 0 0 1]  [1 0 0 0]  [0 0 1 0]  [0 0 1 0]
+                [0 0 0 1], [0 0 1 0], [0 0 0 1], [0 1 0 0], [1 0 0 0]
                 ]
             """
             W = self.parent()
@@ -1926,14 +1941,15 @@ class CoxeterGroups(Category_singleton):
                 sage: set(S) == set(C)
                 True
             """
-            Covers = []
+            Covers = set()
             for i in self.parent().index_set():
                 if i in self.descents(side='right'):
-                    Covers += [ x.apply_simple_reflection(i, side='right') for x in self.apply_simple_reflection(i,side='right').bruhat_upper_covers()
-                                if i not in x.descents(side='right') ]
+                    Covers.update(x.apply_simple_reflection(i, side='right')
+                                  for x in self.apply_simple_reflection(i,side='right').bruhat_upper_covers()
+                                  if i not in x.descents(side='right'))
                 else:
-                    Covers += [ self.apply_simple_reflection(i,side='right') ]
-            return uniq(Covers)
+                    Covers.add(self.apply_simple_reflection(i,side='right'))
+            return sorted(Covers)
 
         @cached_in_parent_method
         def bruhat_lower_covers_reflections(self):
@@ -1994,17 +2010,16 @@ class CoxeterGroups(Category_singleton):
                 sage: w = W.from_reduced_word([3,1,2,1])
                 sage: w.bruhat_upper_covers_reflections()
                 [(s1*s2*s3*s2*s1, s3), (s2*s3*s1*s2*s1, s2*s3*s2), (s3*s4*s1*s2*s1, s4), (s4*s3*s1*s2*s1, s1*s2*s3*s4*s3*s2*s1)]
-
             """
-
-            Covers = []
+            Covers = set()
             for i in self.parent().index_set():
                 wi = self.apply_simple_reflection(i)
                 if i in self.descents():
-                    Covers += [(u.apply_simple_reflection(i), r.apply_conjugation_by_simple_reflection(i)) for u, r in wi.bruhat_upper_covers_reflections() if i not in u.descents()]
+                    Covers.update((u.apply_simple_reflection(i), r.apply_conjugation_by_simple_reflection(i))
+                                  for u, r in wi.bruhat_upper_covers_reflections() if i not in u.descents())
                 else:
-                    Covers += [(wi, self.parent().simple_reflection(i))]
-            return uniq(Covers)
+                    Covers.add((wi, self.parent().simple_reflection(i)))
+            return sorted(Covers)
 
         def cover_reflections(self, side='right'):
             r"""

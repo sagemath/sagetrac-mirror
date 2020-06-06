@@ -14,8 +14,6 @@ Helpers for creating matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, generator_stop
-
 cimport cython
 from cpython.sequence cimport PySequence_Fast
 from cysignals.signals cimport sig_check
@@ -23,10 +21,12 @@ from cypari2.gen cimport Gen
 from cypari2.types cimport typ, t_MAT, t_VEC, t_COL, t_VECSMALL, t_LIST, t_STR, t_CLOSURE
 
 from .matrix_space import MatrixSpace
-from sage.rings.all import ZZ, RDF, CDF
-from sage.structure.coerce cimport is_numpy_type, py_scalar_parent
-from sage.structure.element cimport (coercion_model,
-        Element, RingElement, coercion_model)
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_double import RDF
+from sage.rings.complex_double import CDF
+from sage.structure.coerce cimport (coercion_model,
+        is_numpy_type, py_scalar_parent)
+from sage.structure.element cimport Element, RingElement, Vector
 from sage.arith.long cimport pyobject_to_long
 from sage.misc.misc_c import sized_iter
 from sage.categories import monoids
@@ -236,6 +236,12 @@ cdef class MatrixArgs:
         [0 1 1]
         [1 0 1]
         [1 1 0]
+
+        sage: ma = MatrixArgs([vector([0,1], sparse=True), vector([0,0], sparse=True)], sparse=True)
+        sage: ma.finalized(); ma.matrix()
+        <MatrixArgs for Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring; typ=SEQ_SPARSE; entries=[SparseEntry(0, 1, 1)]>
+        [0 1]
+        [0 0]
 
     Test invalid input::
 
@@ -1098,6 +1104,21 @@ cdef class MatrixArgs:
             # Everything known => OK
             return 0
 
+        # When sparse and given a list of sparse vectors, convert to a sparse sequence
+        cdef long i, j
+        if isinstance(e[0], Vector) and all(vec.is_sparse() for vec in e):
+            if self.base is None:
+                self.base = coercion_model.common_parent(*[(<Vector>vec)._parent._base
+                                                           for vec in e])
+            self.entries = []
+            for i, row in enumerate(e):
+                for j, val in (<Vector?>row).iteritems():
+                    self.entries.append(make_SparseEntry(i, j, val))
+
+            self.set_ncols(max((<Vector>vec)._parent.ambient_module().rank() for vec in e))
+            self.typ = MA_ENTRIES_SEQ_SPARSE
+            return 0
+
         # Process everything and convert to SEQ_FLAT
         cdef list entries = []
         cdef long c
@@ -1161,6 +1182,29 @@ cdef class MatrixArgs:
         change ``self.entries``.
 
         If the entries are invalid, return ``MA_ENTRIES_UNKNOWN``.
+
+        TESTS:
+
+        Check that :trac:`26655` is fixed::
+
+            sage: F.<a> = GF(9)
+            sage: M = MatrixSpace(F, 2, 2)
+            sage: A = M([[1, a], [0, 1]])
+            sage: M(pari(A))
+            [1 a]
+            [0 1]
+
+        Constructing a matrix from a PARI ``t_VEC`` or ``t_COL`` with
+        ``t_VEC`` or ``t_COL`` elements is currently not supported::
+
+            sage: M(pari([1, a, 0, 1]))
+            Traceback (most recent call last):
+            ...
+            NameError: name 'a' is not defined
+            sage: M(pari([[1, a], [0, 1]]))
+            Traceback (most recent call last):
+            ...
+            NameError: name 'a' is not defined
         """
         # Check basic Python types. This is very fast, so it doesn't
         # hurt to do these first.
@@ -1204,7 +1248,12 @@ cdef class MatrixArgs:
         if isinstance(self.entries, Gen):  # PARI object
             t = typ((<Gen>self.entries).g)
             if t == t_MAT:
-                self.entries = self.entries.Col().sage()
+                R = self.base
+                if R is None:
+                    self.entries = self.entries.Col().sage()
+                else:
+                    self.entries = [[R(x) for x in v]
+                                    for v in self.entries.mattranspose()]
                 return MA_ENTRIES_SEQ_SEQ
             elif t in [t_VEC, t_COL, t_VECSMALL, t_LIST]:
                 self.entries = self.entries.sage()
@@ -1244,7 +1293,7 @@ cdef class MatrixArgs:
         if not self.entries:
             return MA_ENTRIES_SEQ_FLAT
         x = self.entries[0]
-        if isinstance(x, (list, tuple)):
+        if isinstance(x, (list, tuple, Vector)):
             return MA_ENTRIES_SEQ_SEQ
         if type(x) is SparseEntry:
             return MA_ENTRIES_SEQ_SPARSE

@@ -5,7 +5,6 @@ AUTHORS:
 
 - Florent Hivert (2011): initial version
 """
-from six import add_metaclass
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
@@ -56,8 +55,8 @@ def number_of_rooted_trees(n):
                for k in ZZ.range(1, n)) // (n - 1)
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class RootedTree(AbstractClonableTree, NormalizedClonableList):
+class RootedTree(AbstractClonableTree, NormalizedClonableList,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     The class for unordered rooted trees.
 
@@ -364,7 +363,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
             sage: x = RootedTree([[[], []], []])
             sage: y = RootedTree([[], []])
-            sage: len(uniq(x.graft_list(y)))
+            sage: len(set(x.graft_list(y)))
             4
         """
         resu = []

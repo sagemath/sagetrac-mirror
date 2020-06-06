@@ -58,14 +58,14 @@ def restore_cwd(chdir=None):
     - ``chdir`` -- optionally change directories to the given directory
       upon entering the context manager
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: import os
         sage: from sage.misc.sage_ostools import restore_cwd
         sage: from sage.misc.misc import SAGE_TMP
         sage: cwd = os.getcwd()
         sage: with restore_cwd(str(SAGE_TMP)):
-        ....:     print(os.getcwd() == SAGE_TMP)
+        ....:     print(os.getcwd() == os.path.realpath(SAGE_TMP))
         True
         sage: cwd == os.getcwd()
         True
@@ -183,12 +183,8 @@ cdef class redirection:
 
     TESTS::
 
-        sage: from six.moves import cStringIO as StringIO
-        sage: redirection(sys.stdout, StringIO())  # py2
-        Traceback (most recent call last):
-        ...
-        TypeError: <...> must be a Python file or an integer
-        sage: redirection(sys.stdout, StringIO())  # py3
+        sage: import io
+        sage: redirection(sys.stdout, io.StringIO())
         Traceback (most recent call last):
         ...
         io.UnsupportedOperation: fileno

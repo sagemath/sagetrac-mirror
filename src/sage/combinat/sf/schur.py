@@ -1,8 +1,7 @@
 """
 Schur symmetric functions
 """
-from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
@@ -15,13 +14,13 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six.moves import zip
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import absolute_import
 
 from . import classical
 import sage.libs.lrcalc.lrcalc as lrcalc
-from sage.rings.all import ZZ, QQ, Integer
+
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, Sym):

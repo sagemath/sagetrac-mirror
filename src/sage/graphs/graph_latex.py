@@ -688,7 +688,7 @@ class GraphLatex(SageObject):
           ``'#2D87A7'``, or a single character from the choices ``'rgbcmykw'``.
           Additionally, a number between 0 and 1 will create a grayscale value.
           These color specifications are consistent throughout the options for
-          a ``tkzpicture``.
+          a ``tikzpicture``.
 
         - ``vertex_colors`` -- a dictionary whose keys are vertices of the graph
           and whose values are colors. These will be used to color the outline
@@ -1071,7 +1071,7 @@ class GraphLatex(SageObject):
         #   shape" to mirror vertex shapes
         # - "line width" works for vertices, should be configurable
         # - allow injection of latex code to style a pre-built style for
-        #   example, \SetUpVertex[style={fill=green}] could overide color
+        #   example, \SetUpVertex[style={fill=green}] could override color
         #   selection in a style like "Art"
         # - "inner sep" is distance from vertex label to edge of vertex this
         #   should be set as small as possible - but bigger than the line width.
@@ -1333,14 +1333,14 @@ class GraphLatex(SageObject):
             sage: print(g.latex_options().dot2tex_picture())  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-              \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
-              \node (node_2) at (...bp,...bp) [draw,draw=none] {$\left(1, 0\right)$};
-              \node (node_1) at (...bp,...bp) [draw,draw=none] {$\left(0, 1\right)$};
-              \node (node_0) at (...bp,...bp) [draw,draw=none] {$\left(0, 0\right)$};
-              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
-              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
-              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
-              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$\left(...\right)$};
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
             %
             \end{tikzpicture}
 
@@ -1352,9 +1352,9 @@ class GraphLatex(SageObject):
             sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-            \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
-              \node (node_0) at (...bp,...bp) [draw,draw=none] {$88$};
-              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
+            \node (node_...) at (...bp,...bp) [draw,draw=none] {$...$};
+              \node (node_...) at (...bp,...bp) [draw,draw=none] {$...$};
+              \draw [black,->] (node_...) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_...);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
               \pgfsetstrokecolor{strokecol}
               \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$};
@@ -1371,7 +1371,6 @@ class GraphLatex(SageObject):
             \draw [red,] (node_0) ... (node_1);
             ...
             \end{tikzpicture}
-
 
         .. NOTE::
 
@@ -1515,6 +1514,19 @@ class GraphLatex(SageObject):
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
+
+        With the empty graph, an empty tikzfigure is output. ::
+
+            sage: from sage.graphs.graph_latex import check_tkz_graph
+            sage: check_tkz_graph()  # random - depends on TeX installation
+            sage: g = Graph()
+            sage: opts = g.latex_options()
+            sage: print(opts.tkz_picture())
+            \begin{tikzpicture}
+            %
+            %
+            %
+            \end{tikzpicture}
         """
         # This routine does not handle multiple edges
         # It will properly handle digraphs where a pair of vertices has an edge
@@ -1583,7 +1595,7 @@ class GraphLatex(SageObject):
             xmax = max(i[0] for i in pos.values())
             ymax = max(i[1] for i in pos.values())
         else:
-            xmax, ymax = 0, 0
+            xmin, xmax, ymin, ymax = 0, 0, 0, 0
 
         # Linear scaling factors that will be used to scale the image to fit
         # into the bordered region.  Purely horizontal, or purely vertical,
@@ -1618,7 +1630,7 @@ class GraphLatex(SageObject):
         # Which is just a convenience for forming vertex names internal to
         # tkz-graph
         index_of_vertex = {}
-        vertex_list = self._graph.vertices()
+        vertex_list = self._graph.vertices(sort=False)
         for u in self._graph:
             index_of_vertex[u] = vertex_list.index(u)
 
@@ -1756,7 +1768,7 @@ class GraphLatex(SageObject):
                 el_slope = {}
                 el_placement = {}
 
-            for e in self._graph.edges():
+            for e in self._graph.edges(sort=False):
                 edge = (e[0], e[1])
                 reverse = (e[1], e[0])
                 #
@@ -1933,7 +1945,7 @@ class GraphLatex(SageObject):
         s += ['%\n']
 
         # Create each edge or loop
-        for e in self._graph.edges():
+        for e in self._graph.edges(sort=False):
             edge = (e[0], e[1])
             loop = e[0] == e[1]
             if loop:

@@ -15,7 +15,6 @@ Yang-Baxter Graphs
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six.moves import range
 
 from sage.graphs.digraph import DiGraph
 from sage.structure.sage_object import SageObject
@@ -273,7 +272,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: from sage.combinat.yang_baxter_graph import SwapIncreasingOperator
             sage: ops = [SwapIncreasingOperator(i) for i in range(4)]
             sage: Y = YangBaxterGraph(root=(1,0,2,1,0), operators=ops)
-            sage: uniq(Y.__iter__())
+            sage: sorted(set(Y))
             [(1, 0, 2, 1, 0), (1, 2, 0, 1, 0), (1, 2, 1, 0, 0), (2, 1, 0, 1, 0), (2, 1, 1, 0, 0)]
         """
         return self._digraph.vertex_iterator()
