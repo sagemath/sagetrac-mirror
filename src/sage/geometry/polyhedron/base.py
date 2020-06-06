@@ -4387,7 +4387,7 @@ class Polyhedron_base(Element):
         try:
             new_ring = self.parent()._coerce_base_ring(other)
         except TypeError:
-            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent()) \
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
                      + " and " + str(other.parent()))
 
         new_vertices = [ list(x)+list(y)
@@ -4693,7 +4693,7 @@ class Polyhedron_base(Element):
         sign = one if scalar > 0 else -one
 
         make_new_Hrep = lambda h : tuple(scalar*sign*x if i == 0 else sign*x
-                                         for i,x in enumerate(h._vector))
+                                         for i, x in enumerate(h._vector))
 
         new_vertices = (tuple(scalar*x for x in v._vector) for v in self.vertex_generator())
         new_rays = (tuple(sign*x for x in r._vector) for r in self.ray_generator())
@@ -5558,7 +5558,7 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim() + 1)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def lawrence_polytope(self):
@@ -5620,7 +5620,7 @@ class Polyhedron_base(Element):
         n = self.n_vertices()
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
-        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim() + n)
         return parent.element_class(parent, [lambda_V, [], []], None)
 
     def is_lawrence_polytope(self):
@@ -7965,6 +7965,7 @@ class Polyhedron_base(Element):
             return list(lp.points())
         return [p for p in lp.points() if self.contains(p)]
 
+    @cached_method(do_pickle=True)
     def h_star_vector(self):
         r"""
         Return the `h^*`-vector of the lattice polytope.
@@ -8028,6 +8029,12 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The h_star vector is only defined for lattice polytopes
+
+        Check that the `h^*`-vector is pickled::
+
+            sage: new_cube = loads(dumps(cube))         # optional - pynormaliz
+            sage: new_cube.h_star_vector.is_in_cache()  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0
@@ -8835,6 +8842,7 @@ class Polyhedron_base(Element):
                 return c
         else:
             c_list = []
+
             def rational_approximation(c):
                 # Implementation detail: Return unique integer if two
                 # c-values are the same up to machine precision. But
