@@ -1674,19 +1674,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
     _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 
-    def _hilbert_series_normalize(self, grading, variable='t'):
-        r"""
-        Make the arguments of :meth:`hilbert_series` hashable.
-
-        EXAMPLES::
-
-            sage: C = Polyhedron(backend='normaliz',rays=[[1,3],[2,1]]) # optional - pynormaliz
-            sage: C._hilbert_series_normalize([1,1]) # optional - pynormaliz
-            ((1, 1), 't')
-        """
-        return tuple(grading), variable
-
-    @cached_method(do_pickle=True, key=_hilbert_series_normalize)
+    @cached_method(do_pickle=True, key=lambda self, g, v: (tuple(g), v))
     def hilbert_series(self, grading, variable='t'):
         r"""
         Return the Hilbert series of the polyhedron with respect to ``grading``.
