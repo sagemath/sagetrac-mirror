@@ -1,10 +1,15 @@
 r"""
-Vertex algebras
-AUTHORS
+Vertex Algebras
 
-- Reimundo Heluani (10-09-2019): Initial implementation
+AUTHORS:
+
+- Reimundo Heluani (10-09-2019): Initial implementation.
 
 .. include:: ../../../algebras/vertex_algebras/vertex_algebra_desc.inc
+
+.. SEEALSO::
+
+    :mod:`sage.algebras.vertex_algebras.vertex_algebra`
 """
 
 #******************************************************************************
@@ -18,20 +23,19 @@ AUTHORS
 #*****************************************************************************
 
 from .category_types import Category_over_base_ring
-from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.misc.abstract_method import abstract_method
-from sage.categories.category_with_axiom import all_axioms as all_axioms
-from sage.categories.quotients import QuotientsCategory
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
-from sage.algebras.vertex_algebras.vertex_algebra_quotient import VertexAlgebraQuotient
+from sage.categories.quotients import QuotientsCategory
+from sage.misc.abstract_method import abstract_method
+from sage.structure.element import coerce_binop
 from sage.functions.other import factorial
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.graded_modules import GradedModulesCategory
+from sage.categories.super_modules import SuperModulesCategory
 
-all_axioms += ("FinitelyGeneratedAsVertexAlgebra",)
 class VertexAlgebras(Category_over_base_ring):
     """
     The category of vertex algebras.
-    
+
     EXAMPLES::
 
         sage: VertexAlgebras(QQ)
@@ -39,11 +43,33 @@ class VertexAlgebras(Category_over_base_ring):
         sage: VertexAlgebras(QQ).is_subcategory(LieConformalAlgebras(QQ))
         True
 
-    """
+    TESTS::
 
+        sage: VertexAlgebras(ZZ).super_categories()
+        [Category of Lie conformal algebras over Integer Ring]
+        sage: VertexAlgebras(ZZ).Super().WithBasis()
+        Category of super vertex algebras with basis over Integer Ring
+        sage: type(VertexAlgebras(ZZ).Super().WithBasis())
+        <class 'sage.categories.vertex_algebras.VertexAlgebras.Super.WithBasis_with_category'>
+        sage: type(VertexAlgebras(QQ).Super().FinitelyGenerated())
+        <class 'sage.categories.vertex_algebras.VertexAlgebras.Super.FinitelyGeneratedAsVertexAlgebra_with_category'>
+        sage: type(VertexAlgebras(QQ).Super().FinitelyGenerated().WithBasis())
+        <class 'sage.categories.vertex_algebras.VertexAlgebras.Super.FinitelyGeneratedAsVertexAlgebra.WithBasis_with_category'>
+        sage: type(VertexAlgebras(QQ).Graded().FinitelyGenerated().WithBasis())
+        <class 'sage.categories.vertex_algebras.VertexAlgebras.Graded.FinitelyGeneratedAsVertexAlgebra.WithBasis_with_category'>
+        sage: type(VertexAlgebras(QQ).Graded().WithBasis())
+        <class 'sage.categories.vertex_algebras.VertexAlgebras.Graded.WithBasis_with_category'>
+        sage: type(VertexAlgebras(QQ).Graded().WithBasis().Super())
+        <class 'sage.categories.category.JoinCategory_with_category'>
+        sage: VertexAlgebras(QQbar).Super().WithBasis() is VertexAlgebras(QQbar).WithBasis().Super()
+        True
+        sage: VertexAlgebras(QQbar).Super().WithBasis().Graded().FinitelyGenerated() is VertexAlgebras(QQbar).FinitelyGenerate
+        ....: d().WithBasis().Graded().Super()
+        True
+    """
     def super_categories(self):
         """
-        The super categories of this category
+        The super categories of this category.
 
         EXAMPLES::
 
@@ -51,77 +77,94 @@ class VertexAlgebras(Category_over_base_ring):
             sage: C.super_categories()
             [Category of Lie conformal algebras over Rational Field]
 
+            sage: VertexAlgebras(AA).Super().Graded().super_categories()
+            [Category of super vertex algebras over Algebraic Real Field,
+             Category of super H-graded Lie conformal algebras over Algebraic Real Field]
         """
         return [LieConformalAlgebras(self.base_ring()),]
 
     def _repr_object_names(self):
         """
-        The name of the objects of this category
+        The name of the objects of this category.
+
+        EXAMPLES::
+
+            sage: VertexAlgebras(QQbar)
+            Category of vertex algebras over Algebraic Field
         """
-        return "Vertex algebras over {}".format(self.base_ring())
+        return "vertex algebras over {}".format(self.base_ring())
 
     class Quotients(QuotientsCategory):
         """
-        The category of quotients of vertex algebras
+        The category of quotients of vertex algebras.
+
+        EXAMPLES::
+
+            sage: VertexAlgebras(QQbar).Quotients()
+            Category of quotients of vertex algebras over Algebraic Field
         """
         pass
 
     class ParentMethods:
-        def arc_space(self, termorder='wdegrevlex'):
+        @abstract_method(optional=True)
+        def arc_algebra(self, termorder='wdegrevlex'):
             r"""
-            The arc space of the `C_2` quotient of this Vertex algebra. This is
-            a graded commutative algebra with a derivation of degree `1`. 
+            The algebra of functions of the arc space of the `C_2`
+            quotient of this Vertex algebra.
 
-            TODO: we only support arc spaces of universal enveloping vertex
-            algebras and their quotients. 
+            INPUT:
+
+            - ``termorder`` a string (default: ``'wdegrevlex'``); the
+              monomial ordering of the algebra.
+
+            OUTPUT: The graded Poisson vertex algebra freely generated
+            as a differential algebra by the `C_2` quotient of this
+            vertex algebra.
+
+            TODO: we only support arc algebras of universal enveloping
+            vertex algebras and their quotients.
 
             EXAMPLES::
 
                 sage: V = VirasoroVertexAlgebra(QQ, 1/2); Q=V.quotient(V.ideal(V.find_singular(6)[0]))
-                sage: Q.arc_space()
+                sage: Q.arc_algebra()
                 Quotient of The arc algebra over Rational Field generated by ('L',) by the differential ideal generated by (L_2^3,)
                 sage: V.arc_space()
                 The arc algebra over Rational Field generated by ('L',)
-
             """
-            from sage.algebras.vertex_algebras.poisson_vertex_algebra \
-                    import VertexAlgebraArcSpace
-            return VertexAlgebraArcSpace(self, termorder)
+            raise NotImplementedError("The arc algebra of {} is not " +
+                                      "implemented yet".format(self))
 
+        @abstract_method(optional=True)
         def ideal(self, *gens):
             """
-            The ideal of this vertex algebra generated by ``gens``
+            The ideal of this vertex algebra generated by ``gens``.
 
-            INPUT: 
+            INPUT:
 
-            - ``gens`` -- a list or tuple of elements of this vertex algebra.
-              They must be singular vectors. 
+            - ``gens`` -- a list or tuple of elements of this vertex
+               algebra.
 
             EXAMPLES:
 
-            We construct the ideal defining the *Virasoro Ising* module::
+            We construct the ideal defining the *Virasoro Ising*
+            module::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2) 
+                sage: V = VirasoroVertexAlgebra(QQ,1/2)
                 sage: L = V.0
                 sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
                 sage: I = V.ideal(v)
                 sage: I
                 ideal of The Virasoro vertex algebra at central charge 1/2 generated by (L_-2L_-2L_-2|0>+93/64*L_-3L_-3|0>-33/8*L_-4L_-2|0>-27/16*L_-6|0>,)
 
-            If we instead use a non-singular vector::
-
-                sage: V.ideal(L*L)
-                Traceback (most recent call last):
-                ...
-                ValueError: Generators must be singular vectors of The Virasoro vertex algebra at central charge 1/2
-
             """
-            from sage.algebras.vertex_algebras.vertex_algebra_ideal import VertexAlgebraIdeal
-            return VertexAlgebraIdeal(self,gens)
+            raise NotImplementedError("Ideals of {} are not implemented yet"\
+                                        .format(self))
 
+        @abstract_method(optional=True)
         def quotient(self, I):
-            """ 
-            The quotient of this vertex algebra by the ideal ``I``
+            """
+            The quotient of this vertex algebra by the ideal ``I``.
 
             EXAMPLES::
 
@@ -133,18 +176,20 @@ class VertexAlgebras(Category_over_base_ring):
                 Quotient of The Virasoro vertex algebra at central charge 1/2 by the ideal generated by (L_-2L_-2L_-2|0>+93/64*L_-3L_-3|0>-33/8*L_-4L_-2|0>-27/16*L_-6|0>,)
                 sage: Q(L*(L*L))
                 33/8*L_-4L_-2|0>-93/64*L_-3L_-3|0>+27/16*L_-6|0>
-
             """
-            return VertexAlgebraQuotient(I)
+            raise NotImplementedError("Quotients of {} are not implemented yet"\
+                                        .format(self))
 
+        @abstract_method(optional=True)
         def classical_limit(self):
             """
-            The Poisson vertex algebra classical limit of this vertex algebra
+            The Poisson vertex algebra classical limit of this vertex
+            algebra.
 
             EXAMPLES:
 
-            We construct the classical limit of the universal Virasoro vertex
-            algebra at central charge `1/2`::
+            We construct the classical limit of the universal Virasoro
+            vertex algebra at central charge `1/2`::
 
                 sage: V = VirasoroVertexAlgebra(QQ, 1/2)
                 sage: P = V.classical_limit()
@@ -170,51 +215,13 @@ class VertexAlgebras(Category_over_base_ring):
                 33/8*L_-4L_-2|0>-93/64*L_-3L_-3|0>+27/16*L_-6|0>
                 sage: P(L)*(P(L)*P(L)) == P.zero()
                 True
-
             """
-            raise NotImplementedError("General classical limit is only"+
-                " implemented for H-graded vertex agebras")
+            raise NotImplementedError("Classical limit of {} is not " +
+                                     "implemented yet".format(self))
 
-        def _element_constructor_(self,x):
-            """ 
-            Constructs elements of this vertex algebra
-
-            EXAMPLES::
-
-                sage: V = VirasoroVertexAlgebra(QQ, 3)
-                sage: V([[3]])
-                L_-4|0>
-                sage: V.0
-                L_-2|0>
-                sage: V.zero()
-                0
-                sage: V.zero().__class__
-                <class 'sage.algebras.vertex_algebras.vertex_algebra.VirasoroVertexAlgebra_with_category.element_class'>
-                sage: W = AffineVertexAlgebra(QQ, 'A1', 1)
-                sage: W([[2,1],[],[3]])
-                E(alpha[1])_-2E(alpha[1])_-1E(-alpha[1])_-3|0>
-                sage: 3*W.0
-                3*E(alpha[1])_-1|0>
-
-            TESTS::
-
-                sage: V = VirasoroVertexAlgebra(QQ,1/2)
-                sage: V([[1],[2]])
-                Traceback (most recent call last):
-                ...
-                TypeError: do not know how to convert [[1], [2]] into an element of The Virasoro vertex algebra at central charge 1/2
-
+        def is_finitely_generated(self):
             """
-            if x in self.base_ring():
-                if x != 0 :
-                    raise ValueError("can only convert the scalar 0 "\
-                                     "into a vertex algebra element")
-                return self.zero()
-            return self.element_class(self,x)
-
-        def is_strongly_generated(self):
-            """
-            If this vertex algebra is strongly generated
+            If this vertex algebra is finitely generated.
 
             EXAMPLES::
 
@@ -229,7 +236,7 @@ class VertexAlgebras(Category_over_base_ring):
 
         def is_graded(self):
             """
-            If this vertex algebra is H-Graded
+            If this vertex algebra is H-Graded.
 
             EXAMPLES::
 
@@ -239,28 +246,26 @@ class VertexAlgebras(Category_over_base_ring):
                 sage: W = AffineVertexAlgebra(QQ, 'A1', 1)
                 sage: W.is_graded()
                 True
-
             """
             return self in VertexAlgebras(self.base_ring()).Graded()
 
         @abstract_method
         def vacuum(self):
             """
-            The vacuum vector of this vertex algebra
+            The vacuum vector of this vertex algebra.
 
             EXAMPLES::
 
                 sage: V = VirasoroVertexAlgebra(QQ, 3)
                 sage: V.vacuum()
                 |0>
-
             """
             raise NotImplementedError("Not implemented")
 
         @abstract_method
         def module(self):
             """
-            The underlying module of this vertex algebra
+            The underlying module of this vertex algebra.
 
             EXAMPLES:
 
@@ -282,14 +287,13 @@ class VertexAlgebras(Category_over_base_ring):
                 Quotient of The Virasoro vertex algebra at central charge 1/2 by the ideal generated by (L_-2L_-2L_-2|0>+93/64*L_-3L_-3|0>-33/8*L_-4L_-2|0>-27/16*L_-6|0>,)
                 sage: Q.module() is Q
                 True
-
             """
             raise NotImplementedError("Not implemented")
 
         @abstract_method
         def zero(self):
             """
-            The zero vector in this vertex algebra
+            The zero vector in this vertex algebra.
 
             EXAMPLES::
 
@@ -304,14 +308,32 @@ class VertexAlgebras(Category_over_base_ring):
                 True
                 sage: Q(0) == Q.zero()
                 True
-
             """
             raise NotImplementedError("Not Implemented")
 
-    class ElementMethods:
-        def _nproduct_(self,rhs,n):
+
+        @abstract_method(optional=True)
+        def find_singular(self,n):
             """
-            The `n`-th product of these two elements. 
+            Return the vector space of singular vectors of weight `n`.
+            """
+            raise NotImplementedError("Not implemented")
+
+        def central_charge(self):
+            """
+            The central charge of this vertex algebra.
+            """
+            try:
+                return self._c
+            except AttributeError:
+                raise NotImplementedError("The central charge of {} is not "+
+                                          "implemented".format(self))
+
+    class ElementMethods:
+        @coerce_binop
+        def nproduct(self,rhs,n):
+            """
+            The ``n``-th product of these two elements.
 
             EXAMPLES::
 
@@ -321,233 +343,408 @@ class VertexAlgebras(Category_over_base_ring):
                 sage: L.nproduct(L,-3)
                 L_-4L_-2|0>
 
+            .. NOTE::
+
+                This method coerces both elements to the same parent
+                in order to implement an n-th product the user
+                needs to implement :meth:`_bracket_`.
+            """
+            return self._nproduct_(rhs,n)
+
+        def _nproduct_(self,rhs,n):
+            """
+            The `n`-th product of these two elements.
+
+            EXAMPLES::
+
+                sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
+                sage: L.nproduct(L,3)
+                1/4*|0>
+                sage: L.nproduct(L,-3)
+                L_-4L_-2|0>
             """
             if n >= 0 :
-                return self.bracket(rhs).get(n,self.parent().zero())
+                return self._bracket_(rhs).get(n,self.parent().zero())
             else:
-                return factorial(-1-n)**(-1)*self.T(-n-1)._mul_(rhs)
+                return self.T(-n-1)._mul_(rhs)/factorial(-1-n)
 
+        @abstract_method
+        def is_singular(self):
+            """
+            Return whether this vector is a singular vector.
+
+            If `a \in V` is a vector in a finitely generated H-Graded
+            vertex algebra, then `a` is singular if for each homogeneous
+            vector `v in V` we have `v_n a = 0` whenever `n > 0`.
+
+            EXAMPLES::
+
+                sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
+                sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+                sage: v.is_singular()
+                True
+                sage: V = AffineVertexAlgebra(QQ, 'A1', 2); E = V.0
+                sage: (E*E*E).is_singular()
+                True
+            """
+            raise NotImplementedError("Not implemented")
+        @abstract_method
+        def monomials(self):
+            """
+            The tuple of monomials in this element.
+
+            EXAMPLES::
+
+                sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0; w = (L*L)*L;
+                sage: w.monomials()
+                (2*L_-3L_-3|0>, 4*L_-4L_-2|0>, 1/2*L_-6|0>, L_-2L_-2L_-2|0>)
+            """
+            raise NotImplementedError("Not implemented")
+
+        @abstract_method
+        def filtered_degree(self):
+            """
+            The smallest space `F^p` in the Li filtration of this
+            vertex algebra containing this element.
+
+            EXAMPLES::
+
+                sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
+                sage: L.li_filtration_degree()
+                0
+                sage: (L.T(2)*L.T()).li_filtration_degree()
+                3
+            """
+            raise NotImplementedError("Not implemented")
 
     class SubcategoryMethods:
 
         def FinitelyGeneratedAsVertexAlgebra(self):
             """
-            The subcategory of finitely and strongly generated vertex algebras
+            The subcategory of finitely and strongly generated vertex
+            algebras.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQbar).FinitelyGenerated()
+                Category of finitely generated vertex algebras over Algebraic Field
             """
             return self._with_axiom("FinitelyGeneratedAsVertexAlgebra")
 
         def FinitelyGenerated(self):
             """
-            The subcategory of finitely and strongly generated vertex algebras
+            The subcategory of finitely and strongly generated vertex
+            algebras.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQbar).FinitelyGenerated()
+                Category of finitely generated vertex algebras over Algebraic Field
             """
-            return self.FinitelyGeneratedAsVertexAlgebra()
+            return self._with_axiom("FinitelyGeneratedAsVertexAlgebra")
 
         def WithBasis(self):
             """
             The subcategory of vertex algebras with a preferred basis
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(ZZ).WithBasis()
+                Category of vertex algebras with basis over Integer Ring
             """
             return self._with_axiom("WithBasis")
 
-    class WithBasis(CategoryWithAxiom_over_base_ring):
-        def _repr_object_names(self):
+        def Graded(self, base_ring=None):
             """
-            The names of objects in this category
-            """
-            return "{} with basis".format(self.base_category().
-                                          _repr_object_bames())
+            The subcategory of H-Graded vertex algebras.
 
-        class ElementMethods:
-            def monomials(self):
+            EXAMPLES::
+
+                sage: C = LieConformalAlgebras(ZZ).WithBasis().Graded(); C
+                Category of H-graded Lie conformal algebras with basis over Integer Ring
+                sage: D = LieConformalAlgebras(ZZ).Graded().WithBasis()
+                sage: D is C
+                True
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            if isinstance(self,CategoryWithAxiom_over_base_ring):
+                axioms_whitelist = frozenset(["WithBasis",
+                                    "FinitelyGeneratedAsVertexAlgebra"])
+                axioms = axioms_whitelist.intersection(self.axioms())
+                return self.base_category().Graded()._with_axioms(axioms)
+            return GradedModulesCategory.category_of(self)
+
+        def Super(self, base_ring=None):
+            """
+            The subcategory of super vertex algebras.
+
+            EXAMPLES::
+
+                sage: LieConformalAlgebras(AA).Super().WithBasis()
+                Category of super Lie conformal algebras with basis over Algebraic Real Field
+
+            TESTS::
+
+                sage: C = LieConformalAlgebras(ZZ).Graded().WithBasis(); C
+                Category of H-graded Lie conformal algebras with basis over Integer Ring
+                sage: D = LieConformalAlgebras(ZZ).WithBasis().Graded(); D
+                Category of H-graded Lie conformal algebras with basis over Integer Ring
+                sage: C is D
+                True
+                sage: C = LieConformalAlgebras(ZZ).WithBasis().Graded().FinitelyGenerated(); C
+                Category of finitely generated H-graded Lie conformal algebras with basis over Integer Ring
+                sage: D = LieConformalAlgebras(ZZ).FinitelyGenerated().WithBasis().Graded(); D
+                Category of finitely generated H-graded Lie conformal algebras with basis over Integer Ring
+                sage: C is D
+                True
+                sage: C = LieConformalAlgebras(AA).Super().WithBasis(); C
+                Category of super Lie conformal algebras with basis over Algebraic Real Field
+                sage: D = LieConformalAlgebras(AA).WithBasis().Super(); D
+                Category of super Lie conformal algebras with basis over Algebraic Real Field
+                sage: C is D
+                True
+                sage: C = LieConformalAlgebras(AA).Graded().FinitelyGenerated().Super().WithBasis(); C
+                Category of finitely generated super H-graded Lie conformal algebras with basis over Algebraic Real Field
+                sage: D = LieConformalAlgebras(AA).WithBasis().FinitelyGenerated().Super().Graded(); D
+                Category of finitely generated super H-graded Lie conformal algebras with basis over Algebraic Real Field
+                sage: C is D
+                True
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            if isinstance(self,CategoryWithAxiom_over_base_ring):
+                axioms_whitelist = frozenset(["WithBasis",
+                                    "FinitelyGeneratedAsVertexAlgebra"])
+                axioms = axioms_whitelist.intersection(self.axioms())
+                return self.base_category().Super()._with_axioms(axioms)
+            return SuperModulesCategory.category_of(self)
+
+    class WithBasis(CategoryWithAxiom_over_base_ring):
+        """
+        The subcategory of vertex algebras with a preferred basis
+
+        EXAMPLES::
+
+            sage: VertexAlgebras(ZZ).WithBasis()
+            Category of vertex algebras with basis over Integer Ring
+        """
+        pass
+
+    class Super(SuperModulesCategory):
+        """
+        The subcategory of super vertex algebras.
+
+        EXAMPLES::
+
+            sage: VertexAlgebras(QQbar).Super()
+            Category of super vertex algebras over Algebraic Field
+            sage: VertexAlgebras(QQbar).Super().all_super_categories()
+            [Category of super vertex algebras over Algebraic Field,
+             Category of super Lie conformal algebras over Algebraic Field,
+             Category of super modules over Algebraic Field,
+             Category of graded modules over Algebraic Field,
+             Category of vertex algebras over Algebraic Field,
+             Category of filtered modules over Algebraic Field,
+             Category of Lie conformal algebras over Algebraic Field,
+             Category of vector spaces over Algebraic Field,
+             Category of modules over Algebraic Field,
+             Category of bimodules over Algebraic Field on the left and Algebraic Field on the right,
+             Category of right modules over Algebraic Field,
+             Category of left modules over Algebraic Field,
+             Category of commutative additive groups,
+             Category of additive groups,
+             Category of additive inverse additive unital additive magmas,
+             Category of commutative additive monoids,
+             Category of additive monoids,
+             Category of additive unital additive magmas,
+             Category of commutative additive semigroups,
+             Category of additive commutative additive magmas,
+             Category of additive semigroups,
+             Category of additive magmas,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
+        """
+        #Need to do all this to make Super commute with Graded.
+        def extra_super_categories(self):
+            """
+            The extra super categories of this category.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQ).FinitelyGenerated().Graded().Super().super_categories()
+                [Category of finitely generated super vertex algebras over Rational Field,
+                 Category of super H-graded vertex algebras over Rational Field]
+            """
+            return [self.base_category(),]
+        class SubcategoryMethods:
+
+            def Graded(self, base_ring=None):
                 """
-                The tuple of monomials in this element
+                The subcategory of H-graded super vertex algebras.
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0; w = (L*L)*L; 
-                    sage: w.monomials()
-                    (2*L_-3L_-3|0>, 4*L_-4L_-2|0>, 1/2*L_-6|0>, L_-2L_-2L_-2|0>)
-
+                    sage: VertexAlgebras(QQ).Super().Graded()
+                    Category of super H-graded vertex algebras over Rational Field
                 """
-                return tuple(v[1]*v[0] for v in 
-                            self.monomial_coefficients().items())
- 
+                assert base_ring is None or base_ring is self.base_ring()
+                if isinstance(self,CategoryWithAxiom_over_base_ring):
+                    axioms_whitelist = frozenset(["WithBasis",
+                                        "FinitelyGeneratedAsVertexAlgebra"])
+                    axioms = axioms_whitelist.intersection(self.axioms())
+                    return self.base_category().Graded()._with_axioms(axioms)
+
+                return GradedModulesCategory.category_of(
+                                         self.base_category()).Super()
+
+        class WithBasis(CategoryWithAxiom_over_base_ring):
+            """
+            The subcategory of super vertex algebras with basis.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQ).WithBasis().Super()
+                Category of super vertex algebras with basis over Rational Field
+                sage: _ is VertexAlgebras(QQ).Super().WithBasis()
+                True
+            """
+            pass
+
+        class FinitelyGeneratedAsVertexAlgebra(
+                                            CategoryWithAxiom_over_base_ring):
+            """
+            The subcategory of finitely generated super vertex algebras.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(GF(5)).FinitelyGenerated().Super()
+                Category of finitely generated super vertex algebras over Finite Field of size 5
+
+            TESTS::
+
+                sage: VertexAlgebras(GF(5)).FinitelyGenerated().Super() is VertexAlgebras(GF(5)).Super().FinitelyGenerated()
+                True
+            """
+
+            class WithBasis(CategoryWithAxiom_over_base_ring):
+                """
+                The subcategory of finitely generated super vertex
+                algebras with basis.
+
+                EXAMPLES::
+
+                sage: VertexAlgebras(ZZ).WithBasis().FinitelyGeneratedAsVertexAlgebra()
+                Category of finitely generated vertex algebras with basis over Integer Ring
+                """
+                pass
+
+        class ParentMethods:
+
+            def is_super(self):
+                """
+                Wether this vertex algebra is a super vertex algebra.
+                """
+                return True
 
     class Graded(GradedModulesCategory):
+        """
+        The subcategory of H-graded vertex algebras.
 
+        EXAMPLES::
+
+            sage: VertexAlgebras(QQ).Graded()
+            Category of H-graded vertex algebras over Rational Field
+        """
         def _repr_object_names(self):
             """
             The names of objects in this category
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQ).Graded().FinitelyGenerated()
+                Category of finitely generated H-graded vertex algebras over Rational Field
             """
             return "H-graded {}".format(self.base_category().\
                                         _repr_object_names())
 
+        class SubcategoryMethods:
 
-        class ParentMethods:
-            def classical_limit(self):
+            def Super(self, base_ring=None):
                 """
-                The Poisson vertex algebra classical limit of this vertex algebra
+                The subcategory of H-graded super Lie conformal algebras
 
-                EXAMPLES:
+                EXAMPLES::
 
-                We construct the classical limit of the universal Virasoro vertex
-                algebra at central charge `1/2`::
-
-                    sage: V = VirasoroVertexAlgebra(QQ, 1/2)
-                    sage: P = V.classical_limit()
-                    sage: V.inject_variables()
-                    Defining L
-                    sage: (L*L)*L == L*(L*L)
-                    False
-                    sage: (P(L)*P(L))*P(L) == P(L)*(P(L)*P(L))
-                    True
-                    sage: L.bracket(L)
-                    {0: L_-3|0>, 1: 2*L_-2|0>, 3: 1/4*|0>}
-                    sage: P(L).bracket(P(L))
-                    {}
-
-                We construct the classical limit of the *Ising* model::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-                    sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                    sage: Q = V.quotient(V.ideal(v)); P = Q.classical_limit()
-                    sage: L*(L*L)
-                    L_-2L_-2L_-2|0>
-                    sage: Q(L)*(Q(L)*Q(L))
-                    33/8*L_-4L_-2|0>-93/64*L_-3L_-3|0>+27/16*L_-6|0>
-                    sage: P(L)*(P(L)*P(L)) == P.zero()
-                    True
-
+                    sage: VertexAlgebras(CC).Super().Graded()
+                    Category of super H-graded vertex algebras over Complex Field with 53 bits of precision
                 """
-                from sage.algebras.vertex_algebras.poisson_vertex_algebra import PoissonVertexAlgebra
-                return PoissonVertexAlgebra(self.base_ring(), self)
+                assert base_ring is None or base_ring is self.base_ring()
+                if isinstance(self,CategoryWithAxiom_over_base_ring):
+                    axioms_whitelist = frozenset(["WithBasis",
+                                        "FinitelyGeneratedAsVertexAlgebra"])
+                    axioms = axioms_whitelist.intersection(self.axioms())
+                    return self.base_category().Super()._with_axioms(axioms)
+                return SuperModulesCategory.category_of(self)
+
+        class Super(SuperModulesCategory):
+            """
+            The subcategory of H-graded super Lie vertex algebras.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(AA).Graded().Super()
+                Category of super H-graded vertex algebras over Algebraic Real Field
+            """
+            pass
 
         class WithBasis(CategoryWithAxiom_over_base_ring):
             """
-            The category of graded vertex algebras with basis
+            The subcategory of graded vertex algebras with basis.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQ).Graded().WithBasis()
+                Category of H-graded vertex algebras with basis over Rational Field
             """
+            pass
 
         class FinitelyGeneratedAsVertexAlgebra(
                                         CategoryWithAxiom_over_base_ring):
-            def _repr_object_names(self):
-                return "finitely generated {}".format(self.base_category().\
-                                                       _repr_object_names())
+            """
+            The subcategory of finitely generated H-graded vertex
+            algebras.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQ).Graded().FinitelyGenerated()
+                Category of finitely generated H-graded vertex algebras over Rational Field
+            """
 
             class WithBasis(CategoryWithAxiom_over_base_ring):
-                def _repr_object_names(self):
-                    return "{} with basis".format(self.base_category().\
-                                                  _repr_object_names())
+                """
+                The subcategory of finitely generated H-graded vertex
+                algebras with basis.
 
-            class ParentMethods:
+                EXAMPLES::
 
-                def find_singular(self,n):
-                    """
-                    Return the vector space of singular vectors of weight `n`
-                    """
-                    M = self.get_graded_part(n)
-                    B = M.basis()
-                    from sage.matrix.constructor import Matrix
-                    ret = Matrix(self.base_ring(),B.cardinality(),0,0)
-                    for g in self.gens():
-                        br = {v:g.bracket(self._from_dict(
-                              v.monomial_coefficients())) for v in B}
-                        w = g.weight()
-                        for j in range(1,n+1):
-                            Mj = self.get_graded_part(n-j)
-                            ret = ret.augment(Matrix([Mj._from_dict(
-                                br[v].get(j+w-1,self.zero()).value\
-                                .monomial_coefficients()).to_vector() 
-                                for v in B ]))
-                    myker = ret.kernel().basis()
-                    return [self._from_dict(M.from_vector(v)\
-                        .monomial_coefficients()) for v in myker]
+                    sage: VertexAlgebras(QQ).Graded().FinitelyGenerated().WithBasis()
+                    Category of finitely generated H-graded vertex algebras with basis over Rational Field
+                """
+                pass
 
-            class ElementMethods:
-                def is_singular(self):
-                    """
-                    Return whether this vector is a singular vector 
-
-                    If `a \in V` is a vector in a finitely generated H-Graded
-                    vertex algebra, then `a` is singular if for each homogeneous
-                    vector `v in V` we have `v_n a = 0` whenever `n > 0`.
-
-                    EXAMPLES::
-
-                        sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-                        sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                        sage: v.is_singular()
-                        True
-                        sage: V = AffineVertexAlgebra(QQ, 'A1', 2); E = V.0
-                        sage: (E*E*E).is_singular()
-                        True
-
-                    """
-                    p = self.parent()
-                    try:
-                        weight = self.weight()
-                    except ValueError:
-                        raise ValueError("Couldn't compute weight of {}, "\
-                                         "it's not homogeneous?".format(self))
-                    #it's cheaper to compute the whole bracket first
-                    for g in p.gens():
-                        gw = g.weight()
-                        br = g._bracket_(self)
-                        if not all(br.get(n+gw-1, p.zero()).is_zero() for 
-                                   n in range(1,weight+2)):
-                            return False
-                    return True
-
-                def _action_from_partition_tuple(self,p,negative=True):
-                    """
-                    helper function to apply elements of a vertex algebra
-                    constructed from partitions
-
-                    INPUT:
-
-                    - ``p`` -- `PartitionTuple`. The level of ``p`` needs to
-                      equal the number of generators of the vertex algebra
-                    - ``negative`` -- boolean (default: `True`); 
-
-                    OUTPUT: the result of repeatedly applying 
-                    modes determined by ``p`` of the generators of
-                    this vertex algebra to the vector ``self``. By default
-                    negative modes are applied. Thus if `p = [[1]]` and `L` is
-                    the unique generator of `V`, the mode `L_{-1}` will be
-                    applied. If ``negative`` is `False`, non-negative modes are
-                    applied instead. Thus in the example above `L_0` will be
-                    applied. 
-
-                    EXAMPLES:
-
-
-                        sage: V = AffineVertexAlgebra(QQ,'A2',1); f=V.2; f
-                        E(alpha[1] + alpha[2])_-1|0>
-                        sage: V.ngens()
-                        8
-                        sage: f._action_from_partition_tuple(PartitionTuple([[2,1],[3],[],[],[1],[2],[],[]]))
-                        E(alpha[2])_-2E(alpha[2])_-1E(alpha[1])_-3E(alpha[1] + alpha[2])_-1E(alphacheck[2])_-1E(-alpha[2])_-2|0>+E(alpha[2])_-2E(alpha[2])_-1E(alpha[1])_-3E(alpha[1] + alpha[2])_-2E(-alpha[2])_-2|0>+E(alpha[2])_-2E(alpha[2])_-1E(alpha[1])_-3E(alpha[1])_-3E(alphacheck[2])_-1|0>-E(alpha[2])_-2E(alpha[2])_-1E(alpha[1])_-4E(alpha[1])_-3|0>
-
-                    """
-                    ngens = self.parent().ngens()
-                    if len(p) != ngens:
-                        raise ValueError("p has to be a partition tuple of "
-                                         "level {0}, got {1}".format(ngens,p))
-                    ret = self
-                    p = p.to_list()
-                    p.reverse()
-                    for j in range(ngens):
-                        p[j].reverse()
-                        g = self.parent()(self.parent().gen(ngens-j-1))
-                        for n in p[j]:
-                            if negative:
-                                ret = g.nmodeproduct(ret,-n)
-                            else:
-                                ret = g.nmodeproduct(ret, n-1 )
-                    return ret
 
         class ElementMethods:   #VertexAlgebras.Graded
+            """
+            Base class for elements of an H-graded vertex algebra
+            """
             def degree(self):
                 """
-                The conformal weight of this element
+                The conformal weight of this element.
+
+                .. NOTE::
+
+                    This method is an alias of :meth:`weight`. Parents
+                    of this category need to implement ``weight``.
 
                 EXAMPLES::
 
@@ -563,38 +760,23 @@ class VertexAlgebras(Category_over_base_ring):
                     Traceback (most recent call last):
                     ...
                     ValueError: L_-2|0>+L_-3|0> is not homogeneous!
-
                 """
                 return self.weight()
-
-            def filtered_degree(self):
-                """
-                The smallest space `F^p` in the Li filtration of this vertex
-                algebra containing this element
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-                    sage: L.li_filtration_degree()
-                    0
-                    sage: (L.T(2)*L.T()).li_filtration_degree()
-                    3
-
-                """
-                return max(m.weight() for m in self.monomial_coefficients())
 
             @abstract_method
             def weight(self):
                 """
-                The conformal weight of this element
+                The conformal weight of this element.
 
                 This method is an alias of :meth:`degree`
                 """
+                raise NotImplementedError("Not implemented")
 
+            @abstract_method
             def is_homogeneous(self):
                 """
-                Whether this element is homogeneous with respect to conformal
-                weight
+                Whether this element is homogeneous with respect to
+                conformal weight.
 
                 EXAMPLES::
 
@@ -603,24 +785,26 @@ class VertexAlgebras(Category_over_base_ring):
                     True
                     sage: (L + L.T()).is_homogeneous()
                     False
-
                 """
-                try:
-                    self.weight()
-                except ValueError:
-                    return False
-                return True
+                raise NotImplementedError("Not implemented")
 
             def nmodeproduct(self, other, n):
                 r"""
-                The shifted product of these two elements
+                The shifted product of these two elements.
 
-                The element needs to be homogeneous. 
-                If `a \in V_p`, then `a_n b` is defined as 
-                `a_{(n+p-1)}b`. 
+                INPUT:
+
+                - ``other`` an element of this vertex algebra
+                - ``n`` an integer number.
+
+                OUTPUT: returns the shifted `n`-product of ``self``
+                with ``other``, which is defined as follows.
+
+                For an element `a` of degree `p`, that is `a \in V_p`,
+                then `a_n b` is defined as `a_{(n+p-1)}b`.
 
                 EXAMPLES::
-                    
+
                     sage: V = VirasoroVertexAlgebra(QQ, 1/2)
                     sage: V.inject_variables()
                     Defining L
@@ -637,19 +821,31 @@ class VertexAlgebras(Category_over_base_ring):
                     weight = self.weight()
                 except ValueError:
                     raise ValueError("Couldn't compute weight of {}, "\
-                                    "it's not homogeneous?".format(self))
-                return self.nproduct(other, n+weight-1)
+                                    "is it not homogeneous?".format(self))
+                return self._nproduct_(other, n+weight-1)
 
     class FinitelyGeneratedAsVertexAlgebra(CategoryWithAxiom_over_base_ring):
+        """
+        The subcategory of finitely and strongly generated vertex
+        algebras.
 
-        def _repr_object_names(self):
-            """
-            The names of objects of this category
-            """
-            return "finitely generated {}".format(self.base_category().\
-                                                  _repr_object_names())
+        EXAMPLES::
+
+            sage: VertexAlgebras(QQ).FinitelyGenerated()
+            Category of finitely generated vertex algebras over Rational Field
+        """
+
         class WithBasis(CategoryWithAxiom_over_base_ring):
-            """The category of finitely generated vertex algebras with basis"""
+            """
+            The category of finitely generated vertex algebras with
+            basis.
+
+            EXAMPLES::
+
+                sage: VertexAlgebras(QQ).FinitelyGenerated().WithBasis()
+                Category of finitely generated vertex algebras with basis over Rational Field
+            """
+            pass
 
         class ParentMethods:
             @abstract_method
@@ -673,23 +869,23 @@ class VertexAlgebras(Category_over_base_ring):
                     sage: V = AffineVertexAlgebra(QQ, 'A1', 1); V
                     The universal affine vertex algebra of CartanType ['A', 1] at level 1
                     sage: V.gens()
-                    (E(alpha[1])_-1|0>, E(alphacheck[1])_-1|0>, E(-alpha[1])_-1|0>)          
-
+                    (E(alpha[1])_-1|0>, E(alphacheck[1])_-1|0>, E(-alpha[1])_-1|0>)
                 """
+                raise NotImplementedError("Not implemented")
 
             @abstract_method
             def ngens(self):
                 """
                 The number of generators of this vertex algebra
-                
+
                 EXAMPLES::
 
                     sage: VirasoroVertexAlgebra(QQ,1/2).ngens()
                     1
                     sage: AffineVertexAlgebra(QQ,'A2',1).ngens()
                     8
-
                 """
+                raise NotImplementedError("Not implemented")
 
             def hilbert_series(self,ord):
                 """
@@ -697,11 +893,12 @@ class VertexAlgebras(Category_over_base_ring):
 
                 INPUT:
 
-                - ``ord`` -- integer; the precision order of the result
+                - ``ord`` -- integer; the precision order of the result.
 
                 OUTPUT: The sum
 
                 .. MATH::
+
                     \sum_{n = 0}^{ord} q^n \mathrm{dim} V_n
 
                 EXAMPLES::
@@ -713,11 +910,10 @@ class VertexAlgebras(Category_over_base_ring):
                     sage: Q = V.quotient(V.ideal(v))
                     sage: Q.hilbert_series(9)
                     1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 3*q^6 + 3*q^7 + 5*q^8 + 5*q^9
-
                 """
                 from sage.rings.power_series_ring import PowerSeriesRing
-                q = PowerSeriesRing(self.base_ring(),'q', 
+                q = PowerSeriesRing(self.base_ring(),'q',
                                     default_prec = ord+1).gen()
-                return sum(self.dimension(n)*q**n for n in range(ord+1 ))     
+                return sum(self.dimension(n)*q**n for n in range(ord+1 ))
 
 

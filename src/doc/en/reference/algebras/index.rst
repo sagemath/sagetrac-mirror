@@ -95,6 +95,7 @@ Non-associative algebras
 ------------------------
 
 .. toctree::
+   :titlesonly:
    :maxdepth: 2
 
    lie_algebras

@@ -267,4 +267,14 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
                              " of {1}".format(x,self))
         return self.element_class(self,x)
 
-
+    def set_lift(self, liftmorphism):
+        """
+        Register ``liftmorphsm`` as a coercion between this Lie
+        conformal algebra and its universal enveloping vertex algebra.
+        """
+        self.lift = liftmorphism
+        try:
+            self.lift.register_as_coercion()
+        except AssertionError:
+            #we already constructed this morphisms and its fine
+            pass

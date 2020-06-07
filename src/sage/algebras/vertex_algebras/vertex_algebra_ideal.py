@@ -73,7 +73,6 @@ class VertexAlgebraIdeal(Module):
             B[([1, 1, 1])] + 93/64*B[([2, 2])] - 33/8*B[([3, 1])] - 27/16*B[([5])]
             sage: V._from_dict(F[0].lift().monomial_coefficients())
             L_-2L_-2L_-2|0>-33/8*L_-4L_-2|0>+93/64*L_-3L_-3|0>-27/16*L_-6|0>
-
         """
         A = self._ambient.get_degree(n)
         ngens = self._ambient.ngens()
