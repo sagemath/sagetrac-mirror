@@ -50,9 +50,9 @@ class FullDimensionalPolyhedra(Polyhedra_facade_base):
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.facade_parent import LowerDimensionalPolyhedra
-        sage: Polyhedron(vertices=[[0, 0]]) in LowerDimensionalPolyhedra(QQ, 2, 'field')
-        True
+        sage: from sage.geometry.polyhedron.facade_parent import FullDimensionalPolyhedra
+        sage: Polyhedron(vertices=[[0, 0]]) in FullDimensionalPolyhedra(QQ, 2, 'field')
+        False
     """
 
     def _repr_(self):
