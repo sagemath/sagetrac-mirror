@@ -7,10 +7,20 @@ from sage.structure.parent import Parent
 from sage.geometry.polyhedron.parent import Polyhedra
 
 class Polyhedra_facade_base(UniqueRepresentation, Parent):
+    """
+    Base class for facade parents representing infinite families of polyhedra.
+    """
 
     def __init__(self, base_ring, ambient_dim, backend):
-        self._polyhedra = Polyhedra(base_ring, ambient_dim, backend)
-        Parent.__init__(self, facade=self._polyhedra)
+        """
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.facade_parent import Polyhedra_facade_base
+            sage: CP = Polyhedra_facade_base(QQ, 2, 'ppl')
+            sage: TestSuite(CP).run()
+        """
+        self._polyhedra = polyhedra = Polyhedra(base_ring, ambient_dim, backend)
+        Parent.__init__(self, facade=polyhedra)
 
     def _element_constructor_(self, *args, **kwds):
         r"""
@@ -35,6 +45,15 @@ class Polyhedra_facade_base(UniqueRepresentation, Parent):
         return self._polyhedra.ambient_dim()
 
 class FullDimensionalPolyhedra(Polyhedra_facade_base):
+    """
+    Facade parent representing the family of full-dimensional polyhedra.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.facade_parent import LowerDimensionalPolyhedra
+        sage: Polyhedron(vertices=[[0, 0]]) in LowerDimensionalPolyhedra(QQ, 2, 'field')
+        True
+    """
 
     def _repr_(self):
         return "Full-dimensional " + super(FullDimensionalPolyhedra, self)._repr_()
@@ -45,6 +64,15 @@ class FullDimensionalPolyhedra(Polyhedra_facade_base):
             raise ValueError("{} should be full-dimensional".format(polyhedron))
 
 class LowerDimensionalPolyhedra(Polyhedra_facade_base):
+    """
+    Facade parent representing the family of lower-dimensional polyhedra.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.facade_parent import LowerDimensionalPolyhedra
+        sage: Polyhedron(vertices=[[0, 0]]) in LowerDimensionalPolyhedra(QQ, 2, 'field')
+        True
+    """
 
     def _repr_(self):
         return "Lower-dimensional " + super(LowerDimensionalPolyhedra, self)._repr_()
@@ -56,6 +84,8 @@ class LowerDimensionalPolyhedra(Polyhedra_facade_base):
 
 class NonPointedPolyhedra(Polyhedra_facade_base):
     """
+    Facade parent representing the family of lower-dimensional polyhedra.
+
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.facade_parent import NonPointedPolyhedra
