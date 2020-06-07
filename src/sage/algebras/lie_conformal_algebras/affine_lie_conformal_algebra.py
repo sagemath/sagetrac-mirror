@@ -21,7 +21,7 @@ from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
 from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 
 class AffineLieConformalAlgebra(GradedLieConformalAlgebra):
-    def __init__(self,R,ct,names=None,prefix=''):
+    def __init__(self,R,ct,names=None,prefix='',bracket=''):
         r"""
         The current or affine Kac-Moody Lie conformal algebra.
 
@@ -74,7 +74,7 @@ class AffineLieConformalAlgebra(GradedLieConformalAlgebra):
         GradedLieConformalAlgebra.__init__(self,
                     R, gdict, index_set=S,
                     central_elements=('K',), weights=weights,
-                    names=names, prefix=prefix)
+                    names=names, prefix=prefix,bracket=bracket)
 
     def cartan_type(self):
         """

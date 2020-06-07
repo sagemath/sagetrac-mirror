@@ -237,12 +237,11 @@ class LCAWithGeneratorsElement(LieConformalAlgebraElementWrapper):
             ret = V.zero()
             for c in self.value.monomial_coefficients().items():
                 if p.monomial(c[0]) in p.central_elements():
-                    ret += c[1]*V.central_parameters()[
-                                p.monomial(c[0])]*V.vacuum()
+                    ret += c[1]*V.central_parameters()[p.monomial(c[0])]*\
+                                                                    V.vacuum()
                 else:
                     l = [Partition([])]*V.ngens()
-                    l[p._index_to_pos[c[0][0]]] = Partition(
-                                                    [c[0][1]+1])
+                    l[p._index_to_pos[c[0][0]]] = Partition([c[0][1]+1])
                     ret += c[1]*V(l)
             return ret
 

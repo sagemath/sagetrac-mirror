@@ -10,7 +10,6 @@ AUTHORS:
 .. SEEALSO::
 
     :mod:`sage.algebras.lie_conformal_algebras.lie_conformal_algebra` 
-
 """
 
 #******************************************************************************
@@ -30,7 +29,6 @@ from sage.categories.category_with_axiom import \
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import coerce_binop
-from sage.categories.morphism import Morphism
 from sage.categories.category_with_axiom import all_axioms as all_axioms
 from sage.misc.misc_c import prod
 from sage.categories.graded_modules import GradedModulesCategory
@@ -133,6 +131,8 @@ class LieConformalAlgebras(Category_over_base_ring):
         return "Lie conformal algebras over {}".format(self.base_ring())
 
     class ParentMethods:
+
+        @abstract_method
         def universal_enveloping_algebra(self, 
                                         central_parameters=None, 
                                         names=None):
@@ -166,7 +166,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 sage: Vir = VirasoroLieConformalAlgebra(CC)
                 sage: V = Vir.universal_enveloping_algebra(); V
-                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
+                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
                 sage: V.0.bracket(V.0)
                 {0: 1.00000000000000*L_-3|0>, 1: 2.00000000000000*1.00000000000000*L_-2|0>}
 
@@ -198,39 +198,8 @@ class LieConformalAlgebras(Category_over_base_ring):
                 ...
                 ValueError: central_parameters must be parametrized by central elements
             """  
-            if central_parameters == None:
-                from sage.sets.family import Family
-                central_parameters = Family({ce:0 for ce in
-                                            self.central_elements()})
-            if hasattr(self, 'lift'):
-                cp = self.lift.codomain().central_parameters()
-                if cp == central_parameters:
-                    return self.lift.codomain()
-            V = self._construct_UEA(central_parameters, 
-                                    names=names)
-
-            from sage.categories.homset import Hom
-            self.lift = _LiftMorphism(Hom(self, V, category = 
-                            LieConformalAlgebras(self.base_ring())))
-            try: 
-                self.lift.register_as_coercion()
-            except AssertionError:
-                #we already constructed this morphisms and its fine
-                pass
-
-            return V
-
-        def _construct_UEA(self, central_parameters=None, names=None):
-            """ 
-            Returns the universal enveloping vertex algebra of ``self``. 
-
-            see :meth:`universal_enveloping_algebra`
-            """
-            from sage.algebras.vertex_algebras.vertex_algebra\
-                                                        import VertexAlgebra
-            return VertexAlgebra(self.base_ring(), self, 
-                                central_parameters=central_parameters, 
-                                names=names)
+            raise NotImplementedError("the universal enveloping vertex " +
+                           "algebra of {} is not implemented yet".format(self))
 
         @abstract_method
         def ideal(self, *gens, **kwds):
@@ -429,15 +398,15 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: L.lift()
                 L_-2|0>
                 sage: L.lift().__class__
-                <class 'sage.algebras.vertex_algebras.vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category.element_class'>
+                <class 'sage.algebras.vertex_algebras.universal_enveloping_vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category.element_class'>
                 sage: L.lift().parent()
-                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
 
             Notice that the target of the ``lift`` morphism changes when
             we construct another universal enveloping vertex algebra::
 
                 sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
 
                 sage: V = VirasoroVertexAlgebra(QQ,1/2)
                 sage: Vir.lift.codomain()
@@ -451,11 +420,11 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 sage: cp = Family({Vir.1:1/2}); V = Vir.universal_enveloping_algebra(cp)
                 sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
 
                 sage: V = VirasoroVertexAlgebra(QQ,1/2)
                 sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
 
                 sage: V.register_lift()
                 sage: Vir.lift.codomain()
@@ -644,7 +613,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             
             def Graded(self, base_ring=None):
                 """
-                The subcategory of H-graded super Lie conformal algebras
+                The subcategory of H-graded super Lie conformal algebras.
 
                 EXAMPLES::
                 
@@ -662,31 +631,6 @@ class LieConformalAlgebras(Category_over_base_ring):
                 return GradedModulesCategory.category_of(
                                          self.base_category()).Super()
 
-            def WithBasis(self):
-                """
-                The subcategory of Super Lie conformal algebras
-                with basis.
-
-                EXAMPLES::
-
-                    sage: LieConformalAlgebras(ZZ).Super().WithBasis()
-                    Category of super Lie conformal algebras with basis over Integer Ring
-                    sage: LieConformalAlgebras(ZZ).Super().WithBasis() is LieConformalAlgebras(ZZ).WithBasis().Super()
-                    True
-                """
-                return self._with_axiom("WithBasis")
-
-            def FinitelyGeneratedAsLieConformalAlgebra(self):
-                """
-                The subcategory of finitely generated super Lie 
-                conformal algebras.
-
-                EXAMPLES::
-
-                    sage: LieConformalAlgebras(ZZ).Super().FinitelyGenerated()
-                    Category of finitely generated super Lie conformal algebras over Integer Ring
-                """
-                return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
 
         class WithBasis(CategoryWithAxiom_over_base_ring):
             """
@@ -700,20 +644,6 @@ class LieConformalAlgebras(Category_over_base_ring):
                 True
             """
             
-            class SubcategoryMethods:
-
-                def FinitelyGeneratedAsLieConformalAlgebra(self):
-                    """
-                    The subcategory of finitely generated super Lie
-                    conformal algebras with basis.
-
-                    EXAMPLES::
-
-                        sage: LieConformalAlgebras(ZZ).Super().FinitelyGenerated().WithBasis()
-                        Category of finitely generated super Lie conformal algebras with basis over Integer Ring
-                    """
-                    return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
-
             class FinitelyGeneratedAsLieConformalAlgebra(
                                                 CategoryWithAxiom_over_base_ring):
                 """
@@ -744,7 +674,8 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             def is_super(self):
                 """ 
-                Wether this vertex algebra is a super vertex algebra.
+                Wether this Lie conformal algebra is a super Lie
+                conformal algebra.
 
                 EXAMPLES::
 
@@ -800,32 +731,6 @@ class LieConformalAlgebras(Category_over_base_ring):
                     return self.base_category().Super()._with_axioms(axioms)
                 return SuperModulesCategory.category_of(self)
 
-            def WithBasis(self):
-                """
-                The subcategory of H-graded Lie conformal algebras with 
-                basis.
-
-                EXAMPLES::
-
-                    sage: LieConformalAlgebras(ZZ).Graded().WithBasis()
-                    Category of H-graded Lie conformal algebras with basis over Integer Ring
-                """
-                return self._with_axiom("WithBasis")
-
-            def FinitelyGeneratedAsLieConformalAlgebra(self):
-                """
-                The subcategory of finitely generated H-graded Lie 
-                conformal algebras
-
-                EXAMPLES::
-
-                    sage: C = LieConformalAlgebras(ZZ).Graded().FinitelyGenerated(); C
-                    Category of finitely generated H-graded Lie conformal algebras over Integer Ring
-                    sage: C is LieConformalAlgebras(ZZ).FinitelyGenerated().Graded()
-                    True
-                """
-                return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
-
         class WithBasis(CategoryWithAxiom_over_base_ring):
             """
             The subcategory of H-graded Lie conformal algebras with 
@@ -837,22 +742,8 @@ class LieConformalAlgebras(Category_over_base_ring):
                 Category of H-graded Lie conformal algebras with basis over Integer Ring
             """
             
-            class SubcategoryMethods:
-
-                def FinitelyGeneratedAsLieConformalAlgebra(self):
-                    """
-                    The subcategory of finitely generated H-graded
-                    Lie conformal algebras with basis.
-
-                    EXAMPLES::
-
-                        sage: LieConformalAlgebras(ZZ).Graded().FinitelyGenerated().WithBasis()
-                        Category of finitely generated H-graded Lie conformal algebras with basis over Integer Ring
-                    """
-                    return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
-
             class FinitelyGeneratedAsLieConformalAlgebra(
-                                                CategoryWithAxiom_over_base_ring):
+                                            CategoryWithAxiom_over_base_ring):
                 """
                 The subcategory of finitely generated H-graded
                 Lie conformal algebras with basis.
@@ -1017,28 +908,3 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 """
                 return self.gens()[i]
-
-
-class _LiftMorphism(Morphism):
-    """
-    The lift morphism from this Lie conformal algebra to its universal
-    enveloping vertex algebra
-
-    EXAMPLES::
-    
-        sage: Vir = VirasoroLieConformalAlgebra(AA)
-        sage: cp = Family({Vir.1:2})
-        sage: V = Vir.universal_enveloping_algebra(cp)
-        sage: Vir.lift
-        Generic morphism:
-          From: The Virasoro Lie conformal algebra over Algebraic Real Field
-          To:   The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Algebraic Real Field
-        sage: W = VirasoroVertexAlgebra(AA,1)
-        sage: Vir.lift
-        Generic morphism:
-          From: The Virasoro Lie conformal algebra over Algebraic Real Field
-          To:   The Virasoro vertex algebra at central charge 1
-    """
-    def _call_(self,x):
-        return x.lift()    
-

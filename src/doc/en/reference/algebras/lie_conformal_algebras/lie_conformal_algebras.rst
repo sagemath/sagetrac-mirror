@@ -4,13 +4,15 @@ Lie Conformal Algebras
 .. include:: ./lie_conformal_algebra_desc.rst
 
 The main classes to construct and work with Lie Conformal Algebras
+------------------------------------------------------------------
 
 .. toctree::
 
-    ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra
+    Lie Conformal Algebra factory<../sage/algebras/lie_conformal_algebras/lie_conformal_algebra>
     ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra_element
 
 Implemented examples of Lie conformal algebras
+----------------------------------------------
 
 .. toctree::
 
@@ -26,6 +28,7 @@ Implemented examples of Lie conformal algebras
 
 
 See also
+--------
 
 .. toctree::
 
@@ -35,5 +38,4 @@ See also
    ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra_with_basis
    ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra_with_generators
    ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra_with_structure_coefs
-
 
