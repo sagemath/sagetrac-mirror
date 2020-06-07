@@ -1138,7 +1138,7 @@ class DiffScalarField(ScalarField):
             sage: h = M.lorentzian_metric('h')
             sage: h[1,1], h[2,2] = -1, 1/(1+r^2)
             sage: h.display(M.polar_coordinates().frame())
-            h = -dr*dr + r^2/(r^2 + 1) dphi*dphi
+            h = -dr^2 + r^2/(r^2 + 1) dphi^2
             sage: v = f.gradient(h); v
             Vector field grad_h(f) on the Euclidean plane E^2
             sage: v.display()

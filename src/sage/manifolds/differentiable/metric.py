@@ -123,7 +123,7 @@ class PseudoRiemannianMetric(TensorField):
 
         sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
         sage: g.display(eU)
-        g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
+        g = 4/(x^2 + y^2 + 1)^2 dx^2 + 4/(x^2 + y^2 + 1)^2 dy^2
 
     A matrix view of the components::
 
@@ -137,8 +137,8 @@ class PseudoRiemannianMetric(TensorField):
     common subdomain W::
 
         sage: g.display(eVW, c_uvW)
-        g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
+        g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du^2
+         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv^2
 
     Therefore, we set::
 
@@ -147,7 +147,7 @@ class PseudoRiemannianMetric(TensorField):
         4/(u^2 + v^2 + 1)^2
         4/(u^2 + v^2 + 1)^2
         sage: g.display(eV)
-        g = 4/(u^2 + v^2 + 1)^2 du*du + 4/(u^2 + v^2 + 1)^2 dv*dv
+        g = 4/(u^2 + v^2 + 1)^2 du^2 + 4/(u^2 + v^2 + 1)^2 dv^2
 
     At this stage, the metric is fully defined on the whole sphere. Its
     restriction to some subdomain is itself a metric (by default, it bears the
@@ -194,11 +194,11 @@ class PseudoRiemannianMetric(TensorField):
         sage: latex(ginv)
         g^{-1}
         sage: ginv.display(eU) # again the components are expanded
-        inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx*d/dx
-         + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy*d/dy
+        inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx^2
+         + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy^2
         sage: ginv.display(eV)
-        inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du*d/du
-         + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv*d/dv
+        inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du^2
+         + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv^2
 
     We have::
 
@@ -278,13 +278,13 @@ class PseudoRiemannianMetric(TensorField):
          manifold S^2
         sage: riem.display(eU)
         Riem(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dx*dy
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dy*dx
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dx*dy
+         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy^2*dx
+         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx^2*dy
          + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dy*dx
         sage: riem.display(eV)
         Riem(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*du*dv
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*dv*du
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du*du*dv
+         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv^2*du
+         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du^2*dv
          + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du*dv*du
 
     The Ricci tensor of `g`::
@@ -293,11 +293,11 @@ class PseudoRiemannianMetric(TensorField):
         Field of symmetric bilinear forms Ric(g) on the 2-dimensional
          differentiable manifold S^2
         sage: ric.display(eU)
-        Ric(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
-         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
+        Ric(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx^2
+         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy^2
         sage: ric.display(eV)
-        Ric(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
+        Ric(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du^2
+         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv^2
         sage: ric == g
         True
 
@@ -620,17 +620,17 @@ class PseudoRiemannianMetric(TensorField):
             sage: h[eU,0,0], h[eU,0,1], h[eU,1,1] = 1+x, x*y, 1-y
             sage: h.add_comp_by_continuation(eV, W, c_uv)
             sage: h.display(eU)
-            h = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-y + 1) dy*dy
+            h = (x + 1) dx^2 + x*y dx*dy + x*y dy*dx + (-y + 1) dy^2
             sage: h.display(eV)
-            h = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du*du + 1/4*u du*dv
-             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv*dv
+            h = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du^2 + 1/4*u du*dv
+             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv^2
             sage: g = M.metric('g')
             sage: g.set(h)
             sage: g.display(eU)
-            g = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-y + 1) dy*dy
+            g = (x + 1) dx^2 + x*y dx*dy + x*y dy*dx + (-y + 1) dy^2
             sage: g.display(eV)
-            g = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du*du + 1/4*u du*dv
-             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv*dv
+            g = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du^2 + 1/4*u du*dv
+             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv^2
 
         """
         if not isinstance(symbiform, TensorField):
@@ -699,11 +699,11 @@ class PseudoRiemannianMetric(TensorField):
             sage: ginv = g.inverse(); ginv
             Tensor field inv_g of type (2,0) on the 2-dimensional differentiable manifold S^2
             sage: ginv.display(eU)
-            inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx*d/dx
-             + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy*d/dy
+            inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx^2
+             + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy^2
             sage: ginv.display(eV)
-            inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du*d/du
-             + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv*d/dv
+            inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du^2
+             + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv^2
 
         Let us check that ``ginv`` is indeed the inverse of ``g``::
 
@@ -829,7 +829,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2, r^2*sin(th)^2
             sage: g.display()  # the standard flat metric expressed in spherical coordinates
-            g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            g = dr^2 + r^2 dth^2 + r^2*sin(th)^2 dph^2
             sage: Gam = g.christoffel_symbols() ; Gam
             3-indices components w.r.t. Coordinate frame (U, (d/dr,d/dth,d/dph)),
              with symmetry on the index positions (1, 2)
@@ -917,7 +917,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2, r^2*sin(th)^2
             sage: g.display()  # the standard flat metric expressed in spherical coordinates
-            g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            g = dr^2 + r^2 dth^2 + r^2*sin(th)^2 dph^2
             sage: g.christoffel_symbols_display()
             Gam^r_th,th = -r
             Gam^r_ph,ph = -r*sin(th)^2
@@ -1022,7 +1022,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2] = a^2, a^2*sin(th)^2
             sage: g.display() # standard metric on the 2-sphere of radius a:
-            g = a^2 dth*dth + a^2*sin(th)^2 dph*dph
+            g = a^2 dth^2 + a^2*sin(th)^2 dph^2
             sage: g.riemann()
             Tensor field Riem(g) of type (1,3) on the Open subset U of the
              2-dimensional differentiable manifold S^2
@@ -1101,7 +1101,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2] = a^2, a^2*sin(th)^2
             sage: g.display() # standard metric on the 2-sphere of radius a:
-            g = a^2 dth*dth + a^2*sin(th)^2 dph*dph
+            g = a^2 dth^2 + a^2*sin(th)^2 dph^2
             sage: g.ricci()
             Field of symmetric bilinear forms Ric(g) on the Open subset U of
              the 2-dimensional differentiable manifold S^2
@@ -1149,7 +1149,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2] = a^2, a^2*sin(th)^2
             sage: g.display() # standard metric on the 2-sphere of radius a:
-            g = a^2 dth*dth + a^2*sin(th)^2 dph*dph
+            g = a^2 dth^2 + a^2*sin(th)^2 dph^2
             sage: g.ricci_scalar()
             Scalar field r(g) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
@@ -1203,8 +1203,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: b = var('b')
             sage: g[1,1], g[2,2], g[3,3] = b^2, (b*sinh(rh))^2, (b*sinh(rh)*sin(th))^2
             sage: g.display()  # standard metric on H^3:
-            g = b^2 drh*drh + b^2*sinh(rh)^2 dth*dth
-             + b^2*sin(th)^2*sinh(rh)^2 dph*dph
+            g = b^2 drh^2 + b^2*sinh(rh)^2 dth^2 + b^2*sin(th)^2*sinh(rh)^2 dph^2
             sage: C = g.weyl() ; C
             Tensor field C(g) of type (1,3) on the Open subset U of the
              3-dimensional differentiable manifold H^3
@@ -1272,13 +1271,13 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = M.riemannian_metric('g')
             sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1
             sage: g.display()
-            g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
+            g = dx^2 + (x^2 + 1) dy^2 - x dy*dz - x dz*dy + dz^2
             sage: g.schouten()
             Field of symmetric bilinear forms Schouten(g) on the 3-dimensional
              differentiable manifold Nil
             sage: g.schouten().display()
-            Schouten(g) = -3/8 dx*dx + (5/8*x^2 - 3/8) dy*dy - 5/8*x dy*dz
-             - 5/8*x dz*dy + 5/8 dz*dz
+            Schouten(g) = -3/8 dx^2 + (5/8*x^2 - 3/8) dy^2 - 5/8*x dy*dz
+             - 5/8*x dz*dy + 5/8 dz^2
 
         """
         n = self._ambient_domain.dimension()
@@ -1330,8 +1329,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: b = var('b')
             sage: g[1,1], g[2,2], g[3,3] = b^2, (b*sinh(rh))^2, (b*sinh(rh)*sin(th))^2
             sage: g.display()  # standard metric on H^3:
-            g = b^2 drh*drh + b^2*sinh(rh)^2 dth*dth
-             + b^2*sin(th)^2*sinh(rh)^2 dph*dph
+            g = b^2 drh^2 + b^2*sinh(rh)^2 dth^2 + b^2*sin(th)^2*sinh(rh)^2 dph^2
             sage: Cot = g.cotton() ; Cot # long time
             Tensor field Cot(g) of type (0,3) on the Open subset U of the
              3-dimensional differentiable manifold H^3
@@ -1389,12 +1387,12 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = M.riemannian_metric('g')
             sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1
             sage: g.display()
-            g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
+            g = dx^2 + (x^2 + 1) dy^2 - x dy*dz - x dz*dy + dz^2
             sage: CY = g.cotton_york() ; CY # long time
             Tensor field CY(g) of type (0,2) on the 3-dimensional
              differentiable manifold Nil
             sage: CY.display()  # long time
-            CY(g) = 1/2 dx*dx + (-x^2 + 1/2) dy*dy + x dy*dz + x dz*dy - dz*dz
+            CY(g) = 1/2 dx^2 + (-x^2 + 1/2) dy^2 + x dy*dz + x dz*dy - dz^2
             sage: det(CY[:]) # long time
             -1/4
 
@@ -1544,7 +1542,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2, (r*sin(th))^2
             sage: g.display()
-            g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            g = dr^2 + r^2 dth^2 + r^2*sin(th)^2 dph^2
             sage: g.sqrt_abs_det().expr()
             r^2*sin(th)
 
@@ -1664,7 +1662,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2, (r*sin(th))^2
             sage: g.display()
-            g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            g = dr^2 + r^2 dth^2 + r^2*sin(th)^2 dph^2
             sage: eps = g.volume_form() ; eps
             3-form eps_g on the Open subset U of the 3-dimensional
              differentiable manifold M
@@ -1818,7 +1816,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = M.lorentzian_metric('g')
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
             sage: g.display()  # Minkowski metric
-            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            g = -dt^2 + dx^2 + dy^2 + dz^2
             sage: var('f0')
             f0
             sage: f = M.scalar_field(f0, name='f')
@@ -1999,7 +1997,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         [ x + 1    x*y]
         [   x*y -x + 1]
         sage: g.display()
-        g = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-x + 1) dy*dy
+        g = (x + 1) dx^2 + x*y dx*dy + x*y dy*dx + (-x + 1) dy^2
 
     Metric components in a frame different from the manifold's default one::
 
@@ -2016,22 +2014,22 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         [ 1/2*x*y + 1/2          1/2*x]
         [         1/2*x -1/2*x*y + 1/2]
         sage: g.display(c_uv.frame())
-        g = (1/2*x*y + 1/2) du*du + 1/2*x du*dv + 1/2*x dv*du
-         + (-1/2*x*y + 1/2) dv*dv
+        g = (1/2*x*y + 1/2) du^2 + 1/2*x du*dv + 1/2*x dv*du
+         + (-1/2*x*y + 1/2) dv^2
         sage: g[c_uv.frame(),:,c_uv]   # metric components in frame c_uv.frame() expressed in chart (u,v)
         [ 1/8*u^2 - 1/8*v^2 + 1/2            1/4*u + 1/4*v]
         [           1/4*u + 1/4*v -1/8*u^2 + 1/8*v^2 + 1/2]
         sage: g.display(c_uv.frame(), c_uv)
-        g = (1/8*u^2 - 1/8*v^2 + 1/2) du*du + (1/4*u + 1/4*v) du*dv
-         + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv*dv
+        g = (1/8*u^2 - 1/8*v^2 + 1/2) du^2 + (1/4*u + 1/4*v) du*dv
+         + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv^2
 
     As a shortcut of the above command, on can pass just the chart ``c_uv``
     to ``display``, the vector frame being then assumed to be the coordinate
     frame associated with the chart::
 
         sage: g.display(c_uv)
-        g = (1/8*u^2 - 1/8*v^2 + 1/2) du*du + (1/4*u + 1/4*v) du*dv
-         + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv*dv
+        g = (1/8*u^2 - 1/8*v^2 + 1/2) du^2 + (1/4*u + 1/4*v) du*dv
+         + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv^2
 
     The inverse metric is obtained via :meth:`inverse`::
 
@@ -2042,9 +2040,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         [ (x - 1)/(x^2*y^2 + x^2 - 1)      x*y/(x^2*y^2 + x^2 - 1)]
         [     x*y/(x^2*y^2 + x^2 - 1) -(x + 1)/(x^2*y^2 + x^2 - 1)]
         sage: ig.display()
-        inv_g = (x - 1)/(x^2*y^2 + x^2 - 1) d/dx*d/dx
+        inv_g = (x - 1)/(x^2*y^2 + x^2 - 1) d/dx^2
          + x*y/(x^2*y^2 + x^2 - 1) d/dx*d/dy + x*y/(x^2*y^2 + x^2 - 1) d/dy*d/dx
-         - (x + 1)/(x^2*y^2 + x^2 - 1) d/dy*d/dy
+         - (x + 1)/(x^2*y^2 + x^2 - 1) d/dy^2
 
     """
     def __init__(self, vector_field_module, name, signature=None,
@@ -2184,7 +2182,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: gU.signature()
             0
             sage: gU.display()
-            g = -dx*dx + dy*dy
+            g = -dx^2 + dy^2
 
         """
         if subdomain == self._domain:
@@ -2235,7 +2233,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g')
             sage: g.set(s)
             sage: g.display()
-            g = (x^2 + 1) dx*dx + x*y dx*dy + x*y dy*dx + (y^2 + 1) dy*dy
+            g = (x^2 + 1) dx^2 + x*y dx*dy + x*y dy*dx + (y^2 + 1) dy^2
 
         """
         if not isinstance(symbiform, TensorFieldParal):
@@ -2450,7 +2448,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2] = a^2, a^2*sin(th)^2
             sage: g.display() # standard metric on the 2-sphere of radius a:
-            g = a^2 dth*dth + a^2*sin(th)^2 dph*dph
+            g = a^2 dth^2 + a^2*sin(th)^2 dph^2
             sage: g.ricci_scalar()
             Scalar field r(g) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
@@ -2551,11 +2549,11 @@ class DegenerateMetric(TensorField):
         sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
         ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
         sage: g.disp()
-        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
+        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx^2 - x*y/(x^2 + y^2 + z^2) dx*dy
         - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
-        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
+        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy^2 - y*z/(x^2 + y^2 + z^2) dy*dz
         - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
-        + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
+        + (x^2 + y^2)/(x^2 + y^2 + z^2) dz^2
 
     The position vector is a lightlike vector field::
 
@@ -2587,8 +2585,8 @@ class DegenerateMetric(TensorField):
             sage: g[e, 0,0], g[e, 0,1], g[e, 1,1], g[e, 2,2], \
             ....: g[e, 3,3] = -1+2*m/r, 2*m/r, 1+2*m/r, r^2, r^2*sin(th)^2
             sage: g.disp(e)
-            g = (2*m/r - 1) dt*dt + 2*m/r dt*dr + 2*m/r dr*dt + (2*m/r + 1) dr*dr
-            + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            g = (2*m/r - 1) dt^2 + 2*m/r dt*dr + 2*m/r dr*dt + (2*m/r + 1) dr^2
+            + r^2 dth^2 + r^2*sin(th)^2 dph^2
 
 
         """
@@ -2705,17 +2703,17 @@ class DegenerateMetric(TensorField):
             sage: h[eU,0,0], h[eU,0,1], h[eU,1,1] = 1+x, x*y, 1-y
             sage: h.add_comp_by_continuation(eV, W, c_uv)
             sage: h.display(eU)
-            h = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-y + 1) dy*dy
+            h = (x + 1) dx^2 + x*y dx*dy + x*y dy*dx + (-y + 1) dy^2
             sage: h.display(eV)
-            h = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du*du + 1/4*u du*dv
-             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv*dv
+            h = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du^2 + 1/4*u du*dv
+             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv^2
             sage: g = M.metric('g')
             sage: g.set(h)
             sage: g.display(eU)
-            g = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-y + 1) dy*dy
+            g = (x + 1) dx^2 + x*y dx*dy + x*y dy*dx + (-y + 1) dy^2
             sage: g.display(eV)
-            g = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du*du + 1/4*u du*dv
-             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv*dv
+            g = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du^2 + 1/4*u du*dv
+             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv^2
 
         """
         if not isinstance(symbiform, TensorField):
@@ -2867,11 +2865,11 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
         sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
         ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
         sage: g.disp()
-        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
+        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx^2 - x*y/(x^2 + y^2 + z^2) dx*dy
         - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
-        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
+        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy^2 - y*z/(x^2 + y^2 + z^2) dy*dz
         - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
-        + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
+        + (x^2 + y^2)/(x^2 + y^2 + z^2) dz^2
 
     The position vector is a lightlike vector field::
 
@@ -2901,11 +2899,11 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
             sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
             ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
             sage: g.disp()
-            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
+            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx^2 - x*y/(x^2 + y^2 + z^2) dx*dy
             - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
-            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
+            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy^2 - y*z/(x^2 + y^2 + z^2) dy*dz
             - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
-            + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
+            + (x^2 + y^2)/(x^2 + y^2 + z^2) dz^2
 
 
         """
@@ -2947,12 +2945,12 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
             sage: M = Manifold(3, 'M', start_index=1);
             sage: X.<x,y,z> = M.chart()
             sage: dx, dy = X.coframe()[1], X.coframe()[2]
-            sage: b = dx*dx + dy*dy
+            sage: b = dx^2 + dy^2
             sage: g = M.metric('g', signature=(1,1,1)); g
             degenerate metric g on the 3-dimensional differentiable manifold M
             sage: g.set(b)
             sage: g.display()
-            g = dx*dx + dy*dy
+            g = dx^2 + dy^2
 
         """
         if not isinstance(symbiform, TensorFieldParal):

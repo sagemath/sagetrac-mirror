@@ -691,13 +691,13 @@ class AutomorphismField(TensorField):
         # General case:
         resu = type(self)(self._vmodule)
         for dom in self._common_subdomains(other):
-            resu._restrictions[dom] = (self._restrictions[dom]
-                                       * other._restrictions[dom])
+            resu._restrictions[dom] = (self._restrictions[dom]*
+                                        other._restrictions[dom])
         return resu
 
     #### End of MultiplicativeGroupElement methods ####
 
-    def __mul__(self, other):
+    def __mul__(self, other, pow=2, name=None, latex_name=None):
         r"""
         Redefinition of
         :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.__mul__`
@@ -737,7 +737,7 @@ class AutomorphismField(TensorField):
         if isinstance(other, AutomorphismField):
             return self._mul_(other)  # general linear group law
         else:
-            return TensorField.__mul__(self, other)  # tensor product
+            return TensorField.__mul__(self, other, pow, name, latex_name)  # tensor product
 
     def __imul__(self, other):
         r"""

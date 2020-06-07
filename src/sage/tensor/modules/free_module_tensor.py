@@ -595,7 +595,7 @@ class FreeModuleTensor(ModuleElement):
             basis = basis.frame()
         return (basis, format_spec)
 
-    def display(self, basis=None, format_spec=None):
+    def display(self, basis=None, format_spec=None, compact_product=True):
         r"""
         Display ``self`` in terms of its expansion w.r.t. a given module basis.
 
@@ -736,6 +736,39 @@ class FreeModuleTensor(ModuleElement):
                 for k in range(n_con, self._tensor_rank):
                     bases_txt.append(cobasis[ind[k]]._name)
                     bases_latex.append(latex(cobasis[ind[k]]))
+                if compact_product:
+                    old = bases_txt[0]
+                    L = [old]
+                    power = 1
+                    for i in range(1,len(bases_txt)):
+                        elt = bases_txt[i]
+                        if elt!=old:
+                            if power!=1:
+                                L[-1] = old+"^"+str(power)
+                            L.append(elt)
+                            power = 1
+                            old = elt
+                        else:
+                            power += 1
+                            if i==len(bases_txt)-1:
+                                L[-1] = old+"^"+str(power)
+                    bases_txt = L
+                    old = bases_latex[0]
+                    L = [old]
+                    power = 1
+                    for i in range(1,len(bases_latex)):
+                        elt = bases_latex[i]
+                        if elt!=old:
+                            if power!=1:
+                                L[-1] = r'{'+old+r'}'+r'^'+latex(power)
+                            L.append(elt)
+                            power = 1
+                            old = elt
+                        else:
+                            power += 1
+                            if i==len(bases_latex)-1:
+                                L[-1] = r'{'+old+r'}'+r'^'+latex(power)
+                    bases_latex = L
                 basis_term_txt = "*".join(bases_txt)
                 basis_term_latex = r"\otimes ".join(bases_latex)
                 coef_txt = repr(coef)
@@ -2207,7 +2240,7 @@ class FreeModuleTensor(ModuleElement):
 
     ######### End of ModuleElement arithmetic operators ########
 
-    def __mul__(self, other):
+    def __mul__(self, other, pow=2, name=None, latex_name=None):
         r"""
         Tensor product.
 
@@ -2245,13 +2278,65 @@ class FreeModuleTensor(ModuleElement):
                 comp_result = comp_prov  # no reordering is necessary
             result = self._fmodule.tensor_from_comp((k1+k2, l1+l2),
                                                     comp_result)
-            result._name = format_mul_txt(self._name, '*', other._name)
-            result._latex_name = format_mul_latex(self._latex_name,
+            if name is None or latex_name is None:
+                if self._name!=other._name:
+                    result._name = format_mul_txt(self._name, '*', other._name)
+                    result._latex_name = format_mul_latex(self._latex_name,
                                                 r'\otimes ', other._latex_name)
+                else:    
+                    result._name = format_mul_txt(self._name, '^', str(pow))
+                    result._latex_name = format_mul_latex(self._latex_name,
+                                                r'^', str(pow))
+                return result
+            result._name = format_mul_txt(name, '^', str(pow))
+            result._latex_name = format_mul_latex(latex_name,
+                                            r'^', str(pow))
             return result
-
         # multiplication by a scalar:
         return FreeModuleTensor._rmul_(self, other)
+
+    def __pow__(self, pow):
+        r"""
+        Raise a tensor to a given power, in case ``self`` is an automorphism,
+        automorphism composition is used instead of tensor product.
+
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: s = a.__pow__(2) ; s.disp()
+            a^2 = 16 e^0^4 - 8 e^0^2*e^1*e^0 + 20 e^0^2*e^1^2 - 8 e^1*e^0^3 
+            + 4 e^1*e^0*e^1*e^0 - 10 e^1*e^0*e^1^2 + 20 e^1^2*e^0^2 
+            - 10 e^1^3*e^0 + 25 e^1^4
+
+        """
+        name = self._name
+        latex_name = self._latex_name
+        from sage.manifolds.differentiable.automorphismfield import (AutomorphismField,
+                                                                    AutomorphismFieldParal)
+        if pow<=0:
+            if isinstance(self, (AutomorphismField, AutomorphismFieldParal)):
+                if pow==0:
+                    return self.parent().one()
+                self = self.inverse()
+                pow = -1*pow
+            else:
+                raise ValueError("Raising to a nonpositive power is not implemented")
+        if pow==1:
+            return self
+        if not pow%2:
+            try:
+                return self.__pow__(pow//2).__mul__(self.__pow__(pow//2),
+                                                pow, name, latex_name)
+            except TypeError:
+                return self.__pow__(pow//2).__mul__(self.__pow__(pow//2))
+        try:
+            return self.__pow__(pow-1).__mul__(self,pow, name, latex_name)
+        except TypeError:
+            return self.__pow__(pow-1).__mul__(self)
+
 
     def __truediv__(self, other):
         r"""

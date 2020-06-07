@@ -274,7 +274,7 @@ account the symmetry between the two indices::
     [ 0 -x]
     [-x  y]
     sage: q.display()
-    Q = -x dx*dy - x dy*dx + y dy*dy
+    Q = -x dx*dy - x dy*dx + y dy^2
 
 More generally, tensor symmetries or antisymmetries can be specified via
 the keywords ``sym`` and ``antisym``. For instance a rank-4 covariant
@@ -600,7 +600,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
          differentiable manifold M
         sage: h[0,0], h[0,1], h[2,0] = 1+t, t^2, sin(t)
         sage: h.display()
-        h = (t + 1) d/dx*d/dx + t^2 d/dx*d/dy + sin(t) d/dz*d/dx
+        h = (t + 1) d/dx^2 + t^2 d/dx*d/dy + sin(t) d/dz*d/dx
 
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
@@ -622,7 +622,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
              manifold M
             sage: t[:] = [[1+x^2, x*y], [0, 1+y^2]]
             sage: t.display()
-            t = (x^2 + 1) dx*dx + x*y dx*dy + (y^2 + 1) dy*dy
+            t = (x^2 + 1) dx^2 + x*y dx*dy + (y^2 + 1) dy^2
             sage: t.parent()
             Free module T^(0,2)(M) of type-(0,2) tensors fields on the
              2-dimensional differentiable manifold M
@@ -1735,8 +1735,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: s = a.contract(0, b, 1); s
             Tensor field of type (2,0) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            -x*y d/dx*d/dx + (x^2 + x*y + y^2 + x) d/dx*d/dy
-             + (-x^2 - 2*y) d/dy*d/dx + (-x^3 - x^2*y + 2*x) d/dy*d/dy
+            -x*y d/dx^2 + (x^2 + x*y + y^2 + x) d/dx*d/dy
+             + (-x^2 - 2*y) d/dy*d/dx + (-x^3 - x^2*y + 2*x) d/dy^2
 
         Check::
 
@@ -1753,7 +1753,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: s = a.contract(1, b, 1); s
             Tensor field of type (2,0) on the 2-dimensional differentiable manifold M
-            sage: s.display()
+            sage: s.display(compact_product=False)
             (-(x + 1)*y + 2) d/dx*d/dx + (x^2 + 3*x + 2*y) d/dx*d/dy
              + (-x^2 - y^2) d/dy*d/dx + (-x^3 - (x^2 - x)*y) d/dy*d/dy
 
@@ -1778,7 +1778,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # the FreeModuleTensor one
         return TensorField.contract(self, *args)
 
-    def __mul__(self, other):
+    def __mul__(self, other, pow=2, name=None, latex_name=None):
         r"""
         Tensor product (or multiplication of the right by a scalar).
 
@@ -1787,6 +1787,14 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         - ``other`` -- a tensor field, on the same manifold as ``self`` (or an
           object that can be coerced to a scalar field on the same manifold
           as ``self``)
+        - ``pow`` -- (default: ``2``) the power in the name given to
+          the output 
+        - ``name`` -- (default: ``None``) part of the name given of the 
+          output. If ``None`` the name of the output will be formed from
+          the names of ``self`` and ``other`` 
+        - ``latex_name`` -- (default: ``None``) part of the latex symbol 
+          used to denote the output. If ``None``, the latex symbols of
+          ``self`` and ``other`` will be used 
 
         OUTPUT:
 
@@ -1807,9 +1815,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Tensor field a*v of type (1,2) on the 2-dimensional differentiable
              manifold M
             sage: s.display()
-            a*v = -(x + 1)*y d/dx*dx*dx - 2*y d/dx*dx*dy - y^2 d/dx*dy*dx
-             + x^2*y d/dx*dy*dy + (x^2 + x) d/dy*dx*dx + 2*x d/dy*dx*dy
-             + x*y d/dy*dy*dx - x^3 d/dy*dy*dy
+            a*v = -(x + 1)*y d/dx*dx^2 - 2*y d/dx*dx*dy - y^2 d/dx*dy*dx
+             + x^2*y d/dx*dy^2 + (x^2 + x) d/dy*dx^2 + 2*x d/dy*dx*dy
+             + x*y d/dy*dy*dx - x^3 d/dy*dy^2
             sage: all(s[ind] == v[ind[0]] * a[ind[1],ind[2]]
             ....:     for ind in M.index_generator(3))
             True
@@ -1821,15 +1829,15 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Tensor field f*a of type (0,2) on the 2-dimensional differentiable
              manifold M
             sage: s.display()
-            f*a = (x^2 + (x + 1)*y + x) dx*dx + (2*x + 2*y) dx*dy
-             + (x*y + y^2) dy*dx + (-x^3 - x^2*y) dy*dy
+            f*a = (x^2 + (x + 1)*y + x) dx^2 + (2*x + 2*y) dx*dy
+             + (x*y + y^2) dy*dx + (-x^3 - x^2*y) dy^2
             sage: s == f*a
             True
 
         """
         # This is to ensure the call to the TensorField version instead of
         # the FreeModuleTensor one
-        return TensorField.__mul__(self, other)
+        return TensorField.__mul__(self, other, pow, name, latex_name)
 
     def display_comp(self, frame=None, chart=None, coordinate_labels=True,
                      only_nonzero=True, only_nonredundant=False):
@@ -2172,7 +2180,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             Tensor field of type (0,2) along the Real interval (0, 2*pi) with
              values on the 2-dimensional differentiable manifold M
             sage: aU.display()
-            (cos(t) + 1)*sin(t) dx*dx + cos(t)*sin(t)^2 dx*dy + sin(t)^4 dy*dy
+            (cos(t) + 1)*sin(t) dx^2 + cos(t)*sin(t)^2 dx*dy + sin(t)^4 dy^2
             sage: aU.parent()
             Free module T^(0,2)((0, 2*pi),Phi) of type-(0,2) tensors fields
              along the Real interval (0, 2*pi) mapped into the 2-dimensional

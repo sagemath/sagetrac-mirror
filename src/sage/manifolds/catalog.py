@@ -109,15 +109,15 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         sage: S.atlas()
         [Chart (S, (th, ph))]
         sage: S.metric().display()
-        gamma = dth*dth + sin(th)^2 dph*dph
+        gamma = dth^2 + sin(th)^2 dph^2
 
         sage: S = manifolds.Sphere(2, stereo2d=True)  # long time
         sage: S  # long time
         2-dimensional Riemannian submanifold S embedded in the Euclidean
          space E^3
         sage: S.metric().display()  # long time
-        gamma = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
-         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
+        gamma = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx^2
+         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy^2
     """
     from sage.functions.trig import cos, sin, atan, atan2
     from sage.functions.other import sqrt
@@ -246,19 +246,19 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
         sage: K.atlas()
         [Chart (M, (t, r, th, ph))]
         sage: K.metric().display()
-        g = (2*m*r/(a^2*cos(th)^2 + r^2) - 1) dt*dt
+        g = (2*m*r/(a^2*cos(th)^2 + r^2) - 1) dt^2
          + 2*a*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) dt*dph
-         + (a^2*cos(th)^2 + r^2)/(a^2 - 2*m*r + r^2) dr*dr
-         + (a^2*cos(th)^2 + r^2) dth*dth
+         + (a^2*cos(th)^2 + r^2)/(a^2 - 2*m*r + r^2) dr^2
+         + (a^2*cos(th)^2 + r^2) dth^2
          + 2*a*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) dph*dt
-         + (2*a^2*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) + a^2 + r^2)*sin(th)^2 dph*dph
+         + (2*a^2*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) + a^2 + r^2)*sin(th)^2 dph^2
 
         sage: K.<t, r, th, ph> = manifolds.Kerr()
         sage: K
         4-dimensional Lorentzian manifold M
         sage: K.metric().display()
-        g = (2/r - 1) dt*dt + r^2/(r^2 - 2*r) dr*dr
-         + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+        g = (2/r - 1) dt^2 + r^2/(r^2 - 2*r) dr^2
+         + r^2 dth^2 + r^2*sin(th)^2 dph^2
         sage: K.default_chart().coord_range()
         t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: [-pi, pi] (periodic)
 
@@ -269,17 +269,17 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
         sage: K.atlas()
         [Chart (M, (t, r, th, ph))]
         sage: K.metric().display()
-        g = (2*m*r/(a^2*cos(th)^2 + r^2) - 1) dt*dt
+        g = (2*m*r/(a^2*cos(th)^2 + r^2) - 1) dt^2
          + 2*m*r/(a^2*cos(th)^2 + r^2) dt*dr
          - 2*a*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) dt*dph
          + 2*m*r/(a^2*cos(th)^2 + r^2) dr*dt
-         + (2*m*r/(a^2*cos(th)^2 + r^2) + 1) dr*dr
+         + (2*m*r/(a^2*cos(th)^2 + r^2) + 1) dr^2
          - a*(2*m*r/(a^2*cos(th)^2 + r^2) + 1)*sin(th)^2 dr*dph
-         + (a^2*cos(th)^2 + r^2) dth*dth
+         + (a^2*cos(th)^2 + r^2) dth^2
          - 2*a*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2) dph*dt
          - a*(2*m*r/(a^2*cos(th)^2 + r^2) + 1)*sin(th)^2 dph*dr
          + (2*a^2*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2)
-         + a^2 + r^2)*sin(th)^2 dph*dph
+         + a^2 + r^2)*sin(th)^2 dph^2
         sage: K.default_chart().coord_range()
         t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: [-pi, pi] (periodic)
     """
@@ -361,7 +361,7 @@ def Torus(R=2, r=1, names=None):
                                           (cos(theta) + 3)*sin(phi),
                                           sin(theta))
         sage: T.metric().display()
-        gamma = dtheta*dtheta + (cos(theta)^2 + 6*cos(theta) + 9) dphi*dphi
+        gamma = dtheta^2 + (cos(theta)^2 + 6*cos(theta) + 9) dphi^2
     """
     from sage.functions.trig import cos, sin
     from sage.manifolds.manifold import Manifold

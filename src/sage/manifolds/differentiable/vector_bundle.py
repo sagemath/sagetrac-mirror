@@ -215,7 +215,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             sage: g[3,3] = 1
             sage: g[4,4] = 1
             sage: g.display()
-            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            g = -dt^2 + dx^2 + dy^2 + dz^2
 
         Let us introduce the corresponding Levi-Civita connection::
 

@@ -66,7 +66,7 @@ The metric tensor of ``E`` is predefined::
     sage: g = E.metric(); g
     Riemannian metric g on the Euclidean plane E^2
     sage: g.display()
-    g = dx*dx + dy*dy
+    g = dx^2 + dy^2
     sage: g[:]
     [1 0]
     [0 1]
@@ -143,7 +143,7 @@ coordinates, as we can check from the metric components in it::
 The expression of the metric tensor in terms of polar coordinates is::
 
     sage: g.display(polar)
-    g = dr*dr + r^2 dph*dph
+    g = dr^2 + r^2 dph^2
 
 A vector field on ``E``::
 
@@ -635,7 +635,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
         sage: g = E.metric(); g
         Riemannian metric g on the 4-dimensional Euclidean space E^4
         sage: g.display()
-        g = dx1*dx1 + dx2*dx2 + dx3*dx3 + dx4*dx4
+        g = dx1^2 + dx2^2 + dx3^2 + dx4^2
 
     """
     @staticmethod
@@ -1060,7 +1060,7 @@ class EuclideanPlane(EuclideanSpace):
         sage: g = E.metric(); g
         Riemannian metric g on the Euclidean plane E^2
         sage: g.display()
-        g = dx*dx + dy*dy
+        g = dx^2 + dy^2
 
     Curvilinear coordinates can be introduced on ``E``: see
     :meth:`polar_coordinates`.
@@ -1588,7 +1588,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         sage: g = E.metric(); g
         Riemannian metric g on the Euclidean space E^3
         sage: g.display()
-        g = dx*dx + dy*dy + dz*dz
+        g = dx^2 + dy^2 + dz^2
 
     Curvilinear coordinates can be introduced on ``E``: see
     :meth:`spherical_coordinates` and :meth:`cylindrical_coordinates`.

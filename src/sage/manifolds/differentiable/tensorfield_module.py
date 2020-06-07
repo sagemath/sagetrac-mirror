@@ -304,8 +304,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             Tensor field t of type (2,0) on the 2-dimensional differentiable
              manifold M
             sage: t.display(c_xy.frame())
-            t = (x + 1) d/dx*d/dx + 2 d/dx*d/dy + x*y d/dy*d/dx
-             + (-y + 3) d/dy*d/dy
+            t = (x + 1) d/dx^2 + 2 d/dx*d/dy + x*y d/dy*d/dx
+             + (-y + 3) d/dy^2
             sage: T20(0) is T20.zero()
             True
 
@@ -786,9 +786,9 @@ class TensorFieldFreeModule(TensorFreeModule):
             Tensor field t of type (1,2) on the 2-dimensional
              differentiable manifold M
             sage: t.display()
-            t = x d/dx*dx*dx - y d/dx*dx*dy + 2 d/dx*dy*dx + y d/dx*dy*dy
-             + (x + 1) d/dy*dx*dx + y^2 d/dy*dx*dy + x^2 d/dy*dy*dx
-             + 3 d/dy*dy*dy
+            t = x d/dx*dx^2 - y d/dx*dx*dy + 2 d/dx*dy*dx + y d/dx*dy^2
+             + (x + 1) d/dy*dx^2 + y^2 d/dy*dx*dy + x^2 d/dy*dy*dx
+             + 3 d/dy*dy^2
             sage: T12(0) is T12.zero()
             True
 
