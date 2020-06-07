@@ -1470,7 +1470,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return self(mu, left, right)
 
 
-    def _parse_recursions_(self, equations, function, var):
+    def _parse_recursions_(self, equations, function, var, n_start=0):
         r"""Parse recursion equations as admissible in :meth:`~.recursions`.
 
         INPUT:
@@ -1847,11 +1847,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         recursion_rules = namedtuple('recursion_rules',
                                      ['M', 'm', 'l', 'u',
-                                      'll', 'uu', 'dim',
+                                      'll', 'uu', 'n_start', 'dim',
                                       'coeffs', 'start_values'])
 
-        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
-                              coeffs=coeffs, start_values=start_values)
+        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, n_start=n_start,
+                               dim=dim, coeffs=coeffs, start_values=start_values)
 
 
     def _get_matrix_from_recursions_(self, recursion_rules, rem):
@@ -1945,6 +1945,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         u = recursion_rules.u
         ll = recursion_rules.ll
         uu = recursion_rules.uu
+        n_start = recursion_rules.n_start
         dim = recursion_rules.dim
         coeffs = recursion_rules.coeffs
 
@@ -1999,9 +2000,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         pass
             mat.append(row)
 
-        return Matrix(mat)
+        if n_start == 0:
+            return Matrix(mat)
 
 
+    def _correct_matrices_(A, rem, n_start):
+
+
+    
     def _get_left_from_recursions_(self, dim):
         r"""
         """
