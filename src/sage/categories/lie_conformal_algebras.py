@@ -162,13 +162,13 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             We construct the universal enveloping vertex algebra of the
             Virasoro Lie conformal algebra at central charge `0` over 
-            the complex numbers::
+            the real algebraic numbers::
 
-                sage: Vir = VirasoroLieConformalAlgebra(CC)
+                sage: Vir = VirasoroLieConformalAlgebra(AA)
                 sage: V = Vir.universal_enveloping_algebra(); V
-                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
+                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Algebraic Real Field
                 sage: V.0.bracket(V.0)
-                {0: 1.00000000000000*L_-3|0>, 1: 2.00000000000000*1.00000000000000*L_-2|0>}
+                {0: L_-3|0>, 1: 2*L_-2|0>}
 
             We construct the universal enveloping vertex algebra of the
             Virasoro Lie conformal algebra at central charge 2 over the
@@ -781,7 +781,18 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: C is LieConformalAlgebras(QQbar).Super().Graded()
                 True
             """
-            pass
+            def extra_super_categories(self):
+                """
+                The extra super categories of this category
+
+                EXAMPLES::
+
+                    sage: LieConformalAlgebras(QQ).FinitelyGenerated().Graded().Super().super_categories()
+                    [Category of finitely generated super Lie conformal algebras over Rational Field,
+                     Category of super H-graded Lie conformal algebras over Rational Field]
+
+                """
+                return [self.base_category(),]
 
         class ParentMethods:
             def is_graded(self):

@@ -695,7 +695,17 @@ class VertexAlgebras(Category_over_base_ring):
                 sage: VertexAlgebras(AA).Graded().Super()
                 Category of super H-graded vertex algebras over Algebraic Real Field
             """
-            pass
+            def extra_super_categories(self):
+                """
+                The extra super categories of this category.
+
+                EXAMPLES::
+
+                    sage: VertexAlgebras(QQ).FinitelyGenerated().Graded().Super().super_categories()
+                    [Category of finitely generated super vertex algebras over Rational Field,
+                     Category of super H-graded vertex algebras over Rational Field]
+                """
+                return [self.base_category(),]
 
         class WithBasis(CategoryWithAxiom_over_base_ring):
             """
