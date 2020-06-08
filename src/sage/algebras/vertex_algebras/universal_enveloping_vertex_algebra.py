@@ -27,7 +27,7 @@ from sage.combinat.partition_tuple import PartitionTuples, PartitionTuples_level
 from sage.combinat.partition import Partition
 from .vertex_algebra_element import UniversalEnvelopingVertexAlgebraElement
 
-class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
+class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
     def __init__(self, R, L, category=None,
                  central_parameters=None,
@@ -63,8 +63,8 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         if L in LieConformalAlgebras(R).Super():
             category = category.Super()
 
-        super(UniversalEnvelopingVertexAlgebra, self).__init__(R,
-            category=category, names=names, latex_names=latex_names)
+        VertexAlgebra.__init__(self, R, category=category, names=names,
+                                latex_names=latex_names)
 
         self._lca = L
         if central_parameters:
@@ -82,11 +82,12 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         #Also:self._module is needed for self.ngens()
         regular = tuple([2*g.is_even_odd() for g in L.gens()\
                     if g not in L.central_elements()])
-        self._basis = PartitionTuples(level=self._ngens,regular=regular)
-        self._module = CombinatorialFreeModule(self.base_ring(), self._basis)
+        basis = PartitionTuples(level=self._ngens,regular=regular)
+        CombinatorialFreeModule.__init__(self, R, basis_keys=basis,
+                        category=category,
+                        element_class=UniversalEnvelopingVertexAlgebraElement) 
         self.register_lift()
 
-    Element = UniversalEnvelopingVertexAlgebraElement
 
     def _repr_(self):
         lcafirst,lcaleft = format(self._lca).split(' ',1)
@@ -102,25 +103,6 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         newlift = _LiftMorphism(Hom(self._lca, self,
                         category = LieConformalAlgebras(self._lca.base_ring())))
         self._lca.set_lift(newlift)
-
-
-    def basis(self,n=None):
-        """A lazy family describing a basis of this family
-
-        EXAMPLES::
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V
-            The Virasoro vertex algebra at central charge 1/2
-            sage: V.basis()
-            Lazy family (<lambda>(i))_{i in Partition tuples of level 1}
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1); V.basis()
-            Lazy family (<lambda>(i))_{i in Partition tuples of level 3}
-        """
-        if n == None:
-            return Family(self._basis, lambda i : self(i), lazy = True)
-        else:
-            return Family((self(self._module._from_dict(
-                b.monomial_coefficients())) for b in
-                self.get_graded_part(n).basis()))
 
     def gens(self):
         """The generators of this vertex algebra"""
@@ -142,40 +124,25 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         r"""If this vertex algebra is the universal enveloping vertex algebra of
         the Lie conformal algebra `L`. This method returns the family of central
         elements of the `L`."""
-        return tuple([self(i) for i in self._lca.central_elements()])
+        return tuple([i.lift() for i in self._lca.central_elements()])
 
     def central_parameters(self):
         """Return the central character used to construct this universal
         enveloping vertex algebra"""
         return self._central_parameters
 
-    def weight_less_than(self,n):
-        """
-        Return the subspace of vectors of conformal weight less than
-        ``n``. 
-        """
-        #This is a CombinatorialFreeModule with the same dictionary keys
-        #as self._module()
-        #TODO: deal with the vacuum in a better way
-        if not self.is_graded() or any(g.degree() == 0 for g in self.gens()):
-            raise NotImplementedError("weight_less_than is not implemented "+
-                                      "for {}".format(self))
-        basis = [self._basis([[],]*self.ngens()),]
-        basis += [self._basis(p) for m in range(1 ,n+1)
-            for p in PartitionTuples(self.ngens(),m) if
-            self(PartitionTuples_level(self.ngens())(p)).weight() <= n ]
-        return CombinatorialFreeModule(self.base_ring(), basis)
-
-    def get_graded_part(self,n):
+    def get_weight(self,n):
         r"""
         return the degree n filtered part of `self`. This is a
         `CombinatorialFreeModule` with the same dictionary keys as
         `self.module()`.
         """
-        #TODO: deal with the vacuum in a better way
+        if not self.is_graded() or any(g.weight() == 0 for g in self.gens()):
+            raise NotImplementedError("get_weight is not implemented for {}"\
+                                        .format(self))
+
         if n == 0:
-            return CombinatorialFreeModule( self.base_ring(),
-                [PartitionTuples_level(self.ngens())([[]]*self.ngens()),] )
+            self.submodule(self.vacuum())
         else:
             basis = [PartitionTuples_level(self.ngens())(p) for m in range(1 ,n+1)
             for p in PartitionTuples(self.ngens(),m) if
@@ -204,22 +171,11 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
 
         return self.get_graded_part(n).dimension()
 
-
-    def module(self):
-        r"""Return the ``CombinatorialFreeModule`` underlying this vertex
-        algebra"""
-        return self._module
-
     @cached_method
     def vacuum(self):
         """The vacuum vector of this vertex algebra"""
         vac = [Partition([]),]*self.ngens()
-        return self.element_class(self, self.module()(vac))
-
-    @cached_method
-    def zero(self):
-        """The zero element of this vertex algebra"""
-        return self.element_class(self, self.module().zero())
+        return self(vac)
 
     def find_singular(self,n):
         """
@@ -280,47 +236,6 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra):
         """
         from .poisson_vertex_algebra import PoissonVertexAlgebra
         return PoissonVertexAlgebra(self.base_ring(), self)
-
-    def _element_constructor_(self,x):
-        """
-        Constructs elements of this vertex algebra.
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ, 3)
-            sage: V([[3]])
-            L_-4|0>
-            sage: V.0
-            L_-2|0>
-            sage: V.zero()
-            0
-            sage: V.zero().__class__
-            <class 'sage.algebras.vertex_algebras.vertex_algebra.VirasoroVertexAlgebra_with_category.element_class'>
-            sage: W = AffineVertexAlgebra(QQ, 'A1', 1)
-            sage: W([[2,1],[],[3]])
-            E(alpha[1])_-2E(alpha[1])_-1E(-alpha[1])_-3|0>
-            sage: 3*W.0
-            3*E(alpha[1])_-1|0>
-
-        TESTS::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
-            sage: V([[1],[2]])
-            Traceback (most recent call last):
-            ...
-            TypeError: do not know how to convert [[1], [2]] into an element of The Virasoro vertex algebra at central charge 1/2
-        """
-        if x in self.base_ring():
-            if not x.is_zero():
-                raise ValueError("can only convert the scalar 0 "\
-                                 "into a vertex algebra element")
-            return self.zero()
-        try:
-            v = self._module(x)
-        except TypeError:
-            raise TypeError("do not know how to convert {0} into an element "\
-                            "of {1}".format(x,self))
-        return self.element_class(self,v)
 
     def li_filtration(self,n,k=None):
         r"""Let `V` be this vertex algebra and `V_n` its conformal weight `n`

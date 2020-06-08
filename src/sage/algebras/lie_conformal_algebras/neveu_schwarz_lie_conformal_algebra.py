@@ -19,7 +19,7 @@ from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 
 class NeveuSchwarzLieConformalAlgebra(GradedLieConformalAlgebra):
 
-    def __init__(self,R):
+    def __init__(self,R,names=('L','G')):
         """
         The Neveu-Schwarz super Lie conformal algebra.
 
@@ -44,7 +44,7 @@ class NeveuSchwarzLieConformalAlgebra(GradedLieConformalAlgebra):
         from sage.rings.rational_field import QQ
         weights = (2,QQ(3/2))
         parity = (0,1)
-        GradedLieConformalAlgebra.__init__(self,R,nsdict,names=('L','G'),
+        GradedLieConformalAlgebra.__init__(self,R,nsdict,names=names,
             central_elements=('C',), weights=weights, parity=parity)
 
     def _repr_(self):

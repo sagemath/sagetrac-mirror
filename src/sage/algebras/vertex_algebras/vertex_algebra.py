@@ -108,7 +108,7 @@ from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.categories.vertex_algebras import VertexAlgebras
 
-class VertexAlgebra(Parent, UniqueRepresentation):
+class VertexAlgebra(UniqueRepresentation):
     @staticmethod
     def __classcall_private__(cls, base_ring=None,
                               lie_conformal_algebra = None,
@@ -184,7 +184,7 @@ class VertexAlgebra(Parent, UniqueRepresentation):
 
         """
         category = VertexAlgebras(R).or_subcategory(category)
-        super(VertexAlgebra, self).__init__(base=R, names=names,
+        super(VertexAlgebra, self).__init__(R, names=names,
                                             category = category)
         self._latex_names = latex_names
 

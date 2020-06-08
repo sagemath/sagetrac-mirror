@@ -18,7 +18,7 @@ AUTHORS:
 from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 
 class N2LieConformalAlgebra(GradedLieConformalAlgebra):
-    def __init__(self,R):
+    def __init__(self,R, names=('L','J','G1','G2')):
         """
         The N=2 super Lie conformal algebra.
 
