@@ -2390,7 +2390,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o.incidence_matrix().is_immutable()
             True
         """
-        incidence_matrix = matrix(ZZ, self.nvertices(),
+        from sage.rings.all import GF
+        incidence_matrix = matrix(GF(2), self.nvertices(),
                                   self.nfacets(), 0)
 
         for Hindex, normal in enumerate(self.facet_normals()):

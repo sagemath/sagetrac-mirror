@@ -2772,8 +2772,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: halfspace.incidence_matrix().is_immutable()
             True
         """
+        from sage.rings.all import GF
         normals = self.facet_normals()
-        incidence_matrix = matrix(ZZ, self.nrays(),
+        incidence_matrix = matrix(GF(2), self.nrays(),
                                   len(normals), 0)
 
         for Hindex, normal in enumerate(self.facet_normals()):

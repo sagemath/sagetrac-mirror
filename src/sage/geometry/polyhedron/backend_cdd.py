@@ -17,7 +17,7 @@ The cdd backend for polyhedral computations
 from __future__ import print_function, absolute_import
 
 from subprocess import Popen, PIPE
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, GF
 from sage.matrix.constructor import matrix
 
 from .base import Polyhedron_base
@@ -313,7 +313,7 @@ class Polyhedron_cdd(Polyhedron_base):
             # This function is also used to parse the incidence matrix.
             if cdd_indices_to_sage_indices2 is None:
                 cdd_indices_to_sage_indices2 = cdd_indices_to_sage_indices
-            ret = matrix(ZZ, M, N, 0)
+            ret = matrix(GF(2), M, N, 0)
             data.pop(0)
             data.reverse()
             for adjacencies in data:
