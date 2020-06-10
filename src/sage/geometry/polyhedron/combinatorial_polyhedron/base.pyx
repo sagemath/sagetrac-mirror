@@ -379,9 +379,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             far_face = tuple(i for i in range(len(Vrep) - 1))
             self._dimension = data.dim()
             from sage.matrix.all import matrix
-            from sage.rings.all  import ZZ
-            data = matrix(ZZ, data.incidence_matrix().rows()
-                              + [[ZZ.one() for _ in range(len(facets))]])
+            from sage.rings.all  import GF
+            R = GF(2)
+            data = matrix(R, data.incidence_matrix().rows()
+                              + [[R.one() for _ in range(len(facets))]])
         else:
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
             if not unbounded:
@@ -1013,9 +1014,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.incidence_matrix()
             []
         """
-        from sage.rings.all import ZZ
+        from sage.rings.all import GF
         from sage.matrix.constructor import matrix
-        incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
+        incidence_matrix = matrix(GF(2), self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
 
         if self.dim() < 1:

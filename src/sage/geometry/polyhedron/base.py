@@ -26,7 +26,7 @@ from sage.misc.all import cached_method, prod
 from sage.misc.randstate import current_randstate
 from sage.misc.superseded import deprecated_function_alias
 
-from sage.rings.all import QQ, ZZ, AA
+from sage.rings.all import QQ, ZZ, AA, GF
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
@@ -339,11 +339,11 @@ class Polyhedron_base(Element):
         self._Vrepresentation = tuple(self._Vrepresentation)
         self._Hrepresentation = tuple(self._Hrepresentation)
 
-        V_matrix = matrix(ZZ, 0, 0, 0)
+        V_matrix = matrix(GF(2), 0, 0, 0)
         V_matrix.set_immutable()
         self.vertex_adjacency_matrix.set_cache(V_matrix)
 
-        H_matrix = matrix(ZZ, 1, 1, 0)
+        H_matrix = matrix(GF(2), 1, 1, 0)
         H_matrix.set_immutable()
         self.facet_adjacency_matrix.set_cache(H_matrix)
 
@@ -371,7 +371,7 @@ class Polyhedron_base(Element):
         """
         # TODO: This implementation computes the whole face lattice,
         # which is much more information than necessary.
-        M = matrix(ZZ, self.n_facets(), self.n_facets(), 0)
+        M = matrix(GF(2), self.n_facets(), self.n_facets(), 0)
         codim = self.ambient_dim()-self.dim()
 
         def set_adjacent(h1, h2):
@@ -404,7 +404,7 @@ class Polyhedron_base(Element):
         """
         # TODO: This implementation computes the whole face lattice,
         # which is much more information than necessary.
-        M = matrix(ZZ, self.n_Vrepresentation(), self.n_Vrepresentation(), 0)
+        M = matrix(GF(2), self.n_Vrepresentation(), self.n_Vrepresentation(), 0)
 
         def set_adjacent(v1, v2):
             if v1 is v2:
@@ -2661,7 +2661,7 @@ class Polyhedron_base(Element):
                 sage: R.incidence_matrix().is_immutable()
                 True
         """
-        incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
+        incidence_matrix = matrix(GF(2), self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
 
         Vvectors_vertices = tuple((v.vector(),v.index())
