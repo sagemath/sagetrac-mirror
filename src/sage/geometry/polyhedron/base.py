@@ -2665,6 +2665,12 @@ class Polyhedron_base(Element):
                 sage: R.incidence_matrix().is_immutable()
                 True
         """
+        if self.base_ring() in (ZZ, QQ):
+            # Much faster for integers or rationals.
+            incidence_matrix = self.slack_matrix().zero_pattern_matrix()
+            incidence_matrix.set_immutable()
+            return incidence_matrix
+
         incidence_matrix = matrix(GF(2), self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
 
