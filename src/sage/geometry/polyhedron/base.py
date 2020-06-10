@@ -2661,6 +2661,34 @@ class Polyhedron_base(Element):
                 sage: R.incidence_matrix().is_immutable()
                 True
         """
+        if self.n_Vrepresentation() and self.n_Hrepresentation() and self.base_ring() in (ZZ, QQ):
+            # Use matrix multiplication to obtain slack matrix first.
+            # More efficient for base ring integers or rationals.
+
+            Vrep_matrix = matrix(self.base_ring(), self.Vrepresentation())
+            Hrep_matrix = matrix(self.base_ring(), self.Hrepresentation())
+
+            # Getting homogenous coordinates of the Vrepresentation.
+            hom_helper = matrix(self.base_ring(), [1 if v.is_vertex() else 0 for v in self.Vrepresentation()])
+            hom_Vrep = hom_helper.stack(Vrep_matrix.transpose())
+
+            slack_matrix = (Hrep_matrix * hom_Vrep).transpose()
+
+            R = ZZ
+            zero = R(0)
+            one = R(1)
+
+            def is_zero(x):
+                if x:
+                    return zero
+                else:
+                    return one
+
+            # TODO: This last step takes up most of the time. It shouldn't.
+            incidence_matrix = slack_matrix.apply_map(is_zero, R=R)
+            incidence_matrix.set_immutable()
+            return incidence_matrix
+
         incidence_matrix = matrix(ZZ, self.n_Vrepresentation(),
                                   self.n_Hrepresentation(), 0)
 
