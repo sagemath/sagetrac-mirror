@@ -79,8 +79,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import integer_types
 
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
@@ -245,7 +243,7 @@ def ProjectiveSpace(n, R=None, names=None):
         return A
     if names is None:
         names = 'x'
-    if isinstance(R, integer_types + (Integer,)):
+    if isinstance(R, (Integer, int)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -260,6 +258,7 @@ def ProjectiveSpace(n, R=None, names=None):
         return ProjectiveSpace_ring(n, R, names)
     else:
         raise TypeError("R (=%s) must be a commutative ring"%R)
+
 
 class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
     """
@@ -961,7 +960,12 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             "_test_elements_eq_symmetric", "_test_elements_eq_transitive",\
             "_test_elements_neq"])
         """
-        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.projective.projective_subscheme import (AlgebraicScheme_subscheme_projective,
+                                                                  AlgebraicScheme_subscheme_projective_field)
+        R = self.base_ring()
+        if R.is_field() and R.is_exact():
+            return AlgebraicScheme_subscheme_projective_field(self, X)
+
         return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i, AA=None):
@@ -1017,7 +1021,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             #assume that if you've passed in a new affine space you want to override
             #the existing patch
             if AA is None or A == AA:
-                return(A)
+                return A
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
@@ -1288,6 +1292,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         monomials = sorted([R({tuple(v) : 1}) for v in WeightedIntegerVectors(d, [1] * (N + 1))])
         monomials.reverse() # order the monomials greatest to least via the given monomial order
         return Hom(self, CS)(monomials)
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1685,6 +1690,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
 
+
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):
         """
@@ -1850,7 +1856,8 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
                     P[j] = zero
                     j += 1
             i -= 1
-        return(D)
+        return D
+
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
     def rational_points(self, bound=0):
@@ -1928,7 +1935,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
         return pts
 
 
-#fix the pickles from moving projective_space.py
+# fix the pickles from moving projective_space.py
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.projective_space',
                            'ProjectiveSpace_field',

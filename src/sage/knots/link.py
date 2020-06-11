@@ -48,9 +48,6 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import division
 
-import six
-from six.moves import range
-
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.graphs.digraph import DiGraph
@@ -1340,7 +1337,7 @@ class Link(SageObject):
             else:
                 crossing_dic = {}
 
-            pd = list(six.itervalues(crossing_dic))
+            pd = list(crossing_dic.values())
             self._pd_code = pd
             return self._pd_code
 

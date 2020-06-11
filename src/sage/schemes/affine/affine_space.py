@@ -2,15 +2,14 @@
 Affine `n` space over a ring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function
-from six import integer_types
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
@@ -119,7 +118,7 @@ def AffineSpace(n, R=None, names=None, ambient_projective_space=None,
             names = ''
         else:
             names = 'x'
-    if isinstance(R, integer_types + (Integer,)):
+    if isinstance(R, (Integer, int)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -687,7 +686,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def projective_embedding(self, i=None, PP=None):
         """
-        Returns a morphism from this space into an ambient projective space
+        Return a morphism from this space into an ambient projective space
         of the same dimension.
 
         INPUT:
@@ -758,7 +757,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             #assume that if you've passed in a new codomain you want to override
             #the existing embedding
             if PP is None or phi.codomain() == PP:
-                return(phi)
+                return phi
         except AttributeError:
             self.__projective_embedding = {}
         except KeyError:
@@ -827,14 +826,20 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: X.dimension()
             0
         """
-        from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
+        from sage.schemes.affine.affine_subscheme import (AlgebraicScheme_subscheme_affine,
+                                                          AlgebraicScheme_subscheme_affine_field)
+
+        if self.base_ring().is_field():
+            return AlgebraicScheme_subscheme_affine_field(self, X, **kwds)
+
         return AlgebraicScheme_subscheme_affine(self, X, **kwds)
 
     def _an_element_(self):
         r"""
-        Returns an element of this affine space,used both for illustration and testing purposes.
+        Return an element of this affine space,used both for illustration and
+        testing purposes.
 
-        OUTPUT: A point in the affine space.
+        OUTPUT: a point in the affine space
 
         EXAMPLES::
 
@@ -952,6 +957,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         else:
             raise ValueError("keyword 'kind' must have a value of either 'first' or 'second'")
 
+
 class AffineSpace_field(AffineSpace_generic):
     def _point(self, *args, **kwds):
         """
@@ -986,7 +992,7 @@ class AffineSpace_field(AffineSpace_generic):
 
     def points_of_bounded_height(self, **kwds):
         r"""
-        Returns an iterator of the points in this affine space of
+        Return an iterator of the points in this affine space of
         absolute height of at most the given bound.
 
         Bound check  is strict for the rational field.
@@ -1130,6 +1136,7 @@ class AffineSpace_field(AffineSpace_generic):
         from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
 
+
 class AffineSpace_finite_field(AffineSpace_field):
     def _point(self, *args, **kwds):
         """
@@ -1161,6 +1168,7 @@ class AffineSpace_finite_field(AffineSpace_field):
                     (x, y, z)
         """
         return SchemeMorphism_polynomial_affine_space_finite_field(*args, **kwds)
+
 
 # fix the pickles from moving affine_space.py
 from sage.misc.persist import register_unpickle_override

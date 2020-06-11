@@ -24,7 +24,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from six import add_metaclass
 
 from sage.arith.all import factorial
 from sage.sets.set import Set, Set_generic
@@ -50,8 +49,8 @@ from functools import reduce
 from sage.categories.cartesian_product import cartesian_product
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class OrderedSetPartition(ClonableArray):
+class OrderedSetPartition(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     An ordered partition of a set.
 
@@ -1369,7 +1368,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         return "Ordered set partitions"
 
     class Element(OrderedSetPartition):
-        def _richcmp_(left, right, op):
+        def _richcmp_(self, other, op):
             """
             TESTS::
 
@@ -1381,7 +1380,8 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
                 sage: el1 <= el2, el1 >= el2, el2 <= el1    # indirect doctest
                 (False, True, True)
             """
-            return richcmp([sorted(s) for s in left], [sorted(s) for s in right], op)
+            return richcmp([sorted(s) for s in self],
+                           [sorted(s) for s in other], op)
 
 ##########################################################
 # Deprecations

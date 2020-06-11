@@ -2,8 +2,6 @@
 Coercion via construction functors
 """
 from __future__ import print_function, absolute_import
-from six.moves import range
-import six
 
 from sage.misc.lazy_import import lazy_import
 from sage.structure.coerce_exceptions import CoercionException
@@ -1390,10 +1388,11 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
                 othervars = other.vars
             else:
                 othervars = [other.var]
-            OverlappingGens = [] ## Generator names of variable names of the MultiPolynomialFunctor
-                              ## that can be interpreted as variables in self
-            OverlappingVars = [] ## The variable names of the MultiPolynomialFunctor
-                                 ## that can be interpreted as variables in self
+
+            OverlappingVars = []
+            # The variable names of the MultiPolynomialFunctor
+            # that can be interpreted as variables in self
+
             RemainingVars = [x for x in othervars]
             IsOverlap = False
             BadOverlap = False
@@ -1714,10 +1713,10 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
         """
         Functor.__init__(self, Rings(), Rings())
-        if not isinstance(var, (six.string_types,tuple,list)):
+        if not isinstance(var, (str, tuple, list)):
             raise TypeError("variable name or list of variable names expected")
         self.var = var
-        self.multi_variate = multi_variate or not isinstance(var, six.string_types)
+        self.multi_variate = multi_variate or not isinstance(var, str)
 
     def _apply_functor(self, R):
         """
@@ -1741,7 +1740,6 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
         if self.multi_variate and is_LaurentPolynomialRing(R):
             return LaurentPolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))
         else:
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return LaurentPolynomialRing(R, self.var)
 
     def __eq__(self, other):
@@ -2715,7 +2713,7 @@ class QuotientFunctor(ConstructionFunctor):
         self.I = I
         if names is None:
             self.names = None
-        elif isinstance(names, six.string_types):
+        elif isinstance(names, str):
             self.names = (names,)
         else:
             self.names = tuple(names)
@@ -2746,7 +2744,6 @@ class QuotientFunctor(ConstructionFunctor):
             Quotient of Rational Field by the ideal (1)
         """
         I = self.I
-        from sage.all import QQ
         if not I.is_zero():
             from sage.categories.fields import Fields
             if R in Fields():
@@ -4343,7 +4340,7 @@ def type_to_parent(P):
         TypeError: Not a scalar type.
     """
     import sage.rings.all
-    if P in six.integer_types:
+    if P is int:
         return sage.rings.all.ZZ
     elif P is float:
         return sage.rings.all.RDF
