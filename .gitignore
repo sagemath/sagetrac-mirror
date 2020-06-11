@@ -102,6 +102,8 @@ gitlab-build-docker.log
 /build/bin/sage-build-env-config
 
 /build/pkgs/*/src/build
+/build/pkgs/*/src/dist
+/build/pkgs/*/src/*.egg-info
 
 #######################
 # tox generated files #

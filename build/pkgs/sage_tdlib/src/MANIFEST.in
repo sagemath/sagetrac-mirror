@@ -1,0 +1,3 @@
+prune sage
+include sage/graphs/graph_decompositions/tdlib*
+graft sage/graphs/graph_decompositions/tdlib
