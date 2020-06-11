@@ -28,8 +28,10 @@ docker_build() {
     # to save disk space, otherwise we run out of disk on the shared gitlab
     # runners. (Sadly 15GB of free disk is not enough to build everything it
     # seems as of mid 2020.)
+    df -h
     time docker build --rm -f docker/Dockerfile \
 --build-arg "WITH_PYTHON=${WITH_PYTHON}" --build-arg "MAKEFLAGS=${MAKEFLAGS}" --build-arg "SAGE_NUM_THREADS=${SAGE_NUM_THREADS}" --build-arg "MAKEFLAGS_DOCBUILD=${MAKEFLAGS}" --build-arg "SAGE_NUM_THREADS_DOCBUILD=${SAGE_NUM_THREADS_DOCBUILD}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
+    df -h
 }
 
 # We use a multi-stage build /docker/Dockerfile. For the caching to be
