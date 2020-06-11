@@ -6,7 +6,7 @@ import os
 import sys
 import time
 from distutils import log
-from distutils.core import setup
+from setuptools import setup
 
 #########################################################
 ### Set source directory
