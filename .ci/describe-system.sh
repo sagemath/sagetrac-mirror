@@ -13,6 +13,10 @@
 set +e -x
 
 docker info
+
+df -h
+pwd
+
 docker run docker sh -c "
   set -x
   uname -a
