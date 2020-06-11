@@ -527,9 +527,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             return Infinity
 
         if self.is_monomial():
-            idx = self.index()
-            return sum(len(mu)*(p._lca.gen(i).degree()-1) + mu.size()
-                for i,mu in enumerate(idx))
+            return self.index().energy()
 
         weightlist = [m.weight() for m in self.monomials()]
         if weightlist[1:] != weightlist[:-1]:
@@ -671,28 +669,32 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 2, names = ('e','h', 'f')); V.inject_variables();
-            Defining e, h, f
-            sage: pt = V.indices().an_element(); pt
-            ([], [1], [2])
+            sage: V = VirasoroVertexAlgebra(QQ,1/2); vac = V.vacuum()
+            sage: vac._action_from_partition_tuple([[3,2]])
+            L_-3L_-2|0>
+            sage: V = NeveuSchwarzVertexAlgebra(QQ,1); vac = V.vacuum()
+            sage: vac._action_from_partition_tuple([[2,2],[5/2,3/2]])
+            L_-2L_-2G_-5/2G_-3/2|0>
+            sage: V = AffineVertexAlgebra(QQ,'A1',2, names = ('e','h','f'));
+            sage: pt = V.indices().an_element(); pt.to_list()
+            [[1, 1, 1, 1], [2, 1, 1], [3, 1]]
+            sage: pt
+            ([1, 1, 1, 1], [2, 1, 1], [3, 1])
+            sage: pt = V.indices().an_element(); pt = pt.to_list()
             sage: V.vacuum()._action_from_partition_tuple(pt)
-            h_-1f_-2|0>
-            sage: v = (e*e).T()
-            sage: pt = V.indices()([[],[],[2]])
-            sage: v._action_from_partition_tuple(pt,negative=False)
-            -2*e_-1h_-1|0>
+            e_-1e_-1e_-1e_-1h_-2h_-1h_-1f_-3f_-1|0>
         """
         p = self.parent()
         if not p.is_graded():
             raise ValueError("_action_from_partition_tuple is defined "\
                              "on H-graded vertex algebras, got {}".format(p))
 
-        if not pt in p.indices():
-            raise ValueError("pt needs to be an element of {}, got {}"\
-                             .format(p.indices(),pt))
+        if not isinstance(pt,(tuple,list)) or len(pt) != p.ngens():
+            raise ValueError("pt needs to be a list of length {}".format(
+                             p.ngens()))
 
         ret = self
-        pt = pt.to_list()
+        pt = list(pt)
         pt.reverse()
         for j,mu in enumerate(pt):
             mu.reverse()
@@ -703,6 +705,36 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
                 else:
                     ret = g.nmodeproduct(ret,n-1)
         return ret
+
+    def homogeneous_terms(self):
+        """
+        Return a tuple with the homogeneous terms of this element.
+
+        EXAMPLES::
+
+            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V.inject_variables()
+            Defining L
+            sage: (L+L.T(3) + L*L.T() + L.T(7)/factorial(7)).homogeneous_terms()
+            (L_-2|0>, 7*L_-5|0> + L_-3L_-2|0>, L_-9|0>)
+
+        TESTS::
+
+            sage: V = VirasoroVertexAlgebra(QQ,1); V(0).homogeneous_terms()
+            (0)
+        """
+        if self.is_zero():
+            return tuple([self])
+        S = {}
+        p = self.parent()
+        if not p.is_graded():
+            raise ValueError("homogeneous_terms is implemented only on H-"\
+                             "graded vertex algebras, got {}".format(p))
+
+        for m in self.terms():
+            w = m.weight()
+            S[w] = S.get(w,p.zero()) + m
+        return tuple(S.values())
 
     def is_homogeneous(self):
         """
@@ -720,11 +752,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         if not self.parent().is_graded():
             raise ValueError("is_homogeneous is defined for H-graded vertex"\
                              " algebras, got {}".format(self.parent()))
-        try:
-            self.weight()
-        except ValueError:
-            return False
-        return True
+        return self.is_zero() or len(self.homogeneous_terms()) == 1
 
 
     def pbw_filtration_degree(self):
