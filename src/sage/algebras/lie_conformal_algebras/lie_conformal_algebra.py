@@ -95,7 +95,7 @@ class LieConformalAlgebra(Parent, UniqueRepresentation):
                           'weights','graded', 'category', 'prefix',
                           'bracket', 'latex_bracket', 'string_quotes',
                           'sorting_key','parity','super']
-        for key, val in kwds.items():
+        for key in kwds:
             if key not in known_keywords:
                 raise TypeError("LieConformalAlgebra(): got an unexpected " +
                                 "keyword argument '%s'"%key)

@@ -23,9 +23,11 @@ from sage.categories.vertex_algebras import VertexAlgebras
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.cachefunc import cached_method
-from sage.combinat.partition_tuple import PartitionTuples, PartitionTuples_level
-from sage.combinat.partition import Partition
 from .vertex_algebra_element import UniversalEnvelopingVertexAlgebraElement
+from sage.rings.rational_field import QQ
+from .energy_partition_tuples import EnergyPartitionTuples
+from sage.functions.other import floor
+
 
 class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
@@ -38,13 +40,13 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         INPUT:
 
-        - ``R`` a commutative ring; the base ring of this vertex
+        - ``R`` -- a commutative ring; the base ring of this vertex
           algebra. Undefined
           behaviour if this ring is not a field of characteristic zero.
 
-        - ``L`` a Lie conformal algebra.
+        - ``L`` -- a Lie conformal algebra.
 
-        - ``central_parameters`` a finite family parametrized by
+        - ``central_parameters`` -- a finite family parametrized by
           central elements of this vertex algebra (default: ``0`` for
           each central element of ``L``);
           a family describing the action of the central
@@ -67,22 +69,26 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
                                 latex_names=latex_names)
 
         self._lca = L
-        if central_parameters:
-            cp = central_parameters
-        else:
-            cp = Family({i:0  for i in L.central_elements()})
-        if set(cp.keys()) != set(L.central_elements()):
+        if not central_parameters:
+            central_parameters = Family({i:0  for i in L.central_elements()})
+        if set(central_parameters.keys()) != set(L.central_elements()):
             raise ValueError ("central_parameters must be parametrized by "\
                               "central elements")
 
-        self._central_parameters = cp
-        self._ngens = L.ngens() - cp.cardinality()
+        self._central_parameters = central_parameters
+        self._ngens = L.ngens() - central_parameters.cardinality()
 
         #need to call directly this because of 1 generator.
         #Also:self._module is needed for self.ngens()
         regular = tuple([2*g.is_even_odd() for g in L.gens()\
                     if g not in L.central_elements()])
-        basis = PartitionTuples(level=self._ngens,regular=regular)
+        if self.is_graded():
+            weights = tuple([g.degree() for g in L.gens() if g not in\
+                             L.central_elements()])
+            basis = EnergyPartitionTuples(weights,self._ngens,regular=regular)
+        else:
+            from sage.combinat.partition_tuple import PartitionTuples
+            basis = PartitionTuples(level=self._ngens,regular=regular)
         CombinatorialFreeModule.__init__(self, R, basis_keys=basis,
                         category=category,
                         element_class=UniversalEnvelopingVertexAlgebraElement) 
@@ -90,6 +96,15 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
 
     def _repr_(self):
+        """
+        The name of this vertex algebra.
+
+        EXAMPLES::
+
+            sage: L = NeveuSchwarzLieConformalAlgebra(QQ)
+            sage: L.universal_enveloping_algebra()
+            The universal enveloping vertex algebra of the Neveu-Schwarz super Lie conformal algebra over Rational Field
+        """
         lcafirst,lcaleft = format(self._lca).split(' ',1)
         if lcafirst == "The":
             return "The universal enveloping vertex algebra of the " + lcaleft
@@ -97,6 +112,36 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
                 " " + lcaleft
 
     def register_lift(self):
+        """
+        Register a new coercion from its Lie conformal algebra.
+
+        If this vertex algebra is the universal enveloping vertex
+        algebra of the Lie conformal algebra `L`, register a new
+        coercion from `L`. 
+
+        .. SEEALSO::
+
+            :meth:`sage.algebras.lie_conformal_algebras.lie_conformal_algebra_element.lift`
+
+        EXAMPLES::
+
+            sage: L = VirasoroLieConformalAlgebra(QQ); 
+            sage: V = L.universal_enveloping_algebra()
+            sage: L.lift
+            Generic morphism:
+              From: The Virasoro Lie conformal algebra over Rational Field
+              To:   The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
+            sage: W = VirasoroVertexAlgebra(QQ,1/2)
+            sage: L.lift
+            Generic morphism:
+              From: The Virasoro Lie conformal algebra over Rational Field
+              To:   The Virasoro vertex algebra at central charge 1/2
+            sage: V.register_lift()
+            sage: L.lift
+            Generic morphism:
+              From: The Virasoro Lie conformal algebra over Rational Field
+              To:   The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
+        """
         from sage.categories.homset import Hom
         from sage.algebras.lie_conformal_algebras.\
             lie_conformal_algebra_with_structure_coefs import _LiftMorphism
@@ -105,99 +150,216 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
         self._lca.set_lift(newlift)
 
     def gens(self):
-        """The generators of this vertex algebra"""
+        """
+        The generators of this vertex algebra.
+
+        EXAMPLES::
+
+            sage: V = NeveuSchwarzVertexAlgebra(QQ,1); V.gens()
+            (L_-2|0>, G_-3/2|0>)
+            sage: V = AffineVertexAlgebra(QQ,'A1', 1, names =('e','h', 'f')); V.gens()
+            (e_-1|0>, h_-1|0>, f_-1|0>)
+            sage: V = AffineVertexAlgebra(QQ,'A1', 1); V.gens()
+            (alpha[1]_-1|0>, alphacheck[1]_-1|0>, -alpha[1]_-1|0>)
+        """
         return tuple([self.gen(i) for i in range(self._ngens)])
 
     def ngens(self):
         """
-        The number of generators of this vertex algebra
+        The number of generators of this vertex algebra.
+
+        EXAMPLES::
+
+            sage: V = AffineVertexAlgebra(QQ, 'B3', 1); V.ngens()
+            21
+            sage: V = N2VertexAlgebra(QQ,1); V.ngens()
+            4
         """
         return self._ngens
 
     def gen(self,i):
-        r"""The `i`-th generator of this vertex algebra"""
+        r"""
+        The `i`-th generator of this vertex algebra.
+
+        EXAMPLES::
+
+            sage: V = NeveuSchwarzVertexAlgebra(QQ); V.gen(1)
+            G_-3/2|0>
+        """
         l = [[]]*self._ngens
         l[i] = [1]
         return self(l)
 
-    def central_elements(self):
-        r"""If this vertex algebra is the universal enveloping vertex algebra of
-        the Lie conformal algebra `L`. This method returns the family of central
-        elements of the `L`."""
-        return tuple([i.lift() for i in self._lca.central_elements()])
-
     def central_parameters(self):
-        """Return the central character used to construct this universal
-        enveloping vertex algebra"""
+        """
+        The central character used to construct this universal
+        enveloping vertex algebra. 
+
+        EXAMPLES::
+
+            sage: V = FreeFermionsVertexAlgebra(QQ); V.central_parameters()
+            Finite family {K: 1}
+        """
         return self._central_parameters
+    
+    def get_weight_less_than(self,n):
+        """
+        The sub-vector space of this vertex algebra of vectors with
+        conformal weight less than or equal to ``n``.
+
+        INPUT:
+
+        - ``n`` -- a non-negative rational number; 
+
+        OUTPUT: a submodule of this vertex algebra. 
+
+        EXAMPLES::
+
+            sage: V = FreeFermionsVertexAlgebra(QQ); M = V.get_weight_less_than(5/2); M
+            Free module generated by {0, 1, 2, 3} over Rational Field
+            sage: [v.lift() for v in M.basis()]
+            [|0>, psi_-1/2|0>, psi_-3/2|0>, psi_-3/2psi_-1/2|0>]
+
+        TESTS::
+           
+            sage: V = FreeFermionsVertexAlgebra(QQ); M = V.get_weight_less_than(5/2);
+            sage: M.reduce(V.vacuum())
+            0  
+        """
+        if not self.is_graded() or any(g.weight() not in QQ or g.weight == 0\
+                                                        for g in self.gens()):
+            raise NotImplementedError("get_weight_less_than is not implemented"\
+                                      " for {}".format(self))
+
+        if n not in QQ or n < 0:
+            raise ValueError("n needs to be a non-negative rational number")
+         
+        weights = tuple([g.degree() for g in self._lca.gens() if g not in\
+                         self._lca.central_elements()])
+        regular = tuple([2*g.is_even_odd() for g in self._lca.gens()\
+                    if g not in self._lca.central_elements()])
+        basis = []
+        for i in EnergyPartitionTuples(weights,self._ngens,regular=regular):
+            if i.energy() < n:
+                basis.append(self(i))
+            else:
+                break
+        return self.submodule(basis)
 
     def get_weight(self,n):
         r"""
-        return the degree n filtered part of `self`. This is a
-        `CombinatorialFreeModule` with the same dictionary keys as
-        `self.module()`.
+        The sub-vector space of this vertex algebra of vectors with
+        conformal weight equal to ``n``.
+
+        INPUT:
+
+        - ``n`` -- a non-negative rational number; 
+
+        OUTPUT: a submodule of this vertex algebra. 
+
+        EXAMPLES::
+
+            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1/2); M = V.get_weight(7/2)
+            sage: [v.lift() for v in M.basis()]
+            [G_-7/2|0>, L_-2G_-3/2|0>]
         """
-        if not self.is_graded() or any(g.weight() == 0 for g in self.gens()):
+        if not self.is_graded() or any(g.weight() not in QQ or g.weight == 0\
+                                                        for g in self.gens()):
             raise NotImplementedError("get_weight is not implemented for {}"\
                                         .format(self))
 
-        if n == 0:
-            self.submodule(self.vacuum())
-        else:
-            basis = [PartitionTuples_level(self.ngens())(p) for m in range(1 ,n+1)
-            for p in PartitionTuples(self.ngens(),m) if
-            self(PartitionTuples_level(self.ngens())(p)).weight() == n ]
-        return CombinatorialFreeModule(self.base_ring(), basis)
+        if n not in QQ or n < 0:
+            raise ValueError("n needs to be a non-negative rational number")
+        
+        weights = tuple([g.degree() for g in self._lca.gens() if g not in\
+                         self._lca.central_elements()])
+        regular = tuple([2*g.is_even_odd() for g in self._lca.gens()\
+                    if g not in self._lca.central_elements()])
+        basis = EnergyPartitionTuples(weights,self._ngens,n,regular=regular)
+        return self.submodule([self(v) for v in basis])
 
     def dimension(self,n):
-        r"""The dimension of the degree `n` part of this vertex algebra
+        """
+        The dimension of the degree `n` part of this vertex algebra.
 
         EXAMPLES::
 
             sage: V = VirasoroVertexAlgebra(QQ,1/2); V.dimension(4)
             2
-            sage: V.dimension(6)
-            4
-            sage: V.dimension(0)
-            1
-            sage: V.dimension(1)
-            0
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1); V.dimension(1)
-            3
-            sage: V.dimension(2)
-            9
-
+            sage: V = AffineVertexAlgebra(QQ,'A1', 1); V.dimension(5)
+            108
+            sage: V = FreeFermionsVertexAlgebra(QQ); V.dimension(13/2)
+            6
         """
+        if not self.is_graded() or any(g.weight() not in QQ or g.weight == 0\
+                                                        for g in self.gens()):
+            raise NotImplementedError("dimension is not implemented for {}"\
+                                        .format(self))
 
-        return self.get_graded_part(n).dimension()
+        if n not in QQ or n < 0:
+            raise ValueError("n must be a non-negative rational number")
+
+        weights = tuple([g.degree() for g in self._lca.gens() if g not in\
+                         self._lca.central_elements()])
+        regular = tuple([2*g.is_even_odd() for g in self._lca.gens()\
+                    if g not in self._lca.central_elements()])
+        return EnergyPartitionTuples(weights,self._ngens,n,regular=regular).\
+                                                                cardinality()
 
     @cached_method
     def vacuum(self):
-        """The vacuum vector of this vertex algebra"""
-        vac = [Partition([]),]*self.ngens()
+        """
+        The vacuum vector of this vertex algebra
+
+        EXAMPLES::
+
+            sage: VirasoroVertexAlgebra(QQ,1).vacuum()
+            |0>
+        """
+        vac = [[],]*self.ngens()
         return self(vac)
 
     def find_singular(self,n):
         """
-        Return the vector space of singular vectors of weight `n`
+        Return a basis of the vector space of singular vectors of
+        weight `n`.
+
+        EXAMPLES::
+
+            sage: V = VirasoroVertexAlgebra(QQ,1/2); V.find_singular(6)
+            (L_-2L_-2L_-2|0> + 93/64*L_-3L_-3|0> - 33/8*L_-4L_-2|0> - 27/16*L_-6|0>,)
+            sage: V = AffineVertexAlgebra(QQ,'A1',1,names=('e', 'h', 'f')); V
+            The universal affine vertex algebra of CartanType ['A', 1] at level 1
+            sage: V.find_singular(2)
+            (f_-1f_-1|0>,
+             f_-2|0> + h_-1f_-1|0>,
+             h_-1h_-1|0> + h_-2|0> - 2*e_-1f_-1|0>,
+             e_-1h_-1|0> + e_-2|0>,
+             e_-1e_-1|0>)
+
+        TESTS::
+
+            sage: V = VirasoroVertexAlgebra(QQ,1/2); V.find_singular(0)
+            (|0>,)
         """
-        M = self.get_graded_part(n)
+        if not self.is_graded() or any(g.weight() not in QQ or g.weight == 0\
+                                                        for g in self.gens()):
+            raise NotImplementedError("find_singular is not implemented"\
+                                      " for {}".format(self))
+
+        if n not in QQ or n < 0:
+            raise ValueError("n needs to be a non-negative rational number")
+        M = self.get_weight(n)
         B = M.basis()
-        from sage.matrix.constructor import Matrix
-        ret = Matrix(self.base_ring(),B.cardinality(),0,0)
-        for g in self.gens():
-            br = {v:g.bracket(self._from_dict(
-                  v.monomial_coefficients())) for v in B}
-            w = g.weight()
-            for j in range(1,n+1):
-                Mj = self.get_graded_part(n-j)
-                ret = ret.augment(Matrix([Mj._from_dict(
-                    br[v].get(j+w-1,self.zero()).value\
-                    .monomial_coefficients()).to_vector()
-                    for v in B ]))
-        myker = ret.kernel().basis()
-        return [self._from_dict(M.from_vector(v)\
-            .monomial_coefficients()) for v in myker]
+        N = self.get_weight_less_than(n)
+        W = CombinatorialFreeModule(self.base_ring(),self.gens())
+        from sage.categories.tensor import tensor
+        Z = tensor([N,W])
+        br = {(g,v): g.bracket(v.lift()) for v in B for g in self.gens()}
+        on_basis = lambda v: sum(tensor([N.retract(sum(br[(g,B[v])][k] for k in\
+                br[(g,B[v])] if k > g.weight()-1)),W(g)]) for g in self.gens())
+        f = M.module_morphism(on_basis, codomain=Z)
+        return tuple([v.lift() for v in f.kernel_basis()])
 
     def classical_limit(self):
         """
@@ -266,92 +428,92 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             ret[m] = A.submodule(basis)
         return ret if k==None else ret[k]
 
-        def ideal(self, *gens, check=True):
-            """
-            The ideal of this vertex algebra generated by ``gens``.
+    def ideal(self, gens, check=True):
+        """
+        The ideal of this vertex algebra generated by ``gens``.
 
-            INPUT:
+        INPUT:
 
-            - ``gens`` -- a list or tuple of elements of this vertex
-            algebra.
+        - ``gens`` -- a list or tuple of elements of this vertex
+        algebra.
 
-            - ``check`` -- a boolean (default: ``True``); whether to
-            check that the generators are singular vectors.
+        - ``check`` -- a boolean (default: ``True``); whether to
+        check that the generators are singular vectors.
 
-            EXAMPLES:
+        EXAMPLES:
 
-            We construct the ideal defining the *Virasoro Ising* module::
+        We construct the ideal defining the *Virasoro Ising* module::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2)
-                sage: L = V.0
-                sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                sage: I = V.ideal(v)
-                sage: I
-                ideal of The Virasoro vertex algebra at central charge 1/2 generated by (L_-2L_-2L_-2|0>+93/64*L_-3L_-3|0>-33/8*L_-4L_-2|0>-27/16*L_-6|0>,)
+            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: L = V.0
+            sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+            sage: I = V.ideal(v)
+            sage: I
+            ideal of The Virasoro vertex algebra at central charge 1/2 generated by (L_-2L_-2L_-2|0>+93/64*L_-3L_-3|0>-33/8*L_-4L_-2|0>-27/16*L_-6|0>,)
 
-            If we instead use a non-singular vector::
+        If we instead use a non-singular vector::
 
-                sage: V.ideal(L*L)
-                Traceback (most recent call last):
-                ...
-                ValueError: Generators must be singular vectors of The Virasoro vertex algebra at central charge 1/2
+            sage: V.ideal(L*L)
+            Traceback (most recent call last):
+            ...
+            ValueError: Generators must be singular vectors of The Virasoro vertex algebra at central charge 1/2
 
-            NOTE::
+        NOTE::
 
-            We only implement ideals of universal enveloping vertex
-            algebras and their quotients, generated by singular
-            vectors.
-            """
-            from .vertex_algebra_ideal import VertexAlgebraIdeal
-            return VertexAlgebraIdeal(self,gens, check=check)
+        We only implement ideals of universal enveloping vertex
+        algebras and their quotients, generated by singular
+        vectors.
+        """
+        from .vertex_algebra_ideal import VertexAlgebraIdeal
+        return VertexAlgebraIdeal(self, gens, check=check)
 
-        def quotient(self, I):
-            """
-            The quotient of this vertex algebra by the ideal ``I``.
+    def quotient(self, I):
+        """
+        The quotient of this vertex algebra by the ideal ``I``.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2)
-                sage: L = V.0
-                sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                sage: I = V.ideal(v)
-                sage: Q = V.quotient(I); Q
-                Quotient of The Virasoro vertex algebra at central charge 1/2 by the ideal generated by (L_-2L_-2L_-2|0>+93/64*L_-3L_-3|0>-33/8*L_-4L_-2|0>-27/16*L_-6|0>,)
-                sage: Q(L*(L*L))
-                33/8*L_-4L_-2|0>-93/64*L_-3L_-3|0>+27/16*L_-6|0>
-            """
-            from .vertex_algebra_quotient import VertexAlgebraQuotient
-            return VertexAlgebraQuotient(I)
+            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: L = V.0
+            sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
+            sage: I = V.ideal(v)
+            sage: Q = V.quotient(I); Q
+            Quotient of The Virasoro vertex algebra at central charge 1/2 by the ideal generated by (L_-2L_-2L_-2|0>+93/64*L_-3L_-3|0>-33/8*L_-4L_-2|0>-27/16*L_-6|0>,)
+            sage: Q(L*(L*L))
+            33/8*L_-4L_-2|0>-93/64*L_-3L_-3|0>+27/16*L_-6|0>
+        """
+        from .vertex_algebra_quotient import VertexAlgebraQuotient
+        return VertexAlgebraQuotient(I)
 
-        def arc_algebra(self, termorder='wdegrevlex'):
-            r"""
-            The algebra of functions of the arc space of the `C_2`
-            quotient of this Vertex algebra.
+    def arc_algebra(self, termorder='wdegrevlex'):
+        r"""
+        The algebra of functions of the arc space of the `C_2`
+        quotient of this Vertex algebra.
 
 
-            INPUT:
+        INPUT:
 
-            - ``termorder`` a string (default: ``'wdegrevlex'``); the
-              monomial ordering of the algebra.
+        - ``termorder`` a string (default: ``'wdegrevlex'``); the
+          monomial ordering of the algebra.
 
-            OUTPUT: The graded Poisson vertex algebra freely generated
-            as a differential algebra by the `C_2` quotient of this
-            vertex algebra.
+        OUTPUT: The graded Poisson vertex algebra freely generated
+        as a differential algebra by the `C_2` quotient of this
+        vertex algebra.
 
-            TODO: we only support arc algebras of universal enveloping
-            vertex algebras and their quotients.
+        TODO: we only support arc algebras of universal enveloping
+        vertex algebras and their quotients.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: V = VirasoroVertexAlgebra(QQ, 1/2); Q=V.quotient(V.ideal(V.find_singular(6)[0]))
-                sage: Q.arc_algebra()
-                Quotient of The arc algebra over Rational Field generated by ('L',) by the differential ideal generated by (L_2^3,)
-                sage: V.arc_space()
-                The arc algebra over Rational Field generated by ('L',)
-            """
-            from sage.algebras.vertex_algebras.poisson_vertex_algebra \
-                    import VertexAlgebraArcAlgebra
-            return VertexAlgebraArcAlgebra(self, termorder)
+            sage: V = VirasoroVertexAlgebra(QQ, 1/2); Q=V.quotient(V.ideal(V.find_singular(6)[0]))
+            sage: Q.arc_algebra()
+            Quotient of The arc algebra over Rational Field generated by ('L',) by the differential ideal generated by (L_2^3,)
+            sage: V.arc_space()
+            The arc algebra over Rational Field generated by ('L',)
+        """
+        from sage.algebras.vertex_algebras.poisson_vertex_algebra \
+                import VertexAlgebraArcAlgebra
+        return VertexAlgebraArcAlgebra(self, termorder)
 
 
 

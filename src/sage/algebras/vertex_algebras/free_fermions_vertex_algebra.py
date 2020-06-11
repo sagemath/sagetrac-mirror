@@ -22,7 +22,7 @@ from .universal_enveloping_vertex_algebra import \
 from sage.sets.family import Family
 
 class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
-    def __init__(self,R,gram_matrix=None,ngens=None,names=None,
+    def __init__(self,R,ngens=None,gram_matrix=None,names=None,
                  index_set=None):
         r"""
         The Free Fermions Super vertex algebra.
@@ -30,10 +30,10 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         INPUT:
 
         - ``R``: a commutative ring.
-        - ``gram_matrix``: a matrix (default: ``[1]``); a symmetric
-          square matrix with coefficients in ``R``.
         - ``ngens``: a positive Integer (default ``1``); the number of
           generators of this vertex algebra.
+        - ``gram_matrix``: a matrix (default: ``[1]``); a symmetric
+          square matrix with coefficients in ``R``.
 
         OUTPUT:
 
