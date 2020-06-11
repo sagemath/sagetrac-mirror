@@ -248,15 +248,6 @@ ext_modules = [
     Extension('sage.graphs.independent_sets',
               sources = ['sage/graphs/independent_sets.pyx']),
 
-    Extension('sage.graphs.graph_decompositions.fast_digraph',
-              sources = ['sage/graphs/graph_decompositions/fast_digraph.pyx']),
-
-    Extension('sage.graphs.graph_decompositions.vertex_separation',
-              sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
-
-    Extension('sage.graphs.graph_decompositions.graph_products',
-              sources = ['sage/graphs/graph_decompositions/graph_products.pyx']),
-
     Extension('sage.graphs.convexity_properties',
               sources = ['sage/graphs/convexity_properties.pyx']),
 
@@ -313,21 +304,9 @@ ext_modules = [
     Extension('sage.graphs.strongly_regular_db',
               sources = ['sage/graphs/strongly_regular_db.pyx']),
 
-    Extension('sage.graphs.graph_decompositions.rankwidth',
-              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx']),
-
-    Extension('sage.graphs.graph_decompositions.bandwidth',
-              sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
-
-    Extension('sage.graphs.graph_decompositions.cutwidth',
-              sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
-
     OptionalExtension('sage.graphs.graph_decompositions.tdlib',
               sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
               package = 'tdlib'),
-
-    Extension('sage.graphs.graph_decompositions.clique_separators',
-              sources = ['sage/graphs/graph_decompositions/clique_separators.pyx']),
 
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
@@ -699,33 +678,6 @@ ext_modules = [
 
     Extension("sage.numerical.sdp",
               ["sage/numerical/sdp.pyx"]),
-
-    Extension("sage.numerical.backends.generic_backend",
-              ["sage/numerical/backends/generic_backend.pyx"]),
-
-    Extension("sage.numerical.backends.generic_sdp_backend",
-              ["sage/numerical/backends/generic_sdp_backend.pyx"]),
-
-    Extension("sage.numerical.backends.glpk_backend",
-              ["sage/numerical/backends/glpk_backend.pyx"]),
-
-    Extension("sage.numerical.backends.glpk_exact_backend",
-              ["sage/numerical/backends/glpk_exact_backend.pyx"]),
-
-    Extension("sage.numerical.backends.ppl_backend",
-              ["sage/numerical/backends/ppl_backend.pyx"]),
-
-    Extension("sage.numerical.backends.cvxopt_backend",
-              ["sage/numerical/backends/cvxopt_backend.pyx"]),
-
-    Extension("sage.numerical.backends.cvxopt_sdp_backend",
-              ["sage/numerical/backends/cvxopt_sdp_backend.pyx"]),
-
-    Extension("sage.numerical.backends.glpk_graph_backend",
-              ["sage/numerical/backends/glpk_graph_backend.pyx"]),
-
-    Extension("sage.numerical.backends.interactivelp_backend",
-              ["sage/numerical/backends/interactivelp_backend.pyx"]),
 
     ################################
     ##
