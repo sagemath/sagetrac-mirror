@@ -112,7 +112,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     elif ct.letter == 'G':
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_G_element)
     elif ct.letter == 'Q':
-        return CrystalOfQueerLetters(ct)
+        return CrystalOfQueerLetters(ct, primed=bool(dual))
     else:
         raise NotImplementedError
 
@@ -2601,7 +2601,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         sage: TestSuite(Q).run()
     """
     @staticmethod
-    def __classcall_private__(cls, ct):
+    def __classcall_private__(cls, ct, primed=False):
         """
         Normalize input to ensure a unique representation.
 
@@ -2611,9 +2611,9 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
             The queer crystal of letters for q(3)
         """
         ct = CartanType(ct)
-        return super(CrystalOfQueerLetters, cls).__classcall__(cls, ct)
+        return super(CrystalOfQueerLetters, cls).__classcall__(cls, ct, primed)
 
-    def __init__(self, ct):
+    def __init__(self, ct, primed=False):
         """
         Initialize ``self``.
 
@@ -2629,6 +2629,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
             [1, 2, 3]
         """
         self._cartan_type = ct
+        self._primed = primed
         Parent.__init__(self, category=RegularSuperCrystals())
         self._index_set = ct.index_set()
         self.module_generators = (self._element_constructor_(1),)
@@ -2647,6 +2648,9 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         cdef int t
         for t in range(1, self._cartan_type.n + 2):
             yield self._element_constructor_(t)
+        if self._primed:
+            for t in range(1, self._cartan_type.n + 2):
+                yield self._element_constructor_(-t)
 
     def _repr_(self):
         """
@@ -2667,6 +2671,8 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
             sage: Q.index_set()
             (1, 2, -2, -1)
         """
+        if self._primed:
+            return self._index_set + (0,)
         return self._index_set
 
     # temporary workaround while an_element is overriden by Parent
@@ -2706,7 +2712,7 @@ cdef class QueerLetter_element(Letter):
             sage: [v.weight() for v in crystals.Letters(['Q',4])]
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
         """
-        return self._parent.weight_lattice_realization().monomial(self.value-1)
+        return self._parent.weight_lattice_realization().monomial(abs(self.value)-1)
 
     cpdef Letter e(self, int i):
         r"""
@@ -2718,10 +2724,15 @@ cdef class QueerLetter_element(Letter):
             sage: [(c,i,c.e(i)) for i in Q.index_set() for c in Q if c.e(i) is not None]
             [(2, 1, 1), (3, 2, 2), (3, -2, 2), (2, -1, 1)]
         """
-        if self.value == -i+1:
-           return self._parent._element_constructor_(self.value-1)
-        if self.value == i+1:
-            return self._parent._element_constructor_(self.value-1)
+        if i == 0:
+            if self.value == -1:
+                return self._parent._element_constructor_(1)
+            return None
+        sgn = 1 if self.value > 0 else -1
+        if abs(self.value) == -i+1:
+           return self._parent._element_constructor_(sgn*(abs(self.value)-1))
+        if abs(self.value) == i+1:
+            return self._parent._element_constructor_(sgn*(abs(self.value)-1))
         else:
             return None
 
@@ -2735,10 +2746,15 @@ cdef class QueerLetter_element(Letter):
             sage: [(c,i,c.f(i)) for i in Q.index_set() for c in Q if c.f(i) is not None]
             [(1, 1, 2), (2, 2, 3), (2, -2, 3), (1, -1, 2)]
         """
-        if self.value == -i:
-           return self._parent._element_constructor_(-i+1)
-        if self.value == i:
-            return self._parent._element_constructor_(self.value+1)
+        if i == 0:
+            if self.value == 1:
+                return self._parent._element_constructor_(-1)
+            return None
+        sgn = 1 if self.value > 0 else -1
+        if abs(self.value) == -i:
+           return self._parent._element_constructor_(sgn*(-i+1))
+        if abs(self.value) == i:
+            return self._parent._element_constructor_(sgn*(abs(self.value)+1))
         else:
             return None
 
@@ -2752,7 +2768,11 @@ cdef class QueerLetter_element(Letter):
             sage: [(c,i) for i in Q.index_set() for c in Q if c.epsilon(i) != 0]
             [(2, 1), (3, 2), (3, -2), (2, -1)]
         """
-        if self.value == i+1 or self.value == -i+1:
+        if i == 0:
+            if self.value == -1:
+                return 1
+            return 0
+        if abs(self.value) == i+1 or abs(self.value) == -i+1:
             return 1
         return 0
 
@@ -2766,7 +2786,11 @@ cdef class QueerLetter_element(Letter):
             sage: [(c,i) for i in Q.index_set() for c in Q if c.phi(i) != 0]
             [(1, 1), (2, 2), (2, -2), (1, -1)]
         """
-        if self.value == i or self.value == -i:
+        if i == 0:
+            if self.value == 1:
+                return 1
+            return 0
+        if abs(self.value) == i or abs(self.value) == -i:
             return 1
         return 0
 

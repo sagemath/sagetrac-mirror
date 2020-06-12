@@ -664,8 +664,12 @@ class QueerSuperCrystalsMixin(object):
             sage: T.index_set()
             (-4, -3, -2, -1, 1, 2)
         """
+        if self.crystals[0]._primed:
+            I = (0,)
+        else:
+            I = ()
         n = self.cartan_type().n
-        return tuple(range(-2*n, 0)) + tuple(range(1, n+1))
+        return tuple(range(-2*n, 0)) + tuple(range(1, n+1)) + I
 
     @cached_method
     def _long_element(self):

@@ -1508,9 +1508,51 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             else:
                 return TensorProductOfCrystalsElement.e(self, i)
         cdef tuple w
-        cdef int k, a, l
+        cdef int k, a, l, kp
+        cdef TensorProductOfQueerSuperCrystalsElement ret
         l = len(self._list)
+        if i == 0:
+            for k in range(l):
+                b = self._list[k].e(i)
+                if b is not None:
+                    return self._set_index(k, b)
+                if self._list[k].f(i) is not None:
+                    # There are no 0-string of length > 1
+                    return None
+            return None
         if i == -1:
+            if self._parent.crystals[0]._primed:
+                for k in range(l):
+                    b = self._list[k].e(i)
+                    if b is not None:
+                        ret = self._set_index(k, b)
+                        bp = b.e(0)
+                        if bp is not None:
+                            for kp in range(k+1, l):
+                                c = ret._list[kp].f(0)
+                                if c is not None:
+                                    ret._list[k] = bp
+                                    ret._list[kp] = c
+                                    return ret
+                                if ret._list[kp].e(0) is not None:
+                                    # There are no 0-string of length > 1
+                                    return ret
+                        bp = b.f(0)
+                        if bp is not None:
+                            for kp in range(k+1, l):
+                                c = ret._list[kp].e(0)
+                                if c is not None:
+                                    ret._list[k] = bp
+                                    ret._list[kp] = c
+                                    return ret
+                                if ret._list[kp].f(0) is not None:
+                                    # There are no 0-string of length > 1
+                                    return ret
+                        return ret
+                    if self._list[k].f(i) is not None:
+                        # There are no (-1)-string of length > 1
+                        return None
+                return None
             for k in range(l):
                 b = self._list[k].e(i)
                 if b is not None:
@@ -1568,9 +1610,53 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             else:
                 return TensorProductOfCrystalsElement.f(self, i)
         cdef tuple w
-        cdef int k, a, l
+        cdef int k, a, l, kp
+        cdef TensorProductOfQueerSuperCrystalsElement ret
         l = len(self._list)
+        if i == 0:
+            for k in range(l):
+                b = self._list[k].f(i)
+                if b is not None:
+                    return self._set_index(k, b)
+                if self._list[k].e(i) is not None:
+                    # There are no (-1)-string of length > 1
+                    return None
+            return None
         if i == -1:
+            if self._parent.crystals[0]._primed:
+                for k in range(l):
+                    b = self._list[k].f(i)
+                    if b is not None:
+                        ret = self._set_index(k, b)
+                        bp = self._list[k].e(0)
+                        if bp is not None:
+                            bp = bp.f(i)
+                            for kp in range(k+1, l):
+                                c = ret._list[kp].f(0)
+                                if c is not None:
+                                    ret._list[k] = bp
+                                    ret._list[kp] = c
+                                    return ret
+                                if ret._list[kp].e(0) is not None:
+                                    # There are no 0-string of length > 1
+                                    return ret
+                        bp = self._list[k].f(0)
+                        if bp is not None:
+                            bp = bp.f(i)
+                            for kp in range(k+1, l):
+                                c = ret._list[kp].e(0)
+                                if c is not None:
+                                    ret._list[k] = bp
+                                    ret._list[kp] = c
+                                    return ret
+                                if ret._list[kp].f(0) is not None:
+                                    # There are no 0-string of length > 1
+                                    return ret
+                        return ret
+                    if self._list[k].e(i) is not None:
+                        # There are no (-1)-string of length > 1
+                        return None
+                return None
             for k in range(l):
                 b = self._list[k].f(i)
                 if b is not None:
