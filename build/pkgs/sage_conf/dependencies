@@ -1,1 +1,1 @@
-$(PYTHON) ../pkgs/sage_conf/src/sage_conf.py | $(PYTHON_TOOLCHAIN) flit
+$(PYTHON) ../pkgs/sage_conf/src/src/sage_conf.py | $(PYTHON_TOOLCHAIN) flit
