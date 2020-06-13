@@ -1,5 +1,11 @@
 # @configure_input@
 
+r"""
+Configuration information for sagelib
+"""
+
+__version__ = "@PACKAGE_VERSION@"
+
 VERSION = "@PACKAGE_VERSION@"
 
 MAXIMA = "@prefix@/bin/maxima"
