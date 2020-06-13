@@ -45,8 +45,8 @@ class BosonicGhostsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         self._c = self._ngens
 
     def _repr_(self):
-        return "The Bosonic Ghosts vertex algebra with generators {}".\
-                format(self.gens())
+        return "The Bosonic Ghosts vertex algebra with generators {} over {}".\
+                format(self.gens(),self.base_ring())
 
 
 

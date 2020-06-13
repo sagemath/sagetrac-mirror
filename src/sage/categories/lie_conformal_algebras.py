@@ -161,7 +161,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             EXAMPLES:
 
             We construct the universal enveloping vertex algebra of the
-            Virasoro Lie conformal algebra at central charge `0` over 
+            Virasoro Lie conformal algebra of central charge `0` over 
             the real algebraic numbers::
 
                 sage: Vir = VirasoroLieConformalAlgebra(AA)
@@ -171,7 +171,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                 {0: L_-3|0>, 1: 2*L_-2|0>}
 
             We construct the universal enveloping vertex algebra of the
-            Virasoro Lie conformal algebra at central charge 2 over the
+            Virasoro Lie conformal algebra of central charge 2 over the
             rationals::
 
                 sage: Vir = VirasoroLieConformalAlgebra(QQ); 
@@ -410,10 +410,10 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 sage: V = VirasoroVertexAlgebra(QQ,1/2)
                 sage: Vir.lift.codomain()
-                The Virasoro vertex algebra at central charge 1/2
+                The Virasoro vertex algebra of central charge 1/2 over Rational Field
                 sage: V = VirasoroVertexAlgebra(QQ,3)
                 sage: Vir.lift.codomain()
-                The Virasoro vertex algebra at central charge 3
+                The Virasoro vertex algebra of central charge 3 over Rational Field
 
             Notice that recreation may not re-establish the right coercion
             depending on the method of construction::
@@ -428,7 +428,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 sage: V.register_lift()
                 sage: Vir.lift.codomain()
-                The Virasoro vertex algebra at central charge 1/2                
+                The Virasoro vertex algebra of central charge 1/2 over Rational Field
             """
             raise NotImplementedError("Not implemented")
         
@@ -604,8 +604,8 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 sage: LieConformalAlgebras(QQ).FinitelyGenerated().Graded().Super().super_categories()
                 [Category of finitely generated super Lie conformal algebras over Rational Field,
-                 Category of super H-graded Lie conformal algebras over Rational Field]
-
+                 Category of super H-graded Lie conformal algebras over Rational Field,
+                 Category of finitely generated H-graded Lie conformal algebras over Rational Field]
             """
             return [self.base_category(),]
 
@@ -789,8 +789,8 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                     sage: LieConformalAlgebras(QQ).FinitelyGenerated().Graded().Super().super_categories()
                     [Category of finitely generated super Lie conformal algebras over Rational Field,
-                     Category of super H-graded Lie conformal algebras over Rational Field]
-
+                     Category of super H-graded Lie conformal algebras over Rational Field,
+                     Category of finitely generated H-graded Lie conformal algebras over Rational Field]
                 """
                 return [self.base_category(),]
 

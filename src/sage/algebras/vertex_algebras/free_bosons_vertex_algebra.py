@@ -64,8 +64,8 @@ class FreeBosonsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         self._c = self._ngens
 
     def _repr_(self):
-        return "The Free Bosons vertex algebra with generators {}".\
-                format(self.gens())
+        return "The Free Bosons vertex algebra with generators {} over {}".\
+                format(self.gens(),self.base_ring())
 
 
 

@@ -97,7 +97,11 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
     def _repr_(self):
         if self.is_critical():
-            return "The universal affine vertex algebra of CartanType {} at critical level".format(self.cartan_type())
+            return "The universal affine vertex algebra of CartanType {} at"\
+                   " critical level over {}".format(self.cartan_type(),
+                   self.base_ring())
         else:
-            return "The universal affine vertex algebra of CartanType {0} at level {1}".format(self.cartan_type(), self.level())
+            return "The universal affine vertex algebra of CartanType {} at "\
+                   "level {} over {}".format(self.cartan_type(),
+                                             self.level(), self.base_ring())
 

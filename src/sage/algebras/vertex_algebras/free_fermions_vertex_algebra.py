@@ -68,8 +68,8 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         self._c = self._ngens/2
 
     def _repr_(self):
-        return "The Free Fermions super vertex algebra with generators {}".\
-                format(self.gens())
+        return "The Free Fermions super vertex algebra with generators {} over"\
+               " {}".format(self.gens(),self.base_ring())
 
 
 

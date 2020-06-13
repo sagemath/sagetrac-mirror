@@ -1,8 +1,9 @@
 r"""
-Poisson vertex algebras
-AUTHORS
+Poisson Vertex Algebras.
 
-- Reimundo Heluani (10-09-2019): Initial implementation
+AUTHORS:
+
+- Reimundo Heluani (10-09-2019): Initial implementation.
 
 .. include:: ../../../algebras/vertex_algebras/poisson_vertex_algebra_desc.rst
 
@@ -17,14 +18,14 @@ AUTHORS
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.categories.category_with_axiom import all_axioms as all_axioms
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.graded_modules import GradedModulesCategory
+from .lie_conformal_algebras import LieConformalAlgebras
+from .super_modules import SuperModulesCategory
 
 class PoissonVertexAlgebras(Category_over_base_ring):
 
@@ -65,7 +66,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             This returns ``self.FinitelyGeneratedAsMagma()`` implicitly using 
             only the algebra structure over `R[T]`.
             """
-            return self.FinitelyGeneratedAsMagma()
+            return self._with_axiom('FinitelyGeneratedAsMagma')
 
         def WithBasis(self):
             """
@@ -73,13 +74,38 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             """
             return self._with_axiom('WithBasis')
 
+        def Graded(self, base_ring=None):
+            """
+            The subcategory of H-Graded Poisson vertex algebras.
+
+            EXAMPLES::
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            if isinstance(self,CategoryWithAxiom_over_base_ring):
+                axioms_whitelist = frozenset(["WithBasis",
+                                    "FinitelyGeneratedAsMagma"])
+                axioms = axioms_whitelist.intersection(self.axioms())
+                return self.base_category().Graded()._with_axioms(axioms)
+            return GradedModulesCategory.category_of(self)
+
+        def Super(self, base_ring=None):
+            """
+            The subcategory of super Poisson vertex algebras.
+
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            if isinstance(self,CategoryWithAxiom_over_base_ring):
+                axioms_whitelist = frozenset(["WithBasis",
+                                    "FinitelyGeneratedAsVertexAlgebra"])
+                axioms = axioms_whitelist.intersection(self.axioms())
+                return self.base_category().Super()._with_axioms(axioms)
+            return SuperModulesCategory.category_of(self)
+
+
     class WithBasis(CategoryWithAxiom_over_base_ring):
-        def _repr_object_names(self):
-            """
-            The names of objects of this category
-            """
-            return "{} with basis".format(self.base_category().\
-                                          _repr_object_names())
+        class SubcategoryMethods:
+            def FinitelyGenerated(self):
+                return self._with_axiom("FinitelyGeneratedAsMagma")
 
         class ParentMethods:
             @abstract_method
@@ -90,155 +116,79 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                 raise NotImplementedError("Not implemented")
 
         class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
-            def _repr_object_names(self):
-                """
-                The names of objects of this category
-                """
-                return "finitely generated {}".format(self.base_category().\
-                                                      _repr_object_names())
-
+            pass
 
     class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
-        def _repr_object_names(self):
-            """
-            The names of objects of this category
-            """
-            return "finitely generated {}".format(self.base_category().\
-                                                  _repr_object_names())
+        
+        class WithBasis(CategoryWithAxiom_over_base_ring):
+            pass
 
         class ParentMethods:
             @abstract_method
             def gens(self):
-                """
-                The list of generators of this Poisson vertex algebra
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2);
-                    sage: P = PoissonVertexAlgebra(QQ,V)
-                    sage: P.gens()
-                    (L_-2|0>,)
-                    sage: P.0 in P
-                    True
-                    sage: P.inject_variables()
-                    Defining L
-                    sage: L*L*L
-                    L_-2L_-2L_-2|0>
-                    sage: L*L*L == L*(L*L)
-                    True
-                    sage: L in V
-                    False
-
-                    sage: L = V.0
-                    sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                    sage: Q = V.quotient(V.ideal(v))
-                    sage: P = PoissonVertexAlgebra(QQ,Q)
-                    sage: P.gens()
-                    ({2: {0: B[0]}},)
-                    sage: P.inject_variables()
-                    Defining L
-                    sage: L in P
-                    True
-                    sage: (L*L*L).is_zero()
-                    True
-
-                """
                 raise NotImplementedError("Not implemented")
 
             def ngens(self):
-                """
-                The number of generators of this Poisson vertex algebra
-                
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2);
-                    sage: P = PoissonVertexAlgebra(QQ,V)
-                    sage: P.ngens()
-                    1
-
-                 """
                 return len(self.gens())
+
+            def gen(self,i):
+                return self.gens()[i]
+
+    class Super(SuperModulesCategory):
+        def extra_super_categories(self):
+            return [self.base_category(),]
         
-        class ElementMethods:
-            def monomials(self):
+        class SubcategoryMethods:
+
+            def Graded(self, base_ring=None):
                 """
-                The monomials in this element
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-                    sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                    sage: Q = V.quotient(V.ideal(v))
-                    sage: P = PoissonVertexAlgebra(QQ,Q)
-                    sage: Q.inject_variables()
-                    Defining L
-                    sage: mon = P(L*L*L).monomials(); mon
-                    [{6: {2: 65/8*B[0]}}, {6: {2: 35/64*B[1]}}, {6: {4: 35/16*B[0]}}]
-                    sage: [m.lift() for m in mon]
-                    [65/8*L_-4L_-2|0>, 35/64*L_-3L_-3|0>, 35/16*L_-6|0>]
-
+                The subcategory of H-graded super Poisson vertex
+                algebras.
                 """
-                return tuple(v[1]*v[0] for v in 
-                             self.monomial_coefficients().items())
+                assert base_ring is None or base_ring is self.base_ring()
+                if isinstance(self,CategoryWithAxiom_over_base_ring):
+                    axioms_whitelist = frozenset(["WithBasis",
+                                        "FinitelyGeneratedAsMagma"])
+                    axioms = axioms_whitelist.intersection(self.axioms())
+                    return self.base_category().Graded()._with_axioms(axioms)
+
+                return GradedModulesCategory.category_of(
+                                         self.base_category()).Super()
+
+        class WithBasis(CategoryWithAxiom_over_base_ring):
+            """
+            The subcategory of super Poisson vertex algebras with basis.
+            """
+            pass
+
+        class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
+            class WithBasis(CategoryWithAxiom_over_base_ring):
+                pass
 
     class Graded(GradedModulesCategory):
         def _repr_object_names(self):
-            """
-            The names of objects of this category
-
-            TESTS::
-                sage: PoissonVertexAlgebras(QQ).WithBasis().Graded().__class__
-                <class 'sage.categories.poisson_vertex_algebras.PoissonVertexAlgebras.Graded.WithBasis_with_category'>
-                sage: PoissonVertexAlgebras(QQ).WithBasis().Graded() is PoissonVertexAlgebras(QQ).Graded().WithBasis()
-                True
-
-            """
             return "H-graded {}".format(self.base_category().\
                                         _repr_object_names())
 
-        class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
-            def _repr_object_names(self):
-                """
-                The names of objects of this category
-                """
-                return "finitely generated {}".format(self.base_category().\
-                                                      _repr_object_names())
+        class SubcategoryMethods:
 
-            class WithBasis(CategoryWithAxiom_over_base_ring):
-                def _repr_object_names(self):
-                    """
-                    The names of objects of this category
-                    """
-                    return "{} with basis".format(self.base_category().\
-                                                  _repr_object_names())
+            def Super(self, base_ring=None):
+                assert base_ring is None or base_ring is self.base_ring()
+                if isinstance(self,CategoryWithAxiom_over_base_ring):
+                    axioms_whitelist = frozenset(["WithBasis",
+                                        "FinitelyGeneratedAsMagma"])
+                    axioms = axioms_whitelist.intersection(self.axioms())
+                    return self.base_category().Super()._with_axioms(axioms)
+                return SuperModulesCategory.category_of(self)
 
+        class Super(SuperModulesCategory):
+            def extra_super_categories(self):
+                return [self.base_category(),]
 
         class WithBasis(CategoryWithAxiom_over_base_ring):
-            def _repr_object_names(self):
-                """
-                The names of objects of this category
-                """
-                return "{} with basis".format(self.base_category().\
-                                              _repr_object_names())
+            pass
 
-
-        class ElementMethods:
-            @abstract_method
-            def weight(self):
-                """
-                The conformal weight of this element
-
-                EXAMPLES::
-
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
-                    sage: P = PoissonVertexAlgebra(QQ,V)
-                    sage: P.0.weight()
-                    2
-                    sage: L = V.0; v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-                    sage: Q = V.quotient(V.ideal(v))
-                    sage: P = PoissonVertexAlgebra(QQ,Q)
-                    sage: P.0.weight()
-                    2
-
-                """
-                raise NotImplementedError("Not implemented")
+        class FinitelyGeneratedAsMagma(CategoryWithAxiom_over_base_ring):
+            class WithBasis(CategoryWithAxiom_over_base_ring):
+                pass
+ 
