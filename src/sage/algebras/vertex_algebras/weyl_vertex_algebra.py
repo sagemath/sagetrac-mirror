@@ -65,7 +65,8 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
                                             central_parameters=cp, names=names)
 
     def _repr_(self):
-        return "The Weyl vertex algebra with generators".format(self.gens())
+        return "The Weyl vertex algebra with generators {} over {}".format(
+                self.gens(),self.base_ring())
 
 
 

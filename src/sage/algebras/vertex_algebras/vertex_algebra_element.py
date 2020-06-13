@@ -16,17 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element_wrapper import ElementWrapper
 from sage.functions.other import binomial, factorial
-from sage.misc.misc_c import prod
-from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
-from sage.structure.element import parent
-from sage.combinat.partition_tuple import PartitionTuples_level
-from sage.combinat.partition import Partition
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.misc.misc import repr_lincomb
-from sage.misc.latex import latex
 
 class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
     """
@@ -60,8 +53,6 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         if self.is_zero():
             return "0";
         p = self.parent()
-        coeff = list(self.monomial_coefficients().items())
-        ret = ""
         if p.is_graded():
             terms = [("".join(["".join(["{}_{}".format(p._lca.gen(j),\
             1-i-p._lca.gen(j).degree()) for i in mu])\
@@ -88,8 +79,6 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         if self.is_zero():
             return "0";
         p = self.parent()
-        coeff = list(self.monomial_coefficients().items())
-        ret = ""
         if p.is_graded():
             terms = [("".join(["".join(["{}_{{{}}}".format(p._lca.gen(j),\
             1-i-p._lca.gen(j).degree()) for i in mu]) for j,mu in enumerate(k)]\
@@ -108,7 +97,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         EXAMPLES::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
-            The Neveu-Schwarz super vertex algebra at central charge 1/2
+            The Neveu-Schwarz super vertex algebra at central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
             sage: G.is_even_odd()
@@ -121,11 +110,11 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         TESTS::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); v = V.an_element(); v
-            4*G_-3/2|0> + |0> + 2*L_-2|0>
+            |0> + 2*G_-3/2|0> + 3*L_-2|0>
             sage: v.is_odd()
             Traceback (most recent call last):
             ...
-            ValueError: 4*G_-3/2|0> + |0> + 2*L_-2|0> is not homogeneous
+            ValueError: |0> + 2*G_-3/2|0> + 3*L_-2|0> is not homogeneous
         """
         p = self.parent()
         if self.is_zero() or self.monomials() == [p.vacuum()]:
@@ -146,7 +135,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         EXAMPLES::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
-            The Neveu-Schwarz super vertex algebra at central charge 1/2
+            The Neveu-Schwarz super vertex algebra at central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
             sage: G.is_even_odd()
@@ -165,7 +154,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         EXAMPLES::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
-            The Neveu-Schwarz super vertex algebra at central charge 1/2
+            The Neveu-Schwarz super vertex algebra at central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
             sage: G.is_even_odd()
@@ -190,7 +179,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         We consider the bosonization of the charged Fermions::
 
             sage: V = FreeFermionsVertexAlgebra(QQ, gram_matrix=Matrix([[0,1],[1,0]])); V
-            The Free Fermions super vertex algebra with generators (psi_0_-1/2|0>, psi_1_-1/2|0>)
+            The Free Fermions super vertex algebra with generators (psi_0_-1/2|0>, psi_1_-1/2|0>) over Rational Field
             sage: V.inject_variables()
             Defining psi_0, psi_1
             sage: alpha = psi_0*psi_1; alpha.bracket(alpha)
@@ -199,7 +188,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         We check the standard conformal vector of the Free Fermions::
 
             sage: V = FreeFermionsVertexAlgebra(QQ); V
-            The Free Fermions super vertex algebra with generators (psi_-1/2|0>,)
+            The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
             sage: V.inject_variables()
             Defining psi
             sage: L = 1/2*psi.T()*psi
@@ -211,7 +200,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         A similar computation for the free Boson::
 
             sage: V = FreeBosonsVertexAlgebra(QQ); V
-            The Free Bosons vertex algebra with generators (alpha_-1|0>,)
+            The Free Bosons vertex algebra with generators (alpha_-1|0>,) over Rational Field
             sage: V.inject_variables()
             Defining alpha
             sage: L = 1/2*alpha*alpha
@@ -223,7 +212,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         The topological twist of the `N=2` super vertex algebra::
 
             sage: V = N2VertexAlgebra(QQ,3/2); V
-            The N=2 super vertex algebra at central charge 3/2
+            The N=2 super vertex algebra at central charge 3/2 over Rational Field
             sage: V.inject_variables()
             Defining L, J, G1, G2
             sage: Lm = L - 1/2*J.T(); Family(Lm.bracket(Lm))
@@ -333,7 +322,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         algebra of `\mathfrak{sl}_2` at level ``1``::
 
             sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names = ('e','h', 'f')); V
-            The universal affine vertex algebra of CartanType ['A', 1] at level 1
+            The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
             sage: V.inject_variables()
             Defining e, h, f
             sage: L = 1/6*(e*f + h*h/2 + f*e); Family(L.bracket(L))
@@ -428,61 +417,6 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             return c*a.T()._mul_(b) + c*a._mul_(b.T())
 
         return sum(m.T() for m in self.terms())
-
-    def is_monomial(self):
-        """
-        Whether this element is a monomial.
-
-        .. WARNING::
-
-            The product on a vertex algebra is not associative nor
-            commutative, so this method relies on an explicit PBW
-            basis which is available for universal enveloping vertex
-            algebras.
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1); V.inject_variables()
-            Defining L
-            sage: L.T(2)*L
-            2*L_-4L_-2|0>
-            sage: (L.T(2)*L).is_monomial()
-            True
-            sage: L*L.T(2)
-            2*L_-4L_-2|0> + 4*L_-6|0>
-            sage: (L*L.T(2)).is_monomial()
-            False
-        """
-        return (len(self.monomial_coefficients()) == 1 or self.is_zero())
-
-    def index(self):
-        """
-        The basis index parametrizing this monomial element.
-
-        INPUT: a monomial in this vertex algebra.
-
-        EXAMPLES::
-
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names = ('e','h', 'f'));
-            sage: V.inject_variables()
-            Defining e, h, f
-            sage: v = e.T(3)*(e.T(2)*(e*(h.T()*(h*f)))); v
-            12*e_-4e_-3e_-1h_-2h_-1f_-1|0>
-            sage: v.index()
-            ([4, 3, 1], [2, 1], [1])
-
-            sage: v = f*e; v.index()
-            Traceback (most recent call last):
-            ...
-            ValueError: index can only be computed for monomials, got e_-1f_-1|0> - h_-2|0>
-        """
-        if self.is_zero():
-            return None
-        if not self.is_monomial():
-            raise ValueError ("index can only be computed for monomials,"\
-                              " got {}".format(self))
-
-        return next(iter(self.monomial_coefficients()))
 
     def weight(self):
         """
@@ -613,147 +547,6 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             return Infinity
         return min(m._li_filtration_monomial_degree() for m in self.monomials())
 
-    def is_singular(self):
-        r"""
-        Return whether this vector is a singular vector.
-
-        If `a \in V` is a vector in a finitely generated H-Graded
-        vertex algebra, then `a` is singular if for each homogeneous
-        vector `v in V` we have `v_n a = 0` whenever `n > 0`.
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-            sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-            sage: v.is_singular()
-            True
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 2); E = V.0;
-            sage: (E*E*E).is_singular()
-            True
-
-        """
-        p = self.parent()
-        if not p.is_graded():
-            raise ValueError("is_singular is only defined in H-graded "\
-                             "vertex algebras, got {}".format(p))
-        #The exception in weight is descriptive enough
-        weight = self.weight()
-
-        for g in p.gens():
-            gw = g.weight()
-            br = g._bracket_(self)
-            if any(not br.get(n+gw-1, p.zero()).is_zero() for
-                       n in range(1,weight+2)):
-                return False
-        return True
-
-    def _action_from_partition_tuple(self,pt,negative=True):
-        """
-        Helper function to apply elements of a vertex algebra
-        constructed from partitions.
-
-        INPUT:
-
-        - ``pt`` -- an index of the parent vertex algebra as returned
-          by :meth:`sage.structure.indexed_generators.indices`.
-        - ``negative`` -- boolean (default: `True`);
-
-        OUTPUT: the result of repeatedly applying
-        modes determined by ``p`` of the generators of
-        this vertex algebra to the vector ``self``. By default
-        negative modes are applied. Thus if `p = [[1]]` and `L` is
-        the unique generator of `V`, the mode `L_{-1}` will be
-        applied. If ``negative`` is `False`, non-negative modes are
-        applied instead. Thus in the example above `L_0` will be
-        applied.
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); vac = V.vacuum()
-            sage: vac._action_from_partition_tuple([[3,2]])
-            L_-3L_-2|0>
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,1); vac = V.vacuum()
-            sage: vac._action_from_partition_tuple([[2,2],[5/2,3/2]])
-            L_-2L_-2G_-5/2G_-3/2|0>
-            sage: V = AffineVertexAlgebra(QQ,'A1',2, names = ('e','h','f'));
-            sage: pt = V.indices().an_element(); pt.to_list()
-            [[1, 1, 1, 1], [2, 1, 1], [3, 1]]
-            sage: pt
-            ([1, 1, 1, 1], [2, 1, 1], [3, 1])
-            sage: pt = V.indices().an_element(); pt = pt.to_list()
-            sage: V.vacuum()._action_from_partition_tuple(pt)
-            e_-1e_-1e_-1e_-1h_-2h_-1h_-1f_-3f_-1|0>
-        """
-        p = self.parent()
-        if not p.is_graded():
-            raise ValueError("_action_from_partition_tuple is defined "\
-                             "on H-graded vertex algebras, got {}".format(p))
-
-        if not isinstance(pt,(tuple,list)) or len(pt) != p.ngens():
-            raise ValueError("pt needs to be a list of length {}".format(
-                             p.ngens()))
-
-        ret = self
-        pt = list(pt)
-        pt.reverse()
-        for j,mu in enumerate(pt):
-            mu.reverse()
-            g = p.gen(-j-1)
-            for n in mu:
-                if negative:
-                    ret = g.nmodeproduct(ret,-n)
-                else:
-                    ret = g.nmodeproduct(ret,n-1)
-        return ret
-
-    def homogeneous_terms(self):
-        """
-        Return a tuple with the homogeneous terms of this element.
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
-            sage: V.inject_variables()
-            Defining L
-            sage: (L+L.T(3) + L*L.T() + L.T(7)/factorial(7)).homogeneous_terms()
-            (L_-2|0>, 7*L_-5|0> + L_-3L_-2|0>, L_-9|0>)
-
-        TESTS::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1); V(0).homogeneous_terms()
-            (0)
-        """
-        if self.is_zero():
-            return tuple([self])
-        S = {}
-        p = self.parent()
-        if not p.is_graded():
-            raise ValueError("homogeneous_terms is implemented only on H-"\
-                             "graded vertex algebras, got {}".format(p))
-
-        for m in self.terms():
-            w = m.weight()
-            S[w] = S.get(w,p.zero()) + m
-        return tuple(S.values())
-
-    def is_homogeneous(self):
-        """
-        Whether this element is homogeneous with respect to conformal
-        weight
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0;
-            sage: L.is_homogeneous()
-            True
-            sage: (L + L.T()).is_homogeneous()
-            False
-        """
-        if not self.parent().is_graded():
-            raise ValueError("is_homogeneous is defined for H-graded vertex"\
-                             " algebras, got {}".format(self.parent()))
-        return self.is_zero() or len(self.homogeneous_terms()) == 1
-
 
     def pbw_filtration_degree(self):
         r"""
@@ -777,7 +570,6 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         """
         if self.is_zero():
             return -Infinity
-        p = self.parent()
         return max(sum(j.length() for j in p.components()) for p in\
                 self.monomial_coefficients())
 

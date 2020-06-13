@@ -38,7 +38,7 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         EXAMPLES::
 
             sage: V = VirasoroVertexAlgebra(QQ,1/2); V
-            The Virasoro vertex algebra at central charge 1/2
+            The Virasoro vertex algebra of central charge 1/2
 
         """
         from sage.algebras.lie_conformal_algebras.\
@@ -50,8 +50,8 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         self._c = c
 
     def _repr_(self):
-        return "The Virasoro vertex algebra at central charge {}".\
-                format(self.central_charge())
+        return "The Virasoro vertex algebra of central charge {} over {}".\
+                format(self.central_charge(),self.base_ring())
 
 
 

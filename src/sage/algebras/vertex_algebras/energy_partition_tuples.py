@@ -37,6 +37,126 @@ from .energy_partitions import EnergyPartitions, EnergyPartition
 from sage.structure.parent import Parent
 from sage.combinat.combinat import CombinatorialElement
 from sage.rings.integer_ring import ZZ
+from sage.structure.richcmp import op_LT, op_LE, op_GT, op_GE, op_EQ, op_NE,\
+                                   richcmp_method
+
+@richcmp_method
+class EnergyPartitionTuple(PartitionTuple):
+    """
+    Base class of EnergyPartitionTuples Element class
+    """
+    Element = EnergyPartition
+
+    def __init__(self,parent,mu):
+        """
+        Initialize this Energy Partition Tuple.
+
+        TESTS::
+
+            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+            sage: type(EnergyPartitionTuples((1/2,1/2),2).an_element()[0])
+            <class 'sage.algebras.vertex_algebras.energy_partitions.EnergyPartitions_all_with_category.element_class'>
+        """
+        #override PartitionTuples's init that explicitly set Partitions
+        mu = [EnergyPartitions(w,regular=r)(x) if r else EnergyPartitions(
+              w)(x) for w,r,x in zip(parent._weights,parent._regular,mu)]
+        CombinatorialElement.__init__(self,parent,mu)
+
+    def energy(self):
+        """
+        Return the total energy of this Energy Partition Tuple.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+            sage: v = EnergyPartitionTuples((1/2,3/2),2)([[5,1],[3,3]]); v.energy()
+            12
+
+        TESTS::
+
+            sage: EnergyPartitionTuples((1/2,1/2),2)([[],[]]).energy()
+            0
+        """
+        return sum(x.energy() for x in self)
+
+    def __richcmp__(self,other,op):
+        """
+        A comparison key between Energy Partition Tuples.
+
+        The order of the basis is used when constructing submodules and
+        quotients. In order to optimize the computations in the
+        classical limits it is important to have a basis ordering which
+        is compatible with the Li (or PBW in this case) filtration.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+            sage: EPT = EnergyPartitionTuples((2,3/2), 2, 9, regular=(0,2))
+            sage: EPT.list()
+            [([2, 1, 1, 1], []),
+             ([1, 1], [3, 1]),
+             ([2, 1], [2, 1]),
+             ([4, 1, 1], []),
+             ([3, 2, 1], []),
+             ([2, 2, 2], []),
+             ([1], [5, 1]),
+             ([1], [4, 2]),
+             ([2], [4, 1]),
+             ([4], [2, 1]),
+             ([3], [3, 1]),
+             ([2], [3, 2]),
+             ([6, 1], []),
+             ([5, 2], []),
+             ([4, 3], []),
+             ([], [7, 1]),
+             ([], [6, 2]),
+             ([], [5, 3]),
+             ([8], [])]
+        """
+        if op == op_EQ:
+            return self._list == other._list
+        if op == op_NE:
+            return self._list != other._list
+        if op == op_LT:
+            if self.energy() < other.energy():
+                return True
+            elif self.energy() > other.energy():
+                return False
+            #Li filtration:
+            if self.size() - sum(len(x) for x in self) < other.size() - sum(
+                len(x) for x in other):
+                return True
+            if self.size() - sum(len(x) for x in self) > other.size() - sum(
+                len(x) for x in other):
+                return False
+            #reverse lexicographic
+            ms = max(max(x, default=0) for x in self)
+            mo = max(max(x, default=0) for x in other)
+            if ms > mo:
+                return True
+            if ms < mo:
+                return False
+            exps = list(self.to_exp(ms))
+            exps.reverse()
+            for l in exps:
+                l.reverse()
+            expo = list(other.to_exp(ms))
+            expo.reverse()
+            for l in expo:
+                l.reverse()
+            for i in range(ms):
+                for a,b in zip(exps, expo):
+                    if a[i] > b[i]:
+                        return True
+                    if a[i] < b[i]:
+                        return False
+            raise ValueError("This should not happen s:{} o:{}".format(self,other))
+        if op == op_LE:
+            return self < other or self == other
+        if op == op_GT:
+            return not (self < other)
+        if op == op_GE:
+            return self > other or self == other
 
 
 
@@ -250,45 +370,7 @@ class EnergyPartitionTuples(PartitionTuples):
             category = FiniteEnumeratedSets()
         super(EnergyPartitionTuples,self).__init__(category=category)
 
-    class Element(PartitionTuple):
-        """
-        Base class of EnergyPartitionTuples Element class
-        """
-        Element = EnergyPartition
-
-        def __init__(self,parent,mu):
-            """
-            Initialize this Energy Partition Tuple.
-
-            TESTS::
-
-                sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-                sage: type(EnergyPartitionTuples((1/2,1/2),2).an_element()[0])
-                <class 'sage.algebras.vertex_algebras.energy_partitions.EnergyPartitions_all_with_category.element_class'>
-            """
-            #override PartitionTuples's init that explicitly set Partitions
-            mu = [EnergyPartitions(w,regular=r)(x) if r else EnergyPartitions(
-                  w)(x) for w,r,x in zip(parent._weights,parent._regular,mu)]
-            CombinatorialElement.__init__(self,parent,mu)
-
-        def energy(self):
-            """
-            Return the total energy of this Energy Partition Tuple.
-
-            EXAMPLES::
-
-                sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-                sage: v = EnergyPartitionTuples((1/2,3/2),2)([[5,1],[3,3]]); v.energy()
-                12
-
-            TESTS::
-
-                sage: EnergyPartitionTuples((1/2,1/2),2)([[],[]]).energy()
-                0
-            """
-
-
-            return sum(x.energy() for x in self)
+    Element = EnergyPartitionTuple
 
     def _element_constructor_(self, mu):
         """
@@ -407,13 +489,16 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
             eqns = [-n]+[[l*w] for w in self._weights] + [l]
             eqns = [flatten(eqns)]
             P = Polyhedron(ieqs=ieqs, eqns=eqns)
+            nlist = []
             for p in P.integral_points():
                 for x in IntegerVectors(p[-1],self._level):
                     for y in itertools.product(*[EnergyPartitions(
                              w,i+j*w,regular=r,length=j) if r else
                              EnergyPartitions(w,i+j*w,length=j)for w,r,i,j\
                              in zip(self._weights,self._regular,x,p[:-1])]):
-                        yield self.element_class(self,list(y))
+                        nlist.append(self.element_class(self,list(y)))
+            for z in sorted(nlist):
+                yield z
             n += 1
 
     def an_element(self):
@@ -432,6 +517,11 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
             return self[0]
         return self.element_class(self,PartitionTuples.an_element(self))
 
+    def subset(self, energy=None):
+        if energy is None:
+            return self
+        return EnergyPartitionTuples(self._weights, self._level, energy,
+                                     self._regular)
 
 class EnergyPartitionTuples_n(EnergyPartitionTuples):
     def __init__(self,weights,level,regular,energy):
@@ -526,13 +616,16 @@ class EnergyPartitionTuples_n(EnergyPartitionTuples):
         eqns = [-self._energy]+[[w] for w in self._weights] + [1]
         eqns = [flatten(eqns)]
         P = Polyhedron(ieqs=ieqs, eqns=eqns)
+        nlist = []
         for p in P.integral_points():
             for x in IntegerVectors(p[-1],self._level):
                 for y in itertools.product(*[EnergyPartitions(
                          w,i+j*w,regular=r,length=j) if r else
                          EnergyPartitions(w,i+j*w,length=j)for w,r,i,j\
                          in zip(self._weights,self._regular,x,p[:-1])]):
-                    yield self.element_class(self,list(y))
+                    nlist.append(self.element_class(self,list(y)))
+        for z in sorted(nlist):
+            yield z
 
     def an_element(self):
         """

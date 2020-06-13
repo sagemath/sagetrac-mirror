@@ -45,8 +45,8 @@ class NeveuSchwarzVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         self._c = c
 
     def _repr_(self):
-        return "The Neveu-Schwarz super vertex algebra at central charge {}"\
-                .format(self.central_charge())
+        return "The Neveu-Schwarz super vertex algebra of central charge {}"\
+               " over {}".format(self.central_charge(),self.base_ring())
 
 
 
