@@ -13,3 +13,6 @@ description-file = "README.rst"
 [tool.flit.scripts]
 #sage-env-config = "bin/sage-env-config"
 sage-config = "sage_conf:_main"
+
+[tool.flit.sdist]
+include = ["sage_conf.py"]
