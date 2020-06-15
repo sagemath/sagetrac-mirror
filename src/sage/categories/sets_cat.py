@@ -786,145 +786,19 @@ class Sets(Category_singleton):
             r"""
             Return the full subcategory of the facade objects of ``self``.
 
-            .. _facade-sets:
+            For background, see :ref:`What is a facade set? <facade-sets>`.
 
-            .. RUBRIC:: What is a facade set?
-
-            Recall that, in Sage, :ref:`sets are modelled by *parents*
-            <category-primer-parents-elements-categories>`, and their
-            elements know which distinguished set they belong to. For
-            example, the ring of integers `\ZZ` is modelled by the
-            parent :obj:`ZZ`, and integers know that they belong to
-            this set::
-
-                sage: ZZ
-                Integer Ring
-                sage: 42.parent()
-                Integer Ring
-
-            Sometimes, it is convenient to represent the elements of a
-            parent ``P`` by elements of some other parent. For
-            example, the elements of the set of prime numbers are
-            represented by plain integers::
-
-                sage: Primes()
-                Set of all prime numbers: 2, 3, 5, 7, ...
-                sage: p = Primes().an_element(); p
-                43
-                sage: p.parent()
-                Integer Ring
-
-            In this case, ``P`` is called a *facade set*.
-
-            This feature is advertised through the category of `P`::
+            EXAMPLES::
 
                 sage: Primes().category()
                 Category of facade infinite enumerated sets
                 sage: Sets().Facade()
                 Category of facade sets
 
-            Typical use cases include modeling a subset of an existing
-            parent::
-
-                sage: Set([4,6,9])                    # random
-                {4, 6, 9}
-                sage: Sets().Facade().example()
-                An example of facade set: the monoid of positive integers
-
-            or the union of several parents::
-
-                sage: Sets().Facade().example("union")
-                An example of a facade set: the integers completed by +-infinity
-
-            or endowing an existing parent with more (or less!)
-            structure::
-
-                sage: Posets().example("facade")
-                An example of a facade poset: the positive integers ordered by divisibility
-
-            Let us investigate in detail a close variant of this last
-            example: let `P` be set of divisors of `12` partially
-            ordered by divisibility. There are two options for
-            representing its elements:
-
-            1. as plain integers::
-
-                sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
-
-            2. as integers, modified to be aware that their parent is `P`::
-
-                sage: Q = Poset((divisors(12), attrcall("divides")), facade=False)
-
-            The advantage of option 1. is that one needs not do
-            conversions back and forth between `P` and `\ZZ`. The
-            disadvantage is that this introduces an ambiguity when
-            writing `2 < 3`: does this compare `2` and `3` w.r.t. the
-            natural order on integers or w.r.t. divisibility?::
-
-                sage: 2 < 3
-                True
-
-            To raise this ambiguity, one needs to explicitly specify
-            the underlying poset as in `2 <_P 3`::
-
-                sage: P = Posets().example("facade")
-                sage: P.lt(2,3)
-                False
-
-            On the other hand, with option 2. and once constructed,
-            the elements know unambiguously how to compare
-            themselves::
-
-                sage: Q(2) < Q(3)
-                False
-                sage: Q(2) < Q(6)
-                True
-
-            Beware that ``P(2)`` is still the integer `2`. Therefore
-            ``P(2) < P(3)`` still compares `2` and `3` as integers!::
-
-                sage: P(2) < P(3)
-                True
-
-            In short `P` being a facade parent is one of the programmatic
-            counterparts (with e.g. coercions) of the usual mathematical idiom:
-            "for ease of notation, we identify an element of `P` with the
-            corresponding integer". Too many identifications lead to
-            confusion; the lack thereof leads to heavy, if not obfuscated,
-            notations. Finding the right balance is an art, and even though
-            there are common guidelines, it is ultimately up to the writer to
-            choose which identifications to do. This is no different in code.
-
-            .. SEEALSO::
-
-               The following examples illustrate various ways to
-               implement subsets like the set of prime numbers; look
-               at their code for details::
-
-                   sage: Sets().example("facade")
-                   Set of prime numbers (facade implementation)
-                   sage: Sets().example("inherits")
-                   Set of prime numbers
-                   sage: Sets().example("wrapper")
-                   Set of prime numbers (wrapper implementation)
-
-            .. RUBRIC:: Specifications
-
-            A parent which is a facade must either:
-
-            - call :meth:`Parent.__init__` using the ``facade`` parameter to
-              specify a parent, or tuple thereof.
-            - overload the method :meth:`~Sets.Facade.ParentMethods.facade_for`.
-
-            .. NOTE::
-
-                The concept of facade parents was originally introduced
-                in the computer algebra system MuPAD.
-
             TESTS:
 
-            Check that multiple categories initialisation
-            works (:trac:`13801`)::
+            Check that multiple categories initialisation works
+            (:trac:`13801`)::
 
                 sage: class A(Parent):
                 ....:   def __init__(self):
@@ -1270,9 +1144,11 @@ class Sets(Category_singleton):
 
             for x in S:
                 for y in S:
-                    if not x == y: continue
+                    if not x == y:
+                        continue
                     for z in S:
-                        if not y == z: continue
+                        if not y == z:
+                            continue
                         tester.assertTrue(x == z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
@@ -2241,7 +2117,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 except (AttributeError, NotImplementedError):
                     pass
                 else:
-                    if test: return test
+                    if test:
+                        return test
                 return all(c.is_finite() for c in f)
 
             def cardinality(self):
