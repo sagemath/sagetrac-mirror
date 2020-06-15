@@ -1185,8 +1185,8 @@ class kSplit(CombinatorialFreeModule):
             \{ s_{\lambda}^{(k)}[X;t] \}_{\lambda_1 \le k}
 
         where `Q'_\lambda[X;t]` are the Hall-Littlewood symmetric functions
-        (using the notation of [MAC]_) and `s_{\lambda}^{(k)}[X;t]` are the
-        `k`-Schur functions.  If `t` is not a root of unity, then
+        (using the notation of [Mac1995]_) and `s_{\lambda}^{(k)}[X;t]` are
+        the `k`-Schur functions.  If `t` is not a root of unity, then
 
         .. MATH::
 

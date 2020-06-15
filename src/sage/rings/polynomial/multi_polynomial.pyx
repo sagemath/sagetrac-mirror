@@ -1607,7 +1607,8 @@ cdef class MPolynomial(CommutativeRingElement):
         the resultant of universal polynomials as well as polynomials
         with constant coefficients. This is a project done in
         sage days 55. It's based on the implementation in Maple by
-        Manfred Minimair, which in turn is based on the references [CLO], [Can], [Mac].
+        Manfred Minimair, which in turn is based on the references
+        [CLO], [Can], [Mac].
         It calculates the Macaulay resultant for a list of Polynomials,
         up to sign!
 

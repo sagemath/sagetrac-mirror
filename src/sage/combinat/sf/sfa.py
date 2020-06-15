@@ -18,6 +18,8 @@ integer partitions::
     sage: s.basis().keys()
     Partitions
 
+TESTS:
+
 Let us compute with some elements in different bases::
 
     sage: f1 = s([2,1]); f1
@@ -157,8 +159,6 @@ Here are further examples::
     [[1, 1, 1], [2, 1]]
     sage: z.degree()
     3
-
-TESTS:
 
 Check that we can handle large integers properly (:trac:`13413`)::
 
@@ -780,7 +780,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             Let `\lambda` be a partition. The *Gessel-Reutenauer
             symmetric function* `\mathbf{GR}_\lambda` corresponding to
             `\lambda` is the symmetric function denoted `L_\lambda` in
-            [GR1993]_ and in Exercise 7.89 of [STA]_ and denoted
+            [GR1993]_ and in Exercise 7.89 of [EnumComb2]_ and denoted
             `\mathbf{GR}_\lambda` in Definition 6.6.34 of [GriRei18]_.
             It can be defined in several ways:
 
@@ -2619,9 +2619,9 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if ps == 'lex':
             self.print_options(sorting_key=lambda x: x)
         elif ps == 'length':
-            self.print_options(sorting_key=lambda x: len(x))
+            self.print_options(sorting_key=lambda x: (len(x), x))
         elif ps == 'maximal_part':
-            self.print_options(sorting_key=lambda x: _lmax(x))
+            self.print_options(sorting_key=lambda x: (_lmax(x), len(x), x))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps
@@ -4646,13 +4646,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:      for lam in Partitions(4) )
             True
 
-        By Exercise 7.61 in Stanley's EC2 [STA]_ (see the errata on his
-        website), `\mathbf{f}_n(h_m)` is a linear combination of
-        Schur polynomials (of straight shapes) using coefficients `0`,
-        `1` and `-1` only; moreover, all partitions whose Schur
-        polynomials occur with coefficient `\neq 0` in this
-        combination have empty `n`-cores. Let us check this on
-        examples::
+        By Exercise 7.61 in Stanley's EC2 [EnumComb2]_ (see the
+        errata on his website), `\mathbf{f}_n(h_m)` is a linear
+        combination of Schur polynomials (of straight shapes)
+        using coefficients `0`, `1` and `-1` only; moreover, all
+        partitions whose Schur polynomials occur with coefficient
+        `\neq 0` in this combination have empty `n`-cores. Let us
+        check this on examples::
 
             sage: all( all( all( (coeff == -1 or coeff == 1)
             ....:                and lam.core(n) == Partition([])
@@ -4671,7 +4671,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             bases, while all other bases get converted to the
             monomial basis. For most bases, this is probably the
             quickest way to do, but at least the Schur basis should
-            have a better option. (Quoting from Stanley's EC2 [STA]_:
+            have a better option. (Quoting from Stanley's EC2 [EnumComb2]_:
             "D. G. Duncan, J. London Math. Soc. 27 (1952), 235-236,
             or Y. M. Chen, A. M. Garsia, and J. B. Remmel, Contemp.
             Math. 34 (1984), 109-153".)
@@ -4724,7 +4724,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         The action of the `n`-th Verschiebung operator on the Schur basis
         can also be computed explicitly. The following (probably clumsier
         than necessary) description can be obtained by solving exercise
-        7.61 in Stanley's [STA]_.
+        7.61 in Stanley's [EnumComb2]_.
 
         Let `\lambda` be a partition. Let `n` be a positive integer. If
         the `n`-core of `\lambda` is nonempty, then

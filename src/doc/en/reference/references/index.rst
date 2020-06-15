@@ -2085,6 +2085,11 @@ REFERENCES:
              und Geometrie", Dissertation, University of
              Bayreuth, 2013.
 
+.. [FD06] Francois Descouens, *Making research on symmetric functions using MuPAD-Combinat*.
+          In 2nd International Congress on Mathematical Software (ICMS'06),
+          volume 4151 of LNCS, pages 407-418, Castro Urdiales, Spain, September 2006. Springer-Verlag.
+          :arxiv:`0806.1873`
+
 .. [FG1965] Fulkerson, D.R. and Gross, OA,
             *Incidence matrices and interval graphs*.
             Pacific J. Math 1965,
@@ -2093,7 +2098,7 @@ REFERENCES:
 
 .. [FH2015] \J. A. de Faria, B. Hutz. *Combinatorics of Cycle Lengths on
             Wehler K3 Surfaces over finite fields*. New Zealand Journal
-            of Mathematics 45 (2015), 19–31.
+            of Mathematics 45 (2015), 19-31.
 
 .. [FIV2012] \H. Fournier, A. Ismail, and A. Vigneron. *Computing the Gromov
              hyperbolicity of a discrete metric space*. 2012.
@@ -2791,6 +2796,11 @@ REFERENCES:
 
 .. [HSV2006] Hess, Smart, Vercauteren, "The Eta Pairing Revisited",
              IEEE Trans. Information Theory, 52(10): 4595-4602, 2006.
+             
+.. [HT04] Florent Hivert and Nicolas M. Thiery,
+          MuPAD-Combinat, an open-source package for research in algebraic combinatorics.
+          Sem. Lothar. Combin., 51 :Art. B51z, 70 pp. (electronic), 2004.
+          http://mupad-combinat.sf.net/.
 
 .. [HT1972] Samuel Huang and Dov Tamari.
             *Problems of associativity: A simple proof for the lattice property
@@ -4899,6 +4909,11 @@ REFERENCES:
             Kirillov-Reshetikhin crystals, and the energy function*.
             Electronic Journal of Combinatorics. **19(2)**. 2012.
             :arxiv:`1104.2359`
+
+.. [ST94]  Scharf, Thomas, Thibon, Jean-Yves,
+           A Hopf-algebra approach to inner plethysm.
+           Adv. Math.  104  (1994),  no. 1, 30-58.
+           :doi:`10.1006/aima.1994.1019`
 
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
