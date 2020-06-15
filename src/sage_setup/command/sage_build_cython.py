@@ -18,8 +18,6 @@ from sage_setup.util import stable_uniq, have_module
 from sage_setup.find import find_extra_files
 from sage_setup.library_order import library_order
 
-from sage.env import (cython_aliases, sage_include_directories)
-
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
 # [At least at the moment. Make sure the headers aren't copied with "-p",
@@ -57,8 +55,13 @@ import subprocess
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
     extra_compile_args.append('-fno-tree-copyrename')
 
-# Search for dependencies in the source tree and add to the list of include directories
-include_dirs = sage_include_directories(use_sources=True)
+try:
+    from sage.env import (cython_aliases, sage_include_directories)
+    # Search for dependencies in the source tree and add to the list of include directories
+    include_dirs = sage_include_directories(use_sources=True)
+except ModuleNotFoundError:
+    cython_aliases = {}
+    sage_include_directories = []
 
 # Look for libraries only in what is configured already through distutils
 # and environment variables
