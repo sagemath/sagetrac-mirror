@@ -74,8 +74,12 @@ except ValueError:
 # listed here will be added at the end of the list (without changing
 # their relative order). There is one exception: stdc++ is always put
 # at the very end of the list.
-from sage.env import cython_aliases
-aliases = cython_aliases()
+try:
+    from sage.env import cython_aliases
+    aliases = cython_aliases()
+except ModuleNotFoundError:
+    from collections import defaultdict
+    aliases = defaultdict(list)
 
 arb_dylib_name = aliases["ARB_LIBRARY"]
 library_order_list = aliases["SINGULAR_LIBRARIES"] + [
