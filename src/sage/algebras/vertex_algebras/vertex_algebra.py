@@ -137,7 +137,7 @@ class VertexAlgebra(UniqueRepresentation):
 
         raise NotImplementedError("Not Implemented")
 
-    def __init__(self, R, category=None,names=None,latex_names=None):
+    def __init__(self, R, category=None, names=None, latex_names=None):
         r"""Vertex algebras base class and factory
 
         INPUT:

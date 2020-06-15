@@ -79,7 +79,19 @@ from sage.structure.element import MonoidElement
 from sage.misc.lazy_import import lazy_import
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomial_libsingular
-lazy_import('sage.algebras.vertex_algebras.poisson_vertex_algebra','partmultiply')
+from sage.rings.all import ZZ
+
+def partmultiply(p1,p2):
+    ng = len(p1)
+    ret = [[]]*(ng)
+    for j in range(len(p1)):
+        l1 = p1[j].to_exp()
+        l2 = p2[j].to_exp()
+        m = max(len(l1), len(l2))
+        l1 = p1[j].to_exp(m)
+        l2 = p2[j].to_exp(m)
+        ret[j] = Partition(exp=[l1[i]+l2[i] for i in range(m)])
+    return ret
 
 class DifferentialIdeal(MonoidElement):
     def __init__(self, ambient, gens, coerce=True):
@@ -204,7 +216,7 @@ class DifferentialIdeal(MonoidElement):
         GBLM = [a.lm() for a in GB if a.degree() < ord + 1]
         J = P.ideal(GBLM)
         mydegreelist = [d.degree() for d in P.gens()] 
-        q = PowerSeriesRing(P.base_ring(),'q',default_prec=ord+1).gen()
+        q = PowerSeriesRing(ZZ,'q',default_prec=ord+1).gen()
         return J.hilbert_series(grading=mydegreelist)(q)
 
     def reduce(self, x):

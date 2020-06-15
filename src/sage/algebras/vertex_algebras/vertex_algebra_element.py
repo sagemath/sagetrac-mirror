@@ -57,7 +57,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             terms = [("".join(["".join(["{}_{}".format(p._lca.gen(j),\
             1-i-p._lca.gen(j).degree()) for i in mu])\
             for j,mu in enumerate(k)]), v) for k,v in \
-            self.monomial_coefficients().items()]
+            sorted(self.monomial_coefficients().items())]
         else:
             terms = [("".join(["".join(["{}_({})".format(p._lca.gen(j),-i)\
             for i in mu]) for j,mu in enumerate(k)]), v) for k,v in \
@@ -82,7 +82,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         if p.is_graded():
             terms = [("".join(["".join(["{}_{{{}}}".format(p._lca.gen(j),\
             1-i-p._lca.gen(j).degree()) for i in mu]) for j,mu in enumerate(k)]\
-            ), v) for k,v in self.monomial_coefficients().items()]
+            ), v) for k,v in sorted(self.monomial_coefficients().items())]
         else:
             terms = [("".join(["".join(["{}_{{({})}}".format(p._lca.gen(j),-i)\
             for i in mu]) for j,mu in enumerate(k)]), v) for k,v in \
@@ -258,7 +258,8 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
                     parsgn = 1
                 br = other._bracket_(self)
                 ret = {n: -sum([parsgn*(-1)**(k)*v.T(k-n)/factorial(k-n)\
-                    for k,v in br.items() if k >= n]) for n in range(max(br)+1)}
+                    for k,v in br.items() if k >= n]) for n in range(max(br,
+                    default=0)+1)}
                 return {k:v for k,v in ret.items() if v}
             #Use Non-Commutative Wick-Formula
             br1 = self._bracket_(a2)
@@ -504,48 +505,6 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             return idx.size() - sum(len(j) for j in idx)
         raise ValueError("_li_filtration_monomial_degree is only defined"\
                          " for monomials, got {}".format(self))
-
-    def li_filtration_lt(self):
-        """
-        The leading terms of this element with respect to the Li
-        filtration.
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V.inject_variables(); V.register_lift()
-            Defining L
-            sage: v = L*(L*L) - 33/16*L.T(2)*L + 93/64*L.T()*L.T() - 27/384*L.T(4); v
-            L_-2L_-2L_-2|0> - 33/8*L_-4L_-2|0> + 93/64*L_-3L_-3|0> - 27/16*L_-6|0>
-            sage: v.li_filtration_lt()
-            L_-2L_-2L_-2|0>
-            sage: v.li_filtration_degree()
-            0
-        """
-        if self.is_zero():
-            return self
-        lt = [(m._li_filtration_monomial_degree(),m) for m in self.terms()]
-        lideg = min(k for k,v in lt)
-        return sum(v for k,v in lt if k==lideg)
-
-    def li_filtration_degree(self):
-        r"""
-        The minimum `p` such that this element belongs to the `p`-th
-        filtered part of this vertex algebra.
-
-        EXAMPLES::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V.inject_variables()
-            Defining L
-            sage: v = L*(L*L) - 33/16*L.T(2)*L + 93/64*L.T()*L.T() - 27/384*L.T(4); v
-            L_-2L_-2L_-2|0> - 33/8*L_-4L_-2|0> + 93/64*L_-3L_-3|0> - 27/16*L_-6|0>
-            sage: v.li_filtration_lt()
-            L_-2L_-2L_-2|0>
-            sage: v.li_filtration_degree()
-            0
-        """
-        if self.is_zero():
-            return Infinity
-        return min(m._li_filtration_monomial_degree() for m in self.monomials())
 
 
     def pbw_filtration_degree(self):

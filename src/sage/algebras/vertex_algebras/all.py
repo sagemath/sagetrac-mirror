@@ -18,7 +18,5 @@ lazy_import('sage.algebras.vertex_algebras.neveu_schwarz_vertex_algebra',
 'NeveuSchwarzVertexAlgebra')
 lazy_import('sage.algebras.vertex_algebras.n2_vertex_algebra',
 'N2VertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.poisson_vertex_algebra',
-'PoissonVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.graded_algebra_with_derivation',
-'AffineArcAlgebra')
+lazy_import('sage.algebras.vertex_algebras.abelian_vertex_algebra',
+'AbelianVertexAlgebra')

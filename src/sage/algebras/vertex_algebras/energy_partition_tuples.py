@@ -132,9 +132,9 @@ class EnergyPartitionTuple(PartitionTuple):
             #reverse lexicographic
             ms = max(max(x, default=0) for x in self)
             mo = max(max(x, default=0) for x in other)
-            if ms > mo:
-                return True
             if ms < mo:
+                return True
+            if ms > mo:
                 return False
             exps = list(self.to_exp(ms))
             exps.reverse()
@@ -146,9 +146,9 @@ class EnergyPartitionTuple(PartitionTuple):
                 l.reverse()
             for i in range(ms):
                 for a,b in zip(exps, expo):
-                    if a[i] > b[i]:
-                        return True
                     if a[i] < b[i]:
+                        return True
+                    if a[i] > b[i]:
                         return False
             raise ValueError("This should not happen s:{} o:{}".format(self,other))
         if op == op_LE:

@@ -91,7 +91,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             basis = PartitionTuples(level=self._ngens,regular=regular)
         CombinatorialFreeModule.__init__(self, R, basis_keys=basis,
                         category=category,
-                        element_class=UniversalEnvelopingVertexAlgebraElement) 
+                        element_class=UniversalEnvelopingVertexAlgebraElement)
         self.register_lift()
 
 
@@ -117,7 +117,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         If this vertex algebra is the universal enveloping vertex
         algebra of the Lie conformal algebra `L`, register a new
-        coercion from `L`. 
+        coercion from `L`.
 
         .. SEEALSO::
 
@@ -125,7 +125,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: L = VirasoroLieConformalAlgebra(QQ); 
+            sage: L = VirasoroLieConformalAlgebra(QQ);
             sage: V = L.universal_enveloping_algebra()
             sage: L.lift
             Generic morphism:
@@ -148,7 +148,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
         newlift = _LiftMorphism(Hom(self._lca, self,
                         category = LieConformalAlgebras(self._lca.base_ring())))
         self._lca.set_lift(newlift)
-    
+
     @cached_method
     def gens(self):
         """
@@ -186,7 +186,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
     def central_parameters(self):
         """
         The central character used to construct this universal
-        enveloping vertex algebra. 
+        enveloping vertex algebra.
 
         EXAMPLES::
 
@@ -194,7 +194,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             Finite family {K: 1}
         """
         return self._central_parameters
-    
+
     @cached_method
     def vacuum(self):
         """
@@ -208,43 +208,6 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
         vac = [[],]*self.ngens()
         return self(vac)
 
-    def classical_limit(self):
-        """
-        The Poisson vertex algebra classical limit of this vertex algebra
-
-        EXAMPLES:
-
-        We construct the classical limit of the universal Virasoro vertex
-        algebra of central charge `1/2`::
-
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2)
-            sage: P = V.classical_limit()
-            sage: V.inject_variables()
-            Defining L
-            sage: (L*L)*L == L*(L*L)
-            False
-            sage: (P(L)*P(L))*P(L) == P(L)*(P(L)*P(L))
-            True
-            sage: L.bracket(L)
-            {0: L_-3|0>, 1: 2*L_-2|0>, 3: 1/4*|0>}
-            sage: P(L).bracket(P(L))
-            {}
-
-        We construct the classical limit of the *Ising* model::
-
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-            sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-            sage: Q = V.quotient(V.ideal(v)); P = Q.classical_limit()
-            sage: L*(L*L)
-            L_-2L_-2L_-2|0>
-            sage: Q(L)*(Q(L)*Q(L))
-            33/8*L_-4L_-2|0>-93/64*L_-3L_-3|0>+27/16*L_-6|0>
-            sage: P(L)*(P(L)*P(L)) == P.zero()
-            True
-
-        """
-        from .poisson_vertex_algebra import PoissonVertexAlgebra
-        return PoissonVertexAlgebra(self.base_ring(), self)
 
     def li_filtration(self,n,k=None):
         r"""Let `V` be this vertex algebra and `V_n` its conformal weight `n`
@@ -332,35 +295,25 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
         from .vertex_algebra_quotient import VertexAlgebraQuotient
         return VertexAlgebraQuotient(I,category=self.category().Quotients())
 
-    def arc_algebra(self, termorder='wdegrevlex'):
+    def singular_support(self):
         r"""
-        The algebra of functions of the arc space of the `C_2`
-        quotient of this Vertex algebra.
+        The algebra of functions of the singular support of this
+        vertex algebra.
 
-
-        INPUT:
-
-        - ``termorder`` a string (default: ``'wdegrevlex'``); the
-          monomial ordering of the algebra.
-
-        OUTPUT: The graded Poisson vertex algebra freely generated
+        The graded Poisson vertex algebra freely generated
         as a differential algebra by the `C_2` quotient of this
         vertex algebra.
 
-        TODO: we only support arc algebras of universal enveloping
-        vertex algebras and their quotients.
+        .. TODO::
+
+            We only support arc algebras of universal enveloping
+            vertex algebras and their quotients.
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2); Q=V.quotient(V.ideal(V.find_singular(6)[0]))
-            sage: Q.arc_algebra()
-            Quotient of The arc algebra over Rational Field generated by ('L',) by the differential ideal generated by (L_2^3,)
-            sage: V.arc_space()
-            The arc algebra over Rational Field generated by ('L',)
+            sage: V = VirasoroVertexAlgebra(QQ, 1/2); P = V.singular_support()
+            sage: P.category()
+            Category of finitely generated H-graded Poisson vertex algebras with basis over Rational Field
+            sage: P is V.classical_limit()
         """
-        from sage.algebras.vertex_algebras.poisson_vertex_algebra \
-                import VertexAlgebraArcAlgebra
-        return VertexAlgebraArcAlgebra(self, termorder)
-
-
-
+        return self.classical_limit()
