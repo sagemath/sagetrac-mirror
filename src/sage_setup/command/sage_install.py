@@ -5,7 +5,7 @@
 import os
 import time
 from distutils import log
-from distutils.command.install import install
+from setuptools.command.install import install
 
 class sage_install(install):
     def run(self):

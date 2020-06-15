@@ -37,7 +37,26 @@ export SAGE_SHARE=/doesnotexist
 # export SAGE_LOCAL=/doesnotexist
 
 # --single-version-externally-managed prevents setuptools from installing an egg
-time "$PYTHON" -u setup.py --no-user-cfg build install --single-version-externally-managed --root / || exit 1
+#time "$PYTHON" -u setup.py --no-user-cfg build install --single-version-externally-managed --root / || exit 1
+
+# However, setuptools.command.install_lib installs too much (via copy_tree).
+# FIXME: This should be fixed by a custom install command provided by sage_setup that uses find_extra_files
+# and respects sage_setup
+
+# Until this is ready, we just build an sdist (driven by MANIFEST.in):
+# - build/pkgs/sage_tdlib/src/MANIFEST.in includes/grafts some files/directories,
+# - build/pkgs/sagelib/src/MANIFEST.in excludes/prunes the same files/directories.
+# Then we pip-install the sdist.
+
+# (This duplicates the information encoded in the sage_setup directives in the files,
+# and is therefore not a good long-term solution.)
+
+dist_dir="$SAGE_DISTFILES"
+sage-python23 -u setup.py --no-user-cfg sdist --dist-dir "$dist_dir" || exit 1
+archive="$dist_dir"/$(sage-python23 -u setup.py --no-user-cfg --fullname | tail -1 2>/dev/null).tar.gz || exit 1
+# TODO: Go through sage-pip-install
+sage-python23 -m pip install --ignore-installed --verbose --no-deps --no-index --isolated --no-build-isolation "$archive" || exit 1
+
 if [ "$UNAME" = "CYGWIN" ]; then
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;
 fi

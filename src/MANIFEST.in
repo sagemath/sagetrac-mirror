@@ -36,3 +36,7 @@ graft   doc/en/prep/media
 prune   doc/en/reference/*/sage
 prune   doc/en/reference/*/sagenb
 prune   doc/output
+
+# sage-tdlib
+exclude sage/graphs/graph_decompositions/tdlib*
+prune sage/graphs/graph_decompositions/tdlib

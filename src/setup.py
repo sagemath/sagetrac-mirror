@@ -82,6 +82,7 @@ import Cython.Build.Cythonize
 import Cython.Utils
 Cython.Utils.is_package_dir = Cython.Build.Cythonize.is_package_dir = Cython.Build.Dependencies.is_package_dir = is_package_or_namespace_package_dir
 
+from sage_setup.command.sage_install_lib import sage_install_lib
 from sage_setup.command.sage_install import sage_install
 
 #########################################################
@@ -128,5 +129,6 @@ code = setup(name = 'sage',
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,
+                      install_lib=sage_install_lib,
                       install=sage_install),
       ext_modules = cython_modules)
