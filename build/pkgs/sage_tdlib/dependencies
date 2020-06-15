@@ -1,1 +1,1 @@
-tdlib
+sagelib tdlib | $(PYTHON_TOOLCHAIN)
