@@ -301,3 +301,65 @@ def twograph_descendant(G, v, name=None):
     else:
         G.name('')
     return G
+
+def two_graph( n,l=None, regular=True, existence=False, check=True):
+    r"""
+    Return a two-graph on `n` points. If `regular` is `True`, then `l` must be specified
+    and represents the `\lambda` value of the two-graph seen as a 2-design.
+
+    INPUT:
+
+    - ``n`` -- number of points of the two-grap
+
+    - ``l`` -- `\lambda` value for the two-graph if regular; default: None
+
+    - ``regular`` -- if `True` Sage tries to build a regular two-graph; default: True
+
+    - ``existence`` -- if `True` this function returns `True` if Sage can build a two-graph with
+      the given input; it returns `False` if such two-graph doesn't exists and it returns `Unkown` otherwise.
+
+    - ``check`` -- if `True` it checks that the two-graph built is a two-graph. If `regular` is also `True`,
+      then it also check that the two-graph is regular.
+
+    EXAMPLES:
+
+
+    TESTS::
+
+
+    """
+
+    def do_check(D):
+        if not check: return#check disabled
+        if not is_twograph(D):
+            raise RuntimeError("Sage built an incorrect two-graph")
+        if regular and not D.is_regular_twograph():
+            raise RuntimeError("Sage built an incorrect regular two-graph")
+        
+    if regular and l is None:
+        raise ValueError("If two-graph is regular, then specify l value")
+    
+    if l is not None and not regular:
+        raise ValueError("If you want the two-graph to satisfy the l parameter, then pass regular=True")
+
+    if is_prime_power(n-1) and n%2 == 0:
+        #possible taylor U_3(q) or its complement
+        (p,k) = is_prime_power(n-1,get_data=True)
+        if k % 3 == 0:
+            q = p**(k//3)
+            if regular and l == (q-1)*(q*q+1)//2:#taylor U_3(q)
+                if existence: return True
+                D = taylor_twograph(q)
+                do_check(D)
+                return D
+            if regular and l == n - 2 - (q-1)*(q*q+1)//2:#complement of above
+                if existence: return True
+                D = taylor_twograph(q)
+                D = D.complement()
+                do_check(D)
+                return D
+
+    if existence: return Unknown
+    if regular:
+        raise RuntimeError("Sage doesn't know how to build a regular two-graph with parameters ({},{})".format(n,l))
+    raise RuntimeError("Sage doesn't know how to build a two-graph with {} points".format(n))
