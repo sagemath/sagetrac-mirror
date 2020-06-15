@@ -1682,6 +1682,7 @@ all_axioms += ("Flying", "Blue",
                "Nilpotent",
                "FiniteDimensional", "Connected",
                "FinitelyGeneratedAsLieConformalAlgebra",
+               "FinitelyGeneratedAsPoissonVertexAlgebra",
                "FinitelyGeneratedAsVertexAlgebra",
                "WithBasis",
                "Irreducible",
@@ -2288,7 +2289,8 @@ class CategoryWithAxiom(Category):
                  not base_category.is_subcategory(AdditiveMagmas()):
                 result = "finitely generated " + result
             elif axiom in ["FinitelyGeneratedAsLieConformalAlgebra",
-                           "FinitelyGeneratedAsVertexAlgebra"]:
+                           "FinitelyGeneratedAsVertexAlgebra",
+                           "FinitelyGeneratedAsPoissonVertexAlgebra"]:
                 result = "finitely generated " + result
             else:
                 result = uncamelcase(axiom) + " " + result

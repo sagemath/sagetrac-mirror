@@ -29,4 +29,5 @@ lazy_import('sage.algebras.lie_conformal_algebras.fermionic_ghosts_lie_conformal
 'FermionicGhostsLieConformalAlgebra')
 lazy_import('sage.algebras.lie_conformal_algebras.n2_lie_conformal_algebra',
 'N2LieConformalAlgebra')
-
+lazy_import('sage.algebras.lie_conformal_algebras.abelian_lie_conformal_algebra',
+'AbelianLieConformalAlgebra')
