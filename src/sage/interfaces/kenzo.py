@@ -46,7 +46,6 @@ from sage.features.kenzo import Kenzo
 kenzo_names = ['add',
                'array-dimensions',
                'basis_aux1',
-               'basis_aux1',
                'bicomplex-spectral-sequence',
                'build-finite-ss2',
                'build-mrph-aux',
@@ -181,8 +180,7 @@ def EilenbergMacLaneSpace(G, n):
 
     INPUT:
 
-    - ``G`` -- group. Currently only ``ZZ`` and the additive group of two
-      elements are supported.
+    - ``G`` -- group. Currently only ``ZZ`` and ``ZZ_n`` are supported.
 
     - ``n`` -- the dimension in which the homotopy is not trivial
 
@@ -225,7 +223,7 @@ class KenzoObject(SageObject):
 
     def __init__(self, kenzo_object):
         r"""
-        Construct the chain complex.
+        Construct the Kenzo object.
 
         TESTS::
 
@@ -649,7 +647,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
     r"""
     Wrapper to Kenzo simplicial sets.
 
-    In Kenzo, the homology of a simplicial set in computed from its associated
+    In Kenzo, the homology of a simplicial set is computed from its associated
     chain complex. Hence, this class inherits from `KenzoChainComplex`.
     """
 
