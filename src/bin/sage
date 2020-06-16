@@ -932,45 +932,6 @@ if [ "$1" = '--location' ]; then
     exit 0
 fi
 
-if [ "$1" = '-package' -o "$1" = "--package" ]; then
-    shift
-    exec sage-package $@
-fi
-
-if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
-    shift
-    exec sage-list-packages optional $@
-fi
-
-if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
-    shift
-    exec sage-list-packages experimental $@
-fi
-
-if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
-    shift
-    exec sage-list-packages standard $@
-fi
-
-if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
-    shift
-    exec sage-list-packages all --installed-only $@
-fi
-
-if [ "$1" = '-p' ]; then
-    echo "Error: Installing old-style SPKGs is no longer supported."
-    exit 1
-fi
-
-if [ "$1" = '-info' -o "$1" = '--info' ]; then
-    shift
-    for PKG in "$@"
-    do
-        sage-spkg --info "$PKG" || exit $?
-    done
-    exit 0
-fi
-
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
     maybe_sage_location
     shift
@@ -1058,6 +1019,19 @@ if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wt
     interactive_sage "$@"
 fi
 
+case "$1" in
+    -*)
+        # Delegate further option handling to the non-installed sage-site script.
+        # (These options become unavailable if the directory $SAGE_ROOT is removed.)
+        if [ -n "$SAGE_ROOT" ]; then
+            exec "$SAGE_ROOT/build/bin/sage-site" "$@"
+            # fallthrough if there is no sage-site script
+        fi
+        echo "Error: Unknown option: $1"
+        exit 1
+        ;;
+esac
+
 if [ $# -ge 1 ]; then
     T=`echo "$1" | sed -e "s/.*\.//"`
     if [ "$T" = "spkg" ]; then
@@ -1066,5 +1040,6 @@ if [ $# -ge 1 ]; then
     fi
     sage_setup
     unset TERM  # See Trac #12263
+    # sage-run rejects all command line options as the first argument.
     exec sage-run "$@"
 fi
