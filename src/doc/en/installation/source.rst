@@ -1030,7 +1030,7 @@ how it is built:
   plots, adding about 4M to the :file:`local/share/doc/sage/` directory.
   In the future, this may grow, of course. Note: after using this, if you
   want to build the documentation and include the pictures, you should
-  run ``make doc-clean``, because the presence, or lack, of pictures
+  run ``make doc-output-uninstall``, because the presence, or lack, of pictures
   is cached in the documentation output.
   You can benefit from this no-plot feature with other make targets by doing
   ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
@@ -1046,7 +1046,7 @@ how it is built:
   software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
 
-- ``make doc-clean`` removes several directories which are produced
+- ``make doc-uninstall`` removes several directories which are produced
   when building the documentation.
 
 - ``make distclean`` restores the Sage directory to its state before doing any

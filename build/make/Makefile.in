@@ -91,9 +91,9 @@ OPTIONAL_INSTALLED_PACKAGE_INSTS = \
     $(foreach pkgname,$(OPTIONAL_INSTALLED_PACKAGES),$(inst_$(pkgname)))
 
 # All previously installed optional packages that are to be uninstalled
-OPTIONAL_CLEANED_PACKAGES = \
-@SAGE_OPTIONAL_CLEANED_PACKAGES@
-OPTIONAL_CLEANED_PACKAGES_CLEANS = $(OPTIONAL_CLEANED_PACKAGES:%=%-clean)
+OPTIONAL_UNINSTALLED_PACKAGES = \
+@SAGE_OPTIONAL_UNINSTALLED_PACKAGES@
+OPTIONAL_UNINSTALLED_PACKAGES_UNINSTALLS = $(OPTIONAL_UNINSTALLED_PACKAGES:%=%-uninstall)
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
@@ -151,7 +151,7 @@ AM_V_at =
 endif
 
 # List of targets that can be run using `sage -i` or `sage -f`
-# These should generally have an associated -clean target for `sage -f` to
+# These should generally have an associated -uninstall target for `sage -f` to
 # work correctly
 SAGE_I_TARGETS = sagelib doc
 
@@ -163,7 +163,7 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 	all-start build-start base toolchain toolchain-deps base-toolchain \
 	sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean doc-src-clean doc-output-clean \
+	doc-uninstall doc-clean doc-src-clean \
 	clean sagelib-clean build-clean python3_venv _clean-broken-gcc
 
 ifneq ($(PYTHON_FOR_VENV),)
@@ -205,7 +205,7 @@ all-sage: \
 		sagelib \
 		$(STANDARD_PACKAGE_INSTS) \
 		$(OPTIONAL_INSTALLED_PACKAGE_INSTS) \
-                $(OPTIONAL_CLEANED_PACKAGES_CLEANS) \
+                $(OPTIONAL_UNINSTALLED_PACKAGES_UNINSTALLS) \
 		$(SCRIPTS)
 
 # Download all packages which should be inside an sdist tarball (the -B
@@ -381,9 +381,9 @@ doc-html: $(DOC_DEPENDENCIES)
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
-# megabytes of disk space. 'doc-clean' is a prerequisite because the
-# presence of graphics is cached in src/doc/output.
-doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
+# megabytes of disk space. 'doc-uninstall' is a prerequisite
+# because the presence of graphics is cached in src/doc/output.
+doc-html-no-plot: doc-uninstall $(DOC_DEPENDENCIES)
 	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 doc-html-mathjax: $(DOC_DEPENDENCIES)
@@ -395,12 +395,12 @@ doc-html-jsmath: doc-html-mathjax
 doc-pdf: $(DOC_DEPENDENCIES)
 	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
 
-doc-clean: doc-src-clean doc-output-clean
+doc-clean: doc-src-clean doc-uninstall
 
 doc-src-clean:
 	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
 
-doc-output-clean:
+doc-uninstall:
 	rm -rf "$(SAGE_SHARE)/doc/sage"
 
 
@@ -468,7 +468,7 @@ pkg_deps = \
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
-# <pkgname>-clean:
+# <pkgname>-uninstall:
 #     sage-spkg-uninstall <pkgname> '$(SAGE_LOCAL)'
 #
 # For example, for python2 this will expand to:
@@ -478,7 +478,7 @@ pkg_deps = \
 #
 # python2: $(INST)/python2-2.7.14
 #
-# python2-clean:
+# python2-uninstall:
 #     sage-spkg-uninstall python2 '$(SAGE_LOCAL)'
 #
 # Note: In these rules the $(INST)/<pkgname>-<pkgvers> target is used
@@ -504,11 +504,11 @@ $$(INST)/$(1)-$(2): $(3)
 
 $(1): $$(INST)/$(1)-$(2)
 
-$(1)-clean:
+$(1)-uninstall:
 	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
 		$(1) '$(SAGE_LOCAL)'
 
-.PHONY: $(1) $(1)-clean
+.PHONY: $(1) $(1)-uninstall
 endef
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\
@@ -529,7 +529,7 @@ endif
 # <pkgname>: <dependencies>
 #     $(AM_V_at)sage-logger -p 'sage --pip install ...' '$(SAGE_LOGS)/<pkgname>.log'
 #
-# <pkgname>-clean:
+# <pkgname>-uninstall:
 #     -sage --pip uninstall -y ...
 
 # Positional arguments:
@@ -539,10 +539,10 @@ define PIP_PACKAGE_templ
 $(1): $(2)
 	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
 
-$(1)-clean:
+$(1)-uninstall:
 	-sage --pip uninstall -y -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
 
-.PHONY: $(1) $(1)-clean
+.PHONY: $(1) $(1)-uninstall
 endef
 
 $(foreach pkgname,$(PIP_PACKAGES),\
@@ -565,7 +565,7 @@ endif
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
-# <pkgname>-clean:
+# <pkgname>-uninstall:
 #     -$(AM_V_at)cd '$SAGE_ROOT' && \\
 #         source '$SAGE_ROOT/src/bin/sage-env' && \\
 #         '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'
@@ -583,13 +583,13 @@ $$(INST)/$(1)-$(2): $(3)
 
 $(1): $$(INST)/$(1)-$(2)
 
-$(1)-clean:
+$(1)-uninstall:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
 		source '$$(SAGE_ROOT)/src/bin/sage-env' && source '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 	-rm -f "$$(INST)/$(1)-$(2)"
 
-.PHONY: $(1) $(1)-clean
+.PHONY: $(1) $(1)-uninstall
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
@@ -610,7 +610,7 @@ list:
 	done
 
 
-.PHONY: $(NORMAL_PACKAGES) $(addsuffix -clean,$(NORMAL_PACKAGES)) \
-        $(PIP_PACKAGES) $(addsuffix -clean,$(PIP_PACKAGES)) \
-        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES)) \
+.PHONY: $(NORMAL_PACKAGES) $(addsuffix -uninstall,$(NORMAL_PACKAGES)) \
+        $(PIP_PACKAGES) $(addsuffix -uninstall,$(PIP_PACKAGES)) \
+        $(SCRIPT_PACKAGES) $(addsuffix -uninstall,$(SCRIPT_PACKAGES)) \
 		list
