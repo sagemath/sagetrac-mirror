@@ -194,5 +194,9 @@ class logstr(str):
          delim = '~'
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
 
-import logging
-logging.basicConfig()
+
+lazy_import("sage.misc", "messaging", deprecation=18140)
+
+from .verbose import (basic_sage_logging_config, DynamicStdErrStreamHandler)
+
+basic_sage_logging_config()

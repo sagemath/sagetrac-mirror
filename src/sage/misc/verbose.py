@@ -343,3 +343,63 @@ def get_verbose():
         sage: set_verbose(0)
     """
     return _Python_to_SageMath_level_(logging.getLogger().getEffectiveLevel())
+
+
+# this is a version of Python's StreamHandler which prints log
+# messages to the stream *currently* pointed to by sys.stderr (not the
+# one when StreamHandler is set up).  This is useful in a Sage notebook, 
+# where every cell has its own set of streams.
+
+class DynamicStdErrStreamHandler(logging.StreamHandler):
+    """
+    A handler class which writes logging records, appropriately formatted,
+    to a stream. Note that this class does not close the stream, as
+    sys.stdout or sys.stderr may be used.
+    """
+
+    def __init__(self):
+        import sys
+        logging.StreamHandler.__init__(self, sys.stderr)
+        self.parent_class = logging.StreamHandler           # save in object because name logging.StreamHandler is not available at exit
+
+    def flush(self):
+        import sys
+        try:
+            self.stream = sys.stderr
+        except NameError:                                   # happens at exit in terminal
+            pass
+        self.parent_class.flush(self)
+
+    def emit(self, record):
+        import sys
+        try:
+            self.stream = sys.stderr
+        except NameError:                                   # happens at exit in terminal
+            pass
+        self.parent_class.emit(self, record)
+
+
+def basic_sage_logging_config(**kwargs):
+    # Adapted from Python's basicConfig.
+    """
+    Do basic configuration for the logging system suitable for Sage.
+
+    This function does nothing if the root logger already has handlers
+    configured.
+
+    It creates a `DynamicStdErrStreamHandler` which writes to the stream
+    that is the dynamic value of `sys.stderr`, sets a formatter using the 
+    BASIC_FORMAT format string, and add the handler to the root logger.
+    """
+    root = logging.getLogger()
+    if not root.handlers:
+        fs = kwargs.get("format", logging.BASIC_FORMAT)
+        dfs = kwargs.get("datefmt", None)
+        fmt = logging.Formatter(fs, dfs)
+        hdlr = DynamicStdErrStreamHandler()
+        hdlr.setFormatter(fmt)
+        root = logging.getLogger()
+        root.addHandler(hdlr)
+        level = kwargs.get("level")
+        if level is not None:
+            root.setLevel(level)
