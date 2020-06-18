@@ -19,6 +19,18 @@ AUTHORS
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.poisson_vertex_algebras import PoissonVertexAlgebras
 from sage.sets.family import Family 
+from sage.algebras.vertex_algebras.vertex_algebra_quotient import \
+                      VertexAlgebraQuotientBasis, VertexAlgebraQuotientElement
+
+class PoissonVertexAlgebraQuotientElement(VertexAlgebraQuotientElement):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        from sage.functions.other import factorial
+        from sage.misc.misc_c import prod
+        ret = codomain.zero()
+        for k,c in self._monomial_coefficients.items():
+            ret += c*prod(g.T(n-1)/factorial(n-1) for i,g in enumerate(im_gens)\
+                          for n in k[i])
+        return ret
 
 class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
@@ -36,8 +48,6 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
     def __init__(self, ideal, category=None):
         self._ideal = ideal
         self._ambient = ideal.ambient()
-        from sage.algebras.vertex_algebras.vertex_algebra_quotient import \
-                      VertexAlgebraQuotientBasis, VertexAlgebraQuotientElement
         indices = VertexAlgebraQuotientBasis(ideal)
         try:
             names = self._ambient.variable_names()
@@ -45,9 +55,9 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
             names = None
         
         CombinatorialFreeModule.__init__(self, ideal.base_ring(),
-                                    basis_keys=indices,
-                                    element_class=VertexAlgebraQuotientElement,
-                                    category=category, names=names)
+                             basis_keys=indices,
+                             element_class=PoissonVertexAlgebraQuotientElement,
+                             category=category, names=names)
 
     def _element_constructor_(self,x):
         if x in self._ambient:
@@ -73,6 +83,13 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         """
         return self._ambient
+
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        f = self._ambient.hom(im_gens, codomain=codomain,base_map=base_map)
+        return all (f(g).is_zero() for g in self._ideal.gens())
+
+    def cover(self):
+        return self.cover_algebra().hom(self.gens(), codomain=self)
 
     def defining_ideal(self):
         return self._ideal

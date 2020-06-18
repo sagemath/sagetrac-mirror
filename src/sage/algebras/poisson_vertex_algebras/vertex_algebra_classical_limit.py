@@ -27,6 +27,23 @@ from sage.combinat.family import Family
 from sage.misc.misc import repr_lincomb
 from sage.combinat.partition import Partition
 from sage.rings.all import QQ, ZZ
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.rings.morphism import RingHomomorphism_im_gens
+from sage.categories.homset import Hom
+
+class SingularSupportCoverMorphism(RingHomomorphism_im_gens):
+    def __init__(self, domain, codomain):
+        H = Hom(domain,codomain)
+        RingHomomorphism_im_gens.__init__(self, H, codomain.gens())
+
+    def kernel(self, deg):
+        source = self.domain().get_weight(deg)
+        target = self.codomain().get_weight(deg)
+        B = source.basis()
+        linear = source.module_morphism(on_basis=lambda v: target.retract(
+                                        self(B[v])),codomain=target)
+        return self.domain().submodule([v.lift() for v in\
+                                        linear.kernel_basis()])
 
 class ClassicalLimitElement(IndexedFreeModuleElement):
 
@@ -140,7 +157,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
                     return p.zero()
                 pt = a.index().to_list()
                 i = next((j for j,x in enumerate(pt) if x))
-                c = c*(pt[i][0]+1)
+                c = c*(pt[i][0])
                 pt[i][0] += 1
                 pt = p._ambient.indices()(pt)
                 if p._ambient in VertexAlgebras(p.base_ring()).Quotients():
@@ -275,6 +292,15 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
             ret += PR({k:c})
         return ret
 
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        if self.is_monomial():
+            k,c = next(iter(self._monomial_coefficients.items()))
+            from sage.functions.other import factorial
+            from sage.misc.misc_c import prod
+            return c*prod(g.T(n-1)/factorial(n-1) for i,g in enumerate(im_gens)\
+                          for n in k[i])
+        return sum(m._im_gens_(codomain, im_gens, base_map) for m in self.terms())
+
 class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
     def __init__(self, R, V, category=None):
         assert V in VertexAlgebras(R).Graded().FinitelyGenerated().WithBasis()
@@ -382,6 +408,23 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
         from sage.rings.power_series_ring import PowerSeriesRing
         q = PowerSeriesRing(ZZ, 'q', default_prec=ord).gen()
         return R.ideal(0).hilbert_series(grading=weights)(q)
+
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        from sage.algebras.vertex_algebras.universal_enveloping_vertex_algebra\
+            import UniversalEnvelopingVertexAlgebra as UEA
+        if not isinstance(self._ambient, UEA):
+           raise NotImplementedError("morphisms are not implemented for "\
+                                     "{}".format(self))
+        return True
+
+    @lazy_attribute
+    def singular_support_cover(self):
+        if self._ambient in VertexAlgebras(self.base_ring()).Quotients():
+            P = self._ambient.singular_support()
+            return SingularSupportCoverMorphism(P,self)
+
+        from sage.categories.homset import End
+        return End(self).identity()
 
     def jet_algebra(self,ord, termorder='wdegrevlex'):
         if self.is_super():
