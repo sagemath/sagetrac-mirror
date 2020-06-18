@@ -23,6 +23,7 @@ from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
 from sage.categories.vector_spaces import VectorSpaces
 from sage.modules.free_module import VectorSpace
 from sage.categories.finite_fields import FiniteFields
+from sage.categories.permutation_groups import PermutationGroups
 
 @cached_function
 def find_product_decomposition(g, k, lmbda=1):
@@ -428,9 +429,9 @@ def subgroup_construction(g,k,lmbda,existence=False):
     - ``g,k,\lambda`` -- (integers) parameters of the difference matrix to construct
 
     - ``existence`` -- (boolean) instead of building the design, return:
-      - ``True`` if Sage can build the difference matrix using the subgroup construction
-      - ``False`` if Sage can't build the difference matrix using this construction
-         Note that Sage may be able to build such difference matrix in other ways
+    - ``True`` if Sage can build the difference matrix using the subgroup construction
+    - ``False`` if Sage can't build the difference matrix using this construction
+      Note that Sage may be able to build such difference matrix in other ways
 
     EXAMPLES::
 
@@ -513,6 +514,7 @@ def subgroup_construction(g,k,lmbda,existence=False):
                     M[i][j] = tuple(M[i][j][:n]) #truncate vector to first n entries
 
             return GH,M
+
         else:
             #we don't handle this at this moment
             continue
