@@ -41,6 +41,8 @@ from __future__ import absolute_import
 
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.comp import Components, CompFullyAntiSym
+from sage.parallel.decorate import parallel
+from sage.parallel.parallelism import Parallelism
 
 class FreeModuleAltForm(FreeModuleTensor):
     r"""
@@ -670,11 +672,42 @@ class FreeModuleAltForm(FreeModuleTensor):
         cmp_r = CompFullyAntiSym(fmodule._ring, basis, rank_r,
                                  start_index=fmodule._sindex,
                                  output_formatter=fmodule._output_formatter)
-        for ind_s, val_s in cmp_s._comp.items():
-            for ind_o, val_o in cmp_o._comp.items():
-                ind_r = ind_s + ind_o
-                if len(ind_r) == len(set(ind_r)): # all indices are different
-                    cmp_r[[ind_r]] += val_s * val_o
+
+        nproc = Parallelism().get('tensor')
+        if nproc != 1:
+            # Parallel computation
+            lol = lambda lst, sz: [lst[i:i + sz] for i in
+                                   range(0, len(lst), sz)]
+            ind_list = [ind for ind in cmp_s._comp]
+            ind_step = max(1, int(len(ind_list) / nproc))
+            print(ind_step)
+            local_list = lol(ind_list, ind_step)
+            print(local_list)
+            # list of input parameters:
+            listParalInput = [(cmp_s, cmp_o, ind_part) for ind_part in
+                              local_list]
+
+            @parallel(p_iter='multiprocessing', ncpus=nproc)
+            def paral_wedge(a, b, local_list_ind):
+                partial = []
+                for ind in local_list_ind:
+                    for ind_o, val_o in b._comp.items():
+                        ind_r = ind + ind_o
+                        if len(ind_r) == len(set(ind_r)):
+                            partial.append([ind_r, a._comp[ind] * val_o])
+                return partial
+
+            for ii, val in paral_wedge(listParalInput):
+                for jj in val:
+                    cmp_r[[jj[0]]] += jj[1]
+        else:
+            # Sequential computation
+            for ind_s, val_s in cmp_s._comp.items():
+                for ind_o, val_o in cmp_o._comp.items():
+                    ind_r = ind_s + ind_o
+                    if len(ind_r) == len(set(ind_r)):  # all indices different
+                        cmp_r[[ind_r]] += val_s * val_o
+
         result = fmodule.alternating_form(rank_r)
         result._components[basis] = cmp_r
         if self._name is not None and other._name is not None:
