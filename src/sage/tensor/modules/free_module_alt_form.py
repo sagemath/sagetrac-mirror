@@ -704,7 +704,7 @@ class FreeModuleAltForm(FreeModuleTensor):
                 for ind_o, val_o in cmp_o._comp.items():
                     ind_r = ind_s + ind_o
                     if len(ind_r) == len(set(ind_r)):  # all indices different
-                            cmp_r[[ind_r]] += val_s * val_o
+                        cmp_r[[ind_r]] += val_s * val_o
 
         result = fmodule.alternating_form(rank_r)
         result._components[basis] = cmp_r
