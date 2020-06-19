@@ -673,6 +673,7 @@ class FreeModuleAltForm(FreeModuleTensor):
                                  start_index=fmodule._sindex,
                                  output_formatter=fmodule._output_formatter)
 
+        ext_rank_r = fmodule.dual_exterior_power(rank_r).rank()
         nproc = Parallelism().get('tensor')
         if nproc != 1:
             # Parallel computation
@@ -680,23 +681,20 @@ class FreeModuleAltForm(FreeModuleTensor):
                                    range(0, len(lst), sz)]
             ind_list = [ind for ind in cmp_s._comp]
             ind_step = max(1, int(len(ind_list) / nproc))
-            print(ind_step)
             local_list = lol(ind_list, ind_step)
-            print(local_list)
             # list of input parameters:
             listParalInput = [(cmp_s, cmp_o, ind_part) for ind_part in
                               local_list]
 
             @parallel(p_iter='multiprocessing', ncpus=nproc)
-            def paral_wedge(a, b, local_list_ind):
+            def paral_wedge(s, o, local_list_ind):
                 partial = []
-                for ind in local_list_ind:
-                    for ind_o, val_o in b._comp.items():
-                        ind_r = ind + ind_o
+                for ind_s in local_list_ind:
+                    for ind_o, val_o in o._comp.items():
+                        ind_r = ind_s + ind_o
                         if len(ind_r) == len(set(ind_r)):
-                            partial.append([ind_r, a._comp[ind] * val_o])
+                            partial.append([ind_r, s._comp[ind_s] * val_o])
                 return partial
-
             for ii, val in paral_wedge(listParalInput):
                 for jj in val:
                     cmp_r[[jj[0]]] += jj[1]
@@ -706,7 +704,7 @@ class FreeModuleAltForm(FreeModuleTensor):
                 for ind_o, val_o in cmp_o._comp.items():
                     ind_r = ind_s + ind_o
                     if len(ind_r) == len(set(ind_r)):  # all indices different
-                        cmp_r[[ind_r]] += val_s * val_o
+                            cmp_r[[ind_r]] += val_s * val_o
 
         result = fmodule.alternating_form(rank_r)
         result._components[basis] = cmp_r
