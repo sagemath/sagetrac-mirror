@@ -628,6 +628,7 @@ class Polytopes():
 
             sage: b4norm = polytopes.Birkhoff_polytope(4,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(b4norm).run()                                     # optional - pynormaliz
+            sage: TestSuite(polytopes.Birkhoff_polytope(4)).run()
         """
         from itertools import permutations
         verts = []
@@ -837,6 +838,7 @@ class Polytopes():
             sage: d12 = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: d12.f_vector()                                    # optional - pynormaliz
             (1, 20, 30, 12, 1)
+            sage: TestSuite(polytopes.dodecahedron()).run()
 
         """
         return self.icosahedron(exact=exact, base_ring=base_ring, backend=backend).polar()
@@ -3106,6 +3108,12 @@ class Polytopes():
             sage: fc = polytopes.hypercube(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(fc).run()                              # optional - pynormaliz
 
+        ::
+
+            sage: TestSuite(t_cube).run()
+            sage: TestSuite(z_cube).run()
+            sage: TestSuite(four_cube).run()
+
         If the dimension ``dim`` is not equal to the length of intervals, an
         error is raised::
 
@@ -3291,6 +3299,7 @@ class Polytopes():
 
             sage: cp = polytopes.cross_polytope(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(cp).run()                                   # optional - pynormaliz
+            sage: TestSuite(polytopes.cross_polytope(4)).run()
             sage: TestSuite(polytopes.cross_polytope(3)).run()
 
         Check that double description is set up correctly::

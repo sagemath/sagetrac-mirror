@@ -113,6 +113,9 @@ class Polyhedron_base(Element):
 
         sage: p = Polyhedron()
         sage: TestSuite(p).run()
+        sage: TestSuite(Polyhedron([[]])).run()
+        sage: TestSuite(Polyhedron([[0]])).run()
+
         sage: TestSuite(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1],[1,2,3]])).run()
         sage: TestSuite(polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]])).run()
     """
@@ -471,6 +474,29 @@ class Polyhedron_base(Element):
             5 loops, best of 3: 57.3 ms per loop
         """
         self.parent().recycle(self)
+
+    def _test_basic_properties(self, tester=None, **options):
+        """
+        Run some basic tests to see, that some general assertion on polyhedra hold.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_basic_properties()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        tester.assertEqual(self.n_vertices() + self.n_rays() + self.n_lines(), self.n_Vrepresentation())
+        tester.assertEqual(self.n_inequalities() + self.n_equations(), self.n_Hrepresentation())
+        tester.assertEqual(self.dim() + self.n_equations(), self.ambient_dim())
+
+        tester.assertTrue(all(len(v[::]) == self.ambient_dim() for v in self.Vrep_generator()))
+        tester.assertTrue(all(len(h[::]) == self.ambient_dim() + 1 for h in self.Hrep_generator()))
+
+        if self.n_vertices() < 40:
+            tester.assertEqual(self, Polyhedron(vertices=self.vertices(), rays=self.rays(), lines=self.lines()))
+        if self.n_inequalities() < 40:
+            tester.assertEqual(self, Polyhedron(ieqs=self.inequalities(), eqns=self.equations()))
 
     def base_extend(self, base_ring, backend=None):
         """
@@ -2067,30 +2093,6 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             NotImplementedError: this function is not implemented for unbounded polyhedra
-
-        TESTS:
-
-        Checking for various inputs, that this actually works::
-
-            sage: def test_affine_basis(P):
-            ....:     b = P.an_affine_basis()
-            ....:     m = Matrix(b).transpose().stack(Matrix([[1]*len(b)]))
-            ....:     assert m.rank() == P.dim() + 1
-            ....:
-            sage: test_affine_basis(polytopes.permutahedron(5))
-            sage: test_affine_basis(polytopes.Birkhoff_polytope(4))
-            sage: test_affine_basis(polytopes.hypercube(6))
-            sage: test_affine_basis(polytopes.dodecahedron())
-            sage: test_affine_basis(polytopes.cross_polytope(5))
-
-        Small-dimensional cases:
-
-            sage: Polyhedron([[1]]).an_affine_basis()
-            [A vertex at (1)]
-            sage: Polyhedron([[]]).an_affine_basis()
-            [A vertex at ()]
-            sage: Polyhedron().an_affine_basis()
-            []
         """
         if not self.is_compact():
             raise NotImplementedError("this function is not implemented for unbounded polyhedra")
@@ -2120,6 +2122,23 @@ class Polyhedron_base(Element):
                 basis_indices.append(face[len(prev_face)])
 
         return [self.Vrepresentation()[i] for i in basis_indices]
+
+    def _test_an_affine_basis(self, tester=None, **options):
+        """
+        Run some basic tests to see, that some general assertion on polyhedra hold.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_an_affine_basis()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        if self.is_compact():
+            b = self.an_affine_basis()
+            m = matrix(b).transpose().stack(matrix([[1]*len(b)]))
+            tester.assertEqual(m.rank(), self.dim() + 1)
+            for v in b:
+                tester.assertIn(v, self.vertices())
 
     def ray_generator(self):
         """
