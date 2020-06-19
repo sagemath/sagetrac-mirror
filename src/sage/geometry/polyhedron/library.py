@@ -702,6 +702,10 @@ class Polytopes():
 
             sage: s6norm = polytopes.simplex(6,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(s6norm).run()                           # optional - pynormaliz
+
+            sage: TestSuite(polytopes.simplex(4, backend='ppl')).run()
+            sage: TestSuite(polytopes.simplex(4, backend='field')).run()
+            sage: TestSuite(polytopes.simplex(4, backend='cdd')).run()
         """
         verts = list((ZZ**(dim + 1)).basis())
         if project:
@@ -2528,6 +2532,7 @@ class Polytopes():
 
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(p4).run()                                  # optional - pynormaliz
+            sage: TestSuite(polytopes.permutahedron(4)).run()
         """
         verts = list(itertools.permutations(range(1, n + 1)))
         if project:
@@ -3286,6 +3291,7 @@ class Polytopes():
 
             sage: cp = polytopes.cross_polytope(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(cp).run()                                   # optional - pynormaliz
+            sage: TestSuite(polytopes.cross_polytope(3)).run()
 
         Check that double description is set up correctly::
 
