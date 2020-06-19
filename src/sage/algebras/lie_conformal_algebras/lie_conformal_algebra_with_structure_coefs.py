@@ -334,9 +334,10 @@ class LieConformalAlgebraWithStructureCoefficients(
 
             sage: Vir = VirasoroLieConformalAlgebra(CC)
             sage: V = Vir.universal_enveloping_algebra(); V
-            The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
+            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
             sage: V.0.bracket(V.0)
-            {0: 1.00000000000000*L_-3|0>, 1: 2.00000000000000*1.00000000000000*L_-2|0>}
+            {0: 1.00000000000000*1.00000000000000*L_-3|0>,
+             1: 2.00000000000000*1.00000000000000*L_-2|0>}
 
         We construct the universal enveloping vertex algebra of the
         Virasoro Lie conformal algebra at central charge 2 over the
@@ -415,12 +416,12 @@ class _LiftMorphism(Morphism):
         sage: Vir.lift
         Generic morphism:
           From: The Virasoro Lie conformal algebra over Algebraic Real Field
-          To:   The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Algebraic Real Field
+          To:   The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Algebraic Real Field
         sage: W = VirasoroVertexAlgebra(AA,1)
         sage: Vir.lift
         Generic morphism:
           From: The Virasoro Lie conformal algebra over Algebraic Real Field
-          To:   The Virasoro vertex algebra at central charge 1
+          To:   The Virasoro vertex algebra of central charge 1 over Algebraic Real Field
     """
     def _call_(self,x):
         return x.lift()    
