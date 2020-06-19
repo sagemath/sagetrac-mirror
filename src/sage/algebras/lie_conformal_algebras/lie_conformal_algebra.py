@@ -27,13 +27,13 @@ algebras like :meth:`VirasoroLieConformalAlgebra` and
         sage: cp = Family({C:1/2})
         sage: V = Vir.universal_enveloping_algebra(cp)
         sage: V
-        The universal enveloping vertex algebra of The Virasoro Lie conformal algebra over Rational Field
+        The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
         sage: L.lift()
         L_-2|0>
         sage: L*L
         L_-2L_-2|0>
         sage: sorted(L.bracket(L*L).items())
-        [(0, 2*L_-3L_-2|0>+L_-5|0>),
+        [(0, 2*L_-3L_-2|0> + L_-5|0>),
          (1, 4*L_-2L_-2|0>),
          (2, 3*L_-3|0>),
          (3, 17/2*L_-2|0>),
