@@ -36,7 +36,6 @@ from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianG
 
 from sage.matrix.all import matrix
 from sage.homology.chain_complex import ChainComplex
-from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 from sage.features.kenzo import Kenzo
@@ -1166,6 +1165,7 @@ def SAbstractSimplex(simplex, dim):
         sage: SAbSm2.dimension()                                # optional - kenzo
         11
     """
+    from sage.homology.simplicial_set import AbstractSimplex
     degeneracies = __dgop_int_ext__(__dgop__(simplex._kenzo)).python()
     if degeneracies is None:
         degeneracies = []
@@ -1309,6 +1309,7 @@ def SFiniteSimplicialSet(ksimpset, limit):
         sage: SS1vS3.homology()                                     # optional - kenzo
         {0: 0, 1: Z, 2: 0, 3: Z}
     """
+    from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
     list_orgn = __orgn_aux1__(ksimpset._kenzo).python()
     if __nth__(0, list_orgn).python()[0] == 'CRTS-PRDC':
         return SFiniteSimplicialSet(
