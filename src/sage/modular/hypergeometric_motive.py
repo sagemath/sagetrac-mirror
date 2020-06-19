@@ -1098,7 +1098,8 @@ class HypergeometricData(object):
         """
         try:
             prec1, gtab = self._gauss_table[p, f]
-            if prec1 < prec: raise KeyError
+            if prec1 < prec: 
+                raise KeyError
         except KeyError:
             use_longs = (p ** prec < 2 ** 31)
             gtab = gauss_table(p, f, prec, use_longs)
@@ -1226,7 +1227,8 @@ class HypergeometricData(object):
         m = array.array('i', [0]) * int(q - 1)
         for b in beta:
             u = b * (q - 1)
-            if u.is_integer(): m[u] += 1
+            if u.is_integer(): 
+                m[u] += 1
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
         # also: D = (self.weight() + 1 - m[0]) // 2
