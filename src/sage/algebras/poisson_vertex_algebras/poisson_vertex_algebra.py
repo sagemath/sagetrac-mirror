@@ -1,11 +1,11 @@
 r"""
-Poisson Vertex Algebras
+Poisson Vertex Algebras.
 
 AUTHORS:
 
 - Reimundo Heluani (08-09-2019): Initial implementation.
 
-.. include:: ../../../vertex_algebras/poisson_vertex_algebra_desc.rst
+.. include:: ../../../poisson_vertex_algebras/poisson_vertex_algebra_desc.rst
 """
 
 
@@ -26,6 +26,9 @@ from sage.categories.poisson_vertex_algebras import PoissonVertexAlgebras
 from sage.categories.commutative_rings import CommutativeRings
 
 class PoissonVertexAlgebra(UniqueRepresentation):
+    """
+    class
+    """
     @staticmethod
     def __classcall_private__(cls, R=None, arg0=None, category=None, **kwds):
         if not R in CommutativeRings():

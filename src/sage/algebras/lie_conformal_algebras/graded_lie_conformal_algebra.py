@@ -20,11 +20,14 @@ AUTHORS:
 
 from sage.rings.infinity import Infinity
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
-from .lie_conformal_algebra_element import LCAStructureCoefficientsElement
+from .lie_conformal_algebra_element import GradedLCAElement
 from .lie_conformal_algebra_with_structure_coefs import \
                                 LieConformalAlgebraWithStructureCoefficients
+
 class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
-    def __init__(self, R, s_coeff, **kwds):
+    def __init__(self, R, s_coeff, index_set=None, central_elements=None,
+                 category=None, prefix=None, names=None, latex_names=None,
+                 parity=None, weights=None, **kwds):
         r"""
         An H-Graded Lie conformal algebra.
 
@@ -63,12 +66,14 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
           ``0``); a tuple specifying the parity of each non-central
           generator.
         """
-        category = kwds.get("category", None)
         category = LieConformalAlgebras(R).Graded().WithBasis()\
                    .FinitelyGenerated().or_subcategory(category)
-        weights = kwds.pop('weights',None)
-        LieConformalAlgebraWithStructureCoefficients.__init__(
-            self,R,s_coeff,category=category,**kwds)
+        element_class = GradedLCAElement
+        LieConformalAlgebraWithStructureCoefficients.__init__(self,R,
+            s_coeff,index_set=index_set,central_elements=central_elements,
+            category=category, element_class=element_class, prefix=prefix,
+            names=names, latex_names=latex_names, parity=parity, **kwds)
+
         if weights is None:
             weights = (1,)* (len(self._generators) -
                              len(self.central_elements()))
@@ -77,32 +82,4 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             raise ValueError("weights and (non-central) generator lists "\
                              "must be of same length")
         self._weights = weights
-
-    class Element(LCAStructureCoefficientsElement):
-        def degree(self):
-            """
-            The degree of this element.
-
-            EXAMPLES::
-
-                sage: V = VirasoroLieConformalAlgebra(QQ)
-                sage: V.inject_variables()
-                Defining L, C
-                sage: C.degree()
-                0
-                sage: L.T(4).degree()
-                6
-            """
-            if self.is_zero():
-                return Infinity
-            p = self.parent()
-            ls = []
-            for idx in self.value.monomial_coefficients().keys():
-                ret = idx[1]
-                if idx[0] not in p._central_elements:
-                    ret+= p._weights[p._index_to_pos[idx[0]]]
-                ls.append(ret)
-            if ls[1:] == ls[:-1]:
-                return ls[0]
-            raise ValueError("{} is not homogeneous!".format(self))
 

@@ -111,7 +111,6 @@ super vertex algebras like :class:`NeveuSchwarzVertexAlgebra` and
     sage: f=P(f)
     sage: e*(e*f) == (e*e)*f
     True
-
 """
 
 
@@ -161,12 +160,13 @@ class VertexAlgebra(UniqueRepresentation):
         raise NotImplementedError("Not Implemented")
 
     def __init__(self, R, category=None, names=None, latex_names=None):
-        r"""Vertex algebras base class and factory
+        r"""
+        Vertex algebras base class and factory.
 
         INPUT:
 
         - ``base_ring`` -- a commutative ring (default: ``None``); the
-          base `ring of this vertex
+          base ring of this vertex
           algebra. Behaviour is undefined if it is not a field of
           characteristic zero
 
@@ -204,7 +204,6 @@ class VertexAlgebra(UniqueRepresentation):
             sage: V
             The universal enveloping vertex algebra of Lie conformal algebra on 2 generators
             (L, C) over Complex Field with 53 bits of precision.
-
         """
         category = VertexAlgebras(R).or_subcategory(category)
         super(VertexAlgebra, self).__init__(R, names=names,

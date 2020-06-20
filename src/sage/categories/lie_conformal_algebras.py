@@ -132,6 +132,18 @@ class LieConformalAlgebras(Category_over_base_ring):
 
     class ParentMethods:
 
+        def set_lift(self, liftmorphism):
+            """
+            Register ``liftmorphsm`` as a coercion between this Lie
+            conformal algebra and its universal enveloping vertex algebra.
+            """
+            self.lift = liftmorphism
+            try:
+                self.lift.register_as_coercion()
+            except AssertionError:
+                #we already constructed this morphisms and its fine
+                pass
+
         @abstract_method
         def universal_enveloping_algebra(self, 
                                         central_parameters=None, 
@@ -840,6 +852,17 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             return "{} with basis".format(self.base_category().\
                                           _repr_object_names())
+
+        class ElementMethods:
+
+            def index(self):
+                if self.is_zero():
+                    return None
+                if not self.is_monomial():
+                    raise ValueError ("index can only be computed for "\
+                                      "monomials, got {}".format(self))
+
+                return next(iter(self.monomial_coefficients()))
 
         class SubcategoryMethods:
             def FinitelyGenerated(self):
