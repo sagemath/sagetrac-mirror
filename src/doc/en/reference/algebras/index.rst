@@ -87,7 +87,7 @@ Various associative algebras
    sage/algebras/associated_graded
    sage/algebras/cellular_basis
    sage/algebras/commutative_dga
-   sage/algebras/vertex_algebras/graded_algebra_with_derivation
+   poisson_vertex_algebras/poisson_vertex_algebras
    sage/algebras/q_system
    sage/algebras/splitting_algebra
 
@@ -95,7 +95,6 @@ Non-associative algebras
 ------------------------
 
 .. toctree::
-   :titlesonly:
    :maxdepth: 2
 
    lie_algebras

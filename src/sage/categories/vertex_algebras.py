@@ -561,7 +561,9 @@ class VertexAlgebras(Category_over_base_ring):
                 """
                 The basis index parametrizing this monomial element.
 
-                INPUT: a monomial in this vertex algebra.
+                INPUT: 
+
+                - ``self`` -- a monomial in this vertex algebra.
 
                 EXAMPLES::
 
@@ -706,8 +708,8 @@ class VertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                sage: VertexAlgebras(ZZ).WithBasis().FinitelyGeneratedAsVertexAlgebra()
-                Category of finitely generated vertex algebras with basis over Integer Ring
+                    sage: VertexAlgebras(ZZ).WithBasis().FinitelyGeneratedAsVertexAlgebra()
+                    Category of finitely generated vertex algebras with basis over Integer Ring
                 """
                 pass
 
@@ -805,7 +807,7 @@ class VertexAlgebras(Category_over_base_ring):
                     INPUT:
 
                     - ``pt`` -- an index of the parent vertex algebra
-                      as returned by
+                      as returned by 
                       :meth:`sage.structure.indexed_generators.indices`.
 
                     - ``negative`` -- boolean (default: `True`);
@@ -1016,7 +1018,9 @@ class VertexAlgebras(Category_over_base_ring):
 
                         - ``n`` -- a non-negative rational number;
 
-                        OUTPUT: a submodule of this vertex algebra.
+                        OUTPUT: 
+
+                        A submodule of this vertex algebra.
 
                         EXAMPLES::
 
@@ -1253,7 +1257,9 @@ class VertexAlgebras(Category_over_base_ring):
                 - ``other`` an element of this vertex algebra
                 - ``n`` an integer number.
 
-                OUTPUT: returns the shifted `n`-product of ``self``
+                OUTPUT: 
+
+                The shifted `n`-product of ``self``
                 with ``other``, which is defined as follows.
 
                 For an element `a` of degree `p`, that is `a \in V_p`,
@@ -1352,9 +1358,11 @@ class VertexAlgebras(Category_over_base_ring):
                 INPUT:
 
                 - ``ord`` -- a positive rational number; the precision
-                order of the result.
+                  order of the result.
 
-                OUTPUT: The sum
+                OUTPUT:
+
+                The sum
 
                 .. MATH::
 

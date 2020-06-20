@@ -203,12 +203,14 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
         r"""
         Returns the homogeneous component of weight ``n`` in the ideal.
 
-        INPUT: a positive rational number ``n``.
+        INPUT: 
 
-        OUTPUT: a subspace of the ambient Poisson vertex algebra of
+        a positive rational number ``n``.
+
+        OUTPUT: 
+
+        a subspace of the ambient Poisson vertex algebra of
         this ideal.
-
-        EXAMPLES::
         """
         return self._indices.get_weight(n)
 
@@ -233,8 +235,6 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
     def ambient(self):
         r"""Return the ambient vertex algebra of this ideal
-
-        EXAMPLES::
         """
         return self._ambient
 
@@ -245,8 +245,6 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
         INPUT:
 
         - ``x`` -- an element of the ambient Poisson vertex algebra.
-
-        EXAMPLES::
         """
         if x.is_zero():
             return x
