@@ -48,9 +48,6 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         ``gram_matrix``. This vertex
         algebra is `H`-graded where every generator has conformal weight
         `1/2`.
-
-        EXAMPLES::
-
         """
         from sage.algebras.lie_conformal_algebras.\
                     free_fermions_lie_conformal_algebra import \

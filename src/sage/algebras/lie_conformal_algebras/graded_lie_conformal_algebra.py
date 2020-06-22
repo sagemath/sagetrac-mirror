@@ -1,5 +1,33 @@
-"""
-Graded Lie Conformal Algebras.
+r"""
+Graded Lie Conformal Algebras
+
+A (super) Lie conformal algebra `V` is called `H`-graded if there
+exists a decomposition `V = \oplus_n V_n` such that the `\lambda`-
+bracket is graded of degree `-1`, that is for homogeneous elements
+`a \in V_p`, `b \in V_q` with `\lambda`-brackets:
+
+.. MATH::
+
+    [a_\lambda b] = \sum \frac{\lambda^n}{n!} c_n,
+
+we have `c_n \in V_{p+q-n-1}`. This situation arises typically when `V`
+has a vector `L \in V` that generates the Virasoro Lie conformal
+algebra. Such that for every `a \in V` we have
+
+.. MATH::
+
+    [L_\lambda a] = Ta + \lambda \Delta_a a + O(\lambda^2).
+
+In this situation `V` is graded by the eigenvalues `\Delta_a` of
+`L_{(1)}`, the `(1)`-th product with `L`. When the higher order terms
+`O(\lambda^2)` vanish we say that `a` is a *primary vector* of
+*conformal weight* or degree `\Delta_a`.
+
+.. NOTE::
+
+    Although arbitrary gradings are allowed, many of the constructions
+    we implement in these classes work only for positive rational
+    gradings.
 
 AUTHORS:
 
@@ -18,7 +46,6 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.infinity import Infinity
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from .lie_conformal_algebra_element import GradedLCAElement
 from .lie_conformal_algebra_with_structure_coefs import \
@@ -38,19 +65,16 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
           it is not a field of characteristic zero
 
         - ``s_coeff`` -- a dictionary (default: ``None``); as in the
-           input of :class:`LieConformalAlgebraStructureCoefficients`
+          input of :class:`LieConformalAlgebra` 
 
         - ``names`` -- tuple of ``str`` (default: ``None``); as in the
-          input of
-          :class:`LieConformalAlgebraStructureCoefficients`
+          input of :class:`LieConformalAlgebra`
 
         - ``central_elements`` -- tuple of ``str`` (default: ``None``);
-          as in the input of
-          :class:`LieConformalAlgebraStructureCoefficients`
+          as in the input of :class:`LieConformalAlgebra`
 
         - ``index_set`` -- enumerated set (default: ``None``); as in the
-          input of
-          :class:`LieConformalAlgebraStructureCoefficients`
+          input of :class:`LieConformalAlgebra` 
 
         - ``weights`` -- tuple of non-negative rational numbers
           (default: tuple of ``1``); a list of degrees for this Lie
@@ -60,11 +84,24 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
           to have weight ``0``.
 
         - ``category`` The category that this Lie conformal algebra
-           belongs to.
+          belongs to.
 
         - ``parity`` -- tuple of ``0`` or ``1`` (Default: tuple of
           ``0``); a tuple specifying the parity of each non-central
           generator.
+
+        EXAMPLES::
+
+            sage: bosondict = {('a','a'):{1:{('K',0):1}}}
+            sage: R = LieConformalAlgebra(QQ,bosondict,names=('a',),central_elements=('K',), weights=(1,))
+            sage: R.inject_variables()
+            Defining a, K
+            sage: a.T(3).degree()
+            4
+            sage: K.degree()
+            0
+            sage: R.category()
+            Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
         """
         category = LieConformalAlgebras(R).Graded().WithBasis()\
                    .FinitelyGenerated().or_subcategory(category)
@@ -82,4 +119,3 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             raise ValueError("weights and (non-central) generator lists "\
                              "must be of same length")
         self._weights = weights
-

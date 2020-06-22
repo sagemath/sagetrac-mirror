@@ -1,5 +1,5 @@
 """
-Lie Conformal Algebras With Basis.
+Lie Conformal Algebras With Basis
 
 AUTHORS:
 
@@ -24,17 +24,40 @@ class LieConformalAlgebraWithBasis(CombinatorialFreeModule):
                  prefix=None, **kwds):
         """
         Abstract base class for a Lie conformal algebra with a
-        preferred basis. 
+        preferred basis.
 
         This class provides no functionality, it simply passes the
-        arguments to :class:`CombinatorialFreeModule`. 
+        arguments to :class:`CombinatorialFreeModule`.
 
         EXAMPLES::
-            
+
             sage: R = VirasoroLieConformalAlgebra(QQbar);R
             The Virasoro Lie conformal algebra over Algebraic Field
+
+        TESTS::
+
+            sage: R = VirasoroLieConformalAlgebra(QQ)
+            sage: R.0
+            L
+            sage: R._repr_generator(R.0)
+            'L'
+            sage: R = AffineLieConformalAlgebra(QQ, 'A1')
+            sage: R.0
+            B[alpha[1]]
+            sage: R._repr_generator(R.0)
+            'B[alpha[1]]'
+            sage: R = AffineLieConformalAlgebra(QQ, 'A1', names = ('e', 'h','f'))
+            sage: R.0
+            e
+            sage: R._repr_generator(R.0)
+            'e'
         """
+        if prefix is None:
+            prefix = ''
+            kwds['bracket'] = ''
+            kwds['string_quotes'] = False
+
         category = LieConformalAlgebras(R).WithBasis().or_subcategory(category)
-        super(LieConformalAlgebraWithBasis,self).__init__(R, 
-                basis_keys=basis_keys, element_class=element_class, 
+        super(LieConformalAlgebraWithBasis,self).__init__(R,
+                basis_keys=basis_keys, element_class=element_class,
                 category=category, prefix=prefix, names=None, **kwds)

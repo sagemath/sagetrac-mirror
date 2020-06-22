@@ -41,7 +41,7 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         The Weyl Lie conformal algebra with generators
          `\alpha_i`, `i=1,...,ngens` and `\lambda`-brackets
 
-         .. MATH::
+        .. MATH::
 
             [{\alpha_i}_{\lambda} \alpha_j] = M_{ij} |0\rangle, 
 
@@ -52,8 +52,6 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
             The returned vertex algebra is not `H`-graded. For
             a related `H`-graded vertex algebra see
             :class:`BosonicGhostsVertexAlgebra`
-
-        EXAMPLES::
         """
         from sage.algebras.lie_conformal_algebras.weyl_lie_conformal_algebra import\
                                                     WeylLieConformalAlgebra

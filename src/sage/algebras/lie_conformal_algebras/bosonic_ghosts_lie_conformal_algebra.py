@@ -1,9 +1,21 @@
-"""
+r"""
 Bosonic Ghosts Lie Conformal Algebra
+
+The *Bosonic-ghosts* or `\beta-\gamma`-system Lie conformal algebra
+with `2n` generators is the H-graded Lie conformal algebra generated
+by `\beta_i, \gamma_i, i = 1,\ldots,n` and a central element `K`, with
+non-vanishing `\lambda`-brackets:
+
+.. MATH::
+
+    [{\beta_i}_\lambda \gamma_j] = \delta_{ij} K.
+
+The generators `\beta_i` have degree `1` while the generators `\gamma_i`
+have degree `0`.
 
 AUTHORS:
 
-- Reimundo Heluani (08-09-2019): Initial implementation.
+- Reimundo Heluani (06-15-2020): Initial implementation.
 """
 
 #******************************************************************************
@@ -21,22 +33,32 @@ from sage.structure.indexed_generators import standardize_names_index_set
 from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
 
-    def __init__(self,R,ngens=2,names=None,index_set=None):
+    def __init__(self, R, ngens=2, names=None, index_set=None):
         r"""
         The Bosonic ghosts or `\beta-\gamma`-system Lie conformal
         algebra.
 
         INPUT:
 
-        - ``R``: a commutative ring.
-        - ``ngens``: an even positive Integer (default: ``2``); the
+        - ``R`` -- a commutative ring.
+        - ``ngens`` -- an even positive Integer (default: ``2``); the
           number of non-central generators of this Lie conformal
           algebra.
+        - ``names`` -- a list of ``str``; alternative names for the
+          generators
+        - ``index_set`` -- an enumerated set; An indexing set for the
+          generators.
+
+        OUTPUT:
+
+        The Bosonic Ghosts Lie conformal algebra with generators
+        `\beta_i,\gamma_i, i=1,\ldots,n` and `K`, where `2n` is
+        ``ngens``.
 
         EXAMPLES::
 
             sage: R = BosonicGhostsLieConformalAlgebra(QQ); R
-            The Bosonic ghosts Lie conformal algebra with generators (beta, gamma, K) over Rational Field.
+            The Bosonic ghosts Lie conformal algebra with generators (beta, gamma, K) over Rational Field
             sage: R.inject_variables(); beta.bracket(gamma)
             Defining beta, gamma, K
             {0: K}
@@ -46,7 +68,7 @@ class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
             0
 
             sage: R = BosonicGhostsLieConformalAlgebra(QQbar, ngens = 4, names = 'abcd'); R
-            The Bosonic ghosts Lie conformal algebra with generators (a, b, c, d, K) over Algebraic Field.
+            The Bosonic ghosts Lie conformal algebra with generators (a, b, c, d, K) over Algebraic Field
             sage: R.structure_coefficients()
             Finite family {('a', 'c'): ((0, K),),  ('b', 'd'): ((0, K),),  ('c', 'a'): ((0, -K),),  ('d', 'b'): ((0, -K),)}
 
@@ -55,16 +77,18 @@ class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
             sage: BosonicGhostsLieConformalAlgebra(AA).category()
             Category of finitely generated H-graded Lie conformal algebras with basis over Algebraic Real Field
         """
+        from sage.rings.all import ZZ
         try:
-            assert (ngens > 0 and ngens % 2 == 0)
+            assert (ngens in ZZ and ngens > 0 and ngens % 2 == 0)
         except AssertionError:
             raise ValueError("ngens should be an even positive integer, " +
                              "got {}".format(ngens))
+        latex_names = None
         if (names is None) and (index_set is None):
             from sage.misc.defaults import variable_names as varnames
             from sage.misc.defaults import latex_variable_names as laxnames
             names = varnames(ngens/2,'beta') + varnames(ngens/2,'gamma')
-            self._latex_variable_names =  tuple(laxnames(ngens/2,r'\beta') +\
+            latex_names =  tuple(laxnames(ngens/2,r'\beta') +\
                                           laxnames(ngens/2,r'\gamma')) + ('K',)
 
         names,index_set = standardize_names_index_set(names=names,
@@ -78,11 +102,20 @@ class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
         weights = (1,)*(ngens//2) + (0,)*(ngens//2)
         super(BosonicGhostsLieConformalAlgebra,self).__init__(R,
                                            ghostsdict,names=names,
+                                           latex_names=latex_names,
                                            index_set=index_set,
                                            weights=weights,
                                            central_elements=('K',))
 
     def _repr_(self):
+        """
+        String representation.
+
+        EXAMPLES::
+
+            sage: BosonicGhostsLieConformalAlgebra(QQbar)
+            The Bosonic ghosts Lie conformal algebra with generators (beta, gamma, K) over Algebraic Field
+        """
         return "The Bosonic ghosts Lie conformal algebra with generators {} "\
-               "over {}.".format(self.gens(),self.base_ring())
+               "over {}".format(self.gens(),self.base_ring())
 

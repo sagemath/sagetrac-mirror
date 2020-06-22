@@ -1,5 +1,5 @@
 """
-Lie Conformal Algebra Element Class.
+Lie Conformal Algebra Element
 
 AUTHORS:
 
@@ -25,160 +25,193 @@ from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 
 class LCAWithGeneratorsElement(IndexedFreeModuleElement):
+    """
+    The element class of a Lie conformal algebra with a
+    preferred set of generators.
+    """
+    def T(self,n=1):
+        r"""
+        The n-th derivative of this element.
+
+        INPUT:
+
+        - ``n`` -- a non-negative integer (default:``1``); how many
+          times to apply `T` to this element.
+
+        We use the *divided powers* notation
+        `T^{(j)} = \frac{T^j}{j!}`.
+
+        EXAMPLES::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir.inject_variables()
+            Defining L, C
+            sage: L.T()
+            TL
+            sage: L.T(3)
+            6*T^(3)L
+            sage: C.T()
+            0
+
+            sage: R = NeveuSchwarzLieConformalAlgebra(QQbar); R.inject_variables()
+            Defining L, G, C
+            sage: (L + 2*G.T() + 4*C).T(2)
+            2*T^(2)L + 12*T^(3)G
+
+        TESTS::
+
+            sage: R = FreeBosonsLieConformalAlgebra(QQ); R.zero().T()
+            0
+            sage: (R.zero() + R.0).T()
+            Talpha
+            sage: R.0.T(0)
+            alpha
         """
-        The element class of a Lie conformal algebra with a
-        preferred set of generators.
-        """
-        def T(self,n=1):
-            r"""
-            The n-th derivative of this element.
-
-            INPUT:
-
-            - ``n`` -- integer (default:`1`); How many times
-              to apply `T` to this element.
-
-            We use the notation `T^{(j)} = \frac{T^j}{j!}`.
-
-            EXAMPLES::
-
-                sage: Vir = VirasoroLieConformalAlgebra(QQ)
-                sage: L = Vir.0; C = Vir.1
-                sage: L.T()
-                TL
-                sage: L.T(3)
-                6*T^(3)L
-                sage: C.T()
-                0
-
-                sage: R = NeveuSchwarzLieConformalAlgebra(QQbar); R.inject_variables()
-                Defining L, G, C
-                sage: (L + 2*G.T() + 4*C).T(2)
-                2*T^(2)L + 12*T^(3)G
-
-            TESTS::
-
-                sage: R = FreeBosonsLieConformalAlgebra(QQ); R.zero().T()
-                0
-                sage: (R.zero() + R.0).T()
-                Talpha
-            """
-            if n == 0 or self.is_zero():
-                return self
-            #it's faster to sum than to use recursion
-            if self.is_monomial():
-                p = self.parent()
-                a,m = self.index()
-                coef = self._monomial_coefficients[(a,m)]
-                if (a,m+n) in p._indices:
-                    return coef*prod(j for j in range(m+1,m+n+1))\
-                            *p.monomial((a,m+n))
-                else:
-                    return p.zero()
-            return sum(mon.T(n) for mon in self.terms())
-
-        def lift(self):
-            r"""
-            Returns the image of this element under the canonical lift
-            to the universal enveloping vertex algebra.
-
-            .. WARNING::
-
-                The universal enveloping algebra needs to be constructed
-                first for this morphism to be defined.
-
-                This morphism is registered as a coercion between this
-                Lie conformal algebra and its universal enveloping
-                vertex algebra upon creation. Since we consider central
-                quotients of the universal enveloping vertex algebras
-                by fixed central parameters, each time a different
-                universal enveloping vertex algebra is constructed, this
-                lift morphism is changed. See the examples below and
-                also :meth:`register_lift(\
-                )<sage.algebras.vertex_algebras.vertex_algebra.\
-                UniversalEnvelopingVertexAlgebra.register_lift>`.
-
-            EXAMPLES:
-
-            We lift to the universal enveloping vertex algebra of the
-            Virasoro Lie conformal algebra with central charge `0`::
-
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
-                sage: V = Vir.universal_enveloping_algebra()
-                sage: L.lift()
-                L_-2|0>
-                sage: L.lift().__class__
-                <class 'sage.algebras.vertex_algebras.universal_enveloping_vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category.element_class'>
-                sage: L.lift().parent()
-                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-
-            Notice that the target of the ``lift`` morphism changes when
-            we construct another universal enveloping vertex algebra::
-
-                sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-
-                sage: V = VirasoroVertexAlgebra(QQ,1/2);
-                sage: V.register_lift()
-                sage: Vir.lift.codomain()
-                The Virasoro vertex algebra of central charge 1/2 over Rational Field
-
-            Notice that recreation may not re-establish the right
-            coercion depending on the method of construction::
-
-                sage: Vir = VirasoroLieConformalAlgebra(QQ)
-                sage: cp = Family({Vir.1:1/3}); V = Vir.universal_enveloping_algebra(cp)
-                sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-                sage: V = VirasoroVertexAlgebra(QQ,1/2)
-                sage: Vir.lift.codomain()
-                The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-                sage: V.register_lift()
-                sage: Vir.lift.codomain()
-                The Virasoro vertex algebra of central charge 1/2 over Rational Field
-            """
+        from sage.rings.all import NN
+        if n not in NN:
+            raise ValueError("n must be a nonnegative Integer")
+        if n == 0 or self.is_zero():
+            return self
+        #it's faster to sum than to use recursion
+        if self.is_monomial():
             p = self.parent()
-            if not hasattr(p, 'lift'):
-                raise NotImplementedError(
-                    "In order to lift an element first need to "\
-                    "construct the universal enveloping vertex "\
-                    "algebra")
-            V = p.lift.codomain()
-            ret = V.zero()
-            for k,c in self.monomial_coefficients().items():
-                if p.monomial(k) in p.central_elements():
-                    ret += c*V.central_parameters()[p.monomial(k)]*V.vacuum()
-                else:
-                    l = [Partition([])]*V.ngens()
-                    l[p._index_to_pos[k[0]]] = Partition([k[1]+1])
-                    ret += c*V(l)
-            return ret
+            a,m = self.index()
+            coef = self._monomial_coefficients[(a,m)]
+            if (a,m+n) in p._indices:
+                return coef*prod(j for j in range(m+1,m+n+1))\
+                        *p.monomial((a,m+n))
+            else:
+                return p.zero()
+        return sum(mon.T(n) for mon in self.terms())
 
-        def _mul_(self,right):
-            return self.lift()*right.lift()
+    def lift(self):
+        r"""
+        Returns the image of this element under the canonical lift
+        to the universal enveloping vertex algebra.
 
-        def is_monomial(self):
-            """
-            Whether this element is a monomial.
+        .. WARNING::
 
-            EXAMPLES::
+            The universal enveloping algebra needs to be constructed
+            first for this morphism to be defined.
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
-                sage: (L + L.T()).is_monomial()
-                False
-                sage: L.T().is_monomial()
-                True
+            This morphism is registered as a coercion between this
+            Lie conformal algebra and its universal enveloping
+            vertex algebra upon creation. Since we consider central
+            quotients of the universal enveloping vertex algebras
+            by fixed central characters, each time a different
+            universal enveloping vertex algebra is constructed, this
+            lift morphism is changed. See the examples below and
+            also :meth:`register_lift(\
+            )<sage.algebras.vertex_algebras.vertex_algebra.\
+            UniversalEnvelopingVertexAlgebra.register_lift>`.
 
-            TESTS::
+        EXAMPLES:
 
-                sage: R = FreeFermionsLieConformalAlgebra(AA,ngens=3); R.inject_variables()
-                Defining psi_0, psi_1, psi_2, K
-                sage: R.zero().is_monomial()
-                True
-                sage: (psi_0.T(2) + R.zero()).is_monomial()
-                True
-            """
-            return len(self._monomial_coefficients) == 1 or self.is_zero()
+        We lift to the universal enveloping vertex algebra of the
+        Virasoro Lie conformal algebra with central charge `0`::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+            sage: V = Vir.universal_enveloping_algebra()
+            sage: L.lift()
+            L_-2|0>
+            sage: L.lift().__class__
+            <class 'sage.algebras.vertex_algebras.universal_enveloping_vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category.element_class'>
+            sage: L.lift().parent()
+            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
+
+        Notice that the target of the ``lift`` morphism changes when
+        we construct another universal enveloping vertex algebra::
+
+            sage: Vir.lift.codomain()
+            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
+
+            sage: V = VirasoroVertexAlgebra(QQ,1/2);
+            sage: V.register_lift()
+            sage: Vir.lift.codomain()
+            The Virasoro vertex algebra of central charge 1/2 over Rational Field
+
+        Notice that recreation may not re-establish the right
+        coercion since universal enveloping algebras are cached::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: cp = Family({Vir.1:1/3}); V = Vir.universal_enveloping_algebra(cp)
+            sage: Vir.lift.codomain()
+            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
+            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: Vir.lift.codomain()
+            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
+            sage: V.register_lift()
+            sage: Vir.lift.codomain()
+            The Virasoro vertex algebra of central charge 1/2 over Rational Field
+        """
+        p = self.parent()
+        if not hasattr(p, 'lift'):
+            raise NotImplementedError(
+                "In order to lift an element first need to "\
+                "construct the universal enveloping vertex "\
+                "algebra")
+        V = p.lift.codomain()
+        ret = V.zero()
+        for k,c in self.monomial_coefficients().items():
+            if p.monomial(k) in p.central_elements():
+                ret += c*V.central_parameters()[p.monomial(k)]*V.vacuum()
+            else:
+                l = [Partition([])]*V.ngens()
+                l[p._index_to_pos[k[0]]] = Partition([k[1]+1])
+                ret += c*V(l)
+        return ret
+
+    def _mul_(self,right):
+        """
+        The normally ordered product of these two elements in the
+        universal enveloping vertex algebra.
+
+        EXAMPLES::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir.inject_variables()
+            Defining L, C
+            sage: V = Vir.universal_enveloping_algebra({C:1})
+            sage: L*L.T()
+            L_-3L_-2|0> + L_-5|0>
+
+        Note that the universal enveloping algebra needs to be
+        constructed first::
+
+            sage: W = WeylLieConformalAlgebra(QQ,4)
+            sage: W.inject_variables()
+            Defining alpha0, alpha1, alpha2, alpha3, K
+            sage: alpha0*alpha1
+            Traceback (most recent call last):
+            NotImplementedError: In order to lift an element first need to construct the universal enveloping vertex algebra
+            sage: V = W.universal_enveloping_algebra({K:1})
+            sage: alpha0*alpha1
+            alpha0_(-1)alpha1_(-1)|0>
+        """
+        return self.lift()*right.lift()
+
+    def is_monomial(self):
+        """
+        Whether this element is a monomial.
+
+        EXAMPLES::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+            sage: (L + L.T()).is_monomial()
+            False
+            sage: L.T().is_monomial()
+            True
+
+        TESTS::
+
+            sage: R = FreeFermionsLieConformalAlgebra(AA,ngens=3); R.inject_variables()
+            Defining psi_0, psi_1, psi_2, K
+            sage: R.zero().is_monomial()
+            True
+            sage: (psi_0.T(2) + R.zero()).is_monomial()
+            True
+        """
+        return len(self._monomial_coefficients) == 1 or self.is_zero()
 
 
 class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
@@ -215,7 +248,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             return 0
         p = self.parent()
         coefs = self.monomial_coefficients()
-        paritylist = [p._parity[p.monomial((k[0],0))] for k in coefs]
+        paritylist = [p._parity[p.monomial((k,0))] for k,v in coefs]
         if paritylist[1:] == paritylist[:-1]:
             return paritylist[0]
         raise ValueError("{} is not homogeneous".format(self))
@@ -247,7 +280,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
         When the Lie conformal algebra is actually a vertex algebra,
         elements are denoted in a different fashion::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V = VirasoroVertexAlgebra(AA,1/2)
             sage: V.inject_variables()
             Defining L
             sage: Family(L.bracket(L*L))
@@ -261,6 +294,8 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             {0: L + 1/2*TJ, 1: J, 2: 1/3*C}
             sage: G2.bracket(G1)
             {0: L - 1/2*TJ, 1: -J, 2: 1/3*C}
+            sage: Family(G1.bracket(G2.T()))
+            Finite family {0: TL + T^(2)J, 1: L + 3/2*TJ, 2: 2*J, 3: C}
             sage: G1.bracket(C)
             {}
             sage: G1.bracket(R.zero())
@@ -297,7 +332,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
         for d in diclist:
             for k in d.keys():
                 ret[k] = ret.get(k,pz) + d[k]
-        return ret
+        return {k:v for k,v in ret.items() if v}
 
     def _repr_(self):
         r"""
@@ -316,6 +351,16 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             2*T^(2)L + L + C
             sage: L.T(4)
             24*T^(4)L
+
+            sage: N = N2LieConformalAlgebra(AA);
+            sage: N.an_element()
+            L + J + G1 + G2 + C
+            sage: N.1.T(3) + 3*N.2.T()
+            6*T^(3)J + 3*TG1
+
+            sage: R = AffineLieConformalAlgebra(QQ, 'B3')
+            sage: R.2.T()+3*R.3
+            TB[alpha[1]] + 3*B[alpha[2] + alpha[3]]
         """
         if self.is_zero():
             return "0";
@@ -328,12 +373,12 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
                     else ("{}".format(p._names[p._index_to_pos[k[0]]]),v)\
                         for k,v in self.monomial_coefficients().items()]
         else:
-            terms = [("T^({0}){1}".format(k[1], k[0]),v) if k[1] > 1 \
-                      else("T{}".format(k[0]),v) if k[1] == 1 \
-                        else ("{}".format(k[0]),v)\
-                        for k,v in self.monomial_coefficients().items()]
+            terms = [("T^({0}){1}".format(k[1], p._repr_generator(k[0])),v)\
+                      if k[1] > 1 else("T{}".format(p._repr_generator(k[0])),v)\
+                      if k[1] == 1 else ("{}".format(p._repr_generator(k[0])),
+                      v) for k,v in self.monomial_coefficients().items()]
 
-        return repr_lincomb(terms, strip_one = True)
+        return repr_lincomb(terms, strip_one=True)
 
     def _latex_(self):
         r"""
@@ -396,31 +441,44 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
         return repr_lincomb(terms, is_latex=True, strip_one = True)
 
 class GradedLCAElement(LCAStructureCoefficientsElement):
-        def degree(self):
-            """
-            The degree of this element.
+    """
+    Base class for H-graded Lie conformal algebras with structure
+    coefficients.
+    """
+    def degree(self):
+        """
+        The degree of this element.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: V = VirasoroLieConformalAlgebra(QQ)
-                sage: V.inject_variables()
-                Defining L, C
-                sage: C.degree()
-                0
-                sage: L.T(4).degree()
-                6
-            """
-            if self.is_zero():
-                return Infinity
-            p = self.parent()
-            ls = []
-            for gen,n in self.monomial_coefficients():
-                ret = n
-                if gen not in p._central_elements:
-                    ret+= p._weights[p._index_to_pos[gen]]
-                ls.append(ret)
-            if ls[1:] == ls[:-1]:
-                return ls[0]
-            raise ValueError("{} is not homogeneous!".format(self))
+            sage: V = VirasoroLieConformalAlgebra(QQ)
+            sage: V.inject_variables()
+            Defining L, C
+            sage: C.degree()
+            0
+            sage: L.T(4).degree()
+            6
 
-
+            sage: N = N2LieConformalAlgebra(AA)
+            sage: N.inject_variables()
+            Defining L, J, G1, G2, C
+            sage: G1.T().degree()
+            5/2
+            sage: J.degree()
+            1
+            sage: N.zero().degree()
+            +Infinity
+        """
+        if self.is_zero():
+            from sage.rings.infinity import Infinity
+            return Infinity
+        p = self.parent()
+        ls = []
+        for gen,n in self.monomial_coefficients():
+            ret = n
+            if gen not in p._central_elements:
+                ret+= p._weights[p._index_to_pos[gen]]
+            ls.append(ret)
+        if ls[1:] == ls[:-1]:
+            return ls[0]
+        raise ValueError("{} is not homogeneous!".format(self))

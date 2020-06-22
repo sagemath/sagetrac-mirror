@@ -1,9 +1,9 @@
 """
-Lie Conformal Algebras With Structure Coefficients.
+Lie Conformal Algebras With Structure Coefficients
 
 AUTHORS:
 
-- Reimundo Heluani (08-09-2019): Initial implementation
+- Reimundo Heluani (08-09-2019): Initial implementation.
 
 """
 
@@ -29,7 +29,7 @@ from sage.structure.indexed_generators import (IndexedGenerators,
                                                standardize_names_index_set)
 
 class LieConformalAlgebraWithStructureCoefficients(
-            FinitelyGeneratedLieConformalAlgebra, IndexedGenerators):
+                                        FinitelyGeneratedLieConformalAlgebra):
     @staticmethod
     def _standardize_s_coeff(s_coeff, index_set, ce, parity=None):
         """
@@ -39,17 +39,23 @@ class LieConformalAlgebraWithStructureCoefficients(
         INPUT:
 
         - ``s_coeff`` -- a dictionary as in
-          :class:`LieConformalAlgebraWithStructureCoefficients`.
+          :class:`LieConformalAlgebraWithStructureCoefficients<sage.\
+          algebras.lie_conformal_algebras.lie_conformal_algebra_with_\
+          structure_coefficients.LieConformalAlgebraWithStructure\
+          Coefficients>`.
         - ``index_set` -- A finite enumerated set indexing the
-          generators not counting the central elements.
+          generators (not counting the central elements).
         - ``ce`` -- a tuple of ``str``; a list of names for the central
           generators of this Lie conformal algebra
         - ``parity`` -- a tuple of `0` or `1` (Default: tuple of `0`);
           this tuple specifies the parity of each non-central generator.
 
-        OUTPUT: a Finite Family representing ``s_coeff`` in the input.
+        OUTPUT:
+
+        A finite Family representing ``s_coeff`` in the input.
         It contains superfluous information that can be obtained by
-        skew-symmetry
+        skew-symmetry but that improves speed in computing OPE for
+        vertex algebras.
         """
         if parity is None:
             parity = (0,)*index_set.cardinality()
@@ -66,14 +72,12 @@ class LieConformalAlgebraWithStructureCoefficients(
                 if lth_product:
                     vals[l]=lth_product
 
-            myvals = tuple((i, tuple((x,v) for x,v in vals[i].items()))
-                            for i in vals.keys() if vals[i])
+            myvals = tuple([(k,tuple(v.items())) for k,v in vals.items() if v])
 
-            if key in sc.keys():
-                if sorted(sc[key]) != sorted(myvals):
-                        raise ValueError("two distinct values given for one "
-                                         "and the same bracket, skew-symmetry" +
-                                         "is not satisfied?")
+            if key in sc.keys() and sorted(sc[key]) != sorted(myvals):
+                raise ValueError("two distinct values given for one "\
+                                 "and the same bracket, skew-symmetry"\
+                                 "is not satisfied?")
             if myvals:
                 sc[key] = myvals
 
@@ -90,7 +94,7 @@ class LieConformalAlgebraWithStructureCoefficients(
                 kth_product = {}
                 for j in range(maxpole+1-k):
                     if k+j in v.keys():
-                        for i in v[k+j].keys():
+                        for i in v[k+j]:
                             if (i[0] not in ce) or (
                                 i[0] in ce and i[1] + j == 0):
                                 kth_product[(i[0],i[1]+j)] = \
@@ -101,14 +105,12 @@ class LieConformalAlgebraWithStructureCoefficients(
                 if kth_product:
                     vals[k]=kth_product
 
-            myvals = tuple((i, tuple((x,v) for x,v in vals[i].items()))
-                            for i in vals if vals[i])
+            myvals = tuple([(k,tuple(v.items())) for k,v in vals.items() if v])
 
-            if key in sc.keys():
-                if sorted(sc[key]) != sorted(myvals):
-                        raise ValueError("two distinct values given for one "+
-                                         "and the same bracket. "+
-                                         "Skew-symmetry is not satisfied?")
+            if key in sc.keys() and sorted(sc[key]) != sorted(myvals):
+                raise ValueError("two distinct values given for one "\
+                                 "and the same bracket. "\
+                                 "Skew-symmetry is not satisfied?")
             if myvals:
                 sc[key] = myvals
         return Family(sc)
@@ -122,11 +124,11 @@ class LieConformalAlgebraWithStructureCoefficients(
 
         INPUT:
 
-        - ``R`` -- a ring (Default: None); The base ring of this Lie
+        - ``R`` -- a ring (Default: ``None``); The base ring of this Lie
           conformal algebra. Behaviour is undefined if it is not a field
           of characteristic zero.
 
-        - ``s_coeff`` -- Dictionary (Default: None);
+        - ``s_coeff`` -- Dictionary (Default: ``None``);
           a dictionary containing the `\lambda` brackets of the
           generators of this Lie conformal algebra. The family encodes a
           dictionary whose keys
@@ -153,15 +155,15 @@ class LieConformalAlgebraWithStructureCoefficients(
           defined by skew-symmetry) is assumed to have vanishing
           `\lambda`-bracket.
 
-        - ``names`` -- tuple of ``str`` (Default: None); The list of
+        - ``names`` -- tuple of ``str`` (Default: ``None``); The list of
           names for generators of this Lie conformal algebra. Do not
           include central elements in this list.
 
-        - ``central_elements`` -- tuple of ``str`` (Default: None);
+        - ``central_elements`` -- tuple of ``str`` (Default: ``None``);
           A list of names for central
           elements of this Lie conformal algebra.
 
-        - ``index_set`` -- enumerated set (Default: None);
+        - ``index_set`` -- enumerated set (Default: ``None``);
           an indexing set for the generators of this Lie
           conformal algebra. Do not include central elements in this
           list.
@@ -231,7 +233,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         try:
             assert len(parity) == index_set.cardinality()
         except AssertionError:
-            raise ValueError("parity should have the same length as the "+
+            raise ValueError("parity should have the same length as the "\
                              "number of generators, got {}".format(parity))
 
         s_coeff = LieConformalAlgebraWithStructureCoefficients\
@@ -276,11 +278,8 @@ class LieConformalAlgebraWithStructureCoefficients(
             sage: Vir.structure_coefficients()
             Finite family {('L', 'L'): ((0, TL), (1, 2*L), (3, 1/2*C))}
 
-            sage: sorted(NeveuSchwarzLieConformalAlgebra(QQ).structure_coefficients())
-            [((0, 1/2*TG), (1, 3/2*G)),
-             ((0, TG), (1, 3/2*G)),
-             ((0, L), (2, 1/3*C)),
-             ((0, TL), (1, 2*L), (3, 1/2*C))]
+            sage: NeveuSchwarzLieConformalAlgebra(QQ).structure_coefficients()
+            Finite family {('G', 'G'): ((0, 2*L), (2, 2/3*C)),  ('G', 'L'): ((0, 1/2*TG), (1, 3/2*G)),  ('L', 'G'): ((0, TG), (1, 3/2*G)),  ('L', 'L'): ((0, TL), (1, 2*L), (3, 1/2*C))}
         """
         return self._s_coeff
 
@@ -293,9 +292,9 @@ class LieConformalAlgebraWithStructureCoefficients(
 
         INPUT:
 
-        - ``central_parameters`` -- A family of constants in the
-          base ring of this Lie conformal algebra parametrized by
-          the central elements.
+        - ``central_parameters`` -- A family or dictionary of constants
+          in the base ring of this Lie conformal algebra parametrized
+          by the central elements.
 
         - ``names`` -- The names of the generators of the universal
           enveloping vertex algebra.
@@ -327,9 +326,9 @@ class LieConformalAlgebraWithStructureCoefficients(
         rationals::
 
             sage: Vir = VirasoroLieConformalAlgebra(QQ);
-            sage: Vir.gens()
-            (L, C)
-            sage: cp = Family({Vir.1:2}); V = Vir.universal_enveloping_algebra(cp)
+            sage: Vir.inject_variables()
+            Defining L, C
+            sage: V = Vir.universal_enveloping_algebra({C:2})
             sage: V.0.nproduct(V.0,3)
             |0>
 
@@ -339,6 +338,16 @@ class LieConformalAlgebraWithStructureCoefficients(
             Traceback (most recent call last):
             ...
             ArithmeticError: inverse does not exist
+
+        The universal enveloping vertex algebra of the Neveu-Schwarz
+        Lie conformal algebra::
+
+            sage: NS = NeveuSchwarzLieConformalAlgebra(QQbar)
+            sage: NS.inject_variables()
+            Defining L, G, C
+            sage: V = NS.universal_enveloping_algebra({C:1})
+            sage: G*G
+            L_-3|0>
 
         The list of central parameters needs to be indexed by the
         central elements of the algebra::
@@ -350,25 +359,21 @@ class LieConformalAlgebraWithStructureCoefficients(
             ...
             ValueError: central_parameters must be parametrized by central elements
         """
+        from sage.sets.family import Family
         if central_parameters == None:
-            from sage.sets.family import Family
             central_parameters = Family({ce:0 for ce in
                                         self.central_elements()})
+
+        if isinstance(central_parameters, dict):
+            central_parameters = Family(central_parameters)
+
         if hasattr(self, 'lift'):
             cp = self.lift.codomain().central_parameters()
             if cp == central_parameters:
                 return self.lift.codomain()
+        
         V = self._construct_UEA(central_parameters,
                                 names=names)
-
-        from sage.categories.homset import Hom
-        self.lift = _LiftMorphism(Hom(self, V, category =
-                        LieConformalAlgebras(self.base_ring())))
-        try:
-            self.lift.register_as_coercion()
-        except AssertionError:
-            #we already constructed this morphisms and its fine
-            pass
 
         return V
 
@@ -385,11 +390,36 @@ class LieConformalAlgebraWithStructureCoefficients(
                             central_parameters=central_parameters,
                             names=names)
 
+    def _repr_generator(self, x):
+        """
+        String representation of the generator ``x``.
+
+        INPUT:
+
+        - ``x`` -- an index parametrizing a generator or a generator of
+          this Lie conformal algebra
+
+        EXAMPLES::
+
+            sage: Vir = VirasoroLieConformalAlgebra(QQbar)
+            sage: Vir._repr_generator(Vir.0)
+            'L'
+            sage: R = AffineLieConformalAlgebra(QQ, 'A1')
+            sage: R._repr_generator(R.0)
+            'B[alpha[1]]'
+            sage: R = AffineLieConformalAlgebra(QQ, 'A1', names=('e','h','f'))
+            sage: R._repr_generator(R.0)
+            'e'
+        """
+        if x in self:
+            return repr(x)
+        return IndexedGenerators._repr_generator(self,x)
+
 from sage.categories.morphism import Morphism
 class _LiftMorphism(Morphism):
     """
     The lift morphism from this Lie conformal algebra to its universal
-    enveloping vertex algebra
+    enveloping vertex algebra.
 
     EXAMPLES::
 
