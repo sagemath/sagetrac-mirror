@@ -49,6 +49,7 @@ cdef class MultiModularBasis_base(object):
 
     EXAMPLES::
 
+        sage: set_random_seed(0)
         sage: from sage.arith.multi_modular import MultiModularBasis_base
         sage: mm = MultiModularBasis_base([3, 5, 7]); mm
         MultiModularBasis with moduli [3, 5, 7]
@@ -115,7 +116,7 @@ cdef class MultiModularBasis_base(object):
         TESTS::
 
             sage: from sage.arith.multi_modular import MultiModularBasis_base
-            sage: mm = MultiModularBasis_base(1099511627791); mm
+            sage: mm = MultiModularBasis_base(1099511627791); mm  # random
             MultiModularBasis with moduli [31051, 16981, 6007]
             sage: del mm
         """
@@ -163,7 +164,7 @@ cdef class MultiModularBasis_base(object):
             ...
             OverflowError: given modulus 1000000000000000000000000000057 is larger than 3037000498
 
-            sage: mm = MultiModularBasis_base(0); mm
+            sage: mm = MultiModularBasis_base(0); mm  # random
             MultiModularBasis with moduli [6007]
 
             sage: mm = MultiModularBasis_base([6, 10])
@@ -310,6 +311,7 @@ cdef class MultiModularBasis_base(object):
         """
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base(0); mm
             MultiModularBasis with moduli [31051]
@@ -407,7 +409,7 @@ cdef class MultiModularBasis_base(object):
             MultiModularBasis with moduli [46307]
             sage: mm._extend_moduli_to_count(3)
             3
-            sage: mm
+            sage: mm  # random
             MultiModularBasis with moduli [46307, 31051, 16981]
         """
         if count <= self.n:
@@ -433,7 +435,7 @@ cdef class MultiModularBasis_base(object):
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([46307]); mm
             MultiModularBasis with moduli [46307]
-            sage: mm._extend_moduli(2); mm
+            sage: mm._extend_moduli(2); mm  # random
             MultiModularBasis with moduli [46307, 31051, 16981]
         """
         self._extend_moduli_to_count(self.n + count)
@@ -930,10 +932,9 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
 
             sage: from sage.arith.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007])
-            sage: mm.next_prime()
-            31051             # 64-bit
-            31051L            # 32-bit
-            sage: mm
+            sage: mm.next_prime()  # random
+            31051
+            sage: mm  # random
             MultiModularBasis with moduli [10007, 31051]
         """
         self._extend_moduli(1)
@@ -962,16 +963,15 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             [1, 5004, 6536, 6060]
             sage: mm.partial_product(2)
             1005306552331
-            sage: mm.replace_prime(1)
-            31051             # 64-bit
-            31051L            # 32-bit
-            sage: mm
+            sage: mm.replace_prime(1)  # random
+            31051
+            sage: mm  # random
             MultiModularBasis with moduli [10007, 31051, 10037, 10039]
-            sage: mm.prod()
+            sage: mm.prod()  # random
             31309336870896151
-            sage: mm.precomputation_list()
+            sage: mm.precomputation_list()  # random
             [1, 17274, 1770, 2170]
-            sage: mm.partial_product(2)
+            sage: mm.partial_product(2)  # random
             3118770482209
         """
         cdef mod_int new_p

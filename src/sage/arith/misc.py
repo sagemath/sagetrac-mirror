@@ -1338,21 +1338,26 @@ def random_prime(n, proof=None, lbound=2):
 
     EXAMPLES::
 
-        sage: random_prime(100000)
+        sage: p = random_prime(100000); p  # random
         30029
+        sage: p in range(100000)
+        True
         sage: random_prime(2)
         2
 
     Here we generate a random prime between 100 and 200::
 
-        sage: random_prime(200, lbound=100)
+        sage: p = random_prime(200, lbound=100); p  # random
         167
+        sage: p in range(100, 200)
+        True
 
     If all we care about is finding a pseudo prime, then we can pass
     in ``proof=False`` ::
 
-        sage: random_prime(200, proof=False, lbound=100)
+        sage: p = random_prime(200, proof=False, lbound=100); p  # random
         197
+
 
     TESTS::
 
@@ -5614,6 +5619,7 @@ def sort_complex_numbers_for_display(nums):
 
     EXAMPLES::
 
+        sage: set_random_seed(0)
         sage: import sage.arith.misc
         sage: sort_c = sort_complex_numbers_for_display
         sage: nums = [CDF(i) for i in range(3)]
