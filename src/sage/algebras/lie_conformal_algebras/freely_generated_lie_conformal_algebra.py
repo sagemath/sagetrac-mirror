@@ -36,8 +36,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
         .. NOTE::
 
             We now only accept direct sums of free modules plus
-            finitely many central
-            generators `C_i` such that `TC_i = 0`.
+            some central generators `C_i` such that `TC_i = 0`.
         """
         self._generators = Family(index_set)
         E = cartesian_product([index_set, NonNegativeIntegers()])
@@ -70,7 +69,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             (L, C)
             sage: V = AffineLieConformalAlgebra(QQ,'A1')
             sage: V.lie_conformal_algebra_generators()
-            (alpha[1], alphacheck[1], -alpha[1], K)
+            (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
         """
         F = Family(self._generators,
                       lambda i: self.monomial((i,Integer(0))),
@@ -91,7 +90,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             (C,)
             sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
             sage: V.central_elements()
-            (K,)
+            (B['K'],)
         """
         return Family(self._central_elements,
                       lambda i: self.monomial((i,Integer(0))),

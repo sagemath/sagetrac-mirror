@@ -30,9 +30,6 @@ class N2VertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         - ``R`` a commutative ring; the base ring. 
         - ``c`` a number (default: ``0``); the central charge.
-        
-        EXAMPLES::
-
         """
         from sage.algebras.lie_conformal_algebras.\
              n2_lie_conformal_algebra import N2LieConformalAlgebra

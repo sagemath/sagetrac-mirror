@@ -30,9 +30,6 @@ class NeveuSchwarzVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         - ``R`` a commutative ring; the base ring. 
         - ``c`` a number (default: ``0``); the central charge.
-        
-        EXAMPLES::
-
         """
         from sage.algebras.lie_conformal_algebras.\
              neveu_schwarz_lie_conformal_algebra import \
