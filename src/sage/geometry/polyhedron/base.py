@@ -4510,8 +4510,10 @@ class Polyhedron_base(Element):
             tester.assertEqual((self*Q).backend(), self.backend())
 
             # And that it changes the backend correctly where necessary.
-            R = self*polytopes.regular_polygon(5, exact=True)
-            R = self*polytopes.regular_polygon(5, exact=False)
+            if AA.has_coerce_map_from(self.base_ring()):
+                P = polytopes.regular_polygon(5, exact=True)
+            if RDF.has_coerce_map_from(self.base_ring()):
+                R = self*polytopes.regular_polygon(5, exact=False)
 
         if self.base_ring().is_exact():
             # Check that the double description is set up correctly.
