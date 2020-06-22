@@ -1200,8 +1200,9 @@ def KAbstractSimplex(simplex):
         sage: SAbSm.dimension() == SAbSm2.dimension()                   # optional - kenzo
         True
     """
+    nondegenerate = simplex.nondegenerate()
     return KenzoObject(__kabstractsimplex_aux1__(simplex.degeneracies(),
-                                             's' + str(hash(simplex))))
+                                             's' + str(hash(nondegenerate))))
 
 
 def KFiniteSimplicialSet(sset):
