@@ -508,13 +508,13 @@ def find_groups(TD,k,n):
 
     - ``TD`` -- (incidence structure) a transversal design
 
-    - ``k,n`` -- (integers) parameters of the transversal design
+    - ``k, n`` -- (integers) parameters of the transversal design
       a third parameter `\lambda` exists, but is not used in this function
 
     NOTE::
 
         If the incidence structure given is not a transversal design
-        then the output is garbage
+        then the output is garbage.
 
     TESTS::
 
@@ -535,25 +535,28 @@ def find_groups(TD,k,n):
 
     b = TD.blocks()[0]
     groups = [ [i] for i in b]
-    #each block intersects each point class exactly once
+    
+    # Each block intersects each point class exactly once
     points = set(TD.ground_set())
-    points = points.difference(b) #remove already sorted points
+    points = points.difference(b)  # Remove already sorted points
+    
     while points:
         p = points.pop()
         for gr in groups:
-            #is p in gr?
+            # Is p in gr?
             p2 = gr[0]
-            #is |(p,p2)| == 0? -> yes!
+            # Is |(p,p2)| == 0? -> yes!
             for b in TD.blocks()[1:]:
                 if (p in b) and (p2 in b):
-                    #|(p,p2)| > 0
+                    # |(p,p2)| > 0
                     break
             else:
-                #we didn't break!
-                #so p and p2 are in same group
+                # We didn't break!
+                # So p and p2 are in same group
                 gr.append(p)
                 break
-    #after the loop we are done
+
+    # After the loop we are done
     return groups
 
 

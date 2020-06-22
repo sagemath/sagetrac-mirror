@@ -46,7 +46,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, int lmbda=1, verbose=False, t
         sage: is_orthogonal_array(OA,8,9)
         False
         sage: is_orthogonal_array(OA,8,9,verbose=True)
-        In columns 0 and 3 the pair (0,1) appears more than 1 times
+        In columns 0 and 3 the pair (0,1) appears more than once
         False
         sage: is_orthogonal_array(OA,8,9,verbose=True,terminology="MOLS")
         In columns 0 and 3 the pair (0,1) appears more than once
@@ -99,14 +99,14 @@ def is_orthogonal_array(OA, int k, int n, int t=2, int lmbda=1, verbose=False, t
 
     if len(OA) != nRows:
         if verbose:
-            print({"OA"   : "The number of rows is {} instead of {}^2={}".format(len(OA),n,n2),
+            print({"OA"   : "The number of rows is {} instead of {}^2={}".format(len(OA), n, n2),
                    "MOLS" : "All squares do not have dimension n^2={}^2".format(n)}[terminology])
         return False
 
     if n == 0:
         return True
 
-    cdef int i,j,l,l2
+    cdef int i, j, l, l2
 
     # A copy of OA
     cdef unsigned short * OAc = <unsigned short *> sig_malloc(k*nRows*sizeof(unsigned short))
@@ -123,11 +123,11 @@ def is_orthogonal_array(OA, int k, int n, int t=2, int lmbda=1, verbose=False, t
         for j,x in enumerate(R):
             if x < 0 or x >= n:
                 if verbose:
-                    print({"OA"   : "{} is not in the interval [0..{}]".format(x,n-1),
-                           "MOLS" : "Entry {} was expected to be in the interval [0..{}]".format(x,n-1)}[terminology])
+                    print({"OA"   : "{} is not in the interval [0..{}]".format(x, n-1),
+                           "MOLS" : "Entry {} was expected to be in the interval [0..{}]".format(x, n-1)}[terminology])
                 sig_free(OAc)
                 return False
-            OAc[j*nRows+i] = x
+            OAc[j*nRows + i] = x
 
     # A bitset to keep track of pairs of values
     # A pair (i,j) is represented by the number i*n+j (concatenation mod n)
@@ -137,31 +137,33 @@ def is_orthogonal_array(OA, int k, int n, int t=2, int lmbda=1, verbose=False, t
     bitset_init(seen, nRows)
 
     for i in range(k): # For any column C1
-        C1 = OAc+i*nRows
-        for j in range(i+1,k): # For any column C2 > C1
+        C1 = OAc + i*nRows
+        for j in range(i+1, k): # For any column C2 > C1
             C2 = OAc+j*nRows
             bitset_set_first_n(seen, 0) # No pair has been seen yet
             for l in range(nRows):
-                #count how many times (C1[l],C2[l]) was seen
+                # count how many times (C1[l],C2[l]) was seen
                 l2 = 0
-                while l2 < lmbda and bitset_in(seen, lmbda*(n*C1[l]+C2[l])+l2):
+                while l2 < lmbda and bitset_in(seen, lmbda*(n*C1[l] + C2[l]) + l2):
                     l2 +=1
-                if l2 == lmbda: #the pair (C1[l],C2[l]) has already appeared lmbda times
+                if l2 == lmbda: # The pair (C1[l],C2[l]) has already appeared lmbda times
                     if verbose:
-                        print({"OA" : "In columns {} and {} the pair ({},{}) appears more than {} times".format(i,j,C1[l],C2[l],lmbda),
-                               "MOLS": "In columns {} and {} the pair ({},{}) appears more than once".format(i,j,C1[l],C2[l])}[terminology])
+                        if lmbda == 1 or terminology == "MOLS" :
+                            print("In columns {} and {} the pair ({},{}) appears more than once".format(i, j, C1[l], C2[l]))
+                        else:
+                            print("In columns {} and {} the pair ({},{}) appears more than {} times".format(i, j, C1[l], C2[l], lmbda))
                     sig_free(OAc)
                     bitset_free(seen)
                     return False
-                #otherwise:
-                bitset_add(seen,lmbda*(n*C1[l]+C2[l])+l2)
+                # Otherwise:
+                bitset_add(seen,lmbda*(n*C1[l] + C2[l]) + l2)
 
             if bitset_len(seen) != nRows: # Have we seen all pairs ?
                 sig_free(OAc)
                 bitset_free(seen)
                 if verbose:
-                    print({"OA"   : "Columns {} and {} are not orthogonal".format(i,j),
-                           "MOLS" : "Squares {} and {} are not orthogonal".format(i,j)}[terminology])
+                    print({"OA"   : "Columns {} and {} are not orthogonal".format(i, j),
+                           "MOLS" : "Squares {} and {} are not orthogonal".format(i, j)}[terminology])
                 return False
 
     sig_free(OAc)
@@ -614,7 +616,6 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         False
     """
     from .difference_family import group_law
-    from sage.categories.vector_spaces import VectorSpaces
 
     assert k>=2
     assert lmbda >=1
@@ -645,10 +646,14 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
 
     # Map group element with integers
     cdef list int_to_group = list(G)
-    if G in VectorSpaces:
+
+    # Make sure elements are hashable
+    try:
+        int_to_group[0].__hash__()
+    except TypeError:
         for v in int_to_group:
             v.set_immutable()
-
+    
     cdef dict group_to_int = {v:i for i,v in enumerate(int_to_group)}
 
     # Allocations
@@ -679,7 +684,10 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         assert op(Gj, minus_Gj) == zero
         for i,Gi in enumerate(int_to_group):
             res = op(Gi,minus_Gj)
-            if G in VectorSpaces: res.set_immutable()
+            try:
+                res.__hashable__()
+            except TypeError:
+                res.set_immutable()
             x_minus_y[i][j] = group_to_int[res]
 
     # Empty values
@@ -692,7 +700,10 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         for j,x in enumerate(R):
             if x is not None:
                 e = G(x)
-                if G in VectorSpaces: e.set_immutable()
+                try:
+                    e.__hashable__()
+                except:
+                    e.set_immutable()
                 M_c[i*k+j] = group_to_int[e]
             else:
                 M_c[i*k+j] = n
