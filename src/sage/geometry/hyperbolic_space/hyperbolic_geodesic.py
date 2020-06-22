@@ -909,8 +909,8 @@ class HyperbolicGeodesic(SageObject):
 
             sage: g = HyperbolicPlane().PD().random_geodesic()
             sage: h = g.perpendicular_bisector()
-            sage: bool(h.intersection(g)[0].coordinates() - g.midpoint().coordinates() < 10**-9)
-            True
+            sage: abs(h.intersection(g)[0].coordinates() - g.midpoint().coordinates())  # abs tol 1e-9
+            0
 
         """
 
@@ -1148,7 +1148,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             Graphics object consisting of 2 graphics primitives
 
         Plotting a line with ``boundary=False``. ::
-            
+
             sage: g = HyperbolicPlane().UHP().get_geodesic(0, I)
             sage: g.plot(boundary=False)
             Graphics object consisting of 1 graphics primitive
@@ -1373,8 +1373,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g = UHP.random_geodesic()
             sage: h = g.perpendicular_bisector()
             sage: c = lambda x: x.coordinates()
-            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
-            True
+            sage: abs(c(g.intersection(h)[0]) - c(g.midpoint()))  # abs tol 1e-9
+            0
 
         ::
 
@@ -1663,7 +1663,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             arccos(7/8)
             sage: h.angle(g)
             arccos(7/8)
-                                                                     
+
         Angle between circle and line. Note that ``1/2*sqrt(2)`` equals
         ``1/4*pi``. ::
 
@@ -1911,10 +1911,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: (p1, p2, p3) = [UHP.random_point().coordinates()
             ....:                   for k in range(3)]
             sage: A = HyperbolicGeodesicUHP._crossratio_matrix(p1, p2, p3)
-            sage: bool(abs(moebius_transform(A, p1)) < 10**-9)
-            True
-            sage: bool(abs(moebius_transform(A, p2) - 1) < 10**-9)
-            True
+            sage: abs(moebius_transform(A, p1))  # abs tol 1e-9
+            0
+            sage: abs(moebius_transform(A, p2) - 1)  # abs tol 1e-9
+            0
             sage: bool(moebius_transform(A, p3) == infinity)
             True
             sage: (x,y,z) = var('x,y,z')
