@@ -909,9 +909,9 @@ class HyperbolicGeodesic(SageObject):
 
             sage: g = HyperbolicPlane().PD().random_geodesic()
             sage: h = g.perpendicular_bisector()
-            sage: abs(h.intersection(g)[0].coordinates() - g.midpoint().coordinates())  # abs tol 1e-9
+            sage: error = abs(h.intersection(g)[0].coordinates() - g.midpoint().coordinates())
+            sage: error/( abs(h.intersection(g)[0].coordinates()) + abs(g.midpoint().coordinates()) )  # abs tol 1
             0
-
         """
 
         P = self._cached_geodesic.perpendicular_bisector()
@@ -1373,7 +1373,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g = UHP.random_geodesic()
             sage: h = g.perpendicular_bisector()
             sage: c = lambda x: x.coordinates()
-            sage: abs(c(g.intersection(h)[0]) - c(g.midpoint()))  # abs tol 1e-9
+            sage: error = abs(c(g.intersection(h)[0]) - c(g.midpoint()))
+            sage: error / ( abs(c(g.intersection(h)[0])) + abs(c(g.midpoint())) )  # abs tol 1
             0
 
         ::
@@ -1911,9 +1912,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: (p1, p2, p3) = [UHP.random_point().coordinates()
             ....:                   for k in range(3)]
             sage: A = HyperbolicGeodesicUHP._crossratio_matrix(p1, p2, p3)
-            sage: abs(moebius_transform(A, p1))  # abs tol 1e-9
+            sage: sum_of_norms = A.norm() + p1.norm() + p2.norm() + p3.norm()
+            sage: abs(moebius_transform(A, p1)) / sum_of_norms  # abs tol 1
             0
-            sage: abs(moebius_transform(A, p2) - 1)  # abs tol 1e-9
+            sage: abs(moebius_transform(A, p2) - 1) / sum_of_norms  # abs tol 1
             0
             sage: bool(moebius_transform(A, p3) == infinity)
             True
