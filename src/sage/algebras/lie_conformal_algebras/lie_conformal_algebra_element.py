@@ -3,7 +3,7 @@ Lie Conformal Algebra Element
 
 AUTHORS:
 
-- Reimundo Heluani (08-09-2019): Initial implementation.
+- Reimundo Heluani (2019-08-09): Initial implementation.
 """
 
 
@@ -160,35 +160,6 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
                 l[p._index_to_pos[k[0]]] = Partition([k[1]+1])
                 ret += c*V(l)
         return ret
-
-    def _mul_(self,right):
-        """
-        The normally ordered product of these two elements in the
-        universal enveloping vertex algebra.
-
-        EXAMPLES::
-
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
-            sage: Vir.inject_variables()
-            Defining L, C
-            sage: V = Vir.universal_enveloping_algebra({C:1})
-            sage: L*L.T()
-            L_-3L_-2|0> + L_-5|0>
-
-        Note that the universal enveloping algebra needs to be
-        constructed first::
-
-            sage: W = WeylLieConformalAlgebra(QQ,4)
-            sage: W.inject_variables()
-            Defining alpha0, alpha1, alpha2, alpha3, K
-            sage: alpha0*alpha1
-            Traceback (most recent call last):
-            NotImplementedError: In order to lift an element first need to construct the universal enveloping vertex algebra
-            sage: V = W.universal_enveloping_algebra({K:1})
-            sage: alpha0*alpha1
-            alpha0_(-1)alpha1_(-1)|0>
-        """
-        return self.lift()*right.lift()
 
     def is_monomial(self):
         """

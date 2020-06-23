@@ -20,7 +20,7 @@ This is an H-graded Lie conformal algebra where every generator
 
 AUTHORS:
 
-- Reimundo Heluani (06-03-2020): Initial implementation.
+- Reimundo Heluani (2020-06-03): Initial implementation.
 """
 #******************************************************************************
 #       Copyright (C) 2020 Reimundo Heluani <heluani@potuz.net>
@@ -36,7 +36,7 @@ from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 
 class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
 
-    def __init__(self,R,gram_matrix=None,ngens=None,names=None,
+    def __init__(self, R, ngens=None, gram_matrix=None, names=None,
                  index_set=None):
         r"""
         The Free Fermions Super Lie conformal algebra.
@@ -44,10 +44,11 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
         INPUT:
 
         - ``R``: a commutative ring.
-        - ``gram_matrix``: a matrix (default: ``[1]``); a symmetric
-          square matrix with coefficients in ``R``.
         - ``ngens``: a positive Integer (default ``1``); the number of
           non-central generators of this Lie conformal algebra.
+        - ``gram_matrix``: a symmetric square matrix with coefficients
+          in ``R`` (default: ``identity_matrix(ngens)``); the Gram
+          matrix of the inner product
 
         OUTPUT:
 

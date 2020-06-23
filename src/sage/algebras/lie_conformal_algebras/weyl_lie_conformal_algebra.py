@@ -20,7 +20,7 @@ lie_conformal_algebras.bosonic_ghosts_lie_conformal_algebra>`
 
 AUTHORS:
 
-- Reimundo Heluani (08-09-2019): Initial implementation.
+- Reimundo Heluani (2019-08-09): Initial implementation.
 """
 
 #******************************************************************************
@@ -52,6 +52,11 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
           of non-central generators of this Lie conformal algebra.
         - ``gram_matrix``: a matrix (default: ``None``); A non-singular
           skew-symmetric square matrix with coefficients in `R`.
+        - ``names`` -- a list or tuple of ``str``; alternative names
+          for the generators
+        - ``index_set`` -- an enumerated set; alternative indexing set
+          for the generators
+
 
         OUTPUT:
 

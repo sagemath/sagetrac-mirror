@@ -1,17 +1,35 @@
-"""
+r"""
 Energy Partitions
+
+For a non-negative rational number `n` and a positive rational number
+`w`, an ``EnergyPartition`` of *energy* `n` and *weight* `w` is a
+non-increasing sequence of positive integers:
+
+.. MATH::
+
+    \lambda_1 \geq \ldots \geq \lambda_k \geq 1,
+
+such that:
+
+.. MATH::
+
+    \sum_{i=1}^k \lambda_i + k (w-1) = n
+
+This class is used internally in the PBW basis of universal enveloping
+vertex algebras.
+
+.. SEEALSO::
+
+    :mod:`sage.algebras.vertex_algebras.energy_partition_tuples`
 
 AUTHORS:
 
-- Reimundo Heluani (06-09-2020): Initial implementation.
-
-.. linkall
-
+- Reimundo Heluani (2020-06-09): Initial implementation.
 """
 
 
 #******************************************************************************
-#       Copyright (C) 2019 Reimundo Heluani <heluani@potuz.net>
+#       Copyright (C) 2020 Reimundo Heluani <heluani@potuz.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,15 +43,14 @@ from sage.combinat.partition import Partitions, RegularPartitions, Partition
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.rings.all import QQ, ZZ, NN
 from sage.combinat.partitions import ZS1_iterator_nk
-from sage.functions.other import ceil
 
 class EnergyPartition(Partition):
     """
-    EnergyPartitions Element class
+    EnergyPartitions Element class.
     """
     def energy(self):
         """
-        Returns the energy of this element.
+        The energy of this element.
 
         EXAMPLES::
 
@@ -51,91 +68,13 @@ class EnergyPartition(Partition):
         return self.length()*(self.parent().w-1) + self.size()
 
 class EnergyPartitions(Partitions):
-    r"""
-    Base class for Energy Partitions.
-
-    INPUT:
-
-    - ``w`` -- a positive rational number; the energy of the partition
-      `[1]`
-    - ``n`` -- a non-negative rational number or ``None`` (default :
-      ``None``); if ``None`` it returns the class of all Energy
-      Partitions, if a positive rational number it returns the class
-      of Energy Partitions with total energy ``n``
-
-    in addition the following keyword arguments are recognized:
-
-    - ``regular`` -- a positive integer number; the maximum number of
-      times that a part can appear plus one
-    - ``length`` -- a non-negative integer number; the number of parts
-
-    EXAMPLES:
-
-    We lists some partitions::
-
-        sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
-        sage: EnergyPartitions(1/2,3).list()
-        [[1, 1, 1, 1, 1, 1], [2, 1, 1, 1], [3, 1], [2, 2]]
-        sage: EnergyPartitions(1/2,3,regular=2).list()
-        [[3, 1]]
-        sage: EnergyPartitions(1/2,3,length=3).list()
-        []
-        sage: EnergyPartitions(1/2,5,regular=2,length=2).list()
-        [[5, 1], [4, 2]]
-        sage: EnergyPartitions(1/3,3).list()
-        [[1, 1, 1, 1, 1, 1, 1, 1, 1], [2, 1, 1, 1, 1, 1], [3, 1, 1], [2, 2, 1]]
-        sage: EnergyPartitions(1,3).list()
-        [[3], [2, 1], [1, 1, 1]]
-
-    Check the energy of some partitions::
-
-        sage: V = EnergyPartitions(1/2,regular=2); V
-        2-Regular Energy Partitions with weight 1/2
-        sage: V.an_element()
-        [1]
-        sage: V([1]).energy()
-        1/2
-        sage: V([5,2]).energy()
-        6
-        sage: V([]).energy()
-        0
-
-    Notice that the energy depends on the weight::
-
-        sage: v = EnergyPartitions(1).an_element(); v
-        [3, 2, 1]
-        sage: v.energy()
-        6
-
-        sage: v = EnergyPartitions(1/2).an_element(); v
-        [3, 2, 1]
-        sage: v.energy()
-        9/2
-        sage: v.parent()
-        Energy Partitions with weight 1/2
-
-    TESTS::
-
-        sage: V([5,5,2])
-        Traceback (most recent call last):
-        ...
-        ValueError: [5, 5, 2] is not an element of 2-Regular Energy Partitions with weight 1/2
-        sage: EnergyPartitions(1,0).list()
-        [[]]
-        sage: EnergyPartitions(1/2,-1)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be a non-negative rational or be equal to `None`
-    """
-
-
     @staticmethod
-    def __classcall_private__(cls, w = None,n = None, **kwargs):
-        regular = kwargs.get('regular',None)
+    def __classcall_private__(cls, w=None, n=None, **kwargs):
+        regular = kwargs.pop('regular',None)
         if regular is not None:
             if regular not in NN or regular <= 0:
                 raise ValueError("regular must be a positive integer.")
-        length = kwargs.get('length',None)
+        length = kwargs.pop('length',None)
         if length is not None:
             if length not in NN or length < 0:
                 raise ValueError("length must be a non-negative integer.")
@@ -143,33 +82,107 @@ class EnergyPartitions(Partitions):
         if w not in QQ or w <= 0:
             raise ValueError("w must be a positive rational number, got {}"\
                                 .format(w))
+        if kwargs:
+            raise ValueError("EneryPartitions: unrecognized keywords {}".\
+                             format(kwargs.keys()))
+
         if n is None:
-            if len(kwargs) > 0:
-                if len(kwargs) == 1:
-                    if 'regular' in kwargs:
-                        return RegularEnergyPartitions_all(w,regular)
+            if length is not None:
                 raise ValueError("n must be a non-negative rational with these"\
                                  " keyword arguments")
+            if regular:
+                return RegularEnergyPartitions_all(w,regular)
             return EnergyPartitions_all(w)
+                
         elif n in QQ and n >= 0:
-            if len(kwargs) == 0:
-                return EnergyPartitions_n(w,n)
-
-            if len(kwargs) == 1:
-                if 'length' in kwargs:
-                    return EnergyPartitions_nk(w,n,length)
-
-                elif 'regular' in kwargs:
-                    return RegularEnergyPartitions_n(w, n, regular)
-            elif len(kwargs) == 2:
-                if 'length' in kwargs and 'regular' in kwargs:
+            if length is not None:
+                if regular:
                     return RegularEnergyPartitions_nk(w,n,length,regular)
-            raise ValueError("Unrecognized combination of keyword arguments")
-
+                return EnergyPartitions_nk(w,n,length)
+            if regular:
+                return RegularEnergyPartitions_n(w, n, regular)
+            return EnergyPartitions_n(w,n)
+        
         raise ValueError("n must be a non-negative rational or be equal to "\
                          "`None`")
 
     def __init__(self, w, is_infinite=False):
+        r"""
+        Base class for Energy Partitions.
+
+        INPUT:
+
+        - ``w`` -- a positive rational number; the weight 
+        - ``n`` -- a non-negative rational number or ``None`` (default :
+          ``None``); if ``None`` it returns the class of all Energy
+          Partitions, if a positive rational number it returns the class
+          of Energy Partitions with total energy ``n``
+
+        In addition the following keyword arguments are recognized:
+
+        - ``regular`` -- a positive integer number; the maximum number
+          of times that a part can appear plus one
+        - ``length`` -- a non-negative integer number; the number of
+          parts
+
+        EXAMPLES:
+
+        We lists some partitions::
+
+            sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
+            sage: EnergyPartitions(1/2,3).list()
+            [[1, 1, 1, 1, 1, 1], [2, 1, 1, 1], [3, 1], [2, 2]]
+            sage: EnergyPartitions(1/2,3,regular=2).list()
+            [[3, 1]]
+            sage: EnergyPartitions(1/2,3,length=3).list()
+            []
+            sage: EnergyPartitions(1/2,5,regular=2,length=2).list()
+            [[5, 1], [4, 2]]
+            sage: EnergyPartitions(1/3,3).list()
+            [[1, 1, 1, 1, 1, 1, 1, 1, 1], [2, 1, 1, 1, 1, 1], [3, 1, 1], [2, 2, 1]]
+            sage: EnergyPartitions(1,3).list()
+            [[3], [2, 1], [1, 1, 1]]
+
+        Check the energy of some partitions::
+
+            sage: V = EnergyPartitions(1/2,regular=2); V
+            2-Regular Energy Partitions with weight 1/2
+            sage: V.an_element()
+            [1]
+            sage: V([1]).energy()
+            1/2
+            sage: V([5,2]).energy()
+            6
+            sage: V([]).energy()
+            0
+
+        Notice that the energy depends on the weight::
+
+            sage: v = EnergyPartitions(1).an_element(); v
+            [3, 2, 1]
+            sage: v.energy()
+            6
+
+            sage: v = EnergyPartitions(1/2).an_element(); v
+            [3, 2, 1]
+            sage: v.energy()
+            9/2
+            sage: v.parent()
+            Energy Partitions with weight 1/2
+
+        TESTS::
+
+            sage: V([5,5,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [5, 5, 2] is not an element of 2-Regular Energy Partitions with weight 1/2
+            sage: EnergyPartitions(1,0).list()
+            [[]]
+            sage: EnergyPartitions(1/2,-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non-negative rational or be equal to `None`
+        """
         super(EnergyPartitions,self).__init__(is_infinite)
         self.w = QQ(w)
 
@@ -177,8 +190,12 @@ class EnergyPartitions(Partitions):
 
 class EnergyPartitions_all(EnergyPartitions):
     def __init__(self,w):
-        """
+        r"""
         Base class for all Energy Partitions.
+
+        INPUT:
+
+        - ``w`` -- a positive rational number; the weight
 
         EXAMPLES::
 
@@ -249,10 +266,15 @@ class EnergyPartitions_all(EnergyPartitions):
 
 class EnergyPartitions_n(EnergyPartitions):
     def __init__(self, w, n):
-        """
+        r"""
         The class of Energy Partitions with a fixed energy.
 
-        EXAMPLES::
+        INPUT:
+
+        - ``w`` -- a positive rational number; the weight
+        - ``n`` -- a non-negative rational number; the energy
+
+         EXAMPLES::
 
             sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
             sage: V = EnergyPartitions(1/2,3); V
@@ -393,9 +415,15 @@ class EnergyPartitions_n(EnergyPartitions):
 
 class EnergyPartitions_nk(EnergyPartitions):
     def __init__(self, w, n, k):
-        """
+        r"""
         The class of Energy Partitions with prescribed energy and
         length.
+        
+        INPUT:
+
+        - ``w`` -- a positive rational number; the weight
+        - ``n`` -- a non-negative rational number; the energy
+        - ``k`` -- a non-negative integer; the number of parts
 
         EXAMPLES::
 
@@ -404,6 +432,14 @@ class EnergyPartitions_nk(EnergyPartitions):
             [[4, 1, 1, 1], [3, 2, 1, 1], [2, 2, 2, 1]]
             sage: EnergyPartitions(1,8,length=2).list()
             [[7, 1], [6, 2], [5, 3], [4, 4]]
+
+        TESTS::
+
+            sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
+            sage: EnergyPartitions(1/2,0,length=0)
+            Energy Partitions of 0 of length 0 with weight 1/2
+            sage: EnergyPartitions(1/2,0,length=0).list()
+            [[]]
         """
         EnergyPartitions.__init__(self,w)
         self.n = QQ(n)
@@ -412,7 +448,7 @@ class EnergyPartitions_nk(EnergyPartitions):
         self.k = k
 
     def __contains__(self,x):
-        """
+        r"""
         Whether ``x`` is an Energy Partition in this class.
 
         EXAMPLES::
@@ -519,9 +555,17 @@ class RegularEnergyPartitions(EnergyPartitions):
 
         INPUT:
 
-        - ``w`` -- a positive rational; the weight.
+        - ``w`` -- a positive rational; the weight
+        - ``ell`` -- a positive integer; the maximum number of times a
+          part can appear plus `1`
         - ``is_infinite`` a boolean; wether this class of partitions
-          contains infinitely many elements.
+          contains infinitely many elements
+
+        EXAMPLES::
+
+            sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
+            sage: EnergyPartitions(1/2,regular=2)[:10]
+            [[1], [2], [2, 1], [3], [3, 1], [4], [4, 1], [3, 2], [3, 2, 1], [5]]
         """
         EnergyPartitions.__init__(self, w, is_infinite)
         self._ell = ell
@@ -546,6 +590,32 @@ class RegularEnergyPartitions(EnergyPartitions):
     def _fast_iterator(self, n, max_part):
         """
         A recursive iterator to go over regular partitions.
+
+        INPUT:
+
+        - ``n`` -- a non-negative integer; the size of the partitions
+        - ``max_part`` -- a positive integer; the size of the largest
+          possible part. 
+        
+        OUTPUT:
+
+        Iterates over all regular 'usual' partitions of ``n`` with
+        largest part smaller or equal than ``max_part``
+
+        EXAMPLES::
+
+            sage: from sage.algebras.vertex_algebras.energy_partitions import RegularEnergyPartitions
+            sage: list(RegularEnergyPartitions(1/2,2)._fast_iterator(10,10))
+            [[10],
+             [9, 1],
+             [8, 2],
+             [7, 3],
+             [7, 2, 1],
+             [6, 4],
+             [6, 3, 1],
+             [5, 4, 1],
+             [5, 3, 2],
+             [4, 3, 2, 1]]
         """
         if n == 0:
             yield []
@@ -565,6 +635,12 @@ class RegularEnergyPartitions_all(RegularEnergyPartitions):
     def __init__(self, w, ell):
         """
         The class of all Regular Energy Partitions of this weight.
+
+        INPUT:
+        
+        - ``w`` -- a positive rational number; the weight
+        - ``ell`` -- a positive integer; the maximum number of times
+          that a part can appear plus one
 
         EXAMPLES::
 
@@ -627,6 +703,13 @@ class RegularEnergyPartitions_n(RegularEnergyPartitions, EnergyPartitions_n):
     def __init__(self, w, n, ell):
         """
         Regular Energy Partitions of a fixed energy.
+
+        INPUT:
+
+        - ``w`` -- a positive rational number; the weight
+        - ``n`` -- a non-negative rational number; the energy
+        - ``ell`` -- a positive integer; the maximum number of times
+          that a part can appear plus one
 
         EXAMPLES::
 
@@ -706,6 +789,14 @@ class RegularEnergyPartitions_nk(RegularEnergyPartitions, EnergyPartitions_nk):
         """
         The class of Regular Energy Partitions of prescribed energy and
         length.
+
+        INPUT:
+
+        - ``w`` -- a positive rational number; the weight
+        - ``n`` -- a non-negative rational number; the energy
+        - ``k`` -- a non-negative integer; the number of parts
+        - ``ell`` -- a positive integer; the maximum number of times
+          that a part can appear plus one
 
         EXAMPLES::
 

@@ -1,15 +1,15 @@
-Let `R` be a ring. A *Vertex algebra* [Kac1997]_ over `R` is the datum of:
+Let `R` be a commutative ring. A *super vertex algebra* [Kac1997]_ over `R` is
+the datum of:
 
-- an `R` module `V` called *the space of states*
-- a vector `|0\rangle \in V` called the *vacuum* vector.
-- an endomorphism `T \in End(V)` called the *translation operator*
-- a bilinear multiplication map
+- an `R` super-module `V` called *the space of states*
+- an even vector `|0\rangle \in V` called the *vacuum* vector.
+- an even endomorphism `T \in End(V)` called the *translation operator*
+- a graded bilinear multiplication map
 
 .. MATH::
 
     V \otimes V \rightarrow V( (z)), \qquad a \otimes b \mapsto Y(a,z)b =:
     \sum_{n \in \ZZ} a_{(n)}b z^{-1-n}.
-    :label: statefield
 
 Subject to the following set of axioms:
 
@@ -30,10 +30,12 @@ Subject to the following set of axioms:
 
 .. MATH::
 
-    (z-w)^n Y(a,z)Y(b,w) = (z-w)^n Y(b,w)Y(a,z), \qquad a,b \in V, \: n \gg 0
+    (z-w)^n Y(a,z)Y(b,w) = (-1)^{p(a)p(b)} (z-w)^n Y(b,w)Y(a,z),
+    \qquad a,b \in V, \: n \gg 0,
 
-The `\ZZ`-many products `a_{(n)}b` defined above are called the
-*nth*-products. A vertex algebra toghether with its non-negative nth-products
+where `p(a)` is `0` if `a` is even and `1` if `a` is odd. The `\ZZ`-many
+products `a_{(n)}b` defined above are called the
+*nth*-products. A vertex algebra together with its non-negative nth-products
 and its translation operator `T` is a
 :mod:`Lie Conformal Algebra<sage.categories.lie_conformal_algebras>`.
 The generating function for these non-negative products
@@ -66,7 +68,7 @@ V_\Delta` such that the nth product becomes graded of degree `-1-n`, that is
 .. NOTE::
 
     Although arbitrary gradings are allowed in the literature, we implement here
-    only non-negative integer gradings.
+    only non-negative rational gradings.
 
 In this situation, for `a \in V_p` we define the *shifted nth-product* `a_n b =
 a_{(n+p-1)}b`. With this convention, the *shifted nth-product* map `a \otimes b
@@ -84,13 +86,14 @@ of the form
     \: j_{i,l} > 0.
 
 A vertex algebra is called *finitely strongly generated* if there is such a set
-with a finite `I`.
+with a finite `I`, we will call these vertex algebras simply *finitely
+generated*
 
 EXAMPLES:
 
 Typical examples of finitely and strongly generated H-Graded vertex algebra
 arise as twisted universal enveloping vertex algebras of a finitely generated
-H-Graded :mod:`Lie conformal algebra<sage.categories.lie_conformal_algebras>`.
+H-Graded :mod:`Lie conformal algebras<sage.categories.lie_conformal_algebras>`.
 They are described explicitly in terms of the OPE (`\lambda`-brackets) of
 their generators:
 
@@ -122,6 +125,16 @@ their generators:
 
         [\beta_\lambda \gamma] = - [\gamma_\lambda \beta] = |0\rangle
 
+- The **Neveu-Schwarz** super vertex algebra of central charge `c` is a super
+  vertex algebra which is an extension of the Virasoro vertex
+  algebra. It consists of a Virasoro generator `L` as above
+  and an *odd* generator `G`. The remaining brackets are given by:
+
+  .. MATH::
+
+        [L_\lambda G] = \left( T + \frac{3}{2} \lambda \right) G \qquad
+        [G_\lambda G] = 2 L + \frac{\lambda^2}{3} c |0\rangle
+
 Every vertex algebra carries a decreasing filtration
 called the *Li standard filtration*
 [Li2005]_. It is defined as follows, we define `F^pV` to be the subspace spanned
@@ -133,6 +146,5 @@ by vectors of the form
     \ZZ_{\geq 0}, \: n_1 + \cdots n_r \geq p.
 
 The associated graded `\mathrm{gr}_FV` is a
-:mod:`Poisson vertex algebra<sage.categories.poisson_vertex_algebras>` is
-known as the *quasi-classical limit of* `V`.
-
+:mod:`Poisson vertex algebra<sage.categories.poisson_vertex_algebras>`
+known as the *quasi-classical limit* or *singular support* of `V`.

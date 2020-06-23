@@ -15,7 +15,7 @@ have degree `0`.
 
 AUTHORS:
 
-- Reimundo Heluani (06-15-2020): Initial implementation.
+- Reimundo Heluani (2020-06-15): Initial implementation.
 """
 
 #******************************************************************************

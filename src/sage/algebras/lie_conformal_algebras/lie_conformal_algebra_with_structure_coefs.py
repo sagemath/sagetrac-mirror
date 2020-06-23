@@ -3,7 +3,7 @@ Lie Conformal Algebras With Structure Coefficients
 
 AUTHORS:
 
-- Reimundo Heluani (08-09-2019): Initial implementation.
+- Reimundo Heluani (2019-08-09): Initial implementation.
 
 """
 

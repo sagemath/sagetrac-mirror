@@ -1,15 +1,15 @@
 r"""
 Lie Conformal Algebras
 
-AUTHORS:
-
-- Reimundo Heluani (2019-10-05): Initial implementation
-
 .. include:: ../../../algebras/lie_conformal_algebras/lie_conformal_algebra_desc.rst
 
 .. SEEALSO::
 
     :mod:`sage.algebras.lie_conformal_algebras.lie_conformal_algebra`
+
+AUTHORS:
+
+- Reimundo Heluani (2019-10-05): Initial implementation
 """
 
 #******************************************************************************
@@ -245,7 +245,11 @@ class LieConformalAlgebras(Category_over_base_ring):
                 return 
 
             self.lift = liftmorphism
-            self.lift.register_as_coercion()
+            try: 
+                self.lift.register_as_coercion()
+            except AssertionError:
+                #We have already constructed previously a coercion
+                pass
 
         @abstract_method
         def universal_enveloping_algebra(self,
@@ -571,6 +575,35 @@ class LieConformalAlgebras(Category_over_base_ring):
                 return self.bracket(rhs).get(n,self.parent().zero())
             else:
                 return self.lift().nproduct(rhs,n)
+
+        def _mul_(self,right):
+            """
+            The normally ordered product of these two elements in the
+            universal enveloping vertex algebra.
+
+            EXAMPLES::
+
+                sage: Vir = VirasoroLieConformalAlgebra(QQ)
+                sage: Vir.inject_variables()
+                Defining L, C
+                sage: V = Vir.universal_enveloping_algebra({C:1})
+                sage: L*L.T()
+                L_-3L_-2|0> + L_-5|0>
+
+            Note that the universal enveloping algebra needs to be
+            constructed first::
+
+                sage: W = WeylLieConformalAlgebra(QQ,4)
+                sage: W.inject_variables()
+                Defining alpha0, alpha1, alpha2, alpha3, K
+                sage: alpha0*alpha1
+                Traceback (most recent call last):
+                NotImplementedError: In order to lift an element first need to construct the universal enveloping vertex algebra
+                sage: V = W.universal_enveloping_algebra({K:1})
+                sage: alpha0*alpha1
+                alpha0_(-1)alpha1_(-1)|0>
+            """
+            return self.lift()*right.lift()
 
         @abstract_method(optional=True)
         def lift(self):
