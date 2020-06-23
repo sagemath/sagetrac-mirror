@@ -76,10 +76,13 @@ def symmetric_net(n, lmbda=1, check=True, existence=False):
       Set to ``True`` by default
 
     - ``existence`` -- bolean. Instead of returnig a symmetric net, return:
-      - ``True`` -- such a net can be constructed by Sage
-      - ``False`` -- no such a net exists
-      - ``Unknown`` -- Sage does not know how to build such a design
-        so such design may or may not exist
+
+        - ``True`` -- such a net can be constructed by Sage
+
+        - ``False`` -- no such a net exists
+
+        - ``Unknown`` -- Sage does not know how to build such a design
+          so such design may or may not exist
 
     EXAMPLES::
 

@@ -25,6 +25,8 @@ from sage.modules.free_module import VectorSpace
 from sage.categories.finite_fields import FiniteFields
 from sage.categories.permutation_groups import PermutationGroups
 from .difference_family import group_law
+from sage.libs.gap.libgap import libgap
+from sage.libs.gap.element import GapElement
 
 @cached_function
 def find_product_decomposition(g, k, lmbda=1):
@@ -269,7 +271,7 @@ def difference_matrix(g, k, lmbda=1, existence=False, check=True):
         # We have a problem: can't create multiplicative group {1,-1}
         # We change M over Z_2
 
-        # M = map (map (1->0; -1->1)) M 
+        # M = map (map (1->0; -1->1)) M
         M = list(map( lambda r: list(map(lambda x: 0 if x == 1 else 1, r)), M ))
         G = FiniteField(2)
 
@@ -283,11 +285,6 @@ def difference_matrix(g, k, lmbda=1, existence=False, check=True):
             return True
         G, M = prime_power_difference_matrix(p, i, j)
 
-    elif subgroup_construction(g, k, lmbda, existence=True):
-        if existence:
-            return True
-        G, M = subgroup_construction(g, k, lmbda)
-
     # From the database
     elif (g,lmbda) in DM_constructions and DM_constructions[g, lmbda][0]>=k:
         if existence:
@@ -295,6 +292,11 @@ def difference_matrix(g, k, lmbda=1, existence=False, check=True):
         _, f = DM_constructions[g,lmbda]
         G, M = f()
         M = [R[:k] for R in M]
+
+    elif subgroup_construction(g, k, lmbda, existence=True):
+        if existence:
+            return True
+        G, M = subgroup_construction(g, k, lmbda)
 
     # Product construction
     elif find_product_decomposition(g,k,lmbda):
@@ -346,11 +348,11 @@ def prime_power_difference_matrix(p,i,j):
     K = [[x*y for y in elemsG] for x in elemsG]
 
     V, fromV, toV = G.vector_space(map=True)
-    
-    #now we can map G to (Z_p)^(i+j) to (Z_p)^i
+
+    # now we can map G to (Z_p)^(i+j) to (Z_p)^i
     H = [[tuple(toV(x)[:i]) for x in row] for row in K]
 
-    return V, H
+    return VectorSpace(FiniteField(p), i), H
 
 def prime_power_and_2_difference_matrix(q):
     r"""
@@ -429,7 +431,7 @@ def subgroup_construction(g, k, lmbda, existence=False):
         True
 
     Note that designs.different_matrix can build more matrices than this method
-    
+
         sage: from sage.combinat.designs.difference_matrices import subgroup_construction
         sage: subgroup_construction(25, 50, 2, existence=True)
         False
@@ -450,6 +452,12 @@ def subgroup_construction(g, k, lmbda, existence=False):
         True
         sage: subgroup_construction(8, 32, 5, existence=True)
         False
+        sage: G, M = subgroup_construction(2, 8, 12)
+        sage: is_difference_matrix(M, G, 8, 12)
+        True
+        sage: G, M = subgroup_construction(11,6,3)
+        sage: is_difference_matrix(M, G, 6, 3)
+        True
     """
 
     # We assume (g, k, lmbda) = (g2/s, k, lmbda2*s)
@@ -501,9 +509,11 @@ def subgroup_construction(g, k, lmbda, existence=False):
 
         if G in PermutationGroups:
             G = libgap(G)
+            for i in range(lmbda2*g2):
+                for j in range(k):
+                    M[i][j] = libgap(M[i][j])
 
-        is_gap_group = isinstance(G, sage.libs.gap.element.GapElement)
-        if not is_gap_group :  # create isomorphic permutation group
+        if not isinstance(G, GapElement) or not G.IsGroup() :  # create isomorphic permutation group
             iso = {}  # dictionary G -> permutation of {1, ..., |G|}
             zero, op, inv = group_law(G)
             GInt = {g:i  for i,g in enumerate(G)}
@@ -515,24 +525,29 @@ def subgroup_construction(g, k, lmbda, existence=False):
                     c = a+b
                     image[GInt[b]] = GInt[c]+1  # +1 so that we permute {1, ..., |G|}
 
-                iso[a] = image
+                iso[a] = libgap.PermList(image)
 
-            PermG = [libgap.PermList(iso[g]) for g in G]
-            G = libgap.Group(PermG)
+            for i in range(lmbda2*g2):
+                for j in range(k):
+                    M[i][j] = iso[G(M[i][j])]  # need casting to G, due to some (bad) constructions
 
-        if is_gap_group:
-            for H in libgap.NormalSubgroups(G):
-                if libgap.Size(H) == s:
-                    if existence: return True
+            G = libgap.Group([iso[g] for g in G])
 
-                    f = G.NaturalHomomorphismByNormalSubgroupNC(H)
-                    GH = f.ImagesSource()
+        
+        for H in libgap.NormalSubgroups(G):
+            if libgap.Size(H) == s:
+                if existence: return True
 
-                    for i in range(lambda2*g2):
-                        for j in range(k):
-                            M[i][j] = f.ImageElm(M[i][j])
-
-                    return GH, M
+                GH = libgap.FactorGroupNC(G,H)
+                f = GH.NaturalHomomorphism()
+                #f = G.NaturalHomomorphismByNormalSubgroupNC(H)
+                #GH = f.ImagesSource()
+                
+                for i in range(lmbda2*g2):
+                    for j in range(k):
+                        M[i][j] = f.ImageElm(M[i][j])
+                        
+                return GH, M
 
     if existence:
         return False

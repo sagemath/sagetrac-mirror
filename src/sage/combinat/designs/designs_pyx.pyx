@@ -622,7 +622,12 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
     assert mu>=0
     assert u>=0
 
-    cdef int n = G.cardinality()
+    cdef int n = 0
+    try:
+        n = G.cardinality()
+    except AttributeError:
+        n = G.Size()
+        
     cdef int M_nrows = len(M)
     cdef int i,j,ii
     cdef bint bit
@@ -645,7 +650,11 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         return True
 
     # Map group element with integers
-    cdef list int_to_group = list(G)
+    cdef list int_to_group = []
+    try:
+        int_to_group = list(G)
+    except TypeError:
+        int_to_group = list(G.Elements())
 
     # Make sure elements are hashable
     try:
@@ -685,7 +694,7 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         for i,Gi in enumerate(int_to_group):
             res = op(Gi,minus_Gj)
             try:
-                res.__hashable__()
+                res.__hash__()
             except TypeError:
                 res.set_immutable()
             x_minus_y[i][j] = group_to_int[res]
@@ -699,10 +708,14 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
     for i,R in enumerate(M):
         for j,x in enumerate(R):
             if x is not None:
-                e = G(x)
                 try:
-                    e.__hashable__()
-                except:
+                    e = G(x)
+                except TypeError:
+                    e = x  # G is a GAP group, so no casting
+
+                try:
+                    e.__hash__()
+                except TypeError:
                     e.set_immutable()
                 M_c[i*k+j] = group_to_int[e]
             else:

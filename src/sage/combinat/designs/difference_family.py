@@ -77,12 +77,18 @@ def group_law(G):
     import operator
     from sage.categories.groups import Groups
     from sage.categories.additive_groups import AdditiveGroups
+    from sage.libs.gap.libgap import libgap
 
     if G in Groups():            # multiplicative groups
         return (G.one(), operator.mul, operator.inv)
     elif G in AdditiveGroups():  # additive groups
         return (G.zero(), operator.add, operator.neg)
     else:
+        try:
+            if G.IsGroup():
+                return (libgap.One(G), operator.mul, libgap.Inverse)
+        except AttributeError:
+            pass
         raise ValueError("%s does not seem to be a group"%G)
 
 def block_stabilizer(G, B):
