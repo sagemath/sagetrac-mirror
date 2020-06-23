@@ -476,7 +476,7 @@ def subgroup_construction(g, k, lmbda, existence=False):
                 for j in range(k):
                     M[i][j] = to(M[i][j])
 
-        if G in VectorSpaces: # need to handle matrix spaces...
+        if G in VectorSpaces:  # need to handle matrix spaces...
             if existence: return True
             Fp = G.base_field()
 
@@ -495,7 +495,7 @@ def subgroup_construction(g, k, lmbda, existence=False):
             # map all elements of M into G/H
             for i in range(lmbda2*g2):
                 for j in range(k):
-                    M[i][j] = tuple(M[i][j][:n]) #truncate vector to first n entries
+                    M[i][j] = tuple(M[i][j][:n])  # truncate vector to first n entries
 
             return GH, M
 
