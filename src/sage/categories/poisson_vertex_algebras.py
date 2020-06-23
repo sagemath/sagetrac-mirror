@@ -1,12 +1,11 @@
 r"""
 Poisson Vertex Algebras.
 
-AUTHORS:
-
-- Reimundo Heluani (10-09-2019): Initial implementation.
-
 .. include:: ../../../algebras/poisson_vertex_algebras/poisson_vertex_algebra_desc.rst
 
+AUTHORS:
+
+- Reimundo Heluani (2019-10-09): Initial implementation.
 """
 
 #******************************************************************************
@@ -30,6 +29,9 @@ from sage.rings.all import QQ
 from sage.categories.quotients import QuotientsCategory
 
 class PoissonVertexAlgebras(Category_over_base_ring):
+    """
+    The category of Poisson vertex algebras
+    """
 
     @cached_method
     def super_categories(self):
@@ -57,23 +59,22 @@ class PoissonVertexAlgebras(Category_over_base_ring):
     def _repr_object_names(self):
         """
         The names of objects of this category
+
+        EXAMPLES::
+
+            sage: PoissonVertexAlgebras(QQ)
+            Poisson vertex algebras over Rational Field
         """
         return "Poisson vertex algebras over {}".format(self.base_ring())
 
     class ElementMethods:
 
         @abstract_method
-        def lift(self):
-            """
-            lift
-            """
-            raise NotImplementedError()
-
         def is_even_odd(self):
             """
             is
             """
-            return self.lift().is_even_odd()
+            raise NotImplementedError("Not Implemented")
 
     class ParentMethods:
 
@@ -333,6 +334,19 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                 """
                 raise NotImplementedError("Not Implemented")
 
+            def homogeneous_terms(self):
+                if self.is_zero():
+                    return tuple([self])
+                S = {}
+                p = self.parent()
+                for m in self.terms():
+                    w = m.weight()
+                    S[w] = S.get(w,p.zero()) + m
+                return tuple(S.values())
+
+
+
+
         class SubcategoryMethods:
 
             def Super(self, base_ring=None):
@@ -369,6 +383,10 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             """
             with basie
             """
+            class ElementMethods:
+
+                def degree(self):
+                    return max(m.weight() for m in self.monomials())
 
             class FinitelyGeneratedAsPoissonVertexAlgebra(
                                             CategoryWithAxiom_over_base_ring):
@@ -496,7 +514,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                             sage: V = NeveuSchwarzVertexAlgebra(QQ,1); P = V.classical_limit()
                             sage: P.hilbert_series(11/2)
                             1 + q^(3/2) + q^2 + q^(5/2) + q^3 + 2*q^(7/2) + 3*q^4 + 3*q^(9/2) + 3*q^5 + O(q^(11/2))
-                            sage: V = VirasoroVertexAlgebra(QQ,1); P = V.singular_support()
+                            sage: V = VirasoroVertexAlgebra(QQ,1); P = V.arc_algebra()
                             sage: P.hilbert_series(10)
                             1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 4*q^6 + 4*q^7 + 7*q^8 + 8*q^9 + O(q^10)
                         """

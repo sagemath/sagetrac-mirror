@@ -18,7 +18,7 @@ This is an H-graded Lie conformal algebra where every generator
 
 AUTHORS:
 
-- Reimundo Heluani (08-09-2019): Initial implementation.
+- Reimundo Heluani (2019-08-09): Initial implementation.
 """
 
 #******************************************************************************
@@ -36,7 +36,7 @@ from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 from sage.structure.indexed_generators import standardize_names_index_set
 
 class FreeBosonsLieConformalAlgebra(GradedLieConformalAlgebra):
-    def __init__(self,R,gram_matrix=None,ngens=None,names=None,
+    def __init__(self, R, ngens=None, gram_matrix=None, names=None,
                  index_set=None):
         r"""
         The Free Bosons Lie conformal algebra.
@@ -44,10 +44,11 @@ class FreeBosonsLieConformalAlgebra(GradedLieConformalAlgebra):
         INPUT:
 
         - ``R`` -- a commutative ring.
-        - ``gram_matrix`` -- a matrix (default: ``[1]``); a symmetric
-          square matrix with coefficients in ``R``.
         - ``ngens`` -- a positive Integer (default ``1``); the number of
           non-central generators of this Lie conformal algebra.
+        - ``gram_matrix``: a symmetric square matrix with coefficients
+          in ``R`` (default: ``identity_matrix(ngens)``); the Gram
+          matrix of the inner product
         - ``names`` -- a tuple of ``str``; alternative names for the
           generators
         - ``index_set`` -- an enumerated set; alternative indexing set

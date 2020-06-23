@@ -20,8 +20,6 @@ Implemented examples of Vertex Algebras
 
    ../sage/algebras/vertex_algebras/abelian_vertex_algebra
    ../sage/algebras/vertex_algebras/affine_vertex_algebra
-   ../sage/algebras/vertex_algebras/bosonic_ghosts_vertex_algebra
-   ../sage/algebras/vertex_algebras/fermionic_ghosts_vertex_algebra
    ../sage/algebras/vertex_algebras/free_bosons_vertex_algebra
    ../sage/algebras/vertex_algebras/free_fermions_vertex_algebra
    ../sage/algebras/vertex_algebras/n2_vertex_algebra

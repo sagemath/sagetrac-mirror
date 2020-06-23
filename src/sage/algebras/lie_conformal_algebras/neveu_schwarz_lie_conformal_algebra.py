@@ -12,7 +12,7 @@ remaining `\lambda`-bracket is given by:
 
 AUTHORS:
 
-- Reimundo Heluani (06-03-2020): Initial implementation.
+- Reimundo Heluani (2020-06-03): Initial implementation.
 """
 #******************************************************************************
 #       Copyright (C) 2020 Reimundo Heluani <heluani@potuz.net>

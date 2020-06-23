@@ -37,6 +37,13 @@ class SingularSupportCoverMorphism(RingHomomorphism_im_gens):
         RingHomomorphism_im_gens.__init__(self, H, codomain.gens())
 
     def kernel(self, deg):
+        """
+        .. TODO::
+
+            This method should return an infinite dimensional
+            :class:`CombinatorialFreeModule` with a lazy basis
+            like the approach to :class:`VertexAlgebraIdeal`
+        """
         source = self.domain().get_weight(deg)
         target = self.codomain().get_weight(deg)
         B = source.basis()
@@ -123,24 +130,14 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
         weights = [k.energy() for k,v in self._monomial_coefficients.items()]
         return weights[1:] == weights[:-1]
 
-    def homogeneous_terms(self):
-        if self.is_zero():
-            return tuple([self])
-        S = {}
-        p = self.parent()
-        for m in self.terms():
-            w = m.weight()
-            S[w] = S.get(w,p.zero()) + m
-        return tuple(S.values())
-
-    def degree(self):
-        return max(m.weight() for m in self.monomials())
-
     def _li_filtration_monomial_degree(self):
         return self.lift()._li_filtration_monomial_degree()
 
     def lift(self):
         return self.parent()._ambient._from_dict(self._monomial_coefficients)
+
+    def is_even_odd(self):
+        return self.lift().is_even_odd()
 
     def T(self, n=1):
         #This implementation now only works for universal enveloping
@@ -418,9 +415,9 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
         return True
 
     @lazy_attribute
-    def singular_support_cover(self):
+    def arc_algebra_cover(self):
         if self._ambient in VertexAlgebras(self.base_ring()).Quotients():
-            P = self._ambient.singular_support()
+            P = self._ambient.arc_algebra()
             return SingularSupportCoverMorphism(P,self)
 
         from sage.categories.homset import End

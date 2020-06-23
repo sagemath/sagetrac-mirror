@@ -1,10 +1,6 @@
 r"""
 Lie Conformal Algebra
 
-AUTHORS:
-
-- Reimundo Heluani (08-09-2019): Initial implementation.
-
 .. include:: ../../../lie_conformal_algebras/lie_conformal_algebra_desc.rst
 
 The base class for all Lie conformal algebras is
@@ -93,6 +89,10 @@ EXAMPLES:
     1 + 2*alpha1 + 3*alpha1^2 + alpha1^4
     sage: v.T(2)
     4*alpha3 + 6*alpha2^2 + 12*alpha3*alpha1 + 12*alpha2^2*alpha1^2 + 8*alpha3*alpha1^3
+
+AUTHORS:
+
+- Reimundo Heluani (2019-08-09): Initial implementation.
 """
 
 

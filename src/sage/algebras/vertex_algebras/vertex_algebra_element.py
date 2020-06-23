@@ -1,9 +1,9 @@
 r"""
-Vertex Algebra Element Class
+Vertex Algebra Element
 
 AUTHORS:
 
-- Reimundo Heluani (08-09-2019): Initial implementation.
+- Reimundo Heluani (2019-08-09): Initial implementation.
 """
 
 #******************************************************************************
@@ -24,11 +24,10 @@ from sage.misc.misc import repr_lincomb
 class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
     """
     Universal Enveloping Vertex Algebra base element class.
-
     """
     def _repr_(self):
         """
-        A
+        String representation of this element.
 
         EXAMPLES::
 
@@ -39,7 +38,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             sage: VirasoroVertexAlgebra(QQ,1/2).inject_variables()
             Defining L
             sage: L.T(5)*L.T(2) +L*L
-            240*L_-7L_-4|0> + L_-2L_-2|0>
+            L_-2L_-2|0> + 240*L_-7L_-4|0>
 
         For non H-graded vertex algebras we use normal modes::
 
@@ -92,12 +91,13 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
     def is_even_odd(self):
         """
-        Return ``0`` if this element is `even` and ``1`` if it is `odd`.
+        Returns ``0`` if this element is `even` and ``1`` if it is
+        `odd`.
 
         EXAMPLES::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
-            The Neveu-Schwarz super vertex algebra at central charge 1/2 over Algebraic Field
+            The Neveu-Schwarz super vertex algebra of central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
             sage: G.is_even_odd()
@@ -110,11 +110,11 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         TESTS::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); v = V.an_element(); v
-            |0> + 2*G_-3/2|0> + 3*L_-2|0>
+            |0> + 2*G_-3/2|0> + 3*L_-2|0> + L_-2G_-3/2|0>
             sage: v.is_odd()
             Traceback (most recent call last):
             ...
-            ValueError: |0> + 2*G_-3/2|0> + 3*L_-2|0> is not homogeneous
+            ValueError: |0> + 2*G_-3/2|0> + 3*L_-2|0> + L_-2G_-3/2|0> is not homogeneous
         """
         p = self.parent()
         if self.is_zero() or self.monomials() == [p.vacuum()]:
@@ -135,7 +135,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         EXAMPLES::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
-            The Neveu-Schwarz super vertex algebra at central charge 1/2 over Algebraic Field
+            The Neveu-Schwarz super vertex algebra of central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
             sage: G.is_even_odd()
@@ -154,7 +154,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         EXAMPLES::
 
             sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
-            The Neveu-Schwarz super vertex algebra at central charge 1/2 over Algebraic Field
+            The Neveu-Schwarz super vertex algebra of central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
             sage: G.is_even_odd()
@@ -170,7 +170,13 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         """
         The OPE of these two elements.
 
-        OUTPUT: a dictionary with non-negative integer entries as keys.
+        INPUT:
+
+        - ``other`` -- an element of this vertex algebra
+
+        OUTPUT:
+
+        A dictionary with non-negative integer entries as keys.
         The value of the key ``n`` is the `n-th` product of ``self``
         and ``other``.
 
@@ -212,7 +218,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         The topological twist of the `N=2` super vertex algebra::
 
             sage: V = N2VertexAlgebra(QQ,3/2); V
-            The N=2 super vertex algebra at central charge 3/2 over Rational Field
+            The N=2 super vertex algebra of central charge 3/2 over Rational Field
             sage: V.inject_variables()
             Defining L, J, G1, G2
             sage: Lm = L - 1/2*J.T(); Family(Lm.bracket(Lm))
@@ -290,6 +296,10 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         r"""
         The normally ordered product of these two elements.
 
+        INPUT:
+
+        - ``right`` -- an element of this vertex algebra
+
         .. WARNING::
 
             The normally ordered product on a vertex algebra is not
@@ -310,7 +320,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             sage: V = NeveuSchwarzVertexAlgebra(QQ, 1); V.inject_variables()
             Defining L, G
             sage: G*G
-            1/2*L_-3|0>
+            L_-3|0>
 
         The product is not associative on the Free Bosons::
 
@@ -326,8 +336,10 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
             sage: V.inject_variables()
             Defining e, h, f
-            sage: L = 1/6*(e*f + h*h/2 + f*e); Family(L.bracket(L))
-            Finite family {0: 1/3*e_-2f_-1|0> - 1/3*h_-3|0> + 1/3*e_-1f_-2|0> + 1/6*h_-2h_-1|0>,  1: 2/3*e_-1f_-1|0> - 1/3*h_-2|0> + 1/6*h_-1h_-1|0>,  3: 1/2*|0>}
+            sage: L = 1/6*(e*f + h*h/2 + f*e); L.bracket(L)
+            {0: 1/3*e_-2f_-1|0> + 1/6*h_-2h_-1|0> + 1/3*e_-1f_-2|0> - 1/3*h_-3|0>,
+             1: 1/6*h_-1h_-1|0> + 2/3*e_-1f_-1|0> - 1/3*h_-2|0>,
+             3: 1/2*|0>}
             sage: L.bracket(L) == {0: L.T(), 1:2*L, 3:V.vacuum()/2}
             True
         """
@@ -354,11 +366,11 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
                 #Need to commute a with a2. If a = a2 is odd is special
                 br = a._bracket_(a2)
                 if a == a2:
-                    ff = -sum((-1)**(k+1)*v.T(k+1)/factorial(k+1) for k,v in\
-                                br.items())/2
+                    ff = -sum([(-1)**(k+1)*v.T(k+1)/factorial(k+1) for k,v in\
+                                br.items()],pz)/2
                     return c*c2*ff._mul_(b2)
-                ff = sum((-1)**(k+1)*v.T(k+1)/factorial(k+1) for k,v in\
-                                br.items())
+                ff = sum([(-1)**(k+1)*v.T(k+1)/factorial(k+1) for k,v in\
+                                br.items()],pz)
                 ret = (-1)**(a.is_even_odd()*a2.is_even_odd())*\
                         a2._mul_(a._mul_(b2)) - p(ff)._mul_(b2)
                 return c*c2*ret
@@ -373,11 +385,12 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         return sum(i._mul_(j) for i in self.terms() for j in right.terms())
 
     def T(self,n=1):
-        r"""The `n`-th derivative of this element.
+        r"""
+        The ``n``-th derivative of this element.
 
         INPUT:
 
-        - ``n`` -- a non-negative integer (default: ``1``); The number
+        - ``n`` -- a non-negative integer (default: ``1``); the number
           of derivatives to apply.
 
         EXAMPLES::
@@ -394,7 +407,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             sage: V = NeveuSchwarzVertexAlgebra(QQ, 1); V.inject_variables()
             Defining L, G
             sage: (G.T()*G).T()
-            2*G_-7/2G_-3/2|0> + 1/2*L_-5|0>
+            2*G_-7/2G_-3/2|0> + L_-5|0>
             sage: G.T()
             G_-5/2|0>
         """
@@ -443,7 +456,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             sage: (e*f + e).weight()
             Traceback (most recent call last):
             ...
-            ValueError: e_-1f_-1|0> + e_-1|0> is not homogeneous
+            ValueError: e_-1|0> + e_-1f_-1|0> is not homogeneous
 
         weight is only defined for graded vertex algebras::
 
@@ -469,12 +482,13 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             raise ValueError("{} is not homogeneous".format(self))
         return weightlist[0]
 
-
     def _li_filtration_monomial_degree(self):
         """
         The Li filtration degree of this non-zero monomial.
 
-        OUTPUT: Returns the maximal `p` such that this element belongs
+        OUTPUT:
+
+        Returns the maximal `p` such that this element belongs
         to `F_pV`, where `F_pV` is the Li filtration of this vertex
         algebra.
 
@@ -515,11 +529,15 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1); V.register_lift(); e = V.gen(0); h = V.gen(1); f = V.gen(2);
+            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names=('e','h','f'))
+            sage: V.inject_variables()
+            Defining e, h, f
             sage: e.pbw_filtration_degree()
             1
             sage: (e*f.T()).pbw_filtration_degree()
             2
+            sage: V([[4,2,1],[5,5],[]]).pbw_filtration_degree()
+            5
             sage: (e*f - f*e).pbw_filtration_degree()
             1
             sage: V.vacuum().pbw_filtration_degree()
@@ -529,15 +547,16 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         """
         if self.is_zero():
             return -Infinity
-        return max(sum(j.length() for j in p.components()) for p in\
-                self.monomial_coefficients())
+        return max(sum(j.length() for j in m.index()) for m in self.monomials())
 
     def _pbw_one_less(self):
         """
-        Expresses this element as a product of two elements lower in
+        Express this element as a product of two elements lower in
         the PBW filtration.
 
-        OUTPUT: a triple ``(a,b,c)`` such that ``self=c*a*b`` with
+        OUTPUT:
+
+        A triple ``(a,b,c)`` such that ``self=c*a*b`` with
         ``c`` a scalar and ``a`` a monomial of PBW degree ``1``.
 
         EXAMPLES::

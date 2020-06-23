@@ -6,10 +6,6 @@ lazy_import('sage.algebras.vertex_algebras.affine_vertex_algebra',
 'AffineVertexAlgebra')
 lazy_import('sage.algebras.vertex_algebras.free_bosons_vertex_algebra',
 'FreeBosonsVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.bosonic_ghosts_vertex_algebra',
-'BosonicGhostsVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.fermionic_ghosts_vertex_algebra',
-'FermionicGhostsVertexAlgebra')
 lazy_import('sage.algebras.vertex_algebras.free_fermions_vertex_algebra',
 'FreeFermionsVertexAlgebra')
 lazy_import('sage.algebras.vertex_algebras.weyl_vertex_algebra',
