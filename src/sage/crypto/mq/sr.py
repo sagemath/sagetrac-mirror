@@ -1071,9 +1071,11 @@ class SR_generic(MPolynomialSystemGenerator):
         EXAMPLES::
 
             sage: sr = mq.SR(2, 2, 2, 4)
-            sage: sr.random_state_array()
+            sage: M = sr.random_state_array(); M  # random
             [              a^2       a^3 + a + 1]
             [a^3 + a^2 + a + 1             a + 1]
+            sage: M in MatrixSpace(sr.base_ring(), sr.r, sr.c)
+            True
         """
         return random_matrix(self.base_ring(), self._r, self._c, *args, **kwds)
 
@@ -1085,7 +1087,7 @@ class SR_generic(MPolynomialSystemGenerator):
         EXAMPLES::
 
             sage: sr = mq.SR(2, 2, 2, 4)
-            sage: sr.random_vector()
+            sage: v = sr.random_vector(); v  # random
             [              a^2]
             [            a + 1]
             [          a^2 + 1]
@@ -1102,6 +1104,8 @@ class SR_generic(MPolynomialSystemGenerator):
             [          a^2 + 1]
             [                a]
             [              a^2]
+            sage: v in MatrixSpace(sr.base_ring(), sr.r*sr.c*sr.e, 1)
+            True
 
         .. note::
 
@@ -1124,12 +1128,12 @@ class SR_generic(MPolynomialSystemGenerator):
         EXAMPLES::
 
             sage: sr = mq.SR()
-            sage: sr.random_element()
+            sage: sr.random_element()  # random
             [    a^2]
             [  a + 1]
             [a^2 + 1]
             [      a]
-            sage: sr.random_element('state_array')
+            sage: sr.random_element('state_array')  # random
             [a^3 + a + 1]
 
         Passes extra positional or keyword arguments through::
@@ -1861,6 +1865,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: sr = mq.SR(1, 1, 1, 4)
             sage: k = sr.base_ring()
             sage: p = [k.random_element() for _ in range(sr.r*sr.c)]
@@ -2077,7 +2082,7 @@ class SR_generic(MPolynomialSystemGenerator):
             (C000, C001, C002, C003)
             sage: P = sr.vars("P",0)
             sage: F,s = sr.polynomial_system(P=P,C=C)
-            sage: [(k,v) for k,v in sorted(s.items())] # this can be ignored
+            sage: [(k,v) for k,v in sorted(s.items())]  # random
             [(k003, 1), (k002, 1), (k001, 0), (k000, 1)]
             sage: F
             Polynomial Sequence with 36 Polynomials in 28 Variables
@@ -2261,7 +2266,7 @@ class SR_gf2n(SR_generic):
 
             sage: sr = mq.SR()
             sage: A = sr.random_state_array()
-            sage: A
+            sage: A  # random
             [a^2]
             sage: sr.antiphi(sr.phi(A)) == A
             True
@@ -2666,7 +2671,7 @@ class SR_gf2(SR_generic):
 
             sage: sr = mq.SR(gf2=True)
             sage: A = sr.random_state_array()
-            sage: A
+            sage: A  # random
             [a^2]
             sage: sr.antiphi(sr.phi(A)) == A
             True
