@@ -21,6 +21,8 @@ This provides pre-built simplicial sets:
 
 - the torus and the Klein bottle
 
+- the empty simplicial set 
+
 - the point
 
 - the Hopf map: this is a pre-built morphism, from which one can
@@ -46,6 +48,6 @@ EXAMPLES::
 from .simplicial_set_examples import (Sphere, ClassifyingSpace,
                                       RealProjectiveSpace,
                                       KleinBottle, Torus,
-                                      Simplex, Horn, Point,
+                                      Simplex, Empty, Point, Horn,
                                       ComplexProjectiveSpace,
                                       HopfMap)
