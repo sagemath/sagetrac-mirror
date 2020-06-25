@@ -48,6 +48,10 @@ import sage.homology.simplicial_complexes_catalog as simplicial_complexes
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 
+from sage.interfaces import kenzo
+from sage.features.kenzo import Kenzo
+kenzo_is_present = Kenzo().is_present()
+
 ########################################################################
 # The nerve of a finite monoid, used in sage.categories.finite_monoid.
 
@@ -257,7 +261,7 @@ class Nerve(SimplicialSet_arbitrary):
 ########################################################################
 # Catalog of examples. These are accessed via simplicial_set_catalog.py.
 
-def Sphere(n):
+def Sphere(n, kenzo_repr=False):
     r"""
     Return the `n`-sphere as a simplicial set.
 
@@ -284,6 +288,7 @@ def Sphere(n):
         sage: simplicial_sets.Sphere(4).nondegenerate_simplices()
         [v_0, sigma_4]
     """
+    from sage.libs.ecl import ecl_eval
     v_0 = AbstractSimplex(0, name='v_0')
     if n == 0:
         w_0 = AbstractSimplex(0, name='w_0')
@@ -293,10 +298,19 @@ def Sphere(n):
     degen_v = v_0.apply_degeneracies(*degens)
     sigma = AbstractSimplex(n, name='sigma_{}'.format(n),
                             latex_name='\\sigma_{}'.format(n))
-    return SimplicialSet_finite({sigma: [degen_v] * (n+1)}, base_point=v_0,
+    result = SimplicialSet_finite({sigma: [degen_v] * (n+1)}, base_point=v_0,
                                 name='S^{}'.format(n),
                                 latex_name='S^{{{}}}'.format(n))
-
+    # in Kenzo, a maximal dimension for representing a sphere is provided
+    max_dim_kenzo = ecl_eval("+maximal-dimension+").python()
+    if kenzo_is_present and kenzo_repr:
+        if n < max_dim_kenzo:
+            setattr(result, '_kenzo_repr', kenzo.Sphere(n))
+        else:
+            raise AssertionError('Dimension of the Sphere must be < {} when\
+                                  kenzo_repr = True'.format(max_dim_kenzo))
+    return result
+    
 
 def ClassifyingSpace(group):
     r"""
@@ -334,7 +348,7 @@ def ClassifyingSpace(group):
     return X
 
 
-def RealProjectiveSpace(n):
+def RealProjectiveSpace(n, kenzo_repr=False):
     r"""
     Return real `n`-dimensional projective space, as a simplicial set.
 
@@ -362,10 +376,14 @@ def RealProjectiveSpace(n):
         X = AbelianGroup([2]).nerve()
         X.rename('RP^oo')
         X.rename_latex('RP^{\\infty}')
+        if kenzo_is_present and kenzo_repr:
+            setattr(X, '_kenzo_repr', kenzo.KenzoSimplicialSet(kenzo.__r_proj_space__()))
     else:
         X = RealProjectiveSpace(Infinity).n_skeleton(n)
         X.rename('RP^{}'.format(n))
         X.rename_latex('RP^{{{}}}'.format(n))
+        if kenzo_is_present and kenzo_repr:
+            setattr(X, '_kenzo_repr', kenzo.KenzoSimplicialSet(kenzo.__r_proj_space__(1, n+1)))
     return X
 
 
@@ -392,7 +410,7 @@ def KleinBottle():
                          name='Klein bottle')
 
 
-def Torus():
+def Torus(kenzo_repr=False):
     r"""
     Return the torus as a simplicial set.
 
@@ -412,10 +430,13 @@ def Torus():
     S1 = Sphere(1)
     T = S1.product(S1)
     T.rename('Torus')
+    if kenzo_is_present and kenzo_repr:
+        K_S1 = kenzo.Sphere(1)
+        setattr(T, '_kenzo_repr', K_S1.cartesian_product(K_S1))
     return T
 
 
-def Simplex(n):
+def Simplex(n, kenzo_repr=False):
     r"""
     Return the `n`-simplex as a simplicial set.
 
@@ -433,13 +454,16 @@ def Simplex(n):
         sage: K.n_cells(2)
         [(0, 1, 2)]
     """
-    return SimplicialSet_finite(simplicial_complexes.Simplex(n),
-                                name='{}-simplex'.format(n),
-                                latex_name='\\Delta^{{{}}}'.format(n))
+    result =  SimplicialSet_finite(simplicial_complexes.Simplex(n),
+                                   name='{}-simplex'.format(n),
+                                   latex_name='\\Delta^{{{}}}'.format(n))
+    if kenzo_is_present and kenzo_repr:
+        setattr(result, '_kenzo_repr', kenzo.KenzoSimplicialSet(kenzo.__delta__(n)))
+    return result
 
 
 @cached_function
-def Empty():
+def Empty(kenzo_repr=False):
     """
     Return the empty simplicial set.
 
@@ -456,11 +480,11 @@ def Empty():
         sage: E is Empty()
         True
     """
-    return SimplicialSet_finite({}, name='Empty simplicial set')
+    return SimplicialSet_finite({}, name='Empty simplicial set', kenzo_repr=kenzo_repr)
 
 
 @cached_function
-def Point():
+def Point(kenzo_repr=False):
     """
     Return a single point called "*" as a simplicial set.
 
@@ -480,10 +504,11 @@ def Point():
         sage: P == Q
         True
     """
-    star = AbstractSimplex(0, name='*')
+    star = AbstractSimplex(0, name='*', kenzo_repr=kenzo_repr)
     return SimplicialSet_finite({star: None}, base_point=star,
                                 name='Point',
-                                latex_name='*')
+                                latex_name='*',
+                                kenzo_repr=kenzo_repr)
 
 
 def Horn(n, k):

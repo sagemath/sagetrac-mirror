@@ -35,7 +35,6 @@ from sage.categories.commutative_additive_groups import CommutativeAdditiveGroup
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
 
 from sage.matrix.all import matrix
-from sage.homology.chain_complex import ChainComplex
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 from sage.features.kenzo import Kenzo
@@ -56,6 +55,7 @@ kenzo_names = ['add',
                'convertmatrice',
                'crts-prdc',
                'degr-aux',
+               'delta',
                'dffr-aux',
                'dffr_aux1',
                'dgop',
@@ -85,6 +85,7 @@ kenzo_names = ['add',
                'nth',
                'opps',
                'orgn_aux1',
+               'r-proj-space',
                'sbtr',
                'serre-spectral-sequence-product',
                'serre-whitehead-spectral-sequence',
@@ -1124,6 +1125,7 @@ def SChainComplex(kchaincomplex, start=0, end=15):
         sage: [C.homology(i) for i in range(6)]    # optional - kenzo
         [Z, 0, 0, 0, Z, 0]
     """
+    from sage.homology.chain_complex import ChainComplex
     matrices = {}
     for i in range(start, end):
         dffr_i = __chcm_mat2__(kchaincomplex._kenzo, i)

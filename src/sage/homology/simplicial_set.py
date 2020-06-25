@@ -1090,7 +1090,7 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
         if underlying is None:
             underlying = NonDegenerateSimplex(dim, kenzo_repr=kenzo_repr)
         else:
-            if kenzo_repr and not hasattr(underlying, '_kenzo_repr'):
+            if kenzo_is_present and kenzo_repr and not hasattr(underlying, '_kenzo_repr'):
                 setattr(underlying, '_kenzo_repr', kenzo.KAbstractSimplex(underlying))
         result = AbstractSimplex_class(dim, degeneracies=degeneracies,
                                        underlying=underlying,
