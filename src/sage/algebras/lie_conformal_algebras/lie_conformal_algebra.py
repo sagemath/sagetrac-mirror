@@ -86,9 +86,9 @@ EXAMPLES:
     sage: P in LieConformalAlgebras(QQbar)
     True
     sage: v = P.an_element(); v
-    1 + 2*alpha1 + 3*alpha1^2 + alpha1^4
+    1 + 2*alpha_1 + 3*alpha_1^2 + alpha_1^4
     sage: v.T(2)
-    4*alpha3 + 6*alpha2^2 + 12*alpha3*alpha1 + 12*alpha2^2*alpha1^2 + 8*alpha3*alpha1^3
+    4*alpha_3 + 6*alpha_2^2 + 12*alpha_3*alpha_1 + 12*alpha_2^2*alpha_1^2 + 8*alpha_3*alpha_1^3
 
 AUTHORS:
 
