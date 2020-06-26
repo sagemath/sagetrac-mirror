@@ -75,9 +75,9 @@ class FreeBosonsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
             sage: P = V.classical_limit()
             sage: a = P(alpha); a
-            alpha1
+            alpha_1
             sage: (a*a)*a
-            alpha1^3
+            alpha_1^3
             sage: (a*a)*a - a*(a*a)
             0
 

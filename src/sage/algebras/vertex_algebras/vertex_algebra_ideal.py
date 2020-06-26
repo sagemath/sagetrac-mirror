@@ -534,6 +534,12 @@ class VertexAlgebraIdealBasis(Parent):
         infinite dimensional submodule of a vertex algebra (which itself
         is an infinite dimensional module) as well as to construct the
         corresponding quotient.
+
+        INPUT:
+
+        - ``V`` -- a :class:`VertexAlgebra`; the ambient of the ideal
+        - ``gens`` -- a list or tuple of elements in ``V``; the
+          generators of the ideal
         """
         self._ambient = V
         self._gens = gens

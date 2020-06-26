@@ -29,8 +29,6 @@ from sage.categories.category_with_axiom import \
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import coerce_binop
-from sage.categories.category_with_axiom import all_axioms as all_axioms
-from sage.misc.misc_c import prod
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.commutative_rings import CommutativeRings
@@ -698,6 +696,22 @@ class LieConformalAlgebras(Category_over_base_ring):
                 0
             """
             raise NotImplementedError("Not implemented")
+
+        @abstract_method
+        def is_even_odd(self):
+            """
+            Return ``0`` if this element is *even* and ``1`` if it is
+            *odd*.
+
+            EXAMPLES::
+
+                sage: R = NeveuSchwarzLieConformalAlgebra(QQ);
+                sage: R.inject_variables()
+                Defining L, G, C
+                sage: G.is_even_odd()
+                1
+            """
+            raise NotImplementedError("Not Implemented")
 
     class SubcategoryMethods:
 

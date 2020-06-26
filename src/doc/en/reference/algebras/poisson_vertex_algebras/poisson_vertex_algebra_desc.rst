@@ -1,39 +1,66 @@
-Let `R` be a ring. A *Poisson vertex algebra* over `R` is a tuple `(P, T,
-\mathbb{1}, \{\cdot_\lambda \cdot\}, \cdot)` such that:
+Let `R` be a commutative ring. A *super Poisson vertex algebra* over `R`
+is a tuple `(P, T, \mathbb{1}, \{\cdot_\lambda \cdot\}, \cdot)` such that:
 
-- `(P,\mathbb{1}, \cdot)` is a unital commutative and associative algebra
+- `(P,\mathbb{1}, \cdot)` is a unital super commutative and associative
+  algebra over `R`.
+- `(P, T, \{ \cdot_\lambda \cdot \})` is a super
+  :mod:`Lie conformal algebra<sage.categories.lie_conformal_algebras>`
   over `R`.
-- `(P, T, \{ \cdot_\lambda \cdot \})` is a
-  :mod:`Lie conformal algebra<sage.categories.lie_conformal_algebra>`
-  over `R`.
-- `T` is a derivation of the commutative product `\cdot`.
+- `T` is an even derivation of the commutative product `\cdot`.
 - The following *Leibniz* identity holds in `P[\lambda]`:
 
     .. MATH::
 
-        \{a_\lambda b\cdot c\} = c \cdot \{a_\lambda b\}  + b \cdot
-        \{a_\lambda c\}, \qquad a,b,c \in P
+        \{a_\lambda b\cdot c\} = \{a_\lambda b\}\cdot c  + (-1)^{p(a)p(b)}
+        b \cdot \{a_\lambda c\}, \qquad a,b,c \in P
 
-Given a :mod:`vertex algebra<sage.categories.vertex_algebras>` `V` the
-associated graded `P = gr^F V` with respect to the
-*Li filtration*
-is canonically a Poisson vertex algebra. The operations are defined by:
+where `p(a)` is `0` if `a` is *even* and `1` if it is *odd*
+
+Given a :mod:`super vertex algebra<sage.categories.vertex_algebras>` `V` the
+associated graded `P = \mathrm{gr}^F V` with respect to the
+:mod:`Li
+filtration<sage.algebras.poisson_vertex_algebras.vertex_algebra_classical_limit>`
+is canonically a super Poisson vertex algebra. The operations are defined by:
 
 .. MATH::
 
     \sigma_p(a) \cdot \sigma_q(b) = \sigma_{p+q} (a_{(-1)} b), \qquad
-    [\sigma_p(a)_\lambda \sigma_q(b)] = \sum_{j \geq 0}
+    \{\sigma_p(a)_\lambda \sigma_q(b)\} = \sum_{j \geq 0}
     \frac{\lambda^j}{j!} \sigma_{p+q-j} \bigl( a_{(j)} b \bigr), \qquad
     T \sigma_p a = \sigma_{p+1} Ta
 
 where `\sigma_p` is the principal symbol map. This algebra is graded: the
-multiplication and `\lambda` bracket are of degree `0`.  When `V` is also
-:meth:`H-Graded<sage.categories.vertex_algebras.HGraded>` its classical limit is
+multiplication and `\lambda` bracket are of degree `0`. This graded super
+Poisson vertex algebra is known as the
+:meth:`classical
+limit<sage.categories.vertex_algebras.VertexAlgebras.ParentMethods.classical_limit>`
+or the *singular support* of `V`. It's degree `0` part
+
+.. MATH::
+
+   R_V = \mathrm{gr}^F_0 V = V/C_2(V) = V/V_{(-2)}V,
+
+is a super Poisson algebra known as *Zhu's* `C_2` *quotient of* `V`. Its
+spectrum is known as the *associated scheme* of `V`. 
+
+When `V` is also `H`-graded its classical limit is
 bigraded. We call this extra grading the *conformal weight* grading. With
 respect to the conformal weight grading, the multiplication is of degree `0`
-while the `\lambda` bracket is of degree `-1`. This
-Poisson vertex algebra is also called the *quasiclassical limit* or simply the
-*classical limit* of `V`.
+while the `\lambda` bracket is of degree `-1`. 
+
+There is another super Poisson vertex algebra canonically associated to any
+super vertex algebra. This is the
+:meth:`arc algebra<sage.categories.vertex_algebras.VertexAlgebras.ParentMethods.arc_algebra>`
+of `V`. It is the super commutative differential algebra `JR_V` freely generated
+by `R_V`, in other words: the algebra of functions on the arc space of the 
+associated scheme of `V`. It has a canonical super Poisson vertex algebra
+structure and by the universal property there exists a canonical surjection
+
+.. MATH::
+
+   JR_V \twoheadrightarrow \mathrm{gr}^F V
+
+of super Poisson vertex algebras. 
 
 EXAMPLES:
 
@@ -55,30 +82,4 @@ EXAMPLES:
   .. MATH::
 
         \left\{t^{-1}a_\lambda t^{-1}b \right\} = t^{-1}[a,b]
-
-- The classical limit of other vertex algebras may have quite a complicated
-  structure. This happens even in very simple cases. Consider for example the
-  classical limit of the Virasoro *ising* model::
-
-    sage: V = VirasoroVertexAlgebra(QQ,1/2); L = V.0
-    sage: v =  L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
-    sage: Q = V.quotient(V.ideal(v))
-    sage: Q(L)*Q(L)*Q(L)
-    65/8*L_-4L_-2|0>+35/16*L_-6|0>+35/64*L_-3L_-3|0>
-    sage: P = PoissonVertexAlgebra(QQ,Q)
-    sage: P(L)*P(L)*P(L) == P.zero()
-    True
-
-- The multiplication in `P` is computationally expensive. We represent elements of
-  `P` by a dictionary with both gradings as keys, we check here an identity in
-  bidegree `(3,9)`::
-
-    sage: P(L)
-    {2: {0: B[0]}}
-    sage: a = P(L)*P(L)*P(L.T(3)); a
-    {9: {3: -3*B[0]}}
-    sage: b = P(L)*P(L.T())*P(L.T(2)); b
-    {9: {3: 1/6*B[0]}}
-    sage: 18* b + a == P.zero()
-    True
 

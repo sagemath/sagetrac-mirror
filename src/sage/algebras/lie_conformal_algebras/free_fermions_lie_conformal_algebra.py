@@ -101,12 +101,14 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
                 ngens = 1;
             gram_matrix = identity_matrix(R,ngens,ngens)
 
+        latex_names=None
+
         if (names is None) and (index_set is None):
             if ngens==1:
                 names = 'psi'
             else:
                 names = 'psi_'
-            self._latex_names = tuple(r'\psi_{%d}' % i \
+            latex_names = tuple(r"\psi_{%d}" % i \
                                       for i in range (ngens)) + ('K',)
 
         from sage.structure.indexed_generators import \
@@ -121,6 +123,7 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
         weights = (QQ(1/2),)*ngens
         parity = (1,)*ngens
         GradedLieConformalAlgebra.__init__(self,R,fermiondict,names=names,
+                                           latex_names=latex_names,
                                            index_set=index_set,weights=weights,
                                            parity=parity,
                                            central_elements=('K',))
