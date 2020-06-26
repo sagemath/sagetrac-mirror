@@ -298,7 +298,7 @@ class AbstractSimplex_class(SageObject):
     :func:`AbstractSimplex`. See that function for more documentation.
     """
     def __init__(self, dim, degeneracies=(), underlying=None, name=None,
-                 latex_name=None, kenzo_repr=False):
+                 latex_name=None):
         """
         A simplex of dimension ``dim``.
 
@@ -401,7 +401,7 @@ class AbstractSimplex_class(SageObject):
         if name is not None:
             self.rename(name)
         self._latex_name = latex_name
-        if kenzo_is_present and kenzo_repr:
+        if kenzo_is_present:
             self._kenzo_repr = kenzo.KAbstractSimplex(self)
 
     def __hash__(self):
@@ -758,10 +758,9 @@ class AbstractSimplex_class(SageObject):
         if not args:
             return self
         underlying = self.nondegenerate()
-        kenzo_repr = bool(hasattr(self, '_kenzo_repr'))
         return AbstractSimplex(underlying.dimension(),
                                degeneracies= list(args) + self.degeneracies(),
-                               underlying=underlying, kenzo_repr=kenzo_repr)
+                               underlying=underlying)
 
     def __copy__(self):
         """
@@ -921,7 +920,7 @@ class AbstractSimplex_class(SageObject):
 # __ge__, __le__. Inheriting from AbstractSimplex_class first seems to
 # be slightly faster.
 class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
-    def __init__(self, dim, name=None, latex_name=None, kenzo_repr=False):
+    def __init__(self, dim, name=None, latex_name=None):
         """
         A nondegenerate simplex.
 
@@ -957,8 +956,7 @@ class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
             False
         """
         AbstractSimplex_class.__init__(self, dim, name=name,
-                                       latex_name=latex_name,
-                                       kenzo_repr=kenzo_repr)
+                                       latex_name=latex_name)
 
     __eq__ = WithEqualityById.__eq__
     __hash__ = WithEqualityById.__hash__
@@ -967,8 +965,7 @@ class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
 # The following function returns an instance of either
 # AbstractSimplex_class or NonDegenerateSimplex.
 
-def AbstractSimplex(dim, degeneracies=(), underlying=None,
-                    name=None, latex_name=None, kenzo_repr=False):
+def AbstractSimplex(dim, degeneracies=(), underlying=None, name=None, latex_name=None):
     r"""
     An abstract simplex, a building block of a simplicial set.
 
@@ -1088,20 +1085,13 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
     """
     if degeneracies:
         if underlying is None:
-            underlying = NonDegenerateSimplex(dim, kenzo_repr=kenzo_repr)
+            underlying = NonDegenerateSimplex(dim)
         else:
-            if kenzo_is_present and kenzo_repr and not hasattr(underlying, '_kenzo_repr'):
-                setattr(underlying, '_kenzo_repr', kenzo.KAbstractSimplex(underlying))
-        result = AbstractSimplex_class(dim, degeneracies=degeneracies,
-                                       underlying=underlying,
-                                       name=name,
-                                       latex_name=latex_name,
-                                       kenzo_repr=kenzo_repr)
+            return AbstractSimplex_class(dim, degeneracies=degeneracies,
+                                         underlying=underlying,
+                                         name=name, latex_name=latex_name)
     else:
-        result = NonDegenerateSimplex(dim, name=name,
-                                      latex_name=latex_name,
-                                      kenzo_repr=kenzo_repr)
-    return result
+        return NonDegenerateSimplex(dim, name=name, latex_name=latex_name)
      
 ########################################################################
 # The main classes for simplicial sets.
@@ -3192,7 +3182,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         Y
     """
     def __init__(self, data, base_point=None, name=None, check=True,
-                 category=None, latex_name=None, kenzo_repr=False):
+                 category=None, latex_name=None):
         r"""
         TESTS::
 
@@ -3366,7 +3356,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         if name:
             self.rename(name)
         self._latex_name = latex_name
-        if kenzo_is_present and kenzo_repr:
+        if kenzo_is_present:
             self._kenzo_repr = kenzo.KFiniteSimplicialSet(self)
 
     def __eq__(self, other):
