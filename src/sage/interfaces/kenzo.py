@@ -1056,8 +1056,7 @@ def pairing(slist):
 
 def KChainComplex(chain_complex):
     r"""
-    Construct a KenzoChainComplex from a ChainComplex of degree = -1 in
-    Sage.
+    Construct a KenzoChainComplex from a ChainComplex of degree = -1 in Sage.
 
     INPUT:
 
@@ -1080,9 +1079,10 @@ def KChainComplex(chain_complex):
         sage: kenzo_chcm.homology(5)                                          # optional - kenzo
         Z x Z
     """
-    d = chain_complex.differential()
-    chcm = s2k_dictmat(d)
-    str_orgn = str(d)[1:-1].replace(":", " ").replace(" ", ".").replace("\n", "").replace(",", "")
+    diff = chain_complex.differential()
+    chcm = s2k_dictmat(diff)
+    str_orgn = 'sage.' + str(diff)[1:-1].translate({ord(i): None for i in ["\n", ",", ":"]}) \
+               .replace("[ ", "[").replace("  ", " ").replace(" ", ".")
     return KenzoChainComplex(__kchaincomplex_aux1__(chcm, str_orgn))
 
 
