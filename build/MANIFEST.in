@@ -1,0 +1,6 @@
+global-exclude .tox
+global-exclude *~*
+global-exclude *.bak
+graft sage_bootstrap/sage_root
+# These sources are not needed because individual distributions of these are made.
+prune sage_bootstrap/sage_root/build/pkgs/*/src
