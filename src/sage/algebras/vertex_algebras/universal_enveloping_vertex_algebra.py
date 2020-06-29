@@ -136,6 +136,19 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             sage: W = Vir.universal_enveloping_algebra({C:1})
             sage: W is V
             True
+
+        TESTS:
+
+        Test that regular partition tuples of level 1 are being used::
+
+            sage: bd = {('a','a'): {1: {('K',0): 1}}} 
+            sage: R = LieConformalAlgebra(QQ, bd, central_elements=('K',), names = ('a',))
+            sage: R.inject_variables()
+            Defining a, K
+            sage: V = R.universal_enveloping_algebra({K:1}); V
+            The universal enveloping vertex algebra of Lie conformal algebra with generators (a, K) over Rational Field
+            sage: V._indices
+            0-Regular partition tuples of level 1
         """
         if L not in LieConformalAlgebras(R).WithBasis().FinitelyGenerated():
             raise ValueError ( "L needs to be a finitely generated " \
@@ -186,8 +199,10 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
                              L.central_elements()])
             basis = EnergyPartitionTuples(weights,self._ngens,regular=regular)
         else:
-            from sage.combinat.partition_tuple import PartitionTuples
-            basis = PartitionTuples(level=self._ngens,regular=regular)
+            from sage.combinat.partition_tuple import \
+                                                   RegularPartitionTuples_level
+            basis = RegularPartitionTuples_level(level=self._ngens,
+                                                                regular=regular)
         CombinatorialFreeModule.__init__(self, R, basis_keys=basis,
                         category=category,
                         element_class=UniversalEnvelopingVertexAlgebraElement)
