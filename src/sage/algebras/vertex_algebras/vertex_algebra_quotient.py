@@ -80,7 +80,7 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: v = V([[5,3,2]]); v           # long time (4 seconds)
             L_-6L_-4L_-3|0>
-            sage: Q._indices(v.index())
+            sage: Q._indices(v.index())         # long time
             ([5, 3, 2])
             sage: v = V([[2,2,1]]); v
             L_-3L_-3L_-2|0>
