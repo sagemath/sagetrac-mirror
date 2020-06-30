@@ -36,7 +36,7 @@ The list is a copy, so changing the list does not change the element::
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_on, sig_off
-from sage.structure.richcmp cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.rings.integer cimport Integer, _Integer_from_mpz
 from sage.libs.gmp.mpz cimport *
 
@@ -56,46 +56,6 @@ def is_FreeAbelianMonoidElement(x):
     return isinstance(x, FreeAbelianMonoidElement)
 
 cdef class FreeAbelianMonoidElement(MonoidElement):
-    cdef int _init(self, Py_ssize_t n, Parent parent) except -1:
-        """
-        Initialize the C data structures in this vector. After calling
-        this, ``self`` is the identity element represented as a zero vector
-        of degree ``n`` with parent ``parent``.
-
-        Only if you call ``__new__`` without a ``parent`` argument, it
-        is needed to call this function manually. The only reason to do
-        that is for efficiency: calling ``__new__`` without any
-        additional arguments besides the type and then calling ``_init``
-        is (slightly) more efficient than calling ``__new__`` with a
-        ``parent`` argument.
-        """
-        # Assign variables only when the array is fully initialized
-        cdef mpz_t* entries = <mpz_t*>check_allocarray(n, sizeof(mpz_t))
-        cdef Py_ssize_t i
-        sig_on()
-        for i in range(n):
-            mpz_init(entries[i])
-        sig_off()
-        self._element_vector = entries
-        self._n = n
-        self._parent = parent
-
-    def __cinit__(self, parent=None, x=None):
-        """
-        C level initialization of ``self``.
-
-        EXAMPLES::
-
-            sage: F = FreeAbelianMonoid(5, 'abcde')
-            sage: F(1)
-            1
-        """
-        self._element_vector = NULL
-        if parent is None:
-            self._n = 0
-            return
-        self._init(parent.ngens(), <Parent?>parent)
-
     def __init__(self, parent, x):
         r"""
         Create the element ``x`` of the FreeAbelianMonoid ``parent``.
@@ -121,33 +81,16 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
         cdef Integer z
 
         MonoidElement.__init__(self, parent)
+        cdef int n = <int> self._parent._FreeAbelianMonoid_class__ngens
         if isinstance(x, (int, Integer)) and x == 1:
-            x = tuple([0]*self._n)
+            x = tuple([0]*n)
         if isinstance(x, (list, tuple)):
-            if len(x) != self._n:
-                raise IndexError("argument length (= %s) must be %s" % (len(x), self._n))
-            for i in range(self._n):
-                z = Integer(x[i])
-                mpz_set(self._element_vector[i], z.value)
+            if len(x) != n:
+                raise IndexError("argument length (= %s) must be %s" % (len(x), n))
+            self._element_vector = Vector_integer_dense(parent._module, x)
+            self._element_vector.set_immutable()
         else:
             raise TypeError("argument x (= %s) is of wrong type"%x)
-
-    def __dealloc__(self):
-        """
-        Deallocate ``self``.
-
-        EXAMPLES::
-
-            sage: F = FreeAbelianMonoid(5, 'abcde')
-            sage: a, b, c, d, e = F.gens()
-            sage: x = a^2 * b^3
-            sage: del x
-        """
-        cdef Py_ssize_t i
-        if self._element_vector:
-            for i in range(self._n):
-                mpz_clear(self._element_vector[i])
-            sig_free(self._element_vector)
 
     def __copy__(self):
         """
@@ -163,12 +106,11 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
             sage: copy(x) is x
             False
         """
-        cdef FreeAbelianMonoidElement y
-        y = self._new_c()
-        cdef Py_ssize_t i
-        for i in range(self._n):
-            mpz_set(y._element_vector[i], self._element_vector[i])
-        return y
+        cdef type t = type(self)
+        cdef FreeAbelianMonoidElement x = <FreeAbelianMonoidElement>(t.__new__(t))
+        x._parent = self._parent
+        x._element_vector = self._element_vector  # We can share since it is immutable
+        return x
 
     def __reduce__(self):
         """
@@ -200,10 +142,7 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
         s = ""
         A = self._parent
         x = A.variable_names()
-        v = self._element_vector
-        cdef Integer val
-        for i in range(self._n):
-            val = _Integer_from_mpz(v[i])
+        for i, val in enumerate(self._element_vector):
             if val == 0:
                 continue
             elif val == 1:
@@ -240,15 +179,18 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
             sage: x > a^3*b^2
             False
         """
-        cdef Py_ssize_t i
-        cdef int c
-        for i in range(left._n):
-            c = mpz_cmp(left._element_vector[i], (<FreeAbelianMonoidElement>right)._element_vector[i])
-            if c < 0:
-                return rich_to_bool(op, -1)
-            elif c > 0:
-                return rich_to_bool(op, 1)
-        return rich_to_bool(op, 0)
+        return richcmp(left._element_vector,
+                       (<FreeAbelianMonoidElement>right)._element_vector,
+                       op)
+        #cdef Py_ssize_t i
+        #cdef int c
+        #for i in range(left._n):
+        #    c = mpz_cmp(left._element_vector[i], (<FreeAbelianMonoidElement>right)._element_vector[i])
+        #    if c < 0:
+        #        return rich_to_bool(op, -1)
+        #    elif c > 0:
+        #        return rich_to_bool(op, 1)
+        #return rich_to_bool(op, 0)
 
     def __mul__(self, y):
         """
@@ -263,14 +205,14 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
         """
         if not isinstance(y, FreeAbelianMonoidElement):
             raise TypeError("argument y (= %s) is of wrong type"%y)
-        cdef FreeAbelianMonoidElement s, z, r
+        cdef type t = type(self)
+        cdef FreeAbelianMonoidElement x = <FreeAbelianMonoidElement>(t.__new__(t))
+        cdef FreeAbelianMonoidElement s, r
         s = self
         r = y
-        z = s._new_c()
-        cdef Py_ssize_t i
-        for i in range(s._n):
-            mpz_add(z._element_vector[i], s._element_vector[i], r._element_vector[i])
-        return z
+        x._parent = s._parent
+        x._element_vector = s._element_vector._add_(r._element_vector)
+        return x
 
     def __pow__(self, n, modulus):
         """
@@ -305,13 +247,12 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
             raise IndexError("argument n (= %s) must be positive" % val)
         elif val == 1:
             return self
-        cdef FreeAbelianMonoidElement s, z
-        s = self
-        z = s._new_c()
-        cdef Py_ssize_t i
-        for i in range(s._n):
-            mpz_mul(z._element_vector[i], s._element_vector[i], val.value)
-        return z
+        cdef type t = type(self)
+        cdef FreeAbelianMonoidElement x = <FreeAbelianMonoidElement>(t.__new__(t))
+        cdef FreeAbelianMonoidElement s = self
+        x._parent = s._parent
+        x._element_vector = s._element_vector._rmul_(val)
+        return x
 
     def __hash__(self):
         """
@@ -341,6 +282,5 @@ cdef class FreeAbelianMonoidElement(MonoidElement):
             sage: a.list()
             [1, 0, 0, 0, 0]
         """
-        cdef Py_ssize_t i
-        return [_Integer_from_mpz(self._element_vector[i]) for i in range(self._n)]
+        return list(self._element_vector)
 

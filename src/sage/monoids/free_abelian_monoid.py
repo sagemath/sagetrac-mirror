@@ -197,6 +197,8 @@ class FreeAbelianMonoid_class(Parent):
         if n < 0:
             raise ValueError("n (=%s) must be nonnegative"%n)
         self.__ngens = int(n)
+        from sage.modules.free_module import FreeModule
+        self._module = FreeModule(ZZ, n)
         assert names is not None
         Parent.__init__(self, names=names, category=Monoids().Commutative())
 
