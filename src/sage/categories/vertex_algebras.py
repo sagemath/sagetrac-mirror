@@ -162,7 +162,7 @@ class VertexAlgebras(Category_over_base_ring):
                 """
                 raise NotImplementedError()
 
-            def an_element(self):
+            def _an_element_(self):
                 """
                 An element of this quotient.
 
@@ -173,7 +173,7 @@ class VertexAlgebras(Category_over_base_ring):
                     sage: Q.an_element()
                     |0> + 2*G_-3/2|0> + 3*L_-2|0> + L_-2G_-3/2|0>
                 """
-                return self.retract(self.cover_algebra().an_element())
+                return self.retract(self.cover_algebra()._an_element_())
 
             @cached_method
             def zero(self):

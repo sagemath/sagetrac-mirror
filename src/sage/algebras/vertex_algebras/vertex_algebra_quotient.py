@@ -103,7 +103,7 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
                 return self.element_class(self,x)
         raise ValueError("Do not know how to convert {} into {}".format(x,self))
 
-    def an_element(self):
+    def _an_element_(self):
         """
         An element of this Basis.
 

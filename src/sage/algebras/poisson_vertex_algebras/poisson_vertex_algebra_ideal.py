@@ -439,7 +439,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
             return not self.reduce(x)
         return False
 
-    def an_element(self):
+    def _an_element_(self):
         """
         An element of this ideal.
 

@@ -506,7 +506,7 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
                 yield z
             n += 1
 
-    def an_element(self):
+    def _an_element_(self):
         """
         An element of this class.
 
@@ -524,7 +524,7 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
             except ValueError:
                 r = self[0]
             return r
-        return self.element_class(self,PartitionTuples.an_element(self))
+        return self.element_class(self,PartitionTuples._an_element_(self))
 
     def subset(self, energy=None):
         if energy is None:
@@ -642,7 +642,7 @@ class EnergyPartitionTuples_n(EnergyPartitionTuples):
         for z in sorted(nlist):
             yield z
 
-    def an_element(self):
+    def _an_element_(self):
         """
         An element of this class of Energy Partition Tuples.
 

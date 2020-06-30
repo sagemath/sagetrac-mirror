@@ -233,7 +233,7 @@ class EnergyPartitions_all(EnergyPartitions):
         """
         return "Energy Partitions with weight {}".format(self.w)
 
-    def an_element(self):
+    def _an_element_(self):
         """
         An element of this class.
 
@@ -323,7 +323,7 @@ class EnergyPartitions_n(EnergyPartitions):
         """
         return "Energy Partitions of {} with weight {}".format(self.n, self.w)
 
-    def an_element(self):
+    def _an_element_(self):
         """
         A Partition in this class.
 
@@ -484,7 +484,7 @@ class EnergyPartitions_nk(EnergyPartitions):
         return "Energy Partitions of {} of length {} with weight {}"\
                 .format(self.n, self.k, self.w)
 
-    def an_element(self):
+    def _an_element_(self):
         """
         An Energy Partition in this class.
 
