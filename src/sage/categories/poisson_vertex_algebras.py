@@ -211,7 +211,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                 return "Quotient of {} by {}".format(self.cover_algebra(),
                                                      self.defining_ideal())
 
-            def an_element(self):
+            def _an_element_(self):
                 """
                 An element of this quotient.
 
@@ -223,7 +223,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                     sage: A.an_element()
                     1 + 2*L_2 + 3*L_3 + L_3*L_2
                 """
-                return self.retract(self.cover_algebra().an_element())
+                return self.retract(self.cover_algebra()._an_element_())
 
         class ElementMethods:
 
