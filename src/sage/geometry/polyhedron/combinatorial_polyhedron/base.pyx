@@ -310,7 +310,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(LatticePolytope([], lattice=ToricLattice(3)))
         A -1-dimensional combinatorial polyhedron with 0 facets
     """
-    def __init__(self, data, Vrep=None, facets=None, unbounded=False, far_face=None, Vrepr=None):
+    def __init__(self, data, Vrep=None, facets=None, unbounded=False, far_face=None, Vrepr=None, simplicial_complex_dimension=None):
         r"""
         Initialize :class:`CombinatorialPolyhedron`.
 
@@ -338,6 +338,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._equalities = ()
         self._all_faces = None
         self._mem_tuple = ()
+        self.is_simplicial_complex = False
+        if simplicial_complex_dimension is not None:
+            self.is_simplicial_complex = True
+            self._dimension = simplicial_complex_dimension + 1
 
         # ``_length_edges_list`` should not be touched in an instance
         # of :class:`CombinatorialPolyhedron`. This number can be altered,
@@ -387,7 +391,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if not unbounded:
                 # bounded polyhedron
                 self._bounded = True
-            elif not far_face:
+            elif far_face is None:
                 raise ValueError("must specify far face for unbounded polyhedron")
             else:
                 self._bounded = False
@@ -2765,8 +2769,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Copy ``f_vector``.
         if dual:
             if dim > 1 and f_vector[1] < self.n_facets():
-                # The input seemed to be wrong.
-                raise ValueError("not all facets are joins of vertices")
+                if not self.is_simplicial_complex:
+                    # The input seemed to be wrong.
+                    raise ValueError("not all facets are joins of vertices")
 
             # We have computed the ``f_vector`` of the dual.
             # Reverse it:
