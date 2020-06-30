@@ -149,6 +149,15 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             The universal enveloping vertex algebra of Lie conformal algebra with generators (a, K) over Rational Field
             sage: V._indices
             0-Regular partition tuples of level 1
+
+        Test that the beta-gamma system is not graded::
+
+            sage: R = BosonicGhostsLieConformalAlgebra(QQ)
+            sage: V = R.universal_enveloping_algebra()
+            sage: V.category()
+            Category of finitely generated vertex algebras with basis over Rational Field
+            sage: V._indices
+            0-Regular partition tuples of level 2
         """
         if L not in LieConformalAlgebras(R).WithBasis().FinitelyGenerated():
             raise ValueError ( "L needs to be a finitely generated " \
@@ -158,7 +167,10 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
            or_subcategory(category)
 
         if L in LieConformalAlgebras(R).Graded():
-            category = category.Graded()
+            from sage.rings.all import QQ
+            if all(g.degree() in QQ and g.degree() > 0 for g in L.gens() if \
+                   g not in L.central_elements()):
+                category = category.Graded()
 
         if L in LieConformalAlgebras(R).Super():
             category = category.Super()

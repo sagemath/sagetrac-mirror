@@ -1,8 +1,6 @@
 Poisson Vertex Algebras
 =======================
 
-.. include:: ./poisson_vertex_algebra_desc.rst
-
 .. toctree::
         
         ../sage/algebras/poisson_vertex_algebras/poisson_vertex_algebra

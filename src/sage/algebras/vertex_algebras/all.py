@@ -1,18 +1,11 @@
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.algebras.vertex_algebras.vertex_algebra', 'VertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.virasoro_vertex_algebra',
-'VirasoroVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.affine_vertex_algebra',
-'AffineVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.free_bosons_vertex_algebra',
-'FreeBosonsVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.free_fermions_vertex_algebra',
-'FreeFermionsVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.weyl_vertex_algebra',
-'WeylVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.neveu_schwarz_vertex_algebra',
-'NeveuSchwarzVertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.n2_vertex_algebra',
-'N2VertexAlgebra')
-lazy_import('sage.algebras.vertex_algebras.abelian_vertex_algebra',
-'AbelianVertexAlgebra')
+lazy_import('sage.algebras.vertex_algebras.examples',
+    ('VirasoroVertexAlgebra',
+    'AffineVertexAlgebra',
+    'FreeBosonsVertexAlgebra',
+    'FreeFermionsVertexAlgebra',
+    'WeylVertexAlgebra',
+    'NeveuSchwarzVertexAlgebra',
+    'N2VertexAlgebra',
+    'AbelianVertexAlgebra'))
