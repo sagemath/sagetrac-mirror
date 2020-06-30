@@ -530,7 +530,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
     def _groebner_basis(self, ord, termorder='wdegrevlex'):
         """
-        Return a Gröbner basis for this ideal as a ring ideal.
+        Return a Groebner basis for this ideal as a ring ideal.
 
         INPUT:
 
