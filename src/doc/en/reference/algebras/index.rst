@@ -87,7 +87,7 @@ Various associative algebras
    sage/algebras/associated_graded
    sage/algebras/cellular_basis
    sage/algebras/commutative_dga
-   poisson_vertex_algebras/poisson_vertex_algebras
+   poisson_vertex_algebras
    sage/algebras/q_system
    sage/algebras/splitting_algebra
 
@@ -98,12 +98,12 @@ Non-associative algebras
    :maxdepth: 2
 
    lie_algebras
-   lie_conformal_algebras/lie_conformal_algebras
+   lie_conformal_algebras
    sage/algebras/jordan_algebra
    sage/combinat/free_dendriform_algebra
    sage/combinat/free_prelie_algebra
    sage/algebras/shuffle_algebra
-   vertex_algebras/vertex_algebras
+   vertex_algebras
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt
