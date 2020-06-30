@@ -10,9 +10,12 @@ setup(
     packages=[
         'sage_bootstrap',
         'sage_bootstrap.download',
-        'sage_bootstrap.compat'
+        'sage_bootstrap.compat',
     ],
     scripts=['bin/sage-package', 'bin/sage-download-file', 'bin/sage-bootstrap-python'],
+    package_data = {
+        'sage_bootstrap': ['sage_root']
+    },
     version='1.0',
     url='https://www.sagemath.org',
 )
