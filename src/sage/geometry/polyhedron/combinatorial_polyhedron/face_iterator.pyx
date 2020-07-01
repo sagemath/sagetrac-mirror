@@ -470,13 +470,16 @@ cdef class FaceIterator(SageObject):
 
     We do the following modifications:
 
-    - To check whether an intersection of faces is zero, we check whether the atom-representation
-      is zero. Although not unique, it works to distinct from zero.
+    - To check whether an intersection of faces is zero, we check whether the
+      atom-representation is zero. Although not unique,
+      it works to distinct from zero.
 
-    - To intersect we now additionally unite the coatom representation. This gives
-      the correct representation of the new face unless the intersection is zero.
+    - To intersect we now additionally unite the coatom representation.
+      This gives the correct representation of the new face
+      unless the intersection is zero.
 
-    - To see whether a new face is of codimension one, we check whether the difference of the atoms is one.
+    - To see whether a new face is of codimension one,
+      we check whether the difference of the length of coatom representations is one.
 
     - To mark a face as visited, we save its coatom representation.
 
