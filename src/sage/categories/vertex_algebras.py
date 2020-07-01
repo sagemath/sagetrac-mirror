@@ -731,7 +731,7 @@ class VertexAlgebras(Category_over_base_ring):
             """
             if n not in ZZ:
                 raise ValueError("n must be an integer number")
-            if n >= 0 :
+            if n >= 0:
                 return self._bracket_(rhs).get(n,self.parent().zero())
             else:
                 return self.T(-n-1)._mul_(rhs)/factorial(-1-n)

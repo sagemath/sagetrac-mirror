@@ -93,7 +93,7 @@ class EnergyPartitions(Partitions):
             if regular:
                 return RegularEnergyPartitions_all(w,regular)
             return EnergyPartitions_all(w)
-                
+
         elif n in QQ and n >= 0:
             if length is not None:
                 if regular:
@@ -102,7 +102,7 @@ class EnergyPartitions(Partitions):
             if regular:
                 return RegularEnergyPartitions_n(w, n, regular)
             return EnergyPartitions_n(w,n)
-        
+
         raise ValueError("n must be a non-negative rational or be equal to "\
                          "`None`")
 
@@ -112,11 +112,11 @@ class EnergyPartitions(Partitions):
 
         INPUT:
 
-        - ``w`` -- a positive rational number; the weight 
-        - ``n`` -- a non-negative rational number or ``None`` (default :
-          ``None``); if ``None`` it returns the class of all Energy
-          Partitions, if a positive rational number it returns the class
-          of Energy Partitions with total energy ``n``
+        - ``w`` -- a positive rational number; the weight
+        - ``n`` -- a non-negative rational number or ``None``
+          (default :``None``); if ``None`` it returns the class of all
+          Energy Partitions, if a positive rational number it returns
+          the class of Energy Partitions with total energy ``n``
 
         In addition the following keyword arguments are recognized:
 
@@ -418,7 +418,7 @@ class EnergyPartitions_nk(EnergyPartitions):
         r"""
         The class of Energy Partitions with prescribed energy and
         length.
-        
+
         INPUT:
 
         - ``w`` -- a positive rational number; the weight
@@ -595,8 +595,8 @@ class RegularEnergyPartitions(EnergyPartitions):
 
         - ``n`` -- a non-negative integer; the size of the partitions
         - ``max_part`` -- a positive integer; the size of the largest
-          possible part. 
-        
+          possible part.
+
         OUTPUT:
 
         Iterates over all regular 'usual' partitions of ``n`` with
@@ -637,7 +637,7 @@ class RegularEnergyPartitions_all(RegularEnergyPartitions):
         The class of all Regular Energy Partitions of this weight.
 
         INPUT:
-        
+
         - ``w`` -- a positive rational number; the weight
         - ``ell`` -- a positive integer; the maximum number of times
           that a part can appear plus one
