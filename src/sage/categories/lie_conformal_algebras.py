@@ -787,7 +787,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             raise NotImplementedError("Not implemented")
 
-        @abstract_method(optional=False)
+        @abstract_method
         def T(self, n=1):
             r"""
             The n-th derivative of this element.
@@ -814,7 +814,6 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: C.T()
                 0
             """
-            raise NotImplementedError("Not implemented")
 
         @abstract_method
         def is_even_odd(self):
