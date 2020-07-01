@@ -37,7 +37,7 @@ See also
 .. toctree::
 
     ../sage/algebras/lie_conformal_algebras/finitely_generated_lie_conformal_algebra
+    ../sage/algebras/lie_conformal_algebras/freely_generated_lie_conformal_algebra
     ../sage/algebras/lie_conformal_algebras/graded_lie_conformal_algebra
     ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra_with_basis
-    ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra_with_generators
     ../sage/algebras/lie_conformal_algebras/lie_conformal_algebra_with_structure_coefs
