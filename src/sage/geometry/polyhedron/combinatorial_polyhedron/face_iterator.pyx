@@ -601,7 +601,7 @@ cdef class FaceIterator(SageObject):
         self.structure.yet_to_visit = self.coatoms.n_faces
         self.structure._index = 0
 
-        if C.is_bounded() and ((dual and C.is_simplicial()) or (not dual and C.is_simple())):
+        if C.is_bounded() and ((dual and (C.is_simplicial() or C.is_simplicial_complex)) or (not dual and C.is_simple())):
             # We are in the comfortable situation that for our iterator
             # all intervalls not containing the 0 element are boolean.
             # This makes things a lot easier.

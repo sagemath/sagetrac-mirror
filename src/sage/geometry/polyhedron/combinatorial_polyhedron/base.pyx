@@ -2313,6 +2313,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if dual and not self.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded polyhedron")
+        if not dual and self.is_simplicial_complex:
+            raise ValueError("can only iterate over dual of simplicial complex")
         if dimension == -2:
             return FaceIterator(self, dual)
         else:
