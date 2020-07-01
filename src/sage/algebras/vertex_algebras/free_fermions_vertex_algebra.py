@@ -107,7 +107,7 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
                     free_fermions_lie_conformal_algebra import \
                      FreeFermionsLieConformalAlgebra
 
-        ML = lie_conformal_algebras.FreeFermions(R,gram_matrix=gram_matrix,
+        ML = FreeFermionsLieConformalAlgebra(R,gram_matrix=gram_matrix,
                         ngens=ngens,names=names,index_set=index_set)
 
         cp = Family({ML.gen(-1):R.one()})
