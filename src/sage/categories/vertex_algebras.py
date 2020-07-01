@@ -155,7 +155,7 @@ known as the *quasi-classical limit* or *singular support* of `V`.
 .. SEEALSO::
 
     - :mod:`sage.algebras.vertex_algebras.vertex_algebra`
-    - :mod:`sage.algebras.vertex_algebras.examples` 
+    - :mod:`sage.algebras.vertex_algebras.examples`
 
 AUTHORS:
 

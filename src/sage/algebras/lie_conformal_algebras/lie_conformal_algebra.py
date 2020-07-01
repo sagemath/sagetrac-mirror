@@ -110,7 +110,7 @@ EXAMPLES:
 
 .. SEEALSO::
 
-    :mod:`sage.algebras.lie_conformal_algebras.examples` 
+    :mod:`sage.algebras.lie_conformal_algebras.examples`
 
 The base class for all Lie conformal algebras is
 :class:`LieConformalAlgebra`.
@@ -220,7 +220,7 @@ from sage.sets.family import Family
 from sage.categories.commutative_rings import CommutativeRings
 from sage.structure.parent import Parent
 
-class LieConformalAlgebra(UniqueRepresentation):
+class LieConformalAlgebra(UniqueRepresentation, Parent):
     r"""
     Lie Conformal Algebras base class and factory.
 
