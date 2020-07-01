@@ -857,18 +857,6 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
 
-        def WithBasis(self):
-            """
-            The subcategory of Lie conformal algebras with a preferred
-            basis.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQ).WithBasis()
-                Category of Lie conformal algebras over Rational Field with basis
-            """
-            return self._with_axiom("WithBasis")
-
         def Graded(self, base_ring=None):
             """
             The subcategory of H-Graded Lie conformal algebras.

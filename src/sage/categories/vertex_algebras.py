@@ -790,17 +790,6 @@ class VertexAlgebras(Category_over_base_ring):
             """
             return self._with_axiom("FinitelyGeneratedAsVertexAlgebra")
 
-        def WithBasis(self):
-            """
-            The subcategory of vertex algebras with a preferred basis.
-
-            EXAMPLES::
-
-                sage: VertexAlgebras(ZZ).WithBasis()
-                Category of vertex algebras with basis over Integer Ring
-            """
-            return self._with_axiom("WithBasis")
-
         def Graded(self, base_ring=None):
             """
             The subcategory of H-Graded vertex algebras.

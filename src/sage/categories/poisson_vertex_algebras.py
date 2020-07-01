@@ -414,18 +414,6 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             """
             return self._with_axiom('FinitelyGeneratedAsPoissonVertexAlgebra')
 
-        def WithBasis(self):
-            """
-            The subcategory of Poisson vertex algebras with a preferred
-            basis.
-
-            EXAMPLES::
-
-                sage: PoissonVertexAlgebras(AA).WithBasis()
-                Category of Poisson vertex algebras with basis over Algebraic Real Field
-            """
-            return self._with_axiom('WithBasis')
-
         def Graded(self, base_ring=None):
             """
             The subcategory of H-Graded Poisson vertex algebras.
