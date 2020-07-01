@@ -31,22 +31,22 @@ class LieConformalAlgebraWithBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: R = VirasoroLieConformalAlgebra(QQbar);R
+            sage: R = lie_conformal_algebras.Virasoro(QQbar);R
             The Virasoro Lie conformal algebra over Algebraic Field
 
         TESTS::
 
-            sage: R = VirasoroLieConformalAlgebra(QQ)
+            sage: R = lie_conformal_algebras.Virasoro(QQ)
             sage: R.0
             L
             sage: R._repr_generator(R.0)
             'L'
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1')
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1')
             sage: R.0
             B[alpha[1]]
             sage: R._repr_generator(R.0)
             'B[alpha[1]]'
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1', names = ('e', 'h','f'))
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1', names = ('e', 'h','f'))
             sage: R.0
             e
             sage: R._repr_generator(R.0)

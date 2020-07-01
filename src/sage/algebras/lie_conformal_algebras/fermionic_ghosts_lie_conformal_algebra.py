@@ -54,7 +54,7 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = FermionicGhostsLieConformalAlgebra(QQ); R
+            sage: R = lie_conformal_algebras.FermionicGhosts(QQ); R
             The Fermionic ghosts Lie conformal algebra with generators (b, c, K) over Rational Field
             sage: R.inject_variables()
             Defining b, c, K
@@ -67,7 +67,7 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
             sage: R.category()
             Category of finitely generated super H-graded Lie conformal algebras with basis over Rational Field
 
-            sage: R = FermionicGhostsLieConformalAlgebra(QQbar, ngens=4, names = 'abcd');R
+            sage: R = lie_conformal_algebras.FermionicGhosts(QQbar, ngens=4, names = 'abcd');R
             The Fermionic ghosts Lie conformal algebra with generators (a, b, c, d, K) over Algebraic Field
             sage: R.structure_coefficients()
             Finite family {('a', 'c'): ((0, K),),  ('b', 'd'): ((0, K),),  ('c', 'a'): ((0, K),),  ('d', 'b'): ((0, K),)}
@@ -112,7 +112,7 @@ class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: FermionicGhostsLieConformalAlgebra(QQ)
+            sage: lie_conformal_algebras.FermionicGhosts(QQ)
             The Fermionic ghosts Lie conformal algebra with generators (b, c, K) over Rational Field
         """
         return "The Fermionic ghosts Lie conformal algebra with generators {} "\

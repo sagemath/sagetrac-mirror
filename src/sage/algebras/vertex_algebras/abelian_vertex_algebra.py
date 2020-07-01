@@ -65,7 +65,7 @@ class AbelianVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         from sage.algebras.lie_conformal_algebras.abelian_lie_conformal_algebra\
              import AbelianLieConformalAlgebra
 
-        ML = AbelianLieConformalAlgebra(R, ngens=ngens, weights=weights,
+        ML = lie_conformal_algebras.Abelian(R, ngens=ngens, weights=weights,
                                         parity=parity, names=names,
                                         index_set=index_set)
 

@@ -69,7 +69,7 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
 
         EXAMPLES::
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(QQ); R.an_element()
+            sage: R = lie_conformal_algebras.NeveuSchwarz(QQ); R.an_element()
             L + G + C
         """
         return self.sum(self.gens())
@@ -118,7 +118,7 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
 
         EXAMPLES::
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(QQ); R.central_elements()
+            sage: R = lie_conformal_algebras.NeveuSchwarz(QQ); R.central_elements()
             (C,)
         """
         return tuple(LieConformalAlgebraWithGenerators.central_elements(self))

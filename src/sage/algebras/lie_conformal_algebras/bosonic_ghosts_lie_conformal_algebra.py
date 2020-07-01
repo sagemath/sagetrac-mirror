@@ -57,7 +57,7 @@ class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = BosonicGhostsLieConformalAlgebra(QQ); R
+            sage: R = lie_conformal_algebras.BosonicGhosts(QQ); R
             The Bosonic ghosts Lie conformal algebra with generators (beta, gamma, K) over Rational Field
             sage: R.inject_variables(); beta.bracket(gamma)
             Defining beta, gamma, K
@@ -67,14 +67,14 @@ class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
             sage: gamma.degree()
             0
 
-            sage: R = BosonicGhostsLieConformalAlgebra(QQbar, ngens = 4, names = 'abcd'); R
+            sage: R = lie_conformal_algebras.BosonicGhosts(QQbar, ngens = 4, names = 'abcd'); R
             The Bosonic ghosts Lie conformal algebra with generators (a, b, c, d, K) over Algebraic Field
             sage: R.structure_coefficients()
             Finite family {('a', 'c'): ((0, K),),  ('b', 'd'): ((0, K),),  ('c', 'a'): ((0, -K),),  ('d', 'b'): ((0, -K),)}
 
         TESTS::
 
-            sage: BosonicGhostsLieConformalAlgebra(AA).category()
+            sage: lie_conformal_algebras.BosonicGhosts(AA).category()
             Category of finitely generated H-graded Lie conformal algebras with basis over Algebraic Real Field
         """
         from sage.rings.all import ZZ
@@ -113,7 +113,7 @@ class BosonicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: BosonicGhostsLieConformalAlgebra(QQbar)
+            sage: lie_conformal_algebras.BosonicGhosts(QQbar)
             The Bosonic ghosts Lie conformal algebra with generators (beta, gamma, K) over Algebraic Field
         """
         return "The Bosonic ghosts Lie conformal algebra with generators {} "\

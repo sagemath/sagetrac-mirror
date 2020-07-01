@@ -67,7 +67,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: Vir.lie_conformal_algebra_generators()
             (L, C)
-            sage: V = AffineLieConformalAlgebra(QQ,'A1')
+            sage: V = lie_conformal_algebras.Affine(QQ,'A1')
             sage: V.lie_conformal_algebra_generators()
             (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
         """

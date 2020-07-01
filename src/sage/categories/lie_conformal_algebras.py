@@ -312,7 +312,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: L = VirasoroLieConformalAlgebra(QQ);
+                sage: L = lie_conformal_algebras.Virasoro(QQ);
                 sage: V = L.universal_enveloping_algebra()
                 sage: L.lift
                 Generic morphism:
@@ -332,7 +332,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             TESTS::
 
                 sage: V = vertex_algebras.Virasoro(QQ,1/2)
-                sage: R = NeveuSchwarzLieConformalAlgebra(QQ);
+                sage: R = lie_conformal_algebras.NeveuSchwarz(QQ);
                 sage: R.set_lift(V._lca.lift)
                 Traceback (most recent call last):
                 ...
@@ -404,7 +404,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             Virasoro Lie conformal algebra of central charge `0` over
             the real algebraic numbers::
 
-                sage: Vir = VirasoroLieConformalAlgebra(AA)
+                sage: Vir = lie_conformal_algebras.Virasoro(AA)
                 sage: V = Vir.universal_enveloping_algebra(); V
                 The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Algebraic Real Field
                 sage: V.0.bracket(V.0)
@@ -414,7 +414,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             Virasoro Lie conformal algebra of central charge 2 over the
             rationals::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ);
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ);
                 sage: Vir.gens()
                 (L, C)
                 sage: cp = Family({Vir.1:2})
@@ -424,7 +424,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             The Virasoro Algebra is not defined over `\ZZ`::
 
-                sage: Vir = VirasoroLieConformalAlgebra(ZZ)
+                sage: Vir = lie_conformal_algebras.Virasoro(ZZ)
                 Traceback (most recent call last):
                 ...
                 ArithmeticError: inverse does not exist
@@ -432,7 +432,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             The universal enveloping vertex algebra of the Neveu-Schwarz
             Lie conformal algebra::
 
-                sage: NS = NeveuSchwarzLieConformalAlgebra(QQbar)
+                sage: NS = lie_conformal_algebras.NeveuSchwarz(QQbar)
                 sage: NS.inject_variables()
                 Defining L, G, C
                 sage: V = NS.universal_enveloping_algebra({C:1})
@@ -442,7 +442,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             The list of central parameters needs to be indexed by the
             central elements of the algebra::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ);
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ);
                 sage: cp = Family({Vir.0 : 3})
                 sage: V = Vir.universal_enveloping_algebra(cp)
                 Traceback (most recent call last):
@@ -472,10 +472,10 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: V = VirasoroLieConformalAlgebra(QQ)
+                sage: V = lie_conformal_algebras.Virasoro(QQ)
                 sage: V.is_super()
                 False
-                sage: NeveuSchwarzLieConformalAlgebra(QQbar).is_super()
+                sage: lie_conformal_algebras.NeveuSchwarz(QQbar).is_super()
                 True
 
             Notice that we can force to have a *purely even* super Lie
@@ -496,12 +496,12 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ)
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
                 sage: Vir
                 The Virasoro Lie conformal algebra over Rational Field
                 sage: Vir.is_graded()
                 True
-                sage: WeylLieConformalAlgebra(QQ).is_graded()
+                sage: lie_conformal_algebras.Weyl(QQ).is_graded()
                 False
             """
             return self in LieConformalAlgebras(self.base_ring()).Graded()
@@ -516,7 +516,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             The brackets of the Virasoro Lie conformal Algebra::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
                 sage: L.bracket(L)
                 {0: TL, 1: 2*L, 3: 1/2*C}
                 sage: L.bracket(L.T())
@@ -524,7 +524,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             Now with a current algebra::
 
-                sage: V = AffineLieConformalAlgebra(QQ, 'A1')
+                sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
                 sage: V.gens()
                 (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
                 sage: E = V.0; H = V.1; F = V.2;
@@ -535,7 +535,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             With a super Lie Conformal Algebra::
 
-                sage: R = FermionicGhostsLieConformalAlgebra(QQbar); R
+                sage: R = lie_conformal_algebras.FermionicGhosts(QQbar); R
                 The Fermionic ghosts Lie conformal algebra with generators (b, c, K) over Algebraic Field
                 sage: R.inject_variables()
                 Defining b, c, K
@@ -546,7 +546,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             This methods coerces elements to a common parent::
 
-                sage: R = NeveuSchwarzLieConformalAlgebra(QQbar)
+                sage: R = lie_conformal_algebras.NeveuSchwarz(QQbar)
                 sage: R.inject_variables()
                 Defining L, G, C
                 sage: V = R.universal_enveloping_algebra({C:1})
@@ -573,7 +573,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             The brackets of the Virasoro Lie conformal Algebra::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
                 sage: L._bracket_(L)
                 {0: TL, 1: 2*L, 3: 1/2*C}
                 sage: L._bracket_(L.T())
@@ -581,7 +581,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             Now with a current algebra::
 
-                sage: V = AffineLieConformalAlgebra(QQ, 'A1')
+                sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
                 sage: V.gens()
                 (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
                 sage: E = V.0; H = V.1; F = V.2;
@@ -604,12 +604,12 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
                 sage: L.nproduct(L,3)
                 1/2*C
                 sage: L.nproduct(L.T(),0)
                 2*T^(2)L
-                sage: V = AffineLieConformalAlgebra(QQ, 'A1')
+                sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
                 sage: E = V.0; H = V.1; F = V.2;
                 sage: E.nproduct(H,0) == - 2*E
                 True
@@ -620,7 +620,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             vertex algebra, however, the universal enveloping vertex
             algebra needs to be constructed first::
 
-                sage: R = AffineLieConformalAlgebra(AA,'A1', names=('e','h','f'))
+                sage: R = lie_conformal_algebras.Affine(AA,'A1', names=('e','h','f'))
                 sage: R.inject_variables()
                 Defining e, h, f, K
                 sage: e.nproduct(f,1)
@@ -636,7 +636,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             The product of the two fermions in the `N=2` vertex algebra
             has conformal weight `3`::
 
-                sage: R = N2LieConformalAlgebra(QQ)
+                sage: R = lie_conformal_algebras.N2(QQ)
                 sage: R.inject_variables()
                 Defining L, J, G1, G2, C
                 sage: V = R.universal_enveloping_algebra({C:1})
@@ -662,12 +662,12 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
                 sage: L._nproduct_(L,3)
                 1/2*C
                 sage: L._nproduct_(L.T(),0)
                 2*T^(2)L
-                sage: V = AffineLieConformalAlgebra(QQ, 'A1')
+                sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
                 sage: E = V.0; H = V.1; F = V.2;
                 sage: E._nproduct_(H,0) == - 2*E
                 True
@@ -678,7 +678,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             vertex algebra, however, the universal enveloping vertex
             algebra needs to be constructed first::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
                 sage: V = Vir.universal_enveloping_algebra()
                 sage: L._nproduct_(L,-3)
                 L_-4L_-2|0>
@@ -700,7 +700,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ)
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
                 sage: Vir.inject_variables()
                 Defining L, C
                 sage: V = Vir.universal_enveloping_algebra({C:1})
@@ -710,7 +710,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             Note that the universal enveloping algebra needs to be
             constructed first::
 
-                sage: W = WeylLieConformalAlgebra(QQ,4)
+                sage: W = lie_conformal_algebras.Weyl(QQ,4)
                 sage: W.inject_variables()
                 Defining alpha0, alpha1, alpha2, alpha3, K
                 sage: alpha0*alpha1
@@ -751,7 +751,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             We lift to the universal enveloping vertex algebra of the
             Virasoro Lie conformal algebra with central charge `0`::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
                 sage: V = Vir.universal_enveloping_algebra()
                 sage: L.lift()
                 L_-2|0>
@@ -804,7 +804,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: Vir = VirasoroLieConformalAlgebra(QQ)
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
                 sage: Vir.inject_variables()
                 Defining L, C
                 sage: L.T()
@@ -824,7 +824,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: R = NeveuSchwarzLieConformalAlgebra(QQ);
+                sage: R = lie_conformal_algebras.NeveuSchwarz(QQ);
                 sage: R.inject_variables()
                 Defining L, G, C
                 sage: G.is_even_odd()
@@ -1121,13 +1121,13 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+                    sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
                     sage: L.degree()
                     2
                     sage: L.T(3).degree()
                     5
 
-                    sage: L = N2LieConformalAlgebra(QQbar); L
+                    sage: L = lie_conformal_algebras.N2(QQbar); L
                     The N=2 super Lie conformal algebra over Algebraic Field
                     sage: L.inject_variables()
                     Defining L, J, G1, G2, C
@@ -1165,7 +1165,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = NeveuSchwarzLieConformalAlgebra(QQ)
+                    sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
                     sage: V.inject_variables()
                     Defining L, G, C
                     sage: G.T(3).index()
@@ -1242,15 +1242,15 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: Vir = VirasoroLieConformalAlgebra(QQ)
+                    sage: Vir = lie_conformal_algebras.Virasoro(QQ)
                     sage: Vir.ngens()
                     2
 
-                    sage: V = AffineLieConformalAlgebra(QQ, 'A2')
+                    sage: V = lie_conformal_algebras.Affine(QQ, 'A2')
                     sage: V.ngens()
                     9
 
-                    sage: L = N2LieConformalAlgebra(QQbar); L
+                    sage: L = lie_conformal_algebras.N2(QQbar); L
                     The N=2 super Lie conformal algebra over Algebraic Field
                     sage: L.gens()
                     (L, J, G1, G2, C)
@@ -1265,7 +1265,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = AffineLieConformalAlgebra(QQ, 'A1')
+                    sage: V = lie_conformal_algebras.Affine(QQ, 'A1')
                     sage: V.gens()
                     (B[alpha[1]], B[alphacheck[1]], B[-alpha[1]], B['K'])
                     sage: V.gen(0)

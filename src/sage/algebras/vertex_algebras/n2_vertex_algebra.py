@@ -70,7 +70,7 @@ class N2VertexAlgebra(UniversalEnvelopingVertexAlgebra):
         from sage.algebras.lie_conformal_algebras.\
              n2_lie_conformal_algebra import N2LieConformalAlgebra
 
-        ML = N2LieConformalAlgebra(R)
+        ML = lie_conformal_algebras.N2(R)
         cp = Family({ML.gen(-1):c})
         super(N2VertexAlgebra,self).__init__(R, ML, central_parameters=cp)
         self._c = c

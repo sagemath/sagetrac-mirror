@@ -43,7 +43,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: Vir.inject_variables()
             Defining L, C
             sage: L.T()
@@ -53,14 +53,14 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             sage: C.T()
             0
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(QQbar); R.inject_variables()
+            sage: R = lie_conformal_algebras.NeveuSchwarz(QQbar); R.inject_variables()
             Defining L, G, C
             sage: (L + 2*G.T() + 4*C).T(2)
             2*T^(2)L + 12*T^(3)G
 
         TESTS::
 
-            sage: R = FreeBosonsLieConformalAlgebra(QQ); R.zero().T()
+            sage: R = lie_conformal_algebras.FreeBosons(QQ); R.zero().T()
             0
             sage: (R.zero() + R.0).T()
             Talpha
@@ -110,7 +110,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
         We lift to the universal enveloping vertex algebra of the
         Virasoro Lie conformal algebra with central charge `0`::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
             sage: V = Vir.universal_enveloping_algebra()
             sage: L.lift()
             L_-2|0>
@@ -133,7 +133,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
         Notice that recreation may not re-establish the right
         coercion since universal enveloping algebras are cached::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: cp = Family({Vir.1:1/3}); V = Vir.universal_enveloping_algebra(cp)
             sage: Vir.lift.codomain()
             The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
@@ -167,7 +167,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ); L = Vir.0
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ); L = Vir.0
             sage: (L + L.T()).is_monomial()
             False
             sage: L.T().is_monomial()
@@ -175,7 +175,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
 
         TESTS::
 
-            sage: R = FreeFermionsLieConformalAlgebra(AA,ngens=3); R.inject_variables()
+            sage: R = lie_conformal_algebras.FreeFermions(AA,ngens=3); R.inject_variables()
             Defining psi_0, psi_1, psi_2, K
             sage: R.zero().is_monomial()
             True
@@ -206,7 +206,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         TESTS::
 
-            sage: R = N2LieConformalAlgebra(QQ); R.inject_variables()
+            sage: R = lie_conformal_algebras.N2(QQ); R.inject_variables()
             Defining L, J, G1, G2, C
             sage: (G1 + R.zero()).is_odd()
             True
@@ -259,7 +259,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
 
         TESTS::
 
-            sage: R = N2LieConformalAlgebra(QQbar); R.inject_variables()
+            sage: R = lie_conformal_algebras.N2(QQbar); R.inject_variables()
             Defining L, J, G1, G2, C
             sage: G1.bracket(G2)
             {0: L + 1/2*TJ, 1: J, 2: 1/3*C}
@@ -323,13 +323,13 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             sage: L.T(4)
             24*T^(4)L
 
-            sage: N = N2LieConformalAlgebra(AA);
+            sage: N = lie_conformal_algebras.N2(AA);
             sage: N.an_element()
             L + J + G1 + G2 + C
             sage: N.1.T(3) + 3*N.2.T()
             6*T^(3)J + 3*TG1
 
-            sage: R = AffineLieConformalAlgebra(QQ, 'B3')
+            sage: R = lie_conformal_algebras.Affine(QQ, 'B3')
             sage: R.2.T()+3*R.3
             TB[alpha[1]] + 3*B[alpha[2] + alpha[3]]
         """
@@ -376,15 +376,15 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             sage: latex(R.0.bracket(R.2))
             \left\{0 : \alpha^\vee_{1}, 1 : \text{\texttt{K}}\right\}
 
-            sage: R = WeylLieConformalAlgebra(QQ,ngens=4); R.inject_variables()
+            sage: R = lie_conformal_algebras.Weyl(QQ,ngens=4); R.inject_variables()
             Defining alpha0, alpha1, alpha2, alpha3, K
             sage: latex(alpha1.T(4))
             24T^{(4)}\alpha_{1}
 
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1'); latex(R.0.T(3))
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1'); latex(R.0.T(3))
             6T^{(3)}\alpha_{1}
 
-            sage: R = BosonicGhostsLieConformalAlgebra(QQ,ngens=4); R.inject_variables()
+            sage: R = lie_conformal_algebras.BosonicGhosts(QQ,ngens=4); R.inject_variables()
             Defining beta0, beta1, gamma0, gamma1, K
             sage: latex(beta1.T(3))
             6T^{(3)}\beta_{1}
@@ -422,7 +422,7 @@ class GradedLCAElement(LCAStructureCoefficientsElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroLieConformalAlgebra(QQ)
+            sage: V = lie_conformal_algebras.Virasoro(QQ)
             sage: V.inject_variables()
             Defining L, C
             sage: C.degree()
@@ -430,7 +430,7 @@ class GradedLCAElement(LCAStructureCoefficientsElement):
             sage: L.T(4).degree()
             6
 
-            sage: N = N2LieConformalAlgebra(AA)
+            sage: N = lie_conformal_algebras.N2(AA)
             sage: N.inject_variables()
             Defining L, J, G1, G2, C
             sage: G1.T().degree()

@@ -274,11 +274,11 @@ class LieConformalAlgebraWithStructureCoefficients(
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(AA)
+            sage: Vir = lie_conformal_algebras.Virasoro(AA)
             sage: Vir.structure_coefficients()
             Finite family {('L', 'L'): ((0, TL), (1, 2*L), (3, 1/2*C))}
 
-            sage: NeveuSchwarzLieConformalAlgebra(QQ).structure_coefficients()
+            sage: lie_conformal_algebras.NeveuSchwarz(QQ).structure_coefficients()
             Finite family {('G', 'G'): ((0, 2*L), (2, 2/3*C)),  ('G', 'L'): ((0, 1/2*TG), (1, 3/2*G)),  ('L', 'G'): ((0, TG), (1, 3/2*G)),  ('L', 'L'): ((0, TL), (1, 2*L), (3, 1/2*C))}
         """
         return self._s_coeff
@@ -314,7 +314,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         Virasoro Lie conformal algebra at central charge `0` over
         the complex numbers::
 
-            sage: Vir = VirasoroLieConformalAlgebra(CC)
+            sage: Vir = lie_conformal_algebras.Virasoro(CC)
             sage: V = Vir.universal_enveloping_algebra(); V
             The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
             sage: V.0.bracket(V.0)
@@ -325,7 +325,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         Virasoro Lie conformal algebra at central charge 2 over the
         rationals::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ);
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ);
             sage: Vir.inject_variables()
             Defining L, C
             sage: V = Vir.universal_enveloping_algebra({C:2})
@@ -334,7 +334,7 @@ class LieConformalAlgebraWithStructureCoefficients(
 
         The Virasoro Algebra is not defined over `\ZZ`::
 
-            sage: Vir = VirasoroLieConformalAlgebra(ZZ)
+            sage: Vir = lie_conformal_algebras.Virasoro(ZZ)
             Traceback (most recent call last):
             ...
             ArithmeticError: inverse does not exist
@@ -342,7 +342,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         The universal enveloping vertex algebra of the Neveu-Schwarz
         Lie conformal algebra::
 
-            sage: NS = NeveuSchwarzLieConformalAlgebra(QQbar)
+            sage: NS = lie_conformal_algebras.NeveuSchwarz(QQbar)
             sage: NS.inject_variables()
             Defining L, G, C
             sage: V = NS.universal_enveloping_algebra({C:1})
@@ -352,7 +352,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         The list of central parameters needs to be indexed by the
         central elements of the algebra::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ);
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ);
             sage: cp = Family({Vir.0 : 3})
             sage: V = Vir.universal_enveloping_algebra(cp)
             Traceback (most recent call last):
@@ -401,13 +401,13 @@ class LieConformalAlgebraWithStructureCoefficients(
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQbar)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQbar)
             sage: Vir._repr_generator(Vir.0)
             'L'
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1')
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1')
             sage: R._repr_generator(R.0)
             'B[alpha[1]]'
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1', names=('e','h','f'))
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1', names=('e','h','f'))
             sage: R._repr_generator(R.0)
             'e'
         """
@@ -423,7 +423,7 @@ class _LiftMorphism(Morphism):
 
     EXAMPLES::
 
-        sage: Vir = VirasoroLieConformalAlgebra(AA)
+        sage: Vir = lie_conformal_algebras.Virasoro(AA)
         sage: cp = Family({Vir.1:2})
         sage: V = Vir.universal_enveloping_algebra(cp)
         sage: Vir.lift

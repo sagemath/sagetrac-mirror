@@ -85,7 +85,7 @@ class NeveuSchwarzVertexAlgebra(UniversalEnvelopingVertexAlgebra):
              neveu_schwarz_lie_conformal_algebra import \
              NeveuSchwarzLieConformalAlgebra
 
-        ML = NeveuSchwarzLieConformalAlgebra(R)
+        ML = lie_conformal_algebras.NeveuSchwarz(R)
         cp = Family({ML.gen(2):c})
         super(NeveuSchwarzVertexAlgebra,self).__init__(R, ML,
                                                        central_parameters=cp)

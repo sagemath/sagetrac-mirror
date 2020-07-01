@@ -79,9 +79,9 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
 
         EXAMPLES::
 
-            sage: WeylLieConformalAlgebra(QQ)
+            sage: lie_conformal_algebras.Weyl(QQ)
             The Weyl Lie conformal algebra with generators (alpha0, alpha1, K) over Rational Field
-            sage: R = WeylLieConformalAlgebra(QQbar, gram_matrix=Matrix(QQ,[[0,1],[-1,0]]), names = ('a','b'))
+            sage: R = lie_conformal_algebras.Weyl(QQbar, gram_matrix=Matrix(QQ,[[0,1],[-1,0]]), names = ('a','b'))
             sage: R.inject_variables()
             Defining a, b, K
             sage: a.bracket(b)
@@ -89,7 +89,7 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             sage: b.bracket(a)
             {0: -K}
 
-            sage: R = WeylLieConformalAlgebra(QQbar, ngens=4)
+            sage: R = lie_conformal_algebras.Weyl(QQbar, ngens=4)
             sage: R.gram_matrix()
             [ 0  0| 1  0]
             [ 0  0| 0  1]
@@ -101,7 +101,7 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             sage: alpha0.bracket(alpha2)
             {0: K}
 
-            sage: R = WeylLieConformalAlgebra(QQ); R.category()
+            sage: R = lie_conformal_algebras.Weyl(QQ); R.category()
             Category of finitely generated Lie conformal algebras with basis over Rational Field
             sage: R.is_graded()
             False
@@ -114,7 +114,7 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
 
         TESTS::
 
-            sage: WeylLieConformalAlgebra(ZZ, gram_matrix=identity_matrix(ZZ,3))
+            sage: lie_conformal_algebras.Weyl(ZZ, gram_matrix=identity_matrix(ZZ,3))
             Traceback (most recent call last):
             ...
             ValueError: The gram_matrix should be a non degenerate skew-symmetric 3 x 3 matrix, got [1 0 0]
@@ -172,7 +172,7 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
 
         EXAMPLES::
 
-            sage: R = WeylLieConformalAlgebra(ZZ); R
+            sage: R = lie_conformal_algebras.Weyl(ZZ); R
             The Weyl Lie conformal algebra with generators (alpha0, alpha1, K) over Integer Ring
         """
         return "The Weyl Lie conformal algebra with generators {} over {}"\
@@ -185,7 +185,7 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
 
         EXAMPLES::
 
-            sage: R = WeylLieConformalAlgebra(QQbar, ngens=4)
+            sage: R = lie_conformal_algebras.Weyl(QQbar, ngens=4)
             sage: R.gram_matrix()
             [ 0  0| 1  0]
             [ 0  0| 0  1]

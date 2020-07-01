@@ -122,7 +122,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: Vir.inject_variables()
             Defining L, C
             sage: cp = Family({C:1})
@@ -152,7 +152,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         Test that the beta-gamma system is not graded::
 
-            sage: R = BosonicGhostsLieConformalAlgebra(QQ)
+            sage: R = lie_conformal_algebras.BosonicGhosts(QQ)
             sage: V = R.universal_enveloping_algebra()
             sage: V.category()
             Category of finitely generated vertex algebras with basis over Rational Field
@@ -227,7 +227,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: L = NeveuSchwarzLieConformalAlgebra(QQ)
+            sage: L = lie_conformal_algebras.NeveuSchwarz(QQ)
             sage: L.universal_enveloping_algebra()
             The universal enveloping vertex algebra of the Neveu-Schwarz super Lie conformal algebra over Rational Field
         """
@@ -251,7 +251,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: L = VirasoroLieConformalAlgebra(QQ);
+            sage: L = lie_conformal_algebras.Virasoro(QQ);
             sage: V = L.universal_enveloping_algebra()
             sage: L.lift
             Generic morphism:

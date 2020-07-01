@@ -134,7 +134,7 @@ EXAMPLES:
 - We construct the Virasoro Lie conformal algebra, its universal
   enveloping vertex algebra and lift some elements::
 
-    sage: Vir = VirasoroLieConformalAlgebra(QQ)
+    sage: Vir = lie_conformal_algebras.Virasoro(QQ)
     sage: Vir.inject_variables()
     Defining L, C
     sage: L.bracket(L)
@@ -155,7 +155,7 @@ EXAMPLES:
 
 - We construct the Current algebra for `\mathfrak{sl}_2`::
 
-    sage: R = AffineLieConformalAlgebra(QQ, 'A1', names = ('e', 'h', 'f'))
+    sage: R = lie_conformal_algebras.Affine(QQ, 'A1', names = ('e', 'h', 'f'))
     sage: R.gens()
     (e, h, f, K)
     sage: R.inject_variables()

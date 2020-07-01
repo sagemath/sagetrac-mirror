@@ -65,14 +65,14 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = FreeFermionsLieConformalAlgebra(QQbar); R
+            sage: R = lie_conformal_algebras.FreeFermions(QQbar); R
             The free Fermions super Lie conformal algebra with generators (psi, K) over Algebraic Field.
             sage: R.inject_variables()
             Defining psi, K
             sage: psi.bracket(psi)
             {0: K}
 
-            sage: R = FreeFermionsLieConformalAlgebra(QQbar,gram_matrix=Matrix([[0,1],[1,0]])); R
+            sage: R = lie_conformal_algebras.FreeFermions(QQbar,gram_matrix=Matrix([[0,1],[1,0]])); R
             The free Fermions super Lie conformal algebra with generators (psi_0, psi_1, K) over Algebraic Field.
             sage: R.inject_variables()
             Defining psi_0, psi_1, K
@@ -142,7 +142,7 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = FreeFermionsLieConformalAlgebra(QQ,ngens=2);
+            sage: R = lie_conformal_algebras.FreeFermions(QQ,ngens=2);
             sage: R.gram_matrix()
             [1 0]
             [0 1]
