@@ -104,7 +104,7 @@ class FreeBosonsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
                     free_bosons_lie_conformal_algebra import \
                      FreeBosonsLieConformalAlgebra
 
-        ML = lie_conformal_algebras.FreeBosons(R,gram_matrix=gram_matrix,
+        ML = FreeBosonsLieConformalAlgebra(R,gram_matrix=gram_matrix,
                         ngens=ngens,names=names,index_set=index_set)
 
         cp = Family({ML.gen(-1):R.one()})

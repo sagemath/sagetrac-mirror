@@ -54,7 +54,7 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         """
         from sage.algebras.lie_conformal_algebras.\
              virasoro_lie_conformal_algebra import VirasoroLieConformalAlgebra
-        ML = lie_conformal_algebras.Virasoro(R)
+        ML = VirasoroLieConformalAlgebra(R)
         cp = Family({ML.gen(1):c})
         super(VirasoroVertexAlgebra,self).__init__(R, ML, central_parameters=cp)
         self._c = c
