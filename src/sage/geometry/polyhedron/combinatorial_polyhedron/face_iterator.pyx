@@ -627,7 +627,7 @@ cdef class FaceIterator(SageObject):
             # which have not been visited yet.
             self.structure.newfaces_coatom_rep = <uint64_t ***> self._mem.allocarray(self.structure.dimension, sizeof(uint64_t **))
             for i in range(self.structure.dimension - 1):
-                self.structure.newfaces_coatom_rep[i] = <uint64_t **> self._mem.allocarray(self.atoms.n_faces, sizeof(uint64_t *))
+                self.structure.newfaces_coatom_rep[i] = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
             self.structure.newfaces_coatom_rep[self.structure.dimension - 1] = self.coatoms_coatom_rep.data  # we start with coatoms
         else:
             self.structure.is_simple = False
@@ -752,6 +752,8 @@ cdef class FaceIterator(SageObject):
         # Also, this face will not be added a second time to ``visited_all``,
         # as there are no new faces.
         self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
+        if self.structure.is_simple:
+            self.structure.visited_all_coatom_rep[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face_coatom_rep
         self.structure.n_visited_all[self.structure.current_dimension] += 1
 
     def ignore_supfaces(self):
@@ -785,6 +787,8 @@ cdef class FaceIterator(SageObject):
         # Also, this face will not be added a second time to ``visited_all``,
         # as there are no new faces.
         self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
+        if self.structure.is_simple:
+            self.structure.visited_all_coatom_rep[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face_coatom_rep
         self.structure.n_visited_all[self.structure.current_dimension] += 1
 
     cdef inline CombinatorialFace next_face(self):
