@@ -23,10 +23,10 @@ from sage.rings.integer import Integer
 from sage.sets.family import Family
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 
-class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
+class FreelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithBasis):
     """
-    Base class for a Lie conformal algebra with distinguished
-    generators.
+    Base class for a central extension of a freely generated Lie
+    conformal algebra.
 
     This class provides minimal functionality, it sets up the
     family of Lie conformal algebra generators.
@@ -54,7 +54,7 @@ class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
             E = DisjointUnionEnumeratedSets((cartesian_product([
                 Family(central_elements), {Integer(0)}]),E))
 
-        super(LieConformalAlgebraWithGenerators,self).__init__(R, basis_keys=E,
+        super(FreelyGeneratedLieConformalAlgebra,self).__init__(R, basis_keys=E,
             element_class=element_class, category=category, prefix=prefix,
             **kwds)
 

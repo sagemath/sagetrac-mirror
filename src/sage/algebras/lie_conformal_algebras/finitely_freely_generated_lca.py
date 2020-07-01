@@ -18,10 +18,10 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
-from .lie_conformal_algebra_with_generators import \
-                                            LieConformalAlgebraWithGenerators
+from .freely_generated_lie_conformal_algebra import \
+                                            FreelyGeneratedLieConformalAlgebra
 
-class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
+class FinitelyGeneratedLieConformalAlgebra(FreelyGeneratedLieConformalAlgebra):
     """
     Abstract base class for finitely generated Lie conformal
     algebras.
@@ -114,7 +114,7 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
         .. SEEALSO::
 
             :meth:`lie_conformal_algebra_generators<\
-            LieConformalAlgebraWithGenerators.\
+            FreelyGeneratedLieConformalAlgebra.\
             lie_conformal_algebra_generators>`
         """
         return self.lie_conformal_algebra_generators()
@@ -129,4 +129,4 @@ class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
             sage: R = lie_conformal_algebras.NeveuSchwarz(QQ); R.central_elements()
             (C,)
         """
-        return tuple(LieConformalAlgebraWithGenerators.central_elements(self))
+        return tuple(FreelyGeneratedLieConformalAlgebra.central_elements(self))

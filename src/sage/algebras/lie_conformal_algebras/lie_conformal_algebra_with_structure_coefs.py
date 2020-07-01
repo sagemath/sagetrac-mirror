@@ -396,7 +396,7 @@ class LieConformalAlgebraWithStructureCoefficients(
             sage: Vir.inject_variables()
             Defining L, C
             sage: V = Vir.universal_enveloping_algebra({C:2}); V
-            The universal enveloping vertrex algebra of the Virasoro Lie conformal algebra over Rational Field
+            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
         """
         from sage.algebras.vertex_algebras.vertex_algebra\
                                                     import VertexAlgebra
