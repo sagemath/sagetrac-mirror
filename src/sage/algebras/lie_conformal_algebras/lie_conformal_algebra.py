@@ -298,8 +298,7 @@ class LieConformalAlgebra(UniqueRepresentation, Parent):
     .. Note::
 
         Any remaining keyword is currently passed to
-        :class:`CombinatorialFreeModule<sage.combinat.free_module.\
-        CombinatorialFreeModule>`.
+        :class:`CombinatorialFreeModule<sage.combinat.free_module.CombinatorialFreeModule>`.
 
     EXAMPLES:
 
