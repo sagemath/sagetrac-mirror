@@ -46,7 +46,7 @@ class NeveuSchwarzVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         Some vectors in the `N=1` super vertex algebra of central
         charge `7/10`::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,7/10)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ,7/10)
             sage: M = V.get_weight(8)
             sage: [v.lift() for v in M.basis()]
             [L_-2L_-2L_-2L_-2|0>,
@@ -97,7 +97,7 @@ class NeveuSchwarzVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,7/10); V
+            sage: V = vertex_algebras.NeveuSchwarz(QQ,7/10); V
             The Neveu-Schwarz super vertex algebra of central charge 7/10 over Rational Field
         """
         return "The Neveu-Schwarz super vertex algebra of central charge {}"\

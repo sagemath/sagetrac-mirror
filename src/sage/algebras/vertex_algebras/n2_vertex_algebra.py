@@ -49,7 +49,7 @@ class N2VertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = N2VertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.N2(QQ, 1)
             sage: V.inject_variables()
             Defining L, J, G1, G2
             sage: G1*G2 + G2*G1
@@ -81,7 +81,7 @@ class N2VertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = N2VertexAlgebra(QQ); V
+            sage: V = vertex_algebras.N2(QQ); V
             The N=2 super vertex algebra of central charge 0 over Rational Field
         """
         return "The N=2 super vertex algebra of central charge {} over {}"\

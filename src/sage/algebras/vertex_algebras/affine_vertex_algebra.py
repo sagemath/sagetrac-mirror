@@ -57,7 +57,7 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         We construct the universal affine vertex algebra of
         `\mathfrak{sl}_2` at level `1`::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names=('e','h','f')); V
+            sage: V = vertex_algebras.Affine(QQ, 'A1', 1, names=('e','h','f')); V
             The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
             sage: V.central_charge()
             1
@@ -90,7 +90,7 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         TESTS::
 
-            sage: V = AffineVertexAlgebra(QQ, CartanType('A1'),1); V
+            sage: V = vertex_algebras.Affine(QQ, CartanType('A1'),1); V
             The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
         """
         from sage.algebras.lie_conformal_algebras.affine_lie_conformal_algebra\
@@ -117,7 +117,7 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'B3', 1); V
+            sage: V = vertex_algebras.Affine(QQ, 'B3', 1); V
             The universal affine vertex algebra of CartanType ['B', 3] at level 1 over Rational Field
             sage: V.level()
             1
@@ -130,7 +130,7 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'B3', 1); V
+            sage: V = vertex_algebras.Affine(QQ, 'B3', 1); V
             The universal affine vertex algebra of CartanType ['B', 3] at level 1 over Rational Field
             sage: V.cartan_type()
             ['B', 3]
@@ -146,7 +146,7 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', -2); V
+            sage: V = vertex_algebras.Affine(QQ, 'A1', -2); V
             The universal affine vertex algebra of CartanType ['A', 1] at critical level over Rational Field
             sage: V.is_critical()
             True
@@ -158,9 +158,9 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         The name of this vertex algebra.
 
         EXAMPLES::
-            sage: V = AffineVertexAlgebra(QQ, 'A1', -2); V
+            sage: V = vertex_algebras.Affine(QQ, 'A1', -2); V
             The universal affine vertex algebra of CartanType ['A', 1] at critical level over Rational Field
-            sage: V = AffineVertexAlgebra(QQbar, 'A1', 1, names=('e','h','f')); V
+            sage: V = vertex_algebras.Affine(QQbar, 'A1', 1, names=('e','h','f')); V
             The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Algebraic Field
         """
         if self.is_critical():

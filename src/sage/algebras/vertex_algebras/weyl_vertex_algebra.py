@@ -83,7 +83,7 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = WeylVertexAlgebra(QQ, 4)
+            sage: V = vertex_algebras.Weyl(QQ, 4)
             sage: V.inject_variables()
             Defining alpha0, alpha1, alpha2, alpha3
             sage: alpha0.bracket(alpha2*alpha2)
@@ -103,7 +103,7 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = WeylVertexAlgebra(QQ, 4); V
+            sage: V = vertex_algebras.Weyl(QQ, 4); V
             The Weyl vertex algebra with generators (alpha0_(-1)|0>, alpha1_(-1)|0>, alpha2_(-1)|0>, alpha3_(-1)|0>) over Rational Field
         """
         return "The Weyl vertex algebra with generators {} over {}".format(
@@ -115,7 +115,7 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = WeylVertexAlgebra(QQ, 4)
+            sage: V = vertex_algebras.Weyl(QQ, 4)
             sage: V.gram_matrix()
             [ 0  0| 1  0]
             [ 0  0| 0  1]

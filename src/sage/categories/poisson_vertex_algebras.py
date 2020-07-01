@@ -177,7 +177,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+                sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
                 sage: P = V.classical_limit()
                 sage: P.inject_variables()
                 Defining L, G
@@ -199,7 +199,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+                sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
                 sage: P = V.classical_limit()
                 sage: P.inject_variables()
                 Defining L, G
@@ -217,7 +217,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: V = NeveuSchwarzVertexAlgebra(QQ,1)
+                sage: V = vertex_algebras.NeveuSchwarz(QQ,1)
                 sage: P = V.classical_limit()
                 sage: P.is_super()
                 True
@@ -239,7 +239,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2);
+                    sage: V = vertex_algebras.Virasoro(QQ,1/2);
                     sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                     sage: A = Q.arc_algebra()
                     sage: A.defining_ideal()
@@ -254,7 +254,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2);
+                    sage: V = vertex_algebras.Virasoro(QQ,1/2);
                     sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                     sage: A = Q.arc_algebra()
                     sage: v = A.an_element().lift(); v
@@ -271,7 +271,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                    sage: V = vertex_algebras.Virasoro(QQ,1/2)
                     sage: P = V.classical_limit()
                     sage: P.inject_variables()
                     Defining L
@@ -287,7 +287,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ, 1/2)
+                    sage: V = vertex_algebras.Virasoro(QQ, 1/2)
                     sage: P = V.classical_limit()
                     sage: P.inject_variables()
                     Defining L
@@ -304,7 +304,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2);
+                    sage: V = vertex_algebras.Virasoro(QQ,1/2);
                     sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                     sage: A = Q.arc_algebra()
                     sage: A.an_element()
@@ -322,7 +322,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2);
+                    sage: V = vertex_algebras.Virasoro(QQ,1/2);
                     sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                     sage: A = Q.arc_algebra()
                     sage: v = A.an_element(); v
@@ -341,7 +341,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+                    sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
                     sage: Q = V.quotient(V.ideal(V.find_singular(4)))
                     sage: A = Q.arc_algebra()
                     sage: A.inject_variables()
@@ -441,7 +441,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = VirasoroVertexAlgebra(QQ,1/2);
+                    sage: V = vertex_algebras.Virasoro(QQ,1/2);
                     sage: P = V.classical_limit()
                     sage: P.basis()
                     Lazy family (Term map from (0,)-Regular Energy Partition Tuples of level 1 with weights (2,) to The classical limit of The Virasoro vertex algebra of central charge 1/2 over Rational Field(i))_{i in (0,)-Regular Energy Partition Tuples of level 1 with weights (2,)}
@@ -486,7 +486,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+                    sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
                     sage: P = V.classical_limit()
                     sage: P.gens()
                     (L_2, G_3/2)
@@ -499,7 +499,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = AffineVertexAlgebra(QQ, 'A1',1)
+                    sage: V = vertex_algebras.Affine(QQ, 'A1',1)
                     sage: P = V.classical_limit()
                     sage: P.ngens()
                     3
@@ -512,7 +512,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+                    sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
                     sage: P = V.classical_limit()
                     sage: P.gen(1)
                     G_3/2
@@ -532,7 +532,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                     EXAMPLES::
 
-                        sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+                        sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
                         sage: Q = V.quotient(V.ideal(V.find_singular(4)))
                         sage: A = Q.arc_algebra()
                         sage: A.gens()
@@ -646,7 +646,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+                    sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
                     sage: P = V.classical_limit()
                     sage: v = P([[3,2],[1]]); v
                     L_4*L_3*G_3/2
@@ -662,7 +662,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+                    sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
                     sage: P = V.classical_limit()
                     sage: P.inject_variables()
                     Defining L, G
@@ -759,7 +759,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                     EXAMPLES::
 
-                        sage: V = VirasoroVertexAlgebra(QQ,1)
+                        sage: V = vertex_algebras.Virasoro(QQ,1)
                         sage: P = V.classical_limit()
                         sage: v = P.an_element(); v
                         1 + 2*L_2 + 3*L_3 + L_2^4
@@ -788,7 +788,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                             EXAMPLES::
 
-                                sage: V = VirasoroVertexAlgebra(QQ,1/2); V.register_lift()
+                                sage: V = vertex_algebras.Virasoro(QQ,1/2); V.register_lift()
                                 sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                                 sage: A = Q.arc_algebra()
                                 sage: A.inject_variables()
@@ -813,7 +813,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                             EXAMPLES::
 
-                                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                                sage: V = vertex_algebras.Virasoro(QQ,1/2)
                                 sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                                 sage: A = Q.arc_algebra()
                                 sage: v = A.an_element()
@@ -830,7 +830,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                             EXAMPLES::
 
-                                sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+                                sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
                                 sage: Q = V.quotient(V.ideal(V.find_singular(2)))
                                 sage: A = Q.arc_algebra()
                                 sage: A.inject_variables()
@@ -838,7 +838,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                                 sage: e.bracket(f)
                                 {0: h_1}
 
-                                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                                sage: V = vertex_algebras.Virasoro(QQ,1/2)
                                 sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                                 sage: A = Q.arc_algebra()
                                 sage: A.inject_variables()
@@ -861,7 +861,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                             EXAMPLES::
 
-                                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                                sage: V = vertex_algebras.Virasoro(QQ,1/2)
                                 sage: Q = V.quotient(V.ideal(V.find_singular(6)))
                                 sage: A = Q.arc_algebra()
                                 sage: A.one()
@@ -889,7 +889,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                         EXAMPLES::
 
-                            sage: V = NeveuSchwarzVertexAlgebra(QQ,1)
+                            sage: V = vertex_algebras.NeveuSchwarz(QQ,1)
                             sage: P = V.classical_limit()
                             sage: M = P.get_weight(11/2); M
                             Free module generated by {0, 1, 2, 3, 4} over Rational Field
@@ -919,7 +919,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                         EXAMPLES::
 
-                            sage: V = NeveuSchwarzVertexAlgebra(QQ,1)
+                            sage: V = vertex_algebras.NeveuSchwarz(QQ,1)
                             sage: P = V.classical_limit()
                             sage: P.dimension_at_weight(11/2)
                             5
@@ -951,10 +951,10 @@ class PoissonVertexAlgebras(Category_over_base_ring):
 
                         EXAMPLES::
 
-                            sage: V = NeveuSchwarzVertexAlgebra(QQ,1); P = V.classical_limit()
+                            sage: V = vertex_algebras.NeveuSchwarz(QQ,1); P = V.classical_limit()
                             sage: P.hilbert_series(11/2)
                             1 + q^(3/2) + q^2 + q^(5/2) + q^3 + 2*q^(7/2) + 3*q^4 + 3*q^(9/2) + 3*q^5 + O(q^(11/2))
-                            sage: V = VirasoroVertexAlgebra(QQ,1/2); P = V.arc_algebra()
+                            sage: V = vertex_algebras.Virasoro(QQ,1/2); P = V.arc_algebra()
                             sage: P.hilbert_series(10)
                             1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 4*q^6 + 4*q^7 + 7*q^8 + 8*q^9 + O(q^10)
                         """

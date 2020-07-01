@@ -97,7 +97,7 @@ class PoissonVertexAlgebraIdeal(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1', 1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: sing = V.find_singular(2); sing
             (e_-1e_-1|0>,
@@ -149,7 +149,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 4);
+            sage: V = vertex_algebras.Abelian(QQ, 4);
             sage: P = V.classical_limit()
             sage: P
             The classical limit of The Abelian vertex algebra over Rational Field with generators (a0_-1|0>, a1_-1|0>, a2_-1|0>, a3_-1|0>)
@@ -213,7 +213,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
             sage: P = Q.arc_algebra()
             sage: I = P.defining_ideal(); I
@@ -231,7 +231,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,1);
+            sage: V = vertex_algebras.NeveuSchwarz(QQ,1);
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L, G
@@ -246,7 +246,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,1);
+            sage: V = vertex_algebras.NeveuSchwarz(QQ,1);
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L, G
@@ -270,7 +270,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
             sage: Q = V.quotient(V.ideal(V.find_singular(4)))
             sage: P = Q.arc_algebra(); I = P.defining_ideal()
             sage: R = V.classical_limit()
@@ -293,7 +293,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
             sage: Q = V.quotient(V.ideal(V.find_singular(4)))
             sage: P = Q.arc_algebra(); I = P.defining_ideal()
             sage: I.lift
@@ -325,7 +325,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ,'A1', 2, names = ('e','f','h'));
+            sage: V = vertex_algebras.Affine(QQ,'A1', 2, names = ('e','f','h'));
             sage: Q = V.quotient(V.ideal(V.find_singular(3)))
             sage: P = Q.arc_algebra()
             sage: I = P.defining_ideal()
@@ -349,7 +349,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 4)
+            sage: V = vertex_algebras.Abelian(QQ, 4)
             sage: P = V.classical_limit(); P.inject_variables()
             Defining a0, a1, a2, a3
             sage: I = P.ideal(a0**3-a1*a2*a3)
@@ -375,7 +375,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ,'A1', 2, names = ('e','f','h'));
+            sage: V = vertex_algebras.Affine(QQ,'A1', 2, names = ('e','f','h'));
             sage: Q = V.quotient(V.ideal(V.find_singular(3)))
             sage: P = Q.arc_algebra(); I = P.defining_ideal()
             sage: I.ambient()
@@ -393,7 +393,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2);
+            sage: V = vertex_algebras.Virasoro(QQ, 1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: P = V.classical_limit(); R = Q.arc_algebra()
             sage: I = R.defining_ideal()
@@ -418,7 +418,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2);
+            sage: V = vertex_algebras.Virasoro(QQ, 1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: P = V.classical_limit(); R = Q.arc_algebra()
             sage: I = R.defining_ideal()
@@ -445,7 +445,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2);
+            sage: V = vertex_algebras.Virasoro(QQ, 1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: R = Q.arc_algebra()
             sage: I = R.defining_ideal()
@@ -461,7 +461,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ,'A1', 1, names = ('e','f','h'));
+            sage: V = vertex_algebras.Affine(QQ,'A1', 1, names = ('e','f','h'));
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
             sage: R = Q.arc_algebra(); I = R.defining_ideal()
             sage: I.gens()
@@ -475,7 +475,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2);
+            sage: V = vertex_algebras.Virasoro(QQ, 1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: P = Q.arc_algebra(); I = P.defining_ideal()
             sage: I.is_zero()
@@ -503,7 +503,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2);
+            sage: V = vertex_algebras.Virasoro(QQ, 1/2);
             sage: P = V.classical_limit(); P.inject_variables()
             Defining L
             sage: I = P.ideal(L**3)
@@ -513,7 +513,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
              6*L_3^2*L_2 + 6*L_4*L_2^2,
              6*L_3^3 + 36*L_4*L_3*L_2 + 18*L_5*L_2^2)
 
-            sage: V = AbelianVertexAlgebra(QQ, 4, weights = (1,1,1/2,1/2), parity=(0,0,1,1), names = ('a0','a1','b0','b1'))
+            sage: V = vertex_algebras.Abelian(QQ, 4, weights = (1,1,1/2,1/2), parity=(0,0,1,1), names = ('a0','a1','b0','b1'))
             sage: P = V.classical_limit(); P.inject_variables()
             Defining a0, a1, b0, b1
             sage: I = P.ideal(a0*b1 + a1*b0)
@@ -546,12 +546,12 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2);
+            sage: V = vertex_algebras.Virasoro(QQ, 1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6))); P = Q.arc_algebra()
             sage: I = P.defining_ideal()
             sage: I._groebner_basis(10)
             [L_3^2*L_4 + L_2*L_4^2 + 2*L_2*L_3*L_5 + L_2^2*L_6, L_3^3 + 6*L_2*L_3*L_4 + 3*L_2^2*L_5, L_2*L_3^2 + L_2^2*L_4, L_2^2*L_3, L_2^3]
-            sage: V = AffineVertexAlgebra(QQ,'A1', 1, names = ('e','f','h'));
+            sage: V = vertex_algebras.Affine(QQ,'A1', 1, names = ('e','f','h'));
             sage: Q = V.quotient(V.ideal(V.find_singular(2))); P = Q.arc_algebra()
             sage: I = P.defining_ideal()
             sage: I._groebner_basis(4)
@@ -578,7 +578,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
             sage: Q = V.quotient(V.ideal(V.find_singular(4)))
             sage: P = Q.arc_algebra(); I = P.defining_ideal()
             sage: I.hilbert_series(11/2)
@@ -609,7 +609,7 @@ class PoissonVertexAlgebraIdealElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ,'A1', 1, names = ('e','f','h'));
+            sage: V = vertex_algebras.Affine(QQ,'A1', 1, names = ('e','f','h'));
             sage: P = V.classical_limit()
             sage: P.an_element()
             1 + 2*e_1 + 3*f_1 + e_1^4*f_2*f_1^2*h_3*h_1
@@ -623,7 +623,7 @@ class PoissonVertexAlgebraIdealElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ,1)
             sage: P = V.classical_limit()
             sage: v = P.an_element()
             sage: v
@@ -653,7 +653,7 @@ class PoissonVertexAlgebraIdealBasis(Parent):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ)
+            sage: V = vertex_algebras.Virasoro(QQ)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L
@@ -671,7 +671,7 @@ class PoissonVertexAlgebraIdealBasis(Parent):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
+            sage: V = vertex_algebras.Abelian(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining a0, a1, a2, b0, b1, b2
@@ -695,7 +695,7 @@ class PoissonVertexAlgebraIdealBasis(Parent):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
+            sage: V = vertex_algebras.Abelian(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining a0, a1, a2, b0, b1, b2
@@ -730,7 +730,7 @@ class PoissonVertexAlgebraIdealBasis(Parent):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
+            sage: V = vertex_algebras.Abelian(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining a0, a1, a2, b0, b1, b2
@@ -772,7 +772,7 @@ class PoissonVertexAlgebraIdealBasis(Parent):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
+            sage: V = vertex_algebras.Abelian(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining a0, a1, a2, b0, b1, b2
@@ -793,7 +793,7 @@ class PoissonVertexAlgebraIdealBasis(Parent):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
+            sage: V = vertex_algebras.Abelian(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining a0, a1, a2, b0, b1, b2

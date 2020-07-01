@@ -81,7 +81,7 @@ class EnergyPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ)
+            sage: V = vertex_algebras.Virasoro(QQ)
             sage: V._indices.an_element()
             ([1, 1, 1, 1])
             sage: V._indices.an_element().parent()
@@ -279,7 +279,7 @@ class EnergyPartitionTuples(PartitionTuples):
              ([], [3, 2]),
              ([], [4, 1]),
              ([5], [])]
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,1/2); V
+            sage: V = vertex_algebras.NeveuSchwarz(QQ,1/2); V
             The Neveu-Schwarz super vertex algebra of central charge 1/2 over Rational Field
             sage: [V(v) for v in l]
             [L_-2L_-2L_-2|0>,
@@ -310,7 +310,7 @@ class EnergyPartitionTuples(PartitionTuples):
              ([], [2], []),
              ([], [], [2])]
 
-            sage: V = AffineVertexAlgebra(QQ,'A1',1, names=('e','h','f')); V
+            sage: V = vertex_algebras.Affine(QQ,'A1',1, names=('e','h','f')); V
             The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
             sage: [V(v) for v in l]
             [|0>,
@@ -342,7 +342,7 @@ class EnergyPartitionTuples(PartitionTuples):
              ([3, 2]),
              ([4, 1]),
              ([3, 2, 1])]
-            sage: V = FreeFermionsVertexAlgebra(QQ); V
+            sage: V = vertex_algebras.FreeFermions(QQ); V
             The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
             sage: [V(v) for v in l]
             [|0>,
