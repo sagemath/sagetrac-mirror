@@ -44,18 +44,18 @@ or the *singular support* of `V`. It's degree `0` part
    R_V = \mathrm{gr}^F_0 V = V/C_2(V) = V/V_{(-2)}V,
 
 is a super Poisson algebra known as *Zhu's* `C_2` *quotient of* `V`. Its
-spectrum is known as the *associated scheme* of `V`. 
+spectrum is known as the *associated scheme* of `V`.
 
 When `V` is also `H`-graded its classical limit is
 bigraded. We call this extra grading the *conformal weight* grading. With
 respect to the conformal weight grading, the multiplication is of degree `0`
-while the `\lambda` bracket is of degree `-1`. 
+while the `\lambda` bracket is of degree `-1`.
 
 There is another super Poisson vertex algebra canonically associated to any
 super vertex algebra. This is the
 :meth:`arc algebra<sage.categories.vertex_algebras.VertexAlgebras.ParentMethods.arc_algebra>`
 of `V`. It is the super commutative differential algebra `JR_V` freely generated
-by `R_V`, in other words: the algebra of functions on the arc space of the 
+by `R_V`, in other words: the algebra of functions on the arc space of the
 associated scheme of `V`. It has a canonical super Poisson vertex algebra
 structure and by the universal property there exists a canonical surjection
 
@@ -63,7 +63,7 @@ structure and by the universal property there exists a canonical surjection
 
    JR_V \twoheadrightarrow \mathrm{gr}^F V
 
-of super Poisson vertex algebras. 
+of super Poisson vertex algebras.
 
 EXAMPLES:
 

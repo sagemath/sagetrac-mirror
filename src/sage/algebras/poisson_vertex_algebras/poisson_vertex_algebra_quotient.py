@@ -18,7 +18,7 @@ AUTHORS:
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.poisson_vertex_algebras import PoissonVertexAlgebras
-from sage.sets.family import Family 
+from sage.sets.family import Family
 from sage.rings.all import ZZ
 from sage.algebras.vertex_algebras.vertex_algebra_quotient import \
                       VertexAlgebraQuotientBasis, VertexAlgebraQuotientElement
@@ -180,7 +180,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
                 names = self._ambient.variable_names()
             except AttributeError:
                 pass
-        
+
         CombinatorialFreeModule.__init__(self, ideal.base_ring(),
                              basis_keys=indices,
                              element_class=PoissonVertexAlgebraQuotientElement,
@@ -193,7 +193,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
         INPUT:
 
         - ``x`` -- an element of the cover poisson vertex algebra or an
-          index of the basis. 
+          index of the basis.
 
         EXAMPLES::
 
@@ -293,7 +293,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); 
+            sage: V = VirasoroVertexAlgebra(QQ,1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: A = Q.arc_algebra()
             sage: A.defining_ideal()
@@ -317,7 +317,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
         """
         assert x in self
         return self.cover_algebra()._from_dict(x._monomial_coefficients)
-    
+
     def basis(self):
         """
         The basis of this quotient.
@@ -336,7 +336,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
     def retract(self, x):
         """
         The image of this element of the cover vertex algebra by the
-        quotient map. 
+        quotient map.
 
         EXAMPLES::
 
@@ -449,7 +449,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
             self._ambient.jet_algebra(ord)
         except NotImplementedError:
             #TODO: Check why the call to self.category().parent_class()
-            #.hilbert_series(ord) fails to get the generators. 
+            #.hilbert_series(ord) fails to get the generators.
             from sage.arith.functions import lcm
             from sage.functions.other import floor
             from sage.rings.all import QQ, ZZ

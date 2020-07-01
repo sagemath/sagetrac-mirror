@@ -131,16 +131,8 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
         self._gram_matrix = gram_matrix
 
     def _repr_(self):
-        """
-        String representation.
-
-        EXAMPLES::
-
-            sage: lie_conformal_algebras.FreeFermions(QQ)
-            The free Fermions super Lie conformal algebra with generators (psi, K) over Rational Field
-        """
         return "The free Fermions super Lie conformal algebra "\
-                    "with generators {} over {}".format(self.gens(),
+                    "with generators {} over {}.".format(self.gens(),
                                                          self.base_ring())
 
     def gram_matrix(self):

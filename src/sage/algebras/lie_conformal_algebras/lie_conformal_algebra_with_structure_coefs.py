@@ -371,7 +371,7 @@ class LieConformalAlgebraWithStructureCoefficients(
             cp = self.lift.codomain().central_parameters()
             if cp == central_parameters:
                 return self.lift.codomain()
-        
+
         V = self._construct_UEA(central_parameters,
                                 names=names)
 

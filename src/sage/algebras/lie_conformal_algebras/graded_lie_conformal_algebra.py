@@ -65,7 +65,7 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
           it is not a field of characteristic zero
 
         - ``s_coeff`` -- a dictionary (default: ``None``); as in the
-          input of :class:`LieConformalAlgebra` 
+          input of :class:`LieConformalAlgebra`
 
         - ``names`` -- tuple of ``str`` (default: ``None``); as in the
           input of :class:`LieConformalAlgebra`
@@ -74,7 +74,7 @@ class GradedLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
           as in the input of :class:`LieConformalAlgebra`
 
         - ``index_set`` -- enumerated set (default: ``None``); as in the
-          input of :class:`LieConformalAlgebra` 
+          input of :class:`LieConformalAlgebra`
 
         - ``weights`` -- tuple of non-negative rational numbers
           (default: tuple of ``1``); a list of degrees for this Lie

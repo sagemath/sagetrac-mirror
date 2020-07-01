@@ -141,7 +141,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         Test that regular partition tuples of level 1 are being used::
 
-            sage: bd = {('a','a'): {1: {('K',0): 1}}} 
+            sage: bd = {('a','a'): {1: {('K',0): 1}}}
             sage: R = LieConformalAlgebra(QQ, bd, central_elements=('K',), names = ('a',))
             sage: R.inject_variables()
             Defining a, K
@@ -407,7 +407,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             -93/64*L_-3L_-3|0> + 33/8*L_-4L_-2|0> + 27/16*L_-6|0>
         """
         from .vertex_algebra_quotient import VertexAlgebraQuotient
-        return VertexAlgebraQuotient(I, category=self.category().Quotients(), 
+        return VertexAlgebraQuotient(I, category=self.category().Quotients(),
                                      names=names)
 
     def arc_algebra(self):

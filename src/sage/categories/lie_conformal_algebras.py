@@ -359,10 +359,10 @@ class LieConformalAlgebras(Category_over_base_ring):
                 pass
 
             if f is not None and f.codomain() is V:
-                return 
+                return
 
             self.lift = liftmorphism
-            try: 
+            try:
                 self.lift.register_as_coercion()
             except AssertionError:
                 #We have already constructed previously a coercion
@@ -567,7 +567,7 @@ class LieConformalAlgebras(Category_over_base_ring):
         @abstract_method
         def _bracket_(self,rhs):
             r"""
-            Returns the `\lambda`-bracket of these two elements.
+            The `\lambda`-bracket of these two elements.
 
             EXAMPLES:
 
@@ -600,7 +600,7 @@ class LieConformalAlgebras(Category_over_base_ring):
         @coerce_binop
         def nproduct(self,rhs,n):
             r"""
-            Returns the n-th product of these two elements.
+            The ``n``-th product of these two elements.
 
             EXAMPLES::
 
@@ -653,7 +653,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
         def _nproduct_(self,rhs,n):
             r"""
-            Returns the n-th product of this two elements.
+            The ``n``-th product of these two elements.
 
             If `n\geq 0` it returns the element of this Lie conformal
             algebra. If `n < 0` then it first lifts this element to the
@@ -942,7 +942,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             from sage.algebras.lie_conformal_algebras.examples import \
                                                 NeveuSchwarzLieConformalAlgebra
             return NeveuSchwarzLieConformalAlgebra(self.base_ring())
-        
+
         class SubcategoryMethods:
 
             def Graded(self, base_ring=None):
@@ -1148,6 +1148,11 @@ class LieConformalAlgebras(Category_over_base_ring):
         def _repr_object_names(self):
             """
             The names of objects of this category.
+
+            EXAMPLES::
+
+                sage: LieConformalAlgebras(QQ).WithBasis()
+                Category of Lie conformal algebras over Rational Field with basis
             """
             return "{} with basis".format(self.base_category().\
                                           _repr_object_names())
@@ -1221,6 +1226,11 @@ class LieConformalAlgebras(Category_over_base_ring):
         def _repr_object_names(self):
             """
             The names of objects of this category.
+
+            EXAMPLES::
+
+                sage: LieConformalAlgebras(QQ).FinitelyGenerated()
+                Category of finitely generated Lie conformal algebras over Rational Field
             """
             return "finitely generated {}".format(self.base_category().\
                             _repr_object_names())
