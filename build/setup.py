@@ -15,14 +15,18 @@ class install(distutils_install):
         distutils_install.run(self)
 
         DOT_SAGE = os.environ.get('DOT_SAGE', os.path.join(os.environ.get('HOME'), '.sage'))
-        SAGE_ROOT = os.path.join(DOT_SAGE, 'sage-{}'.format(self.distribution.version))
-        shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
-        SAGE_LOCAL = os.path.join(SAGE_ROOT, 'local')
         # config.status and other configure output has to be writable.
-        cmd = "cd {} && ./configure --prefix={} PYTHON3={}".format(SAGE_ROOT, SAGE_LOCAL, sys.executable)
-        print("Running {}".format(cmd))
-        if os.system(cmd) != 0:
-            raise DistutilsSetupError("configure failed")
+        SAGE_ROOT = os.path.join(DOT_SAGE, 'sage-{}'.format(self.distribution.version))
+        SAGE_LOCAL = os.path.join(SAGE_ROOT, 'local')
+        if os.path.exists(os.path.join(SAGE_ROOT, 'config.status')):
+            print('Reusing {}'.format(SAGE_ROOT))
+        else:
+            shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
+            cmd = "cd {} && ./configure --prefix={} PYTHON3={}".format(SAGE_ROOT, SAGE_LOCAL, sys.executable)
+            print("Running {}".format(cmd))
+            if os.system(cmd) != 0:
+                raise DistutilsSetupError("configure failed")
+        # TODO: Store SAGE_LOCAL in a module sage_bootstrap.config
 
 setup(
     name='sage_bootstrap',
