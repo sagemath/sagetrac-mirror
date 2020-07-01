@@ -36,72 +36,80 @@ from .universal_enveloping_vertex_algebra import \
 from sage.sets.family import Family
 
 class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
+    r"""
+    The Free Fermions Super vertex algebra.
+
+    INPUT:
+
+    - ``R`` -- a commutative ring; the base ring of this vertex
+      algebra
+    - ``ngens``: a positive Integer (default ``1``); the number of
+      generators of this vertex algebra
+    - ``gram_matrix``: a symmetric square matrix with coefficients
+      in ``R`` (default: ``identity_matrix(ngens)``); the Gram
+      matrix of the inner product of the generators
+    - ``names`` -- a list of ``str`` or ``None`` (default:
+      ``None``); alternative names for the generators
+    - ``index_set`` -- an enumerated set or ``None`` (default:
+      ``None``); alternative indexing set for the generators
+
+    OUTPUT:
+
+    The Free Fermions super vertex algebra with generators
+     `\psi_i`, `i=1,...,n` and `\lambda`-brackets
+
+     .. MATH::
+
+        [{\psi_i}_{\lambda} \psi_j] = \lambda M_{ij} |0\rangle,
+
+    where `n` is the number of generators ``ngens`` and `M` is the
+    ``gram_matrix``. This super vertex
+    algebra is `H`-graded where every generator has conformal weight
+    `1/2`.
+
+    EXAMPLES:
+
+    The Bosonization of the charged Free Fermions::
+
+        sage: F = vertex_algebras.FreeFermions(QQ, 2, gram_matrix = Matrix([[0,1],[1,0]])); F
+        The Free Fermions super vertex algebra with generators (psi_0_-1/2|0>, psi_1_-1/2|0>) over Rational Field
+        sage: F.inject_variables()
+        Defining psi_0, psi_1
+        sage: alpha = psi_0*psi_1
+        sage: alpha.bracket(alpha)
+        {1: |0>}
+
+    The standard conformal vector makes the generators have
+    conformal weight `1/2`::
+
+        sage: L = psi_0.T()*psi_1/2 + psi_1.T()*psi_0/2
+        sage: L.bracket(L) == {0:L.T(), 1:2*L, 3: F.vacuum()/2}
+        True
+        sage: L.bracket(psi_0)
+        {0: psi_0_-3/2|0>, 1: 1/2*psi_0_-1/2|0>}
+        sage: L.bracket(psi_1)
+        {0: psi_1_-3/2|0>, 1: 1/2*psi_1_-1/2|0>}
+
+    The conformal vector coincides with the standard conformal
+    vector for the Free Boson::
+
+        sage: L == alpha*alpha/2
+        True
+
+    TESTS::
+
+        sage: psi_1*psi_1
+        0
+    """
     def __init__(self,R,ngens=None,gram_matrix=None,names=None,
                  index_set=None):
-        r"""
-        The Free Fermions Super vertex algebra.
-
-        INPUT:
-
-        - ``R`` -- a commutative ring; the base ring of this vertex
-          algebra
-        - ``ngens``: a positive Integer (default ``1``); the number of
-          generators of this vertex algebra
-        - ``gram_matrix``: a symmetric square matrix with coefficients
-          in ``R`` (default: ``identity_matrix(ngens)``); the Gram
-          matrix of the inner product of the generators
-        - ``names`` -- a list of ``str`` or ``None`` (default:
-          ``None``); alternative names for the generators
-        - ``index_set`` -- an enumerated set or ``None`` (default:
-          ``None``); alternative indexing set for the generators
-
-        OUTPUT:
-
-        The Free Fermions super vertex algebra with generators
-         `\psi_i`, `i=1,...,n` and `\lambda`-brackets
-
-         .. MATH::
-
-            [{\psi_i}_{\lambda} \psi_j] = \lambda M_{ij} |0\rangle,
-
-        where `n` is the number of generators ``ngens`` and `M` is the
-        ``gram_matrix``. This super vertex
-        algebra is `H`-graded where every generator has conformal weight
-        `1/2`.
-
-        EXAMPLES:
-
-        The Bosonization of the charged Free Fermions::
-
-            sage: F = vertex_algebras.FreeFermions(QQ, 2, gram_matrix = Matrix([[0,1],[1,0]])); F
-            The Free Fermions super vertex algebra with generators (psi_0_-1/2|0>, psi_1_-1/2|0>) over Rational Field
-            sage: F.inject_variables()
-            Defining psi_0, psi_1
-            sage: alpha = psi_0*psi_1
-            sage: alpha.bracket(alpha)
-            {1: |0>}
-
-        The standard conformal vector makes the generators have
-        conformal weight `1/2`::
-
-            sage: L = psi_0.T()*psi_1/2 + psi_1.T()*psi_0/2
-            sage: L.bracket(L) == {0:L.T(), 1:2*L, 3: F.vacuum()/2}
-            True
-            sage: L.bracket(psi_0)
-            {0: psi_0_-3/2|0>, 1: 1/2*psi_0_-1/2|0>}
-            sage: L.bracket(psi_1)
-            {0: psi_1_-3/2|0>, 1: 1/2*psi_1_-1/2|0>}
-
-        The conformal vector coincides with the standard conformal
-        vector for the Free Boson::
-
-            sage: L == alpha*alpha/2
-            True
+        """
+        Initialize self.
 
         TESTS::
 
-            sage: psi_1*psi_1
-            0
+            sage: V = vertex_algebras.FreeFermions(QQ)
+            sage: TestSuite(V).run()
         """
         from sage.algebras.lie_conformal_algebras.\
                     free_fermions_lie_conformal_algebra import \
@@ -140,6 +148,3 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         """
         return "The Free Fermions super vertex algebra with generators {} over"\
                " {}".format(self.gens(),self.base_ring())
-
-
-

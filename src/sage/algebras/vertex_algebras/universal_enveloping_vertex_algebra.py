@@ -76,92 +76,100 @@ from .vertex_algebra_element import UniversalEnvelopingVertexAlgebraElement
 from .energy_partition_tuples import EnergyPartitionTuples
 
 class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
+    r"""
+    The (central quotient of the) universal enveloping vertex
+    algebra of the Lie conformal algebra `L`.
 
+
+    INPUT:
+
+    - ``R`` -- a commutative ring; the base ring of this vertex
+      algebra
+
+    - ``L`` -- a :mod:`LieConformalAlgebra`
+
+    - ``category`` -- a ``Category``; the category this vertex
+      algebra belongs to
+
+    - ``central_parameters`` -- a finite
+      :mod:`Family<sage.sets.family>`
+      parametrized by central generators of ``L`` (default: ``0``
+      for each central generator of ``L``);
+      a family describing the central character
+
+    - ``names`` -- a list of ``str``; alternative names for the
+      generators
+
+    - ``latex_names`` -- a list of ``str``; alternative names for
+      the `\LaTeX` representation of the generators
+
+    .. WARNING::
+
+        We allow ``R`` to be an arbitrary commutative ring to
+        perform basic computations of OPE. However, behaviour is
+        undefined if ``R`` is not a field of characteristic ``0``.
+
+    .. NOTE::
+
+        This class should not be called directly by the user.
+        Instead the user should call the method
+        :meth:`~sage.categories.lie_conformal_algebras.LieConformalAlgebras.ParentMethods.universal_enveloping_algebra`
+        of ``L``.
+
+    EXAMPLES::
+
+        sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+        sage: Vir.inject_variables()
+        Defining L, C
+        sage: cp = Family({C:1})
+        sage: from sage.algebras.vertex_algebras.universal_enveloping_vertex_algebra import UniversalEnvelopingVertexAlgebra
+        sage: V = UniversalEnvelopingVertexAlgebra(QQ, Vir, central_parameters=cp); V
+        The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
+        sage: L*L
+        L_-2L_-2|0>
+        sage: _.parent() is V
+        True
+        sage: W = Vir.universal_enveloping_algebra({C:1})
+        sage: W is V
+        True
+
+    TESTS:
+
+    Test that regular partition tuples of level 1 are being used::
+
+        sage: bd = {('a','a'): {1: {('K',0): 1}}}
+        sage: R = LieConformalAlgebra(QQ, bd, central_elements=('K',), names = ('a',))
+        sage: R.inject_variables()
+        Defining a, K
+        sage: V = R.universal_enveloping_algebra({K:1}); V
+        The universal enveloping vertex algebra of Lie conformal algebra with generators (a, K) over Rational Field
+        sage: V._indices
+        0-Regular partition tuples of level 1
+
+    Test that the beta-gamma system is not graded::
+
+        sage: R = lie_conformal_algebras.BosonicGhosts(QQ)
+        sage: V = R.universal_enveloping_algebra()
+        sage: V.category()
+        Category of finitely generated vertex algebras with basis over Rational Field
+        sage: V._indices
+        0-Regular partition tuples of level 2
+    """
     def __init__(self, R, L, category=None,
                  central_parameters=None,
                  names=None, latex_names=None):
-        r"""
-        The (central quotient of the) universal enveloping vertex
-        algebra of the Lie conformal algebra `L`.
+        """
+        Initialize self.
 
+        TESTS::
 
-        INPUT:
-
-        - ``R`` -- a commutative ring; the base ring of this vertex
-          algebra
-
-        - ``L`` -- a :mod:`LieConformalAlgebra`
-
-        - ``category`` -- a ``Category``; the category this vertex
-          algebra belongs to
-
-        - ``central_parameters`` -- a finite
-          :mod:`Family<sage.sets.family>`
-          parametrized by central generators of ``L`` (default: ``0``
-          for each central generator of ``L``);
-          a family describing the central character
-
-        - ``names`` -- a list of ``str``; alternative names for the
-          generators
-
-        - ``latex_names`` -- a list of ``str``; alternative names for
-          the `\LaTeX` representation of the generators
-
-        .. WARNING::
-
-            We allow ``R`` to be an arbitrary commutative ring to
-            perform basic computations of OPE. However, behaviour is
-            undefined if ``R`` is not a field of characteristic ``0``.
-
-        .. NOTE::
-
-            This class should not be called directly by the user.
-            Instead the user should call the method
-            :meth:`~sage.categories.lie_conformal_algebras.LieConformalAlgebras.ParentMethods.universal_enveloping_algebra`
-            of ``L``.
-
-        EXAMPLES::
-
-            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
-            sage: Vir.inject_variables()
-            Defining L, C
-            sage: cp = Family({C:1})
-            sage: from sage.algebras.vertex_algebras.universal_enveloping_vertex_algebra import UniversalEnvelopingVertexAlgebra
-            sage: V = UniversalEnvelopingVertexAlgebra(QQ, Vir, central_parameters=cp); V
-            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-            sage: L*L
-            L_-2L_-2|0>
-            sage: _.parent() is V
-            True
-            sage: W = Vir.universal_enveloping_algebra({C:1})
-            sage: W is V
-            True
-
-        TESTS:
-
-        Test that regular partition tuples of level 1 are being used::
-
-            sage: bd = {('a','a'): {1: {('K',0): 1}}}
-            sage: R = LieConformalAlgebra(QQ, bd, central_elements=('K',), names = ('a',))
-            sage: R.inject_variables()
-            Defining a, K
-            sage: V = R.universal_enveloping_algebra({K:1}); V
-            The universal enveloping vertex algebra of Lie conformal algebra with generators (a, K) over Rational Field
-            sage: V._indices
-            0-Regular partition tuples of level 1
-
-        Test that the beta-gamma system is not graded::
-
-            sage: R = lie_conformal_algebras.BosonicGhosts(QQ)
+            sage: R = lie_conformal_algebras.Virasoro(QQ)
             sage: V = R.universal_enveloping_algebra()
-            sage: V.category()
-            Category of finitely generated vertex algebras with basis over Rational Field
-            sage: V._indices
-            0-Regular partition tuples of level 2
+            sage: TestSuite(V).run()
         """
         if L not in LieConformalAlgebras(R).WithBasis().FinitelyGenerated():
-            raise ValueError ( "L needs to be a finitely generated " \
-                "Lie conformal algebra with basis, got {}".format(L) )
+            raise ValueError ("L needs to be a finitely generated " \
+                "Lie conformal algebra with basis, got {}".format(L))
 
         category = VertexAlgebras(R).FinitelyGenerated().WithBasis().\
            or_subcategory(category)
@@ -234,8 +242,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
         lcafirst,lcaleft = format(self._lca).split(' ',1)
         if lcafirst == "The":
             return "The universal enveloping vertex algebra of the " + lcaleft
-        return "The universal enveloping vertex algebra of " + lcafirst +\
-                " " + lcaleft
+        return "The universal enveloping vertex algebra of " + lcafirst + " " + lcaleft
 
     def register_lift(self):
         """

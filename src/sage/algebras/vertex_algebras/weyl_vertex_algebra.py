@@ -42,52 +42,59 @@ from .universal_enveloping_vertex_algebra import \
 from sage.sets.family import Family
 
 class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
+    r"""
+    The Weyl vertex algebra.
 
+    INPUT:
+
+    - ``R`` -- a commutative ring; the base ring of this vertex
+      algebra
+
+    - ``ngens``: an even positive Integer (Default `2`); The number
+      of generators of this vertex algebra.
+
+    - ``gram_matrix`` -- a non-singular, skew-symmetric square
+      matrix with values in ``R`` (default: `None`); the Gram
+      matrix of the inner product of the generators
+
+    - ``names`` -- a list or tuple of ``str``; alternative names
+      for the generators
+
+    - ``index_set`` -- an enumerated set; alternative indexing set
+      for the generators
+
+    OUTPUT:
+
+    The Weyl Lie conformal algebra with generators
+     `\alpha_i`, `i=1,...,ngens` and `\lambda`-brackets
+
+    .. MATH::
+
+        [{\alpha_i}_{\lambda} \alpha_j] = M_{ij} |0\rangle,
+
+    where `M` is the ``gram_matrix`` above.
+
+    .. NOTE::
+
+        The returned vertex algebra is not `H`-graded.
+
+    EXAMPLES::
+
+        sage: V = vertex_algebras.Weyl(QQ, 4)
+        sage: V.inject_variables()
+        Defining alpha0, alpha1, alpha2, alpha3
+        sage: alpha0.bracket(alpha2*alpha2)
+        {0: 2*alpha2_(-1)|0>}
+    """
     def __init__(self, R, ngens=None, gram_matrix=None, names=None,
                  index_set=None):
-        r"""
-        The Weyl vertex algebra.
-
-        INPUT:
-
-        - ``R`` -- a commutative ring; the base ring of this vertex
-          algebra
-
-        - ``ngens``: an even positive Integer (Default `2`); The number
-          of generators of this vertex algebra.
-
-        - ``gram_matrix`` -- a non-singular, skew-symmetric square
-          matrix with values in ``R`` (default: `None`); the Gram
-          matrix of the inner product of the generators
-
-        - ``names`` -- a list or tuple of ``str``; alternative names
-          for the generators
-
-        - ``index_set`` -- an enumerated set; alternative indexing set
-          for the generators
-
-        OUTPUT:
-
-        The Weyl Lie conformal algebra with generators
-         `\alpha_i`, `i=1,...,ngens` and `\lambda`-brackets
-
-        .. MATH::
-
-            [{\alpha_i}_{\lambda} \alpha_j] = M_{ij} |0\rangle,
-
-        where `M` is the ``gram_matrix`` above.
-
-        .. NOTE::
-
-            The returned vertex algebra is not `H`-graded.
+        """
+        Initialize self.
 
         EXAMPLES::
 
-            sage: V = vertex_algebras.Weyl(QQ, 4)
-            sage: V.inject_variables()
-            Defining alpha0, alpha1, alpha2, alpha3
-            sage: alpha0.bracket(alpha2*alpha2)
-            {0: 2*alpha2_(-1)|0>}
+            sage: V = vertex_algebras.Weyl(QQ)
+            sage: TestSuite(V).run()
         """
         from sage.algebras.lie_conformal_algebras.weyl_lie_conformal_algebra import\
                                                     WeylLieConformalAlgebra
@@ -96,7 +103,6 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         cp = Family({ML.gen(-1):R.one()})
         super(WeylVertexAlgebra,self).__init__(R, ML,
                                             central_parameters=cp)
-
     def _repr_(self):
         """
         The name of this vertex algebra.

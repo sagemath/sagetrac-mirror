@@ -20,47 +20,55 @@ from .universal_enveloping_vertex_algebra import \
                                                 UniversalEnvelopingVertexAlgebra
 
 class AbelianVertexAlgebra(UniversalEnvelopingVertexAlgebra):
+    r"""
+    The Abelian vertex algebra.
+
+    INPUT:
+
+    - ``R`` -- a commutative ring; the base ring of this vertex
+      algebra
+    - ``ngens`` -- a positive integer (default: ``1``); the number
+      of generators of this Lie conformal algebra
+    - ``weights`` -- a list of positive rational numbers (default:
+      ``1`` for each generator); the weights of the generators.
+      The resulting vertex algebra is `H`-graded
+    - ``parity`` -- ``None`` or a list of ``0`` or ``1`` (default:
+      ``None``); The parity of the generators. If not ``None`` the
+      resulting Lie Conformal algebra is a Super Lie conformal
+      algebra
+    - ``names`` -- a list of ``str`` or ``None`` (default: ``None``
+      ); alternative names for the generators
+    - ``index_set`` -- an enumerated set or ``None`` (default:
+      ``None``); indexing set for the generators
+
+    OUTPUT:
+
+    The Abelian vertex algebra with generators `a_i`,
+    `i=1,...,n` and vanishing `\lambda`-brackets, where `n` is
+    ``ngens``.
+
+    EXAMPLES::
+
+        sage: F = vertex_algebras.Abelian(QQ,2,weights=(2,3/2),parity=(0,1),names=('L','G'))
+        sage: F.inject_variables()
+        Defining L, G
+        sage: (L*L)*L*G
+        L_-2L_-2L_-2G_-3/2|0>
+
+    .. TODO::
+
+        implement its own class to speed up arithmetics in this
+        case.
+    """
     def __init__(self, R, ngens=1, weights=None, parity=None, names=None,
                  index_set=None):
-        r"""
-        The Abelian vertex algebra.
+        """
+        Initialize self.
 
-        INPUT:
+        TESTS::
 
-        - ``R`` -- a commutative ring; the base ring of this vertex
-          algebra
-        - ``ngens`` -- a positive integer (default: ``1``); the number
-          of generators of this Lie conformal algebra
-        - ``weights`` -- a list of positive rational numbers (default:
-          ``1`` for each generator); the weights of the generators.
-          The resulting vertex algebra is `H`-graded
-        - ``parity`` -- ``None`` or a list of ``0`` or ``1`` (default:
-          ``None``); The parity of the generators. If not ``None`` the
-          resulting Lie Conformal algebra is a Super Lie conformal
-          algebra
-        - ``names`` -- a list of ``str`` or ``None`` (default: ``None``
-          ); alternative names for the generators
-        - ``index_set`` -- an enumerated set or ``None`` (default:
-          ``None``); indexing set for the generators
-
-        OUTPUT:
-
-        The Abelian vertex algebra with generators `a_i`,
-        `i=1,...,n` and vanishing `\lambda`-brackets, where `n` is
-        ``ngens``.
-
-        EXAMPLES::
-
-            sage: F = vertex_algebras.Abelian(QQ,2,weights=(2,3/2),parity=(0,1),names=('L','G'))
-            sage: F.inject_variables()
-            Defining L, G
-            sage: (L*L)*L*G
-            L_-2L_-2L_-2G_-3/2|0>
-
-        .. TODO::
-
-            implement its own class to speed up arithmetics in this
-            case.
+            sage: V = vertex_algebras.Abelian(QQ)
+            sage: TestSuite(V).run()
         """
         from sage.algebras.lie_conformal_algebras.abelian_lie_conformal_algebra\
              import AbelianLieConformalAlgebra

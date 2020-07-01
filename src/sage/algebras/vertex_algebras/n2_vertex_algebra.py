@@ -37,35 +37,43 @@ from .universal_enveloping_vertex_algebra import \
 from sage.sets.family import Family
 
 class N2VertexAlgebra(UniversalEnvelopingVertexAlgebra):
+    """
+    The N=2 super vertex algebra.
+
+    INPUT:
+
+    - ``R`` -- a commutative ring; the base ring.
+    - ``c`` -- an element of ``R`` (default: ``0``); the central
+      charge.
+
+    EXAMPLES::
+
+        sage: V = vertex_algebras.N2(QQ, 1)
+        sage: V.inject_variables()
+        Defining L, J, G1, G2
+        sage: G1*G2 + G2*G1
+        L_-3|0>
+
+    The topological twist is a Virasoro vector with central
+    charge 0::
+
+        sage: L2 = L - 1/2*J.T()
+        sage: L2.bracket(L2) == {0: L2.T(), 1: 2*L2}
+        True
+
+    A singular vector in conformal weight 2::
+
+        sage: V.find_singular(2)
+        (L_-2|0> - 3/2*J_-1J_-1|0>,)
+    """
     def __init__(self, R, c=0):
         """
-        The N=2 super vertex algebra.
+        Initialize self.
 
-        INPUT:
+        TESTS::
 
-        - ``R`` -- a commutative ring; the base ring.
-        - ``c`` -- an element of ``R`` (default: ``0``); the central
-          charge.
-
-        EXAMPLES::
-
-            sage: V = vertex_algebras.N2(QQ, 1)
-            sage: V.inject_variables()
-            Defining L, J, G1, G2
-            sage: G1*G2 + G2*G1
-            L_-3|0>
-
-        The topological twist is a Virasoro vector with central
-        charge 0::
-
-            sage: L2 = L - 1/2*J.T()
-            sage: L2.bracket(L2) == {0: L2.T(), 1: 2*L2}
-            True
-
-        A singular vector in conformal weight 2::
-
-            sage: V.find_singular(2)
-            (L_-2|0> - 3/2*J_-1J_-1|0>,)
+            sage: V = vertex_algebras.N2(QQ)
+            sage: TestSuite(V).run()
         """
         from sage.algebras.lie_conformal_algebras.\
              n2_lie_conformal_algebra import N2LieConformalAlgebra
@@ -86,6 +94,3 @@ class N2VertexAlgebra(UniversalEnvelopingVertexAlgebra):
         """
         return "The N=2 super vertex algebra of central charge {} over {}"\
                 .format(self.central_charge(),self.base_ring())
-
-
-

@@ -1,6 +1,4 @@
 r"""
-AUTHORS:
-
 Examples of Vertex Algebras
 
 The following examples are implemented:
@@ -14,6 +12,7 @@ The following examples are implemented:
 - :mod:`Virasoro vertex algebra<.virasoro_vertex_algebra>`
 - :mod:`Weyl vertex algebra<.weyl_vertex_algebra>`
 
+AUTHORS:
 
 - Reimundo Heluani (2020-06-15): Initial implementation.
 """

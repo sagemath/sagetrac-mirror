@@ -31,26 +31,34 @@ from .universal_enveloping_vertex_algebra import \
 from sage.sets.family import Family
 
 class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
+    r"""
+    The universal Virasoro vertex algebra
+
+    INPUT:
+
+    - ``R`` -- a commutative ring; the base ring of this vertex
+      algebra.
+
+    - ``c`` -- an element of ``R`` (default: ``0``); the central
+      charge of this vertex algebra.
+
+    EXAMPLES::
+
+        sage: V = vertex_algebras.Virasoro(QQ,1/2); V
+        The Virasoro vertex algebra of central charge 1/2 over Rational Field
+        sage: V.inject_variables()
+        Defining L
+        sage: L.nmodeproduct(L.T()*L,0)
+        5*L_-3L_-2|0>
+    """
     def __init__(self, R, c=0):
-        r"""
-        The universal Virasoro vertex algebra
-
-        INPUT:
-
-        - ``R`` -- a commutative ring; the base ring of this vertex
-          algebra.
-
-        - ``c`` -- an element of ``R`` (default: ``0``); the central
-          charge of this vertex algebra.
+        """
+        Initialize self.
 
         EXAMPLES::
 
-            sage: V = vertex_algebras.Virasoro(QQ,1/2); V
-            The Virasoro vertex algebra of central charge 1/2 over Rational Field
-            sage: V.inject_variables()
-            Defining L
-            sage: L.nmodeproduct(L.T()*L,0)
-            5*L_-3L_-2|0>
+            sage: V = vertex_algebras.Virasoro(QQ)
+            sage: TestSuite(V).run()
         """
         from sage.algebras.lie_conformal_algebras.\
              virasoro_lie_conformal_algebra import VirasoroLieConformalAlgebra
@@ -70,6 +78,3 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         """
         return "The Virasoro vertex algebra of central charge {} over {}".\
                 format(self.central_charge(),self.base_ring())
-
-
-

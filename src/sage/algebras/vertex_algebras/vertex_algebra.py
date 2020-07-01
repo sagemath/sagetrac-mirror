@@ -279,8 +279,61 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.categories.vertex_algebras import VertexAlgebras
+from sage.structure.parent import Parent
 
-class VertexAlgebra(UniqueRepresentation):
+class VertexAlgebra(UniqueRepresentation, Parent):
+    r"""
+    Vertex algebras base class and factory.
+
+    INPUT:
+
+    - ``base_ring`` -- a commutative ring (default: ``None``); the
+      base ring of this vertex algebra
+
+    - ``lie_conformal_algebra`` a :class:`LieConformalAlgebra`
+      (default: ``None``); if specified, this class
+      returns the quotient of its universal enveloping vertex
+      algebra by the central ideal defined by the parameter
+      ``central_parameters``
+
+    - ``central_parameters`` -- A finite family (default: ``None``);
+      a family defining a central ideal in the
+      universal enveloping vertex algebra of the Lie conformal
+      algebra ``lie_conformal_algebra``
+
+    - ``names`` -- a list or tuple of ``str``; alternative names
+      for the generators
+
+    - ``latex_names`` -- a list or tuple of ``str``; alternative
+      names for the `\LaTeX` representation of generators
+
+    .. WARNING::
+
+        We allow ``R`` to be an arbitrary commutative ring to
+        perform basic computations of OPE. However, behaviour is
+        undefined if ``R`` is not a field of characteristic ``0``.
+
+    .. NOTE::
+
+      There are several methods of constructing vertex
+      algebras. Currently we only support the construction as the
+      universal enveloping
+      vertex algebra of a Lie conformal algebra, which is best
+      achieved by calling
+      :meth:`~sage.categories.lie_conformal_algebras.LieConformalAlgebras.ParentMethods.universal_enveloping_algebra`,
+      or as derived constructions like quotients by calling
+      :meth:`~sage.categories.vertex_algebras.VertexAlgebras.ParentMethods.quotient`.
+
+    EXAMPLES::
+
+        sage: Vir = lie_conformal_algebras.Virasoro(CC)
+        sage: Vir.inject_variables()
+        Defining L, C
+        sage: cp = Family({C:1/3})
+        sage: V = VertexAlgebra(CC,Vir,central_parameters=cp)
+        sage: V
+        The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
+    """
     @staticmethod
     def __classcall_private__(cls, base_ring=None,
                               lie_conformal_algebra = None,
@@ -310,47 +363,8 @@ class VertexAlgebra(UniqueRepresentation):
         raise NotImplementedError("Not Implemented")
 
     def __init__(self, R, category=None, names=None, latex_names=None):
-        r"""
-        Vertex algebras base class and factory.
-
-        INPUT:
-
-        - ``base_ring`` -- a commutative ring (default: ``None``); the
-          base ring of this vertex algebra
-
-        - ``lie_conformal_algebra`` a :class:`LieConformalAlgebra`
-          (default: ``None``); if specified, this class
-          returns the quotient of its universal enveloping vertex
-          algebra by the central ideal defined by the parameter
-          ``central_parameters``
-
-        - ``central_parameters`` -- A finite family (default: ``None``);
-          a family defining a central ideal in the
-          universal enveloping vertex algebra of the Lie conformal
-          algebra ``lie_conformal_algebra``
-
-        - ``names`` -- a list or tuple of ``str``; alternative names
-          for the generators
-
-        - ``latex_names`` -- a list or tuple of ``str``; alternative
-          names for the `\LaTeX` representation of generators
-
-        .. WARNING::
-
-            We allow ``R`` to be an arbitrary commutative ring to
-            perform basic computations of OPE. However, behaviour is
-            undefined if ``R`` is not a field of characteristic ``0``.
-
-        .. NOTE::
-
-          There are several methods of constructing vertex
-          algebras. Currently we only support the construction as the
-          universal enveloping
-          vertex algebra of a Lie conformal algebra, which is best
-          achieved by calling
-          :meth:`~sage.categories.lie_conformal_algebras.LieConformalAlgebras.ParentMethods.universal_enveloping_algebra`,
-          or as derived constructions like quotients by calling
-          :meth:`~sage.categories.vertex_algebras.VertexAlgebras.ParentMethods.quotient`.
+        """
+        Initialize self.
 
         EXAMPLES::
 
@@ -359,9 +373,9 @@ class VertexAlgebra(UniqueRepresentation):
             Defining L, C
             sage: cp = Family({C:1/3})
             sage: V = VertexAlgebra(CC,Vir,central_parameters=cp)
-            sage: V
-            The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Complex Field with 53 bits of precision
+            sage: TestSuite(V).run()
         """
+
         category = VertexAlgebras(R).or_subcategory(category)
         super(VertexAlgebra, self).__init__(R, names=names,
                                             category = category)
@@ -369,7 +383,9 @@ class VertexAlgebra(UniqueRepresentation):
 
 
     def base_ring(self):
-        """The base ring of this vertex algebra
+        """
+        The base ring of this vertex algebra.
+
         EXAMPLES::
 
             sage: V = vertex_algebras.Virasoro(QQ,1/2); V
