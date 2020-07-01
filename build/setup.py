@@ -16,7 +16,7 @@ class install(distutils_install):
 
         DOT_SAGE = os.environ.get('DOT_SAGE', os.path.join(os.environ.get('HOME'), '.sage'))
         SAGE_ROOT = os.path.join(DOT_SAGE, 'sage-{}'.format(self.distribution.version))
-        shutil.copytree('sage_bootstrap/sage_root', SAGE_ROOT)  # will fail if already exists
+        shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
         SAGE_LOCAL = os.path.join(SAGE_ROOT, 'local')
         # config.status and other configure output has to be writable.
         cmd = "cd {} && ./configure --prefix={} PYTHON3={}".format(SAGE_ROOT, SAGE_LOCAL, sys.executable)
