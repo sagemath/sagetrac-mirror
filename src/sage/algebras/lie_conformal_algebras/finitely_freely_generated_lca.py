@@ -22,15 +22,23 @@ from .lie_conformal_algebra_with_generators import \
                                             LieConformalAlgebraWithGenerators
 
 class FinitelyGeneratedLieConformalAlgebra(LieConformalAlgebraWithGenerators):
+    """
+    Abstract base class for finitely generated Lie conformal
+    algebras.
+
+    This class provides minimal functionality, simply sets the
+    number of generators.
+    """
     def __init__(self, R, index_set=None, central_elements=None, category=None,
                   element_class=None, prefix=None, names=None, latex_names=None,
                   **kwds):
         """
-        Abstract base class for finitely generated Lie conformal
-        algebras.
+        Initialize self.
 
-        This class provides minimal functionality, simply sets the
-        number of generators.
+        TESTS::
+
+            sage: V = lie_conformal_algebras.Abelian(QQ)
+            sage: TestSuite(V).run()
         """
         category = LieConformalAlgebras(R).FinitelyGenerated().or_subcategory(
                                                                       category)

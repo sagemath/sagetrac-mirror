@@ -147,7 +147,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
         p = self.parent()
         if not hasattr(p, 'lift'):
             raise NotImplementedError(
-                "In order to lift an element first need to "\
+                "in order to lift an element first need to "\
                 "construct the universal enveloping vertex "\
                 "algebra")
         V = p.lift.codomain()
@@ -452,4 +452,4 @@ class GradedLCAElement(LCAStructureCoefficientsElement):
             ls.append(ret)
         if ls[1:] == ls[:-1]:
             return ls[0]
-        raise ValueError("{} is not homogeneous!".format(self))
+        raise ValueError("{} is not homogeneous".format(self))

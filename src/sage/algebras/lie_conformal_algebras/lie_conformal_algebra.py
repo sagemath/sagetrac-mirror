@@ -119,15 +119,8 @@ This class provides no functionality besides calling the appropriate
 constructor.
 
 We provide some convenience classes to define named Lie conformal
-algebras like :class:`VirasoroLieConformalAlgebra<sage.algebras.\
-lie_conformal_algebras.virasoro_lie_conformal_algebra.\
-VirasoroLieConformalAlgebra>` and :class:`AffineLieConformalAlgebra\
-<sage.algebras.lie_conformal_algebras.affine_lie_conformal_algebra.\
-AffineLieConformalAlgebra>` as well as super Lie conformal algebras
-like :class:`N2LieConformalAlgebra<sage.algebras.lie_conformal_algebras\
-.n2_lie_conformal_algebra.N2LieConformalAlgebra>` and :class:`\
-FreeFermionsLieConformalAlgebra<sage.algebras.lie_conformal_algebras.\
-free_fermions_lie_conformal_algebra.FreeFermionsLieConformalAlgebra>`.
+algebras. See
+:mod:`sage.algebras.lie_conformal_algebras.examples`.
 
 EXAMPLES:
 
@@ -353,6 +346,10 @@ class LieConformalAlgebra(UniqueRepresentation, Parent):
     def __classcall_private__(cls, R=None, arg0=None, index_set=None,
         central_elements=None, category=None, prefix=None,
         names=None, latex_names=None, parity=None, weights=None, **kwds):
+        """
+        Lie conformal algebra factory.
+
+        EXAMPLES::
 
             sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
             sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
@@ -367,8 +364,7 @@ class LieConformalAlgebra(UniqueRepresentation, Parent):
                           'string_quotes', 'sorting_key', 'graded', 'super']
         for key in kwds:
             if key not in known_keywords:
-                raise ValueError("LieConformalAlgebra(): got an unexpected " +
-                                "keyword argument '%s'"%key)
+                raise ValueError("got an unexpected keyword argument '%s'"%key)
 
         if isinstance(arg0,dict) and arg0:
             graded=kwds.pop("graded", False)
@@ -388,5 +384,4 @@ class LieConformalAlgebra(UniqueRepresentation, Parent):
                        central_elements=central_elements, category=category,
                        prefix=prefix, names=names, latex_names=latex_names,
                        parity=parity, **kwds)
-        return NotImplementedError("Not implemented")
-
+        raise NotImplementedError("not implemented")

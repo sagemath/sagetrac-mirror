@@ -30,47 +30,54 @@ AUTHORS:
 from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 
 class FermionicGhostsLieConformalAlgebra(GradedLieConformalAlgebra):
+    r"""
+    The Fermionic ghosts or `bc`-system super Lie conformal algebra.
 
+    INPUT:
+
+    - ``R`` --  a commutative ring; the base ring of this Lie
+      conformal algebra
+    - ``ngens`` -- an even positive Integer (default: ``2``); The
+      number of non-central generators of this Lie conformal
+      algebra.
+    - ``names`` -- a tuple of ``str``; alternative names for the
+      generators
+    - ``index_set`` -- an enumerated set; alternative indexing
+      set for the generators.
+
+    OUTPUT:
+
+    The Fermionic Ghosts super Lie conformal algebra with generators
+    `b_i,c_i, i=1,\ldots,n` and `K` where `2n` is ``ngens``.
+
+    EXAMPLES::
+
+        sage: R = lie_conformal_algebras.FermionicGhosts(QQ); R
+        The Fermionic ghosts Lie conformal algebra with generators (b, c, K) over Rational Field
+        sage: R.inject_variables()
+        Defining b, c, K
+        sage: b.bracket(c) == c.bracket(b)
+        True
+        sage: b.degree()
+        1
+        sage: c.degree()
+        0
+        sage: R.category()
+        Category of finitely generated super H-graded Lie conformal algebras with basis over Rational Field
+
+        sage: R = lie_conformal_algebras.FermionicGhosts(QQbar, ngens=4, names = 'abcd');R
+        The Fermionic ghosts Lie conformal algebra with generators (a, b, c, d, K) over Algebraic Field
+        sage: R.structure_coefficients()
+        Finite family {('a', 'c'): ((0, K),),  ('b', 'd'): ((0, K),),  ('c', 'a'): ((0, K),),  ('d', 'b'): ((0, K),)}
+    """
     def __init__(self,R,ngens=2,names=None,index_set=None):
-        r"""
-        The Fermionic ghosts or `bc`-system super Lie conformal algebra.
+        """
+        Initialize self.
 
-        INPUT:
+        TESTS::
 
-        - ``R`` --  a commutative ring; the base ring of this Lie
-          conformal algebra
-        - ``ngens`` -- an even positive Integer (default: ``2``); The
-          number of non-central generators of this Lie conformal
-          algebra.
-        - ``names`` -- a tuple of ``str``; alternative names for the
-          generators
-        - ``index_set`` -- an enumerated set; alternative indexing
-          set for the generators.
-
-        OUTPUT:
-
-        The Fermionic Ghosts super Lie conformal algebra with generators
-        `b_i,c_i, i=1,\ldots,n` and `K` where `2n` is ``ngens``.
-
-        EXAMPLES::
-
-            sage: R = lie_conformal_algebras.FermionicGhosts(QQ); R
-            The Fermionic ghosts Lie conformal algebra with generators (b, c, K) over Rational Field
-            sage: R.inject_variables()
-            Defining b, c, K
-            sage: b.bracket(c) == c.bracket(b)
-            True
-            sage: b.degree()
-            1
-            sage: c.degree()
-            0
-            sage: R.category()
-            Category of finitely generated super H-graded Lie conformal algebras with basis over Rational Field
-
-            sage: R = lie_conformal_algebras.FermionicGhosts(QQbar, ngens=4, names = 'abcd');R
-            The Fermionic ghosts Lie conformal algebra with generators (a, b, c, d, K) over Algebraic Field
-            sage: R.structure_coefficients()
-            Finite family {('a', 'c'): ((0, K),),  ('b', 'd'): ((0, K),),  ('c', 'a'): ((0, K),),  ('d', 'b'): ((0, K),)}
+            sage: V = lie_conformal_algebras.BosonicGhosts(QQ)
+            sage: TestSuite(V).run()
         """
         try:
             assert (ngens > 0 and ngens % 2 == 0)

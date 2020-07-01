@@ -590,5 +590,3 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         sf = k.to_list()
         sf[i] = sf[i][1:]
         return (p(l),p(sf),c)
-
-

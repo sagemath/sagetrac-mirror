@@ -140,8 +140,42 @@ class PoissonVertexAlgebraQuotientElement(VertexAlgebraQuotientElement):
         return PR(self.lift()._to_polynomial(ord,termorder))
 
 class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
+    """
+    A quotient of a Poisson vertex algebra.
+
+    INPUT:
+
+    - ``ideal`` -- a
+      :class:`~.poisson_vertex_algebra_ideal.PoissonVertexAlgebraIdeal`;
+      an ideal of a Poisson vertex algebra
+    - ``names`` --  a list of ``str`` or ``None`` (default: ``None``);
+      alternative names for the generators
+    - ``category``--  a :class:`Category`; the category where this
+      quotient is a parent
+
+    .. NOTE::
+
+        This class is not meant to be called directly by the user.
+        Use instead :meth:`~sage.categories.poisson_vertex_algebras.PoissonVertexAlgebras.ParentMethods.quotient`.
+    """
     @staticmethod
     def __classcall_private__(cls, ideal, names=None, category=None):
+        """
+        Construct a quotient of a Poisson vertex algebra.
+
+        EXAMPLES::
+
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
+            sage: P = V.classical_limit(); P.inject_variables()
+            Defining L
+            sage: I = P.ideal(L**3)
+            sage: Q = P.quotient(I)
+            sage: from sage.algebras.poisson_vertex_algebras.poisson_vertex_algebra_quotient \
+                                                import PoissonVertexAlgebraQuotient
+            sage: T = PoissonVertexAlgebraQuotient(I, category=P.category().Quotients())
+            sage: Q is T
+            True
+        """
         if ideal.is_zero():
             return ideal.ambient()
 
@@ -155,22 +189,14 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
     def __init__(self, ideal, names=None, category=None):
         """
-        A quotient of a Poisson vertex algebra.
+        Initialize self.
 
-        INPUT:
+        EXAMPLES::
 
-        - ``ideal`` -- a
-          :class:`~.poisson_vertex_algebra_ideal.PoissonVertexAlgebraIdeal`;
-          an ideal of a Poisson vertex algebra
-        - ``names`` --  a list of ``str`` or ``None`` (default: ``None``);
-          alternative names for the generators
-        - ``category``--  a :class:`Category`; the category where this
-          quotient is a parent
-
-        .. NOTE::
-
-            This class is not meant to be called directly by the user.
-            Use instead :meth:`~sage.categories.poisson_vertex_algebras.PoissonVertexAlgebras.ParentMethods.quotient`.
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
+            sage: P = V.classical_limit()
+            sage: Q = P.quotient(P.ideal(P.0**3))
+            sage: TestSuite(Q).run()    # not tested
         """
         self._ideal = ideal
         self._ambient = ideal.ambient()

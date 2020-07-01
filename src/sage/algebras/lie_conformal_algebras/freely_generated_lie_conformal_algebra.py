@@ -24,19 +24,27 @@ from sage.sets.family import Family
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 
 class LieConformalAlgebraWithGenerators(LieConformalAlgebraWithBasis):
+    """
+    Base class for a Lie conformal algebra with distinguished
+    generators.
+
+    This class provides minimal functionality, it sets up the
+    family of Lie conformal algebra generators.
+
+    .. NOTE::
+
+        We now only accept direct sums of free modules plus
+        some central generators `C_i` such that `TC_i = 0`.
+    """
     def __init__(self,R, index_set=None, central_elements=None, category=None,
                  element_class=None, prefix=None, **kwds):
         """
-        Base class for a Lie conformal algebra with distinguished
-        generators.
+        Initialize self.
 
-        This class provides minimal functionality, it sets up the
-        family of Lie conformal algebra generators.
+        TESTS::
 
-        .. NOTE::
-
-            We now only accept direct sums of free modules plus
-            some central generators `C_i` such that `TC_i = 0`.
+            sage: V = lie_conformal_algebras.Virasoro(QQ)
+            sage: TestSuite(V).run()
         """
         self._generators = Family(index_set)
         E = cartesian_product([index_set, NonNegativeIntegers()])

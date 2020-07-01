@@ -27,29 +27,37 @@ AUTHORS:
 
 from .graded_lie_conformal_algebra import GradedLieConformalAlgebra
 class VirasoroLieConformalAlgebra(GradedLieConformalAlgebra):
+    """
+    The Virasoro Lie Conformal algebra over `R`.
+
+    INPUT:
+
+    - ``R`` -- a commutative ring; behaviour is undefined if `R` is
+      not a Field of characteristic zero.
+
+    EXAMPLES::
+
+        sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+        sage: Vir.category()
+        Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
+        sage: Vir.inject_variables()
+        Defining L, C
+        sage: L.bracket(L)
+        {0: TL, 1: 2*L, 3: 1/2*C}
+
+    TESTS::
+
+        sage: Vir.gens()
+        (L, C)
+    """
     def __init__(self, R):
         """
-        The Virasoro Lie Conformal algebra over `R`.
-
-        INPUT:
-
-        - ``R`` -- a commutative ring; behaviour is undefined if `R` is
-          not a Field of characteristic zero.
-
-        EXAMPLES::
-
-            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
-            sage: Vir.category()
-            Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
-            sage: Vir.inject_variables()
-            Defining L, C
-            sage: L.bracket(L)
-            {0: TL, 1: 2*L, 3: 1/2*C}
+        Initialize self.
 
         TESTS::
 
-            sage: Vir.gens()
-            (L, C)
+            sage: V = lie_conformal_algebras.Virasoro(QQ)
+            sage: TestSuite(V).run()
         """
         virdict =  {('L','L'):{0:{('L',1):1}, 1:{('L',0): 2},
                     3:{('C', 0):R(2).inverse_of_unit()}}}

@@ -67,31 +67,40 @@ from sage.structure.richcmp import op_LT, op_LE, op_GT, op_GE, op_EQ, op_NE,\
 
 @richcmp_method
 class EnergyPartitionTuple(PartitionTuple):
+    """
+    Base element class of Energy Partition Tuples.
+
+    INPUT:
+
+    - ``parent`` -- a class of ``EnergyPartitionTuples`` containing
+      this Energy Partition Tuple
+    - ``mu`` -- an Energy Partition Tuple
+
+    EXAMPLES::
+
+        sage: V = vertex_algebras.Virasoro(QQ)
+        sage: V._indices.an_element()
+        ([1, 1, 1, 1])
+        sage: V._indices.an_element().parent()
+        (0,)-Regular Energy Partition Tuples of level 1 with weights (2,)
+
+    TESTS::
+
+        sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+        sage: type(EnergyPartitionTuples((1/2,1/2),2).an_element()[0])
+        <class 'sage.algebras.vertex_algebras.energy_partitions.EnergyPartitions_all_with_category.element_class'>
+    """
     Element = EnergyPartition
 
     def __init__(self,parent,mu):
         """
-        Base element class of Energy Partition Tuples.
-
-        INPUT:
-
-        - ``parent`` -- a class of ``EnergyPartitionTuples`` containing
-          this Energy Partition Tuple
-        - ``mu`` -- an Energy Partition Tuple
-
-        EXAMPLES::
-
-            sage: V = vertex_algebras.Virasoro(QQ)
-            sage: V._indices.an_element()
-            ([1, 1, 1, 1])
-            sage: V._indices.an_element().parent()
-            (0,)-Regular Energy Partition Tuples of level 1 with weights (2,)
+        Initialize self.
 
         TESTS::
 
             sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-            sage: type(EnergyPartitionTuples((1/2,1/2),2).an_element()[0])
-            <class 'sage.algebras.vertex_algebras.energy_partitions.EnergyPartitions_all_with_category.element_class'>
+            sage: v=EnergyPartitionTuples((1/2,1/2),2).an_element()[0]
+            sage: TestSuite(v).run()
         """
         #override PartitionTuples's init that explicitly set Partitions
         mu = [EnergyPartitions(w,regular=r)(x) if r else EnergyPartitions(
@@ -150,9 +159,17 @@ class EnergyPartitionTuple(PartitionTuple):
              ([8], [])]
         """
         if op == op_EQ:
+            if self is None:
+                return other is None
+            elif other is None:
+                return False
+            if self is 0:
+                return other is 0
+            elif other is 0:
+                return False
             return self._list == other._list
         if op == op_NE:
-            return self._list != other._list
+            return not (self == other)
         if op == op_LT:
             if self.energy() < other.energy():
                 return True
@@ -195,10 +212,152 @@ class EnergyPartitionTuple(PartitionTuple):
             return self > other or self == other
 
 class EnergyPartitionTuples(PartitionTuples):
+    r"""
+    Energy Partition Tuples factory.
+
+    INPUT:
+
+    - ``weights`` -- a list or tuple of positive rational numbers;
+      the weights `w_i` as above. The length of this tuple has to
+      equal the parameter ``level``.
+
+    - ``level`` -- a positive integer; the number of genertors,
+      or length of this tuple.
+
+    - ``energy`` -- a non-negative rational or ``None`` (default:
+      ``None``); the total energy of the tuples in this class, or all
+      tuples if ``None``.
+
+    - ``regular`` -- a non-negative integer number, a list of
+      non-negative integers of length ``level`` (default: ``0``);
+      if the `i-th` entry
+      of this list is `\ell`, then the corresponding `i-th`
+      ``EnergyPartition`` of this tuple is `\ell` regular. The special
+      value of `\ell=0` is used to allow all Energy Partitions. If
+      ``regular`` is an integer, it is applied to all entries.
+
+    OUTPUT:
+
+    The class of Energy Partition Tuples with the prescribed
+    conditions.
+
+    EXAMPLES:
+
+    The vectors of the :class:`NeveuSchwarzVertexAlgebra` of energy
+    ``6`` are parametrized by::
+
+        sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+        sage: L = EnergyPartitionTuples((2,3/2),2,6,regular=(0,2)); L
+        (0, 2)-Regular Energy Partition Tuples of energy 6 with level 2 and weights (2, 3/2)
+        sage: l = L.list(); l
+        [([1, 1, 1], []),
+         ([1], [2, 1]),
+         ([2, 2], []),
+         ([3, 1], []),
+         ([], [3, 2]),
+         ([], [4, 1]),
+         ([5], [])]
+        sage: V = vertex_algebras.NeveuSchwarz(QQ,1/2); V
+        The Neveu-Schwarz super vertex algebra of central charge 1/2 over Rational Field
+        sage: [V(v) for v in l]
+        [L_-2L_-2L_-2|0>,
+         L_-2G_-5/2G_-3/2|0>,
+         L_-3L_-3|0>,
+         L_-4L_-2|0>,
+         G_-7/2G_-5/2|0>,
+         G_-9/2G_-3/2|0>,
+         L_-6|0>]
+
+    The Universal Affine Kac-Moody vertex algebra of type `A_1`, has
+    the following basis::
+
+        sage: L = EnergyPartitionTuples((1,1,1),3); L
+        (0, 0, 0)-Regular Energy Partition Tuples of level 3 with weights (1, 1, 1)
+        sage: l = L[0:13]; l
+        [([], [], []),
+         ([1], [], []),
+         ([], [1], []),
+         ([], [], [1]),
+         ([1, 1], [], []),
+         ([1], [1], []),
+         ([], [1, 1], []),
+         ([1], [], [1]),
+         ([], [1], [1]),
+         ([], [], [1, 1]),
+         ([2], [], []),
+         ([], [2], []),
+         ([], [], [2])]
+
+        sage: V = vertex_algebras.Affine(QQ,'A1',1, names=('e','h','f')); V
+        The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
+        sage: [V(v) for v in l]
+        [|0>,
+         e_-1|0>,
+         h_-1|0>,
+         f_-1|0>,
+         e_-1e_-1|0>,
+         e_-1h_-1|0>,
+         h_-1h_-1|0>,
+         e_-1f_-1|0>,
+         h_-1f_-1|0>,
+         f_-1f_-1|0>,
+         e_-2|0>,
+         h_-2|0>,
+         f_-2|0>]
+
+    The Free Fermions have a similar structure::
+
+        sage: L = EnergyPartitionTuples(1/2,1,regular=2); L
+        (2,)-Regular Energy Partition Tuples of level 1 with weights (1/2,)
+        sage: l = L[0:10]; l
+        [([]),
+         ([1]),
+         ([2]),
+         ([2, 1]),
+         ([3]),
+         ([3, 1]),
+         ([4]),
+         ([3, 2]),
+         ([4, 1]),
+         ([3, 2, 1])]
+        sage: V = vertex_algebras.FreeFermions(QQ); V
+        The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
+        sage: [V(v) for v in l]
+        [|0>,
+         psi_-1/2|0>,
+         psi_-3/2|0>,
+         psi_-3/2psi_-1/2|0>,
+         psi_-5/2|0>,
+         psi_-5/2psi_-1/2|0>,
+         psi_-7/2|0>,
+         psi_-5/2psi_-3/2|0>,
+         psi_-7/2psi_-1/2|0>,
+         psi_-5/2psi_-3/2psi_-1/2|0>]
+
+    TESTS::
+
+        sage: ([],[]) in EnergyPartitionTuples((1,1),2,1)
+        False
+        sage: ([],[]) in EnergyPartitionTuples((1,1),2,0)
+        True
+        sage: ([],[]) in EnergyPartitionTuples((1,1),2,0,regular=1)
+        True
+    """
     @staticmethod
     def __classcall_private__(cls, weights=None, level=None, energy=None,
                               regular = 0):
+        """
+        Energy Parition Tuples factory.
 
+        EXAMPLES::
+
+            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+            sage: L = EnergyPartitionTuples((2,3/2),2,6,regular=(0,2)); L
+            (0, 2)-Regular Energy Partition Tuples of energy 6 with level 2 and weights (2, 3/2)
+            sage: R = EnergyPartitionTuples([2,3/2],2,6,regular=[0,2]);
+            sage: R is L
+            True
+        """
         if not isinstance(level,(int,Integer)) or level<1:
             raise ValueError('the level must be a positive integer')
 
@@ -234,136 +393,14 @@ class EnergyPartitionTuples(PartitionTuples):
     _energy=None
 
     def __init__(self, weights, level, regular, is_infinite=False):
-        r"""
-        Energy Partition Tuples factory.
-
-        INPUT:
-
-        - ``weights`` -- a list or tuple of positive rational numbers;
-          the weights `w_i` as above. The length of this tuple has to
-          equal the parameter ``level``.
-
-        - ``level`` -- a positive integer; the number of genertors,
-          or length of this tuple.
-
-        - ``energy`` -- a non-negative rational or ``None`` (default:
-          ``None``); the total energy of the tuples in this class, or all
-          tuples if ``None``.
-
-        - ``regular`` -- a non-negative integer number, a list of
-          non-negative integers of length ``level`` (default: ``0``);
-          if the `i-th` entry
-          of this list is `\ell`, then the corresponding `i-th`
-          ``EnergyPartition`` of this tuple is `\ell` regular. The special
-          value of `\ell=0` is used to allow all Energy Partitions. If
-          ``regular`` is an integer, it is applied to all entries.
-
-        OUTPUT:
-
-        The class of Energy Partition Tuples with the prescribed
-        conditions.
-
-        EXAMPLES:
-
-        The vectors of the :class:`NeveuSchwarzVertexAlgebra` of energy
-        ``6`` are parametrized by::
-
-            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-            sage: L = EnergyPartitionTuples((2,3/2),2,6,regular=(0,2)); L
-            (0, 2)-Regular Energy Partition Tuples of energy 6 with level 2 and weights (2, 3/2)
-            sage: l = L.list(); l
-            [([1, 1, 1], []),
-             ([1], [2, 1]),
-             ([2, 2], []),
-             ([3, 1], []),
-             ([], [3, 2]),
-             ([], [4, 1]),
-             ([5], [])]
-            sage: V = vertex_algebras.NeveuSchwarz(QQ,1/2); V
-            The Neveu-Schwarz super vertex algebra of central charge 1/2 over Rational Field
-            sage: [V(v) for v in l]
-            [L_-2L_-2L_-2|0>,
-             L_-2G_-5/2G_-3/2|0>,
-             L_-3L_-3|0>,
-             L_-4L_-2|0>,
-             G_-7/2G_-5/2|0>,
-             G_-9/2G_-3/2|0>,
-             L_-6|0>]
-
-        The Universal Affine Kac-Moody vertex algebra of type `A_1`, has
-        the following basis::
-
-            sage: L = EnergyPartitionTuples((1,1,1),3); L
-            (0, 0, 0)-Regular Energy Partition Tuples of level 3 with weights (1, 1, 1)
-            sage: l = L[0:13]; l
-            [([], [], []),
-             ([1], [], []),
-             ([], [1], []),
-             ([], [], [1]),
-             ([1, 1], [], []),
-             ([1], [1], []),
-             ([], [1, 1], []),
-             ([1], [], [1]),
-             ([], [1], [1]),
-             ([], [], [1, 1]),
-             ([2], [], []),
-             ([], [2], []),
-             ([], [], [2])]
-
-            sage: V = vertex_algebras.Affine(QQ,'A1',1, names=('e','h','f')); V
-            The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
-            sage: [V(v) for v in l]
-            [|0>,
-             e_-1|0>,
-             h_-1|0>,
-             f_-1|0>,
-             e_-1e_-1|0>,
-             e_-1h_-1|0>,
-             h_-1h_-1|0>,
-             e_-1f_-1|0>,
-             h_-1f_-1|0>,
-             f_-1f_-1|0>,
-             e_-2|0>,
-             h_-2|0>,
-             f_-2|0>]
-
-        The Free Fermions have a similar structure::
-
-            sage: L = EnergyPartitionTuples(1/2,1,regular=2); L
-            (2,)-Regular Energy Partition Tuples of level 1 with weights (1/2,)
-            sage: l = L[0:10]; l
-            [([]),
-             ([1]),
-             ([2]),
-             ([2, 1]),
-             ([3]),
-             ([3, 1]),
-             ([4]),
-             ([3, 2]),
-             ([4, 1]),
-             ([3, 2, 1])]
-            sage: V = vertex_algebras.FreeFermions(QQ); V
-            The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
-            sage: [V(v) for v in l]
-            [|0>,
-             psi_-1/2|0>,
-             psi_-3/2|0>,
-             psi_-3/2psi_-1/2|0>,
-             psi_-5/2|0>,
-             psi_-5/2psi_-1/2|0>,
-             psi_-7/2|0>,
-             psi_-5/2psi_-3/2|0>,
-             psi_-7/2psi_-1/2|0>,
-             psi_-5/2psi_-3/2psi_-1/2|0>]
+        """
+        Initialize self.
 
         TESTS::
 
-            sage: ([],[]) in EnergyPartitionTuples((1,1),2,1)
-            False
-            sage: ([],[]) in EnergyPartitionTuples((1,1),2,0)
-            True
-            sage: ([],[]) in EnergyPartitionTuples((1,1),2,0,regular=1)
-            True
+            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+            sage: L = EnergyPartitionTuples((2,3/2),2)
+            sage: TestSuite(L).run()
         """
         self._weights = tuple(weights)
         self._level = level
@@ -434,35 +471,43 @@ class EnergyPartitionTuples(PartitionTuples):
 
 
 class EnergyPartitionTuples_all(EnergyPartitionTuples):
+    """
+    Base class for all Energy Partition Tuples.
+
+    INPUT:
+
+    - ``weights`` -- a list of rational numbers; the weights of each
+      component
+    - ``level`` -- a non-negative integer; the number of components
+    - ``regular`` -- a list of non-negative integers; the
+      ``regular`` parameter of each component.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+        sage: V = EnergyPartitionTuples((2,3/2),2); V
+        (0, 0)-Regular Energy Partition Tuples of level 2 with weights (2, 3/2)
+        sage: V[0:8]
+        [([], []),
+         ([], [1]),
+         ([1], []),
+         ([], [2]),
+         ([], [1, 1]),
+         ([2], []),
+         ([1], [1]),
+         ([], [3])]
+    """
     def __init__(self,weights, level, regular):
+        EnergyPartitionTuples.__init__(self,weights,level,regular,True)
         """
-        Base class for all Energy Partition Tuples.
+        Initialize self.
 
-        INPUT:
-
-        - ``weights`` -- a list of rational numbers; the weights of each
-          component
-        - ``level`` -- a non-negative integer; the number of components
-        - ``regular`` -- a list of non-negative integers; the
-          ``regular`` parameter of each component.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-            sage: V = EnergyPartitionTuples((2,3/2),2); V
-            (0, 0)-Regular Energy Partition Tuples of level 2 with weights (2, 3/2)
-            sage: V[0:8]
-            [([], []),
-             ([], [1]),
-             ([1], []),
-             ([], [2]),
-             ([], [1, 1]),
-             ([2], []),
-             ([1], [1]),
-             ([], [3])]
+            sage: L = EnergyPartitionTuples((2,3/2),2,regular=(0,2))
+            sage: TestSuite(L).run()
         """
-        EnergyPartitionTuples.__init__(self,weights,level,regular,True)
-
     def _repr_(self):
         """
         The name of this class.
@@ -540,37 +585,46 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
                                      self._regular)
 
 class EnergyPartitionTuples_n(EnergyPartitionTuples):
+    """
+    Energy Partition Tuples with a fixed energy.
+
+    INPUT:
+
+    - ``weights`` -- a list of positive rational numbers; the
+      weights of the components
+    - ``level`` -- a non-negative integer; the number of components
+    - ``regular`` -- a list of non-negative integers; the
+      ``regular`` parameter of each component
+    - ``energy`` -- a non-negative rational number; the total
+      energy.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+        sage: V = EnergyPartitionTuples((1/2,1/2),2,4,regular=2); V
+        (2, 2)-Regular Energy Partition Tuples of energy 4 with level 2 and weights (1/2, 1/2)
+        sage: V.list()
+        [([2, 1], [2, 1]),
+         ([3, 2], []),
+         ([3], [2]),
+         ([2], [3]),
+         ([], [3, 2]),
+         ([4, 1], []),
+         ([4], [1]),
+         ([1], [4]),
+         ([], [4, 1])]
+        sage: V.an_element()
+        ([2, 1], [2, 1])
+    """
     def __init__(self,weights,level,regular,energy):
         """
-        Energy Partition Tuples with a fixed energy.
+        Initialize self.
 
-        INPUT:
-
-        - ``weights`` -- a list of positive rational numbers; the
-          weights of the components
-        - ``level`` -- a non-negative integer; the number of components
-        - ``regular`` -- a list of non-negative integers; the
-          ``regular`` parameter of each component
-        - ``energy`` -- a non-negative rational number; the total
-          energy.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-            sage: V = EnergyPartitionTuples((1/2,1/2),2,4,regular=2); V
-            (2, 2)-Regular Energy Partition Tuples of energy 4 with level 2 and weights (1/2, 1/2)
-            sage: V.list()
-            [([2, 1], [2, 1]),
-             ([3, 2], []),
-             ([3], [2]),
-             ([2], [3]),
-             ([], [3, 2]),
-             ([4, 1], []),
-             ([4], [1]),
-             ([1], [4]),
-             ([], [4, 1])]
-            sage: V.an_element()
-            ([2, 1], [2, 1])
+            sage: L = EnergyPartitionTuples((2,3/2),2,5,regular=(0,2))
+            sage: TestSuite(L).run()
         """
         self._energy = energy
         EnergyPartitionTuples.__init__(self,weights,level,regular)
@@ -674,4 +728,3 @@ class EnergyPartitionTuples_n(EnergyPartitionTuples):
         """
         #TODO: implement a faster way
         return ZZ.sum(1 for x in self)
-
