@@ -39,7 +39,7 @@ class NeveuSchwarzLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(AA); R
+            sage: R = lie_conformal_algebras.NeveuSchwarz(AA); R
             The Neveu-Schwarz super Lie conformal algebra over Algebraic Real Field
             sage: R.structure_coefficients()
             Finite family {('G', 'G'): ((0, 2*L), (2, 2/3*C)),  ('G', 'L'): ((0, 1/2*TG), (1, 3/2*G)),  ('L', 'G'): ((0, TG), (1, 3/2*G)),  ('L', 'L'): ((0, TL), (1, 2*L), (3, 1/2*C))}
@@ -67,7 +67,7 @@ class NeveuSchwarzLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = NeveuSchwarzLieConformalAlgebra(GF(5)); R
+            sage: R = lie_conformal_algebras.NeveuSchwarz(GF(5)); R
             The Neveu-Schwarz super Lie conformal algebra over Finite Field of size 5
         """
         return "The Neveu-Schwarz super Lie conformal algebra over {}".\

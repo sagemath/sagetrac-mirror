@@ -70,30 +70,30 @@ class FreeBosonsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = FreeBosonsLieConformalAlgebra(AA); R
+            sage: R = lie_conformal_algebras.FreeBosons(AA); R
             The free Bosons Lie conformal algebra with generators (alpha, K) over Algebraic Real Field
             sage: R.inject_variables()
             Defining alpha, K
             sage: alpha.bracket(alpha)
             {1: K}
-            sage: M = identity_matrix(QQ,2); R = FreeBosonsLieConformalAlgebra(QQ,gram_matrix=M, names='alpha,beta'); R
+            sage: M = identity_matrix(QQ,2); R = lie_conformal_algebras.FreeBosons(QQ,gram_matrix=M, names='alpha,beta'); R
             The free Bosons Lie conformal algebra with generators (alpha, beta, K) over Rational Field
             sage: R.inject_variables(); alpha.bracket(beta)
             Defining alpha, beta, K
             {}
             sage: alpha.bracket(alpha)
             {1: K}
-            sage: R = FreeBosonsLieConformalAlgebra(QQbar, ngens=3); R
+            sage: R = lie_conformal_algebras.FreeBosons(QQbar, ngens=3); R
             The free Bosons Lie conformal algebra with generators (alpha0, alpha1, alpha2, K) over Algebraic Field
 
         TESTS::
-            sage: R = FreeBosonsLieConformalAlgebra(QQ); R.0.degree()
+            sage: R = lie_conformal_algebras.FreeBosons(QQ); R.0.degree()
             1
-            sage: R = FreeBosonsLieConformalAlgebra(QQbar, ngens=2, gram_matrix=identity_matrix(QQ,1,1))
+            sage: R = lie_conformal_algebras.FreeBosons(QQbar, ngens=2, gram_matrix=identity_matrix(QQ,1,1))
             Traceback (most recent call last):
             ...
             ValueError: The gram_matrix should be a symmetric 2 x 2 matrix, got [1]
-            sage: R = FreeBosonsLieConformalAlgebra(QQbar, ngens=2, gram_matrix=Matrix(QQ,[[0,1],[-1,0]]))
+            sage: R = lie_conformal_algebras.FreeBosons(QQbar, ngens=2, gram_matrix=Matrix(QQ,[[0,1],[-1,0]]))
             Traceback (most recent call last):
             ...
             ValueError: The gram_matrix should be a symmetric 2 x 2 matrix, got [ 0  1]
@@ -140,7 +140,7 @@ class FreeBosonsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: FreeBosonsLieConformalAlgebra(AA)
+            sage: lie_conformal_algebras.FreeBosons(AA)
             The free Bosons Lie conformal algebra with generators (alpha, K) over Algebraic Real Field
         """
         return "The free Bosons Lie conformal algebra with generators {}"\
@@ -153,7 +153,7 @@ class FreeBosonsLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = FreeBosonsLieConformalAlgebra(QQ,ngens=2);
+            sage: R = lie_conformal_algebras.FreeBosons(QQ,ngens=2);
             sage: R.gram_matrix()
             [1 0]
             [0 1]

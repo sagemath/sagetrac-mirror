@@ -354,7 +354,7 @@ class VertexAlgebra(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(CC)
+            sage: Vir = lie_conformal_algebras.Virasoro(CC)
             sage: Vir.inject_variables()
             Defining L, C
             sage: cp = Family({C:1/3})

@@ -101,7 +101,7 @@ class AffineVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         else:
             prefix = 'E'
             bracket = '('
-        ML = AffineLieConformalAlgebra(R, ct, names=names, prefix=prefix,
+        ML = lie_conformal_algebras.Affine(R, ct, names=names, prefix=prefix,
                                        bracket=bracket)
         cp = Family({ML.central_elements()[0]: k})
         super(AffineVertexAlgebra,self).__init__(R, ML, central_parameters=cp)

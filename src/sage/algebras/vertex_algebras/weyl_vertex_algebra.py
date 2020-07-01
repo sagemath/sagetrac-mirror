@@ -91,7 +91,7 @@ class WeylVertexAlgebra(UniversalEnvelopingVertexAlgebra):
         """
         from sage.algebras.lie_conformal_algebras.weyl_lie_conformal_algebra import\
                                                     WeylLieConformalAlgebra
-        ML = WeylLieConformalAlgebra(R, ngens=ngens, gram_matrix=gram_matrix,
+        ML = lie_conformal_algebras.Weyl(R, ngens=ngens, gram_matrix=gram_matrix,
                                       names=names, index_set=index_set)
         cp = Family({ML.gen(-1):R.one()})
         super(WeylVertexAlgebra,self).__init__(R, ML,

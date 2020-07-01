@@ -615,7 +615,7 @@ class VertexAlgebras(Category_over_base_ring):
             Note however that there are purely even super vertex
             algebras::
 
-                sage: R = AbelianLieConformalAlgebra(QQ,2,parity=(0,0))
+                sage: R = lie_conformal_algebras.Abelian(QQ,2,parity=(0,0))
                 sage: V = R.universal_enveloping_algebra(); V.is_super()
                 True
             """

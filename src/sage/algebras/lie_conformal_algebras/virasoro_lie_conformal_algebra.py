@@ -38,7 +38,7 @@ class VirasoroLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: Vir = VirasoroLieConformalAlgebra(QQ)
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
             sage: Vir.category()
             Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
             sage: Vir.inject_variables()
@@ -62,7 +62,7 @@ class VirasoroLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: VirasoroLieConformalAlgebra(QQbar)
+            sage: lie_conformal_algebras.Virasoro(QQbar)
             The Virasoro Lie conformal algebra over Algebraic Field
         """
         return "The Virasoro Lie conformal algebra over {}".format(

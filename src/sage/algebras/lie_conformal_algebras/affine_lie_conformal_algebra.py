@@ -60,19 +60,19 @@ class AffineLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1')
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1')
             sage: R
             The affine Lie conformal algebra of type ['A', 1] over Rational Field
             sage: R.an_element()
             B[alpha[1]] + B[alphacheck[1]] + B[-alpha[1]] + B['K']
 
-            sage: R = AffineLieConformalAlgebra(QQ, 'A1', names = ('e', 'h','f'))
+            sage: R = lie_conformal_algebras.Affine(QQ, 'A1', names = ('e', 'h','f'))
             sage: R.inject_variables()
             Defining e, h, f, K
             sage: Family(e.bracket(f.T(3)))
             Finite family {0: 6*T^(3)h, 1: 6*T^(2)h, 2: 6*Th, 3: 6*h, 4: 24*K}
 
-            sage: V = AffineLieConformalAlgebra(QQ, CartanType(["A",2,1]))
+            sage: V = lie_conformal_algebras.Affine(QQ, CartanType(["A",2,1]))
             Traceback (most recent call last):
             ...
             ValueError: Only affine algebras of simple finite dimensionalLie algebras are implemented
@@ -126,7 +126,7 @@ class AffineLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = AffineLieConformalAlgebra(QQ, 'B3')
+            sage: R = lie_conformal_algebras.Affine(QQ, 'B3')
             sage: R
             The affine Lie conformal algebra of type ['B', 3] over Rational Field
             sage: R.cartan_type()
@@ -140,7 +140,7 @@ class AffineLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: AffineLieConformalAlgebra(QQ, 'A1')
+            sage: lie_conformal_algebras.Affine(QQ, 'A1')
             The affine Lie conformal algebra of type ['A', 1] over Rational Field
         """
         return "The affine Lie conformal algebra of type {} over {}".format(

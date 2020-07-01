@@ -57,7 +57,7 @@ class AbelianLieConformalAlgebra(GradedLieConformalAlgebra):
 
         EXAMPLES::
 
-            sage: R = AbelianLieConformalAlgebra(QQ,2); R
+            sage: R = lie_conformal_algebras.Abelian(QQ,2); R
             The Abelian Lie conformal algebra with generators (a0, a1) over Rational Field
             sage: R.inject_variables()
             Defining a0, a1
