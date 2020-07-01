@@ -79,6 +79,14 @@ class EnergyPartitionTuple(PartitionTuple):
           this Energy Partition Tuple
         - ``mu`` -- an Energy Partition Tuple
 
+        EXAMPLES::
+
+            sage: V = VirasoroVertexAlgebra(QQ)
+            sage: V._indices.an_element()
+            ([1, 1, 1, 1])
+            sage: V._indices.an_element().parent()
+            (0,)-Regular Energy Partition Tuples of level 1 with weights (2,)
+
         TESTS::
 
             sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
@@ -187,137 +195,6 @@ class EnergyPartitionTuple(PartitionTuple):
             return self > other or self == other
 
 class EnergyPartitionTuples(PartitionTuples):
-    r"""
-    Energy Partition Tuples factory.
-
-    INPUT:
-
-    - ``weights`` -- a list or tuple of positive rational numbers;
-      the weights `w_i` as above. The length of this tuple has to
-      equal the parameter ``level``.
-
-    - ``level`` -- a positive integer; the number of genertors,
-      or length of this tuple.
-
-    - ``energy`` -- a non-negative rational or ``None`` (default:
-      ``None``); the total energy of the tuples in this class, or all
-      tuples if ``None``.
-
-    - ``regular`` -- a non-negative integer number, a list of
-      non-negative integers of length ``level`` (default: ``0``);
-      if the `i-th` entry
-      of this list is `\ell`, then the corresponding `i-th`
-      ``EnergyPartition`` of this tuple is `\ell` regular. The special
-      value of `\ell=0` is used to allow all Energy Partitions. If
-      ``regular`` is an integer, it is applied to all entries.
-
-    OUTPUT:
-
-    The class of Energy Partition Tuples with the prescribed
-    conditions.
-
-    EXAMPLES:
-
-    The vectors of the :class:`NeveuSchwarzVertexAlgebra` of energy
-    ``6`` are parametrized by::
-
-        sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-        sage: L = EnergyPartitionTuples((2,3/2),2,6,regular=(0,2)); L
-        (0, 2)-Regular Energy Partition Tuples of energy 6 with level 2 and weights (2, 3/2)
-        sage: l = L.list(); l
-        [([1, 1, 1], []),
-         ([1], [2, 1]),
-         ([2, 2], []),
-         ([3, 1], []),
-         ([], [3, 2]),
-         ([], [4, 1]),
-         ([5], [])]
-        sage: V = NeveuSchwarzVertexAlgebra(QQ,1/2); V
-        The Neveu-Schwarz super vertex algebra of central charge 1/2 over Rational Field
-        sage: [V(v) for v in l]
-        [L_-2L_-2L_-2|0>,
-         L_-2G_-5/2G_-3/2|0>,
-         L_-3L_-3|0>,
-         L_-4L_-2|0>,
-         G_-7/2G_-5/2|0>,
-         G_-9/2G_-3/2|0>,
-         L_-6|0>]
-        
-    The Universal Affine Kac-Moody vertex algebra of type `A_1`, has
-    the following basis::
-
-        sage: L = EnergyPartitionTuples((1,1,1),3); L
-        (0, 0, 0)-Regular Energy Partition Tuples of level 3 with weights (1, 1, 1)
-        sage: l = L[0:13]; l
-        [([], [], []),
-         ([1], [], []),
-         ([], [1], []),
-         ([], [], [1]),
-         ([1, 1], [], []),
-         ([1], [1], []),
-         ([], [1, 1], []),
-         ([1], [], [1]),
-         ([], [1], [1]),
-         ([], [], [1, 1]),
-         ([2], [], []),
-         ([], [2], []),
-         ([], [], [2])]
-
-        sage: V = AffineVertexAlgebra(QQ,'A1',1, names=('e','h','f')); V
-        The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
-        sage: [V(v) for v in l]
-        [|0>,
-         e_-1|0>,
-         h_-1|0>,
-         f_-1|0>,
-         e_-1e_-1|0>,
-         e_-1h_-1|0>,
-         h_-1h_-1|0>,
-         e_-1f_-1|0>,
-         h_-1f_-1|0>,
-         f_-1f_-1|0>,
-         e_-2|0>,
-         h_-2|0>,
-         f_-2|0>]
-
-    The Free Fermions have a similar structure::
-
-        sage: L = EnergyPartitionTuples(1/2,1,regular=2); L
-        (2,)-Regular Energy Partition Tuples of level 1 with weights (1/2,)
-        sage: l = L[0:10]; l
-        [([]),
-         ([1]),
-         ([2]),
-         ([2, 1]),
-         ([3]),
-         ([3, 1]),
-         ([4]),
-         ([3, 2]),
-         ([4, 1]),
-         ([3, 2, 1])]
-        sage: V = FreeFermionsVertexAlgebra(QQ); V
-        The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
-        sage: [V(v) for v in l]
-        [|0>,
-         psi_-1/2|0>,
-         psi_-3/2|0>,
-         psi_-3/2psi_-1/2|0>,
-         psi_-5/2|0>,
-         psi_-5/2psi_-1/2|0>,
-         psi_-7/2|0>,
-         psi_-5/2psi_-3/2|0>,
-         psi_-7/2psi_-1/2|0>,
-         psi_-5/2psi_-3/2psi_-1/2|0>]
-        
-    TESTS::
-
-        sage: ([],[]) in EnergyPartitionTuples((1,1),2,1)
-        False
-        sage: ([],[]) in EnergyPartitionTuples((1,1),2,0)
-        True
-        sage: ([],[]) in EnergyPartitionTuples((1,1),2,0,regular=1)
-        True
-    """
     @staticmethod
     def __classcall_private__(cls, weights=None, level=None, energy=None,
                               regular = 0):
@@ -357,6 +234,137 @@ class EnergyPartitionTuples(PartitionTuples):
     _energy=None
 
     def __init__(self, weights, level, regular, is_infinite=False):
+        r"""
+        Energy Partition Tuples factory.
+
+        INPUT:
+
+        - ``weights`` -- a list or tuple of positive rational numbers;
+          the weights `w_i` as above. The length of this tuple has to
+          equal the parameter ``level``.
+
+        - ``level`` -- a positive integer; the number of genertors,
+          or length of this tuple.
+
+        - ``energy`` -- a non-negative rational or ``None`` (default:
+          ``None``); the total energy of the tuples in this class, or all
+          tuples if ``None``.
+
+        - ``regular`` -- a non-negative integer number, a list of
+          non-negative integers of length ``level`` (default: ``0``);
+          if the `i-th` entry
+          of this list is `\ell`, then the corresponding `i-th`
+          ``EnergyPartition`` of this tuple is `\ell` regular. The special
+          value of `\ell=0` is used to allow all Energy Partitions. If
+          ``regular`` is an integer, it is applied to all entries.
+
+        OUTPUT:
+
+        The class of Energy Partition Tuples with the prescribed
+        conditions.
+
+        EXAMPLES:
+
+        The vectors of the :class:`NeveuSchwarzVertexAlgebra` of energy
+        ``6`` are parametrized by::
+
+            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+            sage: L = EnergyPartitionTuples((2,3/2),2,6,regular=(0,2)); L
+            (0, 2)-Regular Energy Partition Tuples of energy 6 with level 2 and weights (2, 3/2)
+            sage: l = L.list(); l
+            [([1, 1, 1], []),
+             ([1], [2, 1]),
+             ([2, 2], []),
+             ([3, 1], []),
+             ([], [3, 2]),
+             ([], [4, 1]),
+             ([5], [])]
+            sage: V = NeveuSchwarzVertexAlgebra(QQ,1/2); V
+            The Neveu-Schwarz super vertex algebra of central charge 1/2 over Rational Field
+            sage: [V(v) for v in l]
+            [L_-2L_-2L_-2|0>,
+             L_-2G_-5/2G_-3/2|0>,
+             L_-3L_-3|0>,
+             L_-4L_-2|0>,
+             G_-7/2G_-5/2|0>,
+             G_-9/2G_-3/2|0>,
+             L_-6|0>]
+
+        The Universal Affine Kac-Moody vertex algebra of type `A_1`, has
+        the following basis::
+
+            sage: L = EnergyPartitionTuples((1,1,1),3); L
+            (0, 0, 0)-Regular Energy Partition Tuples of level 3 with weights (1, 1, 1)
+            sage: l = L[0:13]; l
+            [([], [], []),
+             ([1], [], []),
+             ([], [1], []),
+             ([], [], [1]),
+             ([1, 1], [], []),
+             ([1], [1], []),
+             ([], [1, 1], []),
+             ([1], [], [1]),
+             ([], [1], [1]),
+             ([], [], [1, 1]),
+             ([2], [], []),
+             ([], [2], []),
+             ([], [], [2])]
+
+            sage: V = AffineVertexAlgebra(QQ,'A1',1, names=('e','h','f')); V
+            The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
+            sage: [V(v) for v in l]
+            [|0>,
+             e_-1|0>,
+             h_-1|0>,
+             f_-1|0>,
+             e_-1e_-1|0>,
+             e_-1h_-1|0>,
+             h_-1h_-1|0>,
+             e_-1f_-1|0>,
+             h_-1f_-1|0>,
+             f_-1f_-1|0>,
+             e_-2|0>,
+             h_-2|0>,
+             f_-2|0>]
+
+        The Free Fermions have a similar structure::
+
+            sage: L = EnergyPartitionTuples(1/2,1,regular=2); L
+            (2,)-Regular Energy Partition Tuples of level 1 with weights (1/2,)
+            sage: l = L[0:10]; l
+            [([]),
+             ([1]),
+             ([2]),
+             ([2, 1]),
+             ([3]),
+             ([3, 1]),
+             ([4]),
+             ([3, 2]),
+             ([4, 1]),
+             ([3, 2, 1])]
+            sage: V = FreeFermionsVertexAlgebra(QQ); V
+            The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
+            sage: [V(v) for v in l]
+            [|0>,
+             psi_-1/2|0>,
+             psi_-3/2|0>,
+             psi_-3/2psi_-1/2|0>,
+             psi_-5/2|0>,
+             psi_-5/2psi_-1/2|0>,
+             psi_-7/2|0>,
+             psi_-5/2psi_-3/2|0>,
+             psi_-7/2psi_-1/2|0>,
+             psi_-5/2psi_-3/2psi_-1/2|0>]
+
+        TESTS::
+
+            sage: ([],[]) in EnergyPartitionTuples((1,1),2,1)
+            False
+            sage: ([],[]) in EnergyPartitionTuples((1,1),2,0)
+            True
+            sage: ([],[]) in EnergyPartitionTuples((1,1),2,0,regular=1)
+            True
+        """
         self._weights = tuple(weights)
         self._level = level
         self._regular = tuple(regular)
@@ -386,7 +394,6 @@ class EnergyPartitionTuples(PartitionTuples):
             ValueError: ([2, 1], [1, 1]) is not a (2, 2)-Regular Energy Partition Tuples of level 2 with weights (1/2, 1/2)
         """
         #override partition_tuple's constructor to get EnergyPartitions
-
         try:
             l = len(mu)
         except TypeError:

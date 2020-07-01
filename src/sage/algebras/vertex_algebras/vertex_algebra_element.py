@@ -91,8 +91,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
     def is_even_odd(self):
         """
-        Returns ``0`` if this element is `even` and ``1`` if it is
-        `odd`.
+        Return ``0`` if this element is `even` or ``1`` if it is `odd`.
 
         EXAMPLES::
 
@@ -488,7 +487,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         OUTPUT:
 
-        Returns the maximal `p` such that this element belongs
+        The maximal `p` such that this element belongs
         to `F_pV`, where `F_pV` is the Li filtration of this vertex
         algebra.
 
@@ -523,7 +522,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
     def pbw_filtration_degree(self):
         r"""
-        Returns the minimal `p` such that this element is contained in
+        The minimal `p` such that this element is contained in
         the `p`-th filtered piece of the vertex algebra with respect
         to the PBW filtration.
 

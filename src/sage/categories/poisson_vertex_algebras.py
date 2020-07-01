@@ -458,7 +458,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
             """
             The name of objects in this category.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: PoissonVertexAlgebras(AA).FinitelyGenerated()
                 Category of finitely generated Poisson vertex algebras over Algebraic Real Field
