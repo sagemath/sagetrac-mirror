@@ -80,7 +80,7 @@ class SingularSupportCoverMorphism(RingHomomorphism_im_gens):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
             sage: P = Q.classical_limit()
             sage: f = P.arc_algebra_cover; f
@@ -111,7 +111,7 @@ class SingularSupportCoverMorphism(RingHomomorphism_im_gens):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 7/10)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 7/10)
             sage: Q = V.quotient(V.ideal(V.find_singular(4)))
             sage: P = Q.classical_limit()
             sage: f = P.arc_algebra_cover
@@ -138,7 +138,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = FreeFermionsVertexAlgebra(AA, 6)
+            sage: V = vertex_algebras.FreeFermions(AA, 6)
             sage: P = V.classical_limit(); P.an_element()
             1 + 2*psi_0_1/2 + 3*psi_1_1/2 + psi_4_1/2
         """
@@ -161,7 +161,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: F = FreeFermionsVertexAlgebra(QQ,6)
+            sage: F = vertex_algebras.FreeFermions(QQ,6)
             sage: P = F.classical_limit()
             sage: v = P.an_element(); v
             1 + 2*psi_0_1/2 + 3*psi_1_1/2 + psi_4_1/2
@@ -186,7 +186,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: v = P([[3,2],[1]]); v
             L_4*L_3*G_3/2
@@ -201,7 +201,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: v = P([[3,2],[1]]); v
             L_4*L_3*G_3/2
@@ -223,7 +223,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: v = P.an_element(); v
             1 + 2*G_3/2 + 3*L_2 + L_2*G_3/2
@@ -246,7 +246,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining e, h, f
@@ -267,7 +267,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: v = P.an_element(); v
             1 + 2*e_1 + 3*h_1 + e_1^4*h_2*h_1^2*f_3*f_1
@@ -282,7 +282,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: v = P([[4,3,2],[3,1],[1,1,1]]); v
             e_4*e_3*e_2*h_3*h_1*f_1^3
@@ -297,7 +297,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1)
+            sage: V = vertex_algebras.Virasoro(QQ,1)
             sage: P = V.classical_limit()
             sage: v = P.an_element(); v
             1 + 2*L_2 + 3*L_3 + L_2^4
@@ -313,7 +313,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = FreeFermionsVertexAlgebra(QQ,3)
+            sage: V = vertex_algebras.FreeFermions(QQ,3)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining psi_0, psi_1, psi_2
@@ -337,7 +337,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1)
+            sage: V = vertex_algebras.Virasoro(QQ,1)
             sage: P = V.classical_limit()
             sage: v = P([[3,2,1,1]]); v
             L_4*L_3*L_2^2
@@ -379,7 +379,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1)
+            sage: V = vertex_algebras.Virasoro(QQ,1)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L
@@ -388,7 +388,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         TESTS::
 
-            sage: F = FreeFermionsVertexAlgebra(QQ)
+            sage: F = vertex_algebras.FreeFermions(QQ)
             sage: P = F.classical_limit()
             sage: P.0*P.0
             0
@@ -449,7 +449,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-                sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+                sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
                 sage: V.inject_variables()
                 Defining e, h, f
                 sage: e.bracket(f)
@@ -485,7 +485,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: v = P.an_element(); v
             1 + 2*e_1 + 3*h_1 + e_1^4*h_2*h_1^2*f_3*f_1
@@ -517,7 +517,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: v = 4*P([[3,2],[1,1,1],[2,1]]); v
             4*e_3*e_2*h_1^3*f_2*f_1
@@ -593,7 +593,7 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: v = P([[5,4,3],[4,3],[3,2]]); v
             e_5*e_4*e_3*h_4*h_3*f_3*f_2
@@ -652,8 +652,8 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1)
-            sage: B = FreeBosonsVertexAlgebra(QQ)
+            sage: V = vertex_algebras.Virasoro(QQ,1)
+            sage: B = vertex_algebras.FreeBosons(QQ)
             sage: P = V.classical_limit(); P.inject_variables()
             Defining L
             sage: R = B.classical_limit(); R.inject_variables()
@@ -694,7 +694,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.algebras.poisson_vertex_algebras.vertex_algebra_classical_limit import VertexAlgebraClassicalLimit
-            sage: V = FreeBosonsVertexAlgebra(QQ)
+            sage: V = vertex_algebras.FreeBosons(QQ)
             sage: VertexAlgebraClassicalLimit(QQ,V)
             The classical limit of The Free Bosons vertex algebra with generators (alpha_-1|0>,) over Rational Field
         """
@@ -736,7 +736,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = FreeBosonsVertexAlgebra(QQ);
+            sage: V = vertex_algebras.FreeBosons(QQ);
             sage: P = V.classical_limit()
             sage: v = V.an_element(); v
             |0> + 2*alpha_-1|0> + 3*alpha_-1alpha_-1|0> + alpha_-1alpha_-1alpha_-1alpha_-1|0>
@@ -762,7 +762,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = FreeBosonsVertexAlgebra(QQ);
+            sage: V = vertex_algebras.FreeBosons(QQ);
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining alpha
@@ -779,7 +779,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2);
+            sage: V = vertex_algebras.Virasoro(QQ,1/2);
             sage: P = V.classical_limit()
             sage: P.basis()
             Lazy family (Term map from (0,)-Regular Energy Partition Tuples of level 1 with weights (2,) to The classical limit of The Virasoro vertex algebra of central charge 1/2 over Rational Field(i))_{i in (0,)-Regular Energy Partition Tuples of level 1 with weights (2,)}
@@ -799,7 +799,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ)
+            sage: V = vertex_algebras.Abelian(QQ)
             sage: V.classical_limit()
             The classical limit of The Abelian vertex algebra over Rational Field with generators (a_-1|0>,)
         """
@@ -815,7 +815,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: P.dimension_at_weight(11/2)
             5
@@ -836,7 +836,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: P.one()
             1
@@ -850,7 +850,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: P.gens()
             (L_2, G_3/2)
@@ -878,7 +878,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L, G
@@ -900,7 +900,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L, G
@@ -927,7 +927,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
         Computing the graded character of classical limits of universal
         enveloping vertex algebras is fast::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
             sage: P = V.classical_limit()
             sage: P.hilbert_series(10)
             1 + q^2 + q^3 + 2*q^4 + 2*q^5 + 4*q^6 + 4*q^7 + 7*q^8 + 8*q^9 + O(q^10)
@@ -949,7 +949,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
         We may get a :mod:`Puiseux Series<sage.rings.puiseux_series_ring>`
         if the algebra is not integrally graded::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1)
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
             sage: P = V.classical_limit()
             sage: P.hilbert_series(11/2)
             1 + q^(3/2) + q^2 + q^(5/2) + q^3 + 2*q^(7/2) + 3*q^4 + 3*q^(9/2) + 3*q^5 + O(q^(11/2))
@@ -999,9 +999,9 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
             sage: P = V.classical_limit()
-            sage: W = NeveuSchwarzVertexAlgebra(QQ,1)
+            sage: W = vertex_algebras.NeveuSchwarz(QQ,1)
             sage: R = W.classical_limit()
             sage: R.inject_variables()
             Defining L, G
@@ -1035,7 +1035,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: P = Q.classical_limit()
             sage: P.arc_algebra_cover
@@ -1102,7 +1102,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: P = V.classical_limit()
             sage: P.jet_algebra(2)
             Multivariate Polynomial Ring in e_1, h_1, f_1, e_2, h_2, f_2 over Rational Field

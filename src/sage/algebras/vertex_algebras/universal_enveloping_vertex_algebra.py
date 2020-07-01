@@ -257,7 +257,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             Generic morphism:
               From: The Virasoro Lie conformal algebra over Rational Field
               To:   The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-            sage: W = VirasoroVertexAlgebra(QQ,1/2)
+            sage: W = vertex_algebras.Virasoro(QQ,1/2)
             sage: L.lift
             Generic morphism:
               From: The Virasoro Lie conformal algebra over Rational Field
@@ -291,11 +291,11 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ,1); V.gens()
+            sage: V = vertex_algebras.NeveuSchwarz(QQ,1); V.gens()
             (L_-2|0>, G_-3/2|0>)
-            sage: V = AffineVertexAlgebra(QQ,'A1', 1, names =('e','h', 'f')); V.gens()
+            sage: V = vertex_algebras.Affine(QQ,'A1', 1, names =('e','h', 'f')); V.gens()
             (e_-1|0>, h_-1|0>, f_-1|0>)
-            sage: V = AffineVertexAlgebra(QQ,'A1', 1); V.gens()
+            sage: V = vertex_algebras.Affine(QQ,'A1', 1); V.gens()
             (E(alpha[1])_-1|0>, E(alphacheck[1])_-1|0>, E(-alpha[1])_-1|0>)
         """
         gens = []
@@ -311,9 +311,9 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'B3', 1); V.ngens()
+            sage: V = vertex_algebras.Affine(QQ, 'B3', 1); V.ngens()
             21
-            sage: V = N2VertexAlgebra(QQ,1); V.ngens()
+            sage: V = vertex_algebras.N2(QQ,1); V.ngens()
             4
         """
         return self._ngens
@@ -326,7 +326,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = FreeFermionsVertexAlgebra(QQ); V.central_parameters()
+            sage: V = vertex_algebras.FreeFermions(QQ); V.central_parameters()
             Finite family {K: 1}
         """
         return self._central_parameters
@@ -338,7 +338,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: VirasoroVertexAlgebra(QQ,1).vacuum()
+            sage: vertex_algebras.Virasoro(QQ,1).vacuum()
             |0>
         """
         vac = [[],]*self.ngens()
@@ -360,7 +360,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         We construct the ideal defining the *Virasoro Ising* module::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V.register_lift()
+            sage: V = vertex_algebras.Virasoro(QQ,1/2); V.register_lift()
             sage: L = V.0
             sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
             sage: I = V.ideal(v)
@@ -397,7 +397,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
             sage: L = V.0
             sage: v = L*(L*L) + 93/64*L.T()*L.T() - 33/16*L.T(2)*L - 9/128*L.T(4)
             sage: I = V.ideal(v)
@@ -426,7 +426,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ, 1/2); P = V.arc_algebra()
+            sage: V = vertex_algebras.Virasoro(QQ, 1/2); P = V.arc_algebra()
             sage: P.category()
             Category of finitely generated H-graded Poisson vertex algebras with basis over Rational Field
             sage: P is V.classical_limit()

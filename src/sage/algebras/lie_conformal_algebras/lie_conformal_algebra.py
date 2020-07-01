@@ -179,7 +179,7 @@ EXAMPLES:
 
 - Vertex Algebras are Lie Conformal Algebras::
 
-    sage: V = FreeBosonsVertexAlgebra(QQbar); V
+    sage: V = vertex_algebras.FreeBosons(QQbar); V
     The Free Bosons vertex algebra with generators (alpha_-1|0>,) over Algebraic Field
     sage: V.inject_variables()
     Defining alpha

@@ -31,18 +31,18 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: FreeFermionsVertexAlgebra(AA,ngens=2).inject_variables()
+            sage: vertex_algebras.FreeFermions(AA,ngens=2).inject_variables()
             Defining psi_0, psi_1
             sage: psi_0*psi_1.T(3)
             6*psi_0_-1/2psi_1_-7/2|0>
-            sage: VirasoroVertexAlgebra(QQ,1/2).inject_variables()
+            sage: vertex_algebras.Virasoro(QQ,1/2).inject_variables()
             Defining L
             sage: L.T(5)*L.T(2) +L*L
             L_-2L_-2|0> + 240*L_-7L_-4|0>
 
         For non H-graded vertex algebras we use normal modes::
 
-            sage: WeylVertexAlgebra(QQ,ngens=2).inject_variables()
+            sage: vertex_algebras.Weyl(QQ,ngens=2).inject_variables()
             Defining alpha0, alpha1
             sage: alpha1.T()*(alpha1.T(3)*alpha0)
             6*alpha0_(-1)alpha1_(-4)alpha1_(-2)|0>
@@ -70,7 +70,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = WeylVertexAlgebra(QQ,ngens=2); V.inject_variables()
+            sage: V = vertex_algebras.Weyl(QQ,ngens=2); V.inject_variables()
             Defining alpha0, alpha1
             sage: latex(alpha1*alpha1*alpha0)
             alpha0_{(-1)}alpha1_{(-1)}alpha1_{(-1)}|0\rangle> - 2alpha1_{(-2)}|0\rangle>
@@ -95,7 +95,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
+            sage: V = vertex_algebras.NeveuSchwarz(QQbar,1/2); V
             The Neveu-Schwarz super vertex algebra of central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
@@ -108,7 +108,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         TESTS::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); v = V.an_element(); v
+            sage: V = vertex_algebras.NeveuSchwarz(QQbar,1/2); v = V.an_element(); v
             |0> + 2*G_-3/2|0> + 3*L_-2|0> + L_-2G_-3/2|0>
             sage: v.is_odd()
             Traceback (most recent call last):
@@ -133,7 +133,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
+            sage: V = vertex_algebras.NeveuSchwarz(QQbar,1/2); V
             The Neveu-Schwarz super vertex algebra of central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
@@ -141,7 +141,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             1
             sage: G.is_odd()
             True
-            sage: V = VirasoroVertexAlgebra(AA,1); v = V.an_element(); v.is_odd()
+            sage: V = vertex_algebras.Virasoro(AA,1); v = V.an_element(); v.is_odd()
             False
         """
         return not self.is_even_odd()
@@ -152,7 +152,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQbar,1/2); V
+            sage: V = vertex_algebras.NeveuSchwarz(QQbar,1/2); V
             The Neveu-Schwarz super vertex algebra of central charge 1/2 over Algebraic Field
             sage: V.inject_variables()
             Defining L, G
@@ -160,7 +160,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             1
             sage: G.is_odd()
             True
-            sage: V = VirasoroVertexAlgebra(AA,1); v = V.an_element(); v.is_odd()
+            sage: V = vertex_algebras.Virasoro(AA,1); v = V.an_element(); v.is_odd()
             False
         """
         return not not self.is_even_odd()
@@ -183,7 +183,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         We consider the bosonization of the charged Fermions::
 
-            sage: V = FreeFermionsVertexAlgebra(QQ, gram_matrix=Matrix([[0,1],[1,0]])); V
+            sage: V = vertex_algebras.FreeFermions(QQ, gram_matrix=Matrix([[0,1],[1,0]])); V
             The Free Fermions super vertex algebra with generators (psi_0_-1/2|0>, psi_1_-1/2|0>) over Rational Field
             sage: V.inject_variables()
             Defining psi_0, psi_1
@@ -192,7 +192,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         We check the standard conformal vector of the Free Fermions::
 
-            sage: V = FreeFermionsVertexAlgebra(QQ); V
+            sage: V = vertex_algebras.FreeFermions(QQ); V
             The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
             sage: V.inject_variables()
             Defining psi
@@ -204,7 +204,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         A similar computation for the free Boson::
 
-            sage: V = FreeBosonsVertexAlgebra(QQ); V
+            sage: V = vertex_algebras.FreeBosons(QQ); V
             The Free Bosons vertex algebra with generators (alpha_-1|0>,) over Rational Field
             sage: V.inject_variables()
             Defining alpha
@@ -216,7 +216,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         The topological twist of the `N=2` super vertex algebra::
 
-            sage: V = N2VertexAlgebra(QQ,3/2); V
+            sage: V = vertex_algebras.N2(QQ,3/2); V
             The N=2 super vertex algebra of central charge 3/2 over Rational Field
             sage: V.inject_variables()
             Defining L, J, G1, G2
@@ -227,7 +227,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         TESTS::
 
-            sage: V = AffineVertexAlgebra(QQ,'A1',1)
+            sage: V = vertex_algebras.Affine(QQ,'A1',1)
             sage: V.0.bracket(V.vacuum())
             {}
             sage: V.vacuum().bracket(V.an_element())
@@ -309,21 +309,21 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         The square of a Free Fermion vanishes::
 
-            sage: V = FreeFermionsVertexAlgebra(RR); V.inject_variables()
+            sage: V = vertex_algebras.FreeFermions(RR); V.inject_variables()
             Defining psi
             sage: psi*psi
             0
 
         This is not the case in the N=1 super vertex algebra::
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1); V.inject_variables()
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1); V.inject_variables()
             Defining L, G
             sage: G*G
             L_-3|0>
 
         The product is not associative on the Free Bosons::
 
-            sage: V = FreeBosonsVertexAlgebra(QQ); V.inject_variables()
+            sage: V = vertex_algebras.FreeBosons(QQ); V.inject_variables()
             Defining alpha
             sage: (alpha*alpha)*alpha - alpha*(alpha*alpha)
             2*alpha_-3|0>
@@ -331,7 +331,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
         The Sugawara construction for the affine Kac-Moody vertex
         algebra of `\mathfrak{sl}_2` at level ``1``::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names = ('e','h', 'f')); V
+            sage: V = vertex_algebras.Affine(QQ, 'A1', 1, names = ('e','h', 'f')); V
             The universal affine vertex algebra of CartanType ['A', 1] at level 1 over Rational Field
             sage: V.inject_variables()
             Defining e, h, f
@@ -394,16 +394,16 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names = ('e','h', 'f'));
+            sage: V = vertex_algebras.Affine(QQ, 'A1', 1, names = ('e','h', 'f'));
             sage: V.0.T(3)
             6*e_-4|0>
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V.inject_variables()
+            sage: V = vertex_algebras.Virasoro(QQ,1/2); V.inject_variables()
             Defining L
             sage: (L*L).T()
             2*L_-3L_-2|0> + L_-5|0>
 
-            sage: V = NeveuSchwarzVertexAlgebra(QQ, 1); V.inject_variables()
+            sage: V = vertex_algebras.NeveuSchwarz(QQ, 1); V.inject_variables()
             Defining L, G
             sage: (G.T()*G).T()
             2*G_-7/2G_-3/2|0> + L_-5|0>
@@ -437,7 +437,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names = ('e','h', 'f'));
+            sage: V = vertex_algebras.Affine(QQ, 'A1', 1, names = ('e','h', 'f'));
             sage: V.inject_variables()
             Defining e, h, f
             sage: (f.T(3)*e).weight()
@@ -459,7 +459,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         weight is only defined for graded vertex algebras::
 
-            sage: V = WeylVertexAlgebra(QQ); V.inject_variables()
+            sage: V = vertex_algebras.Weyl(QQ); V.inject_variables()
             Defining alpha0, alpha1
             sage: alpha0.weight()
             Traceback (most recent call last):
@@ -493,7 +493,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = WeylVertexAlgebra(QQ); V.inject_variables()
+            sage: V = vertex_algebras.Weyl(QQ); V.inject_variables()
             Defining alpha0, alpha1
             sage: v = alpha0*(alpha1*alpha1); v
             alpha0_(-1)alpha1_(-1)alpha1_(-1)|0>
@@ -528,7 +528,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1', 1, names=('e','h','f'))
             sage: V.inject_variables()
             Defining e, h, f
             sage: e.pbw_filtration_degree()
@@ -560,7 +560,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1', 1, names = ('e','h', 'f')); V.inject_variables(); V.register_lift()
+            sage: V = vertex_algebras.Affine(QQ, 'A1', 1, names = ('e','h', 'f')); V.inject_variables(); V.register_lift()
             Defining e, h, f
             sage: v = e.T(2)*(e*(h.T()*f)); v
             2*e_-3e_-1h_-2f_-1|0>
@@ -568,7 +568,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
             (e_-3|0>, e_-1h_-2f_-1|0>, 2)
             sage: v = 3*V.vacuum(); v._pbw_one_less()
             (|0>, |0>, 3)
-            sage: V = VirasoroVertexAlgebra(QQ);
+            sage: V = vertex_algebras.Virasoro(QQ);
             sage: v = V([[3,2,1,1]]); v
             L_-4L_-3L_-2L_-2|0>
             sage: v._pbw_one_less()

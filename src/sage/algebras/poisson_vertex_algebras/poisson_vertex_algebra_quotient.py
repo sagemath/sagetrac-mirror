@@ -40,7 +40,7 @@ class PoissonVertexAlgebraQuotientElement(VertexAlgebraQuotientElement):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
             sage: P = V.classical_limit()
             sage: I = P.ideal(P.0**3)
             sage: S = P.quotient(I)
@@ -116,7 +116,7 @@ class PoissonVertexAlgebraQuotientElement(VertexAlgebraQuotientElement):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
             sage: A = Q.arc_algebra()
             sage: v = A(A._indices[10]); v
@@ -197,7 +197,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ)
+            sage: V = vertex_algebras.Virasoro(QQ)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L
@@ -218,7 +218,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ)
+            sage: V = vertex_algebras.Virasoro(QQ)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L
@@ -235,7 +235,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ)
+            sage: V = vertex_algebras.Virasoro(QQ)
             sage: P = V.classical_limit()
             sage: P.inject_variables()
             Defining L
@@ -256,7 +256,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V.register_lift()
+            sage: V = vertex_algebras.Virasoro(QQ,1/2); V.register_lift()
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: A = Q.arc_algebra()
             sage: P = Q.classical_limit()
@@ -276,7 +276,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2);
+            sage: V = vertex_algebras.Virasoro(QQ,1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: A = Q.arc_algebra()
             sage: A.cover()
@@ -293,7 +293,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2);
+            sage: V = vertex_algebras.Virasoro(QQ,1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: A = Q.arc_algebra()
             sage: A.defining_ideal()
@@ -307,7 +307,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2);
+            sage: V = vertex_algebras.Virasoro(QQ,1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: A = Q.arc_algebra()
             sage: v = A.an_element().lift(); v
@@ -324,7 +324,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2);
+            sage: V = vertex_algebras.Virasoro(QQ,1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
             sage: A = Q.arc_algebra()
             sage: A.basis()
@@ -340,7 +340,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0
+            sage: V = vertex_algebras.Abelian(QQ, 6, weights = (1,1,1,1/2,1/2,1/2), parity=(0
             ....: ,0,0,1,1,1), names = ('a0','a1','a2','b0','b1','b2'))
             sage: P = V.classical_limit()
             sage: P.inject_variables()
@@ -402,7 +402,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
             sage: P = Q.arc_algebra()
             sage: P.jet_algebra(3)
@@ -439,7 +439,7 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: V = AffineVertexAlgebra(QQ, 'A1',1, names=('e','h','f'))
+            sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
             sage: A = Q.arc_algebra()
             sage: A.hilbert_series(8)

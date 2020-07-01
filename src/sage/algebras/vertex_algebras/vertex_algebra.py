@@ -166,7 +166,7 @@ super vertex algebras like :class:`NeveuSchwarzVertexAlgebra` and
 - We create the Universal Virasoro Vertex algebra of central charge
   c=1/2 and perform some basic computations::
 
-    sage: V = VirasoroVertexAlgebra(QQ,1/2); V.inject_variables()
+    sage: V = vertex_algebras.Virasoro(QQ,1/2); V.inject_variables()
     Defining L
     sage: L*L
     L_-2L_-2|0>
@@ -216,7 +216,7 @@ super vertex algebras like :class:`NeveuSchwarzVertexAlgebra` and
 - We construct the universal Affine vertex algebra for
   `\mathfrak{sl}_3` at level 2 and perform some basic computations::
 
-    sage: V = AffineVertexAlgebra(QQ,'A2',2)
+    sage: V = vertex_algebras.Affine(QQ,'A2',2)
     sage: V.gens()
     (E(alpha[2])_-1|0>,
      E(alpha[1])_-1|0>,
@@ -235,7 +235,7 @@ super vertex algebras like :class:`NeveuSchwarzVertexAlgebra` and
 - We construct the universal affine vertex algebra for
   `\mathfrak{sl}_2` at level 3 and check that a vector is singular::
 
-    sage: V = AffineVertexAlgebra(QQ,'A1',3)
+    sage: V = vertex_algebras.Affine(QQ,'A1',3)
     sage: V.gens()
     (E(alpha[1])_-1|0>, E(alphacheck[1])_-1|0>, E(-alpha[1])_-1|0>)
     sage: e = V.gen(0)
@@ -372,7 +372,7 @@ class VertexAlgebra(UniqueRepresentation):
         """The base ring of this vertex algebra
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V
+            sage: V = vertex_algebras.Virasoro(QQ,1/2); V
             The Virasoro vertex algebra of central charge 1/2 over Rational Field
             sage: V.base_ring()
             Rational Field

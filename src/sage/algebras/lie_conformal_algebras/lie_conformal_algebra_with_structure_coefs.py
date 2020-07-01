@@ -430,7 +430,7 @@ class _LiftMorphism(Morphism):
         Generic morphism:
           From: The Virasoro Lie conformal algebra over Algebraic Real Field
           To:   The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Algebraic Real Field
-        sage: W = VirasoroVertexAlgebra(AA,1)
+        sage: W = vertex_algebras.Virasoro(AA,1)
         sage: Vir.lift
         Generic morphism:
           From: The Virasoro Lie conformal algebra over Algebraic Real Field

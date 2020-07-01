@@ -73,7 +73,7 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         The Bosonization of the charged Free Fermions::
 
-            sage: F = FreeFermionsVertexAlgebra(QQ, 2, gram_matrix = Matrix([[0,1],[1,0]])); F
+            sage: F = vertex_algebras.FreeFermions(QQ, 2, gram_matrix = Matrix([[0,1],[1,0]])); F
             The Free Fermions super vertex algebra with generators (psi_0_-1/2|0>, psi_1_-1/2|0>) over Rational Field
             sage: F.inject_variables()
             Defining psi_0, psi_1
@@ -122,7 +122,7 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: F = FreeFermionsVertexAlgebra(QQ,2); F
+            sage: F = vertex_algebras.FreeFermions(QQ,2); F
             The Free Fermions super vertex algebra with generators (psi_0_-1/2|0>, psi_1_-1/2|0>) over Rational Field
             sage: F.gram_matrix()
             [1 0]
@@ -135,7 +135,7 @@ class FreeFermionsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: F = FreeFermionsVertexAlgebra(QQ); F
+            sage: F = vertex_algebras.FreeFermions(QQ); F
             The Free Fermions super vertex algebra with generators (psi_-1/2|0>,) over Rational Field
         """
         return "The Free Fermions super vertex algebra with generators {} over"\

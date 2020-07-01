@@ -125,7 +125,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             sage: Vir.lift.codomain()
             The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2);
+            sage: V = vertex_algebras.Virasoro(QQ,1/2);
             sage: V.register_lift()
             sage: Vir.lift.codomain()
             The Virasoro vertex algebra of central charge 1/2 over Rational Field
@@ -137,7 +137,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             sage: cp = Family({Vir.1:1/3}); V = Vir.universal_enveloping_algebra(cp)
             sage: Vir.lift.codomain()
             The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-            sage: V = VirasoroVertexAlgebra(QQ,1/2)
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
             sage: Vir.lift.codomain()
             The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
             sage: V.register_lift()
@@ -251,7 +251,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
         When the Lie conformal algebra is actually a vertex algebra,
         elements are denoted in a different fashion::
 
-            sage: V = VirasoroVertexAlgebra(AA,1/2)
+            sage: V = vertex_algebras.Virasoro(AA,1/2)
             sage: V.inject_variables()
             Defining L
             sage: Family(L.bracket(L*L))

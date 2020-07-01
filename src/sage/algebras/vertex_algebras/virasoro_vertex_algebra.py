@@ -45,7 +45,7 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = VirasoroVertexAlgebra(QQ,1/2); V
+            sage: V = vertex_algebras.Virasoro(QQ,1/2); V
             The Virasoro vertex algebra of central charge 1/2 over Rational Field
             sage: V.inject_variables()
             Defining L
@@ -65,7 +65,7 @@ class VirasoroVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: VirasoroVertexAlgebra(QQbar)
+            sage: vertex_algebras.Virasoro(QQbar)
             The Virasoro vertex algebra of central charge 0 over Algebraic Field
         """
         return "The Virasoro vertex algebra of central charge {} over {}".\

@@ -66,7 +66,7 @@ class FreeBosonsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         The normally ordered product is not associative::
 
-            sage: V = FreeBosonsVertexAlgebra(QQ); V.inject_variables()
+            sage: V = vertex_algebras.FreeBosons(QQ); V.inject_variables()
             Defining alpha
             sage: (alpha*alpha)*alpha - alpha*(alpha*alpha)
             2*alpha_-3|0>
@@ -92,7 +92,7 @@ class FreeBosonsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         We can use an explicit Gram Matrix::
 
-            sage: V = FreeBosonsVertexAlgebra(QQ, gram_matrix=Matrix([[0,1],[1,0]]))
+            sage: V = vertex_algebras.FreeBosons(QQ, gram_matrix=Matrix([[0,1],[1,0]]))
             sage: V
             The Free Bosons vertex algebra with generators (alpha0_-1|0>, alpha1_-1|0>) over Rational Field
             sage: V.inject_variables()
@@ -120,7 +120,7 @@ class FreeBosonsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = FreeBosonsVertexAlgebra(QQ, gram_matrix=Matrix([[0,1],[1,0]]))
+            sage: V = vertex_algebras.FreeBosons(QQ, gram_matrix=Matrix([[0,1],[1,0]]))
             sage: V.gram_matrix()
             [0 1]
             [1 0]
@@ -133,7 +133,7 @@ class FreeBosonsVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: FreeBosonsVertexAlgebra(QQbar)
+            sage: vertex_algebras.FreeBosons(QQbar)
             The Free Bosons vertex algebra with generators (alpha_-1|0>,) over Algebraic Field
 
         """

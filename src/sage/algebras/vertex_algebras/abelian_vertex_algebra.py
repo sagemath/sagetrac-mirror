@@ -51,7 +51,7 @@ class AbelianVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: F = AbelianVertexAlgebra(QQ,2,weights=(2,3/2),parity=(0,1),names=('L','G'))
+            sage: F = vertex_algebras.Abelian(QQ,2,weights=(2,3/2),parity=(0,1),names=('L','G'))
             sage: F.inject_variables()
             Defining L, G
             sage: (L*L)*L*G
@@ -77,7 +77,7 @@ class AbelianVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: V = AbelianVertexAlgebra(QQ); V
+            sage: V = vertex_algebras.Abelian(QQ); V
             The Abelian vertex algebra over Rational Field with generators (a_-1|0>,)
         """
         return "The Abelian vertex algebra over {} with generators {}".\
@@ -91,7 +91,7 @@ class AbelianVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
         EXAMPLES::
 
-            sage: R = AbelianVertexAlgebra(QQ)
+            sage: R = vertex_algebras.Abelian(QQ)
             sage: R.an_element()
             |0> + 2*a_-1|0> + 3*a_-1a_-1|0> + a_-1a_-1a_-1a_-1|0>
         """
@@ -101,7 +101,7 @@ class AbelianVertexAlgebra(UniversalEnvelopingVertexAlgebra):
 
             EXAMPLES::
 
-                sage: R = AbelianVertexAlgebra(QQ); R.inject_variables()
+                sage: R = vertex_algebras.Abelian(QQ); R.inject_variables()
                 Defining a
                 sage: a.bracket(a)
                 {}

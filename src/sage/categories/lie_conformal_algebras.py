@@ -186,7 +186,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
     Vertex algebras are Lie conformal algebras::
 
-        sage: V = FreeBosonsVertexAlgebra(QQ)
+        sage: V = vertex_algebras.FreeBosons(QQ)
         sage: V in LieConformalAlgebras(QQ)
         True
 
@@ -318,7 +318,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                 Generic morphism:
                   From: The Virasoro Lie conformal algebra over Rational Field
                   To:   The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
-                sage: W = VirasoroVertexAlgebra(QQ,1/2)
+                sage: W = vertex_algebras.Virasoro(QQ,1/2)
                 sage: L.lift
                 Generic morphism:
                   From: The Virasoro Lie conformal algebra over Rational Field
@@ -331,7 +331,7 @@ class LieConformalAlgebras(Category_over_base_ring):
 
             TESTS::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                sage: V = vertex_algebras.Virasoro(QQ,1/2)
                 sage: R = NeveuSchwarzLieConformalAlgebra(QQ);
                 sage: R.set_lift(V._lca.lift)
                 Traceback (most recent call last):
@@ -763,10 +763,10 @@ class LieConformalAlgebras(Category_over_base_ring):
             Notice that the target of the ``lift`` morphism changes when
             we construct another universal enveloping vertex algebra::
 
-                sage: V = VirasoroVertexAlgebra(QQ,1);
+                sage: V = vertex_algebras.Virasoro(QQ,1);
                 sage: Vir.lift.codomain()
                 The Virasoro vertex algebra of central charge 1 over Rational Field
-                sage: V = VirasoroVertexAlgebra(QQ,3)
+                sage: V = vertex_algebras.Virasoro(QQ,3)
                 sage: Vir.lift.codomain()
                 The Virasoro vertex algebra of central charge 3 over Rational Field
 
@@ -777,7 +777,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                 sage: Vir.lift.codomain()
                 The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
 
-                sage: V = VirasoroVertexAlgebra(QQ,1/2)
+                sage: V = vertex_algebras.Virasoro(QQ,1/2)
                 sage: Vir.lift.codomain()
                 The universal enveloping vertex algebra of the Virasoro Lie conformal algebra over Rational Field
 
