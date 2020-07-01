@@ -132,8 +132,8 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
         from sage.matrix.matrix_space import MatrixSpace
         if ngens:
             try:
-                from sage.rings.all import NN
-                assert ngens in NN and ngens % 2 == 0
+                from sage.rings.all import ZZ
+                assert ngens in ZZ and ngens % 2 == 0
             except AssertionError:
                 raise ValueError("ngens needs to be an even positive "+
                                  "Integer, got {}".format(ngens))

@@ -34,7 +34,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.rings.all import QQ,NN
+from sage.rings.all import QQ,ZZ
 from sage.categories.fields import Fields
 from sage.structure.element_wrapper import ElementWrapper
 
@@ -231,7 +231,7 @@ class GradedVertexAlgebraIdeal(VertexAlgebraIdeal,CombinatorialFreeModule):
 
             M=V.submodule(gens)
             for v in V.gens():
-                if v.weight() in NN:
+                if v.weight() in ZZ:
                     for g in gens:
                         try:
                             M.reduce(v.nmodeproduct(g,0))

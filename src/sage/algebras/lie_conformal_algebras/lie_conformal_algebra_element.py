@@ -67,8 +67,8 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             sage: R.0.T(0)
             alpha
         """
-        from sage.rings.all import NN
-        if n not in NN:
+        from sage.rings.all import ZZ
+        if n not in ZZ or n < 0:
             raise ValueError("n must be a nonnegative Integer")
         if n == 0 or self.is_zero():
             return self

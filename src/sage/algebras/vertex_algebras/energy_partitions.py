@@ -41,7 +41,7 @@ AUTHORS:
 
 from sage.combinat.partition import Partitions, RegularPartitions, Partition
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.rings.all import QQ, ZZ, NN
+from sage.rings.all import QQ, ZZ 
 from sage.combinat.partitions import ZS1_iterator_nk
 
 class EnergyPartition(Partition):
@@ -158,11 +158,11 @@ class EnergyPartitions(Partitions):
             sage: EnergyPartitions(1/2,regular=3)
         """
         if regular is not None:
-            if regular not in NN or regular <= 0:
+            if regular not in ZZ or regular <= 0:
                 raise ValueError("regular must be a positive integer.")
         length = kwargs.pop('length',None)
         if length is not None:
-            if length not in NN or length < 0:
+            if length not in ZZ or length < 0:
                 raise ValueError("length must be a non-negative integer.")
 
         if w not in QQ or w <= 0:
@@ -374,7 +374,7 @@ class EnergyPartitions_n(EnergyPartitions):
         """
         if self.n == 0:
             lst = []
-        elif self.n < self.w or self.w.denominator()*self.n not in NN:
+        elif self.n < self.w or self.w.denominator()*self.n not in ZZ:
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("There are no Energy Partitions of energy {}"\
                                 " and weight {}".format(self.n,self.w))
@@ -544,7 +544,7 @@ class EnergyPartitions_nk(EnergyPartitions):
             [4, 1, 1]
         """
         rest = self.n - self.k*self.w
-        if rest not in NN:
+        if rest not in ZZ or rest < 0:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError
         if rest == 0:
@@ -564,7 +564,7 @@ class EnergyPartitions_nk(EnergyPartitions):
             [[4, 1, 1], [3, 2, 1], [2, 2, 2]]
         """
         rest = self.n - self.k*self.w
-        if rest not in NN:
+        if rest not in ZZ or rest <0:
             return
         for p in ZS1_iterator_nk(rest, self.k):
             v = [i + 1 for i in p]
@@ -591,7 +591,7 @@ class EnergyPartitions_nk(EnergyPartitions):
             0
         """
         rest = self.n -self.k*self.w
-        if rest not in NN:
+        if rest not in ZZ or rest<0:
             return ZZ.zero()
         return Partitions(ZZ(rest),max_length=self.k).cardinality()
 
@@ -938,7 +938,7 @@ class RegularEnergyPartitions_nk(RegularEnergyPartitions, EnergyPartitions_nk):
             return None
 
         rest = self.n - self.k*self.w
-        if rest not in NN:
+        if rest not in ZZ or rest<0:
             return
         for p in self._fast_iterator(rest,rest):
             if self.k - len(p) < self._ell:
