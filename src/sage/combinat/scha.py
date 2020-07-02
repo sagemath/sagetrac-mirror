@@ -58,7 +58,7 @@ from sage.combinat.subset import Subsets
 from sage.misc.bindable_class import BindableClass
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
-from sage.structure.richcmp import richcmp
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
@@ -100,6 +100,7 @@ def LabelledSetPartitions(arg1, arg2=None):
         return LabelledSetPartitions_n(n=arg1, q=arg2)
 
 
+@richcmp_method
 class LabelledSetPartition(CombinatorialObject):
     r"""
     Class modelling a set partition with labelled arcs.
@@ -223,8 +224,8 @@ class LabelledSetPartition(CombinatorialObject):
         """
         if not isinstance(other, type(self)):
             return NotImplemented
-        s_ = (self.size(), len(self.arcs()), -self.arcs())
-        o_ = (other.size(), len(other.arcs()), -other.arcs())
+        s_ = (self.size(), len(self.arcs()), self.arcs())
+        o_ = (other.size(), len(other.arcs()), other.arcs())
         return richcmp(s_, o_, op)
 
     def _latex_(self):
@@ -972,7 +973,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     return self.basis()[phi]
                 near_delta_bar = self.coproduct_on_basis(phi) - tensor([self.basis()[phi], self.one()])
                 res = self.zero()
-                for (mono, coeff) in near_delta_bar.monomial_coefficients().iteritems():
+                for mono, coeff in near_delta_bar.monomial_coefficients().items():
                     res += coeff * self.product(self.antipode_on_basis(mono[0]), self.basis()[mono[1]])
                 return -res
 
