@@ -386,7 +386,7 @@ class LieConformalAlgebraWithStructureCoefficients(
 
     def _construct_UEA(self, central_parameters=None, names=None):
         """
-        Returns the universal enveloping vertex algebra of ``self``.
+        The universal enveloping vertex algebra of ``self``.
 
         see :meth:`universal_enveloping_algebra`
 

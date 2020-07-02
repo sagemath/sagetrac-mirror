@@ -86,7 +86,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
 
     def lift(self):
         r"""
-        Returns the image of this element under the canonical lift
+        The image of this element under the canonical lift
         to the universal enveloping vertex algebra.
 
         .. WARNING::
