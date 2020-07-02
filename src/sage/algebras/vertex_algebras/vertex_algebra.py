@@ -341,7 +341,15 @@ class VertexAlgebra(UniqueRepresentation, Parent):
                               central_parameters=None,
                               names=None,
                               latex_names=None):
+        """
+        Vertex Algebra factory.
 
+        EXAMPLES::
+
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+            sage: V = VertexAlgebra(QQ,Vir); type(V)
+            <class 'sage.algebras.vertex_algebras.universal_enveloping_vertex_algebra.UniversalEnvelopingVertexAlgebra_with_category'>
+        """
         if base_ring not in CommutativeRings():
             raise ValueError("base_ring must must be a commutative ring, "+
                              "got {}".format(base_ring))
