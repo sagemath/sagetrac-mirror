@@ -455,7 +455,7 @@ cdef class ntl_mat_GF2E(object):
 
         EXAMPLES::
 
-            sage: m = ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+            sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: ntl.mat_GF2E(ctx, 5,5,[3..27]).gauss()
             5
             sage: ntl.mat_GF2E(ctx, 5,5).gauss()
@@ -619,7 +619,7 @@ cdef class ntl_mat_GF2E(object):
         EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
-            sage: m = ntl.mat_GF2E(ctx, 3,3,[0..24])
+            sage: m = ntl.mat_GF2E(ctx, 3,3,[0..8])
             sage: ntl.GF2XHexOutput(1)
             sage: m.image()
             [[0x3 0x4 0x5]
@@ -641,7 +641,7 @@ cdef class ntl_mat_GF2E(object):
         EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
-            sage: m = ntl.mat_GF2E(ctx, 3,3,[0..24])
+            sage: m = ntl.mat_GF2E(ctx, 3,3,[0..8])
             sage: ntl.GF2XHexOutput(1)
             sage: m.kernel()
             []

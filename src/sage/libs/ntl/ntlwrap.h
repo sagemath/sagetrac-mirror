@@ -14,6 +14,7 @@
 #include <NTL/lzz_p.h>
 #include <NTL/lzz_pX.h>
 #include <NTL/mat_ZZ.h>
+#include <NTL/mat_ZZ_p.h>
 #include <NTL/mat_poly_ZZ.h>
 #include <NTL/GF2E.h>
 #include <NTL/GF2X.h>
@@ -44,6 +45,7 @@ typedef struct {} GF2X_c;
 typedef struct {} GF2E;
 typedef struct {} GF2;
 typedef struct {} mat_ZZ;
+typedef struct {} mat_ZZ_p;
 typedef struct {} mat_GF2;
 typedef struct {} mat_GF2E;
 #endif

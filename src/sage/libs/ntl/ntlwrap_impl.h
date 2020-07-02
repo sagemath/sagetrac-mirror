@@ -496,6 +496,40 @@ static CYTHON_INLINE long mat_ZZ_LLL_U(struct ZZ **det, mat_ZZ *x, mat_ZZ *U, lo
     return LLL(**det,*x,*U,a,b,verbose);
 }
 
+static CYTHON_INLINE struct ZZX* mat_ZZ_charpoly(const mat_ZZ* A)
+{
+    ZZX* f = new ZZX();
+    CharPoly(*f, *A);
+    return f;
+}
+
+
+//////// mat_ZZ_p //////////
+
+static CYTHON_INLINE mat_ZZ_p* mat_ZZ_p_pow(const mat_ZZ_p* x, long e)
+{
+    mat_ZZ_p *z = new mat_ZZ_p();
+    NTL::power(*z, *x, e);
+    return z;
+}
+
+static CYTHON_INLINE void mat_ZZ_p_setitem(mat_ZZ_p* x, int i, int j, const struct ZZ_p* z)
+{
+    (*x)[i][j] = *z;
+
+}
+
+static CYTHON_INLINE struct ZZ_p* mat_ZZ_p_getitem(const mat_ZZ_p* x, int i, int j)
+{
+    return new ZZ_p((*x)(i,j));
+}
+
+static CYTHON_INLINE struct ZZ_p* mat_ZZ_p_determinant(const mat_ZZ_p* x)
+{
+    ZZ_p* d = new ZZ_p();
+    determinant(*d, *x);
+    return d;
+}
 
 static CYTHON_INLINE void mat_GF2E_setitem(mat_GF2E* x, int i, int j, const struct GF2E* z)
 {
