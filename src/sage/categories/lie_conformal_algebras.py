@@ -439,7 +439,7 @@ class LieConformalAlgebras(Category_over_base_ring):
             The ``n``-th product of these two elements.
 
             If `n\geq 0` it returns the element of this Lie conformal
-            algebra. 
+            algebra.
 
             EXAMPLES::
 
