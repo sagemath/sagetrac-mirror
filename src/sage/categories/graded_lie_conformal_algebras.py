@@ -135,8 +135,8 @@ class GradedLieConformalAlgebras(GradedModulesCategory):
 
                 sage: LieConformalAlgebras(QQ).FinitelyGenerated().Graded().Super().super_categories()
                 [Category of finitely generated super Lie conformal algebras over Rational Field,
-                 Category of super H-graded Lie conformal algebras over Rational Field,
-                 Category of finitely generated H-graded Lie conformal algebras over Rational Field]
+                 Category of finitely generated H-graded Lie conformal algebras over Rational Field,
+                 Category of super H-graded Lie conformal algebras over Rational Field]
             """
             return [self.base_category(),]
 
