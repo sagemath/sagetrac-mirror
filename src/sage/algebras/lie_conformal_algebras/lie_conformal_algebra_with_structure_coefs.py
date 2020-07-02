@@ -140,6 +140,13 @@ class LieConformalAlgebraWithStructureCoefficients(
         It contains superfluous information that can be obtained by
         skew-symmetry but that improves speed in computing OPE for
         vertex algebras.
+
+        EXAMPLES::
+
+            sage: virdict =  {('L','L'):{0:{('L',1):1}, 1:{('L',0): 2},3:{('C', 0):1/2}}}
+            sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+            sage: Vir._standardize_s_coeff(virdict, Family(('L',)), ('C',))
+            Finite family {('L', 'L'): ((0, ((('L', 1), 1),)),               (1, ((('L', 0), 2),)),               (3, ((('C', 0), 1/2),)))}
         """
         if parity is None:
             parity = (0,)*index_set.cardinality()
@@ -452,5 +459,17 @@ class _LiftMorphism(Morphism):
           To:   The Virasoro vertex algebra of central charge 1 over Algebraic Real Field
     """
     def _call_(self,x):
+        """
+        Lift ``x`` to the universal enveloping algebra.
+
+        EXAMPLES::
+
+            sage: V = vertex_algebras.Virasoro(QQ,1/2)
+            sage: f = V._lca.lift
+            sage: V._lca.inject_variables()
+            Defining L, C
+            sage: f(L.T(2))
+            2*L_-4|0>
+        """
         return x.lift()
 

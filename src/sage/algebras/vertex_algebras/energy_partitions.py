@@ -815,9 +815,9 @@ class RegularEnergyPartitions_n(RegularEnergyPartitions, EnergyPartitions_n):
 
         EXAMPLES::
 
-        sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
-        sage: [3,2,1] in EnergyPartitions(1/2,9/2,regular=2)
-        True
+            sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
+            sage: [3,2,1] in EnergyPartitions(1/2,9/2,regular=2)
+            True
         """
         return RegularPartitions.__contains__(self,x) and \
                EnergyPartitions_n.__contains__(self,x)

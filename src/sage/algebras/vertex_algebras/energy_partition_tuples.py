@@ -513,6 +513,7 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
         The name of this class.
 
         EXAMPLES::
+
             sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
             sage: V = EnergyPartitionTuples((2,3/2),2); V
             (0, 0)-Regular Energy Partition Tuples of level 2 with weights (2, 3/2)
@@ -579,6 +580,19 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
         return self.element_class(self,PartitionTuples._an_element_(self))
 
     def subset(self, energy=None):
+        """
+        The subset of Energy Partitions with fixed energy.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
+            sage: EnergyPartitionTuples((1/2,3), 2)
+            (0, 0)-Regular Energy Partition Tuples of level 2 with weights (1/2, 3)
+            sage: EPT = EnergyPartitionTuples((1/2,3), 2); EPT
+            (0, 0)-Regular Energy Partition Tuples of level 2 with weights (1/2, 3)
+            sage: EPT.subset(energy = 4)
+            (0, 0)-Regular Energy Partition Tuples of energy 4 with level 2 and weights (1/2, 3)
+        """
         if energy is None:
             return self
         return EnergyPartitionTuples(self._weights, self._level, energy,
