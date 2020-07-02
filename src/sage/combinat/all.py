@@ -195,6 +195,11 @@ lazy_import('sage.combinat.cyclic_sieving_phenomenon',
 
 lazy_import('sage.combinat.sidon_sets', 'sidon_sets')
 
+# Supercharacters
+# TODO: don't import LabelledSetPartition* into the global namespace
+from .scha import (SupercharacterHopfAlgebra, LabelledSetPartition,
+                   LabelledSetPartitions)
+
 # Puzzles
 lazy_import('sage.combinat.knutson_tao_puzzles', 'KnutsonTaoPuzzleSolver')
 
