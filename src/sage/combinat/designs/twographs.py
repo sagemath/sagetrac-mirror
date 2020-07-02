@@ -170,7 +170,7 @@ class TwoGraph(IncidenceStructure):
             sage: is_twograph(pc)
             True
         """
-        return super(TwoGraph, self).complement(uniform=True)
+        return TwoGraph(super(TwoGraph, self).complement(uniform=True))
 
 def taylor_twograph(q):
     r"""
@@ -310,6 +310,9 @@ def two_graph(n, l=None, regular=True, existence=False, check=True):
         If `regular` is ``True``, then ``l`` must be specified
         and represents the `\lambda` value of the two-graph seen as a 2-design.
 
+    .. NOTE:
+        Checking if the design is a two-graph is very slow O(|points|^4).
+
     INPUT:
 
     - ``n`` -- number of points of the two-grap
@@ -338,27 +341,32 @@ def two_graph(n, l=None, regular=True, existence=False, check=True):
 
     TESTS::
 
-        sage: D = designs.two_graph(126, 52)  # long
-        sage: D.is_t_design(t=2, v=126, k=3, l=52)
+        sage: from sage.combinat.designs.twographs import is_twograph
+        sage: D = designs.two_graph(126, 52, check=False)
+        sage: is_twograph(D)  # long time
         True
-        sage: F = designs.two_graph(126, 72)
+        Sage: D.is_t_design(t=2, v=126, k=3, l=52)
+        True
+        sage: F = designs.two_graph(126, 72, check=False)
+        sage: is_twograph(F)  # long time
+        True
         sage: F.is_t_design(t=2, v=126, k=3, l=72)
         True
         sage: D.complement() == F
         True
 
-        sage: D = designs.two_graph(344, 150)
-        sage: D.is_regular_twograph()
+        sage: D = designs.two_graph(344, 150)  # long time
+        sage: D.is_regular_twograph() # long time
         True
     """
     from sage.arith.misc import is_prime_power
 
     def do_check(D):
         if not check: return
-        if not is_twograph(D):
-            raise RuntimeError("Sage built an incorrect two-graph with {} points".format(n))
         if regular and not D.is_regular_twograph():
             raise RuntimeError("Sage built an incorrect regular two-graph with lambda = {}".format(l))
+        if not is_twograph(D):
+            raise RuntimeError("Sage built an incorrect two-graph with {} points".format(n))
 
     if regular and l is None:
         raise ValueError("If two-graph is regular, then specify an l value")
