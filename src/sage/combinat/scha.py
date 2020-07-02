@@ -39,12 +39,13 @@ a basis in which it is implemented.
     - decide whether it is more efficient to convert to the powersum basis for
       products and to superclasses for coproducts
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010-2012 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from functools import reduce
 
 from sage.categories.all import Rings, Realizations
 from sage.categories.all import tensor
@@ -57,6 +58,7 @@ from sage.combinat.subset import Subsets
 from sage.misc.bindable_class import BindableClass
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
@@ -198,7 +200,7 @@ class LabelledSetPartition(CombinatorialObject):
         partition = G.connected_components()
         return SetPartition(partition)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Total order on labelled set partitions.
 
@@ -210,24 +212,20 @@ class LabelledSetPartition(CombinatorialObject):
             sage: phi = LabelledSetPartition(5, [(1,3,1), (3,5,3), (2,4,4)])
             sage: psi = LabelledSetPartition(5, [(1,3,1), (3,5,3)])
             sage: chi = LabelledSetPartition(7, [(1,3,1), (3,5,3), (2,4,4)])
-            sage: cmp(phi,psi)
-            1
-            sage: cmp(psi,phi)
-            -1
-            sage: cmp(chi,phi)
-            1
-            sage: cmp(phi,chi)
-            -1
+            sage: phi >= psi
+            True
+            sage: psi <= phi
+            True
+            sage: chi <= phi
+            True
+            sage: phi > chi
+            False
         """
         if not isinstance(other, type(self)):
-            return 1
-        s = cmp(self.size(), other.size())
-        if s != 0:
-            return s
-        s = cmp(len(self.arcs()), len(other.arcs()))
-        if s != 0:
-            return s
-        return -cmp(self.arcs(), other.arcs())
+            return NotImplemented
+        s_ = (self.size(), len(self.arcs()), -self.arcs())
+        o_ = (other.size(), len(other.arcs()), -other.arcs())
+        return richcmp(s_, o_, op)
 
     def _latex_(self):
         """
@@ -658,7 +656,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                           codomain=K).register_as_coercion()
 
         # superclass to supercharacter basis
-        K.module_morphism(K._superclass_to_supercharcter_on_basis,
+        K.module_morphism(K._superclass_to_supercharacter_on_basis,
                           codomain=X).register_as_coercion()
 
         if q == 2:
@@ -670,8 +668,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             P2K = P.module_morphism(P._powersum_to_superclass_on_basis,
                                     codomain=K,
                                     triangular='lower',
-                                    unitriangular=True,
-                                    cmp=cmp)
+                                    unitriangular=True)  # was using cmp=cmp
             P2K.register_as_coercion()
             # superclass to powersum
             (~P2K).register_as_coercion()
@@ -853,10 +850,10 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
             @cached_method
             def some_elements(self):
-                return map(self, [LabelledSetPartition(0, []),
-                                  LabelledSetPartition(1, []),
-                                  LabelledSetPartition(2, [(1, 2)]),
-                                  LabelledSetPartition(2, [])]) + [self.an_element()]
+                return list(map(self, [LabelledSetPartition(0, []),
+                                       LabelledSetPartition(1, []),
+                                       LabelledSetPartition(2, [(1, 2)]),
+                                       LabelledSetPartition(2, [])])) + [self.an_element()]
 
             @cached_method
             def product_on_basis(self, phi, psi):
@@ -906,7 +903,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 """
                 K = self.realization_of().superclass_basis()
                 coprod = K(self[phi]).coproduct()
-                morphism = K.tensor_square().module_morphism(lambda (phi, psi): tensor([self(K[phi]), self(K[psi])]), codomain=self.tensor_square())
+                morphism = K.tensor_square().module_morphism(lambda phi_psi: tensor([self(K[phi_psi[0]]), self(K[phi_psi[1]])]), codomain=self.tensor_square())
                 return morphism(coprod)
 
             @cached_method
@@ -1139,13 +1136,13 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 tester = self._tester(**options)
                 T = self.tensor(self)
                 coprod = self.coproduct
-                S_Id = T.module_morphism(lambda (phi, psi): tensor([self.antipode_on_basis(phi), self.basis()[psi]]), codomain=T)
-                Id_S = T.module_morphism(lambda (phi, psi): tensor([self.basis()[phi], self.antipode_on_basis(psi)]), codomain=T)
-                product = T.module_morphism(lambda (phi, psi): self.product_on_basis(phi, psi), codomain=self)
+                S_Id = T.module_morphism(lambda phi_psi: tensor([self.antipode_on_basis(phi_psi[0]), self.basis()[phi_psi[1]]]), codomain=T)
+                Id_S = T.module_morphism(lambda phi_psi: tensor([self.basis()[phi_psi[0]], self.antipode_on_basis(phi_psi[1])]), codomain=T)
+                product = T.module_morphism(lambda phi_psi: self.product_on_basis(*phi_psi), codomain=self)
                 for x in tester.some_elements():
-                    tester.assert_(product(S_Id(coprod(x))) == self.counit(x) * self.one())
-                    tester.assert_(product(Id_S(coprod(x))) == self.counit(x) * self.one())
-                    tester.assert_(self.antipode(self.antipode(x)) == x)
+                    tester.assertEqual(product(S_Id(coprod(x))), self.counit(x) * self.one())
+                    tester.assertEqual(product(Id_S(coprod(x))), self.counit(x) * self.one())
+                    tester.assertEqual(self.antipode(self.antipode(x)), x)
 
             def _test_coproduct(self, **options):
                 r"""
@@ -1165,11 +1162,11 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 coprod = self.coproduct
                 # test the zero
                 zero = self.zero()
-                tester.assert_(coprod(zero) == tensor([zero, zero]))
+                tester.assertEqual(coprod(zero), tensor([zero, zero]))
                 # test coproduct is an algebra morphism
                 for x in tester.some_elements():
                     for y in tester.some_elements():
-                        tester.assert_(coprod(x * y) == coprod(x) * coprod(y))
+                        tester.assertEqual(coprod(x * y), coprod(x) * coprod(y))
 
             @cached_method
             def rho_on_basis(self, phi):
@@ -1675,7 +1672,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             return self.inner_tensor_product(self._inner_tensor_on_basis_by_arc(phi, arcs_psi.pop()),
                                          self.basis()[LabelledSetPartition(psi.size(), arcs_psi)])
 
-        def _inner_tensor_on_basis_by_arc(self, phi, (i, j, a)):
+        def _inner_tensor_on_basis_by_arc(self, phi, ija):
             r"""
             The inner tensor product of the supercharacter indexed by ``phi`` by
             the arc from ``i`` to ``j`` with label ``a``.
@@ -1693,6 +1690,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X._inner_tensor_on_basis_by_arc(mu,(2,5,d))
                 X6[(1, 4, 3), (2, 5, 4)]
             """
+            i, j, a = ija
             arcs_phi = phi.arcs()
             LSP = LabelledSetPartition
             for (k, arc) in enumerate(arcs_phi):
@@ -2074,7 +2072,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             return self.sum_of_terms((psi, scf(phi, psi)) for psi in self.basis(phi.size()).keys())
 
         @cached_method
-        def _superclass_to_supercharcter_on_basis(self, phi):
+        def _superclass_to_supercharacter_on_basis(self, phi):
             r"""
             Expand the superclass indexed by ``phi`` in the supercharacter basis.
 
@@ -2083,12 +2081,12 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: K = SupercharacterHopfAlgebra(2).superclass_basis()
                 sage: phi = LabelledSetPartition(3,[])
                 sage: psi = LabelledSetPartition(3,[(1,3,1)])
-                sage: K._superclass_to_supercharcter_on_basis(phi)
+                sage: K._superclass_to_supercharacter_on_basis(phi)
                 1/8*X[1|2|3] + 1/8*X[1|23] + 1/4*X[13|2] + 1/8*X[12|3] + 1/8*X[123]
-                sage: K._superclass_to_supercharcter_on_basis(psi)
+                sage: K._superclass_to_supercharacter_on_basis(psi)
                 1/8*X[1|2|3] + 1/8*X[1|23] - 1/4*X[13|2] + 1/8*X[12|3] + 1/8*X[123]
             """
-            n, q = phi.size(), self.q()
+            n = phi.size()
             X = self.realization_of().supercharacter_basis()
             trans_mat = SupercharacterTable(q=self.q(), field=self._field,
                                             base_ring=self.base_ring()).table_inverse(n)
@@ -2118,7 +2116,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 sage: X = SupercharacterHopfAlgebra(2).supercharacter_basis()
                 sage: KK = K.tensor_square()
                 sage: XX = X.tensor_square()
-                sage: XX.module_morphism(lambda (phi,psi): tensor([K(X[phi]),K(X[psi])]), codomain=KK).register_as_coercion()
+                sage: XX.module_morphism(lambda phi_psi: tensor([K(X[phi_psi[0]]),K(X[phi_psi[0]])]), codomain=KK).register_as_coercion()
                 sage: for n in range(5):
                 ....:     for a in K.basis(n):
                 ....:         assert(a.coproduct() == KK(X(a).coproduct()))
@@ -2134,7 +2132,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     res += tensor([self.monomial(left), self.monomial(right)])
                 return res
             else:
-                return super(SuperclassBasis, self).coproduct_on_basis(phi)
+                return super(self.Basis, self).coproduct_on_basis(phi)  # was SuperclassBasis !?
 
         @lazy_attribute
         def omega3(self):
@@ -2722,14 +2720,14 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
 
             sage: from sage.combinat.scha import SupercharacterTable
             sage: theta = SupercharacterTable(2).theta
-            sage: map(theta, GF(2))
+            sage: list(map(theta, GF(2)))
             [1, -1]
 
         ::
 
             sage: from sage.combinat.scha import SupercharacterTable
             sage: theta = SupercharacterTable(9).theta
-            sage: map(theta, GF(9,'a'))
+            sage: list(map(theta, GF(9,'a')))
             [1, zeta3, 1, zeta3, zeta3, -zeta3 - 1, 1, -zeta3 - 1, -zeta3 - 1]
         """
         if self._q == 2:
@@ -2753,7 +2751,7 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
 
             sage: from sage.combinat.scha import SupercharacterTable
             sage: theta = SupercharacterTable(9).theta
-            sage: map(theta, GF(9,'a'))
+            sage: list(map(theta, GF(9,'a')))
             [1, zeta3, 1, zeta3, zeta3, -zeta3 - 1, 1, -zeta3 - 1, -zeta3 - 1]
         """
         return self._zeta ** (x.trace())
