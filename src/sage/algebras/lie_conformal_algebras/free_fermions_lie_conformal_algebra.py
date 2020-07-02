@@ -144,10 +144,10 @@ class FreeFermionsLieConformalAlgebra(GradedLieConformalAlgebra):
         EXAMPLES::
 
             sage: lie_conformal_algebras.FreeFermions(QQ)
-            The free Fermions super Lie conformal algebra with generators (psi,) over Rational Field
+            The free Fermions super Lie conformal algebra with generators (psi, K) over Rational Field
         """
         return "The free Fermions super Lie conformal algebra "\
-                    "with generators {} over {}.".format(self.gens(),
+                    "with generators {} over {}".format(self.gens(),
                                                          self.base_ring())
 
     def gram_matrix(self):
