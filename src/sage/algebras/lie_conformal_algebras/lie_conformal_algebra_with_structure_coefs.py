@@ -207,7 +207,6 @@ class LieConformalAlgebraWithStructureCoefficients(
     def __init__(self, R, s_coeff, index_set=None, central_elements=None,
                  category=None, element_class=None, prefix=None, names=None,
                  latex_names=None, parity=None, **kwds):
-        names, index_set = standardize_names_index_set(names,index_set)
         """
         Initialize self.
 
@@ -216,6 +215,7 @@ class LieConformalAlgebraWithStructureCoefficients(
             sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
             sage: TestSuite(V).run()
         """
+        names, index_set = standardize_names_index_set(names,index_set)
         if central_elements is None:
             central_elements= tuple()
 
