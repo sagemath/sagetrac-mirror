@@ -35,3 +35,12 @@ from .n2_vertex_algebra import N2VertexAlgebra as N2
 from .neveu_schwarz_vertex_algebra import NeveuSchwarzVertexAlgebra as NeveuSchwarz
 from .virasoro_vertex_algebra import VirasoroVertexAlgebra as Virasoro
 from .weyl_vertex_algebra import WeylVertexAlgebra as Weyl
+
+assert Abelian
+assert Affine
+assert FreeBosons
+assert FreeFermions
+assert N2
+assert NeveuSchwarz
+assert Virasoro
+assert Weyl

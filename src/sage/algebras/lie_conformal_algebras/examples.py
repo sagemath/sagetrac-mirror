@@ -40,3 +40,14 @@ from .n2_lie_conformal_algebra import N2LieConformalAlgebra as N2
 from .neveu_schwarz_lie_conformal_algebra import NeveuSchwarzLieConformalAlgebra as NeveuSchwarz
 from .virasoro_lie_conformal_algebra import VirasoroLieConformalAlgebra as Virasoro
 from .weyl_lie_conformal_algebra import WeylLieConformalAlgebra as Weyl
+
+assert Abelian
+assert Affine
+assert BosonicGhosts
+assert FermionicGhosts
+assert FreeBosons
+assert FreeFermions
+assert N2
+assert NeveuSchwarz
+assert Virasoro
+assert Weyl
