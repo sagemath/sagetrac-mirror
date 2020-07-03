@@ -164,7 +164,7 @@ EXAMPLES:
     sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
     sage: V = LieConformalAlgebra(QQ, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
     sage: V.category()
-    Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
+    Category of H-graded finitely generated Lie conformal algebras with basis over Rational Field
     sage: V.inject_variables()
     Defining a, b, K
     sage: a.bracket(b)
@@ -308,7 +308,7 @@ class LieConformalAlgebra(UniqueRepresentation, Parent):
         sage: betagamma_dict = {('b','a'):{0:{('K',0):1}}}
         sage: V = LieConformalAlgebra(QQbar, betagamma_dict, names=('a','b'), weights=(1,0), central_elements=('K',))
         sage: V.category()
-        Category of finitely generated H-graded Lie conformal algebras with basis over Algebraic Field
+        Category of H-graded finitely generated Lie conformal algebras with basis over Algebraic Field
         sage: V.inject_variables()
         Defining a, b, K
         sage: a.bracket(b)
@@ -327,7 +327,7 @@ class LieConformalAlgebra(UniqueRepresentation, Parent):
         sage: e.bracket(f.T())
         {0: Th, 1: h, 2: 2*K}
         sage: V.category()
-        Category of finitely generated H-graded Lie conformal algebras with basis over Rational Field
+        Category of H-graded finitely generated Lie conformal algebras with basis over Rational Field
         sage: e.degree()
         1
 

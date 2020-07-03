@@ -44,6 +44,13 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
                 sage: V = lie_conformal_algebras.Affine(QQ, 'A2')
                 sage: V.ngens()
                 9
+
+                sage: L = lie_conformal_algebras.N2(QQbar); L
+                The N=2 super Lie conformal algebra over Algebraic Field
+                sage: L.gens()
+                (L, J, G1, G2, C)
+                sage: L.ngens()
+                5
             """
             return len(self.gens())
 
