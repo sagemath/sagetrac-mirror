@@ -1079,6 +1079,8 @@ def KChainComplex(chain_complex):
         sage: kenzo_chcm.homology(5)                                          # optional - kenzo
         Z x Z
     """
+    if chain_complex.degree_of_differential() != -1:
+        raise AssertionError('Chain complexes in Kenzo has degree -1.')
     diff = chain_complex.differential()
     chcm = s2k_dictmat(diff)
     str_orgn = 'sage.' + str(diff)[1:-1].translate({ord(i): None for i in ["\n", ",", ":"]}) \
@@ -1938,6 +1940,8 @@ def KChainComplexMorphism(morphism):
         [K... Chain-Complex]
     """
     source = KChainComplex(morphism.domain())
+    if morphism.is_identity() == True:
+        return source.identity_morphism()
     target = KChainComplex(morphism.codomain())
     matrix_list = morphism_dictmat(morphism)
     return KenzoChainComplexMorphism(

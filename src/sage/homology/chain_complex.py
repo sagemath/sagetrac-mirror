@@ -64,6 +64,10 @@ from sage.misc.latex import latex
 from sage.rings.all import GF, prime_range
 from sage.homology.homology_group import HomologyGroup
 
+from sage.interfaces import kenzo
+from sage.features.kenzo import Kenzo
+kenzo_is_present = Kenzo().is_present()
+
 
 def _latex_module(R, m):
     """
@@ -92,8 +96,7 @@ def _latex_module(R, m):
 
 
 def ChainComplex(data=None, base_ring=None, grading_group=None,
-                 degree_of_differential=1, degree=1,
-                 check=True):
+                 degree_of_differential=1, degree=1, check=True):
     r"""
     Define a chain complex.
 
@@ -313,7 +316,6 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
             if not prod.is_zero():
                 raise ValueError('the differentials d_{{{}}} and d_{{{}}} are not compatible: '
                                  'their composition is not zero.'.format(n, n+degree))
-
     return ChainComplex_class(grading_group, degree, base_ring, data_dict)
 
 
@@ -679,6 +681,9 @@ class ChainComplex_class(Parent):
         self._grading_group = grading_group
         self._degree_of_differential = degree_of_differential
         self._diff = differentials
+        # In Kenzo, the grading group and the base ring must be ZZ as well as the degree must be -1.
+        if kenzo_is_present and grading_group==ZZ and degree_of_differential==-1 and base_ring==ZZ:
+            self._kenzo_repr = kenzo.KChainComplex(self)
 
         from sage.categories.chain_complexes import ChainComplexes
         category = ChainComplexes(base_ring)

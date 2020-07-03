@@ -56,6 +56,10 @@ from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.categories.chain_complexes import ChainComplexes
 
+from sage.interfaces import kenzo
+from sage.features.kenzo import Kenzo
+kenzo_is_present = Kenzo().is_present()
+
 
 def is_ChainComplexMorphism(x):
     """
@@ -185,7 +189,10 @@ class ChainComplexMorphism(Morphism):
             # Use immutable matrices because they're hashable.
             m.set_immutable()
             self._matrix_dictionary[i] = m
-        Morphism.__init__(self, Hom(C,D, ChainComplexes(C.base_ring())))
+        result = Morphism.__init__(self, Hom(C, D, ChainComplexes(C.base_ring())))
+        if kenzo_is_present and d==-1 and hasattr(C, '_kenzo_repr') and hasattr(D, '_kenzo_repr'):
+            self._kenzo_repr = kenzo.KChainComplexMorphism(self)
+        return result
 
     def in_degree(self, n):
         """
@@ -320,7 +327,10 @@ class ChainComplexMorphism(Morphism):
         f = dict()
         for i in self._matrix_dictionary.keys():
             f[i] = -self._matrix_dictionary[i]
-        return ChainComplexMorphism(f, self.domain(), self.codomain())
+        result = ChainComplexMorphism(f, self.domain(), self.codomain())
+        if hasattr(self, '_kenzo_repr'):
+            result._kenzo_repr = self._kenzo_repr.opposite()
+        return result
 
     def __add__(self,x):
         """
@@ -355,7 +365,10 @@ class ChainComplexMorphism(Morphism):
         f = dict()
         for i in self._matrix_dictionary.keys():
             f[i] = self._matrix_dictionary[i] + x._matrix_dictionary[i]
-        return ChainComplexMorphism(f, self.domain(), self.codomain())
+        result = ChainComplexMorphism(f, self.domain(), self.codomain())
+        if hasattr(self, '_kenzo_repr') and hasattr(x, '_kenzo_repr'):
+            result._kenzo_repr = self._kenzo_repr.sum(x._kenzo_repr)
+        return result
 
     def __mul__(self,x):
         """
@@ -495,7 +508,10 @@ class ChainComplexMorphism(Morphism):
             [0 0 0 0]
             [0 0 0 0]}
         """
-        return self + (-x)
+        result = self + (-x)
+        if hasattr(self, '_kenzo_repr') and hasattr(x, '_kenzo_repr'):
+            result._kenzo_repr = self._kenzo_repr.substract(x._kenzo_repr)
+        return result
 
     def __eq__(self,x):
         """
