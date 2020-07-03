@@ -339,6 +339,13 @@ cdef class Morphism(Map):
             Traceback (most recent call last):
             ...
             NotImplementedError: unable to compare morphisms of type <... 'sage.categories.morphism.IdentityMorphism'> and <... 'sage.categories.morphism.SetMorphism'> with domain Partitions of the integer 5
+
+        We check that :trac:`28617` is fixed::
+
+            sage: FF = GF(2^20)
+            sage: f = FF.frobenius_endomorphism()
+            sage: f == FF.frobenius_endomorphism()
+            True
         """
         if self is other:
             return rich_to_bool(op, 0)
