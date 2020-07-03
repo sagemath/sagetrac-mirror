@@ -4,8 +4,7 @@ This is needed in setup.py only and not installed anywhere, thus is not
 a library file. It solves the issue from :trac:`11874`.
 """
 import types
-from six.moves import copyreg
-from six import get_method_function, get_method_self
+import copyreg
 
 # The following four methods are taken from twisted.persisted.styles
 # into sage.misc.fpickle, and then here. It was needed due to
@@ -15,9 +14,9 @@ from six import get_method_function, get_method_self
 
 def pickleMethod(method):
     'support function for copyreg to pickle method refs'
-    return unpickleMethod, (get_method_function(method).__name__,
-                            get_method_self(method),
-                            get_method_self(method).__class__)
+    return unpickleMethod, (method.__func__.__name__,
+                            method.__self__,
+                            method.__class__)
 
 
 def unpickleMethod(im_name,
@@ -28,7 +27,7 @@ def unpickleMethod(im_name,
         unbound = getattr(im_class, im_name)
         if im_self is None:
             return unbound
-        bound = types.MethodType(get_method_function(unbound),
+        bound = types.MethodType(unbound.__func__,
                                  im_self)
         return bound
     except AttributeError:
@@ -39,7 +38,7 @@ def unpickleMethod(im_name,
         unbound = getattr(im_self.__class__, im_name)
         if im_self is None:
             return unbound
-        bound = types.MethodType(get_method_function(unbound),
+        bound = types.MethodType(unbound.__func__,
                                  im_self)
         return bound
 
