@@ -348,21 +348,11 @@ cdef class Morphism(Map):
         # and other have the same domain and codomain.
 
         cdef Parent domain = <Parent?>self.domain()
-        e = None
         while True:
             try:
-                m = domain.gens
+                gens = domain.gens()
             except AttributeError:
                 raise NotImplementedError(f"unable to compare morphisms of type {type(self)} and {type(other)} with domain {domain}")
-            gens = m()
-            # If e is a ModuleElement, then this is not the first
-            # iteration and we are really in the base structure.
-            #
-            # If so, we see the base as a ring of scalars and create new
-            # gens by picking an element of the initial domain (e) and
-            # multiplying it with the gens of the scalar ring.
-            if e is not None and isinstance(e, ModuleElement):
-                gens = [(<ModuleElement>e)._lmul_(x) for x in gens]
             for e in gens:
                 x = self(e)
                 y = other(e)
