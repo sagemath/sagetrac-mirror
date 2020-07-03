@@ -18,8 +18,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.functions.other import binomial
-from sage.structure.indexed_generators import (IndexedGenerators,
-                                               standardize_names_index_set)
 from sage.sets.family import Family
 from .lie_conformal_algebra_element import LCAStructureCoefficientsElement
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
@@ -29,7 +27,7 @@ from sage.structure.indexed_generators import (IndexedGenerators,
                                                standardize_names_index_set)
 
 class LieConformalAlgebraWithStructureCoefficients(
-                                        FinitelyGeneratedLieConformalAlgebra):
+                                        FinitelyFreelyGeneratedLCA):
     r"""
     A Lie conformal algebra with a set of specified structure
     coefficients.
@@ -272,7 +270,7 @@ class LieConformalAlgebraWithStructureCoefficients(
         if element_class is None:
             element_class=LCAStructureCoefficientsElement
 
-        FinitelyGeneratedLieConformalAlgebra.__init__(
+        FinitelyFreelyGeneratedLCA.__init__(
             self, R, index_set=index_set, central_elements=central_elements,
             category=category, element_class=element_class,
             prefix=prefix, names=names, latex_names=latex_names, **kwds)
