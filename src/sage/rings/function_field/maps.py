@@ -55,8 +55,6 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import absolute_import
 
-import operator
-
 from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
 from sage.categories.homset import Hom
@@ -64,10 +62,6 @@ from sage.categories.sets_cat import Sets
 
 from sage.rings.infinity import infinity
 from sage.rings.morphism import RingHomomorphism
-
-from sage.rings.all import QQ
-
-from sage.symbolic.ring import SR
 
 from sage.modules.free_module_element import vector
 
