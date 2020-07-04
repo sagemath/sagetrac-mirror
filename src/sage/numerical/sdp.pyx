@@ -1130,6 +1130,16 @@ cdef class SemidefiniteProgram(SageObject):
                 d[id] = coeff + d.get(id, 0)
         return self.linear_functions_parent()(d)
 
+    def dual_operator(self):
+        r"""
+        Return the linear map `A`.
+
+        `A` sends the space of the dual variables (symmetric matrices) to
+        the space of right-hand side vectors of the dual semidefinite problem.
+
+        """
+        raise NotImplementedError
+
     def get_backend(self):
         r"""
         Returns the backend instance used.
