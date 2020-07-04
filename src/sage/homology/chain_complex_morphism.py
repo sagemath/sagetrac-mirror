@@ -455,7 +455,23 @@ class ChainComplexMorphism(Morphism):
         f = dict()
         for i in self._matrix_dictionary:
             f[i] = self._matrix_dictionary[i]*x.in_degree(i)
-        return ChainComplexMorphism(f,x.domain(),self.codomain())
+        result = ChainComplexMorphism(f,x.domain(),self.codomain())
+        from sage.categories.morphism import IdentityMorphism
+        if isinstance(self, IdentityMorphism):
+            first = kenzo.KIdentity(self)
+        elif hasattr(self, '_kenzo_repr'):
+            first = self._kenzo_repr
+        else:
+            first = None
+        if isinstance(x, IdentityMorphism):
+            second = kenzo.KIdentity(x)
+        elif hasattr(x, '_kenzo_repr'):
+            second = x._kenzo_repr
+        else:
+            second = None
+        if first and second: 
+            result._kenzo_repr = first.composite(second)
+        return result
 
     def __rmul__(self,x):
         """
