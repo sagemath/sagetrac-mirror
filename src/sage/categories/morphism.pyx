@@ -355,21 +355,36 @@ cdef class Morphism(Map):
         # and other have the same domain and codomain.
 
         cdef Parent domain = <Parent?>self.domain()
+        cdef Parent parent = domain
+        cdef bint coerce = True
+        cdef ModuleElement elt = None
         while True:
             try:
-                gens = domain.gens()
+                gens = parent.gens()
             except AttributeError:
                 raise NotImplementedError(f"unable to compare morphisms of type {type(self)} and {type(other)} with domain {domain}")
+
+            # If elt is not None, then this is not the first
+            # iteration and we are really in the base structure.
+            # If so, we see the base as a ring of scalars and create new
+            # gens by coercing if a coercion map exists, or by picking an 
+            # element of the initial domain (elt) and multiplying it with 
+            # the gens of the scalar ring otherwise.
+            if elt is not None and not coerce:
+                gens = [ elt._lmul_(x) for x in gens ]
             for e in gens:
                 x = self(e)
                 y = other(e)
                 if x != y:
                     return richcmp_not_equal(x, y, op)
             # Check base
-            base = domain._base
-            if base is None or base is domain:
+            base = parent._base
+            if base is None or base is parent:
                 break
-            domain = <Parent?>base
+            coerce = coerce and parent.has_coerce_map_from(base)
+            parent = <Parent?>base
+            if elt is None and isinstance(e, ModuleElement):
+                elt = <ModuleElement>e
         return rich_to_bool(op, 0)
 
     def __nonzero__(self):
