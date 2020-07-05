@@ -146,7 +146,6 @@ class EnergyPartitions(Partitions):
     """
     @staticmethod
     def __classcall_private__(cls, w=None, n=None, **kwargs):
-        regular = kwargs.pop('regular',None)
         """
         EnergyPartitions factory.
 
@@ -154,9 +153,13 @@ class EnergyPartitions(Partitions):
 
             sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
             sage: EnergyPartitions(1/2,3)
+            Energy Partitions of 3 with weight 1/2
             sage: EnergyPartitions(1/2,3,length=3)
+            Energy Partitions of 3 of length 3 with weight 1/2
             sage: EnergyPartitions(1/2,regular=3)
+            3-Regular Energy Partitions with weight 1/2
         """
+        regular = kwargs.pop('regular',None)
         if regular is not None:
             if regular not in ZZ or regular <= 0:
                 raise ValueError("regular must be a positive integer.")
@@ -621,7 +624,7 @@ class RegularEnergyPartitions(EnergyPartitions):
 
             sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
             sage: EPT = EnergyPartitions(1/2,regular=2)
-            sage: TestSuite(EPT).run()
+            sage: TestSuite(EPT).run()      # long time (4 seconds)
         """
         EnergyPartitions.__init__(self, w, is_infinite)
         self._ell = ell
@@ -711,7 +714,7 @@ class RegularEnergyPartitions_all(RegularEnergyPartitions):
 
             sage: from sage.algebras.vertex_algebras.energy_partitions import EnergyPartitions
             sage: EPT = EnergyPartitions(1/2,regular=2)
-            sage: TestSuite(EPT).run()
+            sage: TestSuite(EPT).run()      # long time (4 seconds)
         """
         RegularEnergyPartitions.__init__(self, w, ell, bool(ell > 1))
 

@@ -119,12 +119,12 @@ class PoissonVertexAlgebraQuotientElement(VertexAlgebraQuotientElement):
             sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'))
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
             sage: A = Q.arc_algebra()
-            sage: v = A(A._indices[10]); v
+            sage: v = A(A._indices[10]); v  # long time (1 second)
             e_1*f_2
-            sage: w = v._to_polynomial(3); w
+            sage: w = v._to_polynomial(3); w    # long time
             e_1bar*f_2bar
             sage: J = A.jet_algebra(3)
-            sage: w in J
+            sage: w in J    # long time
             True
         """
         #Not exposed yet until we have a working framework connected
@@ -439,12 +439,12 @@ class PoissonVertexAlgebraQuotient(CombinatorialFreeModule):
         We can convert elements of this quotient to polynomials in
         the Jet algebra::
 
-            sage: v = P(P._indices[10]); v
+            sage: v = P(P._indices[10]); v  # long time (1 second)
             e_1*f_2
-            sage: w = v._to_polynomial(3); w
+            sage: w = v._to_polynomial(3); w    # long time
             e_1bar*f_2bar
             sage: J = P.jet_algebra(3)
-            sage: w in J
+            sage: w in J    # long time
             True
         """
         try:

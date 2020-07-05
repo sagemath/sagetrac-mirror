@@ -53,7 +53,7 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
             sage: V = vertex_algebras.Virasoro(QQ,1/2); I = V.ideal(V.find_singular(6))
             sage: Q = V.quotient(I)
             sage: J = Q._indices
-            sage: TestSuite(J).run(max_runs=10)
+            sage: TestSuite(J).run(max_runs=10)     # long time (1 second)
         """
         vgens = I.ambient().gens()
         weights = [g.degree() for g in vgens]
@@ -88,9 +88,9 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
 
             sage: V = vertex_algebras.Virasoro(QQ,1/2);
             sage: Q = V.quotient(V.ideal(V.find_singular(6)))
-            sage: v = V([[5,3,2]]); v           # long time (4 seconds)
+            sage: v = V([[5,3,2]]); v
             L_-6L_-4L_-3|0>
-            sage: Q._indices(v.index())         # long time
+            sage: Q._indices(v.index())         # long time (6 seconds)
             ([5, 3, 2])
             sage: v = V([[2,2,1]]); v
             L_-3L_-3L_-2|0>
@@ -135,7 +135,7 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
              ([5])]
         """
         return self[0:10]
-            
+
     def _an_element_(self):
         """
         An element of this Basis.
@@ -184,7 +184,7 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
 
             sage: V = vertex_algebras.Affine(QQ, 'A1',1, names=('e','h','f'));
             sage: Q = V.quotient(V.ideal(V.find_singular(2)))
-            sage: Q._indices[0:10]  # long time (4 seconds)
+            sage: Q._indices[0:10]  # long time (3 seconds)
             [([], [], []),
              ([1], [], []),
              ([], [1], []),

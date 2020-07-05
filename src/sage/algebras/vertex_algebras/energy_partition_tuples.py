@@ -400,7 +400,7 @@ class EnergyPartitionTuples(PartitionTuples):
 
             sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
             sage: L = EnergyPartitionTuples((2,3/2),2)
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run()    # long time (4 seconds)
         """
         self._weights = tuple(weights)
         self._level = level
@@ -498,7 +498,6 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
          ([], [3])]
     """
     def __init__(self,weights, level, regular):
-        EnergyPartitionTuples.__init__(self,weights,level,regular,True)
         """
         Initialize self.
 
@@ -508,6 +507,7 @@ class EnergyPartitionTuples_all(EnergyPartitionTuples):
             sage: L = EnergyPartitionTuples((2,3/2),2,regular=(0,2))
             sage: TestSuite(L).run()
         """
+        EnergyPartitionTuples.__init__(self,weights,level,regular,True)
     def _repr_(self):
         """
         The name of this class.
@@ -737,7 +737,7 @@ class EnergyPartitionTuples_n(EnergyPartitionTuples):
         EXAMPLES::
 
             sage: from sage.algebras.vertex_algebras.energy_partition_tuples import EnergyPartitionTuples
-            sage: EnergyPartitionTuples((2,3/2),2,28,regular=(0,2)).cardinality()
+            sage: EnergyPartitionTuples((2,3/2),2,28,regular=(0,2)).cardinality()   # long time (4 seconds)
             5995
         """
         #TODO: implement a faster way
