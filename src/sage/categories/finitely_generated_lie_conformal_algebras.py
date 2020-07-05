@@ -17,7 +17,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.misc.abstract_method import abstract_method
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 
@@ -69,6 +68,25 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
                 B[alphacheck[1]]
             """
             return self.gens()[i]
+
+        def some_elements(self):
+            """
+            Some elements of this Lie conformal algebra.
+
+            Returns a list with elements containing at least the
+            generators.
+
+            EXAMPLES::
+
+                sage: V = lie_conformal_algebras.Affine(QQ, 'A1', names=('e', 'h', 'f'))
+                sage: V.some_elements()
+                [e, h, f, K, Th + 4*T^(2)e, 4*T^(2)h, Te + 4*T^(2)e, Te + 4*T^(2)h]
+            """
+            S = list(self.gens())
+            from sage.misc.misc import some_tuples
+            for x,y in some_tuples(S, 2, 0, max_samples=self.ngens()):
+                S.append(x.T() + 2*y.T(2))
+            return S
 
     class Super(SuperModulesCategory):
         """

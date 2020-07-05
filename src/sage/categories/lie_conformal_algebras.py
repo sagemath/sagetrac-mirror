@@ -130,7 +130,6 @@ AUTHORS:
 
 from sage.categories.modules import Modules
 from .category_types import Category_over_base_ring
-from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import coerce_binop
@@ -503,6 +502,115 @@ class LieConformalAlgebras(Category_over_base_ring):
                 False
             """
             return self in LieConformalAlgebras(self.base_ring()).Graded()
+
+        def is_with_basis(self):
+            """
+            Whether this Lie conformal algebra has a preferred basis.
+
+            EXAMPLES::
+
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+                sage: Vir.is_with_basis()
+                True
+            """
+            return self in LieConformalAlgebras(self.base_ring()).WithBasis()
+
+        def is_finitely_generated(self):
+            """
+            Whether this Lie conformal algebra is finitely generated.
+
+            EXAMPLES::
+
+                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
+                sage: Vir.is_finitely_generated()
+                True
+            """
+            return self in LieConformalAlgebras(self.base_ring()).FinitelyGenerated()
+
+        def _test_jacobi(self, **options):
+            """
+            Test the Jacobi condition on the generators of this Lie
+            conformal algebra.
+
+            INPUT:
+
+            - ``options`` -- any keyword arguments acceptde by :meth:`_tester`
+
+            EXAMPLES:
+
+            By default, this method tests only the elements returned by
+            ``self.some_elements()``::
+
+                sage: V = lie_conformal_algebras.Affine(QQ, 'B2')
+                sage: V._test_jacobi()
+
+            It works for super Lie conformal algebras too::
+
+                sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
+                sage: V._test_jacobi()
+
+            We can use specific elements by passing the ``elements``
+            keyword argument::
+
+                sage: V = lie_conformal_algebras.Affine(QQ, 'A1', names=('e', 'h', 'f'))
+                sage: V.inject_variables()
+                Defining e, h, f, K
+                sage: V._test_jacobi(elements=(e, 2*f+h, 3*h))
+
+            TESTS::
+
+                sage: wrongdict = {('a', 'a'): {0: {('b', 0): 1}}, ('b', 'a'): {0: {('a', 0): 1}}}
+                sage: V = LieConformalAlgebra(QQ, wrongdict, names=('a', 'b'), parity=(1, 0))
+                sage: V._test_jacobi()
+                Traceback (most recent call last):
+                ...
+                AssertionError: {(0, 0): -3*a} != {}
+                - {(0, 0): -3*a}
+                + {}
+            """
+            tester = self._tester(**options)
+            S = tester.some_elements()
+            #Try our best to avoid non-homogeneous elements in super
+            #algebras:
+            if tester._instance.is_super():
+                elements = []
+                for s in S:
+                    try:
+                        parity = s.is_even_odd()
+                    except ValueError:
+                        if tester._instance.is_with_basis():
+                            elements.extend(s.terms())
+                            continue
+                    elements.append(s)
+                S = elements
+            from sage.misc.misc import some_tuples
+            from sage.functions.other import binomial
+            pz = tester._instance.zero()
+            for x,y,z in some_tuples(S, 3, tester._max_runs):
+                sgn = 1
+                if tester._instance.is_super():
+                    if x.is_even_odd()*y.is_even_odd():
+                        sgn = -1
+                brxy = x.bracket(y)
+                brxz = x.bracket(z)
+                bryz = y.bracket(z)
+                br1 = {k: x.bracket(v) for k,v in bryz.items()}
+                br2 = {k: v.bracket(z) for k,v in brxy.items()}
+                br3 = {k: y.bracket(v) for k,v in brxz.items()}
+                jac1 = {(j,k): v for k in br1 for j,v in br1[k].items()}
+                jac3 = {(k,j): v for k in br3 for j,v in br3[k].items()}
+                jac2 = {}
+                for k,br in br2.items():
+                    for j,v in br.items():
+                        for r in range(j+1):
+                            jac2[(k+r, j-r)] = jac2.get((k+r, j-r), pz)\
+                                              + binomial(k+r, r)*v
+                for k,v in jac2.items():
+                    jac1[k] = jac1.get(k, pz) - v
+                for k,v in jac3.items():
+                    jac1[k] = jac1.get(k, pz) - sgn*v
+                jacobiator = {k: v for k,v in jac1.items() if v}
+                tester.assertDictEqual(jacobiator, {})
 
     class ElementMethods:
         @coerce_binop
