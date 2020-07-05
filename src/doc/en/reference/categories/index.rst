@@ -98,6 +98,7 @@ Individual Categories
    sage/categories/finitely_generated_lie_conformal_algebras
    sage/categories/finitely_generated_magmas
    sage/categories/finitely_generated_semigroups
+   sage/categories/finitely_generated_vertex_algebras
    sage/categories/function_fields
    sage/categories/g_sets
    sage/categories/gcd_domains
@@ -189,6 +190,7 @@ Individual Categories
    sage/categories/vector_bundles
    sage/categories/vector_spaces
    sage/categories/vertex_algebras
+   sage/categories/vertex_algebras_with_basis
    sage/categories/weyl_groups
 
 Technical Categories

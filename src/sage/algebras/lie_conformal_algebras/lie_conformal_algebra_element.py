@@ -22,6 +22,7 @@ from sage.misc.misc_c import prod
 from sage.misc.misc import repr_lincomb
 from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
+from sage.combinat.partition import Partition
 
 class LCAWithGeneratorsElement(IndexedFreeModuleElement):
     """

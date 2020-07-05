@@ -16,6 +16,7 @@ from sage.categories.covariant_functorial_construction import CovariantConstruct
 axiom_whitelist = frozenset(["Facade", "Finite", "Infinite",
                              "FiniteDimensional", "Connected", "WithBasis",
                              "FinitelyGeneratedAsLieConformalAlgebra",
+                             "FinitelyGeneratedAsVertexAlgebra",
                              # "Commutative", "Cocommutative",
                              "Supercommutative", "Supercocommutative",
                              "Associative", "Inverse", "Unital", "Division",

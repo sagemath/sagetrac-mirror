@@ -545,6 +545,19 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                 """
                 return self.gens()[i]
 
+            def some_elements(self):
+                """
+                A list of elements of this Poisson vertex algebra.
+
+                EXAMPLES::
+
+                    sage: V = vertex_algebras.NeveuSchwarz(QQ, 1)
+                    sage: P = V.classical_limit()
+                    sage: P.some_elements()
+                    (L_2, G_3/2)
+                """
+                return self.gens()
+
         class Quotients(QuotientsCategory):
             """
             The category of quotients of Poisson vertex algebras.

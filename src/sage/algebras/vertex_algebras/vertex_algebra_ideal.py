@@ -656,7 +656,7 @@ class VertexAlgebraIdealBasis(Parent):
         EXAMPLES::
 
             sage: V = vertex_algebras.Virasoro(QQ,1/2); I = V.ideal(V.find_singular(6))
-            sage: I._indices[0:10]  # long time (2 seconds)
+            sage: I._indices[0:10]  # long time (1 seconds)
             [(6, B[0]),
              (7, B[0]),
              (8, B[0]),

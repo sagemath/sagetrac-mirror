@@ -576,7 +576,7 @@ class LieConformalAlgebras(Category_over_base_ring):
                 elements = []
                 for s in S:
                     try:
-                        parity = s.is_even_odd()
+                        s.is_even_odd()
                     except ValueError:
                         if tester._instance.is_with_basis():
                             elements.extend(s.terms())
