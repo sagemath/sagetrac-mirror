@@ -1,10 +1,10 @@
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2009-2010 Florent Hivert <florent.hivert at univ-rouen.fr>
 #                2009-2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
@@ -90,9 +90,8 @@ class RTrivialMonoids(Category):
 
                 This is used to index the transversal of idempotents::
 
-                    sage: sorted(S.j_transversal_of_idempotents().keys())
-                    [(0,), (0, 1), (0, 1, 2), (0, 2), (1,), (1, 2), (2,)]
-
+                    sage: sorted(S.j_transversal_of_idempotents())
+                    ['a', 'ab', 'abc', 'ac', 'b', 'bc', 'c']
                 """
                 s = self.semigroup_generators()
                 return tuple(i for i in s.keys()
