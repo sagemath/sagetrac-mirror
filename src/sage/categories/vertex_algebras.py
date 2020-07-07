@@ -680,7 +680,7 @@ class VertexAlgebras(Category_over_base_ring):
                     sage: VertexAlgebras(QQ).Graded().Super().super_categories()
                     [Category of super vertex algebras over Rational Field,
                     Category of H-graded vertex algebras over Rational Field,
-                    Category of super H-graded Lie conformal algebras over Rational Field]
+                    Category of H-graded super Lie conformal algebras over Rational Field]
                 """
                 return [self.base_category()]
 

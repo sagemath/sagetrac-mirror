@@ -789,7 +789,7 @@ class PoissonVertexAlgebras(Category_over_base_ring):
                     sage: C.super_categories()
                     [Category of super Poisson vertex algebras over Rational Field,
                      Category of H-graded Poisson vertex algebras over Rational Field,
-                     Category of super H-graded Lie conformal algebras over Rational Field]
+                     Category of H-graded super Lie conformal algebras over Rational Field]
                 """
                 return [self.base_category(),]
 

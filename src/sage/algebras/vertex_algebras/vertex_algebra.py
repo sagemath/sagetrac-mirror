@@ -277,7 +277,7 @@ AUTHORS:
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_rings import CommutativeRings
-from sage.categories.lie_conformal_algebras import LieConformalAlgebras
+from sage.categories.lambda_bracket_algebras import LambdaBracketAlgebras
 from sage.categories.vertex_algebras import VertexAlgebras
 from sage.structure.parent import Parent
 
@@ -290,9 +290,9 @@ class VertexAlgebra(UniqueRepresentation, Parent):
     - ``base_ring`` -- a commutative ring (default: ``None``); the
       base ring of this vertex algebra
 
-    - ``lie_conformal_algebra`` a :class:`LieConformalAlgebra`
-      (default: ``None``); if specified, this class
-      returns the quotient of its universal enveloping vertex
+    - ``lie_conformal_algebra`` a :class:`LieConformalAlgebra` or a
+      :class:`SuperLieConformalAlgebra` (default: ``None``); if specified,
+      this class returns the quotient of its universal enveloping vertex
       algebra by the central ideal defined by the parameter
       ``central_parameters``
 
@@ -317,10 +317,9 @@ class VertexAlgebra(UniqueRepresentation, Parent):
 
       There are several methods of constructing vertex
       algebras. Currently we only support the construction as the
-      universal enveloping
-      vertex algebra of a Lie conformal algebra, which is best
-      achieved by calling
-      :meth:`~sage.categories.lie_conformal_algebras.LieConformalAlgebras.ParentMethods.universal_enveloping_algebra`,
+      universal enveloping vertex algebra of a Lie conformal algebra,
+      which is best achieved by calling
+      :meth:`~sage.categories.lambda_bracket_algebras.LambdaBracketAlgebras.ParentMethods.universal_enveloping_algebra`,
       or as derived constructions like quotients by calling
       :meth:`~sage.categories.vertex_algebras.VertexAlgebras.ParentMethods.quotient`.
 
@@ -356,7 +355,7 @@ class VertexAlgebra(UniqueRepresentation, Parent):
 
         try:
             if base_ring.has_coerce_map_from(lie_conformal_algebra.base_ring())\
-                and lie_conformal_algebra in LieConformalAlgebras(
+                and lie_conformal_algebra in LambdaBracketAlgebras(
                     lie_conformal_algebra.base_ring()):
                 from .universal_enveloping_vertex_algebra import \
                                                 UniversalEnvelopingVertexAlgebra

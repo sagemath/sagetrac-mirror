@@ -198,7 +198,7 @@ class VertexAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                     sage: VertexAlgebras(QQ).WithBasis().Graded().Super().super_categories()
                     [Category of super vertex algebras with basis over Rational Field,
-                    Category of super H-graded Lie conformal algebras with basis over Rational Field,
+                    Category of H-graded super Lie conformal algebras with basis over Rational Field,
                     Category of H-graded vertex algebras with basis over Rational Field,
                     Category of super H-graded vertex algebras over Rational Field]
                 """

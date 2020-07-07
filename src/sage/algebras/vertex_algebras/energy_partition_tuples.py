@@ -159,15 +159,9 @@ class EnergyPartitionTuple(PartitionTuple):
              ([8], [])]
         """
         if op == op_EQ:
-            if self is None:
-                return other is None
-            elif other is None:
-                return False
-            if self is 0:
-                return other is 0
-            elif other is 0:
-                return False
-            return self._list == other._list
+            if isinstance(other, EnergyPartitionTuple):
+                return self._list == other._list
+            return False
         if op == op_NE:
             return not (self == other)
         if op == op_LT:

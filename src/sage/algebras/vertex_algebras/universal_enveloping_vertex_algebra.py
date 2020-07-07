@@ -68,6 +68,7 @@ AUTHORS:
 
 from .vertex_algebra import VertexAlgebra
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
+from sage.categories.lambda_bracket_algebras import LambdaBracketAlgebras
 from sage.categories.vertex_algebras import VertexAlgebras
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -167,21 +168,22 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
             sage: V = R.universal_enveloping_algebra()
             sage: TestSuite(V).run()
         """
-        if L not in LieConformalAlgebras(R).WithBasis().FinitelyGenerated():
+        if L not in LambdaBracketAlgebras(R).WithBasis().FinitelyGenerated():
             raise ValueError ("L needs to be a finitely generated " \
                 "Lie conformal algebra with basis, got {}".format(L))
 
-        category = VertexAlgebras(R).FinitelyGenerated().WithBasis().\
-           or_subcategory(category)
+        default_category = VertexAlgebras(R).FinitelyGenerated().WithBasis()
 
-        if L in LieConformalAlgebras(R).Graded():
+        if L in LambdaBracketAlgebras(R).Graded():
             from sage.rings.all import QQ
             if all(g.degree() in QQ and g.degree() > 0 for g in L.gens() if \
                    g not in L.central_elements()):
-                category = category.Graded()
+                default_category = default_category.Graded()
 
         if L in LieConformalAlgebras(R).Super():
-            category = category.Super()
+            default_category = default_category.Super()
+
+        category = default_category.or_subcategory(category)
 
         if names is None:
             try:
@@ -287,8 +289,12 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
         from sage.categories.homset import Hom
         from sage.algebras.lie_conformal_algebras.\
             lie_conformal_algebra_with_structure_coefs import _LiftMorphism
-        newlift = _LiftMorphism(Hom(self._lca, self,
-                        category = LieConformalAlgebras(self._lca.base_ring())))
+        R = self._lca.base_ring()
+        category = LieConformalAlgebras(R)
+        if self._lca in category.Super():
+            category = category.Super()
+
+        newlift = _LiftMorphism(Hom(self._lca, self, category=category))
         self._lca.set_lift(newlift)
 
     @cached_method

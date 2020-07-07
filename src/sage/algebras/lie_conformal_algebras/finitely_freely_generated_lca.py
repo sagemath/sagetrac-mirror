@@ -37,7 +37,7 @@ class FinitelyFreelyGeneratedLCA(FreelyGeneratedLieConformalAlgebra):
 
         TESTS::
 
-            sage: V = lie_conformal_algebras.Virasoro(QQ)
+            sage: V = lie_conformal_algebras.Abelian(QQ)
             sage: TestSuite(V).run()
         """
         default_category = LieConformalAlgebras(R).FinitelyGenerated()

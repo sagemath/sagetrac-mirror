@@ -256,15 +256,25 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
                             for k,v in p._lca.gen(i1).T(n1-1).bracket(
                                                 p._lca.gen(i2).T(n2-1)).items()}
                     return {k:v for k,v in ret.items() if v}
-                #Use Skew-Symmetry
-                if self.is_even_odd()*other.is_even_odd():
-                    parsgn = -1
+                #Use Right Non-Commutative Wick-Formula
+                if a1.is_even_odd()*b1.is_even_odd():
+                    sgn = -1
                 else:
-                    parsgn = 1
-                br = other._bracket_(self)
-                ret = {n: -sum([parsgn*(-1)**(k)*v.T(k-n)/factorial(k-n)\
-                    for k,v in br.items() if k >= n]) for n in range(max(br,
-                    default=0)+1)}
+                    sgn = 1
+                br1 = b1._bracket_(a2)
+                br2 = a1._bracket_(a2)
+                ret = {}
+                for k,v in br1.items():
+                    for n in range(k+1):
+                        ret[n] = ret.get(n, pz) \
+                                + c1*c2*a1.T(k-n)._mul_(v) / factorial(k-n)
+                for k,v in br2.items():
+                    for n in range(k+1):
+                        ret[n] = ret.get(n, pz) \
+                                 + sgn*c1*c2*b1.T(k-n)._mul_(v) / factorial(k-n)
+                    br3 = b1._bracket_(v)
+                    for j,w in br3.items():
+                        ret[j+k+1] = ret.get(j+k+1,pz) + sgn*c1*c2*w
                 return {k:v for k,v in ret.items() if v}
             #Use Non-Commutative Wick-Formula
             br1 = self._bracket_(a2)
@@ -417,7 +427,7 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
 
         p = self.parent()
         if self.is_monomial():
-            if self.is_zero() or self.monomials()[0] == p.vacuum():
+            if self.is_zero() or self.monomials() == [p.vacuum()]:
                 return p.zero()
 
             #we cannot simply use Leibniz T(ab) = T(a)b + aT(b)
