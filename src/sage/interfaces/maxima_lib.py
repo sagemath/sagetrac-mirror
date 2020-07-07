@@ -464,6 +464,9 @@ class MaximaLib(MaximaAbstract):
 
     eval = _eval_line
 
+    def eval_statement(self, statement):
+        maxima_eval("#$%s$"%statement)
+
     ###########################################
     # Direct access to underlying lisp interpreter.
     ###########################################
@@ -511,7 +514,7 @@ class MaximaLib(MaximaAbstract):
         if not isinstance(value, str):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
-        self.eval(cmd)
+        self.eval_statement(cmd)
 
     def clear(self, var):
         """
@@ -534,7 +537,7 @@ class MaximaLib(MaximaAbstract):
             'xxxxx'
         """
         try:
-            self.eval('kill(%s)$'%var)
+            self.eval_statement('kill(%s)'%var)
         except (TypeError, AttributeError):
             pass
 
