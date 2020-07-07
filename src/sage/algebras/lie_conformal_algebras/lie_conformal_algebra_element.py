@@ -23,6 +23,7 @@ from sage.misc.misc import repr_lincomb
 from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.combinat.partition import Partition
+from sage.rings.all import ZZ
 
 class LCAWithGeneratorsElement(IndexedFreeModuleElement):
     """
@@ -67,7 +68,6 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             sage: R.0.T(0)
             alpha
         """
-        from sage.rings.all import ZZ
         if n not in ZZ or n < 0:
             raise ValueError("n must be a nonnegative Integer")
         if n == 0 or self.is_zero():
