@@ -382,7 +382,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         if check:
             C = parent.curve()
             f, h = C.hyperelliptic_polynomials()
-            a, b = polys
+            a, b = map(f.parent(), polys)
             if not (b**2 + h*b - f)%a == 0:
                 raise ValueError("Argument polys (= %s) must be divisor on curve %s."%(
                     polys, C))
