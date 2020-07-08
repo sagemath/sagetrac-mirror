@@ -119,6 +119,13 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
             (x + 2, y)
             sage: D1+D2
             (x^2 + 2*x + 2, y + 2*x + 1)
+
+        Test for :trac:`30087`::
+
+            sage: R.<v> = QQ[]
+            sage: C = HyperellipticCurve(v^5-1)
+            sage: C.jacobian()(v-1,0)
+            (x - 1, y)
         """
         if isinstance(P, (Integer, int)) and P == 0:
             R = PolynomialRing(self.value_ring(), 'x')
