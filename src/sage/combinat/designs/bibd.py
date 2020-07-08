@@ -1252,6 +1252,72 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     from sage.combinat.designs.block_design import DesarguesianProjectivePlaneDesign
     return DesarguesianProjectivePlaneDesign(q).trace(C)._blocks
 
+
+def _test_recursive_construction(max_v, lambd_range):
+    r"""
+    Test that all BIBDs that can be constructed via the recursive constructions
+    can actually be built by Sage
+
+    INPUT:
+
+    - ``max_v`` -- (integer) test all BIBDs with at most ``max_v`` points
+
+    - ``lambd_range`` -- (integer iterable) test all BIBDs with `\lambda` in the given range
+
+    OUTPUT: ``None``
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.bibd import _test_recursive_construction
+        sage: _test_recursive_construction(40, range(1, 30))
+        -------------------------------
+        Test terminated:
+        Successful constructions: 77
+        Failed constructions: 0
+
+        sage: _test_recursive_construction(100, range(1, 100))
+        -------------------------------
+        Test terminated:
+        Successful constructions: 239
+        Failed constructions: 0
+
+    TESTS::
+
+        sage: _test_recursive_construction(1000, range(1, 1000))  # long time
+        -------------------------------
+        Test terminated:
+        Successful constructions: 2231
+        Failed constructions: 0
+    """
+    from sage.rings.integer import Integer
+
+    failed = 0
+    succeeded = 0
+    for v in range(2,max_v):
+        for lambd in lambd_range:
+
+            # Find k s.t. (v,k,lambd) is symmetric
+            for k in Integer(lambd*(v-1)).divisors():
+                if k*(k-1) == lambd*(v-1):
+                    break
+            else:  # we didn't find any k
+                continue
+
+            if balanced_incomplete_block_design(v,k,lambd,existence=True) is True:
+                # Try the recursive construction
+                try:
+                    D = balanced_incomplete_block_design(v-k, k-lambd, lambd)
+                    succeeded += 1
+                except Exception:
+                    failed += 1
+                    print("Sage couldn't build a ({},{},{})-BIBD despite claiming to build a ({},{},{})-BIBD".format(
+                            v-k, k-lambd, lambd, v, k, lambd))
+
+    print("-------------------------------")
+    print("Test terminated:")
+    print("Successful constructions: {}".format(succeeded))
+    print("Failed constructions: {}".format(failed))
+
 class PairwiseBalancedDesign(GroupDivisibleDesign):
     r"""
     Pairwise Balanced Design (PBD)
