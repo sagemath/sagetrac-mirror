@@ -653,9 +653,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
 
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x,y,z> = LinearExpressionModule(QQ)
-            sage: a = L.random_element(); a  # random
-            -1/2*x - 1/95*y + 1/2*z - 12
-            sage: a in L
+            sage: L.random_element().parent() is L
             True
         """
         A = self.ambient_module().random_element()
