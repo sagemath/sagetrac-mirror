@@ -21,7 +21,8 @@ from .magma import magma, Magma
 from .magma_free import magma_free
 from .macaulay2 import macaulay2, Macaulay2
 from .maple import maple, Maple
-from .maxima import maxima, Maxima
+from .maxima import Maxima
+lazy_import('sage.interfaces.maxima_lib_2', ['maxima'])
 # import problems
 #from maxima_lib import maxima_lib
 from .mathematica import mathematica, Mathematica
