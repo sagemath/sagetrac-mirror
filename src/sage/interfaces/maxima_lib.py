@@ -111,6 +111,7 @@ if MAXIMA_FAS is not None:
 else:
     ecl_eval("(require 'maxima)")
 ecl_eval("(rename-package :maxima :{})".format(maxima_package_name))
+ecl_eval("(delete 'maxima *modules* :test #'string=)")
 ecl_eval("(in-package :{})".format(maxima_package_name))
 ecl_eval("(setq $nolabels t))")
 ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")
