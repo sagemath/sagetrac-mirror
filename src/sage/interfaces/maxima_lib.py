@@ -110,7 +110,7 @@ if MAXIMA_FAS is not None:
     ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
 else:
     ecl_eval("(require 'maxima)")
-ecl_eval("(rename-package :maxima :{} '(:maxima))".format(maxima_package_name))
+ecl_eval("(rename-package :maxima :{})".format(maxima_package_name))
 ecl_eval("(in-package :{})".format(maxima_package_name))
 ecl_eval("(setq $nolabels t))")
 ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")
@@ -171,6 +171,37 @@ ecl_eval(r"""
   (intern (maybe-invert-string-case string) #.*package*))
 """)
 
+## Another one
+ecl_eval(r"""
+(defun $gensym (&optional x)
+  (typecase x
+    (null
+     (intern (symbol-name (gensym "$G")) #.*package*))
+    (string
+     (intern
+       (symbol-name (gensym (format nil "$~a" (maybe-invert-string-case x))))
+       :maxima))
+    ((integer 0)
+     (let ((*gensym-counter* x))
+       (intern (symbol-name (gensym "$G")) #.*package*)))
+    (t
+     (merror
+       (intl:gettext
+         "gensym: Argument must be a nonnegative integer or a string. Found: ~M") x))))
+""")
+
+## $LOAD may load Lisp files that contain (in-package :maxima).
+## We temporarily set :MAXIMA as a nickname for our package.
+## Todo: Use HANDLER-CASE.
+ecl_eval(r"""
+(let ((orig-$load #'$load))
+  (defun $load (filename)
+    (prog2
+      (rename-package :{0} :{0} '(:maxima))
+        (funcall orig-$load filename)
+      (rename-package :{0} :{0}))))
+""".format(maxima_package_name))
+
 ## Redirection of ECL and Maxima stdout to /dev/null
 ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
               (make-concatenated-stream) (make-broadcast-stream)))""")
@@ -198,11 +229,6 @@ for l in init_code:
 ## To get more debug information uncomment the next line
 ## should allow to do this through a method
 #ecl_eval("(setf *standard-output* original-standard-output)")
-
-## $LOAD may load Lisp files that contain (in-package :maxima), which is why we kept
-## :maxima as a package nickname to here.
-## TODO:  We should instead overrride $LOAD so that it temporarily sets the package nickname.
-ecl_eval("(rename-package :{} :{})".format(maxima_package_name, maxima_package_name))
 
 ## This is the main function (ECL object) used for evaluation
 # This returns an EclObject
@@ -238,6 +264,7 @@ maxima_eval=ecl_eval("""
 )
 """)
 
+# TODO: Use this instead of #$...$
 maxima_read_eval=ecl_eval("""
 (defun maxima-read-eval (str)
   (let ((*package* :{}))
