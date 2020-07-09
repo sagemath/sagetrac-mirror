@@ -224,8 +224,7 @@ init_code = ['besselexpand : true', 'display2d : false', 'domain : complex', 'ke
 # Robert Dodier for figuring this out!
 # See trac # 6818.
 init_code.append('nolabels : true')
-for l in init_code:
-    ecl_eval("#$%s$"%l)
+
 ## To get more debug information uncomment the next line
 ## should allow to do this through a method
 #ecl_eval("(setf *standard-output* original-standard-output)")
@@ -265,11 +264,21 @@ maxima_eval=ecl_eval("""
 """)
 
 # TODO: Use this instead of #$...$
-maxima_read_eval=ecl_eval("""
-(defun maxima-read-eval (str)
-  (let ((*package* :{}))
-    (maxima-eval (macsyma-read-string str))))
-""".format(maxima_package_name))
+maxima_read_eval_from_string = ecl_eval("""
+(defun maxima-read-eval-from-string (a-string)
+  (let ((*package* #.*package*))
+    (with-input-from-string (stream a-string)
+      (maxima-eval (third (mread stream))))))
+""")
+
+## Strangely, sage.libs.ecl has no way to just convert a string to a lisp string.
+## It insists to READ from it.  So we add
+## TODO: Add a function to sage.libs.ecl
+def maxima_read_eval(str):
+    return maxima_read_eval_from_string('"' + str + '$"')
+
+for l in init_code:
+    maxima_read_eval(l)
 
 ## Number of instances of this interface
 maxima_lib_instances = 0
