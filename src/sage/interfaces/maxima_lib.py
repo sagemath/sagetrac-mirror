@@ -100,12 +100,18 @@ from sage.env import MAXIMA_FAS
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
+ecl_eval("(cl:in-package :common-lisp-user)")
 ecl_eval("(setf *load-verbose* NIL)")
+
+maxima_package_name = __name__.split(".")[-1]
+##print("Initializing", maxima_package_name)
+ecl_eval("(delete 'maxima *modules* :test #'string=)")
 if MAXIMA_FAS is not None:
     ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
 else:
     ecl_eval("(require 'maxima)")
-ecl_eval("(in-package :maxima)")
+ecl_eval("(rename-package :maxima :{} '(:maxima))".format(maxima_package_name))
+ecl_eval("(in-package :{})".format(maxima_package_name))
 ecl_eval("(setq $nolabels t))")
 ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")
 ecl_eval("(set-locale-subdir)")
@@ -156,6 +162,15 @@ ecl_eval(r"""
 )
 """)
 
+## Override an ill-behaved function that refers to the maxima package by name
+ecl_eval(r"""
+(defun intern-invert-case (string)
+  ;; Like read-from-string with readtable-case :invert
+  ;; Supply package argument in case this function is called
+  ;; from outside the :maxima package.
+  (intern (maybe-invert-string-case string) #.*package*))
+""")
+
 ## Redirection of ECL and Maxima stdout to /dev/null
 ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
               (make-concatenated-stream) (make-broadcast-stream)))""")
@@ -171,7 +186,6 @@ init_code = ['besselexpand : true', 'display2d : false', 'domain : complex', 'ke
             'load(to_poly_solve)', 'load(simplify_sum)',
             'load(diag)']
 
-
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.
 # See the function makelabel in suprv1.lisp.
@@ -184,6 +198,11 @@ for l in init_code:
 ## To get more debug information uncomment the next line
 ## should allow to do this through a method
 #ecl_eval("(setf *standard-output* original-standard-output)")
+
+## $LOAD may load Lisp files that contain (in-package :maxima), which is why we kept
+## :maxima as a package nickname to here.
+## TODO:  We should instead overrride $LOAD so that it temporarily sets the package nickname.
+ecl_eval("(rename-package :{} :{})".format(maxima_package_name, maxima_package_name))
 
 ## This is the main function (ECL object) used for evaluation
 # This returns an EclObject
@@ -218,6 +237,12 @@ maxima_eval=ecl_eval("""
     )
 )
 """)
+
+maxima_read_eval=ecl_eval("""
+(defun maxima-read-eval (str)
+  (let ((*package* :{}))
+    (maxima-eval (macsyma-read-string str))))
+""".format(maxima_package_name))
 
 ## Number of instances of this interface
 maxima_lib_instances = 0
