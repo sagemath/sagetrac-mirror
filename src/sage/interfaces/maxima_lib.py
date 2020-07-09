@@ -236,6 +236,7 @@ init_code.append('nolabels : true')
 # This returns an EclObject
 maxima_eval=ecl_eval("""
 (defun maxima-eval( form )
+  (handler-case
     (let ((result (catch 'macsyma-quit (cons 'maxima_eval (meval form)))))
         ;(princ (list "result=" result))
         ;(terpri)
@@ -263,6 +264,9 @@ maxima_eval=ecl_eval("""
                 ))
         )
     )
+   (condition (c)
+      (format *debug-io* "~A~%while running ~S~%on ~S~%" c 'maxima-eval form)
+      (signal c)))
 )
 """)
 
