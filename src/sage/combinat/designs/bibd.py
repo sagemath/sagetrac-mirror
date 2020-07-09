@@ -1253,7 +1253,7 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     return DesarguesianProjectivePlaneDesign(q).trace(C)._blocks
 
 
-def _test_recursive_construction(max_v, lambd_range):
+def _test_constructions(max_v, lambd_range):
     r"""
     Test that all BIBDs that can be constructed via the recursive constructions
     can actually be built by Sage
@@ -1289,34 +1289,72 @@ def _test_recursive_construction(max_v, lambd_range):
         Successful constructions: 2231
         Failed constructions: 0
     """
-    from sage.rings.integer import Integer
+    from sage.combinat.designs.database import BIBD_constructions
+    from sage.combinat.designs.difference_family import difference_family
 
+    successful = 0
     failed = 0
-    succeeded = 0
-    for v in range(2,max_v):
-        for lambd in lambd_range:
+    tested = 0
+    for v in range(max_v):
+        for k in range(v):
+            for lambd in lambd_range:
+                tested += 1
+                if balanced_incomplete_block_design(v,k,lambd,existence=True) is True:
+                    try:
+                        balanced_incomplete_block_design(v,k,lambd)
+                        successful +=1
+                    except Exception:
+                        failed += 1
+                        print("Sage claimed ({},{},{}) exists, but can't build it".format(v,k,lambd))
 
-            # Find k s.t. (v,k,lambd) is symmetric
-            for k in Integer(lambd*(v-1)).divisors():
-                if k*(k-1) == lambd*(v-1):
-                    break
-            else:  # we didn't find any k
-                continue
+    print("{} parameters tested".format(tested))
+    print("Sage claimed {} exists".format(successful+failed))
+    print("Sage built {} of them and failed {} times".format(successful, failed))
 
-            if balanced_incomplete_block_design(v,k,lambd,existence=True) is True:
-                # Try the recursive construction
-                try:
-                    D = balanced_incomplete_block_design(v-k, k-lambd, lambd)
-                    succeeded += 1
-                except Exception:
-                    failed += 1
-                    print("Sage couldn't build a ({},{},{})-BIBD despite claiming to build a ({},{},{})-BIBD".format(
-                            v-k, k-lambd, lambd, v, k, lambd))
+    # Now check that Sage returns True when it knowns how to construct a parameter
+    successful = 0
+    failed = 0
+    unknown = 0
+    for v in range(max_v):
+        for k in range(v):
+            for lambd in lambd_range:
+                exists = False
+                ex = balanced_incomplete_block_design(v, k, lambd, existence=True)
 
-    print("-------------------------------")
-    print("Test terminated:")
-    print("Successful constructions: {}".format(succeeded))
-    print("Failed constructions: {}".format(failed))
+                if v == 1 or k == v or \
+                   k == 2 or (lambd == 1 and k in [3,4,5]) or \
+                   (v, k, lambd) in BIBD_constructions or \
+                   difference_family(v, k, l=lambd, existence=True) is True or \
+                   ((k+lambd)*(k+lambd-1) == lambd*(v+k+lambd-1) and
+                    balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd, existence=True) is True) or \
+                   (lambd == 1 and (
+                       BIBD_from_arc_in_desarguesian_projective_plane(v, k, existence=True) or
+                       BIBD_from_TD(v, k, existence=True) is True or
+                       (v == (k-1)**2 + k and is_prime_power(k-1)))):
+                    exists = True
+
+                # nonexistence checks
+                if v < k or \
+                   k < 2 or \
+                   (lambd*(v-1)) % (k-1) != 0 or \
+                   (lambd*v*(v-1)) % (k*(k-1)) != 0 or \
+                   (lambd*v*(v-1))//(k*(k-1)) < v or \
+                   (k == 6 and v in [36,46]) or \
+                   (k == 7 and v == 43):
+                    exists = False
+
+                if exists:
+                    if ex is True:
+                        successful += 1
+                    if ex is Unknown:
+                        unknown += 1
+                    if ex is False:
+                        failed += 1
+
+    print("Sage claims correctly that {} BIBDs can be built".format(successful))
+    print("Sage claims that {} BIBDs can't be built while it should be".format(failed))
+    print("Sage can't built {} BIBDs that it should be".format(unknown))
+
 
 class PairwiseBalancedDesign(GroupDivisibleDesign):
     r"""
