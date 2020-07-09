@@ -40,7 +40,7 @@ class JTrivialMonoids(Category):
             @cached_method
             def semigroup_generators(self):
                 """
-                Returns the canonical minimal set of generators. It
+                Return the canonical minimal set of generators. It
                 consists of the irreducible elements, that is elements
                 which are not of the form `x*y` with `x` and `y` in
                 ``self`` distinct from `x*y`.
