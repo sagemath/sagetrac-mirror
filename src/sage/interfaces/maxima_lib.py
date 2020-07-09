@@ -266,8 +266,16 @@ maxima_eval=ecl_eval("""
 )
 """)
 
-# TODO: Use this instead of #$...$
-maxima_read_eval_from_string = ecl_eval("""
+_maxima_read_from_string = ecl_eval("""
+(defun maxima-read-from-string (a-string)
+  (let ((*package* #.*package*))
+    (with-input-from-string (stream a-string)
+      (third (mread stream)))))
+""")
+def maxima_read(str):
+    return _maxima_read_from_string('"' + str + '$"')
+
+_maxima_read_eval_from_string = ecl_eval("""
 (defun maxima-read-eval-from-string (a-string)
   (let ((*package* #.*package*))
     (with-input-from-string (stream a-string)
@@ -275,10 +283,10 @@ maxima_read_eval_from_string = ecl_eval("""
 """)
 
 ## Strangely, sage.libs.ecl has no way to just convert a string to a lisp string.
-## It insists to READ from it.  So we add
+## It insists to READ from it.
 ## TODO: Add a function to sage.libs.ecl
 def maxima_read_eval(str):
-    return maxima_read_eval_from_string('"' + str + '$"')
+    return _maxima_read_eval_from_string('"' + str + '$"')
 
 for l in init_code:
     maxima_read_eval(l)
@@ -311,6 +319,12 @@ max_use_grobner=EclObject("$USE_GROBNER")
 max_to_poly_solve=EclObject("$TO_POLY_SOLVE")
 max_at=EclObject("%AT")
 
+_stdout_to_string = ecl_eval("""
+(defun stdout-to-string (s)
+  (with-output-to-string (*standard-output*)
+    (maxima-read-eval-from-string s)))
+""")
+
 def stdout_to_string(s):
     r"""
     Evaluate command ``s`` and catch Maxima stdout
@@ -332,8 +346,7 @@ def stdout_to_string(s):
         sage: stdout_to_string('disp(1+1)')
         '2\n\n'
     """
-    return ecl_eval(r"""(with-output-to-string (*standard-output*)
-                          (maxima-eval #$%s$))"""%s).python()[1:-1]
+    return _stdout_to_string('"' + s + '$"').python()[1:-1]
 
 def max_to_string(s):
     r"""
@@ -664,7 +677,7 @@ class MaximaLib(MaximaAbstract):
         name = self._next_var_name() if name is None else name
         try:
             if isinstance(value,EclObject):
-                maxima_eval([[msetq],cadadr("#$%s$#$"%name),value])
+                maxima_eval([[msetq], maxima_read(name), value])
             else:
                 self.set(name, value)
         except RuntimeError as error:
