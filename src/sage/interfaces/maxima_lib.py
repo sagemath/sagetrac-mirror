@@ -513,12 +513,12 @@ class MaximaLib(MaximaAbstract):
                     statement = line[:ind_semi]
                     line = line[ind_semi+1:]
                 if statement:
-                    result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))
+                    result = ((result + '\n') if result else '') + max_to_string(maxima_read_eval(statement))
             else:
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
                 if statement:
-                    maxima_eval("#$%s$" % statement)
+                    maxima_read_eval(statement)
         if not reformat:
             return result
         return ''.join([x.strip() for x in result.split()])
@@ -1144,7 +1144,7 @@ class MaximaLibElement(MaximaAbstractElement):
         try:
             return self._ecl
         except AttributeError:
-            self._ecl=maxima_eval("#$%s$"%self._name)
+            self._ecl=maxima_read_eval(self._name)
             return self._ecl
 
     def to_poly_solve(self,vars,options=""):
