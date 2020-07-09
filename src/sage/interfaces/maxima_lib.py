@@ -192,15 +192,17 @@ ecl_eval(r"""
 
 ## $LOAD may load Lisp files that contain (in-package :maxima).
 ## We temporarily set :MAXIMA as a nickname for our package.
-## Todo: Use HANDLER-CASE.
 ecl_eval(r"""
 (let ((orig-$load #'$load))
   (defun $load (filename)
-    (prog2
-      (rename-package :{0} :{0} '(:maxima))
+    (let ((p (find-package :maxima)))
+      (when p
+        (rename-package p (package-name p))))
+    (rename-package #.*package* #.(package-name *package*) '(:maxima))
+    (unwind-protect
         (funcall orig-$load filename)
-      (rename-package :{0} :{0}))))
-""".format(maxima_package_name))
+      (rename-package #.*package* #.(package-name *package*)))))
+""")
 
 ## Redirection of ECL and Maxima stdout to /dev/null
 ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
