@@ -1758,3 +1758,5 @@ def max_to_sr(expr):
         if isinstance(e,float):
             return sage.rings.real_double.RealDoubleElement(e)
         return e
+
+ecl_eval("(cl:in-package :common-lisp-user)")
