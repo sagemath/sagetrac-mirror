@@ -426,9 +426,6 @@ def Torus():
     S1 = Sphere(1)
     T = S1.product(S1)
     T.rename('Torus')
-    if kenzo_is_present:
-        K_S1 = kenzo.Sphere(1)
-        setattr(T, '_kenzo_repr', K_S1.kenzo.cartesian_product(K_S1))
     return T
 
 
