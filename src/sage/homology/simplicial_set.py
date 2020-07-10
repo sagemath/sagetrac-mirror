@@ -3356,7 +3356,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         if name:
             self.rename(name)
         self._latex_name = latex_name
-        if kenzo_is_present:
+        if kenzo_is_present and not hasattr(self, '_kenzo_repr'):
             self._kenzo_repr = kenzo.KFiniteSimplicialSet(self)
 
     def __eq__(self, other):
