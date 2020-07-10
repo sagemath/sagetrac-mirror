@@ -103,16 +103,45 @@ from sage.env import MAXIMA_FAS
 ecl_eval("(cl:in-package :common-lisp-user)")
 ecl_eval("(setf *load-verbose* NIL)")
 
-maxima_package_name = __name__.split(".")[-1]
-##print("Initializing", maxima_package_name)
 ecl_eval("(delete 'maxima *modules* :test #'string=)")
 if MAXIMA_FAS is not None:
     ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
 else:
     ecl_eval("(require 'maxima)")
-ecl_eval("(rename-package :maxima :{})".format(maxima_package_name))
 ecl_eval("(delete 'maxima *modules* :test #'string=)")
-ecl_eval("(in-package :{})".format(maxima_package_name))
+
+maxima_lisp_package_suffix = __name__.split(".")[-1][len('maxima'):]
+maxima_lisp_packages = [':maxima', ':bigfloat', ':bigfloat-impl']
+
+## Rename all of these packages by adding the suffix.
+##
+## However, $LOAD may load Lisp files that contain (in-package :maxima).
+## We temporarily set :MAXIMA as a nickname for our package.
+ecl_eval('''(in-package :maxima)''')
+ecl_eval(f'''
+(let* ((orig-$load #'$load)
+       (orig-package-names '({" ".join(maxima_lisp_packages)}))
+       (package-names '({" ".join(p + maxima_lisp_package_suffix
+                                  for p in maxima_lisp_packages)}))
+       (packages (loop for orig-package-name in orig-package-names
+                       for package-name in package-names
+                       collect (rename-package orig-package-name package-name))))
+  (defun $load (filename)
+    (loop for orig-package-name in orig-package-names
+          for package in packages
+          do (let ((p (find-package orig-package-name)))
+               ;; Take away leftover nicknames from whoever kept them
+               (when p (rename-package p (package-name p)))
+               ;; Add them to our packages
+               (rename-package package (package-name package) (list orig-package-name))))
+    (unwind-protect
+        (funcall orig-$load filename)
+      (loop for package in packages
+            do (rename-package package (package-name package))))))
+''')
+
+ecl_eval(f'''(in-package :maxima{maxima_lisp_package_suffix})''')
+
 ecl_eval("(setq $nolabels t))")
 ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")
 ecl_eval("(set-locale-subdir)")
@@ -191,20 +220,6 @@ ecl_eval(r"""
          "gensym: Argument must be a nonnegative integer or a string. Found: ~M") x))))
 """)
 
-## $LOAD may load Lisp files that contain (in-package :maxima).
-## We temporarily set :MAXIMA as a nickname for our package.
-ecl_eval(r"""
-(let ((orig-$load #'$load))
-  (defun $load (filename)
-    (let ((p (find-package :maxima)))
-      (when p
-        (rename-package p (package-name p))))
-    (rename-package #.*package* #.(package-name *package*) '(:maxima))
-    (unwind-protect
-        (funcall orig-$load filename)
-      (rename-package #.*package* #.(package-name *package*)))))
-""")
-
 ## Redirection of ECL and Maxima stdout to /dev/null
 ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
               (make-concatenated-stream) (make-broadcast-stream)))""")
@@ -236,7 +251,8 @@ init_code.append('nolabels : true')
 # This returns an EclObject
 maxima_eval=ecl_eval("""
 (defun maxima-eval( form )
-  (handler-case
+ (let ((*package* #.*package*))
+  ;;(handler-case
     (let ((result (catch 'macsyma-quit (cons 'maxima_eval (meval form)))))
         ;(princ (list "result=" result))
         ;(terpri)
@@ -264,10 +280,10 @@ maxima_eval=ecl_eval("""
                 ))
         )
     )
-   (condition (c)
-      (format *debug-io* "~A~%while running ~S~%on ~S~%" c 'maxima-eval form)
-      (signal c)))
-)
+   ;;(condition (c)
+   ;;  (format *debug-io* "~A~%while running ~S~%on ~S~%" c 'maxima-eval form)
+   ;;  (signal c)))
+))
 """)
 
 _maxima_read_from_string = ecl_eval("""
@@ -281,9 +297,7 @@ def maxima_read(str):
 
 _maxima_read_eval_from_string = ecl_eval("""
 (defun maxima-read-eval-from-string (a-string)
-  (let ((*package* #.*package*))
-    (with-input-from-string (stream a-string)
-      (maxima-eval (third (mread stream))))))
+  (maxima-eval (maxima-read-from-string a-string)))
 """)
 
 ## Strangely, sage.libs.ecl has no way to just convert a string to a lisp string.
@@ -371,11 +385,6 @@ def max_to_string(s):
     """
     return maxprint(s).python()[1:-1]
 
-my_mread=ecl_eval("""
-(defun my-mread (cmd)
-  (caddr (mread (make-string-input-stream cmd))))
-""")
-
 def parse_max_string(s):
     r"""
     Evaluate string in Maxima without *any* further simplification.
@@ -392,7 +401,7 @@ def parse_max_string(s):
         sage: parse_max_string('1+1')
         <ECL: ((MPLUS) 1 1)>
     """
-    return my_mread('"%s;"'%s)
+    return maxima_read(s)
 
 class MaximaLib(MaximaAbstract):
     """
