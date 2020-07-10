@@ -293,18 +293,15 @@ _maxima_read_from_string = ecl_eval("""
       (third (mread stream)))))
 """)
 def maxima_read(str):
-    return _maxima_read_from_string('"' + str + '$"')
+    return _maxima_read_from_string(EclObject(str + '$', False))
 
 _maxima_read_eval_from_string = ecl_eval("""
 (defun maxima-read-eval-from-string (a-string)
   (maxima-eval (maxima-read-from-string a-string)))
 """)
 
-## Strangely, sage.libs.ecl has no way to just convert a string to a lisp string.
-## It insists to READ from it.
-## TODO: Add a function to sage.libs.ecl
 def maxima_read_eval(str):
-    return _maxima_read_eval_from_string('"' + str + '$"')
+    return _maxima_read_eval_from_string(EclObject(str + '$', False))
 
 for l in init_code:
     maxima_read_eval(l)
@@ -364,7 +361,7 @@ def stdout_to_string(s):
         sage: stdout_to_string('disp(1+1)')
         '2\n\n'
     """
-    return _stdout_to_string('"' + s + '$"').python()[1:-1]
+    return _stdout_to_string(EclObject(s + '$', False)).python()[1:-1]
 
 def max_to_string(s):
     r"""
