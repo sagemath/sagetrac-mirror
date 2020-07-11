@@ -1241,6 +1241,8 @@ class ScalarField(CommutativeAlgebraElement):
         INPUT:
 
         - ``other`` -- a scalar field
+        - ``op`` -- comparison operator for which ``self`` and ``other`` shall
+          be compared with.
 
         OUTPUT:
 

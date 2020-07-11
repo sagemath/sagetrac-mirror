@@ -2156,6 +2156,8 @@ class TensorField(ModuleElement):
         INPUT:
 
         - ``other`` -- a tensor field
+        - ``op`` -- comparison operator for which ``self`` and ``other`` shall
+          be compared with.
 
         OUTPUT:
 
