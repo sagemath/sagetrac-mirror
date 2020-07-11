@@ -2149,17 +2149,18 @@ class TensorField(ModuleElement):
                 resu.append(dom)
         return resu
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Comparison (equality) operator.
+        Rich comparison operator.
 
         INPUT:
 
-        - ``other`` -- a tensor field or 0
+        - ``other`` -- a tensor field
 
         OUTPUT:
 
-        - ``True`` if ``self`` is equal to ``other`` and ``False`` otherwise
+        - ``True`` if ``richcmp(self, other, op)`` holds and ``False``
+          otherwise
 
         TESTS::
 
@@ -2192,19 +2193,10 @@ class TensorField(ModuleElement):
             sage: t.parent().zero() == 0
             True
         """
-        if other is self:
-            return True
-        if other in ZZ: # to compare with 0
-            if other == 0:
-                return self.is_zero()
-            return False
-        elif not isinstance(other, TensorField):
-            return False
-        else: # other is another tensor field
-            if other._vmodule != self._vmodule:
-                return False
-            if other._tensor_type != self._tensor_type:
-                return False
+        from sage.structure.richcmp import op_NE, op_EQ
+        if op == op_NE:
+            return not self == other
+        elif op == op_EQ:
             # Non-trivial open covers of the domain:
             open_covers = self._domain.open_covers()[1:]  # the open cover 0
                                                           # is trivial
@@ -2235,6 +2227,8 @@ class TensorField(ModuleElement):
                     return False  # the restrictions are not on the same
                                   # subdomains
             return resu
+        # Fall back on default implementation:
+        return ModuleElement._richcmp_(self, other, op)
 
     def __ne__(self, other):
         r"""
