@@ -1575,8 +1575,10 @@ class Section(ModuleElement):
         if op == op_NE:
             return not self == other
         elif op == op_EQ:
-            if other._smodule != self._smodule:
-                return False
+            if self is other:
+                return True
+            elif other.is_zero():
+                return self.is_zero()
             # Non-trivial open covers of the domain:
             open_covers = self._domain.open_covers()[1:]  # the open cover 0
                                                           # is trivial

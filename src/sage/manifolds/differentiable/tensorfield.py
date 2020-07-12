@@ -2198,6 +2198,10 @@ class TensorField(ModuleElement):
         if op == op_NE:
             return not self == other
         elif op == op_EQ:
+            if self is other:
+                return True
+            elif other.is_zero():
+                return self.is_zero()
             # Non-trivial open covers of the domain:
             open_covers = self._domain.open_covers()[1:]  # the open cover 0
                                                           # is trivial
@@ -2230,43 +2234,6 @@ class TensorField(ModuleElement):
             return resu
         # Fall back on default implementation:
         return ModuleElement._richcmp_(self, other, op)
-
-    def __ne__(self, other):
-        r"""
-        Inequality operator.
-
-        INPUT:
-
-        - ``other`` -- a tensor field or 0
-
-        OUTPUT:
-
-        - ``True`` if ``self`` is different from ``other`` and ``False``
-          otherwise
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:                    intersection_name='W', restrictions1= x>0,
-            ....:                    restrictions2= u+v>0)
-            sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
-            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: t != t
-            False
-            sage: t != t.copy()
-            False
-            sage: t != 0
-            True
-
-        """
-        return not (self == other)
 
     def __pos__(self):
         r"""

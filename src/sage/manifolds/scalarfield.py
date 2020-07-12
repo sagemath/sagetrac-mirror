@@ -1272,6 +1272,10 @@ class ScalarField(CommutativeAlgebraElement):
         if op == op_NE:
             return not self == other
         elif op == op_EQ:
+            if self is other:
+                return True
+            elif other.is_zero():
+                return self.is_zero()
             com_charts = self.common_charts(other)
             if com_charts is None:
                 raise ValueError("no common chart for the comparison")
@@ -1281,34 +1285,6 @@ class ScalarField(CommutativeAlgebraElement):
             return True
         # Fall back on default implementation:
         return CommutativeAlgebraElement._richcmp_(self, other, op)
-
-    def __ne__(self, other):
-        r"""
-        Non-equality operator.
-
-        INPUT:
-
-        - ``other`` -- a scalar field
-
-        OUTPUT:
-
-        - ``True`` if ``self`` differs from ``other``, ``False`` otherwise
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = M.scalar_field({X: x+y})
-            sage: f != 1
-            True
-            sage: f != M.zero_scalar_field()
-            True
-            sage: g = M.scalar_field({X: x+y})
-            sage: f != g
-            False
-
-        """
-        return not (self == other)
 
     ####### End of required methods for an algebra element (beside arithmetic) #######
 
