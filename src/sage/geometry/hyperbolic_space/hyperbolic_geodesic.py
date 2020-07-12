@@ -1370,16 +1370,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         EXAMPLES::
 
             sage: UHP = HyperbolicPlane().UHP()
-            sage: g = UHP.random_geodesic()
-            sage: h = g.perpendicular_bisector()
-            sage: c = lambda x: x.coordinates()
-            sage: error = abs(c(g.intersection(h)[0]) - c(g.midpoint()))
-            sage: error / ( abs(c(g.intersection(h)[0])) + abs(c(g.midpoint())) )  # abs tol 1
-            0
-
-        ::
-
-            sage: UHP = HyperbolicPlane().UHP()
             sage: g = UHP.get_geodesic(1+I,2+0.5*I)
             sage: h = g.perpendicular_bisector()
             sage: show(g.plot(color='blue')+h.plot(color='orange'))
@@ -1398,6 +1388,15 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ...
             ValueError: the length must be finite
 
+        TESTS::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: g = UHP.random_geodesic()
+            sage: h = g.perpendicular_bisector()
+            sage: c = lambda x: x.coordinates()
+            sage: error = abs(c(g.intersection(h)[0]) - c(g.midpoint()))
+            sage: error / ( abs(c(g.intersection(h)[0])) + abs(c(g.midpoint())) )  # abs tol 1
+            0
         """
 
         if self.length() == infinity:
@@ -1908,6 +1907,13 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ....:   import HyperbolicGeodesicUHP
             sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry \
             ....:   import moebius_transform
+            sage: (x,y,z) = var('x,y,z')
+            sage: HyperbolicGeodesicUHP._crossratio_matrix(x,y,z)
+            [     y - z -x*(y - z)]
+            [    -x + y  (x - y)*z]
+
+        TESTS::
+
             sage: UHP = HyperbolicPlane().UHP()
             sage: (p1, p2, p3) = [UHP.random_point().coordinates()
             ....:                   for k in range(3)]
@@ -1919,11 +1925,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             0
             sage: bool(moebius_transform(A, p3) == infinity)
             True
-            sage: (x,y,z) = var('x,y,z')
-            sage: HyperbolicGeodesicUHP._crossratio_matrix(x,y,z)
-            [     y - z -x*(y - z)]
-            [    -x + y  (x - y)*z]
-
         """
 
         if p0 == infinity:
