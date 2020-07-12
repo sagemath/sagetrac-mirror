@@ -151,8 +151,22 @@ EOF
         echo "Argument IGNORE_MISSING_SYSTEM_PACKAGES must be yes or no"
         ;;
 esac
-cat <<EOF
 
+if [ $SYSTEM = "slackware-multilib" ]; then
+    cat <<EOF
+#:multilib:
+ENV SLACKVER=14.2
+WORKDIR /multilib
+RUN slackpkg install lftp
+RUN lftp -c "open http://bear.alienbase.nl/mirrors/people/alien/multilib/ ; mirror -c -e \${SLACKVER}"
+WORKDIR "\${SLACKVER}"
+RUN upgradepkg --reinstall --install-new *.t?z
+RUN upgradepkg --install-new slackware64-compat32/*-compat32/*.t?z
+RUN cd ..
+EOF
+fi
+
+cat <<EOF
 FROM with-system-packages as bootstrapped
 #:bootstrapping:
 RUN mkdir -p /sage
