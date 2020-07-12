@@ -54,7 +54,6 @@ REFERENCES:
 from __future__ import print_function
 
 from sage.rings.integer import Integer
-from sage.rings.integer_ring import ZZ
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
