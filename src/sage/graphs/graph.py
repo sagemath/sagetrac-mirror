@@ -3106,7 +3106,7 @@ class Graph(GenericGraph):
             return True
 
         A = self.automorphism_group()
-        e = next(self.edge_iterator(labels=False))
+        e = self.edges(labels=False, sort=False)[0]
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
         return libgap(A).OrbitLength(e, libgap.OnSets) == self.size()
@@ -3146,7 +3146,7 @@ class Graph(GenericGraph):
             return True
 
         A = self.automorphism_group()
-        e = next(self.edge_iterator(labels=False))
+        e = self.edges(labels=False, sort=False)[0]
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
 
         return libgap(A).OrbitLength(e,libgap.OnTuples) == 2*self.size()

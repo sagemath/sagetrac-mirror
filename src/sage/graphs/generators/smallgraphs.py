@@ -4163,7 +4163,7 @@ def SylvesterGraph():
         True
     """
     g = HoffmanSingletonGraph()
-    e = next(g.edge_iterator(labels = False))
+    e = g.edges(labels=False, sort=False)[0]
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 1, 2, 4, 5, 9, 16, 35, 15, 18, 20, 30, 22, 6, 33, 32, 14,
@@ -4204,7 +4204,7 @@ def SimsGewirtzGraph():
 
     """
     g = HigmanSimsGraph()
-    e = next(g.edge_iterator(labels = False))
+    e = g.edges(labels=False, sort=False)[0]
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 2, 3, 4, 6, 7, 8, 17, 1, 41, 49, 5, 22, 26, 11, 27, 15, 47,

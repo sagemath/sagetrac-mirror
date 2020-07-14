@@ -1580,7 +1580,7 @@ class DiGraph(GenericGraph):
            sage: g = graphs.RandomGNP(5,.3)
            sage: dg = DiGraph(g)
            sage: feedback = dg.feedback_edge_set()
-           sage: u,v,l = next(g.edge_iterator())
+           sage: u,v,l = g.edges(sort=False)[0]
            sage: (u,v) in feedback or (v,u) in feedback
            True
 
@@ -3657,7 +3657,7 @@ class DiGraph(GenericGraph):
             sage: g = digraphs.RandomTournament(6)
             sage: g.is_tournament()
             True
-            sage: u,v = next(g.edge_iterator(labels=False))
+            sage: u,v = g.edges(labels=False, sort=False)[0]
             sage: g.add_edge(v, u)
             sage: g.is_tournament()
             False

@@ -3901,14 +3901,14 @@ class GenericGraph(GenericGraph_pyx):
         if odd:
             v = odd.pop()
         else:
-            v = next(g.edge_iterator(labels=None))[0]
+            v = g.edges(labels=False, sort=False)[0][0]
             odd.append(v)
         # Stops when there is no edge left
         while True:
 
             # If there is an edge adjacent to the current one
             if g.degree(v):
-                e = next(g.edge_iterator(v))
+                e = g.edges(vertices=[v], sort=False)[0]
                 g.delete_edge(e)
                 if e[0] != v:
                     e = (e[1], e[0], e[2])
@@ -3924,7 +3924,7 @@ class GenericGraph(GenericGraph_pyx):
                     v = odd.pop()
                 # Else jumps to an even vertex which is not isolated
                 elif g.size():
-                    v = next(g.edge_iterator())[0]
+                    v = g.edges(labels=False, sort=False)[0][0]
                     odd.append(v)
                 # If there is none, we are done !
                 else:
@@ -4047,10 +4047,12 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             g_degree = g.out_degree
-            g_edge_iter = g.outgoing_edge_iterator
+            def g_edge_next(v):
+                return next(g.outgoing_edge_iterator(v))
         else:
             g_degree = g.degree
-            g_edge_iter = g.edge_iterator
+            def g_edge_next(v):
+                return g.edges(vertices=[v], sort=False)[0]
 
         while stack:
             v, e = stack.pop()
@@ -4061,7 +4063,7 @@ class GenericGraph(GenericGraph_pyx):
                 if e is not None:
                     edges.append(e if labels else (e[0], e[1]))
             else:
-                next_edge = next(g_edge_iter(v))
+                next_edge = g_edge_next(v)
 
                 if next_edge[0] == v:  # in the undirected case we want to
                                        # save the direction of traversal
@@ -8429,7 +8431,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: feedback = dcycle.feedback_vertex_set()
             sage: len(feedback)
             3
-            sage: u,v = next(cycle.edge_iterator(labels=None))
+            sage: u,v = cycle.edges(labels=None, sort=False)[0]
             sage: u in feedback or v in feedback
             True
 
@@ -10156,8 +10158,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``**kwds`` -- arguments to be passed down to the :meth:`edge_iterator`
-          method
+        - ``**kwds`` -- arguments to be passed down to the :meth:`edges` method
 
         EXAMPLES:
 
@@ -10186,10 +10187,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("cannot get a random edge from a graph without edges")
 
         from sage.misc.prandom import randint
-        it = self.edge_iterator(**kwds)
-        for i in range(0, randint(0, self.size() - 1)):
-            next(it)
-        return next(it)
+        return self.edges(**kwds)[randint(0, self.size() - 1)]
 
     def random_edge_iterator(self, *args, **kwds):
         r"""
@@ -10201,7 +10199,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``*args`` and ``**kwds`` -- arguments to be passed down to the
-          :meth:`edge_iterator` method.
+          :meth:`edges` method.
 
         EXAMPLES:
 
@@ -10236,7 +10234,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.prandom import choice
         if self.size():
-            E = list(self.edge_iterator(*args, **kwds))
+            E = list(self.edges(*args, **kwds))
             while True:
                 yield choice(E)
 
@@ -10934,7 +10932,7 @@ class GenericGraph(GenericGraph_pyx):
         length `8`::
 
             sage: g = graphs.PathGraph(3)
-            sage: edge = next(g.edge_iterator())
+            sage: edge = g.edges()[0]
             sage: g.subdivide_edge(edge, 5)
             sage: g.is_isomorphic(graphs.PathGraph(8))
             True
@@ -11052,7 +11050,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Subdividing edges in each of them will only change their lengths::
 
-            sage: edges = [next(P.edge_iterator()) for P in g.connected_components_subgraphs()]
+            sage: edges = [P.edges()[0] for P in g.connected_components_subgraphs()]
             sage: k = 6
             sage: g.subdivide_edges(edges, k)
 
@@ -11805,21 +11803,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.edge_iterator(0, ignore_direction=True))
             [(1, 0, None), (2, 0, None)]
         """
-        if vertices is None:
-            vertices = self
-        elif vertices in self:
-            vertices = [vertices]
-        else:
-            vertices = [v for v in vertices if v in self]
-
-        if ignore_direction and self._directed:
-            from itertools import chain
-            return chain(self._backend.iterator_out_edges(vertices, labels),
-                         self._backend.iterator_in_edges(vertices, labels))
-        elif self._directed:
-            return self._backend.iterator_out_edges(vertices, labels)
-        else:
-            return self._backend.iterator_edges(vertices, labels)
+        return self.edges(vertices=vertices, labels=labels, ignore_direction=ignore_direction, sort=False)
 
     def edges_incident(self, vertices=None, labels=True, sort=False):
         r"""
