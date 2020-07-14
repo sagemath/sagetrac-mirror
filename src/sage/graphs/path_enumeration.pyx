@@ -219,13 +219,13 @@ def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=Fa
     if report_edges and labels:
         edge_labels = {}
         if use_multiedges:
-            for e in G.edge_iterator():
+            for e in G.edges(sort=False):
                 if (e[0], e[1]) in edge_labels:
                     edge_labels[(e[0], e[1])].append(e)
                 else:
                     edge_labels[(e[0], e[1])] = [e]
         else:
-            for e in G.edge_iterator():
+            for e in G.edges(sort=False):
                 if (e[0], e[1]) not in edge_labels:
                     edge_labels[(e[0], e[1])] = [e]
         if not G.is_directed():
@@ -233,7 +233,7 @@ def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=Fa
                 edge_labels[v, u] = edge_labels[u, v]
     elif use_multiedges and G.has_multiple_edges():
         from collections import Counter
-        edge_multiplicity = Counter(G.edge_iterator(labels=False))
+        edge_multiplicity = Counter(G.edges(labels=False, sort=False))
 
     if start == end:
         return [[start]]
@@ -744,9 +744,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     if by_weight:
         G._check_weight_function(weight_function)
         # dictionary to get weight of the edges
-        edge_wt = {(e[0], e[1]): weight_function(e) for e in G.edge_iterator()}
+        edge_wt = {(e[0], e[1]): weight_function(e) for e in G.edges(sort=False)}
         if not G.is_directed():
-            for u, v in G.edge_iterator(labels=False):
+            for u, v in G.edges(labels=False, sort=False):
                 edge_wt[v, u] = edge_wt[u, v]
 
         def length_func(path):
@@ -775,9 +775,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     cdef dict edge_labels
     if report_edges and labels:
-        edge_labels = {(e[0], e[1]): e for e in G.edge_iterator()}
+        edge_labels = {(e[0], e[1]): e for e in G.edges(sort=False)}
         if not G.is_directed():
-            for u, v in G.edge_iterator(labels=False):
+            for u, v in G.edges(labels=False, sort=False):
                 edge_labels[v, u] = edge_labels[u, v]
 
     # heap data structure containing the candidate paths
@@ -1100,9 +1100,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     cdef dict edge_labels
     if report_edges and labels:
-        edge_labels = {(e[0], e[1]): e for e in G.edge_iterator()}
+        edge_labels = {(e[0], e[1]): e for e in G.edges(sort=False)}
         if not G.is_directed():
-            for u, v in G.edge_iterator(labels=False):
+            for u, v in G.edges(labels=False, sort=False):
                 edge_labels[v, u] = edge_labels[u, v]    
 
     from sage.graphs.base.boost_graph import shortest_paths
@@ -1167,7 +1167,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     # successor is a child node in the shortest path subtree
     cdef dict reduced_cost = {(e[0], e[1]): weight_function(e) + dist[e[1]] - dist[e[0]]
-                                for e in G.edge_iterator()
+                                for e in G.edges(sort=False)
                                 if e[0] in dist and e[1] in dist}
 
     cdef set exclude_vert_set = set(G) - set(dist)
@@ -1513,18 +1513,18 @@ def _all_paths_iterator(self, vertex, ending_vertices=None,
     if not data:
         if report_edges and labels:
             if use_multiedges:
-                for e in self.edge_iterator():
+                for e in self.edges(sort=False):
                     if (e[0], e[1]) in my_dict:
                         my_dict[(e[0], e[1])].append(e)
                     else:
                         my_dict[(e[0], e[1])] = [e]
             else:
-                for e in self.edge_iterator():
+                for e in self.edges(sort=False):
                     if (e[0], e[1]) not in my_dict:
                         my_dict[(e[0], e[1])] = [e]
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
-            edge_multiplicity = dict(Counter(self.edge_iterator(labels=False)))
+            edge_multiplicity = dict(Counter(self.edges(labels=False, sort=False)))
     else:
         if report_edges and labels:
             my_dict = data
@@ -1767,18 +1767,18 @@ def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
 
     if report_edges and labels:
         if use_multiedges:
-            for e in self.edge_iterator():
+            for e in self.edges(sort=False):
                 if (e[0], e[1]) in data:
                     data[(e[0], e[1])].append(e)
                 else:
                     data[(e[0], e[1])] = [e]
         else:
-            for e in self.edge_iterator():
+            for e in self.edges(sort=False):
                 if (e[0], e[1]) not in data:
                     data[(e[0], e[1])] = [e]
     elif use_multiedges and self.has_multiple_edges():
         from collections import Counter
-        edge_multiplicity = Counter(self.edge_iterator(labels=False))
+        edge_multiplicity = Counter(self.edges(labels=False, sort=False))
         data = dict(edge_multiplicity)
 
     # We create one paths iterator per vertex

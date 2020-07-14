@@ -715,7 +715,7 @@ cdef class GenericGraphBackend(SageObject):
 
             sage: g = DiGraph(multiedges=True, loops=True)
             sage: H = 2 * (digraphs.Circuit(15) + DiGraph(graphs.PetersenGraph()))
-            sage: g.add_edges(H.edge_iterator())
+            sage: g.add_edges(H.edges(sort=False))
             sage: g.add_edge(0, 0)
             sage: g.add_edge(1, 1, "a label")
             sage: g.add_edges([(0, 1, "labellll"), (0, 1, "labellll"), (0, 1, "LABELLLL")])

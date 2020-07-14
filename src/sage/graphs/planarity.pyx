@@ -119,7 +119,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
     status = gp_InitGraph(theGraph, g.order())
     if status != OK:
         raise RuntimeError("gp_InitGraph status is not ok")
-    for u, v in g.edge_iterator(labels=False):
+    for u, v in g.edges(labels=False, sort=False):
         status = gp_AddEdge(theGraph, u, 0, v, 0)
         if status == NOTOK:
             raise RuntimeError("gp_AddEdge status is not ok")

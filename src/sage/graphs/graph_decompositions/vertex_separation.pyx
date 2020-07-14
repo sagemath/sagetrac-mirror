@@ -394,7 +394,7 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: h = linear_ordering_to_path_decomposition(g, L)
         sage: sorted(h, key=str)
         [{0, 1}, {1, 2}, {2, 3}, {3, 4}]
-        sage: sorted(h.edge_iterator(labels=None), key=str)
+        sage: h.edges(labels=False, sort=True, key=str)
         [({0, 1}, {1, 2}), ({1, 2}, {2, 3}), ({2, 3}, {3, 4})]
 
     Giving a non-optimal linear ordering::
@@ -416,7 +416,7 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: h = linear_ordering_to_path_decomposition(g, L)
         sage: sorted(h, key=str)
         [{0, 1, 5}, {1, 2, 5}, {2, 3, 4}, {2, 4, 5}]
-        sage: sorted(h.edge_iterator(labels=None), key=str)
+        sage: h.edges(labels=False, sort=True, key=str)
         [({0, 1, 5}, {1, 2, 5}), ({1, 2, 5}, {2, 4, 5}), ({2, 4, 5}, {2, 3, 4})]
 
 

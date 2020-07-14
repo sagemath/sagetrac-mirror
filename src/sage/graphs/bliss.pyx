@@ -524,14 +524,14 @@ cpdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True
             # rely loosely on string representation
             edge_labels = sorted(set(map(str, G.edge_labels())))
             lab_to_index = {lab: i for i,lab in enumerate(edge_labels)}
-            for x,y,lab in G.edge_iterator(labels=True):
+            for x,y,lab in G.edges(labels=True, sort=False):
                 Vout.append(vert2int[x])
                 Vin.append(vert2int[y])
                 labels.append(lab_to_index[str(lab)])
 
         else:
             lab_to_index = {lab:i for i,lab in enumerate(edge_labels)}
-            for x,y,lab in G.edge_iterator(labels=True):
+            for x,y,lab in G.edges(labels=True, sort=False):
                 Vout.append(vert2int[x])
                 Vin.append(vert2int[y])
                 labels.append(lab_to_index[lab])
@@ -539,7 +539,7 @@ cpdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True
         Lnr = len(lab_to_index)
 
     else:
-        for x,y in G.edge_iterator(labels=False):
+        for x,y in G.edges(labels=False, sort=False):
             Vout.append(vert2int[x])
             Vin.append(vert2int[y])
 
@@ -784,7 +784,7 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
     # - Vin[i] : destination of the ith edge
     # - labels[i] : label of the ith edge if use_edge_labels is True
     # On the way, assign a unique integer to each distinct label
-    for x,y,lab in G.edge_iterator(labels=True):
+    for x,y,lab in G.edges(labels=True, sort=False):
         Vout.append(vert2int[x])
         Vin.append(vert2int[y])
         if use_edge_labels:
@@ -830,7 +830,7 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
         vert2int[v] = i
         int2vert[i] = v
 
-    for x,y in G.edge_iterator(labels=False):
+    for x,y in G.edges(labels=False, sort=False):
        g.add_edge(vert2int[x], vert2int[y])
 
     if partition:
@@ -863,7 +863,7 @@ cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
         vert2int[v] = i
         int2vert[i] = v
 
-    for x,y in G.edge_iterator(labels=False):
+    for x,y in G.edges(labels=False, sort=False):
         g.add_edge(vert2int[x], vert2int[y])
 
     if partition:

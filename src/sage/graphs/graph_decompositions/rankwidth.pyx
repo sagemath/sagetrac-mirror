@@ -223,7 +223,7 @@ cdef int sage_graph_to_matrix(G):
     vertices_to_id = {v: i for i, v in enumerate(id_to_vertices)}
 
     # Filling the matrix
-    for u,v in G.edge_iterator(labels=False):
+    for u, v in G.edges(labels=False, sort=False):
         if u == v:
             continue
         set_am(vertices_to_id[u], vertices_to_id[v], 1)

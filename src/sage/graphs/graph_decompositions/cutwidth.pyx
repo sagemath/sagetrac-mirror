@@ -243,7 +243,7 @@ def width_of_cut_decomposition(G, L):
     # positions in `0..i` to vertices at positions in `i+1..n-1`, for each
     # `x\leq i<n-1`.
     cdef list cpt = [0] * G.order()
-    for u, v in G.edge_iterator(labels=None):
+    for u, v in G.edges(labels=False, sort=False):
         x, y = position[u], position[v]
         if x > y:
             x, y = y, x
@@ -688,7 +688,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
 
     # Edge uv counts at position i if one of u or v is placed at a position in
     # [0,i] and the other is placed at a position in [i+1,n].
-    for u,v in G.edge_iterator(labels=None):
+    for u,v in G.edges(labels=False, sort=False):
         for i in range(N):
             p.add_constraint(x[u,i] - x[v,i] <= y[u,v,i])
             p.add_constraint(x[v,i] - x[u,i] <= y[u,v,i])
@@ -699,7 +699,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     # Objective
     p.add_constraint(z['z'] <= G.size())
     for i in range(N):
-        p.add_constraint(p.sum(y[u,v,i] for u,v in G.edge_iterator(labels=None)) <= z['z'])
+        p.add_constraint(p.sum(y[u,v,i] for u,v in G.edges(labels=False, sort=False)) <= z['z'])
 
     p.set_objective(z['z'])
 

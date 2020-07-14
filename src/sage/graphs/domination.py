@@ -311,7 +311,7 @@ def dominating_set(g, independent=False, total=False, value_only=False, solver=N
 
     if independent:
         # no two adjacent vertices are in the set
-        for u, v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             p.add_constraint(b[u] + b[v], max=1)
 
     # Minimizes the number of vertices used

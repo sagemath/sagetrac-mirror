@@ -101,7 +101,7 @@ cdef class StaticSparseCGraph(CGraph):
             ValueError: vertex_list has wrong length
         """
         cdef int i, j, tmp
-        has_labels = any(l is not None for _, _, l in G.edge_iterator())
+        has_labels = any(l is not None for _, _, l in G.edges(sort=False))
         self._directed = G.is_directed()
 
         if vertex_list is not None and len(vertex_list) != G.order():

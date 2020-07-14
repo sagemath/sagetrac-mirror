@@ -262,7 +262,7 @@ def matching_polynomial(G, complement=True, name=None):
     cdef int* edges2 = edges_mem + nedges  # edges[1]
 
     cdef int cur = 0
-    for i, j in sorted(map(sorted, G.edge_iterator(labels=False))):
+    for i, j in sorted(map(sorted, G.edges(labels=False, sort=False))):
         edges1[cur] = i
         edges2[cur] = j
         cur += 1

@@ -582,7 +582,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
             p.add_constraint(p.sum(color[v,i] for i in range(k)), min=1, max=1)
 
         # adjacent vertices have different colors
-        for u, v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             for i in range(k):
                 p.add_constraint(color[u,i] + color[v,i], max=1)
 
@@ -705,7 +705,7 @@ def grundy_coloring(g, k, value_only=True, solver=None, verbose=0):
         p.add_constraint(p.sum(b[v,i] for i in range(k)), max=1, min=1)
 
     # Two adjacent vertices have different colors
-    for u,v in g.edge_iterator(labels=None):
+    for u, v in g.edges(labels=False, sort=False):
         for i in range(k):
             p.add_constraint(b[v,i] + b[u,i], max=1)
 
@@ -877,7 +877,7 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0):
         p.add_constraint(p.sum(color[v,i] for i in range(k)), min=1, max=1)
 
     # Adjacent vertices have distinct colors
-    for u, v in g.edge_iterator(labels=None):
+    for u, v in g.edges(labels=False, sort=False):
         for i in range(k):
             p.add_constraint(color[u,i] + color[v,i], max=1)
 
@@ -1103,7 +1103,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
                 classes.append([])
             # add edges to classes
             r.relabel(perm=vertices, inplace=True)
-            for u, v, c in r.edge_iterator():
+            for u, v, c in r.edges(sort=False):
                 classes[c].append((u, v))
             continue
 
@@ -1118,7 +1118,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
                 for i in range(k):
                     p.add_constraint(p.sum(color[frozenset((u,v)),i] for u in h.neighbor_iterator(v)) <= 1)
             # An edge must have a color
-            for u,v in h.edge_iterator(labels=False):
+            for u,v in h.edges(labels=False, sort=False):
                 p.add_constraint(p.sum(color[frozenset((u,v)),i] for i in range(k)) == 1)
             # We color the edges of the vertex of maximum degree
             for i,v in enumerate(h.neighbor_iterator(X)):
@@ -1143,7 +1143,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
                 classes.append([])
             # add edges to color classes
             color = p.get_values(color)
-            for e in h.edge_iterator(labels=False):
+            for e in h.edges(labels=False, sort=False):
                 fe = frozenset(e)
                 for i in range(k):
                     if color[fe,i] == 1:
@@ -1197,7 +1197,7 @@ def round_robin(n):
         sage: g = round_robin(9)
         sage: sum(Set(e[2] for e in g.edges_incident(v)).cardinality() for v in g) == 2 * g.size()
         True
-        sage: Set(e[2] for e in g.edge_iterator()).cardinality()
+        sage: Set(e[2] for e in g.edges(sort=False)).cardinality()
         9
 
     ::
@@ -1205,7 +1205,7 @@ def round_robin(n):
         sage: g = round_robin(10)
         sage: sum(Set(e[2] for e in g.edges_incident(v)).cardinality() for v in g) == 2 * g.size()
         True
-        sage: Set(e[2] for e in g.edge_iterator()).cardinality()
+        sage: Set(e[2] for e in g.edges(sort=False)).cardinality()
         9
     """
     if n <= 1:
@@ -1308,7 +1308,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     Which constitutes a partition of the whole edge set::
 
-        sage: all((g1.has_edge(e) or g2.has_edge(e)) for e in g.edge_iterator(labels=None))
+        sage: all((g1.has_edge(e) or g2.has_edge(e)) for e in g.edges(labels=False, sort=False))
         True
 
     TESTS:
@@ -1366,13 +1366,13 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     MAD = 1 - 1 / (Integer(g.order()) * 2)
 
     # Partition of the edges
-    for u,v in g.edge_iterator(labels=None):
+    for u, v in g.edges(labels=False, sort=False):
         p.add_constraint(p.sum(c[i,frozenset((u,v))] for i in range(k)), max=1, min=1)
 
     for i in range(k):
 
         # r greater than c
-        for u,v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             p.add_constraint(r[i,(u,v)] + r[i,(v,u)] - c[i,frozenset((u,v))], max=0, min=0)
 
 
@@ -1404,13 +1404,13 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
             return answer[i].append(uv)
     else:
         gg = copy(g)
-        gg.delete_edges(g.edge_iterator())
+        gg.delete_edges(g.edges(sort=False))
         answer = [copy(gg) for i in range(k)]
         def add(uv, i):
             return answer[i].add_edge(uv)
 
     for i in range(k):
-        for u,v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             if c[i,frozenset((u,v))]  == 1:
                 add((u,v),i)
 
@@ -1497,7 +1497,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     These matchings being a partition of the edge set::
 
-        sage: all(any(gg.has_edge(e) for gg in colors) for e in g.edge_iterator(labels=False))
+        sage: all(any(gg.has_edge(e) for gg in colors) for e in g.edges(labels=False, sort=False))
         True
 
     Besides, the union of any two of them is a forest ::
@@ -1604,7 +1604,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
     MAD = 1 - 1/(Integer(g.order()) * 2)
 
     # Partition of the edges: each edge is assigned a unique color
-    for u,v in g.edge_iterator(labels=None):
+    for u, v in g.edges(labels=False, sort=False):
         p.add_constraint(p.sum(c[i,E(u,v)] for i in range(k)), max=1, min=1)
 
 
@@ -1620,7 +1620,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
             p.add_constraint(p.sum(r[(i,j),(u,v)] for v in g.neighbor_iterator(u)), max=MAD)
 
         # r greater than c
-        for u,v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             p.add_constraint(r[(i,j),(u,v)] + r[(i,j),(v,u)] - c[i,E(u,v)] - c[j,E(u,v)], max=0, min=0)
 
     p.set_objective(None)
@@ -1647,13 +1647,13 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
             return answer[i].append(uv)
     else:
         gg = copy(g)
-        gg.delete_edges(g.edge_iterator())
+        gg.delete_edges(g.edges(sort=False))
         answer = [copy(gg) for i in range(k)]
         def add(uv, i):
             return answer[i].add_edge(uv)
 
     for i in range(k):
-        for u,v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             if c[i,E(u,v)] == 1:
                 add((u,v), i)
 

@@ -359,7 +359,7 @@ def line_graph(g, labels=True):
     if g._directed:
         from sage.graphs.digraph import DiGraph
         G = DiGraph()
-        G.add_vertices(g.edge_iterator(labels=labels))
+        G.add_vertices(g.edges(labels=labels, sort=False))
         for v in g:
             # Connect appropriate incident edges of the vertex v
             G.add_edges((e, f) for e in g.incoming_edge_iterator(v, labels=labels)
@@ -379,7 +379,7 @@ def line_graph(g, labels=True):
 
         # 1) List of vertices in the line graph
 
-        for e in g.edge_iterator(labels=labels):
+        for e in g.edges(labels=labels, sort=False):
             if hash(e[0]) < hash(e[1]):
                 elist.append(e)
             elif hash(e[0]) > hash(e[1]):
@@ -397,7 +397,7 @@ def line_graph(g, labels=True):
             elist = []
 
             # Add the edge to the list, according to hashes, as previously
-            for e in g.edge_iterator(v, labels=labels):
+            for e in g.edges(vertices=[v], labels=labels, sort=False):
                 if hash(e[0]) < hash(e[1]):
                     elist.append(e)
                 elif hash(e[0]) > hash(e[1]):

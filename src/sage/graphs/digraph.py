@@ -777,7 +777,7 @@ class DiGraph(GenericGraph):
                 pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
             self.set_vertices(data.get_vertices())
-            self.add_edges(data.edge_iterator())
+            self.add_edges(data.edges(sort=False))
             self.name(data.name())
         elif format == 'rule':
             f = data[1]
@@ -999,7 +999,7 @@ class DiGraph(GenericGraph):
             sage: def random_acyclic(n, p):
             ....:  g = graphs.RandomGNP(n, p)
             ....:  h = DiGraph()
-            ....:  h.add_edges(((u, v) if u < v else (v, u)) for u, v in g.edge_iterator(labels=False))
+            ....:  h.add_edges(((u, v) if u < v else (v, u)) for u, v in g.edges(labels=False, sort=False))
             ....:  return h
             ...
             sage: all(random_acyclic(100, .2).is_directed_acyclic()    # long time
@@ -1098,7 +1098,7 @@ class DiGraph(GenericGraph):
 
         G.add_vertices(self.vertex_iterator())
         G.set_vertices(self.get_vertices())
-        G.add_edges(self.edge_iterator())
+        G.add_edges(self.edges(sort=False))
         if hasattr(self, '_embedding'):
             G._embedding = copy(self._embedding)
         G._weighted = self._weighted
@@ -1677,7 +1677,7 @@ class DiGraph(GenericGraph):
             # Variables are binary, and their coefficient in the objective is
             # the number of occurrences of the corresponding edge, so 1 if the
             # graph is simple
-            p.set_objective( p.sum(b[u,v] for u,v in self.edge_iterator(labels=False)))
+            p.set_objective( p.sum(b[u,v] for u,v in self.edges(labels=False, sort=False)))
 
             p.solve(log=verbose)
 
@@ -1686,7 +1686,7 @@ class DiGraph(GenericGraph):
 
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
-                for u,v in self.edge_iterator(labels=False):
+                for u,v in self.edges(labels=False, sort=False):
                     if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
@@ -1720,7 +1720,7 @@ class DiGraph(GenericGraph):
 
             else:
                 # listing the edges contained in the MFAS
-                return [(u, v) for u, v in self.edge_iterator(labels=False)
+                return [(u, v) for u, v in self.edges(labels=False, sort=False)
                         if p.get_values(b[u, v]) > .5]
 
         ######################################
@@ -1734,13 +1734,13 @@ class DiGraph(GenericGraph):
 
             n = self.order()
 
-            for u,v in self.edge_iterator(labels=None):
+            for u,v in self.edges(labels=False, sort=False):
                 p.add_constraint(d[u] - d[v] + n * b[u,v], min=1)
 
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum(b[u,v] for u,v in self.edge_iterator(labels=None)))
+            p.set_objective(p.sum(b[u,v] for u,v in self.edges(labels=False, sort=False)))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))
@@ -1749,7 +1749,7 @@ class DiGraph(GenericGraph):
 
                 b_sol = p.get_values(b)
 
-                return [(u,v) for u,v in self.edge_iterator(labels=None) if b_sol[u,v]==1]
+                return [(u,v) for u,v in self.edges(labels=False, sort=False) if b_sol[u,v]==1]
 
     ### Construction
 
@@ -1765,7 +1765,7 @@ class DiGraph(GenericGraph):
         """
         H = DiGraph(multiedges=self.allows_multiple_edges(), loops=self.allows_loops())
         H.add_vertices(self)
-        H.add_edges((v, u, d) for u, v, d in self.edge_iterator())
+        H.add_edges((v, u, d) for u, v, d in self.edges(sort=False))
         name = self.name()
         if name is None:
             name = ''
@@ -2250,7 +2250,7 @@ class DiGraph(GenericGraph):
             elif not by_weight:
                 algorithm = 'BFS'
             else:
-                for e in self.edge_iterator():
+                for e in self.edges(sort=False):
                     try:
                         if float(weight_function(e)) < 0:
                             algorithm = 'Johnson_Boost'
@@ -2722,7 +2722,7 @@ class DiGraph(GenericGraph):
                 for v in component:
                     d[v] = id
             h = copy(self)
-            h.delete_edges((u, v) for u, v in h.edge_iterator(labels=False) if d[u] != d[v])
+            h.delete_edges((u, v) for u, v in h.edges(labels=False, sort=False) if d[u] != d[v])
         else:
             h = self
         queue = [[vertex]]
@@ -2860,7 +2860,7 @@ class DiGraph(GenericGraph):
             for v in component:
                 d[v] = id
         h = copy(self)
-        h.delete_edges((u, v) for u, v in h.edge_iterator(labels=False) if d[u] != d[v])
+        h.delete_edges((u, v) for u, v in h.edges(labels=False, sort=False) if d[u] != d[v])
         # We create one cycles iterator per vertex. This is necessary if we
         # want to iterate over cycles with increasing length.
         vertex_iterators = {v :h._all_cycles_iterator_vertex(v
@@ -3172,7 +3172,7 @@ class DiGraph(GenericGraph):
         ::
 
             sage: for sort in D.topological_sort_generator():
-            ....:     for u, v in D.edge_iterator(labels=False):
+            ....:     for u, v in D.edges(labels=False, sort=False):
             ....:         if sort.index(u) > sort.index(v):
             ....:             print("this should never happen")
         """

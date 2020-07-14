@@ -488,7 +488,7 @@ def _test_adjacency_sequence_out():
     n = randg.order()
     cdef DenseGraph g = DenseGraph(n,
                                    verts=randg.vertex_iterator(),
-                                   arcs=randg.edge_iterator(labels=False))
+                                   arcs=randg.edges(labels=False, sort=False))
     assert g.num_verts == randg.order(), (
         "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
     assert g.num_arcs == randg.size(), (

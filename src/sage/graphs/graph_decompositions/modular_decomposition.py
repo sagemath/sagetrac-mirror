@@ -2495,7 +2495,7 @@ def gamma_classes(graph):
     from itertools import chain
     from sage.sets.disjoint_set import DisjointSet
 
-    pieces = DisjointSet(frozenset(e) for e in graph.edge_iterator(labels=False))
+    pieces = DisjointSet(frozenset(e) for e in graph.edges(labels=False, sort=False))
     for v in graph:
         neighborhood = graph.subgraph(vertices=graph.neighbors(v))
         for component in neighborhood.complement().connected_components():

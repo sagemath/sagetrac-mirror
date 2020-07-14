@@ -976,7 +976,7 @@ def edge_connectivity(G,
     will be the edge with minimum value::
 
         sage: tree = graphs.RandomTree(10)
-        sage: for u,v in tree.edge_iterator(labels=None):
+        sage: for u,v in tree.edges(labels=False, sort=False):
         ....:      tree.set_edge_label(u, v, random())
         sage: minimum = min(tree.edge_labels())
         sage: [_, [(_, _, l)]] = edge_connectivity(tree, value_only=False, use_edge_labels=True)
@@ -1144,20 +1144,20 @@ def edge_connectivity(G,
 
     if g.is_directed():
         # There is no edge from set 0 to set 1 which is not in the cut
-        for u,v in g.edge_iterator(labels=None):
+        for u,v in g.edges(labels=False, sort=False):
             p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[u,v], max=1)
 
-        p.set_objective(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edge_iterator()))
+        p.set_objective(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edges(sort=False)))
 
     else:
 
         # Two adjacent vertices are in different sets if and only if
         # the edge between them is in the cut
-        for u,v in g.edge_iterator(labels=None):
+        for u,v in g.edges(labels=False, sort=False):
             p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[frozenset((u,v))], max=1)
             p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[frozenset((u,v))], max=1)
 
-        p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()))
+        p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edges(sort=False)))
 
     obj = p.solve(objective_only=value_only, log=verbose)
 
@@ -1174,9 +1174,9 @@ def edge_connectivity(G,
         in_set = p.get_values(in_set)
 
         if g.is_directed():
-            edges = [(u,v,l) for u,v,l in g.edge_iterator() if in_cut[u,v] == 1]
+            edges = [(u,v,l) for u,v,l in g.edges(sort=False) if in_cut[u,v] == 1]
         else:
-            edges = [(u,v,l) for u,v,l in g.edge_iterator() if in_cut[frozenset((u,v))] == 1]
+            edges = [(u,v,l) for u,v,l in g.edges(sort=False) if in_cut[frozenset((u,v))] == 1]
 
         val.append(edges)
 
@@ -1432,12 +1432,12 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
 
     if g.is_directed():
         # There is no edge from set 0 to set 1 which is not in the cut
-        for u, v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
     else:
         # Two adjacent vertices are in different sets if and only if
         # the edge between them is in the cut
-        for u, v in g.edge_iterator(labels=None):
+        for u, v in g.edges(labels=False, sort=False):
             p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
             p.add_constraint(in_set[2, u] + in_set[0, v], max=1)
 
@@ -1616,11 +1616,11 @@ def strongly_connected_components_digraph(G, keep_labels=False):
 
     if keep_labels:
         g = DiGraph(len(scc), multiedges=True, loops=True)
-        g.add_edges(set((d[u], d[v], label) for u,v,label in G.edge_iterator()))
+        g.add_edges(set((d[u], d[v], label) for u,v,label in G.edges(sort=False)))
 
     else:
         g = DiGraph(len(scc), multiedges=False, loops=False)
-        g.add_edges(((d[u], d[v]) for u, v in G.edge_iterator(labels=False)), loops=False)
+        g.add_edges(((d[u], d[v]) for u, v in G.edges(labels=False, sort=False)), loops=False)
 
     g.relabel(scc_set, inplace=True)
     return g
@@ -1819,7 +1819,7 @@ def strong_articulation_points(G):
     # The method is applied on each strongly connected component
     if is_strongly_connected(G):
         # Make a mutable copy of self
-        L = [DiGraph([(u, v) for u, v in G.edge_iterator(labels=0) if u != v],
+        L = [DiGraph([(u, v) for u, v in G.edges(labels=False, sort=False) if u != v],
                            data_structure='sparse', immutable=False)]
     else:
         # Get the list of strongly connected components of self as mutable
@@ -2043,7 +2043,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True, solver=None, verbose=0):
         sage: G = graphs.CompleteBipartiteGraph(2, 3)
         sage: G.add_edge(2, 3)
         sage: G.allow_multiple_edges(True)
-        sage: G.add_edges(G.edge_iterator())
+        sage: G.add_edges(G.edges(sort=False))
         sage: G.add_edges([(0, 1), (0, 1), (0, 1)])
         sage: S,C,f = cleave(G, cut_vertices=[0, 1])
         sage: for g in S:
@@ -2114,7 +2114,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True, solver=None, verbose=0):
     for comp in CC:
         h = G.subgraph(comp + cut_vertices)
         if virtual_edges:
-            h.add_edges(virtual_cut_graph.edge_iterator())
+            h.add_edges(virtual_cut_graph.edges(sort=False))
         cut_sides.append(h)
 
     # We build the cocycles for re-assembly. For each edge between a pair of
@@ -2214,7 +2214,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         True
 
         sage: G.allow_multiple_edges(True)
-        sage: G.add_edges(G.edge_iterator())
+        sage: G.add_edges(G.edges(sort=False))
         sage: Tree = spqr_tree(G)
         sage: Tree.order()
         13
@@ -2387,7 +2387,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     # first associate cycles to virtual edges. Then, we use a DisjointSet to
     # form the groups of cycles to be merged.
     for K_index,K in enumerate(cycles_list):
-        for e in K.edge_iterator(labels=False):
+        for e in K.edges(labels=False, sort=False):
             fe = frozenset(e)
             if fe in virtual_edge_to_cycles:
                 virtual_edge_to_cycles[fe].append(K_index)
@@ -2407,7 +2407,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     for root,indexes in DS.root_to_elements_dict().items():
         E = []
         for i in indexes:
-            E.extend(cycles_list[i].edge_iterator(labels=False))
+            E.extend(cycles_list[i].edges(labels=False, sort=False))
         S_blocks.append(('S', Graph(E, immutable=True)))
 
     # We now build the SPQR tree
@@ -2505,9 +2505,9 @@ def spqr_tree_to_graph(T):
     count_P = Counter()
     for t,g in T:
         if t in ['P', 'Q']:
-            count_P.update(g.edge_iterator())
+            count_P.update(g.edges(sort=False))
         else:
-            count_G.update(g.edge_iterator())
+            count_G.update(g.edges(sort=False))
 
     G = Graph(multiedges=True)
     for e,num in count_G.items():
@@ -2869,9 +2869,9 @@ cdef class TriconnectivitySPQR:
         ....: (5, 6, '56'), (6, 7, 67)])
         sage: T = TriconnectivitySPQR(G).get_spqr_tree()
         sage: H = spqr_tree_to_graph(T)
-        sage: all(G.has_edge(e) for e in H.edge_iterator())
+        sage: all(G.has_edge(e) for e in H.edges(sort=False))
         True
-        sage: all(H.has_edge(e) for e in G.edge_iterator())
+        sage: all(H.has_edge(e) for e in G.edges(sort=False))
         True
 
     TESTS:
@@ -2964,7 +2964,7 @@ cdef class TriconnectivitySPQR:
         self.edge_extremity_second = <int * > self.mem.allocarray(self.max_number_of_edges, sizeof(int))
         self.int_to_original_edge_label = [] # to associate original edge label
         self.edge_status = <int *> self.mem.allocarray(self.max_number_of_edges, sizeof(int))
-        for e_index, (u, v, l) in enumerate(G.edge_iterator()):
+        for e_index, (u, v, l) in enumerate(G.edges(sort=False)):
             self.int_to_original_edge_label.append(l)
             self.edge_extremity_first[e_index] = self.vertex_to_int[u]
             self.edge_extremity_second[e_index] = self.vertex_to_int[v]
@@ -4130,7 +4130,7 @@ cdef class TriconnectivitySPQR:
             True
 
             sage: G.allow_multiple_edges(True)
-            sage: G.add_edges(G.edge_iterator())
+            sage: G.add_edges(G.edges(sort=False))
             sage: tric = TriconnectivitySPQR(G)
             sage: Tree = tric.get_spqr_tree()
             sage: all(u[1].is_isomorphic(C4) for u in Tree if u[0] == 'S')

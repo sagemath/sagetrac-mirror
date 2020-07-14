@@ -170,7 +170,7 @@ def FurerGadget(k, prefix=None):
         sage: sorted(G, key=str)
         [(), (0, 'a'), (0, 'b'), (0, 1), (0, 2),
          (1, 'a'), (1, 'b'), (1, 2), (2, 'a'), (2, 'b')]
-        sage: sorted(G.edge_iterator(), key=str)
+        sage: G.edges(sort=True, key=str)
         [((), (0, 'b'), None), ((), (1, 'b'), None),
          ((), (2, 'b'), None), ((0, 'b'), (1, 2), None),
          ((0, 1), (0, 'a'), None), ((0, 1), (1, 'a'), None),
@@ -186,7 +186,7 @@ def FurerGadget(k, prefix=None):
          ('Prefix', (0, 1)), ('Prefix', (0, 2)), ('Prefix', (1, 'a')),
          ('Prefix', (1, 'b')), ('Prefix', (1, 2)), ('Prefix', (2, 'a')),
          ('Prefix', (2, 'b'))]
-        sage: sorted(G.edge_iterator(), key=str)
+        sage: G.edges(sort=True, key=str)
         [(('Prefix', ()), ('Prefix', (0, 'b')), None),
          (('Prefix', ()), ('Prefix', (1, 'b')), None),
          (('Prefix', ()), ('Prefix', (2, 'b')), None),
@@ -283,7 +283,7 @@ def CaiFurerImmermanGraph(G, twisted=False):
          (1, (1, 'a')), (1, (1, 'b')), (2, ()), (2, (0, 'a')), (2, (0, 'b')),
          (2, (0, 1)), (2, (1, 'a')), (2, (1, 'b')), (3, ()), (3, (0, 'a')),
          (3, (0, 'b')), (3, (0, 1)), (3, (1, 'a')), (3, (1, 'b'))]
-        sage: sorted(CFI.edge_iterator(), key=str)
+        sage: CFI.edges(sort=True, key=str)
         [((0, ()), (0, (0, 'b')), None),
          ((0, ()), (0, (1, 'b')), None),
          ((0, (0, 'a')), (1, (0, 'a')), None),
@@ -318,7 +318,7 @@ def CaiFurerImmermanGraph(G, twisted=False):
         total_partition += p
         newG=newG.union(Fk)
         edge_index[v] = 0
-    for v,u in G.edge_iterator(labels=False):
+    for v, u in G.edges(labels=False, sort=False):
         i = edge_index[v]
         edge_index[v] += 1
         j = edge_index[u]

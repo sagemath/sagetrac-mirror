@@ -266,7 +266,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
     # We add an edge between two vertices of h if they represent
     # opposed equivalence classes
 
-    for u,v in g.edge_iterator(labels=False):
+    for u, v in g.edges(labels=False, sort=False):
 
         for i,s in enumerate(equivalence_classes[v]):
             if u in s:
@@ -436,7 +436,7 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
     p = MixedIntegerLinearProgram(solver=solver)
     o = p.new_variable(binary=True)
 
-    for u,v in g.edge_iterator(labels=False):
+    for u, v in g.edges(labels=False, sort=False):
         p.add_constraint( o[u,v] + o[v,u] == 1)
 
     for u in g:
@@ -472,7 +472,7 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
         d.add_vertices(g)
 
         o = p.get_values(o)
-        for u,v in g.edge_iterator(labels=False):
+        for u, v in g.edges(labels=False, sort=False):
             if o[u,v] > .5:
                 d.add_edge(u,v)
             else:
@@ -688,7 +688,7 @@ def is_permutation(g, algorithm="greedy", certificate=False, check=True,
 
         # Building the two orderings
         tmp = list(co_certif.edges(labels=False, sort=False))
-        for u,v in certif.edge_iterator(labels=False):
+        for u, v in certif.edges(labels=False, sort=False):
             co_certif.add_edge(v,u)
         certif.add_edges(tmp)
 

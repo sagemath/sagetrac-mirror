@@ -326,7 +326,7 @@ def is_partial_cube(G, certificate=False):
 
         # Make graph of labeled edges and union them together
         labeled = Graph([contracted.vertices(), []])
-        for v, w in contracted.edge_iterator(labels=False):
+        for v, w in contracted.edges(labels=False, sort=False):
             diff = bitvec[v]^bitvec[w]
             if not diff or not bitvec[w] &~ bitvec[v]:
                 continue    # zero edge or wrong direction
@@ -347,7 +347,7 @@ def is_partial_cube(G, certificate=False):
 
         # generate new compressed subgraph
         newgraph = DiGraph()
-        for v, w, t in contracted.edge_iterator():
+        for v, w, t in contracted.edges(sort=False):
             if bitvec[v] == bitvec[w]:
                 vi = component[v]
                 wi = component[w]
@@ -366,13 +366,13 @@ def is_partial_cube(G, certificate=False):
     # no two edges on a single vertex have the same label
     action = {}
     for v in g:
-        action[v] = set(t for _, _, t in g.edge_iterator(v))
+        action[v] = set(t for _, _, t in g.edges(vertices=[v], sort=False))
         if len(action[v]) != g.out_degree(v):
             return fail
 
     # Associate every token to its reverse
     reverse = {}
-    for v, w, t in g.edge_iterator():
+    for v, w, t in g.edges(sort=False):
         rt = g.edge_label(w, v)
         reverse[t] = rt
         reverse[rt] = t

@@ -73,7 +73,7 @@ def max_clique(graph):
     cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     cdef graph_t* g = graph_new(graph.order())
-    for u,v in graph.edge_iterator(labels=None):
+    for u,v in graph.edges(labels=False, sort=False):
         GRAPH_ADD_EDGE(g, vertex_to_int[u], vertex_to_int[v])
 
     cdef int* list_of_vertices
@@ -140,7 +140,7 @@ def all_max_clique(graph):
     cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     cdef graph_t* g = graph_new(graph.order())
-    for u,v in graph.edge_iterator(labels=None):
+    for u,v in graph.edges(labels=False, sort=False):
         GRAPH_ADD_EDGE(g, vertex_to_int[u], vertex_to_int[v])
 
     cdef int* list_of_vertices
@@ -256,7 +256,7 @@ def all_cliques(graph, min_size=0, max_size=0):
     cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     cdef graph_t* g = graph_new(graph.order())
-    for u,v in graph.edge_iterator(labels=None):
+    for u,v in graph.edges(labels=False, sort=False):
         GRAPH_ADD_EDGE(g, vertex_to_int[u], vertex_to_int[v])
 
     cdef int* list_of_vertices
@@ -319,7 +319,7 @@ def clique_number(graph):
     cdef dict vertex_to_int = {v: i for i, v in enumerate(graph)}
 
     cdef graph_t* g = graph_new(graph.order())
-    for u,v in graph.edge_iterator(labels=None):
+    for u,v in graph.edges(labels=False, sort=False):
         GRAPH_ADD_EDGE(g, vertex_to_int[u], vertex_to_int[v])
 
     cdef int c

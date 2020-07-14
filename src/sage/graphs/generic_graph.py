@@ -606,11 +606,11 @@ class GenericGraph(GenericGraph_pyx):
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
             return all(other.has_edge(*edge)
-                       for edge in self.edge_iterator(labels=self._weighted))
+                       for edge in self.edges(labels=self._weighted, sort=False))
         # The problem with multiple edges is that labels may not have total
         # ordering, which makes it difficult to compare lists of labels.
         seen = set()
-        for e in self.edge_iterator(labels=False):
+        for e in self.edges(labels=False, sort=False):
             if e in seen:
                 continue
             seen.add(e)
@@ -704,7 +704,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         if self.is_immutable():
-            edge_items = self.edge_iterator(labels=self._weighted)
+            edge_items = self.edges(labels=self._weighted, sort=False)
             if self.allows_multiple_edges():
                 from collections import Counter
                 edge_items = Counter(edge_items).items()
@@ -839,7 +839,7 @@ class GenericGraph(GenericGraph_pyx):
         except:
             V = self
         v_to_int = {v: i for i, v in enumerate(V)}
-        for u,v,_ in self.edge_iterator():
+        for u, v in self.edges(labels=False, sort=False):
             bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)
         s = []
@@ -1456,7 +1456,7 @@ class GenericGraph(GenericGraph_pyx):
                        name=self.name())
         N.add_nodes_from(self)
         from networkx import NetworkXError
-        for u, v, l in self.edge_iterator():
+        for u, v, l in self.edges(sort=False):
             if weight_function is not None:
                 N.add_edge(u, v, weight=weight_function((u, v, l)))
             elif l is None:
@@ -1502,7 +1502,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``edge_attrs`` -- dictionary (default: ``{}``); a dictionary where the
           key is a string (the attribute name), and the value is an iterable
           containing in position `i` the label of the `i`-th edge in the list
-          outputted by :meth:`edge_iterator` (see
+          outputted by :meth:`edges` (see
           http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for more
           information)
 
@@ -1533,7 +1533,7 @@ class GenericGraph(GenericGraph_pyx):
         Adding edge attributes::
 
             sage: G = Graph([(1, 2, 'a'), (2, 3, 'b')])
-            sage: E = list(G.edge_iterator())
+            sage: E = G.edges(sort=False)
             sage: H = G.igraph_graph(edge_attrs={'label': [e[2] for e in E]}) # optional - python_igraph
             sage: H.es['label']                                               # optional - python_igraph
             ['a', 'b']
@@ -1543,7 +1543,7 @@ class GenericGraph(GenericGraph_pyx):
         weighted::
 
             sage: G = Graph([(1, 2, {'weight': 1}), (2, 3, {'weight': 2})])
-            sage: E = list(G.edge_iterator())
+            sage: E = G.edges(sort=False)
             sage: H = G.igraph_graph(edge_attrs={'weight': [e[2]['weight'] for e in E]}) # optional - python_igraph
             sage: H.is_weighted()                                                        # optional - python_igraph
             True
@@ -1568,7 +1568,7 @@ class GenericGraph(GenericGraph_pyx):
         Sometimes, Sage integer/floats are not compatible with igraph::
 
             sage: G = Graph([(0, 1, 2)])
-            sage: E = list(G.edge_iterator())
+            sage: E = G.edges(sort=False)
             sage: H = G.igraph_graph(edge_attrs={'capacity': [e[2] for e in E]}) # optional - python_igraph
             sage: H.maxflow_value(0, 1, 'capacity')                              # optional - python_igraph
             1.0
@@ -1582,7 +1582,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = DiGraph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])
             sage: vertex_attrs = {'name': G.vertices()}
-            sage: E = list(G.edge_iterator())
+            sage: E = G.edges(sort=False)
             sage: edge_attrs = {'w': [e[2]['w'] for e in E]}
             sage: H = DiGraph(G.igraph_graph(vertex_attrs=vertex_attrs, edge_attrs=edge_attrs)) # optional - python_igraph
             sage: G == H                                                                        # optional - python_igraph
@@ -1605,7 +1605,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = Graph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])
             sage: vertex_attrs = {'name': G.vertices()}
-            sage: E = list(G.edge_iterator())
+            sage: E = G.edges(sort=False)
             sage: edge_attrs = {'w': [e[2]['w'] for e in E]}
             sage: H = Graph(G.igraph_graph(vertex_attrs=vertex_attrs, edge_attrs=edge_attrs)) # optional - python_igraph
             sage: G == H                                                                      # optional - python_igraph
@@ -1628,7 +1628,7 @@ class GenericGraph(GenericGraph_pyx):
             vertex_list = self.vertices()
 
         v_to_int = {v: i for i, v in enumerate(vertex_list)}
-        edges = [(v_to_int[v], v_to_int[w]) for v, w in self.edge_iterator(labels=False)]
+        edges = [(v_to_int[v], v_to_int[w]) for v, w in self.edges(labels=False, sort=False)]
 
         igraph_feature().require()
         import igraph
@@ -1740,11 +1740,11 @@ class GenericGraph(GenericGraph_pyx):
             d = {v: [] for v in self}
 
             if self.is_directed():
-                for u, v in self.edge_iterator(labels=False):
+                for u, v in self.edges(labels=False, sort=False):
                     d[u].append(v)
 
             else:
-                for u, v in self.edge_iterator(labels=False):
+                for u, v in self.edges(labels=False, sort=False):
                     d[u].append(v)
                     d[v].append(u)
 
@@ -1761,11 +1761,11 @@ class GenericGraph(GenericGraph_pyx):
             d = {v: {} for v in self}
 
             if self.is_directed():
-                for u, v, l in self.edge_iterator():
+                for u, v, l in self.edges(sort=False):
                     d[u][v] = l
 
             else:
-                for u, v, l in self.edge_iterator():
+                for u, v, l in self.edges(sort=False):
                     d[u][v] = l
                     d[v][u] = l
 
@@ -1782,13 +1782,13 @@ class GenericGraph(GenericGraph_pyx):
             d = {v: {} for v in self}
 
             if self.is_directed():
-                for u, v, l in self.edge_iterator():
+                for u, v, l in self.edges(sort=False):
                     if not v in d[u]:
                         d[u][v] = []
                     d[u][v].append(l)
 
             else:
-                for u, v, l in self.edge_iterator():
+                for u, v, l in self.edges(sort=False):
                     if not v in d[u]:
                         d[u][v] = []
                         d[v][u] = []
@@ -1910,7 +1910,7 @@ class GenericGraph(GenericGraph_pyx):
         D = {}
         directed = self._directed
         multiple_edges = self.allows_multiple_edges()
-        for u, v, l in self.edge_iterator():
+        for u, v, l in self.edges(sort=False):
             i = new_indices[u]
             j = new_indices[v]
             if multiple_edges and (i, j) in D:
@@ -2050,7 +2050,7 @@ class GenericGraph(GenericGraph_pyx):
 
         A different ordering of the edges::
 
-            sage: E = list(P5.edge_iterator(labels=False))
+            sage: E = list(P5.edges(labels=False, sort=False))
             sage: P5.incidence_matrix(edges=E[::-1])
             [0 0 0 1]
             [0 0 1 1]
@@ -2093,19 +2093,19 @@ class GenericGraph(GenericGraph_pyx):
 
         verts = {v: i for i, v in enumerate(vertices)}
         if edges is None:
-            edges = self.edge_iterator(labels=False)
+            edges = self.edges(labels=False, sort=False)
         elif len(edges) != self.size():
             raise ValueError("``edges`` must be a permutation of the edges")
         else:
             # We check that we have the same set of unlabeled edges
             if oriented:
                 i_edges = [(verts[e[0]], verts[e[1]]) for e in edges]
-                s_edges = [(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
+                s_edges = [(verts[u], verts[v]) for u, v in self.edges(labels=False, sort=False)]
             else:
                 def reorder(u, v):
                     return (u, v) if u <= v else (v, u)
                 i_edges = [reorder(verts[e[0]], verts[e[1]]) for e in edges]
-                s_edges = [reorder(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
+                s_edges = [reorder(verts[u], verts[v]) for u, v in self.edges(labels=False, sort=False)]
             if sorted(i_edges) != sorted(s_edges):
                 raise ValueError("``edges`` must be a permutation of the edges")
 
@@ -2277,12 +2277,12 @@ class GenericGraph(GenericGraph_pyx):
 
         D = {}
         if self._directed:
-            for u, v, l in self.edge_iterator():
+            for u, v, l in self.edges(sort=False):
                 i = new_indices[u]
                 j = new_indices[v]
                 D[i,j] = l
         else:
-            for u, v, l in self.edge_iterator():
+            for u, v, l in self.edges(sort=False):
                 i = new_indices[u]
                 j = new_indices[v]
                 D[i,j] = l
@@ -2951,7 +2951,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 for u in self:
                     s = set()
-                    for a, b in self.edge_iterator(u, labels=False):
+                    for a, b in self.edges(vertices=[u], labels=False, sort=False):
                         if a is u:
                             if b in s:
                                 return True
@@ -4169,7 +4169,7 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
-            sage: g.add_edges(g.edge_iterator())
+            sage: g.add_edges(g.edges(sort=False))
             sage: sorted(g.min_spanning_tree())
             [(0, 1, None), (0, 4, None), (0, 5, None), (1, 2, None), (1, 6, None), (3, 8, None), (5, 7, None), (5, 8, None), (6, 9, None)]
 
@@ -4450,7 +4450,7 @@ class GenericGraph(GenericGraph_pyx):
 
         elif algorithm == "NetworkX":
             import networkx
-            G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edge_iterator()])
+            G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edges(sort=False)])
             E = networkx.minimum_spanning_edges(G, data=False)
             return [(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
                                for u, v in E]
@@ -4687,9 +4687,9 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.graph import Graph
             T = Graph(self.min_spanning_tree(), multiedges=True, format='list_of_edges')
             H = self.copy()
-            H.delete_edges(T.edge_iterator())
+            H.delete_edges(T.edges(sort=False))
             L = []
-            for e in H.edge_iterator():
+            for e in H.edges(sort=False):
                 T.add_edge(e)
                 L.append(T.is_tree(certificate=True, output=output)[1])
                 T.delete_edge(e)
@@ -4787,7 +4787,7 @@ class GenericGraph(GenericGraph_pyx):
             algorithm = algorithm.lower()
         if algorithm == "networkx":
             import networkx
-            G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+            G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             return networkx.minimum_cycle_basis(G, weight='weight')
         elif algorithm is None:
             from sage.graphs.base.boost_graph import min_cycle_basis
@@ -5484,8 +5484,8 @@ class GenericGraph(GenericGraph_pyx):
             return False
 
         G = self.to_undirected()
-        for edge1 in G.edge_iterator(labels=False):
-            for edge2 in G.edge_iterator(labels=False):
+        for edge1 in G.edges(labels=False, sort=False):
+            for edge2 in G.edges(labels=False, sort=False):
                 if edge1[0] == edge2[0] or edge1[0] == edge2[1] or edge1[1] == edge2[0] or edge1[1] == edge2[1]:
                     continue
                 p1, p2 = self._pos[edge1[0]], self._pos[edge1[1]]
@@ -5810,7 +5810,7 @@ class GenericGraph(GenericGraph_pyx):
                     G.add_edge(u, w)
                     G.delete_vertex(v)
 
-            edgepairs = Subsets(G.edge_iterator(labels=False), 2)
+            edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
             edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and
                          x[0][1] not in [x[1][0], x[1][1]]]
 
@@ -5929,7 +5929,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Establish set of possible edges
         edgeset = set()
-        for u,v in self.edge_iterator(labels=0):
+        for u, v in self.edges(labels=False, sort=False):
             edgeset.add((u, v))
             edgeset.add((v, u))
 
@@ -6206,11 +6206,11 @@ class GenericGraph(GenericGraph_pyx):
 
         # The number of edges is equal to the number of vertices in our tree minus 1
         p.add_constraint(   p.sum(vertex[v] for v in g)
-                          - p.sum(edges[frozenset(e)] for e in g.edge_iterator(labels=False)), max=1, min=1)
+                          - p.sum(edges[frozenset(e)] for e in g.edges(labels=False, sort=False)), max=1, min=1)
 
         # There are no cycles in our graph
 
-        for u,v in g.edge_iterator(labels=False):
+        for u, v in g.edges(labels=False, sort=False):
             p.add_constraint(r_edges[u,v]+ r_edges[v,u] - edges[frozenset((u,v))], min=0)
 
         eps = 1/(5*Integer(g.order()))
@@ -6220,15 +6220,15 @@ class GenericGraph(GenericGraph_pyx):
 
         # Objective
         if weighted:
-            p.set_objective(p.sum((l if l is not None else 1)*edges[frozenset((u,v))] for u,v,l in g.edge_iterator()))
+            p.set_objective(p.sum((l if l is not None else 1)*edges[frozenset((u,v))] for u,v,l in g.edges(sort=False)))
         else:
-            p.set_objective(p.sum(edges[frozenset(e)] for e in g.edge_iterator(labels=False)))
+            p.set_objective(p.sum(edges[frozenset(e)] for e in g.edges(labels=False, sort=False)))
 
         p.solve(log=verbose)
 
         edges = p.get_values(edges)
 
-        st =  g.subgraph(edges=[e for e in g.edge_iterator(labels=False) if edges[frozenset(e)] == 1],
+        st =  g.subgraph(edges=[e for e in g.edges(labels=False, sort=False) if edges[frozenset(e)] == 1],
                          immutable=False)
         st.delete_vertices(v for v in g if not st.degree(v))
         return st
@@ -6331,13 +6331,13 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             # An edge belongs to at most one arborescence
-            for e in self.edge_iterator(labels=False):
+            for e in self.edges(labels=False, sort=False):
                 p.add_constraint(p.sum(edges[j,e] for j in colors), max=1)
 
 
             for j in colors:
                 # each color class has self.order()-1 edges
-                p.add_constraint(p.sum(edges[j,e] for e in self.edge_iterator(labels=None)), min=self.order()-1)
+                p.add_constraint(p.sum(edges[j,e] for e in self.edges(labels=False, sort=False)), min=self.order()-1)
 
                 # Each vertex different from the root has indegree equals to one
                 for v in self:
@@ -6348,7 +6348,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 # r_edges is larger than edges
                 vertex_to_int = {u:i for i,u in enumerate(self.vertex_iterator())}
-                for u,v in self.edge_iterator(labels=None):
+                for u, v in self.edges(labels=False, sort=False):
                     if self.has_edge(v,u):
                         if vertex_to_int[v] < vertex_to_int[u]:
                             p.add_constraint(r_edges[j,(u,v)] + r_edges[j,(v,u)] - edges[j,(u,v)] - edges[j,(v,u)], min=0)
@@ -6366,20 +6366,20 @@ class GenericGraph(GenericGraph_pyx):
             # represent the same edge.
 
             # An edge belongs to at most one arborescence
-            for e in self.edge_iterator(labels=False):
+            for e in self.edges(labels=False, sort=False):
                 p.add_constraint(p.sum(edges[j,frozenset(e)] for j in colors), max=1)
 
 
             for j in colors:
                 # each color class has self.order()-1 edges
-                p.add_constraint(p.sum(edges[j,frozenset(e)] for e in self.edge_iterator(labels=None)), min=self.order()-1)
+                p.add_constraint(p.sum(edges[j,frozenset(e)] for e in self.edges(labels=False, sort=False)), min=self.order()-1)
 
                 # Each vertex is in the tree
                 for v in self:
                     p.add_constraint(p.sum(edges[j,frozenset(e)] for e in self.edges_incident(v, labels=None)), min=1)
 
                 # r_edges is larger than edges
-                for u,v in self.edge_iterator(labels=None):
+                for u, v in self.edges(labels=False, sort=False):
                     p.add_constraint(r_edges[j,(u,v)] + r_edges[j,(v,u)] - edges[j,frozenset((u,v))], min=0)
 
                 from sage.graphs.graph import Graph
@@ -6403,9 +6403,9 @@ class GenericGraph(GenericGraph_pyx):
 
         for j,g in enumerate(classes):
             if self.is_directed():
-                g.add_edges(e for e in self.edge_iterator(labels=False) if edges[j,e] == 1)
+                g.add_edges(e for e in self.edges(labels=False, sort=False) if edges[j,e] == 1)
             else:
-                g.add_edges(e for e in self.edge_iterator(labels=False) if edges[j,frozenset(e)] == 1)
+                g.add_edges(e for e in self.edges(labels=False, sort=False) if edges[j,frozenset(e)] == 1)
 
             if len(list(g.breadth_first_search(root))) != self.order():
                 raise RuntimeError("The computation seems to have gone wrong somewhere..."+
@@ -6499,7 +6499,7 @@ class GenericGraph(GenericGraph_pyx):
         If the graph is a path with randomly weighted edges::
 
            sage: g = graphs.PathGraph(15)
-           sage: for u,v in g.edge_iterator(labels=None):
+           sage: for u, v in g.edges(labels=False, sort=False):
            ....:    g.set_edge_label(u, v, random())
 
         The edge cut between the two ends is the edge of minimum weight::
@@ -6576,7 +6576,7 @@ class GenericGraph(GenericGraph_pyx):
 
             flow_value, flow_graph = self.flow(s, t, value_only=value_only, use_edge_labels=use_edge_labels, algorithm=algorithm)
 
-            for u,v,l in flow_graph.edge_iterator():
+            for u,v,l in flow_graph.edges(sort=False):
                 g.add_edge(v, u)
                 if (not use_edge_labels or
                     (weight(g.edge_label(u, v)) == weight(l))):
@@ -6610,19 +6610,19 @@ class GenericGraph(GenericGraph_pyx):
         if g.is_directed():
 
             # we minimize the number of edges
-            p.set_objective(p.sum(weight(w) * b[x,y] for x,y,w in g.edge_iterator()))
+            p.set_objective(p.sum(weight(w) * b[x,y] for x,y,w in g.edges(sort=False)))
 
             # Adjacent vertices can belong to different parts only if the
             # edge that connects them is part of the cut
-            for x,y in g.edge_iterator(labels=None):
+            for x,y in g.edges(labels=False, sort=False):
                 p.add_constraint(v[x] + b[x,y] - v[y], min=0)
 
         else:
             # we minimize the number of edges
-            p.set_objective(p.sum(weight(w) * b[frozenset((x,y))] for x,y,w in g.edge_iterator()))
+            p.set_objective(p.sum(weight(w) * b[frozenset((x,y))] for x,y,w in g.edges(sort=False)))
             # Adjacent vertices can belong to different parts only if the
             # edge that connects them is part of the cut
-            for x,y in g.edge_iterator(labels=None):
+            for x,y in g.edges(labels=False, sort=False):
                 p.add_constraint(v[x] + b[frozenset((x,y))] - v[y], min=0)
                 p.add_constraint(v[y] + b[frozenset((x,y))] - v[x], min=0)
 
@@ -6640,9 +6640,9 @@ class GenericGraph(GenericGraph_pyx):
             b = p.get_values(b)
             answer = [obj]
             if g.is_directed():
-                answer.append([(x,y) for (x,y) in g.edge_iterator(labels=None) if b[x,y] == 1])
+                answer.append([(x,y) for (x,y) in g.edges(labels=False, sort=False) if b[x,y] == 1])
             else:
-                answer.append([(x,y) for (x,y) in g.edge_iterator(labels=None) if b[frozenset((x,y))] == 1])
+                answer.append([(x,y) for (x,y) in g.edges(labels=False, sort=False) if b[frozenset((x,y))] == 1])
 
             if vertices:
                 v = p.get_values(v)
@@ -6744,14 +6744,14 @@ class GenericGraph(GenericGraph_pyx):
 
             # adjacent vertices belong to the same part except if one of them
             # belongs to the cut
-            for x,y in g.edge_iterator(labels=None):
+            for x,y in g.edges(labels=False, sort=False):
                 p.add_constraint(v[x] + b[y] - v[y], min=0)
 
         else:
             p.set_objective(p.sum(b[x] for x in g))
             # adjacent vertices belong to the same part except if one of them
             # belongs to the cut
-            for x,y in g.edge_iterator(labels=None):
+            for x,y in g.edges(labels=False, sort=False):
                 p.add_constraint(v[x] + b[y] >= v[y])
                 p.add_constraint(v[y] + b[x] >= v[x])
 
@@ -6869,7 +6869,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
 
-            p.set_objective(p.sum(w(l) * cut[u,v] for u,v,l in self.edge_iterator()))
+            p.set_objective(p.sum(w(l) * cut[u,v] for u,v,l in self.edges(sort=False)))
 
             for s,t in chain(combinations(vertices, 2), [(x_y[1], x_y[0]) for x_y in combinations(vertices, 2)]):
                 # For each commodity, the source is at height 0
@@ -6879,12 +6879,12 @@ class GenericGraph(GenericGraph_pyx):
 
                 # given a commodity (s,t), the height of two adjacent vertices u,v
                 # can differ of at most the value of the edge between them
-                for u,v in self.edge_iterator(labels=False):
+                for u,v in self.edges(labels=False, sort=False):
                     p.add_constraint(height[(s,t),u] - height[(s,t),v] - cut[u,v], max=0)
 
         else:
 
-            p.set_objective(p.sum(w(l) * cut[frozenset((u,v))] for u,v,l in self.edge_iterator()))
+            p.set_objective(p.sum(w(l) * cut[frozenset((u,v))] for u,v,l in self.edges(sort=False)))
 
             for s,t in combinations(vertices, 2):
                 # For each commodity, the source is at height 0
@@ -6894,7 +6894,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 # given a commodity (s,t), the height of two adjacent vertices u,v
                 # can differ of at most the value of the edge between them
-                for u,v in self.edge_iterator(labels=False):
+                for u,v in self.edges(labels=False, sort=False):
                     p.add_constraint(height[(s,t),u] - height[(s,t),v] - cut[frozenset((u,v))], max=0)
                     p.add_constraint(height[(s,t),v] - height[(s,t),u] - cut[frozenset((u,v))], max=0)
 
@@ -6909,9 +6909,9 @@ class GenericGraph(GenericGraph_pyx):
         cut = p.get_values(cut)
 
         if self.is_directed():
-            return [x for x in self.edge_iterator() if cut[x[0], x[1]] == 1]
+            return [x for x in self.edges(sort=False) if cut[x[0], x[1]] == 1]
 
-        return [x for x in self.edge_iterator() if cut[frozenset((x[0], x[1]))] == 1]
+        return [x for x in self.edges(sort=False) if cut[frozenset((x[0], x[1]))] == 1]
 
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
@@ -7007,25 +7007,25 @@ class GenericGraph(GenericGraph_pyx):
             # is not in the cut
             # Besides, an edge can only be in the cut if its vertices
             # belong to different sets
-            for u,v in g.edge_iterator(labels=None):
+            for u,v in g.edges(labels=False, sort=False):
                 p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[u,v], max=1)
                 p.add_constraint(in_set[0,u] + in_set[0,v] + in_cut[u,v], max=2)
                 p.add_constraint(in_set[1,u] + in_set[1,v] + in_cut[u,v], max=2)
 
-            p.set_objective(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edge_iterator()))
+            p.set_objective(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edges(sort=False)))
 
         else:
 
             # Two adjacent vertices are in different sets if and only if
             # the edge between them is in the cut
-            for u,v in g.edge_iterator(labels=None):
+            for u,v in g.edges(labels=False, sort=False):
                 fuv = frozenset((u,v))
                 p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[fuv], max=1)
                 p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[fuv], max=1)
                 p.add_constraint(in_set[0,u] + in_set[0,v] + in_cut[fuv], max=2)
                 p.add_constraint(in_set[1,u] + in_set[1,v] + in_cut[fuv], max=2)
 
-            p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()))
+            p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edges(sort=False)))
 
         if value_only:
             obj = p.solve(objective_only=True, log=verbose)
@@ -7043,11 +7043,11 @@ class GenericGraph(GenericGraph_pyx):
 
             edges = []
             if g.is_directed():
-                for u,v,l in g.edge_iterator():
+                for u,v,l in g.edges(sort=False):
                     if in_cut[u,v] == 1:
                         edges.append((u,v,l))
             else:
-                for u,v,l in g.edge_iterator():
+                for u,v,l in g.edges(sort=False):
                     if in_cut[frozenset((u,v))] == 1:
                         edges.append((u,v,l))
 
@@ -7148,7 +7148,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: for i in range(20):
             ....:     g = graphs.RandomGNP(15, 0.3)
-            ....:     for u, v in g.edge_iterator(labels=False):
+            ....:     for u, v in g.edges(labels=False, sort=False):
             ....:         g.set_edge_label(u, v, random())
             ....:     lp = g.longest_path()
             ....:     if (not lp.is_forest() or
@@ -7179,7 +7179,7 @@ class GenericGraph(GenericGraph_pyx):
         Disconnected graphs weighted::
 
             sage: g1 = graphs.PetersenGraph()
-            sage: for u,v in g.edge_iterator(labels=False):
+            sage: for u,v in g.edges(labels=False, sort=False):
             ....:     g.set_edge_label(u, v, random())
             sage: g2 = 2 * g1
             sage: lp1 = g1.longest_path(use_edge_labels=True)
@@ -7215,7 +7215,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: for i in range(20):
             ....:     g = digraphs.RandomDirectedGNP(15, 0.3)
-            ....:     for u, v in g.edge_iterator(labels=False):
+            ....:     for u, v in g.edges(labels=False, sort=False):
             ....:         g.set_edge_label(u, v, random())
             ....:     lp = g.longest_path()
             ....:     if (not lp.is_directed_acyclic() or
@@ -7237,7 +7237,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: l = [(0, 1), (0, 3), (2, 0), (3, 4)]
             sage: G = DiGraph(l)
             sage: H = {(0, 3), (2, 0), (3, 4)}
-            sage: H == {x for x in G.longest_path().edge_iterator(labels=False)}
+            sage: H == {x for x in G.longest_path().edges(labels=False, sort=False)}
             True
         """
         self._scream_if_not_simple()
@@ -7326,19 +7326,19 @@ class GenericGraph(GenericGraph_pyx):
         if self._directed:
 
             # if edge uv is used, vu can not be
-            for u, v in self.edge_iterator(labels=False):
+            for u, v in self.edges(labels=False, sort=False):
                 if self.has_edge(v, u):
                     p.add_constraint(edge_used[u,v] + edge_used[v,u] <= 1)
 
             # A vertex is used if one of its incident edges is
-            for u,v in self.edge_iterator(labels=False):
+            for u,v in self.edges(labels=False, sort=False):
                 p.add_constraint(vertex_used[v] >= edge_used[u,v])
                 p.add_constraint(vertex_used[u] >= edge_used[u,v])
 
             # A path is a tree. If n vertices are used, at most n-1 edges are
             p.add_constraint(
                   p.sum(vertex_used[v] for v in self)
-                - p.sum(edge_used[e] for e in self.edge_iterator(labels=False))
+                - p.sum(edge_used[e] for e in self.edges(labels=False, sort=False))
                   == 1)
 
             # A vertex has at most one incoming used edge and at most
@@ -7351,7 +7351,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # r_edge_used is "more" than edge_used, though it ignores
             # the direction
-            for u,v in self.edge_iterator(labels=False):
+            for u,v in self.edges(labels=False, sort=False):
                 p.add_constraint(r_edge_used[u,v] + r_edge_used[v,u]
                                  >= edge_used[u,v])
 
@@ -7383,7 +7383,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # Defining the objective
             p.set_objective(
-                p.sum(weight(l) * edge_used[u,v] for u, v, l in self.edge_iterator()))
+                p.sum(weight(l) * edge_used[u,v] for u, v, l in self.edges(sort=False)))
         else:
             # We use edge_used[frozenset((u, v))] to avoid having two different
             # variables for edge (u, v)
@@ -7395,14 +7395,14 @@ class GenericGraph(GenericGraph_pyx):
             # A path is a tree. If n vertices are used, at most n-1 edges are
             p.add_constraint(
                 p.sum(vertex_used[v] for v in self)
-                - p.sum(edge_used[frozenset((u,v))] for u, v in self.edge_iterator(labels=False)),
+                - p.sum(edge_used[frozenset((u,v))] for u, v in self.edges(labels=False, sort=False)),
                 min=1, max=1)
             # A vertex has at most two incident edges used
             for v in self:
                 p.add_constraint(
                     p.sum(edge_used[frozenset((u,v))] for u in self.neighbor_iterator(v)), max=2)
             # r_edge_used is "more" than edge_used
-            for u, v in self.edge_iterator(labels=False):
+            for u, v in self.edges(labels=False, sort=False):
                 p.add_constraint(r_edge_used[u,v]
                                  + r_edge_used[v,u]
                                  - edge_used[frozenset((u,v))],
@@ -7424,7 +7424,7 @@ class GenericGraph(GenericGraph_pyx):
                     max=1, min=1)
             # Defining the objective
             p.set_objective(p.sum(weight(l) * edge_used[frozenset((u,v))]
-                                for u, v, l in self.edge_iterator()))
+                                for u, v, l in self.edges(sort=False)))
 
         # Computing the result. No exception has to be raised, as this
         # problem always has a solution (there is at least one edge,
@@ -7435,12 +7435,12 @@ class GenericGraph(GenericGraph_pyx):
         if self._directed:
             g = self.subgraph(
                 vertices=(v for v in self if vertex_used[v] == 1),
-                edges=((u,v,l) for u, v, l in self.edge_iterator()
+                edges=((u,v,l) for u, v, l in self.edges(sort=False)
                        if edge_used[u,v] == 1))
         else:
             g = self.subgraph(
                 vertices=(v for v in self if vertex_used[v] == 1),
-                edges=((u,v,l) for u, v, l in self.edge_iterator()
+                edges=((u,v,l) for u, v, l in self.edges(sort=False)
                        if edge_used[frozenset((u,v))] == 1))
         if use_edge_labels:
             return sum(map(weight, g.edge_labels())), g
@@ -7798,7 +7798,7 @@ class GenericGraph(GenericGraph_pyx):
         of these new edges to `2`, while the others are set to `1`, we notice
         that not all the edges we added are used in the optimal solution ::
 
-            sage: for u, v in g.edge_iterator(labels=None):
+            sage: for u, v in g.edges(labels=False, sort=False):
             ....:    g.set_edge_label(u, v, 1)
 
             sage: cycle = graphs.CycleGraph(10)
@@ -8036,7 +8036,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 # Objective function
                 if use_edge_labels:
-                    p.set_objective(p.sum(weight(l)*b[u,v] for u,v,l in g.edge_iterator()))
+                    p.set_objective(p.sum(weight(l)*b[u,v] for u,v,l in g.edges(sort=False)))
 
                 # All the vertices have in-degree 1 and out-degree 1
                 for v in g:
@@ -8054,7 +8054,7 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
-                    for u,v,l in g.edge_iterator():
+                    for u,v,l in g.edges(sort=False):
                         if p.get_values(b[u,v]) == 1:
                             h.add_edge(u,v,l)
 
@@ -8085,7 +8085,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 # Objective function
                 if use_edge_labels:
-                    p.set_objective(p.sum(weight(l) * b[frozenset((u,v))] for u,v,l in g.edge_iterator()))
+                    p.set_objective(p.sum(weight(l) * b[frozenset((u,v))] for u,v,l in g.edges(sort=False)))
 
                 # All the vertices have degree 2
                 for v in g:
@@ -8101,7 +8101,7 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = Graph()
-                    h.add_edges((u,v,l) for u,v,l in g.edge_iterator() if p.get_values(b[frozenset((u,v))]) == 1)
+                    h.add_edges((u,v,l) for u,v,l in g.edges(sort=False) if p.get_values(b[frozenset((u,v))]) == 1)
 
                     # If there is only one circuit, we are done !
                     cc = h.connected_components(sort=False)
@@ -8149,7 +8149,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # r is greater than f
             vertex_to_int = {u: i for i, u in enumerate(g)}
-            for u,v in g.edge_iterator(labels=None):
+            for u,v in g.edges(labels=None, sort=False):
                 if g.has_edge(v,u):
                     if vertex_to_int[u] < vertex_to_int[v]:
                         p.add_constraint(r[u,v] + r[v,u]- f[u,v] - f[v,u], min=0)
@@ -8161,7 +8161,7 @@ class GenericGraph(GenericGraph_pyx):
                     p.add_constraint(r[u,v] + r[v,u] - f[u,v], min=0)
 
             if use_edge_labels:
-                p.set_objective(p.sum(weight(l) * f[u,v] for u,v,l in g.edge_iterator()))
+                p.set_objective(p.sum(weight(l) * f[u,v] for u,v,l in g.edges(sort=False)))
 
             # defining the answer when g is directed
             from sage.graphs.all import DiGraph
@@ -8174,11 +8174,11 @@ class GenericGraph(GenericGraph_pyx):
                                  min=2, max=2)
 
             # r is greater than f
-            for u,v in g.edge_iterator(labels = None):
+            for u,v in g.edges(labels=False, sort=False):
                 p.add_constraint( r[u,v] + r[v,u] - f[frozenset((u,v))], min=0)
 
             if use_edge_labels:
-                p.set_objective(p.sum(weight(l) * f[frozenset((u,v))] for u,v,l in g.edge_iterator()))
+                p.set_objective(p.sum(weight(l) * f[frozenset((u,v))] for u,v,l in g.edges(sort=False)))
 
             from sage.graphs.all import Graph
 
@@ -8198,9 +8198,9 @@ class GenericGraph(GenericGraph_pyx):
             tsp.set_pos(g.get_pos())
             tsp.name("TSP from "+g.name())
             if g.is_directed():
-                tsp.add_edges((u,v,l) for u,v,l in g.edge_iterator() if f_val[u,v] == 1)
+                tsp.add_edges((u,v,l) for u,v,l in g.edges(sort=False) if f_val[u,v] == 1)
             else:
-                tsp.add_edges((u,v,l) for u,v,l in g.edge_iterator() if f_val[frozenset((u,v))] == 1)
+                tsp.add_edges((u,v,l) for u,v,l in g.edges(sort=False) if f_val[frozenset((u,v))] == 1)
 
             return tsp
 
@@ -8544,7 +8544,7 @@ class GenericGraph(GenericGraph_pyx):
             n = self.order()
 
             # The removed vertices cover all the back arcs ( third condition )
-            for u,v in self.edge_iterator(labels=None):
+            for u,v in self.edges(labels=False, sort=False):
                 p.add_constraint(d[u] - d[v] + n * (b[u] + b[v]), min=1)
 
             for u in self:
@@ -8705,7 +8705,7 @@ class GenericGraph(GenericGraph_pyx):
         some numerical noise, cf. :trac:`12362`)::
 
            sage: g = graphs.RandomGNP(20, .3)
-           sage: for u, v in g.edge_iterator(labels=False):
+           sage: for u, v in g.edges(labels=False, sort=False):
            ....:    g.set_edge_label(u, v, round(random(), 5))
            sage: flow_ff = g.flow(0, 1, algorithm="FF")
            sage: flow_lp = g.flow(0, 1, algorithm="LP")
@@ -8745,7 +8745,7 @@ class GenericGraph(GenericGraph_pyx):
             y_int = vertices.index(y)
             if use_edge_labels:
                 g_igraph = self.igraph_graph(vertex_list=vertices,
-                                             edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
+                                             edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edges(sort=False)]})
                 maxflow = g_igraph.maxflow(x_int, y_int, 'capacity')
             else:
                 g_igraph = self.igraph_graph(vertex_list=vertices)
@@ -8815,7 +8815,7 @@ class GenericGraph(GenericGraph_pyx):
                 p.add_constraint(flow_sum(v), min=0, max=0)
 
         # Capacity constraints
-        for u,v,w in g.edge_iterator():
+        for u,v,w in g.edges(sort=False):
             p.add_constraint(capacity_sum(u,v), max=capacity(w))
 
         # No vertex except the sources can send more than 1
@@ -9001,7 +9001,7 @@ class GenericGraph(GenericGraph_pyx):
             solution.add_vertices(self.vertex_iterator())
             for g in self.connected_components_subgraphs():
                 solution.add_edges(g.nowhere_zero_flow(k=k, solver=solver,
-                                                       verbose=verbose).edge_iterator())
+                                                       verbose=verbose).edges(sort=False))
             return solution
 
         # If the (di)graph has bridges, the problem is not feasible
@@ -9047,7 +9047,7 @@ class GenericGraph(GenericGraph_pyx):
                              == p.sum(f[e] for e in G.outgoing_edge_iterator(u)))
 
         # The flow on edge e has value in {-k+1,..., -1, 1, ..., k-1}
-        for e in G.edge_iterator():
+        for e in G.edges(sort=False):
             p.add_constraint(p.sum(b[e,i] for i in range(-k+1, k) if i) == 1)
             p.add_constraint(f[e] == p.sum(i * b[e,i] for i in range(-k+1, k) if i))
 
@@ -9160,7 +9160,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Initializing the variables
         if directed:
-            for u,v,l in self.edge_iterator():
+            for u,v,l in self.edges(sort=False):
                 if l_capacity(l) > 0:
                     capacity[u, v] = l_capacity(l) + capacity.get((u, v), 0)
                     capacity[v, u] = capacity.get((v, u), 0)
@@ -9168,7 +9168,7 @@ class GenericGraph(GenericGraph_pyx):
                     flow[u, v] = 0
                     flow[v, u] = 0
         else:
-            for u,v,l in self.edge_iterator():
+            for u,v,l in self.edges(sort=False):
                 if l_capacity(l) > 0:
                     capacity[u, v] = l_capacity(l) + capacity.get((u, v), 0)
                     capacity[v, u] = l_capacity(l) + capacity.get((v, u), 0)
@@ -9364,7 +9364,7 @@ class GenericGraph(GenericGraph_pyx):
                     p.add_constraint(flow_sum(i, v), min=0, max=0)
 
         # Capacity constraints
-        for u,v,w in g.edge_iterator():
+        for u,v,w in g.edges(sort=False):
             p.add_constraint(p.sum(capacity_sum(i, u, v) for i in range(len(terminals))), max=capacity(w))
 
         if vertex_bound:
@@ -9496,7 +9496,7 @@ class GenericGraph(GenericGraph_pyx):
         # returning a graph with the same embedding, the corresponding name, etc ...
         h = self.subgraph(edges=[], immutable=False)
         h.delete_vertices(v for v in self if (v not in g) or not g.degree(v))
-        h.add_edges(g.edge_iterator())
+        h.add_edges(g.edges(sort=False))
 
         return h
 
@@ -9876,7 +9876,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError('dangling parameter is not used in igraph implementation')
             if by_weight:
                 I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
-                                                  for e in self.edge_iterator()]})
+                                                  for e in self.edges(sort=False)]})
             else:
                 I = self.igraph_graph()
             page_rank = I.pagerank(damping=alpha, weights=weight)
@@ -10847,11 +10847,11 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.DodecahedralGraph()
             sage: H = Graph()
-            sage: H.add_edges(G.edge_iterator()); H
+            sage: H.add_edges(G.edges(sort=False)); H
             Graph on 20 vertices
             sage: G = graphs.DodecahedralGraph().to_directed()
             sage: H = DiGraph()
-            sage: H.add_edges(G.edge_iterator()); H
+            sage: H.add_edges(G.edges(sort=False)); H
             Digraph on 20 vertices
             sage: H.add_edges(iter([]))
 
@@ -10983,7 +10983,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: S = 'S'; F.add_vertex(S)
             sage: F.add_edge(S, 0)
             sage: F2 = Graph(F)
-            sage: F2.subdivide_edges(list(F2.edge_iterator(labels=False)), 2)
+            sage: F2.subdivide_edges(list(F2.edges(labels=False, sort=False)), 2)
             sage: 0 in F2.degree()
             False
         """
@@ -11154,7 +11154,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: K4 = graphs.CompleteGraph(4)
             sage: K12.size()
             66
-            sage: K12.delete_edges(K4.edge_iterator())
+            sage: K12.delete_edges(K4.edges(sort=False))
             sage: K12.size()
             60
 
@@ -11164,7 +11164,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: K4 = digraphs.Complete(4)
             sage: K12.size()
             132
-            sage: K12.delete_edges(K4.edge_iterator())
+            sage: K12.delete_edges(K4.edges(sort=False))
             sage: K12.size()
             120
         """
@@ -11744,11 +11744,11 @@ class GenericGraph(GenericGraph_pyx):
         else:
             if vertices2 is not None:
                 vertices2 = set(v for v in vertices2 if v in self)
-                output = [e for e in self.edge_iterator(vertices1, labels=labels)
+                output = [e for e in self.edges(vertices1, labels=labels, sort=False)
                             if (e[0] in vertices1 and e[1] in vertices2) or
                             (e[1] in vertices1 and e[0] in vertices2)]
             else:
-                output = [e for e in self.edge_iterator(vertices1, labels=labels)
+                output = [e for e in self.edges(vertices1, labels=labels, sort=False)
                             if e[1] not in vertices1 or e[0] not in vertices1]
         if sort:
             output.sort()
@@ -11845,9 +11845,7 @@ class GenericGraph(GenericGraph_pyx):
         if vertices in self:
             vertices = [vertices]
 
-        if sort:
-            return sorted(self.edge_iterator(vertices=vertices, labels=labels))
-        return list(self.edge_iterator(vertices=vertices, labels=labels))
+        return list(self.edges(vertices=vertices, labels=labels, sort=sort))
 
     def edge_label(self, u, v):
         """
@@ -11900,7 +11898,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edge_labels()
             ['x', 'z', 'a', 'out']
         """
-        return [l for _, _, l in self.edge_iterator()]
+        return [l for _, _, l in self.edges(sort=False)]
 
     def remove_multiple_edges(self):
         """
@@ -12616,12 +12614,12 @@ class GenericGraph(GenericGraph_pyx):
 
             edges_to_keep = []
             if self._directed:
-                for u, v, l in self.edge_iterator(vertices):
+                for u, v, l in self.edges(vertices=vertices, sort=False):
                     if (v in vertices and ((u, v, l) in edges_to_keep_labeled
                                            or (u, v) in edges_to_keep_unlabeled)):
                         edges_to_keep.append((u, v, l))
             else:
-                for u, v, l in self.edge_iterator(vertices):
+                for u, v, l in self.edges(vertices=vertices, sort=False):
                     if (u in vertices and v in vertices
                         and ((u, v, l) in edges_to_keep_labeled
                              or (v, u, l) in edges_to_keep_labeled
@@ -12629,7 +12627,7 @@ class GenericGraph(GenericGraph_pyx):
                              or (v, u) in edges_to_keep_unlabeled)):
                         edges_to_keep.append((u, v, l))
         else:
-            edges_to_keep = [e for e in self.edge_iterator(vertices) if e[0] in vertices and e[1] in vertices]
+            edges_to_keep = [e for e in self.edges(vertices=vertices, sort=False) if e[0] in vertices and e[1] in vertices]
 
         if edge_property is not None:
             edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
@@ -12780,12 +12778,12 @@ class GenericGraph(GenericGraph_pyx):
             edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
             edges_to_delete = []
             if G._directed:
-                for e in G.edge_iterator():
+                for e in G.edges(sort=False):
                     if (e not in edges_to_keep_labeled
                             and e[:2] not in edges_to_keep_unlabeled):
                         edges_to_delete.append(e)
             else:
-                for u, v, l in G.edge_iterator():
+                for u, v, l in G.edges(sort=False):
                     if ((u, v, l) not in edges_to_keep_labeled
                             and (v, u, l) not in edges_to_keep_labeled
                             and (u, v) not in edges_to_keep_unlabeled
@@ -12794,7 +12792,7 @@ class GenericGraph(GenericGraph_pyx):
         if edge_property is not None:
             # We might get duplicate edges, but this does handle the case of
             # multiple edges.
-            edges_to_delete.extend(e for e in G.edge_iterator() if not edge_property(e))
+            edges_to_delete.extend(e for e in G.edges(sort=False) if not edge_property(e))
 
         G.delete_edges(edges_to_delete)
         if not inplace:
@@ -13910,9 +13908,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 R = lambda u,v:(u,v)
             if loops:
-                edges = set(R(v_to_int[u], v_to_int[v]) for u,v in G.edge_iterator(labels=False))
+                edges = set(R(v_to_int[u], v_to_int[v]) for u,v in G.edges(labels=False, sort=False))
             else:
-                edges = set(R(v_to_int[u], v_to_int[v]) for u,v in G.edge_iterator(labels=False) if u != v)
+                edges = set(R(v_to_int[u], v_to_int[v]) for u,v in G.edges(labels=False, sort=False) if u != v)
 
             # If induced == True, we already know that G.size() == M, so
             # we only need to check that we have the right set of edges.
@@ -13998,7 +13996,7 @@ class GenericGraph(GenericGraph_pyx):
                 # We make a copy of self ignoring the direction of edges
                 from sage.graphs.graph import Graph
                 g = Graph(multiedges=True, loops=True)
-                g.add_edges(self.edge_iterator(labels=False))
+                g.add_edges(self.edges(labels=False, sort=False))
 
         return g.is_regular(k=2) and g.is_connected()
 
@@ -14121,7 +14119,7 @@ class GenericGraph(GenericGraph_pyx):
             return other.subgraph(self) == self
         else:
             self._scream_if_not_simple(allow_loops=True)
-            return all(other.has_edge(e) for e in self.edge_iterator())
+            return all(other.has_edge(e) for e in self.edges(sort=False))
 
     ### Cluster
 
@@ -14814,12 +14812,12 @@ class GenericGraph(GenericGraph_pyx):
                 if self.has_edge(u, u):
                     return (1, [u]) if certificate else 1
         if self.is_directed():
-            for u, v in self.edge_iterator(labels=False):
+            for u, v in self.edges(labels=False, sort=False):
                 if self.has_edge(v, u):
                     return (2, [u, v]) if certificate else 2
         elif self.allows_multiple_edges():
             edges = set()
-            for e in self.edge_iterator(labels=False):
+            for e in self.edges(labels=False, sort=False):
                 if e in edges:
                     return (2, list(e)) if certificate else 2
                 edges.add(e)
@@ -15352,7 +15350,7 @@ class GenericGraph(GenericGraph_pyx):
             if not by_weight:
                 algorithm = 'BFS'
             else:
-                for e in self.edge_iterator():
+                for e in self.edges(sort=False):
                     try:
                         if float(weight_function(e)) < 0:
                             algorithm = 'Johnson_Boost'
@@ -15369,9 +15367,9 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             if by_weight:
                 if self.is_directed():
-                    G = networkx.DiGraph([(e[1], e[0], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                    G = networkx.DiGraph([(e[1], e[0], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
                 else:
-                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             else:
                 if self.is_directed():
                     G = self.reverse().networkx_graph()
@@ -15717,9 +15715,9 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == "Dijkstra_Bid_NetworkX":
             import networkx
             if self.is_directed():
-                G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             else:
-                G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             G.add_nodes_from(self)
             try:
                 return networkx.bidirectional_dijkstra(G, u, v)[1]
@@ -15911,9 +15909,9 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == "Dijkstra_Bid_NetworkX":
             import networkx
             if self.is_directed():
-                G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             else:
-                G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             G.add_nodes_from(self)
             try:
                 return networkx.bidirectional_dijkstra(G, u, v)[0]
@@ -15974,7 +15972,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: the weight function cannot find the weight of (0, 1, '123')
         """
-        for e in self.edge_iterator():
+        for e in self.edges(sort=False):
             try:
                 temp = weight_function(e)
                 float(temp)
@@ -16155,9 +16153,9 @@ class GenericGraph(GenericGraph_pyx):
                 return {u: [u]}
             if by_weight:
                 if self.is_directed():
-                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
                 else:
-                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             else:
                 # Needed to remove labels.
                 if self.is_directed():
@@ -16379,9 +16377,9 @@ class GenericGraph(GenericGraph_pyx):
                 return {u: [u]}
             if by_weight:
                 if self.is_directed():
-                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
                 else:
-                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edges(sort=False)])
             else:
                 # Needed to remove labels.
                 if self.is_directed():
@@ -16658,7 +16656,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm is None:
             if by_weight:
-                for e in self.edge_iterator():
+                for e in self.edges(sort=False):
                     try:
                         if weight_function(e) < 0:
                             algorithm = "Floyd-Warshall_Boost"
@@ -16925,7 +16923,7 @@ class GenericGraph(GenericGraph_pyx):
         :trac:`22885`::
 
             sage: G = graphs.PetersenGraph()
-            sage: G2 = Graph([(u, v, 2) for u,v in G.edge_iterator(labels=False)])
+            sage: G2 = Graph([(u, v, 2) for u,v in G.edges(labels=False, sort=False)])
             sage: G2.average_distance()
             5/3
             sage: G2.average_distance(by_weight=True)
@@ -16983,7 +16981,7 @@ class GenericGraph(GenericGraph_pyx):
 
         distances = self.distance_all_pairs()
         s = 0
-        for u, v in self.edge_iterator(labels=None):
+        for u, v in self.edges(labels=False, sort=False):
             du = distances[u]
             dv = distances[v]
             n1 = n2 = 0
@@ -17809,8 +17807,8 @@ class GenericGraph(GenericGraph_pyx):
             G = Graph(multiedges=multiedges, loops=loops, weighted=weighted)
         G.add_vertices(self)
         G.add_vertices(other)
-        G.add_edges(self.edge_iterator())
-        G.add_edges(other.edge_iterator())
+        G.add_edges(self.edges(sort=False))
+        G.add_edges(other.edges(sort=False))
 
         if immutable is None:
             immutable = self.is_immutable() and other.is_immutable()
@@ -17881,10 +17879,10 @@ class GenericGraph(GenericGraph_pyx):
             raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices((u, v) for u in self for v in other)
-        for u, w in self.edge_iterator(labels=None):
+        for u, w in self.edges(labels=False, sort=False):
             for v in other:
                 G.add_edge((u, v), (w, v))
-        for v, x in other.edge_iterator(labels=None):
+        for v, x in other.edges(labels=False, sort=False):
             for u in self:
                 G.add_edge((u, v), (u, x))
         return G
@@ -17964,8 +17962,8 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise TypeError('the graphs should be both directed or both undirected')
         G.add_vertices((u, v) for u in self for v in other)
-        for u, w in self.edge_iterator(labels=None):
-            for v, x in other.edge_iterator(labels=None):
+        for u, w in self.edges(labels=False, sort=False):
+            for v, x in other.edges(labels=False, sort=False):
                 G.add_edge((u, v), (w, x))
                 if not G._directed:
                     G.add_edge((u, x), (w, v))
@@ -18034,12 +18032,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise TypeError('the graphs should be both directed or both undirected')
         G.add_vertices((u, v) for u in self for v in other)
-        for u, w in self.edge_iterator(labels=None):
+        for u, w in self.edges(labels=False, sort=False):
             for v in other:
                 for x in other:
                     G.add_edge((u, v), (w, x))
         for u in self:
-            for v, x in other.edge_iterator(labels=None):
+            for v, x in other.edges(labels=False, sort=False):
                 G.add_edge((u, v), (u, x))
         return G
 
@@ -18116,14 +18114,14 @@ class GenericGraph(GenericGraph_pyx):
             raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices((u, v) for u in self for v in other)
-        for u, w in self.edge_iterator(labels=None):
+        for u, w in self.edges(labels=False, sort=False):
             for v in other:
                 G.add_edge((u, v), (w, v))
-            for v, x in other.edge_iterator(labels=None):
+            for v, x in other.edges(labels=False, sort=False):
                 G.add_edge((u, v), (w, x))
                 if not self._directed:
                     G.add_edge((w, v), (u, x))
-        for v, x in other.edge_iterator(labels=None):
+        for v, x in other.edges(labels=False, sort=False):
             for u in self:
                 G.add_edge((u, v), (u, x))
         return G
@@ -18187,11 +18185,11 @@ class GenericGraph(GenericGraph_pyx):
             raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices((u, v) for u in self for v in other)
-        for u, w in self.edge_iterator(labels=None):
+        for u, w in self.edges(labels=False, sort=False):
             for v in other:
                 for x in other:
                     G.add_edge((u, v), (w, x))
-        for v, x in other.edge_iterator(labels=None):
+        for v, x in other.edges(labels=False, sort=False):
             for u in self:
                 for w in self:
                     G.add_edge((u, v), (w, x))
@@ -18338,7 +18336,7 @@ class GenericGraph(GenericGraph_pyx):
 
             from sage.rings.infinity import Infinity
             G = copy(self)
-            for e in self.edge_iterator():
+            for e in self.edges(sort=False):
                 G.delete_edge(e)
                 if G.distance(e[0], e[1]) == Infinity:
                     G.add_edge(e)
@@ -18436,11 +18434,11 @@ class GenericGraph(GenericGraph_pyx):
             format = "hex"
         if isinstance(format, str):
             # Find all labels; this is slower and huglier than:
-            #    labels = set(edge[2] for edge in self.edge_iterator())
+            #    labels = set(edge[2] for edge in self.edges())
             # but works with non hashable edge labels, and keeps backward
             # compatibility for the label ordering.
             labels = []
-            for edge in self.edge_iterator():
+            for edge in self.edges(sort=False):
                 label = edge[2]
                 if label not in labels:
                     labels.append(label)
@@ -18459,7 +18457,7 @@ class GenericGraph(GenericGraph_pyx):
             return color_of_label
 
         edges_by_color = {}
-        for edge in self.edge_iterator():
+        for edge in self.edges(sort=False):
             color = color_of_label(edge[2])
             if color in edges_by_color:
                 edges_by_color[color].append(edge)
@@ -19959,7 +19957,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = graphs.PetersenGraph().to_directed()
             sage: from sage.plot.colors import rainbow
             sage: R = rainbow(P.size(), 'rgbtuple')
-            sage: edge_colors = {R[i]: [e] for i, e in enumerate(P.edge_iterator())}
+            sage: edge_colors = {R[i]: [e] for i, e in enumerate(P.edges(sort=False))}
             sage: P.plot3d(engine='tachyon', edge_colors=edge_colors).show() # long time
 
 
@@ -20717,7 +20715,7 @@ class GenericGraph(GenericGraph_pyx):
             s += 'edge [color="%s"];\n'%default_color
 
         # edges for loop
-        for u, v, label in self.edge_iterator():
+        for u, v, label in self.edges(sort=False):
             edge_options = {
                 'backward': False,
                 'dot': None,
@@ -21626,10 +21624,10 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.base.dense_graph import DenseGraph
             CG = DenseGraph(n)
         if G.is_directed():
-            for i, j in G.edge_iterator(labels=False):
+            for i, j in G.edges(labels=False, sort=False):
                 CG.add_arc(i, j)
         else:
-            for i, j in G.edge_iterator(labels=False):
+            for i, j in G.edges(labels=False, sort=False):
                 CG.add_arc(i, j)
                 CG.add_arc(j, i)
 
@@ -21819,7 +21817,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: ag = g.automorphism_group()
             sage: all(len(ag.orbit(e, action="OnPairs")) == 30
-            ....:       for e in g.edge_iterator(labels=False))
+            ....:       for e in g.edges(labels=False, sort=False))
             True
 
         Empty group, correct domain::
@@ -21912,7 +21910,7 @@ class GenericGraph(GenericGraph_pyx):
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
-            for u,v in G.edge_iterator(labels=False):
+            for u,v in G.edges(labels=False, sort=False):
                 HB.add_edge(G_to[u], G_to[v], None, G._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
@@ -21953,7 +21951,7 @@ class GenericGraph(GenericGraph_pyx):
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=self.allows_loops())
             HB = H._backend
-            for u,v in self.edge_iterator(labels=False):
+            for u,v in self.edges(labels=False, sort=False):
                 HB.add_edge(G_to[u], G_to[v], None, self._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
@@ -22395,7 +22393,7 @@ class GenericGraph(GenericGraph_pyx):
         DoDG = DiGraph if self._directed else Graph
         H = DoDG(len(self_vertices), loops=G.allows_loops())
         HB = H._backend
-        for u,v in G.edge_iterator(labels=False):
+        for u,v in G.edges(labels=False, sort=False):
             HB.add_edge(G_to[u], G_to[v], None, G._directed)
         G = HB.c_graph()[0]
         partition = [[G_to[vv] for vv in cell] for cell in partition]
@@ -22403,7 +22401,7 @@ class GenericGraph(GenericGraph_pyx):
         G2_to = {u: i for i,u in enumerate(other_vertices)}
         H2 = DoDG(len(other_vertices), loops=G2.allows_loops())
         H2B = H2._backend
-        for u,v in G2.edge_iterator(labels=False):
+        for u,v in G2.edges(labels=False, sort=False):
             H2B.add_edge(G2_to[u], G2_to[v], None, G2._directed)
         G2 = H2B.c_graph()[0]
         partition2 = [G2_to[vv] for vv in partition2]
@@ -22654,7 +22652,7 @@ class GenericGraph(GenericGraph_pyx):
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
-            for u,v in G.edge_iterator(labels=False):
+            for u,v in G.edges(labels=False, sort=False):
                 HB.add_edge(G_to[u], G_to[v], None, G._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
@@ -22668,7 +22666,7 @@ class GenericGraph(GenericGraph_pyx):
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=self.allows_loops())
             HB = H._backend
-            for u, v in self.edge_iterator(labels=False):
+            for u, v in self.edges(labels=False, sort=False):
                 HB.add_edge(G_to[u], G_to[v], None, self._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
@@ -22835,7 +22833,7 @@ class GenericGraph(GenericGraph_pyx):
                 # self.(out_)neighbors ignores multiedges,
                 # so we use edge_iterator instead
                 adj = [y if v == x else x
-                       for x, y, z in self.edge_iterator(v)]
+                       for x, y, z in self.edges(vertices=[v], sort=False)]
                 genset = [map[u] for u in adj]
         if certificate:
             out = [c]
@@ -23485,7 +23483,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
     # We build the list of distinct edge labels
     edge_labels = []
-    for _,_,label in G.edge_iterator():
+    for _,_,label in G.edges(sort=False):
         if label != standard_label and label not in edge_labels:
             edge_labels.append(label)
 

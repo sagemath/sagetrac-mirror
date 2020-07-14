@@ -125,7 +125,7 @@ def strong_orientations_iterator(G):
     te = G.min_spanning_tree()
     treeEdges = [(u,v) for u,v,_ in te]
     tree_edges_set = set(treeEdges)
-    A = [edge for edge in G.edge_iterator(labels=False) if edge not in tree_edges_set]
+    A = [edge for edge in G.edges(labels=False, sort=False) if edge not in tree_edges_set]
 
     # initialization of the first binary word 00...0
     # corresponding to the current orientation of the non-tree edges
@@ -291,7 +291,7 @@ def random_orientation(G):
 
     from sage.misc.prandom import getrandbits
     rbits = getrandbits(G.size())
-    for u,v,l in G.edge_iterator():
+    for u, v, l in G.edges(sort=False):
         if rbits % 2:
             D.add_edge(u, v, l)
         else:

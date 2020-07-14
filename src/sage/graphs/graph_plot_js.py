@@ -240,7 +240,7 @@ def gen_html_code(G,
     edges = []
     seen = {}  # How many times has this edge been seen ?
 
-    for u, v, l in G.edge_iterator():
+    for u, v, l in G.edges(sort=False):
 
         # Edge color
         color = edge_color.get((u, v, l), edge_color_default)

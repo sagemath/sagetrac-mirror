@@ -227,7 +227,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: sorted(T.edge_iterator()) == kruskal(T, check=True)  # long time
+        sage: sorted(T.edges()) == kruskal(T, check=True)  # long time
         True
 
     If the input is not a Graph::
@@ -261,6 +261,12 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
         sage: G.weighted(True)
         sage: next(kruskal_iterator(G, check=True))
         (1, 6, 10)
+
+    TESTS::
+
+        sage: T = graphs.RandomTree(10)
+        sage: sorted(kruskal_iterator(T, check=True)) == list(T.edges(sort=True))
+        True
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
@@ -275,14 +281,14 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
         # G is now assumed to be a nonempty connected graph
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
-            yield from G.edge_iterator()
+            yield from G.edges(sort=False)
             return
         g = G.to_simple(to_undirected=False, keep_label='min')
     else:
         g = G
 
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g)
-    yield from kruskal_iterator_from_edges(g.edge_iterator(), union_find,
+    yield from kruskal_iterator_from_edges(g.edges(sort=False), union_find,
                                            weighted=G.weighted(),
                                            weight_function=wfunction)
 
@@ -452,7 +458,7 @@ def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check
 
         sage: from sage.graphs.spanning_tree import kruskal_iterator
         sage: G = graphs.RandomBarabasiAlbert(50, 2)
-        sage: for u, v in G.edge_iterator(labels=False):
+        sage: for u, v in G.edges(labels=False):
         ....:     G.set_edge_label(u, v, randint(1, 10))
         sage: G.weighted(True)
         sage: sum(e[2] for e in kruskal_iterator(G)) == sum(e[2] for e in filter_kruskal_iterator(G, threshold=20))
@@ -484,7 +490,7 @@ def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check
         # G is now assumed to be a nonempty connected graph
         if G.order() == G.size() + 1:
             # G is a tree
-            yield from G.edge_iterator()
+            yield from G.edges(sort=False)
             return
 
         g = G.to_simple(to_undirected=False, keep_label='min')
@@ -493,7 +499,7 @@ def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check
 
     cdef int m = g.size()
     if m <= threshold:
-        yield from kruskal_iterator_from_edges(g.edge_iterator(),
+        yield from kruskal_iterator_from_edges(g.edges(sort=False),
                                                DisjointSet_of_hashables(g),
                                                weighted=G.weighted(),
                                                weight_function=weight_function)
@@ -502,7 +508,7 @@ def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check
     #
     # Initialize some data structure
     #
-    cdef list edges = list(g.edge_iterator())
+    cdef list edges = list(g.edges(sort=False))
     # Precompute edge weights to avoid frequent calls to weight_function
     cdef list weight
     if weight_function is None:
@@ -719,13 +725,13 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     if by_weight:
         if wfunction is None:
             if G.weighted():
-                edge_list = [(e, e[2]) for e in G.edge_iterator()]
+                edge_list = [(e, e[2]) for e in G.edges(sort=False)]
             else:
-                edge_list = [(e, 1) for e in G.edge_iterator()]
+                edge_list = [(e, 1) for e in G.edges(sort=False)]
         else:
-            edge_list = [(e, wfunction(e)) for e in G.edge_iterator()]
+            edge_list = [(e, wfunction(e)) for e in G.edges(sort=False)]
     else:
-        edge_list = [(e, 1) for e in G.edge_iterator()]
+        edge_list = [(e, 1) for e in G.edges(sort=False)]
 
     # initially, each vertex is a connected component
     cdef DisjointSet_of_hashables partitions = DisjointSet_of_hashables(G.vertex_iterator())

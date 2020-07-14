@@ -1913,7 +1913,7 @@ class GraphLatex(SageObject):
             edge_color_names = {}
             edge_fill_color_names = {}
             edge_label_color_names = {}
-            for e in self._graph.edge_iterator():
+            for e in self._graph.edges(sort=False):
                 edge = (e[0], e[1])
                 edge_color_names[edge] = 'c' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
                 s += [r'\definecolor{', edge_color_names[edge], '}{rgb}{']

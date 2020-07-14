@@ -247,7 +247,7 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
 
     # The equivalence graph on the edges of g
     h = Graph()
-    h.add_vertices(r(x,y) for x, y in g_int.edge_iterator(labels=False))
+    h.add_vertices(r(x,y) for x, y in g_int.edges(labels=False, sort=False))
 
     # For all pairs of vertices u,v of G, according to their number of common
     # neighbors... See the module's documentation !

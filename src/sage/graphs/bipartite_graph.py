@@ -1419,14 +1419,14 @@ class BipartiteGraph(Graph):
         # otherwise the number of edges (always 1 for simple graphs)
         D = {}
         if self.weighted():
-            for v1, v2, weight in self.edge_iterator():
+            for v1, v2, weight in self.edges(sort=False):
                 if v1 in left:
                     D[right[v2], left[v1]] = weight
                 else:
                     D[right[v1], left[v2]] = weight
         else:
             # if we're normal or multi-edge, just create the matrix over ZZ
-            for v1, v2, name in self.edge_iterator():
+            for v1, v2, name in self.edges(sort=False):
                 idx = (right[v2], left[v1]) if v1 in left else (right[v1], left[v2])
                 if idx in D:
                     D[idx] += 1
@@ -1908,7 +1908,7 @@ class BipartiteGraph(Graph):
         if edges is not None:
             edges_to_keep_labeled = set(e for e in edges if len(e) == 3)
             edges_to_keep_unlabeled = set(e for e in edges if len(e) == 2)
-            for u, v, l in B.edge_iterator():
+            for u, v, l in B.edges(sort=False):
                 if ((u, v, l) not in edges_to_keep_labeled
                         and (v, u, l) not in edges_to_keep_labeled
                         and (u, v) not in edges_to_keep_unlabeled
@@ -1917,7 +1917,7 @@ class BipartiteGraph(Graph):
         if edge_property is not None:
             # We might get duplicate edges, but this does handle the case of
             # multiple edges.
-            edges_to_delete.extend(e for e in B.edge_iterator() if not edge_property(e))
+            edges_to_delete.extend(e for e in B.edges(sort=False) if not edge_property(e))
 
         B.delete_edges(edges_to_delete)
         return B

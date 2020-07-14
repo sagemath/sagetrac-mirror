@@ -2124,7 +2124,7 @@ def HortonGraph():
     lcf.delete_edge(7, 8)
 
     for i in range(6):
-        for u,v in lcf.edge_iterator(labels=False):
+        for u, v in lcf.edges(labels=False, sort=False):
             g.add_edge((i, u), (i, v))
 
     # Modifying the groups and linking them together
@@ -2698,7 +2698,7 @@ def GolombGraph():
         Golomb graph: Graph on 10 vertices
         sage: pos = G.get_pos()
         sage: dist2 = lambda u,v:(u[0]-v[0])**2 + (u[1]-v[1])**2
-        sage: all(dist2(pos[u], pos[v]) == 1 for u, v in G.edge_iterator(labels=None))
+        sage: all(dist2(pos[u], pos[v]) == 1 for u, v in G.edges(labels=False, sort=False))
         True
     """
     edge_dict = {
@@ -3778,7 +3778,7 @@ def MoserSpindle():
 
         sage: pos = G.get_pos()
         sage: all(sum((ui-vi)**2 for ui, vi in zip(pos[u], pos[v])) == 1
-        ....:         for u, v in G.edge_iterator(labels=None))
+        ....:         for u, v in G.edges(labels=False, sort=False))
         True
         sage: G.chromatic_number()
         4

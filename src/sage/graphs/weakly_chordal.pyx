@@ -104,7 +104,7 @@ cdef inline is_long_hole_free_process(g, short_digraph sd, bitset_t dense_graph,
 
                         dist = lambda X: abs(C_index[X[0]]-C_index[X[1]])
 
-                        label_u,label_v = min(gg.edge_iterator(labels=False), key=dist)
+                        label_u,label_v = min(gg.edges(labels=False), key=dist)
                         u,v = C_index[label_u], C_index[label_v]
 
                         # Return the answer
@@ -336,7 +336,7 @@ cdef inline is_long_antihole_free_process(g, short_digraph sd, bitset_t dense_gr
 
                         dist = lambda X: abs(C_index[X[0]]-C_index[X[1]])
 
-                        label_u,label_v = min(gg.edge_iterator(labels=False), key=dist)
+                        label_u,label_v = min(gg.edges(labels=False), key=dist)
                         u,v = C_index[label_u], C_index[label_v]
 
                         # Return the answer

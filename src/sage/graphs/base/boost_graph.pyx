@@ -86,10 +86,10 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, vertex_to_int, revers
         g.add_vertex()
 
     if reverse:
-        for u,v in g_sage.edge_iterator(labels=None):
+        for u,v in g_sage.edges(labels=False, sort=False):
             g.add_edge(vertex_to_int[v], vertex_to_int[u])
     else:
-        for u,v in g_sage.edge_iterator(labels=None):
+        for u,v in g_sage.edges(labels=False, sort=False):
             g.add_edge(vertex_to_int[u], vertex_to_int[v])
 
 
@@ -143,28 +143,28 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
 
     if weight_function is not None:
         if reverse:
-            for e in g_sage.edge_iterator():
+            for e in g_sage.edges(sort=False):
                 g.add_edge(vertex_to_int[e[1]],
                         vertex_to_int[e[0]],
                         float(weight_function(e)))
         else:
-            for e in g_sage.edge_iterator():
+            for e in g_sage.edges(sort=False):
                 g.add_edge(vertex_to_int[e[0]],
                         vertex_to_int[e[1]],
                         float(weight_function(e)))
     elif g_sage.weighted():
         if reverse:
-            for u,v,w in g_sage.edge_iterator():
+            for u, v, w in g_sage.edges(sort=False):
                 g.add_edge(vertex_to_int[v], vertex_to_int[u], float(w))
         else:
-            for u,v,w in g_sage.edge_iterator():
+            for u, v, w in g_sage.edges(sort=False):
                 g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
     else:
         if reverse:
-            for u,v in g_sage.edge_iterator(labels=False):
+            for u, v in g_sage.edges(labels=False, sort=False):
                 g.add_edge(vertex_to_int[v], vertex_to_int[u], 1)
         else:
-            for u,v in g_sage.edge_iterator(labels=False):
+            for u, v in g_sage.edges(labels=False, sort=False):
                 g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
 
 
@@ -600,7 +600,7 @@ cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
 
     cdef int n = g.num_verts()
     cdef dict pos = {int_to_vertex[<int> result[i]]: i for i in range(n)}
-    cdef int bandwidth = max([abs(pos[u] - pos[v]) for u, v in g.edge_iterator(labels=False)])
+    cdef int bandwidth = max([abs(pos[u] - pos[v]) for u, v in g.edges(labels=False, sort=False)])
 
     return (bandwidth, [int_to_vertex[<int> result[i]] for i in range(n)])
 
@@ -942,12 +942,12 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     if algorithm is None:
         # Check if there are edges with negative weights
         if weight_function is not None:
-            for e in g.edge_iterator():
+            for e in g.edges(sort=False):
                 if float(weight_function(e)) < 0:
                     algorithm = 'Bellman-Ford'
                     break
         elif g.weighted():
-            for _,_,w in g.edge_iterator():
+            for _,_,w in g.edges(sort=False):
                 if float(w) < 0:
                     algorithm = 'Bellman-Ford'
                     break
@@ -1534,12 +1534,12 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     cdef list edgelist
     if by_weight and weight_function is not None:
         edgelist = [(vertex_to_int[e[0]], vertex_to_int[e[1]], float(weight_function(e)))
-                        for e in g_sage.edge_iterator()]
+                        for e in g_sage.edges(sort=False)]
     if by_weight:
         edgelist = [(vertex_to_int[e[0]], vertex_to_int[e[1]], float(e[2]))
-                        for e in g_sage.edge_iterator()]
+                        for e in g_sage.edges(sort=False)]
     else:
-        edgelist = [(vertex_to_int[u], vertex_to_int[v], 1) for u, v in g_sage.edge_iterator(labels=False)]
+        edgelist = [(vertex_to_int[u], vertex_to_int[v], 1) for u, v in g_sage.edges(labels=False, sort=False)]
 
     # We just need the edges of any spanning tree here not necessarily a
     # minimum spanning tree.
@@ -1549,7 +1549,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     for a, b, c in sp_edges:
         edges_s.insert((a, b))
     # Edges of self that are not in the spanning tree
-    cdef list edges_c = [e for e in g_sage.edge_iterator(labels=False) if not edges_s.count(e)]
+    cdef list edges_c = [e for e in g_sage.edges(labels=False, sort=False) if not edges_s.count(e)]
     cdef list edges_complement = [frozenset((vertex_to_int[u], vertex_to_int[v])) for u, v in edges_c]
     cdef Py_ssize_t l = len(edges_complement)
     cdef list orth_set = [set([e]) for e in edges_complement]
@@ -1674,11 +1674,11 @@ cpdef eccentricity_DHV(g, vertex_list=None, weight_function=None, check_weight=T
         g._check_weight_function(weight_function)
 
     if weight_function is not None:
-        for e in g.edge_iterator():
+        for e in g.edges(sort=False):
             if float(weight_function(e)) < 0:
                 raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
     elif g.weighted():
-        for _,_,w in g.edge_iterator():
+        for _,_,w in g.edges(sort=False):
             if w and float(w) < 0:
                 raise ValueError("graph contains negative edge weights, use Johnson_Boost instead")
 
@@ -1856,11 +1856,11 @@ cpdef radius_DHV(g, weight_function=None, check_weight=True):
         g._check_weight_function(weight_function)
 
     if weight_function is not None:
-        for e in g.edge_iterator():
+        for e in g.edges(sort=False):
             if float(weight_function(e)) < 0:
                 raise ValueError("graphs contains negative weights, use Johnson_Boost instead")
     elif g.weighted():
-        for _,_,w in g.edge_iterator():
+        for _,_,w in g.edges(sort=False):
             if w and float(w) < 0:
                 raise ValueError("graphs contains negative weights, use Johnson_Boost instead")
 
