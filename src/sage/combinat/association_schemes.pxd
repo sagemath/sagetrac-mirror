@@ -4,65 +4,108 @@ class AssociationScheme:
 
     def _is_association_scheme(self):
 
-        #check matrix size
-        if self._matrix.ncols() != self._nX:
+        from itertools import product
+
+        # check matrix size
+        if self._matrix.ncols() != self._nX or \
+           self._matrix.nrows() != self._matrix.ncols():
             raise ValueError("matrix has wrong size")
-        
-        #check R0
+
+        # check R0
         for i in range(self._nX):
             if self._matrix[i][i] != 0:
                 raise ValueError("identity is not R_0")
-            
-        
-        #check symmetries
-        for i in range(self._nX):
-            for j in range(i+1,self._nX):
-                if self._matrix[i][j] != self._matrix[j][i]:
-                    print("not symmetric")
-            
 
-        #check intersection numbers
-        self.compute_intersection_numbers()
-        r1 = self._r+1
+        # check symmetries
+        r1 = self._r + 1
         for i in range(r1):
-            Ri = self.R(i)
-            for j in range(r1):
-                Rj = self.R(j)
-                for k in range(r1):
-                    Rk = self.R(k)
-                    pijk = self.p(i,j,k)
-                    for (x,y) in Rk:
-                        count = 0
-                        for z in self._X:
-                            if (x,z) in Ri and (z,y) in Rj:
-                                count += 1
-                        if pijk != count:
-                            raise ValueError("failed p{}{}{} (={}) with pair ({},{})".format(i,j,k,pijk,x,y))
-                            return False
-        return True
-        
-        
-    def __init__(self, points, matrix, check=True):
+            if self._R[i] is None:
+                self.R(i)
+
+            RiT = set([(y,x) for (x,y) in self._R[i]])
+            for j in range(self._r):
+                if self._R[j] is None:
+                    self.R(j)
+
+                if RiT == self._R[j]:
+                    break
+            else:
+                raise ValueError(f"There is no relation R_{i}^T")
+
+        for i, j, k in product(range(r1), range(r1), range(r1)):
+            if self.p(i, j, k) != self.p(j, i, k):
+                raise ValueError("The intersection numbers are not symmetric")
+
+        # chck intersection numbers
+        # IMPORTANT: we rely on self._R[i] != None for all i
+        #            this is safe due to the symmetry check
+        for i, j, k in product(range(r1), range(r1), range(r1)):
+            for (x,y) in self._R[k]:
+                count = 0
+                for z in range(self._nX):
+                    if self._matrix[x, z] == i and self._matrix[z, y] == j:
+                        count += 1
+
+                if count != self.p(i,j,k):
+                    raise ValueError("There are no valid intersection numbers")
+
+    def __init__(self, points, relations=None, matrix=None, check=True):
+        if relations is None and matrix is None:
+            raise ValueError("Please specify one of relations or matrix")
+
+        def relationToInt(R):
+            return set([(self._XtoInt[x], self._XtoInt[y]) for (x,y) in R])
+
         self._X = list(points)
         self._nX = len(self._X)
-        self._XtoInt = { x: i for i,x in enumerate(self._X)}
-        self._matrix = Matrix(matrix)
+        self._XtoInt = {x: i for i, x in enumerate(self._X)}
 
-        #compute number of classes
-        self._r = 0
-        for r in self._matrix:
-            for c in r:
-                if c > self._r: self._r = c
+        if matrix is not None:
+            self._matrix = Matrix(matrix)
 
-        #empty intersection array
+            # compute number of classes
+            self._r = 0
+            for r in self._matrix:
+                for c in r:
+                    if c > self._r: self._r = c
+
+            if relations is not None:
+                self._R = list(map(relationToInt, relations))
+
+                # now check consistency
+                if len(self._R) != self._r:
+                    raise ValueError(("matrix and relations are"
+                                      "inconsistent with each others"))
+
+                for k, s in enumerate(self._R):
+                    for (x,y) in s:
+                        if self._matrix[x, y] != k:
+                            raise ValueError(("matrix and relations are"
+                                              "inconsistent with each others"))
+            else:
+                self._R = [None]*self._r
+
+        else:
+            self._R = list(map(relationToInt, relations))
+            self._r = len(self._R)
+
+            # construct matrix
+            self._matrix = Matrix([[None for i in range(self._nX)]
+                                   for j in range(self._nX)])
+
+            for k, s in enumerate(self._R):
+                for (x,y) in s:
+                    self._matrix[x, y] = k
+
+        # empty intersection array
         r1 = self._r+1
-        self._P = [ [ [None for k in range(r1) ] for j in range(r1)] for i in range(r1)]
+        self._P = [[[None for k in range(r1)]
+                    for j in range(r1)] for i in range(r1)]
 
         if check:
             self._is_association_scheme()
-            
 
-    def ground_set(self):
+    def points(self):
         return self._X
 
     def num_points(self):
@@ -79,23 +122,28 @@ class AssociationScheme:
 
     def which_relation(self,x,y):
         return self._matrix[self._XtoInt[x]][self._XtoInt[y]]
-    
+
     def R(self,k):
-        Rk = set()
+        if self._R[k] is not None:
+            return [(self._X[i], self._X[j]) for (i,j) in self._R[k]]
+
+        Rk = []
+        self._R[k] = set()
         for i in range(self._nX):
             for j in range(i,self._nX):
                 if self._matrix[i][j] == k:
-                    Rk.add((self._X[i],self._X[j]))
-                    Rk.add((self._X[j],self._X[i]))
-
+                    self._R[k].add((i,j))
+                    Rk.append((self._X[i],self._X[j]))
+                    Rk.append((self._X[j],self._X[i]))
         return Rk
 
     def p(self,i,j,k):
         if self._P[i][j][k] is not None: return self._P[i][j][k]
 
         nX = self._nX
-
         self._P[i][j][k] = 0
+
+        # Find (x,y) in R_k
         found = False
         for x in range(nX):
             for y in range(nX):
@@ -108,20 +156,20 @@ class AssociationScheme:
         if self._matrix[x][y] != k:
             raise RuntimeError("something bad happend in code")
 
-        #now (x,y) in R_k
+        # count z s.t. (x,z) in R_i and (z,y) in R_j
         for z in range(nX):
             if self._matrix[x][z] == i and self._matrix[z][y] == j:
                 self._P[i][j][k] += 1
 
         return self._P[i][j][k]
-        
 
-    def compute_intersection_numbers(self):
-        r1 = self._r+1
-        for i in range(r1):
-            for j in range(r1):
-                for k in range(r1):
-                    self.p(i,j,k)
+    def is_symmetric(self):
+        for i in range(self._r + 1):
+            for (x,y) in self.R(i):
+                if not self.has_relation(y,x,i):
+                    return False
+
+        return True
 
     def is_pseudocyclic(self):
         #we need p_{ii}^0 to be a constant f for 1<= i <= r
@@ -142,7 +190,7 @@ class AssociationScheme:
         return True
 
 
-def cyclotomic_scheme(const int q,const int r,check=True):
+def symmetric_cyclotomic_scheme(const int q,const int r,check=True):
     r"""
     Returns an `r`-class association scheme on `q` points.
     The ground set is `GF(q)` and given a primite root `a` `(i,j) \in R_k` iff `j-i \in a^iK`
@@ -173,7 +221,7 @@ def cyclotomic_scheme(const int q,const int r,check=True):
     Fq = GF(q)
     X = list(Fq)
     XtoInt = { x: i for i,x in enumerate(X) }
-    
+
     relations = [ [0 for i in range(q)] for j in range(q)] #qxq matrix
 
     a = Fq.primitive_element()
@@ -203,11 +251,11 @@ def distance_regular_association_scheme(const int n, const int r, existence=Fals
             if not scheme.is_pseudocyclic() or scheme.num_classes() != r or scheme.num_points() != n:
                 raise RuntimeError("Sage built a wrong association scheme")
         return scheme
-    
+
     if is_prime_power(n) and r > 0 and (n-1)%r == 0 and ( ((n-1)//r)%2 == 0 or n%2 == 0 ):
         #we hve cyclotomic
         if existence: return True
         return result(cyclotomic_scheme(n,r,check))
-            
+
     if existence: return Unknown
     raise RuntimeError("Sage can't build a pseudocyclic association scheme with parameters ({},{})".format(n,r))
