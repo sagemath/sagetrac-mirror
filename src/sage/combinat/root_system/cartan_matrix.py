@@ -301,7 +301,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract,
                 else:
                     data = {(i, i): 2 if index_set[i] not in oir else 0
                             for i in range(n)}
-                for (i,j,l) in dynkin_diagram.edge_iterator():
+                for (i,j,l) in dynkin_diagram.edges(sort=False):
                     data[(reverse[j], reverse[i])] = -l
             else:
                 M = matrix(data)

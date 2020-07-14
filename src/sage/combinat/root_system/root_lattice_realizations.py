@@ -412,10 +412,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             if self.dynkin_diagram().rank() == 1:
                 return self.simple_roots()[self.index_set()[0]]
-            longest=next(self.dynkin_diagram().edge_iterator())
-            for j in self.dynkin_diagram().edge_iterator():
-                if j[2]>longest[2]:
-                    longest=j
+            longest = self.dynkin_diagram().edges(sort=False)[0]
+            for j in self.dynkin_diagram().edges(sort=False):
+                if j[2] > longest[2]:
+                    longest = j
             return self.simple_roots()[longest[0]]
 
 

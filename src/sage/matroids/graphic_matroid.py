@@ -105,7 +105,7 @@ class GraphicMatroid(Matroid):
 
     - ``G`` -- a Graph
     - ``groundset`` -- (optional) a list in 1-1 correspondence with
-      ``G.edge_iterator()``
+      ``G.edges(sort=False)``
 
     OUTPUT:
 
@@ -214,8 +214,8 @@ class GraphicMatroid(Matroid):
 
         # Construct a graph and assign edge labels corresponding to the ground set
         edge_list = []
-        for i, e in enumerate(G.edge_iterator()):
-            # the ordering from edge_labels() respects edge_iterator() and not edges()
+        for i, e in enumerate(G.edges(sort=False)):
+            # the ordering from edge_labels() respects edges(sort=False)
             edge_list.append((self._vertex_map[e[0]],
                 self._vertex_map[e[1]], groundset[i]))
         # If the matroid is empty, have the internal graph be a single vertex
@@ -228,7 +228,7 @@ class GraphicMatroid(Matroid):
         # Map ground set elements to graph edges:
         # The the edge labels should already be the elements.
         self._groundset_edge_map = ({l: (u, v) for
-            (u, v, l) in self._G.edge_iterator()})
+            (u, v, l) in self._G.edges(sort=False)})
 
     def groundset(self):
         """
@@ -1103,7 +1103,7 @@ class GraphicMatroid(Matroid):
             # We need to translate this to edge labels.
             vertex_certif = result[1]
             elt_certif = {}
-            for (u, v, l) in G.edge_iterator():
+            for (u, v, l) in G.edges(sort=False):
                 l_maps_to = H.edge_label(vertex_certif[u], vertex_certif[v])
                 elt_certif[l] = l_maps_to
             return (True, elt_certif)
@@ -1363,7 +1363,7 @@ class GraphicMatroid(Matroid):
             sage: M = matroids.CompleteGraphic(4)
             sage: M1 = M.graphic_extension(0,1,'a'); M1
             Graphic matroid of rank 3 on 7 elements
-            sage: list(M1.graph().edge_iterator())
+            sage: M1.graph().edges(sort=False)
             [(0, 1, 'a'), (0, 1, 0), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)]
             sage: M2 = M1.graphic_extension(3); M2
             Graphic matroid of rank 3 on 8 elements
@@ -1439,7 +1439,7 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: I = M.graphic_extensions('a')
             sage: for N in I:
-            ....:     list(N.graph().edge_iterator())
+            ....:     list(N.graph().edge(sort=False))
             [(0, 0, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
             [(0, 1, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
             [(0, 1, 0), (0, 2, 'a'), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
@@ -2032,6 +2032,6 @@ class GraphicMatroid(Matroid):
             True
         """
         from sage.matroids.constructor import Matroid as ConstructorMatroid
-        X = [l for u,v,l in self._G.edge_iterator()]
+        X = [l for u,v,l in self._G.edges(sort=False)]
         return ConstructorMatroid(groundset=X, graph=self._G, regular=True)
 

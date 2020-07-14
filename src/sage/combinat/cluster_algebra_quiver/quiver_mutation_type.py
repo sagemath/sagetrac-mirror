@@ -2357,7 +2357,7 @@ def _bipartite_graph_to_digraph(g):
     sources = g.bipartite_sets()[0]
     dg = DiGraph()
     dg.add_vertices(g)
-    for a, b, c in g.edge_iterator():
+    for a, b, c in g.edges(sort=False):
         if a in sources:
             dg.add_edge(a, b, c)
         else:

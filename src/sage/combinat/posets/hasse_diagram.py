@@ -268,7 +268,7 @@ class HasseDiagram(DiGraph):
             sage: list(H.cover_relations_iterator())
             [(0, 2), (0, 3), (1, 3), (1, 4), (2, 5), (3, 5), (4, 5)]
         """
-        yield from self.edge_iterator(labels=False)
+        yield from self.edges(labels=False, sort=False)
 
     def cover_relations(self):
         r"""

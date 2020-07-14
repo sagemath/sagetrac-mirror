@@ -2777,7 +2777,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         different endomorphism rings, then use a 3-dimensional plot
         which can be rotated::
 
-            sage: for i,j,l in G.edge_iterator():  # long time
+            sage: for i,j,l in G.edges(sort=False):  # long time
             ....:     G.set_edge_label(i, j, l.count(','))
             sage: G.show3d(color_by_label=True)  # long time
 

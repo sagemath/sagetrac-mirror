@@ -215,7 +215,7 @@ class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
                 else:
                     M[a][b] = u"╭"
 
-        for ab, cd in graphe.edge_iterator(labels=False):
+        for ab, cd in graphe.edges(labels=False, sort=False):
             a, b = ab
             c, d = cd
             if a == c:

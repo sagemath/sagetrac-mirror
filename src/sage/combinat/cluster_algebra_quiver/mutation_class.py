@@ -507,14 +507,14 @@ def _graph_without_edge_labels(dg, vertices):
         [(0, 1, (1, -1)), (2, 1, (1, -1)), (2, 4, (1, -1)), (4, 3, (1, -1))]
     """
     vertices = list(vertices)
-    edges = dg.edge_iterator(labels=True)
+    edges = dg.edges(labels=True, sort=False)
     edge_labels = tuple(set(label for _, _, label in edges
                             if label != (1, -1)))
     edge_partition = [[] for _ in edge_labels]
     i = 0
     while i in vertices:
         i += 1
-    for u, v, label in dg.edge_iterator(labels=True):
+    for u, v, label in dg.edges(labels=True, sort=False):
         if label != (1, -1):
             index = edge_labels.index(label)
             edge_partition[index].append(i)

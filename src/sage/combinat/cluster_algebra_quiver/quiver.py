@@ -381,7 +381,7 @@ class ClusterQuiver(SageObject):
             if data.has_loops():
                 raise ValueError("the input DiGraph contains a loop")
 
-            edges = set(data.edge_iterator(labels=False))
+            edges = data.edges(labels=False, sort=False)
             if any((b, a) in edges for (a, b) in edges):
                 raise ValueError("the input DiGraph contains two-cycles")
 
@@ -407,7 +407,7 @@ class ClusterQuiver(SageObject):
                 dg.add_edges([(v1, v2, multi_edges[(v1,v2)])
                               for v1, v2 in multi_edges])
 
-            for edge in dg.edge_iterator():
+            for edge in dg.edges(sort=False):
                 if edge[0] >= n and edge[1] >= n:
                     raise ValueError("the input digraph contains edges"
                                      " within the frozen vertices")
@@ -430,7 +430,7 @@ class ClusterQuiver(SageObject):
                     raise ValueError("the input digraph contains an edge of the"
                                      " form (a,-b) with negative a")
 
-            M = _edge_list_to_matrix( dg.edge_iterator(), list(range(n)),
+            M = _edge_list_to_matrix( dg.edges(sort=False), list(range(n)),
                                       list(range(n, n + m)) )
             if not _principal_part(M).is_skew_symmetrizable(positive=True):
                 raise ValueError("the input digraph must be skew-symmetrizable")
@@ -1442,7 +1442,7 @@ class ClusterQuiver(SageObject):
             dg = _digraph_mutate(dg, v, frozen=mlist)
 
         if inplace:
-            self._M = _edge_list_to_matrix(dg.edge_iterator(), nlist, mlist)
+            self._M = _edge_list_to_matrix(dg.edges(sort=False), nlist, mlist)
             self._M.set_immutable()
             self._digraph = dg
         else:

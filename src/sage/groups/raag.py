@@ -195,12 +195,12 @@ class RightAngledArtinGroup(ArtinGroup):
         cm = [[-1]*CG.num_verts() for _ in range(CG.num_verts())]
         for i in range(CG.num_verts()):
             cm[i][i] = 1
-        for u,v in CG.edge_iterator(labels=False):
+        for u,v in CG.edges(labels=False, sort=False):
             cm[u][v] = 2
             cm[v][u] = 2
         self._coxeter_group = CoxeterGroup(CoxeterMatrix(cm, index_set=G.vertices()))
         rels = tuple(F([i + 1, j + 1, -i - 1, -j - 1])
-                     for i, j in CG.edge_iterator(labels=False))  # +/- 1 for indexing
+                     for i, j in CG.edges(labels=False, sort=False))  # +/- 1 for indexing
         FinitelyPresentedGroup.__init__(self, F, rels)
 
     def _repr_(self):

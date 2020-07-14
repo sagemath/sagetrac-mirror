@@ -152,7 +152,7 @@ class ShardPosetElement(tuple):
         dg0 = self.spg
         dg1 = other.dpg
 
-        for i, j in dg0.edge_iterator(labels=False):
+        for i, j in dg0.edges(labels=False, sort=False):
             if dico0[i] != dico0[j] and not dg1.has_edge(dico0[i], dico0[j]):
                 return False
         return True

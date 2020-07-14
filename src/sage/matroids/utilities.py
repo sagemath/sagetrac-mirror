@@ -573,7 +573,7 @@ def lift_cross_ratios(A, lift_map=None):
         T.update(G.subgraph(C).min_spanning_tree())
     # - fix a tree of the support graph G to units (= empty dict, product of 0 terms)
     F = {entry[2]: dict() for entry in T}
-    W = set(G.edge_iterator()) - set(T)
+    W = set(G.edges(sort=False)) - set(T)
     H = G.subgraph(edges=T)
     while W:
         # - find an edge in W to process, closing a circuit in H which is induced in G

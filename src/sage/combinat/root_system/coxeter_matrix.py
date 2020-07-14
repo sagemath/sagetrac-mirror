@@ -385,7 +385,7 @@ class CoxeterMatrix(CoxeterType, metaclass=ClasscallMetaclass):
         n = len(index_set)
         reverse = {index_set[i]: i for i in range(n)}
         data = [[1 if i == j else 2 for j in range(n)] for i in range(n)]
-        for (i, j, l) in coxeter_type.coxeter_graph().edge_iterator():
+        for (i, j, l) in coxeter_type.coxeter_graph().edges(sort=False):
             if l == infinity:
                 l = -1
             data[reverse[i]][reverse[j]] = l

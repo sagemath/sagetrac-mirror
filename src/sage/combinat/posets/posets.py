@@ -2189,7 +2189,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: [z for z in P.cover_relations_iterator()]
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
-        for u,v,l in self._hasse_diagram.edge_iterator():
+        for u,v,l in self._hasse_diagram.edges(sort=False):
             yield [self._vertex_to_element(_) for _ in (u,v)]
 
     def relations(self):
@@ -4408,7 +4408,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.graphs.graph import Graph
         n = self.cardinality()
         g = Graph()
-        for v, u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
+        for v, u in self._hasse_diagram.transitive_closure().edges(labels=False, sort=False):
             g.add_edge(u + n, v)
         return n - len(g.matching())
 
@@ -4462,7 +4462,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.graphs.graph import Graph
         n = self.cardinality()
         g = Graph()
-        for v, u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
+        for v, u in self._hasse_diagram.transitive_closure().edges(labels=False, sort=False):
             g.add_edge(u + n,v)
         matching = {}
         for u, v, _ in g.matching():
@@ -7800,7 +7800,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             pdict[(0, i)] = [(1, j) for j in self if self.ge(i, j)]
             pdict[(1, i)] = [(2, 0)]
         G = DiGraph(pdict, format="dict_of_lists")
-        a = { (u, v): 0 for (u, v, l) in G.edge_iterator() }
+        a = {e: 0 for e in G.edges(labels=False, sort=False)}
         for i in self:
             a[((0, i), (1, i))] = 1
         return (G, a)
@@ -8504,14 +8504,14 @@ def _ford_fulkerson_chronicle(G, s, t, a):
     p = 0
 
     # f: flow function as a dictionary.
-    f = { (u, v): 0 for (u, v, l) in G.edge_iterator() }
+    f = {e: 0 for e in G.edges(labels=False, sort=False)}
     # val: value of the flow f. (Can't call it v due to Python's asinine
     # handling of for loops.)
     val = 0
 
     # capacity: capacity function as a dictionary. Here, just the
     # indicator function of the set of arcs of G.
-    capacity = { (u, v): 1 for (u, v, l) in G.edge_iterator() }
+    capacity = {e: 1 for e in G.edges(labels=False, sort=False)}
 
     while True:
 
@@ -8520,7 +8520,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         # Gprime: directed graph G' from Britz-Fomin, Section 7.
         Gprime = DiGraph()
         Gprime.add_vertices(G.vertices())
-        for (u,v,l) in G.edge_iterator():
+        for u, v in G.edges(labels=False, sort=False):
             if pi[v] - pi[u] == a[(u, v)]:
                 if f[(u, v)] < capacity[(u, v)]:
                     Gprime.add_edge(u, v)

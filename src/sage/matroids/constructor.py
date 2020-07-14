@@ -388,8 +388,8 @@ def Matroid(groundset=None, data=None, **kwds):
 
         Note: if a groundset is specified, we assume it is in the same order
         as
-        :meth:`G.edge_iterator() <sage.graphs.generic_graph.GenericGraph.edge_iterator>`
-        provides::
+        :meth:`G.edges() <sage.graphs.generic_graph.GenericGraph.edges>`
+        provides with parameter ``sort=False``::
 
             sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)], multiedges=True)
             sage: M = Matroid('abcd', G)
@@ -791,7 +791,7 @@ def Matroid(groundset=None, data=None, **kwds):
                 groundset = sl
                 # 2. If simple, use vertex tuples
             elif not G.has_multiple_edges():
-                groundset = [(i, j) for i, j, k in G.edge_iterator()]
+                groundset = [(i, j) for i, j, k in G.edges(sort=False)]
             else:
                 # 3. Use numbers
                 groundset = list(range(m))
@@ -804,7 +804,7 @@ def Matroid(groundset=None, data=None, **kwds):
             n = G.num_verts()
             A = Matrix(ZZ, n, m, 0)
             mm = 0
-            for i, j, k in G.edge_iterator():
+            for i, j, k in G.edges(sort=False):
                 A[V.index(i), mm] = -1
                 A[V.index(j), mm] += 1  # So loops get 0
                 mm += 1

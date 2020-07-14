@@ -106,10 +106,10 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             else:
                 G = DenseGraph(n)
             if G_in.is_directed():
-                for i,j in G_in.edge_iterator(labels=False):
+                for i,j in G_in.edges(labels=False, sort=False):
                     G.add_arc(i,j)
             else:
-                for i,j in G_in.edge_iterator(labels=False):
+                for i,j in G_in.edges(labels=False, sort=False):
                     G.add_arc(i,j)
                     G.add_arc(j,i)
         elif isinstance(G_in, CGraph):
@@ -284,7 +284,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: G = graphs.DodecahedralGraph()
         sage: GD = DenseGraph(20)
         sage: GS = SparseGraph(20)
-        sage: for i,j,_ in G.edge_iterator():
+        sage: for i,j,_ in G.edges(sort=False):
         ....:  GD.add_arc(i,j); GD.add_arc(j,i)
         ....:  GS.add_arc(i,j); GS.add_arc(j,i)
         sage: Pi=[range(20)]
@@ -400,10 +400,10 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         else:
             G = DenseGraph(n)
         if G_in.is_directed():
-            for i,j in G_in.edge_iterator(labels=False):
+            for i,j in G_in.edges(labels=False, sort=False):
                 G.add_arc(i,j)
         else:
-            for i,j in G_in.edge_iterator(labels=False):
+            for i,j in G_in.edges(labels=False, sort=False):
                 G.add_arc(i,j)
                 G.add_arc(j,i)
     elif isinstance(G_in, CGraph):

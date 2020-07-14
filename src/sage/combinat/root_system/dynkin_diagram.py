@@ -382,7 +382,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         EXAMPLES::
 
             sage: d = CartanType(['A',3]).dynkin_diagram()
-            sage: hash(d) == hash((d.cartan_type(), tuple(d.vertices()), tuple(d.edge_iterator(d.vertices()))))
+            sage: hash(d) == hash((d.cartan_type(), tuple(d.vertices()), tuple(d.edges(vertices=d.vertices(), sort=False))))
             True
         """
         # Should assert for immutability!
@@ -391,7 +391,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         # FIXME: self.edges() currently tests at some point whether
         # self is a vertex of itself which causes an infinite
         # recursion loop. Current workaround: call self.edge_iterator directly
-        return hash((self.cartan_type(), tuple(self.vertices()), tuple(self.edge_iterator(self.vertices()))))
+        return hash((self.cartan_type(), tuple(self.vertices()), tuple(self.edges(vertices=self.vertices(), sort=False))))
 
     @staticmethod
     def an_instance():
