@@ -4,12 +4,12 @@
 #
 #############################################################
 
+from cysignals.memory cimport sig_malloc, sig_free
+
 from sage.libs.gmp.mpz cimport *
 from sage.data_structures.binary_search cimport *
 from sage.rings.integer cimport Integer
 
-
-include "cysignals/memory.pxi"
 
 cdef int allocate_mpz_vector(mpz_vector* v, Py_ssize_t num_nonzero) except -1:
     """
@@ -141,6 +141,15 @@ cdef int mpz_vector_get_entry(mpz_t ans, mpz_vector* v, Py_ssize_t n) except -1:
         return 0
     mpz_set(ans, v.entries[m])
     return 0
+
+cdef bint mpz_vector_is_entry_zero_unsafe(mpz_vector* v, Py_ssize_t n):
+    """
+    Return if the ``n``-th entry of the sparse vector ``v`` is zero.
+
+    This is meant for internal use only. If ``n`` is not valid, then
+    this might lead to a segfault.
+    """
+    return binary_search0(v.positions, v.num_nonzero, n) == -1
 
 cdef object mpz_vector_to_list(mpz_vector* v):
     """

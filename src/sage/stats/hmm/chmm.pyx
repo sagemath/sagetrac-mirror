@@ -6,29 +6,30 @@ AUTHOR:
 - William Stein, 2010-03
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
-
-include "cysignals/signals.pxi"
+#*****************************************************************************
 
 from cpython.object cimport PyObject_RichCompare
-
 from libc.math cimport log, sqrt, exp, isnormal, isfinite, M_PI
 cdef double sqrt2pi = sqrt(2*M_PI)
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.flatten  import flatten
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 from sage.finance.time_series cimport TimeSeries
 from sage.stats.intlist cimport IntList
 
-from hmm cimport HiddenMarkovModel
-from util cimport HMM_Util
-from distributions cimport GaussianMixtureDistribution
+from .hmm cimport HiddenMarkovModel
+from .util cimport HMM_Util
+from .distributions cimport GaussianMixtureDistribution
 
 cdef HMM_Util util = HMM_Util()
 
@@ -304,7 +305,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         return [(RDF(self.B[2*i]),RDF(self.B[2*i+1])) for i in range(self.N)]
 
     def __repr__(self):
-        """
+        r"""
         Return string representation.
 
         EXAMPLES::
@@ -1090,7 +1091,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             raise ValueError("number of GaussianMixtures must be the same as number of entries of pi")
 
     def __repr__(self):
-        """
+        r"""
         Return string representation.
 
         EXAMPLES::
@@ -1331,7 +1332,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             (2.18905068682..., 15)
             sage: m.log_likelihood(v)
             2.18905068682...
-            sage: m  # rel tol 6e-14
+            sage: m  # rel tol 6e-12
             Gaussian Mixture Hidden Markov Model with 2 States
             Transition matrix:
             [   0.8746363339773399   0.12536366602266016]
@@ -1346,7 +1347,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             sage: m = hmm.GaussianMixtureHiddenMarkovModel([[.9,.1],[.4,.6]], [[(.4,(0,1)), (.6,(1,0.1))],[(1,(0,1))]], [.7,.3])
             sage: m.baum_welch(v, min_sd=1)
             (-12.617885761692..., 1000)
-            sage: m.emission_parameters()
+            sage: m.emission_parameters()  # rel tol 6e-12
             [0.503545634447*N(0.200166509595,1.0) + 0.496454365553*N(0.200166509595,1.0), 1.0*N(0.0543433426535,1.0)]
 
         We illustrate fixing all emissions::

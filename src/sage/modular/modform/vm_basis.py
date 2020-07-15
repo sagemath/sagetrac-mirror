@@ -1,4 +1,4 @@
-"""
+r"""
 The Victor Miller Basis
 
 This module contains functions for quick calculation of a basis of
@@ -27,14 +27,13 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 import math
 
 from sage.rings.all import QQ, ZZ, Integer, \
         PolynomialRing, PowerSeriesRing, O as bigO
 from sage.structure.all import Sequence
 from sage.libs.flint.fmpz_poly import Fmpz_poly
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 
 from .eis_series_cython import eisenstein_series_poly
 
@@ -265,8 +264,9 @@ def _delta_poly(prec=10):
 
     return f
 
+
 def _delta_poly_modulo(N, prec=10):
-    """
+    r"""
     Return the q-expansion of `\Delta` modulo `N`. Used internally by
     the :func:`~delta_qexp` function. See the docstring of :func:`~delta_qexp`
     for more information.
@@ -322,7 +322,7 @@ def _delta_poly_modulo(N, prec=10):
 
 
 def delta_qexp(prec=10, var='q', K=ZZ) :
-    """
+    r"""
     Return the `q`-expansion of the weight 12 cusp form `\Delta` as a power
     series with coefficients in the ring K (`= \ZZ` by default).
 
@@ -371,7 +371,7 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
 
     TESTS:
 
-    Test algorithm with modular arithmetic (see also #11804)::
+    Test algorithm with modular arithmetic (see also :trac:`11804`)::
 
         sage: delta_qexp(10^4).change_ring(GF(13)) == delta_qexp(10^4, K=GF(13))
         True

@@ -31,7 +31,6 @@ from __future__ import absolute_import, division
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.arith.all import is_prime_power
 from sage.misc.unknown    import Unknown
@@ -159,7 +158,7 @@ def GDD_4_2(q,existence=False,check=True):
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.group_divisible_designs import GDD_4_2
         sage: GDD_4_2(7,existence=True)
@@ -248,7 +247,7 @@ class GroupDivisibleDesign(IncidenceStructure):
       modified in place (each block is sorted, and the whole list is
       sorted). Your ``blocks`` object will become the instance's internal data.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
         sage: TD = designs.transversal_design(4,10)
@@ -268,7 +267,7 @@ class GroupDivisibleDesign(IncidenceStructure):
         r"""
         Constructor function
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
@@ -305,7 +304,7 @@ class GroupDivisibleDesign(IncidenceStructure):
         r"""
         Return the groups of the Group-Divisible Design.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
@@ -340,7 +339,7 @@ class GroupDivisibleDesign(IncidenceStructure):
         r"""
         Returns a string that describes self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)

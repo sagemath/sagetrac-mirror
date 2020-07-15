@@ -47,18 +47,18 @@ face fan. We can rectify the situation in the following way::
     Domain fan: Rational polyhedral fan in 2-d lattice N
     Codomain fan: Rational polyhedral fan in 2-d lattice N
     sage: fm.domain_fan().rays()
-    N(-1,  1),
     N( 1,  1),
-    N(-1, -1),
     N( 1, -1),
+    N(-1, -1),
+    N(-1,  1),
     N( 0, -1),
     N( 0,  1)
     in 2-d lattice N
     sage: normal.rays()
-    N(-1,  1),
     N( 1,  1),
+    N( 1, -1),
     N(-1, -1),
-    N( 1, -1)
+    N(-1,  1)
     in 2-d lattice N
 
 As you see, it was necessary to insert two new rays (to prevent "upper" and
@@ -66,29 +66,30 @@ As you see, it was necessary to insert two new rays (to prevent "upper" and
 """
 
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import operator
 
 from sage.categories.all import Hom
 from sage.geometry.cone import Cone
-from sage.geometry.fan import Fan, is_Fan, discard_faces
+from sage.geometry.fan import Fan, is_Fan
 from sage.matrix.all import identity_matrix, matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.misc.all import cached_method, latex, prod, walltime
 from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
 from sage.rings.all import Infinity, ZZ
 from sage.rings.infinity import is_Infinite
 from functools import reduce
+
 
 class FanMorphism(FreeModuleMorphism):
     r"""
@@ -358,14 +359,14 @@ class FanMorphism(FreeModuleMorphism):
             sage: fm = FanMorphism(identity_matrix(2),
             ....:         normal, face, subdivide=True)
             sage: fm._RISGIS()
-            (frozenset({3}),
-             frozenset({2}),
-             frozenset({1}),
+            (frozenset({2}),
+             frozenset({3}),
              frozenset({0}),
-             frozenset({1, 3}),
+             frozenset({1}),
              frozenset({0, 1}),
-             frozenset({0, 2}),
-             frozenset({2, 3}))
+             frozenset({0, 3}),
+             frozenset({2, 3}),
+             frozenset({1, 2}))
         """
         if "_RISGIS_" not in self.__dict__:
             try:
@@ -670,7 +671,6 @@ class FanMorphism(FreeModuleMorphism):
             Codomain fan: Rational polyhedral fan in 2-d lattice N
         """
         domain_fan = self._domain_fan
-        codomain_fan = self._codomain_fan
         lattice_dim = self.domain().dimension()
         if verbose:
             start = walltime()
@@ -1246,7 +1246,7 @@ class FanMorphism(FreeModuleMorphism):
         if for any cone `\sigma' \in \Sigma'` and any primitive
         preimage cone `\sigma \in \Sigma` corresponding to `\sigma'`
         the linear map of vector spaces `\phi_\RR` induces a bijection
-        between `\sigma` and `\sigma'`, and, in addition, `phi` is
+        between `\sigma` and `\sigma'`, and, in addition, `\phi` is
         :meth:`dominant <is_dominant>` (that is, `\phi_\RR: N_\RR \to
         N'_\RR$ is surjective).
 
@@ -1580,7 +1580,7 @@ class FanMorphism(FreeModuleMorphism):
             RISGIS = self._RISGIS()
             domain_fan = self._domain_fan
             possible_rays = frozenset(i for i in range(domain_fan.nrays())
-                                        if RISGIS[i].issuperset(CSGI))
+                                      if RISGIS[i].issuperset(CSGI))
             preimage_cones = []
             for dcones in domain_fan.cones():
                 for dcone in dcones:

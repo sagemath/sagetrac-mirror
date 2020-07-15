@@ -50,7 +50,7 @@ EXAMPLES::
     sage: LinearCode(P.get_transporter()*C.generator_matrix()) == P.get_canonical_form()
     True
     sage: A = P.get_autom_gens()
-    sage: all( [ LinearCode(a*C.generator_matrix()) == C for a in A])
+    sage: all(LinearCode(a*C.generator_matrix()) == C for a in A)
     True
     sage: P.get_autom_order() == GL(3, GF(3)).order()
     True
@@ -73,7 +73,10 @@ columns do share the same coloring::
     sage: A = [a.get_perm() for a in P.get_autom_gens()]
     sage: H = SymmetricGroup(21).subgroup(A)
     sage: H.orbits()
-    [[1], [2], [3, 5, 4], [6, 10, 13, 20, 17, 9, 8, 11, 18, 15, 14, 16, 12, 19, 21, 7]]
+    [[1],
+     [2],
+     [3, 5, 4],
+     [6, 19, 16, 9, 21, 10, 8, 15, 14, 11, 20, 13, 12, 7, 17, 18]]
 
 We can also restrict the group action to linear isometries::
 
@@ -87,18 +90,19 @@ and to the action of the symmetric group only::
     sage: P.get_autom_order() == C.permutation_automorphism_group().order()
     True
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Thomas Feulner <thomas.feulner@uni-bayreuth.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.coding.codecan.codecan import PartitionRefinementLinearCode
 from sage.combinat.permutation import Permutation
 from sage.functions.other import factorial
+
 
 def _cyclic_shift(n, p):
     r"""
@@ -108,7 +112,7 @@ def _cyclic_shift(n, p):
 
     Note that the domain of a ``Permutation`` is ``range(1, n+1)``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.coding.codecan.autgroup_can_label import _cyclic_shift
         sage: p = _cyclic_shift(10, [2,7,4,1]); p
@@ -260,8 +264,7 @@ class LinearCodeAutGroupCanLabel:
             col2pos.append([b for (a, b) in X ])
             col2P.append([a for (a, b) in X ])
 
-        zipped = zip(col2P, col_set, col2pos)
-        zipped.sort()
+        zipped = sorted(zip(col2P, col_set, col2pos))
 
         col2P = [qty for (qty, c, pos) in zipped]
         col_set = [c for (qty, c, pos) in zipped]
@@ -287,7 +290,7 @@ class LinearCodeAutGroupCanLabel:
             pr = PartitionRefinementLinearCode(len(col_set),
                 matrix(col_set).transpose(), P=P_refined, algorithm_type=algorithm_type)
 
-            # this command allows you some advanced debuging
+            # this command allows you some advanced debugging
             # it prints the backtrack tree -> must be activated when installing
             # pr._latex_view(title="MyTitle") #this will provide you some visual representation of what is going on
 
@@ -364,7 +367,7 @@ class LinearCodeAutGroupCanLabel:
 
         it = iter(z)
         for p in P:
-            while len(p) > 0:
+            while p:
                 pos = p.pop()
                 perm[pos] = next(it) + 1
 
@@ -561,7 +564,7 @@ class LinearCodeAutGroupCanLabel:
             sage: C = codes.HammingCode(GF(2), 3).dual_code()
             sage: A = LinearCodeAutGroupCanLabel(C).get_autom_gens()
             sage: Gamma = C.generator_matrix().echelon_form()
-            sage: all([(g*Gamma).echelon_form() == Gamma for g in A])
+            sage: all((g*Gamma).echelon_form() == Gamma for g in A)
             True
         """
         return self._PGammaL_autom_gens + self._trivial_autom_gens
@@ -597,7 +600,7 @@ class LinearCodeAutGroupCanLabel:
             sage: A = LinearCodeAutGroupCanLabel(C).get_PGammaL_gens()
             sage: Gamma = C.generator_matrix()
             sage: N = [ x.monic() for x in Gamma.columns() ]
-            sage: all([ (g[0]*n.apply_map(g[1])).monic() in N for n in N for g in A])
+            sage: all((g[0]*n.apply_map(g[1])).monic() in N for n in N for g in A)
             True
         """
         Gamma = self.C.generator_matrix()

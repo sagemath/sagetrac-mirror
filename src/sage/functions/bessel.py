@@ -195,8 +195,7 @@ REFERENCES:
 
 - [WP-Struve]_
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Benjamin Jones <benjaminfjones@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -208,30 +207,22 @@ REFERENCES:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.functions.other import sqrt
 from sage.functions.log import exp
 from sage.functions.hyperbolic import sinh, cosh
+from sage.functions.trig import sin, cos
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.misc.latex import latex
-from sage.rings.all import RR, Integer
-from sage.structure.element import parent, get_coercion_model
+from sage.rings.all import Integer, ZZ, QQ
+from sage.structure.element import get_coercion_model
 from sage.symbolic.constants import pi
 from sage.symbolic.ring import SR
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
-
-# remove after deprecation period
-from sage.calculus.calculus import maxima
-from sage.functions.trig import sin, cos
-from sage.functions.other import real, imag, sqrt
-from sage.misc.sage_eval import sage_eval
-from sage.rings.real_mpfr import RealField
-from sage.plot.plot import plot
-from sage.rings.all import ZZ, QQ
 
 
 class Function_Bessel_J(BuiltinFunction):
@@ -303,7 +294,7 @@ class Function_Bessel_J(BuiltinFunction):
         1/24*x^3*hypergeometric((3/2,), (5/2, 3), -1/4*x^2)
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
-        hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
+        (hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3)/24
 
     Visualization (set plot_points to a higher value to get more detail)::
 
@@ -341,11 +332,12 @@ class Function_Bessel_J(BuiltinFunction):
             sage: bessel_J(x, x)._sympy_()
             besselj(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_J", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_J', nargs=2,
                                  conversions=dict(mathematica='BesselJ',
                                                   maxima='bessel_j',
                                                   sympy='besselj',
-                                                  fricas='besselJ'))
+                                                  fricas='besselJ',
+                                                  giac='BesselJ'))
 
     def _eval_(self, n, x):
         """
@@ -557,11 +549,12 @@ class Function_Bessel_Y(BuiltinFunction):
             sage: bessel_Y(x, x)._sympy_()
             bessely(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_Y', nargs=2,
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely',
-                                                  fricas='besselY'))
+                                                  fricas='besselY',
+                                                  giac='BesselY'))
 
     def _eval_(self, n, x):
         """
@@ -686,7 +679,7 @@ class Function_Bessel_I(BuiltinFunction):
 
         sage: a = bessel_I(pi, bessel_I(1, I))
         sage: N(a, digits=20)
-        0.00026073272117205890528 - 0.0011528954889080572266*I
+        0.00026073272117205890524 - 0.0011528954889080572268*I
 
         sage: f = bessel_I(2, x)
         sage: f.diff(x)
@@ -762,7 +755,7 @@ class Function_Bessel_I(BuiltinFunction):
             sage: bessel_I(x, x)._sympy_()
             besseli(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_I", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_I', nargs=2,
                                  conversions=dict(mathematica='BesselI',
                                                   maxima='bessel_i',
                                                   sympy='besseli',
@@ -876,7 +869,7 @@ class Function_Bessel_K(BuiltinFunction):
         sage: a = bessel_K(pi, bessel_K(1, I)); a
         bessel_K(pi, bessel_K(1, I))
         sage: N(a, digits=20)
-        3.8507583115005220157 + 0.068528298579883425792*I
+        3.8507583115005220156 + 0.068528298579883425456*I
 
         sage: f = bessel_K(2, x)
         sage: f.diff(x)
@@ -962,7 +955,7 @@ class Function_Bessel_K(BuiltinFunction):
             sage: bessel_K(x, x)._sympy_()
             besselk(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_K", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_K', nargs=2,
                                  conversions=dict(mathematica='BesselK',
                                                   maxima='bessel_k',
                                                   sympy='besselk',
@@ -1120,7 +1113,7 @@ def Bessel(*args, **kwds):
         sage: x,y = var('x,y')
         sage: f = maxima(Bessel(typ='K')(x,y))
         sage: f.derivative('_SAGE_VAR_x')
-        %pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
+        (%pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
         sage: f.derivative('_SAGE_VAR_y')
         -(bessel_k(_SAGE_VAR_x+1,_SAGE_VAR_y)+bessel_k(_SAGE_VAR_x-1,_SAGE_VAR_y))/2
 
@@ -1174,7 +1167,7 @@ def Bessel(*args, **kwds):
 
     """
     # Determine the order and type of function from the arguments and keywords.
-    # These are recored in local variables: _type, _order, _system, _nargs.
+    # These are recorded in local variables: _type, _order, _system, _nargs.
     _type = None
     if len(args) == 0:    # no order specified
         _order = None
@@ -1200,11 +1193,6 @@ def Bessel(*args, **kwds):
             _type = 'J'
     if not (_type in ['I', 'J', 'K', 'Y']):
         raise ValueError("type must be one of I, J, K, Y")
-    # record the numerical evaluation system
-    if 'algorithm' in kwds:
-        _system = kwds['algorithm']
-    else:
-        _system = 'mpmath'
 
     # return the function
     _f = bessel_type_dict[_type]
@@ -1318,7 +1306,8 @@ class Function_Struve_H(BuiltinFunction):
         if diff_param == 0:
             raise ValueError("cannot differentiate struve_H in the first parameter")
 
-        from sage.functions.other import sqrt, gamma
+        from .gamma import gamma
+        from .other import sqrt
         return (z**a/(sqrt(pi)*2**a*gamma(a+Integer(3)/Integer(2)))-struve_H(a+1,z)+struve_H(a-1,z))/2
 
     def _print_latex_(self, a, z):
@@ -1432,7 +1421,8 @@ class Function_Struve_L(BuiltinFunction):
         if diff_param == 0:
             raise ValueError("cannot differentiate struve_L in the first parameter")
 
-        from sage.functions.other import sqrt, gamma
+        from .gamma import gamma
+        from .other import sqrt
         return (z**a/(sqrt(pi)*2**a*gamma(a+Integer(3)/Integer(2)))-struve_L(a+1,z)+struve_L(a-1,z))/2
 
     def _print_latex_(self, a, z):
@@ -2035,6 +2025,16 @@ def spherical_bessel_f(F, n, z):
         mpf('0.22924385795503024')
         sage: spherical_bessel_f('hankel1', 3, 4)
         mpc(real='0.22924385795503024', imag='-0.21864196590306359')
+
+    TESTS:
+
+    Check that :trac:`28474` is fixed::
+
+        sage: from sage.functions.bessel import spherical_bessel_f
+        sage: spherical_bessel_f('besselj', 3, -4)
+        mpc(real='-0.22924385795503024', imag='0.0')
+        sage: spherical_bessel_f('bessely', 3, -4)
+        mpc(real='-0.21864196590306359', imag='0.0')
     """
     from mpmath import mp
     ctx = mp
@@ -2046,11 +2046,12 @@ def spherical_bessel_f(F, n, z):
         Fz = getattr(ctx, F)(n + 0.5, z)
         hpi = 0.5 * ctx.pi()
         ctx.prec += 10
-        hpioz = hpi / z
+        sqrthpi = ctx.sqrt(hpi)
+        sqrtz = ctx.sqrt(z)
         ctx.prec += 10
-        sqrthpioz = ctx.sqrt(hpioz)
+        quotient = sqrthpi / sqrtz
         ctx.prec += 10
-        return sqrthpioz * Fz
+        return quotient * Fz
     finally:
         ctx.prec = prec
 

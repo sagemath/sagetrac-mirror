@@ -19,7 +19,7 @@ coefficients where `p` is the characteristic of `k`. It can be defined
 via the formal group as `x+c` in the variable `z=\log_E(t)` for a
 constant `c` such that the constant term `c_0` in `\wp(z)` is zero.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: E = EllipticCurve([0,1])
     sage: E.weierstrass_p()
@@ -27,7 +27,7 @@ EXAMPLE::
 
 REFERENCES:
 
-- [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
+- [BMSS2006]_
 
 AUTHORS:
 
@@ -49,7 +49,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -177,7 +176,7 @@ def compute_wp_pari(E,prec):
         sage: compute_wp_pari(E, prec=30)
         z^-2 - 1/7*z^4 + 1/637*z^10 - 1/84721*z^16 + 3/38548055*z^22 - 4/8364927935*z^28 + O(z^30)
     """
-    ep = E._pari_()
+    ep = E.__pari__()
     wpp = ep.ellwp(n=prec)
     k = E.base_ring()
     R = LaurentSeriesRing(k,'z')
@@ -191,7 +190,7 @@ def compute_wp_pari(E,prec):
 
 def compute_wp_quadratic(k, A, B, prec):
     r"""
-    Computes the truncated Weierstrass function of an elliptic curve
+    Compute the truncated Weierstrass function of an elliptic curve
     defined by short Weierstrass model: `y^2 = x^3 + Ax + B`. Uses an
     algorithm that is of complexity `O(prec^2)`.
 
@@ -206,13 +205,12 @@ def compute_wp_quadratic(k, A, B, prec):
      - ``prec`` - the precision to which we compute the series.
 
     OUTPUT:
-    A Laurent series aproximating the Weierstrass `\wp`-function to precision ``prec``.
+
+    A Laurent series approximating the Weierstrass `\wp`-function to precision ``prec``.
 
     ALGORITHM:
-    This function uses the algorithm described in section 3.2 of [BMSS].
 
-    REFERENCES:
-    [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
+    This function uses the algorithm described in section 3.2 of [BMSS2006]_.
 
     EXAMPLES::
 
@@ -251,7 +249,7 @@ def compute_wp_quadratic(k, A, B, prec):
 
 def compute_wp_fast(k, A, B, m):
     r"""
-    Computes the Weierstrass function of an elliptic curve defined by short Weierstrass model: `y^2 = x^3 + Ax + B`. It does this with as fast as polynomial of degree `m` can be multiplied together in the base ring, i.e. `O(M(n))` in the notation of [BMSS].
+    Computes the Weierstrass function of an elliptic curve defined by short Weierstrass model: `y^2 = x^3 + Ax + B`. It does this with as fast as polynomial of degree `m` can be multiplied together in the base ring, i.e. `O(M(n))` in the notation of [BMSS2006]_.
 
     Let `p` be the characteristic of the underlying field: Then we must have either `p=0`, or `p > m + 3`.
 
@@ -259,7 +257,7 @@ def compute_wp_fast(k, A, B, m):
 
      - ``k`` - the base field of the curve
      - ``A`` - and
-     - ``B`` - as the coeffients of the short Weierstrass model `y^2 = x^3 +Ax +B`, and
+     - ``B`` - as the coefficients of the short Weierstrass model `y^2 = x^3 +Ax +B`, and
      - ``m`` - the precision to which the function is computed to.
 
     OUTPUT:
@@ -269,7 +267,7 @@ def compute_wp_fast(k, A, B, m):
     ALGORITHM:
 
     This function uses the algorithm described in section 3.3 of
-    [BMSS].
+    [BMSS2006]_.
 
     EXAMPLES::
 

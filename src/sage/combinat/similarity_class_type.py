@@ -2,7 +2,7 @@ r"""
 Similarity class types of matrices with entries in a finite field
 
 The notion of a matrix conjugacy class type was introduced by J. A. Green in
-[Green55]_, in the context of computing the irreducible charcaters of finite
+[Green55]_, in the context of computing the irreducible characters of finite
 general linear groups. The class types are equivalence classes of similarity
 classes of square matrices with entries in a finite field which, roughly
 speaking, have the same qualitative properties.
@@ -55,12 +55,12 @@ For `2 \times 2` matrices there are four types::
     [[2, [1]]]
 
 These four types correspond to the regular split semisimple matrices, the
-non-semisimple matrices, the central matrices and the irreducble matrices
+non-semisimple matrices, the central matrices and the irreducible matrices
 respectively.
 
 For any matrix `A` in a given similarity class type, it is possible to calculate
 the number elements in the similarity class of `A`, the dimension of the algebra
-of matrices in `M_n(A)` that commite  with `A`, and the cardinality of the
+of matrices in `M_n(A)` that commute  with `A`, and the cardinality of the
 subgroup of `GL_n(\GF{q})` that commute with `A`. For each similarity
 class type, it is also possible to compute the number of classes of that type
 (and hence, the total number of matrices of that type). All these calculations
@@ -160,7 +160,7 @@ AUTHOR:
   rings of length two
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Amritanshu Prasad <amri@imsc.res.in>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -172,11 +172,9 @@ AUTHOR:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
-
-from six.moves import range
 
 from operator import mul
 from itertools import chain, product
@@ -195,9 +193,10 @@ from sage.misc.cachefunc import cached_in_parent_method, cached_function
 from sage.combinat.misc import IterableFunctionCall
 from functools import reduce
 
+
 @cached_function
 def fq(n, q = None):
-    """
+    r"""
     Return `(1-q^{-1}) (1-q^{-2}) \cdots (1-q^{-n})`.
 
     INPUT:
@@ -338,7 +337,9 @@ def centralizer_group_cardinality(la, q = None):
         q = ZZ['q'].gen()
     return q**centralizer_algebra_dim(la)*prod([fq(m, q = q) for m in la.to_exp()])
 
-class PrimarySimilarityClassType(Element):
+
+class PrimarySimilarityClassType(Element,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A primary similarity class type is a pair consisting of a partition and a positive
     integer.
@@ -348,15 +349,13 @@ class PrimarySimilarityClassType(Element):
     of order `|\lambda| \cdot d` with entries in a finite field of order `q`
     which correspond to the `\GF{q[t]}`-module
 
-    .. MATH ::
+    .. MATH::
 
         \frac{\GF{q[t]}}{p(t)^{\lambda_1} } \oplus
         \frac{\GF{q[t]}}{p(t)^{\lambda_2}} \oplus \dotsb
 
     for some irreducible polynomial `p(t)` of degree `d`.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, deg, par):
         r"""
@@ -550,11 +549,9 @@ class PrimarySimilarityClassType(Element):
             q^8 - q^6 - q^4 + q^2
         """
         if q is None:
-            R = FractionField(ZZ['q'])
-            q = R.gen()
-        return self.statistic(centralizer_group_cardinality, q = q)
-        #p = q.parent()(prod(map(lambda n:fq(n, q = q), self.partition().to_exp()),1))
-        #return q**self.centralizer_algebra_dim()*p.substitute(q = q**self.degree())
+            q = FractionField(ZZ['q']).gen()
+        return self.statistic(centralizer_group_cardinality, q=q)
+
 
 class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
     r"""
@@ -671,7 +668,7 @@ class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
                 yield self.element_class(self, d, par)
 
     def size(self):
-        """
+        r"""
         Return size of elements of ``self``.
 
         The size of a primary similarity class type `(d, \lambda)` is
@@ -693,7 +690,7 @@ class SimilarityClassType(CombinatorialElement):
     r"""
     A similarity class type.
 
-    A matrix type is a multiset of primary similairty class types.
+    A matrix type is a multiset of primary similarity class types.
 
     INPUT:
 
@@ -776,7 +773,7 @@ class SimilarityClassType(CombinatorialElement):
         return sum([PT.centralizer_algebra_dim() for PT in self])
 
     def centralizer_group_card(self, q = None):
-        """
+        r"""
         Return the cardinality of the group of matrices in `GL_n(\GF{q})`
         which commute with a matrix of type ``self``.
 
@@ -1100,7 +1097,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
             for PT in chain(PrimarySimilarityClassTypes(min.size(), min = min), *[PrimarySimilarityClassTypes(k) for k in range(min.size() + 1, n + 1)]): #choose first part
                 if PT.size() == n:
                     yield self.element_class(self, [PT])
-                else:# recursively find all possibilties for what remains of n
+                else:# recursively find all possibilities for what remains of n
                     for smaller_type in SimilarityClassTypes(n - PT.size(), min = PT):
                         yield self.element_class(self, [PT] + list(smaller_type))
 
@@ -1215,7 +1212,8 @@ def dictionary_from_generator(gen):
     setofkeys = list(set(item[0] for item in L))
     return dict((key, sum(entry[1] for entry in (pair for pair in L if pair[0] == key))) for key in setofkeys)
 
-def matrix_similarity_classes(n, q = None, invertible = False):
+
+def matrix_similarity_classes(n, q=None, invertible=False):
     r"""
     Return the number of matrix similarity classes over a finite field of order
     ``q``.
@@ -1231,12 +1229,17 @@ def matrix_similarity_classes(n, q = None, invertible = False):
         15
     """
     if q is None:
-        q = FractionField(QQ['q']).gen()
+        q = ZZ['q'].gen()
+    basering = q.parent()
     if n == 0:
-        return 1
+        return basering.one()
     if invertible:
-        return sum([q**max(la)*((1-q**(-1))**map(lambda x: x>0, la.to_exp()).count(True)) for la in Partitions(n)])
-    return sum([q**max(la) for la in Partitions(n)])
+        tilde = 1 - ~q
+        return sum(q**max(la) *
+                   tilde ** len([x for x in la.to_exp() if x > 0])
+                   for la in Partitions(n))
+    return sum(q**max(la) for la in Partitions(n))
+
 
 def matrix_centralizer_cardinalities(n, q = None, invertible = False):
     """
@@ -1284,31 +1287,26 @@ def input_parsing(data):
     """
     if isinstance(data, SimilarityClassType):
         case = 'sim'
-        output = data
     elif isinstance(data, PrimarySimilarityClassType):
         case = 'pri'
-        output = data
     elif isinstance(data, Partition):
         case = 'par'
-        output = data
     else:
         try:
             data = Partition(data)
             case = 'par'
-            output = data
         except(TypeError, ValueError):
             try:
                 data = SimilarityClassType(data)
                 case = 'sim'
-                output = data
             except(TypeError, ValueError):
                 try:
                     data = PrimarySimilarityClassType(*data)
                     case = 'pri'
-                    output = data
                 except(TypeError, ValueError):
-                    raise ValueError("Expected a Partition, a SimiliarityClassType or a PrimarySimilarityClassType, got a %s"%(type(data)))
+                    raise ValueError("Expected a Partition, a SimilarityClassType or a PrimarySimilarityClassType, got a %s" % type(data))
     return case, data
+
 
 def ext_orbits(input_data, q = None, selftranspose = False):
     r"""

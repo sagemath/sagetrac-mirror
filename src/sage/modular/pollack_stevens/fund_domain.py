@@ -22,8 +22,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
@@ -681,8 +681,8 @@ class ManinRelations(PollackStevensModularDomain):
                     ## generators which satisfy a 2-torsion relation
                     twotor_index.append(r)
 
-                    # we use the adjoint instead of the inverse for speed
-                    gam = SN(coset_reps[r] * sig * coset_reps[r].adjoint())
+                    # we use the adjugate instead of the inverse for speed
+                    gam = SN(coset_reps[r] * sig * coset_reps[r].adjugate())
                     ## gam is 2-torsion matrix and in Gamma_0(N).
                     ## if D is the divisor associated to coset_reps[r]
                     ## then gam * D = - D and so (1+gam)D=0.
@@ -718,8 +718,8 @@ class ManinRelations(PollackStevensModularDomain):
                         ## generators which satisfy a 3-torsion relation
                         threetor_index.append(r)
 
-                        # Use the adjoint instead of the inverse for speed.
-                        gam = SN(coset_reps[r] * tau * coset_reps[r].adjoint())
+                        # Use the adjugate instead of the inverse for speed.
+                        gam = SN(coset_reps[r] * tau * coset_reps[r].adjugate())
                         ## gam is 3-torsion matrix and in Gamma_0(N).
                         ## if D is the divisor associated to coset_reps[r]
                         ## then (1+gam+gam^2)D=0.
@@ -778,8 +778,8 @@ class ManinRelations(PollackStevensModularDomain):
                                 A = coset_reps[s] * sig
                                 ## A corresponds to reversing the orientation
                                 ## of the edge corr. to coset_reps[r]
-                                # Use adjoint instead of inverse for speed
-                                gam = SN(coset_reps[r] * A.adjoint())
+                                # Use adjugate instead of inverse for speed
+                                gam = SN(coset_reps[r] * A.adjugate())
                                 ## gam is in Gamma_0(N) (by assumption of
                                 ## ending up here in this if statement)
 
@@ -1500,7 +1500,7 @@ class ManinRelations(PollackStevensModularDomain):
                     #  B is the coset rep equivalent to A
                     B = self.equivalent_rep(A)
                     #  gaminv = B*A^(-1), but A is in SL2.
-                    gaminv = B * A.adjoint()
+                    gaminv = B * A.adjugate()
                     #  The matrix gaminv * gamma is added to our list in the j-th slot
                     #  (as described above)
                     tmp = SN(gaminv * gamma)
@@ -1515,7 +1515,7 @@ class ManinRelations(PollackStevensModularDomain):
     def prep_hecke_on_gen_list(self, l, gen, modulus=None):
         r"""
         Return the precomputation to compute `T_l` in a way that
-        speeds up the hecke calculation.
+        speeds up the Hecke calculation.
 
         Namely, returns a list of the form [h,A].
 
@@ -1539,7 +1539,7 @@ class ManinRelations(PollackStevensModularDomain):
             4
         """
         ans = []
-        for h, vh in self.prep_hecke_on_gen(l, gen, modulus=modulus).iteritems():
+        for h, vh in self.prep_hecke_on_gen(l, gen, modulus=modulus).items():
             ans.extend([(h, v) for v in vh])
         return ans
 

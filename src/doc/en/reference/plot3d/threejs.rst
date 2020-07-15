@@ -18,7 +18,10 @@ in the users's web browser. Interactivity includes
   on a touch pad
 
 The generated HTML file contains all data for the scene apart from the JavaScript library
-and can be saved to disk for sharing or embedding in a web page.
+and can be saved to disk for sharing or embedding in a web page. The option ``online``
+can be set to ``true`` to provide links to the required files in an online content delivery
+network. Alternately the required files can be downloaded from the Three.js GitHub repository
+and linked directly from the web server.
 
 Options currently supported by the viewer:
 
@@ -30,19 +33,39 @@ Options currently supported by the viewer:
 - ``axes_labels`` -- (default: ['x','y','z']) list or tuple of three strings;
   set to False to remove all labels
 
-- ``color`` -- (default: 'blue') color of the 3d object
+- ``color`` -- (default: 'blue') color of the 3D object
 
 - ``decimals`` -- (default: 2) integer determining decimals displayed in labels
 
 - ``frame`` -- (default: True) Boolean determining whether frame is drawn
 
+- ``online`` -- (default: False) Boolean determining whether the local standard package
+  files are replaced by links to an online content delivery network
+
 - ``opacity`` -- (default: 1) numeric value for transparency of lines and surfaces
+
+- ``projection`` -- (default: 'perspective') the type of camera projection to use;
+  'perspective' or 'orthographic'
 
 - ``radius`` -- (default: None) numeric value for radius of lines; use to render
   lines thicker than available using ``thickness`` or on Windows platforms where
   ``thickness`` is ignored
 
+- ``render_order`` -- (default: 0) numeric value for rendering order of transparent surfaces;
+  objects render from lowest to highest value ensuring that lower-valued objects render completely
+
+- ``single_side`` -- (default: False) Boolean determining whether both sides of a surface material
+  are rendered; set to True to reduce rendering artifacts for closed transparent surfaces
+
 - ``thickness`` -- (default: 1) numeric value for thickness of lines
+
+- ``viewpoint`` -- (default: None) list or tuple of the form [[x,y,z],angle] setting the initial
+  viewpoint of the scene, where angle is in degrees; can be determined using the 'Get Viewpoint'
+  option of the information menu
+
+Clicking on the information icon in the lower right-hand corner of the viewer opens
+a menu of available actions. These include saving the three-dimensional scene as a static
+PNG image or as complete HTML source code.
 
 AUTHORS:
 

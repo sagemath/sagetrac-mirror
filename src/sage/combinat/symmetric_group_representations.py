@@ -28,7 +28,6 @@ Representations of the Symmetric Group
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt
@@ -37,7 +36,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.tableau import StandardTableaux, Tableau
 from sage.combinat.yang_baxter_graph import YangBaxterGraph_partition
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -220,7 +219,7 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
         Seminormal representations of the symmetric group of order 3! over Rational Field
         sage: sgn = snorm([1,1,1]); sgn
         Seminormal representation of the symmetric group corresponding to [1, 1, 1]
-        sage: map(sgn, Permutations(3))
+        sage: list(map(sgn, Permutations(3)))
         [[1], [-1], [-1], [1], [1], [-1]]
 
     The Specht Representation.
@@ -427,7 +426,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             sage: triv = SymmetricGroupRepresentation([4])
             sage: hook = SymmetricGroupRepresentation([3,1])
             sage: def_rep = lambda p : triv(p).block_sum(hook(p)).trace()
-            sage: map(def_rep, Permutations(4))
+            sage: list(map(def_rep, Permutations(4)))
             [4, 2, 2, 1, 1, 2, 2, 0, 1, 0, 0, 1, 1, 0, 2, 1, 0, 0, 0, 1, 1, 2, 0, 0]
             sage: [p.to_matrix().trace() for p in Permutations(4)]
             [4, 2, 2, 1, 1, 2, 2, 0, 1, 0, 0, 1, 1, 0, 2, 1, 0, 0, 0, 1, 1, 2, 0, 0]
@@ -548,7 +547,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         tableau_dict = {self._yang_baxter_graph.root():t}
         for (u,w,(i,beta)) in self._yang_baxter_graph._edges_in_bfs():
             # TODO: improve the following
-            si = PermutationGroupElement((i,i+1))
+            si = PermutationConstructor((i,i+1))
             tableau_dict[w] = Tableau([[si(_) for _ in row] for row in tableau_dict[u]])
         return tableau_dict
 
@@ -569,7 +568,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
              (2, 0, 1, -1, 0): (2, 4, 1, 3, 5)}
         """
         word_dict = {}
-        for (v,t) in self._tableau_dict.iteritems():
+        for (v,t) in self._tableau_dict.items():
             word_dict[v] = sum(reversed(t), ())
         return word_dict
 

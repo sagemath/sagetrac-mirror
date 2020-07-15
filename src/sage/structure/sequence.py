@@ -57,33 +57,23 @@ substantial coercions.  It can be greatly sped up by explicitly
 specifying the universe of the sequence::
 
     sage: v = Sequence(range(10000), universe=ZZ)
-
-TESTS::
-
-    sage: v = Sequence([1..5])
-    sage: loads(dumps(v)) == v
-    True
-
 """
 
-
-##########################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-##########################################################################
-from __future__ import print_function
-from six.moves import range
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+#*****************************************************************************
 
-from sage.misc.latex import list_function as list_latex_function
+from __future__ import print_function
+
 import sage.structure.sage_object
 import sage.structure.coerce
 
-#from mutability import Mutability #we cannot inherit from Mutability and list at the same time
 
 def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=None, use_sage_types=False):
     """
@@ -115,7 +105,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
       after each comma when calling ``str()`` on this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -241,8 +231,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         x = list(x) # make a copy even if x is a list, we're going to change it
 
         if len(x) == 0:
-            import sage.categories.all
-            universe = sage.categories.all.Objects()
+            from sage.categories.objects import Objects
+            universe = Objects()
         else:
             import sage.structure.element
             if use_sage_types:
@@ -253,8 +243,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                 try:
                     x[i], x[i+1] = sage.structure.element.canonical_coercion(x[i],x[i+1])
                 except TypeError:
-                    import sage.categories.all
-                    universe = sage.categories.all.Objects()
+                    from sage.categories.objects import Objects
+                    universe = Objects()
                     x = list(orig_x)
                     check = False  # no point
                     break
@@ -299,7 +289,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
       after each comma when printing this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -617,19 +607,15 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         list.remove(self, value)
 
-    def sort(self, cmp=None, key=None, reverse=False):
+    def sort(self, key=None, reverse=False):
         """
         Sort this list *IN PLACE*.
 
         INPUT:
 
         - ``key`` - see Python ``list sort``
-        
+
         - ``reverse`` - see Python ``list sort``
-
-        - ``cmp`` - see Python ``list sort`` (deprecated)
-
-        Because ``cmp`` is not allowed in Python3, it must be avoided.
 
         EXAMPLES::
 
@@ -639,19 +625,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             [1/5, 2, 3]
             sage: B.sort(reverse=True); B
             [3, 2, 1/5]
-
-        TESTS::
-
-            sage: B.sort(cmp = lambda x,y: cmp(y,x)); B
-            doctest:...: DeprecationWarning: sorting using cmp is deprecated
-            See http://trac.sagemath.org/21376 for details.
-            [3, 2, 1/5]
         """
-        if cmp is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(21376, 'sorting using cmp is deprecated')
         self._require_mutable()
-        list.sort(self, cmp=cmp, key=key, reverse=reverse)
+        list.sort(self, key=key, reverse=reverse)
 
     def __hash__(self):
         """
@@ -706,6 +682,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: latex(t)
             \left[\sqrt{x}, e^{x}, x^{x - 1}\right]
         """
+        from sage.misc.latex import list_function as list_latex_function
         return list_latex_function(self)
 
     def __str__(self):
@@ -779,7 +756,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         To make this object immutable use :meth:`set_immutable`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5
@@ -819,6 +796,26 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         except AttributeError:
             return True
 
+    def __reduce__(self):
+        """
+        Implement pickling for sequences.
+
+        TESTS::
+
+            sage: v = Sequence([1..5])
+            sage: w = loads(dumps(v))
+            sage: v == w
+            True
+            sage: w.is_mutable()
+            True
+            sage: v.set_immutable()
+            sage: w = loads(dumps(v))
+            sage: w.is_mutable()
+            False
+        """
+        args = (list(self), self.__universe, False,
+                self._is_immutable, self.__cr_str)
+        return type(self), args
 
     def __copy__(self):
         """
@@ -870,7 +867,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             Traceback (most recent call last):
             ...
             AttributeError: 'Sequence_generic' object has no attribute '_Sequence_generic__hash'
-            sage: S._Sequence__hash = 34
+            sage: S._Sequence__hash = int(34)
             sage: hash(S)
             34
         """
@@ -893,5 +890,5 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
 seq = Sequence
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.structure.sequence', 'Sequence', Sequence_generic)

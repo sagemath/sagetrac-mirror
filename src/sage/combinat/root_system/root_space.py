@@ -7,15 +7,14 @@ Root lattices and root spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from .root_lattice_realizations import RootLatticeRealizations
-from sage.misc.cachefunc import cached_in_parent_method
 import functools
+
 
 class RootSpace(CombinatorialFreeModule):
     r"""
@@ -232,7 +231,7 @@ class RootSpace(CombinatorialFreeModule):
             return basis[i]
         return self.module_morphism(on_basis = functools.partial(basis_value, basis) , codomain=L)
 
-class RootSpaceElement(CombinatorialFreeModuleElement):
+class RootSpaceElement(CombinatorialFreeModule.Element):
     def scalar(self, lambdacheck):
         """
         The scalar product between the root lattice and
@@ -347,14 +346,13 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
 
             sage: Q = RootSystem(['C',2]).root_lattice()
             sage: positive_roots = Q.positive_roots()
-            sage: for x in positive_roots:
+            sage: for x in sorted(positive_roots):
             ....:     print("{} {}".format(x, x.quantum_root()))
             alpha[1] True
-            alpha[2] True
-            2*alpha[1] + alpha[2] True
             alpha[1] + alpha[2] False
+            2*alpha[1] + alpha[2] True
+            alpha[2] True
         """
-
         return len(self.associated_reflection()) == -1 + (self.parent().nonparabolic_positive_root_sum(())).scalar(self.associated_coroot())
 
     def max_coroot_le(self):

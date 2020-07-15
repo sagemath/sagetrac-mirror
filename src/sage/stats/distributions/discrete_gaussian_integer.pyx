@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+# distutils: sources = sage/stats/distributions/dgs_gauss_mp.c sage/stats/distributions/dgs_gauss_dp.c sage/stats/distributions/dgs_bern.c
+# distutils: depends = sage/stats/distributions/dgs_gauss.h sage/stats/distributions/dgs_bern.h sage/stats/distributions/dgs_misc.h
+# distutils: extra_compile_args = -D_XOPEN_SOURCE=600
+
 r"""
 Discrete Gaussian Samplers over the Integers
 
@@ -11,7 +16,7 @@ AUTHORS:
 
 - Martin Albrecht (2014-06-28): initial version
 
-EXAMPLE:
+EXAMPLES:
 
 We construct a sampler for the distribution `D_{3,c}` with width `σ=3` and center `c=0`::
 
@@ -21,7 +26,6 @@ We construct a sampler for the distribution `D_{3,c}` with width `σ=3` and cent
 
 We ask for 100000 samples::
 
-    sage: from six.moves import range
     sage: n=100000; l = [D() for _ in range(n)]
 
 These are sampled with a probability proportional to `\exp(-x^2/18)`. More
@@ -29,7 +33,8 @@ precisely we have to normalise by dividing by the overall probability over all
 integers. We use the fact that hitting anything more than 6 standard deviations
 away is very unlikely and compute::
 
-    sage: norm_factor = sum([exp(-x^2/(2*sigma^2)) for x in range(-6*sigma,sigma*6+1)])
+    sage: bound = (6*sigma).floor()
+    sage: norm_factor = sum([exp(-x^2/(2*sigma^2)) for x in range(-bound,bound+1)])
     sage: norm_factor
     7.519...
 
@@ -51,7 +56,6 @@ We construct an instance with a larger width::
 
 ask for 100000 samples::
 
-    sage: from six.moves import range
     sage: n=100000; l = [D() for _ in range(n)] # long time
 
 and check if the proportions fit::
@@ -66,7 +70,6 @@ We construct a sampler with `c\%1 != 0`::
     sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
     sage: sigma = 3
     sage: D = DiscreteGaussianDistributionIntegerSampler(sigma=sigma, c=1/2)
-    sage: from six.moves import range
     sage: n=100000; l = [D() for _ in range(n)] # long time
     sage: mean(l).n() # long time
     0.486650000000000
@@ -107,18 +110,17 @@ REFERENCES:
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
-from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
-from dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear, dgs_disc_gauss_mp_flush_cache
-from dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear, dgs_disc_gauss_dp_flush_cache
-from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
+from .dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear, dgs_disc_gauss_mp_flush_cache
+from .dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear, dgs_disc_gauss_dp_flush_cache
+from .dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
 
 cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
     r"""
@@ -227,21 +229,18 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=0, tau=2)
-            sage: from six.moves import range
             sage: l = [D() for _ in range(2^16)]
             sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.01
             (True, True, True)
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=2.5, tau=2)
-            sage: from six.moves import range
             sage: l = [D() for _ in range(2^18)]
             sage: min(l)==2-2*1.0, max(l)==2+2*1.0, mean(l).n()
             (True, True, 2.45...)
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=2.5, tau=6)
-            sage: from six.moves import range
             sage: l = [D() for _ in range(2^18)]
             sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
             (-2, 7, True)
@@ -250,21 +249,18 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=0, tau=2, precision="dp")
-            sage: from six.moves import range
             sage: l = [D() for _ in range(2^16)]
             sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.05
             (True, True, True)
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=2.5, tau=2, precision="dp")
-            sage: from six.moves import range
             sage: l = [D() for _ in range(2^18)]
             sage: min(l)==2-2*1.0, max(l)==2+2*1.0, mean(l).n()
             (True, True, 2.4...)
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=2.5, tau=6, precision="dp")
-            sage: from six.moves import range
             sage: l = [D() for _ in range(2^18)]
             sage: min(l)<=-1, max(l)>=6, abs(mean(l)-2.5) < 0.1
             (True, True, True)
@@ -363,7 +359,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         r"""
         Flush the internal cache of random bits.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 

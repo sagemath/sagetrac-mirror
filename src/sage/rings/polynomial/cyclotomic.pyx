@@ -24,15 +24,13 @@ method of univariate polynomial ring objects and the top-level
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import sys
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-from libc.string cimport memset
+from cysignals.memory cimport sig_malloc, check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
 
 from sage.arith.all import factor
 from sage.rings.infinity import infinity
@@ -148,12 +146,7 @@ def cyclotomic_coeffs(nn, sparse=None):
             d = prod(s)
             max_deg += n / d
 
-    if (<object>max_deg)*sizeof(long) > sys.maxsize:
-        raise MemoryError("Not enough memory to calculate cyclotomic polynomial of %s" % n)
-    cdef long* coeffs = <long*>sig_malloc(sizeof(long) * (max_deg+1))
-    if coeffs == NULL:
-        raise MemoryError("Not enough memory to calculate cyclotomic polynomial of %s" % n)
-    memset(coeffs, 0, sizeof(long) * (max_deg+1))
+    cdef long* coeffs = <long*>check_calloc(max_deg+1, sizeof(long))
     coeffs[0] = 1
 
     cdef long k, dd, offset = 0, deg = 0
@@ -287,7 +280,7 @@ def cyclotomic_value(n, x):
         sage: a.pyobject()
         I
         sage: parent(_)
-        Number Field in I with defining polynomial x^2 + 1
+        Number Field in I with defining polynomial x^2 + 1 with I = 1*I
     """
     n = ZZ(n)
     if n < 3:
@@ -297,7 +290,7 @@ def cyclotomic_value(n, x):
             return x + ZZ.one()
         raise ValueError("n must be positive")
 
-    P = parent_c(x)
+    P = parent(x)
     try:
         return P(pari.polcyclo(n, x).sage())
     except Exception:

@@ -1,3 +1,2 @@
-#!/usr/bin/env bash
-
-cd src && $PIP_INSTALL .
+#! /bin/sh
+echo Installation of zope_interface is disabled, as a preparation for removal
