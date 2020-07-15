@@ -141,9 +141,15 @@ lazy_import('sage.combinat.parking_functions',
 # Trees and Tamari interval posets
 from .ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
+
+lazy_import('sage.combinat.mary_tree', ['MAryTree', 'MAryTrees',
+                                        'LabelledMAryTree',
+                                        'LabelledMAryTrees'])
+
 from .binary_tree import (BinaryTree, BinaryTrees,
-                         LabelledBinaryTree, LabelledBinaryTrees)
-lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
+                          LabelledBinaryTree, LabelledBinaryTrees)
+lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset',
+                                              'TamariIntervalPosets'])
 lazy_import('sage.combinat.rooted_tree', ('RootedTree', 'RootedTrees',
                          'LabelledRootedTree', 'LabelledRootedTrees'))
 

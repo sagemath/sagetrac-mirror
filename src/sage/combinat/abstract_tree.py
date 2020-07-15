@@ -1172,7 +1172,9 @@ class AbstractTree(object):
 
         if self.is_empty():
             from sage.typeset.ascii_art import empty_ascii_art
-            return empty_ascii_art
+            rep = empty_ascii_art
+            rep._root = 0
+            return rep
 
         from sage.typeset.ascii_art import AsciiArt
         if len(self) == 0:
@@ -1291,7 +1293,9 @@ class AbstractTree(object):
 
         if self.is_empty():
             from sage.typeset.unicode_art import empty_unicode_art
-            return empty_unicode_art
+            rep = empty_unicode_art
+            rep._root = 0
+            return rep
 
         from sage.typeset.unicode_art import UnicodeArt
         if not len(self):
