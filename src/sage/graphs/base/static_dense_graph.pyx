@@ -103,7 +103,7 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=None, force_undirec
         if translation is True:
             d_translation = {i: i for i in range(n)}
 
-        for i, j in g.edge_iterator(labels=False):
+        for i, j in g.edges(labels=False, sort=False):
             binary_matrix_set1(m, i, j)
             if is_undirected:
                 binary_matrix_set1(m, j, i)
@@ -111,7 +111,7 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=None, force_undirec
         if not d_translation:
             d_translation = {v: i for i, v in enumerate(g.vertices())}
 
-        for u,v in g.edge_iterator(labels=False):
+        for u,v in g.edges(labels=False, sort=False):
             binary_matrix_set1(m, d_translation[u], d_translation[v])
             if is_undirected:
                 binary_matrix_set1(m, d_translation[v], d_translation[u])

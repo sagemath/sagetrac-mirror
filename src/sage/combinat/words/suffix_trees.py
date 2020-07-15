@@ -472,7 +472,7 @@ class SuffixTrie(SageObject):
             <class 'sage.plot.graphics.Graphics'>
         """
         tree = self.to_digraph()
-        for (u,v,label) in tree.edge_iterator():
+        for (u,v,label) in tree.edges(sort=False):
             tree.set_edge_label(u, v, label.string_rep())
         if vertex_colors is None:
             suffix_nodes = self.final_states()
@@ -881,7 +881,7 @@ class ImplicitSuffixTree(SageObject):
         """
         tree = self.to_digraph(word_labels=word_labels)
         if word_labels:
-            for (u,v,label) in tree.edge_iterator():
+            for (u,v,label) in tree.edges(sort=False):
                 tree.set_edge_label(u, v, label.string_rep())
         if vertex_colors is None:
             vertex_colors = {'#fec7b8':tree.vertices()}
@@ -1515,7 +1515,7 @@ class ImplicitSuffixTree(SageObject):
         newtree = DiGraph()
         newtree.add_vertices(range(tree.order()))
         new_node = tree.order() + 1
-        for (u,v,label) in tree.edge_iterator():
+        for (u,v,label) in tree.edges(sort=False):
             if len(label) == 1:
                 newtree.add_edge(u,v)
             else:

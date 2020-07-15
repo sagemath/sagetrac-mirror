@@ -1934,7 +1934,7 @@ class GenericGraph(GenericGraph_pyx):
         Each row is a vertex, and each column is an edge. The vertices are
         ordered as obtained by the method :meth:`vertices`, except when
         parameter ``vertices`` is given (see below), and the edges as obtained
-        by the method :meth:`edge_iterator`.
+        by the method :meth:`edges` with parameter ``sort=False``.
 
         If the graph is not directed, then return a matrix with entries in
         `\{0,1,2\}`. Each column will either contain two `1` (at the position of
@@ -1969,7 +1969,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``edges`` -- list (default: ``None``); when specified, the `i`-th
           column of the matrix corresponds to the `i`-th edge in the ordering of
           ``edges``, otherwise, the `i`-th column of the matrix corresponds to
-          the `i`-th edge in the ordering given by method :meth:`edge_iterator`.
+          the `i`-th edge in the ordering given by method :meth:`edges` when
+          ``sort=False``.
 
         EXAMPLES::
 
@@ -11780,6 +11781,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: for i in graphs.PetersenGraph().edge_iterator([0]):
             ....:  print(i)
+            doctest:...: DeprecationWarning: use method 'edges' instead of deprecated method 'edge_iterator'
+            See https://trac.sagemath.org/30145 for details.
             (0, 1, None)
             (0, 4, None)
             (0, 5, None)
@@ -11803,6 +11806,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.edge_iterator(0, ignore_direction=True))
             [(1, 0, None), (2, 0, None)]
         """
+        deprecation(30145, "use method 'edges' instead of deprecated method 'edge_iterator'")
         return self.edges(vertices=vertices, labels=labels, ignore_direction=ignore_direction, sort=False)
 
     def edges_incident(self, vertices=None, labels=True, sort=False):

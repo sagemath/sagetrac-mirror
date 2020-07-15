@@ -270,7 +270,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list
             g.neighbors[i] = g.neighbors[i-1] + <int> len(G.edges_incident(vertices[i-1]))
 
     if not edge_labelled:
-        for u, v in G.edge_iterator(labels=False):
+        for u, v in G.edges(labels=False, sort=False):
             i = v_to_id[u]
             j = v_to_id[v]
 
