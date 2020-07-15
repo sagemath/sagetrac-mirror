@@ -1082,7 +1082,7 @@ class ChartFunction(AlgebraElement):
                             - self.expr(method)) == 0)
             return bool(other.expr(method) == self.expr(method))
         # Fall back on default implementation:
-        return AlgebraElement._richcmp_(self, other, op)
+        return super()._richcmp_(self, other, op)
 
     def __neg__(self):
         r"""

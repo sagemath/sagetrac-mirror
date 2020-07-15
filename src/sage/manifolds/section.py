@@ -1610,7 +1610,7 @@ class Section(ModuleElement):
                                   # subdomains
             return resu
         # Fall back on default implementation:
-        return ModuleElement._richcmp_(self, other, op)
+        return super()._richcmp_(self, other, op)
 
     def __pos__(self):
         r"""

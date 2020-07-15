@@ -1284,7 +1284,7 @@ class ScalarField(CommutativeAlgebraElement):
                     return False
             return True
         # Fall back on default implementation:
-        return CommutativeAlgebraElement._richcmp_(self, other, op)
+        return super()._richcmp_(self, other, op)
 
     ####### End of required methods for an algebra element (beside arithmetic) #######
 

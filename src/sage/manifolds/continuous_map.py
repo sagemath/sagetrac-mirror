@@ -533,17 +533,20 @@ class ContinuousMap(Morphism):
         """
         return hash((self._domain, self._codomain))
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Comparison (equality) operator.
+        Rich comparison operator.
 
         INPUT:
 
         - ``other`` -- a :class:`ContinuousMap`
+         - ``op`` -- comparison operator for which ``self`` and ``other`` shall
+          be compared with.
 
         OUTPUT:
 
-        - ``True`` if ``self`` is equal to ``other`` and ``False`` otherwise
+        - ``True`` if ``richcmp(self, other, op)`` holds and ``False``
+          otherwise
 
         TESTS::
 
@@ -560,53 +563,23 @@ class ContinuousMap(Morphism):
             False
 
         """
-        if other is self:
-            return True
-        if not isinstance(other, type(self)):
-            return False
-        if self.parent() != other.parent():
-            return False
-        if self._is_identity:
-            return other.is_identity()
-        if other._is_identity:
-            return self.is_identity()
-        for charts, coord_functions in self._coord_expression.items():
-            try:
-                if coord_functions.expr() != other.expr(*charts):
+        from sage.structure.richcmp import op_NE, op_EQ
+        if op == op_NE:
+            return not self == other
+        elif op == op_EQ:
+            if other is self:
+                return True
+            if self.is_identity():
+                return other.is_identity()
+            for charts, coord_functions in self._coord_expression.items():
+                try:
+                    if coord_functions.expr() != other.expr(*charts):
+                        return False
+                except ValueError:
                     return False
-            except ValueError:
-                return False
-        return True
-
-    def __ne__(self, other):
-        r"""
-        Inequality operator.
-
-        INPUT:
-
-        - ``other`` -- a :class:`ContinuousMap`
-
-        OUTPUT:
-
-        - ``True`` if ``self`` is different from ``other`` and
-          ``False`` otherwise
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: X.<x,y,z> = M.chart()
-            sage: N = Manifold(2, 'N', structure='topological')
-            sage: Y.<u,v> = N.chart()
-            sage: f = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='f')
-            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='g')
-            sage: f != g
-            False
-            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 1]}, name='g')
-            sage: f != g
-            True
-
-        """
-        return not (self == other)
+            return True
+        # Fall back on default implementation:
+        return super()._richcmp_(self, other, op)
 
     #
     # Map methods
