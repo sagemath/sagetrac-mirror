@@ -1682,7 +1682,7 @@ class PackedWords_size(PackedWordsBaseClass, UniqueRepresentation):
         if n == 0:
             return self._element_constructor_([], check=False)
         else:
-            m = [1] + range(min(3,n-1),1,-1)
+            m = [1] + list(range(min(3,n-1),1,-1))
             return self._element_constructor_(m + [1]*(n-len(m)), check=False)
 
     def random_element(self):
