@@ -7,7 +7,7 @@ AUTHORS:
 - Jean-Baptiste Priez
 - Hugo Mlodecki
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Jean-Baptiste Priez <jbp@kerios.fr>,
 #                     2018 Hugo Mlodecki
 #
@@ -15,11 +15,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from six import add_metaclass
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (SetFactory, ParentWithSetFactory, TopMostParentPolicy)
 from sage.structure.element import parent
@@ -29,7 +26,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.family import LazyFamily #Family
+from sage.sets.family import LazyFamily
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
@@ -42,9 +39,8 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.lazy_attribute import lazy_attribute
 
 
-
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class PackedWord(ClonableIntArray):
+class PackedWord(ClonableIntArray,
+                 metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A packed word.
 
@@ -91,7 +87,6 @@ class PackedWord(ClonableIntArray):
         """
         P = PackedWordsFactory()(policy=policy)
         return P(lst, check=check)
-
 
     def __init__(self, parent, lst, check=True):
         r"""
@@ -143,10 +138,9 @@ class PackedWord(ClonableIntArray):
             # Elements not integers or w not iterable
             raise ValueError("{} is not a list of positive integers".format(self))
 
-
         # the distinct letters in w should be {1, 2, ..., max(self)}
-        if s != [i for i in range(1, max([0]+s[-1:])+1)]:
-            raise ValueError("If number `k > 1` appears then the number `k - 1` must also appear".format(self))
+        if s != list(range(1, max([0] + s[-1:]) + 1)):
+            raise ValueError("If number `k > 1` appears then the number `k - 1` must also appear")
 
     def _latex_(self):
         r"""
@@ -183,7 +177,7 @@ class PackedWord(ClonableIntArray):
         """
         lst = [[]] * self._max
         for i, val in enumerate(self):
-            lst[val-1] = lst[val-1] + [i+1]
+            lst[val - 1] = lst[val - 1] + [i + 1]
         return OrderedSetPartition(lst)
 
     @combinatorial_map(name='to composition')
@@ -209,7 +203,7 @@ class PackedWord(ClonableIntArray):
         if not self:
             return Composition([])
         d = evaluation_dict(self)
-        return Composition([d[i+1] for i in range(self._max)])
+        return Composition([d[i + 1] for i in range(self._max)])
 
     def is_empty(self):
         r"""
@@ -275,7 +269,7 @@ class PackedWord(ClonableIntArray):
         elif pw in PackedWords():
             m = pw._max
         if self.size() == m:
-            return PackedWord([self[i-1] for i in pw])
+            return PackedWord([self[i - 1] for i in pw])
 
         raise ValueError("the maximum value of the right packed word must be equal to the size of the left packed word")
 
@@ -388,8 +382,8 @@ class PackedWord(ClonableIntArray):
         g_descents = []
         local_left_min = self._max
         for i in range(self._size - 1):
-            local_left_min = min(local_left_min,self[i])
-            if local_left_min > max(self[i+1::] + [0]):
+            local_left_min = min(local_left_min, self[i])
+            if local_left_min > max(self[i + 1::] + [0]):
                 g_descents.append(i + 1)
 
         if final_descent:
@@ -425,7 +419,7 @@ class PackedWord(ClonableIntArray):
         g_d_f = [PackedWordsBaseClass.pack(self[:i])]
         for j in g_descents[1:]:
             g_d_f.append(PackedWordsBaseClass.pack(self[i:j]))
-            i=j
+            i = j
         return g_d_f
 
     def global_ascents(self, initial_ascent=False, from_zero=False):
@@ -473,7 +467,7 @@ class PackedWord(ClonableIntArray):
         g_ascents = []
         local_left_max = 0
         for i in range(1, self._size):
-            local_left_max = max(local_left_max, self[i-1])
+            local_left_max = max(local_left_max, self[i - 1])
             if local_left_max < min(self[i:] + [self._max]):
                 g_ascents.append(i + 1)
 
@@ -509,8 +503,8 @@ class PackedWord(ClonableIntArray):
         if not g_a:
             return [self]
         g_a.append(self._size)
-        return [PackedWordsBaseClass.pack(self[g_a[i]:g_a[i+1]]) for i in range(len(g_a)-1)]
-
+        return [PackedWordsBaseClass.pack(self[g_a[i]: g_a[i + 1]])
+                for i in range(len(g_a) - 1)]
 
     def inversions(self, side="right", support=None, from_zero=False):
         r"""
@@ -629,11 +623,11 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 4, 1, 2]).inversions(side = "left",support = "position")
             {(1, 2), (1, 5), (3, 5)}
         """
-        if not side in ["left", "right"]:
+        if side not in ["left", "right"]:
             raise ValueError("option 'side' must be 'left' or 'right'")
         if support is None:
             support = "position" if side == "right" else "value"
-        if not support in ["position", "value"]:
+        if support not in ["position", "value"]:
             raise ValueError("option 'support' must be 'position' or 'value'")
 
         if not self:
@@ -671,7 +665,7 @@ class PackedWord(ClonableIntArray):
                            for j in range(i + 1, m + 1)
                            if self.index(i) > n - rev.index(j) - 1)
 
-    ###################     Right Weak Order     ###############################
+    # =========== Right Weak Order ===========
 
     def right_weak_order_succ(self):
         r"""
@@ -707,8 +701,8 @@ class PackedWord(ClonableIntArray):
         n = self._size
         P = parent(self)
         for i in range(n - 1):
-            if self[i] < self[i+1]:
-                p = self[:i] + [self[i+1], self[i]] + self[i+2:]
+            if self[i] < self[i + 1]:
+                p = self[:i] + [self[i + 1], self[i]] + self[i + 2:]
                 succ.append(P._element_constructor_(p, check=False))
         return succ
 
@@ -746,8 +740,8 @@ class PackedWord(ClonableIntArray):
         n = self._size
         P = parent(self)
         for i in range(n - 1):
-            if self[i] > self[i+1]:
-                p = self[:i] + [self[i+1], self[i]] + self[i+2:]
+            if self[i] > self[i + 1]:
+                p = self[:i] + [self[i + 1], self[i]] + self[i + 2:]
                 pred.append(P._element_constructor_(p, check=False))
         return pred
 
@@ -844,7 +838,9 @@ class PackedWord(ClonableIntArray):
             raise ValueError("{0} is not a member of {1}".format(other, self.parent()))
 
         res = []
-        up = lambda a: a.right_weak_order_succ()
+
+        def up(a):
+            return a.right_weak_order_succ()
         if self.is_gequal(other):
             UP_other = RecursivelyEnumeratedSet([other], up, structure="graded")
             for x in UP_other:
@@ -863,7 +859,7 @@ class PackedWord(ClonableIntArray):
 
         return res
 
-    ###################     Left Weak Order     ################################
+    # ===========  Left Weak Order  ===========
 
     def left_weak_order_succ(self):
         r"""
@@ -1041,7 +1037,9 @@ class PackedWord(ClonableIntArray):
             raise ValueError("{0} is not a member of {1}".format(other, self.parent()))
 
         res = []
-        up = lambda a: a.left_weak_order_succ()
+
+        def up(a):
+            return a.left_weak_order_succ()
         if self.is_gequal(other, side="left"):
             UP_other = RecursivelyEnumeratedSet([other], up, structure="graded")
             for x in UP_other:
@@ -1066,10 +1064,10 @@ class PackedWord(ClonableIntArray):
 
         .. SEEALSO::
 
-            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`, 
-            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred` 
+            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`,
+            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred`
             for more information on the weak order.
-        
+
         EXAMPLES::
 
             sage: u = PackedWord([3, 1, 1, 2])
@@ -1098,7 +1096,7 @@ class PackedWord(ClonableIntArray):
             sage: v.is_gequal(u, side="left") == (v in u.left_weak_order_greater())
             True
         """
-        if not side in ["left", "right"]:
+        if side not in ["left", "right"]:
             raise ValueError("option 'side' must be 'left' or 'right'")
 
         if side == "right" and self.to_composition() == pw.to_composition():
@@ -1106,8 +1104,8 @@ class PackedWord(ClonableIntArray):
             std_pw = PackedWord(to_standard(pw))
             return std_pw.inversions(side="left").issubset(std_self.inversions(side="left"))
 
-        s1=set(self.to_ordered_set_partition())
-        s2=set(pw.to_ordered_set_partition())
+        s1 = set(self.to_ordered_set_partition())
+        s2 = set(pw.to_ordered_set_partition())
         if side == "left" and s1 == s2:
             return pw.inversions().issubset(self.inversions())
 
@@ -1119,10 +1117,10 @@ class PackedWord(ClonableIntArray):
 
         .. SEEALSO::
 
-            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`, 
-            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred` 
+            :meth:`left_weak_order_succ`, :meth:`left_weak_order_pred`,
+            :meth:`right_weak_order_succ`, :meth:`right_weak_order_pred`
             for more information on the weak order.
-        
+
         EXAMPLES::
 
             sage: u = PackedWord([3, 1, 1, 2])
@@ -1153,9 +1151,10 @@ class PackedWord(ClonableIntArray):
         """
         return pw.is_gequal(self, side)
 
-#==============================================================================
+# =============================================================================
 # Parent classes
-#==============================================================================
+# =============================================================================
+
 
 class PackedWordsFactory(SetFactory):
     r"""
@@ -1211,7 +1210,7 @@ class PackedWordsFactory(SetFactory):
             Set factory policy for <class 'sage.combinat.packed_words.PackedWord'> with parent Packed words[=Factory for Packed Words(())]
         """
         return TopMostParentPolicy(self, (), PackedWord)
-    
+
     def _repr_(self):
         """
         TESTS::
@@ -1226,7 +1225,7 @@ class PackedWordsFactory(SetFactory):
         Add constraints to the set ``cons`` as per
         :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
 
-        Here we just have the constraint for the size of the packed words and we have no 
+        Here we just have the constraint for the size of the packed words and we have no
         possible option yet.
 
         EXAMPLES::
@@ -1250,8 +1249,10 @@ class PackedWordsFactory(SetFactory):
             return (res[0],)
         else:
             return ()
-    
+
+
 PackedWords = PackedWordsFactory()
+
 
 class PackedWordsBaseClass(ParentWithSetFactory):
     r"""
@@ -1472,10 +1473,10 @@ class PackedWordsBaseClass(ParentWithSetFactory):
         pass
 
 
-
-#==============================================================================
+# =============================================================================
 # Enumerated set of all packed words
-#==============================================================================
+# =============================================================================
+
 
 class PackedWords_all(PackedWordsBaseClass, DisjointUnionEnumeratedSets, UniqueRepresentation):
     """
@@ -1503,9 +1504,9 @@ class PackedWords_all(PackedWordsBaseClass, DisjointUnionEnumeratedSets, UniqueR
             sage: TestSuite(PackedWords()).run()  # long time
         """
         fam = LazyFamily(NonNegativeIntegers(), self._packedwords_size)
-        #DisjointUnionEnumeratedSets.__init__(self, fam, facade=True, keepkey=False)
+        # DisjointUnionEnumeratedSets.__init__(self, fam, facade=True, keepkey=False)
         ParentWithSetFactory.__init__(self, (), policy=policy,
-                              category=EnumeratedSets())
+                                      category=EnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(self, fam,
                                              facade=True, keepkey=False,
                                              category=self.category())
@@ -1527,9 +1528,10 @@ class PackedWords_all(PackedWordsBaseClass, DisjointUnionEnumeratedSets, UniqueR
         """
         return "Packed words"
 
-#==============================================================================
+# =============================================================================
 # Enumerated set of packed words of a given size
-#==============================================================================
+# =============================================================================
+
 
 class PackedWords_size(PackedWordsBaseClass, UniqueRepresentation):
     r"""
@@ -1682,8 +1684,9 @@ class PackedWords_size(PackedWordsBaseClass, UniqueRepresentation):
         if n == 0:
             return self._element_constructor_([], check=False)
         else:
-            m = [1] + list(range(min(3,n-1),1,-1))
-            return self._element_constructor_(m + [1]*(n-len(m)), check=False)
+            m = [1] + list(range(min(3, n - 1), 1, -1))
+            return self._element_constructor_(m + [1] * (n - len(m)),
+                                              check=False)
 
     def random_element(self):
         r"""
