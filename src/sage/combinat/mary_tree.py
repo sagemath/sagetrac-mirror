@@ -12,10 +12,8 @@ This is different from rooted trees as we want to fix the number of subtrees.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six import add_metaclass
-
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
@@ -30,12 +28,13 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.arith.all import binomial
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
 from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class MAryTree(AbstractClonableTree, ClonableArray):
+class MAryTree(AbstractClonableTree, ClonableArray,
+               metaclass=InheritComparisonClasscallMetaclass):
     r"""
     The class of `m`-ary trees.
 
@@ -772,7 +771,7 @@ class MAryTrees_size(MAryTrees):
 
     def __iter__(self):
         r"""
-        Generator using SearchForest and the ``unique_growth``
+        Generator using ``RecursivelyEnumeratedSet_forest`` and the ``unique_growth``
         method of a tree.
 
         TESTS::
@@ -791,8 +790,7 @@ class MAryTrees_size(MAryTrees):
 
             def children(x):
                 return x.unique_growth()
-            from sage.combinat.backtrack import SearchForest
-            SF = SearchForest(roots, children, algorithm='breadth')
+            SF = RecursivelyEnumeratedSet_forest(roots, children, algorithm='breadth')
             it = SF.elements_of_depth_iterator(self._size)
             for t in it:
                 yield t
@@ -845,8 +843,8 @@ class MAryTrees_size(MAryTrees):
         return res
 
 
-@add_metaclass(ClasscallMetaclass)
-class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree):
+class LabelledMAryTree(AbstractLabelledClonableTree, MAryTree,
+                       metaclass=ClasscallMetaclass):
     r"""
     The class of labelled `m`-ary trees.
 
