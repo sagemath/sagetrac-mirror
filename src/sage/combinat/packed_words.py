@@ -183,7 +183,7 @@ class PackedWord(ClonableIntArray,
     @combinatorial_map(name='to composition')
     def to_composition(self):
         r"""
-        Return the compostion associated to ``self``.
+        Return the composition associated to ``self``.
 
         Given a packed word `u` with greatest letter `\ell`, we construct a
         composition `\alpha = (\alpha_1, \alpha_2, \dotsc, \alpha_{\ell})`
@@ -1008,7 +1008,7 @@ class PackedWord(ClonableIntArray,
     def left_weak_order_interval(self, other):
         r"""
         Return the list of packed words in the interval
-        between `self` and `pw` under the let weak order.
+        between `self` and `pw` under the left weak order.
 
         EXAMPLES::
 
