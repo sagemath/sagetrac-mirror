@@ -310,6 +310,7 @@ class OrderedSetPartition(ClonableArray,
         """
         return Composition([len(p) for p in self])
 
+
     @staticmethod
     def sum(osps):
         """
@@ -802,6 +803,13 @@ class OrderedSetPartition(ClonableArray,
             sage: x = S([['a', 'c', 'e'], ['b', 'd']])
             sage: x.to_packed_word()
             word: 12121
+
+        Note that this method returns an occurence of the class ``Word``
+        and not ``PackedWord``, you can obtain a PackedWord this way::
+
+            sage: x = S([['a', 'c', 'e'], ['b', 'd']])
+            sage: PackedWord(x.to_packed_word())
+            [1, 2, 1, 2, 1]
         """
         X = sorted(self._base_set)
         out = {}
@@ -828,7 +836,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         [{1}, {2}, {3}, {4}]
         sage: OS.last()
         [{1, 2, 3, 4}]
-        sage: OS.random_element()
+        sage: OS.random_element() #random
         [{3}, {1}, {2}, {4}]
 
     ::
@@ -1053,6 +1061,41 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
         for x in Compositions(len(self._set)):
             for z in OrderedSetPartitions(self._set, x):
                 yield self.element_class(self, z)
+
+    def random_element(self):
+        r"""
+        Return a random element of ``self``.
+
+        This method does not return elements of ``self`` with uniform probability,
+        but it does cover all elements. The scheme is as follows:
+
+        - pick a random permutation `\pi` of ``enumerate(self._set)``
+        - determine the descents of `\pi` to form a composition `c`
+        - pick a random composition `d` that is finer than `c`
+        - break `\pi` according to `d` to build an ordered set partition
+
+        EXAMPLES::
+
+            sage: OrderedSetPartitions(0).random_element()
+            []
+            sage: OrderedSetPartitions(3).random_element()  # random
+            [{2}, {1, 3}]
+            sage: OrderedSetPartitions([1, 'a', 'b', 8]).random_element()  # random
+            [{'b'}, {'a', 8}, {1}]
+
+            sage: OSP = OrderedSetPartitions(3)
+            sage: d = {x:0 for x in OSP}
+            sage: for _ in range(200):
+            ....:     x = OSP.random_element()
+            ....:     d[x] += 1
+            sage: d.values()  # random
+            [7, 6, 12, 20, 19, 17, 30, 8, 24, 13, 14, 12, 18]
+        """
+        if not self._set:
+            return self([])
+        pi,vals = zip(*permutation.Permutations_set(list(enumerate(self._set))).random_element())
+        d = [0] + permutation.Permutation([x+1 for x in pi]).descents_composition().finer().random_element().partial_sums()
+        return self([vals[d[i]:d[i+1]] for i in range(len(d)-1)])
 
 
 class OrderedSetPartitions_sn(OrderedSetPartitions):

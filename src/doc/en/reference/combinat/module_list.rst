@@ -170,6 +170,7 @@ Comprehensive Module list
     sage/combinat/non_decreasing_parking_function
     sage/combinat/ordered_tree
     sage/combinat/output
+    sage/combinat/packed_words
     sage/combinat/parallelogram_polyomino
     sage/combinat/parking_functions
     sage/combinat/path_tableaux/catalog
