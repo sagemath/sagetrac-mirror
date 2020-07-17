@@ -333,7 +333,11 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         sage: f2
         'sage/structure/....pyc'
 
-    This takes about 30ms with warm cache:
+    Namespace packages::
+
+        sage: files_by_module['sage.graphs.graph_decompositions']
+
+    This takes about 30ms with warm cache::
 
         sage: timeit('installed_files_by_module(site_packages)',       # random output
         ....:        number=1, repeat=1)
