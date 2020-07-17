@@ -152,6 +152,15 @@ class VectorSpaces(Category_module):
     class ElementMethods:
         pass
 
+    class SubcategoryMethods:
+
+        def Normed(self):
+            r"""
+            Return the subcategory of the normed objects of ``self``.
+            """
+            from sage.categories.normed_vector_spaces import NormedSpacesCategory
+            return NormedSpacesCategory.category_of(self)
+
     class WithBasis(CategoryWithAxiom_over_base_ring):
 
         _call_ = ModulesWithBasis.__dict__["_call_"]
@@ -291,4 +300,3 @@ class VectorSpaces(Category_module):
         """
         Category of graded vector spaces.
         """
-

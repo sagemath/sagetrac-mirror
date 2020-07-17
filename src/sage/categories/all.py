@@ -65,6 +65,7 @@ from .bimodules import Bimodules
 from .modules import Modules
 RingModules = Modules
 from .vector_spaces import VectorSpaces
+from .normed_vector_spaces import NormedVectorSpaces
 
 # (hopf) algebra structures
 from .algebras import Algebras
