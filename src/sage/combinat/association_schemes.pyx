@@ -45,6 +45,7 @@ def graph_from_association_scheme(const int n, const int r, const int schemeType
     build an antipodal r-cover of K_{n+1} using association schemes with the given type
     """
     from sage.libs.gap.libgap import libgap
+    from sage.matrix.constructor import matrix
     
     if schemeType == 1:
         # cyclotomic scheme
@@ -85,7 +86,7 @@ def association_scheme_graph(scheme, op=None, inv=None):
                 _inv[(c,i)] = j
                 _inv[(c,j)] = i
 
-        inv = lambda(c,a): _inv[(c,a)]
+        inv = lambda c, a: _inv[(c,a)]
 
     edges = []
     for x in range(n):
@@ -94,7 +95,7 @@ def association_scheme_graph(scheme, op=None, inv=None):
 
     for x in range(n):
         for y in range(x+1, n):
-            ij = find_rel(x,y)
+            ij = scheme[x,y]
             for i in I:
                 j = inv(ij,i)
                 edges.append(( (x,i),(y,j) ))
@@ -108,10 +109,10 @@ def distance_regular_graph(list array, check=True):
 
     t = is_from_association_scheme(array)
     if t is not False:
-        G = association_scheme_graph(*t)
+        G = graph_from_association_scheme(*t)
 
     if check:
-        t = G.is_distance_regular()
+        t = G.is_distance_regular(True)
         if t is False or (t[0][:-1] +  t[1][1:]) != array:
             raise RuntimeError("Sage built the wrong graph")
 
