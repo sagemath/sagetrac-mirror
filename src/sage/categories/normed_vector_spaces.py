@@ -106,7 +106,7 @@ class NormedVectorSpaces(NormedSpacesCategory):
 
     class ParentMethods:
 
-        def _test_abs(self, **options):
+        def _test_norm_function(self, **options):
             r"""
             Test that this normed space has a properly implemented norm.
 
@@ -115,11 +115,31 @@ class NormedVectorSpaces(NormedSpacesCategory):
             - ``options`` -- any keyword arguments accepted
               by :meth:`_tester`
 
-            EXAMPLES::
+            EXAMPLES:
+
+            The "0-norm" is not a norm::
 
             """
             tester = self._tester(**options)
             S = tester.some_elements()
+            K = self.base_ring()
+            o = self.zero()
+            norm = self.norm_function()
+            # Test positivity
+            for a in S:
+                d = norm(a)
+                if a != o:
+                    tester.assertGreater(d, 0)
+                else:
+                    tester.assertEqual(d, 0)
+            # Test triangle inequality
+            for a in S:
+                for b in S:
+                    tester.assertLessOrEqual(norm(a + b), norm(a) + norm(b))
+            # Test positive homogeneity
+            for a in S:
+                for k in K.some_elements():
+                    tester.assertEqual(norm(k * a), k.abs() * norm(a))
 
         def norm_function(self):
             r"""
@@ -127,9 +147,12 @@ class NormedVectorSpaces(NormedSpacesCategory):
 
             EXAMPLES::
 
+                sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=NormedVectorSpaces(QQ).WithBasis()); F
+                sage: F.norm_function()   # error
+
 
             """
-
+            return self.element_class().abs
 
     class ElementMethods:
 
