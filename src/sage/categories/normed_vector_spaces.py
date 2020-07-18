@@ -116,4 +116,4 @@ class NormedVectorSpaces(NormedSpacesCategory):
             """
             Return the norm of ``self``.
             """
-            return sqrt(self.abs_squared)
+            return sqrt(self.abs_squared())
