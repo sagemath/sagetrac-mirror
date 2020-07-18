@@ -109,11 +109,20 @@ class NormedVectorSpaces(NormedSpacesCategory):
         def abs_squared(self):
             """
             Return the square of the norm of ``self``.
+
+            Classes implementing a norm should implement one of the methods
+            ``abs_squared`` and ``abs``.  The other method is supplied
+            automatically.
+
             """
             return self.norm() ** 2
 
         def abs(self):
             """
             Return the norm of ``self``.
+
+            Classes implementing a norm should implement one of the methods
+            ``abs_squared`` and ``abs``.  The other method is supplied
+            automatically.
             """
             return sqrt(self.abs_squared())
