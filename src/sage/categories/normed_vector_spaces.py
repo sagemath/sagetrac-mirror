@@ -104,6 +104,33 @@ class NormedVectorSpaces(NormedSpacesCategory):
         """
         return "normed vector spaces"
 
+    class ParentMethods:
+
+        def _test_abs(self, **options):
+            r"""
+            Test that this normed space has a properly implemented norm.
+
+            INPUT:
+
+            - ``options`` -- any keyword arguments accepted
+              by :meth:`_tester`
+
+            EXAMPLES::
+
+            """
+            tester = self._tester(**options)
+            S = tester.some_elements()
+
+        def norm_function(self):
+            r"""
+            Return the norm function of ``self``.
+
+            EXAMPLES::
+
+
+            """
+
+
     class ElementMethods:
 
         def abs_squared(self):
