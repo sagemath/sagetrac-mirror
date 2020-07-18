@@ -15,24 +15,24 @@ from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 
-class NormedSpacesCategory(RegressiveCovariantConstructionCategory, Category_over_base_ring):
+class NormedSpacesCategory(RegressiveCovariantConstructionCategory):
 
     _functor_category = "Normed"
 
-    def __init__(self, base_category):
-        """
-        EXAMPLES::
+    ## def __init__(self, base_category):
+    ##     """
+    ##     EXAMPLES::
 
-            sage: VectorSpaces(QQ).Filtered().Normed().super_categories()
+    ##         sage: VectorSpaces(QQ).Filtered().Normed().super_categories()
 
 
-            sage: FreeModules(ZZ).Normed().super_categories()
+    ##         sage: FreeModules(ZZ).Normed().super_categories()
 
-            sage: VectorSpaces(QQ).Filtered().Normed().super_categories()
-            [Category of , Category of metric spaces]
+    ##         sage: VectorSpaces(QQ).Filtered().Normed().super_categories()
+    ##         [Category of , Category of metric spaces]
 
-        """
-        super(NormedSpacesCategory, self).__init__(base_category, base_category.base_ring())
+    ##     """
+    ##     super(NormedSpacesCategory, self).__init__(base_category, base_category.base_ring())
 
     @classmethod
     def default_super_categories(cls, category):
