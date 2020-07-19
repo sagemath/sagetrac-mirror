@@ -25,6 +25,10 @@ def is_from_association_scheme(list arr):
         # cyclotomic scheme
         schemeType = 1
 
+    elif n == 28 and mu == 9:  # so r == 3
+        # Mathon scheme
+        schemeType = 2
+
     if schemeType != -1:
         return (n, r, schemeType)
     else:
@@ -46,16 +50,31 @@ def graph_from_association_scheme(const int n, const int r, const int schemeType
     """
     from sage.libs.gap.libgap import libgap
     from sage.matrix.constructor import matrix
-    
+
     if schemeType == 1:
         # cyclotomic scheme
         libgap.LoadPackage("AssociationSchemes")
         s = libgap.CyclotomicScheme(n,r)
         S = matrix(s.RelationMatrix())
-        def inv(c,a):
+        def inv(c, a):
             b = (c-a) % r
             if b == 0:
                 b = r
+            return b
+        op = None
+
+    elif schemeType == 2:
+        # Mathon scheme
+        from sage.graphs.generators.smallgraphs import \
+            _EllipticLinesProjectivePlaneScheme
+        adjS = _EllipticLinesProjectivePlaneScheme(3)
+        # adjS is the list of adjecency matrices
+        # convert it to a relation matrix
+        S = adjS[1] + 2*adjS[2] + 3*adjS[3]
+        def inv(c,a):
+            b = (c-a) % 3
+            if b == 0:
+                b = 3
             return b
         op = None
 
@@ -100,7 +119,7 @@ def association_scheme_graph(scheme, op=None, inv=None):
                 j = inv(ij,i)
                 edges.append(( (x,i),(y,j) ))
                 edges.append(( (y,i),(x,j) ))
-    
+
     G = Graph(edges,format="list_of_edges")
     return G
 
