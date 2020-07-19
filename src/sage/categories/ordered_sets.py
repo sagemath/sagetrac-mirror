@@ -41,3 +41,39 @@ class OrderedSets(Category):
             [Category of lattice posets]
         """
         return [LatticePosets()]
+
+    class ParentMethods:
+
+        def meet(self, x, y):
+            """
+            Returns the meet of ``x`` and ``y`` in this lattice
+
+            Because ``self`` is totally ordered, this is just the maximum
+            of ``x`` and ``y``.
+
+            INPUT:
+
+             - ``x``, ``y`` -- elements of ``self``
+
+            """
+            if self.le(x, y):
+                return y
+            else:
+                return x
+
+        def join(self, x, y):
+            """
+            Returns the join of `x` and `y` in this lattice
+
+            Because ``self`` is totally ordered, this is just the minimum
+            of ``x`` and ``y``.
+
+            INPUT:
+
+             - ``x``, ``y`` -- elements of ``self``
+
+            """
+            if self.le(x, y):
+                return x
+            else:
+                return y
