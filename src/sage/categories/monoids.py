@@ -22,7 +22,8 @@ from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.arith.power import generic_power
-
+from .normed_additive_or_multiplicative_monoids import (NormedMonoidsCategory,
+                                                        NormedAdditiveOrMultiplicativeMonoids)
 
 class Monoids(CategoryWithAxiom):
     r"""
@@ -313,6 +314,13 @@ class Monoids(CategoryWithAxiom):
                 l.append(x)
             return l
 
+    class SubcategoryMethods:
+        def Normed(self):
+            r"""
+            Return the subcategory of the normed objects of ``self``.
+            """
+            return NormedMonoidsCategory.category_of(self)
+
     class Commutative(CategoryWithAxiom):
         r"""
         Category of commutative (abelian) monoids.
@@ -590,4 +598,41 @@ class Monoids(CategoryWithAxiom):
                                                       lambda g: (i, g))
                                                for i,M in enumerate(F)])
                 return Family(gens_prod, lift, name="gen")
+
+    class Normed(NormedMonoidsCategory):
+        def extra_super_categories(self):
+            return [NormedAdditiveOrMultiplicativeMonoids()]
+
+        class ParentMethods:
+            def _test_norm_multiplication(self, **options):
+                r"""
+                Test that this normed monoid has a properly implemented norm.
+
+                INPUT:
+
+                - ``options`` -- any keyword arguments accepted
+                  by :meth:`_tester`
+
+                EXAMPLES:
+
+                The "0-norm" is not a norm::
+
+                """
+                tester = self._tester(**options)
+                S = tester.some_elements()
+                o = self.one()
+                norm = self.norm_function()
+                # Test one
+                tester.assertEqual(norm(o), 0)
+                # Test positivity
+                for a in S:
+                    d = norm(a)
+                    if a != o:
+                        tester.assertGreater(d, 0)
+                    else:
+                        tester.assertEqual(d, 0)
+                # Test triangle inequality
+                for a in S:
+                    for b in S:
+                        tester.assertLessEqual(norm(a * b), norm(a) + norm(b))
 

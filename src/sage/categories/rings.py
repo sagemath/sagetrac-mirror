@@ -15,6 +15,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
+from .normed_additive_or_multiplicative_monoids import NormedMonoidsCategory
 from sage.structure.element import Element
 from functools import reduce
 
@@ -1316,6 +1317,31 @@ class Rings(CategoryWithAxiom):
             if r != 0:
                 raise ValueError("%s is not divisible by %s"%(self, y))
             return q
+
+
+    class Normed(NormedMonoidsCategory):
+        class ParentMethods:
+            def _test_norm_multiplication(self, **options):
+                r"""
+                Test that this normed monoid has a properly implemented norm.
+
+                INPUT:
+
+                - ``options`` -- any keyword arguments accepted
+                  by :meth:`_tester`
+
+                EXAMPLES:
+
+                The "0-norm" is not a norm::
+
+                """
+                tester = self._tester(**options)
+                S = tester.some_elements()
+                norm = self.norm_function()
+                # Test triangle inequality
+                for a in S:
+                    for b in S:
+                        tester.assertLessEqual(norm(a * b), norm(a) * norm(b))
 
 def _gen_names(elts):
     r"""

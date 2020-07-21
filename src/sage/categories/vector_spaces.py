@@ -21,6 +21,7 @@ from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.misc.lazy_import import LazyImport
 _Fields = Fields()
 
 class VectorSpaces(Category_module):
@@ -151,15 +152,6 @@ class VectorSpaces(Category_module):
 
     class ElementMethods:
         pass
-
-    class SubcategoryMethods:
-
-        def Normed(self):
-            r"""
-            Return the subcategory of the normed objects of ``self``.
-            """
-            from sage.categories.normed_vector_spaces import NormedSpacesCategory
-            return NormedSpacesCategory.category_of(self)
 
     class WithBasis(CategoryWithAxiom_over_base_ring):
 

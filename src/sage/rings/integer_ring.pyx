@@ -127,8 +127,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         False
         sage: Z.category()
         Join of Category of euclidean domains
-             and Category of infinite enumerated sets
-             and Category of metric spaces
+         and Category of normed rings
+         and Category of infinite enumerated sets
         sage: Z(2^(2^5) + 1)
         4294967297
 
@@ -316,7 +316,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             True
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
-                                category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
+                                category=(EuclideanDomains().Normed(), InfiniteEnumeratedSets()))
         self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_integer_')
 

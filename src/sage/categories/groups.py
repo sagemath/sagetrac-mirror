@@ -18,6 +18,7 @@ from sage.categories.monoids import Monoids
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.topological_spaces import TopologicalSpacesCategory
+from .normed_additive_or_multiplicative_monoids import NormedMonoidsCategory
 
 
 class Groups(CategoryWithAxiom):
@@ -671,3 +672,39 @@ class Groups(CategoryWithAxiom):
 
         - :wikipedia:`Topological_group`
         """
+
+    class Normed(NormedMonoidsCategory):
+        class ParentMethods:
+            def _test_norm_multiplication(self, **options):
+                r"""
+                Test that this normed group has a properly implemented norm.
+
+                INPUT:
+
+                - ``options`` -- any keyword arguments accepted
+                  by :meth:`_tester`
+
+                EXAMPLES:
+
+                The "0-norm" is not a norm::
+
+                """
+                tester = self._tester(**options)
+                S = tester.some_elements()
+                o = self.one()
+                norm = self.norm_function()
+                # Test one
+                tester.assertEqual(norm(o), 0)
+                # Test positivity
+                for a in S:
+                    d = norm(a)
+                    if a != o:
+                        tester.assertGreater(d, 0)
+                    else:
+                        tester.assertEqual(d, 0)
+                    tester.assertEqual(d, norm(~a))
+                # Test triangle inequality
+                for a in S:
+                    for b in S:
+                        tester.assertLessEqual(norm(a * b), norm(a) + norm(b))
+

@@ -23,6 +23,7 @@ from .dual import DualObjectsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
+from .normed_additive_or_multiplicative_monoids import NormedMonoidsCategory
 from sage.categories.fields import Fields
 _Fields = Fields()
 
@@ -754,4 +755,40 @@ class Modules(Category_module):
                 [Category of modules over Integer Ring]
             """
             return [self.base_category()]
+
+    class Normed(NormedMonoidsCategory):
+        r"""
+        The category of normed modules.
+
+        A norm on a module `V` is a function `\|\cdot\| : V \to \RR` such that:
+
+        - `\|x\| \geq 0`,
+        - `\|x\| = 0` if and only if `x = 0`,
+        - `\|x+y\| \leq \|x\| + \|y\|`,
+        - `\|\lambda x\| = |\lambda| \cdot \|x\|`.
+        """
+        class ParentMethods:
+            def _test_norm_scalars(self, **options):
+                r"""
+                Test that this normed module has a norm that respects
+                scalar multiplication.
+
+                INPUT:
+
+                - ``options`` -- any keyword arguments accepted
+                  by :meth:`_tester`
+
+                EXAMPLES:
+
+                The "0-norm" is not a norm::
+
+                """
+                tester = self._tester(**options)
+                S = tester.some_elements()
+                K = self.base_ring()
+                norm = self.norm_function()
+                # Test positive homogeneity
+                for a in S:
+                    for k in K.some_elements():
+                        tester.assertEqual(norm(k * a), k.abs() * norm(a))
 

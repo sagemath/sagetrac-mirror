@@ -12,6 +12,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton, CategoryWithAxiom
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.additive_monoids import AdditiveMonoids
+from .normed_additive_or_multiplicative_monoids import NormedMonoidsCategory
 from sage.cpython.getattr import raw_getattr
 Groups = LazyImport('sage.categories.groups', 'Groups', at_startup=True)
 
@@ -66,3 +67,40 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
                 __init_extra__ = raw_getattr(Groups.Finite.Algebras.ParentMethods, "__init_extra__")
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', at_startup=True)
+
+    class Normed(NormedMonoidsCategory):
+        class ParentMethods:
+            def _test_norm_additive(self, **options):
+                r"""
+                Test that this normed additive group has a properly
+                implemented norm.
+
+                INPUT:
+
+                - ``options`` -- any keyword arguments accepted
+                  by :meth:`_tester`
+
+                EXAMPLES:
+
+                The "0-norm" is not a norm::
+
+                """
+                tester = self._tester(**options)
+                S = tester.some_elements()
+                o = self.zero()
+                norm = self.norm_function()
+                # Test one
+                tester.assertEqual(norm(o), 0)
+                # Test positivity
+                for a in S:
+                    d = norm(a)
+                    if a != o:
+                        tester.assertGreater(d, 0)
+                    else:
+                        tester.assertEqual(d, 0)
+                    tester.assertEqual(d, norm(-a))
+                # Test triangle inequality
+                for a in S:
+                    for b in S:
+                        tester.assertLessEqual(norm(a + b), norm(a) + norm(b))
+

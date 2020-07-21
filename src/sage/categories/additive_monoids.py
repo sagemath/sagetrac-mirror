@@ -12,7 +12,8 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
 from sage.categories.additive_semigroups import AdditiveSemigroups
 from sage.categories.homsets import HomsetsCategory
-
+from .normed_additive_or_multiplicative_monoids import (NormedMonoidsCategory,
+                                                        NormedAdditiveOrMultiplicativeMonoids)
 
 class AdditiveMonoids(CategoryWithAxiom_singleton):
     """
@@ -92,3 +93,49 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
                 See comment in :meth:`Objects.SubcategoryMethods.Homsets`.
             """
             return [AdditiveSemigroups()]
+
+    class SubcategoryMethods:
+        def Normed(self):
+            r"""
+            Return the subcategory of the normed objects of ``self``.
+            """
+            return NormedMonoidsCategory.category_of(self)
+
+    class Normed(NormedMonoidsCategory):
+        def extra_super_categories(self):
+            return [NormedAdditiveOrMultiplicativeMonoids()]
+
+        class ParentMethods:
+            def _test_norm_additive(self, **options):
+                r"""
+                Test that this normed additive monoid has a properly
+                implemented norm.
+
+                INPUT:
+
+                - ``options`` -- any keyword arguments accepted
+                  by :meth:`_tester`
+
+                EXAMPLES:
+
+                The "0-norm" is not a norm::
+
+                """
+                tester = self._tester(**options)
+                S = tester.some_elements()
+                o = self.zero()
+                norm = self.norm_function()
+                # Test one
+                tester.assertEqual(norm(o), 0)
+                # Test positivity
+                for a in S:
+                    d = norm(a)
+                    if a != o:
+                        tester.assertGreater(d, 0)
+                    else:
+                        tester.assertEqual(d, 0)
+                # Test triangle inequality
+                for a in S:
+                    for b in S:
+                        tester.assertLessEqual(norm(a + b), norm(a) + norm(b))
+
