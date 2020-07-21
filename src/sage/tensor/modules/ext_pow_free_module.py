@@ -247,7 +247,8 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank,
                                       name=name, latex_name=latex_name,
                                       start_index=fmodule._sindex,
-                             output_formatter=fmodule._output_formatter)
+                             output_formatter=fmodule._output_formatter,
+                             category=fmodule.category())
         # Unique representation:
         if self._degree == 1 or \
            self._degree in self._fmodule._exterior_powers:
@@ -641,7 +642,8 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
-                                    output_formatter=fmodule._output_formatter)
+                                    output_formatter=fmodule._output_formatter,
+                                    category=fmodule.category())
         # Unique representation:
         if self._degree in self._fmodule._dual_exterior_powers:
             raise ValueError("the {}th exterior power of ".format(degree) +
