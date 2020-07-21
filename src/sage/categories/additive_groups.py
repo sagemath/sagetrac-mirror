@@ -70,10 +70,10 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
 
     class Normed(NormedMonoidsCategory):
         class ParentMethods:
-            def _test_norm_additive(self, **options):
+            def _test_norm_additive_inverse(self, **options):
                 r"""
-                Test that this normed additive group has a properly
-                implemented norm.
+                Test that this normed additive group has a norm
+                that satisfies `\|a\| = \|-a\|`.
 
                 INPUT:
 
@@ -87,20 +87,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
                 """
                 tester = self._tester(**options)
                 S = tester.some_elements()
-                o = self.zero()
                 norm = self.norm_function()
-                # Test one
-                tester.assertEqual(norm(o), 0)
-                # Test positivity
                 for a in S:
-                    d = norm(a)
-                    if a != o:
-                        tester.assertGreater(d, 0)
-                    else:
-                        tester.assertEqual(d, 0)
-                    tester.assertEqual(d, norm(-a))
-                # Test triangle inequality
-                for a in S:
-                    for b in S:
-                        tester.assertLessEqual(norm(a + b), norm(a) + norm(b))
+                    tester.assertEqual(norm(a), norm(-a))
 

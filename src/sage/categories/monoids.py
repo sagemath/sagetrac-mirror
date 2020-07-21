@@ -604,7 +604,7 @@ class Monoids(CategoryWithAxiom):
             return [NormedAdditiveOrMultiplicativeMonoids()]
 
         class ParentMethods:
-            def _test_norm_multiplication(self, **options):
+            def _test_norm_multiplicative(self, **options):
                 r"""
                 Test that this normed monoid has a properly implemented norm.
 

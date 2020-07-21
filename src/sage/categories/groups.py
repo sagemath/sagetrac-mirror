@@ -675,9 +675,10 @@ class Groups(CategoryWithAxiom):
 
     class Normed(NormedMonoidsCategory):
         class ParentMethods:
-            def _test_norm_multiplication(self, **options):
+            def _test_norm_inverse(self, **options):
                 r"""
-                Test that this normed group has a properly implemented norm.
+                Test that this normed group has a norm that satisfies
+                `\|g^{-1}\| = \|g\|`.
 
                 INPUT:
 
@@ -691,20 +692,7 @@ class Groups(CategoryWithAxiom):
                 """
                 tester = self._tester(**options)
                 S = tester.some_elements()
-                o = self.one()
                 norm = self.norm_function()
-                # Test one
-                tester.assertEqual(norm(o), 0)
-                # Test positivity
                 for a in S:
-                    d = norm(a)
-                    if a != o:
-                        tester.assertGreater(d, 0)
-                    else:
-                        tester.assertEqual(d, 0)
-                    tester.assertEqual(d, norm(~a))
-                # Test triangle inequality
-                for a in S:
-                    for b in S:
-                        tester.assertLessEqual(norm(a * b), norm(a) + norm(b))
+                    tester.assertEqual(norm(a), norm(~a))
 
