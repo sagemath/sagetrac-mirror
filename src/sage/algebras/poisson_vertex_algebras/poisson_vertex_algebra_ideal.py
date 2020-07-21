@@ -35,6 +35,7 @@ from sage.categories.fields import Fields
 from sage.structure.element_wrapper import ElementWrapper
 from sage.rings.integer import Integer
 from sage.functions.other import floor
+from sage.misc.cachefunc import cached_method
 
 class PoissonVertexAlgebraIdeal(UniqueRepresentation):
     """
@@ -796,6 +797,7 @@ class PoissonVertexAlgebraIdealBasis(Parent):
                 yield self.element_class(self,(n/step,y))
             n += 1
 
+    @cached_method
     def get_weight(self,n):
         """
         The subspace of conformal weight ``n``.

@@ -32,6 +32,7 @@ from sage.categories.vertex_algebras import VertexAlgebras
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from .energy_partition_tuples import EnergyPartitionTuples_all
 from sage.sets.family import Family
+from sage.misc.cachefunc import cached_method
 
 class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
     """
@@ -243,6 +244,7 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
             raise IndexError('value out of range')
         raise NotImplementedError('do not know how to look for {}'.format(r))
 
+    @cached_method
     def subset(self, energy=None):
         """
         The subset of basis elements indexing vectors of conformal
@@ -269,8 +271,14 @@ class VertexAlgebraQuotientBasis(EnergyPartitionTuples_all):
         """
         if energy==None:
             return self
-        return Family([self(i) for i in EnergyPartitionTuples_all.subset(self,
-                                            energy=energy) if i in self ])
+        ret = []
+        for i in EnergyPartitionTuples_all.subset(self, energy=energy):
+            try:
+                elt = self(i)
+            except ValueError:
+                continue
+            ret.append(elt)
+        return Family(ret)
 
 class VertexAlgebraQuotientElement(IndexedFreeModuleElement):
     """

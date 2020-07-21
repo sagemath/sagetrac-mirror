@@ -37,6 +37,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.all import QQ,ZZ
 from sage.categories.fields import Fields
 from sage.structure.element_wrapper import ElementWrapper
+from sage.misc.cachefunc import cached_method
 
 class VertexAlgebraIdeal(UniqueRepresentation):
     r"""
@@ -678,6 +679,7 @@ class VertexAlgebraIdealBasis(Parent):
                 yield self.element_class(self,(n/step,y))
             n += 1
 
+    @cached_method
     def get_weight(self,n):
         """
         The subspace of conformal weight ``n``.
