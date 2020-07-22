@@ -25,8 +25,8 @@ Attributes of a lattice morphism
 
 - ``morphism._free_morphism`` -- the morphism as morphism of free modules acting on the right.
 
-Methods of a lattice
-----------------------
+Methods of a lattice morphism
+-----------------------------
 
 - :meth:`GLatticeMorphism_left.group` -- the group acting on the domain and codomain.
 
@@ -141,7 +141,7 @@ If one enters the matrix manually, one must make sure that the morphism preserve
 ::
 
     sage: L = GLattice([4])
-    sage: L.left_morphism(matrix(2, [1, 2, 3, 4]))
+    sage: L.left_morphism(matrix(4, range(16)))
     Traceback (most recent call last):
     ...
     TypeError: The morphism does not preserve the action of the group
@@ -151,6 +151,7 @@ If one enters the matrix manually, one must make sure that the morphism preserve
     [0 1 0 0]
     [0 0 1 0]
     [0 0 0 1]
+    Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
     sage: L2 = GLattice([4], 1)
     sage: L.left_morphism(matrix(1, [1, 1, 1, 1]), L2)
     Lattice morphism defined by the left action of the matrix
@@ -225,21 +226,21 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
 
     def __call__(self, elt):
         """
-        Compute the image of either an element of a lattice, or a sublattice
+        Compute the image of either an element of a lattice, or a sublattice.
+        In case the image is not a 
 
         EXAMPLES::
 
             sage: G = SymmetricGroup(3)
             sage: L = GLattice(G,3)
             sage: m = matrix(3, [2,4,2,1,2,1,3,6,3])
-            sage: h = L.hom(m); h
-            Lattice morphism defined by the matrix
+            sage: h = L.left_morphism(m); h
+            Lattice endomorphism defined by the left action of the matrix
             [2 4 2]
             [1 2 1]
             [3 6 3]
             Domain: Ambient lattice of rank 3 with the trivial action of a group of order 6
-            Codomain: Ambient lattice of rank 3 with the trivial action of a group of order 6
-            sage: SL = L.sublattice([sum(b for b in L.basis())])
+            sage: SL = L.sublattice([sum(L.basis())])
             sage: h(SL)
             Sublattice of degree 3 and rank 1 with the trivial action of a group of order 6 and echelon basis matrix
             [ 8  4 12]
@@ -278,7 +279,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             Domain: Ambient lattice of rank 4 with a faithful action by a group of order 4
             sage: h2.matrix() == L.surjection_from_square().pre_compose(L.diagonal_embedding()).matrix()
             True
-            sage: h2 = h + [h, h]
+            sage: h2 = h + [h, h]; h2
             Lattice endomorphism defined by the left action of the matrix
             [3 0 0 0]
             [0 3 0 0]
@@ -294,17 +295,23 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             Ambient lattice of rank 5 with a faithful action by a group of order 6
             sage: [P, h] = L.permutation_cover(); h
             Lattice morphism defined by the left action of the matrix
-            [ 1|-1| 0]
-            [ 0|-1| 1]
-            Domain: Ambient lattice of rank 3 with a faithful action by a group of order 3
-            Codomain: Ambient lattice of rank 2 with a faithful action by a group of order 3
+            [ 1| 0| 0| 0|-1| 0]
+            [ 0| 0| 0| 1|-1| 0]
+            [ 0| 0| 0| 0|-1| 1]
+            [ 0| 0| 1| 0|-1| 0]
+            [ 0| 1| 0| 0|-1| 0]
+            Domain: Ambient lattice of rank 6 with a faithful action by a group of order 6
+            Codomain: Ambient lattice of rank 5 with a faithful action by a group of order 6
             sage: h + h
             Lattice morphism defined by the left action of the matrix
-            [ 2 -2  0]
-            [ 0 -2  2]
-            Domain: Ambient lattice of rank 3 with a faithful action by a group of order 3
-            Codomain: Ambient lattice of rank 2 with a faithful action by a group of order 3
-        
+            [ 2  0  0  0 -2  0]
+            [ 0  0  0  2 -2  0]
+            [ 0  0  0  0 -2  2]
+            [ 0  0  2  0 -2  0]
+            [ 0  2  0  0 -2  0]
+            Domain: Ambient lattice of rank 6 with a faithful action by a group of order 6
+            Codomain: Ambient lattice of rank 5 with a faithful action by a group of order 6
+     
         ::
 
             sage: L = GLattice([3], 2)
@@ -690,6 +697,9 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             sage: L = GLattice([2])
             sage: h = L.diagonal_embedding()
             sage: h.image()
+            Sublattice of degree 4 and rank 2 with a faithful action by a group of order 2 and echelon basis matrix
+            [1 0 1 0]
+            [0 1 0 1]
             sage: h.dual()
             Lattice morphism defined by the left action of the matrix
             [1 0|1 0]
@@ -795,7 +805,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
 
         ::
 
-            L = GLattice([2, 2])
+            sage: L = GLattice([2, 2])
             sage: [a, b, c, d] = L.basis()
             sage: SL = L.sublattice([a+b, c+d])
             sage: n = L.norm(); n
@@ -971,6 +981,24 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
             [2 2]
             [2 2]
             Domain: Ambient lattice of rank 2 with a faithful action by a group of order 2
+
+        The following example builds an injection of a sublattice, and the corresponding
+        quotient map. It checks that the composite is trivial, and that it forms an exact sequence.
+        ::
+
+            sage: L = GLattice([2, 2])
+            sage: [a, b, c, d] = L.basis()
+            sage: SL = L.sublattice([a, b])
+            sage: i = SL.injection_morphism()
+            sage: [Q, s] = L.quotient_lattice(SL, True, True)
+            sage: s.pre_compose(i)
+            Lattice endomorphism defined by the left action of the matrix
+            [0 0]
+            [0 0]
+            Domain: Ambient lattice of rank 2 with an action by a group of order 4
+            sage: s.kernel() == i.image()
+            True
+
         """
         M = self.matrix()*morphism.matrix()
         return morphism.domain().left_morphism(M, self.codomain())

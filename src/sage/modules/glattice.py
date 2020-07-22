@@ -889,7 +889,6 @@ class Lattice_generic(FreeModule_generic):
         EXAMPLES::
 
             sage: L = GLattice([2,2])
-            sage: [a, b] = L2.basis()
             sage: [a, b, c, d] = L.basis()
             sage: QL = L.quotient_lattice(L.sublattice([a+b]))
             sage: QL
@@ -944,25 +943,23 @@ class Lattice_generic(FreeModule_generic):
             sage: G = SymmetricGroup(3)
             sage: L1 = GLattice(G)
             sage: L2 = GLattice(G,3)
-            sage: h1 = L1.hom(identity_matrix(3),L2); h1
+            sage: h1 = L1.left_morphism(identity_matrix(3),L2); h1
             Traceback (most recent call last):
             ...
             TypeError: The morphism does not preserve the action of the group
-            sage: h2 = L1.hom(identity_matrix(3)); h2
-            Lattice morphism defined by the matrix
+            sage: h2 = L1.left_morphism(identity_matrix(3)); h2
+            Lattice endomorphism defined by the left action of the matrix
             [1 0 0]
             [0 1 0]
             [0 0 1]
             Domain: Ambient lattice of rank 3 with a faithful action by a group of order 6
-            Codomain: Ambient lattice of rank 3 with a faithful action by a group of order 6
             sage: m = matrix(3, [1, 1, 1, 1, 1, 1, 1, 1, 1])
-            sage: h3 = L2.hom(m,L1); h3
-            Lattice morphism defined by the matrix
+            sage: h3 = L2.left_morphism(m,L1); h3
+            Lattice endomorphism defined by the left action of the matrix
             [1 1 1]
             [1 1 1]
             [1 1 1]
             Domain: Ambient lattice of rank 3 with the trivial action of a group of order 6
-            Codomain: Ambient lattice of rank 3 with a faithful action by a group of order 6
         """
         C = codomain
         if is_Matrix(mat) and mat.ncols() == mat.nrows() and codomain == None:
@@ -1205,18 +1202,18 @@ class Lattice_generic(FreeModule_generic):
 
             sage: G = SymmetricGroup(3)
             sage: H = CyclicPermutationGroup(3)
-            sage: L = GLattice(G, [matrix(ZZ, 0), matrix(ZZ, 0)])
+            sage: L = GLattice(G, 0)
             sage: L.subgroup_lattice(H)
             Ambient lattice of rank 0 with an action by a group of order 3
         """
         lat = self.ambient_lattice()
         if lat._rank == 0:
-            amb = Lattice_ambient(subgp, 0)
+            amb = GLattice(subgp, 0)
         else:
             mor = self._action_morphism
             I = [mor.Image(i).sage() for i in subgp.gens()]
             a = [matrix(i) for i in I]
-            amb = Lattice_ambient(subgp, a)
+            amb = GLattice(subgp, a)
         if self.is_ambient():
             return amb
         else:
@@ -1994,17 +1991,21 @@ class Lattice_generic(FreeModule_generic):
             sage: L = GM.norm_one_restriction_of_scalars(G)
             sage: SUBGG = G.subgroups()
             sage: CSUB = [g for g in SUBGG if g.is_cyclic()]
-            sage: L.Tate_Shafarevich_lattice(CSUB)
+            sage: L.Tate_Shafarevich_lattice(1, CSUB)
             [1, [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]]
-            sage: L.Tate_Shafarevich_lattice([SUBGG[0]])
+            sage: L.Tate_Shafarevich_lattice(1, [SUBGG[0]])
             [4,
              [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
               (0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0),
               (0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0),
               (0, 0, 0, 0, 1, 1, 1, 2, 1, 1, 1, 0)]]
-            sage: L.Tate_Shafarevich_lattice([SUBGG[0], SUBGG[1]])
+            sage: L.Tate_Shafarevich_lattice(1, [SUBGG[0], SUBGG[1]])
             [2,
              [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 1, 1, 1, 2, 1, 1, 1, 0)]]
+            sage: L.Tate_Shafarevich_lattice(2)
+            [2]
+            sage: L.Tate_Shafarevich_lattice(2, [SUBGG[4]])
+            1
         """
 
         if number == 2:
@@ -2748,6 +2749,8 @@ class Lattice_generic(FreeModule_generic):
             sage: DQL.Tate_Cohomology(1)
             [2, 2]
         
+        The cohomology of the quaternion group is ``4``-periodic, so we can see both shifts clearly.
+
         ::
 
             sage: Q = QuaternionGroup()
@@ -2930,7 +2933,7 @@ class Lattice_generic(FreeModule_generic):
              Codomain: Ambient lattice of rank 3 with a faithful action by a group of order 4]
             sage: L.quotient_lattice(L.zero_sum_sublattice())
             Ambient lattice of rank 1 with the trivial action of a group of order 4
-            sage: L.quotient_lattice(L.zero_sum_sublattice(), True, True)
+            sage: [Q, h] = L.quotient_lattice(L.zero_sum_sublattice(), True, True); [Q, h]
             [Ambient lattice of rank 1 with the trivial action of a group of order 4,
              Lattice morphism defined by the left action of the matrix
              [1 1 1 1]
