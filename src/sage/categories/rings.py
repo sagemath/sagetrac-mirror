@@ -1321,7 +1321,7 @@ class Rings(CategoryWithAxiom):
 
     class Normed(NormedMonoidsCategory):
         class ParentMethods:
-            def _test_norm_multiplicative(self, **options):
+            def _test_norm_submultiplicative(self, **options):
                 r"""
                 Test that this normed ring has a norm that satisfies
                 `\|xy\| \leq \|x\| \cdot \|y\|`.

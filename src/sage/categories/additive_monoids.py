@@ -106,7 +106,23 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
             return [NormedAdditiveOrMultiplicativeMonoids()]
 
         class ParentMethods:
-            def _test_norm_additive(self, **options):
+
+            def _test_norm_positive(self, **options):
+                tester = self._tester(**options)
+                S = tester.some_elements()
+                o = self.zero()
+                norm = self.norm_function()
+                # Test additive neutral
+                tester.assertEqual(norm(o), 0)
+                # Test positivity
+                for a in S:
+                    d = norm(a)
+                    if a != o:
+                        tester.assertGreater(d, 0)
+                    else:
+                        tester.assertEqual(d, 0)
+
+            def _test_norm_subadditive(self, **options):
                 r"""
                 Test that this normed additive monoid has a properly
                 implemented norm.
@@ -125,15 +141,6 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
                 S = tester.some_elements()
                 o = self.zero()
                 norm = self.norm_function()
-                # Test one
-                tester.assertEqual(norm(o), 0)
-                # Test positivity
-                for a in S:
-                    d = norm(a)
-                    if a != o:
-                        tester.assertGreater(d, 0)
-                    else:
-                        tester.assertEqual(d, 0)
                 # Test triangle inequality
                 for a in S:
                     for b in S:

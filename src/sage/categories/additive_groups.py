@@ -70,7 +70,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
 
     class Normed(NormedMonoidsCategory):
         class ParentMethods:
-            def _test_norm_additive_inverse(self, **options):
+            def _test_norm_symmetric(self, **options):
                 r"""
                 Test that this normed additive group has a norm
                 that satisfies `\|a\| = \|-a\|`.

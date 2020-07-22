@@ -768,7 +768,7 @@ class Modules(Category_module):
         - `\|\lambda x\| = |\lambda| \cdot \|x\|`.
         """
         class ParentMethods:
-            def _test_norm_scalars(self, **options):
+            def _test_norm_positive_homogeneous(self, **options):
                 r"""
                 Test that this normed module has a norm that respects
                 scalar multiplication.
