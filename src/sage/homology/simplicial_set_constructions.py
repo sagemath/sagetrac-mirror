@@ -88,6 +88,10 @@ from .simplicial_set_examples import Empty, Point
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 
+from sage.interfaces import kenzo
+from sage.features.kenzo import Kenzo
+kenzo_is_present = Kenzo().is_present()
+
 ########################################################################
 # classes which inherit from SimplicialSet_arbitrary
 
@@ -859,6 +863,11 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
         """
         PullbackOfSimplicialSets.__init__(self, [space.constant_map()
                                                  for space in factors])
+        if kenzo_is_present and factors and all(hasattr(f, '_kenzo_repr') for f in factors):
+            f0 = factors[0]._kenzo_repr
+            for f1 in factors[1:]:
+                f0 = f0.cartesian_product(f1._kenzo_repr)
+            self._kenzo_repr = f0
         self._factors = factors
 
     def n_skeleton(self, n):
@@ -1026,6 +1035,11 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
         """
         PullbackOfSimplicialSets_finite.__init__(self, [space.constant_map()
                                                  for space in factors])
+        if kenzo_is_present and factors and all(hasattr(f, '_kenzo_repr') for f in factors):
+            f0 = factors[0]._kenzo_repr
+            for f1 in factors[1:]:
+                f0 = f0.cartesian_product(f1._kenzo_repr)
+            self._kenzo_repr = f0
         self._factors = tuple([f.domain() for f in self._maps])
 
     def projection_map(self, i):
@@ -1920,6 +1934,11 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
         prod = ProductOfSimplicialSets_finite(factors)
         wedge = prod.wedge_as_subset()
         QuotientOfSimplicialSet_finite.__init__(self, wedge.inclusion_map())
+        if kenzo_is_present and factors and all(hasattr(f, '_kenzo_repr') for f in factors):
+            f0 = factors[0]._kenzo_repr
+            for f1 in factors[1:]:
+                f0 = f0.smash_product(f1._kenzo_repr)
+            self._kenzo_repr = f0
         self._factors = factors
 
     def _repr_(self):
@@ -2022,6 +2041,11 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             vertices = PushoutOfSimplicialSets_finite([space.n_skeleton(0).base_point_map()
                                                        for space in factors])
             self._basepoint = vertices.base_point()
+            if kenzo_is_present and all(hasattr(f, '_kenzo_repr') for f in factors):
+                f0 = factors[0]._kenzo_repr
+                for f1 in factors[1:]:
+                    f0 = f0.wedge(f1._kenzo_repr)
+                self._kenzo_repr = f0
         self.base_point().rename('*')
         self._factors = factors
 
@@ -2090,6 +2114,11 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
                 raise ValueError('the simplicial sets must be pointed')
             PushoutOfSimplicialSets_finite.__init__(self, [space.base_point_map()
                                                            for space in factors])
+            if kenzo_is_present and all(hasattr(f, '_kenzo_repr') for f in factors):
+                f0 = factors[0]._kenzo_repr
+                for f1 in factors[1:]:
+                    f0 = f0.wedge(f1._kenzo_repr)
+                self._kenzo_repr = f0
         self.base_point().rename('*')
         self._factors = factors
 
