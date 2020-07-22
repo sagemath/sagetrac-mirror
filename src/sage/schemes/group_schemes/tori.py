@@ -14,12 +14,10 @@ To define a torus we use ``AlgebraicTorus(character_lattice)``
 
 ::
 
+    sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
     sage: L = GLattice([], 1)
     sage: AlgebraicTorus(L)
-    Algebraic Torus of rank 1 defined by the following lattice:
-    Ambient free module of rank 1 over the principal ideal domain Integer Ring
-    and an action by the Galois group of the form:
-    Permutation Group with generators [()]
+    Split algebraic torus of rank 1
 
 This is the split torus ``\mathbb{G}_m``, with action of the trivial Galois group.
 
@@ -27,10 +25,7 @@ This is the split torus ``\mathbb{G}_m``, with action of the trivial Galois grou
 
     sage: LL = GLattice(SymmetricGroup(3), 1)
     sage: AlgebraicTorus(LL)
-    Algebraic Torus of rank 1 defined by the following lattice:
-    Ambient free module of rank 1 over the principal ideal domain Integer Ring
-    and an action by the Galois group of the form:
-    Symmetric group of order 3! as a permutation group
+    Split algebraic torus of rank 1
 
 This is still ``\mathbb{G}_m``, with trivial action of a Galois group isomorphic to `S_3`. Note that
 this Galois group is not necessarily the one of a minimal splitting extension.
@@ -41,25 +36,36 @@ this Galois group is not necessarily the one of a minimal splitting extension.
     sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
     sage: LLL = GLattice(SymmetricGroup(3), [act1, act2])
     sage: T3 = AlgebraicTorus(LLL); T3
-    Algebraic Torus of rank 3 defined by the following lattice:
-    Ambient free module of rank 3 over the principal ideal domain Integer Ring
-    and an action by the Galois group of the form:
-    Symmetric group of order 3! as a permutation group
+    Algebraic torus of rank 3 split by a degree 6 extension
 
 This is a non-split anisotropic torus with Galois group of splitting field isomorphic to ``S_3``.
 
 ::
 
-    sage: SL = SubLattice(L, [2*L.basis()[0]])
+    sage: SL = L.sublattice([2*L.basis()[0]])
     sage: AlgebraicTorus(SL)
-    Algebraic Torus of rank 1 defined by the following lattice:
-    Free module of degree 1 and rank 1 over Integer Ring
-    Echelon basis matrix:
-    [2]
-    and an action by the Galois group of the form:
-    Permutation Group with generators [()]
+    Split algebraic torus of rank 1
 
 This torus is obtained from the sublattice of the first lattice `L`. The torus obtained is isomorphic to `L`.
+
+One can define an algebraic torus form a number field. We can compute restriction of scalars.
+
+::
+    
+    sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
+    sage: x = polygen(QQ);  K.<a> = NumberField(x^8 + 68*x^6 + 986*x^4 + 4624*x^2 + 4624)
+    sage: RestrictionOfScalars(K)
+    Algebraic torus of rank 8 over Rational Field split by a degree 8 extension
+
+We can similarly define norm-one tori.
+
+::
+
+    sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+    sage: F.<b> = QuadraticField([2])
+    sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+    sage: NormOneRestrictionOfScalars(F)
+    Algebraic torus of rank 1 over Rational Field split by a degree 2 extension
 
 
 Attributes of a Torus
@@ -171,10 +177,11 @@ def NormOneRestrictionOfScalars(nfield, rk = 1):
         Algebraic torus of rank 1 over Rational Field split by a degree 2 extension
         sage: T1.character_lattice()._action_matrices
         [[-1]]
+        sage: K.<b> = NumberField([x^4+1])
         sage: T2 = NormOneRestrictionOfScalars(K); T2
         Algebraic torus of rank 3 over Rational Field split by a degree 4 extension
         sage: T3 = NormOneRestrictionOfScalars(K,3); T3
-        Algebraic torus of rank 12 over Rational Field split by a degree 4 extension
+        Algebraic torus of rank 9 over Rational Field split by a degree 4 extension
     """
 
     L = GLattice(rk).norm_one_restriction_of_scalars(nfield.galois_group())
@@ -198,12 +205,10 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(DihedralGroup(4), 4)
             sage: AlgebraicTorus(L)
-            Algebraic Torus of rank 4 defined by the following lattice:
-            Ambient free module of rank 4 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Dihedral group of order 8 as a permutation group
+            Split algebraic torus of rank 4
         """
         Scheme.__init__(self)
         self._galois_group = lattice.group()
@@ -222,25 +227,16 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: AlgebraicTorus(GLattice(CyclicPermutationGroup(3), 2))
-            Algebraic Torus of rank 2 defined by the following lattice:
-            Ambient free module of rank 2 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Cyclic group of order 3 as a permutation group
+            Split algebraic torus of rank 2
 
         ::
 
             sage: L = GLattice(CyclicPermutationGroup(3), 2).norm_one_restriction_of_scalars(SymmetricGroup(3
-            ....: ),False)
+            ....: ))
             sage: AlgebraicTorus(L)
-            Algebraic Torus of rank 4 defined by the following lattice:
-            Free module of degree 4 and rank 3 over Integer Ring
-            Echelon basis matrix:
-            [ 1  0  0 -1]
-            [ 0  1  0 -1]
-            [ 0  0  1 -1]
-            and an action by the Galois group of the form:
-            Symmetric group of order 3! as a permutation group
+            Algebraic torus of rank 2 split by a degree 2 extension
         """
         split = self._lattice.action_is_trivial()
         if split:
@@ -260,6 +256,7 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice([])
             sage: T1 = AlgebraicTorus(L)
             sage: LL = GLattice(SymmetricGroup(3), 1)
@@ -286,6 +283,7 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES:: 
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: G = QuaternionGroup()
             sage: Z = G.center()
             sage: L = GLattice(Z, 1)
@@ -311,6 +309,7 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(PermutationGroup([()]), 1)
             sage: T1 = AlgebraicTorus(L)
             sage: LL = GLattice(SymmetricGroup(3), 1)
@@ -325,9 +324,9 @@ class AlgebraicTorus(Scheme):
             sage: T1.galois_group()
             Permutation Group with generators [()]
             sage: T2.galois_group()
-            Symmetric group of order 3! as a permutation group
+            Permutation Group with generators [(1,2,3), (1,2)]
             sage: T3.galois_group()
-            Symmetric group of order 3! as a permutation group
+            Permutation Group with generators [(1,2,3), (1,2)]
         """
         return self._lattice._group
 
@@ -346,6 +345,7 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: K.<w> = QuadraticField(5); G = K.galois_group()
             sage: Lat = GLattice(G, 1)
             sage: T = AlgebraicTorus(Lat)
@@ -383,6 +383,7 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(PermutationGroup([()]), 1)
             sage: T1 = AlgebraicTorus(L)
             sage: LL = GLattice(SymmetricGroup(3), 1)
@@ -395,11 +396,11 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: T1.character_lattice()
-            Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            Ambient lattice of rank 1 with an action by a group of order 1
             sage: T2.character_lattice()
-            Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            Ambient lattice of rank 1 with the trivial action of a group of order 6
             sage: T3.character_lattice()
-            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            Ambient lattice of rank 3 with a faithful action by a group of order 6
         """
         return self._lattice
 
@@ -409,6 +410,7 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(PermutationGroup([()]), 1)
             sage: T1 = AlgebraicTorus(L)
             sage: LL = GLattice(SymmetricGroup(3), 1)
@@ -438,9 +440,10 @@ class AlgebraicTorus(Scheme):
 
         ::
 
-            sage: L = GLattice(PermutationGroup([(1,2,3,4,5,6)]), [matrix(2, [0,1,-1,-1])])
-            Ambient free module of rank 2 over the principal ideal domain Integer Ring
-            sage: T = AlgebraicTorus(L)
+            sage: L = GLattice(PermutationGroup([(1,2,3,4,5,6)]), [matrix(2, [0,1,-1,-1])]); L
+            Ambient lattice of rank 2 with an action by a group of order 6
+            sage: T = AlgebraicTorus(L); T
+            Algebraic torus of rank 2 split by a degree 3 extension
             sage: T.character_lattice()._action_matrices
             [
             [ 0  1]
@@ -470,6 +473,7 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(PermutationGroup([()]), 1)
             sage: T1 = AlgebraicTorus(L)
             sage: LL = GLattice(SymmetricGroup(3), 1)
@@ -482,34 +486,36 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": ") , T1.Tate_Cohomology(i)
-            H^-5:  []
-            H^-4:  []
-            H^-3:  []
-            H^-2:  []
-            H^-1:  []
-            H^0:  []
-            H^1:  []
-            H^2:  []
-            H^3:  []
-            H^4:  []
+            ....:     print("H^"+str(i)+" : ", T1. Tate_Cohomology (i))
+            H^-5 :  []
+            H^-4 :  []
+            H^-3 :  []
+            H^-2 :  []
+            H^-1 :  []
+            H^0 :  []
+            H^1 :  []
+            H^2 :  []
+            H^3 :  []
+            H^4 :  []
+            H^5 :  []
 
         The Galois group is trivial and has obviously trivial cohomology
 
         ::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": ") , T2.Tate_Cohomology(i)
-            H^-5:  []
-            H^-4:  [2]
-            H^-3:  []
-            H^-2:  [6]
-            H^-1:  []
-            H^0:  [2]
-            H^1:  []
-            H^2:  [6]
-            H^3:  []
-            H^4:  [2]
+            ....:     print("H^"+str(i)+" : ", T2. Tate_Cohomology (i))
+            H^-5 :  []
+            H^-4 :  [2]
+            H^-3 :  []
+            H^-2 :  [6]
+            H^-1 :  []
+            H^0 :  [2]
+            H^1 :  []
+            H^2 :  [6]
+            H^3 :  []
+            H^4 :  [2]
+            H^5 :  []
 
         We can recognize from class field theory that H^2 (the Brauer group of
         our extension) is isomorphic to the cyclic group Cn where n is the order of the
@@ -523,17 +529,18 @@ class AlgebraicTorus(Scheme):
         ``H^2(\ZZ)``), which here has order 2 (it is the group of signatures)::
 
             sage: for i in range(-5, 6):
-            ....:     print("H^"+str(i)+": ") , T3.Tate_Cohomology(i)
-            H^-5:  []
-            H^-4:  [2]
-            H^-3:  []
-            H^-2:  [2]
-            H^-1:  []
-            H^0:  [2]
-            H^1:  []
-            H^2:  [2]
-            H^3:  []
-            H^4:  [2]
+            ....:     print("H^"+str(i)+" : ", T3. Tate_Cohomology (i))
+            H^-5 :  []
+            H^-4 :  [2]
+            H^-3 :  []
+            H^-2 :  [2]
+            H^-1 :  []
+            H^0 :  [2]
+            H^1 :  []
+            H^2 :  [2]
+            H^3 :  []
+            H^4 :  [2]
+            H^5 :  []
 
         In this example, we can see the 2-periodicity of the cohomology groups, consequence
         of the group being cyclic.
@@ -550,15 +557,13 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: T1 = AlgebraicTorus(GLattice([], 1));
-            sage: T2 = T1.norm_one_restriction(G)
             sage: G = SymmetricGroup(3)
+            sage: T2 = T1.norm_one_restriction(G)
             sage: T3 = T1.restriction_of_scalars(G)
             sage: PT = T2.product(T3); PT; PT.character_lattice()._action_matrices
-            Algebraic Torus of rank 11 defined by the following lattice:
-            Ambient free module of rank 11 over the principal ideal domain Integer Ring
-            and an action by the galois group of the form:
-            Symmetric group of order 3! as a permutation group
+            Algebraic torus of rank 11 split by a degree 6 extension
             [
             [ 0 -1  0  0  1| 0  0  0  0  0  0]  [ 0  0  1 -1  0| 0  0  0  0  0  0]
             [ 0 -1  1  0  0| 0  0  0  0  0  0]  [ 0  0  0 -1  1| 0  0  0  0  0  0]
@@ -574,14 +579,7 @@ class AlgebraicTorus(Scheme):
             [ 0  0  0  0  0| 0  1  0  0  0  0], [ 0  0  0  0  0| 0  0  0  1  0  0]
             ]
         """
-        return AlgebraicTorus(self.character_lattice().sum_lattice(torus.character_lattice()))
-
-        #gives the torus representing the Restriction of scalars.
-        #Right now, for a torus defined over K, splitting over L,
-        #to compute the restriction of scalars to k inside K,
-        #the user has to enter the galois group of the extension L/k
-        #In the future, when we will have a better notion for Galois group
-        #perhaps we can deal with fields directly.
+        return AlgebraicTorus(self.character_lattice().direct_sum(torus.character_lattice()))
 
     def restriction_of_scalars(self, group):
         r"""
@@ -604,7 +602,8 @@ class AlgebraicTorus(Scheme):
             as abstract group.
 
         EXAMPLES::
-
+            
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(PermutationGroup([()]), 1)
             sage: T1 = AlgebraicTorus(L)
             sage: LL = GLattice(SymmetricGroup(3), 1)
@@ -617,18 +616,12 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: T1.restriction_of_scalars(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
-            Algebraic Torus of rank 16 defined by the following lattice:
-            Ambient free module of rank 16 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
+            Algebraic torus of rank 16 split by a degree 16 extension
 
         ::
 
             sage: T2.restriction_of_scalars(SymmetricGroup(4))
-            Algebraic Torus of rank 4 defined by the following lattice:
-            Ambient free module of rank 4 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Symmetric group of order 4! as a permutation group
+            Algebraic torus of rank 4 split by a degree 24 extension
             sage: _.character_lattice()._action_matrices
             [
             [0|0|0|1]  [1|0|0|0]
@@ -643,10 +636,7 @@ class AlgebraicTorus(Scheme):
         ::
 
             sage: T3.restriction_of_scalars(SymmetricGroup(4))
-            Algebraic Torus of rank 12 defined by the following lattice:
-            Ambient free module of rank 12 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Symmetric group of order 4! as a permutation group
+            Algebraic torus of rank 12 split by a degree 24 extension
             sage: _.character_lattice()._action_matrices
             [
             [0 0 0|0 0 0|0 0 0|1 0 0]  [0 1 0|0 0 0|0 0 0|0 0 0]
@@ -669,19 +659,21 @@ class AlgebraicTorus(Scheme):
         return AlgebraicTorus(self._lattice.induced_lattice(group))
 
     def Tamagawa_number(self, subgrps = []):
-        """sage: F.<a> = QuadraticField([2])
-            sage: T = NormOneRestrictionOfScalars(F)
-            sage: T.Tamagawa_number()
-            2
-            sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
-            sage: T2 = RestrictionOfScalars(F)
-            sage: T2.Tamagawa_number()
-            1
-        Returns the decomposition groups at ramified places. If the group is just a decomposition, one can specified
-        subgroups to compute the Tate_Shafarevich group as second argument.
+        """
+        Computes the Tamagwa number of an algebraic torus.
+        
+        INPUT:
+
+        - ``subgrps`` -- To be used when the group is not the Galois group
+          of some number field, but just a permutation group. In that case
+          this argument should be the list of ramified decomposition groups, 
+          which have to be manually added. If left blank, the method will assume
+          that all decomposition groups are cyclic.
 
         EXAMPLES::
-
+            
+            sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
+            sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
             sage: F.<a> = QuadraticField([2])
             sage: T = NormOneRestrictionOfScalars(F)
             sage: T.Tamagawa_number()
@@ -692,12 +684,13 @@ class AlgebraicTorus(Scheme):
             1
 
         ::
-
+            
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: G = QuaternionGroup()
             sage: Z = G.center()
             sage: IL = GLattice(1).induced_lattice(G)
             sage: SL = IL.fixed_sublattice(Z).zero_sum_sublattice()
-            Lsage: L = IL.quotient_lattice(SL); L
+            sage: L = IL.quotient_lattice(SL); L
             Ambient lattice of rank 5 with a faithful action by a group of order 8
             sage: T2 = AlgebraicTorus(L)
             sage: T2.Tamagawa_number()
@@ -751,68 +744,41 @@ class AlgebraicTorus(Scheme):
 
         EXAMPLES::
 
+            sage: from sage.schemes.group_schemes.tori import AlgebraicTorus
             sage: L = GLattice(PermutationGroup([()]), 1)
             sage: T1 = AlgebraicTorus(L)
             sage: LL = GLattice(SymmetricGroup(3), 1)
             sage: T2 = AlgebraicTorus(LL)
-            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
-            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
-            sage: LLL = GLattice(SymmetricGroup(3), [act1,act2])
-            sage: T3 = AlgebraicTorus(LLL)
 
         ::
 
             sage: T1.norm_one_restriction(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
-            Algebraic Torus of rank 15 defined by the following lattice:
-            Ambient free module of rank 15 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
+            Algebraic torus of rank 15 split by a degree 16 extension
             sage: _.character_lattice()._action_matrices[0]
-            [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0]
-            [ 1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0]
-            [ 0  0  1  0  0  0  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  1  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  1  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  0  0  1  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  0  1  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0]
-            [ 0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
-            [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+            [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0 -1]
+            [ 1  0  0  0  0  0  0  0  0  0  0  0  0  0 -1]
+            [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0 -1]
+            [ 0  0  1  0  0  0  0  0  0  0  0  0  0  0 -1]
+            [ 0  0  0  0  0  1  0  0  0  0  0  0  0  0 -1]
+            [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0 -1]
+            [ 0  0  0  0  0  0  0  1  0  0  0  0  0  0 -1]
+            [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0 -1]
+            [ 0  0  0  0  0  0  0  0  0  1  0  0  0  0 -1]
+            [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0 -1]
+            [ 0  0  0  0  0  0  0  0  0  0  0  1  0  0 -1]
+            [ 0  0  0  0  0  0  0  0  0  0  1  0  0  0 -1]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1 -1]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  1  0 -1]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0 -1]
             sage: T2.norm_one_restriction(SymmetricGroup(4))
-            Algebraic Torus of rank 3 defined by the following lattice:
-            Ambient free module of rank 3 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Symmetric group of order 4! as a permutation group
+            Algebraic torus of rank 3 split by a degree 24 extension
             sage: _.character_lattice()._action_matrices
             [
-            [-1 -1 -1]  [ 1  0  0]
-            [ 1  0  0]  [ 0  1  0]
-            [ 0  1  0], [-1 -1 -1]
+            [-1  1  0]  [0 1 0]
+            [-1  0  1]  [1 0 0]
+            [-1  0  0], [0 0 1]
             ]
-            sage: N1 = T3.norm_one_restriction(SymmetricGroup(4)); N1
-            Algebraic Torus of rank 11 defined by the following lattice:
-            Ambient free module of rank 11 over the principal ideal domain Integer Ring
-            and an action by the Galois group of the form:
-            Symmetric group of order 4! as a permutation group
-            sage: N1.character_lattice()._action_matrices
-            [
-            [ 0  0  0  0  0  0  0  0  0  1  0]  [ 0  1  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  0  1]  [ 1  0  0  0  0  0  0  0  0  0  0]
-            [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1]  [ 0  0  1  0  0  0  0  0  0  0  0]
-            [ 0  1  0  0  0  0  0  0  0  0  0]  [ 0  0  0  0  1  0  0  0  0  0  0]
-            [ 0  0  1  0  0  0  0  0  0  0  0]  [ 0  0  0  1  0  0  0  0  0  0  0]
-            [ 1  0  0  0  0  0  0  0  0  0  0]  [ 0  0  0  0  0  1  0  0  0  0  0]
-            [ 0  0  0  0  1  0  0  0  0  0  0]  [ 0  0  0  0  0  0  0  0  0  1  0]
-            [ 0  0  0  0  0  1  0  0  0  0  0]  [ 0  0  0  0  0  0  0  0  0  0  1]
-            [ 0  0  0  1  0  0  0  0  0  0  0]  [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1]
-            [ 0  0  0  0  0  0  0  1  0  0  0]  [ 0  0  0  0  0  0  1  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  1  0  0], [ 0  0  0  0  0  0  0  1  0  0  0]
-            ]
+            
 
         We now compute the cohomologies of all those tori.
         For the two latter examples, we check that we get different cohomologies with the
@@ -820,17 +786,17 @@ class AlgebraicTorus(Scheme):
 
             sage: ROS = T1.norm_one_restriction(PermutationGroup([(1,2), (3,4), (5,6), (7,8)]))
             sage: for i in range(-4, 6):
-            ....:     print("H^"+str(i)+": ") , ROS.Tate_Cohomology(i)
-            H^-4:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-            H^-3:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-            H^-2:  [2, 2, 2, 2, 2, 2]
-            H^-1:  [2, 2, 2, 2]
-            H^0:  []
-            H^1:  [16]
-            H^2:  []
-            H^3:  [16]
-            H^4:  [2, 2, 2, 2, 2, 2]
-            H^5:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            ....:     print("H^"+str(i)+" : ", ROS.Tate_Cohomology (i))
+            H^-4 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            H^-3 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            H^-2 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            H^-1 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            H^0 :  [2, 2, 2, 2, 2, 2]
+            H^1 :  [2, 2, 2, 2]
+            H^2 :  []
+            H^3 :  [2, 2, 2, 2]
+            H^4 :  []
+            H^5 :  [2, 2, 2, 2]
 
         This torus ``ROS`` is the example of Ono where he applies his formula for the Tamagawa
         number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
@@ -839,30 +805,16 @@ class AlgebraicTorus(Scheme):
 
             sage: ROS2 = T2.norm_one_restriction(SymmetricGroup(4))
             sage: for i in range(-4, 6):
-            ....:     print("H^"+str(i)+": ") , T2.Tate_Cohomology(i)
-            H^-4:  [2]
-            H^-3:  []
-            H^-2:  [6]
-            H^-1:  []
-            H^0:  [2]
-            H^1:  []
-            H^2:  [6]
-            H^3:  []
-            H^4:  [2]
-            H^5:  []
-
-            sage: ROS3 = T3.norm_one_restriction(SymmetricGroup(4))
-            sage: for i in range(-4, 6):
-            ....:     print("H^"+str(i)+": ") , ROS3.Tate_Cohomology(i)
-            H^-4:  [2, 2]
-            H^-3:  [2, 12]
-            H^-2:  [2, 2]
-            H^-1:  [2]
-            H^0:  [2]
-            H^1:  [12]
-            H^2:  []
-            H^3:  [12]
-            H^4:  [2]
-            H^5:  [12]
+            ....:     print("H^"+str(i)+" : ", T2.Tate_Cohomology (i))
+            H^-4 :  [2]
+            H^-3 :  []
+            H^-2 :  [6]
+            H^-1 :  []
+            H^0 :  [2]
+            H^1 :  []
+            H^2 :  [6]
+            H^3 :  []
+            H^4 :  [2]
+            H^5 :  []
         """
-        return AlgebraicTorus(self._lattice.norm_one_restriction_of_scalars(group, True))
+        return AlgebraicTorus(self._lattice.norm_one_restriction_of_scalars(group))
