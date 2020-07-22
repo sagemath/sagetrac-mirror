@@ -59,6 +59,11 @@ from sage.rings.all import QQ, ZZ
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.categories.homset import Hom
+import multiprocessing
+import itertools
+from os import cpu_count
+_cpu_count = cpu_count()
+
 
 class SingularSupportCoverMorphism(RingHomomorphism_im_gens):
     """
@@ -382,7 +387,15 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
                     ret = c*p._ambient(pt)
                 return p._from_dict(ret._monomial_coefficients)
             return c*(a.T()*b + a*b.T())
-        return sum(m.T() for m in self.terms())
+        if multiprocessing.current_process().daemon:
+            return sum(m.T() for m in self.terms())
+        else:
+            pool = multiprocessing.Pool(min(_cpu_count, len(self.terms())),
+                                        maxtasksperchild=1)
+            ret = sum(pool.map(type(self).T, self.terms()))
+            pool.close()
+            pool.join()
+            return ret
 
     def _mul_(self,other):
         """
@@ -452,7 +465,16 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
                             p._ambient.zero())
                 return p._from_dict(ret._monomial_coefficients)
             return c*a._mul_(b._mul_(other))
-        return sum(i._mul_(j) for i in self.terms() for j in other.terms())
+        iterterms = itertools.product(self.terms(),other.terms())
+        if multiprocessing.current_process().daemon: 
+            return sum(i._mul_(j) for i,j in iterterms)
+        else:
+            pool = multiprocessing.Pool(min(_cpu_count, 
+                   len(self.terms())*len(other.terms())), maxtasksperchild=1)
+            ret = sum(pool.starmap(type(self)._mul_, iterterms))
+            pool.close()
+            pool.join()
+            return ret
 
     def _bracket_(self,other):
         r"""
@@ -483,7 +505,16 @@ class ClassicalLimitElement(IndexedFreeModuleElement):
                     ds + do - k],p.zero()) for k,v in br.items()}
             return {k:v for k,v in ret.items() if v}
 
-        diclist = [i._bracket_(j) for i in self.terms() for j in other.terms()]
+        iterterms = itertools.product(self.terms(),other.terms())
+        if multiprocessing.current_process().daemon: 
+            diclist = [i._bracket_(j) for i,j in iterterms]
+        else:
+            pool = multiprocessing.Pool(min(_cpu_count,
+                   len(self.terms())*len(other.terms())), maxtasksperchild=1)
+            diclist = pool.starmap(type(self)._bracket_, iterterms)
+            pool.close()
+            pool.join()
+
         ret = {}
         for d in diclist:
             for k in d:

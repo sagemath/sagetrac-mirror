@@ -20,6 +20,10 @@ from sage.functions.other import binomial, factorial
 from sage.rings.infinity import Infinity
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.misc.misc import repr_lincomb
+import multiprocessing
+import itertools
+from os import cpu_count
+_cpu_count = cpu_count()
 
 class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
     """
@@ -294,7 +298,16 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
                     ret[k] = ret.get(k,pz) + d[k]
             return {k:v for k,v in ret.items() if v}
 
-        diclist = [i._bracket_(j) for i in self.terms() for j in other.terms()]
+        iterterms = itertools.product(self.terms(),other.terms())
+        if multiprocessing.current_process().daemon: 
+            diclist = [i._bracket_(j) for i,j in iterterms]
+        else:
+            pool = multiprocessing.Pool(min(_cpu_count,
+                   len(self.terms())*len(other.terms())), maxtasksperchild=1)
+            diclist = pool.starmap(type(self)._bracket_, iterterms)
+            pool.close()
+            pool.join()
+
         ret = {}
         for d in diclist:
             for k in d:
@@ -391,7 +404,16 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
                     br2.items()],pz) + (-1)**(a.is_even_odd()*b.is_even_odd())*\
                     c*sum([b.T(k+1)._mul_(v)/factorial(k+1) for k,v in\
                     br1.items()],pz)
-        return sum(i._mul_(j) for i in self.terms() for j in right.terms())
+        iterterms = itertools.product(self.terms(),right.terms())
+        if multiprocessing.current_process().daemon: 
+            return sum(i._mul_(j) for i,j in iterterms)
+        else:
+            pool = multiprocessing.Pool(min(_cpu_count, 
+                   len(self.terms())*len(right.terms())), maxtasksperchild=1)
+            ret = sum(pool.starmap(type(self)._mul_, iterterms))
+            pool.close()
+            pool.join()
+            return ret
 
     def T(self,n=1):
         r"""
@@ -439,7 +461,15 @@ class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
                 return (c*p._lca.gen(i).T(n)/factorial(n-1)).lift()
             return c*a.T()._mul_(b) + c*a._mul_(b.T())
 
-        return sum(m.T() for m in self.terms())
+        if multiprocessing.current_process().daemon:
+            return sum(m.T() for m in self.terms())
+        else:
+            pool = multiprocessing.Pool(min(_cpu_count, len(self.terms())),
+                                        maxtasksperchild=1)
+            ret = sum(pool.map(type(self).T, self.terms()))
+            pool.close()
+            pool.join()
+            return ret
 
     def weight(self):
         """
