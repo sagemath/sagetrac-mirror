@@ -94,4 +94,13 @@ Cyclic Covers
    sage/schemes/cyclic_covers/charpoly_frobenius
    sage/schemes/cyclic_covers/constructor
 
+Group Schemes
+--------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/schemes/group_schemes/tori
+
+
 .. include:: ../footer.txt

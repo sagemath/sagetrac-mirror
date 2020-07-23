@@ -58,7 +58,7 @@ Methods of a lattice morphism
 
 - :meth:`GLatticeMorphism_left.is_bijective` -- determine if the morphism is a bijection.
 
-- :meth:`GLatticeMorphism_left.endomorphism` -- determine if the morphism is an endomorphism.
+- :meth:`GLatticeMorphism_left.is_endomorphism` -- determine if the morphism is an endomorphism.
 
 - :meth:`GLatticeMorphism_left.is_injective` -- determine if the morphism is injective.
 
@@ -227,7 +227,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
     def __call__(self, elt):
         """
         Compute the image of either an element of a lattice, or a sublattice.
-        In case the image is not a 
+       
 
         EXAMPLES::
 
@@ -344,16 +344,17 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
         - ``other`` -- Lattice or list of lattice we want to take the sum with.
 
         - ``domainsum`` -- String, by default ``outer``, declares it we want to take the inner or 
-          outer sum for the domain. If `inner`, the domain lattices must match. If the argument
+          outer sum for the domain. If ``inner``, the domain lattices must match. If the argument
           is ``outer`` then the domain of the sum will be a direct sum of lattices.
 
         - ``codomainsum`` -- String, by default ``outer``, declares it we want to take the inner or 
-          outer sum for the codomain. If `inner`, the codomain lattices must match. If the argument
+          outer sum for the codomain. If ``inner``, the codomain lattices must match. If the argument
           is ``outer`` then the codomain of the sum will be a direct sum of lattices.
 
 
 
         EXAMPLES::
+
             sage: L = GLattice([2, 2])
             sage: m = identity_matrix(4)
             sage: h = L.left_morphism(m)
@@ -613,38 +614,38 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
 
         EXAMPLES::
 
-        sage: L = GLattice([2])
-        sage: h = L.surjection_from_square()
-        sage: h.matrix()
-        [1 0|1 0]
-        [0 1|0 1]
-        sage: hh = h + h; hh.matrix()
-        [2 0 2 0]
-        [0 2 0 2]
+            sage: L = GLattice([2])
+            sage: h = L.surjection_from_square()
+            sage: h.matrix()
+            [1 0|1 0]
+            [0 1|0 1]
+            sage: hh = h + h; hh.matrix()
+            [2 0 2 0]
+            [0 2 0 2]
         """
         return self._matrix
 
     def free_module_morphism(self):
         """
-        Return the corresponding free module morphisms. Note that those morphisms are acting on the right.
+        Return the corresponding free module morphisms. Those morphisms are acting on the right.
 
         EXAMPLES::
 
-        sage: L = GLattice([2])
-        sage: h = L.surjection_from_square(); h
-        Lattice morphism defined by the left action of the matrix
-        [1 0|1 0]
-        [0 1|0 1]
-        Domain: Ambient lattice of rank 4 with a faithful action by a group of order 2
-        Codomain: Ambient lattice of rank 2 with a faithful action by a group of order 2
-        sage: h.free_module_morphism()
-        Free module morphism defined by the matrix
-        [1 0]
-        [0 1]
-        [1 0]
-        [0 1]
-        Domain: Ambient lattice of rank 4 with a faithful action by a group of order 2
-        Codomain: Ambient lattice of rank 2 with a faithful action by a group of order 2
+            sage: L = GLattice([2])
+            sage: h = L.surjection_from_square(); h
+            Lattice morphism defined by the left action of the matrix
+            [1 0|1 0]
+            [0 1|0 1]
+            Domain: Ambient lattice of rank 4 with a faithful action by a group of order 2
+            Codomain: Ambient lattice of rank 2 with a faithful action by a group of order 2
+            sage: h.free_module_morphism()
+            Free module morphism defined by the matrix
+            [1 0]
+            [0 1]
+            [1 0]
+            [0 1]
+            Domain: Ambient lattice of rank 4 with a faithful action by a group of order 2
+            Codomain: Ambient lattice of rank 2 with a faithful action by a group of order 2
         """
         return self._free_morphism
 

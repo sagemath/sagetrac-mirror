@@ -83,8 +83,7 @@ Methods of a Torus
 
 - :meth:`AlgebraicTorus.rank` -- the rank of the torus.
 
-- :meth:`AlgebraicTorus.galois_group` -- the Galois group (as abstract group)
-    of a splitting field of the torus.
+- :meth:`AlgebraicTorus.galois_group` -- the Galois group (as abstract group)   of a splitting field of the torus.
 
 - :meth:`AlgebraicTorus.character_lattice` -- the character lattice of the torus.
 
@@ -92,19 +91,15 @@ Methods of a Torus
 
 - :meth:`AlgebraicTorus.is_rational` -- tests if a point is rational.
 
-- :meth:`AlgebraicTorus.Tate_Cohomology` -- the isomorphism
-    type of Tate Cohomology groups of the Torus over a local field.
+- :meth:`AlgebraicTorus.Tate_Cohomology` -- the isomorphism type of Tate Cohomology groups of the Torus over a local field.
 
 - :meth:`AlgebraicTorus.Tamagawa_number` -- the Tamagawa number.
 
-- :meth: AlgebraicTorus.product -- the product of the torus with another specified torus.
-with same base and splitting field.
+- :meth:`AlgebraicTorus.product` -- the product of the torus with another specified torus with same base and splitting field.
 
-- :meth:`AlgebraicTorus.restriction_of_scalars` -- returns the torus obtained by
-    restriction of scalars.
+- :meth:`AlgebraicTorus.restriction_of_scalars` -- returns the torus obtained by restriction of scalars.
 
-- :meth:`AlgebraicTorus.norm_one_restriction_of_scalars` -- the torus of norm 1
-elements in the restriction of scalars.
+- :meth:`AlgebraicTorus.norm_one_restriction` -- the torus of norm 1 elements in the restriction of scalars.
 """
 
 ###########################################################################
@@ -405,7 +400,7 @@ class AlgebraicTorus(Scheme):
         return self._lattice
 
     def cocharacter_lattice(self):
-        r""""
+        r"""
         The cocharacter lattice of the torus.
 
         EXAMPLES::
@@ -466,7 +461,7 @@ class AlgebraicTorus(Scheme):
 
         - ``n`` -- which cohomology group to compute
 
-        NOTE::
+        .. NOTE::
 
             This currently only works for tori over local p-adic fields. For global fields,
             Tate-Nakayama gives the cohomology of the class group, not the torus itself.
@@ -517,16 +512,16 @@ class AlgebraicTorus(Scheme):
             H^4 :  [2]
             H^5 :  []
 
-        We can recognize from class field theory that H^2 (the Brauer group of
+        We can recognize from class field theory that `H^2` (the Brauer group of
         our extension) is isomorphic to the cyclic group Cn where n is the order of the
-        Galois group. Here the group is S3, which has order 6 so we get C6.
+        Galois group. Here the group is `S_3`, which has order 6 so we get `C_6`.
 
         Another way to see it is seeing this H^2 as H^0 of its character lattice. Since the group
         acts trivially, the fixed elements are the whole lattice, and the trace map is multiplication
-        by the order of the group, which is 6, so we get C6^(rank of T1)
+        by the order of the group, which is 6, so we get `C_6` ^(rank of ``T1``)
 
-        Also, ``H^0`` can be seen as the abelianization of the Galois group (indeed, by Tate-Nakayama it is
-        ``H^2(\ZZ)``), which here has order 2 (it is the group of signatures)::
+        Also, `H^0` can be seen as the abelianization of the Galois group (indeed, by Tate-Nakayama it is
+        `H^2(\ZZ)`), which here has order 2 (it is the group of signatures)::
 
             sage: for i in range(-5, 6):
             ....:     print("H^"+str(i)+" : ", T3. Tate_Cohomology (i))
@@ -587,8 +582,8 @@ class AlgebraicTorus(Scheme):
 
         INPUT:
 
-        - ``group`` -- the bigger group corresponding the the Galois group
-        of the splitting field over the subfield one wishes to restrict scalars.
+        - ``group`` -- the bigger group corresponding the the Galois group 
+          of the splitting field over the subfield one wishes to restrict scalars.
 
         .. NOTE::
 
@@ -673,7 +668,6 @@ class AlgebraicTorus(Scheme):
         EXAMPLES::
             
             sage: from sage.schemes.group_schemes.tori import NormOneRestrictionOfScalars
-            sage: from sage.schemes.group_schemes.tori import RestrictionOfScalars
             sage: F.<a> = QuadraticField([2])
             sage: T = NormOneRestrictionOfScalars(F)
             sage: T.Tamagawa_number()
@@ -739,8 +733,7 @@ class AlgebraicTorus(Scheme):
 
         INPUT:
 
-        - ``group`` -- the abstract Galois group of the restriction of
-        scalars.
+        - ``group`` -- the abstract Galois group of the restriction of scalars.
 
         EXAMPLES::
 

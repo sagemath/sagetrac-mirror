@@ -253,6 +253,8 @@ Methods of a lattice
 
 - :meth:`SubLattice.injection_morphism` -- injection of a sublattice into its parent ambient lattice.
 
+- :meth:`SubLattice.ambient_lattice` -- parent ambient lattice containing the sublattice.
+
 
 EXAMPLES::
 
@@ -945,11 +947,9 @@ class Lattice_generic(FreeModule_generic):
 
         INPUT:
 
-        - ``mat`` -- matrix representing the linear transformation
+        - ``mat`` -- matrix representing the linear transformation.
 
-        - ``codomain`` -- codomain of the homomorphism, if left empty it will assume it is assumed
-          to be an endomorphism.
-
+        - ``codomain`` -- codomain of the homomorphism, if left empty it will be assumed to be an endomorphism.
 
         EXAMPLES::
 
@@ -1241,8 +1241,9 @@ class Lattice_generic(FreeModule_generic):
         - ``lat`` -- lattice we wish to sum with the current lattice.
         
         - ``param`` -- parameter to determine if we want to compute the interior or exterior direct sum.
-        The two possible choices are ``interior`` and ``exterior``. It is by default interior, which requires
-        the two lattices to be acted on by the same group.
+          The two possible choices are ``interior`` and ``exterior``. It is by default interior, which requires
+          the two lattices to be acted on by the same group.
+
         EXAMPLES::
 
             sage: Lat = GLattice([2], 1)
@@ -1398,13 +1399,14 @@ class Lattice_generic(FreeModule_generic):
         - ``submod`` -- a submodule we want to complete into a sublattice.
 
         EXAMPLES::
-        sage: L = GLattice([2, 2])
-        sage: [a, b, c, d] = L.basis()
-        sage: SL = L.submodule([a+b+c])
-        sage: L.complete_submodule(SL)
-        Sublattice of degree 4 and rank 2 with a faithful action by a group of order 4 and echelon basis matrix
-        [ 1  1  0  1]
-        [ 0  0  1 -1]
+
+            sage: L = GLattice([2, 2])
+            sage: [a, b, c, d] = L.basis()
+            sage: SL = L.submodule([a+b+c])
+            sage: L.complete_submodule(SL)
+            Sublattice of degree 4 and rank 2 with a faithful action by a group of order 4 and echelon basis matrix
+            [ 1  1  0  1]
+            [ 0  0  1 -1]
         """
 
         B = submod.basis()
@@ -1821,7 +1823,7 @@ class Lattice_generic(FreeModule_generic):
             Finitely generated module V/W over Integer Ring with invariants (6)
 
         Here computing the coboundaries lets us compute the first cohomology group.
-        The last line tells us this cohomology group is ``ZZ/6ZZ``.  We can check
+        The last line tells us this cohomology group is `\ZZ/6\ZZ`.  We can check
         that this agrees with the result computed by the :meth:`Tate_Cohomology` method::
 
             sage: L.Tate_Cohomology(1)
@@ -1881,7 +1883,7 @@ class Lattice_generic(FreeModule_generic):
             sage: CC2.quotient(CB2)
             Finitely generated module V/W over Integer Ring with invariants (2)
 
-        In the second example, the first cohomology is isomorphic to ``ZZ/2 ZZ``.
+        In the second example, the first cohomology is isomorphic to `\ZZ/2 \ZZ`.
         Note that it computes the cocycles and coboundary spaces of an
         isomorphic ambient lattice, not the lattice itself.
 
@@ -1973,7 +1975,7 @@ class Lattice_generic(FreeModule_generic):
 
         return list_torsion, list_generators
 
-    def Tate_Shafarevich_lattice(self, number=1, subgp_list=None):
+    def Tate_Shafarevich_lattice(self, number = 1, subgp_list=None):
         r"""
         Computes the kernel of the induced map on `H^i` given by restricting to each subgroup in a list.
 
@@ -1981,7 +1983,7 @@ class Lattice_generic(FreeModule_generic):
 
         - ``number`` -- The number `i` such that the kernel is a subgroup of `H^i`. Only 1, 2 are supported. When 
           the number is 2, it will be assumed that ``subgp_list`` includes all cyclic subgroups. If it is not the 
-          case, one can use the method with ``i``= 1 on the lattice obtained with :meth:`dim_shift`.
+          case, one can use the method with `i`= 1 on the lattice obtained with :meth:`dim_shift`.
 
         - ``subgp_list`` -- list of subgroups, if no argument is given, the list will consist of all cyclic subgroups.
 
@@ -2223,7 +2225,7 @@ class Lattice_generic(FreeModule_generic):
             r"""
             decomp2(element,index) will do the main computation for the group action on the
             induced lattice (we deal with finite groups so induced is the same as coinduced)
-            ``\ZZ[G]\otimes_{\ZZ[H]} L ``
+            `\ZZ[G]\otimes_{\ZZ[H]} L `
 
             To do so, we look at the multiplication g * gi where gi is a representative of the
             ith left coset
@@ -2544,6 +2546,7 @@ class Lattice_generic(FreeModule_generic):
         r"""
         Compute a flabby resolution of a lattice `L` in the form `0\rightarrow L\rightarrow P \rightarrow K\rightarrow 0`.
         The answer consist of a triple of the lattices `P`, `K`, and the injection `L\rightarrow P`
+        
         INPUT:
 
         - ``reduce`` -- boolean (default ``True``), whether the algorithm tries to reduce the dimension of the
@@ -2728,9 +2731,9 @@ class Lattice_generic(FreeModule_generic):
 
     def dim_shift(self, build=False, direction = "Left"):
         r"""
-        Return a lattice whose ``i``-th Tate cohomology group is the
-        ``i+1``-th Tate cohomology group of the original lattice if ``direction`` is ``Left``, 
-        or ``i-1``-th Tate cohomology group if ``direction`` is ``Right``.
+        Return a lattice whose `i`-th Tate cohomology group is the
+        `i+1`-th Tate cohomology group of the original lattice if ``direction`` is ``Left``, 
+        or `i-1`-th Tate cohomology group if ``direction`` is ``Right``.
 
         INPUT:
 
@@ -2762,7 +2765,7 @@ class Lattice_generic(FreeModule_generic):
             sage: DQL.Tate_Cohomology(1)
             [2, 2]
         
-        The cohomology of the quaternion group is ``4``-periodic, so we can see both shifts clearly.
+        The cohomology of the quaternion group is `4`-periodic, so we can see both shifts clearly.
 
         ::
 
