@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.graded_lie_conformal_algebras import GradedLieConformalAlgebrasCategory
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 
@@ -49,17 +50,17 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
             """
             def _repr_object_names(self):
                 """
-                The names of the objects of this category
+                The names of the objects of ``self``.
 
                 EXAMPLES::
 
-                    sage: LieConformalAlgebras(QQbar).FinitelyGenerated().Super().Graded()
-                    Category of H-graded super finitely generated Lie conformal algebras over Algebraic Field
+                    sage: C = LieConformalAlgebras(AA).FinitelyGenerated()
+                    sage: C.Super().Graded()
+                    Category of H-graded super finitely generated Lie conformal algebras over Algebraic Real Field
                 """
-                return "H-graded {}".format(self.base_category().\
-                                            _repr_object_names())
+                return "H-graded {}".format(self.base_category()._repr_object_names())
 
-    class Graded(GradedModulesCategory):
+    class Graded(GradedLieConformalAlgebrasCategory):
         """
         The category of H-graded finitely generated Lie conformal algebras.
 
@@ -68,14 +69,4 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
             sage: LieConformalAlgebras(QQbar).FinitelyGenerated().Graded()
             Category of H-graded finitely generated Lie conformal algebras over Algebraic Field
         """
-        def _repr_object_names(self):
-            """
-            The names of the objects of this category
 
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQbar).FinitelyGenerated().Graded()
-                Category of H-graded finitely generated Lie conformal algebras over Algebraic Field
-            """
-            return "H-graded {}".format(self.base_category().\
-                                        _repr_object_names())
