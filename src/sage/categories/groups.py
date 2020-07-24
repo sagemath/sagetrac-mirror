@@ -675,7 +675,7 @@ class Groups(CategoryWithAxiom):
 
     class Normed(NormedMonoidsCategory):
         class ParentMethods:
-            def _test_norm_inverse(self, **options):
+            def _test_norm_on_inverse(self, **options):
                 r"""
                 Test that this normed group has a norm that satisfies
                 `\|g^{-1}\| = \|g\|`.
