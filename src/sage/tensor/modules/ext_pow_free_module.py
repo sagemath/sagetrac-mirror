@@ -123,7 +123,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
     ``A`` is a module (actually a free module) over `\ZZ`::
 
         sage: A.category()
-        Category of finite dimensional modules over Integer Ring
+        Join of Category of tensor products of finite dimensional modules over Integer Ring and Category of quotients of sets
         sage: A in Modules(ZZ)
         True
         sage: A.rank()
@@ -244,11 +244,15 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         if latex_name is None and fmodule._latex_name is not None:
             latex_name = r'\Lambda^{' + str(degree) + r'}\left(' + \
                                        fmodule._latex_name + r'\right)'
+        category = fmodule.category()
+        if degree > 1:
+            category = category.TensorProducts().Quotients()
+        ext_category = category
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank,
                                       name=name, latex_name=latex_name,
                                       start_index=fmodule._sindex,
                              output_formatter=fmodule._output_formatter,
-                             category=fmodule.category())
+                             category=ext_category)
         # Unique representation:
         if self._degree == 1 or \
            self._degree in self._fmodule._exterior_powers:
@@ -415,6 +419,74 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 
         """
         return self._degree
+
+    def ambient(self):
+        r"""
+        Return the ambient module for ``self``.
+
+        An exterior power of the dual of a free module of finite rank
+        is considered as a quotient of a tensor module.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: Ext2M = M.exterior_power(2); Ext2M
+            2nd exterior power of the Rank-3 free module M over the Integer Ring
+            sage: Ext2M.ambient()
+            Free module of type-(2,0) tensors on the Rank-3 free module M over the Integer Ring
+        """
+        return self._fmodule.tensor_module(self._degree, 0)
+
+    def lift(self, x):
+        r"""
+        Lift ``x`` to the ambient module for ``self``.
+
+        INPUT:
+
+        - ``x`` -- an element of ``self``
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: Ext2M = M.exterior_power(2); Ext2M
+            2nd exterior power of the Rank-3 free module M over the Integer Ring
+            sage: x = Ext2M.an_element(); x.display()
+            e_0/\e_1
+            sage: t = x.lift(); t.display()
+            e_0*e_1 - e_1*e_0
+
+        """
+        return self.ambient()(x)
+
+    def retract(self, t):
+        r"""
+        Retract ``t`` to ``self``.
+
+        INPUT:
+
+        - ``t`` -- an element of the ambient space for ``self``
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: Ext2M = M.exterior_power(2); Ext2M
+            2nd exterior power of the Rank-3 free module M over the Integer Ring
+            sage: t = e[0]*e[1] - e[1]*e[0] + e[0]*e[0] + e[1]*e[1]
+            sage: x = Ext2M.retract(t); x.display()
+            e_0/\e_1
+        """
+        basis = t.pick_a_basis()
+        x_comp = t._components[basis].antisymmetrize()
+        # Trying to pass res_comp to the element_constructor fails:
+        # x = self(x_comp)
+        # ValueError: wrong number of indices: 2 expected, while 1 are provided
+        x = self.element_class(self._fmodule, self._degree)
+        for index in x_comp.index_generator():
+            x.set_comp(basis)[index] = x_comp[index]
+        return x
 
 
 #***********************************************************************
@@ -639,11 +711,19 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             if latex_name is None and fmodule._latex_name is not None:
                 latex_name = r'\Lambda^{' + str(degree) + r'}\left(' + \
                              fmodule._latex_name + r'^*\right)'
+        category = fmodule.category()
+        # TODO: dual_category = category.DualObjects()
+        dual_category = category
+        # TODO: To declare self as a quotient of the (0, degree)-tensor module,
+        #       need to implement methods ambient, lift, retract
+        # if degree > 1:
+        #     dual_category = dual_category.TensorProducts().Quotients()
+        ext_category = dual_category
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter,
-                                    category=fmodule.category())
+                                    category=ext_category)
         # Unique representation:
         if self._degree in self._fmodule._dual_exterior_powers:
             raise ValueError("the {}th exterior power of ".format(degree) +
@@ -880,3 +960,12 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
 
         """
         return self._degree
+
+    def ambient(self):
+        r"""
+        Return the ambient module for ``self``.
+
+        An exterior power of the dual of a free module of finite rank
+        is considered as a quotient of a tensor module.
+        """
+        return self._fmodule.tensor_module(0, self._degree)
