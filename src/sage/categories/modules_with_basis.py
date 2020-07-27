@@ -693,6 +693,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                                     remove_zeros=False)
                     for vec in mat if vec]
 
+        def _test_submodule(self, **options):
+            tester = self._tester(**options)
+            S = tester.some_elements()
+            self.submodule(S)
+
         def submodule(self, gens, check=True, already_echelonized=False,
                       unitriangular=False, support_order=None, category=None,
                       *args, **opts):
