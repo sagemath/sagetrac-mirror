@@ -931,7 +931,7 @@ class RESetMapReduce(object):
             if not all(x is None for x in (roots, children, post_process)):
                 raise ValueError("forest arg is incompatible with roots, children and post_process")
             self._forest = forest
-            self._roots = forest._roots
+            self._roots = forest.roots()
             self.children = forest.children
             if hasattr(forest, 'post_process'):
                 self.post_process = forest.post_process
