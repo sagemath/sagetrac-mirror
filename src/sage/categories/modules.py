@@ -513,6 +513,15 @@ class Modules(Category_module):
             else:
                 return []
 
+        class TensorProducts(TensorProductsCategory):
+
+            def extra_super_categories(self):
+                """
+                Implement the fact that a (finite) tensor product of
+                finite dimensional modules is a finite dimensional module.
+                """
+                return [self.base_category()]
+
     Filtered = LazyImport('sage.categories.filtered_modules', 'FilteredModules')
     Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
     Super = LazyImport('sage.categories.super_modules', 'SuperModules')
