@@ -2368,15 +2368,17 @@ class FreeModuleTensor(ModuleElement):
             resu = 0
             for i in fmodule.irange():
                 resu += omega[[i]]*vv[[i]]
-            # Name and LaTeX symbol of the output:
-            if hasattr(resu, '_name'):
-                if self._name is not None and vector._name is not None:
-                    resu._name = self._name + "(" + vector._name + ")"
-            if hasattr(resu, '_latex_name'):
-                if self._latex_name is not None and \
+            parent = resu.parent()
+            if resu is not parent.zero() and resu is not parent.one():
+                # Name and LaTeX symbol of the output:
+                if hasattr(resu, '_name'):
+                    if self._name is not None and vector._name is not None:
+                        resu._name = self._name + "(" + vector._name + ")"
+                if hasattr(resu, '_latex_name'):
+                    if self._latex_name is not None and \
                                                 vector._latex_name is not None:
-                    resu._latex_name = self._latex_name + r"\left(" + \
-                                       vector._latex_name + r"\right)"
+                        resu._latex_name = self._latex_name + r"\left(" + \
+                                           vector._latex_name + r"\right)"
             return resu
         #
         # Generic case
@@ -2424,40 +2426,41 @@ class FreeModuleTensor(ModuleElement):
             for i in range(p):
                 prod *= v[i][[ind[i]]]
             res += prod
-        # Name of the output:
-        if hasattr(res, '_name'):
-            res_name = None
-            if self._name is not None:
-                res_name = self._name + "("
-                for i in range(p-1):
-                    if args[i]._name is not None:
-                        res_name += args[i]._name + ","
-                    else:
-                        res_name = None
-                        break
-                if res_name is not None:
-                    if args[p-1]._name is not None:
-                        res_name += args[p-1]._name + ")"
-                    else:
-                        res_name = None
-            res._name = res_name
-        # LaTeX symbol of the output:
-        if hasattr(res, '_latex_name'):
-            res_latex = None
-            if self._latex_name is not None:
-                res_latex = self._latex_name + r"\left("
-                for i in range(p-1):
-                    if args[i]._latex_name is not None:
-                        res_latex += args[i]._latex_name + ","
-                    else:
-                        res_latex = None
-                        break
-                if res_latex is not None:
-                    if args[p-1]._latex_name is not None:
-                        res_latex += args[p-1]._latex_name + r"\right)"
-                    else:
-                        res_latex = None
-            res._latex_name = res_latex
+        if res is not res.parent().zero():
+            # Name of the output:
+            if hasattr(res, '_name'):
+                res_name = None
+                if self._name is not None:
+                    res_name = self._name + "("
+                    for i in range(p-1):
+                        if args[i]._name is not None:
+                            res_name += args[i]._name + ","
+                        else:
+                            res_name = None
+                            break
+                    if res_name is not None:
+                        if args[p-1]._name is not None:
+                            res_name += args[p-1]._name + ")"
+                        else:
+                            res_name = None
+                res._name = res_name
+            # LaTeX symbol of the output:
+            if hasattr(res, '_latex_name'):
+                res_latex = None
+                if self._latex_name is not None:
+                    res_latex = self._latex_name + r"\left("
+                    for i in range(p-1):
+                        if args[i]._latex_name is not None:
+                            res_latex += args[i]._latex_name + ","
+                        else:
+                            res_latex = None
+                            break
+                    if res_latex is not None:
+                        if args[p-1]._latex_name is not None:
+                            res_latex += args[p-1]._latex_name + r"\right)"
+                        else:
+                            res_latex = None
+                res._latex_name = res_latex
         return res
 
     def trace(self, pos1=0, pos2=1):
