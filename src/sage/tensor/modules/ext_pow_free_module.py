@@ -628,6 +628,17 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
         sage: latex(M.dual())
         M^*
 
+    Note that :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.exterior_power`
+    identifies the 0th exterior power with the base ring::
+
+        sage: M.dual_exterior_power(0)
+        Integer Ring
+
+    It is possible to avoid this identification by using the class directly::
+
+        sage: ExtPowerDualFreeModule(M, 0)
+        0th exterior power of the dual of the Rank-3 free module M over the Integer Ring
+
     Since any tensor of type (0,1) is a linear form, there is a coercion map
     from the set `T^{(0,1)}(M)` of such tensors to `M^*`::
 
