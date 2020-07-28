@@ -260,10 +260,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         if latex_name is None and fmodule._latex_name is not None:
             latex_name = r'\Lambda^{' + str(degree) + r'}\left(' + \
                                        fmodule._latex_name + r'\right)'
-        category = fmodule.category()
-        if degree > 1:
-            category = category.TensorProducts().Quotients()
-        ext_category = category
+        ext_category = fmodule.category().TensorProducts().Quotients()
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank,
                                       name=name, latex_name=latex_name,
                                       start_index=fmodule._sindex,
@@ -727,12 +724,12 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                              fmodule._latex_name + r'^*\right)'
         category = fmodule.category()
         # TODO: dual_category = category.DualObjects()
+        # ... when that is properly implemented
         dual_category = category
         # TODO: To declare self as a quotient of the (0, degree)-tensor module,
         #       need to implement methods ambient, lift, retract
-        # if degree > 1:
-        #     dual_category = dual_category.TensorProducts().Quotients()
-        ext_category = dual_category
+        # ext_category = dual_category.TensorProducts().Quotients()
+        ext_category = dual_category.TensorProducts()
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
