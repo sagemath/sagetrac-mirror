@@ -1596,7 +1596,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
         yield node
         stack.append( iter(children(node)) )
 
-class RecursivelyEnumeratedSet_forest(Parent):
+class RecursivelyEnumeratedSet_forest(RecursivelyEnumeratedSet_generic):
     r"""
     The enumerated set of the nodes of the forest having the given
     ``roots``, and where ``children(x)`` returns the children of the
