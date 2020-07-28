@@ -110,7 +110,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         2nd exterior power of the Rank-3 free module M over the
          Integer Ring
 
-    Instead of importing ExtPowerFreeModule in the global name space, it is
+    Instead of importing ``ExtPowerFreeModule`` in the global name space, it is
     recommended to use the module's method
     :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.exterior_power`::
 
@@ -186,6 +186,22 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         sage: A is M.exterior_power(2)
         True
 
+    Note that :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.exterior_power`
+    identifies the 0th exterior power with the base ring and the 1st
+    exterior power with the base module::
+
+        sage: M.exterior_power(0)
+        Integer Ring
+        sage: M.exterior_power(1)
+        Rank-3 free module M over the Integer Ring
+
+    It is possible to avoid this identification by using the class directly::
+
+        sage: ExtPowerFreeModule(M, 0)
+        0th exterior power of the Rank-3 free module M over the Integer Ring
+        sage: ExtPowerFreeModule(M, 1)
+        1st exterior power of the Rank-3 free module M over the Integer Ring
+
     The exterior power `\Lambda^1(M)` is nothing but `M`::
 
         sage: M.exterior_power(1) is M
@@ -253,14 +269,6 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
                                       start_index=fmodule._sindex,
                              output_formatter=fmodule._output_formatter,
                              category=ext_category)
-        # Unique representation:
-        if self._degree == 1 or \
-           self._degree in self._fmodule._exterior_powers:
-            raise ValueError("the {}th exterior power of ".format(degree) +
-                             "{}".format(self._fmodule) +
-                             " has already been created")
-        else:
-            self._fmodule._exterior_powers[self._degree] = self
 
     #### Parent methods
 
@@ -719,13 +727,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                                       start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter,
                                     category=ext_category)
-        # Unique representation:
-        if self._degree in self._fmodule._dual_exterior_powers:
-            raise ValueError("the {}th exterior power of ".format(degree) +
-                             "the dual of {}".format(self._fmodule) +
-                             " has already been created")
-        else:
-            self._fmodule._dual_exterior_powers[self._degree] = self
 
     #### Parent methods
 
