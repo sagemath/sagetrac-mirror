@@ -408,6 +408,7 @@ class TensorFreeModule(FiniteRankFreeModule):
                                       start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter,
                                     category=tensor_category)
+        fmodule._all_modules.add(self)
 
     #### Parent Methods
 

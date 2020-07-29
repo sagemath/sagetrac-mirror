@@ -266,6 +266,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
                                       start_index=fmodule._sindex,
                              output_formatter=fmodule._output_formatter,
                              category=ext_category)
+        fmodule._all_modules.add(self)
 
     #### Parent methods
 
@@ -735,6 +736,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                                       start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter,
                                     category=ext_category)
+        fmodule._all_modules.add(self)
 
     #### Parent methods
 
