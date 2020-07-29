@@ -1086,10 +1086,9 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None, name=None, latex_name
     if degeneracies:
         if underlying is None:
             underlying = NonDegenerateSimplex(dim)
-        else:
-            return AbstractSimplex_class(dim, degeneracies=degeneracies,
-                                         underlying=underlying,
-                                         name=name, latex_name=latex_name)
+        return AbstractSimplex_class(dim, degeneracies=degeneracies,
+                                     underlying=underlying,
+                                     name=name, latex_name=latex_name)
     else:
         return NonDegenerateSimplex(dim, name=name, latex_name=latex_name)
      
