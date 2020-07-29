@@ -389,21 +389,20 @@ class TensorFreeModule(FiniteRankFreeModule):
             if latex_name is None and fmodule._latex_name is not None:
                 latex_name = r'T^{' + str(self._tensor_type) + r'}\left(' + \
                              fmodule._latex_name + r'\right)'
-        tensor_category = None
         category = fmodule.category()
+        # TODO: dual_category = category.DualObjects()
+        dual_category = category
+        tensor_category = None
         if self._tensor_type[0]:
             tensor_category = category
         if self._tensor_type[1]:
-            # TODO: dual_category = category.DualObjects()
-            dual_category = category
             if tensor_category:
                 tensor_category = tensor_category.meet([dual_category])
             else:
                 tensor_category = dual_category
-        if self._tensor_type[0] + self._tensor_type[1] > 1:
-            tensor_category = tensor_category.TensorProducts()
         if not tensor_category:
-            tensor_category = fmodule.base_ring().category()
+            tensor_category = category.meet([dual_category])
+        tensor_category = tensor_category.TensorProducts()
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
