@@ -604,6 +604,10 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
         # degeneracies. The associated value is the actual simplex in
         # the product.
         self._translation = tuple(translate.items())
+        for a, b in self._translation:
+            f0 = kenzo.KAbstractSimplex(a[0][0].apply_degeneracies(*a[0][1]))
+            f1 = kenzo.KAbstractSimplex(a[1][0].apply_degeneracies(*a[1][1]))
+            setattr(b, '_kenzo_repr', f0.product(f1))
 
     def structure_map(self, i):
         r"""

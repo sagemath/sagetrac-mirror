@@ -42,11 +42,16 @@ from sage.features.kenzo import Kenzo
 
 
 # defining the auxiliary functions as wrappers over the kenzo ones
-kenzo_names = ['2cmbn-add',
+kenzo_names = ['2absm-acrpr',
+               '2cmbn-add',
                '2cmbn-sbtr',
+               'absm1',
+               'absm2',
+               'absm-aux',
                'add',
                'array-dimensions',
-               'basis_aux1',
+               'assoc-to-function',
+               'basis-aux',
                'bicomplex-spectral-sequence',
                'build-finite-ss2',
                'build-mrph-aux',
@@ -61,17 +66,21 @@ kenzo_names = ['2cmbn-add',
                'cmpr-aux',
                'cmps',
                'convertmatrice',
+               'crpr-absms-aux',
                'crts-prdc',
+               'degenerate-p',
                'degr-aux',
                'delta',
                'dffr-aux',
-               'dffr_aux1',
+               'dffr-aux1',
                'dgop',
                'dgop-int-ext',
                'dstr-change-sorc-trgt-aux',
                'echcm',
                'eilenberg-moore-spectral-sequence',
-               'evaluation-aux1',
+               'evaluate-cmbn',
+               'evaluate-simplex',
+               'evaluation-aux',
                'gmsm',
                'homologie',
                'homotopy-list',
@@ -82,9 +91,11 @@ kenzo_names = ['2cmbn-add',
                'k-z',
                'k-z2',
                'k-zp',
-               'kabstractsimplex_aux1',
-               'kchaincomplex_aux1',
-               'kmorphismchaincomplex_aux1',
+               'kabstractsimplex-aux',
+               'kchaincomplex-aux',
+               'kchaincomplexmorphism-aux',
+               'ksimplicialsetmorphism-aux',
+               'listp',
                'loop-space',
                'make-array-from-lists',
                'make-array-to-lists',
@@ -93,15 +104,16 @@ kenzo_names = ['2cmbn-add',
                'n-mrph',
                'ncol',
                'nlig',
+               'non-degenerate-p',
                'nreverse',
                'nth',
                'opps',
-               'orgn_aux1',
+               'orgn-aux',
                'r-proj-space',
                'sbtr',
                'serre-spectral-sequence-product',
                'serre-whitehead-spectral-sequence',
-               'sfinitesimplicialset_aux1',
+               'sfinitesimplicialset-aux',
                'smash-product',
                'sorc-aux',
                'spectral-sequence-differential-matrix',
@@ -110,6 +122,7 @@ kenzo_names = ['2cmbn-add',
                'suspension',
                'tnsr-prdc',
                'trgt-aux',
+               'type-of',
                'wedge',
                'zero-cmbn',
                'zero-mrph']
@@ -145,7 +158,7 @@ def Sphere(n):
         sage: from sage.interfaces.kenzo import Sphere # optional - kenzo
         sage: s2 = Sphere(2)                           # optional - kenzo
         sage: s2                                       # optional - kenzo
-        [K1 Simplicial-Set]
+        [K... Simplicial-Set]
         sage: [s2.homology(i) for i in range(8)]       # optional - kenzo
         [Z, 0, Z, 0, 0, 0, 0, 0]
     """
@@ -176,7 +189,7 @@ def MooreSpace(m, n):
         sage: from sage.interfaces.kenzo import MooreSpace   # optional - kenzo
         sage: m24 = MooreSpace(2,4)                          # optional - kenzo
         sage: m24                                            # optional - kenzo
-        [K10 Simplicial-Set]
+        [K... Simplicial-Set]
         sage: [m24.homology(i) for i in range(8)]            # optional - kenzo
         [Z, 0, 0, 0, C2, 0, 0, 0]
     """
@@ -233,16 +246,28 @@ def KenzoId(n):
     
     EXAMPLES::
     
-        sage: from sage.interfaces.kenzo import Sphere           # optional -kenzo
-        sage: s2 = Sphere(2)                                     # optional -kenzo
-        sage: s2 == KenzoId(IdNumber(s2))                        # optional -kenzo
+        sage: from sage.interfaces.kenzo import Sphere, KenzoId, IdNumber    # optional -kenzo
+        sage: s2 = Sphere(2)                                                 # optional -kenzo
+        sage: s2 == KenzoId(IdNumber(s2))                                    # optional -kenzo
         True
     """
     obj = __k__(n)
     if str(obj) == 'NIL':
         raise AssertionError("There is no KenzoObject with identification number {}".format(n))
-    return KenzoObject(obj)
-    
+    kenzotype = __type_of__(obj).python()
+    if kenzotype == 'CHAIN-COMPLEX':
+        return KenzoChainComplex(obj)
+    elif kenzotype == 'MORPHISM':
+        return KenzoChainComplexMorphism(obj)
+    elif kenzotype == 'SIMPLICIAL-SET':
+        return KenzoSimplicialSet(obj)
+    elif kenzotype == 'SIMPLICIAL-MRPH':
+        return KenzoSimplicialSetMorphism(obj)
+    elif kenzotype == 'SPECTRAL-SEQUENCE':
+        return KenzoSpectralSequence(obj)
+    else:
+        return KenzoObject(obj)
+            
 def IdNumber(kobject):
     r"""
     Return the slot :idnm of the KenzoObject ``kobject`` if it has such a slot.
@@ -259,9 +284,9 @@ def IdNumber(kobject):
        
     EXAMPLES::
     
-        sage: from sage.interfaces.kenzo import MooreSpace       # optional -kenzo
-        sage: m34 = MooreSpace(3,4)                              # optional -kenzo
-        sage: MooreSpace(3,4) == KenzoId(IdNumber(m34))          # optional -kenzo
+        sage: from sage.interfaces.kenzo import MooreSpace, KenzoId, IdNumber  # optional -kenzo
+        sage: m34 = MooreSpace(3,4)                                            # optional -kenzo
+        sage: MooreSpace(3,4) == KenzoId(IdNumber(m34))                        # optional -kenzo
         True
     """
     return Integer(str(__idnm__(kobject._kenzo)))
@@ -287,10 +312,10 @@ class KenzoObject(SageObject):
             sage: from sage.interfaces.kenzo import __sphere__   # optional -kenzo
             sage: ks = __sphere__(2)                             # optional -kenzo
             sage: ks                                             # optional -kenzo
-            <ECL: [K1 Simplicial-Set]>
+            <ECL: [K... Simplicial-Set]>
             sage: s2 = KenzoObject(ks)                           # optional -kenzo
             sage: s2                                             # optional -kenzo
-            [K1 Simplicial-Set]
+            [K... Simplicial-Set]
             sage: TestSuite(s2).run(skip='_test_pickling')       # optional -kenzo
 
         """
@@ -305,10 +330,10 @@ class KenzoObject(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import MooreSpace    # optional - kenzo
-            sage: m2 = MooreSpace(2,4)                            # optional - kenzo
-            sage: m2._repr_()                                     # optional - kenzo
-            '[K10 Simplicial-Set]'
+            sage: from sage.interfaces.kenzo import MooreSpace     # optional - kenzo
+            sage: m24 = MooreSpace(2,4)                            # optional - kenzo
+            sage: m24._repr_()                                     # optional - kenzo
+            '[K... Simplicial-Set]'
         """
         kenzo_string = repr(self._kenzo)
         return kenzo_string[6:-1]
@@ -459,6 +484,54 @@ class KenzoSpectralSequence(KenzoObject):
         return table(groups)
 
 
+class KenzoAbstractSimplex(KenzoObject):
+
+    def degeneracies(self):
+        rslt = __dgop_int_ext__(__dgop__(self._kenzo)).python()
+        if rslt == None:
+            return []
+        return rslt
+        
+    def nondegenerate(self):
+        return KenzoObject(__gmsm__(self._kenzo))
+        
+    def is_degenerate(self):
+        rslt = __degenerate_p__(self._kenzo).python()
+        if rslt == None:
+            return False
+        return rslt
+        
+    def is_nondegenerate(self):
+        rslt = __non_degenerate_p__(self._kenzo).python()
+        if rslt == None:
+            return False
+        return rslt
+        
+    def product(self, other):
+        if not isinstance(other, KenzoAbstractSimplex):
+            raise TypeError("{} must be a KenzoAbstractSimplex".format(other))
+        deg1 = self.degeneracies()
+        deg2 = other.degeneracies()
+        if list(set(deg1) & set(deg2)) == []:
+            return KenzoCRPRSimplex(__crpr_absms_aux__(self._kenzo, other._kenzo))
+        else:
+            return KenzoAbstractSimplex(__2absm_acrpr__(self._kenzo, other._kenzo))
+
+
+class KenzoCRPRSimplex(KenzoObject):
+
+    def factors(self, n=None):
+        factor1 = KenzoAbstractSimplex(__absm1__(self._kenzo))
+        factor2 = KenzoAbstractSimplex(__absm2__(self._kenzo))
+        rslt = (factor1, factor2)
+        if n==0:
+            return factor1
+        elif n==1:
+            return factor2 
+        else:
+            return rslt
+
+
 class KenzoCombination():
     r"""
     Wrapper to Kenzo combinations (type :cmbn) and functions handling combinations.
@@ -477,36 +550,36 @@ class KenzoCombination():
     This choice of representation in Kenzo implies that only homogenous combinations
     will be considered.
     """
-    def __init__(self, Kchcm, degree, terms=None, kenzo=None, check=True):
+    def __init__(self, degree, terms=None, Kchcm=None, kenzo=None):
         r"""
-        Construct the combination of degree ``degree`` in the KenzoChainComplex
-        ``Kchcm``, sum of the terms determined by ``terms``.
+        Construct the combination of degree ``degree`` sum of the terms
+        determined by ``terms`` (in the KenzoChainComplex ``Kchcm`` when given).
         
         INPUT:
         
-        - ``Kchcm`` -- A KenzoChainComplex.
         - ``degree`` -- An integer number.
-        - ``terms`` -- A list of even length. The even indexes determine the
-          coefficients of the generators, which are determined by the odd indexes.
-          For example, the ``terms`` parameter of a combination like 3A - 5B + C
-          is the list [3, A, -5, B, 1, C].
+        - ``terms`` -- A list of even length (default None). The even indexes
+          determine the coefficients of the generators, which are determined by
+          the odd indexes. For example, the ``terms`` parameter of a combination
+          like 3A - 5B + C is the list [3, A, -5, B, 1, C].
+        - ``Kchcm`` -- A KenzoChainComplex or None (default). In case it is not
+          None, the system checks if each one of the generators in ``terms`` is
+          indeed in the basis of `C_p`, where `p=` ``degree``.
         - ``kenzo`` -- The kenzo representation of the combination (default None).
-        - ``check`` -- In case it is True, the system check if each of the
-          generators in ``terms`` are indeed in the basis of `C_p`, where `p=` ``degree``.
           
         EXAMPLES::
             
             sage: from sage.interfaces.kenzo import KenzoCombination             # optional - kenzo
             sage: D = ChainComplex({6: matrix(ZZ, 2, 2, [1,0,0,2])}, degree = -1)
             sage: K = D._kenzo_repr                                              # optional - kenzo
-            sage: KenzoCombination(K, 5, [-4, 'G5G0'])                           # optional - kenzo
+            sage: KenzoCombination(5, [-4, 'G5G0'], K)                           # optional - kenzo
             <BLANKLINE>
             {K... CMBN 5}
             --------------------------------------
             <-4 * G5G0>
             --------------------------------------
             <BLANKLINE>
-            sage: KenzoCombination(K, 19)                                        # optional - kenzo
+            sage: KenzoCombination(19, Kchcm=K)                                        # optional - kenzo
             <BLANKLINE>
             {K... CMBN 19}
             --------------------------------------
@@ -516,19 +589,22 @@ class KenzoCombination():
         """
         if not degree.is_integer():
             raise AssertionError("degree parameter must be an integer number")
-        self._chcm = Kchcm
+        if Kchcm and not isinstance(Kchcm, KenzoChainComplex):
+            raise AssertionError("Kchcm parameter must be a KenzoChainComplex or None")
         self._degree = degree
         self._terms = terms
+        self._chcm = Kchcm
+        self._kenzo = kenzo
         if terms:
             if not kenzo:
                 self._kenzo = __cmbn_aux__(degree, pairing(terms))
-            if check:
-                basis = Kchcm.basis(degree)
-                if basis==None:
+            if Kchcm:
+                strbasis = [str(x) for x in Kchcm.basis(degree)]
+                if strbasis==[]:
                     raise AssertionError("There are no generators in dimension {}"
                                           .format(degree))
                 for k in range(1, len(terms), 2):
-                    if not terms[k] in basis:
+                    if not str(terms[k]) in strbasis:
                         raise AssertionError("Generator {} is not of degree {} in {}"
                                              .format(terms[k], degree, Kchcm))
         else:
@@ -555,8 +631,11 @@ class KenzoCombination():
             --------------------------------------
             <BLANKLINE>
         """
-        s = "{{K{} CMBN {}}}".format(__idnm__(self._chcm._kenzo).python(),
-                                      self._degree)
+        if self._chcm:
+            s = "{{K{} CMBN {}}}".format(__idnm__(self._chcm._kenzo).python(),
+                                         self._degree)
+        else:
+            s = "{{CMBN {}}}".format(self._degree)
         sep = "\n" + "-"*38 
         s += sep
         if self._terms:
@@ -618,7 +697,7 @@ class KenzoCombination():
             sage: -c == K(-1) - c                                                # optional - kenzo
             True
         """
-        return Kenzocmbn(self._chcm, __cmbn_opps__(self._kenzo))
+        return Kenzocmbn(__cmbn_opps__(self._kenzo), self._chcm)
         
     def __add__(self, other):
         r"""
@@ -643,8 +722,11 @@ class KenzoCombination():
         """
         if not self._chcm == other._chcm:
             raise AssertionError("Combinations must live in the same complex")
-        return Kenzocmbn(self._chcm, __2cmbn_add__(__cmpr_aux__(self._chcm._kenzo),
-                                                   self._kenzo, other._kenzo))
+        if self._chcm:
+            cmpr = __cmpr_aux__(self._chcm._kenzo)
+        else:
+            cmpr = ecl_eval("#'s-cmpr")
+        return Kenzocmbn(__2cmbn_add__(cmpr, self._kenzo, other._kenzo), self._chcm)
         
     def __sub__(self, other):
         r"""
@@ -652,7 +734,7 @@ class KenzoCombination():
 
         EXAMPLES::
 
-            sage: A = simplicial_sets.KleinBottle
+            sage: A = simplicial_sets.KleinBottle()
             sage: K = A._kenzo_repr                                              # optional - kenzo
             sage: c1 = K(1, [7, 'CELL_1_0', -3, 'CELL_1_2'])                     # optional - kenzo
             sage: c2 = K(1, [-3, 'CELL_1_0', -5, 'CELL_1_1'])                    # optional - kenzo
@@ -670,8 +752,11 @@ class KenzoCombination():
         """
         if not self._chcm == other._chcm:
             raise AssertionError("Combinations must live in the same complex")
-        return Kenzocmbn(self._chcm, __2cmbn_sbtr__(__cmpr_aux__(self._chcm._kenzo),
-                                                    self._kenzo, other._kenzo))
+        if self._chcm:
+            cmpr = __cmpr_aux__(self._chcm._kenzo)
+        else:
+            cmpr = ecl_eval("#'s-cmpr")
+        return Kenzocmbn(__2cmbn_sbtr__(cmpr, self._kenzo, other._kenzo), self._chcm)
         
     def __rmul__(self, x):
         r"""
@@ -700,8 +785,8 @@ class KenzoCombination():
         """
         assert(x.is_integer(), "Coefficient must be an integer number")
         if x == 0:
-            return KenzoCombination(self._chcm, self._degree)
-        return Kenzocmbn(self._chcm, __n_cmbn__(x, self._kenzo))
+            return KenzoCombination(self._degree, Kchcm=self._chcm)
+        return Kenzocmbn(__n_cmbn__(x, self._kenzo), self._chcm)
         
     def __mul__(self, x):
         r"""
@@ -732,15 +817,15 @@ class KenzoCombination():
         """
         return self.__rmul__(x)
         
-def Kenzocmbn(Kchcm, cmbn):
+def Kenzocmbn(cmbn, Kchcm=None):
     r"""
     Auxiliary function for wrapping Kenzo combinations.
     
     INPUT:
     
-    - ``Kchcm`` -- A KenzoChainComplex.
-    
     - ``cmbn`` -- An ECL object representing a Kenzo combination (type :cmbn).
+    
+    - ``Kchcm`` -- A KenzoChainComplex or None (default).
     
     OUTPUT:
     
@@ -754,14 +839,14 @@ def Kenzocmbn(Kchcm, cmbn):
         sage: K = C.dual()._kenzo_repr                                           # optional - kenzo
         sage: c = __cmbn_aux__(5, [(4, 'G5G0'), (-7, 'G5G1')])                   # optional - kenzo
         sage: d = ecl_eval("(cmbn 5 4 'G5G0 -7 'G5G1)")                          # optional - kenzo
-        sage: Kenzocmbn(K, c) == Kenzocmbn(K, d)                                 # optional - kenzo
+        sage: Kenzocmbn(c, K) == Kenzocmbn(d, K)                                 # optional - kenzo
         True
-        sage: type(Kenzocmbn(K, c))                                              # optional - kenzo
+        sage: type(Kenzocmbn(c, K))                                              # optional - kenzo
         <class 'sage.interfaces.kenzo.KenzoCombination'>
     """
     cmbndegr = __cmbn_degr__(cmbn).python()
     cmbnlist = __cmbn_list__(cmbn).python()
-    return KenzoCombination(Kchcm=Kchcm, degree=cmbndegr, terms=unpairing(cmbnlist))
+    return KenzoCombination(degree=cmbndegr, terms=unpairing(cmbnlist), Kchcm=Kchcm, kenzo=cmbn)
 
 
 class KenzoChainComplex(KenzoObject):
@@ -770,26 +855,26 @@ class KenzoChainComplex(KenzoObject):
     of Kenzo chain complexes.
     """
     
-    def __call__(self, degree, terms=None, check=True):
+    def __call__(self, degree, terms=None):
         r"""
         INPUT:
         
         - ``degree`` -- An integer number.
-        - ``terms`` -- A list of even length. The even indexes determine the
-          coefficients of the generators, which are determined by the odd indexes.
-          For example, the ``terms`` parameter of a combination like 3A - 5B + C
-          is the list [3, A, -5, B, 1, C].
-        - ``check`` -- optional, default ``True``.
+        
+        - ``terms`` -- A list of even length (default None). The even indexes
+          determine the coefficients of the generators, which are determined by
+          the odd indexes. For example, the ``terms`` parameter of a combination
+          like 3A - 5B + C is the list [3, A, -5, B, 1, C].
         
         EXAMPLES::
         
             sage: from sage.interfaces.kenzo import KenzoCombination             # optional - kenzo
             sage: D = ChainComplex({6: matrix(ZZ, 2, 2, [1,0,0,2])}, degree = -1)
             sage: K = D._kenzo_repr                                              # optional - kenzo
-            sage: KenzoCombination(K, 5, [-4, 'G5G0']) == K(5, [-4, 'G5G0'])     # optional - kenzo
+            sage: KenzoCombination(5, [-4, 'G5G0'], K) == K(5, [-4, 'G5G0'])     # optional - kenzo
             True
         """
-        return KenzoCombination(Kchcm=self, degree=degree, terms=terms, check=check)
+        return KenzoCombination(degree=degree, terms=terms, Kchcm=self)
 
     def homology(self, n):
         r"""
@@ -809,7 +894,7 @@ class KenzoChainComplex(KenzoObject):
             sage: from sage.interfaces.kenzo import Sphere   # optional - kenzo
             sage: s2 = Sphere(2)                             # optional - kenzo
             sage: s2                                         # optional - kenzo
-            [K1 Simplicial-Set]
+            [K... Simplicial-Set]
             sage: s2.homology(2)                             # optional - kenzo
             Z
         """
@@ -858,10 +943,6 @@ class KenzoChainComplex(KenzoObject):
 
         - ``dim`` -- An integer number
 
-        OUTPUT:
-
-        - A list of the form ['G"dim"G0', 'G"dim"G1', 'G"dim"G2', ...].
-
         EXAMPLES::
 
             sage: from sage.interfaces.kenzo import KChainComplex   # optional - kenzo
@@ -876,13 +957,13 @@ class KenzoChainComplex(KenzoObject):
             ....:     print("Basis in dimension %i: %s" % (i, kenzo_chcm.basis(i)))    # optional - kenzo
             Basis in dimension 0: ['G0G0', 'G0G1', 'G0G2']
             Basis in dimension 1: ['G1G0', 'G1G1']
-            Basis in dimension 2: None
+            Basis in dimension 2: []
             Basis in dimension 3: ['G3G0', 'G3G1']
             Basis in dimension 4: ['G4G0', 'G4G1']
             Basis in dimension 5: ['G5G0', 'G5G1', 'G5G2']
 
         """
-        return __basis_aux1__(self._kenzo, dim).python()
+        return translate_type(__basis_aux__(self._kenzo, dim))
 
     def identity_morphism(self):
         r"""
@@ -946,30 +1027,20 @@ class KenzoChainComplex(KenzoObject):
         else:
             return KenzoChainComplexMorphism(__zero_mrph__(self._kenzo, target._kenzo, degree))
 
-    def differential(self, dim=None, comb=None):
+    def differential(self, comb=None):
         r"""
-        Return the differential of a combination or, if ``dim`` or ``comb`` are
-        not provided, return the differential :class:`KenzoMorphismChainComplex`
-        of ``self``.
+        Return the differential of a combination or, if ``comb`` is not provided,
+        return the differential :class:`KenzoMorphismChainComplex` of ``self``.
 
         INPUT:
 
-        - ``dim`` -- An integer number or None (default)
-
-        - ``comb`` -- A list representing a formal sum of generators in the module
-          of dimension ``dim`` or None (default). For example, to represent
-          G7G12 + 3*G7G0 - 5*G7G3 we use the list [3, 'G7G0', -5, 'G7G3', 1, 'G7G12'].
-          Note that the generators must be in ascending order respect to the number
-          after the second G in their representation; the parameter
-          ``comb`` = [1, 'G7G12', 3, 'G7G0', -5, 'G7G3'] will produce an error in
-          Kenzo.
+        - ``comb`` -- A :class:`KenzoCombination` in ``self``.
 
         OUTPUT:
 
-        - If ``dim`` and ``comb`` are not None, it returns a Kenzo combination
-          representing the differential of the formal combination represented by
-          ``comb`` in the chain complex ``self`` in dimension ``dim``. On the other
-          hand, if `dim`` or ``comb`` (or both) take None value, the differential
+        - If ``comb`` is not None, it returns a KenzoCombination
+          representing the differential of ``comb`` in ``self``. On the other
+          hand, if ``comb`` take None value, the differential
           :class:`KenzoMorphismChainComplex` of ``self`` is returned.
 
         EXAMPLES::
@@ -984,28 +1055,33 @@ class KenzoChainComplex(KenzoObject):
             [K... Chain-Complex]
             sage: kenzo_chcm.basis(4)                                             # optional - kenzo
             ['G4G0', 'G4G1']
-            sage: kenzo_chcm.differential(4, [1, 'G4G0'])                         # optional - kenzo
+            sage: c1 = kenzo_chcm(4, [1, 'G4G0'])                                 # optional - kenzo
+            sage: kenzo_chcm.differential(c1)                                     # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 3}
+            {K... CMBN 3}
+            --------------------------------------
             <1 * G3G0>
             <3 * G3G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
             sage: kenzo_chcm.basis(5)                                             # optional - kenzo
             ['G5G0', 'G5G1', 'G5G2']
-            sage: kenzo_chcm.differential(5, [1, 'G5G0', 2, 'G5G2'])              # optional - kenzo
+            sage: c2 = kenzo_chcm(5, [1, 'G5G0', 2, 'G5G2'])                      # optional - kenzo
+            sage: kenzo_chcm.differential(c2)                                     # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <6 * G4G0>
             <-3 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
         """
-        if dim is not None and comb is not None:
-            cmbn_list = pairing(comb)
-            return KenzoObject(__dffr_aux1__(self._kenzo, dim, cmbn_list))
-        else:
+        if not comb:
             return KenzoChainComplexMorphism(__dffr_aux__(self._kenzo))
+        else:
+            if not isinstance(comb, KenzoCombination) or not comb._chcm == self:
+                raise AssertionError("The parameter must be a KenzoCombination in {}".format(self))
+            return Kenzocmbn(__dffr_aux1__(self._kenzo, comb._kenzo), Kchcm=self)
 
     def orgn(self):
         r"""
@@ -1022,7 +1098,7 @@ class KenzoChainComplex(KenzoObject):
             sage: A.orgn()                                                # optional - kenzo
             '(CRTS-PRDC [K... Simplicial-Group] [K... Simplicial-Set])'
         """
-        return str(__orgn_aux1__(self._kenzo))
+        return str(__orgn_aux__(self._kenzo))
         
     def __eq__(self, other):
         r"""
@@ -1047,7 +1123,6 @@ class KenzoSimplicialSet(KenzoChainComplex):
     In Kenzo, the homology of a simplicial set is computed from its associated
     chain complex. Hence, this class inherits from `KenzoChainComplex`.
     """
-
     def loop_space(self, n=1):
         r"""
         Return the ``n`` th iterated loop space.
@@ -1068,7 +1143,6 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: l2 = s2.loop_space()                        # optional - kenzo
             sage: type(l2)                                    # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialGroup'>
-            sage: l2 = s2.loop_space()                        # optional - kenzo
             sage: [l2.homology(i) for i in range(8)]          # optional - kenzo
             [Z, Z, Z, Z, Z, Z, Z, Z]
         """
@@ -1418,7 +1492,6 @@ def s2k_dictmat(sdictmat):
         sage: d = {1 : A, 2 : B}
         sage: s2k_dictmat(d)                                  # optional - kenzo
         <ECL: ((2 . #2A((1 2) (2 1) (1 1))) (1 . #2A((1 2 3) (3 2 1) (1 1 1))))>
-
     """
     rslt = EclObject([])
     for k in sdictmat.keys():
@@ -1449,7 +1522,11 @@ def pairing(slist):
         raise ValueError("The parameter must be a list of even length") 
     rslt = EclObject([])
     for k in range(l - 1, 0, -2):
-        rslt = EclObject(slist[k - 1]).cons(EclObject(slist[k])).cons(rslt)
+        if hasattr(slist[k], '_kenzo'):
+            even = slist[k]._kenzo
+        else:
+            even = EclObject(slist[k])
+        rslt = EclObject(slist[k - 1]).cons(even).cons(rslt)
     return rslt
 
 def unpairing(klist):
@@ -1458,7 +1535,8 @@ def unpairing(klist):
     
     EXAMPLES::
     
-        sage: from sage.interfaces.kenzo import unpairing                        # optional - kenzo
+        sage: from sage.interfaces.kenzo import unpairing, __cmbn_list__         # optional - kenzo
+        sage: from sage.libs.ecl import ecl_eval                                 # optional - kenzo
         sage: c = ecl_eval("(cmbn 4 -2 'A 3 'B)")                                # optional - kenzo
         sage: m = __cmbn_list__(c).python(); m                                   # optional - kenzo
         [(-2, 'A'), (3, 'B')]
@@ -1482,7 +1560,7 @@ def KChainComplex(chain_complex):
 
     OUTPUT:
 
-    - A KenzoChainComplex
+    - A :class:`KenzoChainComplex`.
 
     EXAMPLES::
 
@@ -1503,7 +1581,7 @@ def KChainComplex(chain_complex):
     chcm = s2k_dictmat(diff)
     str_orgn = 'sage.' + str(diff)[1:-1].translate({ord(i): None for i in ["\n", ",", ":"]}) \
                .replace("[ ", "[").replace("  ", " ").replace(" ", ".")
-    return KenzoChainComplex(__kchaincomplex_aux1__(chcm, str_orgn))
+    return KenzoChainComplex(__kchaincomplex_aux__(chcm, str_orgn))
 
 
 def SChainComplex(kchaincomplex, start=0, end=15):
@@ -1623,8 +1701,10 @@ def KAbstractSimplex(simplex):
         True
     """
     nondegenerate = simplex.nondegenerate()
-    return KenzoObject(__kabstractsimplex_aux1__(simplex.degeneracies(),
-                                             's' + str(hash(nondegenerate))))
+    result = KenzoAbstractSimplex(__kabstractsimplex_aux__(simplex.degeneracies(),
+                                                's' + str(hash(nondegenerate))))
+    setattr(result, '_dim', simplex.dimension())
+    return result
 
 
 def KFiniteSimplicialSet(sset):
@@ -1653,29 +1733,18 @@ def KFiniteSimplicialSet(sset):
         sage: Triangle = SimplicialSet({s01: (s1, s0),\
         ....: s02: (s2, s0), s12: (s2, s1)}, base_point = s0)
         sage: KTriangle = KFiniteSimplicialSet(Triangle)                # optional - kenzo
-        sage: KTriangle.homology(1)                                     # optional - kenzo
-        Z
+        sage: [KTriangle.homology(i) for i in range(3)]                 # optional - kenzo
+        [Z, Z, 0]
         sage: KTriangle.basis(1)                                        # optional - kenzo
         ['CELL_1_0', 'CELL_1_1', 'CELL_1_2']
         sage: S1 = simplicial_sets.Sphere(1)
         sage: S3 = simplicial_sets.Sphere(3)
         sage: KS1vS3 = KFiniteSimplicialSet(S1.wedge(S3))               # optional - kenzo
-        sage: KS1vS3.homology(3)                                        # optional - kenzo
-        Z
+        sage: [KS1vS3.homology(i) for i in range(4)]                    # optional - kenzo
+        [Z, Z, 0, Z]
     """
-    from sage.homology.simplicial_set_constructions import ProductOfSimplicialSets
-    if isinstance(sset, KenzoSimplicialSet):
-        if hasattr(sset.factor(0), '_kenzo_repr'):
-            f0 = sset.factor(0)._kenzo_repr
-        else:
-            f0 = KFiniteSimplicialSet(sset.factor(0))
-        for f in sset.factors()[1:]:
-            if hasattr(f, '_kenzo_repr'):
-                f1 = f._kenzo_repr
-            else:
-                f1 = KFiniteSimplicialSet(f)
-            f0 = f0.cartesian_product(f1)
-        return f0
+    if hasattr(sset, '_kenzo_repr'):
+        return sset._kenzo_repr
     else:
         allcells = sset.cells()
         namecells = {c: 'cell_{}_{}'.format(d, allcells[d].index(c))
@@ -1697,7 +1766,7 @@ def KFiniteSimplicialSet(sset):
                             auxiliar_list.append(degen_z)
                         list_rslt.append(auxiliar_list)
         return KenzoSimplicialSet(__build_finite_ss2__(list_rslt))
-
+        
 
 def SFiniteSimplicialSet(ksimpset, limit):
     r"""
@@ -1740,7 +1809,7 @@ def SFiniteSimplicialSet(ksimpset, limit):
         {0: 0, 1: Z, 2: 0, 3: Z}
     """
     from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
-    list_orgn = __orgn_aux1__(ksimpset._kenzo).python()
+    list_orgn = __orgn_aux__(ksimpset._kenzo).python()
     if __nth__(0, list_orgn).python()[0] == 'CRTS-PRDC':
         return SFiniteSimplicialSet(
             KenzoSimplicialSet(__nth__(1, list_orgn)), limit).cartesian_product(
@@ -1751,12 +1820,12 @@ def SFiniteSimplicialSet(ksimpset, limit):
     bases = []
     names = []
     for k in range(limit + 1):
-        basis_k = __basis_aux1__(ksimpset._kenzo, k)
+        basis_k = __basis_aux__(ksimpset._kenzo, k)
         names_k = ksimpset.basis(k)
         lbasis_k = [AbstractSimplex(k, name=i) for i in EclListIterator(basis_k)]
         bases.append(lbasis_k)
         names.append(names_k)
-    all_simplices = __sfinitesimplicialset_aux1__(ksimpset._kenzo, limit)
+    all_simplices = __sfinitesimplicialset_aux__(ksimpset._kenzo, limit)
     lall_simplices = [i for i in EclListIterator(all_simplices)]
     dim = 1
     for Kdim in lall_simplices:
@@ -1788,7 +1857,8 @@ class KenzoChainComplexMorphism(KenzoObject):
         
         INPUT:
         
-        - ``kcmbn`` -- A KenzoCombination in the source complex of the morphism.
+        - ``kcmbn`` -- A :class:`KenzoCombination` in the source complex of the
+          morphism.
         
         OUTPUT:
         
@@ -1828,8 +1898,8 @@ class KenzoChainComplexMorphism(KenzoObject):
         if kcmbn._chcm != self.source_complex():
             raise AssertionError("{} must be a combination in {}") \
                                   .format(kcmbn, self.source_complex())
-        image = __evaluation_aux1__(self._kenzo, kcmbn._degree, pairing(kcmbn._terms))
-        return Kenzocmbn(self.target_complex(), image)
+        image = __evaluation_aux__(self._kenzo, kcmbn._kenzo)
+        return Kenzocmbn(image, self.target_complex())
 
     def source_complex(self):
         r"""
@@ -1852,8 +1922,8 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: differential_morphism = kenzo_chcm.differential()              # optional - kenzo
             sage: differential_morphism                                          # optional - kenzo
             [K... Morphism (degree -1): K... -> K...]
-            sage: differential_morphism.source_complex()                         # optional - kenzo
-            [K... Chain-Complex]
+            sage: differential_morphism.source_complex() == kenzo_chcm           # optional - kenzo
+            True
         """
         return KenzoChainComplex(__sorc_aux__(self._kenzo))
 
@@ -1878,8 +1948,8 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: differential_morphism = kenzo_chcm.differential()              # optional - kenzo
             sage: differential_morphism                                          # optional - kenzo
             [K... Morphism (degree -1): K... -> K...]
-            sage: differential_morphism.target_complex()                         # optional - kenzo
-            [K... Chain-Complex]
+            sage: differential_morphism.target_complex() == kenzo_chcm           # optional - kenzo
+            True
         """
         return KenzoChainComplex(__trgt_aux__(self._kenzo))
 
@@ -1913,27 +1983,18 @@ class KenzoChainComplexMorphism(KenzoObject):
         """
         return __degr_aux__(self._kenzo).python()
 
-    def evaluation(self, dim, comb):
+    def evaluation(self, comb):
         r"""
-        Apply the morphism on a combination ``comb`` of dimension ``dim``.
+        Apply the morphism on a Kenzocombination ``comb``.
 
         INPUT:
 
-        - ``dim`` -- An integer number
-
-        - ``comb`` -- A list representing a formal sum of generators in the module
-          of dimension ``dim``. For example, to represent G7G12 + 3*G7G0 - 5*G7G3
-          we use the list [3, 'G7G0', -5, 'G7G3', 1, 'G7G12']. Note that the
-          generators must be in ascending order respect to the number after the
-          second G in their representation; the parameter
-          ``comb`` = [1, 'G7G12', 3, 'G7G0', -5, 'G7G3'] will produce an error in
-          Kenzo.
+        - ``comb`` -- A :class:`KenzoCombination`.
 
         OUTPUT:
 
-        - A Kenzo combination representing the result of applying the morphism on the formal
-          combination represented by ``comb`` in the chain complex ``self`` in
-          dimension ``dim``.
+        - A KenzoCombination representing the result of applying the morphism on
+         ``comb``.
 
         EXAMPLES::
 
@@ -1953,48 +2014,52 @@ class KenzoChainComplexMorphism(KenzoObject):
             [K... Morphism (degree -2): K... -> K...]
             sage: kenzo_chcm.basis(5)                                             # optional - kenzo
             ['G5G0', 'G5G1', 'G5G2']
-            sage: kenzo_chcm.differential(5, [1, 'G5G0', 2, 'G5G2'])              # optional - kenzo
+            sage: c1 = kenzo_chcm(5, [1, 'G5G0', 2, 'G5G2'])                      # optional - kenzo
+            sage: kenzo_chcm.differential(c1)                                     # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <6 * G4G0>
             <-3 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
-            sage: differential_morphism.evaluation(5, [1, 'G5G0', 2, 'G5G2'])     # optional - kenzo
+            sage: differential_morphism.evaluation(c1)                            # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <6 * G4G0>
             <-3 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
-            sage: dif_squared.evaluation(5, [1, 'G5G0', 2, 'G5G2'])               # optional - kenzo
+            sage: dif_squared.evaluation(c1)                                      # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 3}
-            ------------------------------------------------------------------------------
+            {K... CMBN 3}
+            --------------------------------------
             <BLANKLINE>
-            sage: idnt = kenzo_chcm.identity_morphism()                             # optional - kenzo
-            sage: idx2 = idnt.sum(idnt)                                             # optional - kenzo
-            sage: idnt.evaluation(5, [1, 'G5G0', 2, 'G5G2'])                        # optional - kenzo
+            --------------------------------------
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 5}
+            sage: idnt = kenzo_chcm.identity_morphism()                           # optional - kenzo
+            sage: idx2 = idnt.sum(idnt)                                           # optional - kenzo
+            sage: idnt.evaluation(c1)                                             # optional - kenzo
+            <BLANKLINE>
+            {K... CMBN 5}
+            --------------------------------------
             <1 * G5G0>
             <2 * G5G2>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
-            sage: idx2.evaluation(5, [1, 'G5G0', 2, 'G5G2'])                      # optional - kenzo
+            sage: idx2.evaluation(c1)                                             # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 5}
+            {K... CMBN 5}
+            --------------------------------------
             <2 * G5G0>
             <4 * G5G2>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
         """
-        if not dim.is_integer():
-            raise ValueError("'dim' parameter must be an integer number")
-        if not isinstance(comb, list):
-            raise ValueError("'comb' parameter must be a list")
-        cmbn_list = pairing(comb)
-        return KenzoObject(__evaluation_aux1__(self._kenzo, dim, cmbn_list))
+        if not isinstance(comb, KenzoCombination): 
+            raise ValueError("The parameter must be a KenzoCombination")
+        return Kenzocmbn(__evaluation_aux__(self._kenzo, comb._kenzo), self.source_complex())
 
     def opposite(self):
         r"""
@@ -2022,19 +2087,22 @@ class KenzoChainComplexMorphism(KenzoObject):
             [K... Morphism (degree 0): K... -> K...]
             sage: kenzo_chcm.basis(4)                                            # optional - kenzo
             ['G4G0', 'G4G1']
-            sage: idnt.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            sage: c1 = kenzo_chcm(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            sage: idnt.evaluation(c1)                                            # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <2 * G4G0>
             <-5 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
-            sage: opps_id.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                 # optional - kenzo
+            sage: opps_id.evaluation(c1)                                         # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <-2 * G4G0>
             <5 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
         """
         return KenzoChainComplexMorphism(__opps__(self._kenzo))
@@ -2128,19 +2196,22 @@ class KenzoChainComplexMorphism(KenzoObject):
             ....: opps_id, idnt, idnt, null, idx2.sum(idnt), opps_id)            # optional - kenzo
             sage: kenzo_chcm.basis(4)                                            # optional - kenzo
             ['G4G0', 'G4G1']
-            sage: idx2.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            sage: c1 = kenzo_chcm(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            sage: idx2.evaluation(c1)                                            # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <4 * G4G0>
             <-10 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
-            sage: idx5.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            sage: idx5.evaluation(c1)                                            # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <10 * G4G0>
             <-25 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
         """
         if morphisms is None:
@@ -2195,19 +2266,22 @@ class KenzoChainComplexMorphism(KenzoObject):
             ....: (opps_id, idnt, idnt, null, idx2.substract(opps_id))           # optional - kenzo
             sage: kenzo_chcm.basis(4)                                            # optional - kenzo
             ['G4G0', 'G4G1']
-            sage: idx2.evaluation(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            sage: c1 = kenzo_chcm(4, [2, 'G4G0', -5, 'G4G1'])                    # optional - kenzo
+            sage: idx2.evaluation(c1)                                            # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <4 * G4G0>
             <-10 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
-            sage: opps_idx2.evaluation(4, [2, 'G4G0', -5, 'G4G1'])               # optional - kenzo
+            sage: opps_idx2.evaluation(c1)                                       # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 4}
+            {K... CMBN 4}
+            --------------------------------------
             <-4 * G4G0>
             <10 * G4G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
         """
         if morphisms is None:
@@ -2240,19 +2314,22 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: dx6 = d.mul(6)                                                 # optional - kenzo
             sage: kenzo_chcm.basis(4)                                            # optional - kenzo
             ['G4G0', 'G4G1']
-            sage: d.evaluation(4, [-1, 'G4G0', 2, 'G4G1'])                       # optional - kenzo
+            sage: c1 = kenzo_chcm(4, [-1, 'G4G0', 2, 'G4G1'])                    # optional - kenzo
+            sage: d.evaluation(c1)                                               # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 3}
+            {K... CMBN 3}
+            --------------------------------------
             <3 * G3G0>
             <9 * G3G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
-            sage: dx6.evaluation(4, [-1, 'G4G0', 2, 'G4G1'])                     # optional - kenzo
+            sage: dx6.evaluation(c1)                                             # optional - kenzo
             <BLANKLINE>
-            ----------------------------------------------------------------------{CMBN 3}
+            {K... CMBN 3}
+            --------------------------------------
             <18 * G3G0>
             <54 * G3G1>
-            ------------------------------------------------------------------------------
+            --------------------------------------
             <BLANKLINE>
         """
         if not n.is_integer():
@@ -2297,17 +2374,15 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: s3 = Sphere(3)                                              # optional - kenzo
             sage: tp = s2.tensor_product(s3)                                  # optional - kenzo
             sage: tp                                                          # optional - kenzo
-            [K... Filtered-Chain-Complex]
+            [K... Chain-Complex]
             sage: null = ZCC.null_morphism(tp)                                # optional - kenzo
             sage: null                                                        # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: null.source_complex()                                       # optional - kenzo
-            [K... Chain-Complex]
             sage: null2 = null.change_source_target_complex(source = tp)      # optional - kenzo
             sage: null2                                                       # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: null2.source_complex()                                      # optional - kenzo
-            [K... Filtered-Chain-Complex]
+            sage: null2.source_complex() == null.source_complex()             # optional - kenzo
+            False
         """
         source = source or self.source_complex()
         target = target or self.target_complex()
@@ -2343,12 +2418,12 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: s3 = Sphere(3)                                              # optional - kenzo
             sage: tp = s2.tensor_product(s3)                                  # optional - kenzo
             sage: tp                                                          # optional - kenzo
-            [K... Filtered-Chain-Complex]
+            [K... Chain-Complex]
             sage: null = ZCC.null_morphism(tp)                                # optional - kenzo
             sage: null                                                        # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
             sage: null.target_complex()                                       # optional - kenzo
-            [K... Filtered-Chain-Complex]
+            [K... Chain-Complex]
             sage: null.destructive_change_source_target_complex(target = ZCC) # optional - kenzo
             [K... Cohomology-Class on K... of degree 0]
             sage: null.target_complex()                                       # optional - kenzo
@@ -2374,7 +2449,7 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: d.orgn()                                                # optional - kenzo
             '(ZERO-MRPH [K... Simplicial-Set] [K... Simplicial-Set] -1)'
         """
-        return str(__orgn_aux1__(self._kenzo))
+        return str(__orgn_aux__(self._kenzo))
         
     def __eq__(self, other):
         r"""
@@ -2388,7 +2463,46 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: z == MooreSpace(2,4).null_morphism()           # optional - kenzo
             True
         """
-        return Integer(str(__idnm__(self._kenzo))) == Integer(str(__idnm__(other._kenzo))) 
+        return Integer(str(__idnm__(self._kenzo))) == Integer(str(__idnm__(other._kenzo)))
+
+def translate_type (kenzoobj):
+    if __listp__(kenzoobj).python():
+        return [translate_type(i) for i in EclListIterator(kenzoobj)]
+    kenzotype = __type_of__(kenzoobj).python()
+    if kenzotype == 'CRPR':
+        return KenzoCRPRSimplex(kenzoobj)
+    elif kenzotype == 'ABSM':
+        return KenzoAbstractSimplex(kenzoobj)
+    elif kenzotype == 'SYMBOL':
+        return kenzoobj.python()
+    else:
+        return KenzoObject(kenzoobj) 
+
+
+class KenzoSimplicialSetMorphism(KenzoChainComplexMorphism):
+
+    def __call__(self, x):
+        if isinstance(x, KenzoCombination):
+            return Kenzocmbn(__evaluate_cmbn__(self._kenzo, x._kenzo), self.target_simplicial_set())
+        return translate_type(__evaluate_simplex__(self._kenzo, x.dimension(),
+                                                   x._kenzo_repr._kenzo))
+        
+    def source_simplicial_set(self):
+        return KenzoSimplicialSet(__sorc_aux__(self._kenzo))
+        
+    def target_simplicial_set(self):
+        return KenzoSimplicialSet(__trgt_aux__(self._kenzo))
+
+
+def KSimplicialSetMorphism(simplicialmrph):
+    sdict = simplicialmrph._dictionary
+    data = {sigma: sdict[sigma] for sigma in sdict if sigma.is_nondegenerate()}
+    smmrdict = EclObject([(x._kenzo_repr._kenzo, sdict[x]._kenzo_repr._kenzo)
+                          for x in sdict])
+    source = KFiniteSimplicialSet(simplicialmrph.domain())
+    target = KFiniteSimplicialSet(simplicialmrph.codomain())
+    return KenzoSimplicialSetMorphism(
+       __ksimplicialsetmorphism_aux__(smmrdict, source._kenzo, target._kenzo))
 
 
 def build_morphism(source_complex, target_complex, degree, algorithm, strategy, orgn):
@@ -2415,7 +2529,7 @@ def build_morphism(source_complex, target_complex, degree, algorithm, strategy, 
 
     OUTPUT:
 
-    - A :class:`KenzoChainComplexMorphism`
+    - A :class:`KenzoChainComplexMorphism`.
 
     EXAMPLES::
 
@@ -2483,9 +2597,9 @@ def KChainComplexMorphism(morphism):
     EXAMPLES::
 
         sage: from sage.interfaces.kenzo import KChainComplexMorphism           # optional - kenzo
-        sage: C = ChainComplex({0: identity_matrix(ZZ, 1)})
-        sage: D = ChainComplex({0: zero_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
-        sage: f = Hom(C,D)({0: identity_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
+        sage: C = ChainComplex({0: identity_matrix(ZZ, 1)}).dual()
+        sage: D = ChainComplex({0: zero_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)}).dual()
+        sage: f = Hom(D,C)({0: identity_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
         sage: g = KChainComplexMorphism(f)                                      # optional - kenzo
         sage: g                                                                 # optional - kenzo
         [K... Morphism (degree 0): K... -> K...]
@@ -2500,7 +2614,7 @@ def KChainComplexMorphism(morphism):
     target = KChainComplex(morphism.codomain())
     matrix_list = morphism_dictmat(morphism)
     return KenzoChainComplexMorphism(
-        __kmorphismchaincomplex_aux1__(matrix_list, source._kenzo, target._kenzo))
+        __kchaincomplexmorphism_aux__(matrix_list, source._kenzo, target._kenzo))
 
 def KIdentity(identity):
     r"""
@@ -2575,21 +2689,21 @@ def BicomplexSpectralSequence(l):
 
     EXAMPLES::
 
-        sage: from sage.interfaces.kenzo import BicomplexSpectralSequence # optional - kenzo
+        sage: from sage.interfaces.kenzo import BicomplexSpectralSequence        # optional - kenzo
         sage: C1 = ChainComplex({1: matrix(ZZ, 0, 2, [])}, degree_of_differential=-1)
         sage: C2 = ChainComplex({1: matrix(ZZ, 1, 2, [1, 0])},degree_of_differential=-1)
         sage: C3 = ChainComplex({0: matrix(ZZ, 0,2 , [])},degree_of_differential=-1)
         sage: M1 = Hom(C2,C1)({1: matrix(ZZ, 2, 2, [2, 0, 0, 2])})
         sage: M2 = Hom(C3,C2)({0: matrix(ZZ, 1, 2, [2, 0])})
         sage: l = [M1, M2]
-        sage: E = BicomplexSpectralSequence(l)                        # optional - kenzo
-        sage: E.group(2,0,1)                                          # optional - kenzo
+        sage: E = BicomplexSpectralSequence(l)                                   # optional - kenzo
+        sage: E.group(2,0,1)                                                     # optional - kenzo
         Additive abelian group isomorphic to Z/2 + Z
-        sage: E.table(3,0,2,0,2)                                      # optional - kenzo
+        sage: E.table(3,0,2,0,2)                                                 # optional - kenzo
         0           0   0
         Z/2 + Z/4   0   0
         0           0   Z
-        sage: E.matrix(2,2,0)                                         # optional - kenzo
+        sage: E.matrix(2,2,0)                                                    # optional - kenzo
         [ 0  0]
         [-4  0]
     """
