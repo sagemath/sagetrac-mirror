@@ -530,21 +530,14 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         except AttributeError:
             pp = None
 
-        classname = self.__class__.__name__
-        if classname.startswith('RecursivelyEnumeratedSet_graded'):
+        if isinstance(self, RecursivelyEnumeratedSet_graded):
             struct = 'graded'
-        elif classname.startswith('RecursivelyEnumeratedSet_symmetric'):
+        elif isinstance(self, RecursivelyEnumeratedSet_symmetric):
             struct = 'symmetric'
-        elif classname.startswith('RecursivelyEnumeratedSet_forest'):
+        elif isinstance(self, RecursivelyEnumeratedSet_forest):
             struct = 'forest'
-        elif classname.startswith('RecursivelyEnumeratedSet_generic'):
-            struct = None
         else:
-            A = isinstance(self, RecursivelyEnumeratedSet_generic)
-            raise TypeError("classname(={}) does not start with"
-                    " RecursivelyEnumeratedSet but"
-                    " isinstance(self, RecursivelyEnumeratedSet_generic)"
-                    " returns {}".format(classname, A))
+            struct = None
 
         args = (self._seeds, self.successors, struct,
                 self._enumeration, self._max_depth, pp)
