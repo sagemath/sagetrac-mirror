@@ -473,7 +473,7 @@ class CoxeterGroups(Category_singleton):
                 sage: [x.length() for x in W]
                 [0, 1, 1, 2, 2, 3]
             """
-            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
             def succ(u):
                 for i in u.descents(positive=True, side=side):
@@ -483,7 +483,8 @@ class CoxeterGroups(Category_singleton):
                 return
             from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
             default_category = FiniteEnumeratedSets() if self in FiniteCoxeterGroups() else EnumeratedSets()
-            return RecursivelyEnumeratedSet_forest((self.one(),), succ, algorithm='breadth',
+            return RecursivelyEnumeratedSet((self.one(),), succ,
+                                structure='forest', enumeration='breadth',
                                 category=default_category.or_subcategory(category))
 
         @cached_method
@@ -1843,7 +1844,7 @@ class CoxeterGroups(Category_singleton):
                 sage: w0.binary_factorizations().category()
                 Category of finite enumerated sets
             """
-            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
             W = self.parent()
             if not predicate(W.one()):
                 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -1856,8 +1857,9 @@ class CoxeterGroups(Category_singleton):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):
                         yield (u1, s[i] * v)
-            return RecursivelyEnumeratedSet_forest(((W.one(), self),), succ,
-                                                   category=FiniteEnumeratedSets())
+            return RecursivelyEnumeratedSet(((W.one(), self),), succ,
+                                            structure='forest', 
+                                            category=FiniteEnumeratedSets())
 
         @cached_in_parent_method
         def bruhat_lower_covers(self):

@@ -444,8 +444,9 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
         if enumeration is None:
             enumeration = 'depth'
         return RecursivelyEnumeratedSet_forest(seeds, successors,
-                enumeration, max_depth, post_process=post_process,
-                facade=facade, category=category)
+                enumeration=enumeration, max_depth=max_depth, 
+                post_process=post_process, facade=facade,
+                category=category)
     if structure == 'graded':
         if enumeration is None:
             enumeration = 'breadth'
@@ -538,6 +539,12 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             struct = 'forest'
         elif classname.startswith('RecursivelyEnumeratedSet_generic'):
             struct = None
+        else:
+            A = isinstance(self, RecursivelyEnumeratedSet_generic)
+            raise TypeError("classname(={}) does not start with"
+                    " RecursivelyEnumeratedSet but"
+                    " isinstance(self, RecursivelyEnumeratedSet_generic)"
+                    " returns {}".format(classname, A))
 
         args = (self._seeds, self.successors, struct,
                 self._enumeration, self._max_depth, pp)
@@ -1784,9 +1791,10 @@ class RecursivelyEnumeratedSet_forest(RecursivelyEnumeratedSet_generic):
             An enumerated set with a forest structure
 
     """
-    def __init__(self, roots=None, children=None, enumeration='depth', 
-                 max_depth=float("inf"), post_process=None, facade=None,
-                 category=None): 
+    @rename_keyword(deprecation=30238, algorithm='enumeration')
+    def __init__(self, roots=None, children=None, post_process=None,
+                 enumeration='depth', max_depth=float("inf"), facade=None,
+                 category=None):
         r"""
         This method allows the inputs ``roots`` and ``children`` to be
         ``None`` so that they get defined by methods of the same name

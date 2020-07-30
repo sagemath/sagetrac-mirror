@@ -86,7 +86,7 @@ class PairwiseCompatibleSubsets(RecursivelyEnumeratedSet_forest):
 
     __len__ = None
 
-    def __init__(self, ambient, predicate, maximal = False, element_class = Set_object_enumerated):
+    def __init__(self, ambient, predicate, maximal=False, element_class=Set_object_enumerated):
         """
         TESTS::
 
@@ -99,13 +99,14 @@ class PairwiseCompatibleSubsets(RecursivelyEnumeratedSet_forest):
 
         """
         self._ambient = set(ambient)
-        self._roots = ( ((), tuple(reversed(ambient))), )
         self._predicate = predicate
         self._maximal = maximal
         # TODO: use self.element_class for consistency
         # At this point (2011/03) TestSuite fails if we do so
         self._element_class = element_class
-        RecursivelyEnumeratedSet_forest.__init__(self, algorithm = 'depth', category = FiniteEnumeratedSets())
+        roots = ( ((), tuple(reversed(ambient))), )
+        RecursivelyEnumeratedSet_forest.__init__(self, roots=roots, enumeration='depth', 
+                                                 category=FiniteEnumeratedSets())
 
     def __eq__(self, other):
         """

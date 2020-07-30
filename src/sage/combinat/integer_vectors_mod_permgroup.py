@@ -277,7 +277,8 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, RecursivelyEnu
             Category of infinite enumerated quotients of sets
             sage: TestSuite(I).run()
         """
-        RecursivelyEnumeratedSet_forest.__init__(self, algorithm = 'breadth', category = InfiniteEnumeratedSets().Quotients())
+        RecursivelyEnumeratedSet_forest.__init__(self, enumeration='breadth', 
+                                  category=InfiniteEnumeratedSets().Quotients())
         self._permgroup = G
         self.n = G.degree()
 
@@ -369,7 +370,8 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, RecursivelyEnu
         r"""
         Returns the root of generation of ``self``. This method is
         required to build the tree structure of ``self`` which
-        inherits from the class :class:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet_forest`.
+        inherits from the class
+        :class:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet_forest`.
 
         EXAMPLES::
 
@@ -383,7 +385,8 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, RecursivelyEnu
         r"""
         Returns the list of children of the element ``x``. This method
         is required to build the tree structure of ``self`` which
-        inherits from the class :class:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet_forest`.
+        inherits from the class
+        :class:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet_forest`.
 
         EXAMPLES::
 
@@ -599,7 +602,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, R
 
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), 6, max_part=4)
         """
-        RecursivelyEnumeratedSet_forest.__init__(self, algorithm = 'breadth', category = (FiniteEnumeratedSets(), FiniteEnumeratedSets().Quotients()))
+        RecursivelyEnumeratedSet_forest.__init__(self, enumeration='breadth', 
+                          category=(FiniteEnumeratedSets(), FiniteEnumeratedSets().Quotients()))
         self._permgroup = G
         self.n = G.degree()
         self._sum = d
@@ -752,9 +756,11 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, R
         if self._max_part < 0:
             return self.elements_of_depth_iterator(self._sum)
         else:
-            SF = RecursivelyEnumeratedSet_forest((self([0]*(self.n), check=False),),
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            SF = RecursivelyEnumeratedSet((self([0]*(self.n), check=False),),
                               lambda x : [self(y, check=False) for y in canonical_children(self._sgs, x, self._max_part)],
-                              algorithm = 'breadth')
+                              structure='forest',
+                              enumeration='breadth')
             if self._sum is None:
                 return iter(SF)
             else:
