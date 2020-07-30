@@ -936,12 +936,18 @@ class RESetMapReduce(object):
             if hasattr(forest, 'post_process'):
                 self.post_process = forest.post_process
         else:
-            if roots is not None: self._roots = roots
-            if children is not None: self.children = children
-            if post_process is not None: self.post_process = post_process
-        if map_function is not None: self.map_function = map_function
-        if reduce_function is not None: self.reduce_function = reduce_function
-        if reduce_init is not None: self._reduce_init = reduce_init
+            if roots is not None:
+                self._roots = roots
+            if children is not None:
+                self.children = children
+            if post_process is not None:
+                self.post_process = post_process
+        if map_function is not None:
+            self.map_function = map_function
+        if reduce_function is not None:
+            self.reduce_function = reduce_function
+        if reduce_init is not None:
+            self._reduce_init = reduce_init
         self._profile = None
 
     @lazy_attribute
@@ -1151,7 +1157,8 @@ class RESetMapReduce(object):
         logger.debug("Starting processes")
         sys.stdout.flush()
         sys.stderr.flush()
-        for w in self._workers: w.start()
+        for w in self._workers:
+            w.start()
 
     def get_results(self, timeout=None):
         r"""
