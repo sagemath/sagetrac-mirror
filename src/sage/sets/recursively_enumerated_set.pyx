@@ -525,9 +525,13 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: loads(dumps(C))
             A recursively enumerated set (breadth first search)
         """
-        try:
+        if hasattr(self.__class__, 'post_process'):
+            # otherwise it creates RecursionError since pickling that
+            # method needs to pickle self, which pickle that method, etc.
+            pp = None
+        elif hasattr(self, 'post_process'):
             pp = self.post_process
-        except AttributeError:
+        else:
             pp = None
 
         if isinstance(self, RecursivelyEnumeratedSet_graded):
