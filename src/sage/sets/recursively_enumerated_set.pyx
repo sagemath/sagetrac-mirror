@@ -521,7 +521,8 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
 
         EXAMPLES::
 
-            sage: C = RecursivelyEnumeratedSet((1, 2, 3), factor)
+            sage: succ = lambda n:[a for (a,exp) in factor(n)]
+            sage: C = RecursivelyEnumeratedSet((1, 2, 3), succ)
             sage: loads(dumps(C))
             A recursively enumerated set (breadth first search)
         """
