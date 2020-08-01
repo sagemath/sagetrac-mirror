@@ -1507,7 +1507,8 @@ class FreeModuleTensor(ModuleElementWithMutability):
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
 
         """
-        if basis is None: basis = self._fmodule._def_basis
+        if basis is None:
+            basis = self._fmodule._def_basis
         if basis not in self._components:
             raise ValueError("the components w.r.t. the {}".format(basis) +
                              " have not been defined")
@@ -2368,8 +2369,8 @@ class FreeModuleTensor(ModuleElementWithMutability):
             resu = 0
             for i in fmodule.irange():
                 resu += omega[[i]]*vv[[i]]
-            parent = resu.parent()
-            if resu is not parent.zero() and resu is not parent.one():
+            # Rename resu only if it is mutable and has no name yet:
+            if resu.is_mutable() and resu._name is None:
                 # Name and LaTeX symbol of the output:
                 if hasattr(resu, '_name'):
                     if self._name is not None and vector._name is not None:
