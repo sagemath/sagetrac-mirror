@@ -2379,7 +2379,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                         resu_latex_name = self._latex_name + r"\left("
                         resu_latex_name += vector._latex_name + r"\right)"
                     resu.set_name(name=resu_name, latex_name=resu_latex_name)
-            except (AttributeError, ValueError):
+            except (AttributeError, AssertionError):
                 pass
             return resu
         #
