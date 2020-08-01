@@ -178,6 +178,14 @@ class ChartFunction(AlgebraElement):
         sage: f == h
         True
 
+    A coercion by means of the restriction is implemented::
+
+        sage: D = M.open_subset('D')
+        sage: X_D = X.restrict(D, x^2+y^2<1)  # open disk
+        sage: c = X_D.function(x^2)
+        sage: c + f
+        2*x^2 + 3*y + 1
+
     Expansion to a given order with respect to a small parameter::
 
         sage: t = var('t')  # the small parameter
@@ -1019,17 +1027,20 @@ class ChartFunction(AlgebraElement):
 
     diff = derivative
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Comparison (equality) operator.
+        Rich comparison operator.
 
         INPUT:
 
-        - ``other`` -- a :class:`ChartFunction` or a value
+        - ``other`` -- a :class:`ChartFunction`
+        - ``op`` -- comparison operator for which ``self`` and ``other`` shall
+          be compared with.
 
         OUTPUT:
 
-        - ``True`` if ``self`` is equal to ``other``,  or ``False`` otherwise
+        - ``True`` if ``richcmp(self, other, op)`` holds and ``False``
+          otherwise
 
         TESTS:
 
@@ -1063,51 +1074,23 @@ class ChartFunction(AlgebraElement):
             True
 
         """
-        if other is self:
-            return True
-        if isinstance(other, ChartFunction):
-            if other.parent() != self.parent():
-                return False
+        from sage.structure.richcmp import op_NE, op_EQ
+        if op == op_NE:
+            return not self == other
+        elif op == op_EQ:
+            if other is self:
+                return True
+            if self._calc_method._current in self._express:
+                method = self._calc_method._current
             else:
-                if self._calc_method._current in self._express:
-                    method = self._calc_method._current
-                else:
-                    method = list(self._express)[0]  # pick a random method
-                # other.expr(method)
-                if method == 'sympy':
-                    return bool(sympy.simplify(other.expr(method)
-                                - self.expr(method)) == 0)
-                return bool(other.expr(method) == self.expr(method))
-        else:
-            return bool(self.expr(self._calc_method._current) == other)
-
-    def __ne__(self, other):
-        r"""
-        Inequality operator.
-
-        INPUT:
-
-        - ``other`` -- a :class:`ChartFunction`
-
-        OUTPUT:
-
-        - ``True`` if ``self`` is different from ``other``, ``False``
-          otherwise
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x-y)
-            sage: f != X.function(x*y)
-            True
-            sage: f != X.function(x)
-            True
-            sage: f != X.function(x-y)
-            False
-
-        """
-        return not (self == other)
+                method = list(self._express)[0]  # pick a random method
+            # other.expr(method)
+            if method == 'sympy':
+                return bool(sympy.simplify(other.expr(method)
+                            - self.expr(method)) == 0)
+            return bool(other.expr(method) == self.expr(method))
+        # Fall back on default implementation:
+        return super()._richcmp_(self, other, op)
 
     def __neg__(self):
         r"""
@@ -2595,7 +2578,9 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
     - ``chart`` -- a coordinate chart, as an instance of class
       :class:`~sage.manifolds.chart.Chart`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    The ring of all chart function w.r.t. to a chart::
 
         sage: M = Manifold(2, 'M', structure='topological')
         sage: X.<x,y> = M.chart()
@@ -2605,6 +2590,22 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
         <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category'>
         sage: FR.category()
         Category of commutative algebras over Symbolic Ring
+
+    Coercions by means of restrictions are implemented::
+
+        sage: FR_X = X.function_ring()
+        sage: D = M.open_subset('D')
+        sage: X_D = X.restrict(D, x^2+y^2<1)  # open disk
+        sage: FR_X_D = X_D.function_ring()
+        sage: FR_X_D.has_coerce_map_from(FR_X)
+        True
+
+    But only if the charts are compatible::
+
+        sage: Y.<t,z> = D.chart()
+        sage: FR_Y = Y.function_ring()
+        sage: FR_Y.has_coerce_map_from(FR_X)
+        False
 
     """
     Element = ChartFunction
@@ -2643,8 +2644,16 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sin(x*y)
             sage: f.parent() is FR
             True
+            sage: D = M.open_subset('D')
+            sage: X_D = X.restrict(D, x^2+y^2<1)
+            sage: FR_D = X_D.function_ring()
+            sage: FR_D(f)
+            sin(x*y)
 
         """
+        if isinstance(expression, ChartFunction):
+            if self._chart in expression._chart._subcharts:
+                expression = expression.expr(method=calc_method)
         return self.element_class(self, expression, calc_method=calc_method)
 
     def _coerce_map_from_(self, other):
@@ -2656,13 +2665,20 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: FR = X.function_ring()
-            sage: FR._coerce_map_from_(RR)
+            sage: FR.has_coerce_map_from(RR)
+            True
+            sage: D = M.open_subset('D')
+            sage: X_D = X.restrict(D, x^2+y^2<1)
+            sage: FR_D = X_D.function_ring()
+            sage: FR_D.has_coerce_map_from(FR)
             True
 
         """
-        from sage.rings.all import RR, ZZ, QQ
-        if other is SR or other is ZZ or other is RR or other is QQ:
+        if SR.has_coerce_map_from(other):
             return True
+        if isinstance(other, ChartFunctionRing):
+            if self._chart in other._chart._subcharts:
+                return True
         return False
 
     def _repr_(self):
