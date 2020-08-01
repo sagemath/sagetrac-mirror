@@ -491,10 +491,10 @@ class DiffChart(Chart):
              dx(d/dx): M --> R
                (x, y) |--> 1
             sage: dx(ey).display()
-            dx(d/dy): M --> R
+            zero: M --> R
                (x, y) |--> 0
             sage: dy(ex).display()
-            dy(d/dx): M --> R
+            zero: M --> R
                (x, y) |--> 0
             sage: dy(ey).display()
             dy(d/dy): M --> R

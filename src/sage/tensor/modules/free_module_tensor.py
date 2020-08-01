@@ -2372,6 +2372,8 @@ class FreeModuleTensor(ModuleElementWithMutability):
             try:
                 # Name and LaTeX symbol of the output:
                 if resu._name is None:
+                    resu_name = None
+                    resu_latex_name = None
                     if self._name is not None and vector._name is not None:
                         resu_name = self._name + "(" + vector._name + ")"
                     if self._latex_name is not None and \
@@ -2428,41 +2430,40 @@ class FreeModuleTensor(ModuleElementWithMutability):
             for i in range(p):
                 prod *= v[i][[ind[i]]]
             res += prod
-        if res is not res.parent().zero():
+        try:
             # Name of the output:
-            if hasattr(res, '_name'):
-                res_name = None
-                if self._name is not None:
-                    res_name = self._name + "("
-                    for i in range(p-1):
-                        if args[i]._name is not None:
-                            res_name += args[i]._name + ","
-                        else:
-                            res_name = None
-                            break
-                    if res_name is not None:
-                        if args[p-1]._name is not None:
-                            res_name += args[p-1]._name + ")"
-                        else:
-                            res_name = None
-                res._name = res_name
+            res_name = None
+            if self._name is not None:
+                res_name = self._name + "("
+                for i in range(p-1):
+                    if args[i]._name is not None:
+                        res_name += args[i]._name + ","
+                    else:
+                        res_name = None
+                        break
+                if res_name is not None:
+                    if args[p-1]._name is not None:
+                        res_name += args[p-1]._name + ")"
+                    else:
+                        res_name = None
             # LaTeX symbol of the output:
-            if hasattr(res, '_latex_name'):
-                res_latex = None
-                if self._latex_name is not None:
-                    res_latex = self._latex_name + r"\left("
-                    for i in range(p-1):
-                        if args[i]._latex_name is not None:
-                            res_latex += args[i]._latex_name + ","
-                        else:
-                            res_latex = None
-                            break
-                    if res_latex is not None:
-                        if args[p-1]._latex_name is not None:
-                            res_latex += args[p-1]._latex_name + r"\right)"
-                        else:
-                            res_latex = None
-                res._latex_name = res_latex
+            res_latex = None
+            if self._latex_name is not None:
+                res_latex = self._latex_name + r"\left("
+                for i in range(p-1):
+                    if args[i]._latex_name is not None:
+                        res_latex += args[i]._latex_name + ","
+                    else:
+                        res_latex = None
+                        break
+                if res_latex is not None:
+                    if args[p-1]._latex_name is not None:
+                        res_latex += args[p-1]._latex_name + r"\right)"
+                    else:
+                        res_latex = None
+            res.set_name(name=res_name, latex_name=res_latex)
+        except (AttributeError, AssertionError):
+            pass
         return res
 
     def trace(self, pos1=0, pos2=1):
