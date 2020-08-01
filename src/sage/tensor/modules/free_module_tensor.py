@@ -2369,17 +2369,18 @@ class FreeModuleTensor(ModuleElementWithMutability):
             resu = 0
             for i in fmodule.irange():
                 resu += omega[[i]]*vv[[i]]
-            # Rename resu only if it is mutable and has no name yet:
-            if resu.is_mutable() and resu._name is None:
+            try:
                 # Name and LaTeX symbol of the output:
-                if hasattr(resu, '_name'):
+                if resu._name is None:
                     if self._name is not None and vector._name is not None:
-                        resu._name = self._name + "(" + vector._name + ")"
-                if hasattr(resu, '_latex_name'):
+                        resu_name = self._name + "(" + vector._name + ")"
                     if self._latex_name is not None and \
-                                                vector._latex_name is not None:
-                        resu._latex_name = self._latex_name + r"\left(" + \
-                                           vector._latex_name + r"\right)"
+                            vector._latex_name is not None:
+                        resu_latex_name = self._latex_name + r"\left("
+                        resu_latex_name += vector._latex_name + r"\right)"
+                    resu.set_name(name=resu_name, latex_name=resu_latex_name)
+            except (AttributeError, ValueError):
+                pass
             return resu
         #
         # Generic case
