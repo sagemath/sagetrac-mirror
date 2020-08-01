@@ -3549,7 +3549,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: X.<x,y> = M.chart()
             sage: f = M.scalar_field(x^2, name='f')
             sage: f.set_immutable()
-            sage: g = M.scalar_field(x^2, name='f')
+            sage: g = M.scalar_field(x^2, name='g')
             sage: g.set_immutable()
 
         Check whether equality implies equality of hash::
