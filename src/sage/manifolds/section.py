@@ -2389,17 +2389,17 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
             sage: bool( s_D[1].expr() == s[1].expr() )
             True
 
-        but neither the chart functions representing the components (they are
-        defined on different charts)::
+        The chart functions representing the components can be compared on
+        the common domain::
 
             sage: s_D[1] == s[1]
-            False
+            True
 
-        nor the scalar fields representing the components (they are
-        defined on different open subsets)::
+        The scalar fields representing the components can be compared on the
+        common domain, too::
 
             sage: s_D[[1]] == s[[1]]
-            False
+            True
 
         The restriction of the section to its own domain is of course itself::
 

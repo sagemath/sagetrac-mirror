@@ -1517,17 +1517,17 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: bool( v_D[1].expr() == v[1].expr() )
             True
 
-        but neither the chart functions representing the components (they are
-        defined on different charts)::
+        The chart functions representing the components can be compared on
+        the common domain::
 
             sage: v_D[1] == v[1]
-            False
+            True
 
-        nor the scalar fields representing the components (they are
-        defined on different open subsets)::
+        The scalar fields representing the components can be compared on the
+        common domain, too::
 
             sage: v_D[[1]] == v[[1]]
-            False
+            True
 
         The restriction of the vector field to its own domain is of
         course itself::
