@@ -20,9 +20,9 @@ http://users.cecs.anu.edu.au/~bdm/nauty/COPYRIGHT.txt
 Special Packaging Instruction
 -----------------------------
 
-Upstream distribute tarball named nauty${version}.tar.gz. We cannot deal
-with that so rename it nauty-${version}.tar.gz (notice the "-") without
-any changes.
+The upstream package does not build shared libraries.
+
+The current Sage source package is generated from https://github.com/mkoeppe/nauty, based on Debian's autotoolization patches from https://salsa.debian.org/science-team/nauty/-/tree/master/debian
 
 
 Upstream Contact
