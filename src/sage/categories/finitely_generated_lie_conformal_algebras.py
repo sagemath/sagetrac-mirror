@@ -18,10 +18,11 @@ AUTHORS:
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.graded_lie_conformal_algebras import GradedLieConformalAlgebrasCategory
+from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 
-class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
+class FinitelyGeneratedLieConformalAlgebras(CategoryWithAxiom_over_base_ring):
     """
     The category of finitely generated Lie conformal algebras.
 
@@ -30,6 +31,8 @@ class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
         sage: LieConformalAlgebras(QQbar).FinitelyGenerated()
         Category of finitely generated Lie conformal algebras over Algebraic Field
     """
+    _base_category_class_and_axiom = (LieConformalAlgebras, "FinitelyGeneratedAsBracketAlgebra")
+
     class Super(SuperModulesCategory):
         """
         The category of super finitely generated Lie conformal algebras.

@@ -2,13 +2,12 @@ r"""
 Lie Conformal Algebras
 
 Let `R` be a commutative ring, a *super Lie conformal algebra*
-[Kac1997]_ over `R`
-(also known as a *vertex Lie algebra*) is an `R[T]` super module `L`
-together with a `\mathbb{Z}/2\mathbb{Z}`-graded `R`-bilinear
-operation (called the `\lambda`-bracket)
-`L\otimes L \rightarrow L[\lambda]`
-(polynomials in `\lambda` with
-coefficients in `L`), `a \otimes b \mapsto [a_\lambda b]` satisfying
+[Kac1997]_ over `R` (also known as a *vertex Lie algebra*) is an
+`R[T]` super module `L` together with a `\ZZ / 2\ZZ`-graded
+`R`-bilinear operation (called the `\lambda`-bracket)
+`L \otimes L \rightarrow L[\lambda]`
+(polynomials in `\lambda` with coefficients in `L`),
+`a \otimes b \mapsto [a_\lambda b]` satisfying
 
 1. Sesquilinearity:
 
@@ -131,12 +130,10 @@ from sage.categories.modules import Modules
 from .category_types import Category_over_base_ring
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.categories.bracket_conformal_algebras import BracketConformalAlgebras
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
-from sage.categories.commutative_rings import CommutativeRings
 from sage.misc.lazy_import import LazyImport
-
-_CommutativeRings = CommutativeRings()
 
 class LieConformalAlgebras(Category_over_base_ring):
     r"""
@@ -180,29 +177,6 @@ class LieConformalAlgebras(Category_over_base_ring):
         Traceback (most recent call last):
         ValueError: base must be a commutative ring got Quaternion Algebra (-1, -1) with base ring Rational Field
     """
-
-    @staticmethod
-    def __classcall_private__(cls, R, check=True):
-        r"""
-        INPUT:
-
-        - `R` -- a commutative ring
-        - ``check`` -- a boolean (default: ``True``); whether to check
-          that `R` is a commutative ring
-
-        EXAMPLES::
-
-            sage: LieConformalAlgebras(QuaternionAlgebra(2))
-            Traceback (most recent call last):
-            ValueError: base must be a commutative ring got Quaternion Algebra (-1, -1) with base ring Rational Field
-            sage: LieConformalAlgebras(ZZ)
-            Category of Lie conformal algebras over Integer Ring
-        """
-        if check:
-            if not (R in _CommutativeRings):
-                    raise ValueError("base must be a commutative ring got {}".format(R))
-        return super(LieConformalAlgebras,cls).__classcall__(cls,R)
-
     @cached_method
     def super_categories(self):
         """
@@ -239,7 +213,7 @@ class LieConformalAlgebras(Category_over_base_ring):
              Category of sets with partial maps,
              Category of objects]
         """
-        return [Modules(self.base_ring())]
+        return [BracketConformalAlgebras(self.base_ring())]
 
     def example(self):
         """
@@ -266,71 +240,6 @@ class LieConformalAlgebras(Category_over_base_ring):
         return "Lie conformal algebras over {}".format(self.base_ring())
 
     class ParentMethods:
-
-        def is_super(self):
-            """
-            Wether this Lie conformal algebra is a super Lie
-            conformal algebra.
-
-            EXAMPLES::
-
-                sage: V = lie_conformal_algebras.Virasoro(QQ)
-                sage: V.is_super()
-                False
-                sage: lie_conformal_algebras.NeveuSchwarz(QQbar).is_super()
-                True
-
-            Notice that we can force to have a *purely even* super Lie
-            conformal algebra::
-
-                sage: bosondict = {('a','a'):{1:{('K',0):1}}}
-                sage: R = LieConformalAlgebra(QQ,bosondict,names=('a',),
-                ....:                         central_elements=('K',),super=True)
-                sage: R.is_super()
-                True
-                sage: [g.is_even_odd() for g in R.gens()]
-                [0, 0]
-            """
-            return self in LieConformalAlgebras(self.base_ring()).Super()
-
-        def is_graded(self):
-            """
-            Wether this Lie conformal algebra is graded or not.
-
-            EXAMPLES::
-
-                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
-                sage: Vir
-                The Virasoro Lie conformal algebra over Rational Field
-                sage: Vir.is_graded()
-                True
-            """
-            return self in LieConformalAlgebras(self.base_ring()).Graded()
-
-        def is_with_basis(self):
-            """
-            Whether this Lie conformal algebra has a preferred basis.
-
-            EXAMPLES::
-
-                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
-                sage: Vir.is_with_basis()
-                True
-            """
-            return self in LieConformalAlgebras(self.base_ring()).WithBasis()
-
-        def is_finitely_generated(self):
-            """
-            Whether this Lie conformal algebra is finitely generated.
-
-            EXAMPLES::
-
-                sage: Vir = lie_conformal_algebras.Virasoro(QQ)
-                sage: Vir.is_finitely_generated()
-                True
-            """
-            return self in LieConformalAlgebras(self.base_ring()).FinitelyGenerated()
-
         def _test_jacobi(self, **options):
             """
             Test the Jacobi axiom of this Lie conformal algebra.
@@ -389,8 +298,8 @@ class LieConformalAlgebras(Category_over_base_ring):
                 for k,br in br2.items():
                     for j,v in br.items():
                         for r in range(j+1):
-                            jac2[(k+r, j-r)] = jac2.get((k+r, j-r), pz)\
-                                              + binomial(k+r, r)*v
+                            jac2[(k+r, j-r)] = (jac2.get((k+r, j-r), pz)
+                                                + binomial(k+r, r)*v)
                 for k,v in jac2.items():
                     jac1[k] = jac1.get(k, pz) - v
                 for k,v in jac3.items():
@@ -423,30 +332,6 @@ class LieConformalAlgebras(Category_over_base_ring):
             """
             return 0
 
-    class SubcategoryMethods:
-
-        def FinitelyGeneratedAsLieConformalAlgebra(self):
-            """
-            The category of finitely generated Lie conformal algebras.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQ).FinitelyGenerated()
-                Category of finitely generated Lie conformal algebras over Rational Field
-            """
-            return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
-
-        def FinitelyGenerated(self):
-            """
-            The category of finitely generated Lie conformal algebras.
-
-            EXAMPLES::
-
-                sage: LieConformalAlgebras(QQ).FinitelyGenerated()
-                Category of finitely generated Lie conformal algebras over Rational Field
-            """
-            return self._with_axiom("FinitelyGeneratedAsLieConformalAlgebra")
-
     Graded = LazyImport("sage.categories.graded_lie_conformal_algebras",
                         "GradedLieConformalAlgebras", "Graded")
 
@@ -456,7 +341,7 @@ class LieConformalAlgebras(Category_over_base_ring):
     WithBasis = LazyImport("sage.categories.lie_conformal_algebras_with_basis",
                            "LieConformalAlgebrasWithBasis", "WithBasis")
 
-    FinitelyGeneratedAsLieConformalAlgebra = LazyImport(
+    FinitelyGeneratedAsBracketAlgebra = LazyImport(
         'sage.categories.finitely_generated_lie_conformal_algebras',
-        'FinitelyGeneratedAsLieConformalAlgebra')
+        'FinitelyGeneratedLieConformalAlgebras')
 

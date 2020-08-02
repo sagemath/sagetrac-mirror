@@ -24,11 +24,10 @@ from sage.categories.category import JoinCategory, Category
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.modules import Modules
+from sage.categories.bracket_algebras import BracketAlgebras
 from sage.categories.sets_cat import Sets
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
-from sage.structure.element import coerce_binop
 
 
 class LieAlgebras(Category_over_base_ring):
@@ -40,7 +39,7 @@ class LieAlgebras(Category_over_base_ring):
         sage: C = LieAlgebras(QQ); C
         Category of Lie algebras over Rational Field
         sage: sorted(C.super_categories(), key=str)
-        [Category of vector spaces over Rational Field]
+        [Category of bracket algebras over Rational Field]
 
     We construct a typical parent in this category, and do some
     computations with it::
@@ -85,13 +84,9 @@ class LieAlgebras(Category_over_base_ring):
         EXAMPLES::
 
             sage: LieAlgebras(QQ).super_categories()
-            [Category of vector spaces over Rational Field]
+            [Category of bracket algebras over Rational Field]
         """
-        # We do not also derive from (Magmatic) algebras since we don't want *
-        #   to be our Lie bracket
-        # Also this doesn't inherit the ability to add axioms like Associative
-        #   and Unital, both of which do not make sense for Lie algebras
-        return [Modules(self.base_ring())]
+        return [BracketAlgebras(self.base_ring())]
 
     class SubcategoryMethods:
         def Nilpotent(self):
@@ -758,89 +753,7 @@ class LieAlgebras(Category_over_base_ring):
             for x in elts:
                 tester.assertEqual(self.bracket(x, x), zero)
 
-        def _test_distributivity(self, **options):
-            r"""
-            Test the distributivity of the Lie bracket `[,]` on `+` on (not
-            necessarily all) elements of this set.
-
-            INPUT:
-
-            - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
-
-            TESTS::
-
-                sage: L = LieAlgebras(QQ).example()
-                sage: L._test_distributivity()
-
-            EXAMPLES:
-
-            By default, this method runs the tests only on the
-            elements returned by ``self.some_elements()``::
-
-                sage: L = LieAlgebra(QQ, 3, 'x,y,z', representation="polynomial")
-                sage: L.some_elements()
-                [x + y + z]
-                sage: L._test_distributivity()
-
-            However, the elements tested can be customized with the
-            ``elements`` keyword argument::
-
-                sage: L = LieAlgebra(QQ, cartan_type=['A', 2]) # todo: not implemented - #16821
-                sage: h1 = L.gen(0) # todo: not implemented - #16821
-                sage: h2 = L.gen(1) # todo: not implemented - #16821
-                sage: e2 = L.gen(3) # todo: not implemented - #16821
-                sage: L._test_distributivity(elements=[h1, h2, e2]) # todo: not implemented - #16821
-
-            See the documentation for :class:`TestSuite` for more information.
-            """
-            tester = self._tester(**options)
-            S = tester.some_elements()
-            from sage.misc.misc import some_tuples
-            for x,y,z in some_tuples(S, 3, tester._max_runs):
-                # left distributivity
-                tester.assertEqual(self.bracket(x, (y + z)),
-                                   self.bracket(x, y) + self.bracket(x, z))
-                # right distributivity
-                tester.assertEqual(self.bracket((x + y), z),
-                                   self.bracket(x, z) + self.bracket(y, z))
-
     class ElementMethods:
-        @coerce_binop
-        def bracket(self, rhs):
-            """
-            Return the Lie bracket ``[self, rhs]``.
-
-            EXAMPLES::
-
-                sage: L = LieAlgebras(QQ).example()
-                sage: x,y = L.lie_algebra_generators()
-                sage: x.bracket(y)
-                -[1, 3, 2] + [3, 2, 1]
-                sage: x.bracket(0)
-                0
-            """
-            return self._bracket_(rhs)
-
-        # Implement this method to define the Lie bracket. You do not
-        # need to deal with the coercions here.
-        @abstract_method
-        def _bracket_(self, y):
-            """
-            Return the Lie bracket ``[self, y]``, where ``y`` is an
-            element of the same Lie algebra as ``self``.
-
-            EXAMPLES::
-
-                sage: L = LieAlgebras(QQ).example()
-                sage: x,y = L.lie_algebra_generators()
-                sage: x._bracket_(y)
-                -[1, 3, 2] + [3, 2, 1]
-                sage: y._bracket_(x)
-                [1, 3, 2] - [3, 2, 1]
-                sage: x._bracket_(x)
-                0
-            """
-
         @abstract_method(optional=True)
         def to_vector(self, order=None):
             """

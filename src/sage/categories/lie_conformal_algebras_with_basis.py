@@ -78,7 +78,7 @@ class LieConformalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Category of H-graded Lie conformal algebras with basis over Algebraic Field
         """
 
-    class FinitelyGeneratedAsLieConformalAlgebra(CategoryWithAxiom_over_base_ring):
+    class FinitelyGeneratedAsBracketAlgebra(CategoryWithAxiom_over_base_ring):
         """
         The category of finitely generated Lie conformal
         algebras with basis.

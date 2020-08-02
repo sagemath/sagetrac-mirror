@@ -20,17 +20,25 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.categories.lie_conformal_algebras", "LieConformalAlgebras")
 from sage.misc.abstract_method import abstract_method
 
 class SuperLieConformalAlgebras(SuperModulesCategory):
-    """
+    r"""
     The category of super Lie conformal algebras.
 
     EXAMPLES::
 
         sage: LieConformalAlgebras(AA).Super()
         Category of super Lie conformal algebras over Algebraic Real Field
+
+    Notice that we can force to have a *purely even* super Lie
+    conformal algebra::
+
+        sage: bosondict = {('a','a'):{1:{('K',0):1}}}
+        sage: R = LieConformalAlgebra(QQ,bosondict,names=('a',),
+        ....:                         central_elements=('K',), super=True)
+        sage: [g.is_even_odd() for g in R.gens()]
+        [0, 0]
     """
     def example(self):
         """
@@ -46,71 +54,6 @@ class SuperLieConformalAlgebras(SuperModulesCategory):
         return NeveuSchwarzLieConformalAlgebra(self.base_ring())
 
     class ParentMethods:
-
-        def is_super(self):
-            """
-            This method returns ``True``.
-
-            EXAMPLES::
-
-                sage: V = lie_conformal_algebras.Virasoro(QQ)
-                sage: V.is_super()
-                False
-                sage: lie_conformal_algebras.NeveuSchwarz(QQbar).is_super()
-                True
-
-            Notice that we can force to have a *purely even* super Lie
-            conformal algebra::
-
-                sage: bosondict = {('a','a'):{1:{('K',0):1}}}
-                sage: R = LieConformalAlgebra(QQ,bosondict,names=('a',),
-                ....:                         central_elements=('K',),super=True)
-                sage: R.is_super()
-                True
-                sage: [g.is_even_odd() for g in R.gens()]
-                [0, 0]
-            """
-            return True
-
-        def is_graded(self):
-            """
-            Wether this super Lie conformal algebra is graded or not.
-
-            EXAMPLES::
-
-                sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
-                sage: V
-                The Neveu-Schwarz super Lie conformal algebra over Rational Field
-                sage: V.is_graded()
-                True
-            """
-            return self in SuperLieConformalAlgebras(self.base_ring()).Graded()
-
-        def is_with_basis(self):
-            """
-            Whether this super Lie conformal algebra has a preferred
-            basis by homogeneous elements.
-
-            EXAMPLES::
-
-                sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
-                sage: V.is_with_basis()
-                True
-            """
-            return self in LieConformalAlgebras(self.base_ring()).WithBasis().Super()
-
-        def is_finitely_generated(self):
-            """
-            Whether this super Lie conformal algebra is finitely generated.
-
-            EXAMPLES::
-
-                sage: V = lie_conformal_algebras.NeveuSchwarz(QQ)
-                sage: V.is_finitely_generated()
-                True
-            """
-            return self in LieConformalAlgebras(self.base_ring()).FinitelyGenerated().Super()
-
         def _test_jacobi(self, **options):
             """
             Test the Jacobi axiom of this super Lie conformal algebra.
@@ -153,22 +96,24 @@ class SuperLieConformalAlgebras(SuperModulesCategory):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            #Try our best to avoid non-homogeneous elements
+            # Try our best to avoid non-homogeneous elements
             elements = []
             for s in S:
                 try:
                     s.is_even_odd()
                 except ValueError:
-                    if tester._instance.is_with_basis():
-                        elements.extend([s.even_component(),s.odd_component()])
-                        continue
+                    try:
+                        elements.extend([s.even_component(), s.odd_component()])
+                    except (AttributeError, ValueError):
+                        pass
+                    continue
                 elements.append(s)
             S = elements
             from sage.misc.misc import some_tuples
             from sage.functions.other import binomial
             pz = tester._instance.zero()
             for x,y,z in some_tuples(S, 3, tester._max_runs):
-                if x.is_even_odd()*y.is_even_odd():
+                if x.is_even_odd() * y.is_even_odd():
                     sgn = -1
                 else:
                     sgn = 1
@@ -184,8 +129,8 @@ class SuperLieConformalAlgebras(SuperModulesCategory):
                 for k,br in br2.items():
                     for j,v in br.items():
                         for r in range(j+1):
-                            jac2[(k+r, j-r)] = jac2.get((k+r, j-r), pz)\
-                                              + binomial(k+r, r)*v
+                            jac2[(k+r, j-r)] = (jac2.get((k+r, j-r), pz)
+                                                + binomial(k+r, r)*v)
                 for k,v in jac2.items():
                     jac1[k] = jac1.get(k, pz) - v
                 for k,v in jac3.items():
@@ -211,7 +156,7 @@ class SuperLieConformalAlgebras(SuperModulesCategory):
 
     class Graded(GradedModulesCategory):
         """
-        The category of H-graded super Lie conformal algebras with basis.
+        The category of H-graded super Lie conformal algebras.
 
         EXAMPLES::
 
@@ -228,6 +173,7 @@ class SuperLieConformalAlgebras(SuperModulesCategory):
                 [Category of H-graded super Lie conformal algebras over Rational Field,
                  Category of super finitely generated Lie conformal algebras over Rational Field]
             """
+            from sage.categories.lie_conformal_algebras import LieConformalAlgebras
             return [LieConformalAlgebras(self.base_ring()).Graded()]
 
         def _repr_object_names(self):
