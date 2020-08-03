@@ -31,11 +31,13 @@ REFERENCES:
 
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
+from sage.structure.mutability import Mutability
+from sage.misc.cachefunc import cached_method
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 
-class AffineConnection(SageObject):
+class AffineConnection(SageObject, Mutability):
     r"""
     Affine connection on a smooth manifold.
 
@@ -352,6 +354,7 @@ class AffineConnection(SageObject):
         if not isinstance(domain, DifferentiableManifold):
             raise TypeError("the first argument must be a differentiable " +
                             "manifold")
+        Mutability.__init__(self)
         self._domain = domain
         self._name = name
         if latex_name is None:
@@ -361,7 +364,7 @@ class AffineConnection(SageObject):
         self._coefficients = {}  # dict. of connection coefficients, with the
                                  # vector frames as keys
         # Initialization of derived quantities:
-        AffineConnection._init_derived(self)
+        self._init_derived()
 
     def _repr_(self):
         r"""
@@ -426,7 +429,6 @@ class AffineConnection(SageObject):
                                   # (key: vector frame)
         self._curvature_forms = {}  # dict. of dict. of curvature 2-forms
                                     # (key: vector frame)
-        self._hash = -1
 
     def _del_derived(self):
         r"""
@@ -747,6 +749,9 @@ class AffineConnection(SageObject):
         To keep them, use the method :meth:`add_coef` instead.
 
         """
+        if self.is_immutable():
+            raise AssertionError("the components of an immutable element "
+                                 "cannot be changed")
         if frame is None:
             frame = self._domain._def_frame
         if frame not in self._coefficients:
@@ -836,6 +841,9 @@ class AffineConnection(SageObject):
 
 
         """
+        if self.is_immutable():
+            raise AssertionError("the components of an immutable element "
+                                 "cannot be changed")
         if frame is None:
             frame = self._domain._def_frame
         if frame not in self._coefficients:
@@ -899,6 +907,34 @@ class AffineConnection(SageObject):
                 to_be_deleted.append(other_frame)
         for other_frame in to_be_deleted:
             del self._coefficients[other_frame]
+
+    def set_immutable(self):
+        r"""
+        Set ``self`` and all restrictions of ``self`` immutable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1})
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: eX = X.frame()
+            sage: nab.set_coef(eX)[1,2,1] = x*y
+            sage: nab.is_immutable()
+            False
+            sage: nab.set_immutable()
+            sage: nab.is_immutable()
+            True
+            sage: nab.add_coef(eX)[2,1,1] = x+y
+
+            sage: nabU = nab.restrict(U)
+            sage: nabU.is_immutable()
+            True
+
+        """
+        for rst in self._restrictions.values():
+            rst.set_immutable()
+        super().set_immutable()
 
     def __getitem__(self, args):
         r"""
@@ -1265,6 +1301,7 @@ class AffineConnection(SageObject):
                 resu._riemann = self._riemann.restrict(subdomain)
             if self._ricci is not None:
                 resu._ricci = self._ricci.restrict(subdomain)
+            resu.set_immutable()  # restrictions must be immutable, too
             self._restrictions[subdomain] = resu
         return self._restrictions[subdomain]
 
@@ -2316,6 +2353,7 @@ class AffineConnection(SageObject):
                     coef[ind].simplify()
         self._del_derived()
 
+    @cached_method
     def __hash__(self):
         r"""
         Hash function.
@@ -2324,16 +2362,28 @@ class AffineConnection(SageObject):
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
-            sage: hash(nab) == nab.__hash__()
+            sage: eX = X.frame()
+            sage: nab1 = M.affine_connection('nabla1', latex_name=r'\nabla_2')
+            sage: nab1.set_coef(eX)[1,2,1] = x*y
+            sage: nab2 = M.affine_connection('nabla2', latex_name=r'\nabla_1')
+            sage: nab2.set_coef(eX)[1,2,1] = x*y
+            sage: nab1.set_immutable(); nab2.set_immutable()
+            sage: nab1 == nab2
+            True
+            sage: hash(nab1) == hash(nab2)
             True
 
         Let us check that ``nab`` can be used as a dictionary key::
 
-            sage: {nab: 1}[nab]
+            sage: d = {nab1: 1, nab2: 2}
+            sage: d[nab1]
             1
+            sage: d[nab2]
+            2
 
         """
-        if self._hash == -1:
-            self._hash = hash(repr(self))
-        return self._hash
+        if self.is_mutable():
+            raise ValueError('element must be immutable in order to be '
+                             'hashable')
+        manif = self._domain.manifold()
+        return hash(manif)
