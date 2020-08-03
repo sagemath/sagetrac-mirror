@@ -31,13 +31,12 @@ REFERENCES:
 
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
-from sage.structure.mutability import Mutability
 from sage.misc.cachefunc import cached_method
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 
-class AffineConnection(SageObject, Mutability):
+class AffineConnection(SageObject):
     r"""
     Affine connection on a smooth manifold.
 
@@ -354,7 +353,7 @@ class AffineConnection(SageObject, Mutability):
         if not isinstance(domain, DifferentiableManifold):
             raise TypeError("the first argument must be a differentiable " +
                             "manifold")
-        Mutability.__init__(self)
+        self._is_immutable = False
         self._domain = domain
         self._name = name
         if latex_name is None:
@@ -750,7 +749,7 @@ class AffineConnection(SageObject, Mutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
+            raise AssertionError("the coefficients of an immutable element "
                                  "cannot be changed")
         if frame is None:
             frame = self._domain._def_frame
@@ -842,7 +841,7 @@ class AffineConnection(SageObject, Mutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the components of an immutable element "
+            raise AssertionError("the coefficients of an immutable element "
                                  "cannot be changed")
         if frame is None:
             frame = self._domain._def_frame
@@ -912,7 +911,9 @@ class AffineConnection(SageObject, Mutability):
         r"""
         Set ``self`` and all restrictions of ``self`` immutable.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        An affine connection can be set immutable::
 
             sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()
@@ -925,7 +926,16 @@ class AffineConnection(SageObject, Mutability):
             sage: nab.set_immutable()
             sage: nab.is_immutable()
             True
+
+        The coefficients of immutable elements cannot be changed::
+
             sage: nab.add_coef(eX)[2,1,1] = x+y
+            Traceback (most recent call last):
+            ...
+            AssertionError: the coefficients of an immutable element cannot
+             be changed
+
+        The restriction are set immutable as well::
 
             sage: nabU = nab.restrict(U)
             sage: nabU.is_immutable()
@@ -934,7 +944,47 @@ class AffineConnection(SageObject, Mutability):
         """
         for rst in self._restrictions.values():
             rst.set_immutable()
-        super().set_immutable()
+        self._is_immutable = True
+
+    def is_immutable(self):
+        r"""
+        Return ``True`` if this object is immutable, i.e. its coefficients
+        cannot be chanced, and ``False`` if it is not.
+
+        To set an affine connection immutable, use :meth:`set_immutable`.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab.is_immutable()
+            False
+            sage: nab.set_immutable()
+            sage: nab.is_immutable()
+            True
+
+        """
+        return self._is_immutable
+
+    def is_mutable(self):
+        r"""
+        Return ``True`` if this object is mutable, i.e. its coefficients can
+        be changed, and ``False`` if it is not.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab.is_mutable()
+            True
+            sage: nab.set_immutable()
+            sage: nab.is_mutable()
+            False
+
+        """
+        return not self._is_immutable
 
     def __getitem__(self, args):
         r"""
@@ -2360,12 +2410,12 @@ class AffineConnection(SageObject, Mutability):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()
             sage: eX = X.frame()
-            sage: nab1 = M.affine_connection('nabla1', latex_name=r'\nabla_2')
+            sage: nab1 = M.affine_connection('nabla1', latex_name=r'\nabla_1')
             sage: nab1.set_coef(eX)[1,2,1] = x*y
-            sage: nab2 = M.affine_connection('nabla2', latex_name=r'\nabla_1')
+            sage: nab2 = M.affine_connection('nabla2', latex_name=r'\nabla_2')
             sage: nab2.set_coef(eX)[1,2,1] = x*y
             sage: nab1.set_immutable(); nab2.set_immutable()
             sage: nab1 == nab2
@@ -2373,8 +2423,16 @@ class AffineConnection(SageObject, Mutability):
             sage: hash(nab1) == hash(nab2)
             True
 
-        Let us check that ``nab`` can be used as a dictionary key::
+        Let us check that affine connections can be used as dictionary keys::
 
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: eX = X.frame()
+            sage: nab1 = M.affine_connection('nabla1', latex_name=r'\nabla_1')
+            sage: nab1.set_coef(eX)[1,2,1] = x*y
+            sage: nab2 = M.affine_connection('nabla2', latex_name=r'\nabla_2')
+            sage: nab2.set_coef(eX)[1,2,1] = x^2
+            sage: nab1.set_immutable(); nab2.set_immutable()
             sage: d = {nab1: 1, nab2: 2}
             sage: d[nab1]
             1
@@ -2385,5 +2443,4 @@ class AffineConnection(SageObject, Mutability):
         if self.is_mutable():
             raise ValueError('element must be immutable in order to be '
                              'hashable')
-        manif = self._domain.manifold()
-        return hash(manif)
+        return hash((type(self).__name__, self._domain))
