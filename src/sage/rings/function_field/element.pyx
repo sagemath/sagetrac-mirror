@@ -59,9 +59,13 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import operator
+
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp cimport richcmp, richcmp_not_equal
+
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.rings.integer import Integer
 from sage.rings.all import QQ
@@ -143,6 +147,7 @@ cdef class FunctionFieldElement(FieldElement):
 
         EXAMPLES::
 
+            sage: set_verbose(-1)
             sage: R.<x> = FunctionField(QQ)
             sage: S.<Y> = R[]
             sage: L.<y> = R.extension(Y^2 - (x^4 + 1))
@@ -152,6 +157,8 @@ cdef class FunctionFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             ValueError: not a 2nd power
+            sage: L(4) ^ (1/2)
+            2
 
         Note that the ``L`` is required to put the element into the
         correct field.  There is no square root of `x^4+1` in ``R``:
@@ -160,6 +167,13 @@ cdef class FunctionFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             ValueError: not a 2nd power
+
+        Here's an example of a constant square root in a field that is
+        not algebraically closed:
+
+            sage: K.<z> = R.extension((x+Y)^2 + 1)
+            sage: K(-1) ^ (1/2)
+            x + z
 
         TESTS:
 
@@ -196,11 +210,32 @@ cdef class FunctionFieldElement(FieldElement):
         else:
             try:
                 D = self.divisor()
-                Droot = sum([Integer(m*right)*pl for pl,m in D.dict().items()])
+                if not D.is_zero():
+                    Droot = sum([Integer(m*right)*pl for pl,m in D.dict().items()])
+                else:
+                    Droot = D
                 basis = (-Droot).basis_function_space()
-                root = basis[0]
-                coeff = self.parent().constant_base_field()((self**numer)/(root**denom))**(1/denom)
-                return coeff*root
+                #if len(basis) <= 1:
+                if False:
+                    # If len(basis) == 0, this will raise IndexError and fall through into the failure code.
+                    b = basis[0]
+                    coeff = self.parent().constant_base_field()((self**numer)/(b**denom))**(1/denom)
+                    root = coeff * b
+                else:
+                    # All of the elements belonging to this divisor (Droot) have the form sum c_i b_i.
+                    # Form a polynomial ring over our function field with enough extra variables to express the constants.
+                    R = PolynomialRing(self.parent(), 'c', len(basis))
+                    # Construct the general form of an element belonging to this divisor: sum c_i b_i.
+                    elem = sum(map(operator.mul, R.gens(), basis))
+                    # Find the solutions to elem^d = self^n, with c_i restricted to the constant base field.
+                    I = R.ideal(elem**denom - self**numer)
+                    V = I.variety(ring = self.parent().constant_base_field())
+                    roots = [sum(map(operator.mul, map(sol.get, R.gens()), basis)) for sol in V]
+                    # Reverse sort the roots to prefer a positive root.
+                    # We'll take the first one and discard the rest, since there's no 'all' option to __pow__.
+                    # If the list is empty, we'll raise IndexError and fall through into the failure code below.
+                    root = sorted(roots, reverse=True)[0]
+                return root
             except (TypeError, IndexError):
                 pass
             raise ValueError("not a %s power"%Integer(denom).ordinal_str())
