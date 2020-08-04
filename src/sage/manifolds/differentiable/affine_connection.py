@@ -331,6 +331,39 @@ class AffineConnection(SageObject):
          + (u**3/16 - u**2*v/16 - u**2/8 - u*v**2/16 + v**3/16 + v**2/8 - 1) d/dv*du
          + (-u**3/16 + u**2*v/16 - u**2/8 + u*v**2/16 - v**3/16 + v**2/8) d/dv*dv
 
+    To make affine connections hashable, they have to be set immutable before::
+
+        sage: nab.is_immutable()
+        False
+        sage: nab.set_immutable()
+        sage: nab.is_immutable()
+        True
+
+    Immutable connections cannot be changed anymore::
+
+        sage: nab.set_coef(eU)
+        Traceback (most recent call last):
+        ...
+        AssertionError: the coefficients of an immutable element cannot be
+         changed
+
+    However, they can now be used as keys for dictionaries::
+
+        sage: {nab: 1}[nab]
+        1
+
+    The immutability process cannot be made undone. If a connection is
+    needed to be changed again, a copy has to be created::
+
+        sage: nab_copy = nab.copy('nablo'); nab_copy
+        Affine connection nablo on the 2-dimensional differentiable manifold M
+        sage: nab_copy is nab
+        False
+        sage: nab_copy == nab
+        True
+        sage: nab_copy.is_immutable()
+        False
+
     """
     def __init__(self, domain, name, latex_name=None):
         r"""
@@ -907,7 +940,6 @@ class AffineConnection(SageObject):
         for other_frame in to_be_deleted:
             del self._coefficients[other_frame]
 
-
     def set_immutable(self):
         r"""
         Set ``self`` and all restrictions of ``self`` immutable.
@@ -947,7 +979,6 @@ class AffineConnection(SageObject):
             rst.set_immutable()
         self._is_immutable = True
 
-
     def is_immutable(self):
         r"""
         Return ``True`` if this object is immutable, i.e. its coefficients
@@ -969,7 +1000,6 @@ class AffineConnection(SageObject):
         """
         return self._is_immutable
 
-
     def is_mutable(self):
         r"""
         Return ``True`` if this object is mutable, i.e. its coefficients can
@@ -988,7 +1018,6 @@ class AffineConnection(SageObject):
 
         """
         return not self._is_immutable
-
 
     def copy(self, name, latex_name=None):
         r"""
