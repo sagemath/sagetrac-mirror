@@ -42,6 +42,7 @@ from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
 from sage.categories.number_fields import NumberFields
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
+from sage.matrix.constructor import Matrix
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DynamicalSystem_Berkovich(Element):
@@ -704,7 +705,6 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             raise NotImplementedError('action on Type IV points not implemented')
         f = self._system
         if x.type_of_point() == 2:
-            from sage.matrix.constructor import Matrix
             from sage.modules.free_module_element import vector
             if self.domain().is_number_field_base():
                 ideal = self.domain().ideal()
@@ -835,6 +835,179 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 valuation = dem_splitting_field(Taylor_expansion[i]).valuation(prime)
                 new_radius = max(new_radius, p**(-valuation/prime.absolute_ramification_index())*r**i)
         return self.domain()(new_center, new_radius)
+
+    def min_res_locus(self, ret_conjugation=False):
+        r"""
+        Returns the minimal resultant locus and the minimal order of the resultant.
+
+        Let the action of this map `\phi` be given by
+        `[X : Y] \to [F(X,Y) : G(X,Y)]`, where `F` and `G` are normalized.
+        The resultant of `\phi` is the resultant of `F` and `G`.
+        Define the function `\text{ordRes}(\phi) = \text{ord}(\text{Res}(F, G))`.
+        `\text{ordRes}` is not constant under conjugacy, hence there is
+        some pair `(F, G)` for which `\text{ordRes}` achieves a minimum.
+
+        The minimal resultant locus is the segment of Berkovich
+        space where the minimal value of the resultant is achieved.
+        See [Rum2013]_ for details.
+
+        INPUT:
+
+        - ``ret_conjugation`` -- (default: ``False``) If the conjugation to achieve
+          the minimal resultant should be returned.
+
+        OUTPUT:
+
+        - If ``ret_conjugation`` is ``False``, then a tuple (``start``, ``end``) is returned,
+          where ``start`` and ``end`` are points of Berkovich space. The minimal resultant
+          is then achieved on the interval defined by [``start``, ``end``].
+
+        - If ``ret_conjugation`` is ``True``, then a tuple ((``start``, ``end``), ``conj``)
+          is returned, where [``start``, ``end``] defines the minimal resultant locus
+          and ``conj`` is a matrix such that this dynamical system achieves the minimal
+          order of the resultant after conjugation by ``conj``.
+
+        ALGORITHM:
+
+        See [Rum2013]_.
+        """
+        system = self._system
+        QQ_prime = self.domain().prime()
+        base_prime_ideal = self.domain().ideal()
+        affine_system = system.dehomogenize(1)
+        base = affine_system.base_ring()
+        T = base['w']
+        w = T.gens()[0]
+        var = affine_system[0].parent().gens()[0]
+        phi = affine_system[0].numerator().parent().hom([w])
+        num, dem = affine_system[0].numerator(), affine_system[0].denominator()
+        dem = phi(dem)
+        num = phi(num)
+        #print('num:', num)
+        #print('dem:', dem)
+        fixed_point_equation = (num-w*dem)
+        factorization = list(fixed_point_equation.factor())
+        if(system([1,0]) == system.domain()([1,0])):
+            Q = dem
+        else:
+            value = system([1,0]).dehomogenize(1)[0]
+            Q = num - value*dem
+        factorization += list(Q.factor())
+        min_list = []
+        print('all factors:', factorization)
+        for i in range(len(factorization)):
+            irreducible = factorization[i][0]
+            extension = base.extension(irreducible, 's%s'%i)
+            new_primes = extension.primes_above(base_prime_ideal)
+            for new_prime in new_primes:
+                ramification_index = new_prime.absolute_ramification_index()
+                valuation = lambda x: x.valuation(new_prime)/ramification_index
+                s = extension.gens()[0]
+                transformation_matrix = Matrix([[1, s],[0, 1]])
+                new_system = system.change_ring(extension)
+                new_system = new_system.conjugate(transformation_matrix)
+                new_system.normalize_coordinates() #very long call
+                #print('res = ', new_system.resultant())
+                res = valuation(new_system.resultant())
+                #print('ordres = ', res)
+                d = new_system.degree()
+                #print('system = ', new_system)
+                C_list = []
+                D_list = []
+                for i in range(d+1):
+                    C_i = new_system[0][i,d-i]
+                    D_i = new_system[1][i,d-i]
+                    #print('C_%s = ' %i, C_i)
+                    #print('val = ', valuation(C_i))
+                    if C_i != 0:
+                        C_list.append(QQ(res-2*d*valuation(C_i)))
+                    else:
+                        C_list.append(None)
+                    if D_i != 0:
+                        D_list.append(QQ(res-2*d*valuation(D_i)))
+                    else:
+                        D_list.append(None)
+                #print('C_list =', C_list)
+                D = QQ['t']
+                t = D.gens()[0]
+                C_lines = [(C_list[i] + (QQ(d^2+d-2*d*i))*t) for i in range(len(C_list)) if C_list[i] != None]
+                D_lines = [(D_list[i] + (QQ(d^2+d-2*d*(i+1)))*t) for i in range(len(D_list)) if D_list[i] != None]
+                all_lines = C_lines + D_lines #crude minimization
+                minimum = None
+                #print(C_lines,D_lines)
+                all_intersections = []
+                for line_1 in all_lines:
+                    for line_2 in all_lines:
+                        if line_1 != line_2 and line_2[1] != line_1[1]:
+                            intersection = QQ((line_1[0]-line_2[0])/(line_2[1]-line_1[1]))
+                            if intersection not in all_intersections:
+                                all_intersections.append(intersection)
+                #print(all_intersections)
+                for intersection in all_intersections:
+                    C_max = max([(i(intersection)) for i in C_lines])
+                    D_max = max([(i(intersection)) for i in D_lines])
+                    #print('intersection = ', intersection)
+                    #print('C_max = ', C_max)
+                    #print('D_max = ', D_max)
+                    #print('value of X(i) = ', max(C_max, D_max))
+                    X_i = (max(C_max,D_max))
+                    if X_i < minimum or minimum == None:
+                        minimum = (X_i)
+                        intersection_final = QQ(intersection)
+                #print('minimum: ', minimum)
+                interval_check = False
+                for line in all_lines: #check if minimum is achieved on an interval
+                    if line.is_constant():
+                        if line[0] == minimum:
+                            interval_check = True
+                            break
+                min_list.append((minimum, intersection_final, interval_check, extension, new_prime))
+        minimizing_list = [i[0] for i in min_list]
+        minimum = min(minimizing_list)
+        min_index = minimizing_list.index(minimum)
+        min_res = min_list[min_index][0]
+        intersection_final = min_list[min_index][1]
+        interval_check = min_list[min_index][2]
+        extension = min_list[min_index][3]
+        prime_above = min_list[min_index][4]
+        if not interval_check: #minimum is not achieved on an interval
+            B = Berkovich_Cp_Projective(extension, prime_above)
+            min_res_locus = B(extension.gens()[0], power=-1*intersection_final)
+            min_res_locus = min_list[min_index][0]
+            if not ret_conjugation:
+                return min_res_locus
+            else:
+                #print('intersection_final:', intersection_final)
+                root = intersection_final.denominator()
+                if root == 1:
+                    #print('in no denominator case')
+                    #print('extension:', extension)
+                    conj_matrix = Matrix([[QQ_prime**(intersection_final), extension.gens()[0]], [0,1]])
+                    new_system = system.change_ring(extension)
+                else:
+                    C = extension['c']
+                    c = C.gens()[0]
+                    defining_polynomial = c**(root) - QQ_prime**(intersection_final.numerator())
+                    factorization = defining_polynomial.factor()
+                    degree = None
+                    for factor in factorization:
+                        if degree == None or factor[0].degree() < degree: #slow symbolic calcuation
+                            final_factor = factor[0]
+                            degree = factor[0].degree()
+                    if degree != 1:
+                        new_extension = extension.extension(final_factor, 'w0')
+                        A = new_extension.gens()[0]
+                        B = new_extension.gens()[1]
+                    else:
+                        A = final_factor[0]
+                        B = extension.gens()[0]
+                    conj_matrix = Matrix([[A, B],[0,1]])
+                    new_system = system.change_ring(new_extension)
+                new_system = new_system.conjugate(conj_matrix)
+                return (min_res_locus, conj_matrix, new_system)
+        else:
+            print('not implemented')
+            return [min_list[min_index][0], min_list[min_index][1]]
 
 class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
     r"""
