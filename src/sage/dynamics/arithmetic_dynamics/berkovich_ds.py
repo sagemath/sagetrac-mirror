@@ -859,12 +859,13 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
         OUTPUT:
 
-        - If ``ret_conjugation`` is ``False``, then a tuple (``start``, ``end``) is returned,
+        - If ``ret_conjugation`` is ``False``, then a tuple (``start``, ``end``, ``minimum``) is returned,
           where ``start`` and ``end`` are points of Berkovich space. The minimal resultant
-          is then achieved on the interval defined by [``start``, ``end``].
+          is then achieved on the interval defined by [``start``, ``end``] with value ``minimum``.
 
-        - If ``ret_conjugation`` is ``True``, then a tuple ((``start``, ``end``), ``conj``)
-          is returned, where [``start``, ``end``] defines the minimal resultant locus
+        - If ``ret_conjugation`` is ``True``, then a tuple (``start``, ``end``, ``minimum``, ``conj``)
+          is returned, where [``start``, ``end``] defines the minimal resultant locus,
+          ``minimum`` is the minimum value of order of the resultant,
           and ``conj`` is a matrix such that this dynamical system achieves the minimal
           order of the resultant after conjugation by ``conj``.
 
@@ -895,12 +896,13 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             Q = num - value*dem
         factorization += list(Q.factor())
         min_list = []
-        print('all factors:', factorization)
+        #print('all factors:', factorization)
         for i in range(len(factorization)):
             irreducible = factorization[i][0]
             extension = base.extension(irreducible, 's%s'%i)
             new_primes = extension.primes_above(base_prime_ideal)
             for new_prime in new_primes:
+                #print('current prime = ', new_prime)
                 ramification_index = new_prime.absolute_ramification_index()
                 valuation = lambda x: x.valuation(new_prime)/ramification_index
                 s = extension.gens()[0]
@@ -912,6 +914,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 res = valuation(new_system.resultant())
                 #print('ordres = ', res)
                 d = new_system.degree()
+                #print('d = ', d)
                 #print('system = ', new_system)
                 C_list = []
                 D_list = []
@@ -929,13 +932,16 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     else:
                         D_list.append(None)
                 #print('C_list =', C_list)
+                #print('D_list =', D_list)
                 D = QQ['t']
                 t = D.gens()[0]
-                C_lines = [(C_list[i] + (QQ(d^2+d-2*d*i))*t) for i in range(len(C_list)) if C_list[i] != None]
-                D_lines = [(D_list[i] + (QQ(d^2+d-2*d*(i+1)))*t) for i in range(len(D_list)) if D_list[i] != None]
+                C_lines = [(C_list[i] + QQ(d**2 + d - 2*d*i)*t) for i in range(len(C_list)) if C_list[i] != None]
+                D_lines = [(D_list[i] + QQ(d**2 + d - 2*d*(i + 1))*t) for i in range(len(D_list)) if D_list[i] != None]
+                #print('C_lines = ', C_lines)
+                #print('D_lines = ', D_lines)
                 all_lines = C_lines + D_lines #crude minimization
                 minimum = None
-                #print(C_lines,D_lines)
+                #print('all lines = ', C_lines, D_lines)
                 all_intersections = []
                 for line_1 in all_lines:
                     for line_2 in all_lines:
@@ -966,7 +972,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         minimizing_list = [i[0] for i in min_list]
         minimum = min(minimizing_list)
         min_index = minimizing_list.index(minimum)
-        min_res = min_list[min_index][0]
+        min_ord_res = min_list[min_index][0]
         intersection_final = min_list[min_index][1]
         interval_check = min_list[min_index][2]
         extension = min_list[min_index][3]
@@ -974,9 +980,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         if not interval_check: #minimum is not achieved on an interval
             B = Berkovich_Cp_Projective(extension, prime_above)
             min_res_locus = B(extension.gens()[0], power=-1*intersection_final)
-            min_res_locus = min_list[min_index][0]
             if not ret_conjugation:
-                return min_res_locus
+                return (min_res_locus, min_ord_res)
             else:
                 #print('intersection_final:', intersection_final)
                 root = intersection_final.denominator()
@@ -1005,7 +1010,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     conj_matrix = Matrix([[A, B],[0,1]])
                     new_system = system.change_ring(new_extension)
                 new_system = new_system.conjugate(conj_matrix)
-                return (min_res_locus, conj_matrix, new_system)
+                return (min_res_locus, min_ord_res, conj_matrix)
         else:
             print('not implemented')
             return [min_list[min_index][0], min_list[min_index][1]]
