@@ -820,9 +820,12 @@ cdef class Map(Element):
         else:
             raise NotImplementedError("_call_with_args not overridden to accept arguments for %s" % type(self))
 
-    def __mul__(self, right):
+    def __matmul__(self, right):
         r"""
-        The multiplication * operator is operator composition
+        Operator composition
+
+        Both the multiplication operator ``*`` and the matrix-multiplication operator ``@``
+        are operator composition.
 
         IMPLEMENTATION:
 
@@ -858,6 +861,8 @@ cdef class Map(Element):
                       Generic morphism:
                       From: Integer Ring
                       To:   Rational Field
+            sage: phi_yz @ phi_xy == phi_yz * phi_xy
+            True
 
         If ``right`` is a ring homomorphism given by the images of
         generators, then it is attempted to form the composition
@@ -895,6 +900,9 @@ cdef class Map(Element):
         if right.codomain() != self.domain():
             raise TypeError("self (=%s) domain must equal right (=%s) codomain" % (self, right))
         return self._composition(right)
+
+    def __mul__(self, right):
+        return self.__matmul__(right)
 
     def _composition(self, right):
         """
