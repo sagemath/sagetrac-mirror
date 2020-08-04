@@ -287,6 +287,16 @@ def Sphere(n):
         S^{4}
         sage: simplicial_sets.Sphere(4).nondegenerate_simplices()
         [v_0, sigma_4]
+        
+    The Kenzo representation of a sphere is constructed when ``n`` is less than 
+    the `+maximal-dimension+` = 15::
+    
+        sage: S6 = simplicial_sets.Sphere(6)
+        sage: KS6 = S6._kenzo_repr
+        sage: KS6.orgn()     # description as a Kenzo sphere
+        '(SPHERE 6)'
+        sage: [KS6.homology(i) for i in range(7)]
+        [Z, 0, 0, 0, 0, 0, Z]
     """
     from sage.libs.ecl import ecl_eval
     v_0 = AbstractSimplex(0, name='v_0')
@@ -367,6 +377,17 @@ def RealProjectiveSpace(n):
         sage: BC2 = simplicial_sets.RealProjectiveSpace(Infinity)
         sage: latex(BC2)
         RP^{\infty}
+        
+    The Kenzo representation of these simplicial sets is constructed::
+    
+        sage: KRP5 = RP5._kenzo_repr
+        sage: KRP5.orgn()     # description as the 5-dimensional projective space in Kenzo
+        '(R-PROJ-SPACE 1 6)'
+        sage: [KRP5.homology(i) for i in range(6)]
+        [Z, C2, 0, C2, 0, Z]
+        sage: KBC2 = BC2._kenzo_repr
+        sage: KBC2.orgn()     # description as the infinite-dimensional projective space in Kenzo
+        '(R-PROJ-SPACE 1 :INFINITY)'
     """
     if n == Infinity:
         X = AbelianGroup([2]).nerve()
@@ -446,6 +467,18 @@ def Simplex(n):
         [(0, 1), (0, 2), (1, 2)]
         sage: K.n_cells(2)
         [(0, 1, 2)]
+        
+    The Kenzo representation of this simplicial set is constructed::
+    
+        sage: KK = K._kenzo_repr
+        sage: KK.orgn()     # description as a simplex in Kenzo
+        '(DELTA 2)'
+        sage: KK.basis(0)
+        [1, 2, 4]
+        sage: KK.basis(1)
+        [3, 5, 6]
+        sage: KK.basis(2)
+        [7]
     """
     result =  SimplicialSet_finite(simplicial_complexes.Simplex(n),
                                    name='{}-simplex'.format(n),

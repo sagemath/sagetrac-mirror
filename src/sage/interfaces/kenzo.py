@@ -65,6 +65,8 @@ kenzo_names = ['2absm-acrpr',
                'cmbn-opps',
                'cmpr-aux',
                'cmps',
+               'cone2',
+               'constant-smmr',
                'convertmatrice',
                'crpr-absms-aux',
                'crts-prdc',
@@ -86,6 +88,7 @@ kenzo_names = ['2absm-acrpr',
                'homotopy-list',
                'idnm',
                'idnt-mrph',
+               'idnt-smmr',
                'join',
                'k',
                'k-z',
@@ -109,6 +112,7 @@ kenzo_names = ['2absm-acrpr',
                'nth',
                'opps',
                'orgn-aux',
+               'pushout',
                'r-proj-space',
                'sbtr',
                'serre-spectral-sequence-product',
@@ -251,23 +255,11 @@ def KenzoId(n):
         sage: s2 == KenzoId(IdNumber(s2))                                    # optional -kenzo
         True
     """
-    obj = __k__(n)
-    if str(obj) == 'NIL':
+    kenzoobj = __k__(n)
+    if str(kenzoobj) == 'NIL':
         raise AssertionError("There is no KenzoObject with identification number {}".format(n))
-    kenzotype = __type_of__(obj).python()
-    if kenzotype == 'CHAIN-COMPLEX':
-        return KenzoChainComplex(obj)
-    elif kenzotype == 'MORPHISM':
-        return KenzoChainComplexMorphism(obj)
-    elif kenzotype == 'SIMPLICIAL-SET':
-        return KenzoSimplicialSet(obj)
-    elif kenzotype == 'SIMPLICIAL-MRPH':
-        return KenzoSimplicialSetMorphism(obj)
-    elif kenzotype == 'SPECTRAL-SEQUENCE':
-        return KenzoSpectralSequence(obj)
-    else:
-        return KenzoObject(obj)
-            
+    return translate_type(kenzoobj)
+
 def IdNumber(kobject):
     r"""
     Return the slot :idnm of the KenzoObject ``kobject`` if it has such a slot.
@@ -485,29 +477,141 @@ class KenzoSpectralSequence(KenzoObject):
 
 
 class KenzoAbstractSimplex(KenzoObject):
-
+    r"""
+    Wrapper to the kenzo objects of type :absm. In Kenzo, an abstract simplex
+    is a pair consisting of:
+    
+    - A (possibly iterated) degeneracy operator.
+    
+    - A 'geometric' simplex, i.e. a non-degenerate simplex.
+    
+    An abstract simplex is represented internally in the Kenzo system by the lisp
+    object <AbSm ext-dgop gmsm> where:
+    
+    - ext-dgop is a strictly decreasing sequence of integer numbers representing 
+       a list of degeneracy operators.
+    
+    - gmsm is a geometric simplex, i.e. any kind lisp object modelizing a
+      non-degenerate simplex, to which is applied the degeneracy operators ext-dgop.
+    """
     def degeneracies(self):
+        r"""
+        Returns the list representing the degeneracy operators of ``self``.
+        
+        EXAMPLES::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(3, (0,1,3), name = 'v')
+            sage: kv = v._kenzo_repr                                           # optional - kenzo
+            sage: kv                                                           # optional - kenzo
+            <AbSm 5-2-0 S...>
+            sage: kv.degeneracies()                                            # optional - kenzo
+            [5, 2, 0]
+            sage: kv.degeneracies() == v.degeneracies()                        # optional - kenzo
+            True
+        """
         rslt = __dgop_int_ext__(__dgop__(self._kenzo)).python()
         if rslt == None:
             return []
         return rslt
         
     def nondegenerate(self):
-        return KenzoObject(__gmsm__(self._kenzo))
+        r"""
+        Returns the basic non-degenerate simplex part of ``self``.
+        
+        EXAMPLES::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(3, (0,1,3), name = 'v')
+            sage: w = AbstractSimplex(2, (0,1), name = 'w')
+            sage: kv = v._kenzo_repr                                           # optional - kenzo
+            sage: kv                                                           # optional - kenzo
+            <AbSm 5-2-0 S...>
+            sage: kw = w._kenzo_repr                                           # optional - kenzo
+            sage: kw                                                           # optional - kenzo
+            <AbSm 2-0 S...>
+            sage: pr = kv.product(kw)                                          # optional - kenzo
+            sage: pr                                                           # optional - kenzo
+            <AbSm 2-0 <CrPr 3 S... - S...>>
+            sage: pr.nondegenerate()                                           # optional - kenzo
+            <CrPr 3 S... - S...>
+            sage: pr.nondegenerate().factors()                                 # optional - kenzo
+            (<AbSm 3 S...>, <AbSm - S...>)
+        """
+        return translate_type(__gmsm__(self._kenzo))
         
     def is_degenerate(self):
+        r"""
+        Return True if ``self`` is degenerate, False otherwise.
+        
+        EXAMPLES::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(3, (0,1,3), name = 'v')
+            sage: kv = v._kenzo_repr                                           # optional - kenzo
+            sage: kv.degeneracies()                                            # optional - kenzo
+            [5, 2, 0]
+            sage: kv.is_degenerate()                                           # optional - kenzo
+            True
+        """
         rslt = __degenerate_p__(self._kenzo).python()
         if rslt == None:
             return False
         return rslt
         
     def is_nondegenerate(self):
+        r"""
+        Return True if ``self`` is non-degenerate, False otherwise.
+        
+        EXAMPLES::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(3, name = 'v')
+            sage: kv = v._kenzo_repr                                           # optional - kenzo
+            sage: kv.is_nondegenerate()                                        # optional - kenzo
+            True
+        """
         rslt = __non_degenerate_p__(self._kenzo).python()
         if rslt == None:
             return False
         return rslt
         
     def product(self, other):
+        r"""
+        Returns the cartesian product of both KenzoAbstractSimplexes ``self`` and ``other``.
+        
+        INPUT:
+        
+        - ``other`` - A :class:`KenzoAbstractSimplex`.
+        
+        OUTPUT:
+        
+        - If ``self`` and ``other`` are degenerate and the degeneracy operators
+        have no common `\eta_j`, a KenzoCRPRSimplex is returned, otherwise a
+        KenzoAbstractSimplex is returned.
+        
+        EXAMPLES::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(3, (0,1,3), name = 'v')
+            sage: w = AbstractSimplex(2, (0,1), name = 'w')
+            sage: x = AbstractSimplex(5, name = 'x')
+            sage: kv = v._kenzo_repr
+            sage: kv
+            <AbSm 5-2-0 S...>
+            sage: kw = w._kenzo_repr
+            sage: kw
+            <AbSm 2-0 S...>
+            sage: kx = x._kenzo_repr
+            sage: kx
+            <AbSm - S...>
+            sage: prvw = kv.product(kw)
+            sage: prvw
+            <AbSm 2-0 <CrPr 3 S... - S...>>
+            sage: prvx = kv.product(kx)
+            sage: prvx
+            <CrPr 5-2-0 S... - S...>
+        """
         if not isinstance(other, KenzoAbstractSimplex):
             raise TypeError("{} must be a KenzoAbstractSimplex".format(other))
         deg1 = self.degeneracies()
@@ -519,8 +623,49 @@ class KenzoAbstractSimplex(KenzoObject):
 
 
 class KenzoCRPRSimplex(KenzoObject):
-
+    r"""
+    Wrapper to the Kenzo objects of type :crpr. The 
+    non-degenerate simplices of the cartesian product `X\times Y` of simplcial
+    sets are represented internally in the Kenzo system by a lisp object of the
+    form <CrPr ext-dgop1 gmsm1 ext-dgop2 gmsm2> where:
+    
+    - ext-dgop1 is a sequence of degeneracy operators.
+    
+    - gmsm1 is a non-degenerate simplex of `X`, to which is applied the degeneracy
+      operators ext-dgop1. 
+      
+    - ext-dgop2 is a sequence of degeneracy operators.
+    
+    - gmsm2 is a non-degenerate simplex of `Y`, to which is applied the degeneracy
+      operators ext-dgop2.
+      
+    The degeneracy operators in ext-dgop1 and ext-dgop2 must have a void intersection.
+    """
     def factors(self, n=None):
+        r"""
+        Returns the factors of ``self``, that is, the KenzoAbstractSimplexes
+        `A_1` and `A_2` such that ``self`` = `A_1\times A_2`.
+        
+        OUTPUT:
+        
+        - A tuple of two elements: the factors of ``self``.
+        
+        EXAMPLES::
+        
+            sage: T = simplicial_sets.Torus()
+            sage: K = T._kenzo_repr                                  # optional - kenzo
+            sage: crpr = K.basis(1)[1]                               # optional - kenzo
+            sage: crpr                                               # optional - kenzo
+            <CrPr - S1 0 *>
+            sage: A1 = crpr.factors(0)                               # optional - kenzo
+            sage: A1                                                 # optional - kenzo
+            <AbSm - S1>
+            sage: A2 = crpr.factors(1)                               # optional - kenzo
+            sage: A2                                                 # optional - kenzo
+            <AbSm 0 *>
+            sage: A1.product(A2)                                     # optional - kenzo
+            <CrPr - S1 0 *>
+        """
         factor1 = KenzoAbstractSimplex(__absm1__(self._kenzo))
         factor2 = KenzoAbstractSimplex(__absm2__(self._kenzo))
         rslt = (factor1, factor2)
@@ -558,13 +703,16 @@ class KenzoCombination():
         INPUT:
         
         - ``degree`` -- An integer number.
+        
         - ``terms`` -- A list of even length (default None). The even indexes
           determine the coefficients of the generators, which are determined by
           the odd indexes. For example, the ``terms`` parameter of a combination
           like 3A - 5B + C is the list [3, A, -5, B, 1, C].
+          
         - ``Kchcm`` -- A KenzoChainComplex or None (default). In case it is not
           None, the system checks if each one of the generators in ``terms`` is
           indeed in the basis of `C_p`, where `p=` ``degree``.
+          
         - ``kenzo`` -- The kenzo representation of the combination (default None).
           
         EXAMPLES::
@@ -845,7 +993,8 @@ def Kenzocmbn(cmbn, Kchcm=None):
         <class 'sage.interfaces.kenzo.KenzoCombination'>
     """
     cmbndegr = __cmbn_degr__(cmbn).python()
-    cmbnlist = __cmbn_list__(cmbn).python()
+    #cmbnlist = __cmbn_list__(cmbn).python()
+    cmbnlist = translate_type(__cmbn_list__(cmbn))
     return KenzoCombination(degree=cmbndegr, terms=unpairing(cmbnlist), Kchcm=Kchcm, kenzo=cmbn)
 
 
@@ -992,6 +1141,7 @@ class KenzoChainComplex(KenzoObject):
         INPUT:
 
         - ``target`` -- A KenzoChainComplex or None (default).
+        
         - ``degree`` -- An integer number (default 0).
 
         OUTPUT:
@@ -1123,6 +1273,17 @@ class KenzoSimplicialSet(KenzoChainComplex):
     In Kenzo, the homology of a simplicial set is computed from its associated
     chain complex. Hence, this class inherits from `KenzoChainComplex`.
     """
+    def identity_simplicial_morphism(self):
+        r"""
+        Return the identity morphism of ``self``.
+        
+        EXAMPLES::
+        
+            sage:
+            sage:
+        """
+        return KenzoSimplicialSetMorphism(__idnt_smmr__(self._kenzo))
+    
     def loop_space(self, n=1):
         r"""
         Return the ``n`` th iterated loop space.
@@ -1170,9 +1331,15 @@ class KenzoSimplicialSet(KenzoChainComplex):
             <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
             sage: [p.homology(i) for i in range(6)]           # optional - kenzo
             [Z, 0, Z, Z, 0, Z]
+            sage: p._factors                                  # optional - kenzo
+            ([K... Simplicial-Set], [K... Simplicial-Set])
+            sage: p._factors == (s2, s3)                         # optional - kenzo
+            True
         """
         prod_kenzo = __crts_prdc__(self._kenzo, other._kenzo)
-        return KenzoSimplicialSet(prod_kenzo)
+        result = KenzoSimplicialSet(prod_kenzo)
+        setattr(result, '_factors', (self, other))
+        return result
 
     def suspension(self):
         r"""
@@ -1192,7 +1359,9 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: [s.homology(i) for i in range(6)]                          # optional - kenzo
             [Z, 0, 0, 0, Z, 0]
         """
-        return KenzoSimplicialSet(__suspension__(self._kenzo))
+        result = KenzoSimplicialSet(__suspension__(self._kenzo))
+        setattr(result, '_base', self)
+        return result
 
     def homotopy_group(self, n):
         """
@@ -1338,9 +1507,13 @@ class KenzoSimplicialSet(KenzoChainComplex):
             <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
             sage: [w.homology(i) for i in range(6)]           # optional - kenzo
             [Z, 0, Z, Z, 0, 0]
+            sage: w._factors == (s2, s3)                      # optional - kenzo
+            True
         """
         wedge_kenzo = __wedge__(self._kenzo, other._kenzo)
-        return KenzoSimplicialSet(wedge_kenzo)
+        result = KenzoSimplicialSet(wedge_kenzo)
+        setattr(result, '_factors', (self, other))
+        return result
 
     def join(self, other):
         r"""
@@ -1390,9 +1563,13 @@ class KenzoSimplicialSet(KenzoChainComplex):
             <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
             sage: [s.homology(i) for i in range(6)]           # optional - kenzo
             [Z, 0, 0, 0, 0, Z]
+            sage: s._factors == (s2, s3)                      # optional - kenzo
+            True
         """
         smash_kenzo = __smash_product__(self._kenzo, other._kenzo)
-        return KenzoSimplicialSet(smash_kenzo)
+        result = KenzoSimplicialSet(smash_kenzo)
+        setattr(result, '_factors', (self, other))
+        return result
 
 
 class KenzoSimplicialGroup(KenzoSimplicialSet):
@@ -1435,8 +1612,7 @@ def k2s_matrix(kmatrix):
         sage: from sage.interfaces.kenzo import k2s_matrix         # optional - kenzo
         sage: from sage.libs.ecl import EclObject
         sage: M = EclObject("#2A((1 2 3) (3 2 1) (1 1 1))")
-        sage: k2s_matrix(M)                                        # optional - kenzo
-        [1 2 3]
+de        [1 2 3]
         [3 2 1]
         [1 1 1]
     """
@@ -2466,13 +2642,47 @@ class KenzoChainComplexMorphism(KenzoObject):
         return Integer(str(__idnm__(self._kenzo))) == Integer(str(__idnm__(other._kenzo)))
 
 def translate_type (kenzoobj):
+    r"""
+    Assign a class in Sage to the Kenzo objects.
+    
+    INPUT::
+    
+    - ``kenzoobj`` -- An ECL object in Kenzo
+    
+    EXAMPLES::
+    
+        sage: from sage.libs.ecl import ecl_eval
+        sage: from sage.interfaces.kenzo import translate_type                 # optional - kenzo
+        sage: M = ecl_eval("(moore 4 5)")                                      # optional - kenzo
+        sage: M                                                                # optional - kenzo
+        <ECL: [K... Simplicial-Set]>
+        sage: TM = translate_type(M) ; TM                                      # optional - kenzo
+        [K... Simplicial-Set]
+        sage: type(TM)                                                         # optional - kenzo
+        <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
+        sage: L = ecl_eval("(list (z-chcm) (absm 7 'g) 1906)")                 # optional - kenzo
+        sage: translate_type(L)                                                # optional - kenzo
+        [[K... Chain-Complex], <AbSm 2-1-0 G>, 1906]
+    """
     if __listp__(kenzoobj).python():
         return [translate_type(i) for i in EclListIterator(kenzoobj)]
     kenzotype = __type_of__(kenzoobj).python()
-    if kenzotype == 'CRPR':
+    if kenzotype == 'CHAIN-COMPLEX':
+        return KenzoChainComplex(kenzoobj)
+    elif kenzotype == 'MORPHISM':
+        return KenzoChainComplexMorphism(kenzoobj)
+    elif kenzotype == 'SIMPLICIAL-SET':
+        return KenzoSimplicialSet(kenzoobj)
+    elif kenzotype == 'SIMPLICIAL-MRPH':
+        return KenzoSimplicialSetMorphism(kenzoobj)
+    elif kenzotype == 'SPECTRAL-SEQUENCE':
+        return KenzoSpectralSequence(kenzoobj)
+    elif kenzotype == 'CRPR':
         return KenzoCRPRSimplex(kenzoobj)
     elif kenzotype == 'ABSM':
         return KenzoAbstractSimplex(kenzoobj)
+    elif kenzotype == 'CMBN':
+        return Kenzocmbn(kenzoobj)
     elif kenzotype == 'SYMBOL':
         return kenzoobj.python()
     else:
@@ -2480,25 +2690,198 @@ def translate_type (kenzoobj):
 
 
 class KenzoSimplicialSetMorphism(KenzoChainComplexMorphism):
+    r"""
+    Wrapper to simplicial set morphisms in Kenzo.
+    
+    EXAMPLES::
+    
+        sage: from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+        sage: K = simplicial_sets.Simplex(1)
+        sage: S1 = simplicial_sets.Sphere(1)
+        sage: v0 = K.n_cells(0)[0]
+        sage: v1 = K.n_cells(0)[1]
+        sage: e01 = K.n_cells(1)[0]
+        sage: w = S1.n_cells(0)[0]
+        sage: sigma = S1.n_cells(1)[0]
+        sage: f = {v0: w, v1: w, e01: sigma}
+        sage: Sf = SimplicialSetMorphism(f, K, S1)
+        sage: KSf = Sf._kenzo_repr ; KSf                                               # optional - kenzo
+        [K... Simplicial-Morphism K... -> K...]
+        sage: type(KSf)                                                                # optional - kenzo
+        <class 'sage.interfaces.kenzo.KenzoSimplicialSetMorphism'>
+    """
 
     def __call__(self, x):
+        r"""
+        Returns the image of ``x`` under the morphism.
+        
+        INPUT::
+        
+        - ``x`` -- A :class:`KenzoCombination` in the domain of ``self`` or a
+        simplex of the domain.
+        
+        EXAMPLES::
+        
+            sage: from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+            sage: K = simplicial_sets.Simplex(1)
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: v0 = K.n_cells(0)[0]
+            sage: v1 = K.n_cells(0)[1]
+            sage: e01 = K.n_cells(1)[0]
+            sage: w = S1.n_cells(0)[0]
+            sage: sigma = S1.n_cells(1)[0]
+            sage: f = {v0: w, v1: w, e01: sigma}
+            sage: Sf = SimplicialSetMorphism(f, K, S1)
+            sage: KSf = Sf._kenzo_repr
+            sage: KSf(e01.apply_degeneracies(2,1))
+            <AbSm 2-1 S...>
+        """
         if isinstance(x, KenzoCombination):
-            return Kenzocmbn(__evaluate_cmbn__(self._kenzo, x._kenzo), self.target_simplicial_set())
+            return Kenzocmbn(__evaluate_cmbn__(self._kenzo, x._kenzo)) #, self.target_simplicial_set())
         return translate_type(__evaluate_simplex__(self._kenzo, x.dimension(),
                                                    x._kenzo_repr._kenzo))
         
     def source_simplicial_set(self):
+        r"""
+        Returns the domain of the morphism ``self``.
+        
+        EXAMPLES::
+        
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: f = S3.base_point_map()
+            sage: Kf = f._kenzo_repr
+            sage: Kf.source_simplicial_set() == f.domain()._kenzo_repr
+            True
+        """
         return KenzoSimplicialSet(__sorc_aux__(self._kenzo))
         
     def target_simplicial_set(self):
+        r"""
+        Returns the codomain of the morphism ``self``.
+        
+        EXAMPLES::
+        
+            sage: S = simplicial_sets.Simplex(7)
+            sage: f = S.constant_map()
+            sage: Kf = f._kenzo_repr
+            sage: Kf.target_simplicial_set() == f.codomain()._kenzo_repr
+            True
+        """
         return KenzoSimplicialSet(__trgt_aux__(self._kenzo))
+        
+    def suspension(self, n=1):
+        r"""
+        Return the `n`-th suspension of this morphism of KenzoSimplicialSets.
+        
+        INPUT:
+
+        - ``n`` (optional) -- non-negative integer, default 1
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import KSimplicialSetMorphism      # optional - kenzo
+            sage: T = simplicial_sets.Torus()
+            sage: KT = T._kenzo_repr                                            # optional - kenzo
+            sage: f = T.identity().suspension()
+            sage: Kf = KSimplicialSetMorphism(f)                                # optional - kenzo
+            sage: Kf.orgn()                                                     # optional - kenzo
+            '(IDNT-SMMR [K... Simplicial-Set])'
+            sage: Kf.source_simplicial_set() == KT.suspension()                 # optional - kenzo
+            True
+        """
+        result = KenzoSimplicialSetMorphism(__suspension__(self._kenzo, n))
+        setattr(result, '_base', self)
+        return result
+        
+    def cone(self):
+        r"""
+        Return the cone of ``self``.
+        
+        EXAMPLES::
+        
+            sage: from sage.interfaces.kenzo import KSimplicialSetMorphism      # optional - kenzo
+            sage: T = simplicial_sets.Torus()
+            sage: f = T.identity()
+            sage: Kf = KSimplicialSetMorphism(f)                                # optional - kenz
+            sage: Kf.cone().orgn()     # description as a cone in Kenzo
+            '(CONE2 [K... Simplicial-Morphism K... -> K...])'
+        """
+        return KenzoChainComplex(__cone2__(self._kenzo))
+        
+    def pushout(self, other):
+        r"""
+        Return the pushout of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- A :class:`KenzoSimplicialSetMorphism` with the same domain
+        as ``self``.
+        
+        OUTPUT::
+        
+        - A :class:`KenzoSimplicialSet`.
+        
+        EXAMPLES::
+        
+            sage: S4 = simplicial_sets.Sphere(4)
+            sage: T = simplicial_sets.Torus()
+            sage: f = S4.base_point_map()
+            sage: g = T.base_point_map()
+            sage: p = f.pushout(g)
+            sage: Kf = f._kenzo_repr
+            sage: Kg = g._kenzo_repr
+            sage: Kp = Kf.pushout(Kg)
+            sage: Kp._maps == (Kf, Kg)
+            True
+        """
+        if not self.source_simplicial_set() == other.source_simplicial_set():
+            raise AssertionError('The domain of the morphisms must be the same')
+        result = KenzoSimplicialSet(__pushout__(self._kenzo, other._kenzo))
+        setattr(result, '_maps', (self, other))
+        return result
 
 
 def KSimplicialSetMorphism(simplicialmrph):
+    r"""
+    Construct a KenzoSimplicialSetMorphism from a SimplicialSetMorphism in Sage.
+
+    INPUT:
+
+    - ``simplicialmrph`` -- A morphism between simplicial sets.
+
+    OUTPUT:
+
+    - A :class:`KenzoSimplicialSetMorphism`
+    
+    EXAMPLES::
+    
+        sage: from sage.interfaces.kenzo import KSimplicialSetMorphism        # optional - kenzo
+        sage: S2 = simplicial_sets.Sphere(2)
+        sage: f = S2.base_point_map()
+        sage: Kf = KSimplicialSetMorphism(f)                                  # optional - kenzo
+        sage: Kf                                                              # optional - kenzo
+        [K... Simplicial-Morphism K... -> K...]
+        sage: A = f.domain().n_cells(0)[0]
+        sage: Kf(A)                                                           # optional - kenzo
+        <AbSm - S...>
+        sage: Kf(A).nondegenerate() == f(A)._kenzo_repr.nondegenerate()       # optional - kenzo
+        True
+        sage: Kf(A).degeneracies() == f(A)._kenzo_repr.degeneracies()         # optional - kenzo
+        True
+    """
+    if simplicialmrph.is_identity():
+        kdomain = simplicialmrph.domain()._kenzo_repr
+        return KenzoSimplicialSetMorphism(__idnt_smmr__(kdomain._kenzo))
     sdict = simplicialmrph._dictionary
     data = {sigma: sdict[sigma] for sigma in sdict if sigma.is_nondegenerate()}
-    smmrdict = EclObject([(x._kenzo_repr._kenzo, sdict[x]._kenzo_repr._kenzo)
-                          for x in sdict])
+    smmrdict = []
+    for x in sdict:
+        if hasattr(x._kenzo_repr, 'nondegenerate'):
+            eclx = EclObject(x._kenzo_repr.nondegenerate())
+        else:
+            eclx = x._kenzo_repr._kenzo
+        smmrdict += [EclObject((eclx, sdict[x]._kenzo_repr._kenzo))]
+    smmrdict = EclObject(smmrdict)
     source = KFiniteSimplicialSet(simplicialmrph.domain())
     target = KFiniteSimplicialSet(simplicialmrph.codomain())
     return KenzoSimplicialSetMorphism(

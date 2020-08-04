@@ -239,7 +239,7 @@ class PullbackOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: from sage.homology.simplicial_set_constructions import PullbackOfSimplicialSets
             sage: S2 = simplicial_sets.Sphere(2)
             sage: one = S2.Hom(S2).identity()
-            sage: PullbackOfSimplicialSets([one, one]) == PullbackOfSimplicialSets((one, one))
+            sage: PullbackOfpSimplicialSets([one, one]) == PullbackOfSimplicialSets((one, one))
             True
         """
         if maps:
@@ -864,6 +864,21 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
              2: Vector space of dimension 2 over Finite Field of size 2,
              3: Vector space of dimension 2 over Finite Field of size 2,
              4: Vector space of dimension 2 over Finite Field of size 2}
+             
+        If all of the ``factors`` have Kenzo representations then the product
+        of them is constructed in Kenzo::
+        
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: KS1 = S1._kenzo_repr
+            sage: T = simplicial_sets.Torus()
+            sage: KT = T._kenzo_repr
+            sage: KT.orgn()    # description of the Torus as a product
+            '(CRTS-PRDC [K... Simplicial-Set] [K... Simplicial-Set])'
+            sage: KT._factors[0] == KT._factors[1] == KS1
+            True
+            sage: KT2 = KS1.cartesian_product(KS1)
+            sage: KT == KT2
+            True
         """
         PullbackOfSimplicialSets.__init__(self, [space.constant_map()
                                                  for space in factors])
@@ -1036,6 +1051,20 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
             True
             sage: Z.base_point()
             (w, v)
+            
+        If all of the ``factors`` have Kenzo representations then the product
+        of them is constructed in Kenzo::
+
+            sage: KX = X._kenzo_repr
+            sage: KW = W._kenzo_repr
+            sage: KW.orgn()     # description as a cartesian product in Kenzo
+            '(CRTS-PRDC [K... Simplicial-Set] [K... Simplicial-Set])'
+            sage: KW._factors[1] == KX
+            True
+            sage: KW._factors[0]._factors == (KX, KX)
+            True
+            sage: [KW.homology(i) for i in range(4)]
+            [Z, Z x Z x Z, Z x Z x Z, Z]
         """
         PullbackOfSimplicialSets_finite.__init__(self, [space.constant_map()
                                                  for space in factors])
@@ -1265,6 +1294,20 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: bouquet = pt.pushout(S1.base_point_map(), S1.base_point_map(), S1.base_point_map())
             sage: bouquet.homology(1)
             Z x Z x Z
+            
+        If all of the ``maps`` have a Kenzo representation, their pushout too (by
+        now, only pushouts of two morphisms are constructed in Kenzo)::
+        
+            sage: K = simplicial_sets.Simplex(4)
+            sage: L = K.n_skeleton(3)
+            sage: S4 = L.pushout(L.constant_map(), L.inclusion_map())
+            sage: KS4 = S4._kenzo_repr
+            sage: KS4.orgn()     # description as a pushout in Kenzo
+            '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
+            sage: Kf0 = S4._maps[0]._kenzo_repr
+            sage: Kf1 = S4._maps[1]._kenzo_repr
+            sage: Kf0.pushout(Kf1) == KS4
+            True
         """
         # Import this here to prevent circular imports.
         from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
@@ -1276,6 +1319,12 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
                 Cat = Cat.Finite()
             if all(f.is_pointed() for f in maps):
                 Cat = Cat.Pointed()
+            # By now, only pushouts of two morphisms are constructed in Kenzo
+            if len(maps) in [1, 2] and all(hasattr(f, '_kenzo_repr') for f in maps):
+                f0 = maps[0]._kenzo_repr
+                for f1 in maps[1:]:
+                    f0 = f0.pushout(f1._kenzo_repr)
+                self._kenzo_repr = f0
             Parent.__init__(self, category=Cat)
         self._maps = maps
         self._n_skeleton = (-1, Empty())
@@ -1434,6 +1483,28 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
             *
             sage: PushoutOfSimplicialSets_finite([T.base_point_map(), S2.base_point_map()], vertex_name='v').n_cells(0)[0]
             v
+            
+        If all of the ``maps`` have a Kenzo representation, their pushout too (by
+        now, only pushouts of two morphisms are constructed in Kenzo)::
+            
+            from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: x = AbstractSimplex(0, name='x')
+            sage: evw = AbstractSimplex(1, name='vw')
+            sage: evx = AbstractSimplex(1, name='vx')
+            sage: ewx = AbstractSimplex(1, name='wx')
+            sage: X = SimplicialSet({evw: (w, v), evx: (x, v)})
+            sage: Y_0 = SimplicialSet({evw: (w, v), evx: (x, v), ewx: (x, w)})
+            sage: Y_1 = SimplicialSet({evx: (x, v)})
+            sage: f_0 = Hom(X, Y_0)({v:v, w:w, x:x, evw:evw, evx:evx})
+            sage: f_1 = Hom(X, Y_1)({v:v, w:v, x:x, evw:v.apply_degeneracies(0), evx:evx})
+            sage: P = X.pushout(f_0, f_1)
+            sage: KP = P._kenzo_repr
+            sage: KP.orgn()     # description as a pushout on Kenzo
+            '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
+            sage: KP._maps == (f_0._kenzo_repr, f_1._kenzo_repr)
+            True
         """
         # Import this here to prevent circular imports.
         from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
@@ -1584,6 +1655,12 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
         self._structure = tuple([Y.Hom(self)(_to_P[(Y,i)])
                                for (Y,i) in spaces[1:]])
         self._vertex_name = vertex_name
+        # By now, only pushouts of two morphisms are constructed in Kenzo.
+        if len(maps) in [1, 2] and all(hasattr(f, '_kenzo_repr') for f in maps):
+            f0 = maps[0]._kenzo_repr
+            for f1 in maps[1:]:
+                f0 = f0.pushout(f1._kenzo_repr)
+            self._kenzo_repr = f0
 
     def structure_map(self, i):
         r"""
@@ -1932,6 +2009,20 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
             sage: S2 = simplicial_sets.Sphere(2)
             sage: T.smash_product(S2).homology() == T.suspension(2).homology()
             True
+            
+        If all of the ``factors`` have a Kenzo representation, their smash product
+        is constructed in Kenzo::
+        
+            sage: KT = T._kenzo_repr
+            sage: KS2 = S2._kenzo_repr
+            sage: P = T.smash_product(S2)
+            sage: KP = P._kenzo_repr
+            sage: KP.orgn()     # description as a pushout in Kenzo
+            '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
+            sage: P.homology()
+            {0: 0, 1: 0, 2: 0, 3: Z x Z, 4: Z}
+            sage: [KP.homology(i) for i in range(5)]
+            [Z, 0, 0, Z x Z, Z]
         """
         if any(not space.is_pointed() for space in factors):
             raise ValueError('the simplicial sets must be pointed')
@@ -2029,6 +2120,21 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             Quotient: (Wedge: (CP^2 v Klein bottle)/Simplicial set with 6 non-degenerate simplices)
             sage: W.projection_map(0).codomain().homology()
             {0: 0, 1: 0, 2: Z, 3: 0, 4: Z}
+            
+        If all of the ``factors`` have a Kenzo representation, their wedge is
+        constructed in Kenzo::
+        
+            sage: KCP2 = CP2._kenzo_repr
+            sage: KK = K._kenzo_repr
+            sage: KW = W._kenzo_repr
+            sage: KW.orgn()     # description as a pushout in Kenzo
+            '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
+            sage: KW._factors == (KCP2, KK)
+            True
+            sage: W.homology()
+            {0: 0, 1: Z x C2, 2: Z, 3: 0, 4: Z}
+            sage: [KW.homology(i) for i in range(5)]
+            [Z, Z x C2, Z, 0, Z]
 
         An error occurs if any of the factors is not pointed::
 
@@ -2109,6 +2215,24 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
             Traceback (most recent call last):
             ...
             ValueError: the simplicial sets must be pointed
+            
+        If all of the ``factors`` have a Kenzo representation, their wedge is
+        constructed in Kenzo::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: X = SimplicialSet({e: (v, v)})
+            sage: X = X.set_base_point(v)
+            sage: W = X.wedge(X, X)
+            sage: KX = X._kenzo_repr
+            sage: KW = W._kenzo_repr
+            sage: KW.orgn()     # description of a pushout in Kenzo
+            '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
+            sage: KW._factors[1] == KX
+            True
+            sage: KW._factors[0]._factors == (KX, KX)
+            True
         """
         if not factors:
             # An empty wedge is a point, constructed as a pushout.
@@ -2740,6 +2864,18 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
               From: Reduced cone of S^3
               To:   Sigma(S^3)
               Defn: [*, sigma_3, (sigma_3,*)] --> [*, s_2 s_1 s_0 *, (sigma_3,*)]
+              
+        If ``base`` has a Kenzo representation, its suspension is constructed in 
+        Kenzo::
+        
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: S4 = S3.suspension()
+            sage: KS3 = S3._kenzo_repr
+            sage: KS4 = S4._kenzo_repr
+            sage: KS4.orgn()     # description as a suspension in Kenzo
+            '(SUSPENSION [K... Simplicial-Set])'
+            sage: KS4._base == KS3
+            True
 
         TESTS::
 
@@ -2762,6 +2898,9 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
         self._reduced = reduced
         self._base = base
         self._n_skeleton = (-1, Empty())
+        if kenzo_is_present and hasattr(base, '_kenzo_repr'):
+            self._kenzo_repr = base._kenzo_repr.suspension()
+            
 
     def n_skeleton(self, n):
         """
@@ -2910,6 +3049,22 @@ class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,
             sage: Y = X.unset_base_point()
             sage: Y.suspension(2)
             S^2(Simplicial set with 2 non-degenerate simplices)
+            
+        If ``base`` has a Kenzo representation, its suspension is constructed in
+        Kenzo::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name = 'v')
+            sage: w = AbstractSimplex(0, name = 'w')
+            sage: e = AbstractSimplex(1, name = 'e')
+            sage: X = SimplicialSet({e: (v,w)})
+            sage: Y = X.suspension(2)
+            sage: KX = X._kenzo_repr
+            sage: KY = Y._kenzo_repr
+            sage: KY.orgn()     # description as a suspension in Kenzo
+            '(SUSPENSION [K... Simplicial-Set])'
+            sage: KY._base == KX.suspension()
+            True
         """
         self._base = base
         reduced = (base.is_pointed()
@@ -2930,3 +3085,6 @@ class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,
         # morphism.
         q = self.quotient_map()
         self._suspensions = {sigma: q(C._joins[sigma]) for sigma in C._joins}
+        if kenzo_is_present and hasattr(base, '_kenzo_repr'):
+            self._kenzo_repr = base._kenzo_repr.suspension()
+            
