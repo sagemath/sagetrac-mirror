@@ -374,6 +374,19 @@ class AbstractSimplex_class(SageObject):
             True
             sage: v == None
             False
+            
+        The Kenzo representation of an abstract simplex is constructed::
+        
+            sage: v = AbstractSimplex(0)
+            sage: Kv = v._kenzo_repr ; Kv
+            <AbSm - S...>
+            sage: Kv.nondegenerate() == 'S' + str(hash(v))
+            True
+            sage: w = v.apply_degeneracies(2,1,0)
+            sage: Kw = w._kenzo_repr ; Kw
+            <AbSm 2-1-0 S...>
+            sage: Kw.degeneracies()
+            [2, 1, 0]
         """
         try:
             Integer(dim)
@@ -652,6 +665,14 @@ class AbstractSimplex_class(SageObject):
             False
             sage: AbstractSimplex(1, None) == tau.nondegenerate()
             False
+            
+        The Kenzo representation of abstract simplexes respects the nondegenerate
+        part of an abstract simplex::
+        
+            sage: Kv = v._kenzo_repr
+            sage: Ksigma = sigma._kenzo_repr
+            sage: Ksigma.nondegenerate() == Kv.nondegenerate()
+            True
         """
         return self._underlying
 
@@ -2515,6 +2536,21 @@ class SimplicialSet_arbitrary(Parent):
               From: S^2
               To:   S^2 x S^3
               Defn: [v_0, sigma_2] --> [(v_0, v_0), (sigma_2, s_1 s_0 v_0)]
+              
+        If ``self`` and the other factors have Kenzo representations then the product
+        of them is constructed in Kenzo::
+        
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: KS1 = S1._kenzo_repr
+            sage: T = simplicial_sets.Torus()
+            sage: KT = T._kenzo_repr
+            sage: KT.orgn()    # description of the Torus as a product
+            '(CRTS-PRDC [K... Simplicial-Set] [K... Simplicial-Set])'
+            sage: KT._factors[0] == KT._factors[1] == KS1
+            True
+            sage: KT2 = KS1.cartesian_product(KS1)
+            sage: KT == KT2
+            True
         """
         from .simplicial_set_constructions import ProductOfSimplicialSets, \
             ProductOfSimplicialSets_finite
@@ -2598,6 +2634,20 @@ class SimplicialSet_arbitrary(Parent):
             sage: g.domain() == W
             True
             sage: g.codomain() == T
+            True
+
+        If all of the ``maps`` have a Kenzo representation, their pushout too (by
+        now, only pushouts of two morphisms are constructed in Kenzo)::::
+        
+            sage: K = simplicial_sets.Simplex(4)
+            sage: L = K.n_skeleton(3)
+            sage: S4 = L.pushout(L.constant_map(), L.inclusion_map())
+            sage: KS4 = S4._kenzo_repr
+            sage: KS4.orgn()     # description as a pushout in Kenzo
+            '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
+            sage: Kf0 = S4._maps[0]._kenzo_repr
+            sage: Kf1 = S4._maps[1]._kenzo_repr
+            sage: Kf0.pushout(Kf1) == KS4
             True
 
         TESTS::
@@ -2790,6 +2840,21 @@ class SimplicialSet_arbitrary(Parent):
             [1, 0, 1]
             sage: (W.projection_map(2) * W.inclusion_map(2)).is_bijective()
             True
+            
+        The Kenzo representation of a wedge is constructed when all of its factors
+        have a Kenzo representation::
+        
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: R = simplicial_sets.RealProjectiveSpace(6)
+            sage: W = S2.wedge(S2, S3, R)
+            sage: KW = W._kenzo_repr
+            sage: KW.orgn()     # description of the wedge as a pushout in Kenzo
+            '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
+            sage: W.homology()
+            {0: 0, 1: C2, 2: Z x Z, 3: Z x C2, 4: 0, 5: C2, 6: 0}
+            sage: [KW.homology(i) for i in range(7)]
+            [Z, C2, Z x Z, Z x C2, 0, C2, 0]
 
         TESTS::
 
@@ -2902,7 +2967,17 @@ class SimplicialSet_arbitrary(Parent):
             [1, 0, 1, 1, 1, 1]
             sage: S1_smash_RP4.f_vector()
             [1, 1, 4, 6, 8, 5]
-
+            
+        If the ``base`` has a Kenzo representation, the suspension of this simplicial
+        set is also constructed in Kenzo::
+        
+            sage: KSigmaRP4 = SigmaRP4._kenzo_repr ; KSigmaRP4
+            [K... Simplicial-Set]
+            sage: KSigmaRP4.orgn()     # description as a suspension in Kenzo
+            '(SUSPENSION [K... Simplicial-Set])'
+            sage: [KSigmaRP4.homology(i) for i in range(6)]
+            [Z, 0, C2, 0, C2, 0]
+            
         TESTS::
 
             sage: RP4.suspension(-3)
@@ -2923,6 +2998,7 @@ class SimplicialSet_arbitrary(Parent):
         if n == 1:
             return Sigma
         return Sigma.suspension(n-1)
+        
 
     def join(self, *others):
         """
@@ -2934,17 +3010,28 @@ class SimplicialSet_arbitrary(Parent):
         this. See also P. J. Ehlers and Tim Porter, Joins for
         (Augmented) Simplicial Sets, Jour. Pure Applied Algebra, 145
         (2000) 37-44 :arxiv:`9904039`.
+        
+        However, if ``self`` and ``others`` have Kenzo representations then the
+        join of them is constructed in Kenzo.
 
         - ``others`` -- one or several simplicial sets
 
         EXAMPLES::
 
-            sage: K = simplicial_sets.Simplex(2)
-            sage: K.join(K)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: joins are not implemented for simplicial sets
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: M = S2.join(S2)
+            This join is not implemented in Sage but it is implemented in Kenzo
+            sage: M
+            [K... Simplicial-Set]
+            sage: [M.homology(i) for i in range(7)]
+            [Z, 0, Z, Z, 0, Z, 0]
         """
+        if hasattr(self, '_kenzo_repr') and all(hasattr(f, '_kenzo_repr') for f in others):
+            print('This join is not implemented in Sage but it is implemented in Kenzo')
+            f0 = self._kenzo_repr
+            for f1 in others:
+                f0 = f0.join(f1._kenzo_repr)
+            return f0
         raise NotImplementedError('joins are not implemented for simplicial sets')
 
     def reduce(self):
@@ -3229,6 +3316,17 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             sage: S1 = SimplicialSet({e: (v, v)})
             sage: SimplicialSet(S1) == S1
             False
+
+        The Kenzo representation of a finite simplicial set is constructed::
+        
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: e = AbstractSimplex(1)
+            sage: S = SimplicialSet({e: (v, v)})
+            sage: KS = S._kenzo_repr ; KS
+            [K... Simplicial-Set]
+            sage: KS.orgn()     # description as a finite simplicial set in Kenzo
+            '(BUILD-FINITE-SS (CELL_0_0 1 CELL_1_0 ((CELL_0_0) (CELL_0_0))))'
 
         Test suites::
 

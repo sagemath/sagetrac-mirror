@@ -232,6 +232,23 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         Traceback (most recent call last):
         ...
         TypeError: unable to convert 0 to a rational
+        
+    In case a chain complex in Sage satisfies that its base ring is `\ZZ` and its
+    ``degree`` is -1, the Kenzo representation of this complex is built::
+
+        sage: m1 = matrix(ZZ, 3, 2, [-1, 1, 3, -4, 5, 6])
+        sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
+        sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
+        sage: C = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)
+        sage: KC = C._kenzo_repr ; KC
+        [K... Chain-Complex]
+        sage: type(KC)
+        <class 'sage.interfaces.kenzo.KenzoChainComplex'>
+        sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+        sage: hasattr(C, '_kenzo_repr')
+        False
+        sage: hasattr(C.dual(), '_kenzo_repr')
+        True
     """
     if grading_group is None:
         grading_group = ZZ
