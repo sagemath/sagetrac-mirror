@@ -2508,10 +2508,10 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             True
 
         """
-        # Special cases:
-        if self._is_zero:
+        # Trivial cases:
+        if self.is_trivial_zero():
             return other
-        if other._is_zero:
+        if other.is_trivial_zero():
             return self
         # Generic case:
         com_charts = self.common_charts(other)
@@ -2557,11 +2557,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             True
 
         """
-        # Special cases:
-        if self._is_zero:
+        # Trivial cases:
+        if self.is_trivial_zero():
             return -other
-        if other._is_zero:
+        if other.is_trivial_zero():
             return self
+        if self is other:
+            return self.parent().zero()
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2575,7 +2577,6 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if self._latex_name is not None and other._latex_name is not None:
             result._latex_name = self._latex_name + '-' + other._latex_name
         return result
-
 
     def _mul_(self, other):
         r"""
@@ -2609,12 +2610,16 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             True
 
         """
-        from sage.tensor.modules.format_utilities import (format_mul_txt,
-                                                         format_mul_latex)
-        # Special cases:
-        if self._is_zero or other._is_zero:
+        # Trivial cases:
+        if self.is_trivial_zero() or other.is_trivial_zero():
             return self._domain.zero_scalar_field()
+        if (self - 1).is_trivial_zero():
+            return other
+        if (other - 1).is_trivial_zero():
+            return self
         # Generic case:
+        from sage.tensor.modules.format_utilities import (format_mul_txt,
+                                                          format_mul_latex)
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the multiplication")
@@ -2661,10 +2666,10 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         """
         from sage.tensor.modules.format_utilities import format_mul_txt, \
                                                          format_mul_latex
-        # Special cases:
-        if other._is_zero:
+        # Trivial cases:
+        if other.is_trivial_zero():
             raise ZeroDivisionError("division of a scalar field by zero")
-        if self._is_zero:
+        if self.is_trivial_zero():
             return self._domain.zero_scalar_field()
         # Generic case:
         com_charts = self.common_charts(other)
@@ -2726,6 +2731,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             True
 
         """
+        # Trivial cases:
         try:
             if number.is_trivial_zero():
                 return self.parent().zero()
@@ -2737,6 +2743,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                 return self.parent().zero()
             if number == 1:
                 return self
+        # Generic case:
         result = type(self)(self.parent())
         if isinstance(number, Expression):
             var = number.variables()  # possible symbolic variables in number
