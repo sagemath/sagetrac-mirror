@@ -241,7 +241,7 @@ Checking that all orthonormal frames introduced above are right-handed::
 
     sage: ex, ey, ez = E.cartesian_frame()[:]
     sage: epsilon(ex, ey, ez).display()
-    epsilon(e_x,e_y,e_z): E^3 --> R
+    1: E^3 --> R
        (x, y, z) |--> 1
        (r, th, ph) |--> 1
        (rh, ph, z) |--> 1

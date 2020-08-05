@@ -158,7 +158,7 @@ Let us check that the coframe `(e^i)` is indeed the dual of the vector
 frame `(e_i)`::
 
     sage: f[1](e[1]) # the 1-form e^1 applied to the vector field e_1
-    Scalar field e^1(e_1) on the 3-dimensional differentiable manifold M
+    Scalar field 1 on the 3-dimensional differentiable manifold M
     sage: f[1](e[1]).expr() # the explicit expression of e^1(e_1)
     1
     sage: f[1](e[1]).expr(), f[1](e[2]).expr(), f[1](e[3]).expr()
