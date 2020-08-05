@@ -4725,6 +4725,9 @@ REFERENCES:
 
 .. [Rud1958] \M. E. Rudin. *An unshellable triangulation of a
              tetrahedron*. Bull. Amer. Math. Soc. 64 (1958), 90-91.
+             
+.. [Rum2013] Robert Rumely. *The Minimal Resultant Locus*. Acta
+	     Arithmetica, Vol. 169 (2015). :arxiv:`1304.1201`
 
 .. [Rus2003] Frank Ruskey. *Combinatorial Generation*. (2003).
              http://www.1stworks.com/ref/ruskeycombgen.pdf
