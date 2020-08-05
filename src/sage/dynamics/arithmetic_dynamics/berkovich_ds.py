@@ -911,6 +911,18 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         ALGORITHM:
 
         Algorithm A of [Rum2013]_ (p.28).
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_Berkovich([x^2 - y^2, 2*x*y], ideal=2)
+            sage: system.min_res_locus()
+            (Type II point centered at (s0 : 1) of radius 2^-1, 0)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: 
         """
 
         # as step 2 of Rumely's algorithm may be run twice, we define it as a seperate function
@@ -966,29 +978,40 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     for line_1 in all_lines:
                         for line_2 in all_lines:
                             if line_1 != line_2 and line_2[1] != line_1[1]:
+                                constant_check = line_1.is_constant() or line_2.is_constant()
                                 intersection = QQ((line_1[0]-line_2[0])/(line_2[1]-line_1[1]))
                                 if intersection not in all_intersections:
-                                    all_intersections.append(intersection)
+                                    all_intersections.append((intersection, constant_check))
                     #print(all_intersections)
-                    for intersection in all_intersections:
+                    minimum = None
+                    for intersection, constant_check in all_intersections:
                         C_max = max([(i(intersection)) for i in C_lines])
                         D_max = max([(i(intersection)) for i in D_lines])
                         print('intersection = ', intersection)
                         #print('C_max = ', C_max)
                         #print('D_max = ', D_max)
                         print('value of X(i) = ', max(C_max, D_max))
-                        X_i = (max(C_max,D_max))
+                        X_i = (max(C_max, D_max))
                         if X_i < minimum or minimum == None:
                             minimum = X_i
                             intersection_final = QQ(intersection)
+                            interval_check = constant_check
                     print('minimum: ', minimum)
-                    interval_check = False
-                    for line in all_lines: #check if minimum is achieved on an interval
-                        if line.is_constant():
-                            if line[0] == minimum:
-                                interval_check = True
-                                break
-                    min_list.append((minimum, intersection_final, interval_check, extension, new_prime))
+                    if interval_check:
+                        start = None
+                        end = None
+                        for intersection, constant_check in all_intersections:
+                            C_max = max([(i(intersection)) for i in C_lines])
+                            D_max = max([(i(intersection)) for i in D_lines])
+                            X_i = (max(C_max, D_max))
+                            if X_i == minimum:
+                                if start == None or intersection < start:
+                                    start = intersection
+                                if end == None or intersection > end:
+                                    end = intersection
+                        min_list.append((start, end), intersection_final, interval_check, extension, new_prime)
+                    else:
+                        min_list.append((minimum, intersection_final, interval_check, extension, new_prime))
             return min_list
 
         system = self._system
@@ -1047,7 +1070,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     conj_matrix = Matrix([[A, B], [0, 1]])
                     new_system = system.change_ring(new_extension)
                 new_system = new_system.conjugate(conj_matrix)
-                return (min_res_locus, min_ord_res, conj_matrix, new_extension, extension, ext_to_new_ext)
+                return (min_res_locus, min_ord_res, conj_matrix)
         else:
             list_of_minimums = [tup for tup in min_list if tup[0] == min_ord_res]
             max_radius = max([QQ_prime**(-1*tup[1]) for tup in list_of_minimums])
