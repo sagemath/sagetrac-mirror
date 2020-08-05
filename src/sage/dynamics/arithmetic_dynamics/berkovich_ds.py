@@ -878,6 +878,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         r"""
         Returns the minimal resultant locus and the minimal order of the resultant.
 
+        Only implemented for Berkovich spaces backed by number fields.
+
         Let the action of this map `\phi` be given by
         `[X : Y] \to [F(X,Y) : G(X,Y)]`, where `F` and `G` are normalized.
         The resultant of `\phi` is the resultant of `F` and `G`.
@@ -908,8 +910,87 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
         ALGORITHM:
 
-        See [Rum2013]_.
+        Algorithm A of [Rum2013]_ (p.28).
         """
+
+        # as step 2 of Rumely's algorithm may be run twice, we define it as a seperate function
+        def step_2(factorization, base):
+            min_list = []
+            for i in range(len(factorization)):
+                irreducible = factorization[i][0]
+                extension = base.extension(irreducible, 's%s'%i)
+                new_primes = extension.primes_above(base_prime_ideal)
+                for new_prime in new_primes:
+                    #print('current prime = ', new_prime)
+                    ramification_index = new_prime.absolute_ramification_index()
+                    valuation = lambda x: x.valuation(new_prime)/ramification_index
+                    s = extension.gens()[0]
+                    transformation_matrix = Matrix([[1, s],[0, 1]])
+                    new_system = system.change_ring(extension)
+                    new_system = new_system.conjugate(transformation_matrix)
+                    print('before normalizing coordinates = ', new_system)
+                    new_system.normalize_coordinates() #very long call
+                    #print('res = ', new_system.resultant())
+                    res = valuation(new_system.resultant())
+                    #print('ordres = ', res)
+                    d = new_system.degree()
+                    #print('d = ', d)
+                    #print('system = ', new_system)
+                    C_list = []
+                    D_list = []
+                    for i in range(d + 1):
+                        C_i = new_system[0][i, d - i]
+                        D_i = new_system[1][i, d - i]
+                        #print('C_%s = ' %i, C_i)
+                        #print('val = ', valuation(C_i))
+                        if C_i != 0:
+                            C_list.append(QQ(res - 2*d*valuation(C_i)))
+                        else:
+                            C_list.append(None)
+                        if D_i != 0:
+                            D_list.append(QQ(res - 2*d*valuation(D_i)))
+                        else:
+                            D_list.append(None)
+                    #print('C_list =', C_list)
+                    #print('D_list =', D_list)
+                    D = QQ['t']
+                    t = D.gens()[0]
+                    C_lines = [(C_list[i] + QQ(d**2 + d - 2*d*i)*t) for i in range(len(C_list)) if C_list[i] != None]
+                    D_lines = [(D_list[i] + QQ(d**2 + d - 2*d*(i + 1))*t) for i in range(len(D_list)) if D_list[i] != None]
+                    #print('C_lines = ', C_lines)
+                    #print('D_lines = ', D_lines)
+                    all_lines = C_lines + D_lines #crude minimization
+                    minimum = None
+                    print('all lines = ', C_lines, D_lines)
+                    all_intersections = []
+                    for line_1 in all_lines:
+                        for line_2 in all_lines:
+                            if line_1 != line_2 and line_2[1] != line_1[1]:
+                                intersection = QQ((line_1[0]-line_2[0])/(line_2[1]-line_1[1]))
+                                if intersection not in all_intersections:
+                                    all_intersections.append(intersection)
+                    #print(all_intersections)
+                    for intersection in all_intersections:
+                        C_max = max([(i(intersection)) for i in C_lines])
+                        D_max = max([(i(intersection)) for i in D_lines])
+                        print('intersection = ', intersection)
+                        #print('C_max = ', C_max)
+                        #print('D_max = ', D_max)
+                        print('value of X(i) = ', max(C_max, D_max))
+                        X_i = (max(C_max,D_max))
+                        if X_i < minimum or minimum == None:
+                            minimum = X_i
+                            intersection_final = QQ(intersection)
+                    print('minimum: ', minimum)
+                    interval_check = False
+                    for line in all_lines: #check if minimum is achieved on an interval
+                        if line.is_constant():
+                            if line[0] == minimum:
+                                interval_check = True
+                                break
+                    min_list.append((minimum, intersection_final, interval_check, extension, new_prime))
+            return min_list
+
         system = self._system
         QQ_prime = self.domain().prime()
         base_prime_ideal = self.domain().ideal()
@@ -924,7 +1005,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         num = phi(num)
         #print('num:', num)
         #print('dem:', dem)
-        fixed_point_equation = (num-w*dem)
+        fixed_point_equation = num - w*dem
         factorization = list(fixed_point_equation.factor())
         if(system([1,0]) == system.domain()([1,0])):
             Q = dem
@@ -932,80 +1013,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             value = system([1,0]).dehomogenize(1)[0]
             Q = num - value*dem
         factorization += list(Q.factor())
-        min_list = []
         #print('all factors:', factorization)
-        for i in range(len(factorization)):
-            irreducible = factorization[i][0]
-            extension = base.extension(irreducible, 's%s'%i)
-            new_primes = extension.primes_above(base_prime_ideal)
-            for new_prime in new_primes:
-                #print('current prime = ', new_prime)
-                ramification_index = new_prime.absolute_ramification_index()
-                valuation = lambda x: x.valuation(new_prime)/ramification_index
-                s = extension.gens()[0]
-                transformation_matrix = Matrix([[1, s],[0, 1]])
-                new_system = system.change_ring(extension)
-                new_system = new_system.conjugate(transformation_matrix)
-                new_system.normalize_coordinates() #very long call
-                #print('res = ', new_system.resultant())
-                res = valuation(new_system.resultant())
-                #print('ordres = ', res)
-                d = new_system.degree()
-                #print('d = ', d)
-                #print('system = ', new_system)
-                C_list = []
-                D_list = []
-                for i in range(d+1):
-                    C_i = new_system[0][i,d-i]
-                    D_i = new_system[1][i,d-i]
-                    #print('C_%s = ' %i, C_i)
-                    #print('val = ', valuation(C_i))
-                    if C_i != 0:
-                        C_list.append(QQ(res-2*d*valuation(C_i)))
-                    else:
-                        C_list.append(None)
-                    if D_i != 0:
-                        D_list.append(QQ(res-2*d*valuation(D_i)))
-                    else:
-                        D_list.append(None)
-                #print('C_list =', C_list)
-                #print('D_list =', D_list)
-                D = QQ['t']
-                t = D.gens()[0]
-                C_lines = [(C_list[i] + QQ(d**2 + d - 2*d*i)*t) for i in range(len(C_list)) if C_list[i] != None]
-                D_lines = [(D_list[i] + QQ(d**2 + d - 2*d*(i + 1))*t) for i in range(len(D_list)) if D_list[i] != None]
-                #print('C_lines = ', C_lines)
-                #print('D_lines = ', D_lines)
-                all_lines = C_lines + D_lines #crude minimization
-                minimum = None
-                #print('all lines = ', C_lines, D_lines)
-                all_intersections = []
-                for line_1 in all_lines:
-                    for line_2 in all_lines:
-                        if line_1 != line_2 and line_2[1] != line_1[1]:
-                            intersection = QQ((line_1[0]-line_2[0])/(line_2[1]-line_1[1]))
-                            if intersection not in all_intersections:
-                                all_intersections.append(intersection)
-                #print(all_intersections)
-                for intersection in all_intersections:
-                    C_max = max([(i(intersection)) for i in C_lines])
-                    D_max = max([(i(intersection)) for i in D_lines])
-                    #print('intersection = ', intersection)
-                    #print('C_max = ', C_max)
-                    #print('D_max = ', D_max)
-                    #print('value of X(i) = ', max(C_max, D_max))
-                    X_i = (max(C_max,D_max))
-                    if X_i < minimum or minimum == None:
-                        minimum = (X_i)
-                        intersection_final = QQ(intersection)
-                #print('minimum: ', minimum)
-                interval_check = False
-                for line in all_lines: #check if minimum is achieved on an interval
-                    if line.is_constant():
-                        if line[0] == minimum:
-                            interval_check = True
-                            break
-                min_list.append((minimum, intersection_final, interval_check, extension, new_prime))
+        min_list = step_2(factorization, base)
         minimizing_list = [i[0] for i in min_list]
         minimum = min(minimizing_list)
         min_index = minimizing_list.index(minimum)
@@ -1025,32 +1034,26 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 if root == 1:
                     #print('in no denominator case')
                     #print('extension:', extension)
-                    conj_matrix = Matrix([[QQ_prime**(intersection_final), extension.gens()[0]], [0,1]])
+                    conj_matrix = Matrix([[QQ_prime**(intersection_final), extension.gens()[0]], [0, 1]])
                     new_system = system.change_ring(extension)
                 else:
                     C = extension['c']
                     c = C.gens()[0]
-                    defining_polynomial = c**(root) - QQ_prime**(intersection_final.numerator())
-                    factorization = defining_polynomial.factor()
-                    degree = None
-                    for factor in factorization:
-                        if degree == None or factor[0].degree() < degree: #slow symbolic calcuation
-                            final_factor = factor[0]
-                            degree = factor[0].degree()
-                    if degree != 1:
-                        new_extension = extension.extension(final_factor, 'w0')
-                        A = new_extension.gens()[0]
-                        B = new_extension.gens()[1]
-                    else:
-                        A = final_factor[0]
-                        B = extension.gens()[0]
-                    conj_matrix = Matrix([[A, B],[0,1]])
+                    defining_polynomial = c**root - QQ_prime**intersection_final.numerator()
+                    #print('defining polynomial = ', defining_polynomial)
+                    new_extension, ext_to_new_ext = defining_polynomial.splitting_field('w0', map=True)
+                    A = defining_polynomial.roots(new_extension)[0][0]
+                    B = ext_to_new_ext(extension.gens()[0])
+                    conj_matrix = Matrix([[A, B], [0, 1]])
                     new_system = system.change_ring(new_extension)
                 new_system = new_system.conjugate(conj_matrix)
-                return (min_res_locus, min_ord_res, conj_matrix)
+                return (min_res_locus, min_ord_res, conj_matrix, new_extension, extension, ext_to_new_ext)
         else:
-            print('not implemented')
-            return [min_list[min_index][0], min_list[min_index][1]]
+            list_of_minimums = [tup for tup in min_list if tup[0] == min_ord_res]
+            max_radius = max([QQ_prime**(-1*tup[1]) for tup in list_of_minimums])
+            maximum_radii = [tup for tup in list_of_minimums if QQ_prime**(-1*tup[1]) == max_radius]
+            return maximum_radii
+
 
 class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
     r"""
