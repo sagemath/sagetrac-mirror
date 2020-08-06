@@ -2452,9 +2452,9 @@ class ScalarField(CommutativeAlgebraElement):
         """
         # Trivial cases:
         if self.is_trivial_zero():
-            return other
+            return other.copy(other._name, other._latex_name)
         if other.is_trivial_zero():
-            return self
+            return self.copy(self._name, self._latex_name)
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2503,9 +2503,10 @@ class ScalarField(CommutativeAlgebraElement):
         if self.is_trivial_zero():
             return -other
         if other.is_trivial_zero():
-            return self
+            return self.copy(self._name, self._latex_name)
         if self is other:
-            return self.parent().zero()
+            zero = self.parent().zero()
+            return zero.copy(zero._name, zero._latex_name)
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2554,11 +2555,12 @@ class ScalarField(CommutativeAlgebraElement):
         """
         # Trivial cases:
         if self.is_trivial_zero() or other.is_trivial_zero():
-            return self._domain.zero_scalar_field()
+            zero = self._domain.zero_scalar_field()
+            return zero.copy(zero._name, zero._latex_name)
         if (self - 1).is_trivial_zero():
-            return other
+            return other.copy(other._name, other._latex_name)
         if (other - 1).is_trivial_zero():
-            return self
+            return self.copy(self._name, self._latex_name)
         # Generic case:
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
@@ -2612,7 +2614,8 @@ class ScalarField(CommutativeAlgebraElement):
         if other.is_trivial_zero():
             raise ZeroDivisionError("division of a scalar field by zero")
         if self.is_trivial_zero():
-            return self._domain.zero_scalar_field()
+            zero = self._domain.zero_scalar_field()
+            return zero.copy(zero._name, zero._latex_name)
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2676,15 +2679,17 @@ class ScalarField(CommutativeAlgebraElement):
         # Trivial cases:
         try:
             if number.is_trivial_zero():
-                return self.parent().zero()
+                zero = self.parent().zero()
+                return zero.copy(zero._name, zero._latex_name)
             if (number - 1).is_trivial_zero():
-                return self
+                return self.copy(self._name, self._latex_name)
         except AttributeError:
             # in case base ring is not SR:
             if number == 0:
-                return self.parent().zero()
+                zero = self.parent().zero()
+                return zero.copy(zero._name, zero._latex_name)
             if number == 1:
-                return self
+                return self.copy(self._name, self._latex_name)
         # Generic case:
         result = type(self)(self.parent())
         if isinstance(number, Expression):
