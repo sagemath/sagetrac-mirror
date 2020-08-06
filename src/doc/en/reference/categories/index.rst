@@ -96,6 +96,7 @@ Individual Categories
    sage/categories/finite_sets
    sage/categories/finite_weyl_groups
    sage/categories/finitely_generated_magmas
+   sage/categories/finitely_generated_rings
    sage/categories/finitely_generated_semigroups
    sage/categories/function_fields
    sage/categories/g_sets

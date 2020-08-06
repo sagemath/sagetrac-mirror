@@ -1675,9 +1675,12 @@ all_axioms = AxiomContainer()
 all_axioms += ("Flying", "Blue",
                "Compact",
                "Differentiable", "Smooth", "Analytic", "AlmostComplex",
+               "FinitelyGeneratedAsDistributiveMagma",
+               "FinitelyGeneratedAsAlgebra",
+               "FinitelyGeneratedAsAlgebroid",
                "FinitelyGeneratedAsMagma",
                "WellGenerated",
-               "Facade", "Finite", "Infinite","Enumerated",
+               "Facade", "Finite", "Infinite", "Enumerated",
                "Complete",
                "Nilpotent",
                "FiniteDimensional", "Connected", "WithBasis",
@@ -2281,6 +2284,10 @@ class CategoryWithAxiom(Category):
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)
+            elif axiom in ["FinitelyGeneratedAsDistributiveMagma",
+                           "FinitelyGeneratedAsAlgebra",
+                           "FinitelyGeneratedAsAlgebroid"]:
+                result = "finitely generated " + result
             elif axiom == "FinitelyGeneratedAsMagma" and \
                  not base_category.is_subcategory(AdditiveMagmas()):
                 result = "finitely generated " + result

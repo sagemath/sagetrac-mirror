@@ -314,7 +314,52 @@ class Rings(CategoryWithAxiom):
             """
             return self._with_axiom('Division')
 
+        def FinitelyGeneratedAsDistributiveMagma(self):
+            r"""
+            Return the full subcategory of finitely generated objects of
+            ``self``.
 
+            A ring is `R` *finitely generated* if there exists a finite
+            subset `A \subset R` such that every element of `R` can be
+            written as a sum of elements of the form:
+
+            .. MATH::
+
+                a_1a_2 \cdots a_n
+
+            with `a_i \in A` for `i=1, \ldots, n`.
+
+            EXAMPLES::
+
+                sage: Rings().FinitelyGeneratedAsDistributiveMagma()
+                Category of finitely generated rings
+            """
+            return self._with_axiom("FinitelyGeneratedAsDistributiveMagma")
+
+        def FinitelyGenerated(self):
+            r"""
+            Return the full subcategory of finitely generated objects of
+            ``self``.
+
+            A ring is `R` *finitely generated* if there exists a finite
+            subset `A \subset R` such that every element of `R` can be
+            written as a sum of elements of the form:
+
+            .. MATH::
+
+                a_1a_2 \cdots a_n
+
+            with `a_i \in A` for `i=1, \ldots, n`.
+
+            EXAMPLES::
+
+                sage: Rings().FinitelyGenerated()
+                Category of finitely generated rings
+            """
+            return self._with_axiom("FinitelyGeneratedAsDistributiveMagma")
+
+    FinitelyGeneratedAsDistributiveMagma = LazyImport('sage.categories.finitely_generated_rings',
+                                                      'FinitelyGeneratedRings')
     NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', at_startup=True)
     Division       = LazyImport('sage.categories.division_rings', 'DivisionRings', at_startup=True)
     Commutative    = LazyImport('sage.categories.commutative_rings', 'CommutativeRings', at_startup=True)

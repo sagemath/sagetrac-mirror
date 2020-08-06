@@ -112,6 +112,52 @@ class LieAlgebras(Category_over_base_ring):
             """
             return self._with_axiom("Nilpotent")
 
+        def FinitelyGeneratedAsAlgebra(self):
+            r"""
+            Return the full subcategory of finitely generated objects of ``self``.
+
+            A Lie algebra `L` over the ring `R` is finitely generated if
+            there exists a finite subset `A \subset L` such that every
+            element of `L` can be written as a linear combination with
+            coefficients in `R` of elements of the form:
+
+            .. MATH::
+
+                [a_1, [a_2, \ldots [a_{n-1}, a_n], \ldots]]
+
+            With `a_i \in A$ for every `i`.
+
+            EXAMPLES::
+
+                sage: LieAlgebras(QQ).FinitelyGeneratedAsAlgebra()
+                Category of finitely generated Lie algebras over Rational Field
+            """
+            return self._with_axiom("FinitelyGeneratedAsAlgebra")
+
+        def FinitelyGenerated(self):
+            r"""
+            Return the full subcategory of finitely generated objects of ``self``.
+
+            A Lie algebra `L` over the ring `R` is finitely generated if
+            there exists a finite subset `A \subset L` such that every
+            element of `L` can be written as a linear combination with
+            coefficients in `R` of elements of the form:
+
+            .. MATH::
+
+                [a_1, [a_2, \ldots [a_{n-1}, a_n], \ldots]]
+
+            With `a_i \in A$ for every `i`.
+
+            EXAMPLES::
+
+                sage: LieAlgebras(QQ).FinitelyGenerated()
+                Category of finitely generated Lie algebras over Rational Field
+                sage: LieAlgebras(QQ).WithBasis().FinitelyGenerated()
+                Category of finitely generated lie algebras with basis over Rational Field
+            """
+            return self._with_axiom("FinitelyGeneratedAsAlgebra")
+
     Graded = LazyImport('sage.categories.graded_lie_algebras',
                         'GradedLieAlgebras',
                         as_name='Graded')
@@ -174,21 +220,38 @@ class LieAlgebras(Category_over_base_ring):
     WithBasis = LazyImport('sage.categories.lie_algebras_with_basis',
                            'LieAlgebrasWithBasis', as_name='WithBasis')
 
+    class FinitelyGeneratedAsAlgebra(CategoryWithAxiom_over_base_ring):
+        def example(self):
+            """
+            An example of a finitely generated Lie algebra.
+
+            EXAMPLES::
+
+                sage: LieAlgebras(QQ).FinitelyGenerated().example()
+                The Virasoro algebra over Rational Field
+            """
+            from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
+            return VirasoroAlgebra(self.base_ring())
+
     class FiniteDimensional(CategoryWithAxiom_over_base_ring):
         WithBasis = LazyImport('sage.categories.finite_dimensional_lie_algebras_with_basis',
                                'FiniteDimensionalLieAlgebrasWithBasis', as_name='WithBasis')
 
         def extra_super_categories(self):
             """
+            The extra super categories of ``self``.
+
             Implements the fact that a finite dimensional Lie algebra over
-            a finite ring is finite.
+            a finite ring is finite, and every finite dimensional Lie
+            algebra is finitely generated.
 
             EXAMPLES::
 
                 sage: LieAlgebras(IntegerModRing(4)).FiniteDimensional().extra_super_categories()
-                [Category of finite sets]
+                [Category of finitely generated Lie algebras over Ring of integers modulo 4,
+                 Category of finite sets]
                 sage: LieAlgebras(ZZ).FiniteDimensional().extra_super_categories()
-                []
+                [Category of finitely generated Lie algebras over Integer Ring]
                 sage: LieAlgebras(GF(5)).FiniteDimensional().is_subcategory(Sets().Finite())
                 True
                 sage: LieAlgebras(ZZ).FiniteDimensional().is_subcategory(Sets().Finite())
@@ -196,9 +259,10 @@ class LieAlgebras(Category_over_base_ring):
                 sage: LieAlgebras(GF(5)).WithBasis().FiniteDimensional().is_subcategory(Sets().Finite())
                 True
             """
+            ret = [self.base_category().FinitelyGenerated()]
             if self.base_ring() in Sets().Finite():
-                return [Sets().Finite()]
-            return []
+                ret.append(Sets().Finite())
+            return ret
 
     class Nilpotent(CategoryWithAxiom_over_base_ring):
         r"""
