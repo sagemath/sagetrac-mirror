@@ -6129,7 +6129,7 @@ class Polyhedron_base(Element):
                         if not "Numerical inconsistency" in err.args[0]:
                             raise err
 
-        if self.n_vertices() >= 12:
+        if self.n_vertices() >= 12 or self.base_ring() not in (ZZ, QQ):
             # Avoid very long tests.
             return
 
