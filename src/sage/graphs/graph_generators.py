@@ -231,6 +231,9 @@ __append_to_doc(
      "CubeGraph",
      "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
+     "DoubleGrassmannGraph",
+     "DoubleOddGraph",
+     "DualPolarOrthogonalGraph",
      "EgawaGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
@@ -241,6 +244,8 @@ __append_to_doc(
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
      "GoethalsSeidelGraph",
+     "GrassmannGraph",
+     "HalfCube",
      "HammingGraph",
      "HanoiTowerGraph",
      "HararyGraph",
@@ -2067,6 +2072,9 @@ class GraphGenerators():
     CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
+    DoubleGrassmannGraph   = staticmethod(distance_regular.DoubleGrassmannGraph)
+    DoubleOddGraph         = staticmethod(distance_regular.DoubleOddGraph)
+    DualPolarOrthogonalGraph = staticmethod(distance_regular.DualPolarOrthogonalGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
     FibonacciTree          = staticmethod(families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(families.FoldedCubeGraph)
@@ -2075,6 +2083,8 @@ class GraphGenerators():
     FuzzyBallGraph         = staticmethod(families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(families.GeneralizedPetersenGraph)
     GoethalsSeidelGraph    = staticmethod(families.GoethalsSeidelGraph)
+    GrassmannGraph         = staticmethod(distance_regular.GrassmannGraph)
+    HalfCube               = staticmethod(distance_regular.HalfCube)
     HammingGraph           = staticmethod(families.HammingGraph)
     HanoiTowerGraph        = staticmethod(families.HanoiTowerGraph)
     HararyGraph            = staticmethod(families.HararyGraph)
