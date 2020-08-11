@@ -240,14 +240,14 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         sage: m4 = matrix(ZZ, 2, 2, [1, 2, 3, 6])
         sage: m5 = matrix(ZZ, 2, 3, [2, 2, 2, -1, -1, -1])
         sage: C = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)
-        sage: KC = C._kenzo_repr ; KC
+        sage: KC = C._kenzo_repr ; KC                                           # optional - kenzo
         [K... Chain-Complex]
-        sage: type(KC)
+        sage: type(KC)                                                          # optional - kenzo
         <class 'sage.interfaces.kenzo.KenzoChainComplex'>
         sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
-        sage: hasattr(C, '_kenzo_repr')
+        sage: hasattr(C, '_kenzo_repr')                                         # optional - kenzo
         False
-        sage: hasattr(C.dual(), '_kenzo_repr')
+        sage: hasattr(C.dual(), '_kenzo_repr')                                  # optional - kenzo
         True
     """
     if grading_group is None:

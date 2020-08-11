@@ -292,10 +292,10 @@ def Sphere(n):
     the `+maximal-dimension+` = 15::
     
         sage: S6 = simplicial_sets.Sphere(6)
-        sage: KS6 = S6._kenzo_repr
-        sage: KS6.orgn()     # description as a Kenzo sphere
+        sage: KS6 = S6._kenzo_repr                                      # optional - kenzo
+        sage: KS6.orgn()     # description as a Kenzo sphere            # optional - kenzo
         '(SPHERE 6)'
-        sage: [KS6.homology(i) for i in range(7)]
+        sage: [KS6.homology(i) for i in range(7)]                       # optional - kenzo
         [Z, 0, 0, 0, 0, 0, Z]
     """
     from sage.libs.ecl import ecl_eval
@@ -380,13 +380,13 @@ def RealProjectiveSpace(n):
         
     The Kenzo representation of these simplicial sets is constructed::
     
-        sage: KRP5 = RP5._kenzo_repr
-        sage: KRP5.orgn()     # description as the 5-dimensional projective space in Kenzo
+        sage: KRP5 = RP5._kenzo_repr                                      # optional - kenzo
+        sage: KRP5.orgn()     # description as the 5-dimensional projective space in Kenzo    # optional - kenzo
         '(R-PROJ-SPACE 1 6)'
-        sage: [KRP5.homology(i) for i in range(6)]
+        sage: [KRP5.homology(i) for i in range(6)]                        # optional - kenzo
         [Z, C2, 0, C2, 0, Z]
-        sage: KBC2 = BC2._kenzo_repr
-        sage: KBC2.orgn()     # description as the infinite-dimensional projective space in Kenzo
+        sage: KBC2 = BC2._kenzo_repr                                      # optional - kenzo
+        sage: KBC2.orgn()     # description as the infinite-dimensional projective space in Kenzo    # optional - kenzo
         '(R-PROJ-SPACE 1 :INFINITY)'
     """
     if n == Infinity:
@@ -470,14 +470,14 @@ def Simplex(n):
         
     The Kenzo representation of this simplicial set is constructed::
     
-        sage: KK = K._kenzo_repr
-        sage: KK.orgn()     # description as a simplex in Kenzo
+        sage: KK = K._kenzo_repr                                          # optional - kenzo
+        sage: KK.orgn()     # description as a simplex in Kenzo           # optional - kenzo
         '(DELTA 2)'
-        sage: KK.basis(0)
+        sage: KK.basis(0)                                                 # optional - kenzo
         [1, 2, 4]
-        sage: KK.basis(1)
+        sage: KK.basis(1)                                                 # optional - kenzo
         [3, 5, 6]
-        sage: KK.basis(2)
+        sage: KK.basis(2)                                                 # optional - kenzo
         [7]
     """
     result =  SimplicialSet_finite(simplicial_complexes.Simplex(n),

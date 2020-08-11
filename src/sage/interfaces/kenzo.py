@@ -2686,7 +2686,7 @@ def translate_type (kenzoobj):
     elif kenzotype == 'SYMBOL':
         return kenzoobj.python()
     else:
-        return KenzoObject(kenzoobj) 
+        return KenzoObject(kenzoobj)
 
 
 class KenzoSimplicialSetMorphism(KenzoChainComplexMorphism):

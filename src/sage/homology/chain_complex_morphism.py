@@ -146,9 +146,9 @@ class ChainComplexMorphism(Morphism):
             sage: C = S.chain_complex()
             sage: f = {0:zero_matrix(ZZ,3,3), 1:zero_matrix(ZZ,3,3)}
             sage: M = Hom(C,C)(f)
-            sage: KM = M._kenzo_repr ; KM
+            sage: KM = M._kenzo_repr ; KM                                       # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: type(KM)
+            sage: type(KM)                                                      # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoChainComplexMorphism'>
         """
         if not C.base_ring() == D.base_ring():
@@ -339,11 +339,11 @@ class ChainComplexMorphism(Morphism):
         If ``self`` has a Kenzo representation, then the Kenzo representation of 
         the opposite of this morphism is created::
         
-            sage: Kx = x._kenzo_repr ; Kx
+            sage: Kx = x._kenzo_repr ; Kx                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kw = w._kenzo_repr ; Kw
+            sage: Kw = w._kenzo_repr ; Kw                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kw.orgn()     # description as the opposite of Kx
+            sage: Kw.orgn()     # description as the opposite of Kx       # optional - kenzo
             '(OPPS [K... Morphism (degree 0): K... -> K...])'
         """
         f = dict()
@@ -384,11 +384,11 @@ class ChainComplexMorphism(Morphism):
         If ``self`` and ``x`` have Kenzo representations, then the Kenzo representation
         of the sum of these morphisms is created::
         
-            sage: Kx = x._kenzo_repr ; Kx
+            sage: Kx = x._kenzo_repr ; Kx                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kz = z._kenzo_repr ; Kz
+            sage: Kz = z._kenzo_repr ; Kz                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kz.orgn()     # description as the sum of Kx and Kw
+            sage: Kz.orgn()     # description as the sum of Kx and Kw     # optional - kenzo
             '(2MRPH-ADD [K... Morphism (degree 0): K... -> K...] [K... Morphism (degree 0): K... -> K...] :CMBN)'
         """
         if not isinstance(x,ChainComplexMorphism) or self.codomain() != x.codomain() or self.domain() != x.domain() or self._matrix_dictionary.keys() != x._matrix_dictionary.keys():
@@ -451,15 +451,15 @@ class ChainComplexMorphism(Morphism):
         the respective Kenzo representaion of the scalar multiplication ``self * x``
         is created ::
         
-            sage: Kx = x._kenzo_repr ; Kx
+            sage: Kx = x._kenzo_repr ; Kx                                              # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Ky = y._kenzo_repr ; Ky
+            sage: Ky = y._kenzo_repr ; Ky                                              # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Ky.orgn()     # description as the scalar multiplication of Kx by 2
+            sage: Ky.orgn()     # description as the scalar multiplication of Kx by 2  # optional - kenzo
             '(N-MRPH 2 [K... Morphism (degree 0): K... -> K...])'
-            sage: Kz = z._kenzo_repr ; Kz
+            sage: Kz = z._kenzo_repr ; Kz                                              # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kz.orgn()     # description as the composition of Ky by itself
+            sage: Kz.orgn()     # description as the composition of Ky by itself       # optional - kenzo
             '(2MRPH-CMPS [K... Morphism (degree 0): K... -> K...] [K... Morphism (degree 0): K... -> K...] :CMBN)'
             
         TESTS:
@@ -530,9 +530,9 @@ class ChainComplexMorphism(Morphism):
         the respective Kenzo representaion of the scalar multiplication ``x * self``
         is created ::
             
-            sage: Kx = x._kenzo_repr ; Kx
+            sage: Kx = x._kenzo_repr ; Kx                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: (13*x)._kenzo_repr
+            sage: (13*x)._kenzo_repr                                      # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
         """
         try:
@@ -577,11 +577,11 @@ class ChainComplexMorphism(Morphism):
         If ``self`` and ``x`` have Kenzo representations, then the Kenzo representation
         of the substraction ``self - x`` is created::
         
-            sage: Kx = x._kenzo_repr ; Kx
+            sage: Kx = x._kenzo_repr ; Kx                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Ky = y._kenzo_repr ; Ky
+            sage: Ky = y._kenzo_repr ; Ky                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Ky.orgn()     # description of Kx minus Kx
+            sage: Ky.orgn()     # description of Kx minus Kx              # optional - kenzo
             '(2MRPH-SBTR [K... Morphism (degree 0): K... -> K...] [K... Morphism (degree 0): K... -> K...] :CMBN)'
         """
         result = self + (-x)

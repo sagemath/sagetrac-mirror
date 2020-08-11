@@ -869,15 +869,15 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
         of them is constructed in Kenzo::
         
             sage: S1 = simplicial_sets.Sphere(1)
-            sage: KS1 = S1._kenzo_repr
+            sage: KS1 = S1._kenzo_repr                                        # optional - kenzo
             sage: T = simplicial_sets.Torus()
-            sage: KT = T._kenzo_repr
-            sage: KT.orgn()    # description of the Torus as a product
+            sage: KT = T._kenzo_repr                                          # optional - kenzo
+            sage: KT.orgn()    # description of the Torus as a product        # optional - kenzo
             '(CRTS-PRDC [K... Simplicial-Set] [K... Simplicial-Set])'
-            sage: KT._factors[0] == KT._factors[1] == KS1
+            sage: KT._factors[0] == KT._factors[1] == KS1                     # optional - kenzo
             True
-            sage: KT2 = KS1.cartesian_product(KS1)
-            sage: KT == KT2
+            sage: KT2 = KS1.cartesian_product(KS1)                            # optional - kenzo
+            sage: KT == KT2                                                   # optional - kenzo
             True
         """
         PullbackOfSimplicialSets.__init__(self, [space.constant_map()
@@ -1055,15 +1055,15 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
         If all of the ``factors`` have Kenzo representations then the product
         of them is constructed in Kenzo::
 
-            sage: KX = X._kenzo_repr
-            sage: KW = W._kenzo_repr
-            sage: KW.orgn()     # description as a cartesian product in Kenzo
+            sage: KX = X._kenzo_repr                                              # optional - kenzo
+            sage: KW = W._kenzo_repr                                              # optional - kenzo
+            sage: KW.orgn()     # description as a cartesian product in Kenzo     # optional - kenzo
             '(CRTS-PRDC [K... Simplicial-Set] [K... Simplicial-Set])'
-            sage: KW._factors[1] == KX
+            sage: KW._factors[1] == KX                                            # optional - kenzo
             True
-            sage: KW._factors[0]._factors == (KX, KX)
+            sage: KW._factors[0]._factors == (KX, KX)                             # optional - kenzo
             True
-            sage: [KW.homology(i) for i in range(4)]
+            sage: [KW.homology(i) for i in range(4)]                              # optional - kenzo
             [Z, Z x Z x Z, Z x Z x Z, Z]
         """
         PullbackOfSimplicialSets_finite.__init__(self, [space.constant_map()
@@ -1301,12 +1301,12 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: K = simplicial_sets.Simplex(4)
             sage: L = K.n_skeleton(3)
             sage: S4 = L.pushout(L.constant_map(), L.inclusion_map())
-            sage: KS4 = S4._kenzo_repr
-            sage: KS4.orgn()     # description as a pushout in Kenzo
+            sage: KS4 = S4._kenzo_repr                                          # optional - kenzo
+            sage: KS4.orgn()     # description as a pushout in Kenzo            # optional - kenzo
             '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
-            sage: Kf0 = S4._maps[0]._kenzo_repr
-            sage: Kf1 = S4._maps[1]._kenzo_repr
-            sage: Kf0.pushout(Kf1) == KS4
+            sage: Kf0 = S4._maps[0]._kenzo_repr                                 # optional - kenzo
+            sage: Kf1 = S4._maps[1]._kenzo_repr                                 # optional - kenzo
+            sage: Kf0.pushout(Kf1) == KS4                                       # optional - kenzo
             True
         """
         # Import this here to prevent circular imports.
@@ -1500,10 +1500,10 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
             sage: f_0 = Hom(X, Y_0)({v:v, w:w, x:x, evw:evw, evx:evx})
             sage: f_1 = Hom(X, Y_1)({v:v, w:v, x:x, evw:v.apply_degeneracies(0), evx:evx})
             sage: P = X.pushout(f_0, f_1)
-            sage: KP = P._kenzo_repr
-            sage: KP.orgn()     # description as a pushout on Kenzo
+            sage: KP = P._kenzo_repr                                            # optional - kenzo
+            sage: KP.orgn()     # description as a pushout on Kenzo             # optional - kenzo
             '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
-            sage: KP._maps == (f_0._kenzo_repr, f_1._kenzo_repr)
+            sage: KP._maps == (f_0._kenzo_repr, f_1._kenzo_repr)                # optional - kenzo
             True
         """
         # Import this here to prevent circular imports.
@@ -2013,15 +2013,15 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
         If all of the ``factors`` have a Kenzo representation, their smash product
         is constructed in Kenzo::
         
-            sage: KT = T._kenzo_repr
-            sage: KS2 = S2._kenzo_repr
+            sage: KT = T._kenzo_repr                                           # optional - kenzo
+            sage: KS2 = S2._kenzo_repr                                         # optional - kenzo
             sage: P = T.smash_product(S2)
-            sage: KP = P._kenzo_repr
-            sage: KP.orgn()     # description as a pushout in Kenzo
+            sage: KP = P._kenzo_repr                                           # optional - kenzo
+            sage: KP.orgn()     # description as a pushout in Kenzo            # optional - kenzo
             '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
             sage: P.homology()
             {0: 0, 1: 0, 2: 0, 3: Z x Z, 4: Z}
-            sage: [KP.homology(i) for i in range(5)]
+            sage: [KP.homology(i) for i in range(5)]                           # optional - kenzo
             [Z, 0, 0, Z x Z, Z]
         """
         if any(not space.is_pointed() for space in factors):
@@ -2124,16 +2124,16 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         If all of the ``factors`` have a Kenzo representation, their wedge is
         constructed in Kenzo::
         
-            sage: KCP2 = CP2._kenzo_repr
-            sage: KK = K._kenzo_repr
-            sage: KW = W._kenzo_repr
-            sage: KW.orgn()     # description as a pushout in Kenzo
+            sage: KCP2 = CP2._kenzo_repr                                      # optional - kenzo
+            sage: KK = K._kenzo_repr                                          # optional - kenzo
+            sage: KW = W._kenzo_repr                                          # optional - kenzo
+            sage: KW.orgn()     # description as a pushout in Kenzo           # optional - kenzo
             '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
-            sage: KW._factors == (KCP2, KK)
+            sage: KW._factors == (KCP2, KK)                                   # optional - kenzo
             True
             sage: W.homology()
             {0: 0, 1: Z x C2, 2: Z, 3: 0, 4: Z}
-            sage: [KW.homology(i) for i in range(5)]
+            sage: [KW.homology(i) for i in range(5)]                          # optional - kenzo
             [Z, Z x C2, Z, 0, Z]
 
         An error occurs if any of the factors is not pointed::
@@ -2225,13 +2225,13 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
             sage: X = SimplicialSet({e: (v, v)})
             sage: X = X.set_base_point(v)
             sage: W = X.wedge(X, X)
-            sage: KX = X._kenzo_repr
-            sage: KW = W._kenzo_repr
-            sage: KW.orgn()     # description of a pushout in Kenzo
+            sage: KX = X._kenzo_repr                                           # optional - kenzo
+            sage: KW = W._kenzo_repr                                           # optional - kenzo
+            sage: KW.orgn()     # description of a pushout in Kenzo            # optional - kenzo
             '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
-            sage: KW._factors[1] == KX
+            sage: KW._factors[1] == KX                                         # optional - kenzo
             True
-            sage: KW._factors[0]._factors == (KX, KX)
+            sage: KW._factors[0]._factors == (KX, KX)                          # optional - kenzo
             True
         """
         if not factors:
@@ -2870,11 +2870,11 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
         
             sage: S3 = simplicial_sets.Sphere(3)
             sage: S4 = S3.suspension()
-            sage: KS3 = S3._kenzo_repr
-            sage: KS4 = S4._kenzo_repr
-            sage: KS4.orgn()     # description as a suspension in Kenzo
+            sage: KS3 = S3._kenzo_repr                                         # optional - kenzo
+            sage: KS4 = S4._kenzo_repr                                         # optional - kenzo
+            sage: KS4.orgn()     # description as a suspension in Kenzo        # optional - kenzo
             '(SUSPENSION [K... Simplicial-Set])'
-            sage: KS4._base == KS3
+            sage: KS4._base == KS3                                             # optional - kenzo
             True
 
         TESTS::
@@ -3059,11 +3059,11 @@ class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,
             sage: e = AbstractSimplex(1, name = 'e')
             sage: X = SimplicialSet({e: (v,w)})
             sage: Y = X.suspension(2)
-            sage: KX = X._kenzo_repr
-            sage: KY = Y._kenzo_repr
-            sage: KY.orgn()     # description as a suspension in Kenzo
+            sage: KX = X._kenzo_repr                                           # optional - kenzo
+            sage: KY = Y._kenzo_repr                                           # optional - kenzo
+            sage: KY.orgn()     # description as a suspension in Kenzo         # optional - kenzo
             '(SUSPENSION [K... Simplicial-Set])'
-            sage: KY._base == KX.suspension()
+            sage: KY._base == KX.suspension()                                  # optional - kenzo
             True
         """
         self._base = base
