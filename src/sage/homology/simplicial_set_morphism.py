@@ -43,6 +43,10 @@ from .chain_complex_morphism import ChainComplexMorphism
 from .homology_morphism import InducedHomologyMorphism
 from .simplicial_set import SimplicialSet_arbitrary
 
+from sage.interfaces import kenzo
+from sage.features.kenzo import Kenzo
+kenzo_is_present = Kenzo().is_present()
+
 class SimplicialSetHomset(Homset):
     r"""
     A set of morphisms between simplicial sets.
@@ -414,6 +418,14 @@ class SimplicialSetMorphism(Morphism):
             sage: one
             Simplicial set endomorphism of S^5
               Defn: Identity map
+              
+        If the domain and codomain simplicial sets of the morphism have Kenzo
+        representations, the Kenzo representation of the morphism is created::
+        
+            sage: Kone = one._kenzo_repr ; Kone                                # optional - kenzo
+            [K... Simplicial-Morphism K... -> K...]
+            sage: type(Kone)                                                   # optional - kenzo
+            <class 'sage.interfaces.kenzo.KenzoSimplicialSetMorphism'>
 
         TESTS:
 
@@ -545,6 +557,8 @@ class SimplicialSetMorphism(Morphism):
                              'the domain is not defined')
         self._dictionary = d
         Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
+        if kenzo_is_present and not hasattr(self, '_kenzo_repr'):
+            self._kenzo_repr = kenzo.KSimplicialSetMorphism(self)
 
     def __eq__(self, other):
         """
@@ -928,11 +942,28 @@ class SimplicialSetMorphism(Morphism):
                 From: Empty simplicial set
                 To:   Klein bottle
                 Defn: [] --> []
+                
+        If ``self`` and ``others`` have Kenzo representations (by now, ``others``
+        must be a single morphism), the Kenzo representation of their pushout is
+        constructed:: 
+        
+            sage: Kinit_T = init_T._kenzo_repr                            # optional - kenzo
+            sage: Kinit_K = init_K._kenzo_repr                            # optional - kenzo
+            sage: KD = D._kenzo_repr                                      # optional - kenzo
+            sage: Kinit_T.pushout(Kinit_K) == KD                          # optional - kenzo
+            True
         """
         domain = self.domain()
         if any(domain != f.domain() for f in others):
             raise ValueError('the domains of the maps must be equal')
-        return self.domain().pushout(*(self,) + others)
+        result = self.domain().pushout(*(self,) + others)
+        if len(others)==1 and hasattr(self, '_kenzo_repr') and all(hasattr(f, '_kenzo_repr') for f in others):
+            f0 = self._kenzo_repr
+            for f1 in others:
+                f0 = f0.pushout(f1._kenzo_repr)
+            setattr(result, '_kenzo_repr', f0)
+        return result
+            
 
     def pullback(self, *others):
         """
@@ -1115,7 +1146,10 @@ class SimplicialSetMorphism(Morphism):
         dom = self.domain()
         cone = dom.cone()
         i = cone.map_from_base()
-        return self.pushout(i)
+        result = self.pushout(i)
+        if kenzo_is_present and hasattr(self, '_kenzo_repr'):
+            setattr(result, '_kenzo_repr', self._kenzo_repr.cone())
+        return result
 
     def product(self, *others):
         r"""
@@ -1204,6 +1238,15 @@ class SimplicialSetMorphism(Morphism):
             sage: h = K.identity().suspension()
             sage: h.is_identity()
             True
+            
+        If ``self`` has a Kenzo representation, its suspension is constructed in Kenzo::
+        
+            sage: Kh = h._kenzo_repr                                    # optional - kenzo
+            sage: Kh.orgn()                                             # optional - kenzo
+            '(SUSPENSION [K... Simplicial-Morphism K... -> K...])'
+            sage: Ki = K.identity()._kenzo_repr                         # optional - kenzo
+            sage: Ki.suspension() == Kh                                 # optional - kenzo
+            True
         """
         domain = self.domain()
         codomain = self.codomain()
@@ -1227,6 +1270,8 @@ class SimplicialSetMorphism(Morphism):
             f = new_dom.Hom(new_cod)(data)
             domain = f.domain()
             codomain = f.codomain()
+        if kenzo_is_present and hasattr(self, '_kenzo_repr'):
+            setattr(f, '_kenzo_repr', self._kenzo_repr.suspension(n))
         return f
 
     def n_skeleton(self, n, domain=None, codomain=None):
