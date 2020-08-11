@@ -981,7 +981,20 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage:  
+            sage: system = DynamicalSystem_Berkovich([x^3 - x*y^2, 3*y^3], ideal=3)
+            sage: system.min_res_locus(True)
+            (
+                                                                [1 1]
+            Type II point centered at (1 : 1) of radius 3^0, 3, [0 1]
+            )
+
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_Berkovich([3^4*x^3 + 3*x*y^2 + y^3, 3^6*x^3], ideal=3)
+            sage: system.min_res_locus()
+            (Type II point centered at (s0 : 1) of radius 3^3/2, 3)
         """
 
         # as step 2 of Rumely's algorithm may be run twice, we define it as a seperate function
