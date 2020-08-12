@@ -73,3 +73,9 @@ cdef class FaceIterator(SageObject):
     cdef size_t n_atom_rep(self) except -1
     cdef size_t set_coatom_rep(self) except -1
     cdef size_t set_atom_rep(self) except -1
+
+# Nogil definitions of crucial functions.
+
+cdef int next_dimension(iter_struct *structptr) nogil except -1
+cdef int next_face_loop(iter_struct *structptr) nogil except -1
+cdef size_t n_atom_rep(iter_struct *structptr) nogil except -1
