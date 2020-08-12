@@ -1056,7 +1056,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     #print('D_lines = ', D_lines)
                     all_lines = C_lines + D_lines #crude minimization
                     minimum = None
-                    print('all lines = ', C_lines, D_lines)
+                    #print('all lines = ', C_lines, D_lines)
                     all_intersections = []
                     for line_1 in all_lines:
                         for line_2 in all_lines:
@@ -1079,7 +1079,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                         if X_i < minimum or minimum == None:
                             minimum = X_i
                             intersection_final = QQ(intersection)
-                            print('intersection = ', intersection_final)
+                            #print('intersection = ', intersection_final)
                     #print('minimum: ', minimum)
                     start = None
                     end = None
@@ -1093,9 +1093,9 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                             if end == None or intersection > end:
                                 end = intersection
                     if start != end:
-                        min_list.append((minimum, (start, end), True, extension, new_prime))
+                        min_list.append((minimum, (start, end), True, extension, new_prime, irreducible))
                     else:
-                        min_list.append((minimum, start, False, extension, new_prime))
+                        min_list.append((minimum, start, False, extension, new_prime, irreducible))
             return min_list
 
         system = self._system
@@ -1127,7 +1127,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         #print('potential minimums = ', [i[0] for i in potential_minimums])
         minimum = min([i[0] for i in potential_minimums])
         min_list = [tup for tup in potential_minimums if tup[0] == minimum]
-        print('min list = ', min_list)
+        #print('min list = ', min_list)
         interval_check = False
         for tup in min_list:
             interval_check = interval_check or tup[2]
@@ -1138,8 +1138,13 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             intersection_final = min_list[0][1]
             extension = min_list[0][3]
             prime_above = min_list[0][4]
+            irreducible_factor = min_list[0][5]
             B = Berkovich_Cp_Projective(extension, prime_above)
-            min_res_locus = B(extension.gens()[0], power=-1*intersection_final)
+            if irreducible_factor.degree() > 1:
+                type_II_center = extension.gens()[0]
+            else:
+                type_II_center = irreducible_factor.roots()[0][0]
+            min_res_locus = B(type_II_center, power=-1*intersection_final)
             if not ret_conjugation:
                 return (min_res_locus, min_ord_res)
             else:
@@ -1157,7 +1162,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     #print('defining polynomial = ', defining_polynomial)
                     new_extension, ext_to_new_ext = defining_polynomial.splitting_field('w0', map=True)
                     A = defining_polynomial.roots(new_extension)[0][0]
-                    B = ext_to_new_ext(extension.gens()[0])
+                    B = ext_to_new_ext(type_II_center)
                     conj_matrix = Matrix([[A, B], [0, 1]])
                     new_system = system.change_ring(new_extension)
                 new_system = new_system.conjugate(conj_matrix)
@@ -1166,16 +1171,16 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         #step 4b
         else:
             max_radius = max([QQ_prime**(-1*tup[1][0]) for tup in min_list if tup[2]])
-            print('max radius = ', max_radius)
+            #print('max radius = ', max_radius)
             maximum_radii_list = [tup for tup in min_list if tup[2] if QQ_prime**(-1*tup[1][0]) == max_radius]
-            print('list of maximum radii = ', maximum_radii_list)
+            #print('list of maximum radii = ', maximum_radii_list)
             min_radius = min([QQ_prime**(-1*tup[1][1]) for tup in maximum_radii_list])
-            print('min radius = ', min_radius)
+            #print('min radius = ', min_radius)
             for tup in maximum_radii_list:
                 if QQ_prime**(-1*tup[1][1]) == min_radius:
                     final_tup = tup
                     break
-            print('final tup = ', final_tup)
+            #print('final tup = ', final_tup)
             min_ord_res = final_tup[0]
             extension = final_tup[3]
             prime_above = final_tup[4]
@@ -1198,22 +1203,115 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 else:
                     new_factorization += list(new_factor.factor())
             names = ['r%s' %i for i in range(len(factorization))]
-            print('new factorization = ', new_factorization)
+            #print('new factorization = ', new_factorization)
             new_potential_minimums = step_2(new_factorization, extension, prime_above, names)
-            print('new potential minimums = ', new_potential_minimums)
+            #print('new potential minimums = ', new_potential_minimums)
             new_minimum = min([i[0] for i in new_potential_minimums])
-            print('new minimum = ', new_minimum)
+            #print('new minimum = ', new_minimum)
             new_min_list = [tup for tup in new_potential_minimums if tup[0] == new_minimum]
             print('new_min_list', new_min_list)
+            new_max_radius = max([QQ_prime**(-1*tup[1][0]) for tup in new_min_list if tup[2]])
+            new_maximum_radii_list = [tup for tup in new_min_list if tup[2] if QQ_prime**(-1*tup[1][0]) == new_max_radius]
+            new_min_radius = min([QQ_prime**(-1*tup[1][1]) for tup in new_maximum_radii_list])
+            for tup in new_maximum_radii_list:
+                if QQ_prime**(-1*tup[1][1]) == new_min_radius:
+                    new_final_tup = tup
+                    break
             one_segment = True
-            largest_extension = new_min_list[0][3]
-            largest_prime = new_min_list[0][4]
+            start_radius = QQ_prime**(-1*new_final_tup[1][0])
+            end_radius = QQ_prime**(-1*new_final_tup[1][1])
+            interval_extension = new_final_tup[3]
+            interval_prime_above = new_final_tup[4]
+            interval_irreducible_factor = new_final_tup[5]
+            if interval_irreducible_factor.degree() > 1:
+                type_II_center = interval_extension.gens()[0]
+            else:
+                type_II_center = interval_irreducible_factor.roots()[0][0]
             for tup in new_min_list:
-                if largest_extension.is_subring(tup[3]):
-                    largest_extension = tup[3]
-                    largest_prime = tup[4]
-            B = Berkovich_Cp_Projective(largest_extension, largest_prime)
-            #for tup in
+                new_interval_check = tup[2]
+                if new_interval_check:
+                    new_start_radius = QQ_prime**(-1*tup[1][0])
+                    new_end_radius = QQ_prime**(-1*tup[1][1])
+                else:
+                    continue
+                new_extension = tup[3]
+                new_prime_above = tup[4]
+                new_irreducible_factor = tup[5]
+                if new_irreducible_factor.degree() > 1:
+                    new_type_II_center = new_extension.gens()[0]
+                else:
+                    new_type_II_center = new_irreducible_factor.roots()[0][0]
+                if new_extension == interval_extension:
+                    comparison_space = Berkovich_Cp_Projective(interval_extension, interval_prime_above)
+                    interval_start = comparison_space(type_II_center, start_radius)
+                    interval_end = comparison_space(type_II_center, end_radius)
+                    new_interval_start = comparison_space(new_type_II_center, new_start_radius)
+                    new_interval_end = comparison_space(new_type_II_center, new_end_radius)
+                    start_in_interval = new_interval_start.contained_in_interval(interval_start, interval_end)
+                    end_in_interval = new_interval_end.contained_in_interval(interval_start, interval_end)
+                    if not start_in_interval or not end_in_interval:
+                        one_segment = False
+                        break
+                else:
+                    if interval_extension is QQ:
+                        print('interval_extension is QQ')
+                        new_ext_embeddings = [new_extension.hom(new_extension)]
+                        int_ext_embeddings = [interval_extension.hom(new_extension)]
+                        possible_composites = [new_extension]
+                        int_ext_is_QQ = True
+                        new_ext_is_QQ = False
+                    elif new_extension is QQ:
+                        int_ext_embeddings = [interval_extension.hom(interval_extension)]
+                        new_ext_embeddings = [QQ.hom(interval_extension)]
+                        possible_composites = [interval_extension]
+                        int_ext_is_QQ = False
+                        new_ext_is_QQ = True
+                    else:
+                        composite_fields = new_extension.composite_fields(interval_extension, both_maps=True)
+                        possible_composites = [tup[0] for tup in composite_fields]
+                        new_ext_embeddings = [tup[1] for tup in composite_fields]
+                        int_ext_embeddings = [tup[2] for tup in composite_fields]
+                        int_ext_is_QQ = False
+                        new_ext_is_QQ = False
+                    break_bool = False
+                    for i in range(len(possible_composites)):
+                        possible_composite = possible_composites[i]
+                        print('current composite = ', possible_composite)
+                        new_ext_embedding = new_ext_embeddings[i]
+                        int_ext_embedding = int_ext_embeddings[i]
+                        #print('int_ext_embedding = ', int_ext_embedding)
+                        print('new_ext_embedding = ', new_ext_embedding)
+                        #print('new interval prime = ', int_ext_embedding(prime_above))
+                        if int_ext_is_QQ:
+                            prime_above_image = possible_composite.ideal(prime_above)
+                        else:
+                            prime_above_image = int_ext_embedding(prime_above)
+                        int_primes_above = [tup[0] for tup in prime_above_image.factor()]
+                        if new_ext_is_QQ:
+                            new_prime_above_image = possible_composite.ideal(new_prime_above)
+                        else:
+                            print()
+                            new_prime_above_image = new_ext_embedding(new_prime_above)
+                        new_ext_primes_above = [tup[0] for tup in new_prime_above_image.factor()]
+                        possible_primes = set(int_primes_above).intersection(set(new_ext_primes_above))
+                        if len(possible_primes) == 0:
+                            continue
+                        for prime in possible_primes:
+                            comparison_space = Berkovich_Cp_Projective(possible_composite, prime)
+                            interval_start = comparison_space(int_ext_embedding(type_II_center), start_radius)
+                            interval_end = comparison_space(int_ext_embedding(type_II_center), end_radius)
+                            new_interval_start = comparison_space(new_ext_embedding(new_type_II_center), new_start_radius)
+                            new_interval_end = comparison_space(new_ext_embedding(new_type_II_center), new_end_radius)
+                            start_in_interval = new_interval_start.contained_in_interval(interval_start, interval_end)
+                            end_in_interval = new_interval_end.contained_in_interval(interval_start, interval_end)
+                            if not start_in_interval or not end_in_interval:
+                                one_segment = False
+                            break_bool = True
+                            break
+                        if break_bool:
+                            break
+                    if comparison_space == None:
+                        print('big failure')
             if one_segment:
                 return_tup = new_min_list[0]
                 for tup in new_min_list:
