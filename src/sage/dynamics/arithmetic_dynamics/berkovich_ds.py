@@ -976,7 +976,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: system = DynamicalSystem_Berkovich([x^2 - y^2, 2*x*y], ideal=2)
             sage: system.min_res_locus()
-            (Type II point centered at (s0 : 1) of radius 2^-1, 0)
+            (Type II point centered at (s0 : 1) of radius 2^-1,
+            Type II point centered at (s0 : 1) of radius 2^-1, 0)
 
         ::
 
@@ -984,8 +985,9 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             sage: system = DynamicalSystem_Berkovich([x^3 - x*y^2, 3*y^3], ideal=3)
             sage: system.min_res_locus(True)
             (
+            Type II point centered at (2 : 1) of radius 3^0,
                                                                 [1 1]
-            Type II point centered at (1 : 1) of radius 3^0, 3, [0 1]
+            Type II point centered at (2 : 1) of radius 3^0, 3, [0 1]
             )
 
 
@@ -994,14 +996,43 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: system = DynamicalSystem_Berkovich([3^4*x^3 + 3*x*y^2 + y^3, 3^6*x^3], ideal=3)
             sage: system.min_res_locus()
-            (Type II point centered at (s0 : 1) of radius 3^3/2, 3)
+            (Type II point centered at (s0 : 1) of radius 3^3/2,
+            Type II point centered at (s0 : 1) of radius 3^3/2, 3)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: system = DynamicalSystem_Berkovich([3^5*x^3 + x^2*y - 3^5*x*y^2 , -3^5*x^2*y + x*y^2 + 3^5*y^3], ideal=3)
+            sage: system.min_res_locus()
+            (Type II point centered at (0 : 1) of radius 3^5,
+            Type II point centered at (0 : 1) of radius 3^-5, 20)
+
+        ::
+
+            sage: prime = 13
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_Berkovich([x^2*y^2, (y+prime*x)^4], ideal=prime)
+            sage: system.min_res_locus()
+            (Type II point centered at (0 : 1) of radius 13^4/3,
+            Type II point centered at (0 : 1) of radius 13^4/3, 8/3)
+
+        ::
+
+            sage: prime = 17
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_Berkovich([prime*x^3 + x^2*y, prime*y^3], ideal=prime)
+            sage: system.min_res_locus()
+            (Type II point centered at (0 : 1) of radius 17^1,
+            Type II point centered at (0 : 1) of radius 17^-1, 6)
         """
 
         # as step 2 of Rumely's algorithm may be run twice, we define it as a seperate function
         def step_2(factorization, base, base_prime_ideal, names):
             min_list = []
             for i in range(len(factorization)):
-                irreducible = factorization[i][0]
+                irreducible = factorization[i]
+                #print('current irreducible = ', irreducible)
+                # step 2.a.
                 if irreducible.degree() == 1:
                     extension = base
                     new_primes = [base_prime_ideal]
@@ -1013,19 +1044,26 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     s = extension.gens()[0]
                     transformation_matrix = Matrix([[1, s],[0, 1]])
                     new_system = system.change_ring(extension)
+                #print('transformation matrix = ', transformation_matrix)
                 new_system = new_system.conjugate(transformation_matrix)
+                #print('before normalizing coordinates = ', new_system)
+                # step 2.b.
+                new_system.normalize_coordinates() #very long call
+                #print('res = ', new_system.resultant())
+                #print('parent of resultant = ', new_system.resultant().parent())
                 #print('new_system = ', new_system)
+                # following page 29 paragraph 3, we run steps 2.c. through 2.f. for
+                # every prime p_jl in the extension defined by irreducible
                 for new_prime in new_primes:
                     #print('current prime = ', new_prime)
                     if extension is QQ:
                         ramification_index = 1
                     else:
                         ramification_index = new_prime.absolute_ramification_index()
+                    #print('ramification index = ', ramification_index)
+                    # we normalize the valuation so that ord(p) = p
                     valuation = lambda x: x.valuation(new_prime)/ramification_index
-                    #print('before normalizing coordinates = ', new_system)
-                    new_system.normalize_coordinates() #very long call
-                    #print('res = ', new_system.resultant())
-                    #print('parent of resultant = ', new_system.resultant().parent())
+                    # step 2.c.
                     res = valuation(extension(new_system.resultant()))
                     #print('ordres = ', res)
                     d = new_system.degree()
@@ -1033,17 +1071,22 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     #print('system = ', new_system)
                     C_list = []
                     D_list = []
+                    # step 2.d.
                     for i in range(d + 1):
-                        C_i = new_system[0][i, d - i]
-                        D_i = new_system[1][i, d - i]
-                        #print('C_%s = ' %i, C_i)
-                        #print('val = ', valuation(C_i))
-                        if C_i != 0:
-                            C_list.append(QQ(res - 2*d*valuation(extension(C_i))))
+                        a_i = new_system[0][i, d - i]
+                        b_i = new_system[1][i, d - i]
+                        #print('a_%s = ' %i, a_i)
+                        #print('a_%s val = ' %i, valuation(extension(a_i)))
+                        #print('b_%s = ' %i, b_i)
+                        #print('b_%s val = ' %i, valuation(extension(b_i)))
+                        if a_i != 0:
+                            #print('C_%s = ' %i, QQ(res - 2*d*valuation(extension(a_i))))
+                            C_list.append(QQ(res - 2*d*valuation(extension(a_i))))
                         else:
                             C_list.append(None)
-                        if D_i != 0:
-                            D_list.append(QQ(res - 2*d*valuation(extension(D_i))))
+                        if b_i != 0:
+                            #print('D_%s = ' %i, QQ(res - 2*d*valuation(extension(b_i))))
+                            D_list.append(QQ(res - 2*d*valuation(extension(b_i))))
                         else:
                             D_list.append(None)
                     #print('C_list =', C_list)
@@ -1066,7 +1109,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                                     all_intersections.append(intersection)
                     #print(all_intersections)
                     minimum = None
-                    for intersection, in all_intersections:
+                    # step 2.e.
+                    for intersection in all_intersections:
                         C_values = [(i(intersection)) for i in C_lines]
                         C_max = max(C_values)
                         D_values = [(i(intersection)) for i in D_lines]
@@ -1078,11 +1122,10 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                         X_i = (max(C_max, D_max))
                         if X_i < minimum or minimum == None:
                             minimum = X_i
-                            intersection_final = QQ(intersection)
-                            #print('intersection = ', intersection_final)
                     #print('minimum: ', minimum)
                     start = None
                     end = None
+                    #step 2.f.
                     for intersection in all_intersections:
                         C_max = max([(i(intersection)) for i in C_lines])
                         D_max = max([(i(intersection)) for i in D_lines])
@@ -1098,27 +1141,72 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                         min_list.append((minimum, start, False, extension, new_prime, irreducible))
             return min_list
 
+        # to return the conjugation we define a helper function
+        def ret_conjugation_func(start, end, min_ord_res):
+            intersection_final = start.power()
+            QQ_prime = start.prime()
+            root = intersection_final.denominator()
+            extension = start.parent().base_ring()
+            if root == 1:
+                #print('in no denominator case')
+                #print('extension:', extension)
+                conj_matrix = Matrix([[QQ_prime**(intersection_final), extension.gens()[0]], [0, 1]])
+                new_system = system.change_ring(extension)
+            else:
+                C = extension['c']
+                c = C.gens()[0]
+                defining_polynomial = c**root - QQ_prime**intersection_final.numerator()
+                #print('defining polynomial = ', defining_polynomial)
+                new_extension, ext_to_new_ext = defining_polynomial.splitting_field('w0', map=True)
+                A = defining_polynomial.roots(new_extension)[0][0]
+                B = ext_to_new_ext(type_II_center)
+                conj_matrix = Matrix([[A, B], [0, 1]])
+                new_system = system.change_ring(new_extension)
+            new_system = new_system.conjugate(conj_matrix)
+            return (start, end, min_ord_res, conj_matrix)
+
         system = self._system
+        system.normalize_coordinates()
         QQ_prime = self.domain().prime()
         base_prime_ideal = self.domain().ideal()
         affine_system = system.dehomogenize(1)
         base = affine_system.base_ring()
-        T = base['w']
-        w = T.gens()[0]
-        phi = affine_system[0].numerator().parent().hom([w])
-        num, dem = affine_system[0].numerator(), affine_system[0].denominator()
-        dem = phi(dem)
-        num = phi(num)
+        if not affine_system[0].numerator() in base:
+            num = affine_system[0].numerator().univariate_polynomial()
+        else:
+            num = affine_system[0].numerator()
+        if not affine_system[0].denominator() in base:
+            dem = affine_system[0].denominator().univariate_polynomial()
+        else:
+            dem = affine_system[0].denominator()
+        w = num.parent().gens()[0]
         #print('num:', num)
         #print('dem:', dem)
         fixed_point_equation = num - w*dem
+        #print('fixed point equation = ', fixed_point_equation)
         factorization = list(fixed_point_equation.factor())
         if(system([1,0]) == system.domain()([1,0])):
             Q = dem
         else:
             value = system([1,0]).dehomogenize(1)[0]
             Q = num - value*dem
+        #print('Q = ', Q)
         factorization += list(Q.factor())
+        #print([i[0] for i in factorization])
+        factorization = [i[0] for i in factorization if num.parent()(i[0]).degree() != 0]
+        #print('factorization before scaling = ', factorization)
+        if base is QQ:
+            from sage.schemes.elliptic_curves.heegner import make_monic
+            for i in range(len(factorization)):
+                factorization[i] = make_monic(factorization[i])[0]
+        else:
+            for i in range(len(factorization)):
+                poly_scale_by = ZZ(1)
+                poly = factorization[i]
+                #print('current poly = ', poly)
+                for coeff in poly:
+                    poly_scale_by = poly_scale_by.lcm(coeff.denominator())
+                factorization[i] *=  poly_scale_by
         #print('all factors:', factorization)
         names = []
         for i in range(len(factorization)):
@@ -1146,27 +1234,10 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                 type_II_center = irreducible_factor.roots()[0][0]
             min_res_locus = B(type_II_center, power=-1*intersection_final)
             if not ret_conjugation:
-                return (min_res_locus, min_ord_res)
+                return (min_res_locus, min_res_locus, min_ord_res)
             else:
                 #print('intersection_final:', intersection_final)
-                root = intersection_final.denominator()
-                if root == 1:
-                    #print('in no denominator case')
-                    #print('extension:', extension)
-                    conj_matrix = Matrix([[QQ_prime**(intersection_final), extension.gens()[0]], [0, 1]])
-                    new_system = system.change_ring(extension)
-                else:
-                    C = extension['c']
-                    c = C.gens()[0]
-                    defining_polynomial = c**root - QQ_prime**intersection_final.numerator()
-                    #print('defining polynomial = ', defining_polynomial)
-                    new_extension, ext_to_new_ext = defining_polynomial.splitting_field('w0', map=True)
-                    A = defining_polynomial.roots(new_extension)[0][0]
-                    B = ext_to_new_ext(type_II_center)
-                    conj_matrix = Matrix([[A, B], [0, 1]])
-                    new_system = system.change_ring(new_extension)
-                new_system = new_system.conjugate(conj_matrix)
-                return (min_res_locus, min_ord_res, conj_matrix)
+                return ret_conjugation_func(min_res_locus, min_res_locus, min_ord_res)
 
         #step 4b
         else:
@@ -1175,6 +1246,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             maximum_radii_list = [tup for tup in min_list if tup[2] if QQ_prime**(-1*tup[1][0]) == max_radius]
             #print('list of maximum radii = ', maximum_radii_list)
             min_radius = min([QQ_prime**(-1*tup[1][1]) for tup in maximum_radii_list])
+            #print('min radius list = ', [RR(QQ_prime**(-1*tup[1][1])) for tup in maximum_radii_list])
             #print('min radius = ', min_radius)
             for tup in maximum_radii_list:
                 if QQ_prime**(-1*tup[1][1]) == min_radius:
@@ -1187,7 +1259,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             new_factorization = []
             #print('extension = ', extension)
             for factor in factorization:
-                new_factor = factor[0].change_ring(extension)
+                new_factor = factor.change_ring(extension)
                 #print('current factor = ', factor)
                 if not extension is QQ:
                     #print('factor = ', factor)
@@ -1204,12 +1276,13 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     new_factorization += list(new_factor.factor())
             names = ['r%s' %i for i in range(len(factorization))]
             #print('new factorization = ', new_factorization)
+            new_factorization = [i[0] for i in new_factorization]
             new_potential_minimums = step_2(new_factorization, extension, prime_above, names)
             #print('new potential minimums = ', new_potential_minimums)
             new_minimum = min([i[0] for i in new_potential_minimums])
             #print('new minimum = ', new_minimum)
             new_min_list = [tup for tup in new_potential_minimums if tup[0] == new_minimum]
-            print('new_min_list', new_min_list)
+            #print('new_min_list', new_min_list)
             new_max_radius = max([QQ_prime**(-1*tup[1][0]) for tup in new_min_list if tup[2]])
             new_maximum_radii_list = [tup for tup in new_min_list if tup[2] if QQ_prime**(-1*tup[1][0]) == new_max_radius]
             new_min_radius = min([QQ_prime**(-1*tup[1][1]) for tup in new_maximum_radii_list])
@@ -1243,26 +1316,31 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     new_type_II_center = new_irreducible_factor.roots()[0][0]
                 if new_extension == interval_extension:
                     comparison_space = Berkovich_Cp_Projective(interval_extension, interval_prime_above)
+                    #print('current comparison space =', comparison_space)
                     interval_start = comparison_space(type_II_center, start_radius)
                     interval_end = comparison_space(type_II_center, end_radius)
+                    #print('big interval = ', [interval_start, interval_end])
                     new_interval_start = comparison_space(new_type_II_center, new_start_radius)
                     new_interval_end = comparison_space(new_type_II_center, new_end_radius)
+                    #print('small interval = ', [new_interval_start, new_interval_end])
                     start_in_interval = new_interval_start.contained_in_interval(interval_start, interval_end)
                     end_in_interval = new_interval_end.contained_in_interval(interval_start, interval_end)
+                    #print('start in interval = ', start_in_interval)
+                    #print('end in interval = ', end_in_interval)
                     if not start_in_interval or not end_in_interval:
                         one_segment = False
                         break
                 else:
                     if interval_extension is QQ:
-                        print('interval_extension is QQ')
-                        new_ext_embeddings = [new_extension.hom(new_extension)]
-                        int_ext_embeddings = [interval_extension.hom(new_extension)]
+                        #print('interval_extension is QQ')
+                        new_ext_embeddings = [new_extension.embeddings(new_extension)[0]]
+                        int_ext_embeddings = [interval_extension.embeddings(new_extension)[0]]
                         possible_composites = [new_extension]
                         int_ext_is_QQ = True
                         new_ext_is_QQ = False
                     elif new_extension is QQ:
-                        int_ext_embeddings = [interval_extension.hom(interval_extension)]
-                        new_ext_embeddings = [QQ.hom(interval_extension)]
+                        int_ext_embeddings = [interval_extension.embeddings(interval_extension)[0]]
+                        new_ext_embeddings = [QQ.embeddings(interval_extension)[0]]
                         possible_composites = [interval_extension]
                         int_ext_is_QQ = False
                         new_ext_is_QQ = True
@@ -1276,11 +1354,11 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     break_bool = False
                     for i in range(len(possible_composites)):
                         possible_composite = possible_composites[i]
-                        print('current composite = ', possible_composite)
+                        #print('current composite = ', possible_composite)
                         new_ext_embedding = new_ext_embeddings[i]
                         int_ext_embedding = int_ext_embeddings[i]
                         #print('int_ext_embedding = ', int_ext_embedding)
-                        print('new_ext_embedding = ', new_ext_embedding)
+                        #print('new_ext_embedding = ', new_ext_embedding)
                         #print('new interval prime = ', int_ext_embedding(prime_above))
                         if int_ext_is_QQ:
                             prime_above_image = possible_composite.ideal(prime_above)
@@ -1290,7 +1368,6 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                         if new_ext_is_QQ:
                             new_prime_above_image = possible_composite.ideal(new_prime_above)
                         else:
-                            print()
                             new_prime_above_image = new_ext_embedding(new_prime_above)
                         new_ext_primes_above = [tup[0] for tup in new_prime_above_image.factor()]
                         possible_primes = set(int_primes_above).intersection(set(new_ext_primes_above))
@@ -1313,20 +1390,27 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                     if comparison_space == None:
                         print('big failure')
             if one_segment:
-                return_tup = new_min_list[0]
-                for tup in new_min_list:
-                    if tup[1][0] <= return_tup[1][0] and tup[1][1] >= return_tup[1][1]:
-                        return_tup = tup
-                min_ord_res = return_tup[0]
-                return_interval = return_tup[1]
-                return_extension = return_tup[3]
-                return_prime = return_tup[4]
-                B = Berkovich_Cp_Projective(return_extension, ideal=return_prime)
-                start = B(return_extension.gens()[0], power=return_interval[0])
-                end = B(return_extension.gens()[0], power=return_interval[1])
+                min_ord_res = new_final_tup[0]
+                B = Berkovich_Cp_Projective(interval_extension, ideal=interval_prime_above)
+                start = B(type_II_center, power=-1*new_final_tup[1][0])
+                end = B(type_II_center, power=-1*new_final_tup[1][1])
+                if ret_conjugation:
+                    return ret_conjugation_func(start, end, min_ord_res)
                 return (start, end, min_ord_res)
             else:
-                raise NotImplementedError('needs work for two segments')
+                if start_in_interval:
+                    if new_interval_start == interval_start:
+                        interval_start = new_interval_end
+                    else:
+                        interval_end = new_interval_end
+                else:
+                    if new_interval_end == interval_start:
+                        interval_start = new_interval_start
+                    else:
+                        interval_end = new_interval_start
+                if ret_conjugation:
+                    return ret_conjugation_func(interval_start, interval_end, min_ord_res)
+                return (interval_start, interval_end, min_ord_res)
 
 
 class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
