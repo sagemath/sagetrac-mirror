@@ -276,11 +276,11 @@ difficult to find, but we can easily verify it. ::
     sage: rhs_den = (alpha^35 - 1) * (alpha^15 - 1)^2 * (alpha^14 - 1)^2 * (alpha^5 - 1)^6 * alpha^68
     sage: rhs = rhs_num / rhs_den
     sage: lhs
-    2.642040335819351?e44
+    2.642040335819352?e44
     sage: rhs
-    2.642040335819351?e44
+    2.642040335819352?e44
     sage: lhs - rhs
-    0.?e29
+    0.?e-29
     sage: lhs == rhs
     True
     sage: lhs - rhs
@@ -465,7 +465,7 @@ http://mathworld.wolfram.com/TrigonometryAnglesPi17.html)::
     sage: cx
     1.000000000000000?
     sage: cy
-    0.?e-15
+    0.?e-34
 
     sage: ax = polygen(AA)
     sage: x2 = AA.polynomial_root(256*ax**8 - 128*ax**7 - 448*ax**6 + 192*ax**5 + 240*ax**4 - 80*ax**3 - 40*ax**2 + 8*ax + 1, RIF(0.9829, 0.983))
@@ -2364,7 +2364,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         sage: rt2b = rt3 + rt2 - rt3; rt2b
         1.414213562373095?
         sage: rt2c = z3 + rt2 - z3; rt2c
-        1.414213562373095? + 0.?e-19*I
+        1.414213562373095?
 
         sage: number_field_elements_from_algebraics(rt2)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
@@ -2439,7 +2439,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
           Defn: a |--> -0.2588190451025208? - 0.9659258262890683?*I)
         sage: (nfrt2, nfrt3, nfI, nfz3) = nums
         sage: hom(nfrt2)
-        1.414213562373095? + 0.?e-18*I
+        1.414213562373095?
         sage: nfrt2^2
         2
         sage: nfrt3^2
@@ -3479,9 +3479,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             if radical is not self:
                 return repr(radical)
         if self.parent() is QQbar:
-            return repr(CIF(self._value))
+            return repr(self.interval(CIF))
         else:
-            return repr(RIF(self._value))
+            return repr(self.interval(RIF))
 
     def _latex_(self):
         r"""
@@ -4029,8 +4029,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: AA(-8).nth_root(3, all=True)
             [1.000000000000000? + 1.732050807568878?*I,
-            -2.000000000000000? + 0.?e-18*I,
-            1.000000000000000? - 1.732050807568878?*I]
+             -2,
+             1.000000000000000? - 1.732050807568878?*I]
 
             sage: QQbar(1+I).nth_root(4, all=True)
             [1.069553932363986? + 0.2127475047267431?*I,
@@ -4041,7 +4041,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         TESTS::
 
             sage: AA(-8).nth_root(3, all=True)[1]
-            -2.000000000000000? + 0.?e-18*I
+            -2
             sage: _.parent()
             Algebraic Field
 
@@ -4430,18 +4430,20 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert I to real interval
+
+            sage: QQbar(cos(pi/18))
+            0.9848077530122081?
         """
         target = RR(1.0) >> field.prec()
         val = self.interval_diameter(target)
-        if isinstance(field, RealIntervalField_class) and is_ComplexIntervalFieldElement(val):
+        if is_ComplexIntervalFieldElement(val):
             if val.imag().is_zero():
                 return field(val.real())
             elif self.imag().is_zero():
                 return field(self.real())
-            else:
+            elif isinstance(field, RealIntervalField_class):
                 raise TypeError("unable to convert {} to real interval".format(self))
-        else:
-            return field(val)
+        return field(val)
 
     _complex_mpfi_ = _real_mpfi_ = interval
 
@@ -4574,14 +4576,14 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: x = polygen(ZZ)
             sage: p = 69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321
             sage: sorted(p.roots(QQbar,False))
-            [-0.0221204634374361? - 1.090991904211621?*I,
-             -0.0221204634374361? + 1.090991904211621?*I,
+            [-0.02212046343743602? - 1.090991904211622?*I,
+             -0.02212046343743602? + 1.090991904211622?*I,
              -0.8088604911480535?*I,
              0.?e-79 - 0.7598602580415435?*I,
              0.?e-79 + 0.7598602580415435?*I,
              0.8088604911480535?*I,
-             0.0221204634374361? - 1.090991904211621?*I,
-             0.0221204634374361? + 1.090991904211621?*I]
+             0.02212046343743602? - 1.090991904211622?*I,
+             0.02212046343743602? + 1.090991904211622?*I]
 
         It also works for comparison of conjugate roots even in a degenerate
         situation where many roots have the same real part. In the following
@@ -4818,7 +4820,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar(sqrt(16))._integer_()
             4
             sage: v = QQbar(1 + I*sqrt(3))^5 + QQbar(16*sqrt(3)*I); v
-            16.00000000000000? + 0.?e-17*I
+            16
             sage: v._integer_()
             16
         """
@@ -4845,7 +4847,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: v1 = QQbar(1/3 + I*sqrt(5))^7
             sage: v2 = QQbar((100336/729*golden_ratio - 50168/729)*I)
             sage: v = v1 + v2; v
-            -259.6909007773206? + 0.?e-15*I
+            -259.6909007773206?
             sage: v._rational_()
             -567944/2187
         """
@@ -4884,7 +4886,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar.zeta(7).conjugate()
             0.6234898018587335? - 0.7818314824680299?*I
             sage: QQbar.zeta(7) + QQbar.zeta(7).conjugate()
-            1.246979603717467? + 0.?e-18*I
+            1.246979603717467?
         """
         return AlgebraicNumber(self._descr.conjugate(self))
 
@@ -4923,7 +4925,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             0.7071067811865475? + 0.7071067811865475?*I
             sage: b = QQbar((1+I)*sqrt(2)/2)
             sage: (a - b).interval(CIF)
-            0.?e-19 + 0.?e-18*I
+            0
             sage: (a - b).interval_exact(CIF)
             0
         """
@@ -5887,7 +5889,7 @@ class AlgebraicNumberPowQQAction(Action):
         sage: QQbar.zeta(7)^6
         0.6234898018587335? - 0.7818314824680299?*I
         sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
-        1.000000000000000? + 0.?e-17*I
+        1
 
     In ``AA``::
 
