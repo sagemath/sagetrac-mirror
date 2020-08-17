@@ -4,9 +4,12 @@ Vector Partitions
 AUTHORS:
 
 - Amritanshu Prasad (2013): Initial version
+- D\. K\. Sunko (2020): Added option 'algorithm'
+
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Amritanshu Prasad <amri@imsc.res.in>
+#       Copyright (C) 2020 Denis Sunko <dks@phy.hr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -19,13 +22,13 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
+from sage.combinat.fast_vector_partitions import fast_vector_partitions
 
 def find_min(vect):
     """
@@ -123,7 +126,7 @@ class VectorPartition(CombinatorialElement):
         P = VectorPartitions(vec)
         return P(vecpar)
 
-    def __init__(self, parent, vecpar):
+    def __init__(self, parent, vecpar, algorithm = None):
         """
         Initialize ``self``.
 
@@ -201,7 +204,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
         [[2, 2]]
     """
     @staticmethod
-    def __classcall_private__(cls, vec, min = None):
+    def __classcall_private__(cls, vec, min = None, algorithm = None):
         r"""
         Create the class of vector partitions of ``vec`` where all parts
         are greater than or equal to the vector ``min``.
@@ -217,9 +220,9 @@ class VectorPartitions(UniqueRepresentation, Parent):
             min = find_min(vec)#tuple([0 for v in vec[:-1]]+[1])
         min = tuple(min)
         vec = tuple(vec)
-        return super(VectorPartitions, cls).__classcall__(cls, tuple(vec), min)
+        return super(VectorPartitions, cls).__classcall__(cls, tuple(vec), min, algorithm)
 
-    def __init__(self, vec, min):
+    def __init__(self, vec, min, algorithm):
         r"""
         Initialize ``self``.
 
@@ -231,6 +234,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
         Parent.__init__(self, category = FiniteEnumeratedSets())
         self._vec = vec
         self._min = min
+        self._algorithm = algorithm
 
     def _element_constructor_(self, vecpar):
         """
@@ -261,9 +265,12 @@ class VectorPartitions(UniqueRepresentation, Parent):
         if all(coord == 0 for coord in self._vec):
             yield self.element_class(self, []) # the zero vector has only the empty partition
         else:
-            for vec in IntegerVectorsIterator(list(self._vec), min = list(self._min)): # choose the first part
-                if tuple(vec) == self._vec:
-                    yield self.element_class(self, [vec])
-                else:# recursively find all possibilities for the rest of the vector partition
-                    for smaller_partition in VectorPartitions([x-vec[i] for i,x in enumerate(self._vec)], min = vec):
-                        yield self.element_class(self, [vec] + list(smaller_partition))
+            if self._algorithm == 'yorgey':
+                yield from fast_vector_partitions(self._vec, self._min)
+            else:
+                for vec in IntegerVectorsIterator(list(self._vec), min = list(self._min)): # choose the first part
+                    if tuple(vec) == self._vec:
+                        yield self.element_class(self, [vec])
+                    else:# recursively find all possibilities for the rest of the vector partition
+                        for smaller_partition in VectorPartitions([x-vec[i] for i,x in enumerate(self._vec)], min = vec):
+                            yield self.element_class(self, [vec] + list(smaller_partition))
