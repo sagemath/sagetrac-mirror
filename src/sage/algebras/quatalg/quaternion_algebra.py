@@ -66,6 +66,7 @@ from sage.modular.modsym.p1list import P1List
 
 from sage.misc.cachefunc import cached_method
 
+from sage.categories.rings import Rings
 from sage.categories.fields import Fields
 from sage.categories.algebras import Algebras
 _Fields = Fields()
