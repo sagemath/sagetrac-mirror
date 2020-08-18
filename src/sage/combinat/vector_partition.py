@@ -266,7 +266,8 @@ class VectorPartitions(UniqueRepresentation, Parent):
             yield self.element_class(self, []) # the zero vector has only the empty partition
         else:
             if self._algorithm == 'yorgey':
-                yield from fast_vector_partitions(self._vec, self._min)
+                for p in fast_vector_partitions(self._vec, self._min):
+                    yield self.element_class(self, p)
             else:
                 for vec in IntegerVectorsIterator(list(self._vec), min = list(self._min)): # choose the first part
                     if tuple(vec) == self._vec:
