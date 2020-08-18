@@ -22,6 +22,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import warnings
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -204,7 +205,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
         [[2, 2]]
     """
     @staticmethod
-    def __classcall_private__(cls, vec, min = None, algorithm = None):
+    def __classcall_private__(cls, vec, min = None, algorithm = 'yorgey'):
         r"""
         Create the class of vector partitions of ``vec`` where all parts
         are greater than or equal to the vector ``min``.
@@ -220,7 +221,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
             min = find_min(vec)#tuple([0 for v in vec[:-1]]+[1])
         min = tuple(min)
         vec = tuple(vec)
-        return super(VectorPartitions, cls).__classcall__(cls, tuple(vec), min, algorithm)
+        return super(VectorPartitions, cls).__classcall__(cls, vec, min, algorithm)
 
     def __init__(self, vec, min, algorithm):
         r"""
@@ -252,6 +253,18 @@ class VectorPartitions(UniqueRepresentation, Parent):
 
     Element = VectorPartition
 
+    def iter_yorgey(self):
+        for p in fast_vector_partitions(self._vec, self._min):
+            yield self.element_class(self, p)
+
+    def iter_original(self):
+        for vec in IntegerVectorsIterator(list(self._vec), min = list(self._min)): # choose the first part
+            if tuple(vec) == self._vec:
+                yield self.element_class(self, [vec])
+            else:# recursively find all possibilities for the rest of the vector partition
+                for smaller_partition in VectorPartitions([x-vec[i] for i,x in enumerate(self._vec)], min = vec, algorithm = self._algorithm):
+                    yield self.element_class(self, [vec] + list(smaller_partition))
+
     def __iter__(self):
         r"""
         Iterator for vector partitions.
@@ -262,16 +275,16 @@ class VectorPartitions(UniqueRepresentation, Parent):
             sage: VP.cardinality()
             9
         """
+        if self._algorithm == 'yorgey':
+            iterator = self.iter_yorgey
+        elif self._algorithm == 'original':
+            iterator = self.iter_original
+        else:
+            warnings.warn("Cannot recognize option algorithm = '" +
+                            self._algorithm + "', using algorithm = 'yorgey'")
+            iterator = self.iter_yorgey
+
         if all(coord == 0 for coord in self._vec):
             yield self.element_class(self, []) # the zero vector has only the empty partition
         else:
-            if self._algorithm == 'yorgey':
-                for p in fast_vector_partitions(self._vec, self._min):
-                    yield self.element_class(self, p)
-            else:
-                for vec in IntegerVectorsIterator(list(self._vec), min = list(self._min)): # choose the first part
-                    if tuple(vec) == self._vec:
-                        yield self.element_class(self, [vec])
-                    else:# recursively find all possibilities for the rest of the vector partition
-                        for smaller_partition in VectorPartitions([x-vec[i] for i,x in enumerate(self._vec)], min = vec):
-                            yield self.element_class(self, [vec] + list(smaller_partition))
+            yield from iterator()
