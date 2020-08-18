@@ -126,7 +126,7 @@ class VectorPartition(CombinatorialElement):
         P = VectorPartitions(vec)
         return P(vecpar)
 
-    def __init__(self, parent, vecpar, algorithm = None):
+    def __init__(self, parent, vecpar):
         """
         Initialize ``self``.
 
