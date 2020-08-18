@@ -4213,7 +4213,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [0,
              0.0681483474218635? - 1.930649271699173?*I,
              0.0681483474218635? + 1.930649271699173?*I,
-             5.931851652578137? + 0.?e-49*I]
+             5.931851652578137?]
 
         ::
 

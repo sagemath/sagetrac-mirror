@@ -1872,9 +1872,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X = P.subscheme([x-w*y, z^2-v*x])
             sage: emb = L.embeddings(QQbar)
             sage: X.change_ring(emb[0])
-            Closed subscheme of Affine Space of dimension 3 over Algebraic Field
-            defined by:
-              x + (-1.414213562373095? + 0.?e-16*I)*y,
+            Closed subscheme of Affine Space of dimension 3 over Algebraic Field defined by:
+              x + (-1.414213562373095?)*y,
               z^2 + (0.8549879733383485? + 1.480882609682365?*I)*x
 
         ::
@@ -1886,9 +1885,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X = P.subscheme([x-w*y, z^2-v*x])
             sage: emb = L.embeddings(QQbar)
             sage: X.change_ring(emb[1])
-            Closed subscheme of Affine Space of dimension 3 over Algebraic Field
-            defined by:
-              x + (-1.414213562373095? + 0.?e-16*I)*y,
+            Closed subscheme of Affine Space of dimension 3 over Algebraic Field defined by:
+              x + (-1.414213562373095?)*y,
               z^2 + (0.8549879733383485? - 1.480882609682365?*I)*x
 
         ::

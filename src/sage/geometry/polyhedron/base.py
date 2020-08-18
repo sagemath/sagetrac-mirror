@@ -9688,7 +9688,7 @@ class Polyhedron_base(Element):
             sage: p.volume()
             2.377641290737884?
             sage: P.volume()
-            1.53406271079097?
+            1.534062710790965?
             sage: p.volume()*circumradius^2
             1.534062710790965?
             sage: P.volume() == p.volume()*circumradius^2
@@ -9705,7 +9705,7 @@ class Polyhedron_base(Element):
             sage: A, b = Pentagon.affine_hull_projection(orthogonal=True, as_affine_map=True)
             sage: Adet = (A.matrix().transpose()*A.matrix()).det()
             sage: Pnormal.volume()
-            1.53406271079097?
+            1.534062710790965?
             sage: Pgonal.volume()/sqrt(Adet)
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
             sage: Pgonal.volume()/sqrt(Adet).n(digits=20)
