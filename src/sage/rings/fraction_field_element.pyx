@@ -625,10 +625,7 @@ cdef class FractionFieldElement(FieldElement):
                 pass
             res = self.__class__(self._parent, tnum, tden, coerce=False,
                     reduce=False)
-            try:
-                (<FractionFieldElement> res).normalize_unit_denominator()
-            except (AttributeError, NotImplementedError):
-                pass
+            (<FractionFieldElement> res).normalize_unit_denominator()
             (<FractionFieldElement> res)._is_reduced = True
             return res
 
@@ -691,10 +688,7 @@ cdef class FractionFieldElement(FieldElement):
             tden = rden * sden
             res = self.__class__(self._parent, tnum, tden, coerce=False,
                    reduce=False)
-            try:
-                (<FractionFieldElement> res).normalize_unit_denominator()
-            except (AttributeError, NotImplementedError):
-                pass
+            (<FractionFieldElement> res).normalize_unit_denominator()
             (<FractionFieldElement> res)._is_reduced = True
             return res
         else:
