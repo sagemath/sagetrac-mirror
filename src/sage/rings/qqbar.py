@@ -4431,6 +4431,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             ...
             TypeError: unable to convert I to real interval
 
+        Test for :trac:`21838`::
+
             sage: QQbar(cos(pi/18))
             0.9848077530122081?
         """
