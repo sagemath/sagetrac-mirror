@@ -287,11 +287,11 @@ class VectorPartitions(UniqueRepresentation, Parent):
 
     Element = VectorPartition
 
-    def iter_neglex(self):
+    def _iter_neglex_(self):
         for p in fast_vector_partitions(self._vec, self._min):
             yield self.element_class(self, p)
 
-    def iter_lex(self):
+    def _iter_lex_(self):
         for vec in IntegerVectorsIterator(
                 list(self._vec), min=list(self._min)):  # choose the first part
             if tuple(vec) == self._vec:
@@ -315,9 +315,9 @@ class VectorPartitions(UniqueRepresentation, Parent):
             9
         """
         if self._algorithm == 'neglex':
-            iterator = self.iter_neglex
+            iterator = self._iter_neglex_
         elif self._algorithm == 'lex':
-            iterator = self.iter_lex
+            iterator = self._iter_lex_
         else:
             warnings.warn("Unrecognized option algorithm = '" +
                           self._algorithm + "', using algorithm = 'neglex'")
