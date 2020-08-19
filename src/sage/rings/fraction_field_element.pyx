@@ -264,7 +264,6 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__denominator
 
-
     def is_square(self,root=False):
         """
         Return whether or not ``self`` is a perfect square.
@@ -484,8 +483,6 @@ cdef class FractionFieldElement(FieldElement):
             sage: repr(1/x)
             '1/x'
         """
-        if self.is_zero():
-            return "0"
         s = "%s" % self.__numerator
         if self.__denominator != 1:
             denom_string = str( self.__denominator )
@@ -592,12 +589,16 @@ cdef class FractionFieldElement(FieldElement):
         snum = (<FractionFieldElement> right).__numerator
         sden = (<FractionFieldElement> right).__denominator
 
-        if rnum.is_zero():
-            return right
-        if snum.is_zero():
-            return self
-
         if self._parent.is_exact():
+
+            # We could do this over most inexact rings, but some of them
+            # (mainly p-adic rings) insist on having is_zero(), is_one() return
+            # True for things that should not be treated as exact 0, 1
+            if rnum.is_zero():
+                return right
+            if snum.is_zero():
+                return self
+
             try:
                 d = rden.gcd(sden)
             except (AttributeError, NotImplementedError, TypeError):
@@ -630,7 +631,9 @@ cdef class FractionFieldElement(FieldElement):
                 pass
             (<FractionFieldElement> res)._is_reduced = True
             return res
+
         else:
+
             return self.__class__(self._parent, rnum*sden + rden*snum,
                     rden*sden, coerce=False, reduce=False)
 
@@ -660,14 +663,16 @@ cdef class FractionFieldElement(FieldElement):
         snum = _right.__numerator
         sden = _right.__denominator
 
-        if rnum.is_zero() or snum.is_zero():
-            return self._parent.zero()
-        elif self.is_one():
-            return right
-        elif _right.is_one():
-            return self
-
         if self._parent.is_exact():
+
+            # See comment in _add_ for why we don't do that unconditionally.
+            if rnum.is_zero() or snum.is_zero():
+                return self._parent.zero()
+            elif self.is_one():
+                return right
+            elif _right.is_one():
+                return self
+
             try:
                 d1 = rnum.gcd(sden)
                 d2 = snum.gcd(rden)
@@ -721,7 +726,7 @@ cdef class FractionFieldElement(FieldElement):
 
         if snum.is_zero():
             raise ZeroDivisionError("fraction field element division by zero")
-        elif self.is_one():
+        elif self._parent.is_exact() and self.is_one():
             return ~right
         else:
             rightinv = self.__class__(self._parent, sden, snum,
