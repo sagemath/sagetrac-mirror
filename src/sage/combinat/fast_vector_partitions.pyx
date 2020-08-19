@@ -304,7 +304,7 @@ def fast_vector_partitions(v, min_vals=None):
 
         sage: from sage.combinat.fast_vector_partitions import fast_vector_partitions
         sage: fastvparts = list(fast_vector_partitions([3, 3, 3]))
-        sage: vparts = list(VectorPartitions([3, 3, 3]))
+        sage: vparts = list(VectorPartitions([3, 3, 3], algorithm='lex'))
         sage: vparts == fastvparts[::-1]
         True
         sage: len(fastvparts)
@@ -321,7 +321,7 @@ def fast_vector_partitions(v, min_vals=None):
          [[0, 1, 1], [0, 1, 2], [1, 0, 0]],
          [[0, 1, 1], [0, 1, 1], [1, 0, 1]]]
         sage: L1 = list(fast_vector_partitions([5, 7, 6], min_vals=[1, 3, 2]))
-        sage: L1 == list(VectorPartitions([5, 7, 6], min=[1, 3, 2]))[::-1]
+        sage: L1 == list(VectorPartitions([5, 7, 6], min=[1, 3, 2], algorithm='lex'))[::-1]
         True
 
     .. NOTE::

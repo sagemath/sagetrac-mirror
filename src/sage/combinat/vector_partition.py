@@ -28,8 +28,9 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
-from sage.combinat.partition import Partition
 from sage.combinat.fast_vector_partitions import fast_vector_partitions
+from sage.combinat.partition import Partition
+
 
 def find_min(vect):
     """
@@ -54,14 +55,15 @@ def find_min(vect):
         [0, 1, 0]
     """
     i = len(vect)
-    while vect[i-1]==0 and i>0:
-        i=i-1
-    min = [0]*len(vect)
-    if i>0:
-        min[i-1]=1
+    while vect[i - 1] == 0 and i > 0:
+        i = i - 1
+    min = [0] * len(vect)
+    if i > 0:
+        min[i - 1] = 1
     return min
 
-def IntegerVectorsIterator(vect, min = None):
+
+def IntegerVectorsIterator(vect, min=None):
     """
     Return an iterator over the list of integer vectors which are componentwise
     less than or equal to ``vect``, and lexicographically greater than or equal
@@ -106,6 +108,7 @@ class VectorPartition(CombinatorialElement):
     r"""
     A vector partition is a multiset of integer vectors.
     """
+
     @staticmethod
     def __classcall_private__(cls, vecpar):
         """
@@ -161,7 +164,8 @@ class VectorPartition(CombinatorialElement):
             sage: V.partition_at_vertex(1)
             [4, 2]
         """
-        return Partition(sorted([vec[i] for vec in self._list], reverse = True))
+        return Partition(sorted([vec[i] for vec in self._list], reverse=True))
+
 
 class VectorPartitions(UniqueRepresentation, Parent):
     r"""
@@ -174,6 +178,20 @@ class VectorPartitions(UniqueRepresentation, Parent):
     INPUT:
 
     - ``vec`` -- a list of non-negative integers.
+    - ``min`` -- (optional) list of non-negative integers.
+    - ``algorithm`` -- (optional) string specifying the algorithm used.
+    
+    OUTPUT:
+    
+    Vector partitions of the vector ``vec``, with parts lexicographically
+    not smaller than ``min``.
+    
+    If ``min`` is not provided, all partitions will be generated.
+    
+    If ``algorithm = 'lex'``, partitions will be in lexicographic order. If
+    ``algorithm = 'neglex'`` (the default), they will be in negative
+    lexicographic order. If ``algorithm`` is anything else, a warning is raised
+    and the default is used.
 
     EXAMPLES:
 
@@ -183,29 +201,44 @@ class VectorPartitions(UniqueRepresentation, Parent):
         sage: VP = VectorPartitions([2, 2])
         sage: for vecpar in VP:
         ....:     print(vecpar)
-        [[0, 1], [0, 1], [1, 0], [1, 0]]
-        [[0, 1], [0, 1], [2, 0]]
-        [[0, 1], [1, 0], [1, 1]]
-        [[0, 1], [2, 1]]
-        [[0, 2], [1, 0], [1, 0]]
-        [[0, 2], [2, 0]]
-        [[1, 0], [1, 2]]
-        [[1, 1], [1, 1]]
         [[2, 2]]
+        [[1, 1], [1, 1]]
+        [[1, 0], [1, 2]]
+        [[0, 2], [2, 0]]
+        [[0, 2], [1, 0], [1, 0]]
+        [[0, 1], [2, 1]]
+        [[0, 1], [1, 0], [1, 1]]
+        [[0, 1], [0, 1], [2, 0]]
+        [[0, 1], [0, 1], [1, 0], [1, 0]]
 
     If ``min`` is specified, then the class consists of only those vector
     partitions whose parts are all greater than or equal to ``min`` in
     lexicographic order::
 
-        sage: VP = VectorPartitions([2, 2], min = [1, 0])
+        sage: VP = VectorPartitions([2, 2], min = [1, 0], algorithm = 'lex')
         sage: for vecpar in VP:
         ....:     print(vecpar)
         [[1, 0], [1, 2]]
         [[1, 1], [1, 1]]
         [[2, 2]]
+        
+    Illustration of the ``algorithm`` option::
+    
+        sage: forw = VectorPartitions([3,3,3], algorithm = 'lex')                       
+        sage: back = VectorPartitions([3,3,3])                                          
+        sage: forward = list(forw)                                                      
+        sage: backward = list(back)                                                     
+        sage: forward == backward[::-1]                                                 
+        True
+
+    .. WARNING::
+
+        The default algorithm has changed from 'lex' in Sage 9.1 to 'neglex' in
+        Sage 9.2, which uses :func:`fast_vector_partitions` internally.
     """
+
     @staticmethod
-    def __classcall_private__(cls, vec, min = None, algorithm = 'yorgey'):
+    def __classcall_private__(cls, vec, min=None, algorithm='neglex'):
         r"""
         Create the class of vector partitions of ``vec`` where all parts
         are greater than or equal to the vector ``min``.
@@ -218,10 +251,11 @@ class VectorPartitions(UniqueRepresentation, Parent):
             True
         """
         if min is None:
-            min = find_min(vec)#tuple([0 for v in vec[:-1]]+[1])
+            min = find_min(vec)  #tuple([0 for v in vec[:-1]]+[1])
         min = tuple(min)
         vec = tuple(vec)
-        return super(VectorPartitions, cls).__classcall__(cls, vec, min, algorithm)
+        return super(VectorPartitions, cls).__classcall__(
+            cls, vec, min, algorithm)
 
     def __init__(self, vec, min, algorithm):
         r"""
@@ -232,7 +266,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
             sage: VP = VectorPartitions([2, 2])
             sage: TestSuite(VP).run()
         """
-        Parent.__init__(self, category = FiniteEnumeratedSets())
+        Parent.__init__(self, category=FiniteEnumeratedSets())
         self._vec = vec
         self._min = min
         self._algorithm = algorithm
@@ -253,17 +287,22 @@ class VectorPartitions(UniqueRepresentation, Parent):
 
     Element = VectorPartition
 
-    def iter_yorgey(self):
+    def iter_neglex(self):
         for p in fast_vector_partitions(self._vec, self._min):
             yield self.element_class(self, p)
 
-    def iter_original(self):
-        for vec in IntegerVectorsIterator(list(self._vec), min = list(self._min)): # choose the first part
+    def iter_lex(self):
+        for vec in IntegerVectorsIterator(
+                list(self._vec), min=list(self._min)):  # choose the first part
             if tuple(vec) == self._vec:
                 yield self.element_class(self, [vec])
-            else:# recursively find all possibilities for the rest of the vector partition
-                for smaller_partition in VectorPartitions([x-vec[i] for i,x in enumerate(self._vec)], min = vec, algorithm = self._algorithm):
-                    yield self.element_class(self, [vec] + list(smaller_partition))
+            else:  # recursively find all possibilities for the rest of the vector partition
+                for smaller_partition in VectorPartitions(
+                    [x - vec[i] for i, x in enumerate(self._vec)],
+                        min=vec,
+                        algorithm=self._algorithm):
+                    yield self.element_class(self,
+                                             [vec] + list(smaller_partition))
 
     def __iter__(self):
         r"""
@@ -275,16 +314,17 @@ class VectorPartitions(UniqueRepresentation, Parent):
             sage: VP.cardinality()
             9
         """
-        if self._algorithm == 'yorgey':
-            iterator = self.iter_yorgey
-        elif self._algorithm == 'original':
-            iterator = self.iter_original
+        if self._algorithm == 'neglex':
+            iterator = self.iter_neglex
+        elif self._algorithm == 'lex':
+            iterator = self.iter_lex
         else:
-            warnings.warn("Cannot recognize option algorithm = '" +
-                            self._algorithm + "', using algorithm = 'yorgey'")
-            iterator = self.iter_yorgey
+            warnings.warn("Unrecognized option algorithm = '" +
+                          self._algorithm + "', using algorithm = 'neglex'")
+            iterator = self.iter_neglex
 
         if all(coord == 0 for coord in self._vec):
-            yield self.element_class(self, []) # the zero vector has only the empty partition
+            # the zero vector has only the empty partition
+            yield self.element_class(self, [])
         else:
             yield from iterator()
