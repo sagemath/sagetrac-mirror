@@ -139,6 +139,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         # Set the basis
         if k is not None:
+            # for WeylCharacterRings (k=None) we allow Cartan Type ['B',1]. For FusionRings we do not.
+            if ct is CartanType(['B',1]): 
+                raise ValueError('Cartan Type B1 not allowed for FusionRings. Use Type A1.')
             self._prefix += str(k)
             fw = self._space.fundamental_weights()
             def next_level(wt):
