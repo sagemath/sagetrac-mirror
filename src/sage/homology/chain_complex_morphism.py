@@ -343,7 +343,7 @@ class ChainComplexMorphism(Morphism):
             [K... Morphism (degree 0): K... -> K...]
             sage: Kw = w._kenzo_repr ; Kw                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kw.orgn()     # description as the opposite of Kx       # optional - kenzo
+            sage: Kw.orgn()                                               # optional - kenzo
             '(OPPS [K... Morphism (degree 0): K... -> K...])'
         """
         f = dict()
@@ -388,7 +388,7 @@ class ChainComplexMorphism(Morphism):
             [K... Morphism (degree 0): K... -> K...]
             sage: Kz = z._kenzo_repr ; Kz                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kz.orgn()     # description as the sum of Kx and Kw     # optional - kenzo
+            sage: Kz.orgn()                                               # optional - kenzo
             '(2MRPH-ADD [K... Morphism (degree 0): K... -> K...] [K... Morphism (degree 0): K... -> K...] :CMBN)'
         """
         if not isinstance(x,ChainComplexMorphism) or self.codomain() != x.codomain() or self.domain() != x.domain() or self._matrix_dictionary.keys() != x._matrix_dictionary.keys():
@@ -455,11 +455,11 @@ class ChainComplexMorphism(Morphism):
             [K... Morphism (degree 0): K... -> K...]
             sage: Ky = y._kenzo_repr ; Ky                                              # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Ky.orgn()     # description as the scalar multiplication of Kx by 2  # optional - kenzo
+            sage: Ky.orgn()                                                            # optional - kenzo
             '(N-MRPH 2 [K... Morphism (degree 0): K... -> K...])'
             sage: Kz = z._kenzo_repr ; Kz                                              # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Kz.orgn()     # description as the composition of Ky by itself       # optional - kenzo
+            sage: Kz.orgn()                                                            # optional - kenzo
             '(2MRPH-CMPS [K... Morphism (degree 0): K... -> K...] [K... Morphism (degree 0): K... -> K...] :CMBN)'
             
         TESTS:
@@ -581,7 +581,7 @@ class ChainComplexMorphism(Morphism):
             [K... Morphism (degree 0): K... -> K...]
             sage: Ky = y._kenzo_repr ; Ky                                 # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
-            sage: Ky.orgn()     # description of Kx minus Kx              # optional - kenzo
+            sage: Ky.orgn()                                               # optional - kenzo
             '(2MRPH-SBTR [K... Morphism (degree 0): K... -> K...] [K... Morphism (degree 0): K... -> K...] :CMBN)'
         """
         result = self + (-x)

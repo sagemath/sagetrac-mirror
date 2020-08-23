@@ -2544,7 +2544,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: KS1 = S1._kenzo_repr                                         # optional - kenzo
             sage: T = simplicial_sets.Torus()
             sage: KT = T._kenzo_repr                                           # optional - kenzo
-            sage: KT.orgn()    # description of the Torus as a product         # optional - kenzo
+            sage: KT.orgn()                                                    # optional - kenzo
             '(CRTS-PRDC [K... Simplicial-Set] [K... Simplicial-Set])'
             sage: KT._factors[0] == KT._factors[1] == KS1                      # optional - kenzo
             True
@@ -2643,7 +2643,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: L = K.n_skeleton(3)
             sage: S4 = L.pushout(L.constant_map(), L.inclusion_map())
             sage: KS4 = S4._kenzo_repr                                          # optional - kenzo
-            sage: KS4.orgn()     # description as a pushout in Kenzo            # optional - kenzo
+            sage: KS4.orgn()                                                    # optional - kenzo
             '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
             sage: Kf0 = S4._maps[0]._kenzo_repr                                 # optional - kenzo
             sage: Kf1 = S4._maps[1]._kenzo_repr                                 # optional - kenzo
@@ -2849,7 +2849,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: R = simplicial_sets.RealProjectiveSpace(6)
             sage: W = S2.wedge(S2, S3, R)
             sage: KW = W._kenzo_repr                                                 # optional - kenzo
-            sage: KW.orgn()     # description of the wedge as a pushout in Kenzo     # optional - kenzo
+            sage: KW.orgn()                                                          # optional - kenzo
             '(PUSHOUT [K... Simplicial-Morphism K... -> K...] [K... Simplicial-Morphism K... -> K...])'
             sage: W.homology()
             {0: 0, 1: C2, 2: Z x Z, 3: Z x C2, 4: 0, 5: C2, 6: 0}
@@ -2973,7 +2973,7 @@ class SimplicialSet_arbitrary(Parent):
         
             sage: KSigmaRP4 = SigmaRP4._kenzo_repr ; KSigmaRP4                   # optional - kenzo
             [K... Simplicial-Set]
-            sage: KSigmaRP4.orgn()     # description as a suspension in Kenzo    # optional - kenzo
+            sage: KSigmaRP4.orgn()                                               # optional - kenzo
             '(SUSPENSION [K... Simplicial-Set])'
             sage: [KSigmaRP4.homology(i) for i in range(6)]                      # optional - kenzo
             [Z, 0, C2, 0, C2, 0]
@@ -3325,7 +3325,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             sage: S = SimplicialSet({e: (v, v)})
             sage: KS = S._kenzo_repr ; KS                                             # optional - kenzo
             [K... Simplicial-Set]
-            sage: KS.orgn()     # description as a finite simplicial set in Kenzo     # optional - kenzo
+            sage: KS.orgn()                                                           # optional - kenzo
             '(BUILD-FINITE-SS (CELL_0_0 1 CELL_1_0 ((CELL_0_0) (CELL_0_0))))'
 
         Test suites::
