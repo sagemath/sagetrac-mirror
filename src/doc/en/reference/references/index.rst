@@ -5359,7 +5359,9 @@ REFERENCES:
             https://projecteuclid.org/euclid.ant/1513797353
 
 .. [TTWL2009] Trebst, Troyer, Wang and Ludwig, A short introduction
-            to Fibonacci anyon models, arXiv:0902.3275 (2009)
+            to Fibonacci anyon models, 
+            in Progress of Theoretical Physics Supplement 176 (2009)
+            arXiv:0902.3275
 
 .. _ref-U:
 
