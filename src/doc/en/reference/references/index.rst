@@ -5358,6 +5358,9 @@ REFERENCES:
             calculus*, Algebra and Number Theory 3 (2009), 121-148,
             https://projecteuclid.org/euclid.ant/1513797353
 
+.. [TTWL2009] Trebst, Troyer, Wang and Ludwig, A short introduction
+            to Fibonacci anyon models, arXiv:0902.3275 (2009)
+
 .. _ref-U:
 
 **U**
