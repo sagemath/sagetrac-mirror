@@ -365,7 +365,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         ret = 1
         for (a,e) in expr.factor()._Factorization__x:
             if a not in nonzeros:
-                ret *= a^e
+                ret *= a**e
         return ret
 
     def feq(self, a, b, c, d, e, f, g, k, l):
