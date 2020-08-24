@@ -54,6 +54,7 @@ cdef struct iter_struct:
 
     # Some modifications that make things better for simple and simplicial polyhedra.
     bint is_simple
+    bint check_simple_face
     uint64_t *face_coatom_rep
     size_t face_length_coatom_rep
     uint64_t **visited_all_coatom_rep

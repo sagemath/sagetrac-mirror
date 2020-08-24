@@ -443,20 +443,24 @@ cdef class FaceIterator_base(SageObject):
             self.structure.newfaces_coatom_rep[self.structure.dimension - 1] = self.coatoms_coatom_rep.data  # we start with coatoms
         else:
             self.structure.is_simple = False
-            self.simple_vertices = facets_tuple_to_bit_rep_of_facets(
-                (tuple(i for i in range(self.atoms.n_faces)
-                 if count_atoms(self.atoms.data[i], self.atoms.face_length) == self.structure.dimension),),
-                self.atoms.n_faces)
-            self.structure.simple_vertices = self.simple_vertices.data[0]
+            simple_vertices_tup = tuple(i for i in range(self.atoms.n_faces)
+                                        if count_atoms(self.atoms.data[i], self.atoms.face_length) == self.structure.dimension)
+            if len(simple_vertices_tup)*10 > self.coatoms.n_atoms:
+                self.structure.check_simple_face = True
+                self.simple_vertices = facets_tuple_to_bit_rep_of_facets(
+                    (simple_vertices_tup,), self.atoms.n_faces)
+                self.structure.simple_vertices = self.simple_vertices.data[0]
 
-            # Put the simple facets last.
-            sort_faces_by_being_simple(self.structure.newfaces[self.structure.dimension-1],
-                                       self.coatoms.n_faces, self.structure.simple_vertices,
-                                       self.structure.face_length)
+                # Put the simple facets last.
+                sort_faces_by_being_simple(self.structure.newfaces[self.structure.dimension-1],
+                                           self.coatoms.n_faces, self.structure.simple_vertices,
+                                           self.structure.face_length)
 
-            self.structure.is_facet_of_simple_face = <bint**> self._mem.allocarray(self.structure.dimension, sizeof(bint **))
-            for i in range(self.structure.dimension):
-                self.structure.is_facet_of_simple_face[i] = <bint*> self._mem.calloc(self.coatoms.n_faces, sizeof(bint *))
+                self.structure.is_facet_of_simple_face = <bint**> self._mem.allocarray(self.structure.dimension, sizeof(bint **))
+                for i in range(self.structure.dimension):
+                    self.structure.is_facet_of_simple_face[i] = <bint*> self._mem.calloc(self.coatoms.n_faces, sizeof(bint *))
+            else:
+                self.structure.check_simple_face = False
 
     def reset(self):
         r"""
@@ -1420,7 +1424,8 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
             structptr[0].newfaces_coatom_rep[structptr[0].current_dimension-1],
             structptr[0].visited_all_coatom_rep, structptr[0].face_length_coatom_rep)
         sig_off()
-    elif structptr[0].is_facet_of_simple_face[structptr[0].current_dimension][n_faces]:
+    elif (structptr[0].check_simple_face and
+            structptr[0].is_facet_of_simple_face[structptr[0].current_dimension][n_faces]):
         # We are intersecting facets of a simple face. We can use almost the algorithm for simple polyhedra
         # (but do not know the coatom representation entirely).
         sig_on()
@@ -1439,14 +1444,15 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
             structptr[0].visited_all, n_visited_all, structptr[0].face_length)
         sig_off()
 
-        if is_subset(faces[n_faces], structptr[0].simple_vertices, structptr[0].face_length):
-            for i in range(newfacescounter):
-                structptr[0].is_facet_of_simple_face[structptr[0].current_dimension-1][i] = True
-        else:
-            sort_faces_by_being_simple(structptr[0].newfaces[structptr[0].current_dimension-1],
-                                       newfacescounter, structptr[0].simple_vertices, structptr[0].face_length)
-            for i in range(newfacescounter):
-                structptr[0].is_facet_of_simple_face[structptr[0].current_dimension-1][i] = False
+        if structptr[0].check_simple_face:
+            if is_subset(faces[n_faces], structptr[0].simple_vertices, structptr[0].face_length):
+                for i in range(newfacescounter):
+                    structptr[0].is_facet_of_simple_face[structptr[0].current_dimension-1][i] = True
+            else:
+                sort_faces_by_being_simple(structptr[0].newfaces[structptr[0].current_dimension-1],
+                                           newfacescounter, structptr[0].simple_vertices, structptr[0].face_length)
+                for i in range(newfacescounter):
+                    structptr[0].is_facet_of_simple_face[structptr[0].current_dimension-1][i] = False
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.
