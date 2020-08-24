@@ -384,15 +384,15 @@ You may solve these 41+14=55 equations to compute the F-matrix.
             5
             sage: f.findcases(output=True)
             ({fx4: (t, t, t, t, t, t),
-             fx3: (t, t, t, t, t, i0),
-             fx2: (t, t, t, t, i0, t),
-             fx1: (t, t, t, t, i0, i0),
-             fx0: (t, t, t, i0, t, t)},
+            fx3: (t, t, t, t, t, i0),
+            fx2: (t, t, t, t, i0, t),
+            fx1: (t, t, t, t, i0, i0),
+            fx0: (t, t, t, i0, t, t)},
             {(t, t, t, i0, t, t): fx0,
-             (t, t, t, t, i0, i0): fx1,
-             (t, t, t, t, i0, t): fx2,
-             (t, t, t, t, t, i0): fx3,
-             (t, t, t, t, t, t): fx4})
+            (t, t, t, t, i0, i0): fx1,
+            (t, t, t, t, i0, t): fx2,
+            (t, t, t, t, t, i0): fx3,
+            (t, t, t, t, t, t): fx4})
 
         """
         i = 0
