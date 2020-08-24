@@ -255,7 +255,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         Update ideal_basis equations by plugging in known values
         """
         special_values = { known : self._fvars[self._var_to_sextuple[known]] for known in self.solved }
-        self.ideal_basis = set(eq.specialization(special_values) for eq in self.ideal_basis)
+        self.ideal_basis = set(eq.subs(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)
 
     def get_solution(self, equations=None, factor=False, verbose=True):
@@ -335,10 +335,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
             zeta60^14 - zeta60^6 - zeta60^4 + 1]
 
         """
-        #Determine if fusion tree is admissible
-        admissible = self.FR.Nk_ij(a,b,x) * self.FR.Nk_ij(x,c,d) * self.FR.Nk_ij(b,c,y) * self.FR.Nk_ij(a,y,d)
-
-        if admissible == 0:
+        if self.FR.Nk_ij(a,b,x) == 0 or self.FR.Nk_ij(x,c,d) == 0 or self.FR.Nk_ij(b,c,y) == 0 or self.FR.Nk_ij(a,y,d) == 0:
             return 0
 
         #Some known zero F-symbols
@@ -446,13 +443,16 @@ You may solve these 41+14=55 equations to compute the F-matrix.
                 ret *= a**e
         return ret
 
-    def feq(self, a, b, c, d, e, f, g, k, l):
+    def feq(self, a, b, c, d, e, f, g, k, l, prune=False):
         """
         Return True if the Pentagon axiom (Bonderson (2.77)) is satisfied.
         """
         lhs = self.fmat(f,c,d,e,g,l)*self.fmat(a,b,l,e,f,k)
         rhs = sum(self.fmat(a,b,c,g,f,h)*self.fmat(a,h,d,e,g,k)*self.fmat(b,c,d,k,h,l) for h in self.FR.basis())
-        return lhs - rhs
+        if lhs != 0 or not prune:
+            return lhs - rhs
+        else:
+            return 0
 
     def req(self, a, b, c, d, e, g):
         """
@@ -499,7 +499,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         if output:
             return ret
 
-    def pentagon(self, verbose=False, output=True, factor=None):
+    def pentagon(self, verbose=False, output=True, factor=None, prune=False):
         """
         Return generators of the ideal of Pentagon equations.
 
@@ -526,7 +526,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         if output:
             ret = []
         for (a,b,c,d,e,f,g,k,l) in list(product(self.FR.basis(), repeat=9)):
-            pd = self.feq(a,b,c,d,e,f,g,k,l)
+            pd = self.feq(a,b,c,d,e,f,g,k,l,prune=prune)
             if pd != 0:
                 if factor:
                     pd = self.sreduce(pd)
