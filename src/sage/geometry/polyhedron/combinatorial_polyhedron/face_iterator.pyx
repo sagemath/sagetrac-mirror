@@ -263,6 +263,24 @@ cdef extern from "bit_vector_operations.cc":
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
+cdef int sort_faces_by_being_simple(uint64_t **faces, size_t n_faces, uint64_t *simple_vertices, size_t face_length) nogil except -1:
+    """
+    Reorder the faces such that the ones contained in ``simple_vertices`` are last.
+    """
+    if unlikely(n_faces == 0):
+        return 0
+    cdef size_t i = 0
+    cdef size_t last_unknown_face = n_faces - 1
+    cdef uint64_t *foo
+    while i < last_unknown_face:
+        if is_subset(faces[i], simple_vertices, face_length):
+            foo = faces[last_unknown_face]
+            faces[last_unknown_face] = faces[i]
+            faces[i] = foo
+            last_unknown_face -= 1
+        else:
+            i += 1
+
 cdef class FaceIterator_base(SageObject):
     r"""
     A base class to iterate over all faces of a polyhedron.
@@ -375,9 +393,11 @@ cdef class FaceIterator_base(SageObject):
         # Initialize ``newfaces``, which will point to the new faces of codimension 1,
         # which have not been visited yet.
         self.structure.newfaces = <uint64_t ***> self._mem.allocarray(self.structure.dimension, sizeof(uint64_t **))
-        for i in range(self.structure.dimension - 1):
+        for i in range(self.structure.dimension):
             self.structure.newfaces[i] = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
-        self.structure.newfaces[self.structure.dimension - 1] = self.coatoms.data  # we start with coatoms
+
+        for i in range(self.coatoms.n_faces):
+            self.structure.newfaces[self.structure.dimension-1][i] = self.coatoms.data[i]  # we start with the coatoms
 
         # Initialize ``n_newfaces``.
         self.structure.n_newfaces = <size_t *> self._mem.allocarray(self.structure.dimension, sizeof(size_t))
@@ -428,6 +448,11 @@ cdef class FaceIterator_base(SageObject):
                  if count_atoms(self.atoms.data[i], self.atoms.face_length) == self.structure.dimension),),
                 self.atoms.n_faces)
             self.structure.simple_vertices = self.simple_vertices.data[0]
+
+            # Put the simple facets last.
+            sort_faces_by_being_simple(self.structure.newfaces[self.structure.dimension-1],
+                                       self.coatoms.n_faces, self.structure.simple_vertices,
+                                       self.structure.face_length)
 
             self.structure.is_facet_of_simple_face = <bint**> self._mem.allocarray(self.structure.dimension, sizeof(bint **))
             for i in range(self.structure.dimension):
@@ -1395,7 +1420,7 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
             structptr[0].newfaces_coatom_rep[structptr[0].current_dimension-1],
             structptr[0].visited_all_coatom_rep, structptr[0].face_length_coatom_rep)
         sig_off()
-    elif structptr[0].is_facet_of_simple_face[structptr[0].current_dimension][n_faces + 1]:
+    elif structptr[0].is_facet_of_simple_face[structptr[0].current_dimension][n_faces]:
         # We are intersecting facets of a simple face. We can use almost the algorithm for simple polyhedra
         # (but do not know the coatom representation entirely).
         sig_on()
@@ -1418,6 +1443,8 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
             for i in range(newfacescounter):
                 structptr[0].is_facet_of_simple_face[structptr[0].current_dimension-1][i] = True
         else:
+            sort_faces_by_being_simple(structptr[0].newfaces[structptr[0].current_dimension-1],
+                                       newfacescounter, structptr[0].simple_vertices, structptr[0].face_length)
             for i in range(newfacescounter):
                 structptr[0].is_facet_of_simple_face[structptr[0].current_dimension-1][i] = False
 
