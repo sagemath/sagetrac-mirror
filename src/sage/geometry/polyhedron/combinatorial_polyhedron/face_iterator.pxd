@@ -60,6 +60,11 @@ cdef struct iter_struct:
     uint64_t ***maybe_newfaces_coatom_rep
     uint64_t ***newfaces_coatom_rep
 
+    # Some modifications in case a face is clearly simple.
+    # In this case it is much easier obtaining lower dimensional faces.
+    uint64_t *simple_vertices
+    bint **is_facet_of_simple_face
+
 
 cdef class FaceIterator_base(SageObject):
     cdef iter_struct structure
@@ -67,6 +72,7 @@ cdef class FaceIterator_base(SageObject):
     cdef MemoryAllocator _mem
     cdef tuple newfaces_lists       # tuple to hold the ListOfFaces corresponding to maybe_newfaces
     cdef tuple newfaces_lists_coatom_rep
+    cdef ListOfFaces simple_vertices
 
     # some copies from ``CombinatorialPolyhedron``
     cdef tuple _Vrep, _facet_names, _equalities
