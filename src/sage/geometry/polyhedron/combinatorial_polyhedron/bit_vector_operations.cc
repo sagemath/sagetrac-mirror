@@ -130,7 +130,7 @@ inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t
 size_t get_next_level(\
         uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
-        size_t n_visited_all, size_t face_length){
+        size_t n_visited_all, size_t face_length, int in_simple_face){
     /*
     Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
     that are not contained in a face of ``visited_all``.
@@ -142,6 +142,7 @@ size_t get_next_level(\
     - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
     - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
     - ``face_length`` -- length of the faces
+    - ``in_simple_face`` -- ``True`` if ``faces`` are facets of a simple face
 
     OUTPUT:
 
@@ -164,6 +165,9 @@ size_t get_next_level(\
     Step 3: Only keep those that we have not already visited.
             We obtain exactly the facets of ``faces[n_faces-1]`` that we have
             not visited yet.
+
+    Shortcut: In case ``faces`` are facets of a simple face, instead of step 2
+              it suffices to check that the intersection is non-empty.
     */
 
     // We keep track, which face in ``maybe_newfaces`` is a new face.
@@ -178,9 +182,22 @@ size_t get_next_level(\
 
     // For each face we will do Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
-        if (is_contained_in_one(maybe_newfaces[j], maybe_newfaces, n_faces-1, face_length, j) || \
-                is_contained_in_one(maybe_newfaces[j], visited_all, n_visited_all, face_length))
-                    is_not_newface[j] = 1;
+        if (in_simple_face){
+            // Shortcut:
+            // Check if the atom representation is zero.
+            //
+            // and
+            //
+            // Step 3:
+            if (is_zero(maybe_newfaces[j], face_length) || \
+                    is_contained_in_one(maybe_newfaces[j], visited_all, n_visited_all, face_length))
+                is_not_newface[j] = 1;
+        } else {
+            // Step 2 and 3.
+            if (is_contained_in_one(maybe_newfaces[j], maybe_newfaces, n_faces-1, face_length, j) || \
+                    is_contained_in_one(maybe_newfaces[j], visited_all, n_visited_all, face_length))
+                        is_not_newface[j] = 1;
+        }
     }
 
     // Set ``newfaces`` to point to the correct ones.
@@ -195,6 +212,24 @@ size_t get_next_level(\
         n_newfaces++;
     }
     return n_newfaces;
+}
+
+size_t get_next_level(\
+        uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **newfaces, uint64_t **visited_all, \
+        size_t n_visited_all, size_t face_length){
+    return get_next_level(faces, n_faces, maybe_newfaces, \
+                          newfaces, visited_all, n_visited_all, \
+                          face_length, 0);
+}
+
+size_t get_next_level_simple_face(\
+        uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **newfaces, uint64_t **visited_all, \
+        size_t n_visited_all, size_t face_length){
+    return get_next_level(faces, n_faces, maybe_newfaces, \
+                          newfaces, visited_all, n_visited_all, \
+                          face_length, 1);
 }
 
 size_t get_next_level_simple(\
