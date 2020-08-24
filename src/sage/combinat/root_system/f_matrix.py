@@ -83,7 +83,9 @@ class FMatrix():
     See [TTWL2009]_ for an introduction to this topic,
     [EGNO2015]_ Section 4.9 for a precise mathematical
     definition and [Bond2007]_ Section 2.5 for a discussion 
-    of how to compute the F-matrix.
+    of how to compute the F-matrix. In addition to
+    [Bond2007]_ worked out F-matrices may be found in
+    [RoStWa2009]_ and [CuWa2015]_.
 
     The F-matrix is only determined up to a gauge. This
     is a family of embeddings `C\to A\otimes B` for
@@ -178,6 +180,13 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         self.solved = set()
 
     def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: FMatrix(FusionRing("B2",1,conjugate=True))
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+            F-Matrix factory for The Fusion Ring of Type B2 and level 1 with Integer Ring coefficients
+        """
         return "F-Matrix factory for %s"%self.FR
 
     def remaining_vars(self):
@@ -249,7 +258,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         self.ideal_basis = set(eq.specialization(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)
 
-    def get_solution(self, equations=None, factor=False):
+    def get_solution(self, equations=None, factor=False, verbose=True):
         """
         Solve the the hexagon and pentagon relations to evaluate the F-matrix.
 
@@ -263,15 +272,20 @@ You may solve these 41+14=55 equations to compute the F-matrix.
 
         """
         if equations is None:
-            print("Setting up hexagons and pentagons...")
+            if verbose:
+                print("Setting up hexagons and pentagons...")
             equations = self.hexagon(factor=factor)+self.pentagon(factor=factor)
-        print("Finding a Groebner basis...")
+        if verbose:
+            print("Finding a Groebner basis...")
         self.ideal_basis = set(Ideal(equations).groebner_basis())
-        print("Solving...")
+        if verbose:
+            print("Solving...")
         self.substitute_known_values()
-        print("Fixing the gauge...")
+        if verbose:
+            print("Fixing the gauge...")
         self.fix_gauge()
-        print("Done!")
+        if verbose:
+            print("Done!")
         return self._fvars
 
     def add_equations(self, eqns):
@@ -293,6 +307,33 @@ You may solve these 41+14=55 equations to compute the F-matrix.
     def fmat(self, a, b, c, d, x, y, data=True):
         """
         Return the F-Matrix coefficient `(F^{a,b,c}_d)_{x,y}`
+
+        EXAMPLES::
+
+            sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"])
+            Defining fx0, fx1, fx2, fx3, fx4
+            sage: [f.fmat(t,t,t,t,x,y) for x in f.FR.basis() for y in f.FR.basis()]
+            [fx1, fx2, fx3, fx4]
+            sage: f.get_solution()                                               
+            Setting up hexagons and pentagons...
+            equations: 5
+            equations: 13
+            Finding a Groebner basis...
+            Solving...
+            Fixing the gauge...
+            adding equation... fx2 - 1
+            Done!
+            {(t, t, t, i0, t, t): 1,
+            (t, t, t, t, i0, i0): -zeta60^14 + zeta60^6 + zeta60^4 - 1,
+            (t, t, t, t, i0, t): 1,
+            (t, t, t, t, t, i0): -zeta60^14 + zeta60^6 + zeta60^4 - 1,
+            (t, t, t, t, t, t): zeta60^14 - zeta60^6 - zeta60^4 + 1}
+            sage: [f.fmat(t,t,t,t,x,y) for x in f.FR.basis() for y in f.FR.basis()]
+            [-zeta60^14 + zeta60^6 + zeta60^4 - 1,
+            1,
+            -zeta60^14 + zeta60^6 + zeta60^4 - 1,
+            zeta60^14 - zeta60^6 - zeta60^4 + 1]
+
         """
         #Determine if fusion tree is admissible
         admissible = self.FR.Nk_ij(a,b,x) * self.FR.Nk_ij(x,c,d) * self.FR.Nk_ij(b,c,y) * self.FR.Nk_ij(a,y,d)
@@ -332,9 +373,27 @@ You may solve these 41+14=55 equations to compute the F-matrix.
     
     def findcases(self,output=False):
         """
-        Find the unknown F-matrix entries. If run with output=True,
+        Return unknown F-matrix entries. If run with output=True,
         this returns two dictionaries; otherwise it just returns the
         number of unknown values.
+
+        EXAMPLES::
+            sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"])
+            Defining fx0, fx1, fx2, fx3, fx4
+            sage: f.findcases()                                                           
+            5
+            sage: f.findcases(output=True)
+            ({fx4: (t, t, t, t, t, t),
+             fx3: (t, t, t, t, t, i0),
+             fx2: (t, t, t, t, i0, t),
+             fx1: (t, t, t, t, i0, i0),
+             fx0: (t, t, t, i0, t, t)},
+            {(t, t, t, i0, t, t): fx0,
+             (t, t, t, t, i0, i0): fx1,
+             (t, t, t, t, i0, t): fx2,
+             (t, t, t, t, t, i0): fx3,
+             (t, t, t, t, t, t): fx4})
+
         """
         i = 0
         if output:
@@ -357,8 +416,27 @@ You may solve these 41+14=55 equations to compute the F-matrix.
 
     def sreduce(self, expr, nonzeros=None):
         """
-        From an equation, discard the leading coefficient and
-        factors of degree one.
+        Return a simplified equation, discarding the leading coefficient
+        and monomial factors.
+
+        INPUT:
+
+        - ``expr`` - an equation to be simplified under the
+          assumption that all variables in nonzeros do not
+          vanish.
+        - ``nonzeros`` - a list of variables that are assumed
+          nonzero. Defaults to all variables.
+
+
+        EXAMPLES::
+
+            sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"]) 
+            Defining fx0, fx1, fx2, fx3, fx4
+            sage: e = f.hexagon()[0]; e                                                           
+            equations: 5
+            (zeta60^6)*fx0^2 + (-zeta60^6)*fx0
+            sage: f.sreduce(e)                                                                                    
+            fx0 - 1
         """
         if nonzeros is None:
             nonzeros = self._poly_ring.gens()

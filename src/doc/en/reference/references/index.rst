@@ -1692,6 +1692,9 @@ REFERENCES:
 .. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
             curves. preprint, 2005.
 
+.. [CuWa2015] Shawn X. Cui and Zhenghan Wang, Universal quantum computation
+            with metaplectic anyons, J. Math. Physics 56 (2015), arXiv:1405.7778.
+
 .. _ref-D:
 
 **D**
