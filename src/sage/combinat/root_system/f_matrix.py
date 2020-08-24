@@ -16,6 +16,8 @@ from sage.matrix.constructor import matrix
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.ideal import Ideal
 from sage.combinat.root_system.fusion_ring import FusionRing
+import sage.graphs
+from sage.graphs.generators.basic import EmptyGraph
 
 class FMatrix():
     r"""
@@ -437,7 +439,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         and whose edges correspond to equations
         relating two variables.
         """
-        G = graphs.EmptyGraph()
+        G = sage.graphs.generators.basic.EmptyGraph()
         for e in equations:
             s = [v for v in e.variables()]
             for x in s:
