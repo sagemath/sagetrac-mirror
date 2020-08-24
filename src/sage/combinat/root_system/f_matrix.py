@@ -18,6 +18,7 @@ from sage.rings.ideal import Ideal
 from sage.combinat.root_system.fusion_ring import FusionRing
 import sage.graphs
 from sage.graphs.generators.basic import EmptyGraph
+from itertools import product
 
 class FMatrix():
     r"""
@@ -339,19 +340,16 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         if output:
             idx_map = dict()
             ret = dict()
-        for a in self.FR.basis():
-            for b in self.FR.basis():
-                for c in self.FR.basis():
-                    for d in self.FR.basis():
-                        for x in self.f_from(a, b, c, d):
-                            for y in self.f_to(a, b, c, d):
-                                fm = self.fmat(a, b, c, d, x, y, data=False)
-                                if fm is not None and fm not in [0,1]:
-                                    if output:
-                                        v = self._poly_ring.gens()[i]
-                                        ret[(a,b,c,d,x,y)] = v
-                                        idx_map[v] = (a, b, c, d, x, y)
-                                    i += 1
+        for (a,b,c,d) in list(product(self.FR.basis(), repeat=4)):
+            for x in self.f_from(a, b, c, d):
+                for y in self.f_to(a, b, c, d):
+                    fm = self.fmat(a, b, c, d, x, y, data=False)
+                    if fm is not None and fm not in [0,1]:
+                        if output:
+                            v = self._poly_ring.gens()[i]
+                            ret[(a,b,c,d,x,y)] = v
+                            idx_map[v] = (a, b, c, d, x, y)
+                        i += 1
         if output:
             return idx_map, ret
         else:
@@ -388,22 +386,37 @@ You may solve these 41+14=55 equations to compute the F-matrix.
 
     def hexagon(self, verbose=False, output=True, factor=False):
         """
-        Return generators of the ideal of solutions to the Hexagon equations
+        Return generators of the ideal of solutions to the Hexagon equations.
+
+        INPUT:
+
+        - ``verbose`` -- (optional) set True for verbose. Default False
+        - ``output`` -- (optional) set True to output a set of equations. Default True
+        - ``factor`` -- (optional) set False for sreduce simplified equations.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("A1",2),fusion_label="a")
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+            sage: f.hexagon()[-3:]
+            equations: 14
+            [(zeta32^8)*fx11*fx12 + (zeta32^8)*fx12, -fx8*fx12 - fx11, -fx13^2 + fx13]
+            sage: f.hexagon(factor=True)[-3:]
+            equations: 14
+            [fx11 + 1, fx8*fx12 + fx11, fx13 - 1]
+
         """
-        ret = []
-        for a in self.FR.basis():
-            for b in self.FR.basis():
-                for c in self.FR.basis():
-                    for d in self.FR.basis():
-                        for e in self.FR.basis():
-                            for g in self.FR.basis():
-                                rd = self.req(a,b,c,d,e,g)
-                                if rd != 0:
-                                    if factor:
-                                        rd = self.sreduce(rd)
-                                    ret.append(rd)
-                                    if verbose:
-                                        print ("%s,%s,%s,%s,%s,%s : %s"%(a,b,c,d,e,g,rd.factor()))
+        if output:
+            ret = []
+        for (a,b,c,d,e,g) in list(product(self.FR.basis(), repeat=6)):
+            rd = self.req(a,b,c,d,e,g)
+            if rd != 0:
+                if factor:
+                    rd = self.sreduce(rd)
+                if output:
+                    ret.append(rd)
+                if verbose:
+                    print ("%s,%s,%s,%s,%s,%s : %s"%(a,b,c,d,e,g,rd.factor()))
         print ("equations: %s"%len(ret))
         if output:
             return ret
@@ -411,24 +424,38 @@ You may solve these 41+14=55 equations to compute the F-matrix.
     def pentagon(self, verbose=False, output=True, factor=None):
         """
         Return generators of the ideal of Pentagon equations.
+
+        - ``verbose`` -- (optional) set True for verbose. Default False
+        - ``output`` -- (optional) set True to output a set of equations. Default True
+        - ``factor`` -- (optional) set False for sreduce simplified equations.
+
+        In contrast with the hexagon equations, where setting ``factor`` True
+        is a big improvement, for the pentagon equations this option produces
+        little or no simplification.
+
+        EXAMPLES::
+
+            sage: p = FMatrix(FusionRing("A2",1),fusion_label="c")
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
+            sage: p.pentagon()[-3:]                                               
+            equations: 16
+            [-fx5*fx6 + fx1, -fx4*fx6*fx7 + fx2, -fx5*fx7^2 + fx3*fx6]
+            sage: p.pentagon(factor=True)[-3:]
+            equations: 16
+            [fx5*fx6 - fx1, fx4*fx6*fx7 - fx2, fx5*fx7^2 - fx3*fx6]
+
         """
-        ret = []
-        for a in self.FR.basis():
-            for b in self.FR.basis():
-                for c in self.FR.basis():
-                    for d in self.FR.basis():
-                        for e in self.FR.basis():
-                            for f in self.FR.basis():
-                                for g in self.FR.basis():
-                                    for k in self.FR.basis():
-                                        for l in self.FR.basis():
-                                            pd = self.feq(a,b,c,d,e,f,g,k,l)
-                                            if pd != 0:
-                                                if factor:
-                                                    pd = self.sreduce(pd)
-                                                ret.append(pd)
-                                                if verbose:
-                                                    print ("%s,%s,%s,%s,%s,%s,%s,%s,%s : %s"%(a,b,c,d,e,f,g,k,l,pd))
+        if output:
+            ret = []
+        for (a,b,c,d,e,f,g,k,l) in list(product(self.FR.basis(), repeat=9)):
+            pd = self.feq(a,b,c,d,e,f,g,k,l)
+            if pd != 0:
+                if factor:
+                    pd = self.sreduce(pd)
+                if output:
+                    ret.append(pd)
+                if verbose:
+                    print ("%s,%s,%s,%s,%s,%s,%s,%s,%s : %s"%(a,b,c,d,e,f,g,k,l,pd))
         print ("equations: %s"%len(ret))
         if output:
             return ret
