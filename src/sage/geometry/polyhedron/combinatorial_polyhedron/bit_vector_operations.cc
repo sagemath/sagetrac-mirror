@@ -110,6 +110,8 @@ So we do not consider anything newer than AVX2.
 
 // inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B,
 //                          size_t face_length)
+// inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B,
+//                          size_t face_length)
 #if __AVX2__
     /*
     256-bit commands.
@@ -130,6 +132,23 @@ So we do not consider anything newer than AVX2.
             __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
             __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
             __m256i d = _mm256_and_si256(a, b);
+            _mm256_store_si256((__m256i*)&dest[i], d);
+        }
+    }
+
+    inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                      size_t face_length){
+        /*
+        Set ``dest = A | B``, i.e. dest is the union of A and B.
+        ``face_length`` is the length of A, B and dest in terms of uint64_t.
+
+        Note that A,B,dest are assumed to be 32-byte-aligned.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i += 4){
+            __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
+            __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
+            __m256i d = _mm256_or_si256(a, b);
             _mm256_store_si256((__m256i*)&dest[i], d);
         }
     }
@@ -163,6 +182,23 @@ So we do not consider anything newer than AVX2.
         }
     }
 
+    inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                      size_t face_length){
+        /*
+        Set ``dest = A | B``, i.e. dest is the union of A and B.
+        ``face_length`` is the length of A, B and dest in terms of uint64_t.
+
+        Note that A,B,dest are assumed to be 16-byte-aligned.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i += 4){
+            __m128i a = _mm_load_si128((const __m128i*)&A[i]);
+            __m128i b = _mm_load_si128((const __m128i*)&B[i]);
+            __m128i d = _mm_or_si128(a, b);
+            _mm_store_si128((__m128i*)&dest[i], d);
+        }
+    }
+
 #else
     // No intrinsics.
     inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
@@ -177,8 +213,19 @@ So we do not consider anything newer than AVX2.
         }
     }
 
-#endif
+    inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                      size_t face_length){
+        /*
+        Set ``dest = A | B``, i.e. dest is the union of A and B.
+        ``face_length`` is the length of A, B and dest in terms of uint64_t.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i++){
+            dest[i] = A[i] | B[i];
+        }
+    }
 
+#endif
 
 // inline size_t count_atoms(uint64_t* A, size_t face_length)
 #if (__POPCNT__) && (INTPTR_MAX == INT64_MAX)
@@ -219,6 +266,15 @@ So we do not consider anything newer than AVX2.
     }
 
 #endif
+
+inline int is_zero(uint64_t *A, size_t face_length){
+    for (size_t i = 0; i < face_length; i++){
+        if (A[i]){
+            return 0;
+        }
+    }
+    return 1;
+}
 
 size_t get_next_level(\
         uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
