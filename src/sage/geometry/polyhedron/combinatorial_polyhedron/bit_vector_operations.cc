@@ -180,7 +180,7 @@ So we do not consider anything newer than AVX2.
 #endif
 
 
-// inline size_t CountFaceBits(uint64_t* A, size_t face_length)
+// inline size_t count_atoms(uint64_t* A, size_t face_length)
 #if (__POPCNT__) && (INTPTR_MAX == INT64_MAX)
     /*
     Assumes a 64-bit machine and POPCNT
