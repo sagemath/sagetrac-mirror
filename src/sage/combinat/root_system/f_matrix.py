@@ -19,6 +19,7 @@ from sage.combinat.root_system.fusion_ring import FusionRing
 import sage.graphs
 from sage.graphs.generators.basic import EmptyGraph
 from itertools import product
+from sage.misc.misc import inject_variable
 
 class FMatrix():
     r"""
@@ -163,14 +164,16 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         1/2*zeta128^48 - 1/2*zeta128^16
 
     """
-    def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx'):
+    def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
         self.FR = fusion_ring
         if self.FR._fusion_labels is None:
             self.FR.fusion_labels(fusion_label, inject_variables=True)
             #Set up F-symbols entry by entry
         n_vars = self.findcases()
         self._poly_ring = PolynomialRing(self.FR.field(),n_vars,var_prefix)
-        self._poly_ring.inject_variables()
+        if inject_variables:
+            for i in range(self._poly_ring.ngens()):
+                inject_variable("%s%s"%(var_prefix,i),self._poly_ring.gens()[i])
         self._var_to_sextuple, self._fvars = self.findcases(output=True)
 
         #Initialize set of defining equations
@@ -183,7 +186,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         """
         EXAMPLES::
 
-            sage: FMatrix(FusionRing("B2",1,conjugate=True))
+            sage: FMatrix(FusionRing("B2",1))
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             F-Matrix factory for The Fusion Ring of Type B2 and level 1 with Integer Ring coefficients
         """
@@ -219,7 +222,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
 
         return [y for y in self.FR.basis() if self.FR.Nk_ij(b,c,y) != 0 and self.FR.Nk_ij(a,y,d) != 0]
 
-    def fix_gauge(self):
+    def fix_gauge(self, algorithm=''):
         """
         Fix the gauge by forcing F-symbols not already fixed to equal 1.
         This method should be used AFTER adding hex and pentagon eqns to ideal_basis
@@ -234,21 +237,50 @@ You may solve these 41+14=55 equations to compute the F-matrix.
             #Fix var = 1, substitute, and solve equations
             self.ideal_basis.add(var-1)
             print("adding equation...", var-1)
-            self.ideal_basis = set(Ideal(list(self.ideal_basis)).groebner_basis())
-            self.substitute_known_values()
+            self.ideal_basis = set(Ideal(list(self.ideal_basis)).groebner_basis(algorithm=algorithm))
+            self.substitute_degree_one()
             self.update_equations()
 
-    def substitute_known_values(self, eqns=None):
-        if not eqns:
+    def substitute_degree_one(self, eqns=None):
+        if eqns is None:
             eqns = self.ideal_basis
 
+        new_knowns = set()
+        useless = set()
         for eq in eqns:
-            #Ensure polynomial is degree 1 in a single variable
-            if sum(eq.degrees()) == 1 and eq.monomials()[0] not in self.solved:
-                var = eq.monomials()[0]
-                self._fvars[self._var_to_sextuple[var]] = -eq.constant_coefficient()
-                #Add variable to set of known values
-                self.solved.add(var)
+            #Substitute known value from univariate degree 1 polynomial or,
+            #Following Bonderson, p. 37, solve linear equation with two terms
+            #for one of the variables
+            if eq.degree() == 1 and sum(eq.degrees()) <= 3 and eq.lm() not in self.solved:
+                self._fvars[self._var_to_sextuple[eq.lm()]] = -sum(c * m for c, m in zip(eq.coefficients()[1:], eq.monomials()[1:])) / eq.lc()
+                #Add variable to set of known values and remove this equation
+                new_knowns.add(eq.lm())
+                useless.add(eq)
+
+            #Solve equation of the form x_i x_j + k == 0 for x_i
+            # print("equation: ", eq, "variables ", eq.variables())
+            # if eq.degree() == 2 and max(eq.degrees()) == 1 and len(eq.variables()) == 2 and eq.variable(0) not in self.solved:
+            #     self._fvars[self._var_to_sextuple[str(eq.variable(0))]] = - eq.constant_coefficient() / eq.variable(1)
+            #     print("Subbed {} for {}".format(- eq.constant_coefficient() / eq.variable(1), eq.variable(0)))
+            #     #Add variable to set of known values and remove this equation
+            #     new_knowns.add(eq.variable(0))
+            #     useless.add(eq)
+
+        #Update fvars depending on other variables
+        self.solved.update(new_knowns)
+        for sextuple, rhs in self._fvars.items():
+            d = { var : self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if var in self.solved }
+            if len(d) == 2: print("THREE TERM LINEAR EQUATION ENCOUNTERED!")
+            if d:
+                self._fvars[sextuple] = rhs.subs(d)
+
+            # if rhs.variables() and rhs.variable() in self.solved:
+            #     assert rhs.is_univariate(), "RHS expression is not univariate"
+            #     d = { rhs.variable() :  }
+            #     # print("Performing substitution of {} with dictionary {}".format(rhs, d))
+            #     self._fvars[sextuple] = rhs.subs(d)
+
+        return new_knowns, useless
 
     def update_equations(self):
         """
@@ -258,7 +290,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         self.ideal_basis = set(eq.subs(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)
 
-    def get_solution(self, equations=None, factor=False, verbose=True):
+    def get_solution(self, equations=None, factor=False, verbose=True, prune=True, algorithm=''):
         """
         Solve the the hexagon and pentagon relations to evaluate the F-matrix.
 
@@ -274,16 +306,16 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         if equations is None:
             if verbose:
                 print("Setting up hexagons and pentagons...")
-            equations = self.hexagon(factor=factor)+self.pentagon(factor=factor)
+            equations = self.hexagon(factor=factor)+self.pentagon(factor=factor, prune=prune)
         if verbose:
             print("Finding a Groebner basis...")
-        self.ideal_basis = set(Ideal(equations).groebner_basis())
+        self.ideal_basis = set(Ideal(equations).groebner_basis(algorithm=algorithm))
         if verbose:
             print("Solving...")
-        self.substitute_known_values()
+        self.substitute_degree_one()
         if verbose:
             print("Fixing the gauge...")
-        self.fix_gauge()
+        self.fix_gauge(algorithm=algorithm)
         if verbose:
             print("Done!")
         return self._fvars
@@ -449,7 +481,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         """
         lhs = self.fmat(f,c,d,e,g,l)*self.fmat(a,b,l,e,f,k)
         rhs = sum(self.fmat(a,b,c,g,f,h)*self.fmat(a,h,d,e,g,k)*self.fmat(b,c,d,k,h,l) for h in self.FR.basis())
-        if lhs != 0 or not prune:
+        if lhs != 0 or not prune: # it is believed that if lhs=0, the equation carries no new information
             return lhs - rhs
         else:
             return 0
