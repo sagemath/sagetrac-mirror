@@ -899,6 +899,7 @@ cdef class FaceIterator(FaceIterator_base):
 
     For the special case that the all intervals of the lattice not containing zero are boolean
     (e.g. when the polyhedron is simple) the algorithm is modified. See below.
+    We might also apply this, if we discover that a face of the polyhedron is simple.
 
 
     A (slightly generalized) description of the algorithm can be found in [KS2019]_.
@@ -979,13 +980,16 @@ cdef class FaceIterator(FaceIterator_base):
     Note that intervals of length 2 not containing zero, have exactly 2 elements now.
     But the atom-representation of faces might not be unique.
 
-    We do the following modifications:
+    We do the following modifications (also if in some inductive step we discover that this is the case,
+    e.g. a face is simple):
 
     - To check whether an intersection of faces is zero, we check whether the
       atom-representation is zero. Although not unique,
       it works to distinct from zero.
 
     - The intersection of two (relative) facets has always codimension `1` unless empty.
+
+    If the entire lattice has this property:
 
     - To intersect we now additionally unite the coatom representation.
       This gives the correct representation of the new face
