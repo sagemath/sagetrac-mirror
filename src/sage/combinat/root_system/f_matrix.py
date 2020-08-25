@@ -22,8 +22,7 @@ from itertools import product
 from sage.misc.misc import inject_variable
 
 class FMatrix():
-    r"""
-    Return an F-Matrix factory for a FusionRing.
+    r"""Return an F-Matrix factory for a FusionRing.
 
     INPUT:
 
@@ -103,65 +102,102 @@ class FMatrix():
 
         sage: I=FusionRing("E8",2,conjugate=True)
         sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
-        sage: f = FMatrix(I)
-        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
-        sage: f.fmatrix(s,s,s,s)
-        [fx10 fx11]
-        [fx12 fx13]
-        sage: f.f_from(s,s,s,s), f.f_to(s,s,s,s)
-        ([i0, p], [i0, p])
+        sage: f = FMatrix(I,inject_variables=True); f
+        creating variables fx1..fx14
+        F-Matrix factory for The Fusion Ring of Type E8 and level 2 with Integer Ring coefficients
 
-    The F-matrix has not been computed at this stage, so
-    the F-matrix `F^{sss}_s` is filled with variables
-    ``fx10``, ``fx11``, ``fx12``, ``fx13``. These are subject
-    pentagon equations reflecting the Pentagon relation
-    in the monoidal category. They are also subject to
-    Hexagon relations, related to the braiding in the
-    category. The last two statments show that the possible
-    values of `X` and `Y` when `A=B=C=D=s` are `i_0` and `p`.
+    We've exported two sets of variables to the global namespace.
+    We created three variables ``i0, p, s`` to represent the
+    primary fields (simple elements) of the FusionRing. Creating
+    the FMatrix factory also created variables ``fx1,fx2, ... , fx14``
+    in order to solve the hexagon and pentagon equations describing
+    the F-matrix. Since  we called ``FMatrix`` with the parameter ``inject_variables``
+    set true, these have been exported into the global namespace. This
+    is not necessary for the code to work but if you want to
+    run the code experimentally you may want access to these
+    variables.
 
     EXAMPLES::
 
-        sage: f.pentagon()[1:3]                                                                                                                
+        sage: f.fmatrix(s,s,s,s)
+        [fx10 fx11]
+        [fx12 fx13]
+
+    The F-matrix has not been computed at this stage, so
+    the F-matrix `F^{sss}_s` is filled with variables
+    ``fx10``, ``fx11``, ``fx12``, ``fx13``. The task is
+    to solve for these. 
+
+    As explained above The F-matrix `(F^{ABC}_D)_{X,Y}`
+    two other variables `X` and `Y`. We have methods to
+    tell us (depending on `A,B,C,D`) what the possibilities
+    for these are. In this example with `A=B=C=D=s`
+    both `X` and `Y` are allowed to be `i_0` or `s`.
+    
+    EXAMPLES::
+
+        sage: f.f_from(s,s,s,s), f.f_to(s,s,s,s)
+        ([i0, p], [i0, p])
+
+    The last two statments show that the possible values of 
+    `X` and `Y` when `A=B=C=D=s` are `i_0` and `p`.
+
+    The F-matrix is computed by solving the so-called
+    pentagon and hexagon equations. The *pentagon
+    equations* reflect the Mac Lane pentagon axiom in the
+    definition of a monoidal category. The hexagon relations
+    reflect the axioms of a *braided monoidal category*,
+    which are constraints on both the F-matrix and on
+    the R-matrix.
+
+    EXAMPLES::
+
+        sage: f.pentagon()[1:3]
         equations: 41
         [-fx0*fx1 + fx1, -fx1*fx2^2 + fx1]
         sage: f.hexagon()[1:3]
         equations: 14
-        [-fx1*fx5 - fx2, (zeta128^32)*fx1*fx2 + (zeta128^32)*fx1]
+        [fx1*fx5 + fx2, fx2 + 1]
 
-You may solve these 41+14=55 equations to compute the F-matrix.
+    You may solve these 41+14=55 equations to compute the F-matrix.
 
     EXAMPLES::
 
-        sage: f.get_solution()
+        sage: f.get_solution(output=True)
         Setting up hexagons and pentagons...
         equations: 14
-        equations: 41
+        equations: 37
         Finding a Groebner basis...
         Solving...
         Fixing the gauge...
         adding equation... fx1 - 1
-        adding equation... fx3 - 1
+        adding equation... fx11 - 1
         Done!
-        {(s, s, s, s, i0, i0): -1/2*zeta128^48 + 1/2*zeta128^16,
-         (s, s, s, s, i0, p): -1/2*zeta128^48 + 1/2*zeta128^16,
-         (s, s, s, s, p, i0): -1/2*zeta128^48 + 1/2*zeta128^16,
-         (s, s, s, s, p, p): 1/2*zeta128^48 - 1/2*zeta128^16,
-         (s, s, p, i0, p, s): 1,
-         (s, s, p, p, i0, s): 1,
+        {(s, s, s, s, i0, i0): (-1/2*zeta128^48 + 1/2*zeta128^16),
+         (s, s, s, s, i0, p): 1,
+         (s, s, s, s, p, i0): 1/2,
+         (s, s, s, s, p, p): (1/2*zeta128^48 - 1/2*zeta128^16),
+         (s, s, p, i0, p, s): (-1/2*zeta128^48 + 1/2*zeta128^16),
+         (s, s, p, p, i0, s): (-zeta128^48 + zeta128^16),
          (s, p, s, i0, s, s): 1,
          (s, p, s, p, s, s): -1,
          (s, p, p, s, s, i0): 1,
-         (p, s, s, i0, s, p): 1,
-         (p, s, s, p, s, i0): 1,
+         (p, s, s, i0, s, p): (-zeta128^48 + zeta128^16),
+         (p, s, s, p, s, i0): (-1/2*zeta128^48 + 1/2*zeta128^16),
          (p, s, p, s, s, s): -1,
          (p, p, s, s, i0, s): 1,
          (p, p, p, p, i0, i0): 1}
+
+    We now have access to the values of the F-mstrix using
+    the methods :meth:`fmatrix` and :meth:`fmat`.
+
+    EXAMPLES::
+
         sage: f.fmatrix(s,s,s,s)
-        [-1/2*zeta128^48 + 1/2*zeta128^16 -1/2*zeta128^48 + 1/2*zeta128^16]
-        [-1/2*zeta128^48 + 1/2*zeta128^16  1/2*zeta128^48 - 1/2*zeta128^16]
+        [(-1/2*zeta128^48 + 1/2*zeta128^16)                                  1]
+        [                               1/2  (1/2*zeta128^48 - 1/2*zeta128^16)]
         sage: f.fmat(s,s,s,s,p,p)
-        1/2*zeta128^48 - 1/2*zeta128^16
+        (1/2*zeta128^48 - 1/2*zeta128^16)
 
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -172,6 +208,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         n_vars = self.findcases()
         self._poly_ring = PolynomialRing(self.FR.field(),n_vars,var_prefix)
         if inject_variables:
+            print ("creating variables %s%s..%s%s"%(var_prefix,1,var_prefix,n_vars))
             for i in range(self._poly_ring.ngens()):
                 inject_variable("%s%s"%(var_prefix,i),self._poly_ring.gens()[i])
         self._var_to_sextuple, self._fvars = self.findcases(output=True)
@@ -187,7 +224,6 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         EXAMPLES::
 
             sage: FMatrix(FusionRing("B2",1))
-            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             F-Matrix factory for The Fusion Ring of Type B2 and level 1 with Integer Ring coefficients
         """
         return "F-Matrix factory for %s"%self.FR
@@ -206,6 +242,17 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         INPUT:
 
         - ``a,b,c,d`` -- basis elements of the FusionRing.
+
+        EXAMPLES::
+
+            sage: f=FMatrix(FusionRing("A1",3),fusion_label="a")
+            sage: f.fmatrix(a1,a1,a2,a2)
+            [fx6 fx7]
+            [fx8 fx9]
+            sage: f.f_from(a1,a1,a2,a2)
+            [a0, a2]
+            sage: f.f_to(a1,a1,a2,a2)
+            [a1, a3]
         """
 
         return [x for x in self.FR.basis() if self.FR.Nk_ij(a,b,x) != 0 and self.FR.Nk_ij(x,c,d) != 0]
@@ -218,6 +265,19 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         INPUT:
 
         - ``a,b,c,d`` -- basis elements of the FusionRing.
+
+        EXAMPLES::
+
+            sage: B=FMatrix(FusionRing("B2",2),fusion_label="b")
+            sage: B.fmatrix(b2,b4,b4,b2)
+            [fx278 fx279 fx280]
+            [fx281 fx282 fx283]
+            [fx284 fx285 fx286]
+            sage: B.f_from(b2,b4,b4,b2)
+            [b1, b3, b5]
+            sage: B.f_to(b2,b4,b4,b2)
+            [b0, b1, b5]
+
         """
 
         return [y for y in self.FR.basis() if self.FR.Nk_ij(b,c,y) != 0 and self.FR.Nk_ij(a,y,d) != 0]
@@ -290,7 +350,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         self.ideal_basis = set(eq.subs(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)
 
-    def get_solution(self, equations=None, factor=False, verbose=True, prune=True, algorithm=''):
+    def get_solution(self, equations=None, factor=True, verbose=True, prune=True, algorithm='', output=False):
         """
         Solve the the hexagon and pentagon relations to evaluate the F-matrix.
 
@@ -301,12 +361,51 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         - ``factor`` -- (default: ``False``). Set true to use
           the sreduce method to simplify the hexagon and pentagon
           equations before solving them.
+        - ``algorithm`` -- (optional). Algorithm to compute Groebner Basis.
+        - ``output`` -- (optional, default False). Output a dictionary of
+          F-matrix values. This may be useful to see but may be omitted
+          since this information will be available afterwards via the
+          :meth:`fmatrix` and :meth:`fmat` methods.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("A2",1),fusion_label="a")
+            sage: f.get_solution(verbose=False,output=True)
+            equations: 8
+            equations: 16
+            adding equation... fx4 - 1
+            {(a2, a2, a2, a0, a1, a1): 1,
+            (a2, a2, a1, a2, a1, a0): 1,
+            (a2, a1, a2, a2, a0, a0): 1,
+            (a2, a1, a1, a1, a0, a2): 1,
+            (a1, a2, a2, a2, a0, a1): 1,
+            (a1, a2, a1, a1, a0, a0): 1,
+            (a1, a1, a2, a1, a2, a0): 1,
+            (a1, a1, a1, a0, a2, a2): 1}
+
+        After you successfully run ``get_solution`` you may check
+        the correctness of the F-matrix by running :meth:`hexagon`
+        and :meth:`pentagon`. These should return empty lists
+        of equations. In this example, we turn off the factor
+        and prune optimizations to test all instances.
+        
+        EXAMPLES::
+
+            sage: f.hexagon(factor=False)
+            equations: 0
+            []
+            sage: f.hexagon(factor=False,side="right")
+            equations: 0
+            []
+            sage: f.pentagon(factor=False,prune=False)
+            equations: 0
+            []
 
         """
         if equations is None:
             if verbose:
                 print("Setting up hexagons and pentagons...")
-            equations = self.hexagon(factor=factor)+self.pentagon(factor=factor, prune=prune)
+            equations = self.hexagon(verbose=False, factor=factor)+self.pentagon(verbose=False, factor=factor, prune=prune)
         if verbose:
             print("Finding a Groebner basis...")
         self.ideal_basis = set(Ideal(equations).groebner_basis(algorithm=algorithm))
@@ -318,7 +417,8 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         self.fix_gauge(algorithm=algorithm)
         if verbose:
             print("Done!")
-        return self._fvars
+        if output:
+            return self._fvars
 
     def add_equations(self, eqns):
         #TODO: consider replacing set union by ideal intersection. (study computational cost)
@@ -343,28 +443,27 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         EXAMPLES::
 
             sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"])
-            Defining fx0, fx1, fx2, fx3, fx4
             sage: [f.fmat(t,t,t,t,x,y) for x in f.FR.basis() for y in f.FR.basis()]
             [fx1, fx2, fx3, fx4]
-            sage: f.get_solution()                                               
+            sage: f.get_solution(output=True)
             Setting up hexagons and pentagons...
             equations: 5
-            equations: 13
+            equations: 10
             Finding a Groebner basis...
             Solving...
             Fixing the gauge...
             adding equation... fx2 - 1
             Done!
             {(t, t, t, i0, t, t): 1,
-            (t, t, t, t, i0, i0): -zeta60^14 + zeta60^6 + zeta60^4 - 1,
+            (t, t, t, t, i0, i0): (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
             (t, t, t, t, i0, t): 1,
-            (t, t, t, t, t, i0): -zeta60^14 + zeta60^6 + zeta60^4 - 1,
-            (t, t, t, t, t, t): zeta60^14 - zeta60^6 - zeta60^4 + 1}
+            (t, t, t, t, t, i0): (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
+            (t, t, t, t, t, t): (zeta60^14 - zeta60^6 - zeta60^4 + 1)}
             sage: [f.fmat(t,t,t,t,x,y) for x in f.FR.basis() for y in f.FR.basis()]
-            [-zeta60^14 + zeta60^6 + zeta60^4 - 1,
+            [(-zeta60^14 + zeta60^6 + zeta60^4 - 1),
             1,
-            -zeta60^14 + zeta60^6 + zeta60^4 - 1,
-            zeta60^14 - zeta60^6 - zeta60^4 + 1]
+            (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
+            (zeta60^14 - zeta60^6 - zeta60^4 + 1)]
 
         """
         if self.FR.Nk_ij(a,b,x) == 0 or self.FR.Nk_ij(x,c,d) == 0 or self.FR.Nk_ij(b,c,y) == 0 or self.FR.Nk_ij(a,y,d) == 0:
@@ -394,6 +493,26 @@ You may solve these 41+14=55 equations to compute the F-matrix.
     def fmatrix(self,a,b,c,d):
         """
         Return the F-Matrix `F^{a,b,c}_d`.
+
+        INPUT:
+
+        - ``a,b,c,d`` -- basis elements of the FusionRing
+
+        EXAMPLES::
+
+            sage: f=FMatrix(FusionRing("A1",2),fusion_label="c")
+            sage: f.get_solution(verbose=False);
+            equations: 14
+            equations: 37
+            adding equation... fx4 - 1
+            adding equation... fx10 - 1
+            sage: f.f_from(c1,c1,c1,c1)
+            [c0, c2]
+            sage: f.f_to(c1,c1,c1,c1)
+            [c0, c2]
+            sage: f.fmatrix(c1,c1,c1,c1)
+            [ (1/2*zeta32^12 - 1/2*zeta32^4) (-1/2*zeta32^12 + 1/2*zeta32^4)]
+            [ (1/2*zeta32^12 - 1/2*zeta32^4)  (1/2*zeta32^12 - 1/2*zeta32^4)]
         """
 
         X = self.f_from(a,b,c,d)
@@ -407,8 +526,8 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         number of unknown values.
 
         EXAMPLES::
+
             sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"])
-            Defining fx0, fx1, fx2, fx3, fx4
             sage: f.findcases()                                                           
             5
             sage: f.findcases(output=True)
@@ -450,21 +569,19 @@ You may solve these 41+14=55 equations to compute the F-matrix.
 
         INPUT:
 
-        - ``expr`` - an equation to be simplified under the
-          assumption that all variables in nonzeros do not
-          vanish.
-        - ``nonzeros`` - a list of variables that are assumed
+        - ``expr`` -- an equation to be simplified under the
+          assumption that all variables in nonzeros do not vanish.
+        - ``nonzeros`` -- a list of variables that are assumed
           nonzero. Defaults to all variables.
 
 
         EXAMPLES::
 
-            sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"]) 
-            Defining fx0, fx1, fx2, fx3, fx4
-            sage: e = f.hexagon()[0]; e                                                           
+            sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"])
+            sage: e = f.hexagon(factor=False)[0]; e
             equations: 5
             (zeta60^6)*fx0^2 + (-zeta60^6)*fx0
-            sage: f.sreduce(e)                                                                                    
+            sage: f.sreduce(e)
             fx0 - 1
         """
         if nonzeros is None:
@@ -477,7 +594,7 @@ You may solve these 41+14=55 equations to compute the F-matrix.
 
     def feq(self, a, b, c, d, e, f, g, k, l, prune=False):
         """
-        Return True if the Pentagon axiom (Bonderson (2.77)) is satisfied.
+        Return True if the Pentagon axiom ([Bond2007]_ (2.77)) is satisfied.
         """
         lhs = self.fmat(f,c,d,e,g,l)*self.fmat(a,b,l,e,f,k)
         rhs = sum(self.fmat(a,b,c,g,f,h)*self.fmat(a,h,d,e,g,k)*self.fmat(b,c,d,k,h,l) for h in self.FR.basis())
@@ -486,40 +603,54 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         else:
             return 0
 
-    def req(self, a, b, c, d, e, g):
+    def req(self, a, b, c, d, e, g, side="left"):
         """
-        Return True if the Hexagon axiom (Bonderson (2.78)) is satisfied.
+        Return A hexagon equation (Bond[2007]_ (2.78) or (2.79)).
+
+        INPUT:
+
+        - ``a,b,c,d,e,f`` -- basis elements of the FusionRing
+        - ``side`` -- (default left) which hexagon axiom to use
+
         """
-        lhs = self.FR.r_matrix(a,c,e)*self.fmat(a,c,b,d,e,g)*self.FR.r_matrix(b,c,g)
-        rhs = sum(self.fmat(c,a,b,d,e,f)*self.FR.r_matrix(f,c,d)*self.fmat(a,b,c,d,f,g) for f in self.FR.basis())
+        if side == "left":
+            lhs = self.FR.r_matrix(a,c,e)*self.fmat(a,c,b,d,e,g)*self.FR.r_matrix(b,c,g)
+            rhs = sum(self.fmat(c,a,b,d,e,f)*self.FR.r_matrix(f,c,d)*self.fmat(a,b,c,d,f,g) for f in self.FR.basis())
+        elif side == "right":
+            # r(a,b,x) is a root of unity, so its inverse is its complex conjugate
+            lhs = self.FR.r_matrix(c,a,e).conjugate()*self.fmat(a,c,b,d,e,g)*self.FR.r_matrix(c,b,g).conjugate()
+            rhs = sum(self.fmat(c,a,b,d,e,f)*self.FR.r_matrix(c,f,d).conjugate()*self.fmat(a,b,c,d,f,g) for f in self.FR.basis())
         return lhs-rhs
 
-    def hexagon(self, verbose=False, output=True, factor=False):
+    def hexagon(self, verbose=False, output=True, factor=True, side="left"):
         """
         Return generators of the ideal of solutions to the Hexagon equations.
 
         INPUT:
 
-        - ``verbose`` -- (optional) set True for verbose. Default False
-        - ``output`` -- (optional) set True to output a set of equations. Default True
-        - ``factor`` -- (optional) set False for sreduce simplified equations.
+        - ``verbose`` -- (optional, default False) set True for verbose.
+        - ``output`` -- (optional, default True) set True to output a set of equations.
+        - ``factor`` -- (optional, default True) set True for sreduce simplified equations.
+        - ``side`` -- (optional, default ``left``) use left or right hexagon relations
+
+        The left and right hexagon axioms contain similar information
+        but occasionally they are slightly different.
 
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("A1",2),fusion_label="a")
-            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
-            sage: f.hexagon()[-3:]
-            equations: 14
-            [(zeta32^8)*fx11*fx12 + (zeta32^8)*fx12, -fx8*fx12 - fx11, -fx13^2 + fx13]
             sage: f.hexagon(factor=True)[-3:]
             equations: 14
             [fx11 + 1, fx8*fx12 + fx11, fx13 - 1]
+            sage: f.hexagon(factor=False)[-3:]
+            equations: 14
+            [(zeta32^8)*fx11*fx12 + (zeta32^8)*fx12, -fx8*fx12 - fx11, -fx13^2 + fx13]
 
         """
         if output:
             ret = []
         for (a,b,c,d,e,g) in list(product(self.FR.basis(), repeat=6)):
-            rd = self.req(a,b,c,d,e,g)
+            rd = self.req(a,b,c,d,e,g,side=side)
             if rd != 0:
                 if factor:
                     rd = self.sreduce(rd)
@@ -535,6 +666,8 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         """
         Return generators of the ideal of Pentagon equations.
 
+        INPUT:
+
         - ``verbose`` -- (optional) set True for verbose. Default False
         - ``output`` -- (optional) set True to output a set of equations. Default True
         - ``factor`` -- (optional) set False for sreduce simplified equations.
@@ -546,7 +679,6 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         EXAMPLES::
 
             sage: p = FMatrix(FusionRing("A2",1),fusion_label="c")
-            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
             sage: p.pentagon()[-3:]                                               
             equations: 16
             [-fx5*fx6 + fx1, -fx4*fx6*fx7 + fx2, -fx5*fx7^2 + fx3*fx6]
@@ -575,6 +707,24 @@ You may solve these 41+14=55 equations to compute the F-matrix.
         Return a graph whose vertices are variables
         and whose edges correspond to equations
         relating two variables.
+
+        INPUT:
+
+        - ``equations`` -- a list of equations
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("A1",3))
+            sage: G = f.equation_graph(f.hexagon(factor=True))
+            equations: 71
+            sage: G.connected_components_number()
+            14
+            sage: G1=G.connected_components_subgraphs()[0]
+            sage: G1.size()
+            60
+            sage: G1.is_regular()
+            True
+
         """
         G = sage.graphs.generators.basic.EmptyGraph()
         for e in equations:
