@@ -14,57 +14,211 @@
 #include <cstdio>
 using namespace std;
 
+#if __AVX__
+    #include <immintrin.h>
+#elif __SSE4_1__
+    #include <emmintrin.h>
+    #include <smmintrin.h>
+#endif
+
+#if __POPCNT__
+    #include <immintrin.h>
+#endif
+
 /*
-The following three functions can be optimized with intrinsics easily.
-Enabling the intrinsics is subject of #27103.
-The chunksize is the number of vertices/atoms
-that can be handled with one operation.
+WARNING: Any Bit-representation is assumed to be `chunksize`-bit aligned.
+
+As of now, there is no 512-bit equivalent to `_mm256_testc_si256`,
+which is the bottle neck of this function.
+So we do not consider anything newer than AVX2.
 */
 
-// Any Bit-representation is assumed to be `chunksize`-Bit aligned.
-const size_t chunksize = 64;
-
-inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+// inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length)
+#if __AVX__
     /*
-    Return ``A & ~B == 0``.
-    A is not subset of B, iff there is a vertex in A, which is not in B.
-    ``face_length`` is the length of A and B in terms of uint64_t.
+    256-bit commands.
+    See `#else` for a non-intrinsic version.
+
+    Requires header `immintrin.h`.
     */
-    for (size_t i = 0; i < face_length; i++){
-        if (A[i] & ~B[i]){
-            return 0;
+    const size_t chunksize = 256;
+    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+        /*
+        Return ``A & ~B == 0``.
+        A is not subset of B, iff there is a vertex in A, which is not in B.
+        ``face_length`` is the length of A and B in terms of uint64_t.
+
+        Note that A,B are assumed to be 32-byte-aligned.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i += 4){
+            __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
+            __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
+            if (!_mm256_testc_si256(b, a)){ //need to be opposite order !!
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+#elif __SSE4_1__
+    /*
+    128-bit commands.
+    See `#else` for a non-intrinsic version.
+
+    Requires headers `smmintrin.h` and `emmintrin.h`.
+    */
+    const size_t chunksize = 128;
+    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+        /*
+        Return ``A & ~B == 0``.
+        A is not subset of B, iff there is a vertex in A, which is not in B.
+        ``face_length`` is the length of A and B in terms of uint64_t.
+
+        Note that A,B are assumed to be 16-byte-aligned.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i += 2){
+            __m128i a = _mm_load_si128((const __m128i*)&A[i]);
+            __m128i b = _mm_load_si128((const __m128i*)&B[i]);
+            if (!_mm_testc_si128(b, a)){ //need to be opposite order !!
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+#else
+    // No intrinsics.
+    const size_t chunksize = 64;
+    inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
+        /*
+        Return ``A & ~B == 0``.
+        A is not subset of B, iff there is a vertex in A, which is not in B.
+        ``face_length`` is the length of A and B in terms of uint64_t.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i++){
+            if (A[i] & ~B[i]){
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+#endif
+
+// inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B,
+//                          size_t face_length)
+#if __AVX2__
+    /*
+    256-bit commands.
+    See `#else` for a non-intrinsic version.
+
+    Requires header `immintrin.h`.
+    */
+    inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                             size_t face_length){
+        /*
+        Set ``dest = A & B``, i.e. dest is the intersection of A and B.
+        ``face_length`` is the length of A, B and dest in terms of uint64_t.
+
+        Note that A,B,dest are assumed to be 32-byte-aligned.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i += 4){
+            __m256i a = _mm256_load_si256((const __m256i*)&A[i]);
+            __m256i b = _mm256_load_si256((const __m256i*)&B[i]);
+            __m256i d = _mm256_and_si256(a, b);
+            _mm256_store_si256((__m256i*)&dest[i], d);
         }
     }
-    return 1;
-}
 
-inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
-                         size_t face_length){
+#elif __SSE4_1__
     /*
-    Set ``dest = A & B``, i.e. dest is the intersection of A and B.
-    ``face_length`` is the length of A, B and dest in terms of uint64_t.
-    */
-    for (size_t i = 0; i < face_length; i++){
-        dest[i] = A[i] & B[i];
-    }
-}
+    128-bit commands.
+    See `#else` for a non-intrinsic version.
 
-inline size_t count_atoms(const uint64_t* A, size_t face_length){
-    /*
-    Return the number of atoms/vertices in A.
-    This is the number of set bits in A.
-    ``face_length`` is the length of A in terms of uint64_t.
+    Requires header `emmintrin.h`.
+
+    Actually this is already defined for SSE2,
+    but we have chosen chunksize according to `is_subset`.
+
+    So 16-byte-alignment is only given for SSE4.1 and greater.
     */
-    unsigned int count = 0;
-    for (size_t i=0; i<face_length; i++){
-        uint64_t a = A[i];
-        while (a){
-            count += a & 1;
-            a >>= 1;
+    inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                             size_t face_length){
+        /*
+        Set ``dest = A & B``, i.e. dest is the intersection of A and B.
+        ``face_length`` is the length of A, B and dest in terms of uint64_t.
+
+        Note that A,B,dest are assumed to be 16-byte-aligned.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i += 2){
+            __m128i a = _mm_load_si128((const __m128i*)&A[i]);
+            __m128i b = _mm_load_si128((const __m128i*)&B[i]);
+            __m128i d = _mm_and_si128(a, b);
+            _mm_store_si128((__m128i*)&dest[i], d);
         }
     }
-    return count;
-}
+
+#else
+    // No intrinsics.
+    inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                             size_t face_length){
+        /*
+        Set ``dest = A & B``, i.e. dest is the intersection of A and B.
+        ``face_length`` is the length of A, B and dest in terms of uint64_t.
+        */
+        size_t i;
+        for (i = 0; i < face_length; i++){
+            dest[i] = A[i] & B[i];
+        }
+    }
+
+#endif
+
+
+// inline size_t count_atoms(uint64_t* A, size_t face_length)
+#if (__POPCNT__) && (INTPTR_MAX == INT64_MAX)
+    /*
+    Assumes a 64-bit machine and POPCNT
+
+    Requires header `immintrin.h`.
+    */
+    inline size_t count_atoms(uint64_t* A, size_t face_length) {
+        /*
+        Return the number of atoms/vertices in A.
+        This is the number of set bits in A.
+        ``face_length`` is the length of A in terms of uint64_t.
+        */
+        size_t i;
+        unsigned int count = 0;
+        for (i=0; i<face_length; i++){
+            count += (size_t) _mm_popcnt_u64(A[i]);
+        }
+        return count;
+    }
+
+#else // popcount without intrinsics
+    inline size_t count_atoms(uint64_t* A, size_t face_length) {
+        /*
+        Return the number of atoms/vertices in A.
+        This is the number of set bits in A.
+        ``face_length`` is the length of A in terms of uint64_t.
+        */
+        size_t i;
+        unsigned int count = 0;
+        for (i=0; i<face_length; i++){
+            uint64_t a = A[i];
+            a = a - ((a >> 1) & 0x5555555555555555ULL);
+            a = (a & 0x3333333333333333ULL) + ((a >> 2) & 0x3333333333333333ULL);
+            count += ( ((a + (a >> 4)) & 0x0f0f0f0f0f0f0f0fULL) * 0x0101010101010101ULL ) >> 56;
+        return count;
+    }
+
+#endif
 
 size_t get_next_level(\
         uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
