@@ -460,7 +460,7 @@ cdef class FaceIterator_base(SageObject):
                     counter += 1
                     self.structure.simple_vertices[j//64] |= vertex_to_bit_dictionary(j % 64)
 
-            if counter*10 > self.coatoms.n_atoms:
+            if C.is_bounded() and counter*10 > self.coatoms.n_atoms:
                 self.structure.check_simple_face = True
 
                 # Put the simple facets last.
