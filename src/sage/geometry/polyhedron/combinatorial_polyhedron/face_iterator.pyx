@@ -180,7 +180,7 @@ AUTHOR:
 
 from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off
-from .conversions           cimport bit_rep_to_Vrep_list
+from .conversions           cimport bit_rep_to_Vrep_list, vertex_to_bit_dictionary
 from .conversions            import facets_tuple_to_bit_rep_of_facets
 from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
@@ -312,7 +312,11 @@ cdef class FaceIterator_base(SageObject):
         if dual and not C.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded Polyedron")
         cdef int i
+        cdef size_t j
         cdef ListOfFaces some_list  # make Cython aware of type
+        cdef size_t counter
+        cdef size_t atoms_face_length
+        cdef uint64_t** foo
 
         self.dual = dual
         self.structure.dual = dual
@@ -442,13 +446,22 @@ cdef class FaceIterator_base(SageObject):
             self.structure.newfaces_coatom_rep[self.structure.dimension - 1] = self.coatoms_coatom_rep.data  # we start with coatoms
         else:
             self.structure.is_simple = False
-            simple_vertices_tup = tuple(i for i in range(self.atoms.n_faces)
-                                        if count_atoms(self.atoms.data[i], self.atoms.face_length) == self.structure.dimension)
-            if len(simple_vertices_tup)*10 > self.coatoms.n_atoms:
+            self.simple_vertices = ListOfFaces(1, self.coatoms.n_atoms)
+            self.structure.simple_vertices = self.simple_vertices.data[0]
+            for i in range(self.structure.face_length):
+                self.structure.simple_vertices[i] = 0
+
+            foo = self.atoms.data
+            atoms_face_length = self.atoms.face_length
+
+            counter = 0
+            for j in range(self.atoms.n_faces):
+                if count_atoms(foo[j], atoms_face_length) == self.structure.dimension:
+                    counter += 1
+                    self.structure.simple_vertices[j//64] |= vertex_to_bit_dictionary(j % 64)
+
+            if counter*10 > self.coatoms.n_atoms:
                 self.structure.check_simple_face = True
-                self.simple_vertices = facets_tuple_to_bit_rep_of_facets(
-                    (simple_vertices_tup,), self.atoms.n_faces)
-                self.structure.simple_vertices = self.simple_vertices.data[0]
 
                 # Put the simple facets last.
                 sort_faces_by_being_simple(self.structure.newfaces[self.structure.dimension-1],
