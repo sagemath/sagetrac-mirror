@@ -949,7 +949,7 @@ def DoubleOddGraph(const int n):
     G.name("Bipartite double of Odd graph on a set of %d elements"%(2*n + 1))
     return G
 
-def HalfCube(int n):
+def HalfCube(const int n):
     r"""
     Return the halved cube in `n` dimensions.
 
