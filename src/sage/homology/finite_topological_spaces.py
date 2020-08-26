@@ -3,9 +3,53 @@ Finite topological spaces
 
 This module implements finite topological spaces and related concepts.
 
+A *finite topological space* is a topological space with finitely many points and
+a *finite preordered set* is a finite set with a transitive and reflexive relation.
+Finite spaces and finite preordered sets are basically the same objects considered
+from different perspectives. Given a finite topological space `X`, for every point
+`x\in X` the *minimal open set* `U_x` as the intersection of all the open sets
+which contain `x` (it is an open set since arbitrary intersections of open sets
+in finite spaces are open). The minimal open sets constitute a basis for the topology
+of `X`. Indeed, any open set `U` of `X` is the union of the sets `U_x` with `x\in U`.
+This basis is called the *minimal basis of `X`*. A preorder on `X` by `x\leqslant y`
+if `x\in U_y`.
+
+If `X` is now a finite preordered set, one can define a topology on `X` given by
+the basis `\lbrace y\in X\vert y\leqslant x\rbrace_{x\in X}`. Note that if `y\leqslant x`,
+then `y` is contained in every basic set containing `x`, and therefore `y\in U_x`.
+Conversely, if `y\in U_x`, then `y\in\lbrace z\in X\vert z\leqslant x\rbrace`.
+Therefore `y\leqslant x` if and only if `y\in U_x`. This shows that these two
+applications, relating topologies and preorders on a finite set, are mutually
+inverse. This simple remark, made in first place by Alexandroff [1], allows us to study
+finite spaces by combining Algebraic Topology with the combinatorics arising from
+their intrinsic preorder structures. The antisymmetry of a finite preorder
+corresponds exactly to the `T_0` separation axiom. Recall that a topological space
+`X` is said to be *`T_0`* if for any pair of points in `X` there exists an open
+set containing one and only one of them. Therefore finite `T_0`-spaces are in
+correspondence with finite partially ordered sets (posets) [2].
+
+Now, if `X = \lbrace x_1, x_2, \ldots , x_n\rbrace` is a finite space and for
+each `i` the unique minimal open set containing `x_i` is denoted by `U_i`, a
+*topogenous matrix* of the space is a `n \times n` matrix `A = \left[a_{ij}\right]`
+defined by `a_{ij} = 1` if `x_i \in U_j` and `a_{ij} = 0` otherwise (this is the
+transposed matrix of the Definition 1 in [3]). A finite space `X` is `T_0` if and
+only if the topogenous matrix `A` defined above is similar (via a permutation matrix)
+to a certain upper triangular matrix [3]. This is the reason one can assume that
+the topogenous matrix of a finite `T_0`-space is upper triangular.
+
+
 AUTHOR::
 
 - Julián Cuevas-Rozo (2020): Initial version
+
+REFERENCES::
+
+- [1] Alexandroff P., *Diskrete Räume*, Mat. Sb. (N.S.) 2, 501--518 (1937).
+- [2] Barmak, J.A., *Algebraic topology of finite topological spaces and applications*.
+      Lecture Notes in Mathematics Vol. 2032 (2011).
+- [3] Shiraki M., *On finite topological spaces*, Rep. Fac. Sci. Kagoshima Univ.
+      1, 1--8 (1968).
+
 """
 # ****************************************************************************
 #       Copyright (C) 2020 Julián Cuevas-Rozo <jlcrozo@gmail.com>
@@ -207,7 +251,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
             eltos = range(n)
         topogenous = data
 
-    # This fixes a topological sort
+    # This fixes a topological sort (it guarantees an upper triangular topogenous matrix)
     eltos = list(eltos)
     eltos.sort(key = lambda x: len(basis[x]))
 
@@ -1011,3 +1055,5 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             True
         """
         return self._poset
+        
+        
