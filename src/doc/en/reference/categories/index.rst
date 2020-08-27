@@ -99,6 +99,7 @@ Individual Categories
    sage/categories/finitely_generated_lie_conformal_algebras
    sage/categories/finitely_generated_magmas
    sage/categories/finitely_generated_semigroups
+   sage/categories/finitely_generated_proto_vertex_algebras
    sage/categories/finitely_generated_vertex_algebras
    sage/categories/function_fields
    sage/categories/g_sets
@@ -114,8 +115,10 @@ Individual Categories
    sage/categories/graded_hopf_algebras_with_basis
    sage/categories/graded_lie_algebras
    sage/categories/graded_lie_algebras_with_basis
+   sage/categories/graded_lie_conformal_algebras
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
+   sage/categories/graded_vertex_algebras
    sage/categories/graphs
    sage/categories/group_algebras
    sage/categories/groupoid
@@ -158,8 +161,10 @@ Individual Categories
    sage/categories/pointed_sets
    sage/categories/polyhedra
    sage/categories/posets
-   sage/categories/principal_ideal_domains
    sage/categories/poisson_vertex_algebras
+   sage/categories/principal_ideal_domains
+   sage/categories/proto_vertex_algebras
+   sage/categories/proto_vertex_algebras_with_basis
    sage/categories/quotient_fields
    sage/categories/quantum_group_representations
    sage/categories/regular_crystals
@@ -185,6 +190,7 @@ Individual Categories
    sage/categories/super_lie_conformal_algebras
    sage/categories/super_modules
    sage/categories/super_modules_with_basis
+   sage/categories/super_vertex_algebras
    sage/categories/supercommutative_algebras
    sage/categories/supercrystals
    sage/categories/topological_spaces

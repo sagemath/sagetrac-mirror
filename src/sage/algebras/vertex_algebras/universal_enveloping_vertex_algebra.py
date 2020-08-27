@@ -70,6 +70,7 @@ from .vertex_algebra import VertexAlgebra
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras
 from sage.categories.lambda_bracket_algebras import LambdaBracketAlgebras
 from sage.categories.vertex_algebras import VertexAlgebras
+from sage.categories.proto_vertex_algebras import ProtoVertexAlgebras
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.cachefunc import cached_method
@@ -216,7 +217,7 @@ class UniversalEnvelopingVertexAlgebra(VertexAlgebra,CombinatorialFreeModule):
         #Also:self._module is needed for self.ngens()
         regular = tuple([2*g.is_even_odd() for g in L.gens()\
                     if g not in L.central_elements()])
-        if self.is_graded():
+        if self in ProtoVertexAlgebras(self.base_ring()).Graded():
             weights = tuple([g.degree() for g in L.gens() if g not in\
                              L.central_elements()])
             basis = EnergyPartitionTuples(weights,self._ngens,regular=regular)

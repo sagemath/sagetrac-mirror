@@ -1683,7 +1683,7 @@ all_axioms += ("Flying", "Blue",
                "FiniteDimensional", "Connected",
                "FinitelyGeneratedAsLambdaBracketAlgebra",
                "FinitelyGeneratedAsPoissonVertexAlgebra",
-               "FinitelyGeneratedAsVertexAlgebra",
+               "FinitelyGeneratedAsProtoVertexAlgebra",
                "WithBasis",
                "Irreducible",
                "Supercommutative", "Supercocommutative",
@@ -2289,7 +2289,7 @@ class CategoryWithAxiom(Category):
                  not base_category.is_subcategory(AdditiveMagmas()):
                 result = "finitely generated " + result
             elif axiom in ["FinitelyGeneratedAsLambdaBracketAlgebra",
-                           "FinitelyGeneratedAsVertexAlgebra",
+                           "FinitelyGeneratedAsProtoVertexAlgebra",
                            "FinitelyGeneratedAsPoissonVertexAlgebra"]:
                 result = "finitely generated " + result
             else:

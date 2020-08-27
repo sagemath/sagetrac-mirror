@@ -23,7 +23,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.categories.vertex_algebras import VertexAlgebras
+from sage.categories.proto_vertex_algebras import ProtoVertexAlgebras
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.modules import Modules
 from sage.arith.functions import lcm
@@ -115,7 +115,7 @@ class VertexAlgebraIdeal(UniqueRepresentation):
         except AttributeError:
             R = None
 
-        if R not in CommutativeRings() or ambient not in VertexAlgebras(R):
+        if R not in CommutativeRings() or ambient not in ProtoVertexAlgebras(R):
             raise ValueError("ambient must be a vertex algebra, got {}".format(
                               ambient))
 
@@ -126,7 +126,7 @@ class VertexAlgebraIdeal(UniqueRepresentation):
         gens = [ambient(x) for x in gens if x]
         gens = tuple(gens)
 
-        if ambient in VertexAlgebras(ambient.base_ring()).\
+        if ambient in ProtoVertexAlgebras(ambient.base_ring()).\
                                 Graded().FinitelyGenerated():
             return GradedVertexAlgebraIdeal(ambient, *gens,
                                             check=kwds.get('check',True))
@@ -220,7 +220,7 @@ class GradedVertexAlgebraIdeal(VertexAlgebraIdeal,CombinatorialFreeModule):
             sage: I = V.ideal(V.find_singular(6))
             sage: TestSuite(I).run(max_runs=10) # not tested
         """
-        if V not in VertexAlgebras(V.base_ring()).Graded().FinitelyGenerated():
+        if V not in ProtoVertexAlgebras(V.base_ring()).Graded().FinitelyGenerated():
             raise ValueError ("V needs to be a finitely generated H-graded"\
                     "vertex algebra, got {}".format(V) )
 
@@ -242,7 +242,7 @@ class GradedVertexAlgebraIdeal(VertexAlgebraIdeal,CombinatorialFreeModule):
         #TODO: develop vertex-algebra modules to have a right category
         #here
         category = Modules(V.base_ring())
-        if V in VertexAlgebras(V.base_ring()).Super():
+        if V in ProtoVertexAlgebras(V.base_ring()).Super():
             category = category.Super()
         category = category.WithBasis().Graded()
         VertexAlgebraIdeal.__init__(self,V,category)

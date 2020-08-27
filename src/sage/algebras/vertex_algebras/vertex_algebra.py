@@ -383,7 +383,11 @@ class VertexAlgebra(UniqueRepresentation, Parent):
             sage: TestSuite(V).run()
         """
 
-        category = VertexAlgebras(R).or_subcategory(category)
+        try:
+            category = VertexAlgebras(R).or_subcategory(category)
+        except ValueError:
+            category = VertexAlgebras(R).Super().or_subcategory(category)
+
         super(VertexAlgebra, self).__init__(R, names=names,
                                             category = category)
         self._latex_names = latex_names
