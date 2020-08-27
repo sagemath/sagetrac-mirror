@@ -2538,6 +2538,126 @@ def near_polygon_graph(family, params):
 
     raise ValueError("No known near polygons with the given parameters")
 
+def is_hermitian_cover(list array):
+    r"""
+    Given an intersection array it return (q,r)
+    such that hermitian_cover(q,r) is a graph with the given intersection
+    array. If no (q,r) exists, then it returns False
+    """
+    if len(array) != 6:
+        return False
+
+    k = array[0] # q^3
+    p, n = is_prime_power(k, get_data=True)
+    if n == 0:  # k not prime power
+        return False
+
+    q = p**(n // 3)
+    mu = array[4] # c_2
+    r = array[1] // mu + 1
+
+    if r <= 1: # r=1 -> complete graph
+        return False
+
+    if array != [q**3, (r-1) * mu, 1, 1, mu, q**3]:
+        return False
+
+    if (q*q - 1) % r != 0:
+        return False
+
+    m = (q*q - 1) // r
+
+    if mu == (q+1) * m:
+        #case ii, iii
+        if q % 2 == 0 and (q + 1) % r == 0:
+            #case ii
+            return (q, r)
+        if q % 2 == 1 and ((q+1) // 2) % r == 0:
+            #case iii
+            return (q, r)
+        return False
+
+    if mu == (q**3 - 1) // r and r % 2 == 1 and (q-1) % r == 0:
+        #case i
+        return (q, r)
+
+    return False
+
+def hermitian_cover(const int q, const int r):
+    r"""
+    Implent an antipodal $r$-cover of $K_{q^3+1}$
+    using the construction due to Cameron ...
+    """
+    if not is_prime_power(q):
+        raise ValueError("q must be prime power")
+
+    if not( (r % 2 == 1 and (q-1) % r == 0) or
+            (q % 2 == 0 and (q+1) % r == 0) or
+            (q % 2 == 1 and ((q+1) // 2) % r == 0)):
+        raise ValueError("Invalid input")
+
+    gen = libgap.Z(q * q)
+    one = gen^0
+    zero = gen - gen
+
+    # it follows that representatives of Fq2^* / K = [gen^i for i in range(r)]
+    Kreps = [gen**i for i in range(r)]
+
+    # vertices are Kv for isotropic v
+    GU = libgap.GU(3, q)
+    e1 = [one, zero, zero]
+    iso_points = libgap.Orbit(GU, e1, libgap.OnLines)
+
+    vertices = [k*v for k in Kreps for v in iso_points]
+
+    # create global variable for function
+    libgap.set_global("zero", zero)
+    libgap.set_global("r", r)
+    libgap.set_global("gen", gen)
+
+    # we need to define the action of GU on (k,v)
+    func = """function(v, M)
+        local w, i, b, k;
+
+        w := ShallowCopy(v*M);
+
+        i := 1;
+        while i < 4 and w[i] = zero do
+            i := i + 1;
+        od;
+        b := w[i];
+
+        i := 1;
+        while i < 4 do
+             w[i] := w[i] / b;
+             i := i + 1;
+        od;
+
+        k := LogFFE(b, gen);
+        i := k mod r;
+        b := gen^i;
+
+        return b*w;
+    end;"""
+
+    gapOnKLines = libgap.eval(func)
+    GUAction = libgap.Action(GU, vertices, gapOnKLines)
+
+    # clear GAP's global variables
+    libgap.unset_global("zero")
+    libgap.unset_global("r")
+    libgap.unset_global("gen")
+
+    e3 = [zero, zero, one]  # other isotropic, with H(e3, e1) = 1 and so e3 ~ e1
+    e1pos = libgap.Position(vertices, e1)
+    e3pos = libgap.Position(vertices, e3)
+
+    # now we have that
+    # (e1pos, e11pos) is an edge
+    edges = libgap.Orbit(GUAction, [e1pos, e3pos], libgap.OnSets)
+    G = Graph(edges, format="list_of_edges")
+    return G
+
 # dictionary intersection_array (as tuple)  -> construction
 # of spordaic distance-regular graphs
 from sage.graphs.generators.smallgraphs import (FosterGraph, BiggsSmithGraph,
@@ -2604,7 +2724,8 @@ _sporadic_graph_database = {
 _infinite_families_database = [
     (is_classical_parameters_graph, graph_with_classical_parameters),
     (is_pseudo_partition_graph, pseudo_partition_graph),
-    (is_near_polygon, near_polygon_graph)
+    (is_near_polygon, near_polygon_graph),
+    (is_hermitian_cover, hermitian_cover),
 ]
 
 def distance_regular_graph(list arr, existence=False, check=True):
