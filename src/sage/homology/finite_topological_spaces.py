@@ -68,7 +68,8 @@ from sage.combinat.posets.posets import Poset
 
 def dict_to_matrix(ordered_eltos, dictionary):
     r"""
-    Return a matrix from the information given by ``dictionary``.    
+    Return a matrix from the information given by ``dictionary``.
+    
     INPUT:
 
     - ``ordered_eltos`` -- a list.
@@ -121,7 +122,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
     - ``elements`` -- it is ignored when data is of type 1, 2 or 4. When ``data``
       is a topogenous matrix, this parameter gives the underlying set of the space.
 
-    EXAMPLES::
+    EXAMPLES:
 
     A dictionary as ``data``::
 
@@ -132,16 +133,16 @@ def FiniteSpace(data, elements=None, is_T0=False):
         sage: type(T)
         <class 'sage.homology.finite_topological_spaces.FiniteTopologicalSpace'>
         sage: FiniteSpace({'a': {'a', 'b'}})
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: The data does not correspond to a valid dictionary
         sage: FiniteSpace({'a': {'a', 'b'}, 'b': {'a', 'b'}, 'c': {'a', 'c'}})
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: The introduced data does not define a topology
 
     When ``data`` is a tuple or a list, the elements are in ``range(n)`` where
-    ``n`` is the lenght of ``data``::
+    ``n`` is the length of ``data``::
 
         sage: from sage.homology.finite_topological_spaces import FiniteSpace
         sage: T = FiniteSpace([{0, 3}, {1, 3}, {2, 3}, {3}]) ; T
@@ -152,7 +153,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
         sage: T.elements()
         [3, 0, 1, 2]
         sage: FiniteSpace(({0, 2}, {0, 2}))
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         ValueError: This kind of data assume the elements are in range(2)
 
@@ -179,7 +180,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
         sage: M.elements()
         [5, 'e', 'h', 0, 'c']
         sage: FiniteSpace(mat, elements=[5, 'e', 'h', 0, 0])
-        Traceback (most recent call last)
+        Traceback (most recent call last):
         ...
         AssertionError: Not valid list of elements
 
@@ -253,7 +254,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
     eltos.sort(key = lambda x: len(basis[x]))
 
     # Now, check that 'basis' effectively defines a minimal basis for a topology
-    if topogenous==None:
+    if topogenous is None:
         topogenous = dict_to_matrix(eltos, basis)
     squared = topogenous*topogenous
     if not topogenous.nonzero_positions() == squared.nonzero_positions():
@@ -383,7 +384,7 @@ class FiniteTopologicalSpace(Parent):
             sage: from sage.homology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {1}, {2, 3}, {3}))
             sage: T.underlying_set()
-            
+            {0, 1, 2, 3}
         """
         return set(self._elements)
 
@@ -411,7 +412,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T.subspace() == T
             True
         """
-        if points==None:
+        if points is None:
             return self
         assert isinstance(points, (tuple, list, set)), \
                "Parameter must be of type tuple, list or set"
@@ -471,7 +472,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T.Ux(4)
             {3, 4}
             sage: T.Ux(5)
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: The point 5 is not an element of the space
         """
@@ -561,7 +562,7 @@ class FiniteTopologicalSpace(Parent):
         if self._T0==True:
             return self
         else:
-            if points==None:
+            if points is None:
                 points = [list(A)[0] for A in self._T0]
             elif check==True:
                 assert isinstance(points, (tuple, list, set)), \
@@ -578,7 +579,7 @@ class FiniteTopologicalSpace(Parent):
                             class_x = k
                             partition.pop(k)
                             break
-                    if class_x==None:
+                    if class_x is None:
                             raise ValueError("Parameter 'points' is not a valid set of representatives")
             return self.subspace(points, is_T0=True)
 
@@ -784,7 +785,7 @@ class FiniteTopologicalSpace(Parent):
             True
             sage: T.boundary(T.boundary(Fr)) == T.boundary(Fr)
             True
-            sage: X == Fr.union(T.interior(E), T.exterior(E))|||
+            sage: X == Fr.union(T.interior(E), T.exterior(E))
             True
         """
         X = self.underlying_set()
@@ -954,7 +955,7 @@ class FiniteTopologicalSpace(Parent):
             sage: T.closure(E) == Iso.union(T.derived(E))
             True
         """
-        if E==None: 
+        if E is None: 
             E = self.underlying_set()
         return set([x for x in E if self.is_isolated_point(x, E)])
 
