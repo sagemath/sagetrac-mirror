@@ -40,11 +40,11 @@ the topogenous matrix of a finite `T_0`-space is upper triangular.
 
 AUTHOR::
 
-- Julián Cuevas-Rozo (2020): Initial version
+- Julian Cuevas-Rozo (2020): Initial version
 
-REFERENCES::
+REFERENCES:
 
-- [1] Alexandroff P., *Diskrete Räume*, Mat. Sb. (N.S.) 2, 501--518 (1937).
+- [1] Alexandroff P., *Diskrete Raume*, Mat. Sb. (N.S.) 2, 501--518 (1937).
 - [2] Barmak, J.A., *Algebraic topology of finite topological spaces and applications*.
       Lecture Notes in Mathematics Vol. 2032 (2011).
 - [3] Shiraki M., *On finite topological spaces*, Rep. Fac. Sci. Kagoshima Univ.
@@ -52,7 +52,7 @@ REFERENCES::
 
 """
 # ****************************************************************************
-#       Copyright (C) 2020 Julián Cuevas-Rozo <jlcrozo@gmail.com>
+#       Copyright (C) 2020 Julian Cuevas-Rozo <jlcrozo@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ def dict_to_matrix(ordered_eltos, dictionary):
     - ``dictionary`` -- a dict whose key list is ``ordered_eltos`` and its values
       are sets of elements in ``ordered_eltos``.
 
-    OUTPUT::
+    OUTPUT:
 
     - A binary matrix whose `(i,j)` entry is equal to 1 if and only if ``ordered_eltos[i]``
       is in ``dictionary[ordered_eltos[j]]``.
