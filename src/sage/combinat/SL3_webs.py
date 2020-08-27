@@ -8,6 +8,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 from sage.symbolic.constants import pi
+from sage.misc.cachefunc import cached_method
 
 from sage.combinat.SL3_webs_coloring import Color
 
@@ -56,17 +57,31 @@ def AreCrossing(Pos, P1, P2, P3, P4):
 
 class Web(object):
     """
+    INPUT:
+
+    - ``InitState`` -- an n-tuple of 0, 1, or -1
+
+    - ``InitColor`` -- is an n-tuple of 1 or -1
+
+    Not every pair of n-tuples will work.
+
+    The example on page 8 of
+    ​https://arxiv.org/pdf/q-alg/9712046.pdf is
+    InitState=(1,1,0,0,-1,0,-1), InitColor=(1,-1,1,-1,1,1,1).
+
     EXAMPLES::
 
         sage: from sage.combinat.SL3_webs import Web
-        sage: W = Web([1,2,3,4],[1,1,-1,-1]); W
-        Web with 4 vertices (4 on the boundary)
+        sage: W = Web((1,1,0,0,-1,0,-1), (1,-1,1,-1,1,1,1)); W
+        Web with 14 vertices (7 on the boundary)
     """
     def __init__(self, InitStates, InitColor, **kwargs):
         # (Graph = , Pos = (En forme KK), BlackVertices =, WhiteVertices =, n =)
 
-        self._InitStates = copy(InitStates)
-        self._InitColor = copy(InitColor)
+        assert all(x in [-1, 0, 1] for x in InitStates)
+        assert all(x in [-1, 1] for x in InitColor)
+        self._InitStates = list(InitStates)
+        self._InitColor = list(InitColor)
 
         self._n = len(self._InitStates)
         self._Graph = Graph(multiedges=True)
@@ -126,7 +141,7 @@ class Web(object):
         # building the web
         ThisStepVertices = self._Graph.vertices()
         ThisStepStates = list(self._InitStates)
-        ThisStepColors = InitColor
+        ThisStepColors = list(InitColor)
         Step = 0
         NewVertex = self._n + 1
         HeightNewVertices = 0
@@ -207,23 +222,48 @@ class Web(object):
     def __repr__(self):
         """
         Return a string representation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.SL3_webs import Web
+            sage: W = Web((1,1,0,0,-1,0,-1), (1,-1,1,-1,1,1,1)); W
+            Web with 14 vertices (7 on the boundary)
         """
         return "Web with %s vertices (%s on the boundary)" % (self._Graph.order(), self._n)
 
     def __eq__(self, other):  # Teste les etiquettes!
         """
         Compare ``self`` with ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.SL3_webs import Web
+            sage: W = Web((1,1,0,0,-1,0,-1), (1,-1,1,-1,1,1,1)); W
+            Web with 14 vertices (7 on the boundary)
+            sage: W == W
+            True
         """
         return (self._InitStates == other._InitStates and
-                self._InitClasp == other._InitClasp and
+                self._InitColor == other._InitColor and
                 self._Graph.edges() == other._Graph.edges())
 
     def __ne__(self, other):
+        """
+        Compare ``self`` with ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.SL3_webs import Web
+            sage: W = Web((1,1,0,0,-1,0,-1), (1,-1,1,-1,1,1,1)); W
+            Web with 14 vertices (7 on the boundary)
+            sage: W != W
+            False
+        """
         return not self.__eq__(other)
 
     def __hash__(self):  # Teste les etiquettes?
         return hash((tuple(self._InitStates),
-                     tuple(self._InitClasp),
+                     tuple(self._InitColor),
                      self._Graph.copy(immutable=True),
                      tuple(self._Graph.edges())))
 
@@ -240,9 +280,9 @@ class Web(object):
         EXAMPLES::
 
             sage: from sage.combinat.SL3_webs import Web
-            sage: W = Web([1,2,3,4],[1,1,-1,-1]); W
+            sage: W = Web((1,1,0,0,-1,0,-1), (1,-1,1,-1,1,1,1))
             sage: W.plot()
-            Graphics object consisting of 5 graphics primitives
+            Graphics object consisting of 29 graphics primitives
         """
         FigSize = kwargs.get("FigSize")
         if FigSize is None:
@@ -251,13 +291,12 @@ class Web(object):
         vcolors = {"grey": self._BlackVertices, "white": self._WhiteVertices}
 
         if kwargs.get("Layout") == 'KK':
-            self._Graph.plot(pos=self._Pos, vertex_colors=vcolors,
-                             edge_labels=kwargs.get("EdgeLabels"),
-                             figsize=FigSize, aspect_ratio='automatic')
-        else:
-            self._Graph.plot(pos=self._PosFP, vertex_colors=vcolors,
-                             edge_labels=kwargs.get("EdgeLabels"),
-                             figsize=FigSize, aspect_ratio='automatic')
+            return self._Graph.plot(pos=self._Pos, vertex_colors=vcolors,
+                                    edge_labels=kwargs.get("EdgeLabels"),
+                                    figsize=FigSize, aspect_ratio='automatic')
+        return self._Graph.plot(pos=self._PosFP, vertex_colors=vcolors,
+                                edge_labels=kwargs.get("EdgeLabels"),
+                                figsize=FigSize, aspect_ratio='automatic')
 
     @cached_method
     def theR(self):
@@ -267,9 +306,9 @@ class Web(object):
         EXAMPLES::
 
             sage: from sage.combinat.SL3_webs import Web
-            sage: W = Web([1,2,3,4],[1,1,-1,-1])
+            sage: W = Web((1,1,0,0,-1,0,-1), (1,-1,1,-1,1,1,1))
             sage: W.theR()
-            Multivariate Polynomial Ring in x11, x12, x13, x21, x22, x23, x31, x32, x33, x41, x42, x43 over Rational Field
+            Multivariate Polynomial Ring in x11, x12, ... over Rational Field
         """
         n = self._n
         vars = [f"x{i}{j}" for i in range(1, n + 1) for j in range(1, 4)]
@@ -280,11 +319,16 @@ class Web(object):
         """
         Compute the invariant associated to the web.
 
-        EXAMPLES:: ?
+        EXAMPLES::
+
+            sage: from sage.combinat.SL3_webs import Web
+            sage: W = Web((1,1,0,0,-1,0,-1), (1,-1,1,-1,1,1,1))
+            sage: W.invariant()
+            -x13*x21*x31*x41*x51*x62*x71 ...
         """
         n = self._n
         H = self._Graph
-        He = H.edges()
+        He = tuple(H.edges())
         Hl = array.array('b')
         Hn = []
         Sum = {}
@@ -297,7 +341,7 @@ class Web(object):
             # vertex in common with edge E.
             Ne = [He.index(x) for x in H.edges_incident(E[0])]
             Ne += [He.index(x) for x in H.edges_incident(E[1])]
-            Hn.append(copy(Ne))
+            Hn.append(Ne)
 
         Color(Hl, Hn, He, 0, Sum, lie, n)
         return self.theR()(Sum)
@@ -310,11 +354,12 @@ class Web(object):
         G = self._Graph
         n = self._n
         lie = []
+        all_edges = tuple(G.edges(labels=False))
         for I in range(n + 1, len(G.vertices()) + 1):
             Neighbors = G.neighbors(I)
             A = Neighbors[0]
             B = Neighbors[1]
-            ea = G.edges(labels=False).index(tuple(sorted([A, I])))
-            eb = G.edges(labels=False).index(tuple(sorted([B, I])))
+            ea = all_edges.index(tuple(sorted([A, I])))
+            eb = all_edges.index(tuple(sorted([B, I])))
             lie.append([ea, eb])
         return lie
