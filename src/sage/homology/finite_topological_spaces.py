@@ -63,10 +63,7 @@ REFERENCES::
 from sage.structure.parent import Parent
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
-from sage.categories.posets import Posets
-from sage.categories.finite_posets import FinitePosets
 from sage.combinat.posets.posets import Poset
-from sage.combinat.posets.hasse_diagram import HasseDiagram
 
 
 def dict_to_matrix(ordered_eltos, dictionary):
@@ -957,7 +954,8 @@ class FiniteTopologicalSpace(Parent):
             sage: T.closure(E) == Iso.union(T.derived(E))
             True
         """
-        if E==None: E = self.underlying_set()
+        if E==None: 
+            E = self.underlying_set()
         return set([x for x in E if self.is_isolated_point(x, E)])
 
 
