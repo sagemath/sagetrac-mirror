@@ -747,7 +747,7 @@ def valuation(m, *args, **kwds):
         return ZZ(m).valuation(*args, **kwds)
 
 
-def prime_powers(start, stop=None):
+def prime_powers(start, stop=None, algorithm="pari_primes"):
     r"""
     List of all positive primes powers between ``start`` and
     ``stop``-1, inclusive. If the second argument is omitted, returns
@@ -842,6 +842,20 @@ def prime_powers(start, stop=None):
         sage: from gmpy2 import mpz
         sage: prime_powers(mpz(20))
         [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
+
+    Check algorithm parameter::
+
+        sage: prime_powers(2**30)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot compute primes beyond 436273290
+
+        sage: prime_powers(30)
+        [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29]
+        sage: prime_powers(30, algorithm="pari_primes")
+        [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29]
+        sage: prime_powers(30, algorithm="pari_isprime")
+        [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29]
     """
     start = ZZ(start)
 
@@ -856,7 +870,7 @@ def prime_powers(start, stop=None):
         return []
 
     output = []
-    for p in prime_range(stop):
+    for p in prime_range(stop, algorithm=algorithm):
         q = p
         while q < start:
             q *= p
