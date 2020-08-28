@@ -84,6 +84,7 @@ inline int is_zero(uint64_t *A, size_t face_length){
         }
     }
     return 1;
+}
 
 inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length){
     /*
