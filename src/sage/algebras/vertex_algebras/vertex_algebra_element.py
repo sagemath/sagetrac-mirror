@@ -19,7 +19,7 @@ AUTHORS:
 from sage.functions.other import binomial, factorial
 from sage.rings.infinity import Infinity
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 
 class UniversalEnvelopingVertexAlgebraElement(IndexedFreeModuleElement):
     """

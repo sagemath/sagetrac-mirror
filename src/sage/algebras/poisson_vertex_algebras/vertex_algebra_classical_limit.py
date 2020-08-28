@@ -55,7 +55,7 @@ from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.cachefunc import cached_method
 from sage.combinat.family import Family
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.combinat.partition import Partition
 from sage.rings.all import QQ, ZZ
 from sage.misc.lazy_attribute import lazy_attribute
