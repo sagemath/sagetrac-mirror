@@ -48,6 +48,8 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.poisson_vertex_algebras import PoissonVertexAlgebras
+from sage.categories.proto_poisson_vertex_algebras import ProtoPoissonVertexAlgebras
+from sage.categories.vertex_algebras import VertexAlgebras
 from sage.categories.proto_vertex_algebras import ProtoVertexAlgebras
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -725,9 +727,13 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
             if not V in ProtoVertexAlgebras(R).Quotients():
                 raise NotImplementedError("classical limit is not implemented"\
                                           "for {}".format(V))
-        defcat = PoissonVertexAlgebras(R).Graded().FinitelyGenerated().\
-                 WithBasis()
+        if V in VertexAlgebras(R).Super():
+            defcat = PoissonVertexAlgebras(R).Super().Graded().FinitelyGenerated().WithBasis()
+        else:
+            defcat = PoissonVertexAlgebras(R).Graded().FinitelyGenerated().WithBasis()
+
         category = defcat.or_subcategory(category)
+
         try:
             names = V.variable_names()
         except ValueError:
@@ -1037,7 +1043,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
         if not isinstance(self._ambient, UEA):
            raise NotImplementedError("morphisms are not implemented for "\
                                      "{}".format(self))
-        if not codomain in PoissonVertexAlgebras(self.base_ring()):
+        if not codomain in ProtoPoissonVertexAlgebras(self.base_ring()):
             return False
         if len(im_gens) != self.ngens():
             return False
@@ -1150,7 +1156,7 @@ class VertexAlgebraClassicalLimit(CombinatorialFreeModule):
             sage: w.lt()
             3*e_2*h_3^2*f_3*e_4*f_4*e_5
         """
-        if self.is_super():
+        if self in PoissonVertexAlgebras(self.base_ring()).Super():
             raise NotImplementedError("jet_algebra is not implemented for "\
                                       "super Poisson vertex algebras.")
 

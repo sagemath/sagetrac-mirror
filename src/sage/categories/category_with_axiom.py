@@ -1682,7 +1682,7 @@ all_axioms += ("Flying", "Blue",
                "Nilpotent",
                "FiniteDimensional", "Connected",
                "FinitelyGeneratedAsLambdaBracketAlgebra",
-               "FinitelyGeneratedAsPoissonVertexAlgebra",
+               "FinitelyGeneratedAsDifferentialAlgebra",
                "FinitelyGeneratedAsProtoVertexAlgebra",
                "WithBasis",
                "Irreducible",
@@ -2290,7 +2290,7 @@ class CategoryWithAxiom(Category):
                 result = "finitely generated " + result
             elif axiom in ["FinitelyGeneratedAsLambdaBracketAlgebra",
                            "FinitelyGeneratedAsProtoVertexAlgebra",
-                           "FinitelyGeneratedAsPoissonVertexAlgebra"]:
+                           "FinitelyGeneratedAsDifferentialAlgebra"]:
                 result = "finitely generated " + result
             else:
                 result = uncamelcase(axiom) + " " + result

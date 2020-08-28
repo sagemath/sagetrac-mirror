@@ -22,6 +22,7 @@ AUTHORS:
 #*****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_rings import CommutativeRings
+from sage.categories.proto_poisson_vertex_algebras import ProtoPoissonVertexAlgebras
 from sage.categories.poisson_vertex_algebras import PoissonVertexAlgebras
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -109,7 +110,7 @@ class PoissonVertexAlgebraIdeal(UniqueRepresentation):
             R = None
 
         if R not in CommutativeRings() or\
-            ambient not in PoissonVertexAlgebras(R):
+            ambient not in ProtoPoissonVertexAlgebras(R):
             raise ValueError("ambient must be a Poisson vertex algebra, got {}"\
                             .format(ambient))
 
@@ -121,7 +122,7 @@ class PoissonVertexAlgebraIdeal(UniqueRepresentation):
         gens = tuple(gens)
         if len(gens)==0: gens=(ambient.zero(),)
 
-        if ambient in PoissonVertexAlgebras(ambient.base_ring()).\
+        if ambient in ProtoPoissonVertexAlgebras(ambient.base_ring()).\
                                 Graded().FinitelyGenerated():
             return GradedPoissonVertexAlgebraIdeal(ambient, *gens,
                                                    check=kwds.get('check',True))
@@ -199,7 +200,7 @@ class GradedPoissonVertexAlgebraIdeal(PoissonVertexAlgebraIdeal,
             sage: I = P.ideal(a0**3+a1*a2*a3)
             sage: TestSuite(I).run()    # not tested
         """
-        if V not in PoissonVertexAlgebras(V.base_ring()).Graded()\
+        if V not in ProtoPoissonVertexAlgebras(V.base_ring()).Graded()\
             .FinitelyGenerated():
             raise ValueError ("V needs to be a finitely generated H-graded "\
                     "Poisson vertex algebra, got {}".format(V))

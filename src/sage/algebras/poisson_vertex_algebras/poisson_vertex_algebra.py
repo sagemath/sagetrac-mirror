@@ -223,6 +223,7 @@ AUTHORS:
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.proto_vertex_algebras import ProtoVertexAlgebras
+from sage.categories.vertex_algebras import VertexAlgebras
 from sage.categories.poisson_vertex_algebras import PoissonVertexAlgebras
 from sage.categories.commutative_rings import CommutativeRings
 from sage.structure.parent import Parent
@@ -284,16 +285,16 @@ class PoissonVertexAlgebra(UniqueRepresentation, Parent):
             raise NotImplementedError("{} is not implemented yet".format(
                                       kwds.keys()))
 
-        category = PoissonVertexAlgebras(R).or_subcategory(category)
-
         #Until ModulesWithBasis(R) has a working `change_ring` method
         #We need to check the base ring of arg0 is the same as R
         if arg0 in ProtoVertexAlgebras(R).Graded().FinitelyGenerated().WithBasis():
-            from .vertex_algebra_classical_limit import \
-                                                    VertexAlgebraClassicalLimit
-            category = category.Graded().FinitelyGenerated().WithBasis()
-            if arg0 in ProtoVertexAlgebras(R).Super():
-                category = category.Super()
+
+            defcat = PoissonVertexAlgebras(R)
+            if arg0 in VertexAlgebras(R).Super():
+                defcat = defcat.Super()
+            
+            category = defcat.Graded().FinitelyGenerated().WithBasis().or_subcategory(category)
+            from .vertex_algebra_classical_limit import VertexAlgebraClassicalLimit
             return VertexAlgebraClassicalLimit(R, arg0, category=category)
 
         raise ValueError ("arg0 needs to be a finitely generated H-graded"\

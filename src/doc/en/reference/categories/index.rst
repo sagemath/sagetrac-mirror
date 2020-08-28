@@ -118,6 +118,7 @@ Individual Categories
    sage/categories/graded_lie_conformal_algebras
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
+   sage/categories/graded_poisson_vertex_algebras
    sage/categories/graded_vertex_algebras
    sage/categories/graphs
    sage/categories/group_algebras
@@ -163,6 +164,7 @@ Individual Categories
    sage/categories/posets
    sage/categories/poisson_vertex_algebras
    sage/categories/principal_ideal_domains
+   sage/categories/proto_poisson_vertex_algebras
    sage/categories/proto_vertex_algebras
    sage/categories/proto_vertex_algebras_with_basis
    sage/categories/quotient_fields
