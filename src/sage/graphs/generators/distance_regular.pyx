@@ -2556,12 +2556,28 @@ def is_hermitian_cover(list array):
 
     EXAMPLES::
 
+        sage: from sage.graphs.generators.distance_regular import \
+        ....: hermitian_cover, is_hermitian_cover
+        sage: hermitian_cover(*is_hermitian_cover([64, 60, 1, 1, 15, 64]))
+        Antipodal 5-cover of K_65: Graph on 325 vertices
+        sage: is_hermitian_cover([18, 4, 1, 1, 6, 17])
+        False
+
     REFERENCES:
 
     See [Cam1991]_ for the original paper and [BCN1989A]_ for a more recent
     discussion.
 
     TESTS::
+
+        sage: from sage.graphs.generators.distance_regular import \
+        ....: hermitian_cover, is_hermitian_cover
+        sage: is_hermitian_cover([])
+        False
+        sage: is_hermitian_cover([27, 24, 1, 1, 8, 27])  # antipodal 4-cover
+        False
+        sage: is_hermitian_cover([27, 16, 1, 1, 16, 27])
+        (3, 2)
     """
     from sage.arith.misc import is_prime_power
 
@@ -2606,7 +2622,7 @@ def is_hermitian_cover(list array):
 
 def hermitian_cover(const int q, const int r):
     r"""
-    Return an antipodal $r$-cover of $K_{q^3}$ using the construction
+    Return an antipodal $r$-cover of $K_{q^3 + 1}$ using the construction
     due to Cameron [Cam1991]_.
 
     The pair `(q, r)` must satisfy one of the following conditions:
@@ -2628,6 +2644,15 @@ def hermitian_cover(const int q, const int r):
 
     EXAMPLES::
 
+        sage: from sage.graphs.generators.distance_regular import hermitian_cover
+        sage: G = hermitian_cover(2, 3); G
+        Antipodal 3-cover of K_9: Graph on 27 vertices
+        sage: G.is_antipodal()
+        True
+        sage: H = G.folded_graph()
+        sage: H.is_isomorphic(graphs.CompleteGraph(9))
+        True
+
     ALGORITHM:
 
     We use the GAP group `GU(3,q)` to produce all normailised isotropic vectors.
@@ -2642,6 +2667,19 @@ def hermitian_cover(const int q, const int r):
 
     TESTS::
 
+        sage: from sage.graphs.generators.distance_regular import hermitian_cover
+        sage: hermitian_cover(3, 2).is_distance_regular(True)
+        ([27, 16, 1, None], [None, 1, 16, 27])
+        sage: hermitian_cover(3, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid input
+        sage: hermitian_cover(6, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: q must be prime power
+        sage: hermitian_cover(4, 3).is_distance_regular(True)
+        ([64, 42, 1, None], [None, 1, 21, 64])
     """
     from sage.arith.misc import is_prime_power
 
@@ -2654,8 +2692,8 @@ def hermitian_cover(const int q, const int r):
         raise ValueError("Invalid input")
 
     gen = libgap.Z(q * q)
-    one = gen^0
-    zero = gen - gen
+    one = gen**0
+    zero = 0*gen
 
     # vertices are Kv for isotropic v
     GU = libgap.GU(3, q)
@@ -2671,8 +2709,8 @@ def hermitian_cover(const int q, const int r):
 
     # create global variable for function (try avoid name conflicts)
     libgap.set_global("zero_hidden", zero)
-    libgap.set_global("r_hidded", r)
-    libgap.set_global("gen_hidded", gen)
+    libgap.set_global("r_hidden", r)
+    libgap.set_global("gen_hidden", gen)
 
     # we need to define the action of GU on (k,v):
     # M in GU acts on the representative v of Kv by sending it to
@@ -2715,7 +2753,7 @@ def hermitian_cover(const int q, const int r):
     # (e1pos, e11pos) is an edge
     edges = libgap.Orbit(GUAction, [e1pos, e3pos], libgap.OnSets)
     G = Graph(edges, format="list_of_edges")
-    G.name(f"Antipodal {r}-cover of K_{{{q}^3}}")
+    G.name(f"Antipodal {r}-cover of K_{q**3 + 1}")
     return G
 
 # dictionary intersection_array (as tuple)  -> construction
@@ -2834,8 +2872,10 @@ def distance_regular_graph(list arr, existence=False, check=True):
         Hamming Graph with parameters 7,3: Graph on 2187 vertices
         sage: graphs.distance_regular_graph([66, 45, 28, 1, 6, 30])
         Graph on 1024 vertices
-        sage: graphs.distance_regular_graph([6,5,5,5,1,1,1,6])
+        sage: graphs.distance_regular_graph([6, 5, 5, 5, 1, 1, 1, 6])
         Generalised octagon of order (1, 5): Graph on 312 vertices
+        sage: graphs.distance_regular_graph([125, 96, 1, 1, 48, 125])
+        Antipodal 3-cover of K_126: Graph on 378 vertices
     """
     from sage.misc.unknown import Unknown
     from sage.categories.sets_cat import EmptySetError
