@@ -212,6 +212,7 @@ class FMatrix():
             for i in range(self._poly_ring.ngens()):
                 inject_variable("%s%s"%(var_prefix,i),self._poly_ring.gens()[i])
         self._var_to_sextuple, self._fvars = self.findcases(output=True)
+        self._singles = self.singletons()
 
         #Initialize set of defining equations
         self.ideal_basis = set()
@@ -311,7 +312,7 @@ class FMatrix():
             #Substitute known value from univariate degree 1 polynomial or,
             #Following Bonderson, p. 37, solve linear equation with two terms
             #for one of the variables
-            if eq.degree() == 1 and sum(eq.degrees()) <= 3 and eq.lm() not in self.solved:
+            if eq.degree() == 1 and sum(eq.degrees()) <= 2 and eq.lm() not in self.solved:
                 self._fvars[self._var_to_sextuple[eq.lm()]] = -sum(c * m for c, m in zip(eq.coefficients()[1:], eq.monomials()[1:])) / eq.lc()
                 #Add variable to set of known values and remove this equation
                 new_knowns.add(eq.lm())
@@ -358,7 +359,7 @@ class FMatrix():
 
         - ``equations`` -- (optional) a set of equations to be
           solved. Defaults to the hexagon and pentagon equations.
-        - ``factor`` -- (default: ``False``). Set true to use
+        - ``factor`` -- (default: ``True``). Set true to use
           the sreduce method to simplify the hexagon and pentagon
           equations before solving them.
         - ``algorithm`` -- (optional). Algorithm to compute Groebner Basis.
@@ -562,17 +563,30 @@ class FMatrix():
         else:
             return i
 
+    def singletons(self):
+        """
+        Find x_i that are automatically nonzero, because their F-matrix is 1x1
+        """
+        ret = []
+        for (a, b, c, d) in list(product(self.FR.basis(), repeat=4)):
+            (ff,ft) = (self.f_from(a,b,c,d),self.f_to(a,b,c,d))
+            if len(ff) == 1 and len(ft) == 1:
+                v = self._fvars.get((a,b,c,d,ff[0],ft[0]), None)
+                if v in self._poly_ring.gens():
+                    ret.append(v)
+        return ret
+
     def sreduce(self, expr, nonzeros=None):
         """
         Return a simplified equation, discarding the leading coefficient
-        and monomial factors.
+        and monomial factors that are known to be nonzero.
 
         INPUT:
 
         - ``expr`` -- an equation to be simplified under the
           assumption that all variables in nonzeros do not vanish.
-        - ``nonzeros`` -- a list of variables that are assumed
-          nonzero. Defaults to all variables.
+        - ``nonzeros`` -- (optional)) a list of variables that are assumed
+          nonzero. Defaults to entries in 1x1 F-matrices
 
 
         EXAMPLES::
@@ -585,7 +599,7 @@ class FMatrix():
             fx0 - 1
         """
         if nonzeros is None:
-            nonzeros = self._poly_ring.gens()
+            nonzeros = self._singles
         ret = 1
         for (a,e) in expr.factor()._Factorization__x:
             if a not in nonzeros:
@@ -662,7 +676,7 @@ class FMatrix():
         if output:
             return ret
 
-    def pentagon(self, verbose=False, output=True, factor=None, prune=False):
+    def pentagon(self, verbose=False, output=True, factor=False, prune=False):
         """
         Return generators of the ideal of Pentagon equations.
 
@@ -670,11 +684,11 @@ class FMatrix():
 
         - ``verbose`` -- (optional) set True for verbose. Default False
         - ``output`` -- (optional) set True to output a set of equations. Default True
-        - ``factor`` -- (optional) set False for sreduce simplified equations.
+        - ``factor`` -- (optional) set True for sreduce simplified equations.
 
         In contrast with the hexagon equations, where setting ``factor`` True
         is a big improvement, for the pentagon equations this option produces
-        little or no simplification.
+        little or no simplification. So the default is False.
 
         EXAMPLES::
 
