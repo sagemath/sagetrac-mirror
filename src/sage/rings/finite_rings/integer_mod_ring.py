@@ -1550,6 +1550,18 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         return 'ZmodnZ({})'.format(self.order())
 
+    def _julia_init_(self):
+        """
+        EXAMPLES::
+
+            sage: R = Integers(12345678900)
+            sage: R
+            Ring of integers modulo 12345678900
+            sage: julia(R) # indirect doctest - optional julia
+            Integers modulo 12345678900
+        """
+        return 'ResidueRing(ZZ,{})'.format(self.order())
+
     def _magma_init_(self, magma):
         """
         EXAMPLES::

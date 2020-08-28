@@ -1474,6 +1474,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return '"Integer"'
 
+    def _julia_init_(self):
+        r"""
+        Return the julia representation of the integer ring.
+
+        EXAMPLES::
+
+            sage: julia(ZZ)    # optional - julia # indirect doctest
+            ZZ
+
+        """
+        return 'ZZ'
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when

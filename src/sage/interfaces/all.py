@@ -15,7 +15,8 @@ from .gfan import gfan,  Gfan
 from .giac import giac, Giac
 from .gp import gp, gp_version, Gp
 from .gnuplot import gnuplot
-from .kash import  kash, kash_version, Kash
+from .julia2 import julia, julia_version, Julia
+from .kash import kash, kash_version, Kash
 from .lisp import lisp, Lisp
 from .magma import magma, Magma
 from .magma_free import magma_free
@@ -44,7 +45,7 @@ from .r import r, R, r_version
 from .read_data import read_data
 
 interfaces = ['gap', 'gap3', 'giac', 'gp', 'mathematica', 'gnuplot', \
-              'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
+              'julia', 'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
               'mathematica', 'mwrank', 'octave', 'r', \
               'singular', 'sage0', 'sage']
 
@@ -58,7 +59,8 @@ if get_display_manager().is_in_terminal():
     from .giac import giac_console
     from .gp import gp_console
     from .gnuplot import gnuplot_console
-    from .kash import  kash_console
+    from .julia import julia_console
+    from .kash import kash_console
     from .lisp import lisp_console
     from .magma import magma_console
     from .macaulay2 import macaulay2_console

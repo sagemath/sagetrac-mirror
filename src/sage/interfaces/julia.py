@@ -36,7 +36,7 @@ def uuid():
     return str(uuid4())
 
 
-PROMPT_LENGTH = 16
+PROMPT_LENGTH = 6
 
 
 class Julia(Expect):
@@ -52,11 +52,11 @@ class Julia(Expect):
             sage: julia == loads(dumps(julia))
             True
         """
-        self._prompt = 'julia>'
+        self._prompt = 'julia> '
         Expect.__init__(self,
-                        name='Julia',
+                        name='julia',
                         prompt=self._prompt,
-                        command="julia",
+                        command="sage-native-execute julia -q",
                         maxread=maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
@@ -77,20 +77,18 @@ class Julia(Expect):
         """
         """
         pexpect_env = dict(os.environ)
-        pexpect_env['TERM'] = 'vt100'
+        #pexpect_env['TERM'] = 'vt100'
         # we *use* the codes. DUH.  I should have thought of this 10
         # years ago...
 
         self._expect = pexpect.spawn(self._Expect__command, logfile=self._Expect__logfile, env=pexpect_env)
         self._expect.delaybeforesend = 0  # not a good idea for a CAS.
-        self._expect.expect("\x1b\[0Kjulia>")
+        self._expect.expect("julia> ")
 
-    def eval(self, code, **ignored):
+    def eval2(self, code, **ignored):
         """
         EXAMPLES::
         """
-        if isinstance(code, unicode):
-            code = code.encode('utf8')
 
         START = "\x1b[?2004l\x1b[0m"
         END = "\r\n\r\n\x1b[0G\x1b[0K\x1b[0G\x1b[0Kjulia> "
@@ -133,6 +131,18 @@ class Julia(Expect):
         """
         return self(0)
 
+    def _strip_prompt(self, t):
+        return t
+
+    def strip_answer(self, s):
+        r"""
+        Returns the string s with Julia's answer prompt removed.
+
+        EXAMPLES::
+
+        """
+        return s
+
     def set(self, var, value):
         """
         Set the variable var to the given value.
@@ -170,7 +180,8 @@ class Julia(Expect):
         """
         EXAMPLES::
 
-            sage: ??
+            sage: julia
+            Julia Interpreter
         """
         return 'Julia Interpreter'
 
@@ -197,7 +208,7 @@ class Julia(Expect):
         EXAMPLES::
 
             sage: julia._quit_string()
-            '(quit);'
+            'exit()'
 
             sage: l = Julia()
             sage: l._start()
@@ -205,7 +216,7 @@ class Julia(Expect):
             sage: l.is_running()
             False
         """
-        return 'quit()'
+        return 'exit()'
 
     def _read_in_file_command(self, filename):
         """
@@ -247,16 +258,16 @@ class Julia(Expect):
         """
         julia_console()
 
-    def version(self):
+    def julia_version(self):
         """
         Return the version of Julia being used.
 
         EXAMPLES::
 
             sage: julia.version()
-            'Version information is given by julia.console().'
+            12
         """
-        return self.eval("versioninfo()")
+        return julia_version()
 
     def _object_class(self):
         """
@@ -328,6 +339,7 @@ class Julia(Expect):
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
+        function = function.replace("BANG","!")
         return self.new("%s(%s)" % (function,
                                     ",".join([s.name() for s in args])))
 
@@ -374,7 +386,7 @@ class JuliaElement(ExpectElement):
             True
         """
         P = self._check_valid()
-        return P.eval("bool(%s)" % self.name()) == P._true_symbol()
+        return P.eval("Bool(%s)" % self.name()) == P._true_symbol()
 
     def _add_(self, right):
         """
@@ -476,6 +488,18 @@ def is_JuliaElement(x):
 
 # An instance
 julia = Julia()
+
+def julia_version():
+    """
+    Return the version of Julia installed.
+
+    EXAMPLES::
+
+        sage: julia_version()    # random; optional - julia
+        v"1.5.0"
+    """
+    return str(julia.versioninfo())
+
 
 
 def reduce_load_Julia():

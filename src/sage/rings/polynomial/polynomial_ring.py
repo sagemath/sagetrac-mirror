@@ -810,53 +810,39 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             P_ = P.remove_var(self.variable_name())
             return self.base_ring()!=P_ and self.base_ring().has_coerce_map_from(P_)
 
-    def _magma_init_(self, magma):
+    def _julia_init_(self, julia=None):
         """
-        Used in converting this ring to the corresponding ring in MAGMA.
+        Used in converting this ring to the corresponding ring in Julia.
 
         EXAMPLES::
 
             sage: R = QQ['y']
-            sage: R._magma_init_(magma)                     # optional - magma
-            'SageCreateWithNames(PolynomialRing(_sage_ref...),["y"])'
-            sage: S = magma(R)                              # optional - magma
-            sage: S                                         # optional - magma
+            sage: R._julia_init_(julia)                     # optional - julia
+            'PolynomialRing(_sage_ref...,"y")'
+            sage: S = julia(R)                              # optional - julia
+            sage: S                                         # optional - julia
             Univariate Polynomial Ring in y over Rational Field
-            sage: S.1                                       # optional - magma
+            sage: S.1                                       # optional - julia
             y
-            sage: magma(PolynomialRing(GF(7), 'x'))         # optional - magma
+            sage: julia(PolynomialRing(GF(7), 'x'))         # optional - julia
             Univariate Polynomial Ring in x over GF(7)
-            sage: magma(PolynomialRing(GF(49,'a'), 'x'))    # optional - magma
+            sage: julia(PolynomialRing(GF(49,'a'), 'x'))    # optional - julia
             Univariate Polynomial Ring in x over GF(7^2)
-            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) # optional - magma
+            sage: julia(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) # optional - julia
             Univariate Polynomial Ring in x over Univariate Polynomial Ring in w over Integer Ring
-
-        Watch out, Magma has different semantics from Sage, i.e., in Magma
-        there is a unique univariate polynomial ring, and the variable name
-        has no intrinsic meaning (it only impacts printing), so can't be
-        reliably set because of caching.
-
-        ::
-
-            sage: m = Magma()            # new magma session; optional - magma
-            sage: m(QQ['w'])                                # optional - magma
-            Univariate Polynomial Ring in w over Rational Field
-            sage: m(QQ['x'])                                # optional - magma
-            Univariate Polynomial Ring in x over Rational Field
-            sage: m(QQ['w'])   # same magma object, now prints as x; optional - magma
-            Univariate Polynomial Ring in x over Rational Field
 
         A nested example over a Givaro finite field::
 
             sage: k.<a> = GF(9)
             sage: R.<x> = k[]
-            sage: magma(a^2*x^3 + (a+1)*x + a)              # optional - magma
+            sage: julia(a^2*x^3 + (a+1)*x + a)              # optional - julia
             a^2*x^3 + a^2*x + a
         """
-        B = magma(self.base_ring())
-        Bref = B._ref()
-        s = 'PolynomialRing(%s)'%(Bref)
-        return magma._with_names(s, self.variable_names())
+        if julia is not None:
+            base_ring = julia(self.base_ring()).name()
+        else:
+            base_ring = self.base_ring()._julia_init_()
+        return 'PolynomialRing(%s, \"%s\")[1]'%(base_ring, self.variable_name())
 
     def _gap_init_(self, gap=None):
         """

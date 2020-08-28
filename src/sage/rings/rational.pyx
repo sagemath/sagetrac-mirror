@@ -1018,6 +1018,18 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numerator()._magma_init_(magma) + '/' + self.denominator()._magma_init_(magma)
 
+    def _julia_init_(self, julia):
+        """
+        Return the julia representation of ``self``.
+
+        EXAMPLES::
+
+            sage: n = -485/82847
+            sage: n._julia_init_(julia) # optional - julia
+            '-485/82847'
+        """
+        return self.numerator()._julia_init_(julia) + '//' + self.denominator()._julia_init_(julia)
+
     @property
     def __array_interface__(self):
         """

@@ -1426,6 +1426,18 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         return 'RationalField()'
 
+    def _julia_init_(self, julia=None):
+        r"""
+        Return the julia representation of `\QQ`.
+
+        EXAMPLES::
+
+            sage: julia(QQ)      # optional - julia # indirect doctest
+            QQ
+
+        """
+        return 'QQ'
+
     def _macaulay2_init_(self, macaulay2=None):
         r"""
         Return the macaulay2 representation of `\QQ`.

@@ -227,6 +227,36 @@ cdef class Matrix(Matrix0):
         s = str(self.rows()).replace('(','[').replace(')',']')
         return "(%s)"%(s)
 
+    def _julia_init_(self):
+        """
+        Return a Julia string representation of this matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))
+            sage: julia(M)                                                     # optional - julia
+            [1  2]
+            [3  4]
+
+        ::
+
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: julia(M).sage().parent()                                     # optional - julia
+            Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+
+        ::
+
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: julia(M)                                                     # optional - julia
+            [- 9 x^2  - 2 x + 2    x - 1   ]
+            [    x^2 + 8 x      - 3 x^2  + 5]
+
+        """
+        P = self.base_ring()._julia_init_()
+        v = [x._julia_init_() for x in self.list()]
+        return 'matrix(%s, %s, %s, [%s])' % (P,self.nrows(), self.ncols(), ','.join(v))
+
     def _maxima_init_(self):
         """
         Return a string representation of this matrix in Maxima.

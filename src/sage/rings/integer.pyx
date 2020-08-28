@@ -6061,7 +6061,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (117)._magma_init_(magma)           # optional - magma
             '117'
 
-        Large integers use hex:
+        Large integers use hex::
+
             sage: m = 3^(2^20)                        # optional - magma
             sage: s = m._magma_init_(magma)           # optional - magma
             sage: 'StringToInteger' in s              # optional - magma
@@ -6073,6 +6074,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return 'StringToInteger("%s",16)'%self.str(16)
         else:
             return str(self)
+
+    def _julia_(self, julia):
+        """
+        Return string that evaluates in Julia to this element.
+
+        EXAMPLES::
+
+            sage: (117)._julia_init_(julia)           # optional - julia
+            '117'
+        """
+        return julia("ZZ(%s)" % self)
 
     def _sage_input_(self, sib, coerced):
         r"""

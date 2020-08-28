@@ -83,6 +83,7 @@ from sage.structure.richcmp cimport (richcmp, richcmp_item,
         rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
+from sage.interfaces.julia2 import julia
 from sage.libs.all import pari, pari_gen, PariError
 
 from sage.rings.real_mpfr import RealField, is_RealField, RR
@@ -6205,6 +6206,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Get list of coefficients.
         v = ','.join(a._magma_init_(magma) for a in self.list())
         return '%s![%s]' % (R.name(), v)
+
+    def _julia_init_(self):
+        """
+        Return a string that evaluates in Julia to this polynomial.
+
+        EXAMPLES::
+
+            sage: julia = Julia()  # new session
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: f._julia_init_(julia)        # optional - julia
+            '_sage_[...]![5,-17,0,1]'
+            sage: g = julia(f); g              # optional - julia
+            y^3 - 17*y + 5
+
+        A more complicated nested example::
+
+            sage: k.<a> = GF(9); R.<s,t> = k[]; S.<W> = R[]
+            sage: julia(a*W^20 + s*t/a)        # optional - julia
+            a*W^20 + a^7*s*t
+        """
+        # Get a reference to Julia version of parent.
+        R = julia(self._parent)
+        # Get list of coefficients.
+        v = ','.join(a._julia_init_() for a in self.list())
+        return '%s([%s])' % (R.name(), v)
 
     def _gap_(self, gap):
         """

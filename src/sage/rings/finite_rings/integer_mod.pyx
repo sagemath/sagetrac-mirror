@@ -555,6 +555,22 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return '%s*One(ZmodnZ(%s))' % (self, self.__modulus.sageInteger)
 
+    def _julia_init_(self):
+        """
+        Coercion to Julia.
+
+        EXAMPLES::
+
+            sage: a = Integers(15)(4)
+            sage: b = julia(a)                # optional - julia
+            sage: b.typeof()                    # optional - julia
+            Nemo.nmod
+            sage: b^2                         # optional - julia
+            1
+        """
+        return '%s(%s)'%(self.parent()._julia_init_(), self)
+
+
     def _magma_init_(self, magma):
         """
         Coercion to Magma.

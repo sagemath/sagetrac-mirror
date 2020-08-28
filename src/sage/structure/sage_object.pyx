@@ -740,6 +740,18 @@ cdef class SageObject:
     def _gp_init_(self):
         return self._pari_init_()
 
+    def _julia_(self, G=None):
+        if G is None:
+            import sage.interfaces.julia2
+            G = sage.interfaces.julia2.julia
+        return self._interface_(G)
+
+    def _julia_init_(self, julia=None):
+        if julia is None:
+            import sage.interfaces.julia2
+            julia = sage.interfaces.julia2.julia
+        return self._interface_init_(julia)
+
     def _kash_(self, G=None):
         if G is None:
             import sage.interfaces.kash
