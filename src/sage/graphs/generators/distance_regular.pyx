@@ -2540,10 +2540,28 @@ def near_polygon_graph(family, params):
 
 def is_hermitian_cover(list array):
     r"""
-    Given an intersection array it return (q,r)
-    such that hermitian_cover(q,r) is a graph with the given intersection
-    array. If no (q,r) exists, then it returns False
+    Return a pair `(q, r)` if the graph built by
+    :func:`sage.graphs.generators.distance_regular.hermitina_cover` with input
+    `(q, r)` has the given intersection array.
+    Return ``False`` if such pair doesn't exists.
+
+    Essentially we check that ``array`` is the intersection array of an
+    antipodal `r`-cover of  `K_{q^3}` for some `r` and `q`. Then we ensure
+    that the pair `(q, r)` satisfies the requirement set by
+    :func:`sage.graphs.generators.distance_regular.hermitina_cover`.
+
+    INPUT::
+
+    - ``array`` -- list; intersection array
+
+    EXAMPLES::
+
+    REFERENCES:
+
+    TESTS::
     """
+    from sage.arith.misc import is_prime_power
+
     if len(array) != 6:
         return False
 
@@ -2585,44 +2603,75 @@ def is_hermitian_cover(list array):
 
 def hermitian_cover(const int q, const int r):
     r"""
-    Implent an antipodal $r$-cover of $K_{q^3+1}$
-    using the construction due to Cameron ...
+    Return an antipodal $r$-cover of $K_{q^3}$ using the construction
+    due to Cameron [paper???].
+
+    The pair `(q, r)` must satisfy one of the following conditions:
+    * `r` odd and `r \mid q - 1`
+    * `q` even and `r \mid q + 1`
+    * `q` odd and `r \mid (q+1)/2`
+
+    INPUT:
+
+    - ``q`` -- integer; a prime power
+
+    - ``r`` -- integer;
+
+    EXAMPLES::
+
+    ALGORITHM:
+
+    Let `V` be the vector space `GF(q^2)^3` and `K` be a subgroup of
+    `GF(q^2)^\times` of index `r`. The vertex set is the set of `K`-orbits on
+    isotropic vectors. Two vertices are adjecent if the hermitian form of their
+    representatives is 1.
+
+    REFERENCES:
+
+    TESTS::
+
     """
+    from sage.arith.misc import is_prime_power
+
     if not is_prime_power(q):
         raise ValueError("q must be prime power")
 
-    if not( (r % 2 == 1 and (q-1) % r == 0) or
-            (q % 2 == 0 and (q+1) % r == 0) or
-            (q % 2 == 1 and ((q+1) // 2) % r == 0)):
+    if not((r % 2 == 1 and (q-1) % r == 0) or
+           (q % 2 == 0 and (q+1) % r == 0) or
+           (q % 2 == 1 and ((q+1) // 2) % r == 0)):
         raise ValueError("Invalid input")
 
     gen = libgap.Z(q * q)
     one = gen^0
     zero = gen - gen
 
-    # it follows that representatives of Fq2^* / K = [gen^i for i in range(r)]
-    Kreps = [gen**i for i in range(r)]
-
     # vertices are Kv for isotropic v
     GU = libgap.GU(3, q)
     e1 = [one, zero, zero]
     iso_points = libgap.Orbit(GU, e1, libgap.OnLines)
 
+    # representatives of GF(q^2)^* / K = [gen^i for i in range(r)]
+    Kreps = [gen**i for i in range(r)]
+
+    # since is_points are normailised, the K-orbirts have representatives
+    # mu*v for mu in Kreps
     vertices = [k*v for k in Kreps for v in iso_points]
 
-    # create global variable for function
-    libgap.set_global("zero", zero)
-    libgap.set_global("r", r)
-    libgap.set_global("gen", gen)
+    # create global variable for function (try avoid name conflicts)
+    libgap.set_global("zero_hidden", zero)
+    libgap.set_global("r_hidded", r)
+    libgap.set_global("gen_hidded", gen)
 
-    # we need to define the action of GU on (k,v)
-    func = """function(v, M)
+    # we need to define the action of GU on (k,v):
+    # M in GU acts on the representative v of Kv by sending it to
+    # the representative of K(vM)  (in GAP matrices acts on the right)
+    gapOnKLines = libgap.function_factory("""function(v, M)
         local w, i, b, k;
 
         w := ShallowCopy(v*M);
 
         i := 1;
-        while i < 4 and w[i] = zero do
+        while i < 4 and w[i] = zero_hidden do
             i := i + 1;
         od;
         b := w[i];
@@ -2633,29 +2682,28 @@ def hermitian_cover(const int q, const int r):
              i := i + 1;
         od;
 
-        k := LogFFE(b, gen);
-        i := k mod r;
-        b := gen^i;
+        k := LogFFE(b, gen_hidden);
+        i := k mod r_hidden;
+        b := gen_hidden^i;
 
         return b*w;
-    end;"""
+    end;""")
 
-    gapOnKLines = libgap.eval(func)
     GUAction = libgap.Action(GU, vertices, gapOnKLines)
 
     # clear GAP's global variables
-    libgap.unset_global("zero")
-    libgap.unset_global("r")
-    libgap.unset_global("gen")
+    libgap.unset_global("zero_hidden")
+    libgap.unset_global("r_hidden")
+    libgap.unset_global("gen_hidden")
 
-    e3 = [zero, zero, one]  # other isotropic, with H(e3, e1) = 1 and so e3 ~ e1
+    e3 = [zero, zero, one]  # we have e3 ~ e1
     e1pos = libgap.Position(vertices, e1)
     e3pos = libgap.Position(vertices, e3)
 
-    # now we have that
     # (e1pos, e11pos) is an edge
     edges = libgap.Orbit(GUAction, [e1pos, e3pos], libgap.OnSets)
     G = Graph(edges, format="list_of_edges")
+    G.name(f"Antipodal {r}-cover of K_{{{q}^3}}")
     return G
 
 # dictionary intersection_array (as tuple)  -> construction
