@@ -462,6 +462,76 @@ cdef class ListOfFaces:
 
         return copy
 
+    cdef ListOfFaces delete_atoms_unsafe(self, uint64_t *face):
+        r"""
+        Return a copy of ``self`` with each bit not set in ``face`` removed.
+
+        The bits are removed NOT unset. Thus the output will usually have
+        less atoms.
+
+        .. WARNING::
+
+            ``face`` is assumed to be of length ``self.face_lenght``.
+        """
+        cdef output_n_atoms = count_atoms(face, self.face_length)
+        cdef ListOfFaces output = ListOfFaces(self.n_faces, output.n_atoms)
+
+        cdef size_t i, j
+        cdef size_t counter = 0
+        cdef size_t self_pos, output_pos, self_bit, output_bit
+        cdef uint64_t new_value
+        cdef bint prev_was_removed = False
+
+        for i in range(self.n_atoms):
+            if not face[i//64] & vertex_to_bit_dictionary(i % 64):
+                prev_was_removed = True
+            elif (counter % 64 == 0) or prev_was_removed:
+                self_pos = i//64
+                self_bit = i % 64
+                output_pos = counter//64
+                output_bit = counter % 64
+
+                for j in range(self.n_faces):
+                    # We set output.data[j][output_pos]
+                    # as if no further atoms are removed.
+
+                    # Set ``new_value`` to contain the bits
+                    # i,...,i+63 of self.data[j].
+
+                    new_value = (self.data[j][self_pos] << self_bit)
+                    if self_bit and self_pos < self.face_length -1:
+                        new_value |= (self.data[j][self_pos + 1] >> (64-self_bit))
+
+                    if not new_bit:
+                        output.data[j][output_pos] = new_value
+                    else:
+                        # Clear all bits after and including ``output_bit``.
+                        output.data[j][output_pos] &= ((<uint64_t> -1) << (64 - output_bit))
+
+                        # Copy ``new_value`` to the bits after and including ``output_bit``.
+                        output.data[j][output_pos] |= (new_value >> output_bit)
+
+                prev_was_removed = False
+                counter += 1
+            else:
+                counter += 1
+
+        # Finally unset all bits after ``output.n_atoms``.
+
+        output_pos = output.n_atoms//64
+        output_bit = output.n_atoms % 64
+
+        if output_bit:
+            for j in range(self.n_faces):
+                # Clear all bits after and including ``output_bit``.
+                output.data[j][output_pos] &= ((<uint64_t> -1) << (64 - output_bit))
+
+        for i in range((output.n_atoms -1)//64 + 1, output.face_length):
+            for j in range(self.n_faces):
+                output.data[j][i] = 0
+
+        return output
+
     def matrix(self):
         r"""
         Obtain the matrix of self.
@@ -501,3 +571,17 @@ cdef class ListOfFaces:
 
         M.set_immutable()
         return M
+
+cdef tuple face_as_combinatorial_polyhedron(ListOfFaces old_facets, ListOfFaces old_Vrep, uint64_t *face):
+    r"""
+    Obtain the facets and Vrepresentation of ``face`` as new combinatorial polyhedron.
+
+    OUTPUT: A tuple of new facets and new Vrepresentation as :class:`ListOfFaces`.
+    """
+    cdef ListOfFaces reduced_faces = old_facets.delete_atoms_unsafe(face)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int* facets_to_delete = <int*> mem.allocarray(reduced_faces.n_faces, sizeof(int))
+    reduced_faces.delete_not_inclusion_maximal(facets_to_delete)
+    cdef ListOfFaces reduced_Vrep =
+
+    raise NotImplementedError

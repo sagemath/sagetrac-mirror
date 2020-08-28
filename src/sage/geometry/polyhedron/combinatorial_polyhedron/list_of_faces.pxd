@@ -18,3 +18,5 @@ cdef class ListOfFaces:
                                       size_t face_length) except -2
 
     cpdef ListOfFaces pyramid(self)
+
+cdef tuple face_as_combinatorial_polyhedron(ListOfFaces old_facets, ListOfFaces old_Vrep, uint64_t *face)
