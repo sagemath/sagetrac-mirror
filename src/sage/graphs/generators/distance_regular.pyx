@@ -2558,6 +2558,9 @@ def is_hermitian_cover(list array):
 
     REFERENCES:
 
+    See [Cam1991]_ for the original paper and [BCN1989A]_ for a more recent
+    discussion.
+
     TESTS::
     """
     from sage.arith.misc import is_prime_power
@@ -2604,12 +2607,18 @@ def is_hermitian_cover(list array):
 def hermitian_cover(const int q, const int r):
     r"""
     Return an antipodal $r$-cover of $K_{q^3}$ using the construction
-    due to Cameron [paper???].
+    due to Cameron [Cam1991]_.
 
     The pair `(q, r)` must satisfy one of the following conditions:
     * `r` odd and `r \mid q - 1`
     * `q` even and `r \mid q + 1`
     * `q` odd and `r \mid (q+1)/2`
+
+    The graph is distance-regular and is described as follow in [Cam1991]_:
+    Let `V` be the vector space `GF(q^2)^3` and `K` be a subgroup of
+    `GF(q^2)^\times` of index `r`. The vertex set is the set of `K`-orbits on
+    isotropic vectors. Two vertices are adjecent if the hermitian form of their
+    representatives is 1.
 
     INPUT:
 
@@ -2621,12 +2630,15 @@ def hermitian_cover(const int q, const int r):
 
     ALGORITHM:
 
-    Let `V` be the vector space `GF(q^2)^3` and `K` be a subgroup of
-    `GF(q^2)^\times` of index `r`. The vertex set is the set of `K`-orbits on
-    isotropic vectors. Two vertices are adjecent if the hermitian form of their
-    representatives is 1.
+    We use the GAP group `GU(3,q)` to produce all normailised isotropic vectors.
+    The `K` orbits of an normalised isotropic vector `v` are represented by
+    `\{ \lambda_1 v, \dots, \lambda_r v\}` for `\lambda_1, \dots, \lambda_r`
+    representatives of `GF(q^2)^\times / K`.
 
     REFERENCES:
+
+    See [Cam1991]_ for the original paper and [BCN1989A]_ for a more recent
+    discussion.
 
     TESTS::
 

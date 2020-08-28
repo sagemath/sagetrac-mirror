@@ -547,6 +547,10 @@ REFERENCES:
 .. [BCN1989] Andries E. Brouwer, Arjeh M. Cohen, and Arnold Neumaier.
              *Distance-Regular Graphs*, Springer, 1989.
 
+.. [BCN1989A] Andries E. Brouwer, Arjeh M. Cohen, and Arnold Neumaier.
+              *Additions and Corrections to Distance-Regular Graphs*
+              https://www.win.tue.nl/~aeb/drg/index.html
+
 .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
@@ -1199,6 +1203,11 @@ REFERENCES:
 
 .. [dCa2007] \C. de Canniere: *Analysis and Design of Symmetric Encryption
              Algorithms*, PhD Thesis, 2007.
+
+.. [Cam1991] Peter J. Cameron: *Covers of graphs and EGQs*
+             Discrete Mathematics, Volume 97, pages 83-92, North-Holland
+             :doi:`10.1016/0012-365X(91)90424-Z`
+
 
 .. [Can1990] \J. Canny. Generalised characteristic polynomials.
              J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
