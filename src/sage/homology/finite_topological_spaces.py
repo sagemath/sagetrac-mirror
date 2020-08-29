@@ -7,12 +7,12 @@ A *finite topological space* is a topological space with finitely many points an
 a *finite preordered set* is a finite set with a transitive and reflexive relation.
 Finite spaces and finite preordered sets are basically the same objects considered
 from different perspectives. Given a finite topological space `X`, for every point
-`x\in X` the *minimal open set* `U_x` as the intersection of all the open sets
-which contain `x` (it is an open set since arbitrary intersections of open sets
-in finite spaces are open). The minimal open sets constitute a basis for the topology
-of `X`. Indeed, any open set `U` of `X` is the union of the sets `U_x` with `x\in U`.
-This basis is called the *minimal basis of `X`*. A preorder on `X` by `x\leqslant y`
-if `x\in U_y`.
+`x\in X`, define the *minimal open set* `U_x` as the intersection of all the open
+sets which contain `x` (it is an open set since arbitrary intersections of open
+sets in finite spaces are open). The minimal open sets constitute a basis for the
+topology of `X`. Indeed, any open set `U` of `X` is the union of the sets `U_x`
+with `x\in U`. This basis is called the *minimal basis of* `X`. A preorder on `X`
+is given  by `x\leqslant y` if `x\in U_y`.
 
 If `X` is now a finite preordered set, one can define a topology on `X` given by
 the basis `\lbrace y\in X\vert y\leqslant x\rbrace_{x\in X}`. Note that if `y\leqslant x`,
@@ -20,22 +20,22 @@ then `y` is contained in every basic set containing `x`, and therefore `y\in U_x
 Conversely, if `y\in U_x`, then `y\in\lbrace z\in X\vert z\leqslant x\rbrace`.
 Therefore `y\leqslant x` if and only if `y\in U_x`. This shows that these two
 applications, relating topologies and preorders on a finite set, are mutually
-inverse. This simple remark, made in first place by Alexandroff [1], allows us to study
-finite spaces by combining Algebraic Topology with the combinatorics arising from
-their intrinsic preorder structures. The antisymmetry of a finite preorder
-corresponds exactly to the `T_0` separation axiom. Recall that a topological space
-`X` is said to be *`T_0`* if for any pair of points in `X` there exists an open
-set containing one and only one of them. Therefore finite `T_0`-spaces are in
-correspondence with finite partially ordered sets (posets) [2].
+inverse. This simple remark, made in first place by Alexandroff [Ale1937]_, allows
+us to study finite spaces by combining Algebraic Topology with the combinatorics
+arising from their intrinsic preorder structures. The antisymmetry of a finite
+preorder corresponds exactly to the `T_0` separation axiom. Recall that a topological
+space `X` is said to be `T_0` if for any pair of points in `X` there exists an
+open set containing one and only one of them. Therefore finite `T_0`-spaces are
+in correspondence with finite partially ordered sets (posets) [Bar2011]_.
 
 Now, if `X = \lbrace x_1, x_2, \ldots , x_n\rbrace` is a finite space and for
 each `i` the unique minimal open set containing `x_i` is denoted by `U_i`, a
-*topogenous matrix* of the space is a `n \times n` matrix `A = \left[a_{ij}\right]`
+*topogenous matrix* of the space is the `n \times n` matrix `A = \left[a_{ij}\right]`
 defined by `a_{ij} = 1` if `x_i \in U_j` and `a_{ij} = 0` otherwise (this is the
-transposed matrix of the Definition 1 in [3]). A finite space `X` is `T_0` if and
-only if the topogenous matrix `A` defined above is similar (via a permutation matrix)
-to a certain upper triangular matrix [3]. This is the reason one can assume that
-the topogenous matrix of a finite `T_0`-space is upper triangular.
+transposed matrix of the Definition 1 in [Shi1968]_). A finite space `X` is `T_0`
+if and only if the topogenous matrix `A` defined above is similar (via a permutation
+matrix) to a certain upper triangular matrix [Shi1968]_. This is the reason one
+can assume that the topogenous matrix of a finite `T_0`-space is upper triangular.
 
 
 AUTHOR::
@@ -44,11 +44,9 @@ AUTHOR::
 
 REFERENCES:
 
-- [1] Alexandroff P., *Diskrete Raume*, Mat. Sb. (N.S.) 2, 501--518 (1937).
-- [2] Barmak, J.A., *Algebraic topology of finite topological spaces and applications*.
-      Lecture Notes in Mathematics Vol. 2032 (2011).
-- [3] Shiraki M., *On finite topological spaces*, Rep. Fac. Sci. Kagoshima Univ.
-      1, 1--8 (1968).
+- [Ale1937]_
+- [Bar2011]_
+- [Shi1968]_
 
 """
 # ****************************************************************************
@@ -129,7 +127,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
         sage: from sage.homology.finite_topological_spaces import FiniteSpace
         sage: T = FiniteSpace({'a': {'a', 'c'}, 'b': {'b'}, 'c':{'a', 'c'}}) ; T
         Finite topological space of 3 points with minimal basis
-         {'a': {'c', 'a'}, 'b': {'b'}, 'c': {'c', 'a'}}
+         {'a': {'a', 'c'}, 'b': {'b'}, 'c': {'a', 'c'}}
         sage: type(T)
         <class 'sage.homology.finite_topological_spaces.FiniteTopologicalSpace'>
         sage: FiniteSpace({'a': {'a', 'b'}})
@@ -147,7 +145,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
         sage: from sage.homology.finite_topological_spaces import FiniteSpace
         sage: T = FiniteSpace([{0, 3}, {1, 3}, {2, 3}, {3}]) ; T
         Finite T0 topological space of 4 points with minimal basis
-         {0: {0, 3}, 1: {1, 3}, 2: {2, 3}, 3: {3}}
+         {0: {3, 0}, 1: {3, 1}, 2: {3, 2}, 3: {3}}
         sage: type(T)
         <class 'sage.homology.finite_topological_spaces.FiniteTopologicalSpace_T0'>
         sage: T.elements()
@@ -176,7 +174,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
         [0, 1, 2, 3, 4]
         sage: M = FiniteSpace(mat, elements=(5, 'e', 'h', 0, 'c')) ; M
         Finite topological space of 5 points with minimal basis
-         {5: {5}, 'e': {'h', 'e'}, 'h': {'h', 'e'}, 0: {0, 'c', 5}, 'c': {0, 'c', 5}}
+         {5: {5}, 'e': {'e', 'h'}, 'h': {'e', 'h'}, 0: {5, 0, 'c'}, 'c': {5, 0, 'c'}}
         sage: M.elements()
         [5, 'e', 'h', 0, 'c']
         sage: FiniteSpace(mat, elements=[5, 'e', 'h', 0, 0])
@@ -251,7 +249,8 @@ def FiniteSpace(data, elements=None, is_T0=False):
 
     # This fixes a topological sort (it guarantees an upper triangular topogenous matrix)
     eltos = list(eltos)
-    eltos.sort(key = lambda x: len(basis[x]))
+    sorted_str_eltos = sorted([str(x) for x in eltos])
+    eltos.sort(key = lambda x: (len(basis[x]), sorted_str_eltos.index(str(x))))
 
     # Now, check that 'basis' effectively defines a minimal basis for a topology
     if topogenous is None:
@@ -315,7 +314,7 @@ class FiniteTopologicalSpace(Parent):
             ....:             (2, 3): 1, (3, 2): 1, (3, 3): 1}
             sage: T = FiniteTopologicalSpace(elements, minimal_basis, matrix(mat_dict)) ; T
             Finite topological space of 4 points with minimal basis
-             {'a': {3, 'a'}, 3: {3, 'a'}, 2: {1, 2}, 1: {1}}
+             {'a': {'a', 3}, 3: {'a', 3}, 2: {1, 2}, 1: {1}}
             sage: T.topogenous_matrix() == matrix(mat_dict)
             True
         """
@@ -325,7 +324,28 @@ class FiniteTopologicalSpace(Parent):
         self._minimal_basis = minimal_basis
         self._topogenous = topogenous
 
-    def __repr__(self):
+    def space_sorting(self, element):
+        r"""
+        Return a pair formed by the index of `element` in `self._elements` and 
+        the index of `str(element)` in the sorted list consisting of the strings of
+        elements in `self._elements`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: T = FiniteSpace({0: {3, 0}, 3: {3, 0}, 2: {2, 1}, 1: {1}})
+            sage: T._elements
+            [1, 0, 2, 3]
+            sage: T.space_sorting(1)
+            (0, 1)
+            sage: T.space_sorting(2)
+            (2, 2)
+        """
+        eltos = self._elements
+        sorted_str_eltos = sorted([str(x) for x in eltos])
+        return (eltos.index(element), sorted_str_eltos.index(str(element)))
+
+    def _repr_(self):
         r"""
         Print representation.
 
@@ -341,8 +361,10 @@ class FiniteTopologicalSpace(Parent):
         """
         n = self._cardinality
         if n < 10:
+            sorted_minimal_basis = {x: sorted(self._minimal_basis[x], key=self.space_sorting)
+                                    for x in self._minimal_basis}
             return "Finite topological space of {} points with minimal basis \n {}" \
-                   .format(n, self._minimal_basis)
+                   .format(n, sorted_minimal_basis).replace('[', '{').replace(']', '}')
         else:
             return "Finite topological space of {} points".format(n)
 
@@ -559,12 +581,12 @@ class FiniteTopologicalSpace(Parent):
             ...
             ValueError: Parameter 'points' is not a valid set of representatives
         """
-        if self._T0==True:
+        if self._T0 is True:
             return self
         else:
             if points is None:
                 points = [list(A)[0] for A in self._T0]
-            elif check==True:
+            elif check:
                 assert isinstance(points, (tuple, list, set)), \
                        "Parameter 'points' must be of type tuple, list or set"
                 assert len(points)==len(self._T0), \
@@ -1012,7 +1034,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         self._poset = poset
         self._T0 = True
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Print representation.
 
@@ -1029,8 +1051,10 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         """
         n = self._cardinality
         if n < 10:
+            sorted_minimal_basis = {x: sorted(self._minimal_basis[x], key=self.space_sorting)
+                                    for x in self._minimal_basis}
             return "Finite T0 topological space of {} points with minimal basis \n {}" \
-                   .format(n, self._minimal_basis)
+                   .format(n, sorted_minimal_basis).replace('[', '{').replace(']', '}')
         else:
             return "Finite T0 topological space of {} points".format(n)
 
