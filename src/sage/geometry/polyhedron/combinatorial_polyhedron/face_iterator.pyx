@@ -306,6 +306,7 @@ cdef class FaceIterator_base(SageObject):
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
         self._equalities = C.equalities()
+        self._bounded = C.is_bounded()
 
         self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
         self.structure.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))

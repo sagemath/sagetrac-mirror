@@ -78,6 +78,19 @@ inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces,
     return 0;
 }
 
+inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length, int *skip){
+    /*
+    Return whether ``face`` is contained in one of ``faces``.
+
+    Skip all ``faces[i]`` where ``skip[i]`` is ``True``.
+    */
+    for(size_t i = 0; i < n_faces; i++){
+        if (!skip[i] && is_subset(face, faces[i], face_length))
+            return 1;
+    }
+    return 0;
+}
+
 inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length, size_t skip){
     /*
     Return whether ``face`` is contained in one of ``faces``.

@@ -95,13 +95,18 @@ AUTHOR:
 from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
-from libc.string            cimport memcpy
+from libc.string            cimport memcpy, memset
 from .conversions           cimport vertex_to_bit_dictionary
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 cdef extern from "bit_vector_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
     cdef const size_t chunksize
+
+    cdef inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length)
+#       Return ``A & ~B == 0``.
+#       A is not subset of B, iff there is a vertex in A, which is not in B.
+#       ``face_length`` is the length of A and B in terms of uint64_t.
 
     cdef size_t get_next_level(
         uint64_t **faces, const size_t n_faces, uint64_t **nextfaces,
@@ -144,6 +149,11 @@ cdef extern from "bit_vector_operations.cc":
 #        Return the number of atoms/vertices in A.
 #        This is the number of set bits in A.
 #        ``face_length`` is the length of A in terms of uint64_t.
+
+    cdef int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length, int* skip)
+#       Return whether ``face`` is contained in one of ``faces``.
+#
+#       Skip all ``faces[i]`` where ``skip[i]`` is ``True``.
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -231,7 +241,7 @@ cdef class ListOfFaces:
             self.data[i] = <uint64_t *> \
                 self._mem.aligned_malloc(chunksize//8, self.face_length*8)
 
-    def __copy__(self):
+    cpdef ListOfFaces __copy__(self):
         r"""
         Return a copy of self.
 
@@ -462,30 +472,48 @@ cdef class ListOfFaces:
 
         return copy
 
-    cdef ListOfFaces delete_atoms_unsafe(self, uint64_t *face):
+    cdef ListOfFaces delete_atoms_unsafe(self, uint64_t *face, int *delete):
         r"""
         Return a copy of ``self`` with each bit not set in ``face`` removed.
+
+        Alternatively, bit ``i`` is removed if and only if ``delete[i]``.
 
         The bits are removed NOT unset. Thus the output will usually have
         less atoms.
 
         .. WARNING::
 
-            ``face`` is assumed to be of length ``self.face_lenght``.
-        """
-        cdef output_n_atoms = count_atoms(face, self.face_length)
-        cdef ListOfFaces output = ListOfFaces(self.n_faces, output.n_atoms)
+            ``face`` is assumed to be of length ``self.face_length`` or NULL.
+            ``delete`` is assumed to be of length ``self.n_atoms`` or NULL.
 
+            Exactly one of ``face`` or ``delete`` must be non-NULL.
+        """
+
+        cdef output_n_atoms
         cdef size_t i, j
+        if face is not NULL:
+            output_n_atoms = count_atoms(face, self.face_length)
+        else:
+            output_n_atoms = self.n_atoms
+            for i in range(self.n_atoms):
+                if delete[i]:
+                    output_n_atoms -= 1
+        cdef ListOfFaces output = ListOfFaces(self.n_faces, output_n_atoms)
+
         cdef size_t counter = 0
         cdef size_t self_pos, output_pos, self_bit, output_bit
         cdef uint64_t new_value
         cdef bint prev_was_removed = False
 
+        # We lazily shift ``self`` to the left to copy it.
         for i in range(self.n_atoms):
-            if not face[i//64] & vertex_to_bit_dictionary(i % 64):
+            if ((face is not NULL and not face[i//64] & vertex_to_bit_dictionary(i % 64)) or
+                    (delete is not NULL and delete[i])):
+                # The atom will be removed.
                 prev_was_removed = True
             elif (counter % 64 == 0) or prev_was_removed:
+                # Either the previous atom was removed
+                # or we are in the next ``uint64_t``.
                 self_pos = i//64
                 self_bit = i % 64
                 output_pos = counter//64
@@ -502,7 +530,7 @@ cdef class ListOfFaces:
                     if self_bit and self_pos < self.face_length -1:
                         new_value |= (self.data[j][self_pos + 1] >> (64-self_bit))
 
-                    if not new_bit:
+                    if not output_bit:
                         output.data[j][output_pos] = new_value
                     else:
                         # Clear all bits after and including ``output_bit``.
@@ -531,6 +559,76 @@ cdef class ListOfFaces:
                 output.data[j][i] = 0
 
         return output
+
+    cdef void delete_faces_unsafe(self, uint64_t *face, int *delete):
+        r"""
+        Deletes face ``i`` if and only if ``delete[i]``.
+
+        Alternatively, deletes all faces such that the ``i``-th bit in ``face`` is not set.
+
+        This will modify ``self``.
+
+        .. WARNING::
+
+            ``face`` is assumed to contain ``self.n_faces`` atoms or NULL.
+            ``delete`` is assumed to be of length ``self.n_faces`` or NULL.
+
+            Exactly one of ``face`` or ``delete`` must be non-NULL.
+        """
+        cdef size_t n_newfaces = 0
+        for i in range(self.n_faces):
+            if ((delete is not NULL and not delete[i]) or
+                    (face is not NULL and face[i//64] & vertex_to_bit_dictionary(i % 64))):
+                self.data[n_newfaces] = self.data[i]
+                n_newfaces += 1
+
+        self.n_faces = n_newfaces
+
+    cdef void get_not_inclusion_maximal_unsafe(self, int *not_inclusion_maximal):
+        r"""
+        Get all faces that are not inclusion maximal.
+
+        Set ``not_inclusion_maximal[i]`` to one if ``self.data[i]`` is not
+        an inclusion-maximal face, otherwise to zero.
+
+        If there are duplicates, all but the last duplicate will be marked as
+        not inclusion maximal.
+
+        .. WARNING::
+
+            ``not_inclusion_maximal`` is assumed to be at least of length ``self.n_atoms`` or NULL.
+        """
+        cdef size_t i
+        memset(not_inclusion_maximal, 0, sizeof(int)*self.n_faces)
+        for i in range(self.n_faces):
+            not_inclusion_maximal[i] = 1  # mark to not check inclusion of the face itself
+            not_inclusion_maximal[i] = is_contained_in_one(self.data[i], self.data, self.n_faces, self.face_length, not_inclusion_maximal)
+
+    cdef void get_faces_all_set_unsafe(self, int *all_set):
+        r"""
+        Get the faces that have all ``bits`` set.
+
+        Set ``all_set[i]`` to one if ``self.data[i]``
+        has all bits set, otherwise to zero.
+
+        .. WARNING::
+
+            ``all_set`` is assumed to be at least of length ``self.n_atoms`` or NULL.
+        """
+        cdef size_t i, j
+        cdef uint64_t minone = <uint64_t> -1
+        for i in range(self.n_faces):
+            for j in range(self.n_atoms//64):
+                if self.data[i][j] != minone:
+                    all_set[i] = 0
+                    break
+            else:
+                if self.n_atoms % 64 == 0:
+                    all_set[i] = 1
+                elif count_atoms(self.data[i] + self.n_atoms//64, 1) == self.n_atoms % 64:
+                    all_set[i] = 1
+                else:
+                    all_set[i] = 0
 
     def matrix(self):
         r"""
@@ -572,16 +670,73 @@ cdef class ListOfFaces:
         M.set_immutable()
         return M
 
-cdef tuple face_as_combinatorial_polyhedron(ListOfFaces old_facets, ListOfFaces old_Vrep, uint64_t *face):
+cdef tuple face_as_combinatorial_polyhedron(ListOfFaces facets, ListOfFaces Vrep, uint64_t *face, uint64_t *coface):
     r"""
-    Obtain the facets and Vrepresentation of ``face`` as new combinatorial polyhedron.
+    Obtain facets and Vrepresentation of ``face`` as new combinatorial polyhedron.
+
+    INPUT:
+
+    - ``facets`` -- facets of the polyhedron
+    - ``Vrep`` -- Vrepresentation of the polyhedron
+    - ``face`` -- face in Vrepresentation or ``NULL``
+    - ``coface`` -- face in facet-represetnation or ``NULL``
+
+    Exactly one of ``face`` or ``coface`` must be ``NULL``.
 
     OUTPUT: A tuple of new facets and new Vrepresentation as :class:`ListOfFaces`.
-    """
-    cdef ListOfFaces reduced_faces = old_facets.delete_atoms_unsafe(face)
-    cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int* facets_to_delete = <int*> mem.allocarray(reduced_faces.n_faces, sizeof(int))
-    reduced_faces.delete_not_inclusion_maximal(facets_to_delete)
-    cdef ListOfFaces reduced_Vrep =
 
-    raise NotImplementedError
+    .. WARNING::
+
+        ``face`` is assumed to be of length ``old_facets.face_length`` or NULL.
+        ``coface`` is assumed to be of length ``old_Vrep.face_length`` or NULL.
+    """
+    cdef ListOfFaces new_facets, new_Vrep
+    cdef int* delete
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef size_t i
+
+    #assert facets.matrix() == Vrep.matrix().transpose()
+    #print(facets.matrix(), '1')
+
+    # Delete all atoms not in the face.
+    if face is not NULL:
+        new_facets = facets.delete_atoms_unsafe(face, NULL)
+        new_Vrep = Vrep.__copy__()
+        new_Vrep.delete_faces_unsafe(face, NULL)
+
+        delete = <int*> mem.allocarray(new_facets.n_faces, sizeof(int))
+    else:
+        delete = <int*> mem.allocarray(max(facets.n_faces, facets.n_atoms), sizeof(int))
+
+        # Set ``delete[i]`` to one if ``i`` is not an vertex of ``coface``.
+        for i in range(Vrep.n_faces):
+            if is_subset(coface, Vrep.data[i], Vrep.face_length):
+                delete[i] = 0
+            else:
+                delete[i] = 1
+
+        new_facets = facets.delete_atoms_unsafe(NULL, delete)
+        new_Vrep = Vrep.__copy__()
+        new_Vrep.delete_faces_unsafe(NULL, delete)
+
+    #assert new_facets.matrix() == new_Vrep.matrix().transpose()
+    #print(new_facets.matrix(), '2')
+
+    # Delete all facets that define the face.
+    new_facets.get_faces_all_set_unsafe(delete)
+    new_facets.delete_faces_unsafe(NULL, delete)
+    new_Vrep = new_Vrep.delete_atoms_unsafe(NULL, delete)
+
+    #assert new_facets.matrix() == new_Vrep.matrix().transpose()
+    #print(new_facets.matrix(), '3')
+
+    # Now delete all facets that are not inclusion maximal.
+    # the last copy of each duplicate will remain.
+    new_facets.get_not_inclusion_maximal_unsafe(delete)
+    new_facets.delete_faces_unsafe(NULL, delete)
+    new_Vrep = new_Vrep.delete_atoms_unsafe(NULL, delete)
+
+    #assert new_facets.matrix() == new_Vrep.matrix().transpose()
+    #print(new_facets.matrix(), '4')
+
+    return (new_facets, new_Vrep)

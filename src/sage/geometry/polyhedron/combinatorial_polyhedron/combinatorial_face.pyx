@@ -76,6 +76,7 @@ from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
+from .list_of_faces             cimport face_as_combinatorial_polyhedron
 from libc.string                cimport memcpy
 
 cdef extern from "bit_vector_operations.cc":
@@ -197,6 +198,7 @@ cdef class CombinatorialFace(SageObject):
             self.atoms              = it.atoms
             self.coatoms            = it.coatoms
             self._hash_index        = it.structure._index
+            self._ambient_bounded   = it._bounded
 
         elif isinstance(data, PolyhedronFaceLattice):
             all_faces = data
@@ -219,6 +221,7 @@ cdef class CombinatorialFace(SageObject):
             self._equalities        = all_faces._equalities
             self.atoms              = all_faces.atoms
             self.coatoms            = all_faces.coatoms
+            self._ambient_bounded   = all_faces._bounded
 
             self._hash_index = index
             for i in range(-1,dimension):
@@ -699,6 +702,26 @@ cdef class CombinatorialFace(SageObject):
             return smallInteger(self.n_atom_rep())
 
     n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
+
+    def as_polyhedron(self, face_figure=False):
+        if not self._ambient_bounded:
+            raise NotImplementedError("only implemented for bounded polyhedra")
+
+        if not face_figure and self.dimension() < 1:
+            return CombinatorialPolyhedron(self.dimension())
+        if face_figure and self.ambient_dimension() - self.dimension() < 1:
+            return CombinatorialPolyhedron(self.ambient_dimension() - self.dimension())
+
+        cdef ListOfFaces facets = self.atoms if self._dual else self.coatoms
+        cdef ListOfFaces Vrep = self.atoms if not self._dual else self.coatoms
+        cdef uint64_t* face = self.face if not self._dual else NULL
+        cdef uint64_t* coface = self.face if self._dual else NULL
+
+        if not face_figure:
+            return CombinatorialPolyhedron(face_as_combinatorial_polyhedron(facets, Vrep, face, coface))
+        else:
+            new_Vrep, new_facets = face_as_combinatorial_polyhedron(Vrep, facets, coface, face)
+            return CombinatorialPolyhedron((new_facets, new_Vrep))
 
     cdef size_t n_atom_rep(self) except -1:
         r"""
