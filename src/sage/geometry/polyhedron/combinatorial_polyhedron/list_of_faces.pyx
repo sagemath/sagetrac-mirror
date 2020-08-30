@@ -713,9 +713,6 @@ cdef tuple face_as_combinatorial_polyhedron(ListOfFaces facets, ListOfFaces Vrep
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef size_t i
 
-    #assert facets.matrix() == Vrep.matrix().transpose()
-    #print(facets.matrix(), '1')
-
     # Delete all atoms not in the face.
     if face is not NULL:
         new_facets = facets.delete_atoms_unsafe(face, NULL)
@@ -737,24 +734,15 @@ cdef tuple face_as_combinatorial_polyhedron(ListOfFaces facets, ListOfFaces Vrep
         new_Vrep = Vrep.__copy__()
         new_Vrep.delete_faces_unsafe(NULL, delete)
 
-    #assert new_facets.matrix() == new_Vrep.matrix().transpose()
-    #print(new_facets.matrix(), '2')
-
     # Delete all facets that define the face.
     new_facets.get_faces_all_set_unsafe(delete)
     new_facets.delete_faces_unsafe(NULL, delete)
     new_Vrep = new_Vrep.delete_atoms_unsafe(NULL, delete)
-
-    #assert new_facets.matrix() == new_Vrep.matrix().transpose()
-    #print(new_facets.matrix(), '3')
 
     # Now delete all facets that are not inclusion maximal.
     # the last copy of each duplicate will remain.
     new_facets.get_not_inclusion_maximal_unsafe(delete)
     new_facets.delete_faces_unsafe(NULL, delete)
     new_Vrep = new_Vrep.delete_atoms_unsafe(NULL, delete)
-
-    #assert new_facets.matrix() == new_Vrep.matrix().transpose()
-    #print(new_facets.matrix(), '4')
 
     return (new_facets, new_Vrep)

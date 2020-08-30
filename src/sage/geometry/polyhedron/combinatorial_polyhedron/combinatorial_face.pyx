@@ -707,11 +707,6 @@ cdef class CombinatorialFace(SageObject):
         if not self._ambient_bounded:
             raise NotImplementedError("only implemented for bounded polyhedra")
 
-        if not face_figure and self.dimension() < 1:
-            return CombinatorialPolyhedron(self.dimension())
-        if face_figure and self.ambient_dimension() - self.dimension() < 1:
-            return CombinatorialPolyhedron(self.ambient_dimension() - self.dimension())
-
         cdef ListOfFaces facets = self.atoms if self._dual else self.coatoms
         cdef ListOfFaces Vrep = self.atoms if not self._dual else self.coatoms
         cdef uint64_t* face = self.face if not self._dual else NULL
@@ -720,6 +715,10 @@ cdef class CombinatorialFace(SageObject):
         if not face_figure:
             return CombinatorialPolyhedron(face_as_combinatorial_polyhedron(facets, Vrep, face, coface))
         else:
+            # We run ``face_as_combinatorial_polyhedron`` with interchanged arguments to obtain
+            # the dual of the face figure.
+
+            # We then interchange the output of it, to obtain the face figure.
             new_Vrep, new_facets = face_as_combinatorial_polyhedron(Vrep, facets, coface, face)
             return CombinatorialPolyhedron((new_facets, new_Vrep))
 
