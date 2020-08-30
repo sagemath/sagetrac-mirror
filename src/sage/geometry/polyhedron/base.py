@@ -6794,6 +6794,8 @@ class Polyhedron_base(Element):
             # Avoid trivial cases.
             return
 
+        from sage.misc.prandom import random
+
         if tester is None:
             tester = self._tester(**options)
 
@@ -6807,6 +6809,10 @@ class Polyhedron_base(Element):
         for f in it:
             f1 = next(it1)
             f2 = next(it2)
+            if random() < 0.95:
+                # Only test a random 5 percent of the faces.
+                continue
+
             P = f.as_polyhedron()
             D1 = f1.as_polyhedron()
             D2 = f2.as_polyhedron(face_figure=True).dual()
