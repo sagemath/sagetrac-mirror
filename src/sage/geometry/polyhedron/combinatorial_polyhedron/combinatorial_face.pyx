@@ -704,6 +704,60 @@ cdef class CombinatorialFace(SageObject):
     n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 
     def as_polyhedron(self, face_figure=False):
+        r"""
+        Return ``self`` as combinatorial polyhedron.
+
+        If ``face_figure`` is ``True`` return the face figure of ``self``.
+
+        Let `[\hat{0], \hat{1}]` be the face lattice of the ambient polyhedron
+        and `F` be ``self`` as element of the face lattice.
+        `F` as polyhedron corresponds to `[\hat{0}, F]` and
+        the face figure of `F` corresponds to `[F, \hat{1}]`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(7,11)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(4)
+            sage: f = next(it); f
+            A 4-dimensional face of a 7-dimensional combinatorial polyhedron
+            sage: C1 = f.as_polyhedron(); C1
+            A 4-dimensional combinatorial polyhedron with 5 facets
+            sage: C1.f_vector()
+            (1, 5, 10, 10, 5, 1)
+            sage: C1_alt = polytopes.cyclic_polytope(4,5).combinatorial_polyhedron()
+            sage: C1_alt.vertex_facet_graph().is_isomorphic(C1.vertex_facet_graph())
+            True
+
+        Obtaining the face figure::
+
+            sage: C2 = f.as_polyhedron(face_figure=True); C2
+            A 2-dimensional combinatorial polyhedron with 6 facets
+            sage: C2
+            A 2-dimensional combinatorial polyhedron with 6 facets
+            sage: C2.f_vector()
+            (1, 6, 6, 1)
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: P = Polyhedron(rays=[[0,1]])*polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(2)
+            sage: f = next(it)
+            sage: f.as_polyhedron()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for bounded polyhedra
+
+        REFERENCES:
+
+            For more information, see Exercise 2.9 of [Zie2007]_.
+
+        .. NOTE::
+
+            This method is tested in
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base._test_combinatorial_face_as_polyhedron`.
+        """
         if not self._ambient_bounded:
             raise NotImplementedError("only implemented for bounded polyhedra")
 
