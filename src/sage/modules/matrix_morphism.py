@@ -74,13 +74,11 @@ def is_MatrixMorphism(x):
 class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
     def __init__(self, parent):
         """
+        Initialize ``self``.
+
         INPUT:
 
-
-        -  ``parent`` - a homspace
-
-        -  ``A`` - matrix
-
+        -  ``parent`` -- a homspace
 
         EXAMPLES::
 
@@ -114,8 +112,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             True
             sage: psi == 5 * id
             True
-            sage: psi == 5  # no coercion
-            False
+            sage: psi == 5
+            True
             sage: id == End(V).identity()
             True
         """
@@ -403,9 +401,26 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             Free module morphism defined by the matrix
             [2 2]
             [0 4]...
+
+        TESTS:
+
+        Check that :trac:`28272` is fixed::
+
+            sage: V = VectorSpace(QQ,2)
+            sage: f = V.hom(identity_matrix(QQ,2))
+            sage: 1/2 * f
+            Vector space morphism represented by the matrix:
+            [1/2   0]
+            [  0 1/2]...
+            sage: f * 1/2
+            Vector space morphism represented by the matrix:
+            [1/2   0]
+            [  0 1/2]...
         """
         R = self.base_ring()
         return self.parent()(R(left) * self.matrix())
+
+    _rmul_ = _lmul_ = __rmul__
 
     def __mul__(self, right):
         r"""
@@ -499,7 +514,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         M = right.matrix() * self.matrix()
         return right.domain().Hom(self.codomain())(M)
 
-    def __add__(self, right):
+    def _add_(self, other):
         """
         Sum of morphisms, denoted by +.
 
@@ -533,16 +548,9 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi + psi
             Traceback (most recent call last):
             ...
-            ValueError: inconsistent number of rows: should be 2 but got 3
+            TypeError: unsupported operand parent(s) for +: ...
         """
-        # TODO: move over to any coercion model!
-        if not isinstance(right, MatrixMorphism):
-            R = self.base_ring()
-            return self.parent()(self.matrix() + R(right))
-        if not right.parent() == self.parent():
-            right = self.parent()(right)
-        M = self.matrix() + right.matrix()
-        return self.domain().Hom(right.codomain())(M)
+        return self.parent()(self.matrix() + other.matrix())
 
     def __neg__(self):
         """
@@ -556,7 +564,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         return self.parent()(-self.matrix())
 
-    def __sub__(self, other):
+    def _sub_(self, other):
         """
         EXAMPLES::
 
@@ -566,12 +574,6 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             [0 0]
             [0 0]...
         """
-        # TODO: move over to any coercion model!
-        if not isinstance(other, MatrixMorphism):
-            R = self.base_ring()
-            return self.parent()(self.matrix() - R(other))
-        if not other.parent() == self.parent():
-            other = self.parent()(other)
         return self.parent()(self.matrix() - other.matrix())
 
     def base_ring(self):
