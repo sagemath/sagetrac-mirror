@@ -395,6 +395,24 @@ cdef class ListOfFaces:
         # by calculating dimension of one of its faces.
         return self.compute_dimension_loop(newfaces, new_n_faces, face_length) + 1
 
+    def _test_trailing_bits(self):
+        """
+        Check that all trailing bits are zero.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+            ....:     import facets_tuple_to_bit_rep_of_facets, \
+            ....:            facets_tuple_to_bit_rep_of_Vrep
+            sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
+            ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
+            sage: facets = facets_tuple_to_bit_rep_of_facets(bi_pyr, 6)
+            sage: facets._test_trailing_bits()
+        """
+        M = self.matrix()
+        for i in range(self.n_faces):
+            assert sum(M.row(i)) == count_atoms(self.data[i], self.face_length)
+
     cpdef ListOfFaces pyramid(self):
         r"""
         Return the list of faces of the pyramid.

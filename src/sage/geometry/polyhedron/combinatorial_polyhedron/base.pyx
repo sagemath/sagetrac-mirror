@@ -664,6 +664,9 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         tester.assertEqual(facets.matrix(), Vrep.matrix().transpose())
 
+        facets._test_trailing_bits()
+        Vrep._test_trailing_bits()
+
 
     def Vrepresentation(self):
         r"""
