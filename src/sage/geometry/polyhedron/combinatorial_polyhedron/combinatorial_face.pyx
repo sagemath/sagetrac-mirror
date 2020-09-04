@@ -703,16 +703,16 @@ cdef class CombinatorialFace(SageObject):
 
     n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 
-    def as_polyhedron(self, face_figure=False):
+    def as_polyhedron(self, quotient=False):
         r"""
         Return ``self`` as combinatorial polyhedron.
 
-        If ``face_figure`` is ``True`` return the face figure of ``self``.
+        If ``quotient`` is ``True`` return the quotient of the polyhedron by ``F``.
 
         Let `[\hat{0], \hat{1}]` be the face lattice of the ambient polyhedron
         and `F` be ``self`` as element of the face lattice.
         `F` as polyhedron corresponds to `[\hat{0}, F]` and
-        the face figure of `F` corresponds to `[F, \hat{1}]`.
+        the quotient by `F` corresponds to `[F, \hat{1}]`.
 
         EXAMPLES::
 
@@ -729,9 +729,9 @@ cdef class CombinatorialFace(SageObject):
             sage: C1_alt.vertex_facet_graph().is_isomorphic(C1.vertex_facet_graph())
             True
 
-        Obtaining the face figure::
+        Obtaining the quotient::
 
-            sage: C2 = f.as_polyhedron(face_figure=True); C2
+            sage: C2 = f.as_polyhedron(quotient=True); C2
             A 2-dimensional combinatorial polyhedron with 6 facets
             sage: C2
             A 2-dimensional combinatorial polyhedron with 6 facets
@@ -766,13 +766,13 @@ cdef class CombinatorialFace(SageObject):
         cdef uint64_t* face = self.face if not self._dual else NULL
         cdef uint64_t* coface = self.face if self._dual else NULL
 
-        if not face_figure:
+        if not quotient:
             return CombinatorialPolyhedron(face_as_combinatorial_polyhedron(facets, Vrep, face, coface))
         else:
             # We run ``face_as_combinatorial_polyhedron`` with interchanged arguments to obtain
-            # the dual of the face figure.
+            # the face as polyhedron in the dual setting.
 
-            # We then interchange the output of it, to obtain the face figure.
+            # We then interchange the output of it, to obtain the quotient.
             new_Vrep, new_facets = face_as_combinatorial_polyhedron(Vrep, facets, coface, face)
             return CombinatorialPolyhedron((new_facets, new_Vrep))
 
