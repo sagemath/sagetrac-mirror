@@ -28,6 +28,7 @@ from sage.combinat.posets.hasse_cython import (moebius_matrix_fast,
 
 from collections import deque
 
+
 class LatticeError(ValueError):
     """
     Helper exception class to forward elements without meet or
@@ -3524,5 +3525,4 @@ class HasseDiagram(DiGraph):
         return (shell, ZZ(mob), crit, J, M)
 
 
-from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))
