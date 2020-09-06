@@ -8628,7 +8628,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             ....:      [2, 10, 11], [2, 10, 14], [2, 6, 14], [2, 6, 7],
             ....:      [2, 3, 7], [2, 3, 11], [1, 3, 11], [1, 3, 7],
             ....:      [1, 5, 7], [1, 5, 13], [1, 9, 11], [1, 9, 13]]
-            sage: P.discrete_morse_theory(L) 
+            sage: P.discrete_morse_theory(L)
             (True,
              1,
              [23],
@@ -8651,7 +8651,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: L = [[6, 7, 2, 3],[6, 7, 2, 4], [6, 1, 8, 9, 3], [6, 1, 8, 9, 4],
             ....:      [5, 1, 8, 9, 3], [5, 1, 8, 9, 4]]
-            sage: I = P.discrete_Morse_theory(L)
+            sage: I = P.discrete_morse_theory(L)
             Not a shelling
             Mobius function = 0
             sage: I
@@ -8661,12 +8661,12 @@ class FinitePoset(UniqueRepresentation, Parent):
              [[], [[3, 4]], [[1, 4]], [[1, 4], [4, 5]], [[0, 1]], [[0, 1], [4, 5]]],
              [[], [[3, 4]], [[1, 4]], [[4, 5], [1, 4]], [[0, 1]], [[0, 1], [4, 5]]])
 
-            sage: L1=[[8, 12, 13], [8, 12, 14], [8, 10, 14], [8, 10, 11],
+            sage: L1 = [[8, 12, 13], [8, 12, 14], [8, 10, 14], [8, 10, 11],
             ....:   [8, 9, 11], [8, 9, 13], [4, 12, 13], [4, 12, 14], [4, 5, 13],
             ....:   [4, 5, 7], [4, 6, 7], [4, 6, 14], [2, 6, 7], [2, 6, 14],
             ....:   [2, 3, 7], [2, 3, 11], [2, 10, 11], [2, 10, 14], [1, 3, 11],
             ....:   [1, 3, 7], [1, 5, 7], [1, 5, 13], [1, 9, 11], [1, 9, 13]]
-            sage: I = P.discrete_Morse_theory(L1)
+            sage: I = P.discrete_morse_theory(L1)
             Not a shelling
             Mobius function = 1
             sage: I[0]
@@ -8683,7 +8683,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: L = [[10, 6, 7],[10, 2, 7],[5, 6, 7],[5, 4, 3],[5, 4, 2, 7],
             ....:      [1, 9, 8, 4, 3],[1, 9, 8, 4, 2, 7]]
-            sage: I = P.discrete_Morse_theory(L)
+            sage: I = P.discrete_morse_theory(L)
             Not a shelling
             Mobius function = 0
             sage: I
@@ -8716,10 +8716,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             is_PL, err = is_PL_ordering(L)
             if not is_PL:
                 raise ValueError("L must be a PL ordering; error with chain {}".format(err))
-        print(L)
         shell, mob, crit, J, M = self._hasse_diagram.discrete_morse_theory(L)
-        print(J)
-        print(M)
         J = [[[self._vertex_to_element(v) for v in I] for I in val]
              for val in J]
         M = [[[self._vertex_to_element(v) for v in I] for I in val]
