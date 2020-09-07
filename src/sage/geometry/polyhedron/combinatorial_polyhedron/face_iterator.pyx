@@ -185,10 +185,10 @@ from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 
 cdef extern from "bit_vector_operations.cc":
-    cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
+    cdef void intersection(uint64_t *dest, uint64_t *A, uint64_t *B,
                            size_t face_length)
-#   Set ``C = A & B``, i.e. C is the intersection of A and B.
-#   ``face_length`` is the length of A, B and C in terms of uint64_t.
+#   Set ``dest = A & B``, i.e. dest is the intersection of A and B.
+#   ``face_length`` is the length of A, B and dest in terms of uint64_t.
 
     cdef int is_subset(uint64_t *A, uint64_t *B, size_t face_length)
 #   Return ``A & ~B == 0``.
@@ -597,8 +597,8 @@ cdef class FaceIterator_base(SageObject):
             ...
             ValueError: please reset the face iterator
             sage: it.reset()
-            sage: it.meet_of_facets(1,2).ambient_H_indices()
-            (1, 2)
+            sage: it.meet_of_facets(0,2).ambient_H_indices()
+            (0, 2)
 
         """
         if self.dual:
@@ -659,8 +659,8 @@ cdef class FaceIterator_base(SageObject):
             ...
             ValueError: please reset the face iterator
             sage: it.reset()
-            sage: it.join_of_Vrep(1,2).ambient_V_indices()
-            (1, 2)
+            sage: it.join_of_Vrep(0,1).ambient_V_indices()
+            (0, 1)
 
         In case of an unbounded polyhedron, we try to make sense of the input::
 
@@ -797,7 +797,7 @@ cdef class FaceIterator_base(SageObject):
 
         for i in indices:
             assert 0 <= i < n_coatoms, "index out of range"
-            intersection(coatoms[i], face, face, face_length)
+            intersection(face, face, coatoms[i], face_length)
 
         if not self._bounded and is_subset(face, self.structure.visited_all[0], face_length):
             # The meet is contained in the far face and therefore is the empty face.
@@ -856,8 +856,8 @@ cdef class FaceIterator_base(SageObject):
             ...
             ValueError: please reset the face iterator
             sage: it.reset()
-            sage: it._join_of_atoms(1,2).ambient_V_indices()
-            (1, 2)
+            sage: it._join_of_atoms(0,1).ambient_V_indices()
+            (0, 1)
 
         The face iterator must not have the output dimension specified::
 
@@ -911,7 +911,7 @@ cdef class FaceIterator_base(SageObject):
         # Now we intersect all faces that contain our pseudo_face.
         for i in range(n_coatoms):
             if is_subset(pseudo_face, coatoms[i], face_length):
-                intersection(coatoms[i], face, face, face_length)
+                intersection(face, face, coatoms[i], face_length)
 
         if not indices:
             # The neutral element of the join.
