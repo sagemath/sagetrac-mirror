@@ -949,13 +949,14 @@ def _gens(G, b):
     gens += [Hensel_qf(G, g, 1, b) for g in gen]
     return gens
 
-def _compute_gens(T):
+def _compute_gens(T, deg=True):
     r"""
     Return generators of the orthogonal group of ``T``.
 
     INPUT:
 
     - ``T`` -- torsion orthogonal module in normal form.
+    - ``deg`` -- avoids an infinite recursion
 
     OUTPUT:
 
@@ -977,7 +978,7 @@ def _compute_gens(T):
     if len(invs) == 0:
         return []
     # a well behaved degenerate case
-    if T.is_degenerate() and T.invariants()[-1].is_prime():
+    if deg and T.is_degenerate() and T.invariants()[-1].is_prime():
         from sage.modules.torsion_quadratic_module import _normalize
         p = T.invariants()[-1]
         n = len(T.invariants())
@@ -988,7 +989,7 @@ def _compute_gens(T):
         Idk = matrix.identity(k)
         Idr = matrix.identity(r)
         NR = N.submodule_with_gens(N.gens()[k:])
-        gensNR = [NR._to_smith()*g*NR._to_gens() for g in _compute_gens(NR)]
+        gensNR = [NR._to_smith()*g*NR._to_gens() for g in _compute_gens(NR,deg=False)]
         if k > 0:
             gens = [matrix.block_diagonal([Idk,g]) for g in gensNR]
             gens += [matrix.block_diagonal([g.matrix(),Idr]) for g in GL(k,p).gens()]
@@ -1001,7 +1002,7 @@ def _compute_gens(T):
                 gens.append(h)
                 gens.append(copy(h))
         return [N._to_gens() * g * N._to_smith() for g in gens]
-    if T.is_degenerate():
+    elif deg and T.is_degenerate():
         return sage.groups.fqf_orthogonal._isom_fqf(T)
 
     # normal form gens for the different primes

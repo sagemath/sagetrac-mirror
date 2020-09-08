@@ -478,12 +478,8 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: A = IntegralLattice(1)
             sage: A.direct_sum(A)
             Lattice of degree 2 and rank 2 over Integer Ring
-            Basis matrix:
-            [1 0]
-            [0 1]
-            Inner product matrix:
-            [1 0]
-            [0 1]
+            Standard basis
+            Standard scalar product
         """
         from sage.matrix.constructor import matrix
         R = self.base_ring()
@@ -947,6 +943,9 @@ class FreeQuadraticModule_ambient(
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
 
+    def __hash__(self):
+        return hash((self.base_ring(),self.rank(),self.inner_product_matrix()))
+
     def _repr_(self):
         """
         The printing representation of self.
@@ -1402,6 +1401,9 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             echelonize=echelonize, echelonized_basis=echelonized_basis, already_echelonized=already_echelonized)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+
+    def __hash__(self):
+        return hash((self.ambient_module(),self.basis()))
 
     def _repr_(self):
         """

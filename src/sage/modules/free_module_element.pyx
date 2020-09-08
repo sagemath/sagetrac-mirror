@@ -3282,6 +3282,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             w = M.coordinate_vector(right)
             return A.linear_combination_of_rows(v).dot_product(w)
 
+    b = inner_product
+
     def outer_product(self, right):
         r"""
         Returns a matrix, the outer product of two vectors ``self`` and ``right``.

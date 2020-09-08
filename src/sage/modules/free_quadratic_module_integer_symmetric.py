@@ -868,11 +868,17 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             []
         """
         from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-        D = TorsionQuadraticModule(self.dual_lattice(), self, modulus=ZZ(1), check=False)
+        if self.is_even():
+            modulus_qf = ZZ(2)
+        else:
+            modulus_qf = ZZ(1)
+        D = TorsionQuadraticModule(self.dual_lattice(), self, modulus=ZZ(1),modulus_qf=modulus_qf, check=False)
         d = D.annihilator().gen()
         a = d.prime_to_m_part(s)
         Dp_gens = [a*g for g in D.gens()]
         return D.submodule(Dp_gens)
+
+    q = discriminant_group
 
     def signature(self):
         r"""

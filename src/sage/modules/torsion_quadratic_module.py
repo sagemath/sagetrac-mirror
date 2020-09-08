@@ -19,6 +19,7 @@ AUTHORS:
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.free_quadratic_module import FreeQuadraticModule
+from sage.modules.free_quadratic_module_integer_symmetric import FreeQuadraticModule_integer_symmetric
 from sage.arith.misc import gcd
 from sage.rings.all import ZZ, Zp, QQ, IntegerModRing
 from sage.groups.additive_abelian.qmodnz import QmodnZ
@@ -1908,7 +1909,16 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
                     perp = D.orthogonal_submodule_to(ext)
                     disc = perp/ext
                     if target_genus is not None:
-                        ext_genus = ext.W().overlattice([x.lift() for x in ext.gens()]).genus()
+                        # it is not guaranteed that W is an instance of FreeQuadraticModule
+                        if hasattr(ext.W(),"overlattice"):
+                            W = ext.W()
+                        else:
+                            W = FreeQuadraticModule_integer_symmetric(
+                                    ambient=ext.W().ambient_module(),
+                                    basis=ext.W().basis(),
+                                    inner_product_matrix=ext.W().inner_product_matrix(),
+                                    already_echelonized=False)
+                        ext_genus = W.overlattice([x.lift() for x in ext.gens()]).genus()
                         if ext_genus != target_genus:
                             continue
                     ###############################
@@ -2271,12 +2281,13 @@ class orbit_magma(orbit):
     def stabilizer(self,algorithm='magma'):
         stab = self._G.Stabiliser(self._rep_magma)
         stab = stab.Generators().SetToSequence()
-        stab = [g.Matrix().sage() for g in stab]
+        stab = [g.Matrix().sage().change_ring(ZZ) for g in stab]
         # we continue with magma
         G0 = self._H.orthogonal_group()
         # we could speed this up a lot by computing
         # the kernel only once and lift
-        stab = self._action_hom.preimage(G0.subgroup(stab))
+        S = G0.subgroup(stab)
+        stab = self._action_hom.preimage(S)
         return stab
 
     stabiliser = stabilizer
