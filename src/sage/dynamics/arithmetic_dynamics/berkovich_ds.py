@@ -818,10 +818,6 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             raise NotImplementedError('action on Type IV points not implemented')
         f = self._system
         if x.type_of_point() == 2:
-<<<<<<< HEAD
-            from sage.modules.free_module_element import vector
-=======
->>>>>>> berkovich_dynamical
             if self.domain().is_number_field_base():
                 ideal = self.domain().ideal()
                 ring_of_integers = self.domain().base_ring().ring_of_integers()
@@ -953,7 +949,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
 
     def min_res_locus(self, ret_new_system=False):
         r"""
-        Returns the minimal resultant locus and the minimal order of the resultant.
+        Return the minimal resultant locus and the minimal order of the resultant.
 
         Only implemented for Berkovich spaces backed by number fields.
 
