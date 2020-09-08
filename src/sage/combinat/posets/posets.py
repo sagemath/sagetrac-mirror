@@ -8561,8 +8561,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         OUTPUT: 
 
-        Print whether the poset is a shelling and what the Mobius function
-        is. Return a tuple of four elements: 1) Boolean: True if is a
+        Return a tuple of four elements: 1) Boolean: ``True`` if is a
         shelling order 2) Integer: The Mobius function, 3) List of Integers:
         the indices of the critical chains and 4) List of Lists: The J
         intervals of the chains.
@@ -8588,7 +8587,7 @@ class FinitePoset(UniqueRepresentation, Parent):
            for all critical chains C.
 
         7) Returns a tuple with the following elements:
-           1 - Boolean: True if ordering is a shelling,
+           1 - Boolean: ``True`` if ordering is a shelling,
            2 - Int: Value of the Mobius function,
            3 - List: The indices of the critical chains,
            4 - List: J intervals for all of L,
@@ -8655,10 +8654,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: L = [[6, 7, 2, 3],[6, 7, 2, 4], [6, 1, 8, 9, 3], [6, 1, 8, 9, 4],
             ....:      [5, 1, 8, 9, 3], [5, 1, 8, 9, 4]]
-            sage: I = P.discrete_morse_theory(L)
-            Not a shelling
-            Mobius function = 0
-            sage: I
+            sage: I = P.discrete_morse_theory(L); I
             (False,
              0,
              [],
@@ -8671,8 +8667,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             ....:   [2, 3, 7], [2, 3, 11], [2, 10, 11], [2, 10, 14], [1, 3, 11],
             ....:   [1, 3, 7], [1, 5, 7], [1, 5, 13], [1, 9, 11], [1, 9, 13]]
             sage: I = P.discrete_morse_theory(L1)
-            Not a shelling
-            Mobius function = 1
             sage: I[0]
             False
             sage: I[1]
@@ -8687,10 +8681,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: L = [[10, 6, 7],[10, 2, 7],[5, 6, 7],[5, 4, 3],[5, 4, 2, 7],
             ....:      [1, 9, 8, 4, 3],[1, 9, 8, 4, 2, 7]]
-            sage: I = P.discrete_morse_theory(L)
-            Not a shelling
-            Mobius function = 0
-            sage: I
+            sage: I = P.discrete_morse_theory(L); I
             (False,
              0,
              [],
