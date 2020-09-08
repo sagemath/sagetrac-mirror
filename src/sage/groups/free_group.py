@@ -235,9 +235,8 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: G.<a,b> = FreeGroup()
-            sage: hash(a*b*b*~a)
-            -485698212495963022 # 64-bit
-            -1876767630         # 32-bit
+            sage: hash(a*b*b*~a) == hash((1, 2, 2, -1))
+            True
         """
         return hash(self.Tietze())
 
@@ -505,7 +504,6 @@ class FreeGroupElement(ElementLibGAP):
         """
         g = self.gap().UnderlyingElement()
         k = g.NumberSyllables().sage()
-        gen = self.parent().gen
         exponent_syllable  = libgap.eval('ExponentSyllable')
         generator_syllable = libgap.eval('GeneratorSyllable')
         result = []
