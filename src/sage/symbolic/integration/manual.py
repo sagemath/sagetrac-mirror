@@ -290,7 +290,7 @@ class ManualIntegral(SageObject):
         """
         return integral(self._f, self._x, hold=True)._ascii_art_()
 
-        def _unicode_art_(self):
+    def _unicode_art_(self):
         r"""
         The unicode_art expression of an object of this class is the same as the
         integral it computes.
