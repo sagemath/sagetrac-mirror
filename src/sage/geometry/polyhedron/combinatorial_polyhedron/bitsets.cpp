@@ -1,43 +1,11 @@
 /*
 #############################################################################
-# More or less taken from ``src/sage/data_structures/bitset.pxi``
+# Many parts taken from ``src/sage/data_structures/bitset.pxi``
 #############################################################################
 */
 
-#include "gmp.h"
-#include <cstring>
+#include "bitsets.h"
 using namespace std;
-
-const size_t index_shift = 6;
-const size_t LIMB_BITS = 64;
-
-/*
-#############################################################################
-# Creating limb patterns
-#############################################################################
-*/
-
-inline uint64_t limb_one_set_bit(size_t n){
-    /*
-    Return a limb with only bit n set.
-    */
-    return (uint64_t) 1 << (n % LIMB_BITS);
-}
-
-inline uint64_t limb_one_zero_bit(size_t n){
-    /*
-    Return a limb with all bits set, except for bit n.
-    */
-    return !((uint64_t) 1 << (n % LIMB_BITS));
-}
-
-inline uint64_t limb_lower_bits_down(size_t n){
-    /*
-    Return a limb with the lower n bits set, where n is interpreted
-    in [0 .. 64-1].
-    */
-    return ((uint64_t) 1 << (n % LIMB_BITS)) - 1;
-}
 
 /*
 #############################################################################
@@ -45,7 +13,7 @@ inline uint64_t limb_lower_bits_down(size_t n){
 #############################################################################
 */
 
-inline void bitset_clear(uint64_t* bits, size_t face_length){
+void bitset_clear(uint64_t* bits, size_t face_length){
     /*
     Remove all elements from the set.
     */
@@ -61,28 +29,19 @@ inline void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length){
     memcpy(dst, src, face_length*8);
 }
 
-inline void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length_dst, size_t face_length_src){
+void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length_dst, size_t face_length_src){
     /*
     Copy the bitset src over to the bitset dst, overwriting dst.
 
     If ``dst`` is longer, then additional bits are set to zero.
+
+    If ``dst`` is shorter, then only the part that fits will be copied.
     */
     if (face_length_src > face_length_dst)
         face_length_src = face_length_dst;
 
-    memcpy(dst, src, face_length_src*8);
-    memset(dst+face_length_src, 0, (face_length_dst-face_length_src)*8);
-}
-
-inline int bitset_cmp(uint64_t* a, uint64_t* b, size_t face_length){
-    /*
-    Compare bitsets a and b.  Return 0 if the two sets are
-    identical, and consistently return -1 or 1 for two sets that are
-    not equal.
-
-    We assume ``a.limbs >= b.limbs``.
-    */
-    return memcmp(a, b, face_length*8);
+    bitset_copy(dst, src, face_length_src);
+    bitset_clear(dst+face_length_src, face_length_dst-face_length_src);
 }
 
 /*
@@ -91,29 +50,7 @@ inline int bitset_cmp(uint64_t* a, uint64_t* b, size_t face_length){
 #############################################################################
 */
 
-inline int bitset_in(uint64_t* bits, size_t n){
-    /*
-    Check if n is in bits.  Return True (i.e., 1) if n is in the
-    set, False (i.e., 0) otherwise.
-    */
-    return bits[n >> index_shift] & limb_one_set_bit(n);
-}
-
-inline void bitset_discard(uint64_t* bits, size_t n){
-    /*
-    Remove n from bits.
-    */
-    bits[n >> index_shift] &= limb_one_zero_bit(n);
-}
-
-inline void bitset_add(uint64_t* bits, size_t n){
-    /*
-    Add n to bits.
-    */
-    bits[n >> index_shift] |= limb_one_set_bit(n);
-}
-
-inline void bitset_set_first_n(uint64_t* bits, size_t face_length, size_t n){
+void bitset_set_first_n(uint64_t* bits, size_t face_length, size_t n){
     /*
     Set exactly the first n bits.
     */
@@ -151,7 +88,7 @@ inline long _bitset_first_in_limb_nonzero(uint64_t limb){
     return mpn_scan1(&limb, 0);
 }
 
-inline size_t bitset_next(uint64_t* bits, size_t face_length, size_t n){
+size_t bitset_next(uint64_t* bits, size_t face_length, size_t n){
     /*
     Calculate the index of the next element in the set, starting at
     (and including) n.  Return -1 if there are no elements from n
@@ -170,4 +107,47 @@ inline size_t bitset_next(uint64_t* bits, size_t face_length, size_t n){
             return (i << index_shift) | _bitset_first_in_limb_nonzero(bits[i]);
     }
     return -1;
+}
+
+/*
+#############################################################################
+# Miscellaneous
+#############################################################################
+*/
+
+int test_alignment(uint64_t* a){
+    size_t address = (size_t) a;
+    size_t required_alignment = chunksize/8;
+    return (address == (address & ~(required_alignment -1)));
+}
+
+/*
+#############################################################################
+# Bitset Comparison
+#############################################################################
+*/
+
+int bitset_cmp(uint64_t* a, uint64_t* b, size_t face_length){
+    /*
+    Compare bitsets a and b.  Return 0 if the two sets are
+    identical, and consistently return -1 or 1 for two sets that are
+    not equal.
+
+    We assume ``a.limbs >= b.limbs``.
+    */
+    return memcmp(a, b, face_length*8);
+}
+
+int bitset_isempty(uint64_t* a, size_t face_length){
+    /*
+    Test whether bits is empty.  Return True (i.e., 1) if the set is
+    empty, False (i.e., 0) otherwise.
+    */
+    if (a[0])
+        return 0;
+    if (face_length == 1)
+        return 1;
+    // Compare bits to itself shifted by 1 limb. If these compare equal,
+    // all limbs must be 0.
+    return (bitset_cmp(a, a+1, face_length -1) == 0);
 }

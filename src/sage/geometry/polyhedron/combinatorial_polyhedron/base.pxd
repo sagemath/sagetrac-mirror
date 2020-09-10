@@ -1,5 +1,4 @@
 cimport cython
-from libc.stdint                cimport uint64_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .face_iterator             cimport FaceIterator, CombinatorialFace

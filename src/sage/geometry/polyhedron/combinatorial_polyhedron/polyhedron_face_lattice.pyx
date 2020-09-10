@@ -1,4 +1,6 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
+# distutils: sources = sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cpp sage/geometry/polyhedron/combinatorial_polyhedron/face.cpp sage/geometry/polyhedron/combinatorial_polyhedron/face_list.cpp
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.h sage/geometry/polyhedron/combinatorial_polyhedron/face.h sage/geometry/polyhedron/combinatorial_polyhedron/face_list.h
+# distutils: include_dirs = sage/geometry/polyhedron/combinatorial_polyhedron
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 # distutils: libraries = gmp
@@ -72,24 +74,25 @@ from sage.rings.integer     cimport smallInteger
 from .conversions           cimport Vrep_list_to_bit_rep, bit_rep_to_Vrep_list
 from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
+from .list_of_faces             cimport allocate_one_face
 
-cdef extern from "bitset_operations.cc":
-    cdef void intersection(uint64_t *dest, uint64_t *A, uint64_t *B,
-                           size_t face_length)
+cdef extern from "face.h":
+    cdef int face_cmp(face_struct& a, face_struct& b)
+    cdef void face_copy(face_struct& dst, face_struct& src)
+
+cdef extern from "face_list.h":
+    cdef void intersection(face_struct& dest, face_struct& A, face_struct& B)
 #    Set ``dest = A & B``, i.e. dest is the intersection of A and B.
-#    ``face_length`` is the length of A, B and dest in terms of uint64_t.
 
-    cdef size_t bit_rep_to_coatom_rep(
-            uint64_t *face, uint64_t **coatoms, size_t n_coatoms,
-            size_t face_length, size_t *output)
+    cdef size_t bit_rep_to_coatom_rep(face_struct& face, face_list_struct& coatoms, size_t *output)
 #        Write the coatom-representation of face in output. Return length.
-#        ``face_length`` is the length of ``face`` and ``coatoms[i]``
-#        in terms of uint64_t.
-#        ``n_coatoms`` length of ``coatoms``.
 
-cdef extern from "bitsets.cc":
-    cdef int bitset_cmp(uint64_t* a, uint64_t* b, size_t face_length)
-    cdef void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length)
+    cdef void faces_shallow_copy(face_list_struct& dst, face_list_struct& src)
+#        Assumes the memory for the face adresses to allocated already.
+#
+#        Will not copy the data for the faces, but the e.g. one can freely shuffle ``faces``.
+
+    cdef void initialize_faces(face_list_struct& faces, size_t n_faces, size_t n_atoms)
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -146,15 +149,16 @@ cdef class PolyhedronFaceLattice:
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice.PolyhedronFaceLattice).run()
         """
+        cdef int i
+        cdef size_t j
         self._mem = MemoryAllocator()
         self.dimension = C.dimension()
         self.dual = False
-        if C.bitrep_facets().n_faces > C.bitrep_Vrep().n_faces:
+        if C.bitrep_facets().n_faces() > C.bitrep_Vrep().n_faces():
             self.dual = True
         if not C.is_bounded():
             self.dual = False
         cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
-        self.face_length = face_iter.structure.face_length
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
         self._equalities = C.equalities()
@@ -183,44 +187,35 @@ cdef class PolyhedronFaceLattice:
             # So far this didn't matter, as we only iterated over proper faces.
             self.atoms = facets_tuple_to_bit_rep_of_Vrep(((),), 1)
             self.coatoms = facets_tuple_to_bit_rep_of_facets(((),), 1)
-            self.face_length = self.coatoms.face_length
         else:
             self.atoms = face_iter.atoms
             self.coatoms = face_iter.coatoms
-        cdef size_t n_atoms = self.atoms.n_faces
-        self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
-        self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
+        cdef size_t n_atoms = self.atoms.n_faces()
+        self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
+        self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
 
         # Initialize the data for ``faces``:
-        cdef ListOfFaces coatoms_mem
-        self.faces_mem = tuple(ListOfFaces(self.f_vector[i+1], n_atoms)
-                               for i in range(-1, self.dimension-1))
-        if self.dimension > -1:
-            # the coatoms
-            self.faces_mem += (self.coatoms,)
-        self.faces_mem += (ListOfFaces(1, n_atoms),)  # the full polyhedron
-
-        # Setting up a pointer to raw data of ``faces``:
-        self.faces = <uint64_t ***> self._mem.allocarray(self.dimension + 2, sizeof(uint64_t **))
-        cdef ListOfFaces some_list  # assuming a type
+        self.level_sets = <face_list_struct *> self._mem.allocarray(self.dimension + 2, sizeof(face_list_struct))
         for i in range(self.dimension + 2):
-            some_list = self.faces_mem[i]
-            self.faces[i] = some_list.data
+            self.level_sets[i].faces = <face_struct *> self._mem.allocarray(self.f_vector[i], sizeof(face_struct))
+            if i == self.dimension:
+                faces_shallow_copy(self.level_sets[i], self.coatoms.data)
+            else:
+                initialize_faces(self.level_sets[i], self.f_vector[i], self.coatoms.n_atoms())
+                for j in range(self.f_vector[i]):
+                    allocate_one_face(self.level_sets[i].faces[j], self.coatoms.n_faces(), self.coatoms.n_atoms(), self._mem)
 
         if self.dimension != 0:
             # Initialize the empty face.
             # In case ``dimension == 0``, we would overwrite the coatoms.
-            Vrep_list_to_bit_rep((), self.faces[0][0], self.face_length)
+            Vrep_list_to_bit_rep((), self.level_sets[0].faces[0])
         # Initialize the full polyhedron
         Vrep_list_to_bit_rep(tuple(j for j in range(n_atoms)),
-                                self.faces[self.dimension + 1][0],
-                                self.face_length)
+                                self.level_sets[self.dimension + 1].faces[0])
 
         # Attributes for iterating over the incidences.
         self.is_incidence_initialized = 0
-        cdef ListOfFaces incidence_face_mem = ListOfFaces(1, n_atoms)
-        self.incidence_face = incidence_face_mem.data[0]
-        self.faces_mem += (incidence_face_mem,)  # needs to be stored somewhere
+        allocate_one_face(self.incidence_face, self.coatoms.n_faces(), self.coatoms.n_atoms(), self._mem)
 
         # Adding all faces, using the iterator.
         cdef int d
@@ -237,7 +232,7 @@ cdef class PolyhedronFaceLattice:
         # Sorting the faces, except for coatoms.
         self._sort()
 
-    cdef int _add_face(self, int face_dim, uint64_t *face) except -1:
+    cdef int _add_face(self, int face_dim, face_struct& face) except -1:
         r"""
         Add a face to :class:`PolyhedronFaceLattice`.
 
@@ -249,12 +244,12 @@ cdef class PolyhedronFaceLattice:
             raise IOError("trying to add too many faces to ``PolyhedronFaceLattice``")
 
         # Actually add the face by copying its data.
-        bitset_copy(self.faces[face_dim + 1][counter], face, self.face_length)
+        face_copy(self.level_sets[face_dim + 1].faces[counter], face)
         self.face_counter[face_dim + 1] += 1
 
     cdef int _sort(self) except -1:
         r"""
-        Sort each list of ``self.faces`` (except for coatoms).
+        Sort each list of ``self.level_sets`` (except for coatoms).
 
         This method is used on initialization only.
         """
@@ -266,25 +261,25 @@ cdef class PolyhedronFaceLattice:
 
         for i in range(0, dim):
             # Sort each level set, except for coatoms, full- and empty polyhedron.
-            self._sort_one_list(self.faces[i], self.f_vector[i])
+            self._sort_one_list(self.level_sets[i])
 
-    cdef int _sort_one_list(self, uint64_t **faces, size_t n_faces) except -1:
+    cdef int _sort_one_list(self, face_list_struct& faces) except -1:
         r"""
-        Sort ``faces`` of length ``n_faces``.
+        Sort ``faces`` of length `.n_faces()``.
 
         See :meth:`sort`.
         """
         cdef MemoryAllocator mem = MemoryAllocator()
 
         # Merge sort needs a second list of pointers.
-        cdef uint64_t **extra_mem = <uint64_t **> mem.allocarray(n_faces, sizeof(uint64_t *))
+        cdef face_struct* extra_mem = <face_struct*> mem.allocarray(faces.n_faces, sizeof(face_struct))
 
         # Sort the faces using merge sort.
-        self._sort_one_list_loop(faces, faces, extra_mem, n_faces)
+        self._sort_one_list_loop(faces.faces, faces.faces, extra_mem, faces.n_faces)
 
     cdef int _sort_one_list_loop(
-            self, uint64_t **inp, uint64_t **output1,
-            uint64_t **output2, size_t n_faces) except -1:
+            self, face_struct *inp, face_struct *output1,
+            face_struct *output2, size_t n_faces) except -1:
         r"""
         This is merge sort.
 
@@ -365,7 +360,7 @@ cdef class PolyhedronFaceLattice:
             raise ValueError("iterator and allfaces not in same mode")
         return self.find_face(face.dimension(), face.face)
 
-    cdef inline size_t find_face(self, int dimension, uint64_t *face) except -1:
+    cdef inline size_t find_face(self, int dimension, face_struct& face) except -1:
         r"""
         Return the index of ``face``, if it is of dimension ``dimension``.
 
@@ -395,31 +390,31 @@ cdef class PolyhedronFaceLattice:
         cdef size_t start = 0
         cdef size_t middle
         cdef n_faces = self.f_vector[dimension + 1]
-        cdef uint64_t **faces = self.faces[dimension + 1]
+        cdef face_list_struct faces = self.level_sets[dimension + 1]
 
         while (n_faces > 1):
             # In each iteration step, we will look for ``face`` in
             # ``faces[start:start+n_faces]``.
             middle = n_faces//2
-            if self.is_smaller(face, faces[middle + start]):
+            if self.is_smaller(face, faces.faces[middle + start]):
                 # If face is in the list, then in the lower half.
-                # Look for face in ``faces[start : start + middle]`` in next step.
+                # Look for face in ``faces.faces[start : start + middle]`` in next step.
                 n_faces = middle
             else:
                 # If face is in the list, then in the upper half.
-                # Look for face in ``faces[start+middle:start+n_faces]``, i.e.
+                # Look for face in ``faces.faces[start+middle:start+n_faces]``, i.e.
                 # ``faces[start + middle : (start + middle) + n_faces - middle]``.
                 n_faces -= middle
                 start += middle
         return start
 
-    cdef inline bint is_smaller(self, uint64_t *one, uint64_t *two):
+    cdef inline bint is_smaller(self, face_struct& one, face_struct& two):
         r"""
         Return `1` if ``one`` is smaller than ``two``, otherwise `0`.
         """
-        return bitset_cmp(one, two, self.face_length) < 0
+        return face_cmp(one, two) < 0
 
-    cdef inline int is_equal(self, int dimension, size_t index, uint64_t *face) except -1:
+    cdef inline int is_equal(self, int dimension, size_t index, face_struct& face) except -1:
         r"""
         Check wether ``face`` is of dimension ``dimension`` with index ``index``.
 
@@ -428,9 +423,8 @@ cdef class PolyhedronFaceLattice:
         if unlikely(dimension < -1 or dimension > self.dimension
                     or index >= self.f_vector[dimension + 1]):
             raise IndexError()
-        cdef uint64_t *face2 = self.faces[dimension+1][index]
-        cdef size_t i
-        return (0 == bitset_cmp(face, face2, self.face_length))
+        cdef face_struct face2 = self.level_sets[dimension+1].faces[index]
+        return (0 == face_cmp(face, face2))
 
     cpdef CombinatorialFace get_face(self, int dimension, size_t index):
         r"""
@@ -496,15 +490,13 @@ cdef class PolyhedronFaceLattice:
             raise ValueError("no face of dimension %s"%dimension)
         if unlikely(index >= self.f_vector[dimension + 1]):
             raise IndexError("no %s-th face of dimension %s"%(index, dimension))
-        if unlikely(self.coatoms.n_faces == 0):
+        if unlikely(self.coatoms.n_faces() == 0):
             return 0
 
         cdef size_t n_coatoms = self.f_vector[self.dimension]
-        cdef uint64_t **coatoms = self.faces[self.dimension]
-        cdef size_t face_length = self.face_length
-        cdef uint64_t *face = self.faces[dimension+1][index]
-        return bit_rep_to_coatom_rep(face, coatoms, n_coatoms,
-                                       face_length, self.coatom_rep)
+        cdef face_list_struct coatoms = self.level_sets[self.dimension]
+        cdef face_struct face = self.level_sets[dimension+1].faces[index]
+        return bit_rep_to_coatom_rep(face, coatoms, self.coatom_rep)
 
     cdef size_t set_atom_rep(self, int dimension, size_t index) except -1:
         r"""
@@ -519,9 +511,8 @@ cdef class PolyhedronFaceLattice:
         if unlikely(index >= self.f_vector[dimension + 1]):
             raise IndexError("no %s-th face of dimension %s"%(index, dimension))
 
-        cdef size_t face_length = self.face_length
-        cdef uint64_t *face = self.faces[dimension+1][index]
-        return bit_rep_to_Vrep_list(face, self.atom_rep, face_length)
+        cdef face_struct face = self.level_sets[dimension+1].faces[index]
+        return bit_rep_to_Vrep_list(face, self.atom_rep)
 
     cdef void incidence_init(self, int dimension_one, int dimension_two):
         r"""
@@ -616,8 +607,8 @@ cdef class PolyhedronFaceLattice:
 
         See :meth:`next_incidence`.
         """
-        cdef uint64_t **coatoms = self.faces[self.dimension]
-        cdef uint64_t *dimension_one_face  # depending on the index ``incidence_counter_one``
+        cdef face_list_struct coatoms = self.level_sets[self.dimension]
+        cdef face_struct dimension_one_face  # depending on the index ``incidence_counter_one``
 
         cdef size_t location  # the index the intersection has, if of correct dimension
         cdef int is_it_equal  # checks if face with index ``location`` is intersection
@@ -627,12 +618,12 @@ cdef class PolyhedronFaceLattice:
             # ``0 < self.dimension_two + 1 == self.dimension_one < self.dimension``.
 
             one[0] = self.incidence_counter_one
-            dimension_one_face = self.faces[self.incidence_dim_one + 1][self.incidence_counter_one]
+            dimension_one_face = self.level_sets[self.incidence_dim_one + 1].faces[self.incidence_counter_one]
 
             # Get the intersection of ``dimension_one_face`` with the
             # ``self.incidence_counter_two``-th coatom.
             intersection(self.incidence_face, dimension_one_face,
-                         coatoms[self.incidence_counter_two], self.face_length)
+                         coatoms.faces[self.incidence_counter_two])
 
             # Get the location of the intersection and
             # check, wether it is correct.
