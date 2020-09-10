@@ -1,6 +1,7 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitset_operations.cc sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cc
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
+# distutils: libraries = gmp
 
 r"""
 List of faces
@@ -95,11 +96,9 @@ AUTHOR:
 from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off
-from libc.string            cimport memcpy
-from .conversions           cimport vertex_to_bit_dictionary
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
-cdef extern from "bit_vector_operations.cc":
+cdef extern from "bitset_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
     cdef const size_t chunksize
 
@@ -143,6 +142,14 @@ cdef extern from "bit_vector_operations.cc":
 #        This is the number of set bits in A.
 #        ``face_length`` is the length of A in terms of uint64_t.
 
+cdef extern from "bitsets.cc":
+    cdef void bitset_add(uint64_t* bits, size_t n)
+    cdef int bitset_in(uint64_t* bits, size_t n)
+    cdef void bitset_copy(uint64_t* dst, uint64_t* src, size_t face_length)
+    cdef void bitset_copy_flex "bitset_copy" (uint64_t* dst, uint64_t* src, size_t face_length_dst, size_t face_length_src)
+    cdef void bitset_clear(uint64_t* bits, size_t face_length)
+    cdef void bitset_set_first_n(uint64_t* bits, size_t face_length, size_t n)
+
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
@@ -184,26 +191,7 @@ cdef class ListOfFaces:
 
         See :class:`ListOfFaces`.
 
-        TESTS:
-
-        Checking for correct alignment of the data::
-
-            sage: cython('''
-            ....: from libc.stdint cimport uint64_t
-            ....: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-            ....: cimport ListOfFaces
-            ....:
-            ....: cdef ListOfFaces facets
-            ....: cdef size_t address
-            ....: cdef size_t required_alignment
-            ....:
-            ....: facets = ListOfFaces(10, 13)
-            ....: required_alignment = facets.face_length*8
-            ....: for i in range(10):
-            ....:     address = <size_t> facets.data[i]
-            ....:     if not address == address & ~(required_alignment - 1):
-            ....:         print('Alignment not correct')
-            ....: ''')
+        TESTS::
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces).run()
         """
@@ -228,6 +216,26 @@ cdef class ListOfFaces:
             # - must be 32-byte aligned if chunksize = 256
             self.data[i] = <uint64_t *> \
                 self._mem.aligned_malloc(chunksize//8, self.face_length*8)
+
+    def _test_alignment(self):
+        r"""
+        Check the correct alignment.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
+            ....:         import ListOfFaces
+            sage: facets = ListOfFaces(10, 13)
+            sage: facets._test_alignment()
+        """
+        cdef size_t address
+        cdef size_t required_alignment
+        cdef size_t i
+
+        required_alignment = chunksize/8
+        for i in range(self.n_faces):
+            address = <size_t> self.data[i]
+            assert address == address & ~(required_alignment - 1)
 
     def __copy__(self):
         r"""
@@ -262,7 +270,7 @@ cdef class ListOfFaces:
         cdef ListOfFaces copy = ListOfFaces(self.n_faces, self.n_atoms)
         cdef size_t i
         for i in range(self.n_faces):
-            memcpy(copy.data[i], self.data[i], self.face_length*8)
+            bitset_copy(copy.data[i], self.data[i], self.face_length)
         return copy
 
     cpdef int compute_dimension(self) except -2:
@@ -351,7 +359,7 @@ cdef class ListOfFaces:
         cdef size_t new_n_faces
         sig_on()
         new_n_faces = get_next_level(faces, n_faces,
-                                      newfaces.data, NULL, 0, face_length)
+                                     newfaces.data, NULL, 0, face_length)
         sig_off()
 
         newfaces.n_faces = new_n_faces
@@ -415,25 +423,20 @@ cdef class ListOfFaces:
             [1 1 1 1 0]
         """
         cdef ListOfFaces copy
-        cdef size_t i, j
+        cdef size_t i
 
         # ``copy`` has a new atom and a new coatom.
         copy = ListOfFaces(self.n_faces + 1, self.n_atoms + 1)
 
         for i in range(self.n_faces):
-            for j in range(self.face_length, copy.face_length):
-                copy.data[i][j] = 0
 
             # All old coatoms contain their respective old atoms.
             # Also all of them contain the new atom.
-            memcpy(copy.data[i], self.data[i], self.face_length*8)
-            copy.data[i][self.n_atoms//64] |= vertex_to_bit_dictionary(self.n_atoms % 64)
+            bitset_copy_flex(copy.data[i], self.data[i], copy.face_length, self.face_length)
+            bitset_add(copy.data[i], self.n_atoms)
 
         # The new coatom contains all atoms, but the new atom.
-        for i in range(copy.face_length):
-            copy.data[self.n_faces][i] = 0
-        for i in range(self.n_atoms):
-            copy.data[self.n_faces][i//64] |= vertex_to_bit_dictionary(i % 64)
+        bitset_set_first_n(copy.data[self.n_faces], copy.face_length, self.n_atoms)
 
         return copy
 
@@ -471,7 +474,7 @@ cdef class ListOfFaces:
         cdef size_t i,j
         for i in range(self.n_faces):
             for j in range(self.n_atoms):
-                if self.data[i][j//64] & vertex_to_bit_dictionary(j % 64):
+                if bitset_in(self.data[i], j):
                     M.set_unsafe_si(i, j, 1)
 
         M.set_immutable()
