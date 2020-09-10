@@ -1942,7 +1942,7 @@ def KFiniteSimplicialSet(sset):
                             degen_z.append(name)
                             auxiliar_list.append(degen_z)
                         list_rslt.append(auxiliar_list)
-        return KenzoSimplicialSet(__build-finite-ss2__(list_rslt))
+        return KenzoSimplicialSet(__build_finite_ss2__(list_rslt))
 
 
 def SFiniteSimplicialSet(ksimpset, limit):
