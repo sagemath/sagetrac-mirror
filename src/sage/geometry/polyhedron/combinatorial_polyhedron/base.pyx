@@ -1,5 +1,5 @@
 # distutils: sources = sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cpp sage/geometry/polyhedron/combinatorial_polyhedron/face.cpp
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.h sage/geometry/polyhedron/combinatorial_polyhedron/face.h
+# distutils: sources = sage/geometry/polyhedron/combinatorial_polyhedron/bitsets.cpp sage/geometry/polyhedron/combinatorial_polyhedron/face.cpp sage/geometry/polyhedron/combinatorial_polyhedron/face_list.cpp
 # distutils: include_dirs = sage/geometry/polyhedron/combinatorial_polyhedron
 # distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
