@@ -53,6 +53,8 @@ void faces_shallow_copy(face_list_struct& dst, face_list_struct& src){
     }
 }
 
+
+template <algorithm_variant N>
 inline void intersection(face_list_struct& dest, face_list_struct& A, face_struct& B){
     /*
     Intersect any face in ``A`` with ``B`` to obtain ``dest``.
@@ -60,44 +62,46 @@ inline void intersection(face_list_struct& dest, face_list_struct& A, face_struc
     assert(dest.total_n_faces >= A.n_faces);
     assert(dest.n_atoms >= A.n_atoms);
     dest.n_faces = A.n_faces;
-
-    int is_simple = A.polyhedron_is_simple;
-    dest.polyhedron_is_simple = is_simple;
+    dest.polyhedron_is_simple = A.polyhedron_is_simple;
 
     for(size_t i=0; i < A.n_faces; i++){
-        intersection(dest.faces[i], A.faces[i], B);
-        dest.faces[i].coatom_gen_is_maximal = is_simple;
+        intersection<N>(dest.faces[i], A.faces[i], B);
     }
 }
 
+template <algorithm_variant N>
 inline int is_contained_in_one(face_struct& face, face_list_struct& faces){
     /*
     Return whether ``face`` is contained in one of ``faces``.
     */
     for(size_t i = 0; i < faces.n_faces; i++){
-        if (is_subset(face, faces.faces[i]))
+        if (is_subset<N>(face, faces.faces[i]))
             return 1;
     }
     return 0;
 }
 
-inline int is_contained_in_one(face_struct& face, face_list_struct& faces, size_t skip){
-    /*
-    Return whether ``face`` is contained in one of ``faces``.
-
-    Skips ``faces[skip]``.
-    */
-    face_list_struct faces_start = faces;
-    face_list_struct faces_end = faces;
-
-    faces_start.n_faces = skip;
-    faces_end.n_faces -= skip+1;
-    faces_end.faces += skip + 1;
-
-    return is_contained_in_one(face, faces_start) || \
-        is_contained_in_one(face, faces_end);
+template <algorithm_variant N>
+inline int is_not_maximal(face_list_struct& new_faces, size_t j){
+    for(size_t i = 0; i < j; i++){
+        if (is_subset<N>(new_faces.faces[j], new_faces.faces[i]))
+            return 1;
+    }
+    for(size_t i = j+1; i < new_faces.n_faces; i++){
+        if (is_subset<N>(new_faces.faces[j], new_faces.faces[i]))
+            return 1;
+    }
+    return 0;
 }
 
+template <>
+inline int is_not_maximal<simple>(face_list_struct& new_faces, size_t j){
+    // In the simple case any face is maximal unless it is
+    // empty.
+    return is_zero(new_faces.faces[j]);
+}
+
+template <algorithm_variant N>
 size_t get_next_level(\
         face_list_struct& faces, \
         face_list_struct& new_faces, \
@@ -142,20 +146,12 @@ size_t get_next_level(\
 
     // Step 1:
     faces.n_faces -= 1;
-    intersection(new_faces, faces, faces.faces[n_faces-1]);
+    intersection<N>(new_faces, faces, faces.faces[n_faces-1]);
 
     for (size_t j = 0; j < n_faces-1; j++){
-        if (new_faces.polyhedron_is_simple){
-            // It suffices to check whether the face is non-empty and Step 3.
-            if (is_zero(new_faces.faces[j]) ||
-                    is_contained_in_one(new_faces.faces[j], visited_all))
-                is_not_new_face[j] = 1;
-        } else {
-            // For each face we will do Step 2 and Step 3.
-            if (is_contained_in_one(new_faces.faces[j], new_faces, j) || \
-                    is_contained_in_one(new_faces.faces[j], visited_all))
-                is_not_new_face[j] = 1;
-        }
+        if (is_not_maximal<N>(new_faces, j) || // Step 2
+                is_contained_in_one<N>(new_faces.faces[j], visited_all))  // Step 3
+            is_not_new_face[j] = 1;
     }
 
     // Set ``new_faces`` to point to the correct ones.
@@ -173,6 +169,17 @@ size_t get_next_level(\
     }
     new_faces.n_faces = n_new_faces;
     return n_new_faces;
+}
+
+
+size_t get_next_level(\
+        face_list_struct& faces, \
+        face_list_struct& new_faces, \
+        face_list_struct& visited_all){
+
+    if (faces.polyhedron_is_simple)
+        return get_next_level<simple>(faces, new_faces, visited_all);
+    return get_next_level<standard>(faces, new_faces, visited_all);
 }
 
 size_t bit_rep_to_coatom_rep(face_struct& face, face_list_struct& coatoms, size_t *output){

@@ -90,8 +90,7 @@ cdef extern from "face.h":
 
     cdef void face_add_atom(face_struct& face, size_t n)
     cdef int face_add_atom_safe(face_struct& face, size_t n) except -1
-    cdef void face_add_coatom(face_struct& face, size_t n)
-    cdef void set_coatom_gen_maximal(face_struct& face, int val)
+    cdef void facet_set_coatom(face_struct& face, size_t n)
 
     cdef size_t face_next_atom(face_struct& face, size_t n)
 
@@ -259,8 +258,7 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     for i in range(ncols):
         output = facets.data.faces + i
         face_clear(output[0])
-        face_add_coatom(output[0], i)
-        set_coatom_gen_maximal(output[0], 1)
+        facet_set_coatom(output[0], i)
 
         # Filling each facet with its Vrep-incidences, which "is" the
         # "i-th column" of the original matrix (but we have transposed).
@@ -368,8 +366,7 @@ def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
     for i in range(len(facets_input)):
         # filling each facet with the data from the corresponding facet
         Vrep_list_to_bit_rep(facets_input[i], facets.data.faces[i])
-        face_add_coatom(facets.data.faces[i], i)
-        set_coatom_gen_maximal(facets.data.faces[i], 1)
+        facet_set_coatom(facets.data.faces[i], i)
     return facets
 facets_tuple_to_bit_repr_of_facets = deprecated_function_alias(28608, facets_tuple_to_bit_rep_of_facets)
 
@@ -419,8 +416,7 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
     cdef size_t i
     for i in range(n_Vrep):
         face_clear(Vrep.data.faces[i])
-        face_add_coatom(Vrep.data.faces[i], i)
-        set_coatom_gen_maximal(Vrep.data.faces[i], 1)
+        facet_set_coatom(Vrep.data.faces[i], i)
 
     cdef size_t input_facet   # will iterate over indices of facets_input
     cdef size_t input_Vrep    # will iterate over vertices in facet ``input_facet``

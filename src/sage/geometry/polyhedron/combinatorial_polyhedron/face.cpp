@@ -24,7 +24,6 @@ using namespace std;
 void face_clear(face_struct& face){
     bitset_clear(face.atom_rep, face.face_length);
     bitset_clear(face.coatom_gen, face.face_length_coatom_gen);
-    face.coatom_gen_is_maximal = 0;
 }
 
 void face_copy(face_struct& dst, face_struct& src){
@@ -35,7 +34,6 @@ void face_copy(face_struct& dst, face_struct& src){
     */
     bitset_copy(dst.atom_rep, src.atom_rep, dst.face_length, src.face_length);
     bitset_copy(dst.coatom_gen, src.coatom_gen, dst.face_length_coatom_gen, src.face_length_coatom_gen);
-    dst.coatom_gen_is_maximal = src.coatom_gen_is_maximal;
 }
 
 int initalize_face_with_allocate_instructions(\
@@ -52,7 +50,6 @@ int initalize_face_with_allocate_instructions(\
         case 0:
             face.face_length = get_face_length(n_atoms);
             face.face_length_coatom_gen = get_face_length(n_faces);
-            face.coatom_gen_is_maximal = 0;
             size[0] = face.face_length*LIMB_BITS/8;
             alignment[0] = chunksize/8;
             return 1;

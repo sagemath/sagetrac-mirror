@@ -9,14 +9,16 @@ Use the access functions instead.
 struct face_struct{
     // All atoms that are contained in the face.
     uint64_t* atom_rep;
+
     // Coatoms such that their meet produces the face.
     // Note that in a simple polytope this is unique except for the empty face.
     uint64_t* coatom_gen;
 
     size_t face_length;
     size_t face_length_coatom_gen;
-    int coatom_gen_is_maximal;
 };
+
+enum algorithm_variant { standard, simple };
 
 /*
 #############################################################################
@@ -36,7 +38,8 @@ inline void face_discard_atom(face_struct& face, size_t n){
     bitset_discard(face.atom_rep, n);
 }
 
-inline void face_add_coatom(face_struct& face, size_t n){
+inline void facet_set_coatom(face_struct& face, size_t n){
+    bitset_clear(face.coatom_gen, face.face_length_coatom_gen);
     bitset_add(face.coatom_gen, n);
 }
 
@@ -90,27 +93,44 @@ int initalize_face_with_allocate_instructions(\
 
 int face_add_atom_safe(face_struct& face, size_t n);
 
-inline void set_coatom_gen_maximal(face_struct& face, int val){
-    face.coatom_gen_is_maximal = val;
-}
-
 /*
 #############################################################################
 # Arithmetic
 #############################################################################
 */
 
+template <algorithm_variant N>
 inline int is_subset(face_struct& A, face_struct& B){
-    if (A.coatom_gen_is_maximal && B.coatom_gen_is_maximal){
-        return is_subset(B.coatom_gen, A.coatom_gen, A.face_length_coatom_gen);
-    }
     return is_subset(A.atom_rep, B.atom_rep, A.face_length);
 }
 
+template <>
+inline int is_subset<simple>(face_struct& A, face_struct& B){
+    // In the simple case we can use the coatom
+    // generators.
+    // Those are unique unless the face is empty.
+    return is_subset(B.coatom_gen, A.coatom_gen, A.face_length_coatom_gen);
+}
+
+inline int is_subset(face_struct& A, face_struct& B){
+    return is_subset<standard>(A,B);
+}
+
+template <algorithm_variant N>
 inline void intersection(face_struct& dest, face_struct& A, face_struct& B){
     intersection(dest.atom_rep, A.atom_rep, B.atom_rep, dest.face_length);
+}
+
+template <>
+inline void intersection<simple>(face_struct& dest, face_struct& A, face_struct& B){
+    // In the simple case we must unite the coatom
+    // generators as well.
+    intersection(dest.atom_rep, A.atom_rep, B.atom_rep, dest.face_length);
     unite(dest.coatom_gen, A.coatom_gen, B.coatom_gen, dest.face_length_coatom_gen);
-    dest.coatom_gen_is_maximal = 0;
+}
+
+inline void intersection(face_struct& dest, face_struct& A, face_struct& B){
+    intersection<standard>(dest, A, B);
 }
 
 #endif

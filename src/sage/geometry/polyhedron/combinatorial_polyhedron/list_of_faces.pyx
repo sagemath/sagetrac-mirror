@@ -109,13 +109,10 @@ cdef extern from "face.h":
 
     cdef void face_add_atom(face_struct& face, size_t n)
     cdef int atom_in_face(face_struct& face, int n)
-    cdef void face_add_coatom(face_struct& face, size_t n)
+    cdef void facet_set_coatom(face_struct& face, size_t n)
     cdef void face_set_first_n_atoms(face_struct& face, size_t n)
 
     cdef size_t count_atoms(face_struct& A) nogil
-
-    cdef void set_coatom_gen_maximal(face_struct& face, int val)
-        # Set whether the genereating coatoms are maximal.  (Default is false.)
 
 cdef extern from "face_list.h":
     cdef void face_clear(face_struct& face)
@@ -408,8 +405,7 @@ cdef class ListOfFaces:
         cdef face_struct* new_face_pt = &copy.data.faces[self.n_faces()]
         face_clear(new_face_pt[0])
         face_set_first_n_atoms(new_face_pt[0], self.n_atoms())
-        face_add_coatom(new_face_pt[0], self.n_faces())
-        set_coatom_gen_maximal(new_face_pt[0], 1)
+        facet_set_coatom(new_face_pt[0], self.n_faces())
 
         return copy
 
