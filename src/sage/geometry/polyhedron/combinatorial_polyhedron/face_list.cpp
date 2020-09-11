@@ -102,7 +102,7 @@ inline int is_not_maximal<simple>(face_list_struct& new_faces, size_t j){
 }
 
 template <algorithm_variant N>
-size_t get_next_level(\
+inline size_t get_next_level(\
         face_list_struct& faces, \
         face_list_struct& new_faces, \
         face_list_struct& visited_all){
