@@ -1,4 +1,9 @@
 /*
+The file defines the data structure for a list of faces and corresponding functions.
+
+The main use case is a (sub-)list of facets of a polyhedron/face of a polyhedron
+for an iterator over the faces of a polytope.
+
 #*****************************************************************************
 #       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
 #
@@ -19,6 +24,10 @@
 using namespace std;
 
 void initialize_faces(face_list_struct& faces, size_t n_faces, size_t n_atoms){
+    /*
+    Sets the initial values for a list of faces with given number of faces
+    and number of atoms.
+    */
     faces.n_faces = n_faces;
     faces.total_n_faces = n_faces;
     faces.n_atoms = n_atoms;
@@ -28,6 +37,8 @@ void initialize_faces(face_list_struct& faces, size_t n_faces, size_t n_atoms){
 void faces_copy(face_list_struct& dst, face_list_struct& src){
     /*
     Asserts that ``dst`` is allocated and fits enought faces.
+
+    This is a deep copy. All the data for the faces is copied.
     */
     face_struct* data = dst.faces;
     dst = src;
@@ -57,7 +68,7 @@ void faces_shallow_copy(face_list_struct& dst, face_list_struct& src){
 template <algorithm_variant N>
 inline void intersection(face_list_struct& dest, face_list_struct& A, face_struct& B){
     /*
-    Intersect any face in ``A`` with ``B`` to obtain ``dest``.
+    Set ``dest`` to be the intersection of each face of ``A`` with ``B``.
     */
     assert(dest.total_n_faces >= A.n_faces);
     assert(dest.n_atoms >= A.n_atoms);
@@ -83,6 +94,9 @@ inline int is_contained_in_one(face_struct& face, face_list_struct& faces){
 
 template <algorithm_variant N>
 inline int is_not_maximal(face_list_struct& new_faces, size_t j){
+    /*
+    Return whether face ``j`` is not maximal in ``new_faces``.
+    */
     for(size_t i = 0; i < j; i++){
         if (is_subset<N>(new_faces.faces[j], new_faces.faces[i]))
             return 1;
@@ -96,8 +110,12 @@ inline int is_not_maximal(face_list_struct& new_faces, size_t j){
 
 template <>
 inline int is_not_maximal<simple>(face_list_struct& new_faces, size_t j){
-    // In the simple case any face is maximal unless it is
-    // empty.
+    /*
+    Note that ``new_faces`` are obtained by intersecting one facet with
+    other facets.
+
+    For ``simple`` polytopes this list contains only maximal and empty elements.
+    */
     return is_zero(new_faces.faces[j]);
 }
 
@@ -202,9 +220,12 @@ size_t bit_rep_to_coatom_rep(face_struct& face, face_list_struct& coatoms, size_
 }
 
 int test_alignment(face_list_struct& faces){
-   for(size_t i=0; i < faces.n_faces; i++){
+    /*
+    Return whether all faces in ``faces`` are aligned correctly.
+    */
+    for(size_t i=0; i < faces.n_faces; i++){
        if (!test_alignment(faces.faces[i]))
            return 0;
-   }
-   return 1;
+    }
+    return 1;
 }

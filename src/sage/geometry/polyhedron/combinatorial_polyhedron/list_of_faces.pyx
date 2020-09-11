@@ -104,7 +104,7 @@ cdef extern from "face.h":
     cdef void face_clear(face_struct& face)
     cdef void face_copy(face_struct& dst, face_struct& src)
     cdef int initalize_face_with_allocate_instructions(\
-            face_struct& face, size_t n_faces, size_t n_atoms, size_t step,
+            face_struct& face, size_t n_coatoms, size_t n_atoms, size_t step,
             void* location, size_t* alignment, size_t* size)
 
     cdef void face_add_atom(face_struct& face, size_t n)

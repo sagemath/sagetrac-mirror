@@ -6,13 +6,22 @@
 #include <cstdint>
 #include <cstdio>
 
+// Instead of division by 64.
 const size_t index_shift = 6;
+// Size of ``uint64_t`` in our case.
 const size_t LIMB_BITS = 64;
+
 // Any Bit-representation is assumed to be `chunksize`-Bit aligned.
 const size_t chunksize = 64;
-const size_t CHUNKS = 1;
+
+// Number of ``uint64_t`` a primary operation can proceed.
+const size_t intersection_chunk = 1;
+const size_t subset_chunk = 1;
+const size_t union_chunk = 1;
 
 inline size_t get_face_length(size_t n_atoms){
+    // Obtain the number of ``uint64_t`` needed to fit
+    // that many atoms.
     return ((n_atoms - 1)/chunksize + 1) * chunksize/LIMB_BITS;
 }
 
@@ -159,7 +168,7 @@ inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
     A is not subset of B, iff there is a vertex in A, which is not in B.
     ``face_length`` is the length of A and B in terms of uint64_t.
     */
-    for (size_t i = 0; i < face_length; i+=CHUNKS){
+    for (size_t i = 0; i < face_length; i+=subset_chunk){
         if (!is_subset(A+i, B+i))
             return 0;
     }
@@ -178,7 +187,7 @@ inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
     Set ``dest = A & B``, i.e. dest is the intersection of A and B.
     ``face_length`` is the length of A, B and dest in terms of uint64_t.
     */
-    for (size_t i = 0; i < face_length; i+=CHUNKS){
+    for (size_t i = 0; i < face_length; i+=intersection_chunk){
         intersection(dest+i, A+i, B+i);
     }
 }
@@ -189,7 +198,7 @@ inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B, \
     Set ``dest = A | B``, i.e. dest is the union of A and B.
     ``face_length`` is the length of A, B and dest in terms of uint64_t.
     */
-    for (size_t i = 0; i < face_length; i+=CHUNKS){
+    for (size_t i = 0; i < face_length; i+=union_chunk){
         unite(dest+i, A+i, B+i);
     }
 }

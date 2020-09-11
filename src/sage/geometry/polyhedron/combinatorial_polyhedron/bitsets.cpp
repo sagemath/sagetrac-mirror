@@ -1,4 +1,8 @@
 /*
+This file defines basic operations for bitsets.
+*/
+
+/*
 #############################################################################
 # Many parts taken from ``src/sage/data_structures/bitset.pxi``
 #############################################################################
@@ -116,6 +120,9 @@ size_t bitset_next(uint64_t* bits, size_t face_length, size_t n){
 */
 
 int test_alignment(uint64_t* a){
+    /*
+    Return if the memory is chunksize-bit aligned.
+    */
     size_t address = (size_t) a;
     size_t required_alignment = chunksize/8;
     return (address == (address & ~(required_alignment -1)));
