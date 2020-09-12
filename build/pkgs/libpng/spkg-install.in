@@ -1,11 +1,6 @@
 # libpng needs to have no default options set for grep
 unset GREP_OPTIONS
 
-export CFLAGS="$CFLAGS -fPIC -g"
-
-# Pick up Sage's zlib:
-export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-
 # Needed to generate a correct import library
 if [ "$UNAME" = "CYGWIN" ]; then
     MAKE="$MAKE SYMBOL_PREFIX= "
