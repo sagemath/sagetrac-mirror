@@ -98,7 +98,7 @@ from sage.structure.element import is_Matrix
 from cysignals.signals      cimport sig_on, sig_off
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
-include "sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pxi"
+#include "sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pxi"
 
 cdef extern from "bitset_operations.cc":
     # Any Bit-representation is assumed to be `chunksize`-Bit aligned.
