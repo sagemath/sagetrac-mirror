@@ -15,6 +15,13 @@ include "sage/data_structures/bitset.pxi"
 
 from sage.ext.memory_allocator  cimport MemoryAllocator
 
+ctypedef int simple
+ctypedef long standard
+
+ctypedef fused algorithm_variant:
+    simple
+    standard
+
 #############################################################################
 # Face Initalization
 #############################################################################
@@ -66,11 +73,14 @@ cdef inline int face_cmp(face_t a, face_t b):
     """
     return bitset_cmp(a.atoms, b.atoms)
 
-cdef inline bint face_issubset(face_t a, face_t b) nogil:
+cdef inline bint face_issubset(face_t a, face_t b, algorithm_variant algorithm=<standard> 0) nogil:
     """
     Return whether ``a`` is a subface of ``b``.
     """
-    return bitset_issubset(a.atoms, b.atoms)
+    if algorithm_variant is standard:
+        return bitset_issubset(a.atoms, b.atoms)
+    else:
+        return bitset_issuperset(a.coatoms, b.coatoms)
 
 
 #############################################################################
@@ -140,8 +150,11 @@ cdef inline long face_len_atoms(face_t face) nogil:
 # Arithmetic
 #############################################################################
 
-cdef inline void intersection(face_t dest, face_t A, face_t B) nogil:
+cdef inline void intersection(face_t dest, face_t A, face_t B, algorithm_variant algorithm=<standard> 0) nogil:
     """
     Set ``dest`` to the intersection of ``A`` and ``B``.
     """
     bitset_intersection(dest.atoms, A.atoms, B.atoms)
+    if algorithm_variant is simple:
+        bitset_union(dest.coatoms, A.coatoms, B.coatoms)
+

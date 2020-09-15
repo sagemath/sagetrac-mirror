@@ -35,3 +35,4 @@ cdef struct face_s:
     face_bitset_t coatoms
 
 ctypedef face_s face_t[1]
+
