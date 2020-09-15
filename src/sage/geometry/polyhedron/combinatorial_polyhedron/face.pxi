@@ -27,7 +27,7 @@ ctypedef fused algorithm_variant:
 # Face Initalization
 #############################################################################
 
-cdef inline bint face_init(face_t face, mp_bitcnt_t n_coatoms, mp_bitcnt_t n_atoms, MemoryAllocator mem) except -1:
+cdef inline bint face_init(face_t face, mp_bitcnt_t n_atoms, mp_bitcnt_t n_coatoms, MemoryAllocator mem) except -1:
     """
     Initialize and clear ``face`` using the memory allocator.
     """
@@ -74,7 +74,7 @@ cdef inline int face_cmp(face_t a, face_t b):
     """
     return bitset_cmp(a.atoms, b.atoms)
 
-cdef inline bint face_issubset(face_t a, face_t b, algorithm_variant algorithm=<standard> 0) nogil:
+cdef inline bint face_issubset_fused(face_t a, face_t b, algorithm_variant algorithm) nogil:
     """
     Return whether ``a`` is a subface of ``b``.
     """
@@ -83,6 +83,8 @@ cdef inline bint face_issubset(face_t a, face_t b, algorithm_variant algorithm=<
     else:
         return bitset_issuperset(a.coatoms, b.coatoms)
 
+cdef inline bint face_issubset(face_t a, face_t b) nogil:
+    return face_issubset_fused(a, b, <standard> 0)
 
 #############################################################################
 # Face Bit Manipulation
@@ -151,7 +153,7 @@ cdef inline long face_len_atoms(face_t face) nogil:
 # Arithmetic
 #############################################################################
 
-cdef inline void intersection(face_t dest, face_t A, face_t B, algorithm_variant algorithm=<standard> 0) nogil:
+cdef inline void face_intersection_fused(face_t dest, face_t A, face_t B, algorithm_variant algorithm) nogil:
     """
     Set ``dest`` to the intersection of ``A`` and ``B``.
     """
@@ -159,3 +161,16 @@ cdef inline void intersection(face_t dest, face_t A, face_t B, algorithm_variant
     if algorithm_variant is simple:
         bitset_union(dest.coatoms, A.coatoms, B.coatoms)
 
+cdef inline void face_intersection(face_t dest, face_t A, face_t B) nogil:
+    face_intersection(dest, A, B)
+
+
+#############################################################################
+# Miscellaneous
+#############################################################################
+
+cdef inline void swap_faces(face_t a, face_t b) nogil:
+    cdef face_t tmp
+    tmp[0] = a[0]
+    a[0] = b[0]
+    b[0] = tmp[0]
