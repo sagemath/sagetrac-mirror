@@ -27,6 +27,11 @@ cdef struct face_bitset_s:
 
     # The individual bits of a bitset.
     mp_limb_t* bits
-    int dummy
 
 ctypedef face_bitset_s face_bitset_t[1]
+
+cdef struct face_s:
+    face_bitset_t atoms
+    face_bitset_t coatoms
+
+ctypedef face_s face_t[1]

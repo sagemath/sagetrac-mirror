@@ -35,6 +35,7 @@ from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *
 from cython.operator import preincrement as preinc
 from sage.geometry.polyhedron.combinatorial_polyhedron.face_data_structure cimport face_bitset_t
+from sage.ext.memory_allocator  cimport MemoryAllocator
 
 ctypedef fused fused_bitset_t:
     bitset_t
@@ -47,6 +48,9 @@ ctypedef fused fused_bitset_t:
 #############################################################################
 
 cdef extern from "bitset_intrinsics.h":
+    cdef const mp_bitcnt_t chunksize
+    cdef const mp_bitcnt_t alignment
+
     # Bitset Comparison
     cdef bint _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs) nogil
     cdef bint _bitset_eq(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs) nogil
@@ -113,6 +117,26 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
     bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
     bits.bits = <mp_limb_t*>check_calloc(bits.limbs, sizeof(mp_limb_t))
 
+cdef inline bint bitset_init_with_allocator(fused_bitset_t bits, mp_bitcnt_t size, MemoryAllocator mem) except -1:
+    """
+    Allocate an empty bitset of size ``size``.
+
+    Size must be at least 1.
+    """
+    if size <= 0:
+        raise ValueError("bitset capacity must be greater than 0")
+
+    bits.size = size
+    bits.limbs = ((size - 1) / (8*chunksize) + 1) * (chunksize/sizeof(mp_limb_t))
+    bits.bits = <mp_limb_t*> mem.aligned_calloc(alignment, bits.limbs, sizeof(mp_limb_t))
+
+cdef inline bint bitset_check_alignment(fused_bitset_t bits):
+    """
+    Return whether the bitset is aligned correctly.
+    """
+    cdef size_t address = <size_t> bits.bits
+    return address == (address & ~(alignment - 1))
+
 cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
     Reallocate a bitset to size ``size``. If reallocation is larger, new bitset
@@ -164,6 +188,17 @@ cdef inline void bitset_copy(fused_bitset_t dst, fused_bitset_t src):
     We assume ``dst.limbs == src.limbs``.
     """
     mpn_copyi(dst.bits, src.bits, src.limbs)
+
+cdef inline void bitset_copy_flex(fused_bitset_t dst, fused_bitset_t src):
+    """
+    Copy the bitset src over to the bitset dst, overwriting dst.
+
+    Set additional limbs in dst to zero.
+
+    We assume ``dst.limbs >= src.limbs``.
+    """
+    mpn_copyi(dst.bits, src.bits, src.limbs)
+    mpn_zero(dst.bits+src.limbs, src.limbs-dst.limbs)
 
 cdef inline void bitset_fix(fused_bitset_t bits):
     """
@@ -221,7 +256,7 @@ cdef bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_b
         tmp_limb |= (b2[preinc(i2)] << neg_bit_offset)
     return (b1h ^ tmp_limb) & mask == 0
 
-cdef inline bint bitset_isempty(fused_bitset_t bits):
+cdef inline bint bitset_isempty(fused_bitset_t bits) nogil:
     """
     Test whether bits is empty.  Return True (i.e., 1) if the set is
     empty, False (i.e., 0) otherwise.
@@ -285,7 +320,7 @@ cdef inline int bitset_lex_cmp(fused_bitset_t a, fused_bitset_t b):
     else:
         return -1
 
-cdef inline bint bitset_issubset(fused_bitset_t a, fused_bitset_t b):
+cdef inline bint bitset_issubset(fused_bitset_t a, fused_bitset_t b) nogil:
     """
     Test whether a is a subset of b (i.e., every element in a is also
     in b).
@@ -294,7 +329,7 @@ cdef inline bint bitset_issubset(fused_bitset_t a, fused_bitset_t b):
     """
     return _bitset_issubset(a.bits, b.bits, a.limbs)
 
-cdef inline bint bitset_issuperset(fused_bitset_t a, fused_bitset_t b):
+cdef inline bint bitset_issuperset(fused_bitset_t a, fused_bitset_t b) nogil:
     """
     Test whether a is a superset of b (i.e., every element in b is also
     in a).
@@ -496,7 +531,7 @@ cdef inline long bitset_next_diff(fused_bitset_t a, fused_bitset_t b, mp_bitcnt_
             return (i << index_shift) | _bitset_first_in_limb(a.bits[i] ^ b.bits[i])
     return -1
 
-cdef inline long bitset_len(fused_bitset_t bits):
+cdef inline long bitset_len(fused_bitset_t bits) nogil:
     """
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     """
@@ -538,7 +573,7 @@ cdef inline void bitset_not(fused_bitset_t r, fused_bitset_t a):
     """
     bitset_complement(r, a)
 
-cdef inline void bitset_intersection(fused_bitset_t r, fused_bitset_t a, fused_bitset_t b):
+cdef inline void bitset_intersection(fused_bitset_t r, fused_bitset_t a, fused_bitset_t b) nogil:
     """
     Set r to the intersection of a and b, overwriting r.
 
@@ -556,7 +591,7 @@ cdef inline void bitset_and(fused_bitset_t r, fused_bitset_t a, fused_bitset_t b
     """
     _bitset_intersection(r.bits, a.bits, b.bits, b.limbs)
 
-cdef inline void bitset_union(fused_bitset_t r, fused_bitset_t a, fused_bitset_t b):
+cdef inline void bitset_union(fused_bitset_t r, fused_bitset_t a, fused_bitset_t b) nogil:
     """
     Set r to the union of a and b, overwriting r.
 
