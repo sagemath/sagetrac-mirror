@@ -48,8 +48,8 @@ ctypedef fused fused_bitset_t:
 #############################################################################
 
 cdef extern from "bitset_intrinsics.h":
-    cdef const mp_bitcnt_t chunksize
-    cdef const mp_bitcnt_t alignment
+    cdef const mp_bitcnt_t LIMB_SIZE
+    cdef const mp_bitcnt_t ALIGNMENT
 
     # Bitset Comparison
     cdef bint _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs) nogil
@@ -114,8 +114,8 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
         raise ValueError("bitset capacity must be greater than 0")
 
     bits.size = size
-    bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
-    bits.bits = <mp_limb_t*>check_calloc(bits.limbs, sizeof(mp_limb_t))
+    bits.limbs = (size - 1) / (8 * LIMB_SIZE) + 1
+    bits.bits = <mp_limb_t*>check_calloc(bits.limbs, LIMB_SIZE)
 
 cdef inline bint bitset_init_with_allocator(fused_bitset_t bits, mp_bitcnt_t size, MemoryAllocator mem) except -1:
     """
@@ -127,15 +127,15 @@ cdef inline bint bitset_init_with_allocator(fused_bitset_t bits, mp_bitcnt_t siz
         raise ValueError("bitset capacity must be greater than 0")
 
     bits.size = size
-    bits.limbs = ((size - 1) / (8*chunksize) + 1) * (chunksize/sizeof(mp_limb_t))
-    bits.bits = <mp_limb_t*> mem.aligned_calloc(alignment, bits.limbs, sizeof(mp_limb_t))
+    bits.limbs = ((size - 1) / (8*ALIGNMENT) + 1) * (ALIGNMENT/LIMB_SIZE)
+    bits.bits = <mp_limb_t*> mem.aligned_calloc(ALIGNMENT, bits.limbs, LIMB_SIZE)
 
 cdef inline bint bitset_check_alignment(fused_bitset_t bits):
     """
     Return whether the bitset is aligned correctly.
     """
     cdef size_t address = <size_t> bits.bits
-    return address == (address & ~(alignment - 1))
+    return address == (address & ~(ALIGNMENT - 1))
 
 cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
@@ -149,8 +149,8 @@ cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     if size <= 0:
         raise ValueError("bitset capacity must be greater than 0")
 
-    cdef mp_size_t limbs_new = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
-    bits.bits = <mp_limb_t*>check_reallocarray(bits.bits, limbs_new, sizeof(mp_limb_t))
+    cdef mp_size_t limbs_new = (size - 1) / (8 * LIMB_SIZE) + 1
+    bits.bits = <mp_limb_t*>check_reallocarray(bits.bits, limbs_new, LIMB_SIZE)
     bits.size = size
     bits.limbs = limbs_new
 
