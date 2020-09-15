@@ -14,6 +14,7 @@ Cython data structure for combinatorial faces.
 include "sage/data_structures/bitset.pxi"
 
 from sage.ext.memory_allocator  cimport MemoryAllocator
+from sage.geometry.polyhedron.combinatorial_polyhedron.face_data_structure cimport *
 
 ctypedef int simple
 ctypedef long standard
