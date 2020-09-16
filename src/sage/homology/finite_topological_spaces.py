@@ -64,39 +64,6 @@ from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.combinat.posets.posets import Poset
 
 
-def dict_to_matrix(ordered_eltos, dictionary):
-    r"""
-    Return a matrix from the information given by ``dictionary``.
-    
-    INPUT:
-
-    - ``ordered_eltos`` -- a list.
-
-    - ``dictionary`` -- a dict whose key list is ``ordered_eltos`` and its values
-      are sets of elements in ``ordered_eltos``.
-
-    OUTPUT:
-
-    - A binary matrix whose `(i,j)` entry is equal to 1 if and only if ``ordered_eltos[i]``
-      is in ``dictionary[ordered_eltos[j]]``.
-
-    EXAMPLES::
-
-        sage: from sage.homology.finite_topological_spaces import dict_to_matrix
-        sage: ordered_eltos = ['a', 'b', 3, 4, 'e']
-        sage: dictionary = {'a': set(), 'b': {3}, 3: {3, 4, 'a'}, 'e': {'a'}, 4: set()}
-        sage: dict_to_matrix(ordered_eltos, dictionary)
-        [0 0 1 0 1]
-        [0 0 0 0 0]
-        [0 1 1 0 0]
-        [0 0 1 0 0]
-        [0 0 0 0 0]
-    """
-    n = len(ordered_eltos)
-    nonzero = {(ordered_eltos.index(x), j):1 for j in range(n) \
-               for x in dictionary[ordered_eltos[j]]}
-    return matrix(n, nonzero)
-
 def FiniteSpace(data, elements=None, is_T0=False):
     r"""
     Construct a finite topological space from various forms of input data.
@@ -254,7 +221,9 @@ def FiniteSpace(data, elements=None, is_T0=False):
 
     # Now, check that 'basis' effectively defines a minimal basis for a topology
     if topogenous is None:
-        topogenous = dict_to_matrix(eltos, basis)
+        nonzero = {(eltos.index(x), j):1 for j in range(n) \
+                   for x in basis[eltos[j]]}
+        topogenous = matrix(n, nonzero)
     squared = topogenous*topogenous
     if not topogenous.nonzero_positions() == squared.nonzero_positions():
         raise ValueError("The introduced data does not define a topology")
