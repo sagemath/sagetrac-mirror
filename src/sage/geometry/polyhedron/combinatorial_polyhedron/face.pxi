@@ -31,6 +31,11 @@ cdef inline bint face_init(face_t face, mp_bitcnt_t n_atoms, mp_bitcnt_t n_coato
     """
     Initialize and clear ``face`` using the memory allocator.
     """
+    if n_coatoms == 0:
+        # Special case for trivial polyhedra.
+        n_coatoms += 1
+    if n_atoms == 0:
+        n_atoms += 1
     bitset_init_with_allocator(face.atoms, n_atoms, mem)
     bitset_init_with_allocator(face.coatoms, n_coatoms, mem)
 
@@ -162,7 +167,7 @@ cdef inline void face_intersection_fused(face_t dest, face_t A, face_t B, algori
         bitset_union(dest.coatoms, A.coatoms, B.coatoms)
 
 cdef inline void face_intersection(face_t dest, face_t A, face_t B) nogil:
-    face_intersection(dest, A, B)
+    face_intersection_fused(dest, A, B, <standard> 0)
 
 
 #############################################################################
