@@ -99,6 +99,7 @@ cdef inline void bitset_fix(bitset_t bits):
     """
     Clear upper bits which should be zero according to the size.
     """
+    return
     cdef long maxi = bitset_last(bits)
     if maxi >= bits.size:
         roaring_bitmap_remove_range(bits.bits, bits.size, maxi+1)
@@ -773,7 +774,6 @@ cdef bitset_bytes(bitset_t bits):
 
     On Python 2 this is equivalent to bitset_string.
     """
-
     cdef char* s = bitset_chars(NULL, bits)
     cdef object py_s
     py_s = s
@@ -786,11 +786,13 @@ cdef list bitset_list(bitset_t bits):
     Return a list of elements in the bitset.
     """
     cdef long length = bitset_len(bits)
+    if length == 0:
+        return []
     cdef uint32_t* buf = <uint32_t*> sig_malloc(length*sizeof(uint32_t))
     cdef bitset_iterator_t it = bitset_iterator_init(bits)
     roaring_read_uint32_iterator(it, buf, length)
 
-    elts = []*length
+    cdef list elts = [None]*length
     cdef long i
     for i in range(length):
         elts[i] = buf[i]
