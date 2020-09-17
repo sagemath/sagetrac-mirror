@@ -15,12 +15,15 @@ Cython bitset types
 # implementation of the Python class is in bitset.pyx. The latter file
 # also contains all doctests.
 
+from sage.libs.croaring cimport roaring_bitmap_t, uint32_t, roaring_uint32_iterator_t
+
 cdef extern from *:
     # Given an element index n in a set, (n >> index_shift) gives the
     # corresponding limb number.
     int index_shift "(sizeof(mp_limb_t) == 8 ? 6 : 5)"
 
-from sage.libs.gmp.types cimport *
+#from sage.libs.gmp.types cimport *
+ctypedef uint32_t mp_bitcnt_t
 
 cdef struct bitset_s:
     # The size of a bitset B counts the maximum number of bits that B can
@@ -42,13 +45,13 @@ cdef struct bitset_s:
     #
     # NOTE: some code assumes that mp_limb_t is an unsigned long
     # (this assumption is always true in practice).
-    mp_size_t limbs
+    roaring_bitmap_t* bits
 
     # The individual bits of a bitset.
-    mp_limb_t* bits
 
 ctypedef bitset_s bitset_t[1]
-
+#ctypedef roaring_bitmap_t *bitset_t
+ctypedef roaring_uint32_iterator_t *bitset_iterator_t
 
 # Python layer over bitset_t
 cdef class FrozenBitset:
