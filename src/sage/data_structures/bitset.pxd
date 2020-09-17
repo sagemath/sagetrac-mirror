@@ -22,7 +22,7 @@ cdef extern from *:
     # corresponding limb number.
     int index_shift "(sizeof(mp_limb_t) == 8 ? 6 : 5)"
 
-#from sage.libs.gmp.types cimport *
+from sage.libs.gmp.types cimport mp_limb_t
 ctypedef uint32_t mp_bitcnt_t
 
 cdef struct bitset_s:

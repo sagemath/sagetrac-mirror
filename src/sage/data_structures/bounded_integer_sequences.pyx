@@ -251,7 +251,7 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
     if S2.length == 0:
         return True
     sig_on()
-    ret = mpn_equal_bits(S1.data.bits, S2.data.bits, S2.data.size)
+    ret = bitset_equal_bits(S1.data, S2.data, S2.data.size)
     sig_off()
     return ret
 
@@ -283,10 +283,10 @@ cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index):
     bit_index %= GMP_LIMB_BITS
 
     cdef mp_limb_t out
-    out = (S.data.bits[limb_index]) >> bit_index
+    out = (bitset_get_limb(S.data, limb_index)) >> bit_index
     if bit_index + S.itembitsize > GMP_LIMB_BITS:
         # Our item is stored using 2 limbs, add the part from the upper limb
-        out |= (S.data.bits[limb_index+1]) << (GMP_LIMB_BITS - bit_index)
+        out |= (bitset_get_limb(S.data, limb_index+1)) << (GMP_LIMB_BITS - bit_index)
     return out & S.mask_item
 
 cdef biseq_getitem_py(biseq_t S, mp_size_t index):
@@ -395,8 +395,7 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
     cdef mp_size_t index
     sig_on()
     for index from start <= index <= S1.length-S2.length:
-        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits,
-                S2.length*S2.itembitsize, index*S2.itembitsize):
+        if bitset_equal_bits_shifted(S2.data, S1.data, S2.length*S2.itembitsize, 0, index*S2.itembitsize):
             sig_off()
             return index
     sig_off()
@@ -431,6 +430,7 @@ cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) ex
     cdef mp_size_t index
     sig_on()
     for index from start <= index < S2.length:
+        if bitset_equal_bits_shifted(SS.data, S2.data, (S2.length - index)*S2.itembitsize, 0, index*S2.itembitsize):
         if mpn_equal_bits_shifted(S1.data.bits, S2.data.bits,
                 (S2.length - index)*S2.itembitsize, index*S2.itembitsize):
             sig_off()

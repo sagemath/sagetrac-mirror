@@ -38,6 +38,14 @@ from sage.libs.croaring cimport *
 
 # Doctests for the functions in this file are in sage/data_structures/bitset.pyx
 
+cdef inline mp_limb_t limb_lower_bits_up(mp_bitcnt_t n):
+    """
+    Return a limb with the lower n bits set, where n is interpreted
+    in [1 .. GMP_LIMB_BITS].
+    """
+    return (<mp_limb_t>(-1)) >> ((<unsigned int>(-n)) % 64)
+
+
 #############################################################################
 # Bitset Initalization
 #############################################################################
@@ -98,6 +106,53 @@ cdef inline void bitset_fix(bitset_t bits):
 #############################################################################
 # Bitset Comparison
 #############################################################################
+
+cdef inline bint bitset_equal_bits(bitset_t a, bitset_t b, mp_bitcnt_t n):
+    """
+    Return ``True`` iff the first n bits of a and b agree.
+    """
+    bitset_fix(a)
+    bitset_fix(b)
+    cdef bitset_t c
+    bitset_init(c, a.size)
+    cdef bitset_t d
+    bitset_init(d, a.size)
+    bitset_copy(c, a)
+    bitset_copy(d, b)
+    roaring_bitmap_remove_range(c.bits, n, a.size)
+    roaring_bitmap_remove_range(d.bits, n, b.size)
+    cdef bint output = roaring_bitmap_equals(c.bits, d.bits)
+    bitset_free(c)
+    bitset_free(d)
+    return output
+
+cdef inline bint bitset_equal_bits_shifted(bitset_t a, bitset_t b, mp_bitcnt_t n, mp_bitcnt_t offset_a, mp_bitcnt_t offset_b):
+    """
+    Return ``True`` iff the first n bits of *b1 and the bits ranging from
+    offset to offset+n of *b2 agree.
+    """
+    cdef bitset_iterator_t it_a = bitset_iterator_init(a)
+    cdef bitset_iterator_t it_b = bitset_iterator_init(b)
+
+    bitset_iterator_move(it_a, offset_a)
+    bitset_iterator_move(it_b, offset_b)
+
+    cdef long val_a, val_b, max_val_a
+    max_val_a = offset_a + n
+
+    val_a = bitset_iterator_value(it_a)
+    val_b = bitset_iterator_value(it_b)
+
+    cdef bint output = True
+
+    while -1 < val_a < max_val_a:
+        if not val_a == val_b:
+            output = False
+            break
+
+    bitset_iterator_free(it_a)
+    bitset_iterator_free(it_b)
+    return output
 
 cdef inline bint bitset_isempty(bitset_t bits):
     """
@@ -435,6 +490,45 @@ cdef inline long bitset_hash(bitset_t bits):
         return -1
     return h_val
 
+cdef inline mp_limb_t bitset_get_limb(bitset_t bits, mp_bitcnt_t n):
+    r"""
+    Get a uint64_t representing the bits 64*n through 64*n + 63.
+    """
+    cdef bitset_iterator_t it = bitset_iterator_init(bits)
+    bitset_iterator_move(it, n*64)
+    cdef long val = bitset_iterator_value(it)
+    while -1 < val < (n+1)*64:
+        output |= (<mp_limb_t> 1 << (val - 64*n))
+
+    return output
+
+cdef inline void bitset_and_limb(bitset_t bits, mp_limb_t limb, mp_bitcnt_t n):
+    cdef uint32_t i
+    for i in range(64):
+        if not (limb & (<mp_limb_t> 1 << (i))):
+            bitset_discard(bits, n*64+i)
+
+cdef inline void bitset_or_limb(bitset_t bits, mp_limb_t limb, mp_bitcnt_t n):
+    cdef uint32_t i
+    for i in range(64):
+        if (limb & (<mp_limb_t> 1 << (i))):
+            bitset_add(bits, n*64+i)
+
+cdef inline void bitset_xor_limb(bitset_t bits, mp_limb_t limb, mp_bitcnt_t n):
+    cdef uint32_t i
+    for i in range(64):
+        if (limb & (<mp_limb_t> 1 << (i))):
+            bitset_flip(bits, n*64+i)
+
+cdef inline void bitset_assign_limb(bitset_t bits, mp_limb_t limb, mp_bitcnt_t n):
+    cdef uint32_t i
+    for i in range(64):
+        if (limb & (<mp_limb_t> 1 << (i))):
+            bitset_add(bits, n*64+i)
+        else:
+            bitset_remove(bits, n*64+i)
+
+
 #############################################################################
 # Bitset Arithmetic
 #############################################################################
@@ -549,21 +643,25 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     There are no assumptions on the sizes of ``a`` and ``r``.  Bits which are
     shifted outside of the resulting bitset are discarded.
     """
-    bitset_clear(r)
     r.size = a.size
     if n >= a.size:
         return
+
+    cdef bitset_t foo
+    bitset_init(foo, a.size)
 
     cdef bitset_iterator_t it = bitset_iterator_init(a)
 
     cdef long val = bitset_iterator_value(it)
     while val != -1:
-        bitset_add(r, (<mp_bitcnt_t> val) + n)
+        bitset_add(foo, (<mp_bitcnt_t> val) + n)
         val = bitset_iterator_next(it)
 
     bitset_iterator_free(it)
 
-    bitset_fix(r)
+    bitset_fix(foo)
+    bitset_free(r)
+    r.bits = foo.bits
 
 cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     """
@@ -573,20 +671,26 @@ cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     There are no assumptions on the sizes of ``a`` and ``r``.  Bits which are
     shifted outside of the resulting bitset are discarded.
     """
-    bitset_clear(r)
     r.size = a.size
     if n >= r.size:
         return
+
+    cdef bitset_t foo
+    bitset_init(foo, a.size)
 
     cdef bitset_iterator_t it = bitset_iterator_init(a)
 
     bitset_iterator_move(it, n)
     cdef long val = bitset_iterator_value(it)
     while val != -1:
-        bitset_add(r, (<mp_bitcnt_t> val) - n)
+        bitset_add(foo, (<mp_bitcnt_t> val) - n)
         val = bitset_iterator_next(it)
 
     bitset_iterator_free(it)
+
+    bitset_fix(foo)
+    bitset_free(r)
+    r.bits = foo.bits
 
 cdef int bitset_map(bitset_t r, bitset_t a, m) except -1:
     """

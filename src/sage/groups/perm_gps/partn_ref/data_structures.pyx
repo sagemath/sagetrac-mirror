@@ -291,7 +291,7 @@ cdef int PS_first_smallest(PartitionStack *PS, bitset_t b, int *second_pos=NULL,
     bitset_zero(b)
     while 1:
         if PS.levels[i] <= PS.depth:
-            if i != j and n > i - j + 1 and (partn_ref_alg is None or 
+            if i != j and n > i - j + 1 and (partn_ref_alg is None or
                                 partn_ref_alg._minimization_allowed_on_col(PS.entries[j])):
                 n = i - j + 1
                 location = j
@@ -573,26 +573,22 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     cdef int *int_array = <int *>  sig_malloc( (3*n*n + 6*n + 1) * sizeof(int) )
     cdef int **int_ptrs = <int **> sig_calloc( 5*n, sizeof(int *) )
     SC.OP_scratch = OP_new(n)
-    # bitset_init without the MemoryError:
-    cdef long limbs = (default_num_bits - 1)/(8*sizeof(unsigned long)) + 1
-    SC.gen_used.size   = default_num_bits
-    SC.gen_is_id.size  = default_num_bits
-    SC.gen_used.limbs  = limbs
-    SC.gen_is_id.limbs = limbs
-    SC.gen_used.bits   = <mp_limb_t*>sig_malloc(limbs * sizeof(mp_limb_t))
-    SC.gen_is_id.bits  = <mp_limb_t*>sig_malloc(limbs * sizeof(mp_limb_t))
+    bitset_init(SC.gen_used, default_num_bits)
+    bitset_init(SC.gen_is_id, default_num_bits)
 
     # check for allocation failures
     if int_array        is NULL or int_ptrs          is NULL or \
-       SC.gen_used.bits is NULL or SC.gen_is_id.bits is NULL or \
        SC.OP_scratch    is NULL:
         sig_free(int_array)
         sig_free(int_ptrs)
         SC_dealloc(SC)
         return NULL
 
+    # initialized to zero anyway
+    '''
     SC.gen_used.bits[limbs-1] = 0
     SC.gen_is_id.bits[limbs-1] = 0
+    '''
 
     SC.orbit_sizes  = int_array
     SC.num_gens     = int_array +   n
