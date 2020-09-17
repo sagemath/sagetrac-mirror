@@ -490,11 +490,6 @@ cdef bint path_mul_mon_mul_path(path_mon_t out, biseq_t p, path_mon_t T, biseq_t
             # the lowest limb of the shifted copy of q. We thus only move all
             # but the last limb of T, assigning to the beginning of the last
             # limb of p+T the bits that have been pushed out.
-            bitset_or_limb(
-                    out.path.data,
-                    mpn_lshift(&bitset_get_limb(out.path.data, p_limbs),
-                        &bitset_get_limb(T.path.data, 0), T.path.data.limbs-1, p_offset)
-                    pT_limbs)
             out.path.data.bits[pT_limbs] |= mpn_lshift(out.path.data.bits+p_limbs,
                                                   T.path.data.bits, T.path.data.limbs-1, p_offset)
             # Last, we need to move the last limb of T (which is only

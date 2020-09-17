@@ -31,7 +31,7 @@ linear in ``capacity``.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "bitset.pxi"
+include "alternative_bitset.pxi"
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 
@@ -1932,7 +1932,6 @@ def test_bitset(py_a, py_b, long n):
         list a [2, 4]
         a.size 5
         len(a) 2
-        a.limbs 1
         b 01110
         a.in(n)   True
         a.not_in(n)   False
@@ -1976,7 +1975,6 @@ def test_bitset(py_a, py_b, long n):
         list a [0, 1, 2, 4]
         a.size 5
         len(a) 4
-        a.limbs 1
         b 11001
         a.in(n)   True
         a.not_in(n)   False
@@ -2020,7 +2018,6 @@ def test_bitset(py_a, py_b, long n):
         list a []
         a.size 128
         len(a) 0
-        a.limbs ...
         b 01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101
         a.in(n)   False
         a.not_in(n)   True
@@ -2074,7 +2071,6 @@ def test_bitset(py_a, py_b, long n):
         list a [0, 1, 2, 5, 6, 7, 8, 11, 12, 13, 14, 17, 18, 19, 20, 23, 24, 25, 26, 29, 30, 31, 32, 35, 36, 37, 38, 41, 42, 43, 44, 47, 48, 49, 50, 53, 54, 55, 56, 59, 60, 61, 62, 65, 66, 67, 68, 71, 72, 73, 74, 77, 78, 79, 80, 83, 84, 85, 86, 89, 90, 91, 92, 95, 96, 97, 98, 101, 102, 103, 104, 107, 108, 109, 110, 113, 114, 115, 116, 119, 120, 121, 122, 125, 126, 127, 128, 131, 132, 133, 134, 137, 138, 139, 140, 143, 144, 145, 146, 149]
         a.size 150
         len(a) 100
-        a.limbs ...
         b 000100100001111110110101010001000100001011010001100001000110100110001001100011001100010100010111000000011011100000111001101000100101001000000100100111
         a.in(n)   False
         a.not_in(n)   True
@@ -2135,7 +2131,7 @@ def test_bitset(py_a, py_b, long n):
     print("list a", bitset_list(a))
     print("a.size", a.size)
     print("len(a)", bitset_len(a))
-    print("a.limbs", a.limbs)
+    #print("a.limbs", a.limbs)
     print("b", bitset_string(b))
     print("a.in(n)  ", bitset_in(a, n))
     print("a.not_in(n)  ", bitset_not_in(a, n))
@@ -2305,7 +2301,6 @@ def test_bitset_remove(py_a, long n):
         sage: test_bitset_remove('01', 1)
         a 01
         a.size 2
-        a.limbs 1
         n 1
         a.remove(n)   00
     """
@@ -2314,7 +2309,7 @@ def test_bitset_remove(py_a, long n):
 
     print("a", bitset_string(a))
     print("a.size", a.size)
-    print("a.limbs", a.limbs)
+    #print("a.limbs", a.limbs)
     print("n", n)
 
     bitset_remove(a, n)

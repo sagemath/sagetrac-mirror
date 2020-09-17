@@ -114,7 +114,7 @@ cdef long yellow_code(unsigned long a):
         m ^= (m<<s)
     return r
 
-cdef reed_muller(bitset_t f, int ldn):
+cdef reed_muller(mp_limb_t* f, int ldn):
     r"""
     The Reed Muller transform (also known as binary Möbius transform)
     is an orthogonal transform. For a function `f` defined by
@@ -141,7 +141,7 @@ cdef reed_muller(bitset_t f, int ldn):
     n = 1 << ldn
     # intra word transform
     for 0 <= r < n:
-        bitset_assign_limb(f, yellow_code(bitset_get_limb(f, r)), r)
+        f[r] = yellow_code(f[r])
     # inter word transform
     for 1 <= ldm <= ldn:
         m  = (1<<ldm)
@@ -151,7 +151,7 @@ cdef reed_muller(bitset_t f, int ldn):
             t2 = r+mh
             for 0 <= j < mh:
                 sig_check()
-                bitset_xor_limb(f, bitset_get_limb(f, t1), t2)
+                f[t2] ^= f[t1]
                 t1 += 1
                 t2 += 1
 
@@ -324,7 +324,7 @@ cdef class BooleanFunction(SageObject):
             for m in x:
                 i = sum( [1<<k for k in m.iterindex()] )
                 bitset_set(self._truth_table, i)
-            reed_muller(self._truth_table, ZZ((self._truth_table.size-1)//64 + 1).exact_log(2) )
+            reed_muller(self._truth_table.bits, ZZ(self._truth_table.limbs).exact_log(2) )
 
         elif isinstance(x, (int,long,Integer) ):
         # initialisation to the zero function
@@ -472,7 +472,7 @@ cdef class BooleanFunction(SageObject):
 
         cdef BooleanFunction res=BooleanFunction(self.nvariables()+1)
 
-        nb_limbs = (self._truth_table.size - 1)//64 + 1
+        nb_limbs = self._truth_table.limbs
         if nb_limbs == 1:
             L = len(self)
             for i in xrange(L):
@@ -480,13 +480,8 @@ cdef class BooleanFunction(SageObject):
                 res[i+L]=other[i]
             return res
 
-        cdef size_t old_size = other._truth_table.size
-        other._truth_table.size = res._truth_table.size
-
-        bitset_rshift(res._truth_table, other._truth_table, nb_limbs*64)
-        bitset_or(res._truth_table, res._truth_table, self._truth_table)
-
-        other._truth_table.size = old_size
+        memcpy(res._truth_table.bits             , self._truth_table.bits, nb_limbs * sizeof(unsigned long))
+        memcpy(&(res._truth_table.bits[nb_limbs]),other._truth_table.bits, nb_limbs * sizeof(unsigned long))
 
         return res
 
@@ -509,24 +504,22 @@ cdef class BooleanFunction(SageObject):
         cdef bitset_t anf
         bitset_init(anf, (1<<self._nvariables))
         bitset_copy(anf, self._truth_table)
-        reed_muller(anf, ZZ(((anf.size-1)//64 + 1)).exact_log(2))
+        reed_muller(anf.bits, ZZ(anf.limbs).exact_log(2))
         from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
         R = BooleanPolynomialRing(self._nvariables,"x")
         G = R.gens()
         P = R(0)
-
-        cdef long val
-
-        for 0 <= i < (anf.size-1)//64 + 1:
-            val = bitset_next(anf, i*64)
-            while -1 < val < (i+1)*64:
-                j = val - i*64
-                m = R(1)
-                for 0 <= k < self._nvariables:
-                    if (j>>k)&1:
-                        m *= G[k]
-                P+=m
-                val = bitset_next(anf, val + 1)
+        for 0 <= i < anf.limbs:
+            if anf.bits[i]:
+                inf = i*sizeof(long)*8
+                sup = min( (i+1)*sizeof(long)*8 , (1<<self._nvariables) )
+                for inf <= j < sup:
+                    if bitset_in(anf,j):
+                        m = R(1)
+                        for 0 <= k < self._nvariables:
+                            if (j>>k)&1:
+                                m *= G[k]
+                        P+=m
         bitset_free(anf)
         return P
 
