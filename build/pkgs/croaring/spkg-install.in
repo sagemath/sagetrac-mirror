@@ -1,9 +1,11 @@
 cd src
+
 sdh_cmake
+
 sdh_make
 
-# During spkg-install execution, the compiled files are still in a temporary
-# directory and are copied to their destination after the end of the script.
-# As sphinx need theses compiled files, the compilation and installation
-# of pplpy's documentation is done after the end of spkg-install
-# in the spkg-postinst script.
+# clean old install
+rm -rf "${SAGE_LOCAL}"/include/roaring
+rm -rf "${SAGE_LOCAL}"/lib/libroaring
+
+sdh_make_install
