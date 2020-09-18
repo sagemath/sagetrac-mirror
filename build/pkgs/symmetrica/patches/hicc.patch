@@ -1,0 +1,168 @@
+diff --git a/def.h b/def.h
+index 5762481..1afacdd 100644
+--- a/def.h
++++ b/def.h
+@@ -501,6 +501,7 @@ extern OP *freeall_speicher; /* global variable for callocobject/freeall */
+ 
+ 
+ extern int SYM_free();
++extern int SYM_isdigit();
+ extern char*  SYM_malloc();
+ extern char*  SYM_realloc();
+ extern char*  SYM_calloc();
+@@ -803,6 +804,7 @@ extern INT cast_apply_part();
+ extern INT cast_apply_perm();
+ extern INT cast_apply_polynom();
+ extern INT cast_apply_powsym();
++extern INT cast_apply_schubert();
+ extern INT cast_apply_schur();
+ extern INT cast_apply_tableaux();
+ extern INT cast_elmsym();
+@@ -1574,6 +1576,7 @@ extern INT intlog_longint();
+ extern INT invers();
+ extern INT invers_apply();
+ extern INT invers_apply_bruch();
++extern INT invers_apply_ff();
+ extern INT invers_apply_integer();
+ extern INT invers_apply_longint();
+ extern INT invers_bar();
+diff --git a/hiccup.c b/hiccup.c
+index 0cf18b0..344d3d2 100644
+--- a/hiccup.c
++++ b/hiccup.c
+@@ -33,6 +33,16 @@ static OP children=NULL; /* AK 150197 */
+ 
+ /* function prototypes for generic representation routines */
+ 
++void	set_multiplier (OP extra);
++void	root_garnir_result (OP tableau, OP mp_coeff, OP acc_list);
++void	coset_generate (INT head, INT wag);
++void	generate_sym_tableaux_list (INT piece, OP sym_list);
++void	strip_juggle (OP tableau, INT power, INT coeff);
++void	root_juggle (OP tableau, INT power, INT coeff);
++void	root_standardise_tableau_list (OP list, OP expression);
++void	root_standardise_tableau (OP tableau, OP expression);
++void	set_root_multiplier (OP extra);
++
+ #ifdef UNDEF
+ 	INT generate_standard_tableaux (OP partition, OP std);
+ 	INT hecke_generator_reps (OP partition, OP vector);
+@@ -780,7 +790,7 @@ INT free_useful_monopolies ()
+ }
+ 
+ 
+-int set_multiplier (extra) OP extra;
++void set_multiplier (OP extra)
+ 
+ /* all standard tableaux that are now found are added to the list
+       after their coefficients have been multiplied by extra
+@@ -2091,7 +2101,7 @@ INT find_non_root_standard_pos (tableau) OP tableau;
+ }
+ 
+ 
+-set_root_multiplier (extra) OP extra;
++void set_root_multiplier (OP extra)
+ 
+ /* all standard tableaux that are now found are added to the list
+       after their coefficients have been multiplied by extra
+@@ -2103,9 +2113,7 @@ set_root_multiplier (extra) OP extra;
+ }
+ 
+ 
+-root_standardise_tableau_list ( list,  expression)
+-	OP list;
+-	OP expression;
++void root_standardise_tableau_list (OP list, OP expression)
+ 
+ /* Expresses the monomial list of tableaux with monopoly coefficients
+    in terms of a list of standard tableaux with monopoly coefficients 
+@@ -2124,9 +2132,7 @@ root_standardise_tableau_list ( list,  expression)
+ }
+ 
+ 
+-root_standardise_tableau ( tableau,  expression)
+-	OP tableau;
+-	OP expression;
++void root_standardise_tableau (OP tableau, OP expression)
+ 
+ /* Expresses the tableau in terms of a list of standard tableaux
+    with polynomial coefficients. tableau is not freed by this
+@@ -2168,10 +2174,7 @@ root_standardise_tableau ( tableau,  expression)
+ }
+ 
+ 
+-root_juggle ( tableau,  power,  coeff)
+-	OP tableau;
+-	INT power;
+-	INT coeff;
++void root_juggle (OP tableau, INT power, INT coeff)
+ 
+ /* Recursive function which is passed a non-standard tableau,
+    together with its coefficient in the form of
+@@ -2261,10 +2264,7 @@ root_juggle ( tableau,  power,  coeff)
+ }
+ 
+ 
+-strip_juggle (tableau, power, coeff)
+-	OP tableau;
+-	INT power;
+-	INT coeff;
++void strip_juggle (OP tableau, INT power, INT coeff)
+ 
+ /* Recursive function (interlinking with root_juggle()) which is passed
+    a standard tableau which is not root_standard, together with its
+@@ -2644,11 +2644,7 @@ strip_juggle (tableau, power, coeff)
+ #if NORMALISE == 1          /* include if we want resultant coefficients
+ tidied up with respect to the root of unity */
+ 
+-root_garnir_result ( tableau,  mp_coeff,  acc_list)
+-	OP tableau;
+-	OP mp_coeff;
+-	OP acc_list;
+-
++void root_garnir_result ( OP tableau,  OP mp_coeff,  OP acc_list)
+ /* This routine does the same as garnir_result() except that the
+    coefficients are tidied up somewhat with regard to the root of
+    unity. It is assumed that set_root_parameters() has been invoked.
+@@ -2805,9 +2801,7 @@ there:
+ #endif          /* for NORMALISE */
+ 
+ 
+-generate_sym_tableaux_list (piece, sym_list)
+-	INT piece;
+-	OP sym_list;
++void generate_sym_tableaux_list (INT piece, OP sym_list)
+ 
+ /* generates a list of tableaux which have been symmetrised across
+    the final piece boxes of the second row and the subsequent
+@@ -2888,7 +2882,7 @@ generate_sym_tableaux_list (piece, sym_list)
+ }
+ 
+ 
+-coset_generate (head, wag) INT head; INT wag;
++void coset_generate (INT head, INT wag)
+ 
+ /* Recursive function which creates all the terms in the coset.
+    Method is much the same as that used for garnir_generate().
+diff --git a/nu.c b/nu.c
+index 60a0c27..86663d1 100644
+--- a/nu.c
++++ b/nu.c
+@@ -2615,7 +2615,7 @@ INT det(a,b) OP a,b;
+     ENDR("det");
+ }
+ 
+-INT invers_apply(a) OP a;
++INT invers_apply(OP a)
+ /* AK 140591 V1.2 */ /* AK 140891 V1.3 */
+ {
+     INT erg = OK;
+@@ -2659,7 +2659,7 @@ INT invers_apply(a) OP a;
+     ENDR("invers_apply");
+ }
+ 
+-INT addinvers_apply(a) OP a;
++INT addinvers_apply(OP a)
+ /* AK 201289 V1.1 */ /* AK 140891 V1.3 */
+ /* AK 200498 V2.0 */
+ {
