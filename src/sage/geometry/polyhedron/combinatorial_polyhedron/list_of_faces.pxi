@@ -16,20 +16,32 @@ include "sage/geometry/polyhedron/combinatorial_polyhedron/face.pxi"
 from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces cimport *
 from libc.string                      cimport memset
 from cysignals.signals                cimport sig_on, sig_off
+from cysignals.memory cimport *
 
 #############################################################################
 # Face List Initalization
 #############################################################################
 
-cdef inline int face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:
+cdef inline int face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms) except -1:
     """
     Sets the initial values for a list of faces with given number of faces
     and number of atoms.
     """
-    face_list_shallow_init(faces, n_faces, n_atoms, n_coatoms, mem)
-    cdef size_t i
+    faces.n_faces = n_faces
+    faces.total_n_faces = n_faces
+    faces.n_atoms = n_atoms
+    faces.n_coatoms = n_coatoms
+    faces.faces = <face_t *> check_allocarray(n_faces, sizeof(face_t))
+    faces.is_not_new_face = <bint *> check_allocarray(n_faces, sizeof(bint))
+    faces.polyhedron_is_simple = False
     for i in range(n_faces):
-        face_init(faces.faces[i], n_atoms, n_coatoms, mem)
+        face_init(faces.faces[i], n_atoms, n_coatoms)
+
+cdef inline void face_list_free(face_list_t faces):
+    for i in range(faces.total_n_faces):
+        face_free(faces.faces[i])
+    sig_free(faces.faces)
+    sig_free(faces.is_not_new_face)
 
 cdef inline int face_list_shallow_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:
     """
@@ -133,7 +145,7 @@ cdef void _sort_faces_loop(face_t* inp, face_t* out, face_t* extra_mem, size_t n
 
     if n_faces == 1:
         # The final case, where there is only one element.
-        out[0][0] = inp[0][0]
+        swap_faces(out[0], inp[0])
         return
 
     cdef size_t middle = n_faces//2
@@ -153,23 +165,23 @@ cdef void _sort_faces_loop(face_t* inp, face_t* out, face_t* extra_mem, size_t n
         # Compare the lowest elements of lower and upper half.
         val = face_cmp(extra_mem[i], extra_mem[j])
         if val < 0:
-            out[counter][0] = extra_mem[i][0]
+            swap_faces(out[counter], extra_mem[i])
             i += 1
             counter += 1
         else:
-            out[counter][0] = extra_mem[j][0]
+            swap_faces(out[counter], extra_mem[j])
             j += 1
             counter += 1
     if i < middle:
         # Add the remaining elements of lower half.
         while i < middle:
-            out[counter][0] = extra_mem[i][0]
+            swap_faces(out[counter], extra_mem[i])
             i += 1
             counter += 1
     else:
         # Add the remaining elements of upper half.
         while j < n_faces:
-            out[counter][0] = extra_mem[j][0]
+            swap_faces(out[counter], extra_mem[j])
             j += 1
             counter += 1
 

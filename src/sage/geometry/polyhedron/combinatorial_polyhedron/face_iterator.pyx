@@ -213,6 +213,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator).run()
         """
+        self.structure.new_faces = NULL
         if dual and not C.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded Polyedron")
         cdef int i
@@ -271,7 +272,7 @@ cdef class FaceIterator_base(SageObject):
         for i in range(self.structure.dimension-1):
             face_list_init(self.structure.new_faces[i],
                            self.coatoms.n_faces(), self.coatoms.n_atoms(),
-                           self.coatoms.n_coatoms(), self._mem)
+                           self.coatoms.n_coatoms())
 
         # We start with the coatoms
         face_list_shallow_init(self.structure.new_faces[self.structure.dimension-1],
@@ -314,6 +315,12 @@ cdef class FaceIterator_base(SageObject):
             self.structure.new_faces[self.structure.dimension -1].polyhedron_is_simple = True
         else:
             self.structure.new_faces[self.structure.dimension -1].polyhedron_is_simple = False
+
+    def __dealloc__(self):
+        cdef size_t i
+        if self.structure.new_faces is not NULL:
+            for i in range(self.structure.dimension-1):
+                face_list_free(self.structure.new_faces[i])
 
     def reset(self):
         r"""

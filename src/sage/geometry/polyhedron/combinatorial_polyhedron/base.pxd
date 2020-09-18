@@ -23,6 +23,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef face_t _far_face                  # a 'face' containing all none-vertices of Vrep
     cdef tuple _far_face_tuple
     cdef tuple _f_vector
+    cdef bint _far_face_is_initialized
 
     # Edges, ridges and incidences are stored in a pointer of pointers.
     # The first edge has vertices ``edges[0][0]`` and ``edges[0][1]``,

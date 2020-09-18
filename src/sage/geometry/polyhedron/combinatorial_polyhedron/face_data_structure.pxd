@@ -1,8 +1,10 @@
-from sage.libs.gmp.types cimport *
+#from sage.libs.gmp.types cimport *
+from sage.data_structures.alternative_bitset cimport bitset_t
 
 # At the moment this is just a copy of ``bitset_s`` in ``sage/data_structures/bitset.pxd``.
 # There will be additional structure added.
 # In particular storage for non-zero positions.
+'''
 cdef struct face_bitset_s:
     # The size of a bitset B counts the maximum number of bits that B can
     # hold. This size is independent of how many elements of B are toggled to
@@ -27,8 +29,11 @@ cdef struct face_bitset_s:
 
     # The individual bits of a bitset.
     mp_limb_t* bits
+'''
 
-ctypedef face_bitset_s face_bitset_t[1]
+ctypedef bitset_t face_bitset_t
+
+#ctypedef face_bitset_s face_bitset_t[1]
 
 cdef struct face_s:
     face_bitset_t atoms

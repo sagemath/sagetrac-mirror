@@ -50,26 +50,26 @@ cdef extern from "roaring/roaring.h":
     bool_alias roaring_bitmap_contains(const roaring_bitmap_t *r, uint32_t val)
     bool_alias roaring_bitmap_contains_range(const roaring_bitmap_t *r, uint64_t range_start, uint64_t range_end)
     roaring_bitmap_t *roaring_bitmap_copy(const roaring_bitmap_t *r)
-    bool_alias roaring_bitmap_overwrite(roaring_bitmap_t *dest, const roaring_bitmap_t *src)
+    bool_alias roaring_bitmap_overwrite(roaring_bitmap_t *dest, const roaring_bitmap_t *src) nogil
     roaring_bitmap_t *roaring_bitmap_from_range(uint64_t min, uint64_t max, uint32_t step)
     bool_alias roaring_bitmap_run_optimize(roaring_bitmap_t *r)
     size_t roaring_bitmap_shrink_to_fit(roaring_bitmap_t *r)
     void roaring_bitmap_free(roaring_bitmap_t *r)
     roaring_bitmap_t *roaring_bitmap_of_ptr(size_t n_args, const uint32_t *vals)
-    uint64_t roaring_bitmap_get_cardinality(const roaring_bitmap_t *r)
+    uint64_t roaring_bitmap_get_cardinality(const roaring_bitmap_t *r) nogil
     uint64_t roaring_bitmap_range_cardinality(const roaring_bitmap_t *r, uint64_t range_start, uint64_t range_end)
-    bool_alias roaring_bitmap_is_empty(const roaring_bitmap_t *ra)
+    bool_alias roaring_bitmap_is_empty(const roaring_bitmap_t *ra) nogil
     bool_alias roaring_bitmap_equals(const roaring_bitmap_t *r1, const roaring_bitmap_t *r2)
     bool_alias roaring_bitmap_is_strict_subset(const roaring_bitmap_t *r1, const roaring_bitmap_t *r2)
-    bool_alias roaring_bitmap_is_subset(const roaring_bitmap_t *r1, const roaring_bitmap_t *r2)
+    bool_alias roaring_bitmap_is_subset(const roaring_bitmap_t *r1, const roaring_bitmap_t *r2) nogil
     void roaring_bitmap_to_uint32_array(const roaring_bitmap_t *r, uint32_t *ans)
     roaring_bitmap_t *roaring_bitmap_or_many(size_t number, const roaring_bitmap_t **x)
     roaring_bitmap_t *roaring_bitmap_or(const roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
-    void roaring_bitmap_or_inplace(roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
+    void roaring_bitmap_or_inplace(roaring_bitmap_t *x1, const roaring_bitmap_t *x2) nogil
     roaring_bitmap_t *roaring_bitmap_and(const roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
-    void roaring_bitmap_and_inplace(roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
+    void roaring_bitmap_and_inplace(roaring_bitmap_t *x1, const roaring_bitmap_t *x2) nogil
     roaring_bitmap_t *roaring_bitmap_xor(const roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
-    void roaring_bitmap_xor_inplace(roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
+    void roaring_bitmap_xor_inplace(roaring_bitmap_t *x1, const roaring_bitmap_t *x2) nogil
     roaring_bitmap_t *roaring_bitmap_andnot(const roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
     void roaring_bitmap_andnot_inplace(roaring_bitmap_t *x1, const roaring_bitmap_t *x2)
     uint64_t roaring_bitmap_or_cardinality(const roaring_bitmap_t *x1, const roaring_bitmap_t *x2)

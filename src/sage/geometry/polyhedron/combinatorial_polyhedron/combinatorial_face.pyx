@@ -73,7 +73,7 @@ from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 
-from .list_of_faces cimport face_len_atoms, bit_rep_to_coatom_rep, face_init, face_copy
+from .list_of_faces cimport face_len_atoms, bit_rep_to_coatom_rep, face_init, face_copy, face_free
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -174,7 +174,7 @@ cdef class CombinatorialFace(SageObject):
             if it.structure.face_status == 0:
                 raise LookupError("face iterator not set to a face")
 
-            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_init(self.face, it.coatoms.n_atoms(), it.coatoms.n_coatoms())
             face_copy(self.face, it.structure.face)
 
             self._dimension         = it.structure.current_dimension
@@ -199,7 +199,7 @@ cdef class CombinatorialFace(SageObject):
             self.atoms              = all_faces.atoms
             self.coatoms            = all_faces.coatoms
 
-            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_init(self.face, all_faces.coatoms.n_atoms(), all_faces.coatoms.n_coatoms())
             face_copy(self.face, all_faces.faces[dimension+1].faces[index])
 
             self._dimension         = dimension
@@ -225,6 +225,9 @@ cdef class CombinatorialFace(SageObject):
         if self._dual:
             # Reverse the hash index in dual mode to respect inclusion of faces.
             self._hash_index = -self._hash_index - 1
+
+    def __dealloc__(self):
+        face_free(self.face)
 
     def _repr_(self):
         r"""

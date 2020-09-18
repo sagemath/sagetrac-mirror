@@ -103,7 +103,7 @@ from sage.rings.integer                cimport smallInteger
 from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
-from .list_of_faces cimport face_len_atoms, face_init
+from .list_of_faces cimport face_len_atoms, face_init, face_free
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -340,6 +340,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._equalities = ()
         self._all_faces = None
         self._mem_tuple = ()
+        self._far_face_is_initialized = False
         cdef MemoryAllocator mem
 
         # ``_length_edges_list`` should not be touched in an instance
@@ -466,9 +467,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                mem = MemoryAllocator()
-                self._mem_tuple += (mem,)
-                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
+                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets)
+                self._far_face_is_initialized = True
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         elif isinstance(data, numbers.Integral):
@@ -502,9 +502,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                mem = MemoryAllocator()
-                self._mem_tuple += (mem,)
-                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
+                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets)
+                self._far_face_is_initialized = True
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         else:
@@ -546,15 +545,18 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Initialize far_face if unbounded.
             if not self._bounded:
-                mem = MemoryAllocator()
-                self._mem_tuple += (mem,)
-                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
+                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets)
+                self._far_face_is_initialized = True
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         if not self._bounded:
             self._far_face_tuple = tuple(far_face)
         else:
             self._far_face_tuple = ()
+
+    def __dealloc__(self):
+        if self._far_face_is_initialized:
+            face_free(self._far_face)
 
     def _repr_(self):
         r"""

@@ -34,12 +34,12 @@ from sage.cpython.string cimport char_to_str, str_to_bytes, bytes_to_str
 from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *
 from cython.operator import preincrement as preinc
-from sage.geometry.polyhedron.combinatorial_polyhedron.face_data_structure cimport face_bitset_t
+#from sage.geometry.polyhedron.combinatorial_polyhedron.face_data_structure cimport face_bitset_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 
 ctypedef fused fused_bitset_t:
     bitset_t
-    face_bitset_t
+    #face_bitset_t
 
 # Doctests for the functions in this file are in sage/data_structures/bitset.pyx
 

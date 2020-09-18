@@ -174,7 +174,7 @@ cdef class PolyhedronFaceLattice:
             else:
                 face_list_init(self.faces[i],
                                self.f_vector[i], self.coatoms.n_atoms(),
-                               self.coatoms.n_coatoms(), self._mem)
+                               self.coatoms.n_coatoms())
 
         # The universe.
         for j in range(self.coatoms.n_atoms()):
@@ -188,7 +188,7 @@ cdef class PolyhedronFaceLattice:
 
         # Attributes for iterating over the incidences.
         self.is_incidence_initialized = 0
-        face_init(self.incidence_face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+        face_init(self.incidence_face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
 
         # Adding all faces, using the iterator.
         for i in range(1, self.dimension):
@@ -207,6 +207,14 @@ cdef class PolyhedronFaceLattice:
 
         # Sorting the faces, except for coatoms.
         self._sort()
+
+    def __dealloc__(self):
+        for i in range(self.dimension + 2):
+            if i == self.dimension and self.dimension > 0:
+                pass
+            else:
+                face_list_free(self.faces[i])
+        face_free(self.incidence_face)
 
     cdef int _sort(self) except -1:
         r"""

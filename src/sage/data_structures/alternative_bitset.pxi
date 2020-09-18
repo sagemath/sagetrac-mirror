@@ -155,14 +155,14 @@ cdef inline bint bitset_equal_bits_shifted(bitset_t a, bitset_t b, mp_bitcnt_t n
     bitset_iterator_free(it_b)
     return output
 
-cdef inline bint bitset_isempty(bitset_t bits):
+cdef inline bint bitset_isempty(bitset_t bits) nogil:
     """
     Test whether bits is empty.  Return True (i.e., 1) if the set is
     empty, False (i.e., 0) otherwise.
     """
     return roaring_bitmap_is_empty(bits.bits)
 
-cdef inline bint bitset_is_zero(bitset_t bits):
+cdef inline bint bitset_is_zero(bitset_t bits) nogil:
     """
     Test whether bits is empty (i.e., zero).  Return True (1) if
     the set is empty, False (0) otherwise.
@@ -219,7 +219,7 @@ cdef inline int bitset_lex_cmp(bitset_t a, bitset_t b):
     else:
         return -1
 
-cdef inline bint bitset_issubset(bitset_t a, bitset_t b):
+cdef inline bint bitset_issubset(bitset_t a, bitset_t b) nogil:
     """
     Test whether a is a subset of b (i.e., every element in a is also
     in b).
@@ -228,7 +228,7 @@ cdef inline bint bitset_issubset(bitset_t a, bitset_t b):
     """
     return roaring_bitmap_is_subset(a.bits, b.bits)
 
-cdef inline bint bitset_issuperset(bitset_t a, bitset_t b):
+cdef inline bint bitset_issuperset(bitset_t a, bitset_t b) nogil:
     """
     Test whether a is a superset of b (i.e., every element in b is also
     in a).
@@ -422,7 +422,10 @@ cdef void bitset_iterator_move(bitset_iterator_t it, uint32_t val):
 
 cdef inline long bitset_iterator_value(bitset_iterator_t it):
     if it[0].has_value:
-        return it[0].current_value
+        if it[0].current_value == UINT32_MAX:
+            return -1
+        else:
+            return it[0].current_value
     else:
         -1
 
@@ -440,7 +443,10 @@ cdef inline long bitset_next(bitset_t a, mp_bitcnt_t n):
     bitset_iterator_move(it, n)
     cdef long value = bitset_iterator_value(it)
     bitset_iterator_free(it)
-    return value
+    if value >= n:
+        return value
+    else:
+        return -1
 
 cdef inline long bitset_next_diff(bitset_t a, bitset_t b, mp_bitcnt_t n):
     """
@@ -456,7 +462,7 @@ cdef inline long bitset_next_diff(bitset_t a, bitset_t b, mp_bitcnt_t n):
     bitset_free(diff)
     return val
 
-cdef inline long bitset_len(bitset_t bits):
+cdef inline long bitset_len(bitset_t bits) nogil:
     """
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     """
@@ -555,7 +561,7 @@ cdef inline void bitset_not(bitset_t r, bitset_t a):
     """
     bitset_complement(r, a)
 
-cdef inline void bitset_intersection(bitset_t r, bitset_t a, bitset_t b):
+cdef inline void bitset_intersection(bitset_t r, bitset_t a, bitset_t b) nogil:
     """
     Set r to the intersection of a and b, overwriting r.
 
@@ -575,7 +581,7 @@ cdef inline void bitset_and(bitset_t r, bitset_t a, bitset_t b):
     """
     bitset_intersection(r, a, b)
 
-cdef inline void bitset_union(bitset_t r, bitset_t a, bitset_t b):
+cdef inline void bitset_union(bitset_t r, bitset_t a, bitset_t b) nogil:
     """
     Set r to the union of a and b, overwriting r.
 
