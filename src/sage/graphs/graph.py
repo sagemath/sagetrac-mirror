@@ -424,10 +424,9 @@ from sage.graphs.independent_sets import IndependentSets
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
 from sage.graphs.views import EdgesView
 
-from sage.misc.lazy_import import lazy_import
 from sage.features import PythonModule
-lazy_import('sage.graphs.mcqd', ['mcqd'],
-            feature=PythonModule('sage.graphs.mcqd', spkg='mcqd'))
+Mcqd = PythonModule('sage.graphs.mcqd', spkg='mcqd')
+mcqd = Mcqd.lazy_import('mcqd', namespace=None)
 
 class Graph(GenericGraph):
     r"""
