@@ -68,7 +68,6 @@ AUTHORS:
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import lazy_import
 from sage.misc.cachefunc import cached_method
 from sage.categories.groups import Groups
 from sage.groups.free_group import FreeGroup, is_FreeGroup
@@ -83,11 +82,19 @@ from sage.misc.package import PackageNotFoundError
 from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.features import PythonModule
 
-lazy_import('sage.libs.braiding',
-            ['rightnormalform', 'centralizer', 'supersummitset', 'greatestcommondivisor',
-             'leastcommonmultiple', 'conjugatingbraid', 'ultrasummitset',
-             'thurston_type', 'rigidity', 'sliding_circuits'],
-            feature=PythonModule('sage.libs.braiding', spkg='libbraiding'))
+LibBraiding = PythonModule('sage.libs.braiding', spkg='libbraiding')
+(rightnormalform, centralizer, supersummitset) = LibBraiding.lazy_import(
+    ('rightnormalform', 'centralizer', 'supersummitset'),
+    namespace=None)
+(greatestcommondivisor, leastcommonmultiple) = LibBraiding.lazy_import(
+    ('greatestcommondivisor', 'leastcommonmultiple'),
+    namespace=None)
+(conjugatingbraid, ultrasummitset) = LibBraiding.lazy_import(
+    ('conjugatingbraid', 'ultrasummitset'),
+    namespace=None)
+(thurston_type, rigidity, sliding_circuits) = LibBraiding.lazy_import(
+    ('thurston_type', 'rigidity', 'sliding_circuits'),
+    namespace=None)
 
 class Braid(FiniteTypeArtinGroupElement):
     """
