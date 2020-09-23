@@ -961,7 +961,7 @@ cdef class LazyImport(object):
 
 
 def lazy_import(module, names, as_=None, *,
-    at_startup=False, namespace=None, deprecation=None, feature=None):
+    at_startup=False, namespace=True, deprecation=None, feature=None):
     """
     Create a lazy import object and inject it into the caller's global
     namespace. For the purposes of introspection and calling, this is
@@ -982,8 +982,10 @@ def lazy_import(module, names, as_=None, *,
     - ``at_startup`` -- a boolean (default: ``False``);
       whether the lazy import is supposed to be resolved at startup time
 
-    - ``namespace`` -- the namespace where importing the names; by default,
-      import the names to current namespace
+    - ``namespace`` -- the namespace where importing the names; by default
+      (``True``), import the names to current namespace.  If ``None``, do
+      not import the names into any namespace; instead, return the
+      (tuple of) :class:`LazyImport` object(s) created.
 
     - ``deprecation`` -- (optional) if not ``None``, a deprecation warning
       will be issued when the object is actually imported;
@@ -1052,25 +1054,44 @@ def lazy_import(module, names, as_=None, *,
         doctest:...: DeprecationWarning: This is an example.
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
+
+    An example with ``namespace=False``::
+
+        sage: lazy_import('sage.all', 'ZZ', namespace=False)
+        Integer Ring
+        sage: lazy_import('sage.all', ('ZZ', 'RR'), namespace=False)
+        (Integer Ring, Real Field with 53 bits of precision)
+
     """
     if as_ is None:
         as_ = names
-    if isinstance(names, basestring):
+    elif namespace is False:
+        raise ValueError('if namespace is False, as_ must be None')
+    singleton = isinstance(names, basestring)
+    if singleton:
         names = [names]
         as_ = [as_]
     else:
         names = list(names)
         as_ = list(as_)
-    if namespace is None:
+    if namespace is True:
         namespace = inspect.currentframe().f_locals
+    elif namespace is False:
+        namespace = None
     if "*" in names:
         ix = names.index("*")
         all = get_star_imports(module)
         names[ix:ix+1] = all
         as_[ix:ix+1] = all
-    for name, alias in zip(names, as_):
-        namespace[alias] = LazyImport(module, name, alias, at_startup, namespace, deprecation, feature)
-
+    lazy_import_objects = (LazyImport(module, name, alias, at_startup, namespace, deprecation, feature)
+                           for name, alias in zip(names, as_))
+    if namespace:
+        for lazy_import_object, alias in zip(lazy_import_objects, as_):
+            namespace[alias] = lazy_import_object
+    elif singleton:
+        return next(lazy_import_objects)
+    else:
+        return tuple(lazy_import_objects)
 
 star_imports = None
 
