@@ -604,3 +604,21 @@ class PythonModule(Feature):
         except ImportError:
             return FeatureTestResult(self, False, reason="Failed to import `{name}`.".format(name=self.name))
         return FeatureTestResult(self, True, reason="Successfully imported `{name}`.".format(name=self.name))
+
+    def lazy_import(self, names, as_=None, *, at_startup=False, namespace=True, deprecation=None):
+        """
+        Create lazy import objects for importing ``names`` from ``self.name``.
+
+        See ``sage.misc.lazy_import.lazy_import`` for the supported
+        parameters.
+
+        EXAMPLES::
+
+            sage: from sage.features import PythonModule
+            sage: PythonModule('sys').lazy_import('getfilesystemencoding', namespace=None)
+            <built-in function getfilesystemencoding>
+
+        """
+        from sage.misc.lazy_import import lazy_import
+        return lazy_import(self.name, names, as_, feature=self,
+                           at_startup=at_startup, namespace=namespace, deprecation=deprecation)
