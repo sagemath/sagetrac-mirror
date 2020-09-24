@@ -444,27 +444,32 @@ if [ -e "$PKG_NAME" ]; then
 fi
 
 ##################################################################
-# Extract the package
+# Normal packages: Extract the package
 ##################################################################
 
-echo "Setting up build directory for $PKG_NAME"
-cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
-cd "$PKG_NAME" || exit $?
+if [ -f "$PKG_SCRIPTS"/checksums.ini ]; then
+    # Normal package
+    echo "Setting up build directory for $PKG_NAME"
+    cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
+    cd "$PKG_NAME" || exit $?
 
-sage-uncompress-spkg -d src "$PKG_SRC"
-if [ $? -ne 0 ]; then
-    error_msg "Error: failed to extract $PKG_SRC"
-    exit 1
+    sage-uncompress-spkg -d src "$PKG_SRC"
+    if [ $? -ne 0 ]; then
+        error_msg "Error: failed to extract $PKG_SRC"
+        exit 1
+    fi
+
+    echo "Finished extraction"
+    cd src
+    if ! sage-apply-patches; then
+        error_msg "Error applying patches"
+        exit 1
+    fi
+    cd ..
+else
+    # Script package: Build out of the source tree without copying
+    cd "$PKG_SCRIPTS"
 fi
-
-echo "Finished extraction"
-
-cd src
-if ! sage-apply-patches; then
-    error_msg "Error applying patches"
-    exit 1
-fi
-cd ..
 
 ##################################################################
 # The package has been extracted, prepare for installation
