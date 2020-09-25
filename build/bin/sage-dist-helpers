@@ -239,6 +239,18 @@ sdh_prefix_args () {
 
 sdh_pip_install() {
     echo "Installing $PKG_NAME"
+<<<<<<< HEAD
+=======
+    if [ -n "$SAGE_DESTDIR" ]; then
+        local sudo=""
+    else
+        local sudo="$SAGE_SUDO"
+    fi
+    if [ "$*" = "." ]; then
+        $sudo sage-pip-uninstall "$@" || \
+            sdh_die "Error uninstalling a previous version of $PKG_NAME"
+    fi
+>>>>>>> 9750195b6f (WIP: Install pip packages with sage-spkg)
     mkdir -p dist
     rm -f dist/*.whl
     install_options=""
@@ -303,14 +315,12 @@ sdh_store_wheel() {
     if [ "$*" != "." ]; then
         sdh_die "Error: sdh_store_wheel requires . as only argument"
     fi
-    wheel=""
-    for w in dist/*.whl; do
-        if [ -n "$wheel" ]; then
-            sdh_die "Error: more than one wheel found after building"
-        fi
-        if [ -f "$w" ]; then
-            wheel="$w"
-        fi
+    for wheel in dist/*.whl; do
+        $sudo sage-pip-install $root "$wheel" || \
+            sdh_die "Error installing $wheel"
+        mkdir -p "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}" && \
+            $sudo mv "$wheel" "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/" || \
+            sdh_die "Error storing $wheel"
     done
     if [ -z "$wheel" ]; then
         sdh_die "Error: no wheel found after building"

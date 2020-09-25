@@ -537,40 +537,16 @@ $(foreach pkgname, $(NORMAL_PACKAGES),\
 endif
 
 # ================================ pip packages ===============================
-# Generate build rules for 'pip' packages; this template is used to generate
-# two rules in the form:
-#
-# <pkgname>: <dependencies>
-#     $(AM_V_at)sage-logger -p 'sage --pip install ...' '$(SAGE_LOGS)/<pkgname>.log'
-#
-# <pkgname>-clean:
-#     -sage --pip uninstall -y ...
-
-# Positional arguments:
-#     $(1): package name
-#     $(2): package dependencies
-define PIP_PACKAGE_templ
-$(1)-build-deps: $(2)
-
-$(1): $(2)
-	+$(MAKE_REC) $(1)-no-deps
-
-$(1)-no-deps:
-	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
-
-$(1)-clean:
-	-sage --pip uninstall --isolated --yes --no-input -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
-
-.PHONY: $(1) $(1)-clean $(1)-build-deps $(1)-no-deps
-endef
-
 $(foreach pkgname,$(PIP_PACKAGES),\
-	$(eval $(call PIP_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+	$(eval $(call NORMAL_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
+$(foreach pkgname, $(PIP_PACKAGES),\
+	$(eval $(call NORMAL_PACKAGE_clean_templ,$(pkgname),$(vers_$(pkgname)),\
+	                                   $(call pkg_deps,$(pkgname)))))
 
 ifdef DEBUG_RULES
 $(info # Rules for pip packages)
 $(foreach pkgname,$(PIP_PACKAGES),\
-	$(info $(call PIP_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+	$(info $(call NORMAL_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
 endif
 
 # ============================= script packages ==============================
