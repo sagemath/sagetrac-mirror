@@ -27,6 +27,7 @@ from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from sage.plot.primitive import GraphicPrimitive_xydata
 from collections.abc import Iterator
+import numbers
 
 
 # TODO: create _allowed_options for 3D point classes to
@@ -291,7 +292,7 @@ class Point(GraphicPrimitive_xydata):
 
 def point(points, **kwds):
     """
-    Returns either a 2-dimensional or 3-dimensional point or sum of points.
+    Return either a 2-dimensional or 3-dimensional point or sum of points.
 
     INPUT:
 
@@ -342,7 +343,7 @@ def point(points, **kwds):
     """
     if isinstance(points, Iterator):
         points = list(points)
-
+        
     try:
         return point2d(points, **kwds)
     except (ValueError, TypeError):
@@ -463,8 +464,7 @@ def point2d(points, **options):
     """
     from sage.plot.plot import xydata_from_point_list
     from sage.plot.all import Graphics
-    from sage.rings.all import CC, CDF
-    if points in CC or points in CDF:
+    if isinstance(points, numbers.Complex):
         pass
     else:
         try:
