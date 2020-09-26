@@ -1655,7 +1655,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
         if algorithm is None:
             if not H.invariants()[0].is_prime():
                 algorithm = 'hulpke'
-            elif H.cardinality() < 2^8:
+            elif H.cardinality() < 2**8:
                 algorithm = 'elementary'
             else:
                 algorithm = 'magma'
@@ -1688,7 +1688,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             return reps
         elif algorithm == "hulpke":
             from sage.env import SAGE_EXTCODE
-            gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+            gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits.g'
             libgap.Read(gapcode)
             subgroup_reps = libgap.function_factory("SubgroupRepresentatives")
             subgroup_reps = subgroup_reps(Hgap, G, order)
@@ -1697,7 +1697,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             if not H.invariants()[-1].is_prime():
                 raise ValueError("")
             from sage.env import SAGE_EXTCODE
-            gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+            gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits.g'
             libgap.Read(gapcode)
             subgroup_reps = libgap.function_factory("SubgroupRepresentatives_elementary_equiv")
             subgroup_reps = subgroup_reps(Hgap, G, order, g.gap())
@@ -1764,7 +1764,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
 
         from sage.libs.gap.libgap import libgap
         from sage.env import SAGE_EXTCODE
-        gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+        gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits.g'
         libgap.Read(gapcode)
         OnSubgroups = libgap.function_factory("OnSubgroups")
         OD =  D.orthogonal_group(gens=())
@@ -1993,7 +1993,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
 
         from sage.libs.gap.libgap import libgap
         from sage.env import SAGE_EXTCODE
-        gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+        gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits.g'
         libgap.Read(gapcode)
         OnSubgroups = libgap.function_factory("OnSubgroups")
 

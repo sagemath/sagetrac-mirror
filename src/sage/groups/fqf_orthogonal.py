@@ -225,7 +225,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         s += "]);"
         return s
 
-    def _element_constructor_(self, x, check=False):
+    def _element_constructor_(self, x, check=True):
         r"""
         Construct an element from ``x`` and handle conversions.
 
@@ -253,8 +253,6 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             sage: fbar
             [4 3]
             [3 1]
-            sage: fbar == Oq(f.matrix())
-            True
 
         TESTS::
 
@@ -266,26 +264,29 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             sage: Oq = q.orthogonal_group()
             sage: assert Oq(OL.0) == Oq(OL.0.matrix())
             sage: assert Oq(Oq.0.matrix()) == Oq.0
+            sage: g=matrix([(0, 0, 0, 2), (0, -2, 0, 0), (0, 0, -2, 0), (2, 0, 0, 0)])
+            sage: L = IntegralLattice(g)
+            sage: D = L.discriminant_group()
+            sage: Od = D.orthogonal_group()
+            sage: g = Od.0
+            sage: g
+            [1 0 0 0]
+            [1 1 0 0]
+            [1 0 1 0]
+            [1 1 1 1]
+            sage: g == Od(g.matrix())
+            True
         """
         from sage.libs.gap.element import GapElement
-        if not isinstance(x, GapElement):
-            try:
-                # see if x is a matrix preserving
-                # the inner product of W
-                q = self.invariant_form()
-                W = q.W()
-                if x.ncols() == W.degree():
-                    # equip x with an action
-                    x = W.orthogonal_group([x]).gen(0)
-            except (AttributeError, TypeError):
-                pass
+        from sage.matrix.matrix0 import Matrix
+        if not isinstance(x, GapElement) and not isinstance(x, Matrix):
             try:
                 # if there is an action try that
                 gen = self.invariant_form().smith_form_gens()
                 x = matrix(ZZ, [(g*x).vector() for g in gen])
             except TypeError:
                 pass
-        f = AbelianGroupAutomorphismGroup_subgroup._element_constructor_(self, x, check=True)
+        f = AbelianGroupAutomorphismGroup_subgroup._element_constructor_(self, x, check=check)
         if check:
             # double check that the form is preserved
             # this is expensive

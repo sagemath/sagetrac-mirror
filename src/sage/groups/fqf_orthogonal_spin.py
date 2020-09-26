@@ -558,11 +558,9 @@ def det_spin_homomorphism(L):
                     # retry with higher precision
                     prec0 = prec
                     prec = 2 * prec
-        imgs = [Gamma.prod([Gamma.embed(det=ds[1][0], spin=ds[1][1], p=ds[0])
+    imgs = [Gamma.prod([Gamma.embed(det=ds[1][0], spin=ds[1][1], p=ds[0])
                         for ds in det_spin[f]])
-                for f in Oq.gens()]
-    if len(Oq.gens())==0:
-        return Oq.hom(codom)
+            for f in Oq.gens()]
     return Oq.hom([codom(g) for g in imgs],codom,check=False)
 
 
