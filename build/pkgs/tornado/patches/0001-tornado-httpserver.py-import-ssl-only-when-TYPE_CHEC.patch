@@ -1,0 +1,41 @@
+From b362dae6f8e5123e30c6600f08dc6d061f57aecf Mon Sep 17 00:00:00 2001
+From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+Date: Sun, 27 Sep 2020 14:36:20 -0700
+Subject: [PATCH] tornado/httpserver.py: import ssl only when TYPE_CHECKING
+
+---
+ tornado/httpserver.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tornado/httpserver.py b/tornado/httpserver.py
+index 8044a4f8..2b9bb294 100644
+--- a/tornado/httpserver.py
++++ b/tornado/httpserver.py
+@@ -26,7 +26,6 @@ class except to start a server at the beginning of the process
+ """
+ 
+ import socket
+-import ssl
+ 
+ from tornado.escape import native_str
+ from tornado.http1connection import HTTP1ServerConnection, HTTP1ConnectionParameters
+@@ -41,6 +40,7 @@ from typing import Union, Any, Dict, Callable, List, Type, Tuple, Optional, Awai
+ 
+ if typing.TYPE_CHECKING:
+     from typing import Set  # noqa: F401
++    import ssl
+ 
+ 
+ class HTTPServer(TCPServer, Configurable, httputil.HTTPServerConnectionDelegate):
+@@ -157,7 +157,7 @@ class HTTPServer(TCPServer, Configurable, httputil.HTTPServerConnectionDelegate)
+         ],
+         no_keep_alive: bool = False,
+         xheaders: bool = False,
+-        ssl_options: Union[Dict[str, Any], ssl.SSLContext] = None,
++        ssl_options: Union[Dict[str, Any], 'ssl.SSLContext'] = None,
+         protocol: str = None,
+         decompress_request: bool = False,
+         chunk_size: int = None,
+-- 
+2.28.0
+
