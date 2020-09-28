@@ -289,6 +289,19 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         OUTPUT: A homomorphism `j: F \rightarrow D` where `D` is the domain of
         this homomorphism, `F` is free and such that `\ker(self) = \operatorname{im}(j)`.
 
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module import FPA_Module
+            sage: A = SteenrodAlgebra(2)
+            sage: F = FPA_Module([0,0], A)
+            sage: L = FPA_Module([0,0], A, [[Sq(3),Sq(0,1)], [0,Sq(2)]])
+            sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
+            sage: f._resolve_kernel()
+            Module homomorphism of degree 0 defined by sending the generators
+              [<1, 0, 0>, <0, 1, 0>, <0, 0, 1>]
+            to
+              [<0, 1>, <Sq(0,1), 0>, <Sq(3), 0>]
+
         """
         return self._action(FP_ModuleMorphism._resolve_kernel, verbose)
 
@@ -306,14 +319,44 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         of this homomorphism, `F` is free, and
         `\operatorname{im}(self) = \operatorname{im}(j)`.
 
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module import FPA_Module
+            sage: A = SteenrodAlgebra(2)
+            sage: F = FPA_Module([0,0], A)
+            sage: L = FPA_Module([0,0], A, [[Sq(3),Sq(0,1)], [0,Sq(2)]])
+            sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
+            sage: f._resolve_image()
+            Module homomorphism of degree 0 defined by sending the generators
+              [<1>]
+            to
+              [<Sq(2), 0>]
+
         """
         return self._action(FP_ModuleMorphism._resolve_image, verbose)
 
 
-    def _action(self, method, profile, verbose=False):
+    def _action(self, method, verbose=False):
         r"""
         Changes the ground ring to a finite algebra, acts by the given method
         and changes back into the original ground ring before returning.
+
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module import FPA_Module
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_morphism import FP_ModuleMorphism
+            sage: A = SteenrodAlgebra(2)
+            sage: F = FPA_Module([0], A)
+            sage: L = FPA_Module([0], A, [[Sq(3)]])
+            sage: f = Hom(F, L)([L([Sq(2)])])
+            sage: f._action(FP_ModuleMorphism._resolve_image, verbose=True)
+            Computing the kernel using the profile:
+            (2, 1)
+            Resolving the image in the range of dimensions [0, 8]: 0 1 2 3 4 5 6 7 8.
+            Module homomorphism of degree 0 defined by sending the generators
+              [<1>]
+            to
+              [<Sq(2)>]
 
         """
         small_profile = self.profile()

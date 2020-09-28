@@ -298,6 +298,13 @@ class FreeModule(UniqueRepresentation, SageModule):
         OUTPUT: The finitely generated free graded module on generators with
         degrees given by ``generator_degrees``.
 
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
+            sage: A = SteenrodAlgebra(2)
+            sage: FreeModule((-2,2,4), A)
+            Finitely presented free module on 3 generators over mod 2 Steenrod algebra, milnor basis
+
         """
         self._generator_degrees = generator_degrees
         if None in generator_degrees:
@@ -710,6 +717,14 @@ class FreeModule(UniqueRepresentation, SageModule):
         The internal hook used by the free function
         :meth:`sage.categories.homset.hom.Hom` to create homsets involving this
         parent.
+
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FreeModule((0,1), A)
+            sage: M._Hom_(M, category=None)
+            Set of Morphisms from Finitely presented free module on 2 generators over mod 2 Steenrod algebra, milnor basis to Finitely presented free module on 2 generators over mod 2 Steenrod algebra, milnor basis in Category of modules over mod 2 Steenrod algebra, milnor basis
 
         """
         return FreeModuleHomspace(self, Y, category)

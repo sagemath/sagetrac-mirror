@@ -90,6 +90,13 @@ class FP_Module(UniqueRepresentation, SageModule):
         OUTPUT: The finitely presented module with presentation given by
         the ``generator_degrees`` and ``relations``.
 
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
+            sage: FP_Module([0, 1], A3, [[Sq(2), Sq(1)]])
+            Finitely presented module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+
         """
         return super(FP_Module, cls).__classcall__(cls, tuple(generator_degrees), algebra, tuple([tuple([algebra(x) for x in r]) for r in relations]))
 

@@ -52,6 +52,13 @@ class FPA_Element(FP_Element):
             is that the dynamic type of the element class changes as a
             consequence of the category system.
 
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module import FPA_Module
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_element import FPA_Element
+            sage: FPA_Element(FPA_Module([0], SteenrodAlgebra(2)), [Sq(2)])
+            <Sq(2)>
+
         """
         FP_Element.__init__(self, module, coefficients)
 

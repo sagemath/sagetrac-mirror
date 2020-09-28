@@ -864,6 +864,12 @@ class FPA_Module(FP_Module):
         OUTPUT: The finitely presented module with presentation given by
         ``generator_degrees`` and ``relations``.
 
+        EXAMPLES::
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module import FPA_Module
+            sage: FPA_Module([0], SteenrodAlgebra(2))
+            Finitely presented module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+
         """
         return super(FPA_Module, cls).__classcall__(cls, tuple(generator_degrees), algebra, tuple([tuple([algebra(x) for x in r]) for r in relations]))
 
@@ -884,6 +890,12 @@ class FPA_Module(FP_Module):
 
         OUTPUT: The finitely presented module over ``algebra`` with
         presentation given by ``generator_degrees`` and ``relations``.
+
+        TESTS:
+
+            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module import FPA_Module
+            sage: FPA_Module((0,), SteenrodAlgebra(2))
+            Finitely presented module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
 
         """
 
