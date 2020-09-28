@@ -3932,6 +3932,10 @@ REFERENCES:
            *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
            FSE’93, Volume 809 of LNCS, pages 1-17.
            Springer, Heidelberg, December 1994.
+ 
+.. [Marg1983] \H. R. Margolis, *Spectra and the Steenrod Algebra: Modules
+              over the Steenrod Algebra and the Stable Homotopy Category*,
+              North-Holland Mathematical Library.  Vol. (29), Elsevier, 1983.
 
 .. [Mat1992] \O. Mathieu. *Classification of Harish-Chandra
              modules over the Virasoro Lie algebra*.
