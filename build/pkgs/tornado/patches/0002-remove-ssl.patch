@@ -1,0 +1,92 @@
+diff --git a/tornado/httputil.py b/tornado/httputil.py
+index 2f7f0f31..101e7ad1 100644
+--- a/tornado/httputil.py
++++ b/tornado/httputil.py
+@@ -27,7 +27,6 @@ import email.utils
+ from http.client import responses
+ import http.cookies
+ import re
+-from ssl import SSLError
+ import time
+ import unicodedata
+ from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
+@@ -466,7 +465,7 @@ class HTTPServerRequest(object):
+             return self.connection.stream.socket.getpeercert(  # type: ignore
+                 binary_form=binary_form
+             )
+-        except SSLError:
++        except OSError:
+             return None
+ 
+     def _parse_body(self) -> None:
+diff --git a/tornado/iostream.py b/tornado/iostream.py
+index 6504f8ee..2c3db522 100644
+--- a/tornado/iostream.py
++++ b/tornado/iostream.py
+@@ -30,7 +30,6 @@ import io
+ import numbers
+ import os
+ import socket
+-import ssl
+ import sys
+ import re
+ 
+@@ -1248,7 +1247,7 @@ class IOStream(BaseIOStream):
+     def start_tls(
+         self,
+         server_side: bool,
+-        ssl_options: Union[Dict[str, Any], ssl.SSLContext] = None,
++        ssl_options: Union[Dict[str, Any], 'ssl.SSLContext'] = None,
+         server_hostname: str = None,
+     ) -> Awaitable["SSLIOStream"]:
+         """Convert this `IOStream` to an `SSLIOStream`.
+@@ -1411,6 +1410,7 @@ class SSLIOStream(IOStream):
+ 
+     def _do_ssl_handshake(self) -> None:
+         # Based on code from test_ssl.py in the python stdlib
++        import ssl
+         try:
+             self._handshake_reading = False
+             self._handshake_writing = False
+@@ -1474,6 +1474,7 @@ class SSLIOStream(IOStream):
+         CA signature; the only thing that remains is to check
+         the hostname.
+         """
++        import ssl
+         if isinstance(self._ssl_options, dict):
+             verify_mode = self._ssl_options.get("cert_reqs", ssl.CERT_NONE)
+         elif isinstance(self._ssl_options, ssl.SSLContext):
+@@ -1586,7 +1587,11 @@ class SSLIOStream(IOStream):
+     def write_to_fd(self, data: memoryview) -> int:
+         try:
+             return self.socket.send(data)  # type: ignore
+-        except ssl.SSLError as e:
++        except OSError as e:
++            try:
++                import ssl
++            except ImportError:
++                raise e
+             if e.args[0] == ssl.SSL_ERROR_WANT_WRITE:
+                 # In Python 3.5+, SSLSocket.send raises a WANT_WRITE error if
+                 # the socket is not writeable; we need to transform this into
+@@ -1610,7 +1615,11 @@ class SSLIOStream(IOStream):
+                 return None
+             try:
+                 return self.socket.recv_into(buf, len(buf))
+-            except ssl.SSLError as e:
++            except OSError as e:
++                try:
++                    import ssl
++                except ImportError:
++                    raise e
+                 # SSLError is a subclass of socket.error, so this except
+                 # block must come first.
+                 if e.args[0] == ssl.SSL_ERROR_WANT_READ:
+@@ -1626,6 +1635,7 @@ class SSLIOStream(IOStream):
+             del buf
+ 
+     def _is_connreset(self, e: BaseException) -> bool:
++        import ssl
+         if isinstance(e, ssl.SSLError) and e.args[0] == ssl.SSL_ERROR_EOF:
+             return True
+         return super(SSLIOStream, self)._is_connreset(e)
