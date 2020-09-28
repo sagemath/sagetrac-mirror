@@ -4,4 +4,4 @@
 *.{cmd,[cC][mM][dD]} text eol=crlf
 *.{bat,[bB][aA][tT]} text eol=crlf
 *.diff_bin binary
-/build/pkgs/tornado/patches/*.patch eol=crlf
+/build/pkgs/tornado/patches/*.patch binary

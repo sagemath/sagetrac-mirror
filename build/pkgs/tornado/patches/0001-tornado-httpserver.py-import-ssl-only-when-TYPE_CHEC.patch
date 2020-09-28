@@ -1,7 +1,8 @@
+-*- inhibit-eol-conversion: t -*-
 From b362dae6f8e5123e30c6600f08dc6d061f57aecf Mon Sep 17 00:00:00 2001
 From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 Date: Sun, 27 Sep 2020 14:36:20 -0700
-Subject: [PATCH] tornado/httpserver.py: import ssl only when TYPE_CHECKING
+Subject: [PATCH 1/2] tornado/httpserver.py: import ssl only when TYPE_CHECKING
 
 ---
  tornado/httpserver.py | 4 ++--
