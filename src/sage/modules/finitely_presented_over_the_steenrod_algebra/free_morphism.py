@@ -195,7 +195,7 @@ class FreeModuleMorphism(SageMorphism):
           and only if the homomorphisms are not equal.  Otherwise,
           return ``False``.
 
-        OUTPUT: A boolean indicating the result of the comparison operation.
+        OUTPUT: A Boolean.
 
         EXAMPLES::
 

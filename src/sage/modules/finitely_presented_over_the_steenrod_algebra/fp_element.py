@@ -268,7 +268,7 @@ class FP_Element(SageModuleElement):
         return self.parent()(self.free_element + other.free_element)
 
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare this element with ``other``.
 
@@ -277,11 +277,14 @@ class FP_Element(SageModuleElement):
 
         INPUT:
 
-        - ``other`` -- an instance of this class.
+        - ``other`` -- An instance of this class.
 
-        OUTPUT: The integer 0 if the this element equals ``other``, i.e. that
-        the element ``other`` is the additive inverse of this element.
-        Otherwise, the output is the integer 1.
+        - ``op`` -- An integer specifying the comparison operation to be
+          carried out: If ``op`` == 2, then return ``True`` if and only if the
+          elements are equal.  If ``op`` == 3, then return ``True `` if and
+          only if the elements are not equal.  Otherwise, return ``False``.
+
+        OUTPUT: A Boolean.
 
         EXAMPLES::
 
@@ -301,24 +304,39 @@ class FP_Element(SageModuleElement):
         TESTS::
 
             sage: N = FP_Module([0], A2)
-            sage: x._cmp_(M.an_element(4))  # Elements of different degrees aren't equal
-            1
+            sage: x._richcmp_(M.an_element(4), 2)  # Elements of different degrees aren't equal
+            False
             sage: w = N.an_element(1)
-            sage: x._cmp_(w) # Elements of different modules aren't equal.
-            1
+            sage: x._richcmp_(w, 2) # Elements of different modules aren't equal.
+            False
+            sage: x._richcmp_(w, 3) # Elements of different modules aren't equal.
+            True
             sage: z = M.zero()
-            sage: x._cmp_(z) # Compare the non-trivial x to the zero element.
-            1
-            sage: z._cmp_(z) # Compare the zero element to itself.
-            0
+            sage: x._richcmp_(z, 2) # Compare the non-trivial x to the zero element.
+            False
+            sage: x._richcmp_(z, 3) # Compare the non-trivial x to the zero element.
+            True
+            sage: z._richcmp_(z, 2) # Compare the zero element to itself.
+            True
+            sage: z._richcmp_(z, 3) # Compare the zero element to itself.
+            False
 
         """
+        same = True
         if self.parent() != other.parent() or\
             self.degree() != other.degree() or\
             (self._add_(other._neg_()))._nonzero_():
-            return 1
-        else:
-            return 0
+            same = False
+
+        # Equality
+        if op == 2:
+            return same
+
+        # Non-equality
+        if op == 3:
+            return not same
+
+        return False
 
 
     def vector_presentation(self):

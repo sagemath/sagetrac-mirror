@@ -328,6 +328,9 @@ class FP_ModuleMorphism(SageMorphism):
         r"""
         Compare this homomorphism to the given homomorphism.
 
+        Implementation of this function allows Sage to make sense of the ==
+        operator for instances of this class.
+
         INPUT:
 
         - ``other`` -- An instance of this class.
@@ -337,6 +340,8 @@ class FP_ModuleMorphism(SageMorphism):
           homomorphisms are equal.  If ``op`` == 3, then return ``True `` if
           and only if the homomorphisms are not equal.  Otherwise,
           return ``False``.
+
+        OUTPUT: A Boolean.
 
         EXAMPLES::
 
