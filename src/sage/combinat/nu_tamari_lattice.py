@@ -36,7 +36,7 @@ special cases of this construction and are also available with this poset::
     For more detailed information see :meth:`NuTamariLattice`. For more
     information on the standard Tamari lattice see
     :meth:`sage.combinat.tamari_lattices.TamariLattice`,
-    :meth:`sage.combinat.tamar_lattices.GeneralizedTamariLattice`
+    :meth:`sage.combinat.tamari_lattices.GeneralizedTamariLattice`
 """
 # ****************************************************************************
 #    Copyright (C) 2020-2020 Aram Dermenjian <aram.dermenjian@gmail.com>
@@ -79,7 +79,7 @@ def NuTamariLattice(nu):
 
     EXAMPLES::
 
-        sage: from sage.combinat.nu_tamari_lattices import NuTamariLattice
+        sage: from sage.combinat.nu_tamari_lattice import NuTamariLattice
         sage: NuTamariLattice([1,0,1,0,0,1,0])
         Finite lattice containing 7 elements
         sage: NuTamariLattice([1,0,1,0,1,0])

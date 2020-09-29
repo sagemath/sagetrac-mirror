@@ -8,7 +8,8 @@ AUTHORS:
 
 - Aram Dermenjian (2020-09-26)
 
-This file is based off the class ``DyckWords`` written by Mke Hansen, Dan
+This file is based off the class
+:func:`DyckWords<sage.combinat.dyck_word.DyckWord>` written by Mke Hansen, Dan
 Drake, Florent Hivert, Christian Stump, Mike Zabrocki, Jean--Baptiste Priez
 and Travis Scrimshaw
 
@@ -1039,13 +1040,20 @@ class NuDyckWord(CombinatorialElement):
         r"""
         return a new `\nu`-Dyck Word if possible.
 
-        We mutate ``dEfg`` to ``dfEg`` where:
+        If at height `i` we have an east step E meeting a north step N then we
+        calculate all horizontal distances from this point until we find
+        the first point that has the same horizontal distance to `\nu`. We let
 
-        - d is everything up until EN
+        - d be everything up until EN (not including EN)
 
-        - f is everything between N and where horiz is same
+        - f be everything between N and the point with the same horizontal
+          distance (including N)
 
-        - g is everything after
+        - g be everything after f
+
+        Then a mutation transforms the word `dEfg` to `dfEg`.
+
+        .. SEEALSO:: :meth:`can_mutate`
         """
         mutation_index = self.can_mutate(i)
         if not mutation_index:
