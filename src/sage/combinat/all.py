@@ -155,6 +155,7 @@ from .subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from .necklace import Necklaces
 lazy_import('sage.combinat.dyck_word', ('DyckWords', 'DyckWord'))
+lazy_import('sage.combinat.nu_dyck_word', ('NuDyckWords', 'NuDyckWord'))
 from .sloane_functions import sloane
 lazy_import('sage.combinat.superpartition', ('SuperPartition',
                                              'SuperPartitions'))

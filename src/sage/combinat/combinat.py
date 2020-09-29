@@ -29,7 +29,7 @@ docstrings.
 
 -  Stirling numbers, :func:`stirling_number1`,
    :func:`stirling_number2`.
-   
+
 -  Polygonal numbers, :func:`polygonal_number`
 
 **Set-theoretic constructions:**
