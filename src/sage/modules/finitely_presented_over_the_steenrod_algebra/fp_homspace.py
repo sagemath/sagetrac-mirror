@@ -81,7 +81,6 @@ AUTHORS:
 from __future__ import absolute_import
 
 from sage.categories.homset import Homset
-from sage.misc.cachefunc import cached_method
 
 from sage.categories.homset import Hom
 

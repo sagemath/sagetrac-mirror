@@ -40,8 +40,6 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism as SageMorphism
 from sage.misc.cachefunc import cached_method
 
-import sage.categories.homset
-
 from .free_homspace import is_FreeModuleHomspace
 
 
