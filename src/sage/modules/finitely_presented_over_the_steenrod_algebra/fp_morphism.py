@@ -40,9 +40,7 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism as SageMorphism
 from sage.misc.cachefunc import cached_method
 from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_element import FP_Element
-from sage.modules.free_module import VectorSpace
 from sage.rings.infinity import PlusInfinity
-from sage.structure.unique_representation import UniqueRepresentation
 
 
 def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
@@ -1560,7 +1558,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         if verbose:
             if dim > limit:
-                print('The dimension range is empty: [%d, %d]' % (n, limit))
+                print('The dimension range is empty: [%d, %d]' % (dim, limit))
             else:
                 print('Resolving the kernel in the range of dimensions [%d, %d]:' % (dim, limit), end='')
 
@@ -1700,7 +1698,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         if verbose:
             if dim > limit:
-                print('The dimension range is empty: [%d, %d]' % (n, limit))
+                print('The dimension range is empty: [%d, %d]' % (dim, limit))
             else:
                 print('Resolving the image in the range of dimensions [%d, %d]:' % (dim, limit), end='')
 

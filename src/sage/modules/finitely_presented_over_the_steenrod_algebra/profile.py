@@ -292,7 +292,8 @@ def nextprof(p,n,char=2):
                     p[i] = n[i]
         return n + [0]*(len(p)-len(n)) + [1]    # fell off the end
     else:  # odd primes
-        pP,pQ,nP,nQ = list(p[0]),list(p[1]),list(n[0]),list(n[1])
+        pQ = list(p[1])
+        nQ = list(n[1])
         for i in range(len(pQ)):
             if pQ[i] < 2:
                 pQ[i] += 1

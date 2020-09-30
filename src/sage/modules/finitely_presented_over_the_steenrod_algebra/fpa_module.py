@@ -629,7 +629,7 @@ commuting triangle:
 
 .. MATH::
 
-    H\mathbb{Z}\overset{q}\longrightarrow Hko \overset{f}\longleftarrow \Sigma^{28} Hko
+    H\mathbb{Z}\xrightarrow{q} Hko \xleftarrow{f} \Sigma^{28} Hko
 
 We begin by defining the modules and the homomorphisms `f` and `q`.  In the following,
 we let `L = \Sigma^{28}Hko`::
@@ -727,7 +727,7 @@ There is an exact sequence
 
 .. MATH::
 
-    0\to \operatorname{Hom}_A(L, \ker(q)) \overset{iK_*}\longrightarrow \operatorname{Hom}_A(L, H\mathbb{Z}) \overset{q_*}\longrightarrow \operatorname{Hom}_A(L, Hko)\,,
+    0\to \operatorname{Hom}_A(L, \ker(q)) \xrightarrow{iK_*} \operatorname{Hom}_A(L, H\mathbb{Z}) \xrightarrow{q_*} \operatorname{Hom}_A(L, Hko)\,,
 
 which means that the indeterminacy of choosing a lift for
 `f\in \operatorname{Hom}_A(L, Hko)` is represented by an element in
@@ -831,11 +831,9 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra
 from sage.categories.homset import Hom
 from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
 from sage.modules.finitely_presented_over_the_steenrod_algebra.profile import enveloping_profile_elements
-from sage.modules.free_module import VectorSpace
 from sage.rings.infinity import PlusInfinity
 
 
@@ -1005,7 +1003,7 @@ class FPA_Module(FP_Module):
           where each `F_i` is a finitely generated free module, and the
           sequence
 
-            `F_k \overset{f_k}{\longrightarrow} F_{k-1} \overset{f_{k-1}}{\rightarrow} \ldots \rightarrow F_0 \overset{\epsilon}{\rightarrow} M \rightarrow 0`
+            `F_k \xrightarrow{f_k} F_{k-1} \xrightarrow{f_{k-1}} \ldots \rightarrow F_0 \xrightarrow{\epsilon} M \rightarrow 0`
 
           is exact.
 
@@ -1145,8 +1143,6 @@ class FPA_Module(FP_Module):
         print("%d %s" % (
             len(additive_generator_degrees),
             " ".join(["%d" % x for x in additive_generator_degrees])))
-
-        num_basis_vectors = additive_generator_global_indices[-1]
 
         # A private function which transforms a vector in a given dimension
         # to a vector of global indices for the basis elements corresponding

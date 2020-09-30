@@ -30,7 +30,6 @@ AUTHORS:
 
 from __future__ import absolute_import
 
-from sage.categories.homset import Hom
 from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_morphism import FP_ModuleMorphism
 from sage.modules.finitely_presented_over_the_steenrod_algebra.profile import enveloping_profile_elements
 

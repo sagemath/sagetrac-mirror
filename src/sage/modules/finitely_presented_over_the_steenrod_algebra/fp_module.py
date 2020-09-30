@@ -999,7 +999,7 @@ class FP_Module(UniqueRepresentation, SageModule):
           where each `F_i` is a finitely generated free module, and the
           sequence
 
-            `F_k \overset{f_k}{\longrightarrow} F_{k-1} \overset{f_{k-1}}{\rightarrow} \ldots \rightarrow F_0 \overset{\epsilon}{\rightarrow} M \rightarrow 0`
+            `F_k \xrightarrow{\mathit{f_k}} F_{k-1} \xrightarrow{\mathit{f_{k-1}}} \ldots \rightarrow F_0 \xrightarrow{\epsilon} M \rightarrow 0`
 
           is exact.
 

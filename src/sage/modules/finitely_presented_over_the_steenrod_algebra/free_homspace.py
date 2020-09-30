@@ -72,12 +72,8 @@ AUTHORS:
 
 from __future__ import absolute_import
 
-from inspect import isfunction
-
 from sage.categories.homset import Homset
 from sage.misc.cachefunc import cached_method
-
-import sage.categories.homset
 
 
 def is_FreeModuleHomspace(x):

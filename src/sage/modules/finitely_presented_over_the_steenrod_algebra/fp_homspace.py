@@ -80,20 +80,10 @@ AUTHORS:
 
 from __future__ import absolute_import
 
-from inspect import isfunction
-
 from sage.categories.homset import Homset
 from sage.misc.cachefunc import cached_method
 
-from sage.categories.homset import End
 from sage.categories.homset import Hom
-from sage.categories.morphism import Morphism as SageMorphism
-from sage.misc.cachefunc import cached_method
-from sage.modules.free_module import VectorSpace
-from sage.rings.infinity import PlusInfinity
-
-
-import sage.categories.homset
 
 
 def is_FP_ModuleHomspace(x):

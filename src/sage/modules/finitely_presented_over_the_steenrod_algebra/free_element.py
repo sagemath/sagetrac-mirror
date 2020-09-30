@@ -33,7 +33,6 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement as SageModuleElement
 
 
