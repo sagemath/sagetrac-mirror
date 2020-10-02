@@ -16452,6 +16452,7 @@ cdef class Matrix(Matrix1):
         """
         from sage.rings.padics.padic_extension_generic import pAdicExtensionGeneric
         from sage.rings.padics.padic_generic import pAdicGeneric
+        from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 
         if self.ncols() == 0 or (self.ncols() != self.nrows()):
             return False
@@ -16483,7 +16484,7 @@ cdef class Matrix(Matrix1):
                                 or ext_type == "Unramified")
                 # Base p-adic field.
                 return True
-            return isinstance(F, LaurentSeriesRing)
+            return is_LaurentSeriesRing(F)
         return False
 
     def _matrix_func_that_normalizes_and_truncates(self, t):
@@ -16526,10 +16527,10 @@ cdef class Matrix(Matrix1):
             sage: f = M._matrix_func_that_normalizes_and_truncates(1)
             sage: R = matrix(S, 3, lambda i,j: f(i,j), sparse=1)
             sage: M = M*R
-            # Indeed, the (1,1) element is now a power of the uniformizer,
-            # and the element to its right is truncated (contains only
-            # powers of the uniformizer which are smaller than the
-            # valuation of the (1,1) element).
+            sage: # Indeed, the (1,1) element is now a power of the uniformizer,
+            ....: and the element to its right is truncated (contains only
+            ....: powers of the uniformizer which are smaller than the
+            ....: valuation of the (1,1) element).            
             sage: M
             [                                    0 1 + 16*s^6 + s^12 + 16*s^18 + O(s^20) 7 + 9*s^6 + 8*s^12 + 9*s^18 + O(s^20)]
             [                                    0                           s + O(s^21)                        s^-1 + O(s^21)]
@@ -16548,10 +16549,7 @@ cdef class Matrix(Matrix1):
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
 
-        def truncate(elem, v): return
-            (elem.slice(v, None) if isinstance(elem.parent(),
-                                            pAdicGeneric)
-            else elem.truncate_neg(v))
+        def truncate(elem, v): return (elem.slice(v, None) if isinstance(elem.parent(), pAdicGeneric) else elem.truncate_neg(v))
 
         v = self[t,t].valuation()
         parent = self[t,t].parent()
@@ -16565,6 +16563,8 @@ cdef class Matrix(Matrix1):
                 if j == t:
                     return (1 / unit(self[t,t]))
                 elif j > t:
+                    if self[t,j].is_zero():
+                        return 0
                     b = truncate(self[t,j], v)
                     return (-b / self[t,t])
                 else:
@@ -16612,42 +16612,27 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example of normalizing an iwasawa decomposition using this
-        method ::
-
             sage: S.<s> = LaurentSeriesRing(GF(17))
-            sage: T = matrix(S, 3, [[1,1,1], [0,1,1], [0,0,1]])
-            sage: K = matrix(S, 3, 3, 1)
-            sage: T
-            [1 1 1]
-            [0 1 1]
-            [0 0 1]
-            sage: K
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-            # T,K are an iwasawa decomposition of:
-            sage: T*K
-            [1 1 1]
-            [0 1 1]
-            [0 0 1]
-            # Normalizing the decomposition:
-            sage: T, K = _iwasawa_normalized_form(T,K)
-            sage: T
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-            sage: K
-            [1 1 1]
-            [0 1 1]
-            [0 0 1]        
+            sage: M = matrix(S, [[13*s^2 + s^17 + O(s^20), O(s^19), 9*s^15 +
+            ....: 6*s^17 + O(s^20)], [O(s^23), 10*s^-7 + 8*s^11 + O(s^13),
+            ....: 9*s^20 + 16*s^23 + O(s^24)], [10*s + 16*s^20 + O(s^21),
+            ....: 15*s^-1 + 15*s^18 + O(s^19),  14*s^18 + 7*s^19 + 8*s^20 +
+            ....: O(s^21)]])
+            sage: T, K = M.iwasawa(normalize=True) # indirect doctest
+            sage: T   # T is normalized
+            [   s^15 + O(s^20)   4*s^2 + O(s^20)           O(s^19)]
+            [          O(s^15)    s^-5 + O(s^15) 12*s^-7 + O(s^13)]
+            [          O(s^21)           O(s^21)    s^-1 + O(s^19)]
 
         ...
 
         """
+        from copy import deepcopy
+        from sage.matrix.constructor import matrix, identity_matrix
+        
         n = T.nrows()
         H = identity_matrix(T.base_ring(), n)
-        E = copy.deepcopy(T)
+        E = deepcopy(T)
         # For each row between n-1 to 0, convert diagonal element into a power of
         # the uniformizer, and truncate elements on the righthand side of the
         # diagonal (nullify expansion starting from the diagonal-element's
@@ -16709,8 +16694,8 @@ cdef class Matrix(Matrix1):
             sage: f = M._matrix_func_that_switches_cols_and_nullifies(1,2)
             sage: R = matrix(QQ, 3, lambda i,j: f(i,j), sparse=1)
             sage: M = M*R
-            # Indeed, the 1,2 columns are switched, and the first element in
-            # row 1 is nullified..
+            sage: # Indeed, the 1,2 columns are switched, and the first element in
+            ....: row 1 is nullified.
             sage: M
             [  4  -1   1]
             [  0 1/2   0]
@@ -16763,7 +16748,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        An example for an iwasawa decomposition ::
+        An example for an iwasawa (normalized) decomposition ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
@@ -16773,8 +16758,8 @@ cdef class Matrix(Matrix1):
             sage: T, K = M.iwasawa() # indirect doctest
             sage: M - T*K == 0
             True
-            # T is upper-triangular, normalized, and because M is
-            # invertible - T is also invertible:
+            sage: # T is upper-triangular, normalized, and because M is
+            ....: invertible - T is also invertible:
             sage: T
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^40)               0]
@@ -16783,7 +16768,7 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            # Showing that K is invertible over the integer-ring:
+            sage: # Showing that K is invertible over the integer-ring:
             sage: min([x.valuation() for x in K.list() if x!=0])
             0
             sage: K.determinant().valuation() == 0
@@ -16803,8 +16788,11 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.infinity import Infinity
+        
         def valuation_infinity_for_zeros(n):
-            return n.valuation() if n!=0 else +Infinity
+            return n.valuation() if n!=0 else Infinity
         n = self.nrows()
 
         # Creating ``T``,``K``, such that ``self``*``K``=``T``, ``T`` is
@@ -16815,7 +16803,7 @@ cdef class Matrix(Matrix1):
         # left of the diagonal.
         for t in range(n-1, -1, -1):
             t_row_beginning = [T[t,i] for i in range(t+1)]
-            min_val, col_with_min_val = +Infinity, 0
+            min_val, col_with_min_val = Infinity, 0
             for i,d in enumerate(t_row_beginning):
                 val = valuation_infinity_for_zeros(d)
                 if val < min_val:
@@ -16909,8 +16897,8 @@ cdef class Matrix(Matrix1):
             sage: T, K = M.iwasawa()
             sage: M - T*K == 0
             True
-            # T is upper-triangular, normalized, and because M is
-            # invertible - T is also invertible:
+            sage: # T is upper-triangular, normalized, and because M is
+            ....: invertible - T is also invertible:
             sage: T
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^40)               0]
@@ -16919,7 +16907,7 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            # Showing that K is invertible over the integer-ring:
+            sage: # Showing that K is invertible over the integer-ring:
             sage: min([x.valuation() for x in K.list() if x!=0])
             0
             sage: K.determinant().valuation() == 0
@@ -16934,7 +16922,7 @@ cdef class Matrix(Matrix1):
             sage: T, K = M.iwasawa(normalize=False)
             sage: M - T*K == 0
             True
-            # T is different from the normalized form:
+            sage: # T is different from the normalized form:
             sage: T
             [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
             [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
@@ -16943,7 +16931,7 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
-            # Showing that K is invertible over the integer-ring:
+            sage: # Showing that K is invertible over the integer-ring:
             sage: min([x.valuation() for x in K.list() if x!=0])
             0
             sage: K.determinant().valuation() == 0
@@ -16960,8 +16948,8 @@ cdef class Matrix(Matrix1):
             sage: T, K = M.iwasawa()
             sage: M - T*K == 0
             True
-            # T is upper-triangular, normalized, and because M is
-            # invertible - T is also invertible:
+            sage: # T is upper-triangular, normalized, and because M is
+            ....: invertible - T is also invertible:
             sage: T
             [   s^15 + O(s^20)   4*s^2 + O(s^20)           O(s^19)]
             [          O(s^15)    s^-5 + O(s^15) 12*s^-7 + O(s^13)]
@@ -16970,14 +16958,14 @@ cdef class Matrix(Matrix1):
             [                       s^2 + O(s^5)                      2*s^3 + O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
             [             16 + 12*s^19 + O(s^20)           8*s^16 + 7*s^17 + O(s^18)    2*s^17 + s^18 + 6*s^19 + O(s^20)]
             [         10*s^2 + 16*s^21 + O(s^22)              15 + 15*s^19 + O(s^20) 14*s^19 + 7*s^20 + 8*s^21 + O(s^22)]
-            # Showing that K is invertible over the integer-ring:
+            sage: # Showing that K is invertible over the integer-ring:
             sage: min([x.valuation() for x in K.list() if x!=0])
             0
             sage: K.determinant().valuation() == 0
             True
 
-        Example with a singular matrix (for a singular matrix, the
-        decomposition is not unique, even if normalized) ::
+        Example with a singular matrix (for a singular matrix, T is singular,
+        and the decomposition is not unique, even if normalized) ::
 
             sage: Y.<a> = Qp(5).extension(x^2-5)
             sage: M = matrix(Y,3,{(0,0): 1 + O(a^24), (1,1):1 + O(a^40),
@@ -16985,7 +16973,7 @@ cdef class Matrix(Matrix1):
             sage: T, K = M.iwasawa()
             sage: M - T*K == 0
             True
-            # Note that T isn't invertible (because M isn't):
+            sage: # Note that T isn't invertible (because M isn't):
             sage: T
             [1 + O(a^24)           0           0]
             [          0           0 1 + O(a^40)]
@@ -17008,10 +16996,10 @@ cdef class Matrix(Matrix1):
             sage: T,K,c = M.iwasawa(certificate=True)
             sage: c
             False
-            # M is invertible, so T should have been invertible:
+            sage: # M is invertible, so T should have been invertible:
             sage: M.det()
             2*5^-3 + O(5^-2)
-            # But T isn't invertible, due to numerical reasons:
+            sage: # But T isn't invertible, due to numerical reasons:
             sage: T.det()
             O(5^-3)
 
@@ -17063,11 +17051,13 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(QQ,3)
             sage: M.iwasawa()
+            Traceback (most recent call last):
             ...
-            TypeError: "``self`` must be a non-empty square matrix over one of
-    the following non-archimedean local fields: Laurent-Series-Rings over finite
-    fields, or padic fields of the following types: base, 1-step unramified or
-    eisenstein extension, or 2-step unramified followed by eisenstein extension."
+            TypeError: ``self`` must be a non-empty square matrix over one of
+            the following non-archimedean local fields: Laurent-Series-Rings over
+            finite fields, or padic fields of the following types: base, 1-step
+            unramified or eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
 
         A zero matrix test ::
 
@@ -17086,10 +17076,10 @@ cdef class Matrix(Matrix1):
         A = self.matrix_over_field()
         if not A._is_square_over_non_archimedean_local_field():
             raise TypeError("``self`` must be a non-empty square matrix over one \
-    of the following non-archimedean local fields: Laurent-Series-Rings \
-    over finite fields, or padic fields of the following types: base, 1-step \
-    unramified or eisenstein extension, or 2-step unramified followed by \
-    eisenstein extension.")
+                of the following non-archimedean local fields: Laurent-Series-Rings \
+                over finite fields, or padic fields of the following types: base, \
+                1-step unramified or eisenstein extension, or 2-step unramified \
+                followed by eisenstein extension.")
 
         # Get ``T``, ``K`` such that ``self``*``K`` =``T``, ``T`` is
         # upper-triangular and ``K`` is invertible over the integer-ring.
@@ -17103,19 +17093,19 @@ cdef class Matrix(Matrix1):
                 raise e
             else:
                 raise ArithmeticError("Computation failed, due to singularity of \
-    an inner matrix that was expected to be invertible.\n This is probably due to \
-    numerical inaccuracy.")
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
 
         # Get normalized-form of iwasawa decomposition.
         if normalize:
-            T, K = _iwasawa_normalized_form(T, K)
+            T, K = Matrix._iwasawa_normalized_form(T, K)
 
         if certificate:
             output_is_as_expected = A._check_invertibility([K], [T])
             return T, K, output_is_as_expected
 
         return T, K
-
+    
     def _matrix_func_that_nullifies_part_of_col(self, r, c, rows_to_not_nullify):
         """
         Define a matrix that acts from the left on ``self``.
@@ -17158,9 +17148,9 @@ cdef class Matrix(Matrix1):
             sage: f = M._matrix_func_that_nullifies_part_of_col(1, 2, [0])
             sage: R = matrix(QQ, 3, lambda i,j: f(i,j), sparse=1)
             sage: M = R*M
-            # Indeed, the (2,2) element is nullified. This is the only
-            # element in column 2 that isn't the (1,2) element and isn't
-            # in row 0, which is in the ``rows_to_not_nullify``.
+            sage: # Indeed, the (2,2) element is nullified. This is the only
+            ....: element in column 2 that isn't the (1,2) element and isn't
+            ....: in row 0, which is in the ``rows_to_not_nullify``.
             sage: M
             [  0   1  -1]
             [  2   0 1/2]
@@ -17180,7 +17170,7 @@ cdef class Matrix(Matrix1):
             if i == j:
                 return 1
             elif j == r and i not in rows_to_not_nullify:
-                return (-(T[i,c] / T[r,c]))
+                return (-(self[i,c] / self[r,c]))
             else:
                 return 0
         return f
@@ -17212,7 +17202,7 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, 3, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 +
             ....: O(s^20)], [4, O(s^-7), 3 + s^2], [s^-3, O(s^-2), s^-8 +
-            ....: O(s^5]])
+            ....: O(s^5)]])
             sage: M
             [                   13*s^2                   O(s^19) 9*s^15 + 6*s^17 + O(s^20)]
             [                        4                   O(s^-7)                   3 + s^2]
@@ -17226,13 +17216,13 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S, 3, [[13*s^2, O(s^19), 9*s^15 + 6*s^17 +
             ....: O(s^20)], [4, O(s^-7), 3 + s^2], [s^-3, O(s^-2), s^-8 +
-            ....: O(s^5]])
+            ....: O(s^5)]])
             sage: M
             [                   13*s^2                   O(s^19) 9*s^15 + 6*s^17 + O(s^20)]
             [                        4                   O(s^-7)                   3 + s^2]
             [                     s^-3                   O(s^-2)             s^-8 + O(s^5)]
-            # The minimal valuation in row 1 is 0 and not -7, because O(s^-7)
-            # is considered to have infinity valuation.
+            sage: # The minimal valuation in row 1 is 0 and not -7, because O(s^-7)
+            ....: is considered to have infinity valuation.
             sage: M.min_valuation_in_row(1)
             (0, [0, 2])
 
@@ -17263,8 +17253,11 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(GF(19),3)
             sage: M.min_valuation_in_row(1)
+            Traceback (most recent call last):
             ...
-            TypeError: ``self`` must have a base ring F with an implemented ``valuation`` method. In particular, F(0).valuation() must be defined.
+            TypeError: ``self`` must have a base ring F with an
+            implemented ``valuation`` method. In particular,
+            F(0).valuation() must be defined.
 
         The method raises IndexError in case ``row`` isn't an integer
         that represents a row in the matrix ::
@@ -17272,8 +17265,10 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
             sage: M.min_valuation_in_row(5)
+            Traceback (most recent call last):
             ...
-            IndexError: Argument must be an integer in the range: [0,number_of_rows).
+            IndexError: Argument must be an integer in the range:
+            [0,number_of_rows).
 
         A zeros-row test ::
 
@@ -17282,12 +17277,14 @@ cdef class Matrix(Matrix1):
             sage: M.min_valuation_in_row(0)
             (+Infinity, [0, 1, 2])
         """
+        from sage.rings.infinity import Infinity
+        
         try:
             self.base_ring()(0).valuation()
         except:
             raise TypeError("``self`` must have a base ring F with an \
-    implemented ``valuation`` method. In particular, F(0).valuation() \
-    must be defined.")
+                implemented ``valuation`` method. In particular, \
+                F(0).valuation() must be defined.")
 
         def valuation_infinity_for_zeros(n):
             return n.valuation() if n!=0 else +Infinity
@@ -17296,7 +17293,7 @@ cdef class Matrix(Matrix1):
             row = Integer(row)
         if row >= self.nrows() or row < 0:
             raise IndexError("Argument must be an integer in the range: \
-    [0,number_of_rows).")
+                [0,number_of_rows).")
 
         min_val = +Infinity
         cols_with_min_val = list()
@@ -17310,8 +17307,8 @@ cdef class Matrix(Matrix1):
 
         return min_val, cols_with_min_val
 
-    def self._check_coordinates(r, c, only_first_in_col, start_up,
-                                chosen_valuations):
+    def _check_coordinates(self, r, c, only_first_in_col, start_up,
+                           chosen_valuations):
         """
         Check if ``self``[``r``,``c``] has minimal valuation in its column.
 
@@ -17389,6 +17386,8 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.rings.infinity import Infinity
+        
         def valuation_infinity_for_zeros(n):
             return n.valuation() if n!=0 else +Infinity
         val = valuation_infinity_for_zeros(self[r,c])
@@ -17643,7 +17642,7 @@ cdef class Matrix(Matrix1):
             sage: r,c = M.choose_min_valuation_elem(only_first_in_col=False,
             ....: only_first_in_row=True, start_left=False)
             sage: r,c
-            1 1
+            (1, 1)
 
         The same matrix, with:
         ``only_first_in_row``==`False`, ``start_left``==`False` ::
@@ -17654,7 +17653,7 @@ cdef class Matrix(Matrix1):
             sage: r,c = M.choose_min_valuation_elem(only_first_in_col=False,
             ....: only_first_in_row=False, start_left=False)
             sage: r,c
-            0 0
+            (0, 0)
 
         The same matrix, with:
         ``only_first_in_row``==`True`, ``start_left``==`True` ::
@@ -17665,7 +17664,7 @@ cdef class Matrix(Matrix1):
             sage: r,c = M.choose_min_valuation_elem(only_first_in_col=False,
             ....: only_first_in_row=True, start_left=True)
             sage: r,c
-            0 0
+            (0, 0)
 
         An iterative example, using ``chosen_valuations`` ::
 
@@ -17680,14 +17679,14 @@ cdef class Matrix(Matrix1):
             sage: M.choose_min_valuation_elem(False, False,
             ....: chosen_valuations=chosen_valuations)
             (2, 2)
-            # An element from row 2 was chosen, so from now on, we won't
-            # choose an element from that row again, and we won't compare the
-            # elements to the elements in that row (otherwise we wouldn't be
-            # able to choose any more minimal-valuation elements, because the
-            # elements in row 2 have the smallest valuations...).
-            # We keep track of the chosen rows through the
-            # ``chosen_valuations`` variable, which is updated by the
-            # `choose_min_valuation_elem` method.
+            sage: # An element from row 2 was chosen, so from now on, we won't
+            ....: choose an element from that row again, and we won't compare the
+            ....: elements to the elements in that row (otherwise we wouldn't be
+            ....: able to choose any more minimal-valuation elements, because the
+            ....: elements in row 2 have the smallest valuations...).
+            ....: We keep track of the chosen rows through the
+            ....: ``chosen_valuations`` variable, which is updated by the
+            ....: `choose_min_valuation_elem` method.
             sage: chosen_valuations
             [None, None, -8]
             sage: M.choose_min_valuation_elem(False, False,
@@ -17700,8 +17699,8 @@ cdef class Matrix(Matrix1):
             (0, 0)
             sage: chosen_valuations
             [2, 0, -8]
-            # We can't choose any more elements, because all the rows have
-            # already been chosen:
+            sage: # We can't choose any more elements, because all the rows have
+            ....: already been chosen:
             sage: M.choose_min_valuation_elem(False, False,
             ....: chosen_valuations=chosen_valuations)
             (None, None)
@@ -17734,8 +17733,11 @@ cdef class Matrix(Matrix1):
 
             sage: M = matrix(QQ, 3, [[0, 1, -1], [2, 0, 1/2], [1, 0, 1/2]])
             sage: M.choose_min_valuation_elem(False, False)
+            Traceback (most recent call last):
             ...
-            TypeError: ``self`` must have a base ring F with an implemented `valuation` method. In particular, F(0).valuation() must be defined.
+            TypeError: ``self`` must have a base ring F with an
+            implemented ``valuation`` method. In particular,
+            F(0).valuation() must be defined.
 
         A zero matrix ::
 
@@ -17752,8 +17754,9 @@ cdef class Matrix(Matrix1):
         try:
             self.base_ring()(0).valuation()
         except:
-            raise TypeError("``self`` must have a base ring F with an implemented \
-    `valuation` method. In particular, F(0).valuation() must be defined.")
+            raise TypeError("``self`` must have a base ring F with an \
+                implemented ``valuation`` method. In particular, \
+                F(0).valuation() must be defined.")
 
         # In case ``chosen_valuations`` == ``None``, we treat it as though no
         # elements were chosen before.
@@ -17807,26 +17810,21 @@ cdef class Matrix(Matrix1):
         2. A function that can be used to define a permutation matrix
         that switches between the rows of the original matrix, to
         achieve the new row order.
+        
 
         EXAMPLES:
 
         An example for rearranging the rows of a padic matrix ::
-
+            
             sage: Y.<a> = Qp(5).extension(x^2-5)
-            sage: M = matrix(Y, 4, [[3, a^6, O(a^-3), 2],[a, a^-9+O(a),
-            ....: a^2,0], [2+a^7, 1+O(a), a^5,a^7],[1, 0, 4*a,a^-3]])
-            sage: valuations = [M.min_valuation_in_row(i)[0] for i in
-            ....: range(4)]
-            sage: valuations
-            [0, -9, 0, -3]
-            sage: new_row_order, func = _cartan_rearrange_rows(valuations)
-            sage: new_row_order
-            [(1, -9), (3, -3), (0, 0), (2, 0)]
-            sage: R = matrix(Y, 4, lambda i, j: func(i, j), sparse=1)
-            sage: M = R*M
-            # Now M rows are in order:
-            sage: [M.min_valuation_in_row(i)[0] for i in range(4)]
-            [-9, -3, 0, 0]
+            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
+            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
+            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: K1, D, K2 = M.cartan() # indirect doctest
+            sage: D  # The rows are ordered ascendingly by their minimal valuations.
+            [a^-16 + O(a^24)               0               0]
+            [              0  a^-1 + O(a^39)               0]
+            [              0               0   a^7 + O(a^47)]
 
         ...
 
@@ -17885,8 +17883,6 @@ cdef class Matrix(Matrix1):
             sage: K1, D, K2 = M.cartan() # indirect doctest
             sage: M - K1*D*K2 == 0
             True
-            # D is diagonal with ascending powers of uniformizer on
-            # diagonal, and because M is invertible - D is also invertible:
             sage: D
             [a^-16 + O(a^24)               0               0]
             [              0  a^-1 + O(a^39)               0]
@@ -17899,12 +17895,12 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
-            # Showing that K1 is invertible over the integer-ring:
+            sage: # Showing that K1 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K1.list() if x!=0])
             0
             sage: K1.determinant().valuation() == 0
             True
-            # Showing that K2 is invertible over the integer-ring:
+            sage: # Showing that K2 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K2.list() if x!=0])
             0
             sage: K2.determinant().valuation() == 0
@@ -17914,6 +17910,8 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
+        from sage.matrix.constructor import diagonal_matrix, identity_matrix
+        from sage.rings.infinity import Infinity
 
         F = self.base_ring()
         n = self.ncols()
@@ -17983,8 +17981,6 @@ cdef class Matrix(Matrix1):
             sage: K1, D, K2 = M.cartan() # indirect doctest
             sage: M - K1*D*K2 == 0
             True
-            # D is diagonal with ascending powers of uniformizer on
-            # diagonal, and because M is invertible - D is also invertible:
             sage: D
             [a^-16 + O(a^24)               0               0]
             [              0  a^-1 + O(a^39)               0]
@@ -17997,12 +17993,12 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
-            # Showing that K1 is invertible over the integer-ring:
+            sage: # Showing that K1 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K1.list() if x!=0])
             0
             sage: K1.determinant().valuation() == 0
             True
-            # Showing that K2 is invertible over the integer-ring:
+            sage: # Showing that K2 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K2.list() if x!=0])
             0
             sage: K2.determinant().valuation() == 0
@@ -18022,6 +18018,8 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.matrix.constructor import matrix, identity_matrix
+        
         n = self.nrows()
         chosen_valuations = [None] * n
         chosen_cols = [None] * n
@@ -18054,7 +18052,7 @@ cdef class Matrix(Matrix1):
 
         # Rearranging rows by minimal valuation (in ascending order), and updating
         # lists.
-        new_order, g = _cartan_rearrange_rows(chosen_valuations)
+        new_order, g = Matrix._cartan_rearrange_rows(chosen_valuations)
         R = matrix(self.base_ring(), n, lambda i, j: g(i, j), sparse=1)
         K1 = R * K1
         E = R * E
@@ -18124,8 +18122,6 @@ cdef class Matrix(Matrix1):
             sage: K1, D, K2 = M.cartan()
             sage: M - K1*D*K2 == 0
             True
-            # D is diagonal with ascending powers of uniformizer on
-            # diagonal, and because M is invertible - D is also invertible:
             sage: D
             [a^-16 + O(a^24)               0               0]
             [              0  a^-1 + O(a^39)               0]
@@ -18138,12 +18134,12 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
-            # Showing that K1 is invertible over the integer-ring:
+            sage: # Showing that K1 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K1.list() if x!=0])
             0
             sage: K1.determinant().valuation() == 0
             True
-            # Showing that K2 is invertible over the integer-ring:
+            sage: # Showing that K2 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K2.list() if x!=0])
             0
             sage: K2.determinant().valuation() == 0
@@ -18160,8 +18156,6 @@ cdef class Matrix(Matrix1):
             sage: K1, D, K2 = M.cartan()
             sage: M - K1*D*K2 == 0
             True
-            # D is diagonal with ascending powers of uniformizer on
-            # diagonal, and because M is invertible - D is also invertible:
             sage: D
             [s^-7    0    0]
             [   0    s    0]
@@ -18174,12 +18168,12 @@ cdef class Matrix(Matrix1):
             [                            O(s^30)               10 + 8*s^18 + O(s^20)          9*s^27 + 16*s^30 + O(s^31)]
             [             10 + 16*s^19 + O(s^20)                             O(s^18) 14*s^17 + 7*s^18 + 8*s^19 + O(s^20)]
             [                             O(s^5)                              O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
-            # Showing that K1 is invertible over the integer-ring:
+            sage: # Showing that K1 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K1.list() if x!=0])
             0
             sage: K1.determinant().valuation() == 0
             True
-            # Showing that K2 is invertible over the integer-ring:
+            sage: # Showing that K2 is invertible over the integer-ring:
             sage: min([x.valuation() for x in K2.list() if x!=0])
             0
             sage: K2.determinant().valuation() == 0
@@ -18193,8 +18187,7 @@ cdef class Matrix(Matrix1):
             sage: K1, D, K2 = M.cartan()
             sage: M - K1*D*K2 == 0
             True
-            # Note that D isn't invertible (because M isn't):
-            sage: D
+            sage: D   # D isn't invertible (because M isn't):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0           0]
@@ -18208,19 +18201,20 @@ cdef class Matrix(Matrix1):
             [          0           0 1 + O(a^40)]
 
         This example illustrates that sometimes, the returned matrices are
-        singular due to numerical inaccuracies,
+        wrong (in our case: K2 isn't invertible over the integer-ring)
+        due to numerical inaccuracies,
         and demonstrates the use of the ``certificate`` keyword ::
 
             sage: Z = Qp(5, 3)
             sage: M = matrix(Z,3,[[3*5^2 + 3*5^3 + O(5^5), O(5^-3),
             ....: 2*5^-1 + 3*5 + O(5^2)], [5^15 + 5^16 + O(5^18), 2*5 +
             ....: 2*5^2 + 3*5^3 + O(5^4), 5^2 + 4*5^3 + O(5^5)], [4 + 4*5 +
-            ....: 3*5^2 + O(5^3)  4*5^7 + 5^8 + 4*5^9 + O(5^10) 5^-4 + 5^-3
+            ....: 3*5^2 + O(5^3),  4*5^7 + 5^8 + 4*5^9 + O(5^10), 5^-4 + 5^-3
             ....: + 4*5^-2 + O(5^-1)]])
             sage: K1,D,K2,c = M.cartan(certificate=True)
             sage: c
             False
-            # K2 is not invertible over the integer-ring:
+            sage: # K2 is not invertible over the integer-ring:
             sage: K2.determinant().valuation() == 0
             False
 
@@ -18231,7 +18225,7 @@ cdef class Matrix(Matrix1):
             sage: M = matrix(Z,3,[[3*5^-1 + 3 + 5 + O(5^2), 3*5^-2 + 2*5^-1
             ....: + 4 + O(5), 5^-1 + O(5^2)], [4*5^-1 + 4 + 3*5 + O(5^2),
             ....: 4*5^-5 + 3*5^-4 + 2*5^-3 + O(5^-2), 3 + 4*5^2 + O(5^3)],
-            ....; [4 + O(5), 3 + 3*5 + 3*5^2 + O(5^3), 2 + O(5^3)]])
+            ....: [4 + O(5), 3 + 3*5 + 3*5^2 + O(5^3), 2 + O(5^3)]])
             sage: K1,D,K2 = M.cartan()
             sage: M - K1*D*K2
             [          O(5^2)             O(5)           O(5^2)]
@@ -18273,11 +18267,13 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(QQ,3)
             sage: M.cartan()
+            Traceback (most recent call last):
             ...
-            TypeError: "``self`` must be a non-empty square matrix over one of
-    the following non-archimedean local fields: Laurent-Series-Rings over finite
-    fields, or padic fields of the following types: base, 1-step unramified or
-    eisenstein extension, or 2-step unramified followed by eisenstein extension."
+            TypeError: ``self`` must be a non-empty square matrix over one of
+            the following non-archimedean local fields: Laurent-Series-Rings over
+            finite fields, or padic fields of the following types: base, 1-step
+            unramified or eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
 
         A zero matrix test ::
 
@@ -18300,10 +18296,10 @@ cdef class Matrix(Matrix1):
         A = self.matrix_over_field()
         if not A._is_square_over_non_archimedean_local_field():
             raise TypeError("``self`` must be a non-empty square matrix over one \
-    of the following non-archimedean local fields: Laurent-Series-Rings \
-    over finite fields, or padic fields of the following types: base, 1-step \
-    unramified or eisenstein extension, or 2-step unramified followed by \
-    eisenstein extension.")
+                of the following non-archimedean local fields: Laurent-Series-Rings \
+                over finite fields, or padic fields of the following types: base, \
+                1-step unramified or eisenstein extension, or 2-step unramified \
+                followed by eisenstein extension.")
 
         # Get ``K1``, ``D``, ``K2``, such that ``K1``*``self`` = ``D``*``K2``,
         # both ``K1``,``K2`` are invertible over the integer-ring, and ``D`` is
@@ -18317,16 +18313,16 @@ cdef class Matrix(Matrix1):
             if (isinstance(e, NotImplementedError)
                 and "Echelon form not implemented" not in str(e)):
                 raise e
-            raise ArithmeticError("Computation failed, due to singularity of an \
-    inner matrix that was expected to be invertible.\n This is probably due to \
-    numerical inaccuracy.")
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
 
         if certificate:
             output_is_as_expected = A._check_invertibility([K1, K2], [D])
             return K1, D, K2, output_is_as_expected
 
         return K1, D, K2
-
+    
     def _bruhat_iwahori_break_matrix(self, chosen_valuations, chosen_cols):
         """
         Helper for the `bruhat_iwahori` decomposition method.
@@ -18364,9 +18360,7 @@ cdef class Matrix(Matrix1):
             sage: B1, W, B2 = M.bruhat_iwahori() # indirect doctest
             sage: M - B1*W*B2 == 0
             True
-            # W is a generalized diagonal with powers of
-            # the uniformizer (or zeros).
-            # Because M is invertible - W is also invertible:
+            sage: # Because M is invertible - W is also invertible:
             sage: W
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^47)               0]
@@ -18379,27 +18373,27 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            # Showing that B1 is iwahori:
-            # B1 has only integer elements:
+            sage: # Showing that B1 is iwahori:
+            sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
-            # B1 has zero-valuation elements on diagonal:
+            sage: # B1 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B1[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B1 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            # Showing that B2 is iwahori:
-            # B2 has only integer elements:
+            sage: # Showing that B2 is iwahori:
+            sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
-            # B2 has zero-valuation elements on diagonal:
+            sage: # B2 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B2[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B2 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
             []
@@ -18408,6 +18402,8 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.rings.padics.padic_generic import pAdicGeneric
+        from sage.matrix.constructor import matrix
+        from sage.rings.infinity import Infinity
 
         F = self.base_ring()
         n = self.ncols()
@@ -18476,9 +18472,7 @@ cdef class Matrix(Matrix1):
             sage: B1, W, B2 = M.bruhat_iwahori() # indirect doctest
             sage: M - B1*W*B2 == 0
             True
-            # W is a generalized diagonal with powers of
-            # the uniformizer (or zeros).
-            # Because M is invertible - W is also invertible:
+            sage: # Because M is invertible - W is also invertible:
             sage: W
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^47)               0]
@@ -18491,27 +18485,27 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            # Showing that B1 is iwahori:
-            # B1 has only integer elements:
+            sage: # Showing that B1 is iwahori:
+            sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
-            # B1 has zero-valuation elements on diagonal:
+            sage: # B1 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B1[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B1 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            # Showing that B2 is iwahori:
-            # B2 has only integer elements:
+            sage: # Showing that B2 is iwahori:
+            sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
-            # B2 has zero-valuation elements on diagonal:
+            sage: # B2 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B2[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B2 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
             []
@@ -18530,6 +18524,8 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.matrix.constructor import matrix, identity_matrix
+        
         n = self.nrows()
         chosen_valuations = [None] * n
         chosen_cols = [None] * n
@@ -18622,9 +18618,7 @@ cdef class Matrix(Matrix1):
             sage: B1, W, B2 = M.bruhat_iwahori()
             sage: M - B1*W*B2 == 0
             True
-            # W is a generalized diagonal with powers of
-            # the uniformizer (or zeros).
-            # Because M is invertible - W is also invertible:
+            sage: # Because M is invertible - W is also invertible:
             sage: W
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^47)               0]
@@ -18637,27 +18631,27 @@ cdef class Matrix(Matrix1):
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
-            # Showing that B1 is iwahori:
-            # B1 has only integer elements:
+            sage: # Showing that B1 is iwahori:
+            sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
-            # B1 has zero-valuation elements on diagonal:
+            sage: # B1 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B1[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B1 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            # Showing that B2 is iwahori:
-            # B2 has only integer elements:
+            sage: # Showing that B2 is iwahori:
+            sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
-            # B2 has zero-valuation elements on diagonal:
+            sage: # B2 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B2[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B2 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
             []
@@ -18673,9 +18667,7 @@ cdef class Matrix(Matrix1):
             sage: B1, W, B2 = M.bruhat_iwahori()
             sage: M - B1*W*B2 == 0
             True
-            # W is a generalized diagonal with powers of
-            # the uniformizer (or zeros).
-            # Because M is invertible - W is also invertible:
+            sage: # Because M is invertible - W is also invertible:
             sage: W
             [   0    0 s^15]
             [   0 s^-7    0]
@@ -18688,27 +18680,27 @@ cdef class Matrix(Matrix1):
             [             10 + 16*s^19 + O(s^20)                             O(s^18) 14*s^17 + 7*s^18 + 8*s^19 + O(s^20)]
             [                            O(s^30)               10 + 8*s^18 + O(s^20)          9*s^27 + 16*s^30 + O(s^31)]
             [                             O(s^5)                              O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
-            # Showing that B1 is iwahori:
-            # B1 has only integer elements:
+            sage: # Showing that B1 is iwahori:
+            sage: # B1 has only integer elements:
             sage: min([x.valuation() for x in B1.list() if x!=0])
             0
-            # B1 has zero-valuation elements on diagonal:
+            sage: # B1 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B1[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B1 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B1 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B1[i,j]!= 0 and B1[i,j].valuation() <= 0 and j<i)]
             []
-            # Showing that B2 is iwahori:
-            # B2 has only integer elements:
+            sage: # Showing that B2 is iwahori:
+            sage: # B2 has only integer elements:
             sage: min([x.valuation() for x in B2.list() if x!=0])
             0
-            # B2 has zero-valuation elements on diagonal:
+            sage: # B2 has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B2[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B2 have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B2 have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B2[i,j]!= 0 and B2[i,j].valuation() <= 0 and j<i)]
             []
@@ -18721,7 +18713,7 @@ cdef class Matrix(Matrix1):
             sage: B1, W, B2 = M.bruhat_iwahori()
             sage: M - B1*W*B2 == 0
             True
-            # Note that W isn't invertible (because M isn't):
+            sage: # Note that W isn't invertible (because M isn't):
             sage: W
             [1 + O(a^40)           0           0]
             [          0           0           0]
@@ -18747,7 +18739,6 @@ cdef class Matrix(Matrix1):
             sage: B1,W,B2,c = M.bruhat_iwahori(certificate=True)
             sage: c
             False
-            # B2 is not invertible (and therefore not iwahori)
             sage: B2.is_invertible()
             False
 
@@ -18800,11 +18791,13 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(QQ,3)
             sage: M.bruhat_iwahori()
+            Traceback (most recent call last):
             ...
-            TypeError: "``self`` must be a non-empty square matrix over one of
-    the following non-archimedean local fields: Laurent-Series-Rings over finite
-    fields, or padic fields of the following types: base, 1-step unramified or
-    eisenstein extension, or 2-step unramified followed by eisenstein extension."
+            TypeError: ``self`` must be a non-empty square matrix over one of
+            the following non-archimedean local fields: Laurent-Series-Rings over
+            finite fields, or padic fields of the following types: base, 1-step
+            unramified or eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
 
         A zero matrix test ::
 
@@ -18827,10 +18820,10 @@ cdef class Matrix(Matrix1):
         A = self.matrix_over_field()
         if not A._is_square_over_non_archimedean_local_field():
             raise TypeError("``self`` must be a non-empty square matrix over one \
-    of the following non-archimedean local fields: Laurent-Series-Rings \
-    over finite fields, or padic fields of the following types: base, 1-step \
-    unramified or eisenstein extension, or 2-step unramified followed by \
-    eisenstein extension.")
+                of the following non-archimedean local fields: Laurent-Series-Rings \
+                over finite fields, or padic fields of the following types: base, \
+                1-step unramified or eisenstein extension, or 2-step unramified \
+                followed by eisenstein extension.")
 
         # Get ``B1``, ``W``, ``B2``, such that ``B1``*``self`` = ``W``*``B2``,
         # both ``B1``,``B2`` are iwahori matrices, and ``W`` is Affine-Weyl.
@@ -18844,16 +18837,16 @@ cdef class Matrix(Matrix1):
             if (isinstance(e, NotImplementedError)
                 and "Echelon form not implemented" not in str(e)):
                 raise e
-            raise ArithmeticError("Computation failed, due to singularity of an \
-    inner matrix that was expected to be invertible.\n This is probably due to \
-    numerical inaccuracy.")
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
 
         if certificate:
             output_is_as_expected = A._check_invertibility([B1, B2], [W])
             return B1, W, B2, output_is_as_expected
 
         return B1, W, B2
-
+    
     def _matrix_func_that_normalizes_and_nullifies_upper_col(self, r, c):
         """
         Define a matrix that acts from the left on ``self``.
@@ -18894,8 +18887,8 @@ cdef class Matrix(Matrix1):
             sage: f = M._matrix_func_that_normalizes_and_nullifies_upper_col(1,2)
             sage: R = matrix(QQ, 3, lambda i,j: f(i,j), sparse=1)
             sage: M = R*M
-            # Indeed, the (1,2) element is normalized, and the (0,2) element,
-            # which is the only element above the (1,2) element, is nullified.
+            sage: # Indeed, the (1,2) element is normalized, and the (0,2) element,
+            ....: which is the only element above the (1,2) element, is nullified.
             sage: M
             [  4   1   0]
             [  4   0   1]
@@ -18957,8 +18950,7 @@ cdef class Matrix(Matrix1):
             sage: T, S, B = M.TSB() # indirect doctest
             sage: M - T*S*B == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
@@ -18971,21 +18963,21 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^33)           0]
             [          0           0 1 + O(a^40)]
-            # Showing that T is invertible upper triangular:
+            sage: # Showing that T is invertible upper triangular:
             sage: T.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            # Showing that B is iwahori:
-            # B has only integer elements:
+            sage: # Showing that B is iwahori:
+            sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
-            # B has zero-valuation elements on diagonal:
+            sage: # B has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
             []
@@ -18993,6 +18985,8 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.matrix.constructor import matrix
+        
         # Creating ``S`` as the permutation matrix that can be multiplied with an
         # iwahori matrix to get ``self``.
         def f(i,j):
@@ -19041,8 +19035,7 @@ cdef class Matrix(Matrix1):
             sage: T, S, B = M.TSB() # indirect doctest
             sage: M - T*S*B == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
@@ -19055,21 +19048,21 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^33)           0]
             [          0           0 1 + O(a^40)]
-            # Showing that T is invertible upper triangular:
+            sage: # Showing that T is invertible upper triangular:
             sage: T.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            # Showing that B is iwahori:
-            # B has only integer elements:
+            sage: # Showing that B is iwahori:
+            sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
-            # B has zero-valuation elements on diagonal:
+            sage: # B has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
             []
@@ -19088,6 +19081,9 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.matrix.constructor import matrix, identity_matrix
+        from sage.rings.infinity import Infinity
+        
         n = self.nrows()
         row_order = [None] * n
 
@@ -19173,8 +19169,7 @@ cdef class Matrix(Matrix1):
             sage: T, S, B = M.TSB()
             sage: M - T*S*B == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
@@ -19187,21 +19182,21 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^33)           0]
             [          0           0 1 + O(a^40)]
-            # Showing that T is invertible upper triangular:
+            sage: # Showing that T is invertible upper triangular:
             sage: T.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            # Showing that B is iwahori:
-            # B has only integer elements:
+            sage: # Showing that B is iwahori:
+            sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
-            # B has zero-valuation elements on diagonal:
+            sage: # B has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
             []
@@ -19217,8 +19212,7 @@ cdef class Matrix(Matrix1):
             sage: T, S, B = M.TSB()
             sage: M - T*S*B == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [0 0 1]
             [1 0 0]
@@ -19231,21 +19225,21 @@ cdef class Matrix(Matrix1):
             [                          1 + O(s^20)                               O(s^18) 15*s^17 + 16*s^18 + 11*s^19 + O(s^20)]
             [           12*s^2 + 14*s^21 + O(s^22)                           1 + O(s^20)  10*s^19 + 5*s^20 + 13*s^21 + O(s^22)]
             [                               O(s^5)                                O(s^4)                            1 + O(s^5)]
-            # Showing that T is invertible upper triangular:
+            sage: # Showing that T is invertible upper triangular:
             sage: T.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T[i,j]!= 0 and j<i)]
             []
-            # Showing that B is iwahori:
-            # B has only integer elements:
+            sage: # Showing that B is iwahori:
+            sage: # B has only integer elements:
             sage: min([x.valuation() for x in B.list() if x!=0])
             0
-            # B has zero-valuation elements on diagonal:
+            sage: # B has zero-valuation elements on diagonal:
             sage: [i for i in range(3) if B[i,i].valuation()!=0]
             []
-            # The elements below diagonal in B have strictly-positive
-            # valuation:
+            sage: # The elements below diagonal in B have strictly-positive
+            ....: valuations:
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (B[i,j]!= 0 and B[i,j].valuation() <= 0 and j<i)]
             []
@@ -19258,7 +19252,7 @@ cdef class Matrix(Matrix1):
             sage: T, S, B = M.TSB()
             sage: M - T*S*B == 0
             True
-            # Note that S isn't invertible (because M isn't):
+            sage: # Note that S isn't invertible (because M isn't):
             sage: S
             [1 + O(a^40)           0           0]
             [          0           0           0]
@@ -19284,7 +19278,6 @@ cdef class Matrix(Matrix1):
             sage: T,S,B,c = M.TSB(certificate=True)
             sage: c
             False
-            # B is not invertible (and therefore not iwahori)
             sage: B.is_invertible()
             False
 
@@ -19338,11 +19331,13 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(QQ,3)
             sage: M.TSB()
+            Traceback (most recent call last):
             ...
-            TypeError: "``self`` must be a non-empty square matrix over one of
-    the following non-archimedean local fields: Laurent-Series-Rings over finite
-    fields, or padic fields of the following types: base, 1-step unramified or
-    eisenstein extension, or 2-step unramified followed by eisenstein extension."
+            TypeError: ``self`` must be a non-empty square matrix over one of
+            the following non-archimedean local fields: Laurent-Series-Rings over
+            finite fields, or padic fields of the following types: base, 1-step
+            unramified or eisenstein extension, or 2-step unramified followed by
+            eisenstein extension.
 
         A zero matrix test ::
 
@@ -19365,10 +19360,10 @@ cdef class Matrix(Matrix1):
         A = self.matrix_over_field()
         if not A._is_square_over_non_archimedean_local_field():
             raise TypeError("``self`` must be a non-empty square matrix over one \
-    of the following non-archimedean local fields: Laurent-Series-Rings \
-    over finite fields, or padic fields of the following types: base, 1-step \
-    unramified or eisenstein extension, or 2-step unramified followed by \
-    eisenstein extension.")
+                of the following non-archimedean local fields: Laurent-Series-Rings \
+                over finite fields, or padic fields of the following types: base, \
+                1-step unramified or eisenstein extension, or 2-step unramified \
+                followed by eisenstein extension.")
 
         # Get ``T``, ``S``, ``B``, such that ``T``*``self`` = ``S``*``B``, ``T``
         # is invertible upper-triangular, ``S`` is a permutation matrix, and ``B``
@@ -19382,16 +19377,16 @@ cdef class Matrix(Matrix1):
             if (isinstance(e, NotImplementedError)
                 and "Echelon form not implemented" not in str(e)):
                 raise e
-            raise ArithmeticError("Computation failed, due to singularity of an \
-    inner matrix that was expected to be invertible.\n This is probably due to \
-    numerical inaccuracy.")
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
 
         if certificate:
             output_is_as_expected = A._check_invertibility([T, B], [S])
             return T, S, B, output_is_as_expected
 
         return T, S, B
-
+    
     def _bruhat_break_matrix(self, row_order):
         """
         Helper for the `bruhat` decomposition method.
@@ -19421,27 +19416,26 @@ cdef class Matrix(Matrix1):
             sage: T1, S, T2 = M.bruhat() # indirect doctest
             sage: M - T1*S*T2 == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [0 1 0]
             [0 0 1]
             [1 0 0]
             sage: T1
-            [   1   -1    0]
-            [   0 -1/2    2]
-            [   0    0    1]
+            [1 2 0]
+            [0 1 2]
+            [0 0 1]
             sage: T2
-            [  1   0 1/2]
-            [  0   1   0]
-            [  0   0   1]
-            # Showing that T1 is invertible upper triangular:
+            [   1    0  1/2]
+            [   0    1    0]
+            [   0    0 -1/2]
+            sage: # Showing that T1 is invertible upper triangular:
             sage: T1.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T1[i,j]!= 0 and j<i)]
             []
-            # Showing that T2 is invertible upper triangular:
+            sage: # Showing that T2 is invertible upper triangular:
             sage: T2.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
@@ -19451,6 +19445,8 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.matrix.constructor import matrix
+        
         # Creating ``S`` as the permutation matrix that can be multiplied with an
         # upper-triangular matrix to get ``self``.
         def f(i,j):
@@ -19496,27 +19492,26 @@ cdef class Matrix(Matrix1):
             sage: T1, S, T2 = M.bruhat() # indirect doctest
             sage: M - T1*S*T2 == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [0 1 0]
             [0 0 1]
             [1 0 0]
             sage: T1
-            [   1   -1    0]
-            [   0 -1/2    2]
-            [   0    0    1]
+            [1 2 0]
+            [0 1 2]
+            [0 0 1]
             sage: T2
-            [  1   0 1/2]
-            [  0   1   0]
-            [  0   0   1]
-            # Showing that T1 is invertible upper triangular:
+            [   1    0  1/2]
+            [   0    1    0]
+            [   0    0 -1/2]
+            sage: # Showing that T1 is invertible upper triangular:
             sage: T1.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T1[i,j]!= 0 and j<i)]
             []
-            # Showing that T2 is invertible upper triangular:
+            sage: # Showing that T2 is invertible upper triangular:
             sage: T2.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
@@ -19537,6 +19532,8 @@ cdef class Matrix(Matrix1):
         ...
 
         """
+        from sage.matrix.constructor import matrix, identity_matrix
+        
         n = self.nrows()
         row_order = [None] * n
 
@@ -19615,27 +19612,26 @@ cdef class Matrix(Matrix1):
             sage: T1, S, T2 = M.bruhat()
             sage: M - T1*S*T2 == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [0 1 0]
             [0 0 1]
             [1 0 0]
             sage: T1
-            [   1   -1    0]
-            [   0 -1/2    2]
-            [   0    0    1]
+            [1 2 0]
+            [0 1 2]
+            [0 0 1]
             sage: T2
-            [  1   0 1/2]
-            [  0   1   0]
-            [  0   0   1]
-            # Showing that T1 is invertible upper triangular:
+            [   1    0  1/2]
+            [   0    1    0]
+            [   0    0 -1/2]
+            sage: # Showing that T1 is invertible upper triangular:
             sage: T1.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T1[i,j]!= 0 and j<i)]
             []
-            # Showing that T2 is invertible upper triangular:
+            sage: # Showing that T2 is invertible upper triangular:
             sage: T2.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
@@ -19648,50 +19644,51 @@ cdef class Matrix(Matrix1):
             sage: T1, S, T2 = M.bruhat()
             sage: M - T1*S*T2 == 0
             True
-            # Note that S isn't invertible (because M isn't):
+            sage: # Note that S isn't invertible (because M isn't):
             sage: S
             [0 0 0]
             [0 1 0]
             [1 0 0]
             sage: T1
-            [ 1  9  3]
-            [ 0 18  6]
-            [ 0  0  3]
+            [ 1 10  1]
+            [ 0  1  2]
+            [ 0  0  1]
             sage: T2
-            [ 1 11  4]
-            [ 0  1 14]
+            [ 3 14 12]
+            [ 0 18  5]
             [ 0  0  1]
 
         An example with an invertible matrix over a padic-field ::
 
-            sage: Y.<a> = Qp(5).extension(x^2-5)
-            sage: M = matrix(Y,3,{(0,0):3*a^-16 + 2*a^3 + O(a^24),
-            ....: (1,1):2*a^7 + 4*a^27 + O(a^40), (2,2):3*a^-1 + 4*a^17 +
-            ....: O(a^39),(0,2):4*a^-2 + 3*a^-1 + a^26 + O(a^32)})
+            sage: Z = Qp(5, 3)
+            sage: M = matrix(Z,3,[[2 + 5 + 4*5^2 + O(5^3), 4 + 2*5
+            ....: + O(5^3), 2*5^3 + 5^5 + O(5^6)], [2*5^-1 + 1 + O(5^2),
+            ....: 4*5^4 + 2*5^5 + 2*5^6 + O(5^7), O(5^5)], [2 + 5 +
+            ....: O(5^3), 3*5^2 + 2*5^3 + O(5^5), 3*5^4 + 2*5^5 + 2*5^6
+            ....: + O(5^7)]])
             sage: T1, S, T2 = M.bruhat()
             sage: M - T1*S*T2 == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
-            [1 + O(a^40)           0           0]
-            [          0 1 + O(a^40)           0]
-            [          0           0 1 + O(a^40)]
+            [         0          0 1 + O(5^3)]
+            [         0 1 + O(5^3)          0]
+            [1 + O(5^3)          0          0]
             sage: T1
-            [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
-            [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
-            [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
+            [               1 + O(5^3) 2*5^-1 + 4 + 2*5 + O(5^2)                  1 + O(5)]
+            [                        0                1 + O(5^3)             5^-1 + O(5^2)]
+            [                        0                         0                1 + O(5^3)]
             sage: T2
-            [1 + O(a^40)           0           0]
-            [          0 1 + O(a^33)           0]
-            [          0           0 1 + O(a^40)]
-            # Showing that T1 is invertible upper triangular:
+            [                2 + 5 + O(5^3)         3*5^2 + 2*5^3 + O(5^5) 3*5^4 + 2*5^5 + 2*5^6 + O(5^7)]
+            [                        O(5^2)   2*5 + 2*5^2 + 4*5^3 + O(5^4)         2*5^3 + 2*5^4 + O(5^5)]
+            [                          O(5)                         O(5^3)           5^2 + 4*5^3 + O(5^4)]
+            sage: # Showing that T1 is invertible upper triangular:
             sage: T1.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T1[i,j]!= 0 and j<i)]
             []
-            # Showing that T2 is invertible upper triangular:
+            sage: # Showing that T2 is invertible upper triangular:
             sage: T2.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
@@ -19709,27 +19706,26 @@ cdef class Matrix(Matrix1):
             sage: T1, S, T2 = M.bruhat()
             sage: M - T1*S*T2 == 0
             True
-            # S is a permutation matrix.
-            # Because M is invertible - S is also invertible:
+            sage: # Because M is invertible - S is also invertible:
             sage: S
             [0 0 1]
             [0 1 0]
             [1 0 0]
             sage: T1
-            [9*s^15 + 6*s^17 + 9*s^19 + O(s^20)                         6 + O(s^5)                    13*s^2 + O(s^7)]
-            [                                 0         10*s^-7 + 8*s^11 + O(s^13)                                  0]
-            [                                 0                                  0           10*s + 16*s^20 + O(s^21)]
+            [                        1 4*s^7 + 16*s^22 + O(s^25)   3*s + 12*s^16 + O(s^19)]
+            [                        0                         1                         0]
+            [                        0                         0                         1]
             sage: T2
-            [                          1 + O(s^20)           10*s^-2 + 11*s^17 + O(s^18) 15*s^17 + 16*s^18 + 11*s^19 + O(s^20)]
-            [                              O(s^30)                           1 + O(s^20)             6*s^27 + 5*s^30 + O(s^31)]
-            [                               O(s^5)                                O(s^3)                            1 + O(s^5)]
-            # Showing that T1 is invertible upper triangular:
+            [           10*s + 16*s^20 + O(s^21)         15*s^-1 + 15*s^18 + O(s^19) 14*s^18 + 7*s^19 + 8*s^20 + O(s^21)]
+            [                            O(s^23)          10*s^-7 + 8*s^11 + O(s^13)          9*s^20 + 16*s^23 + O(s^24)]
+            [                            O(s^20)                             O(s^18)  9*s^15 + 6*s^17 + 9*s^19 + O(s^20)]
+            sage: # Showing that T1 is invertible upper triangular:
             sage: T1.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
             ....: (T1[i,j]!= 0 and j<i)]
             []
-            # Showing that T2 is invertible upper triangular:
+            sage: # Showing that T2 is invertible upper triangular:
             sage: T2.is_invertible()
             True
             sage: [(i,j) for j in range(3) for i in range(3) if
@@ -19741,15 +19737,15 @@ cdef class Matrix(Matrix1):
         and demonstrates the use of the ``certificate`` keyword ::
 
             sage: Z = Qp(5, 3)
-            sage: M = matrix(Z,3,[[2*5^2 + 5^3 + O(5^5) 3*5^3 + 5^4 + 4*5^5
-            ....: + O(5^6) 4*5 + 3*5^2 + 2*5^3 + O(5^4)], [3 + 4*5 + 3*5^2
+            sage: M = matrix(Z,3,[[2*5^2 + 5^3 + O(5^5), 3*5^3 + 5^4 + 4*5^5
+            ....: + O(5^6), 4*5 + 3*5^2 + 2*5^3 + O(5^4)], [3 + 4*5 + 3*5^2
             ....: + O(5^3), 3 + 3*5 + 2*5^2 + O(5^3), 1 + 5 + O(5^2)],
             ....: [3*5^3 + 2*5^4 + 5^5 + O(5^6), 2*5^-1 + 4 + 3*5 + O(5^2),
             ....: 2 + 3*5 + O(5^2)]])
             sage: T1,S,T2,c = M.bruhat(certificate=True)
             sage: c
             False
-            # S is not invertible, despite the fact that M is.
+            sage: # S is not invertible, despite the fact that M is.
             sage: M.is_invertible()
             True
             sage: S.is_invertible()
@@ -19759,16 +19755,15 @@ cdef class Matrix(Matrix1):
         due to numerical inaccuracies ::
 
             sage: Z = Qp(5, 3)
-            sage: M = matrix(Z,3,[[2 + 5 + 4*5^2 + O(5^3), 4 + 2*5
-            ....: + O(5^3), 2*5^3 + 5^5 + O(5^6)], [2*5^-1 + 1 + O(5^2),
-            ....: 4*5^4 + 2*5^5 + 2*5^6 + O(5^7), O(5^5)], [2 + 5 +
-            ....: O(5^3), 3*5^2 + 2*5^3 + O(5^5), 3*5^4 + 2*5^5 + 2*5^6
-            ....: + O(5^7)]])
+            sage: M = matrix(Z,3,[[2*5^2 + 4*5^3 + 3*5^4 + O(5^5), 1 + O(5^2),
+            ....: 3*5^-1 + 1 + 3*5 + O(5^2)], [4*5^-1 + 2 + 5 + O(5^2),
+            ....: 2*5^-1 + 2 + O(5^2), 4*5^2 + 5^3 + O(5^5)], [3*5^-2 + 4*5^-1
+            ....: + O(5), 2*5 + 2*5^2 + 4*5^3 + O(5^4), 2 + 2*5 + O(5^2)]])
             sage: T1,S,T2 = M.bruhat()
             sage: M - T1*S*T2
-            [2 + O(5)   O(5^2)   O(5^4)]
-            [  O(5^2)   O(5^4)   O(5^5)]
-            [  O(5^3)   O(5^5)   O(5^7)]
+            [2*5^2 + O(5^3)         O(5^2)         O(5^2)]
+            [        O(5^2)         O(5^2)         O(5^3)]
+            [          O(5)         O(5^4)         O(5^2)]
 
         .. NOTE::
 
@@ -19799,6 +19794,7 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(QQ,3,4)
             sage: M.bruhat()
+            Traceback (most recent call last):
             ...
             TypeError: ``self`` must be a non-empty square matrix.
 
@@ -19836,9 +19832,9 @@ cdef class Matrix(Matrix1):
             if (isinstance(e, NotImplementedError)
                 and "Echelon form not implemented" not in str(e)):
                 raise e
-            raise ArithmeticError("Computation failed, due to singularity of an \
-    inner matrix that was expected to be invertible.\n This is probably due to \
-    numerical inaccuracy.")
+                raise ArithmeticError("Computation failed, due to singularity of \
+                    an inner matrix that was expected to be invertible.\n This is \
+                    probably due to numerical inaccuracy.")
 
         if certificate:
             output_is_as_expected = A._check_invertibility([T1, T2], [S])
