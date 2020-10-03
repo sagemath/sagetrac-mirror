@@ -71,7 +71,7 @@ specifying the universe of the sequence::
 
 from __future__ import print_function
 
-import sage.structure.sage_object
+from sage.structure.sage_object import SageObject
 import sage.structure.coerce
 
 
@@ -261,7 +261,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         return Sequence_generic(x, universe, check, immutable, cr, cr_str, use_sage_types)
 
 
-class Sequence_generic(sage.structure.sage_object.SageObject, list):
+class Sequence_generic(SageObject, list):
     """
     A mutable list of elements with a common guaranteed universe,
     which can be set immutable.
