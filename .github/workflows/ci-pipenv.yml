@@ -14,7 +14,7 @@ jobs:
     - name: Install pipenv
       run: brew install pipenv
     - name: Install dependencies
-      run: brew install pari
+      run: brew install pari ppl 
     - name: Create virtual environment
       run: |
         cd src
