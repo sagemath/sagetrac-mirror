@@ -1979,7 +1979,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: x^(10^20) # this should be fast
             x^100000000000000000000
         """
-        import sage.rings.complex_arb
+        
 
         if not element_class:
             if sparse:
@@ -1996,11 +1996,16 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                     element_class = Polynomial_relative_number_field_dense
             elif is_RealField(base_ring):
                 element_class = PolynomialRealDense
-            elif isinstance(base_ring, sage.rings.complex_arb.ComplexBallField):
-                from sage.rings.polynomial.polynomial_complex_arb import Polynomial_complex_arb
-                element_class = Polynomial_complex_arb
             else:
-                element_class = polynomial_element_generic.Polynomial_generic_dense_field
+                try:
+                    import sage.rings.complex_arb
+                    if isinstance(base_ring, sage.rings.complex_arb.ComplexBallField):
+                        from sage.rings.polynomial.polynomial_complex_arb import Polynomial_complex_arb
+                        element_class = Polynomial_complex_arb
+                except ImportError:
+                    pass
+        if not element_class:
+            element_class = polynomial_element_generic.Polynomial_generic_dense_field
 
         PolynomialRing_integral_domain.__init__(self, base_ring, name=name, sparse=sparse, element_class=element_class, category=category)
 

@@ -121,13 +121,16 @@ cdef class NumberField(Field):
         else:
             codomain_other = other
 
-        from sage.rings.qqbar import AA
-        if codomain_self is AA and codomain_other is AA:
-            return AA
+        try:
+            from sage.rings.qqbar import AA
+            if codomain_self is AA and codomain_other is AA:
+                return AA
 
-        from sage.rings.qqbar import QQbar
-        if codomain_self in (AA, QQbar) and codomain_other in (AA, QQbar):
-            return QQbar
+            from sage.rings.qqbar import QQbar
+            if codomain_self in (AA, QQbar) and codomain_other in (AA, QQbar):
+                return QQbar
+        except ImportError:
+            pass
 
     def ring_of_integers(self, *args, **kwds):
         r"""
@@ -361,12 +364,15 @@ cdef class NumberField(Field):
         if self._gen_approx is not None or self._embedding is None:
             return
 
-        from sage.rings.qqbar import AA
-        from sage.rings.real_lazy import RLF
-        codomain = self._embedding.codomain()
-        if codomain is AA or codomain is RLF:
-            self._gen_approx = []
-            self._embedded_real = 1
+        try:
+            from sage.rings.qqbar import AA
+            from sage.rings.real_lazy import RLF
+            codomain = self._embedding.codomain()
+            if codomain is AA or codomain is RLF:
+                self._gen_approx = []
+                self._embedded_real = 1
+        except ImportError:
+            pass
 
     cpdef _get_embedding_approx(self, size_t i):
         r"""

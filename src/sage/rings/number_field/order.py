@@ -51,8 +51,6 @@ from sage.rings.integer_ring import ZZ
 from sage.structure.element import is_Element
 from .number_field_element import OrderElement_absolute, OrderElement_relative
 
-from .number_field_element_quadratic import OrderElement_quadratic
-
 from sage.rings.monomials import monomials
 
 from sage.libs.pari.all import pari
@@ -1183,6 +1181,7 @@ class AbsoluteOrder(Order):
 
         """
         if K.degree() == 2:
+            from .number_field_element_quadratic import OrderElement_quadratic
             self._element_type = OrderElement_quadratic
             # adding the following attribute makes the comparison of elements
             # faster.

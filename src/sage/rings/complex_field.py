@@ -413,7 +413,7 @@ class ComplexField_class(ring.Field):
                             sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
 
             late_import()
-            if isinstance(x, NumberFieldElement_quadratic):
+            if NumberFieldElement_quadratic is not None and isinstance(x, NumberFieldElement_quadratic):
                 if isinstance(x.parent(), NumberField_quadratic) and list(x.parent().polynomial()) == [1, 0, 1]:
                     (re, im) = list(x)
                     return ComplexNumber(self, re, im)

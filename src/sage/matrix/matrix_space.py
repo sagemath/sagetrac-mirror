@@ -41,8 +41,6 @@ import operator
 from . import matrix_generic_dense
 from . import matrix_generic_sparse
 
-from . import matrix_modn_sparse
-
 from . import matrix_mod2_dense
 from . import matrix_gf2e_dense
 
@@ -53,7 +51,6 @@ from . import matrix_rational_dense
 from . import matrix_rational_sparse
 
 from . import matrix_polynomial_dense
-from . import matrix_mpolynomial_dense
 
 # Sage imports
 import sage.structure.coerce
@@ -248,15 +245,20 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                 from . import matrix_symbolic_dense
                 return matrix_symbolic_dense.Matrix_symbolic_dense
 
-            from sage.rings.complex_arb import ComplexBallField
-            if isinstance(R, ComplexBallField):
-                from . import matrix_complex_ball_dense
-                return matrix_complex_ball_dense.Matrix_complex_ball_dense
-
+            try:
+                from sage.rings.complex_arb import ComplexBallField
+                if isinstance(R, ComplexBallField):
+                    from . import matrix_complex_ball_dense
+                    return matrix_complex_ball_dense.Matrix_complex_ball_dense
+            except ImportError:
+                pass
+            
             if sage.rings.polynomial.polynomial_ring.is_PolynomialRing(R) and R.base_ring() in _Fields:
+                from . import matrix_mpolynomial_dense
                 return matrix_polynomial_dense.Matrix_polynomial_dense
 
             if sage.rings.polynomial.multi_polynomial_ring_base.is_MPolynomialRing(R) and R.base_ring() in _Fields:
+                from . import matrix_mpolynomial_dense
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
 
             # The fallback
@@ -328,8 +330,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
     if implementation is not None:
         raise ValueError("can not choose an implementation for sparse matrices")
 
-    if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
-        return matrix_modn_sparse.Matrix_modn_sparse
+    if sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
+        from . import matrix_modn_sparse
+        if R.order() < matrix_modn_sparse.MAX_MODULUS:
+            return matrix_modn_sparse.Matrix_modn_sparse
 
     if sage.rings.rational_field.is_RationalField(R):
         return matrix_rational_sparse.Matrix_rational_sparse

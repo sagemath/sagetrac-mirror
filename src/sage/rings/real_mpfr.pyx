@@ -739,9 +739,15 @@ cdef class RealField_class(sage.rings.ring.Field):
             return RRtoRR(S, self)
         elif QQ.has_coerce_map_from(S):
             return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
-        from sage.rings.qqbar import AA
+        try:
+            from sage.rings.qqbar import AA
+            if S is AA:
+                return self.convert_method_map(S, "_mpfr_")
+        except ImportError:
+            pass
+
         from sage.rings.real_lazy import RLF
-        if S is AA or S is RLF:
+        if S is RLF:
             return self.convert_method_map(S, "_mpfr_")
         return self._coerce_map_via([RLF], S)
 
