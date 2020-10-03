@@ -48,7 +48,6 @@ from sage_setup.command.sage_build import sage_build
 from sage_setup.command.sage_build_cython import sage_build_cython
 from sage_setup.command.sage_build_ext import sage_build_ext
 
-
 #########################################################
 ### Discovering Sources
 #########################################################
