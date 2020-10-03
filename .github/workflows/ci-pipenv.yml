@@ -7,9 +7,13 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
     - name: Install pipenv
-      run: brew install pipenv
-    - name: Install dependencies
+      run: pip install --user pipenv
+    - name: Create virtual environment
       run: |
         cd src
         pipenv install --dev
