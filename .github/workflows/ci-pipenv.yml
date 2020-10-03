@@ -16,7 +16,7 @@ jobs:
     - name: Create virtual environment
       run: |
         cd src
-        pipenv install --dev
+        pipenv install --dev --skip-lock
     - name: Test
       run: |
         pipenv run python -c 'import sage.all'
