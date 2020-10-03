@@ -36,6 +36,7 @@ import os
 import socket
 import sys
 import sysconfig
+import platform
 from . import version
 
 
@@ -149,7 +150,7 @@ def var(key, *fallbacks, **kwds):
 
 
 # system info
-var('UNAME',               os.uname()[0])
+var('UNAME',               platform.uname()[0])
 var('HOSTNAME',            socket.gethostname())
 var('LOCAL_IDENTIFIER',    "{}.{}".format(HOSTNAME, os.getpid()))
 
@@ -293,7 +294,7 @@ SINGULAR_SO = _get_shared_lib_filename('Singular', 'singular-Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
 # locate libgap shared object
-GAP_SO= _get_shared_lib_filename('gap','')
+GAP_SO = _get_shared_lib_filename('gap', '')
 var('GAP_SO', GAP_SO)
 
 # post process
@@ -401,9 +402,15 @@ def cython_aliases():
                 pc = defaultdict(list, {'libraries': ['z']})
                 libs = "-lz"
         else:
-            aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
-            pc = pkgconfig.parse(lib)
-            libs = pkgconfig.libs(lib)
+            try:
+                aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
+                pc = pkgconfig.parse(lib)
+                libs = pkgconfig.libs(lib)
+            except pkgconfig.PackageNotFoundError:
+                from distutils import log
+                log.warn('Package {0} not installed'.format(lib))
+                continue
+
         # It may seem that INCDIR is redundant because the -I options are also
         # passed in CFLAGS.  However, "extra_compile_args" are put at the end
         # of the compiler command line.  "include_dirs" go to the front; the
@@ -414,7 +421,7 @@ def cython_aliases():
         aliases[var + "LIBRARIES"] = pc['libraries']
 
     # uname-specific flags
-    UNAME = os.uname()
+    UNAME = platform.uname()
 
     def uname_specific(name, value, alternative):
         if name in UNAME[0]:
@@ -433,7 +440,8 @@ def cython_aliases():
     # file (possibly because of confusion between CFLAGS and CXXFLAGS?).
     # This is not a problem in practice since LinBox depends on
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
-    aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
+    if "LINBOX_CFLAGS" in aliases:
+        aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
     aliases["ARB_LIBRARY"] = ARB_LIBRARY
 
     # TODO: Remove Cygwin hack by installing a suitable cblas.pc
@@ -442,7 +450,7 @@ def cython_aliases():
 
     try:
         aliases["M4RI_CFLAGS"].remove("-pedantic")
-    except ValueError:
+    except (ValueError, KeyError):
         pass
 
     return aliases
