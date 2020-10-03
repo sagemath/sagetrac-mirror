@@ -1,0 +1,19 @@
+name: Build & Test using pipenv
+
+on: [push, pull_request]
+  
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install pipenv
+      run: brew install pipenv
+    - name: Install dependencies
+      run: |
+        cd src
+        pipenv install --dev
+    - name: Test
+      run: |
+        pipenv run python -c 'import sage.all'
+ 
