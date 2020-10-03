@@ -13,6 +13,8 @@ jobs:
         python-version: 3.8
     - name: Install pipenv
       run: brew install pipenv
+    - name: Install dependencies
+      run: brew install pari
     - name: Create virtual environment
       run: |
         cd src
