@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: brew install pari ppl 
     - name: Create virtual environment
-      run: cd src && pipenv install --dev --skip-lock --sequential --verbose
+      run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
     - name: Install editable manually
       run: cd src && pipenv run pip install -e . --verbose
     - name: Test
