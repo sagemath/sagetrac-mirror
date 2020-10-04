@@ -16,10 +16,7 @@ jobs:
     - name: Install dependencies
       run: brew install pari ppl 
     - name: Create virtual environment
-      run: |
-        cd src
-        pipenv install --dev --skip-lock
+      run: cd src && pipenv install --dev --verbose
     - name: Test
-      run: |
-        pipenv run python -c 'import sage.all'
+      run: cd src && pipenv run python -c 'import sage.all'
  
