@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: brew install pari ppl 
     - name: Create virtual environment
-      run: cd src && PIP_NO_USE_PEP517=false pipenv install --dev --skip-lock --sequential --verbose
+      run: cd src && PIP_USE_PEP517=true pipenv install --dev --skip-lock --sequential --verbose
     - name: Test
       run: cd src && pipenv run python -c 'import sage.all'
  
