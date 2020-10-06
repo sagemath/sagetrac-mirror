@@ -104,7 +104,20 @@ jobs:
       matrix:
         tox_system_factor: [homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, homebrew-macos-python3_xcode-gcc_spkg, conda-forge-macos]
         tox_packages_factor: [minimal, standard]
-        xcode_version_factor: [default, 12]
+        xcode_version_factor: [default]
+        include:
+          - tox_system_factor: homebrew-usrlocal-macos
+            tox_packages_factor: minimal
+            xcode_version_factor: 12
+          - tox_system_factor: homebrew-usrlocal-macos
+            tox_packages_factor: standard
+            xcode_version_factor: 12
+          - tox_system_factor: homebrew-usrlocal-macos-python3_xcode
+            tox_packages_factor: minimal
+            xcode_version_factor: 12
+          - tox_system_factor: homebrew-usrlocal-macos-python3_xcode
+            tox_packages_factor: standard
+            xcode_version_factor: 12
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}-xcode_${{ matrix.xcode_version_factor }}
