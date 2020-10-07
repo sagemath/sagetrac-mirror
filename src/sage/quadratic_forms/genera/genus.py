@@ -3061,7 +3061,7 @@ class GenusSymbol_global_ring(object):
             sage: gram = matrix(ZZ,4,[2, 0, 1, 0, 0, 2, 1, 0, 1, 1, 5, 0, 0, 0, 0, 16])
             sage: genus = Genus(gram)
             sage: genus._proper_is_improper()
-            (True, 1)
+            (True, [2:1])
 
         This genus consists of only on (improper) class, hence spinor genus and
         improper spinor genus differ::
@@ -3069,7 +3069,7 @@ class GenusSymbol_global_ring(object):
             sage: gram = matrix(ZZ,4,[3, 0, 1, -1, 0, 3, -1, -1, 1, -1, 6, 0, -1, -1, 0, 6])
             sage: genus = Genus(gram)
             sage: genus._proper_is_improper()
-            (False, f1*f2)
+            (False, [2:7])
         """
         G = self.representative()
         d = self.dimension()
@@ -3512,25 +3512,24 @@ class GenusSymbol_global_ring(object):
             sage: from sage.quadratic_forms.genera.genus import genera
             sage: G = Genus(matrix.diagonal([1,1,7]))
             sage: G.representatives()
-            [
+            (
             [1 0 0]  [1 0 0]
             [0 2 1]  [0 1 0]
             [0 1 4], [0 0 7]
-            ]
+            )
 
         Indefinite genera work as well::
 
             sage: G = Genus(matrix(ZZ,3,[6,3,0,3,6,0,0,0,2]))
             sage: G.representatives()
-            [
+            (
             [2 0 0]  [ 2 -1  0]
             [0 6 3]  [-1  2  0]
             [0 3 6], [ 0  0 18]
-            ]
+            )
         """
-        from copy import copy
         try:
-            return copy(self._representatives)
+            return self._representatives
         except AttributeError:
             pass
         n = self.dimension()
@@ -3552,7 +3551,6 @@ class GenusSymbol_global_ring(object):
                 L = gram.NumberFieldLatticeWithGram()
                 representatives = L.GenusRepresentatives()
                 representatives = [r.GramMatrix().ChangeRing(magma.Rationals()).sage() for r in representatives]
-                return representatives
             else:
                 e = 1
                 if self.signature_pair_of_matrix()[1] != 0:
@@ -3562,8 +3560,6 @@ class GenusSymbol_global_ring(object):
                 L = gram.LatticeWithGram()
                 representatives = L.GenusRepresentatives()
                 representatives = [e*r.GramMatrix().sage() for r in representatives]
-                return representatives
-
         elif backend == "sage":
             if n == 1:
                 return [self.representative()]
@@ -3618,9 +3614,9 @@ class GenusSymbol_global_ring(object):
             raise ValueError("unknown algorithm")
         for g in representatives:
             g.set_immutable()
-        self._representatives = representatives
+        self._representatives = tuple(representatives)
         assert len(representatives) > 0, self
-        return copy(representatives)
+        return self._representatives
 
     def local_symbol(self, p):
         r"""
@@ -3653,7 +3649,6 @@ class GenusSymbol_global_ring(object):
             sage: GS = Genus(A)
             sage: GS._standard_mass()
             1/48
-
         """
         n = self.dimension()
         if n % 2 == 0:
