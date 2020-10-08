@@ -173,7 +173,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
     - [Git] Alternatively, clone the Sage git repository:
 
-            $ git clone -c core.symlinks=true --branch master git@trac.sagemath.org:sage.git
+            $ git clone -c core.symlinks=true --branch master https://github.com/sagemath/sage.git
 
       This will create the subdirectory `sage`.
 
