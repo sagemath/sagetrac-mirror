@@ -1,27 +1,132 @@
 # -*- coding: utf-8 -*-
 r"""
-KontInfo
+Access to the KnotInfo database
 
 This module contains the class :class:`KnotInfoBase` which is derived from :class:`Enum`
-and provides all knots and links listed in the databases at https://knotinfo.math.indiana.edu/
+and provides knots and links listed in the databases at https://knotinfo.math.indiana.edu/
 and https://linkinfo.sitehost.iu.edu as its items.
+
+This interface contains a set of about twenty knots and links statically as demonstration cases. The complete
+database can be installed as an optional Sage package using ``sage -i knotinfo``. This will be neccassary to
+have access to all the properties recorded in the databases, as well.
 
 Be aware that there are a couple of conventions used differently on KnotInfo as in Sage, especially
 concerning the selection of the symmetry version of the link. In our transitions to Sage objects
-these are translated in order to avoid confusion about exchanged mirror versions.
+these are translated (by default) in order to avoid confusion about exchanged mirror versions.
 
 Briefly, these differences are:
 
    - ``pd_notation`` --        KnotInfo: counter clockwise Sage: clockwise, see note in
-     :meth:`link`
+     :meth:`KnotInfoBase.link`
 
-   - ``homfly_polynomial`` --  KnotInfo: ``v``  Sage: `1/a`, see note in :meth:`homfly_polynomial`.
+   - ``homfly_polynomial`` --  KnotInfo: ``v``  Sage: `1/a`, see note in :meth:`KnotInfoBase.homfly_polynomial`.
 
    - ``braid_notation``    --  This is used accordingly: The crossing of the braid generators are positive
      in both systems. Here it is listed because there could arise confusion from the source where they are
      taken from. There, the braid generators are assumed to have a negative crossing
      (see definition 3  of Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
      https://arxiv.org/abs/math/0401051).
+
+EXAMPLES::
+
+    sage: from sage.knots.knotinfo import KnotInfo
+    sage: L = KnotInfo.L4a1_0
+    sage: L.pd_notation()
+    [[6, 1, 7, 2], [8, 3, 5, 4], [2, 5, 3, 6], [4, 7, 1, 8]]
+    sage: L.pd_notation(original=True)
+    '{{6, 1, 7, 2}, {8, 3, 5, 4}, {2, 5, 3, 6}, {4, 7, 1, 8}}'
+    sage: L.is_knot()
+    False
+    sage: L.num_components()
+    2
+
+Obtaining an instance of :class:`~sage.groups.braid.Braid`::
+
+    sage: L.braid()
+    s0*s1^-1*s2*s1^-1*s0^-1*s1^-1*s2^-1*s1^-1
+    sage: type(_)
+    <class 'sage.groups.braid.BraidGroup_class_with_category.element_class'>
+
+Obtaining an instance of :class:`Link`::
+
+    sage: l = L.link(); l
+    Link with 2 components represented by 4 crossings
+    sage: type(l)
+    <class 'sage.knots.link.Link'>
+
+Obtaining the Homfly-PT polynomial::
+
+    sage: L.homfly_polynomial()
+    L^5*M^-1 - L^3*M - L^3*M^-1 - L*M
+    sage: _ == l.homfly_polynomial(normalization='az')
+    True
+
+Items for knots need a leading ``K`` for technical reason::
+
+    sage: K = KnotInfo.K4_1
+    sage: K.is_knot()
+    True
+    sage: K.crossing_number()
+    4
+    sage: K.gauss_notation()
+    [-1, 2, -3, 1, -4, 3, -2, 4]
+    sage: K.dt_notation()
+    [4, 6, 8, 2]
+    sage: K.determinant()
+    5
+    sage: K.symmetry_type()
+    'fully amphicheiral'
+    sage: _ == K[K.items.symmetry_type]
+    True
+    sage: K.is_reversible()
+    True
+    sage: K.is_amphicheiral()
+    True
+
+Obtaining the original string from the database for an arbitrary property::
+
+    sage: K[K.items.classical_conway_name]         # optional - database_knotinfo
+    '4_1'
+
+Using the ``column_type`` of a property::
+
+    sage: [i.column_name() for i in K.items if i.column_type() != i.types.OnlyLinks and K[i] == 'Y']     # optional - database_knotinfo
+    ['Alternating', 'Fibered', 'Quasialternating', 'Adequate']
+
+You can launch webpages attached to the links::
+
+    sage: K.diagram()                 # not tested
+    True
+    sage: L.diagram(single=True)      # not tested
+    True
+    sage: L.knot_atlas_webpage()      # not tested
+    True
+    sage: K.knotilus_webpage()        # not tested
+    True
+
+and the description webpages of the properties::
+
+    sage: K.items.positive.description_webpage()  # not tested
+    True
+
+To see all the properties available in this interface you can use "tab-completion".
+For example type ``K.items.`` and than hit the "tab-key". You can select the item
+you want from the list. If you know some first letters type them first to obtain a
+reduced selection list.
+
+In a similar way you may select the knots and links. Here you have to type ``KnotInfo.``
+or ``KnotInfo.L7`` before stroking the "tab-key". In the latter case  the selection list
+will be reduced to proper links with 7 crossings.
+
+Finally there is a method :meth:`Link.identify_knotinfo` of class :class:`Link` to find an instance
+in the KnotInfo database::
+
+    sage: L = Link([[3,1,2,4], [8,9,1,7], [5,6,7,3], [4,18,6,5],
+    ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
+    ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
+    sage: L.identify_knotinfo()
+    (<KnotInfo.K0_1: [0, 1]>, False)
+
 
 REFERENCES:
 
@@ -49,8 +154,9 @@ AUTHORS:
 
 
 from enum import Enum
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.sage_eval import sage_eval
+from sage.rings.integer_ring import ZZ
 from sage.groups.braid import BraidGroup
 from sage.knots.knot import Knots
 from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, db
@@ -58,9 +164,14 @@ from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, db
 
 
 
-def is_knotinfo_available():
+def is_knotinfo_available(raise_error=False):
     r"""
     Return wether the KnotInfo databases are installed or not.
+
+    INPUT:
+
+    - ``raise_error`` -- boolean (default ``False``) if set to ``True``
+      an import error is raised in case KnotInfo is not installed
 
     EXAMPLES::
 
@@ -68,7 +179,55 @@ def is_knotinfo_available():
         sage: is_knotinfo_available()     # optional - database_knotinfo
         True
     """
-    return db.is_available()
+    res = db.is_available()
+    if not res and raise_error:
+        raise ImportError('This functionality needs KnotInfo to be installed! Type `sage -i knotinfo` to have this done')
+    return res
+
+@cached_function
+def knotinfo_matching_list(number_of_crossings, num_components, homfly_polynomial=None):
+    r"""
+    Return a list of links from the KontInfo and LinkInfo tables with given properties.
+
+    INPUT:
+
+    - ``number_of_crossings``  -- Python ``int`` giving the (not neccessaryli minimal)
+      number of crossings to be matched
+    - ``num_components``   -- Python ``int`` giving the number of components
+      to be matched
+    - ``homfly_polynomial``  -- instance of :class:`LaurentPolynomial` giving Homfly
+      polynomial to be matched
+
+    EXAMPLES::
+
+        sage: from sage.knots.knotinfo import KnotInfo, knotinfo_matching_list
+        sage: knotinfo_matching_list(3,1)
+        [<KnotInfo.K0_1: [0, 1]>, <KnotInfo.K3_1: [1, 1]>]
+        sage: [l.name for l in knotinfo_matching_list(4,2)]
+        ['L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
+        sage: L = KnotInfo.L6a3_0         # optional - database_knotinfo
+        sage: l = knotinfo_matching_list(L.crossing_number(), L.num_components(), L.homfly_polynomial())  # optional - database_knotinfo
+        sage: len(l) == 1 and l[0] == L   # optional - database_knotinfo
+        True
+    """
+    res = []
+    if homfly_polynomial:
+        l = knotinfo_matching_list(number_of_crossings, num_components)
+        for L in l:
+            if homfly_polynomial:
+                if L.homfly_polynomial() != homfly_polynomial:
+                    continue
+            res.append(L)
+        return res
+
+    for L in KnotInfo:
+        if L.crossing_number() > number_of_crossings:
+            continue
+        if L.num_components() != num_components:
+            continue
+        res.append(L)
+
+    return res
 
 
 def eval_knotinfo(string, locals={}, to_tuple=True):
@@ -98,13 +257,33 @@ def eval_knotinfo(string, locals={}, to_tuple=True):
     new_string = new_string.replace(';', ',')
     return sage_eval(new_string, locals=locals)
 
+def knotinfo_bool(string):
+    r"""
+    Preparse a string from the KnotInfo database representing a boolean.
 
+    INPUT:
+
+    - ``string``  -- string that gives a value of some database entry
+
+    EXAMPLES::
+
+        sage: from sage.knots.knotinfo import knotinfo_bool
+        sage: knotinfo_bool('Y')
+        True
+    """
+    if string == 'Y':
+        return True
+    elif string == 'N':
+        return False
+    raise ValueError('%s is not a KnotInfo boolean')
 
 class KnotInfoBase(Enum):
     r"""
     Enum class to select the knots and links provided by http://www.indiana.edu/~knotinfo
+    and http
 
     EXAMPLES::
+
         sage: from sage.knots.knotinfo import KnotInfo
         sage: [knot.name for knot in KnotInfo if knot.crossing_number() < 5]
         ['K0_1', 'K3_1', 'K4_1', 'L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
@@ -132,12 +311,26 @@ class KnotInfoBase(Enum):
              'strongly_quasipositive_braid_notation',
              'quasipositive_braid_notation',
              'arc_notation']
+            sage: L.items.dt_notation.column_name()
+            'DT Notation'
+
+        To check if the item is available for proper links or only knots type::
+
+            sage: it.gauss_notation.column_type()
+            <KnotInfoColumnTypes.KnotsAndLinks: 'B'>
+            sage: it.dt_notation.column_type()
+            <KnotInfoColumnTypes.OnlyKnots: 'K'>
+
+        To see the description of the item in your web browser type::
+
+            sage: it.gauss_notation.description_webpage()    # not tested
+            True
         """
         return db.columns()
 
     @cached_method
     def __getitem__(self, item):
-        """
+        r"""
         sage: from sage.knots.knotinfo import KnotInfo
         sage: L = KnotInfo.L4a1_0
         sage: L[L.items.alternating]
@@ -153,14 +346,14 @@ class KnotInfoBase(Enum):
         """
         if not isinstance(item, KnotInfoColumns):
             raise KeyError('Item must be an instance of %s' %(KnotInfoColumns))
-        if item.column_type() == KnotInfoColumnTypes.OnlyLinks and self.is_knot():
+        if item.column_type() == item.types.OnlyLinks and self.is_knot():
             raise KeyError('Item not available for knots' %(KnotInfoColumns))
-        if item.column_type() == KnotInfoColumnTypes.OnlyKnots and not self.is_knot():
+        if item.column_type() == item.types.OnlyKnots and not self.is_knot():
             raise KeyError('Item not available for links' %(KnotInfoColumns))
 
         l = db.read(item)
         offset = 0
-        if item.column_type() == KnotInfoColumnTypes.OnlyLinks:
+        if item.column_type() == item.types.OnlyLinks:
             offset = self._offset_knots()
 
         return l[self.value[0]-offset]
@@ -229,7 +422,7 @@ class KnotInfoBase(Enum):
         - ``original`` -- boolean (optional, default ``False``) if set to
           ``True`` the original table entry is returned as a string
 
-        OUTPUT::
+        OUTPUT:
 
         Python list of python lists each entry of the outer list
         representing a crossing.
@@ -271,7 +464,7 @@ class KnotInfoBase(Enum):
         - ``original`` -- boolean (optional, default ``False``) if set to
           ``True`` the original table entry is returned as a string
 
-        OUTPUT::
+        OUTPUT:
 
         Python list of python lists each entry of the outer list
         representing a crossing.
@@ -314,7 +507,7 @@ class KnotInfoBase(Enum):
         - ``original`` -- boolean (optional, default ``False``) if set to
           ``True`` the original table entry is returned as a string
 
-        OUTPUT::
+        OUTPUT:
 
         Python list of
 
@@ -348,7 +541,7 @@ class KnotInfoBase(Enum):
         - ``original`` -- boolean (optional, default ``False``) if set to
           ``True`` the original table entry is returned as a string
 
-        OUTPUT::
+        OUTPUT:
 
         Python tuple representing the braid whose closure is ``self``
         in Tietze form.
@@ -393,7 +586,7 @@ class KnotInfoBase(Enum):
         Return the value of column ``braid_index`` for this
         link as a Python int.
 
-        OUTPUT::
+        OUTPUT:
 
         Python int giving the minimum of strands needed to
         represent ``self`` as closure of a braid.
@@ -418,7 +611,7 @@ class KnotInfoBase(Enum):
         Return the value of column ``braid_length`` for this
         link as a Python int.
 
-        OUTPUT::
+        OUTPUT:
 
         Python int giving the minimum length of a braid word
         needed to represent ``self`` as closure of a braid.
@@ -449,6 +642,7 @@ class KnotInfoBase(Enum):
         """
         return self._braid_group()(self.braid_notation())
 
+    @cached_method
     def num_components(self):
         r"""
         Return the number of compoents of ``self``.
@@ -464,7 +658,7 @@ class KnotInfoBase(Enum):
     @cached_method
     def crossing_number(self):
         r"""
-        Return the minimal number of crossings.
+        Return the minimal number of crossings of ``self``.
 
         .. NOTE::
 
@@ -486,6 +680,22 @@ class KnotInfoBase(Enum):
         """
         return int(self[self.items.crossing_number])
 
+    @cached_method
+    def determinant(self):
+        r"""
+        Return the determinant of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.L4a1_0.determinant()
+            4
+            sage: KnotInfo.K3_1.determinant()
+            3
+        """
+        return int(self[self.items.determinant])
+
+    @cached_method
     def is_knot(self):
         r"""
         Return wether ``self`` is a knot or a proper link.
@@ -495,10 +705,23 @@ class KnotInfoBase(Enum):
             sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L7a1_0.is_knot()      # optional - database_knotinfo
             False
-            sage: KnotInfo.K6_3.is_knot()        # optional - database_knotinfo
+            sage: KnotInfo.K6_3.is_knot()
             True
         """
         return self.num_components() == 1
+
+    @cached_method
+    def name_unoriented(self):
+        r"""
+        Return the the unoriented (part of the) name of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.L10a122_1_0.name_unoriented()  # optional - database_knotinfo
+            'L10a122'
+        """
+        return self[self.items.name_unoriented]
 
     @cached_method
     def symmetry_type(self):
@@ -543,7 +766,7 @@ class KnotInfoBase(Enum):
             return 'fully amphicheiral'
         return self[self.items.symmetry_type]
 
-
+    @cached_method
     def is_reversible(self):
         r"""
         Return wether ``self`` is reversible.
@@ -560,6 +783,7 @@ class KnotInfoBase(Enum):
             return True
         return False
 
+    @cached_method
     def is_amphicheiral(self, positive=False):
         r"""
         Return wether ``self`` is amphicheiral.
@@ -589,45 +813,195 @@ class KnotInfoBase(Enum):
             return True
         return False
 
+    @cached_method
+    def is_alternating(self):
+        r"""
+        Return wether ``self`` is alternating.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_alternating()
+            True
+        """
+        return knotinfo_bool(self[self.items.alternating])
 
     @cached_method
-    def homfly_polynomial(self, var1='L', var2='M', original=False):
+    def is_almost_alternating(self):
+        r"""
+        Return wether ``self`` is almost alternating.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_almost_alternating()        # optional - database_knotinfo
+            False
+        """
+        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        return knotinfo_bool(self[self.items.almost_alternating])
+
+    @cached_method
+    def is_quasi_alternating(self):
+        r"""
+        Return wether ``self`` is quasi alternating.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_quasi_alternating()         # optional - database_knotinfo
+            True
+        """
+        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        return knotinfo_bool(self[self.items.quasi_alternating])
+
+    @cached_method
+    def is_adequate(self):
+        r"""
+        Return wether ``self`` is adequate.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_adequate()                  # optional - database_knotinfo
+            True
+        """
+        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        return knotinfo_bool(self[self.items.adequate])
+
+    @cached_method
+    def is_positive(self):
+        r"""
+        Return wether ``self`` is positive.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_positive()
+            True
+        """
+        return knotinfo_bool(self[self.items.positive])
+
+    @cached_method
+    def is_quasipositive(self):
+        r"""
+        Return wether ``self`` is quasipositive.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_quasipositive()              # optional - database_knotinfo
+            True
+        """
+        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        return knotinfo_bool(self[self.items.quasipositive])
+
+    @cached_method
+    def is_strongly_quasipositive(self):
+        r"""
+        Return wether ``self`` is strongly quasipositive.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_strongly_quasipositive()     # optional - database_knotinfo
+            True
+        """
+        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        return knotinfo_bool(self[self.items.strongly_quasipositive])
+
+    @cached_method
+    def is_positive_braid(self):
+        r"""
+        Return wether ``self`` is positive braid.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.is_positive_braid()             # optional - database_knotinfo
+            False
+        """
+        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        return knotinfo_bool(self[self.items.positive_braid])
+
+    @cached_method
+    def is_fibered(self):
+        r"""
+        Return wether ``self`` is fibered.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K6_3.is_fibered()
+            True
+        """
+        return knotinfo_bool(self[self.items.fibered])
+
+    @cached_method
+    def is_unoriented(self):
+        r"""
+        Return wether ``self`` is fibered.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.L6a2_1.is_unoriented()
+            False
+        """
+        return knotinfo_bool(self[self.items.unoriented])
+
+
+    @cached_method
+    def homfly_polynomial(self, var1=None, var2=None, original=False, sage_convention=True):
         r"""
         Return the value of column ``homfly_polynomial`` for this
         knot or link (in this case the column ``homflypt_polynomial``
         is used) as an instance of the element class according to
-        the output of :meth:`homfly_polynomial` of :class:`Link`.
+        the output of :meth:`Link.homfly_polynomial` of :class:`Link`.
 
         INPUT:
 
-        - ``var1`` -- (default: ``'L'``) the first variable
-        - ``var2`` -- (default: ``'M'``) the second variable
-        - ``original`` -- boolean (optional, default ``False``) if set to
+        - ``var1`` -- string for the name of the first variable (default depending
+          on keyword ``sage_convention``: ``'L'`` or ``'v'`` if ``sage_convention == False``)
+        - ``var2`` -- string for the name of the second variable (default depending
+          on keyword ``sage_convention``: ``'M'`` or ``'z'`` if ``sage_convention == False``)
+        - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
+        - ``sage_convention`` -- boolean (default ``True``) if set to ``False`` the conversion
+          to Sage's conventions (see the note below) is supressed
 
-        OUTPUT::
+        OUTPUT:
 
         A Laurent polynomial over the integers, more precisely an instance of
         :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+        If ``original`` is set to ``False`` then a string is returned.
 
         .. NOTE::
 
             The skein-relation for the Homfly-PT polynomial given on KnotInfo
             differs from the ones used in Sage:
 
-            KnotInfo: P(O) = 1,   ~v P(L+) -  v P(L-) = z P(L0)
+            KnotInfo:
+
+            .. MATH::
+
+                P(O) = 1,   ~v P(L+) -  v P(L-) = z P(L0)
 
             (see: https://knotinfo.math.indiana.edu/descriptions/jones_homfly_kauffman_description/polynomial_defn.html)
 
             Using Sage's Homfy-PT polynomials with ``normalization='az'``
-            the corresponding skein-relation is (see :meth:`homfly_polynomial`
+            the corresponding skein-relation is (see :meth:`Link.homfly_polynomial`
             of :class:`Link`):
 
-            Sage:     P(O) = 1,    a P(L+) - ~a P(L-) = z P(L0)
+            Sage:
+
+            .. MATH::
+
+                P(O) = 1,    a P(L+) - ~a P(L-) = z P(L0)
 
             Thus, the Homfly-PT polynomial of KnotInfo compares to the one of Sage
             by replacing ``v`` by ``~a``. To keep them comparable this translation is
-            performed, as well.
+            performed by default. To supress this you can set the keyword ``sage_convention``
+            to ``False``.
 
 
         EXAMPLES::
@@ -638,13 +1012,17 @@ class KnotInfoBase(Enum):
             L^-2*M^2 + 2*L^-2 - L^-4
             sage: PK3_1 == K3_1.link().homfly_polynomial(normalization='az')
             True
+            sage: K3_1.homfly_polynomial(sage_convention=False)
+            -v^4 + v^2*z^2 + 2*v^2
+            sage: K3_1.homfly_polynomial(original=True)
+            '(2*v^2-v^4)+ (v^2)*z^2'
             sage: L4a1_1 = KnotInfo.L4a1_1
             sage: PL4a1_1 = L4a1_1.homfly_polynomial(var1='x', var2='y'); PL4a1_1
             x^-3*y^3 + 3*x^-3*y + x^-3*y^-1 - x^-5*y - x^-5*y^-1
             sage: PL4a1_1 == L4a1_1.link().homfly_polynomial(var1='x', var2='y', normalization='az')
             True
 
-        check the skein-relation given in the doc string of :meth:`homfly_polynomial` of
+        check the skein-relation given in the doc string of :meth:`Link.homfly_polynomial` of
         :class:`Link` (applied to one of the positive crossings of the right-handed trefoil)::
 
             sage: R = PK3_1.parent()
@@ -682,13 +1060,216 @@ class KnotInfoBase(Enum):
         if original:
             return homfly_polynomial
 
+        if sage_convention:
+            if not var1:
+                var1='L'
+            if not var2:
+                var2='M'
+        else:
+            if not var1:
+                var1='v'
+            if not var2:
+                var2='z'
+
         R = self._homfly_pol_ring(var1, var2)
         if not homfly_polynomial and self.crossing_number() == 0:
             return R.one()
 
         L, M = R.gens()
-        lc = {'z':  M, 'v': ~L}  #
+        if sage_convention:
+            lc = {'v': ~L, 'z':M}  # see note above
+        else:
+            lc = {'v': L, 'z':M}
         return eval_knotinfo(homfly_polynomial, locals=lc)
+
+    @cached_method
+    def kauffman_polynomial(self, var1='a', var2='z', original=False):
+        r"""
+        Return the value of column ``kauffman_polynomial`` for this
+        knot or link as an instance of :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+
+        INPUT:
+
+        - ``var1`` -- (default: ``'a'``) the first variable
+        - ``var2`` -- (default: ``'z'``) the second variable
+        - ``original`` -- boolean (optional, default ``False``) if set to
+          ``True`` the original table entry is returned as a string
+
+        OUTPUT:
+
+        A Laurent polynomial over the integers, more precisely an instance of
+        :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+        If ``original`` is set to ``False`` then a string is returned.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: L = KnotInfo.L2a1_1
+            sage: L.kauffman_polynomial()
+            a^-1*z - a^-1*z^-1 + a^-2 + a^-3*z - a^-3*z^-1
+            sage: K = KnotInfo.K4_1
+            sage: K.kauffman_polynomial()
+            a^2*z^2 + a*z^3 - a^2 - a*z + 2*z^2 + a^-1*z^3 - 1 - a^-1*z + a^-2*z^2 - a^-2
+
+        Comparison with Jones polynomial::
+
+            sage: k = _
+            sage: a, z = k.variables()
+            sage: j = K.jones_polynomial()
+            sage: t, = j.variables()
+            sage: k.subs(a=-t^3, z=~t+t) == j.subs(t=t^4)
+            True
+        """
+        kauffman_polynomial = self[self.items.kauffman_polynomial]
+
+        if original:
+            return kauffman_polynomial
+
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+        R = LaurentPolynomialRing(ZZ, (var1, var2))
+        if not kauffman_polynomial and self.crossing_number() == 0:
+            return R.one()
+
+        a, z = R.gens()
+        lc = {'a':  a, 'z': z}
+        return eval_knotinfo(kauffman_polynomial, locals=lc)
+
+
+    @cached_method
+    def jones_polynomial(self, var=None, original=False, sage_convention=True):
+        r"""
+        Return the value of column ``jones_polynomial`` for this
+        knot or link as an instance of :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`.
+
+        INPUT:
+
+        - ``var`` -- string for the name of the variable (default depending
+          on keyword ``sage_convention``: ``'A'`` or ``'t'`` if ``sage_convention == False``)
+        - ``original`` -- boolean (default ``False``) if set to
+          ``True`` the original table entry is returned as a string
+        - ``sage_convention`` -- boolean (default ``True``) if set to ``False`` the conversion
+          to Sage's conventions (see the note below) is supressed
+
+        OUTPUT:
+
+        A Laurent polynomial over the integers, more precisely an instance of
+        :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`.
+        If ``original`` is set to ``False`` then a string is returned.
+
+        .. NOTE::
+
+            ToDo
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K4_1
+            sage: Kj = K.jones_polynomial(); Kj
+            A^-8 - A^-4 + 1 - A^4 + A^8
+            sage: L = KnotInfo.L2a1_1
+            sage: Lj = L.jones_polynomial(); Lj
+            -A^2 - A^10
+
+        Comparison with Sage's results::
+
+            sage: k = K.link()
+            sage: kj = k.jones_polynomial(skein_normalization=True)
+            sage: Kj == kj
+            True
+            sage: l = L.link()
+            sage: lj = l.jones_polynomial(skein_normalization=True)
+            sage: Lj == lj
+            True
+        """
+        jones_polynomial = self[self.items.jones_polynomial]
+
+        if original:
+            return jones_polynomial
+
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+
+        if sage_convention:
+            if not var:
+                var='A'
+        else:
+            if not var:
+                if self.is_knot():
+                    var='t'
+                else:
+                    var='x'
+
+        R = LaurentPolynomialRing(ZZ, var)
+        if not jones_polynomial and self.crossing_number() == 0:
+            return R.one()
+
+        A, = R.gens()
+        if sage_convention:
+            if self.is_knot():
+                lc = {'t':  A**4}
+            else:
+                lc = {'x':  A**2}
+        else:
+            if self.is_knot():
+                lc = {'t':  A}
+            else:
+                lc = {'x':  A}
+
+        return eval_knotinfo(jones_polynomial, locals=lc)
+
+
+    @cached_method
+    def alexander_polynomial(self, var='t', original=False):
+        r"""
+        Return the value of column ``alexander_polynomial`` for this
+        knot or link as an instance of :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`.
+
+        INPUT:
+
+        - ``var`` -- (default: ``'t'``) the variable
+        - ``original`` -- boolean (optional, default ``False``) if set to
+          ``True`` the original table entry is returned as a string
+
+        OUTPUT:
+
+        A Laurent polynomial over the integers, more precisely an instance of
+        :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`.
+        If ``original`` is set to ``False`` then a string is returned.
+
+        .. NOTE::
+
+            Since the Alexander polynomial is only unique up to unit factor,
+            a direct comparison to the result in Sage is not possible (see the
+            example below).
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K4_1
+            sage: Kj = K.alexander_polynomial(); Kj
+            1 - 3*t + t^2
+
+        Comparison with Sage's results::
+
+            sage: k = K.link()
+            sage: kj = k.alexander_polynomial()
+            sage: Kj == kj
+            False
+            sage: set(Kj.factor()) == set(kj.factor())
+            True
+        """
+        alexander_polynomial = self[self.items.alexander_polynomial]
+
+        if original:
+            return alexander_polynomial
+
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+        R = LaurentPolynomialRing(ZZ, var)
+        if not alexander_polynomial and self.crossing_number() == 0:
+            return R.one()
+
+        t, = R.gens()
+        lc = {'t':  t}
+        return eval_knotinfo(alexander_polynomial, locals=lc)
 
 
     @cached_method
@@ -726,7 +1307,7 @@ class KnotInfoBase(Enum):
 
             Furthermore, note that the mirror version may depend
             on the used KnotInfo-notation. For example for the
-            knot `5_1` the Gauss- and the DT-notation refer to
+            knot ``5_1`` the Gauss- and the DT-notation refer to
             the mirror image (see example below).
 
         EXAMPLES::
@@ -752,7 +1333,7 @@ class KnotInfoBase(Enum):
             sage: L.link(use_item=L.items.dt_notation)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Columns.dt_notation only implemented for knots
+            ValueError: Link construction using Columns.dt_notation not possible
 
         but observe::
 
@@ -789,20 +1370,88 @@ class KnotInfoBase(Enum):
             return Link(self.pd_notation()).mirror_image() # for mirror_image see note above
         elif use_item == self.items.braid_notation:
             return Link(self.braid())
-        elif use_item == self.items.dt_notation:
-            if not self.is_knot():
-                raise NotImplementedError('%s only implemented for knots' %use_item)
+        elif self.is_knot():
+            # Construction via Gauss and DT-Code only possible for knots
             from sage.knots.knot import Knots
-            return Knots().from_dowker_code(self.dt_notation())
-        elif use_item == self.items.gauss_notation:
-            if not self.is_knot():
-                raise NotImplementedError('%s only implemented for knots' %use_item)
-            from sage.knots.knot import Knots
-            return Knots().from_gauss_code(self.gauss_notation())
+            if use_item == self.items.dt_notation:
+                return Knots().from_dowker_code(self.dt_notation())
+            elif use_item == self.items.gauss_notation:
+                return Knots().from_gauss_code(self.gauss_notation())
+
+        raise ValueError('Link construction using %s not possible' %use_item)
+
+    def diagram(self, single=False, new=0, autoraise=True):
+        r"""
+        Launch the diagram of ``self`` given on the KnotInfo web page.
+
+        INPUT:
+
+        - ``single`` -- boolean (default ``False``) if set to ``True`` only one
+          diagram is shown.
+        - ``new`` -- ``int`` according to :func:`open` of :mod:`webbrowser`
+          (``0`` default, ``1`` new window, ``2`` new tab)
+        - ``autoraise`` -- boolean (default ``True``)
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K3_1
+            sage: K.diagram()            # not tested
+            True
+            sage: K.diagram(single=True) # not tested
+            True
+        """
+        import webbrowser
+        if self.is_knot():
+            filename = db.filename.knots
         else:
-            raise ValueError('Construction using %s not possible' %use_item)
+            filename = db.filename.links
+
+        if single:
+            return webbrowser.open(filename.diagram_url(self[self.items.diagram], single=single), new=new, autoraise=autoraise)
+        else:
+            return webbrowser.open(filename.diagram_url(self[self.items.name]), new=new, autoraise=autoraise)
 
 
+    def knot_atlas_webpage(self, new=0, autoraise=True):
+        r"""
+        Launch the Knot Atlas web page for ``self``.
+
+        INPUT:
+
+        - ``new`` -- ``int`` according to :func:`open` of :mod:`webbrowser`
+          (``0`` default, ``1`` new window, ``2`` new tab)
+        - ``autoraise`` -- boolean (default ``True``)
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K3_1
+            sage: K.knot_atlas_webpage()        # not tested
+            True
+        """
+        import webbrowser
+        return webbrowser.open(self[self.items.knot_atlas_anon], new=new, autoraise=autoraise)
+
+    def knotilus_webpage(self, new=0, autoraise=True):
+        r"""
+        Launch the Knotilus web page for ``self``.
+
+        INPUT:
+
+        - ``new`` -- ``int`` according to :func:`open` of :mod:`webbrowser`
+          (``0`` default, ``1`` new window, ``2`` new tab)
+        - ``autoraise`` -- boolean (default ``True``)
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K = KnotInfo.K3_1
+            sage: K.knotilus_webpage(new=1)   # not tested
+            True
+        """
+        import webbrowser
+        return webbrowser.open(self[self.items.knotilus_page_anon], new=new, autoraise=autoraise)
 
 
 KnotInfo = KnotInfoBase('KnotInfo', db.read_row_dict())

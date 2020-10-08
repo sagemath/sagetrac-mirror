@@ -27,8 +27,11 @@ REFERENCES:
 .. SEEALSO::
 
     There are also tables of link and knot invariants at
-    https://www.indiana.edu/~knotinfo/
-    and https://www.indiana.edu/~linkinfo/.
+    https://knotinfo.math.indiana.edu/ and
+    https://linkinfo.sitehost.iu.edu These can be
+    used inside Sage after installing the optional package
+    ``knotinfo`` (type ``sage -i knotinfo`` in a command shell,
+    see :mod:`~sage.knots.knotinfo`).
 
 AUTHORS:
 
@@ -3245,3 +3248,193 @@ class Link(SageObject):
             image += l
             ims += sum(line(a[0], **kwargs) for a in im)
         return image
+
+    def identify_knotinfo(self, oriented=True, mirror_version=True, unique=True):
+        """
+        Identify this link as an item of the KontInfo database (if possible).
+
+        INPUT:
+
+        - ``oriented`` -- boolean (default is ``True``). If set to ``False`` the orientation
+          of the link will be ignored and instead of an instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
+          a string will be returned giving KnotInfo's ``name_unoriented``
+
+        - ``mirror_version`` -- boolean (default is ``True``). If set to ``False`` the result
+          of the method will be just the instance of :class:`~sage.knots.knotinfo.KnotInfoBase` (by default the result
+          is a tuple of the instance and a boolean, see explanation of the output below)
+
+        - ``unique`` -- boolean (default is ``True``). This only affects the case where a unique
+          identification is not possible. If set to ``False`` you can obtain a matching list
+          (see explanation of the output below)
+
+        OUTPUT:
+
+        A tuple ``(K, m)`` where ``K`` is an instance of :class:`~sage.knots.knotinfo.KnotInfoBase` and ``m`` a
+        boolean telling if ``self`` corresponse to the mirrored version of ``K`` or not.
+
+        If ``oriented`` is set to ``False`` then the result is a string giving KnotInfo's
+        ``name_unoriented`` of one of the oriented matching items as long as this is unique.
+
+        If ``mirror_version`` is set to ``False`` then the result is just ``K`` (that is ``m``
+        is suppressed).
+
+        If it is not possible to determine a unique result a ``NotImplementedError`` will be
+        raised. To avoid this you can set ``unique`` to ``False``. You will get a list of matching
+        candidates instead.
+
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: L = Link([[4,2,5,1], [10,3,11,4], [5,16,6,17], [7,12,8,13],
+            ....:           [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
+            ....:           [22,18,1,17], [8,19,9,20], [21,14,22,15]])
+            sage: L.identify_knotinfo()                                 # optional - database_knotinfo
+            (<KnotInfo.K11n_121: [737, 1]>, True)
+
+            sage: K = KnotInfo.K10_25                                   # optional - database_knotinfo
+            sage: l = K.link()                                          # optional - database_knotinfo
+            sage: l.identify_knotinfo()                                 # optional - database_knotinfo
+            (<KnotInfo.K10_25: [109, 1]>, False)
+
+        Lets identify the monster unknot (works without the database, as well)::
+
+            sage: L = Link([[3,1,2,4], [8,9,1,7], [5,6,7,3], [4,18,6,5],
+            ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
+            ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
+            sage: L.identify_knotinfo()
+            (<KnotInfo.K0_1: [0, 1]>, False)
+
+        Usage of option ``mirror_version``::
+
+            sage: L.identify_knotinfo(mirror_version=False) == KnotInfo.K0_1
+            True
+
+        Usage of option ``oriented``::
+
+            sage: L = KnotInfo.L10a122_0_0.link()                       # optional - database_knotinfo
+            sage: L.identify_knotinfo(oriented=False)                   # optional - database_knotinfo
+            ('L10a122', False)
+
+        Usage of option ``unique``::
+
+            sage: l = K.link(use_item=K.items.gauss_notation)           # optional - database_knotinfo
+            sage: l.identify_knotinfo()                                 # optional - database_knotinfo
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Sorry, this link cannot be uniquely determined
+
+            sage: l.identify_knotinfo(unique=False)                     # optional - database_knotinfo
+            [<KnotInfo.K10_25: [109, 1]>, <KnotInfo.K10_56: [140, 1]>]
+        """
+        from sage.knots.knotinfo import knotinfo_matching_list, is_knotinfo_available
+        cr = len(self.pd_code())
+        co = self.number_of_components()
+        if co == 1 and cr > 12:
+            # we cannot not sure if this link is recorded in the KnotInfo database
+
+            raise NotImplementedError('Sorry, this link cannot be uniquely determined')
+        if co > 1 and cr > 11:
+            # we cannot not sure if this link is recorded in the KnotInfo database
+            raise NotImplementedError('Sorry, this link cannot be uniquely determined')
+
+        H = self.homfly_polynomial(normalization='az')
+
+        if len(H.factor()) > 1:
+            # we cannot be sure if this is a prime link
+            raise NotImplementedError('Sorry, this link cannot be uniquely determined')
+
+        Hm = None
+        l = knotinfo_matching_list(cr, co, homfly_polynomial=H)
+        if not l:
+            # try with the mirrored Homfly-PT polynomial
+            M, L = H.variables()
+            Hm = H.subs(L=~L, M=-M)
+            if H != Hm:
+                l = knotinfo_matching_list(cr, co, homfly_polynomial=Hm)
+
+        if not l:
+            is_knotinfo_available(raise_error=True)
+            return None
+
+        def answer(res, mirror):
+            if not oriented:
+                res = res.name_unoriented()
+
+            if mirror_version:
+                return res, mirror
+            else:
+                return res
+
+
+        if len(l) == 1:
+            return answer(l[0], Hm is not None)
+
+        self_m = self.mirror_image()
+
+        for L in l:
+            if L.braid() == self.braid():
+                return answer(L, False)
+            if L.braid() == self_m.braid():
+                return answer(L, True)
+
+            # note that KnotInfo pd_notation works counter clockwise, see docstring
+            # of :meth:`link` of :class:`~sage.knots.knotinfo.KnotInfoBase`.
+            if L.pd_notation() == self.pd_code():
+                return answer(L, True)
+            if L.pd_notation() == self_m.pd_code():
+                return answer(L, False)
+
+        if not oriented:
+             from sage.sets.set import Set
+             lu = list(Set([L.name_unoriented() for L in l]))
+             if len(lu) == 1:
+                 return answer(l[0], Hm is not None)
+             elif unique:
+                 raise NotImplementedError('Sorry, this link cannot be uniquely determined')
+             return lu
+
+        if unique:
+            raise NotImplementedError('Sorry, this link cannot be uniquely determined')
+        return l
+
+    def is_isotopic(self, other):
+        r"""
+        Check wether ``self`` is isotopic to ``other``.
+
+        INPUT:
+
+        - ``other`` -- another instance of :class:`Link`
+
+        EXAMPLES::
+
+            sage: l1 = Link([[2, 9, 3, 10], [4, 13, 5, 14], [6, 11, 7, 12],
+            ....:            [8, 1, 9, 2], [10, 7, 11, 8], [12, 5, 13, 6],
+            ....:            [14, 3, 1, 4]])
+            sage: l2 = Link([[1, 8, 2, 9], [9, 2, 10, 3], [3, 14, 4, 1],
+            ....:            [13, 4, 14, 5], [5, 12, 6, 13], [11, 6, 12, 7],
+            ....:            [7, 10, 8, 11]])
+            sage: l1.is_isotopic(l2)
+            True
+
+            sage: l3 = l2.mirror_image()
+            sage: l1.is_isotopic(l3)
+            False
+        """
+        if not isinstance(other, Link):
+            return False
+
+        if self == other:
+            # surely isotopic
+            return True
+
+        if self.homfly_polynomial() != other.homfly_polynomial():
+            # surely non isotopic
+            return False
+
+        ki = self.identify_knotinfo()
+        if ki:
+            if ki == other.identify_knotinfo():
+                return True
+
+        raise NotImplementedError('Comparison not possible!')
