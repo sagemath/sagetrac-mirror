@@ -1,17 +1,3 @@
-diff --git a/pkg/cohomolo-1.6.7/Makefile.in b/pkg/cohomolo-1.6.7/Makefile.in
-index 96a6c75..ed054b6 100644
---- a/pkg/cohomolo-1.6.7/Makefile.in
-+++ b/pkg/cohomolo-1.6.7/Makefile.in
-@@ -2,8 +2,7 @@
- # all executables are put into the bin directory.
- BIN = bin/@GAPARCH@
- 
--CC=gcc
--CFLAGS = -O
-+CFLAGS += -O
- 
- all:
- 	mkdir -p bin/@GAPARCH@;
 diff --git a/pkg/cohomolo-1.6.7/standalone/progs.d/findpres/makefile b/pkg/cohomolo-1.6.7/standalone/progs.d/findpres/makefile
 index be60c44..0e6e662 100644
 --- a/pkg/cohomolo-1.6.7/standalone/progs.d/findpres/makefile
