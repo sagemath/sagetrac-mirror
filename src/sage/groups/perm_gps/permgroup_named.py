@@ -78,18 +78,17 @@ REFERENCES:
     small values or the parameter) they are made using explicit generators.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                          David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 import os
+import itertools
 
-from sage.rings.all      import Integer
+from sage.rings.all import Integer
 from sage.libs.gap.libgap import libgap
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.arith.all import factor, valuation
@@ -333,6 +332,18 @@ class SymmetricGroup(PermutationGroup_symalt):
             Symmetric group of order 3! as a permutation group
         """
         return "Symmetric group of order {}! as a permutation group".format(self.degree())
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: len(list(SymmetricGroup(3)))  # indirect doctest
+            6
+            sage: next(iter(SymmetricGroup([2,3,5])))  # indirect doctest
+            (2,3,5)
+        """
+        for p in itertools.permutations(self._domain):
+            yield self.element_class(p, self, check=False)
 
     def cartan_type(self):
         r"""
@@ -685,6 +696,36 @@ class AlternatingGroup(PermutationGroup_symalt):
             'AlternatingGroup(3)'
         """
         return 'AlternatingGroup(%s)' % self.degree()
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: len(list(AlternatingGroup(4)))  # indirect doctest
+            12
+            sage: next(iter(AlternatingGroup([2,3,5,7])))  # indirect doctest
+            ()
+        """
+        from sage.combinat.permutation_cython import permutation_iterator_transposition_list
+        pi = list(self._domain)
+        d = self.degree()
+        yield self.element_class(pi, self, check=False)
+        it = permutation_iterator_transposition_list(d)
+        while True:
+            try:
+                t = next(it)
+            except StopIteration:
+                return
+            else:
+                pi[t], pi[t + 1] = pi[t + 1], pi[t]
+            try:
+                t = next(it)
+            except StopIteration:
+                return
+            else:
+                pi[t], pi[t + 1] = pi[t + 1], pi[t]
+                yield self.element_class(pi, self, check=False)
+
 
 class CyclicPermutationGroup(PermutationGroup_unique):
     def __init__(self, n):
