@@ -561,9 +561,9 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RealField(17,rnd='RNDD') # indirect doctest
             Real Field with 17 bits of precision and rounding RNDD
         """
-        s = "Real Field with %s bits of precision"%self.__prec
+        s = "Real Floating-Point Field with {} bits of precision".format(self.__prec)
         if self.rnd != MPFR_RNDN:
-            s = s + " and rounding %s"%(self.rnd_str)
+            s = s + " and rounding {}".format(self.rnd_str)
         return s
 
     def _latex_(self):

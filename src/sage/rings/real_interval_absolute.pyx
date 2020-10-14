@@ -203,7 +203,8 @@ cdef class RealIntervalAbsoluteField_class(Field):
             sage: R._repr_()
             'Real Interval Field with absolute precision 2^-100'
         """
-        return "Real Interval Field with absolute precision 2^-%s" % self._absprec
+        s = "Real Interval Field with absolute precision 2^-{}".format(self._absprec)
+        return s
 
     def absprec(self):
         """

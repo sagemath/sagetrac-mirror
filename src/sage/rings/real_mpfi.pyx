@@ -615,7 +615,7 @@ cdef class RealIntervalField_class(Field):
             sage: RealIntervalField(200) # indirect doctest
             Real Interval Field with 200 bits of precision
         """
-        s = "Real Interval Field with %s bits of precision"%self.__prec
+        s = "Real Interval Field with {} bits of precision".format(self.__prec)
         return s
 
     def _latex_(self):
