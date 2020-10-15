@@ -128,6 +128,183 @@ def cyclic_sort_vertices_2d(Vlist):
 
 #########################################################################
 
+def faceorder(poly):
+    """
+    Return an order for the unfolding of a 3 polytope
+    
+    INPUT:
+    
+    - ``poly`` -- a 3 polytope
+     
+    ### Außerdem wäre es gut den Algorithmus der den Spanning Tree berechnet als Variable einzugeben.
+    
+    EXAMPLES:
+    
+    """
+    HR = poly.Hrepresentation()
+    order = {}
+    new_order = {}
+    span_tree = Graph(poly.facet_adjacency_matrix()).min_spanning_tree(algorithm='Kruskal') #list of tuples
+    
+    j = 0
+    for i in span_tree: #takes the tuples and puts hrepresentation instead of number.
+        order[j] = [HR[i[0]], HR[i[1]]]
+        j = j+1
+             
+    # G = Graph(order.values())
+    G = Graph(span_tree)
+    l = list(G.depth_first_search(0))
+    
+    j = 0
+    for v in l:
+        for w in l:
+            if (v,w,None) in span_tree:
+                new_order[j] = [HR[v],HR[w]]
+                j = j + 1
+    
+    return new_order
+
+def left_or_right_2d(vertex_i,vertex_j,facet_adj,map_2d_dict_glo):
+    """
+    Returns the orientation of a face in accordance to an oriented edge
+    
+    INPUT:
+    
+    - ‘‘vertex_i‘‘ 3d vertex. First vertex of the edge. The edge is oriented from vertex_i to vertex_j.
+    
+    - ‘‘vertex_j‘‘ 3d vertex. Second vertex of the edge
+    
+    - ‘‘facet_adj‘‘ the facet of the 3 polytope, whose orientation is to be distunguished in H-representation.
+    
+    - ‘‘map_2d_dict_glo‘‘ a dictionary of dictionaries. The metakeys are the facets that map to the
+                            dictionary between the vertices in 3d and their coordinates in 2d.
+    
+    OUTPUT:
+    
+    """
+    vertices_facet_adj = [v for v in facet_adj.incident() if (v != vertex_i and v != vertex_j)]
+    vi = vector(map_2d_dict_glo[facet_adj][vertex_i])
+    vj = vector(map_2d_dict_glo[facet_adj][vertex_j])
+    vfadj = vector(map_2d_dict_glo[facet_adj][vertices_facet_adj[0]])
+    M = matrix(3,2,[vi,vj,vfadj])
+    M = M.augment(vector([1,1,1]))
+    #print M.nrows(), M.ncols()
+    orient = sign(det(M))
+    return orient
+
+def face_map_affine_trans(poly, facet, vertex_i, vertex_j, x_i, y_i, x_j, y_j, center, orient):
+    """
+    Returns the coordinates of the vertices of a 2 facet of a 3 polytope that has been
+    mapped to the plane via an affine transformation.
+    
+    INPUT:
+    - ‘‘poly‘‘ the 3-polytope
+    
+    - ‘‘facet‘‘ the facet, that is to be mapped to the plane in H-representation
+    
+    - ‘‘vertex_i‘‘ the first vertex of the anchor edge
+    
+    - ‘‘vertex_j‘‘ the second vertex of the anchor edge
+    
+    - ‘‘(x_i,y_i)‘‘ the coordniates in the plane of vertex_i.
+    
+    - ‘‘(x_j,y_j)‘‘ the coordniates in the plane of vertex_j.
+    
+    - ‘‘center‘‘ the barycenter of the polytope
+    
+    - ‘‘orient‘‘ the orientation of the facet in
+    
+    
+    OUTPUT:
+    
+    """
+    HR = poly.Hrepresentation()
+    VR = poly.Vrepresentation()
+    
+    
+    output = {}
+    #output[vertex_i] = vector((x_i,y_i))
+    
+    facet_as_poly_vertices = [ v for v in poly.vertices() if facet.is_incident(v)]
+    facet_as_poly = Polyhedron(facet_as_poly_vertices)
+    facet_other_vertices = [v for v in facet.incident() if ( v != vertex_i and v != vertex_j)]
+    vertex_k = facet_other_vertices[0]
+    three_vertices = [vertex_i, vertex_j, vertex_k]
+    M = matrix([center - vector(v) for v in three_vertices])
+    alt_3D = sign(M.det())
+    #print alt_3D
+    
+    A,b = facet_as_poly.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
+    for v in facet_as_poly_vertices:
+        output[v] = A(vector(v))
+    facet_2d = Polyhedron([A(v) for v in facet_as_poly.vertices_list()])
+    
+    A_three_vertices = [A(vector(v)) for v in three_vertices]
+    A_three_vertices_hom = [list(v)+[1] for v in A_three_vertices]
+    A_three_vertices_hom_matrix =  matrix(A_three_vertices_hom)
+    alt_2D = sign(A_three_vertices_hom_matrix.det())
+    #print alt_2D
+    
+    orient = alt_2D*alt_3D
+    #versuch
+    
+    #versuchende
+    
+    x,y = vector([x_i,y_i]), vector([x_j,y_j])
+    a,b = [A(vector(vertex_i)), A(vector(vertex_j))]
+
+    #base_ring = AA
+    base_ring = RDF
+    base_ring = RealField(300)
+    al = b-a
+    bl = vector(base_ring, [-al[1], al[0]])
+    D = (base_ring^2).subspace_with_basis([al,bl])
+    xl = y-x
+    yl = vector(base_ring, [-xl[1], xl[0]])
+    C = (base_ring^2).subspace_with_basis([xl,yl])
+    A = matrix(base_ring, [[1,0],[0,1]])
+    #versuch2
+    if orient == -1:
+        A = matrix(base_ring, [[1,0],[0,-1]])
+    #endeversuch
+    
+    
+    psi = linear_transformation(D, C, A, 'left')
+    #print psi, psi.base_ring()
+    rho = psi.restrict_domain(base_ring^2).restrict_codomain(base_ring^2)
+    M=rho.matrix().transpose()
+    
+    def F(v):
+        return M*(v-a) + x
+    
+    for v in facet_as_poly_vertices:
+        output[v]=F(vector(base_ring,vector(output[v])))
+
+    return output
+
+def face_map_call(poly, HR, pair, map_2d_dict_glo, center, first = 0):
+    
+    if first == 1:
+        facet = pair[0]
+        facet_adj = pair[1]
+        [vertex_i,vertex_j] = [v for v in facet.incident() if v in facet_adj.incident()]
+        (x_i,y_i) = (0,0)
+        (x_j,y_j) = (0,norm(vector(vertex_j)-vector(vertex_i)))
+        orient = 1
+    else:
+        facet = pair[1]
+        facet_adj = pair[0]
+        [vertex_i,vertex_j] = [v for v in facet.incident() if v in facet_adj.incident()]
+        (x_i,y_i) = map_2d_dict_glo[facet_adj][vertex_i]
+        (x_j,y_j) = map_2d_dict_glo[facet_adj][vertex_j]
+        orient = left_or_right_2d(vertex_i,vertex_j,facet_adj,map_2d_dict_glo)
+        
+    face_map_dict = face_map_affine_trans(poly, facet,vertex_i, vertex_j, x_i, y_i, x_j, y_j, center, orient)
+    
+    return face_map_dict
+    
+#########################################################################
+
 
 def projection_func_identity(x):
     """
@@ -1706,3 +1883,68 @@ class Projection(SageObject):
                     tikz_pic += dict_drawing[v][0]
         tikz_pic += '%%\n%%\n\\end{tikzpicture}'
         return LatexExpr(tikz_pic)
+
+############################################################
+class Unfolding():
+
+    def __init__(self, poly):
+        self.poly = poly
+        map_2d_dict_glo = {}
+        HR = poly.Hrepresentation()
+        VR = poly.Vrepresentation()
+        
+        # find the center of the polyhedron
+        sumsum = vector([0,0,0])
+        for v in poly.vertices_list():
+            sumsum += vector(v)
+            
+        center = sumsum / len(poly.vertices_list())
+        
+        # map the first face to the plane:
+        num = 0
+        pair = order[0]
+        first = face_map_call(poly, HR, pair, map_2d_dict_glo, center, 1)
+        map_2d_dict_glo[pair[0]] = first
+        
+        # map all other faces to the plane:
+        for i in range(len(order)):
+            num = num+1
+            pair = order[i]
+            if (pair[0] in map_2d_dict_glo) == False:
+                pair[0], pair[1] = pair[1], pair[0]
+            face_map_2d = face_map_call(poly, HR, pair, map_2d_dict_glo, center, 0)
+            map_2d_dict_glo[pair[1]] = face_map_2d
+        
+        self.map_2d_dict_glo = map_2d_dict_glo
+        return
+        
+    
+    def plot_map(self, innercolor="white"):
+        
+        g = []
+        num = 0
+        HR = poly.Hrepresentation()
+        nHR = len(HR)
+        for i in range(nHR) :
+            num = num+1
+            c = self.map_2d_dict_glo[HR[i]].values()
+            cc = [vector(RDF, vv) for vv in c]
+            p = Polyhedron(cc)
+            v = p.vertices()
+            
+            cyc = cyclic_sort_vertices_2d(v)
+            if i == 0: innercolor = "white"
+            if i == 1: innercolor = "yellow"
+            if i == 2: innercolor = "orange"
+            if i == 3: innercolor = "red"
+            if i == 4: innercolor = "blue"
+            if i == 5: innercolor = "green"
+            if i == 6: innercolor = "gray"
+            if i == 7: innercolor = "black"
+            if g == []:
+                g = polygon(cyc,color = innercolor, edgecolor="black")
+            else:
+                g += polygon(cyc,color = innercolor, edgecolor="black")
+        g.SHOW_OPTIONS['axes']=False
+        
+        return g
