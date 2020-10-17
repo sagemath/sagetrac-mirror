@@ -8,13 +8,10 @@ from distutils import log
 from distutils.command.install import install
 
 class sage_install(install):
+
     def run(self):
         install.run(self)
         self.install_kernel_spec()
-        log.info('Cleaning up stale installed files....')
-        t = time.time()
-        self.clean_stale_files()
-        log.info('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
     def install_kernel_spec(self):
         """
@@ -30,6 +27,16 @@ class sage_install(install):
         # setup() to install kernels and nbextensions. So we should use
         # the install_data directory for installing our Jupyter files.
         SageKernelSpec.update(prefix=self.install_data)
+
+all_distributions = None
+
+class sage_install_and_clean(sage_install):
+
+    def run(self):
+        sage_install.run(self)
+        t = time.time()
+        self.clean_stale_files()
+        log.info('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
     def clean_stale_files(self):
         """
@@ -51,7 +58,7 @@ class sage_install(install):
             py_modules += cmd_build_py.find_package_modules(package, package_dir)
         # modules is a list of triples (package, module, module_file).
         # Construct the complete module name from this.
-        py_modules = ["{0}.{1}".format(*m) for m in py_modules]
+        py_modules = ["{0}.{1}".format(*m) for m in py_modules] + dist.py_modules
 
         # Determine all files of package data and Cythonized package files
         # example of entries of cmd_build_cython.get_cythonized_package_files():
@@ -74,4 +81,5 @@ class sage_install(install):
                     py_modules,
                     dist.ext_modules,
                     data_files,
-                    nobase_data_files)
+                    nobase_data_files,
+                    distributions=all_distributions)
