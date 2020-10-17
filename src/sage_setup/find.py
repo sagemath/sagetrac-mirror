@@ -225,7 +225,8 @@ def is_package_or_namespace_package_dir(dirpath):
             return True
     return os.path.exists(os.path.join(dirpath, 'namespace'))
 
-def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
+def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
+                     distributions=None):
     """
     Find all extra files which should be installed.
 
@@ -288,6 +289,10 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
                 if os.path.isdir(cydir):  # Not every directory contains Cython files
                     files += [os.path.join(cydir, f) for f in os.listdir(cydir)
                             if f.endswith(".h")]
+
+                if distributions is not None:
+                    files = [f for f in files
+                             if read_distribution(f) in distributions]
 
                 if files:
                     data_files[dir] = files
