@@ -32,6 +32,8 @@ class sage_install(install):
         # the install_data directory for installing our Jupyter files.
         SageKernelSpec.update(prefix=self.install_data)
 
+all_distributions = None
+
 class sage_install_and_clean(sage_install):
 
     def run(self):
@@ -83,4 +85,5 @@ class sage_install_and_clean(sage_install):
                     py_modules,
                     dist.ext_modules,
                     data_files,
-                    nobase_data_files)
+                    nobase_data_files,
+                    distributions=all_distributions)
