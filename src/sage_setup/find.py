@@ -166,11 +166,11 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         for module in modules:
             for dirpath, dirnames, filenames in os.walk(module):
                 package = dirpath.replace(os.path.sep, '.')
-                if INIT_FILE in filenames:
-                    # Ordinary package.
+                if INIT_FILE in filenames or 'namespace' in filenames:
+                    # Ordinary package or namespace package.
                     if distributions is None or '' in distributions:
                         python_packages.append(package)
-                if os.path.exists(os.path.join(dirpath, 'nonamespace')):
+                if 'nonamespace' in filenames:
                     # Marked as "not a namespace package"
                     # (similar to nodoctest in sage.doctest.control)
                     dirnames.clear()
