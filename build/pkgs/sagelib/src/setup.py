@@ -47,7 +47,7 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 from sage_setup.command.sage_build import sage_build
 from sage_setup.command.sage_build_cython import sage_build_cython
 from sage_setup.command.sage_build_ext import sage_build_ext
-
+from sage_setup.command.sage_install import sage_install_and_clean
 
 #########################################################
 ### Discovering Sources
@@ -63,6 +63,11 @@ from sage_setup.optional_extension import is_package_installed_and_updated
 
 optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
                                      'coxeter3', 'fes', 'sirocco']
+
+# Make sure that we do not remove files in namespace packages that
+# do not belong to us, for example the ones provided by sage-meataxe
+sage_install_and_clean.all_distributions = ['sage-{}'.format(pkg)
+                                            for pkg in optional_packages_with_extensions]
 
 distributions += ['sage-{}'.format(pkg)
                   for pkg in optional_packages_with_extensions
@@ -82,8 +87,6 @@ import Cython.Build.Dependencies
 import Cython.Build.Cythonize
 import Cython.Utils
 Cython.Utils.is_package_dir = Cython.Build.Cythonize.is_package_dir = Cython.Build.Dependencies.is_package_dir = is_package_or_namespace_package_dir
-
-from sage_setup.command.sage_install import sage_install_and_clean
 
 #########################################################
 ### Distutils
