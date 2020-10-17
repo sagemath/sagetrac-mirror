@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Script to prepare an sdist tarball for sage_tdlib.
+# Script to prepare an sdist tarball for sage_meataxe.
 # This script is not used during build.
 #
 # HOW TO MAKE THE TARBALL:
-# 1) ./sage --sh build/pkgs/sage_tdlib/spkg-src
+# 1) ./sage --sh build/pkgs/sage_meataxe/spkg-src
 
 if [ -z "$SAGE_ROOT" ] ; then
     echo >&2 "Error - SAGE_ROOT undefined ... exiting"
