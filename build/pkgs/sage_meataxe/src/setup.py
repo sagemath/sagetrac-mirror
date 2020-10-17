@@ -20,11 +20,8 @@ import Cython.Build.Cythonize
 import Cython.Utils
 Cython.Utils.is_package_dir = Cython.Build.Cythonize.is_package_dir = Cython.Build.Dependencies.is_package_dir = is_package_or_namespace_package_dir
 
-from sage_setup.command.sage_install import sage_install
-
 setup(
     cmdclass = dict(build_cython=sage_build_cython,
-                    build_ext=sage_build_ext,
-                    install=sage_install),      # need this, or "setup.py install" will install an egg
+                    build_ext=sage_build_ext),
     ext_modules = cython_modules
 )

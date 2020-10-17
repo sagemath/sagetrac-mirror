@@ -1,1 +1,11 @@
-../sagelib/spkg-install
+#!/usr/bin/env bash -x
+lib="$SAGE_ROOT/build/bin/sage-dist-helpers"
+source "$lib"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to source $lib"
+    echo >&2 "Is $SAGE_ROOT the correct SAGE_ROOT?"
+    exit 1
+fi
+cd src
+sage-python23 -u setup.py --no-user-cfg bdist_wheel || exit 1
+sdh_store_and_pip_install_wheel .
