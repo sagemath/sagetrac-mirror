@@ -9,6 +9,7 @@ import time
 from distutils import log
 from setuptools import setup, find_namespace_packages
 from Cython.Build.Dependencies import default_create_extension
+from sage_setup.cython_options import compiler_directives, compile_time_env_variables
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -98,14 +99,6 @@ def create_extension(template, kwds):
 #########################################################
 ### Distutils
 #########################################################
-compile_time_env = dict(
-    PY_PLATFORM=sys.platform
-)
-cython_directives = dict(
-    language_level="3str",
-    cdivision=True,
-)
-
 code = setup(name = 'sage',
       version     =  SAGE_VERSION,
       description = 'Sage: Open Source Mathematics Software',
@@ -198,7 +191,7 @@ code = setup(name = 'sage',
         ext_modules = cythonize(cython_modules,
                                 exclude=files_to_exclude,
                                 include_path=include_directories,
-                                compile_time_env=compile_time_env,
-                                compiler_directives=cython_directives,
+                                compile_time_env=compile_time_env_variables(),
+                                compiler_directives=compiler_directives(False),
                                 aliases=aliases,
                                 create_extension=create_extension))
