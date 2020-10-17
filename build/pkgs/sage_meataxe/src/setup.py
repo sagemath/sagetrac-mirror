@@ -10,6 +10,7 @@ from sage_setup.command.sage_build_ext import sage_build_ext
 from sage_setup.find import find_python_sources, is_package_or_namespace_package_dir
 python_packages, python_modules, cython_modules = find_python_sources(
     '.', ['sage'], distributions=['sage-meataxe'])
+sage_build_cython.built_distributions = ['sage-meataxe']
 
 log.warn('python_packages = {0}'.format(python_packages))
 log.warn('python_modules = {0}'.format(python_modules))
