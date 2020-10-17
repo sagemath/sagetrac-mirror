@@ -663,10 +663,12 @@ class FileDocTestSource(DocTestSource):
             sage: FDS.in_lib
             True
         """
-        # We need an explicit bool() because is_package_dir() returns
-        # 1/None instead of True/False.
-        return bool(self.options.force_lib or
-                is_package_dir(os.path.dirname(self.path)))
+        if self.options.force_lib:
+            return True
+        dirname = os.path.dirname(self.path)
+        if is_package_dir(dirname):
+            return True
+        return os.path.exists(os.path.join(dirname, 'namespace'))
 
     def create_doctests(self, namespace):
         r"""
