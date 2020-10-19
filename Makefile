@@ -111,6 +111,7 @@ bootstrap-clean:
 	rm -f src/doc/en/installation/*.txt
 	rm -rf src/doc/en/reference/spkg/*.rst
 	rm -f src/doc/en/reference/repl/*.txt
+	rm -f src/bin/sage-env-config
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
