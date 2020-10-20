@@ -78,7 +78,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     OUTPUT: Triple consisting of
 
     - the list of package names (corresponding to directories with
-      ``__init__.py``),
+      ``__init__.py`` or namespace packages),
 
     - Python module names (corresponding to other ``*.py`` files except for
       those below directories with a file named ``nonamespace`` in it).
@@ -116,7 +116,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     Native namespace package (no ``__init__.py``, PEP 420)::
 
         sage: ['sage.graphs.graph_decompositions' in L for L in (py_packages, py_modules)]
-        [False, False]
+        [True, False]
 
     Python module in a native namespace package::
 
@@ -214,7 +214,7 @@ def is_package_or_namespace_package_dir(dirpath):
 
     A namespace package::
 
-        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'numerical', 'backends')
+        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'numerical', 'backends'))
         True
 
     """
