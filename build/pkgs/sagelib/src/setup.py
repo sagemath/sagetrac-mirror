@@ -66,8 +66,9 @@ optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
 
 # Make sure that we do not remove files in namespace packages that
 # do not belong to us, for example the ones provided by sage-meataxe
-sage_install_and_clean.all_distributions = ['sage-{}'.format(pkg)
-                                            for pkg in optional_packages_with_extensions]
+sage_install_and_clean.all_distributions = ['']
+sage_install_and_clean.all_distributions += ['sage-{}'.format(pkg)
+                                             for pkg in optional_packages_with_extensions]
 
 distributions += ['sage-{}'.format(pkg)
                   for pkg in optional_packages_with_extensions
