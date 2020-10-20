@@ -34,6 +34,8 @@ jobs:
           python-version: 3.8
       - name: Install pipenv
         run: |
+          lsb_release -a
+          apt-get update
           apt-get install python3-pip
           pip install pipenv
       - name: Install dependencies
