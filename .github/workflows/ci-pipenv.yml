@@ -33,7 +33,9 @@ jobs:
         with:
           python-version: 3.8
       - name: Install pipenv
-        run: pip install pipenv
+        run: |
+          apt-get install python3-pip
+          pip install pipenv
       - name: Install dependencies
         run: apt-get install liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
       - name: Create virtual environment
