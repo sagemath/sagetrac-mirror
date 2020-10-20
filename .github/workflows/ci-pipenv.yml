@@ -31,12 +31,13 @@ jobs:
       - name: Install dependencies
         run: |
            apt-get update -y
-           apt-get install -y python3-pip libffi-dev libpari-dev liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
+           apt-get install -y python3-pip libffi-dev libpari-dev libmpfr-dev liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
       - name: Install pipenv
         run: pip install pipenv
       - name: Create virtual environment
         run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
       - name: Install editable manually
         run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+        if: always()
       - name: Test
         run: cd src && pipenv run python -c 'import sage.all'
