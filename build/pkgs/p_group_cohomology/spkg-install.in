@@ -1,6 +1,3 @@
-# Check if meataxe was properly installed
-sage -c "import sage.libs.meataxe" || sdh_die "sage.libs.meataxe cannot be imported. To solve this, it is enough to retry installation of p_group_cohomology"
-
 cd src
 
 # build and install modular_resolution
