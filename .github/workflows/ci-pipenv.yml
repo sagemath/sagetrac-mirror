@@ -50,9 +50,9 @@ jobs:
             param($path)
             @(Get-Content $path | Where-Object { !$_.StartsWith("#") })
           }
-          $packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | Sort-Object -Unique
+          [System.Collections.ArrayList]$packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | Sort-Object -Unique
           # We already installed python
-          $packages -= 'libpython3.7-dev'
+          $packages.Remove('libpython3.7-dev')
           echo "Install the following packages:" @packages
           sudo apt-get install -y @packages
         shell: pwsh
