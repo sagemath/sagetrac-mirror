@@ -71,10 +71,7 @@ jobs:
       - name: Install editable manually
         run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
         if: always()
+        env:
+          ARB_LIBRARY: flint-arb
       - name: Test
         run: cd src && pipenv run python -c 'import sage.all'
-      - name: Configure
-        run: |
-          apt-get install -y autoconf automake
-          ./bootstrap -d && ./configure
-        if: always()
