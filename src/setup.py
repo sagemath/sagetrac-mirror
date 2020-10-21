@@ -55,6 +55,10 @@ from sage.env import cython_aliases, sage_include_directories
 ### Discovering Sources
 #########################################################
 
+# Generate code
+import sage_setup.autogen
+sage_setup.autogen.autogen_all()
+
 log.info("Discovering Python/Cython source code....")
 t = time.time()
 
@@ -95,16 +99,7 @@ def create_extension(template, kwds):
 
     include_dirs = kwds.get('include_dirs', []) + [numpy.get_include(), 'src', '.']
     kwds['include_dirs'] = include_dirs
-    return default_create_extension(template, kwds)
-
-class CustomDevelopCommand(develop):
-    def run(self):
-        # Generate code
-        import sage_setup.autogen
-        sage_setup.autogen.autogen_all()
-
-        develop.run(self)
-        
+    return default_create_extension(template, kwds)        
 
 #########################################################
 ### Distutils
@@ -117,9 +112,6 @@ code = setup(name = 'sage',
       author_email= 'https://groups.google.com/group/sage-support',
       url         = 'https://www.sagemath.org',
       packages    = python_packages,
-      cmdclass    = {
-          'develop': CustomDevelopCommand
-      },
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
           'sage.interfaces': ['sage-maxima.lisp'],
