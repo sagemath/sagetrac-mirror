@@ -33,7 +33,7 @@ jobs:
       image: ubuntu:20.10
     steps:
       - uses: actions/checkout@v2
-      - name: Install dependencies
+      - name: Install tools
         run: |
           apt-get update -y
           apt-get install -y wget apt-transport-https tzdata update-notifier-common
@@ -42,8 +42,9 @@ jobs:
           ./install-dotnet-preview-groovy.sh
           dotnet tool install powershell --tool-path /usr/local/bin
           apt-get update -y
-          apt-get install -y python3-pip libsingular4-dev liblinbox-dev libhomfly-dev libratpoints-dev libgap-dev
-      - name: Install more dependencies
+          apt-get install -y python3-pip
+          pip install pipenv
+      - name: Install dependencies
         run: |
           Function ExtractPackages
           {
@@ -53,11 +54,16 @@ jobs:
           [System.Collections.ArrayList]$packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | Sort-Object -Unique
           # We already installed python
           $packages.Remove('libpython3.7-dev')
+          # Add a few dependencies that are not yet listed
+          $packages.Add('libsingular4-dev')
+          $packages.Add('liblinbox-dev')
+          $packages.Add('libhomfly-dev')
+          $packages.Add('libratpoints-dev')
+          $packages.Add('libgap-dev')
+
           echo "Install the following packages:" @packages
-          & sudo apt-get install -y @packages
+          & apt-get install -y @packages
         shell: pwsh
-      - name: Install pipenv
-        run: pip install pipenv
       - name: Create virtual environment
         run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
       - name: Install editable manually
