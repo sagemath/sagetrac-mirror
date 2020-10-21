@@ -40,9 +40,9 @@ jobs:
           Function ExtractPackages
           {
             param($path)
-            @(Get-Content Extra open brace or missing close brace_.StartsWith("#") })
+            @(Get-Content $path | Where-Object { !$_.StartsWith("#") })
           }
-          Extra open brace or missing close brace_.FullName } | Sort-Object -Unique
+          $packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | Sort-Object -Unique
           # We already installed python
           $packages -= 'libpython3.7-dev'
           echo "Install the following packages:" @packages
