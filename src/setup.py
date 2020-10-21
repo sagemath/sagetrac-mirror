@@ -166,7 +166,7 @@ code = setup(name = 'sage',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',
                  'bin/sage-env',
-                 'bin/sage-env-config',
+                 #'bin/sage-env-config',
                  # sage-env-config.in -- not to be installed',
                  'bin/sage-gdb-commands',
                  'bin/sage-grep',
