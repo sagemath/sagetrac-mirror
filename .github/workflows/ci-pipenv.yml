@@ -63,6 +63,7 @@ jobs:
           $packages.Add('libratpoints-dev')
           $packages.Add('libgap-dev')
           $packages.Add('ecl')
+          $packages.Add('libpynac-dev')
 
           echo "Install the following packages:" @packages
           & apt-get install -y @packages
