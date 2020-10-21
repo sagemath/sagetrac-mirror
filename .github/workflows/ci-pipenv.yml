@@ -14,7 +14,7 @@ jobs:
     - name: Install pipenv
       run: brew install pipenv
     - name: Install dependencies
-      run: brew install pari ppl 
+      run: brew install pari ppl singular gsl lapack openblas
     - name: Create virtual environment
       run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
     - name: Install editable manually
@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
            apt-get update -y
-           apt-get install -y python3-pip libffi-dev libpari-dev libmpfr-dev libmpc-dev libppl-dev libgsl-dev libsingular4-dev liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
+           apt-get install -y python3-pip libffi-dev libpari-dev libmpfr-dev libmpc-dev libppl-dev libgsl-dev libsingular4-dev libntl-dev liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
       - name: Install pipenv
         run: pip install pipenv
       - name: Create virtual environment
@@ -41,3 +41,6 @@ jobs:
         if: always()
       - name: Test
         run: cd src && pipenv run python -c 'import sage.all'
+      - name: Configure
+        run: ./configure
+        if: always()
