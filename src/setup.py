@@ -105,7 +105,7 @@ def create_extension(template, kwds):
 ### Distutils
 #########################################################
 code = setup(name = 'sage',
-      version     =  SAGE_VERSION,
+      version     =  '2',
       description = 'Sage: Open Source Mathematics Software',
       license     = 'GNU Public License (GPL)',
       author      = 'William Stein et al.',
