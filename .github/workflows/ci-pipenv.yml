@@ -38,7 +38,7 @@ jobs:
           apt-get update -y
           apt-get install -y wget apt-transport-https
           wget https://raw.githubusercontent.com/averyfreeman/dotnet-sdk-5.0rc1-Ubuntu-20.10-installer/261df27fd670c052788874785ca197e7d4b0decb/install-dotnet-preview-groovy.sh
-          chmod + x install-dotnet-preview-groovy.sh
+          chmod +x install-dotnet-preview-groovy.sh
           install-dotnet-preview-groovy.sh
           dotnet tool install -g powershell
           apt-get update -y
@@ -68,5 +68,6 @@ jobs:
       - name: Configure
         run: |
           apt-get install -y autoconf automake
+          pip install urllib
           ./bootstrap -d && ./configure
         if: always()
