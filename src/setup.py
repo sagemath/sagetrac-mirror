@@ -8,6 +8,7 @@ import sys
 import time
 from distutils import log
 from setuptools import setup, find_namespace_packages
+from setuptools.command.develop import develop
 from Cython.Build.Dependencies import default_create_extension
 from sage_setup.cython_options import compiler_directives, compile_time_env_variables
 
@@ -96,6 +97,15 @@ def create_extension(template, kwds):
     kwds['include_dirs'] = include_dirs
     return default_create_extension(template, kwds)
 
+class CustomDevelopCommand(develop):
+    def run(self):
+        # Generate code
+        import sage_setup.autogen
+        sage_setup.autogen.autogen_all()
+
+        develop.run(self)
+        
+
 #########################################################
 ### Distutils
 #########################################################
@@ -107,6 +117,9 @@ code = setup(name = 'sage',
       author_email= 'https://groups.google.com/group/sage-support',
       url         = 'https://www.sagemath.org',
       packages    = python_packages,
+      cmdclass    = {
+          'develop': CustomDevelopCommand
+      },
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
           'sage.interfaces': ['sage-maxima.lisp'],
