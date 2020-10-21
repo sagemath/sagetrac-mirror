@@ -22,7 +22,7 @@ jobs:
     - name: Test
       run: cd src && pipenv run python -c 'import sage.all'
     - name: Configure
-      run: ./configure
+      run: ./bootstrap && ./configure
       if: always()
  
   build-linux:
@@ -34,7 +34,20 @@ jobs:
       - name: Install dependencies
         run: |
            apt-get update -y
-           apt-get install -y python3-pip libffi-dev libpari-dev libmpfr-dev libmpc-dev libppl-dev libgsl-dev libsingular4-dev libntl-dev liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
+           apt-get install -y python3-pip libffi-dev libpari-dev libmpfr-dev libmpc-dev libppl-dev libgsl-dev libsingular4-dev libntl-dev libflint-dev liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
+      - name: Install more dependencies
+        run: |
+          Function ExtractPackages
+          {
+            param($path)
+            @(Get-Content Extra open brace or missing close brace_.StartsWith("#") })
+          }
+          Extra open brace or missing close brace_.FullName } | Sort-Object -Unique
+          # We already installed python
+          $packages -= 'libpython3.7-dev'
+          echo "Install the following packages:" @packages
+          sudo apt-get install -y @packages
+        shell: pwsh
       - name: Install pipenv
         run: pip install pipenv
       - name: Create virtual environment
@@ -45,5 +58,5 @@ jobs:
       - name: Test
         run: cd src && pipenv run python -c 'import sage.all'
       - name: Configure
-        run: ./configure
+        run: ./bootstrap && ./configure
         if: always()
