@@ -40,9 +40,7 @@ jobs:
           wget https://raw.githubusercontent.com/averyfreeman/dotnet-sdk-5.0rc1-Ubuntu-20.10-installer/261df27fd670c052788874785ca197e7d4b0decb/install-dotnet-preview-groovy.sh
           chmod +x install-dotnet-preview-groovy.sh
           ./install-dotnet-preview-groovy.sh
-          dotnet tool install powershell --tool-path ~/bin
-          echo $PATH
-          which pwsh
+          dotnet tool install powershell --tool-path /usr/local/bin
           apt-get update -y
           apt-get install -y python3-pip libffi-dev libpari-dev libmpfr-dev libmpc-dev libppl-dev libgsl-dev libsingular4-dev libntl-dev libflint-dev liblinbox-dev libflint-arb-dev libhomfly-dev libgiac-dev libratpoints-dev libzn-poly-dev libbrial-dev libbrial-groebner-dev libatlas-base-dev libgap-dev
       - name: Install more dependencies
