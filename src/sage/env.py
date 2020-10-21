@@ -199,6 +199,7 @@ var('MAXIMA',                        'maxima')
 var('MAXIMA_FAS')
 var('SAGE_NAUTY_BINS_PREFIX',        '')
 var('ARB_LIBRARY',                   'arb')
+var('CBLAS_PC_MODULES',              'cblas:openblas:blas')
 
 # misc
 var('SAGE_BANNER', '')
@@ -392,6 +393,10 @@ def cython_aliases():
     for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
                 'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
         var = lib.upper().replace("-", "") + "_"
+        if lib == 'cblas':
+            # There are a few BLAS libraries that the user could have installed
+            cblas_pc_modules = CBLAS_PC_MODULES.split(':')
+            lib = next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
         if lib == 'zlib':
             aliases[var + "CFLAGS"] = ""
             try:
