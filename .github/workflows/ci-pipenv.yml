@@ -21,6 +21,9 @@ jobs:
       run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
     - name: Test
       run: cd src && pipenv run python -c 'import sage.all'
+    - name: Configure
+      run: ./configure
+      if: always()
  
   build-linux:
     runs-on: ubuntu-latest
