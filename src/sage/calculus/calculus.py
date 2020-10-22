@@ -2165,7 +2165,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
         s = maxima_polygamma.sub(r'psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
-        if s == olds: break
+        if s == olds:
+            break
 
     if equals_sub:
         s = s.replace('=','==')
