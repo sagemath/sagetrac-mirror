@@ -58,26 +58,26 @@ If you have `SnapPy <https://snappy.math.uic.edu/index.html>`__ installed inside
 you can obtain an instance of :class:`~spherogram.links.links_base.Link`, too::
 
     sage: L6 = KnotInfo.L6a2_0
-    sage: l6s = L6.link(snappy=True); l6s
+    sage: l6s = L6.link(snappy=True); l6s                              # optional - snappy
     Plink failed to import tkinter.
     <Link: 2 comp; 6 cross>
-    sage: type(l6s)
+    sage: type(l6s)                                                    # optional - snappy
     <class 'spherogram.links.invariants.Link'>
     sage: l6  = L6.link()
-    sage: l6 == l6s.sage_link()
+    sage: l6 == l6s.sage_link()                                        # optional - snappy
     True
-    sage: l6sn = L6.link(use_item=L6.items.name, snappy=True); l6sn
+    sage: l6sn = L6.link(use_item=L6.items.name, snappy=True); l6sn    # optional - snappy
     <Link L6a2: 2 comp; 6 cross>
-    sage: l6s == l6sn
+    sage: l6s == l6sn                                                  # optional - snappy
     False
-    sage: l6sn.sage_link().is_isotopic(l6)
+    sage: l6sn.sage_link().is_isotopic(l6)                             # optional - snappy
     True
 
 But observe that the name conversion to SnapPy does not distingiush orientation types::
 
     sage: L6b = KnotInfo.L6a2_1
-    sage: l6bsn = L6b.link(use_item=L6b.items.name, snappy=True)
-    sage: l6bsn.PD_code() == l6sn.PD_code()
+    sage: l6bsn = L6b.link(use_item=L6b.items.name, snappy=True)       # optional - snappy
+    sage: l6bsn.PD_code() == l6sn.PD_code()                            # optional - snappy
     True
 
 Obtaining the HOMFLY-PT polynomial::
@@ -1550,13 +1550,13 @@ class KnotInfoBase(Enum):
         using ``snappy``::
 
             sage: K7   = KnotInfo.K7_2
-            sage: k7s  = K7.link(snappy=True); k7s
+            sage: k7s  = K7.link(snappy=True); k7s                           # optional - snappy
             <Link: 1 comp; 7 cross>
-            sage: k7sn = K7.link(use_item=K7.items.name, snappy=True); k7sn
+            sage: k7sn = K7.link(use_item=K7.items.name, snappy=True); k7sn  # optional - snappy
             <Link 7_2: 1 comp; 7 cross>
-            sage: k7s == k7sn
+            sage: k7s == k7sn                                                # optional - snappy
             False
-            sage: k7s.sage_link().is_isotopic(k7sn.sage_link())
+            sage: k7s.sage_link().is_isotopic(k7sn.sage_link())              # optional - snappy
             True
 
         but observe::
