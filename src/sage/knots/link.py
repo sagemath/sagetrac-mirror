@@ -3326,6 +3326,37 @@ class Link(SageObject):
 
             sage: l.identify_knotinfo(unique=False)                     # optional - database_knotinfo
             [<KnotInfo.K10_25: [109, 1]>, <KnotInfo.K10_56: [140, 1]>]
+
+        Clarifying ther Perko series::
+
+            sage: for i in range(160, 166):              # optional - database_knotinfo
+            ....:     K = Knots().from_table(10, i)
+            ....:     print('%s_%s' %(10, i), '--->', K.identify_knotinfo())
+            10_160 ---> (<KnotInfo.K10_160: [244, 1]>, False)
+            10_161 ---> (<KnotInfo.K10_161: [245, 1]>, True)
+            10_162 ---> (<KnotInfo.K10_162: [246, 1]>, False)
+            10_163 ---> (<KnotInfo.K10_163: [247, 1]>, False)
+            10_164 ---> (<KnotInfo.K10_164: [248, 1]>, False)
+            10_165 ---> (<KnotInfo.K10_165: [249, 1]>, True)
+
+        Clarifying ther Perko series against SnapPy::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K10_160 = KnotInfo.K10_160            # optional - database_knotinfo
+            sage: for K in K10_160.next(5):             # optional - database_knotinfo snappy
+            ....:     k = K.link(use_item=K.items.name, snappy=True)
+            ....:     print(k, '--->', k.sage_link().identify_knotinfo())
+            Plink failed to import tkinter.
+            <Link 10_161: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: [245, 1]>, False)
+            <Link 10_162: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: [245, 1]>, True)
+            <Link 10_163: 1 comp; 10 cross> ---> (<KnotInfo.K10_162: [246, 1]>, True)
+            <Link 10_164: 1 comp; 10 cross> ---> (<KnotInfo.K10_163: [247, 1]>, True)
+            <Link 10_165: 1 comp; 10 cross> ---> (<KnotInfo.K10_164: [248, 1]>, True)
+
+            sage: import snappy                             # optional - snappy
+            sage: k10_166 = snappy.Link('10_166')           # optional - snappy
+            sage: k10_166.sage_link().identify_knotinfo()   # optional - database_knotinfo snappy
+             (<KnotInfo.K10_165: [249, 1]>, False)
         """
         from sage.knots.knotinfo import knotinfo_matching_list, is_knotinfo_available
         cr = len(self.pd_code())
@@ -3347,7 +3378,7 @@ class Link(SageObject):
         Hm = None
         l = knotinfo_matching_list(cr, co, homfly_polynomial=H)
         if not l:
-            # try with the mirrored Homfly-PT polynomial
+            # try with the mirrored HOMFLY-PT polynomial
             M, L = H.variables()
             Hm = H.subs(L=~L, M=-M)
             if H != Hm:
