@@ -72,11 +72,13 @@ jobs:
         run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential --verbose && pipenv run pip list
         env:
           ARB_LIBRARY: flint-arb
+          PIP_NO_BUILD_ISOLATION: true
       - name: Install editable manually
         run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i
         if: always()
         env:
           ARB_LIBRARY: flint-arb
+          PIP_NO_BUILD_ISOLATION: true
       - name: Install editable manually (2)
         run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
         if: always()
