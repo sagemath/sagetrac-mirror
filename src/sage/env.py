@@ -38,6 +38,7 @@ import sys
 import sysconfig
 import platform
 from . import version
+from pathlib import Path
 
 
 # All variables set by var() appear in this SAGE_ENV dict and also
@@ -279,11 +280,11 @@ def _get_shared_lib_filename(libname, *additional_libnames):
             if multilib:
                 libdirs.insert(1, os.path.join(libdirs[0], multilib))
 
+            filename = 'lib{}.{}'.format(libname, ext)
             for libdir in libdirs:
-                basename = 'lib{}.{}'.format(libname, ext)
-                filename = os.path.join(libdir, basename)
-                if os.path.exists(filename):
-                    return filename
+                path = next(Path(libdir).rglob(filename), None)
+                if path:
+                    return str(path)
 
     # Just return None if no files were found
     return None
