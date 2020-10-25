@@ -6,7 +6,7 @@ This module implements method related to :wikipedia:`Comparability_graph` and
 :wikipedia:`Permutation_graph`, that is, for the moment, only recognition
 algorithms.
 
-Most of the information found here can alo be found in [ST1994]_ or [Sha1997]_.
+Most of the information found here can also be found in [ST1994]_ or [Sha1997]_.
 
 The following methods are implemented in this module
 
@@ -161,7 +161,7 @@ Implementation details
 This is done by a call to :meth:`Graph.is_bipartite`, and here is how :
 
    Around a vertex `u`, any two edges `uv, uv'` such that `vv'\not\in G` are
-   equivalent. Hence, the equivalence classe of edges around a vertex are
+   equivalent. Hence, the equivalence class of edges around a vertex are
    precisely the connected components of the complement of the graph induced by
    the neighbors of `u`.
 

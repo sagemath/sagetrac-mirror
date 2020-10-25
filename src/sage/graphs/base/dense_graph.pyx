@@ -123,8 +123,8 @@ from libc.string cimport memcpy
 
 from cysignals.memory cimport sig_calloc, sig_realloc, sig_free
 
-cdef int radix = sizeof(unsigned long) * 8 # number of bits per 'unsigned long'
-cdef int radix_mod_mask = radix - 1        # (assumes that radis is a power of 2)
+cdef int radix = sizeof(unsigned long) * 8  # number of bits per 'unsigned long'
+cdef int radix_mod_mask = radix - 1         # (assumes that radix is a power of 2)
 
 cdef class DenseGraph(CGraph):
     """
