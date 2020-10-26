@@ -277,7 +277,6 @@ def _get_shared_lib_filename(libname, *additional_libnames) -> Optional[Path]:
                 search_directories.append(libdir / multilib),
             if (multiarchlib := sysconfig.get_config_var('MULTIARCH')) is not None: 
                 search_directories.append(libdir / multiarchlib),
-            print(search_directories)
 
             patterns = [f'lib{libname}.{ext}']
 
