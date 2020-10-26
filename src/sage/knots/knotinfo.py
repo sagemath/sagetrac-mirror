@@ -185,6 +185,7 @@ from enum import Enum
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.groups.braid import BraidGroup
 from sage.knots.knot import Knots
@@ -307,6 +308,11 @@ def knotinfo_bool(string):
         return False
     raise ValueError('%s is not a KnotInfo boolean')
 
+
+
+# ---------------------------------------------------------------------------------
+# KnotInfoBase
+# ---------------------------------------------------------------------------------
 class KnotInfoBase(Enum):
     r"""
     Enum class to select the knots and links listed in the databases at
@@ -317,6 +323,12 @@ class KnotInfoBase(Enum):
         sage: from sage.knots.knotinfo import KnotInfo
         sage: [knot.name for knot in KnotInfo if knot.crossing_number() < 5]
         ['K0_1', 'K3_1', 'K4_1', 'L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
+
+    TESTS:
+
+        sage: KnotInfo.K7_1.inject()
+        Defining K7_1
+        sage: TestSuite(K7_1).run()
     """
     @property
     def items(self):
@@ -1705,110 +1717,254 @@ class KnotInfoBase(Enum):
         import webbrowser
         return webbrowser.open(self[self.items.knotilus_page_anon], new=new, autoraise=autoraise)
 
+    def inject(self, verbose=True):
+        """
+        Inject ``self`` with its name into the namespace of the
+        Python code from which this function is called.
 
-    def next(self, num=1):
-        r"""
-        Return a list of `num` successors of self from the database.
+        INPUT:
+
+        - ``verbose`` -- boolean (optional default ``True``) to supress
+          the message printed on the invocation
 
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: K = KnotInfo.K5_1
-            sage: K.next()
-            <KnotInfo.K5_2: [4, 1]>
-            sage: K.next(2)
-            [<KnotInfo.K5_2: [4, 1]>, <KnotInfo.K6_1: [5, 1]>]
+            sage: KnotInfo.K5_2.inject()
+            Defining K5_2
+            sage: K5_2.is_alternating()
+            True
         """
-        count, num_components = self.value
-        res = []
-        for i in range(num):
-            try:
-                res.append(KnotInfo([count+1+i, num_components]))
-            except KeyError:
-                break
-        if num == 1:
-            if len(res) == 1:
-                return res[0]
-            return None
-        return res
+        name = self.name
+        if verbose:
+            print("Defining %s" % (name))
+        from sage.repl.user_globals import set_global
+        set_global(name, self)
 
 
-KnotInfo = KnotInfoBase('KnotInfo', db.read_row_dict())
 
-
-class KnotInfoSeries(SageObject):
+# --------------------------------------------------------------------------------------------
+# KnotInfoSeries
+# --------------------------------------------------------------------------------------------
+class KnotInfoSeries(UniqueRepresentation):
     r"""
+    This class can be used to access knots and links via their index
+    accordung to the series they belong to.
+
+    INPUT:
+
+    - ``crossing_number`` -- integer giving the crossing numer of this series of links
+    - ``is_knot``         -- boolean wether this series is a series of knots or proper links
+    - ``is_alternating``  -- boolean wether this series is restriced to alternatimg links or not.
+      This is not relevant for knots with less than 11 crossings
+    - ``name_unoriented`` -- string restricting the series to all links with that ``name_unoriented``
+
     EXAMPLES::
 
         sage: from sage.knots.knotinfo import KnotInfoSeries
-        sage: K4 = KnotInfoSeries(4,True, True)
-        sage: K4[1]
-        <KnotInfo.K4_1: [2, 1]>
+        sage: K6 = KnotInfoSeries(6, True, True); K6
+        Series of knots K6
+        sage: K6(3)
+        <KnotInfo.K6_3: [7, 1]>
+        sage: list(K6)
+        [<KnotInfo.K6_1: [5, 1]>, <KnotInfo.K6_2: [6, 1]>, <KnotInfo.K6_3: [7, 1]>]
+        sage: L6a = KnotInfoSeries(6, False, True); L6a
+        Series of links L6a
+        sage: L6a(2)
+        Series of links L6a2
+        sage: _.inject()
+        Defining L6a2
+        sage: list(L6a2)
+        [<KnotInfo.L6a2_0: [2986, 2]>, <KnotInfo.L6a2_1: [2987, 2]>]
     """
-    def __init__(self, crossing_number, knot, alternating, name_unoriented=None):
+    def __init__(self, crossing_number, is_knot, is_alternating, name_unoriented=None):
         r"""
+        Python constructor.
+        
+        EXAMPLES::
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: L6a = KnotInfoSeries(6, False, True); L6a
+            Series of links L6a
+            sage: TestSuite(L6a).run()
         """
         self._crossing_number   = crossing_number
-        self._knot              = knot
-        self._alternating       = alternating
+        self._is_knot           = is_knot
+        self._is_alternating    = is_alternating
         self._name_unoriented   = name_unoriented
         self._list              = None
 
     def list(self):
         r"""
+        Return this series as a Python list.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: K6 = KnotInfoSeries(6, True, True); K6
+            Series of knots K6
+            sage: K6(3)
+            <KnotInfo.K6_3: [7, 1]>
         """
         if self._list:
             return self._list
-        self._list = []
-        curr_name_unoriented = None
-        oriented_list = []
-        for K in KnotInfo:
-            if K.is_knot() != self._knot:
-                continue
-            if K.crossing_number() != self._crossing_number:
-                continue
-            if not self._knot or self._crossing_number > 10:
-                if not K.is_alternating() !=  self._alternating:
-                    continue
-            if not self._knot:
-                if K.name_unoriented()  != curr_name_unoriented:
-                    if curr_name_unoriented:
-                        self._list.append((curr_name_unoriented, oriented_list))
-                    curr_name_unoriented = K.name_unoriented()
-                    oriented_list = [K]
-                else:
-                    oriented_list.append(K)
-            else:
-                self._list.append(K)
 
-        if not self._knot:
-            self._list.append((curr_name_unoriented, oriented_list))
+        is_knot  = self._is_knot
+        cross_nr = self._crossing_number
+        is_alt   = self._is_alternating
+        n_unori  = self._name_unoriented
+
+        self._list = []
+        curr_n_unori = None
+        for K in KnotInfo:
+            if K.is_knot() != is_knot:
+                continue
+            if K.crossing_number() != cross_nr:
+                continue
+            if not is_knot or cross_nr > 10:
+                if K.is_alternating() !=  is_alt:
+                    continue
+            if is_knot:
+                self._list.append(K)
+            else:
+                this_n_unori = K.name_unoriented()
+                if n_unori:
+                    if this_n_unori  != n_unori:
+                        continue
+                    self._list.append(K)
+                elif this_n_unori  != curr_n_unori:
+                    if curr_n_unori:
+                        self._list.append(KnotInfoSeries(cross_nr, is_knot, is_alt, curr_n_unori))
+                    curr_n_unori = this_n_unori
+                else:
+                    continue
+
+        if curr_n_unori:
+            self._list.append(KnotInfoSeries(cross_nr, is_knot, is_alt, curr_n_unori))
         return self._list
+
 
     def __repr__(self):
         r"""
-        """
-        alt = 'a'
-        if not self._alternating:
-            alt = 'n'
+        Return the representation string of ``self``.
 
-        if self._knot:
-            if self._crossing_number > 10:
-                res = 'K%s%s' %(self._crossing_number, alt)
-            else:
-                res = 'K%s' %(self._crossing_number)
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: KnotInfoSeries(6, True, True)
+            Series of knots K6
+            sage: _.__repr__()
+            'Series of knots K6'
+        """
+        if self._is_knot:
+            return 'Series of knots %s' %(self._name())
         else:
-            res = 'L%s%s' %(self._crossing_number, alt)
-        return res
+            return 'Series of links %s' %(self._name())
+
 
     def __getitem__(self, item):
         r"""
+        Return the given ``item`` from the list of ``self``
+        (making the Python build-in ``list`` work).
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: KnotInfoSeries(6, True, True).inject()
+            Defining K6
+            sage: list(K6)                      # indirect doctest
+            [<KnotInfo.K6_1: [5, 1]>, <KnotInfo.K6_2: [6, 1]>, <KnotInfo.K6_3: [7, 1]>]
         """
         from sage.rings.integer import Integer
         if  not type(item) in (int, Integer):
             raise ValueError('Item must be an integer')
         l =self.list()
-        if item < 1 or item  > len(l):
-            raise ValueError('Item must be positive and smaller than %s' %(len(l)))
+        max_item = len(l)
+        if item < 0 or item  > max_item:
+            raise ValueError('Item must be non negative and smaller than %s' %(max_item))
+
+        return l[item]
+
+    def __call__(self, item):
+        r"""
+        Return the given ``item`` from the list of ``self``
+        (making the function call for ``self`` work).
+        In contrast to ``__getitem__`` the first ``item``
+        has to be ``1`` (not ``0``).
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: KnotInfoSeries(6, True, True).inject()
+            Defining K6
+            sage: K6(2)                         # indirect doctest
+            <KnotInfo.K6_2: [6, 1]>
+        """
+        from sage.rings.integer import Integer
+        if  not type(item) in (int, Integer):
+            raise ValueError('Item must be an integer')
+        l =self.list()
+        max_item = len(l)+1
+        if item < 1 or item  > max_item:
+            raise ValueError('Item must be positive and smaller than %s' %(max_item))
 
         return l[item-1]
+
+    def _name(self):
+        r"""
+        Return the name of the series.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: KnotInfoSeries(6, True, True)._name()
+            'K6'
+        """
+        is_knot  = self._is_knot
+        cross_nr = self._crossing_number
+        is_alt   =  self._is_alternating
+        n_unori  = self._name_unoriented
+
+        alt = 'a'
+        if not is_alt:
+            alt = 'n'
+
+        if is_knot:
+            if cross_nr > 10:
+                res = 'K%s%s' %(cross_nr, alt)
+            else:
+                res = 'K%s' %(cross_nr)
+        elif n_unori:
+            res = '%s' %(n_unori)
+        else:
+            res = 'L%s%s' %(cross_nr, alt)
+        return res
+
+
+    def inject(self, verbose=True):
+        """
+        Inject ``self`` with its name into the namespace of the
+        Python code from which this function is called.
+
+        INPUT:
+
+        - ``verbose`` -- boolean (optional default ``True``) to supress
+          the message printed on the invocation
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: KnotInfoSeries(6, True, True).inject()
+            Defining K6
+            sage: K6(2)
+            <KnotInfo.K6_2: [6, 1]>
+        """
+        name = self._name()
+        if verbose:
+            print("Defining %s" % (name))
+        from sage.repl.user_globals import set_global
+        set_global(name, self)
+
+
+
+
+KnotInfo = KnotInfoBase('KnotInfo', db.read_row_dict())

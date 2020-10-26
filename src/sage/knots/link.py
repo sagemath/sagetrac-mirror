@@ -3341,9 +3341,11 @@ class Link(SageObject):
 
         Clarifying ther Perko series against SnapPy::
 
-            sage: from sage.knots.knotinfo import KnotInfo
-            sage: K10_160 = KnotInfo.K10_160            # optional - database_knotinfo
-            sage: for K in K10_160.next(5):             # optional - database_knotinfo snappy
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: KnotInfoSeries(10, True, True).inject()  # optional - database_knotinfo
+            Defining K10
+            sage: for i in range(160, 165):                # optional - database_knotinfo snappy
+            ....:     K = K10(i)
             ....:     k = K.link(use_item=K.items.name, snappy=True)
             ....:     print(k, '--->', k.sage_link().identify_knotinfo())
             Plink failed to import tkinter.
