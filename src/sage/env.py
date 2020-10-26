@@ -29,6 +29,7 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 # ****************************************************************************
 
 from __future__ import absolute_import
+from typing import Optional
 
 import sage
 import glob
@@ -207,7 +208,7 @@ var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
 
-def _get_shared_lib_filename(libname, *additional_libnames):
+def _get_shared_lib_filename(libname, *additional_libnames) -> Optional[Path]:
     """
     Return the full path to a shared library file installed in
     ``$SAGE_LOCAL/lib`` or the directories associated with the
@@ -247,44 +248,44 @@ def _get_shared_lib_filename(libname, *additional_libnames):
     """
 
     for libname in (libname,) + additional_libnames:
+        search_directories: list[Path] = []
+        patterns: list[str] = []
         if sys.platform == 'cygwin':
-            # Later down we take the last matching DLL found, so search
-            # SAGE_LOCAL second so that it takes precedence
-            bindirs = [
-                sysconfig.get_config_var('BINDIR'),
-                os.path.join(SAGE_LOCAL, 'bin')
+            # Later down we take the first matching DLL found, so search
+            # SAGE_LOCAL first so that it takes precedence
+            search_directories = [
+                Path(SAGE_LOCAL) / 'bin',
+                Path(sysconfig.get_config_var('BINDIR')),
             ]
-            pats = ['cyg{}.dll'.format(libname), 'cyg{}-*.dll'.format(libname)]
-            filenames = []
-            for bindir in bindirs:
-                for pat in pats:
-                    filenames += glob.glob(os.path.join(bindir, pat))
-
-            # Note: This is not very robust, since if there are multi DLL
-            # versions for the same library this just selects one more or less
-            # at arbitrary.  However, practically speaking, on Cygwin, there
+            # Note: The following is not very robust, since if there are multible
+             # versions for the same library this just selects one more or less
+            # at arbitrary. However, practically speaking, on Cygwin, there
             # will only ever be one version
-            if filenames:
-                return filenames[-1]
+            patterns = [f'cyg{libname}.dll', f'cyg{libname}-*.dll']
         else:
             if sys.platform == 'darwin':
                 ext = 'dylib'
             else:
                 ext = 'so'
 
-            libdirs = [
-                os.path.join(SAGE_LOCAL, 'lib'),
-                sysconfig.get_config_var('LIBDIR')
+            libdir = Path(sysconfig.get_config_var('LIBDIR'))
+            search_directories = [
+                Path(SAGE_LOCAL) / 'lib',
+                libdir
             ]
-            multilib = sysconfig.get_config_var('MULTILIB')
-            if multilib:
-                libdirs.insert(1, os.path.join(libdirs[0], multilib))
+            if (multilib := sysconfig.get_config_var('MULTILIB')) is not None: 
+                search_directories.append(libdir / multilib),
+            if (multiarchlib := sysconfig.get_config_var('MULTIARCH')) is not None: 
+                search_directories.append(libdir / multiarchlib),
+            print(search_directories)
 
-            filename = 'lib{}.{}'.format(libname, ext)
-            for libdir in libdirs:
-                path = next(Path(libdir).rglob(filename), None)
+            patterns = [f'lib{libname}.{ext}']
+
+        for directory in search_directories:
+            for pattern in patterns:
+                path = next(directory.glob(pattern), None)
                 if path:
-                    return str(path)
+                    return path
 
     # Just return None if no files were found
     return None
