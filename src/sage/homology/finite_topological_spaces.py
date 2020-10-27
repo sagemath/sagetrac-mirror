@@ -84,8 +84,12 @@ def FiniteSpace(data, elements=None, is_T0=False):
       4. A finite poset (by now if ``poset._is_facade = False``, the methods are
          not completely tested).
 
-    - ``elements`` -- it is ignored when data is of type 1, 2 or 4. When ``data``
-      is a topogenous matrix, this parameter gives the underlying set of the space.
+    - ``elements`` -- (default ``None``) it is ignored when data is of type 1, 2
+      or 4. When ``data`` is a topogenous matrix, this parameter gives the 
+      underlying set of the space.
+      
+    - ``is_T0`` -- (default ``False``) it is a boolean that indicates, when it is 
+      previously known, if the finite space is `T_0.
 
     EXAMPLES:
 
@@ -996,7 +1000,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
                    "Elements of poset and minimal_basis do not coincide"
             self._elements = poset.list()
         else:
-            # Construir el poset
+            # Construct poset
             elmts = self._elements
             f = lambda x, y: self._topogenous[elmts.index(x), elmts.index(y)]==1
             poset = Poset((elmts, f), linear_extension=True) 
@@ -1048,4 +1052,40 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         """
         return self._poset
         
+    def order_complex(self):
+        r"""
+        Return the order complex of the finite space i.e. the simplicial complex
+        whose simplices are the nonempty chains of ``self.poset()``.
         
+        EXAMPLES::
+        
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = ({0}, {0, 1}, {0, 1, 2}, {0, 3})
+            sage: T = FiniteSpace(minimal_basis) ; T
+            Finite T0 topological space of 4 points with minimal basis
+             {0: {0}, 1: {0, 1}, 2: {0, 1, 2}, 3: {0, 3}}
+            sage: T.order_complex()
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 3), (0, 1, 2)}
+        """
+        return self._poset.order_complex()
+        
+    def barycentric_subdivision(self):
+        r"""
+        Return the barycentric subdivision of the finite space i.e. the face poset
+        of its order complex.
+        
+        EXAMPLES::
+        
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = ({0}, {0, 1}, {0, 1, 2}, {0, 3})
+            sage: T = FiniteSpace(minimal_basis) ; T
+            Finite T0 topological space of 4 points with minimal basis
+             {0: {0}, 1: {0, 1}, 2: {0, 1, 2}, 3: {0, 3}}
+            sage: T.barycentric_subdivision()
+            Finite T0 topological space of 9 points with minimal basis 
+             {(3,): {(3,)}, (2,): {(2,)}, (1,): {(1,)}, (1, 2): {(2,), (1,), (1, 2)},
+             (0,): {(0,)}, (0, 1): {(1,), (0,), (0, 1)}, (0, 2): {(2,), (0,), (0, 2)},
+             (0, 1, 2): {(2,), (1,), (1, 2), (0,), (0, 1), (0, 2), (0, 1, 2)},
+             (0, 3): {(3,), (0,), (0, 3)}}
+        """
+        return FiniteSpace(self._poset.order_complex().face_poset(), is_T0=True)
