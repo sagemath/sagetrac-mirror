@@ -653,8 +653,8 @@ class KnotInfoDataBase(SageObject):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: len(ki_db.read_row_dict())          # optional - database_knotinfo
-            7166
+            sage: ki_db.read_row_dict()['K7_1']
+            [8, 1]
         """
         if not self.is_available():
             return row_demo_sample
@@ -663,7 +663,32 @@ class KnotInfoDataBase(SageObject):
         return load('%s/%s' %(lib_path, filename))
 
     # -------------------------------------------------------------------------------------------------------------
-    # read the dictionary for the row names that is the knot and link names from sobj-file
+    # return a dictionary to obtain the original name to a row_dict key
+    # -------------------------------------------------------------------------------------------------------------
+    @cached_method
+    def row_names(self):
+        r"""
+        Return a dictionary to obtain the original name to a row_dict key
+
+        OUTPUT:
+
+        A python dictionary containing the names of the knots and links
+        together with their original names from the database,
+
+        EXAMPLES::
+
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.row_names()['K7_1']      # optional - database_knotinfo
+            '7_1'
+        """
+        row_dict = self.read_row_dict()
+        names = self.read(self.columns().name)
+        return {k:names[v[0]] for k, v in row_dict.items()}
+
+
+    # -------------------------------------------------------------------------------------------------------------
+    # read the number of knots contained in the database (without proper links) from the according sobj-file.
     # -------------------------------------------------------------------------------------------------------------
     def read_num_knots(self):
         r"""
@@ -730,6 +755,7 @@ class KnotInfoDataBase(SageObject):
 
 column_demo_sample = {
     'name':                 ['Name',                 KnotInfoColumnTypes.KnotsAndLinks],
+    'name_unoriented':      ['Name - Unoriented',    KnotInfoColumnTypes.OnlyLinks],
     'dt_notation':          ['DT Notation',          KnotInfoColumnTypes.OnlyKnots],
     'gauss_notation':       ['Gauss Notation',       KnotInfoColumnTypes.KnotsAndLinks],
     'pd_notation':          ['PD Notation',          KnotInfoColumnTypes.OnlyKnots],
@@ -783,6 +809,11 @@ db = KnotInfoDataBase()
 dc = db.columns()
 
 data_demo_sample = {
+    dc.name: ['0_1', '3_1', '4_1', '5_1', '5_2', '6_1', '6_2', '6_3', '7_1', '7_2',
+              'L2a1{0}', 'L2a1{1}', 'L4a1{0}', 'L4a1{1}', 'L5a1{0}', 'L5a1{1}',
+              'L6a1{0}', 'L6a1{1}', 'L6a2{0}', 'L6a2{1}', 'L6a3{0}'
+             ],
+    dc.name_unoriented: ['L2a1', 'L2a1', 'L4a1', 'L4a1', 'L5a1', 'L5a1', 'L6a1', 'L6a1', 'L6a2', 'L6a2', 'L6a3'],
     dc.crossing_number: ['0', '3', '4', '5', '5', '6', '6', '6', '7', '7', '2', '2', '4', '4', '5', '5', '6', '6', '6', '6', '6'],
     dc.braid_notation: [
         '',

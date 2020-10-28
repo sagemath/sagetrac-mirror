@@ -3249,6 +3249,7 @@ class Link(SageObject):
             ims += sum(line(a[0], **kwargs) for a in im)
         return image
 
+
     def identify_knotinfo(self, oriented=True, mirror_version=True, unique=True):
         """
         Identify this link as an item of the KontInfo database (if possible).
@@ -3257,7 +3258,9 @@ class Link(SageObject):
 
         - ``oriented`` -- boolean (default is ``True``). If set to ``False`` the orientation
           of the link will be ignored and instead of an instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
-          a string will be returned giving KnotInfo's ``name_unoriented``
+          a series of links (instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`) will be
+          returned collecting all links having the same `name_unoriented` (if this is unique
+          for ``self``)
 
         - ``mirror_version`` -- boolean (default is ``True``). If set to ``False`` the result
           of the method will be just the instance of :class:`~sage.knots.knotinfo.KnotInfoBase` (by default the result
@@ -3272,8 +3275,8 @@ class Link(SageObject):
         A tuple ``(K, m)`` where ``K`` is an instance of :class:`~sage.knots.knotinfo.KnotInfoBase` and ``m`` a
         boolean telling if ``self`` corresponse to the mirrored version of ``K`` or not.
 
-        If ``oriented`` is set to ``False`` then the result is a string giving KnotInfo's
-        ``name_unoriented`` of one of the oriented matching items as long as this is unique.
+        If ``oriented`` is set to ``False`` then the result is a series of links (instance of
+        :class:`~sage.knots.knotinfo.KnotInfoSeries`, see explanation above).
 
         If ``mirror_version`` is set to ``False`` then the result is just ``K`` (that is ``m``
         is suppressed).
@@ -3290,12 +3293,12 @@ class Link(SageObject):
             ....:           [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
             ....:           [22,18,1,17], [8,19,9,20], [21,14,22,15]])
             sage: L.identify_knotinfo()                                 # optional - database_knotinfo
-            (<KnotInfo.K11n_121: [737, 1]>, True)
+            (<KnotInfo.K11n_121: '11n_121'>, True)
 
             sage: K = KnotInfo.K10_25                                   # optional - database_knotinfo
             sage: l = K.link()                                          # optional - database_knotinfo
             sage: l.identify_knotinfo()                                 # optional - database_knotinfo
-            (<KnotInfo.K10_25: [109, 1]>, False)
+            (<KnotInfo.K10_25: '10_25'>, False)
 
         Lets identify the monster unknot (works without the database, as well)::
 
@@ -3303,7 +3306,7 @@ class Link(SageObject):
             ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
             ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
             sage: L.identify_knotinfo()
-            (<KnotInfo.K0_1: [0, 1]>, False)
+            (<KnotInfo.K0_1: '0_1'>, False)
 
         Usage of option ``mirror_version``::
 
@@ -3314,7 +3317,11 @@ class Link(SageObject):
 
             sage: L = KnotInfo.L10a122_0_0.link()                       # optional - database_knotinfo
             sage: L.identify_knotinfo(oriented=False)                   # optional - database_knotinfo
-            ('L10a122', False)
+            (Series of links L10a122, False)
+            sage: _[0].inject()                                         # optional - database_knotinfo
+            Defining L10a122
+            sage: [L.is_isotopic(Ls.link()) for Ls in L10a122]          # optional - database_knotinfo
+            [True, False, False, False]
 
         Usage of option ``unique``::
 
@@ -3325,42 +3332,43 @@ class Link(SageObject):
             NotImplementedError: Sorry, this link cannot be uniquely determined
 
             sage: l.identify_knotinfo(unique=False)                     # optional - database_knotinfo
-            [<KnotInfo.K10_25: [109, 1]>, <KnotInfo.K10_56: [140, 1]>]
+            [<KnotInfo.K10_25: '10_25'>, <KnotInfo.K10_56: '10_56'>]
 
-        Clarifying ther Perko series::
+        Clarifying the Perko series::
 
             sage: for i in range(160, 166):              # optional - database_knotinfo
             ....:     K = Knots().from_table(10, i)
             ....:     print('%s_%s' %(10, i), '--->', K.identify_knotinfo())
-            10_160 ---> (<KnotInfo.K10_160: [244, 1]>, False)
-            10_161 ---> (<KnotInfo.K10_161: [245, 1]>, True)
-            10_162 ---> (<KnotInfo.K10_162: [246, 1]>, False)
-            10_163 ---> (<KnotInfo.K10_163: [247, 1]>, False)
-            10_164 ---> (<KnotInfo.K10_164: [248, 1]>, False)
-            10_165 ---> (<KnotInfo.K10_165: [249, 1]>, True)
+            10_160 ---> (<KnotInfo.K10_160: '10_160'>, False)
+            10_161 ---> (<KnotInfo.K10_161: '10_161'>, True)
+            10_162 ---> (<KnotInfo.K10_162: '10_162'>, False)
+            10_163 ---> (<KnotInfo.K10_163: '10_163'>, False)
+            10_164 ---> (<KnotInfo.K10_164: '10_164'>, False)
+            10_165 ---> (<KnotInfo.K10_165: '10_165'>, True)
 
-        Clarifying ther Perko series against SnapPy::
+        Clarifying ther Perko series against `SnapPy <https://snappy.math.uic.edu/index.html>`__::
 
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(10, True, True).inject()  # optional - database_knotinfo
             Defining K10
-            sage: for i in range(160, 165):                # optional - database_knotinfo snappy
+            sage: for i in range(160, 166):                # optional - database_knotinfo snappy
             ....:     K = K10(i)
             ....:     k = K.link(use_item=K.items.name, snappy=True)
             ....:     print(k, '--->', k.sage_link().identify_knotinfo())
             Plink failed to import tkinter.
-            <Link 10_161: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: [245, 1]>, False)
-            <Link 10_162: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: [245, 1]>, True)
-            <Link 10_163: 1 comp; 10 cross> ---> (<KnotInfo.K10_162: [246, 1]>, True)
-            <Link 10_164: 1 comp; 10 cross> ---> (<KnotInfo.K10_163: [247, 1]>, True)
-            <Link 10_165: 1 comp; 10 cross> ---> (<KnotInfo.K10_164: [248, 1]>, True)
+            <Link 10_160: 1 comp; 10 cross> ---> (<KnotInfo.K10_160: '10_160'>, True)
+            <Link 10_161: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: '10_161'>, False)
+            <Link 10_162: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: '10_161'>, True)
+            <Link 10_163: 1 comp; 10 cross> ---> (<KnotInfo.K10_162: '10_162'>, True)
+            <Link 10_164: 1 comp; 10 cross> ---> (<KnotInfo.K10_163: '10_163'>, True)
+            <Link 10_165: 1 comp; 10 cross> ---> (<KnotInfo.K10_164: '10_164'>, True)
 
             sage: import snappy                             # optional - snappy
             sage: k10_166 = snappy.Link('10_166')           # optional - snappy
             sage: k10_166.sage_link().identify_knotinfo()   # optional - database_knotinfo snappy
-             (<KnotInfo.K10_165: [249, 1]>, False)
+             (<KnotInfo.K10_165: '10_165'>, False)
         """
-        from sage.knots.knotinfo import knotinfo_matching_list, is_knotinfo_available
+        from sage.knots.knotinfo import knotinfo_matching_list, is_knotinfo_available, KnotInfoSeries
         cr = len(self.pd_code())
         co = self.number_of_components()
         if co == 1 and cr > 12:
@@ -3392,7 +3400,7 @@ class Link(SageObject):
 
         def answer(res, mirror):
             if not oriented:
-                res = res.name_unoriented()
+                res = KnotInfoSeries(res.crossing_number(), res.is_knot(), res.is_alternating(), res.name_unoriented())
 
             if mirror_version:
                 return res, mirror
@@ -3466,8 +3474,9 @@ class Link(SageObject):
             return False
 
         ki = self.identify_knotinfo()
-        if ki:
-            if ki == other.identify_knotinfo():
-                return True
+        if ki and type(ki) == tuple:
+            kio = other.identify_knotinfo()
+            if kio and type(kio) == tuple:
+                return ki == kio
 
         raise NotImplementedError('Comparison not possible!')

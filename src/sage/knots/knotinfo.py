@@ -40,6 +40,20 @@ EXAMPLES::
     sage: L.num_components()
     2
 
+Injecting the variable name into the namespace::
+
+    sage: KnotInfo.K5_1.inject()
+    Defining K5_1
+    sage: K5_1.dt_notation()
+    [6, 8, 10, 2, 4]
+
+Defining a link from the original name string::
+
+    sage: KnotInfo('L6a1{1}').inject()
+    Defining L6a1_1
+    sage: L6a1_1.is_alternating()
+    True
+
 Obtaining an instance of :class:`~sage.groups.braid.Braid`::
 
     sage: L.braid()
@@ -153,7 +167,7 @@ in the KnotInfo database::
     ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
     ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
     sage: L.identify_knotinfo()
-    (<KnotInfo.K0_1: [0, 1]>, False)
+    (<KnotInfo.K0_1: '0_1'>, False)
 
 
 REFERENCES:
@@ -232,7 +246,7 @@ def knotinfo_matching_list(number_of_crossings, num_components, homfly_polynomia
 
         sage: from sage.knots.knotinfo import KnotInfo, knotinfo_matching_list
         sage: knotinfo_matching_list(3,1)
-        [<KnotInfo.K0_1: [0, 1]>, <KnotInfo.K3_1: [1, 1]>]
+        [<KnotInfo.K0_1: '0_1'>, <KnotInfo.K3_1: '3_1'>]
         sage: [l.name for l in knotinfo_matching_list(4,2)]
         ['L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
         sage: L = KnotInfo.L6a3_0                            # optional - database_knotinfo
@@ -394,11 +408,12 @@ class KnotInfoBase(Enum):
             raise KeyError('Item not available for links' %(KnotInfoColumns))
 
         l = db.read(item)
+        ind = db.read_row_dict()[self.name][0]
         offset = 0
         if item.column_type() == item.types.OnlyLinks:
             offset = self._offset_knots()
 
-        return l[self.value[0]-offset]
+        return l[ind-offset]
 
     def _offset_knots(self):
         r"""
@@ -695,7 +710,7 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.L6a1_0.num_components()
             2
         """
-        return self.value[1]
+        return db.read_row_dict()[self.name][1]
 
     @cached_method
     def crossing_number(self):
@@ -1508,7 +1523,8 @@ class KnotInfoBase(Enum):
           - ``self.items.gauss_notation`` (only for knots and ``snappy=False``)
         - ``snappy`` boolean (default ``False``) if set to ``True``
           the target of the conversion is the ``pip`` installable
-          package ``SnapPy`` (explicitely, :class:`~spherogram.links.invariants.Link`).
+          package `SnapPy <https://snappy.math.uic.edu/index.html>`__
+          (explicitely, :class:`~spherogram.links.invariants.Link`).
           If SnapPy is not installed an ``ImportError`` is raised. To
           install SnapPy use ``sage -pip install snappy``.
 
@@ -1644,6 +1660,58 @@ class KnotInfoBase(Enum):
 
         raise ValueError('Link construction using %s not possible' %use_item)
 
+
+    def inject(self, verbose=True):
+        """
+        Inject ``self`` with its name into the namespace of the
+        Python code from which this function is called.
+
+        INPUT:
+
+        - ``verbose`` -- boolean (optional default ``True``) to supress
+          the message printed on the invocation
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.inject()
+            Defining K5_2
+            sage: K5_2.is_alternating()
+            True
+        """
+        name = self.name
+        if verbose:
+            print("Defining %s" % (name))
+        from sage.repl.user_globals import set_global
+        set_global(name, self)
+
+    def series(self, overview=True):
+        r"""
+        Return the series of links ``self`` belongs to.
+
+        INPUT:
+
+        - ``overview`` -- boolean (optional, default ``True``) if set to ``False``
+          the series will be reduced to the unoriented type of ``self``
+          in the case of proper links.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: K5 = KnotInfo.K5_2.series()
+            sage: K5(1)
+            <KnotInfo.K5_1: '5_1'>
+            sage: KnotInfo.L4a1_1.series().inject()
+            Defining L4a
+            sage: L4a(1)
+            Series of links L4a1
+        """
+        if overview:
+            S = KnotInfoSeries(self.crossing_number(), self.is_knot(), self.is_alternating())
+        else:
+            S = KnotInfoSeries(self.crossing_number(), self.is_knot(), self.is_alternating(), self.name_unoriented())
+        return S
+
     def diagram(self, single=False, new=0, autoraise=True):
         r"""
         Launch the diagram of ``self`` given on the KnotInfo web-page.
@@ -1717,30 +1785,6 @@ class KnotInfoBase(Enum):
         import webbrowser
         return webbrowser.open(self[self.items.knotilus_page_anon], new=new, autoraise=autoraise)
 
-    def inject(self, verbose=True):
-        """
-        Inject ``self`` with its name into the namespace of the
-        Python code from which this function is called.
-
-        INPUT:
-
-        - ``verbose`` -- boolean (optional default ``True``) to supress
-          the message printed on the invocation
-
-        EXAMPLES::
-
-            sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.K5_2.inject()
-            Defining K5_2
-            sage: K5_2.is_alternating()
-            True
-        """
-        name = self.name
-        if verbose:
-            print("Defining %s" % (name))
-        from sage.repl.user_globals import set_global
-        set_global(name, self)
-
 
 
 # --------------------------------------------------------------------------------------------
@@ -1765,9 +1809,9 @@ class KnotInfoSeries(UniqueRepresentation):
         sage: K6 = KnotInfoSeries(6, True, True); K6
         Series of knots K6
         sage: K6(3)
-        <KnotInfo.K6_3: [7, 1]>
+        <KnotInfo.K6_3: '6_3'>
         sage: list(K6)
-        [<KnotInfo.K6_1: [5, 1]>, <KnotInfo.K6_2: [6, 1]>, <KnotInfo.K6_3: [7, 1]>]
+        [<KnotInfo.K6_1: '6_1'>, <KnotInfo.K6_2: '6_2'>, <KnotInfo.K6_3: '6_3'>]
         sage: L6a = KnotInfoSeries(6, False, True); L6a
         Series of links L6a
         sage: L6a(2)
@@ -1775,12 +1819,18 @@ class KnotInfoSeries(UniqueRepresentation):
         sage: _.inject()
         Defining L6a2
         sage: list(L6a2)
-        [<KnotInfo.L6a2_0: [2986, 2]>, <KnotInfo.L6a2_1: [2987, 2]>]
+        [<KnotInfo.L6a2_0: 'L6a2{0}'>, <KnotInfo.L6a2_1: 'L6a2{1}'>]
+        sage: L6a2(0).series() == L6a
+        True
+        sage: L6a2(0) == L6a2('0')
+        True
     """
+
+
     def __init__(self, crossing_number, is_knot, is_alternating, name_unoriented=None):
         r"""
         Python constructor.
-        
+
         EXAMPLES::
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: L6a = KnotInfoSeries(6, False, True); L6a
@@ -1803,7 +1853,7 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: K6 = KnotInfoSeries(6, True, True); K6
             Series of knots K6
             sage: K6(3)
-            <KnotInfo.K6_3: [7, 1]>
+            <KnotInfo.K6_3: '6_3'>
         """
         if self._list:
             return self._list
@@ -1872,7 +1922,7 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: KnotInfoSeries(6, True, True).inject()
             Defining K6
             sage: list(K6)                      # indirect doctest
-            [<KnotInfo.K6_1: [5, 1]>, <KnotInfo.K6_2: [6, 1]>, <KnotInfo.K6_3: [7, 1]>]
+            [<KnotInfo.K6_1: '6_1'>, <KnotInfo.K6_2: '6_2'>, <KnotInfo.K6_3: '6_3'>]
         """
         from sage.rings.integer import Integer
         if  not type(item) in (int, Integer):
@@ -1897,8 +1947,24 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: KnotInfoSeries(6, True, True).inject()
             Defining K6
             sage: K6(2)                         # indirect doctest
-            <KnotInfo.K6_2: [6, 1]>
+            <KnotInfo.K6_2: '6_2'>
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.L8a21_0_1_0.inject()               # optional - database_knotinfo
+            Defining L8a21_0_1_0
+            sage: L8a21_0_1_0.series()(1)                     # optional - database_knotinfo
+            Series of links L8a1
+            sage: L8a21_0_1_0.series()(21)(2) == L8a21_0_1_0  # optional - database_knotinfo
+            True
+            sage: L8a21_0_1_0.series()(21)('010') == L8a21_0_1_0   # optional database_knotinfo
+            True
         """
+        if self._name_unoriented:
+            if type(item) == str:
+                # allow input as dual number according to naming
+                item = int(item, 2)
+            return self[item]
+
         from sage.rings.integer import Integer
         if  not type(item) in (int, Integer):
             raise ValueError('Item must be an integer')
@@ -1956,7 +2022,7 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: KnotInfoSeries(6, True, True).inject()
             Defining K6
             sage: K6(2)
-            <KnotInfo.K6_2: [6, 1]>
+            <KnotInfo.K6_2: '6_2'>
         """
         name = self._name()
         if verbose:
@@ -1967,4 +2033,4 @@ class KnotInfoSeries(UniqueRepresentation):
 
 
 
-KnotInfo = KnotInfoBase('KnotInfo', db.read_row_dict())
+KnotInfo = KnotInfoBase('KnotInfo', db.row_names())
