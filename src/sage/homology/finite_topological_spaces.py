@@ -475,8 +475,6 @@ class FiniteTopologicalSpace(Parent):
             raise ValueError("The point {} is not an element of the space".format(x))
         else:
             return self._minimal_basis[x]
-            
-    Ux = minimal_open_set # Notation extensively used in the literature
 
     def topogenous_matrix(self):
         r"""
@@ -577,6 +575,156 @@ class FiniteTopologicalSpace(Parent):
                     if class_x is None:
                             raise ValueError("Parameter 'points' is not a valid set of representatives")
             return self.subspace(points, is_T0=True)
+
+    def Ux(self, x):
+        r"""
+        Return the list of the elements in the minimal open set containing ``x``.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
+                                   4: {2, 4, 5, 6}, 1: {1, 5}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.Ux(2)
+            [5, 6, 2]
+
+        TESTS::
+
+            sage: import random
+            sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
+            sage: x = random.choice(T._elements)
+            sage: T.is_contractible(T.Ux(x))
+            True
+        """
+        return sorted(self._minimal_basis[x], key=self.space_sorting)
+
+    def Fx(self, x):
+        r"""
+        Return the list of the elements in the closure of `\lbrace x\rbrace`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
+                                   4: {2, 4, 5, 6}, 1: {1, 5}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.Fx(2)
+            [2, 4]
+
+        TESTS::
+
+            sage: import random
+            sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
+            sage: x = random.choice(T._elements)
+            sage: T.is_contractible(T.Fx(x))
+            True
+        """
+        result = [y for y in self._elements if x in self._minimal_basis[y]]
+        if result==[]:
+            raise ValueError("The point {} is not an element of the space".format(x))
+        return result
+
+    def Cx(self, x):
+        r"""
+        Return the list of the elements in the star of ``x``.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
+                                   4: {2, 4, 5, 6}, 1: {1, 5}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.Cx(2)
+            [5, 6, 2, 4]
+
+        TESTS::
+
+            sage: import random
+            sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
+            sage: x = random.choice(T._elements)
+            sage: T.is_contractible(T.Cx(x))
+            True
+        """
+        return self.Ux(x) + self.Fx(x)[1:]
+
+    def Ux_tilded(self, x):
+        r"""
+        Return the list of the elements in `\widehat{U}_x = U_x \minus \lbrace x\rbrace`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
+                                   4: {2, 4, 5, 6}, 1: {1, 5}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.Ux_tilded(2)
+            [5, 6]
+        """
+        return self.Ux(x)[:-1]
+
+    def Fx_tilded(self, x):
+        r"""
+        Return the list of the elements in `\widehat{F}_x = F_x \minus \lbrace x\rbrace`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
+                                   4: {2, 4, 5, 6}, 1: {1, 5}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.Fx_tilded(2)
+            [4]
+        """
+        return self.Fx(x)[1:]
+
+    def Cx_tilded(self, x):
+        r"""
+        Return the list of the elements in `\widehat{C}_x = C_x \minus \lbrace x\rbrace`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 6: {5, 6}, 3: {3, 5}, 2: {2, 5, 6}, \
+                                   4: {2, 4, 5, 6}, 1: {1, 5}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.Cx_tilded(2)
+            [5, 6, 4]
+        """
+        return self.Ux(x)[:-1] + self.Fx(x)[1:]
+
+    def opposite(self):
+        r"""
+        Return the opposite space of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: mat_dict = {(0, 0): 1, (0, 3): 1, (0, 4): 1, (1, 1): 1, (1, 2): 1, (2, 1): 1, \
+            ....:             (2, 2): 1, (3, 3): 1, (3, 4): 1, (4, 3): 1, (4, 4): 1}
+            sage: T = FiniteSpace(matrix(mat_dict))
+            sage: T
+            Finite topological space of 5 points with minimal basis 
+             {0: {0}, 1: {1, 2}, 2: {1, 2}, 3: {0, 3, 4}, 4: {0, 3, 4}}
+            sage: T.opposite()
+            Finite topological space of 5 points with minimal basis 
+             {0: {3, 4, 0}, 1: {1, 2}, 2: {1, 2}, 3: {3, 4}, 4: {3, 4}}
+            sage: T.topogenous_matrix()
+            [1 0 0 1 1]
+            [0 1 1 0 0]
+            [0 1 1 0 0]
+            [0 0 0 1 1]
+            [0 0 0 1 1]
+            sage: T.opposite().topogenous_matrix()
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            [0 0 1 1 1]
+            [0 0 1 1 1]
+            [0 0 0 0 1]
+        """
+        minimal_basis_op = {x:set(self.Fx(x)) for x in self._elements}
+        T0 = isinstance(self, FiniteTopologicalSpace_T0)
+        return FiniteSpace(minimal_basis_op, is_T0=T0)
 
     def is_interior_point(self, x, E):
         r"""
@@ -1051,14 +1199,26 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             True
         """
         return self._poset
-        
+
+    def show(self):
+        r"""
+        Displays the Hasse diagram of the poset ``self._poset``.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: T = FiniteSpace(posets.RandomPoset(15, 0.2))
+            sage: T.show()
+        """
+        return self._poset.show()
+
     def order_complex(self):
         r"""
         Return the order complex of the finite space i.e. the simplicial complex
         whose simplices are the nonempty chains of ``self.poset()``.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.homology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = ({0}, {0, 1}, {0, 1, 2}, {0, 3})
             sage: T = FiniteSpace(minimal_basis) ; T
@@ -1068,14 +1228,14 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 3), (0, 1, 2)}
         """
         return self._poset.order_complex()
-        
+
     def barycentric_subdivision(self):
         r"""
         Return the barycentric subdivision of the finite space i.e. the face poset
         of its order complex.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.homology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = ({0}, {0, 1}, {0, 1, 2}, {0, 3})
             sage: T = FiniteSpace(minimal_basis) ; T
@@ -1089,3 +1249,332 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
              (0, 3): {(3,), (0,), (0, 3)}}
         """
         return FiniteSpace(self._poset.order_complex().face_poset(), is_T0=True)
+
+    def is_down_beat_point(self, x, subspace=None):
+        r"""
+        Return ``True`` if ``x`` is a down beat point of the subspace of ``self``
+        determined by ``subspace``.
+
+        INPUT:
+
+        - ``x`` - an element of the finite space. In case ``subspace`` is not
+          ``None``, `x`` must be one of its elements.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage:
+            sage: minimal_basis = {5: {5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
+                                   1: {1, 4}, 3: {1, 3, 4}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.is_down_beat_point(6)
+            False
+            sage: T.is_down_beat_point(6, [3, 4, 5, 6])
+            True
+        """
+        xindex = self._elements.index(x)
+        if subspace is None:
+            subspaceindex = range(xindex - 1,-1,-1)
+        else:
+            sortsubspace = sorted(subspace, key=self.space_sorting, reverse=True)
+            subspaceindex = [self._elements.index(i) for i in sortsubspace \
+                             if self._elements.index(i) < xindex]
+        maximal = None
+        for yindex in subspaceindex:
+            if self._topogenous[yindex, xindex]==1:
+                maximal = yindex
+                break
+        if maximal is None:
+            return False
+        for i in subspaceindex:
+            if not self._topogenous[i, maximal]==self._topogenous[i, xindex]:
+                return False
+        return True
+
+    def is_up_beat_point(self, x, subspace=None):
+        r"""
+        Return ``True`` if ``x`` is an up beat point of the subspace of ``self``
+        determined by ``subspace``.
+
+        INPUT:
+
+        - ``x`` - an element of the finite space. In case ``subspace`` is not
+          ``None``, `x`` must be one of its elements.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
+                                   1: {1, 4}, 3: {1, 3, 4}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.is_up_beat_point(4)
+            False
+            sage: T.is_up_beat_point(4, [1, 2, 3, 4, 5])
+            True
+        """
+        xindex = self._elements.index(x)
+        if subspace is None:
+            subspaceindex = range(xindex + 1, self._cardinality)
+        else:
+            sortsubspace = sorted(subspace, key=self.space_sorting)
+            subspaceindex = [self._elements.index(i) for i in sortsubspace \
+                             if self._elements.index(i) > xindex]
+        minimal = None
+        for yindex in subspaceindex:
+            if self._topogenous[xindex, yindex]==1:
+                minimal = yindex
+                break
+        if minimal is None:
+            return False
+        for j in subspaceindex:
+            if not self._topogenous[minimal, j]==self._topogenous[xindex, j]:
+                return False
+        return True
+
+    def is_beat_point(self, x, subspace=None):
+        r"""
+        Return ``True`` if ``x`` is a beat point of the subspace of ``self``
+        determined by ``subspace``.
+
+        INPUT:
+
+        - ``x`` - an element of the finite space. In case ``subspace`` is not
+          ``None``, `x`` must be one of its elements.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
+                                   1: {1, 4}, 3: {1, 3, 4}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.is_beat_point(2)
+            True
+            sage: T.is_beat_point(2, [2, 3, 4, 5])
+            False
+        """
+        if self._elements.index(x) < self._cardinality / 2:
+            return self.is_down_beat_point(x, subspace) or self.is_up_beat_point(x, subspace)
+        else:
+            return self.is_up_beat_point(x, subspace) or self.is_down_beat_point(x, subspace)
+
+    def core_list(self, subspace=None):
+        r"""
+        Return a list of elements in a core of the subspace of ``self`` determined
+        by ``subspace``.
+
+        INPUT:
+
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {4, 5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
+                                   1: {1, 2, 4}, 3: {1, 2, 4, 3}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.core_list()
+            [2, 4, 6, 3]
+            sage: T.core_list([3, 2, 1, 4, 5, 6])
+            [2, 1, 4, 6]
+            sage: T.core_list([1, 2, 3, 4, 5])
+            [5]
+
+        TESTS::
+
+            sage: import random
+            sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
+            sage: X = T._elements
+            sage: k = randint(0,len(X))
+            sage: E1 = random.sample(X, k)
+            sage: E2 = random.sample(E1, k)
+            sage: len(T.core_list(E1)) == len(T.core_list(E2)) # cores are homeomorphic
+            True
+        """
+        realsubspace = subspace or self._elements
+        beatpoint = None
+        for x in realsubspace:
+            if self.is_beat_point(x, subspace):
+                beatpoint = x
+                break
+        if beatpoint is None:
+            return realsubspace
+        else:
+            return self.core_list([y for y in realsubspace if y != beatpoint])
+
+    def core(self, subspace=None):
+        r"""
+        Return a core of the subspace of ``self`` determined by ``subspace``.
+
+        INPUT:
+
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {4, 5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
+                                   1: {1, 2, 4}, 3: {1, 2, 4, 3}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.core()
+            Finite T0 topological space of 4 points with minimal basis 
+             {2: {2}, 3: {2, 4, 3}, 4: {4}, 6: {2, 4, 6}}
+            sage: T.core([3,2,1,4,5,6])
+            Finite T0 topological space of 4 points with minimal basis 
+             {1: {2, 4, 1}, 2: {2}, 4: {4}, 6: {2, 4, 6}}
+            sage: T.core([1,2,3,4,5])
+            Finite T0 topological space of 1 points with minimal basis 
+             {5: {5}}
+        """
+        return self.subspace(self.core_list(subspace), is_T0=True)
+
+    def is_contractible(self, subspace=None):
+        r"""
+        Return ``True`` if the finite space is contractible (in the setting of finite spaces,
+        this is equivalent to say that its cores are singletons).
+
+        INPUT:
+
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {5: {4, 5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
+                                   1: {1, 2, 4}, 3: {1, 2, 4, 3}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.is_contractible()
+            False
+            sage: T.is_contractible([1,2,3,4,5])
+            True
+
+        TESTS::
+
+            sage: import random
+            sage: P = posets.RandomPoset(20, 0.5)
+            sage: X = P.list()
+            sage: k = randint(0,len(X))
+            sage: E = random.sample(X, k)
+            sage: S = P.subposet(E)
+            sage: F = FiniteSpace(S)
+            sage: S.has_top()==False or F.is_contractible()
+            True
+            sage: S.has_bottom()==False or F.is_contractible()
+            True
+        """
+        return len(self.core_list(subspace))==1
+
+    def is_weak_point(self, x, subspace=None):
+        r"""
+        Return ``True`` if ``x`` is a weak beat point of the subspace of ``self``
+        determined by ``subspace``.
+
+        INPUT:
+
+        - ``x`` - an element of the finite space. In case ``subspace`` is not
+          ``None``, `x`` must be one of its elements.
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {2: {2}, 5: {2, 5}, 1: {1}, 3: {1, 2, 3}, \
+                                   4: {1, 2, 4}, 7: {1, 2, 3, 4, 7}, \
+                                   6: {1, 2, 3, 4, 5, 6, 7}, \
+                                   8: {1, 2, 3, 4, 5, 6, 7, 8}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.is_beat_point(1)
+            False
+            sage: T.is_weak_point(1)
+            True
+
+        TESTS::
+
+            sage: import random
+            sage: T = FiniteSpace(posets.RandomPoset(30, 0.2))
+            sage: X = T._elements
+            sage: k = randint(0,len(X))
+            sage: E = random.sample(X, k)
+            sage: x = random.choice(E)
+            sage: T.is_beat_point(x, E)==False or T.is_beat_point(x, E)==T.is_weak_point(x, E)
+        """
+        subspaceU = self.Ux_tilded(x)
+        subspaceF = self.Fx_tilded(x)
+        if subspace is not None:
+            subspaceU = list(set(subspaceU) & set(subspace))
+            subspaceF = list(set(subspaceF) & set(subspace))
+        if self._elements.index(x) < self._cardinality / 2:
+            return self.is_contractible(subspaceU) or self.is_contractible(subspaceF)
+        else:
+            return self.is_contractible(subspaceF) or self.is_contractible(subspaceU)
+
+    def weak_core_list(self, subspace=None):
+        r"""
+        Return a list of elements in a weak core (finite space with no weak points)
+        of the subspace of ``self`` determined by ``subspace``.
+
+        INPUT:
+
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {2: {2}, 5: {2, 5}, 1: {1}, 3: {1, 2, 3}, \
+                                   4: {1, 2, 4}, 7: {1, 2, 3, 4, 7}, \
+                                   6: {1, 2, 3, 4, 5, 6, 7}, \
+                                   8: {1, 2, 3, 4, 5, 6, 7, 8}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.weak_core_list()
+            [8]
+            sage: T.weak_core_list([1,2,3,4,5])
+            [1, 2, 3, 4]
+
+        TESTS::
+
+            sage: import random
+            sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
+            sage: X = T._elements
+            sage: k = randint(0,len(X))
+            sage: E = random.sample(X, k)
+            sage: len(T.weak_core_list(E)) <= len(T.core_list(E))
+            True
+        """
+        realsubspace = subspace or self._elements
+        weakpoint = None
+        for x in realsubspace:
+            if self.is_beat_point(x, subspace) or self.is_weak_point(x, subspace):
+                weakpoint = x
+                break
+        if weakpoint is None:
+            return realsubspace
+        else:
+            return self.weak_core_list([y for y in realsubspace if y != weakpoint])
+
+    def weak_core(self, subspace=None):
+        r"""
+        Return a weak core (finite space with no weak points) of the subspace of
+        ``self`` determined by ``subspace``.
+
+        INPUT:
+
+        - ``subspace`` -- (default ``None``) a list of elements in the finite space.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: minimal_basis = {2: {2}, 5: {2, 5}, 1: {1}, 3: {1, 2, 3}, \
+                                   4: {1, 2, 4}, 7: {1, 2, 3, 4, 7}, \
+                                   6: {1, 2, 3, 4, 5, 6, 7}, \
+                                   8: {1, 2, 3, 4, 5, 6, 7, 8}}
+            sage: T = FiniteSpace(minimal_basis)
+            sage: T.weak_core()
+            Finite T0 topological space of 1 points with minimal basis 
+             {8: {8}}
+            sage: T.weak_core([1,2,3,4,5])
+            Finite T0 topological space of 4 points with minimal basis 
+             {1: {1}, 2: {2}, 3: {1, 2, 3}, 4: {1, 2, 4}}
+        """
+        return self.subspace(self.weak_core_list(subspace), is_T0=True)
+
