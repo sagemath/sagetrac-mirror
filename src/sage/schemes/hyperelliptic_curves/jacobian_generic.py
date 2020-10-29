@@ -153,3 +153,51 @@ class HyperellipticJacobian_generic(Jacobian_generic):
 
     def _point(self, *args, **kwds):
         return jacobian_morphism.JacobianMorphism_divisor_class_field(*args, **kwds)
+
+    ##########################################################
+    # Galois Representations
+    ##########################################################
+
+    def galois_representation(self):
+        r"""
+        The compatible family of the Galois representation
+        attached to this elliptic curve.
+
+        Given an elliptic curve `E` over `\QQ`
+        and a rational prime number `p`, the `p^n`-torsion
+        `E[p^n]` points of `E` is a representation of the
+        absolute Galois group of `\QQ`. As `n` varies
+        we obtain the Tate module `T_p E` which is a
+        a representation of `G_K` on a free `\ZZ_p`-module
+        of rank `2`. As `p` varies the representations
+        are compatible.
+
+        EXAMPLES::
+
+            sage: rho = EllipticCurve('11a1').galois_representation()
+            sage: rho
+            Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: rho.is_irreducible(7)
+            True
+            sage: rho.is_irreducible(5)
+            False
+            sage: rho.is_surjective(11)
+            True
+            sage: rho.non_surjective()
+            [5]
+            sage: rho = EllipticCurve('37a1').galois_representation()
+            sage: rho.non_surjective()
+            []
+            sage: rho = EllipticCurve('27a1').galois_representation()
+            sage: rho.is_irreducible(7)
+            True
+            sage: rho.non_surjective()   # cm-curve
+            [0]
+
+       """
+        try:
+            return self.__rho
+        except AttributeError:
+            from .gal_reps import GaloisRepresentation
+            self.__rho = GaloisRepresentation(self)
+        return self.__rho
