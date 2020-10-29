@@ -3259,7 +3259,7 @@ class Link(SageObject):
         - ``oriented`` -- boolean (default is ``True``). If set to ``False`` the orientation
           of the link will be ignored and instead of an instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
           a series of links (instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`) will be
-          returned collecting all links having the same `name_unoriented` (if this is unique
+          returned collecting all links having the same ``name_unoriented`` (if this is unique
           for ``self``)
 
         - ``mirror_version`` -- boolean (default is ``True``). If set to ``False`` the result
@@ -3278,7 +3278,7 @@ class Link(SageObject):
         If ``oriented`` is set to ``False`` then the result is a series of links (instance of
         :class:`~sage.knots.knotinfo.KnotInfoSeries`, see explanation above).
 
-        If ``mirror_version`` is set to ``False`` then the result is just ``K`` (that is ``m``
+        If ``mirror_version`` is set to ``False`` then the result is just ``K`` (that is: ``m``
         is suppressed).
 
         If it is not possible to determine a unique result a ``NotImplementedError`` will be
@@ -3292,12 +3292,12 @@ class Link(SageObject):
             sage: L = Link([[4,2,5,1], [10,3,11,4], [5,16,6,17], [7,12,8,13],
             ....:           [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
             ....:           [22,18,1,17], [8,19,9,20], [21,14,22,15]])
-            sage: L.identify_knotinfo()                                 # optional - database_knotinfo
+            sage: L.identify_knotinfo()           # optional - database_knotinfo
             (<KnotInfo.K11n_121: '11n_121'>, True)
 
-            sage: K = KnotInfo.K10_25                                   # optional - database_knotinfo
-            sage: l = K.link()                                          # optional - database_knotinfo
-            sage: l.identify_knotinfo()                                 # optional - database_knotinfo
+            sage: K = KnotInfo.K10_25             # optional - database_knotinfo
+            sage: l = K.link()                    # optional - database_knotinfo
+            sage: l.identify_knotinfo()           # optional - database_knotinfo
             (<KnotInfo.K10_25: '10_25'>, False)
 
         Lets identify the monster unknot (works without the database, as well)::
@@ -3315,26 +3315,33 @@ class Link(SageObject):
 
         Usage of option ``oriented``::
 
-            sage: L = KnotInfo.L10a122_0_0.link()                       # optional - database_knotinfo
-            sage: L.identify_knotinfo(oriented=False)                   # optional - database_knotinfo
-            (Series of links L10a122, False)
-            sage: _[0].inject()                                         # optional - database_knotinfo
-            Defining L10a122
-            sage: [L.is_isotopic(Ls.link()) for Ls in L10a122]          # optional - database_knotinfo
-            [True, False, False, False]
+            sage: KnotInfo.L10a1_0.inject()  # optional - database_knotinfo
+            Defining L10a1_0
+            sage: b = L10a1_0.link().braid() # optional - database_knotinfo
+            sage: l10 = Link(b)              # optional - database_knotinfo
+            sage: l10.identify_knotinfo()    # optional - database_knotinfo
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Sorry, this link cannot be uniquely determined
+            sage: l10.identify_knotinfo(oriented=False) # optional - database_knotinfo
+            (Series of links L10a1, False)
+            sage: _[0].inject()              # optional - database_knotinfo
+            Defining L10a1
+            sage: list(L10a1)                # optional - database_knotinfo
+            [<KnotInfo.L10a1_0: 'L10a1{0}'>, <KnotInfo.L10a1_1: 'L10a1{1}'>]
 
         Usage of option ``unique``::
 
-            sage: l = K.link(use_item=K.items.gauss_notation)           # optional - database_knotinfo
-            sage: l.identify_knotinfo()                                 # optional - database_knotinfo
+            sage: l = K.link(use_item=K.items.gauss_notation)  # optional - database_knotinfo
+            sage: l.identify_knotinfo()                        # optional - database_knotinfo
             Traceback (most recent call last):
             ...
             NotImplementedError: Sorry, this link cannot be uniquely determined
 
-            sage: l.identify_knotinfo(unique=False)                     # optional - database_knotinfo
+            sage: l.identify_knotinfo(unique=False)            # optional - database_knotinfo
             [<KnotInfo.K10_25: '10_25'>, <KnotInfo.K10_56: '10_56'>]
 
-        Clarifying the Perko series::
+        Clarifying the series around the Perko pair (:wikipedia:`Perko_pair`)::
 
             sage: for i in range(160, 166):              # optional - database_knotinfo
             ....:     K = Knots().from_table(10, i)
