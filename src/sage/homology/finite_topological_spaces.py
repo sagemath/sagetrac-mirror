@@ -464,12 +464,6 @@ class FiniteTopologicalSpace(Parent):
             sage: T = FiniteSpace(({0}, {0, 1, 2}, {0, 1, 2}, {3, 4}, {3, 4}))
             sage: T.minimal_open_set(1)
             {0, 1, 2}
-            sage: T.Ux(4)
-            {3, 4}
-            sage: T.Ux(5)
-            Traceback (most recent call last):
-            ...
-            ValueError: The point 5 is not an element of the space
         """
         if not x in self:
             raise ValueError("The point {} is not an element of the space".format(x))
@@ -1263,7 +1257,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         EXAMPLES::
 
-            sage:
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
             sage: minimal_basis = {5: {5}, 4: {4}, 2: {2}, 6: {2, 4, 6}, \
                                    1: {1, 4}, 3: {1, 3, 4}}
             sage: T = FiniteSpace(minimal_basis)
@@ -1498,6 +1492,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: E = random.sample(X, k)
             sage: x = random.choice(E)
             sage: T.is_beat_point(x, E)==False or T.is_beat_point(x, E)==T.is_weak_point(x, E)
+            True
         """
         subspaceU = self.Ux_tilded(x)
         subspaceF = self.Fx_tilded(x)
