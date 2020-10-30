@@ -500,7 +500,7 @@ def extended_xgcd(lst, result=[ZZ(1)]):
         sage: from sage.modules.glattice import extended_xgcd
         sage: extended_xgcd([6, 20, 15])
         (1, [21, -7, 1])
-        sage: extended_xgcd([12,20,28,30])
+        sage: extended_xgcd([12, 20, 28, 30])
         (2, [-14, 7, 0, 1])
     """
     if len(lst) == 0:
