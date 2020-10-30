@@ -343,11 +343,11 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
 
         - ``other`` -- Lattice or list of lattice we want to take the sum with.
 
-        - ``domainsum`` -- String, by default ``outer``, declares it we want to take the inner or 
+        - ``domainsum`` -- String (default ``outer``), declares it we want to take the inner or 
           outer sum for the domain. If ``inner``, the domain lattices must match. If the argument
           is ``outer`` then the domain of the sum will be a direct sum of lattices.
 
-        - ``codomainsum`` -- String, by default ``outer``, declares it we want to take the inner or 
+        - ``codomainsum`` -- String (default ``outer``), declares it we want to take the inner or 
           outer sum for the codomain. If ``inner``, the codomain lattices must match. If the argument
           is ``outer`` then the codomain of the sum will be a direct sum of lattices.
 
@@ -484,7 +484,7 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
 
         - ``element`` -- group element acting on the morphism.
 
-        - ``side`` -- string, by default ``Left``. Can be assigned either ``Right`` or ``Left``. 
+        - ``side`` -- string (default ``Left``). Can be assigned either ``Right`` or ``Left``. 
           Side on which the element should be acting.
 
         EXAMPLES::

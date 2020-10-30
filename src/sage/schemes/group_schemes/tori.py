@@ -135,7 +135,7 @@ def RestrictionOfScalars(nfield, rk = 1):
 
     - ``nfield`` -- Number field corresponding to the restriction of scalars.
 
-    - ``rk`` -- rank of the split torus of which we take the restriction of scalars. The default value is 1.
+    - ``rk`` -- rank (default ``1``) of the split torus of which we take the restriction of scalars. 
 
     EXAMPLES::
 
@@ -162,7 +162,7 @@ def NormOneRestrictionOfScalars(nfield, rk = 1):
 
     - ``nfield`` -- Number field corresponding to the restriction of scalars.
 
-    - ``rk`` -- rank of the split torus of which we take the restriction of scalars. The default value is 1.
+    - ``rk`` -- rank (default ``1``) of the split torus of which we take the restriction of scalars.
 
     EXAMPLES::
 
@@ -516,7 +516,7 @@ class AlgebraicTorus(Scheme):
         our extension) is isomorphic to the cyclic group Cn where n is the order of the
         Galois group. Here the group is `S_3`, which has order 6 so we get `C_6`.
 
-        Another way to see it is seeing this H^2 as H^0 of its character lattice. Since the group
+        Another way to see it is seeing this `H^2` as `H^0` with coefficients in its character lattice. Since the group
         acts trivially, the fixed elements are the whole lattice, and the trace map is multiplication
         by the order of the group, which is 6, so we get `C_6` ^(rank of ``T1``)
 
