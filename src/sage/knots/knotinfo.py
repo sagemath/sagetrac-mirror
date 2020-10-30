@@ -1531,15 +1531,17 @@ class KnotInfoBase(Enum):
 
         INPUT:
 
-        - ``use_item`` -- (optional default ``self.items.pd_notation``)
+        - ``use_item`` -- (optional, default ``self.items.pd_notation``)
           instance of :class:`KnotInfoColumns` to choose the column
           that should be used to construct the link. Allowed values
           are:
+
           - ``self.items.pd_notation``
           - ``self.items.braid_notation``
           - ``self.items.name``           (only for ``snappy=True``)
           - ``self.items.dt_notation``    (only for knots and ``snappy=False``)
           - ``self.items.gauss_notation`` (only for knots and ``snappy=False``)
+
         - ``snappy`` boolean (default ``False``) if set to ``True``
           the target of the conversion is the ``pip`` installable
           package `SnapPy <https://snappy.math.uic.edu/index.html>`__
@@ -1551,21 +1553,21 @@ class KnotInfoBase(Enum):
 
             We use the PD-notation to construct ``self`` as
             default. This ensures that the number of crossings
-            displayed in representation string of the link
+            displayed in the representation string of the link
             coincides with the crossing number as a topological
             invariant.
 
             But attention: The convention on how the edges are
             listed are opposite to each other
 
-            KnotInfo: counter clockwise
-            Sage:     clockwise
+            - KnotInfo: counter clockwise
+            - Sage:     clockwise
 
             Therefore, we take the mirror version of the ``pd_notation``!
 
             Furthermore, note that the mirror version may depend
-            on the used KnotInfo-notation. For example for the
-            knot ``5_1`` the Gauss- and the DT-notation refer to
+            on the used KnotInfo-notation. For instance, regarding to
+            the knot ``5_1`` the Gauss- and the DT-notation refer to
             the mirror image (see example below).
 
         EXAMPLES::
@@ -1598,13 +1600,14 @@ class KnotInfoBase(Enum):
         using ``snappy``::
 
             sage: K7   = KnotInfo.K7_2
-            sage: k7s  = K7.link(snappy=True); k7s                           # optional - snappy
+            sage: k7s  = K7.link(snappy=True); k7s              # optional - snappy
             <Link: 1 comp; 7 cross>
-            sage: k7sn = K7.link(use_item=K7.items.name, snappy=True); k7sn  # optional - snappy
+            sage: K7.link(use_item=K7.items.name, snappy=True)  # optional - snappy
             <Link 7_2: 1 comp; 7 cross>
-            sage: k7s == k7sn                                                # optional - snappy
+            sage: k7sn = _                                      # optional - snappy
+            sage: k7s == k7sn                                   # optional - snappy
             False
-            sage: k7s.sage_link().is_isotopic(k7sn.sage_link())              # optional - snappy
+            sage: k7s.sage_link().is_isotopic(k7sn.sage_link()) # optional - snappy
             True
 
         but observe::
@@ -1724,6 +1727,10 @@ class KnotInfoBase(Enum):
             Defining L4a
             sage: L4a(1)
             Series of links L4a1
+            sage: KnotInfo.L4a1_1.series(overview=False).inject()
+            Defining L4a1
+            sage: L4a1(1)
+            <KnotInfo.L4a1_1: 'L4a1{1}'>
         """
         if overview:
             S = KnotInfoSeries(self.crossing_number(), self.is_knot(), self.is_alternating())
@@ -1812,13 +1819,13 @@ class KnotInfoBase(Enum):
 class KnotInfoSeries(UniqueRepresentation):
     r"""
     This class can be used to access knots and links via their index
-    accordung to the series they belong to.
+    according to the series they belong to.
 
     INPUT:
 
     - ``crossing_number`` -- integer giving the crossing numer of this series of links
     - ``is_knot``         -- boolean wether this series is a series of knots or proper links
-    - ``is_alternating``  -- boolean wether this series is restriced to alternatimg links or not.
+    - ``is_alternating``  -- boolean wether this series is restriced to alternating links or not.
       This is not relevant for knots with less than 11 crossings
     - ``name_unoriented`` -- string restricting the series to all links with that ``name_unoriented``
 
@@ -2032,7 +2039,7 @@ class KnotInfoSeries(UniqueRepresentation):
 
         INPUT:
 
-        - ``verbose`` -- boolean (optional default ``True``) to supress
+        - ``verbose`` -- boolean (optional, default ``True``) to supress
           the message printed on the invocation
 
         EXAMPLES::
