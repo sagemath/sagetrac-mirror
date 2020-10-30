@@ -40,6 +40,12 @@ EXAMPLES::
     sage: L.num_components()
     2
 
+Items for knots need a leading ``K`` for technical reason::
+
+    sage: K = KnotInfo.K4_1
+    sage: K.is_knot()
+    True
+
 Injecting the variable name into the namespace::
 
     sage: KnotInfo.K5_1.inject()
@@ -103,11 +109,14 @@ Obtaining the HOMFLY-PT polynomial::
     sage: _ == l.homfly_polynomial(normalization='az')
     True
 
-Items for knots need a leading ``K`` for technical reason::
 
-    sage: K = KnotInfo.K4_1
-    sage: K.is_knot()
-    True
+Obtaining the original string from the database for an arbitrary property::
+
+    sage: K[K.items.classical_conway_name]         # optional - database_knotinfo
+    '4_1'
+
+Further methods::
+
     sage: K.crossing_number()
     4
     sage: K.gauss_notation()
@@ -124,11 +133,12 @@ Items for knots need a leading ``K`` for technical reason::
     True
     sage: K.is_amphicheiral()
     True
-
-Obtaining the original string from the database for an arbitrary property::
-
-    sage: K[K.items.classical_conway_name]         # optional - database_knotinfo
-    '4_1'
+    sage: K.jones_polynomial()
+    t^2 - t - 1/t + 1/t^2 + 1
+    sage: K.kauffman_polynomial()
+    a^2*z^2 + a*z^3 - a^2 - a*z + 2*z^2 + a^-1*z^3 - 1 - a^-1*z + a^-2*z^2 - a^-2
+    sage: K.alexander_polynomial()
+    t^2 - 3*t + 1
 
 Using the ``column_type`` of a property::
 
@@ -338,6 +348,11 @@ class KnotInfoBase(Enum):
         sage: [knot.name for knot in KnotInfo if knot.crossing_number() < 5]
         ['K0_1', 'K3_1', 'K4_1', 'L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
 
+    More examples can be seen by::
+
+        sage: import sage.knots.knotinfo   # not tested
+        sage: sage.knots.knotinfo?         # not tested
+
     TESTS:
 
         sage: KnotInfo.K7_1.inject()
@@ -472,7 +487,8 @@ class KnotInfoBase(Enum):
     def pd_notation(self, original=False):
         r"""
         Return the value of column ``pd_notation`` for this
-        link as a Python list of Python lists.
+        link as a Python list of Python lists. For more information
+        type ``KnotInfo.K0_1.items.pd_notation.description_webpage()``.
 
         INPUT:
 
@@ -514,7 +530,8 @@ class KnotInfoBase(Enum):
     def dt_notation(self, original=False):
         r"""
         Return the value of column ``dt_notation`` for this
-        link as a Python list of Python lists.
+        link as a Python list of Python lists. For more information
+        type ``KnotInfo.K0_1.items.dt_notation.description_webpage()``.
 
         INPUT:
 
@@ -557,7 +574,8 @@ class KnotInfoBase(Enum):
     def gauss_notation(self, original=False):
         r"""
         Return the value of column ``gauss_notation`` for this
-        link as a Python list of Python lists.
+        link as a Python list of Python lists. For more information
+        type ``KnotInfo.K0_1.items.gauss_notation.description_webpage()``.
 
         INPUT:
 
@@ -591,7 +609,8 @@ class KnotInfoBase(Enum):
     def braid_notation(self, original=False):
         r"""
         Return the value of column ``braid_notation`` for this
-        link as a Python tuple (Tietze form).
+        link as a Python tuple (Tietze form). For more information
+        type ``KnotInfo.K0_1.items.braid_notation.description_webpage()``.
 
         INPUT:
 
@@ -847,9 +866,9 @@ class KnotInfoBase(Enum):
 
         INPUT:
 
-        - ``positive`` -- boolean (default False) whether to check
-          if ``self`` is positive or negative amphicheiral (see
-          doctest of :meth:`symmetry_type`)
+        - ``positive`` -- boolean (optional, default False) whether to check
+          if ``self`` is positive or negative amphicheiral (see documentation
+          of :meth:`symmetry_type`)
 
         EXAMPLES::
 
@@ -891,7 +910,7 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.K5_2.is_almost_alternating()        # optional - database_knotinfo
+            sage: KnotInfo.K5_2.is_almost_alternating() # optional - database_knotinfo
             False
         """
         is_knotinfo_available(raise_error=True) # column not available in demo-version
@@ -905,7 +924,7 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.K5_2.is_quasi_alternating()         # optional - database_knotinfo
+            sage: KnotInfo.K5_2.is_quasi_alternating() # optional - database_knotinfo
             True
         """
         is_knotinfo_available(raise_error=True) # column not available in demo-version
@@ -919,7 +938,7 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.K5_2.is_adequate()                  # optional - database_knotinfo
+            sage: KnotInfo.K5_2.is_adequate()         # optional - database_knotinfo
             True
         """
         is_knotinfo_available(raise_error=True) # column not available in demo-version
@@ -946,7 +965,7 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.K5_2.is_quasipositive()              # optional - database_knotinfo
+            sage: KnotInfo.K5_2.is_quasipositive()     # optional - database_knotinfo
             True
         """
         is_knotinfo_available(raise_error=True) # column not available in demo-version
@@ -960,7 +979,7 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.K5_2.is_strongly_quasipositive()     # optional - database_knotinfo
+            sage: KnotInfo.K5_2.is_strongly_quasipositive() # optional - database_knotinfo
             True
         """
         is_knotinfo_available(raise_error=True) # column not available in demo-version
@@ -974,7 +993,7 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.K5_2.is_positive_braid()             # optional - database_knotinfo
+            sage: KnotInfo.K5_2.is_positive_braid()         # optional - database_knotinfo
             False
         """
         is_knotinfo_available(raise_error=True) # column not available in demo-version
@@ -1011,7 +1030,7 @@ class KnotInfoBase(Enum):
     def homfly_polynomial(self, var1=None, var2=None, original=False, sage_convention=False):
         r"""
         Return the HOMFLY-PT polynomial according to the value of column
-        ``homfly_polynomial`` for this knot or link (in this case the
+        ``homfly_polynomial`` for this knot or link (in the latter case the
         column ``homflypt_polynomial`` is used) as an instance of the
         element class according to the output of :meth:`Link.homfly_polynomial`
         of :class:`Link`.
@@ -1038,7 +1057,7 @@ class KnotInfoBase(Enum):
 
         A Laurent polynomial over the integers, more precisely an instance of
         :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
-        If ``original`` is set to ``False`` then a string is returned.
+        If ``original`` is set to ``True`` then a string is returned.
 
         .. NOTE::
 
@@ -1247,8 +1266,8 @@ class KnotInfoBase(Enum):
         - ``variab`` -- variable (default: ``None``) used according to :meth:`Link.jones_polynomial`
         - ``skein_normalization`` -- boolean (default: ``False``) used according to
           :meth:`Link.jones_polynomial`
-        - ``puiseux`` -- boolean (default ``True``) only uses in case ``skein_normalization=False``.
-          if set to ``True`` instead of an element of the symbolic ring an instance of
+        - ``puiseux`` -- boolean (default ``True``) only used in case ``skein_normalization=False``.
+          If set to ``True`` instead of an element of the symbolic ring an instance of
           :class:`~sage.rings.puiseux_series_ring_element.PuiseuxSeries` is returned
         - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
@@ -1454,7 +1473,7 @@ class KnotInfoBase(Enum):
             in the indeterminate `t`. While the normalization of the exponents
             in KnotInfo guarantees it to be a proper polynomial, this is
             not the case for the implementation in Sage. The transition
-            can be made using the keyword ``sage_convention``. But still
+            can be made using the keyword ``sage_convention``. But, still
             there may be a difference in sign (see the example below).
 
         EXAMPLES::
@@ -1668,7 +1687,7 @@ class KnotInfoBase(Enum):
 
         INPUT:
 
-        - ``verbose`` -- boolean (optional default ``True``) to supress
+        - ``verbose`` -- boolean (optional, default ``True``) to supress
           the message printed on the invocation
 
         EXAMPLES::
