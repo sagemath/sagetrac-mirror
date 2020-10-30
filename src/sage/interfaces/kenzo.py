@@ -932,7 +932,7 @@ class KenzoCombination():
             sage: 3*c == 7*c - c*4                                               # optional - kenzo
             True
         """
-        assert(x.is_integer(), "Coefficient must be an integer number")
+        assert x.is_integer(), "Coefficient must be an integer number"
         if x == 0:
             return KenzoCombination(self._degree, Kchcm=self._chcm)
         return Kenzocmbn(__n_cmbn__(x, self._kenzo), self._chcm)
