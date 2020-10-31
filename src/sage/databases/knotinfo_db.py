@@ -4,7 +4,7 @@ KontInfo Database
 
 This module contains the class :class:`KnotInfoDataBase`  and auxilary classes for it
 which serves as an interface to the lists of named knots and links provided at
-https://knotinfo.math.indiana.edu/ and https://linkinfo.sitehost.iu.edu.
+`KnotInfo <https://knotinfo.math.indiana.edu/>`__ and `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
 
 
 AUTHORS:
@@ -38,7 +38,7 @@ from sage.env import SAGE_SHARE, SAGE_ROOT
 class KnotInfoColumnTypes(Enum):
     r"""
     Enum class to specify if a column from the table of knots and links provided by
-    https://knotinfo.math.indiana.edu/ and https://linkinfo.sitehost.iu.edu.
+    `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
     is used for knots only, links only or both.
 
     EXAMPLES::
@@ -58,7 +58,7 @@ class KnotInfoColumnTypes(Enum):
 class KnotInfoColumns(Enum):
     r"""
     Enum class to select a column from the table of knots and links provided by
-    https://knotinfo.math.indiana.edu/ and https://linkinfo.sitehost.iu.edu.
+    `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
 
     EXAMPLES::
 

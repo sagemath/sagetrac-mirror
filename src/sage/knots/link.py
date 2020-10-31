@@ -27,16 +27,17 @@ REFERENCES:
 .. SEEALSO::
 
     There are also tables of link and knot invariants at
-    https://knotinfo.math.indiana.edu/ and
-    https://linkinfo.sitehost.iu.edu These can be
+    `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
+    `LinkInfo <https://linkinfo.sitehost.iu.edu>`__. These can be
     used inside Sage after installing the optional package
-    ``knotinfo`` (type ``sage -i knotinfo`` in a command shell,
+    ``database_knotinfo`` (type ``sage -i database_knotinfo`` in a command shell,
     see :mod:`~sage.knots.knotinfo`).
 
 AUTHORS:
 
 - Miguel Angel Marco Buzunariz
 - Amit Jamadagni
+- Sebastian Oehms (October 2020, add :meth:`identify_knotinfo` and meth:`is_isotopic`)
 """
 
 # ****************************************************************************

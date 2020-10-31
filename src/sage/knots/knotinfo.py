@@ -7,7 +7,7 @@ and provides knots and links listed in the databases at `KnotInfo <https://knoti
 and `LinkInfo <https://linkinfo.sitehost.iu.edu/>`__ as its items.
 
 This interface contains a set of about twenty knots and links statically as demonstration cases. The complete
-database can be installed as an optional Sage package using ``sage -i knotinfo``. This will be necessary to
+database can be installed as an optional Sage package using ``sage -i database_knotinfo``. This will be necessary to
 have access to all the properties recorded in the databases, as well.
 
 Be aware that there are a couple of conventions used differently on KnotInfo as in Sage, especially
@@ -235,7 +235,7 @@ def is_knotinfo_available(raise_error=False):
     """
     res = db.is_available()
     if not res and raise_error:
-        raise ImportError('This functionality needs KnotInfo to be installed! Type `sage -i knotinfo` to have this done')
+        raise ImportError('This functionality needs KnotInfo to be installed! Type `sage -i database_knotinfo` to have this done')
     return res
 
 @cached_function
@@ -1527,7 +1527,7 @@ class KnotInfoBase(Enum):
     def link(self, use_item=db.columns().pd_notation, snappy=False):
         r"""
         Return ``self`` as an instance of :class:`Link` or optional
-        :class:`~spherogram.links.invariants.Link`  (SnapPy).
+        ``spherogram.links.invariants.Link``  (SnapPy).
 
         INPUT:
 
@@ -1545,7 +1545,7 @@ class KnotInfoBase(Enum):
         - ``snappy`` boolean (default ``False``) if set to ``True``
           the target of the conversion is the ``pip`` installable
           package `SnapPy <https://snappy.math.uic.edu/index.html>`__
-          (explicitely, :class:`~spherogram.links.invariants.Link`).
+          (explicitely, ``spherogram.links.invariants.Link``).
           If SnapPy is not installed an ``ImportError`` is raised. To
           install SnapPy use ``sage -pip install snappy``.
 
@@ -1690,7 +1690,7 @@ class KnotInfoBase(Enum):
 
         INPUT:
 
-        - ``verbose`` -- boolean (optional, default ``True``) to supress
+        - ``verbose`` -- boolean (optional, default ``True``) to suppress
           the message printed on the invocation
 
         EXAMPLES::
@@ -2039,7 +2039,7 @@ class KnotInfoSeries(UniqueRepresentation):
 
         INPUT:
 
-        - ``verbose`` -- boolean (optional, default ``True``) to supress
+        - ``verbose`` -- boolean (optional, default ``True``) to suppress
           the message printed on the invocation
 
         EXAMPLES::
