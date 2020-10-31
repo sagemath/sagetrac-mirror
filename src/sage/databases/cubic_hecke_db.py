@@ -249,13 +249,13 @@ class CubicHeckeDataBase(SageObject):
         """
         self._url_marin              = 'http://www.lamfa.u-picardie.fr/marin/softs/H4'
 
-        self._package = 'cubic_hecke_marin'
+        self._package = 'database_cubic_hecke_marin'
         version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._package)
         f = open(version_file)
         self._version = f.read().splitlines()[0]
         f.close()
 
-        self._import_path      = os.path.join(SAGE_SHARE, self._package)
+        self._import_path      = os.path.join(SAGE_SHARE, 'cubic_hecke_marin')
         self._import_path_py   = os.path.join(self._import_path, 'py')
         self._import_path_sobj = os.path.join(self._import_path, 'sobj')
 
@@ -318,10 +318,10 @@ class CubicHeckeDataBase(SageObject):
 
     def create_spkg_tarball(self):
         r"""
-        Create a tarball for the sage-package ``cubic_heck_marin`` in the ``upstream`` directory. This
-        utility should only be used by users who know what they do in case of a switch to a new
+        Create a tarball for the sage-package ``database_cubic_heck_marin`` in the ``upstream`` directory.
+        This utility should only be used by users who know what they do in case of a switch to a new
         version of the data files (that is if the original files on Iwan Marin's homepage have changed).
-        In that case in invocation of ``sage -package fix-checksum cubic_hecke_marin`` will be necessary.
+        In that case in invocation of ``sage -package fix-checksum database_cubic_hecke_marin`` will be necessary.
 
         EXAMPLES::
 

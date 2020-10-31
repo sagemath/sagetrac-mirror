@@ -1,6 +1,8 @@
-=  KnotInfo Database =
+database_knotinfo
+=================
 
-== Description ==
+Description
+-----------
 
 Database for named knots and links provided at
 
@@ -10,24 +12,24 @@ and
 
 https://linkinfo.sitehost.iu.edu'
 
-== Dependencies ==
+Dependencies
+------------
 
- * Sage library
+- Sage library
 
-== Changelog ==
+Changelog
+---------
 
-=== knotinfo-20200713.tar.bz2 (Sebastian Oehms, 13 Juli 2020) ===
+- 20200713 (Sebastian Oehms, 13 Juli 2020, :trac:`30352`, initial version)
 
- * #30352: Initial version
+   The tarball has been created from the both download files at the
+   given date:
 
- The tarball has been created from the both download files at the
- given date:
+   ``knotinfo_data_complete.xls``
+   ``linkinfo_data_complete.xlsx``
 
- `knotinfo_data_complete.xls`
- `linkinfo_data_complete.xlsx` 
+   exporting them to CSV via LibreOffice.
 
- exporting them to CSV via LibreOffice.
-
- The second file has been changed manually deleting one character:
- a trailing "}" occuring in the homfly_polynomial column of the last
- link `L11n459{1,1,1}`.
+   The second file has been changed manually deleting one character:
+   a trailing "}" occuring in the homfly_polynomial column of the last
+   link ``L11n459{1,1,1}``.

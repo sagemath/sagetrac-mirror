@@ -349,7 +349,7 @@ class KnotInfoDataBase(SageObject):
             sage: ki_db.filename.links
             <KnotInfoFilename.links: ['https://linkinfo.sitehost.iu.edu/', 'linkinfo_data_complete']>
         """
-        self._package = 'knotinfo'
+        self._package = 'database_knotinfo'
         version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._package)
         f = open(version_file)
         self._version = f.read().splitlines()[0]
@@ -360,7 +360,7 @@ class KnotInfoDataBase(SageObject):
         self._names_column = 'name'
         self._components_column = 'components'
         self._knot_prefix  = 'K'
-        self._import_path  = os.path.join(SAGE_SHARE, self._package)
+        self._import_path  = os.path.join(SAGE_SHARE, 'knotinfo')
 
         self._knot_list = None
         self._link_list = None
@@ -393,11 +393,11 @@ class KnotInfoDataBase(SageObject):
 
     def create_spkg_tarball(self, path_for_src=None):
         r"""
-        Create a tarball for the sage-package ``knotinfo`` in the ``upstream`` directory. This
+        Create a tarball for the sage-package ``database_knotinfo`` in the ``upstream`` directory. This
         utility should only be used by users who know what they do in case of a switch to a new
         version of the data files (that is if the original files on KnotInfo web-page have changed).
-        In that case an invocation of ``sage -package update knotinfo <new version>`` and
-        ``sage -package fix-checksum knotinfo`` will be necessary.
+        In that case an invocation of ``sage -package update database_knotinfo <new version>`` and
+        ``sage -package fix-checksum database_knotinfo`` will be necessary.
 
         INPUT:
 
