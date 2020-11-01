@@ -10,7 +10,7 @@ Local Masses and Siegel Densities
 ##  Copyright by Jonathan Hanke 2007 <jonhanke@gmail.com>
 ########################################################################
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 import copy
 
@@ -195,7 +195,7 @@ def Pall_mass_density_at_odd_prime(self, p):
     p_mass = prod(jordan_mass_list)
     p_mass *= 2**(s-1) * p**nu
 
-    print jordan_list, MJL, jordan_mass_list, p_mass
+    print(jordan_list, MJL, jordan_mass_list, p_mass)
 
     ## Return the result
     return p_mass
@@ -293,20 +293,12 @@ def Watson_mass_at_2(self):
     nu = sum([j * n_dict[j] * (ZZ(n_dict[j] + 1) / ZZ(2) + \
               sum([n_dict[r]  for r in range(j+1, s_max+2)]))  for j in range(s_min+1, s_max+2)])
     q = sum([sgn(nu_dict[j-1] * (n_dict[j] + sgn(nu_dict[j])))  for j in range(s_min+1, s_max+2)])
-    P = prod([ prod([1 - QQ(4)**(-i)  for i in range(1, m_dict[j]+1)])  for j in range(s_min+1, s_max+2)])
+    P = prod([prod([1 - QQ(4)**(-k)  for k in range(1, m_dict[j]+1)]) for j in range(s_min+1, s_max+2)])
     E = prod([ZZ(1)/ZZ(2) * (1 + eps_dict[j] * QQ(2)**(-m_dict[j]))  for j in range(s_min, s_max+3)])
-
-    #print "\nFinal Summary:"
-    #print "nu =", nu
-    #print "q = ", q
-    #print "P = ", P
-    #print "E = ", E
-
 
     ## Step 5: Compute the local mass for the prime 2.
     mass_at_2 = QQ(2)**(nu - q) * P / E
     return mass_at_2
-
 
 
 def Kitaoka_mass_at_2(self):
@@ -429,7 +421,7 @@ def mass_at_two_by_counting_mod_power(self, k):
 
         a rational number
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.mass_at_two_by_counting_mod_power(1)

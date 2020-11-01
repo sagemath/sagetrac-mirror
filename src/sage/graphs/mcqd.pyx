@@ -1,3 +1,6 @@
+# distutils: language = c++
+# sage_setup: distribution = sage-mcqd
+
 from sage.ext.memory_allocator cimport MemoryAllocator
 
 def mcqd(G):
@@ -14,7 +17,7 @@ def mcqd(G):
         sage: for i in range(10):                       # optional - mcqd
         ....:     g = graphs.RandomGNP(15,.5)
         ....:     if g.clique_number() != len(mcqd(g)):
-        ....:         print "This is dead wrong !"
+        ....:         print("This is dead wrong !")
     """
     cdef int n = G.order()
 

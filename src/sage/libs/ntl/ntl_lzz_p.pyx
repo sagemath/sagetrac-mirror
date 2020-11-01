@@ -1,7 +1,10 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 ntl_lzz_p.pyx
 
-Wraps NTL's zz_p type for SAGE
+Wraps NTL's zz_p type for Sage
 
 NOTE: This file is essentially useless. While we provide
 this wrapper for consistency, this should never be used in
@@ -12,30 +15,25 @@ gains you get from working with longs will be TOTALLY
 destroyed by the overhead of having a wrapper.
 
 AUTHORS:
-   - Craig Citro
+
+- Craig Citro
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from __future__ import division
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
+from sage.libs.gmp.mpz cimport *
 
 from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
@@ -47,6 +45,7 @@ from sage.rings.finite_rings.integer_mod cimport IntegerMod_gmp, IntegerMod_int,
 
 from sage.libs.ntl.ntl_lzz_pContext import ntl_zz_pContext
 from sage.libs.ntl.ntl_lzz_pContext cimport ntl_zz_pContext_class
+from sage.arith.power cimport generic_power_pos
 
 ZZ_sage = IntegerRing()
 
@@ -77,7 +76,7 @@ cdef class ntl_zz_p(object):
             2
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus."
+            raise ValueError("You must specify a modulus.")
 
         if isinstance(modulus, Integer):
             p_sage = modulus
@@ -90,22 +89,19 @@ cdef class ntl_zz_p(object):
             if (self.c.p == (<IntegerMod_int>a).__modulus.int32): ## this is slow
                 self.x = (<IntegerMod_int>a).ivalue
             else:
-                raise ValueError, \
-                      "Mismatched modulus for converting to zz_p."
+                raise ValueError("Mismatched modulus for converting to zz_p.")
 
         elif isinstance(a, IntegerMod_int64):
             if (self.c.p == (<IntegerMod_int64>a).__modulus.int64): ## this is slow
                 self.x = (<IntegerMod_int64>a).ivalue
             else:
-                raise ValueError, \
-                      "Mismatched modulus for converting to zz_p."
+                raise ValueError("Mismatched modulus for converting to zz_p.")
 
         elif isinstance(a, IntegerMod_gmp):
             if (p_sage == (<IntegerMod_gmp>a).__modulus.sageInteger): ## this is slow
                 self.x = mpz_get_si((<IntegerMod_gmp>a).value)
             else:
-                raise ValueError, \
-                      "Mismatched modulus for converting to zz_p."
+                raise ValueError("Mismatched modulus for converting to zz_p.")
 
         elif isinstance(a, Integer):
             self.x = mpz_get_si((<Integer>a).value)%self.c.p
@@ -145,7 +141,7 @@ cdef class ntl_zz_p(object):
             try:
                 modulus = int(modulus)
             except Exception:
-                raise ValueError, "%s is not a valid modulus."%modulus
+                raise ValueError("%s is not a valid modulus." % modulus)
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
 
         ## now that we've determined the modulus, set that modulus.
@@ -155,7 +151,8 @@ cdef class ntl_zz_p(object):
         """
         Quick and dirty zz_p object creation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ntl.zz_p(23,75)
             sage: y = x*x ## indirect doctest
         """
@@ -169,7 +166,8 @@ cdef class ntl_zz_p(object):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: f = ntl.zz_p(16,244)
             sage: loads(dumps(f)) == f
             True
@@ -189,7 +187,8 @@ cdef class ntl_zz_p(object):
 
     def __add__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) + ntl.zz_p(6,23)
             11
         """
@@ -197,7 +196,7 @@ cdef class ntl_zz_p(object):
         if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         y = self._new()
         zz_p_add(y.x, self.x, (<ntl_zz_p>other).x)
@@ -205,7 +204,8 @@ cdef class ntl_zz_p(object):
 
     def __sub__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) - ntl.zz_p(6,23)
             22
         """
@@ -213,7 +213,7 @@ cdef class ntl_zz_p(object):
         if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         y = self._new()
         zz_p_sub(y.x, self.x, (<ntl_zz_p>other).x)
@@ -221,7 +221,8 @@ cdef class ntl_zz_p(object):
 
     def __mul__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) * ntl.zz_p(6,23)
             7
         """
@@ -229,7 +230,7 @@ cdef class ntl_zz_p(object):
         if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         y = self._new()
         self.c.restore_c()
         zz_p_mul(y.x, self.x, (<ntl_zz_p>other).x)
@@ -237,7 +238,8 @@ cdef class ntl_zz_p(object):
 
     def __truediv__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) / ntl.zz_p(2,23)
             14
         """
@@ -245,7 +247,7 @@ cdef class ntl_zz_p(object):
         if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         q = self._new()
         self.c.restore_c()
         sig_on()
@@ -253,50 +255,55 @@ cdef class ntl_zz_p(object):
         sig_off()
         return q
 
-    def __div__(self, other):
-        return self / other
-
     def __pow__(ntl_zz_p self, long n, ignored):
         """
         Return the n-th nonnegative power of self.
 
-        EXAMPLES:
-            sage: g = ntl.zz_p(5,13)
-            sage: g**10
+        EXAMPLES::
+
+            sage: g = ntl.zz_p(5, 13)
+            sage: g ^ 10
             12
-            sage: g**(-1)
+            sage: g ^ (-1)
             8
-            sage: g**(-5)
+            sage: g ^ (-5)
             8
+            sage: g ^ 0
+            1
+            sage: z = ntl.zz_p(0, 13)
+            sage: z ^ 0
+            1
+            sage: z ^ 1
+            0
+            sage: z ^ (-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: inverse does not exist
         """
-        cdef ntl_zz_p y
+        self.c.restore_c()
+        if n == 0:
+            return ntl_zz_p(1, self.c)
+
         if self.is_zero():
-            if n == 0:
-                raise ArithmeticError, "0^0 is undefined."
-            elif n < 0:
-                raise ZeroDivisionError
-            else:
+            if n > 0:
                 return self
+            raise ZeroDivisionError("inverse does not exist")
+
+        cdef ntl_zz_p y
+        if n > 0:
+            return generic_power_pos(self, <unsigned long>n)
         else:
-            from sage.groups.generic import power
-
-            self.c.restore_c()
-
-            if n == 0:
-                return self
-            elif n < 0:
-                y = ntl_zz_p.__new__(ntl_zz_p)
-                y.c = self.c
-                zz_p_inv(y.x, self.x)
-                return power(y, -n, ntl_zz_p(1,self.c))
-            else:
-                return power(self, n, ntl_zz_p(1,self.c))
+            y = ntl_zz_p.__new__(ntl_zz_p)
+            y.c = self.c
+            zz_p_inv(y.x, self.x)
+            return generic_power_pos(y, -<unsigned long>n)
 
     def __neg__(self):
         """
         Return the negative of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(5,234)
             sage: -f ## indirect doctest
             229
@@ -342,13 +349,14 @@ cdef class ntl_zz_p(object):
         """
         Return self as an int.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(3,next_prime(100)).__int__()
             3
             sage: int(ntl.zz_p(3,next_prime(100)))
             3
             sage: type(int(ntl.zz_p(3,next_prime(100))))
-            <type 'int'>
+            <... 'int'>
         """
         return zz_p_rep(self.x)
 
@@ -356,7 +364,8 @@ cdef class ntl_zz_p(object):
         """
         Return f*f.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(15,23)
             sage: f*f
             18
@@ -371,7 +380,8 @@ cdef class ntl_zz_p(object):
         """
         Return True exactly if this element is 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(0,20)
             sage: f.is_zero()
             True
@@ -386,7 +396,8 @@ cdef class ntl_zz_p(object):
         """
         Return True exactly if this element is 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(1,11)
             sage: f.is_one()
             True
@@ -401,7 +412,8 @@ cdef class ntl_zz_p(object):
         """
         Reset this element to 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ntl.zz_p(5,102) ; x
             5
             sage: x.clear() ; x
@@ -410,11 +422,13 @@ cdef class ntl_zz_p(object):
         self.c.restore_c()
         zz_p_clear(self.x)
 
+
 def make_zz_p(val, context):
     """
     For unpickling.
 
-    TEST:
+    TESTS::
+
         sage: f = ntl.zz_p(1, 12)
         sage: loads(dumps(f)) == f
         True

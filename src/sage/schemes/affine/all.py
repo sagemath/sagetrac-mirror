@@ -1,10 +1,11 @@
 """nodoctest
 all.py -- export of affine to Sage
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -20,8 +21,8 @@ all.py -- export of affine to Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from affine_space import AffineSpace
-from affine_rational_point import enum_affine_rational_field, enum_affine_finite_field
+from .affine_space import AffineSpace
+from .affine_rational_point import enum_affine_rational_field, enum_affine_finite_field
 
 
 

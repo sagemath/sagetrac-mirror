@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-cd python-openid-* && python setup.py install

@@ -4,7 +4,7 @@ Basic objects such as Sphere, Box, Cone, etc.
 AUTHORS:
 
 - Robert Bradshaw 2007-02: initial version
-- Robert Bradshaw 2007-08: obj/tachon rendering, much updating
+- Robert Bradshaw 2007-08: obj/tachyon rendering, much updating
 - Robert Bradshaw 2007-08: cythonization
 
 EXAMPLES::
@@ -40,38 +40,24 @@ EXAMPLES::
 
 """
 
-
-#*****************************************************************************
-#      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+# ****************************************************************************
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-
-cdef extern from "math.h":
-    double sqrt(double)
-    double sin(double)
-    double cos(double)
-    double tan(double)
-    double asin(double)
-    double acos(double)
-    double atan(double)
-    double M_PI
-
-
-from sage.rings.real_double  import RDF
+from libc.math cimport sqrt, sin, cos, tan, asin, acos, atan, M_PI
+from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
-from sage.plot.misc import rename_keyword
-from base import Graphics3dGroup, Graphics3d
+from sage.misc.decorators import rename_keyword
+from .base import Graphics3dGroup, Graphics3d
+from .index_face_set cimport IndexFaceSet, PrimitiveObject
+from .transform cimport point_c
+
 
 # Helper function to check that Box input is right
 def validate_frame_size(size):
@@ -120,7 +106,7 @@ class Box(IndexFaceSet):
         sage: from sage.plot.plot3d.shapes import Box
 
     A square black box::
-    
+
         sage: show(Box([1,1,1]), color='black')
 
     .. PLOT::
@@ -138,7 +124,7 @@ class Box(IndexFaceSet):
         sphinx_plot(Box([2,3,4], color="red"))
 
     A stack of boxes::
-    
+
         sage: show(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
 
     .. PLOT::
@@ -148,7 +134,7 @@ class Box(IndexFaceSet):
         sphinx_plot(P)
 
     A sinusoidal stack of multicolored boxes::
-    
+
         sage: B = sum([Box([2,4,1/4], color=(i/4,i/5,1)).translate((sin(i),0,5-i)) for i in [0..20]])
         sage: show(B, figsize=6)
 
@@ -198,6 +184,7 @@ class Box(IndexFaceSet):
         return "<Box size='%s %s %s'/>" % tuple(self.size)
 
 
+@rename_keyword(alpha='opacity')
 def ColorCube(size, colors, opacity=1, **kwds):
     """
     Return a cube with given size and sides with given colors.
@@ -222,13 +209,13 @@ def ColorCube(size, colors, opacity=1, **kwds):
         sage: c.show()
 
     .. PLOT::
-    
+
         from sage.plot.plot3d.shapes import ColorCube
         c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
         sphinx_plot(c)
-    
+
     ::
-    
+
         sage: list(c.texture_set())[0].opacity
         0.5
 
@@ -251,8 +238,9 @@ def ColorCube(size, colors, opacity=1, **kwds):
     if len(colors) == 3:
         colors = colors * 2
     all = []
+    kwds['opacity'] = opacity
 
-    from texture import Texture
+    from .texture import Texture
     for k in range(6):
         all.append(IndexFaceSet([faces[k]], enclosed=True,
              texture=Texture(colors[k], opacity=opacity),
@@ -311,14 +299,14 @@ cdef class Cone(ParametricSurface):
         sage: T = sum(Cone(exp(-n/5), 4/3*exp(-n/5), color=(0, .5, 0)).translate(0, 0, -3*exp(-n/5)) for n in [1..7])
         sage: T += Cone(1/8, 1, color='brown').translate(0, 0, -3)
         sage: T.show(aspect_ratio=1, frame=False)
-        
+
     .. PLOT::
 
         from sage.plot.plot3d.shapes import Cone
         T = sum(Cone(exp(-n/5.0), 4/3*exp(-n/5.0), color=(0, .5, 0)).translate(0, 0, -3*exp(-n/5.0)) for n in range(8))
         T += Cone(1/8, 1, color='brown').translate(0, 0, -3)
         sphinx_plot(T)
-    
+
     """
     def __init__(self, radius, height, closed=True, **kwds):
         """
@@ -610,10 +598,11 @@ draw %s width %s {%s %s %s} {%s %s %s}\n%s
             res.x, res.y, res.z = 0, 0, self.height
 
 
+@rename_keyword(alpha='opacity')
 def LineSegment(start, end, thickness=1, radius=None, **kwds):
     """
     Create a line segment, which is drawn as a cylinder from start to
-    end with radius radius.
+    end with radius ``radius``.
 
     EXAMPLES::
 
@@ -674,7 +663,7 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-@rename_keyword(deprecation=7154, deprecated_option='thickness', thickness='width')
+
 def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, **kwds):
     """
     Create a 3d arrow.
@@ -758,7 +747,7 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: len(a.all)
         1
         sage: type(a.all[0])
-        <type 'sage.plot.plot3d.shapes.Cone'>
+        <... 'sage.plot.plot3d.shapes.Cone'>
 
     Arrows are always constructed pointing up in the z direction from
     the origin, and then rotated/translated into place. This works for
@@ -830,7 +819,7 @@ cdef class Sphere(ParametricSurface):
 
         sage: S = Sphere(1).scale(1,2,1/2)
         sage: S.show(aspect_ratio=1)
-        
+
     .. PLOT::
 
         from sage.plot.plot3d.shapes import Sphere
@@ -956,7 +945,7 @@ cdef class Sphere(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(1).get_grid(100)
-            ([-10.0, ..., 0.0, ..., 10.0],
+            ([-10.0, ..., 10.0],
              [0.0, ..., 3.141592653589793, ..., 0.0])
         """
         cdef int K, u_res, v_res
@@ -1043,7 +1032,7 @@ cdef class Torus(ParametricSurface):
 
     def get_grid(self, ds):
         """
-        Return the the range of variables to be evaluated on to render as a
+        Return the range of variables to be evaluated on to render as a
         parametric surface.
 
         EXAMPLES::
@@ -1104,6 +1093,7 @@ class Text(PrimitiveObject):
         """
         PrimitiveObject.__init__(self, **kwds)
         self.string = string
+        self._set_extra_kwds(kwds)
 
     def x3d_geometry(self):
         """
@@ -1172,6 +1162,113 @@ class Text(PrimitiveObject):
         return ['select atomno = %s' % atom_no,
                 self.get_texture().jmol_str("atom"),
                 'label "%s"' % self.string] #.replace('\n', '|')]
+
+    def threejs_repr(self, render_params):
+        r"""
+        Return representation of the text suitable for plotting in three.js.
+
+        EXAMPLES::
+
+            sage: T = text3d("Hi", (1, 2, 3), color='red', fontfamily='serif',
+            ....:            fontweight='bold', fontstyle='italic', fontsize=20,
+            ....:            opacity=0.5)
+            sage: T.threejs_repr(T.default_render_params())
+            [('text',
+              {'color': '#ff0000',
+               'fontFamily': ['serif'],
+               'fontSize': 20.0,
+               'fontStyle': 'italic',
+               'fontWeight': 'bold',
+               'opacity': 0.5,
+               'text': 'Hi',
+               'x': 1.0,
+               'y': 2.0,
+               'z': 3.0})]
+
+        TESTS:
+
+        When created directly via the ``Text`` constructor instead of ``text3d``,
+        the text is located at the origin::
+
+            sage: from sage.plot.plot3d.shapes import Text
+            sage: T = Text("Hi")
+            sage: T.threejs_repr(T.default_render_params())
+            [('text',
+              {'color': '#6666ff',
+               'fontFamily': ['monospace'],
+               'fontSize': 14.0,
+               'fontStyle': 'normal',
+               'fontWeight': 'normal',
+               'opacity': 1.0,
+               'text': 'Hi',
+               'x': 0.0,
+               'y': 0.0,
+               'z': 0.0})]
+
+        """
+        center = (float(0), float(0), float(0))
+        if render_params.transform is not None:
+            center = render_params.transform.transform_point(center)
+
+        color = '#' + str(self.texture.hex_rgb())
+        string = str(self.string)
+
+        default_size = 14.0
+        size = self._extra_kwds.get('fontsize', default_size)
+        try:
+            size = float(size)
+        except (TypeError, ValueError):
+            scale = str(size).lower()
+            if scale.endswith('%'):
+                try:
+                    scale = float(scale[:-1]) / 100.0
+                    size = default_size * scale
+                except ValueError:
+                    import warnings
+                    warnings.warn(f"invalid fontsize: {size}, using: {default_size}")
+                    size = default_size
+            else:
+                from matplotlib.font_manager import font_scalings
+                try:
+                    size = default_size * font_scalings[scale]
+                except KeyError:
+                    import warnings
+                    warnings.warn(f"unknown fontsize: {size}, using: {default_size}")
+                    size = default_size
+
+        font = self._extra_kwds.get('fontfamily', ['monospace'])
+        if isinstance(font, str):
+            font = font.split(',')
+        font = [str(f).strip() for f in font]
+
+        default_style = 'normal'
+        style = str(self._extra_kwds.get('fontstyle', default_style))
+        if style not in ['normal', 'italic'] and not style.startswith('oblique'): # ex: oblique 30deg
+            import warnings
+            warnings.warn(f"unknown style: {style}, using: {default_style}")
+            style = default_style
+
+        default_weight = 'normal'
+        weight = self._extra_kwds.get('fontweight', default_weight)
+        if weight not in ['normal', 'bold']:
+            try:
+                weight = int(weight)
+            except:
+                from matplotlib.font_manager import weight_dict
+                try:
+                    weight = weight_dict[weight]
+                except KeyError:
+                    import warnings
+                    warnings.warn(f"unknown fontweight: {weight}, using: {default_weight}")
+                    weight = default_weight
+
+        opacity = float(self._extra_kwds.get('opacity', 1.0))
+
+        text = dict(text=string, x=center[0], y=center[1], z=center[2], color=color,
+                    fontSize=size, fontFamily=font, fontStyle=style, fontWeight=weight,
+                    opacity=opacity)
+
+        return [('text', text)]
 
     def bounding_box(self):
         """

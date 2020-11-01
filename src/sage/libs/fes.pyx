@@ -1,5 +1,8 @@
+# distutils: language = c
+# distutils: libraries = fes
+# sage_setup: distribution = sage-fes
 """
-Binding for the FES library.
+Binding for the FES library
 
 Finding solutions of systems of boolean equations by exhaustive
 search, via the fes library. This is usually (much) faster than
@@ -35,7 +38,7 @@ Random Degree-2 System::
     sage: len(sols)                                                              # optional - FES
     1
 
-Cylic benchmark::
+Cyclic benchmark::
 
     sage: from sage.rings.ideal import Cyclic                 # optional - FES
     sage: from sage.libs.fes import exhaustive_search         # optional - FES
@@ -49,33 +52,28 @@ Cylic benchmark::
 
 REFERENCES:
 
- .. [BCCCNSY10] Charles Bouillaguet, Hsieh-Chung Chen, Chen-Mou Cheng,
-    Tung Chou, Ruben Niederhagen, Adi Shamir, and Bo-Yin Yang.
-    *Fast exhaustive search for polynomial systems in GF(2)*.
-    In Stefan Mangard and François-Xavier Standaert, editors,
-    CHES, volume 6225 of Lecture Notes in Computer Science, pages 203–218.
-    Springer, 2010. pre-print available at http://eprint.iacr.org/2010/313.pdf
-
+- [BCCCNSY2010]_
 """
+
 #*****************************************************************************
-#  Copyright (C) 2012 Charles Bouillaguet <charles.bouillaguet@lifl.fr>
+#       Copyright (C) 2012 Charles Bouillaguet <charles.bouillaguet@lifl.fr>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from libc.stdint cimport uint64_t
+from cysignals.memory cimport sig_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from "fes_interface.h":
     ctypedef int (*solution_callback_t)(void *, uint64_t)
 
     void exhaustive_search_wrapper(int n, int n_eqs, int degree, int ***coeffs, solution_callback_t callback, void* callback_state, int verbose)
 
-
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
@@ -85,7 +83,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.polynomial.pbori import BooleanPolynomial, BooleanPolynomialRing
+from sage.rings.polynomial.pbori.pbori import BooleanPolynomial, BooleanPolynomialRing
 from sage.arith.all import binomial
 from sage.combinat.subset import Subsets
 
@@ -109,7 +107,7 @@ cdef int report_solution(void *_state, uint64_t i):
     cdef object state = <object> _state
     state.sols.append(i)
     if state.verbose:
-        print "fes: solution {0} / {1} found : {2:x}".format(len(state.sols), state.max_sols, i)
+        print("fes: solution {0} / {1} found : {2:x}".format(len(state.sols), state.max_sols, i))
     if (state.max_sols > 0 and state.max_sols >= len(state.sols)):
         return 1  #stop the library
     return 0 # keep going
@@ -133,7 +131,7 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
         Using this function requires the optional package FES to be installed.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A very simple example::
 
@@ -286,7 +284,7 @@ def find_coordinate_change(As, max_tries=64):
             while not S.is_invertible():
                 S.randomize()
             Bs = [ S.T*M*S for M in As ]
-            print "trying again..."
+            print("trying again...")
     raise ValueError("Could not find suitable coordinate change")
 
 
@@ -312,7 +310,7 @@ def prepare_polynomials(f):
                + sum( [K.random_element() * R.gen(i)  for i in range(n) ] ) \
                + K.random_element() for l in range(n) ]                        # optional - FES
         sage: g = prepare_polynomials(f)                                       # optional - FES
-        sage: map(lambda x:x.lm(), g)                                          # optional - FES, random
+        sage: [x.lm() for x in g]                                          # optional - FES, random
         0
     """
     if f == []:
@@ -333,8 +331,6 @@ def prepare_polynomials(f):
 
     monomials_in_s = list( s.monomials() )
     monomials_in_s.sort(reverse=True)
-
-#   print "fes interface: killing monomials ", monomials_in_s[:excess]
 
     m = matrix(R.base_ring(), [ [ g.monomial_coefficient(m) for m in monomials_in_s[:excess] ] for g in s ])
     # now find the linear combinations of the equations that kills the first `excess` monomials in all but `excess` equations
