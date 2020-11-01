@@ -67,8 +67,8 @@ buildbot-python3:
 # Preemptively download all standard upstream source tarballs.
 download:
 	export SAGE_ROOT=$$(pwd) && \
-	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
-	./src/bin/sage-download-upstream
+	export PATH=$$SAGE_ROOT/build/bin:$$SAGE_ROOT/src/bin:$$PATH && \
+	sage-download-upstream
 
 dist: build/make/Makefile
 	./sage --sdist

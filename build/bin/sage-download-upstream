@@ -1,0 +1,8 @@
+#!/bin/sh
+
+for pkg in $SAGE_ROOT/build/pkgs/*
+do
+    if [ -d $pkg -a -f $pkg/checksums.ini ]; then
+        sage-spkg -d -y `basename $pkg`
+    fi
+done
