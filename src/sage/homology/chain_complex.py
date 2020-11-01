@@ -68,6 +68,10 @@ from sage.interfaces import kenzo
 from sage.features.kenzo import Kenzo
 kenzo_is_present = Kenzo().is_present()
 
+from sage.interfaces import kenzo
+from sage.features.kenzo import Kenzo
+kenzo_is_present = Kenzo().is_present()
+
 
 def _latex_module(R, m):
     """
