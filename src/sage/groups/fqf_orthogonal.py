@@ -254,6 +254,18 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             [4 3]
             [3 1]
 
+        Note that the following does not work since it may lead to ambiguities, see :trac:`30669`::
+
+            sage: Oq(f.matrix())
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+
+        But a matrix in the covering works::
+
+            sage: fbar == Oq(fbar.matrix())
+            True
+
         TESTS::
 
             sage: all(x*f==x*fbar for x in q.gens())
@@ -278,8 +290,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             True
         """
         from sage.libs.gap.element import GapElement
-        from sage.matrix.matrix0 import Matrix
-        if not isinstance(x, GapElement) and not isinstance(x, Matrix):
+        if not isinstance(x, GapElement):
             try:
                 # if there is an action try that
                 gen = self.invariant_form().smith_form_gens()

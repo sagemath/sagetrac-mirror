@@ -9,11 +9,11 @@ EXAMPLES::
 
 AUTHORS:
 
-- Simon Brandhorst (2018-07-1): initial version
+- Simon Brandhorst (2020-11-1): initial version
 """
 
 # ****************************************************************************
-#       Copyright (C) 2018 Simon Brandhorst <sbrandhorst@web.de>
+#       Copyright (C) 2020 Simon Brandhorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -3586,7 +3586,8 @@ class GenusSymbol_global_ring(object):
                 Q = QuadraticForm(ZZ,e*self.representative())
                 seeds = [Q]
                 for p in self.spinor_generators(proper=False):
-                    seeds.append(Q.p_neighbor(p))
+                    v = Q.find_primitive_p_divisible_vector__next(p)
+                    seeds.append(Q.find_p_neighbor_from_vec(p, v))
                 if ZZ.prod(self.signature_pair()) != 0:
                     # indefinite genus and improper spinor genus agree
                     representatives = seeds
