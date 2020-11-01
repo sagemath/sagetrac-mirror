@@ -55,6 +55,7 @@ from sage.matrix.constructor import block_diagonal_matrix, zero_matrix
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.categories.chain_complexes import ChainComplexes
+from sage.rings.integer_ring import ZZ
 
 from sage.interfaces import kenzo
 from sage.features.kenzo import Kenzo
@@ -451,26 +452,16 @@ class ChainComplexMorphism(Morphism):
             f = dict()
             for i in self._matrix_dictionary:
                 f[i] = self._matrix_dictionary[i] * y
-            return ChainComplexMorphism(f,self.domain(),self.codomain())
+            result = ChainComplexMorphism(f,self.domain(),self.codomain())
+            if self.domain().base_ring() == ZZ and hasattr(self, '_kenzo_repr'):
+                result._kenzo_repr = self._kenzo_repr.mul(y)
+            return result
         f = dict()
         for i in self._matrix_dictionary:
             f[i] = self._matrix_dictionary[i]*x.in_degree(i)
-        result = ChainComplexMorphism(f,x.domain(),self.codomain())
-        from sage.categories.morphism import IdentityMorphism
-        if isinstance(self, IdentityMorphism):
-            first = kenzo.KIdentity(self)
-        elif hasattr(self, '_kenzo_repr'):
-            first = self._kenzo_repr
-        else:
-            first = None
-        if isinstance(x, IdentityMorphism):
-            second = kenzo.KIdentity(x)
-        elif hasattr(x, '_kenzo_repr'):
-            second = x._kenzo_repr
-        else:
-            second = None
-        if first and second: 
-            result._kenzo_repr = first.composite(second)
+        result = ChainComplexMorphism(f,x.domain(),self.codomain()) 
+        if hasattr(self, '_kenzo_repr') and hasattr(x, '_kenzo_repr'):
+            result._kenzo_repr = self._kenzo_repr.composite(x._kenzo_repr)
         return result
 
     def __rmul__(self,x):
@@ -495,7 +486,10 @@ class ChainComplexMorphism(Morphism):
         f = dict()
         for i in self._matrix_dictionary.keys():
             f[i] = y * self._matrix_dictionary[i]
-        return ChainComplexMorphism(f,self.domain(),self.codomain())
+        result = ChainComplexMorphism(f,self.domain(),self.codomain())
+        if self.domain().base_ring() == ZZ and hasattr(self, '_kenzo_repr'):
+            result._kenzo_repr = self._kenzo_repr.mul(y)
+        return result
 
     def __sub__(self,x):
         """
