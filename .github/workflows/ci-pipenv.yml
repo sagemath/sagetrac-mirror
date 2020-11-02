@@ -54,8 +54,9 @@ jobs:
           [System.Collections.ArrayList]$packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | Sort-Object -Unique
           # We already installed python
           $packages.Remove('libpython3.7-dev')
-          # libhomfly doesn't exist
+          # libhomfly and texlive-generic-extra doesn't exist
           $packages.Remove('libhomfly')
+          $packages.Remove('texlive-generic-extra')
           # Add a few dependencies that are not yet listed
           $packages.Add('libsingular4-dev')
           $packages.Add('liblinbox-dev')
