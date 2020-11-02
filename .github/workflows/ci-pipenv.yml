@@ -80,4 +80,4 @@ jobs:
         env:
           ARB_LIBRARY: flint-arb
       - name: Test
-        run: cd src && pipenv run python -c 'import sage.all'
+        run: cd src && pipenv run python -c 'import sage.all; import sage.doctest.control; sage.doctest.control.run_doctests(sage)'
