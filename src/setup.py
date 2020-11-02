@@ -8,9 +8,8 @@ import sys
 import time
 from distutils import log
 from setuptools import setup, find_namespace_packages
-from setuptools.command.develop import develop
-from Cython.Build.Dependencies import default_create_extension
 from sage_setup.cython_options import compiler_directives, compile_time_env_variables
+from sage_setup.extensions import create_extension
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -91,15 +90,6 @@ aliases = cython_aliases()
 log.debug('aliases = {0}'.format(aliases))
 
 log.info("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
-
-import numpy
-def create_extension(template, kwds):
-    # Add numpy and source folder to the include search path used by the compiler
-    # This is a workaround for https://github.com/cython/cython/issues/1480
-
-    include_dirs = kwds.get('include_dirs', []) + [numpy.get_include(), 'src', '.']
-    kwds['include_dirs'] = include_dirs
-    return default_create_extension(template, kwds)        
 
 #########################################################
 ### Distutils
