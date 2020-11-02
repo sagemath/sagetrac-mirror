@@ -356,17 +356,12 @@ class DocTestController(SageObject):
                 # Special case to run all optional tests
                 options.optional = True
             else:
-                # We replace the 'optional' tag by all optional
-                # packages for which the installed version matches the
-                # latest available version (this implies in particular
-                # that the package is actually installed).
+                # We replace the 'optional' tag by all installed optional
+                # packages (using the installation record)
                 if 'optional' in options.optional:
                     options.optional.discard('optional')
                     from sage.misc.package import list_packages
-                    for pkg in list_packages('optional', local=True).values():
-                        if pkg['installed'] and pkg['installed_version'] == pkg['remote_version']:
-                            options.optional.add(pkg['name'])
-
+                    options.optional.update(list_packages('optional', local=True, installed=True)):
                     from sage.features import package_systems
                     options.optional.update(system.name for system in package_systems())
 
