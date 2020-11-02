@@ -10,6 +10,9 @@ pycodestyle = "*"
 ipykernel = "*"
 tox = "*"
 jinja2 = "*"
+pytest = "*"
+ipywidgets = "*"
+sphinx = "*"
 
 [packages]
 numpy = "*"
@@ -22,7 +25,6 @@ ipython = "*"
 sympy = "*"
 scipy = "*"
 pplpy = "*"
-pytest = "*"
 
 [requires]
 python_version = "3.8"
