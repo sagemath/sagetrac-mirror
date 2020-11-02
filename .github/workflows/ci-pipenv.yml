@@ -70,7 +70,7 @@ jobs:
           & apt-get install -y @packages
         shell: pwsh
       - name: Create virtual environment
-        run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential --verbose && pipenv run pip list
+        run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --verbose && pipenv run pip list
         env:
           ARB_LIBRARY: flint-arb
           PIP_NO_BUILD_ISOLATION: false

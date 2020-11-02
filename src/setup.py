@@ -199,4 +199,5 @@ code = setup(name = 'sage',
                                 compile_time_env=compile_time_env_variables(),
                                 compiler_directives=compiler_directives(False),
                                 aliases=aliases,
-                                create_extension=create_extension))
+                                create_extension=create_extension,
+                                nthreads=4))
