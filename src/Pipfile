@@ -25,6 +25,7 @@ ipython = "*"
 sympy = "*"
 scipy = "*"
 pplpy = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.8"
