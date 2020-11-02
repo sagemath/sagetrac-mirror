@@ -54,7 +54,7 @@ EXAMPLES::
 from sage.matrix.constructor import block_diagonal_matrix, zero_matrix
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
-from sage.categories.category_types import ChainComplexes
+from sage.categories.chain_complexes import ChainComplexes
 from sage.rings.integer_ring import ZZ
 
 from sage.interfaces import kenzo
