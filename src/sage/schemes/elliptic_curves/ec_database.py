@@ -67,31 +67,30 @@ which enable easy looping through the Cremona elliptic curve database.
 """
 from __future__ import absolute_import
 
-import os
 from ast import literal_eval
 
 from .constructor import EllipticCurve
 
 class EllipticCurves:
-    def rank(self, rank, tors=0, n=10, labels=False):
-        r"""
+    def rank(self, rank: int, tors: int = 0, n: int = 10, labels: bool = False) -> list:
+        """
         Return a list of at most `n` non-isogenous curves with given
         rank and torsion order.
 
         INPUT:
 
-        - ``rank`` (int) -- the desired rank
+        - ``rank`` -- the desired rank
 
-        - ``tors`` (int, default 0) -- the desired torsion order (ignored if 0)
+        - ``tors`` (default 0) -- the desired torsion order (ignored if 0)
 
-        - ``n`` (int, default 10) -- the maximum number of curves returned.
+        - ``n`` (default 10) -- the maximum number of curves returned.
 
-        - ``labels`` (bool, default False) -- if True, return Cremona
+        - ``labels`` (default False) -- if True, return Cremona
           labels instead of curves.
 
         OUTPUT:
 
-        (list) A list at most `n` of elliptic curves of required rank.
+        A list at most `n` of elliptic curves of required rank.
 
         EXAMPLES::
 
@@ -130,43 +129,42 @@ class EllipticCurves:
             sage: elliptic_curves.rank(6, n=3, labels=True)
             []
         """
-        from sage.env import ELLCURVE_DATA_DIR
-        data = os.path.join(ELLCURVE_DATA_DIR, 'rank%s'%rank)
+        from sage.env import get_ellcurve_data_dir
+        data_path = get_ellcurve_data_dir() / f"rank{rank}"
+
         try:
-            f = open(data)
+            v = []
+            with data_path.open() as f:
+                for w in f.readlines():
+                    N, iso, num, ainvs, r, t = w.split()
+                    N = int(N)
+                    t = int(t)
+                    if tors and tors != t:
+                        continue
+
+                    # Labels are only known to be correct for small conductors.
+                    # NOTE: only change this bound below after checking/fixing
+                    # the Cremona labels in the elliptic_curves package!
+                    if N <= 400000:
+                        label = '%s%s%s'%(N, iso, num)
+                    else:
+                        label = None
+
+                    if labels:
+                        if label is not None:
+                            v.append(label)
+                    else:
+                        E = EllipticCurve(literal_eval(ainvs))
+                        E._set_rank(r)
+                        E._set_torsion_order(t)
+                        E._set_conductor(N)
+                        if label is not None:
+                            E._set_cremona_label(label)
+                        v.append(E)
+                    if len(v) >= n:
+                        break
+            return v
         except IOError:
             return []
-        v = []
-        tors = int(tors)
-        for w in f.readlines():
-            N, iso, num, ainvs, r, t = w.split()
-            N = int(N)
-            t = int(t)
-            if tors and tors != t:
-                continue
-
-            # Labels are only known to be correct for small conductors.
-            # NOTE: only change this bound below after checking/fixing
-            # the Cremona labels in the elliptic_curves package!
-            if N <= 400000:
-                label = '%s%s%s'%(N, iso, num)
-            else:
-                label = None
-
-            if labels:
-                if label is not None:
-                    v.append(label)
-            else:
-                E = EllipticCurve(literal_eval(ainvs))
-                E._set_rank(r)
-                E._set_torsion_order(t)
-                E._set_conductor(N)
-                if label is not None:
-                    E._set_cremona_label(label)
-                v.append(E)
-            if len(v) >= n:
-                break
-        return v
-
 
 elliptic_curves = EllipticCurves()

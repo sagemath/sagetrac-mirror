@@ -29,6 +29,8 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 # ****************************************************************************
 
 from __future__ import absolute_import
+from pathlib import Path
+from typing import Optional
 
 import sage
 import glob
@@ -62,6 +64,18 @@ def join(*args):
         return None
     return os.path.join(*args)
 
+def get_variable(key: str, ignore_env_variable: bool = False) -> Optional[str]:
+    if ignore_env_variable:
+        value = None
+    else:
+        value = os.environ.get(key)
+    if value is None:
+        try:
+            import sage_conf
+            value = getattr(sage_conf, key, None)
+        except ImportError:
+            pass
+    return value
 
 def var(key, *fallbacks, **kwds):
     """
@@ -128,16 +142,8 @@ def var(key, *fallbacks, **kwds):
         sage: sage.env.SAGE_FOO
         'foo'
     """
-    if kwds.get("force"):
-        value = None
-    else:
-        value = os.environ.get(key)
-    if value is None:
-        try:
-            import sage_conf
-            value = getattr(sage_conf, key, None)
-        except ImportError:
-            pass
+    value = get_variable(key, kwds.get("force"))
+    
     # Try all fallbacks in order as long as we don't have a value
     for f in fallbacks:
         if value is not None:
@@ -180,7 +186,6 @@ var('SAGE_STARTUP_FILE',   join(DOT_SAGE, 'init.sage'))
 # installation directories for various packages
 var('CONWAY_POLYNOMIALS_DATA_DIR',   join(SAGE_SHARE, 'conway_polynomials'))
 var('GRAPHS_DATA_DIR',               join(SAGE_SHARE, 'graphs'))
-var('ELLCURVE_DATA_DIR',             join(SAGE_SHARE, 'ellcurves'))
 var('POLYTOPE_DATA_DIR',             join(SAGE_SHARE, 'reflexive_polytopes'))
 var('GAP_ROOT_DIR',                  join(SAGE_SHARE, 'gap'))
 var('THEBE_DIR',                     join(SAGE_SHARE, 'thebe'))
@@ -203,6 +208,17 @@ var('ARB_LIBRARY',                   'arb')
 var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
+def get_ellcurve_data_dir() -> Path:
+    """
+    Return the data directory for ellCurve.
+    """
+    path = None
+    if path_str := get_variable('ELLCURVE_DATA_DIR') is not None:
+        path = Path(path_str)
+    if path is None or not path.exists():
+        path = Path(SAGE_SHARE) / 'ellcurves'
+    
+    return path
 
 def _get_shared_lib_filename(libname, *additional_libnames):
     """
