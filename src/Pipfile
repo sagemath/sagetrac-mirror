@@ -13,6 +13,7 @@ jinja2 = "*"
 pytest = "*"
 ipywidgets = "*"
 sphinx = "*"
+rope = "*"
 
 [packages]
 numpy = "*"
