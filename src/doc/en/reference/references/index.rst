@@ -203,6 +203,8 @@ REFERENCES:
              uniform spanning trees*, SIAM J Discrete Math 3 (1990),
              450-465. :doi:`10.1137/0403039`.
 
+.. [Ale1937] \P. Alexandroff, *Diskrete Raume*, Mat. Sb. (N.S.) 2 (1937), 501-518.
+
 .. [ALPRRV2019] \E. Andreeva, V. Lallemand, A. Purnal, R. Reyhanitabar, A. Roy, D. Vizar
                 "ForkAE v.1"
                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/forkae-spec.pdf
@@ -385,6 +387,10 @@ REFERENCES:
 .. [Bar2006] \G. Bard. 'Accelerating Cryptanalysis with the Method of
              Four Russians'. Cryptography E-Print Archive
              (http://eprint.iacr.org/2006/251.pdf), 2006.
+
+.. [Bar2011] \J. A. Barmak,
+             *Algebraic topology of finite topological spaces and applications*.
+             Lecture Notes in Mathematics Vol. 2032 (2011).
 
 .. [Bat1991] \V. V. Batyrev, *On the classification of smooth projective
              toric varieties*, Tohoku Math. J. **43** (1991), 569-585
@@ -4954,6 +4960,9 @@ REFERENCES:
 .. [SHET2018] \O. Seker, P. Heggernes, T. Ekim, and Z. Caner Taskin.
               *Generation of random chordal graphs using subtrees of a tree*,
               :arxiv:`1810.13326v1`.
+
+.. [Shi1968] \M. Shiraki, *On finite topological spaces*,
+             Rep. Fac. Sci. Kagoshima Univ. 1 (1968), 1-8.
 
 .. [Shi2002] \M. Shimozono
              *Affine type A crystal structure on tensor products of rectangles,
