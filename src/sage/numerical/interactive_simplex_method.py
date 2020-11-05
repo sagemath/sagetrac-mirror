@@ -313,7 +313,7 @@ def _latex_product(coefficients, variables,
             t = latex(v)
         else:
             t = latex(c)
-            if SR(c).operator() in [operator.add, operator.sub]:
+            if t.find("+") != -1 or t.find("-") != -1:
                 t = r"\left( " + t + r" \right)"
             t += " " + latex(v)
         entries.extend([sign, t])
