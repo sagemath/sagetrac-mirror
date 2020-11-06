@@ -745,6 +745,8 @@ class KenzoCombination():
         self._chcm = Kchcm
         self._kenzo = kenzo
         if terms:
+            for k in range(0, len(terms), 2):
+                self._terms[k] = Integer(str(terms[k]))
             if not kenzo:
                 self._kenzo = __cmbn_aux__(degree, pairing(terms))
             if Kchcm:
@@ -757,6 +759,7 @@ class KenzoCombination():
                         raise AssertionError("Generator {} is not of degree {} in {}"
                                              .format(terms[k], degree, Kchcm))
         else:
+            self._terms = []
             if not kenzo:
                 self._kenzo = __zero_cmbn__(degree)
 
@@ -815,9 +818,21 @@ class KenzoCombination():
             sage: c1 == c2                                                       # optional - kenzo
             False
         """
-        return bool(self._chcm==other._chcm \
-                    and self._degree==other._degree \
-                    and self._terms==other._terms)
+        if bool(self._chcm==other._chcm and self._degree==other._degree)==False:
+            return False
+        l = len(self._terms)
+        if len(other._terms)!=l:
+            return False
+        for k in range(1, l, 2):
+            selfk = self._terms[k]
+            otherk = other._terms[k]
+            if isinstance(selfk, KenzoObject) and isinstance(otherk, KenzoObject):
+                if selfk._kenzo!=otherk._kenzo:
+                    return False
+            else:
+                if selfk!=otherk:
+                    return False
+        return True
 
     def __neg__(self):
         r"""
@@ -1613,6 +1628,7 @@ def k2s_matrix(kmatrix):
         sage: from sage.interfaces.kenzo import k2s_matrix         # optional - kenzo
         sage: from sage.libs.ecl import EclObject
         sage: M = EclObject("#2A((1 2 3) (3 2 1) (1 1 1))")
+        sage: k2s_matrix(M)                                        # optional - kenzo
         [1 2 3]
         [3 2 1]
         [1 1 1]
@@ -1962,9 +1978,8 @@ def SFiniteSimplicialSet(ksimpset, limit):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import SimplicialSet
-        sage: from sage.interfaces.kenzo import AbstractSimplex,\
-        ....:  KFiniteSimplicialSet, SFiniteSimplicialSet, Sphere   # optional - kenzo
+        sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+        sage: from sage.interfaces.kenzo import KFiniteSimplicialSet, SFiniteSimplicialSet, Sphere  # optional - kenzo
         sage: s0 = AbstractSimplex(0, name='s0')                    # optional - kenzo
         sage: s1 = AbstractSimplex(0, name='s1')                    # optional - kenzo
         sage: s2 = AbstractSimplex(0, name='s2')                    # optional - kenzo
@@ -1978,12 +1993,11 @@ def SFiniteSimplicialSet(ksimpset, limit):
         sage: STriangle = SFiniteSimplicialSet(KTriangle, 1)        # optional - kenzo
         sage: STriangle.homology()                                  # optional - kenzo
         {0: 0, 1: Z}
-        sage: S1 = simplicial_sets.Sphere(1)                        # optional - kenzo
         sage: S3 = simplicial_sets.Sphere(3)                        # optional - kenzo
-        sage: KS1vS3 = KFiniteSimplicialSet(S1.wedge(S3))           # optional - kenzo
-        sage: SS1vS3 = SFiniteSimplicialSet(KS1vS3, 3)              # optional - kenzo
-        sage: SS1vS3.homology()                                     # optional - kenzo
-        {0: 0, 1: Z, 2: 0, 3: Z}
+        sage: KS3 = KFiniteSimplicialSet(S3)                        # optional - kenzo
+        sage: SS3 = SFiniteSimplicialSet(KS3, 3)                    # optional - kenzo
+        sage: SS3.homology()                                        # optional - kenzo
+        {0: 0, 1: 0, 2: 0, 3: Z}
     """
     from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
     list_orgn = __orgn_aux__(ksimpset._kenzo).python()
@@ -2551,7 +2565,7 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: s3 = Sphere(3)                                              # optional - kenzo
             sage: tp = s2.tensor_product(s3)                                  # optional - kenzo
             sage: tp                                                          # optional - kenzo
-            [K... Chain-Complex]
+            [K... Filtered-Chain-Complex]
             sage: null = ZCC.null_morphism(tp)                                # optional - kenzo
             sage: null                                                        # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
@@ -2595,12 +2609,12 @@ class KenzoChainComplexMorphism(KenzoObject):
             sage: s3 = Sphere(3)                                              # optional - kenzo
             sage: tp = s2.tensor_product(s3)                                  # optional - kenzo
             sage: tp                                                          # optional - kenzo
-            [K... Chain-Complex]
+            [K... Filtered-Chain-Complex]
             sage: null = ZCC.null_morphism(tp)                                # optional - kenzo
             sage: null                                                        # optional - kenzo
             [K... Morphism (degree 0): K... -> K...]
             sage: null.target_complex()                                       # optional - kenzo
-            [K... Chain-Complex]
+            [K... Filtered-Chain-Complex]
             sage: null.destructive_change_source_target_complex(target = ZCC) # optional - kenzo
             [K... Cohomology-Class on K... of degree 0]
             sage: null.target_complex()                                       # optional - kenzo
@@ -2803,7 +2817,7 @@ class KenzoSimplicialSetMorphism(KenzoChainComplexMorphism):
             sage: from sage.interfaces.kenzo import KSimplicialSetMorphism      # optional - kenzo
             sage: T = simplicial_sets.Torus()
             sage: f = T.identity()
-            sage: Kf = KSimplicialSetMorphism(f)                                # optional - kenz
+            sage: Kf = KSimplicialSetMorphism(f)                                # optional - kenzo
             sage: Kf.cone().orgn()     # description as a cone in Kenzo
             '(CONE2 [K... Simplicial-Morphism K... -> K...])'
         """
@@ -3075,8 +3089,8 @@ def BicomplexSpectralSequence(l):
 
         sage: from sage.interfaces.kenzo import BicomplexSpectralSequence        # optional - kenzo
         sage: C1 = ChainComplex({1: matrix(ZZ, 0, 2, [])}, degree_of_differential=-1)
-        sage: C2 = ChainComplex({1: matrix(ZZ, 1, 2, [1, 0])},degree_of_differential=-1)
-        sage: C3 = ChainComplex({0: matrix(ZZ, 0,2 , [])},degree_of_differential=-1)
+        sage: C2 = ChainComplex({1: matrix(ZZ, 1, 2, [1, 0])}, degree_of_differential=-1)
+        sage: C3 = ChainComplex({0: matrix(ZZ, 0,2 , [])}, degree_of_differential=-1)
         sage: M1 = Hom(C2,C1)({1: matrix(ZZ, 2, 2, [2, 0, 0, 2])})
         sage: M2 = Hom(C3,C2)({0: matrix(ZZ, 1, 2, [2, 0])})
         sage: l = [M1, M2]
@@ -3086,9 +3100,9 @@ def BicomplexSpectralSequence(l):
         sage: E.table(3,0,2,0,2)                                                 # optional - kenzo
         0           0   0
         Z/2 + Z/4   0   0
-        0           0   Z
+        0           0   0
         sage: E.matrix(2,2,0)                                                    # optional - kenzo
-        [ 0  0]
-        [-4  0]
+        [ 0]
+        [-4]
     """
     return KenzoSpectralSequence(__bicomplex_spectral_sequence__(s2k_listofmorphisms(l)))
