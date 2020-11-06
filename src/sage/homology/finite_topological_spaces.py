@@ -63,6 +63,14 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.combinat.posets.posets import Poset
 
+from sage.rings.integer_ring import ZZ
+from sage.homology.homology_group import HomologyGroup
+
+from sage.libs.ecl import EclObject, EclListIterator
+from sage.interfaces import kenzo
+from sage.features.kenzo import Kenzo
+kenzo_is_present = Kenzo().is_present()
+
 
 def FiniteSpace(data, elements=None, is_T0=False):
     r"""
@@ -216,7 +224,6 @@ def FiniteSpace(data, elements=None, is_T0=False):
                 Uj = set(data.nonzero_positions_in_column(j))
                 basis[j] = Uj
             eltos = range(n)
-        topogenous = data
 
     # This fixes a topological sort (it guarantees an upper triangular topogenous matrix)
     eltos = list(eltos)
@@ -224,10 +231,9 @@ def FiniteSpace(data, elements=None, is_T0=False):
     eltos.sort(key = lambda x: (len(basis[x]), sorted_str_eltos.index(str(x))))
 
     # Now, check that 'basis' effectively defines a minimal basis for a topology
-    if topogenous is None:
-        nonzero = {(eltos.index(x), j):1 for j in range(n) \
-                   for x in basis[eltos[j]]}
-        topogenous = matrix(n, nonzero)
+    nonzero = {(eltos.index(x), j):1 for j in range(n) \
+               for x in basis[eltos[j]]}
+    topogenous = matrix(n, nonzero)
     squared = topogenous*topogenous
     if not topogenous.nonzero_positions() == squared.nonzero_positions():
         raise ValueError("The introduced data does not define a topology")
@@ -255,6 +261,21 @@ def FiniteSpace(data, elements=None, is_T0=False):
                                     topogenous=topogenous)
     setattr(result, '_T0', partition)
     return result
+
+def RandomFiniteT0Space(*args):
+    r"""
+    
+    
+    """
+    assert len(args)==2, "Two arguments must be given"
+    if args[0].is_integer() and args[1]==True:
+        kenzo_top = kenzo.__random_top_2space__(args[0])
+    else:
+        kenzo_top = kenzo.__randomtop__(args[0], EclObject(float(args[1])))
+    topogenous = matrix(kenzo.k2s_matrix(kenzo.__convertmatrice__(kenzo_top)), sparse=True)
+    basis = {j:set(topogenous.nonzero_positions_in_column(j)) for j in range(args[0])}
+    return FiniteTopologicalSpace_T0(elements=list(range(args[0])), minimal_basis=basis,
+                                     topogenous=topogenous)
 
 
 class FiniteTopologicalSpace(Parent):
@@ -1194,7 +1215,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         """
         return self._poset
 
-    def show(self):
+    def show(self, highlighted_edges=None):
         r"""
         Displays the Hasse diagram of the poset ``self._poset``.
 
@@ -1204,7 +1225,17 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: T = FiniteSpace(posets.RandomPoset(15, 0.2))
             sage: T.show()
         """
-        return self._poset.show()
+        if highlighted_edges:
+            return self._poset.plot(cover_colors = {'blue': highlighted_edges})
+        return self._poset.plot()
+
+    def stong_matrix(self):
+        r"""
+        
+        
+        
+        """
+        return self._poset._hasse_diagram.adjacency_matrix(sparse=True) + matrix.identity(self._cardinality)
 
     def order_complex(self):
         r"""
@@ -1268,18 +1299,16 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         """
         xindex = self._elements.index(x)
         if subspace is None:
-            subspaceindex = range(xindex - 1,-1,-1)
+            subspaceindex = [i for i in range(xindex - 1,-1,-1) \
+                             if self._topogenous[i, xindex]==1]
         else:
-            sortsubspace = sorted(subspace, key=self.space_sorting, reverse=True)
+            sortsubspace = sorted(subspace, key=self._elements.index, reverse=True)
             subspaceindex = [self._elements.index(i) for i in sortsubspace \
-                             if self._elements.index(i) < xindex]
-        maximal = None
-        for yindex in subspaceindex:
-            if self._topogenous[yindex, xindex]==1:
-                maximal = yindex
-                break
-        if maximal is None:
+                             if self._topogenous[self._elements.index(i), xindex]==1 \
+                                and self._elements.index(i)!=xindex]
+        if subspaceindex==[]:
             return False
+        maximal = subspaceindex[0]
         for i in subspaceindex:
             if not self._topogenous[i, maximal]==self._topogenous[i, xindex]:
                 return False
@@ -1309,18 +1338,16 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         """
         xindex = self._elements.index(x)
         if subspace is None:
-            subspaceindex = range(xindex + 1, self._cardinality)
+            subspaceindex = [j for j in range(xindex + 1, self._cardinality) \
+                             if self._topogenous[xindex, j]==1]
         else:
-            sortsubspace = sorted(subspace, key=self.space_sorting)
+            sortsubspace = sorted(subspace, key=self._elements.index)
             subspaceindex = [self._elements.index(i) for i in sortsubspace \
-                             if self._elements.index(i) > xindex]
-        minimal = None
-        for yindex in subspaceindex:
-            if self._topogenous[xindex, yindex]==1:
-                minimal = yindex
-                break
-        if minimal is None:
+                             if self._topogenous[xindex, self._elements.index(i)]==1 \
+                                and self._elements.index(i)!=xindex]
+        if subspaceindex==[]:
             return False
+        minimal = subspaceindex[0]
         for j in subspaceindex:
             if not self._topogenous[minimal, j]==self._topogenous[xindex, j]:
                 return False
@@ -1386,16 +1413,17 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: len(T.core_list(E1)) == len(T.core_list(E2)) # cores are homeomorphic
             True
         """
-        realsubspace = subspace or self._elements
+        if subspace is None:
+            subspace = self._elements
         beatpoint = None
-        for x in realsubspace:
+        for x in subspace:
             if self.is_beat_point(x, subspace):
                 beatpoint = x
                 break
         if beatpoint is None:
-            return realsubspace
+            return subspace
         else:
-            return self.core_list([y for y in realsubspace if y != beatpoint])
+            return self.core_list([y for y in subspace if y != beatpoint])
 
     def core(self, subspace=None):
         r"""
@@ -1569,7 +1597,79 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
              {8: {8}}
             sage: T.weak_core([1,2,3,4,5])
             Finite T0 topological space of 4 points with minimal basis 
-             {1: {1}, 2: {2}, 3: {1, 2, 3}, 4: {1, 2, 4}}
+             {1: {1}, 2: {2}, 3: {1, 2, 3}, 4: {1, 2, 4}}             
         """
         return self.subspace(self.weak_core_list(subspace), is_T0=True)
 
+    def discrete_vector_field(self, h_admissible=None):
+        r"""
+        
+        
+        
+        """
+        kenzo_top = kenzo.__convertarray__(kenzo.s2k_matrix(self._topogenous))
+        kenzo_dvfield = EclListIterator(kenzo.__dvfield_aux__(kenzo_top, None, h_admissible))
+        result = []
+        for vector in kenzo_dvfield:
+            vectorpy = vector.python()
+            result.append((self._elements[vectorpy[0]-1], self._elements[vectorpy[1]-1]))
+        return result
+
+    def hregular_homology(self, deg=None, dvfield=None):
+        r"""
+        The homology of an h-regular finite space.
+
+        INPUT:
+
+        - ``deg`` -- an element of the grading group for the chain
+          complex (default: ``None``); the degree in which
+          to compute homology -- if this is ``None``, return the
+          homology in every degree in which the chain complex is
+          possibly nonzero.
+        
+        
+        """
+        assert deg==None or deg.is_integer(), "The degree must be an integer number or None"
+        height = self._poset.height()
+        if deg and (deg < 0 or deg >= height):
+            return HomologyGroup(0, ZZ)
+        kenzo_stong = kenzo.__convertarray__(kenzo.s2k_matrix(self.stong_matrix()))
+        if dvfield:
+            kenzo_targets = EclObject([self._elements.index(edge[1])+1 for edge in dvfield])
+            kenzo_sources = EclObject([self._elements.index(edge[0])+1 for edge in dvfield])
+            matrices = kenzo.__h_regular_dif_dvf_aux__(kenzo_stong, kenzo_targets, kenzo_sources)
+        else:
+            matrices = kenzo.__h_regular_dif__(kenzo_stong)
+        #return matrices
+        if deg is not None:
+            if deg == height - 1:
+                M1 = kenzo.__copier_matrice__(kenzo.__nth__(height-1, matrices))
+                return kenzo.quotient_group_matrices(M1, right_null=True)
+            else:
+                M1 = kenzo.__copier_matrice__(kenzo.__nth__(deg, matrices))
+                M2 = kenzo.__copier_matrice__(kenzo.__nth__(deg+1, matrices))
+                return kenzo.quotient_group_matrices(M1, M2)
+        else:
+            result = {}
+            for dim in range(0, height - 1):
+                M1 = kenzo.__copier_matrice__(kenzo.__nth__(dim, matrices))
+                M2 = kenzo.__copier_matrice__(kenzo.__nth__(dim+1, matrices))
+                result[dim] = kenzo.quotient_group_matrices(M1, M2)
+            Mh = kenzo.__copier_matrice__(kenzo.__nth__(height-1, matrices))
+            result[height-1] = kenzo.quotient_group_matrices(Mh, right_null=True)
+            return result
+            
+    def hregularization(self):
+        r"""
+        
+        
+        """
+        assert self._poset.height()==3, "This method is applicable to spaces of height at most 2"
+        kenzo_top = kenzo.__convertarray__(kenzo.s2k_matrix(self._topogenous))
+        top_result = kenzo.__2h_regularization__(kenzo_top)
+        topogenous = matrix(kenzo.k2s_matrix(kenzo.__convertmatrice__(top_result)), sparse=True)
+        dim = topogenous.nrows()
+        basis = {j:set(topogenous.nonzero_positions_in_column(j)) for j in range(dim)}
+        return FiniteTopologicalSpace_T0(elements=list(range(dim)), minimal_basis=basis,
+                                         topogenous=topogenous)
+                                      

@@ -43,10 +43,10 @@ from sage.features.kenzo import Kenzo
 
 
 # defining the auxiliary functions as wrappers over the kenzo ones
-kenzo_names = ['add',
+kenzo_names = ['2h-regularization',
+               'add',
                'array-dimensions',
-               'basis_aux1',
-               'basis_aux1',
+               'basis-aux',
                'bicomplex-spectral-sequence',
                'build-finite-ss2',
                'build-mrph-aux',
@@ -55,42 +55,55 @@ kenzo_names = ['add',
                'chcm-mat2',
                'classifying-space',
                'cmps',
+               'convertarray',
                'convertmatrice',
+               'copier-matrice',
+               'creer-matrice',
                'crts-prdc',
                'degr-aux',
                'dffr-aux',
-               'dffr_aux1',
+               'dffr-aux1',
                'dgop',
                'dgop-int-ext',
                'dstr-change-sorc-trgt-aux',
+               'dvfield-aux',
                'echcm',
+               'edges-to-matrice',
                'eilenberg-moore-spectral-sequence',
-               'evaluation-aux1',
+               'evaluation-aux',
                'gmsm',
                'homologie',
                'homotopy-list',
+               'h-regular-dif',
+               'h-regular-dif-dvf-aux',
                'idnt-mrph',
                'join',
                'k-z',
                'k-z2',
                'k-zp',
-               'kabstractsimplex_aux1',
-               'kchaincomplex_aux1',
-               'kmorphismchaincomplex_aux1',
+               'kabstractsimplex-aux',
+               'kchaincomplex-aux',
+               'kchaincomplexmorphism-aux',
                'loop-space',
                'make-array-from-lists',
                'make-array-to-lists',
+               'matrice-to-lmtrx',
                'moore',
+               'mtrx-prdc',
                'ncol',
+               'newsmith-equal-matrix',
+               'newsmith-mtrx-prdc',
                'nlig',
                'nreverse',
                'nth',
                'opps',
-               'orgn_aux1',
+               'orgn-aux',
+               'random-top-2space',
+               'randomtop',
                'sbtr',
                'serre-spectral-sequence-product',
                'serre-whitehead-spectral-sequence',
-               'sfinitesimplicialset_aux1',
+               'sfinitesimplicialset-aux',
                'smash-product',
                'sorc-aux',
                'spectral-sequence-differential-matrix',
@@ -99,6 +112,7 @@ kenzo_names = ['add',
                'suspension',
                'tnsr-prdc',
                'trgt-aux',
+               'vector-to-list',
                'wedge',
                'zero-mrph']
 
@@ -403,6 +417,42 @@ class KenzoSpectralSequence(KenzoObject):
                     row.append('0')
             groups.append(row)
         return table(groups)
+        
+def quotient_group_matrices(*matrices, left_null=False, right_null=False, check=True):
+    r"""
+    
+    
+    """
+    assert not (left_null and right_null), "left_null and right_null must not be both True"
+    if len(matrices)==0:
+        return HomologyGroup(0, ZZ)
+    elif len(matrices)==1:
+        if left_null==True:
+            m2 = matrices[0]
+            m1 = __creer_matrice__(0, __nlig__(m2))
+        elif right_null==True:
+            m1 = matrices[0]
+            m2 = __creer_matrice__(__ncol__(m1), 0)
+        else:
+            raise AssertionError("left_null or right_null must be True")
+    elif len(matrices)==2:
+        m1, m2 = matrices
+        if check==True:
+            rowsm1 = __nlig__(m1)
+            colsm1 = __ncol__(m1)
+            rowsm2 = __nlig__(m2)
+            colsm2 = __ncol__(m2)
+            assert colsm1==rowsm2, "Number of columns of m1 must be equal to the number of rows of m2"
+            assert __newsmith_equal_matrix__(__newsmith_mtrx_prdc__(m1, m2), \
+                                                   __creer_matrice__(rowsm1, colsm2)), \
+                                               "m1*m2 must be zero"
+    homology = __homologie__(m1, m2)
+    lhomomology = [i for i in EclListIterator(homology)]
+    res = []
+    for component in lhomomology:
+        pair = [i for i in EclListIterator(component)]
+        res.append(pair[0].python())
+    return HomologyGroup(len(res), ZZ, res)
 
 
 class KenzoChainComplex(KenzoObject):
@@ -435,13 +485,7 @@ class KenzoChainComplex(KenzoObject):
         echcm1 = __echcm__(self._kenzo)
         m1 = __chcm_mat__(echcm1, n)
         m2 = __chcm_mat__(echcm1, n + 1)
-        homology = __homologie__(m1, m2)
-        lhomomology = [i for i in EclListIterator(homology)]
-        res = []
-        for component in lhomomology:
-            pair = [i for i in EclListIterator(component)]
-            res.append(pair[0].python())
-        return HomologyGroup(len(res), ZZ, res)
+        return quotient_group_matrices(m1, m2, check=False)
 
     def tensor_product(self, other):
         r"""
@@ -501,7 +545,7 @@ class KenzoChainComplex(KenzoObject):
             Basis in dimension 5: ['G5G0', 'G5G1', 'G5G2']
 
         """
-        return __basis_aux1__(self._kenzo, dim).python()
+        return __basis_aux__(self._kenzo, dim).python()
 
     def identity_morphism(self):
         r"""
@@ -642,7 +686,7 @@ class KenzoChainComplex(KenzoObject):
             sage: A.orgn()                                                # optional - kenzo
             '(CRTS-PRDC [K... Simplicial-Group] [K... Simplicial-Set])'
         """
-        return str(__orgn_aux1__(self._kenzo))
+        return str(__orgn_aux__(self._kenzo))
 
 
 class KenzoSimplicialSet(KenzoChainComplex):
@@ -1085,7 +1129,7 @@ def KChainComplex(chain_complex):
     d = chain_complex.differential()
     chcm = s2k_dictmat(d)
     str_orgn = str(d)[1:-1].replace(":", " ").replace(" ", ".").replace("\n", "").replace(",", "")
-    return KenzoChainComplex(__kchaincomplex_aux1__(chcm, str_orgn))
+    return KenzoChainComplex(__kchaincomplex_aux__(chcm, str_orgn))
 
 
 def SChainComplex(kchaincomplex, start=0, end=15):
@@ -1202,7 +1246,7 @@ def KAbstractSimplex(simplex):
         sage: SAbSm.dimension() == SAbSm2.dimension()                   # optional - kenzo
         True
     """
-    return KenzoObject(__kabstractsimplex_aux1__(simplex.degeneracies(),
+    return KenzoObject(__kabstractsimplex_aux__(simplex.degeneracies(),
                                              's' + str(hash(simplex))))
 
 
@@ -1311,7 +1355,7 @@ def SFiniteSimplicialSet(ksimpset, limit):
         sage: SS1vS3.homology()                                     # optional - kenzo
         {0: 0, 1: Z, 2: 0, 3: Z}
     """
-    list_orgn = __orgn_aux1__(ksimpset._kenzo).python()
+    list_orgn = __orgn_aux__(ksimpset._kenzo).python()
     if __nth__(0, list_orgn).python()[0] == 'CRTS-PRDC':
         return SFiniteSimplicialSet(
             KenzoSimplicialSet(__nth__(1, list_orgn)), limit).cartesian_product(
@@ -1322,12 +1366,12 @@ def SFiniteSimplicialSet(ksimpset, limit):
     bases = []
     names = []
     for k in range(limit + 1):
-        basis_k = __basis_aux1__(ksimpset._kenzo, k)
+        basis_k = __basis_aux__(ksimpset._kenzo, k)
         names_k = ksimpset.basis(k)
         lbasis_k = [AbstractSimplex(k, name=i) for i in EclListIterator(basis_k)]
         bases.append(lbasis_k)
         names.append(names_k)
-    all_simplices = __sfinitesimplicialset_aux1__(ksimpset._kenzo, limit)
+    all_simplices = __sfinitesimplicialset_aux__(ksimpset._kenzo, limit)
     lall_simplices = [i for i in EclListIterator(all_simplices)]
     dim = 1
     for Kdim in lall_simplices:
@@ -1514,7 +1558,7 @@ class KenzoChainComplexMorphism(KenzoObject):
         if dim.is_integer():
             if isinstance(comb, list):
                 cmbn_list = pairing(comb)
-                return KenzoObject(__evaluation_aux1__(self._kenzo, dim, cmbn_list))
+                return KenzoObject(__evaluation_aux__(self._kenzo, dim, cmbn_list))
             else:
                 raise ValueError("'comb' parameter must be a list")
         else:
@@ -1939,7 +1983,7 @@ def KChainComplexMorphism(morphism):
     target = KChainComplex(morphism.codomain())
     matrix_list = morphism_dictmat(morphism)
     return KenzoChainComplexMorphism(
-        __kmorphismchaincomplex_aux1__(matrix_list, source._kenzo, target._kenzo))
+        __kchaincomplexmorphism_aux__(matrix_list, source._kenzo, target._kenzo))
 
 
 def s2k_listofmorphisms(l):
