@@ -1,9 +1,9 @@
 import pytest
 
 from sage.categories.examples.finite_semigroups import LeftRegularBand
-from .test_sets_cat import GenericTests
+from .test_categories import CategoryTests
 
-class TestFiniteSemigroup(GenericTests):
+class TestFiniteSemigroup(CategoryTests):
 
     test_elements = LeftRegularBand(alphabet = ('a','b','c')).some_elements()
 
