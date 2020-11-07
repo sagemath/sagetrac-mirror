@@ -40,7 +40,7 @@ can assume that the topogenous matrix of a finite `T_0`-space is upper triangula
 
 AUTHOR::
 
-- Julian Cuevas-Rozo (2020): Initial version
+- Julián Cuevas-Rozo (2020): Initial version
 
 REFERENCES:
 
@@ -66,10 +66,188 @@ from sage.combinat.posets.posets import Poset
 from sage.rings.integer_ring import ZZ
 from sage.homology.homology_group import HomologyGroup
 
-from sage.libs.ecl import EclObject, EclListIterator
+from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 from sage.interfaces import kenzo
 from sage.features.kenzo import Kenzo
 kenzo_is_present = Kenzo().is_present()
+
+###############################################################
+# This section will be included to src/sage/interfaces/kenzo.py
+
+kenzo_names = ['2h-regularization',
+               'copier-matrice',
+               'creer-matrice',
+               'convertarray',
+               'dvfield-aux',
+               'edges-to-matrice',
+               'h-regular-dif',
+               'h-regular-dif-dvf-aux',
+               'matrice-to-lmtrx',
+               'mtrx-prdc',
+               'newsmith-equal-matrix',
+               'newsmith-mtrx-prdc',
+               'random-top-2space',
+               'randomtop',
+               'vector-to-list']
+               
+if Kenzo().is_present():
+    ecl_eval("(require :kenzo)")
+    ecl_eval("(in-package :cat)")
+    ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
+    for s in kenzo_names:
+        name = '__{}__'.format(s.replace('-', '_'))
+        exec('{} = EclObject("{}")'.format(name, s))
+
+
+def quotient_group_matrices(*matrices, left_null=False, right_null=False, check=True):
+    r"""
+    Return a presentation of the homology group `\ker M1/ \im M2`.
+
+    INPUT:
+
+    - ``matrices`` -- A tuple of ECL matrices. The length `L` of this parameter
+      can take the value 0, 1 or 2.
+
+    - ``left_null`` -- (default ``False``) A boolean.
+
+    - ``right_null`` -- (default ``False``) A boolean.
+
+    - ``check`` -- (default ``True``) A boolean. If it is ``True`` and `L=2`, it
+      checks that the product of the ``matrices`` is the zero matrix.
+
+    OUTPUT:
+
+    - If `L=0`, it returns the trivial group.
+
+    - If `L=1` (``matrices`` = M), then one of the parameters ``left_null`` or
+      ``right_null`` must be ``True``: in case ``left_null`` == ``True``, it
+      returns the homology group `\ker 0/ \im M` and in case ``right_null`` == ``True``,
+      it returns the homology group `\ker M/ \im 0`.
+
+    - If `L=2` (``matrices`` = (M1, M2)), it returns the homology group `\ker M1/ \im M2`.
+
+    EXAMPLES::
+
+        sage: from sage.homology.finite_topological_spaces import quotient_group_matrices, __convertarray__
+        sage: from sage.interfaces.kenzo import s2k_matrix
+        sage: quotient_group_matrices()
+        0
+        sage: s_M1 = matrix(2, 3, [1, 2, 3, 4, 5, 6])
+        sage: M1 = __convertarray__(s2k_matrix(s_M1))
+        sage: quotient_group_matrices(M1, left_null=True)
+        C3
+        sage: quotient_group_matrices(M1, right_null=True)
+        Z
+        sage: s_M2 = matrix(2, 2, [1, -1, 1, -1])
+        sage: M2 = __convertarray__(s2k_matrix(s_M2))
+        sage: s_M3 = matrix(2, 2, [1, 0, 1, 0])
+        sage: M3 = __convertarray__(s2k_matrix(s_M3))
+        sage: quotient_group_matrices(M2, M3)
+        0
+        sage: s_M4 = matrix(2, 2, [0, 0, 1, 0])
+        sage: M4 = __convertarray__(s2k_matrix(s_M4))
+        sage: quotient_group_matrices(M2, M4)
+        Traceback (most recent call last):
+        ...
+        AssertionError: m1*m2 must be zero
+    """
+    assert not (left_null and right_null), "left_null and right_null must not be both True"
+    if len(matrices)==0:
+        return HomologyGroup(0, ZZ)
+    elif len(matrices)==1:
+        if left_null==True:
+            m2 = matrices[0]
+            m1 = __creer_matrice__(0, kenzo.__nlig__(m2))
+        elif right_null==True:
+            m1 = matrices[0]
+            m2 = __creer_matrice__(kenzo.__ncol__(m1), 0)
+        else:
+            raise AssertionError("left_null or right_null must be True")
+    elif len(matrices)==2:
+        m1, m2 = matrices
+        if check==True:
+            rowsm1 = kenzo.__nlig__(m1)
+            colsm1 = kenzo.__ncol__(m1)
+            rowsm2 = kenzo.__nlig__(m2)
+            colsm2 = kenzo.__ncol__(m2)
+            assert colsm1==rowsm2, "Number of columns of m1 must be equal to the number of rows of m2"
+            assert __newsmith_equal_matrix__(__newsmith_mtrx_prdc__(m1, m2), \
+                                                   __creer_matrice__(rowsm1, colsm2)).python(), \
+                                               "m1*m2 must be zero"
+    homology = kenzo.__homologie__(__copier_matrice__(m1), __copier_matrice__(m2))
+    lhomomology = [i for i in EclListIterator(homology)]
+    res = []
+    for component in lhomomology:
+        pair = [i for i in EclListIterator(component)]
+        res.append(pair[0].python())
+    return HomologyGroup(len(res), ZZ, res)
+
+def k2s_binary_matrix_sparse(kmatrix):
+    r"""
+    Converts a Kenzo binary sparse matrice (type `matrice`) to a matrix in SageMath.
+
+    INPUT:
+
+    - ``kmatrix`` -- A Kenzo binary sparse matrice (type `matrice`).
+
+    EXAMPLES::
+
+        sage: from sage.homology.finite_topological_spaces import k2s_binary_matrix_sparse, \
+              s2k_binary_matrix_sparse, __randomtop__
+        sage: KM2 = __randomtop__(6,1)
+        sage: k2s_binary_matrix_sparse(KM2)
+        [1 1 1 1 1 1]
+        [0 1 1 1 1 1]
+        [0 0 1 1 1 1]
+        [0 0 0 1 1 1]
+        [0 0 0 0 1 1]
+        [0 0 0 0 0 1]
+        sage: KM = __randomtop__(100, float(0.8))
+        sage: SM = k2s_binary_matrix_sparse(KM)
+        sage: SM == k2s_binary_matrix_sparse(s2k_binary_matrix_sparse(SM))
+        True
+    """
+    data = __vector_to_list__(__matrice_to_lmtrx__(kmatrix)).python()
+    dim = len(data)
+    mat_dict = {}
+    for j in range(dim):
+        colj = data[j]
+        for entry in colj:
+            mat_dict[(entry[0], j)] = 1
+    return matrix(dim, mat_dict)
+
+def s2k_binary_matrix_sparse(smatrix):
+    r"""
+    Converts a binary matrix in SageMath to a Kenzo binary sparse matrice (type `matrice`).
+
+    INPUT:
+
+    - ``smatrix`` -- A binary matrix.
+
+    EXAMPLES::
+
+        sage: from sage.homology.finite_topological_spaces import k2s_binary_matrix_sparse, \
+              s2k_binary_matrix_sparse
+        sage: SM2 = matrix.ones(5)
+        sage: s2k_binary_matrix_sparse(SM2)
+        <ECL: 
+        ========== MATRIX 5 lines + 5 columns =====
+        L1=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L2=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L3=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L4=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        L5=[C1=1][C2=1][C3=1][C4=1][C5=1]
+        ========== END-MATRIX>
+    """
+    dim = smatrix.nrows()
+    data = smatrix.dict().keys()
+    entries = []
+    for entry in smatrix.dict().keys():
+        entries.append([entry[0]+1, entry[1]+1])
+    kentries = EclObject(entries)
+    return __edges_to_matrice__(kentries, dim)
+
+###############################################################
 
 
 def FiniteSpace(data, elements=None, is_T0=False):
@@ -264,15 +442,49 @@ def FiniteSpace(data, elements=None, is_T0=False):
 
 def RandomFiniteT0Space(*args):
     r"""
-    
-    
+    Returns a random finite `T_0` space.
+
+    INPUT:
+
+    - ``args`` -- A tuple of two arguments. The first argument must be an integer
+     number, while the second argument must be either a number between 0 and 1, or
+     ``True``.
+
+    OUTPUT:
+
+    - If ``args[1]``=``True``, a random finite `T_0` space of cardinality ``args[0]``
+      of height 3 without beat points is returned.
+
+    - If ``args[1]`` is a number, a random finite `T_0` space of cardinality ``args[0]``
+      and density ``args[1]`` of ones in its topogenous matrix is returned.
+
+    EXAMPLES::
+
+        sage: from sage.homology.finite_topological_spaces import RandomFiniteT0Space
+        sage: RandomFiniteT0Space(5, 0)
+        Finite T0 topological space of 5 points with minimal basis 
+         {0: {0}, 1: {1}, 2: {2}, 3: {3}, 4: {4}}
+        sage: RandomFiniteT0Space(5, 2)
+        Finite T0 topological space of 5 points with minimal basis
+         {0: {0}, 1: {0, 1}, 2: {0, 1, 2}, 3: {0, 1, 2, 3}, 4: {0, 1, 2, 3, 4}}
+        sage: RandomFiniteT0Space(6, True)
+        Finite T0 topological space of 6 points with minimal basis
+         {0: {0}, 1: {1}, 2: {0, 1, 2}, 3: {0, 1, 3}, 4: {0, 1, 2, 3, 4}, 5: {0, 1, 2, 3, 5}}
+        sage: RandomFiniteT0Space(150, 0.2)
+        Finite T0 topological space of 150 points
+        sage: RandomFiniteT0Space(5, True)
+        Traceback (most recent call last):
+        ...
+        AssertionError: The first argument must be an integer number greater than 5
     """
     assert len(args)==2, "Two arguments must be given"
-    if args[0].is_integer() and args[1]==True:
-        kenzo_top = kenzo.__random_top_2space__(args[0])
+    assert args[0].is_integer(), "The first argument must be an integer number"
+    if args[1]==True:
+        assert args[0]>5, "The first argument must be an integer number greater than 5"
+        kenzo_top = __random_top_2space__(args[0])
     else:
-        kenzo_top = kenzo.__randomtop__(args[0], EclObject(float(args[1])))
-    topogenous = matrix(kenzo.k2s_matrix(kenzo.__convertmatrice__(kenzo_top)), sparse=True)
+        kenzo_top = __randomtop__(args[0], EclObject(float(args[1])))
+    topogenous = k2s_binary_matrix_sparse(kenzo_top)
     basis = {j:set(topogenous.nonzero_positions_in_column(j)) for j in range(args[0])}
     return FiniteTopologicalSpace_T0(elements=list(range(args[0])), minimal_basis=basis,
                                      topogenous=topogenous)
@@ -394,9 +606,9 @@ class FiniteTopologicalSpace(Parent):
     def underlying_set(self):
         r"""
         Return the underlying set of the finite space.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.homology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(({0}, {1}, {2, 3}, {3}))
             sage: T.underlying_set()
@@ -778,9 +990,9 @@ class FiniteTopologicalSpace(Parent):
             {1, 2, 3, 4}
             sage: T.interior({2, 3})
             set()
-            
+
         TESTS::
-        
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -1008,7 +1220,10 @@ class FiniteTopologicalSpace(Parent):
 
             sage: from sage.homology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace([{0, 1}, {1}, {2, 3, 4}, {2, 3, 4}, {4}])
-            
+            sage: T.is_closure_point(3, {1})
+            False
+            sage: T.is_closure_point(3, {1,2})
+            True
         """
         return not self._minimal_basis[x].isdisjoint(E)
 
@@ -1026,7 +1241,7 @@ class FiniteTopologicalSpace(Parent):
             {0}
 
         TESTS::
-        
+
             sage: import random
             sage: T = FiniteSpace(posets.RandomPoset(30, 0.5))
             sage: X = T.underlying_set()
@@ -1088,7 +1303,7 @@ class FiniteTopologicalSpace(Parent):
             return (self._minimal_basis[x] & E) == set([x])
         else:
             return self._minimal_basis[x] == set([x])
-            
+
     def isolated_set(self, E=None):
         r"""
         Return the set of isolated points of a subset in the finite space.
@@ -1163,7 +1378,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
                    "Elements of poset and minimal_basis do not coincide"
             self._elements = poset.list()
         else:
-            # Construct poset
+            # Construct the associated poset
             elmts = self._elements
             f = lambda x, y: self._topogenous[elmts.index(x), elmts.index(y)]==1
             poset = Poset((elmts, f), linear_extension=True) 
@@ -1207,7 +1422,6 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
              {0: {0}, 1: {0, 1}, 2: {0, 1, 2}, 3: {0, 3}}
             sage: T.poset()
             Finite poset containing 4 elements with distinguished linear extension
-
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
             sage: T = FiniteSpace(P)
             sage: T.poset() == P
@@ -1224,6 +1438,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             sage: from sage.homology.finite_topological_spaces import FiniteSpace
             sage: T = FiniteSpace(posets.RandomPoset(15, 0.2))
             sage: T.show()
+            Graphics object consisting of 31 graphics primitives
         """
         if highlighted_edges:
             return self._poset.plot(cover_colors = {'blue': highlighted_edges})
@@ -1231,9 +1446,46 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def stong_matrix(self):
         r"""
-        
-        
-        
+        Returns the Stong matrix of the finite `T_0` space i.e. the adjacency matrix
+        of the Hasse diagram of its associated poset, with ones in its diagonal.
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: covers = [[9, 13], [7, 13], [4, 13], [8, 12], [7, 12], [5, 12],
+            ....:           [9, 11], [6, 11], [5, 11], [8, 10], [6, 10], [4, 10],
+            ....:           [3, 9], [2, 9], [3, 8], [2, 8], [3, 7], [1, 7], [3, 6],
+            ....:           [1, 6], [2, 5], [1, 5], [2, 4], [1, 4]]
+            sage: P = Poset((list(range(1,14)), covers), cover_relations=True)
+            sage: X = FiniteSpace(P)
+            sage: X.topogenous_matrix()
+            [1 0 1 1 0 0 0 1 1 1 1 1 1]
+            [0 1 1 1 0 1 1 0 1 1 0 1 1]
+            [0 0 1 0 0 0 0 0 1 0 0 1 0]
+            [0 0 0 1 0 0 0 0 0 1 0 0 1]
+            [0 0 0 0 1 1 1 1 1 1 1 1 1]
+            [0 0 0 0 0 1 0 0 1 0 0 0 1]
+            [0 0 0 0 0 0 1 0 0 1 0 1 0]
+            [0 0 0 0 0 0 0 1 1 1 0 0 0]
+            [0 0 0 0 0 0 0 0 1 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 1 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 1 1 1]
+            [0 0 0 0 0 0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 1]
+            sage: X.stong_matrix()
+            [1 0 1 1 0 0 0 1 0 0 1 0 0]
+            [0 1 1 1 0 1 1 0 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0 1 0 0 1 0]
+            [0 0 0 1 0 0 0 0 0 1 0 0 1]
+            [0 0 0 0 1 1 1 1 0 0 1 0 0]
+            [0 0 0 0 0 1 0 0 1 0 0 0 1]
+            [0 0 0 0 0 0 1 0 0 1 0 1 0]
+            [0 0 0 0 0 0 0 1 1 1 0 0 0]
+            [0 0 0 0 0 0 0 0 1 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 1 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 1 1 1]
+            [0 0 0 0 0 0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 1]
         """
         return self._poset._hasse_diagram.adjacency_matrix(sparse=True) + matrix.identity(self._cardinality)
 
@@ -1284,6 +1536,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite space.
 
         EXAMPLES::
@@ -1323,6 +1576,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite space.
 
         EXAMPLES::
@@ -1362,6 +1616,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite space.
 
         EXAMPLES::
@@ -1496,6 +1751,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
         - ``x`` - an element of the finite space. In case ``subspace`` is not
           ``None``, `x`` must be one of its elements.
+
         - ``subspace`` -- (default ``None``) a list of elements in the finite space.
 
         EXAMPLES::
@@ -1603,12 +1859,40 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def discrete_vector_field(self, h_admissible=None):
         r"""
-        
-        
-        
+        Return a discrete vector field on the finite `T_0` space i.e. a homologically
+        admissible Morse matching on the Hasse diagram of the associated poset.
+
+        INPUT:
+
+        - ``h_admissible`` -- (default ``None``) If it is ``True``, all the edges
+          `(x, y)` of the Hasse diagram are assumed to be homologically admissible
+          i.e. tha subspace `\widehat{U}_y - \lbrace x\rbrace` is homotopically 
+          trivial (this can be assumed when the finite space is a barycentric
+          subdivision).
+
+        EXAMPLES::
+
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: Pcovers = [[1, 2], [2, 3], [3, 4], [3, 5], [4, 6], [5, 6], [6, 7],
+            ....:            [6, 8], [8, 9], [9, 10], [1, 11], [7, 12], [9, 12],
+            ....:            [7, 13], [10, 13], [11, 13], [8, 15], [7, 16], [8, 16],
+            ....:            [11, 16], [15, 17], [2, 19], [6, 20], [18, 20]]
+            sage: P = Poset((list(range(1,21)), Pcovers), cover_relations=True)
+            sage: X = FiniteSpace(P)
+            sage: dvf = X.discrete_vector_field(); dvf
+            [(2, 3), (4, 6), (8, 9), (7, 12), (15, 17), (18, 20), (10, 13), (11, 16)]
+            sage: X.show(dvf)
+            Graphics object consisting of 45 graphics primitives
+            sage: Qcovers = [[1, 2], [2, 3], [3, 4], [3, 5]]
+            sage: Q = Poset((list(range(1,6)), Qcovers), cover_relations=True)
+            sage: Y = FiniteSpace(Q)
+            sage: Z = Y.barycentric_subdivision()
+            sage: dvf = Z.discrete_vector_field(h_admissible=True)
+            sage: Z.show(dvf)
+            Graphics object consisting of 71 graphics primitives
         """
-        kenzo_top = kenzo.__convertarray__(kenzo.s2k_matrix(self._topogenous))
-        kenzo_dvfield = EclListIterator(kenzo.__dvfield_aux__(kenzo_top, None, h_admissible))
+        kenzo_top = s2k_binary_matrix_sparse(self._topogenous)
+        kenzo_dvfield = EclListIterator(__dvfield_aux__(kenzo_top, None, h_admissible))
         result = []
         for vector in kenzo_dvfield:
             vectorpy = vector.python()
@@ -1622,54 +1906,57 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
         INPUT:
 
         - ``deg`` -- an element of the grading group for the chain
-          complex (default: ``None``); the degree in which
+          complex (default ``None``); the degree in which
           to compute homology -- if this is ``None``, return the
           homology in every degree in which the chain complex is
           possibly nonzero.
+
+        - ``dvfield`` -- (default ``None``) a list of edges representing a discrete
+          vector field on the finite space.
+
+        EXAMPLES::
         
-        
+            sage: from sage.homology.finite_topological_spaces import FiniteSpace
+            sage: covers = [[9, 13], [7, 13], [4, 13], [8, 12], [7, 12], [5, 12], [9, 11],
+            ....:           [6, 11], [5, 11], [8, 10], [6, 10], [4, 10], [3, 9], [2, 9],
+            ....:           [3, 8], [2, 8], [3, 7], [1, 7], [3, 6], [1, 6], [2, 5], [1, 5],
+            ....:           [2, 4], [1, 4]]
+            sage: P = Poset((list(range(1,14)), covers), cover_relations = True)
+            sage: X = FiniteSpace(P)
+            sage: X.hregular_homology()
+            {0: Z, 1: C2, 2: 0}
+            sage: dvf = X.discrete_vector_field()
+            sage: X.show(dvf)
+            Graphics object consisting of 38 graphics primitives
+            sage: X.hregular_homology(dvfield = dvf)
+            {0: Z, 1: C2, 2: 0}
         """
         assert deg==None or deg.is_integer(), "The degree must be an integer number or None"
         height = self._poset.height()
         if deg and (deg < 0 or deg >= height):
             return HomologyGroup(0, ZZ)
-        kenzo_stong = kenzo.__convertarray__(kenzo.s2k_matrix(self.stong_matrix()))
+        kenzo_stong = s2k_binary_matrix_sparse(self.stong_matrix())
         if dvfield:
             kenzo_targets = EclObject([self._elements.index(edge[1])+1 for edge in dvfield])
             kenzo_sources = EclObject([self._elements.index(edge[0])+1 for edge in dvfield])
-            matrices = kenzo.__h_regular_dif_dvf_aux__(kenzo_stong, kenzo_targets, kenzo_sources)
+            matrices = __h_regular_dif_dvf_aux__(kenzo_stong, kenzo_targets, kenzo_sources)
         else:
-            matrices = kenzo.__h_regular_dif__(kenzo_stong)
-        #return matrices
+            matrices = __h_regular_dif__(kenzo_stong)
         if deg is not None:
             if deg == height - 1:
-                M1 = kenzo.__copier_matrice__(kenzo.__nth__(height-1, matrices))
-                return kenzo.quotient_group_matrices(M1, right_null=True)
+                M1 = __copier_matrice__(kenzo.__nth__(height-1, matrices))
+                return quotient_group_matrices(M1, right_null=True)
             else:
-                M1 = kenzo.__copier_matrice__(kenzo.__nth__(deg, matrices))
-                M2 = kenzo.__copier_matrice__(kenzo.__nth__(deg+1, matrices))
-                return kenzo.quotient_group_matrices(M1, M2)
+                M1 = __copier_matrice__(kenzo.__nth__(deg, matrices))
+                M2 = __copier_matrice__(kenzo.__nth__(deg+1, matrices))
+                return quotient_group_matrices(M1, M2, check=False)
         else:
             result = {}
             for dim in range(0, height - 1):
-                M1 = kenzo.__copier_matrice__(kenzo.__nth__(dim, matrices))
-                M2 = kenzo.__copier_matrice__(kenzo.__nth__(dim+1, matrices))
-                result[dim] = kenzo.quotient_group_matrices(M1, M2)
-            Mh = kenzo.__copier_matrice__(kenzo.__nth__(height-1, matrices))
-            result[height-1] = kenzo.quotient_group_matrices(Mh, right_null=True)
+                M1 = __copier_matrice__(kenzo.__nth__(dim, matrices))
+                M2 = __copier_matrice__(kenzo.__nth__(dim+1, matrices))
+                result[dim] = quotient_group_matrices(M1, M2, check=False)
+            Mh = __copier_matrice__(kenzo.__nth__(height-1, matrices))
+            result[height-1] = quotient_group_matrices(Mh, right_null=True)
             return result
-            
-    def hregularization(self):
-        r"""
-        
-        
-        """
-        assert self._poset.height()==3, "This method is applicable to spaces of height at most 2"
-        kenzo_top = kenzo.__convertarray__(kenzo.s2k_matrix(self._topogenous))
-        top_result = kenzo.__2h_regularization__(kenzo_top)
-        topogenous = matrix(kenzo.k2s_matrix(kenzo.__convertmatrice__(top_result)), sparse=True)
-        dim = topogenous.nrows()
-        basis = {j:set(topogenous.nonzero_positions_in_column(j)) for j in range(dim)}
-        return FiniteTopologicalSpace_T0(elements=list(range(dim)), minimal_basis=basis,
-                                         topogenous=topogenous)
-                                      
+                   
