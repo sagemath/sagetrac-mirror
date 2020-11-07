@@ -1157,6 +1157,42 @@ class Sets(Category_singleton):
                                       raise_on_failure = is_sub_testsuite)
             tester.info(tester._prefix+" ", newline = False)
 
+        def _test_elements_eq_reflexive(self, **options):
+            """
+            Run generic tests on the equality of elements.
+
+            Test that ``==`` is reflexive.
+
+            See also: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: C = Sets().example()
+                sage: C._test_elements_eq_reflexive()
+
+            We try a non-reflexive equality::
+
+                sage: P = Sets().example("wrapper")
+                sage: P._test_elements_eq_reflexive()
+                sage: eq = P.element_class.__eq__
+
+                sage: P.element_class.__eq__ = (lambda x, y:
+                ....:      False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
+                sage: P._test_elements_eq_reflexive()
+                Traceback (most recent call last):
+                ...
+                AssertionError: 47 != 47
+
+            We restore ``P.element_class`` in a proper state for further tests::
+
+                sage: P.element_class.__eq__ = eq
+
+            """
+            tester = self._tester(**options)
+            S = list(tester.some_elements()) + [None, 0]
+            for x in S:
+                tester.assertEqual(x, x)
+
         def _test_elements_eq_symmetric(self, **options):
             """
             Run generic tests on the equality of elements.
