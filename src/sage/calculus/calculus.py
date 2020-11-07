@@ -1951,7 +1951,7 @@ def dummy_laplace(*args):
         sage: dummy_laplace(f(t),t,s)
         laplace(f(t), t, s)
     """
-    return _laplace(args[0], var(repr(args[1])), var(repr(args[2])))
+    return _laplace(args[0], var(repr(args[1])), args[2])
 
 def dummy_inverse_laplace(*args):
     """
@@ -1966,7 +1966,7 @@ def dummy_inverse_laplace(*args):
         sage: dummy_inverse_laplace(F(s),s,t)
         ilt(F(s), s, t)
     """
-    return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
+    return _inverse_laplace(args[0], var(repr(args[1])), args[2])
 
 #######################################################
 #
