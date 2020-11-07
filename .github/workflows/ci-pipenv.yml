@@ -55,12 +55,10 @@ jobs:
           # We already installed python
           $packages.Remove('libpython3.7-dev')
           # libhomfly and texlive-generic-extra doesn't exist
-          $packages.Remove('libhomfly')
           $packages.Remove('texlive-generic-extra')
           # Add a few dependencies that are not yet listed
           $packages.Add('libsingular4-dev')
           $packages.Add('liblinbox-dev')
-          $packages.Add('libhomfly-dev')
           $packages.Add('libratpoints-dev')
           $packages.Add('libgap-dev')
           $packages.Add('ecl')
