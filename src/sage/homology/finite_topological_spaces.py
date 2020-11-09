@@ -40,7 +40,7 @@ can assume that the topogenous matrix of a finite `T_0`-space is upper triangula
 
 AUTHOR::
 
-- Julián Cuevas-Rozo (2020): Initial version
+- Julian Cuevas-Rozo (2020): Initial version
 
 REFERENCES:
 
@@ -69,12 +69,11 @@ from sage.homology.homology_group import HomologyGroup
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 from sage.interfaces import kenzo
 from sage.features.kenzo import Kenzo
-kenzo_is_present = Kenzo().is_present()
 
 ###############################################################
 # This section will be included to src/sage/interfaces/kenzo.py
 
-kenzo_names = ['2h-regularization',
+kenzonames = ['2h-regularization',
                'copier-matrice',
                'creer-matrice',
                'convertarray',
@@ -94,7 +93,7 @@ if Kenzo().is_present():
     ecl_eval("(require :kenzo)")
     ecl_eval("(in-package :cat)")
     ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
-    for s in kenzo_names:
+    for s in kenzonames:
         name = '__{}__'.format(s.replace('-', '_'))
         exec('{} = EclObject("{}")'.format(name, s))
 
@@ -240,7 +239,6 @@ def s2k_binary_matrix_sparse(smatrix):
         ========== END-MATRIX>
     """
     dim = smatrix.nrows()
-    data = smatrix.dict().keys()
     entries = []
     for entry in smatrix.dict().keys():
         entries.append([entry[0]+1, entry[1]+1])
