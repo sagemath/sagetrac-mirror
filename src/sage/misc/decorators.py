@@ -159,51 +159,6 @@ class _infix_wrapper(object):
             return self.function(left, self.right)
 
 
-@decorator
-def decorator_defaults(func, *args, **kwds):
-    """
-    This function allows a decorator to have default arguments.
-
-    Normally, a decorator can be called with or without arguments.
-    However, the two cases call for different types of return values.
-    If a decorator is called with no parentheses, it should be run
-    directly on the function.  However, if a decorator is called with
-    parentheses (i.e., arguments), then it should return a function
-    that is then in turn called with the defined function as an
-    argument.
-
-    This decorator allows us to have these default arguments without
-    worrying about the return type.
-
-    EXAMPLES::
-
-        sage: from sage.misc.decorators import decorator_defaults
-        sage: @decorator_defaults
-        ....: def my_decorator(f,*args,**kwds):
-        ....:   print(kwds)
-        ....:   print(args)
-        ....:   print(f.__name__)
-
-        sage: @my_decorator
-        ....: def my_fun(a,b):
-        ....:   return a,b
-        {}
-        ()
-        my_fun
-        sage: @my_decorator(3,4,c=1,d=2)
-        ....: def my_fun(a,b):
-        ....:   return a,b
-        {'c': 1, 'd': 2}
-        (3, 4)
-        my_fun
-    """
-    if len(kwds) == 0 and len(args) == 1:
-        # call without parentheses
-        return func(*args)
-    else:
-        return lambda f: func(f, *args, **kwds)
-
-
 class suboptions(object):
     def __init__(self, name, **options):
         """
