@@ -216,6 +216,7 @@ from __future__ import absolute_import
 
 import re
 import sys
+from decorator import decorater
 
 from sage.structure.parent import Parent
 from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
@@ -3002,10 +3003,11 @@ class MagmaGBDefaultContext:
         """
         self.magma.SetVerbose('Groebner', self.groebner_basis_verbose)
 
-
-def magma_gb_standard_options(func):
+@decorater
+def magma_gb_standard_options(func, *args, **kwds):
     """
     Decorator to force default options for Magma.
+    Execute function in ``MagmaGBDefaultContext``.
 
     EXAMPLES::
 
@@ -3015,13 +3017,6 @@ def magma_gb_standard_options(func):
         sage: "mself" in sage_getsource(J._groebner_basis_magma)
         True
     """
-    from sage.misc.decorators import sage_wraps
+    with MagmaGBDefaultContext():
+        return func(*args, **kwds)
 
-    @sage_wraps(func)
-    def wrapper(*args, **kwds):
-        """
-        Execute function in ``MagmaGBDefaultContext``.
-        """
-        with MagmaGBDefaultContext():
-            return func(*args, **kwds)
-    return wrapper

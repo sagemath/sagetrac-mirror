@@ -27,6 +27,8 @@ from __future__ import print_function, absolute_import
 from warnings import warn
 import inspect
 
+from decorator import decorate, decorator
+
 from sage.misc.lazy_attribute import lazy_attribute
 
 
@@ -181,109 +183,90 @@ def experimental_warning(trac_number, message, stacklevel=4):
     warning(trac_number, message, FutureWarning, stacklevel)
 
 
-class experimental(object):
-    def __init__(self, trac_number, stacklevel=4):
-        """
-        A decorator which warns about the experimental/unstable status of
-        the decorated class/method/function.
+def experimental(trac_number, stacklevel=4):
+    """
+    A decorator which warns about the experimental/unstable status of
+    the decorated class/method/function.
 
-        INPUT:
+    INPUT:
 
-        - ``trac_number`` -- an integer. The trac ticket number where this
-          code was introduced.
+    - ``trac_number`` -- an integer. The trac ticket number where this
+        code was introduced.
 
-        - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
-          :func:`warnings.warn`.
+    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+        :func:`warnings.warn`.
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: @sage.misc.superseded.experimental(trac_number=79997)
-            ....: def foo(*args, **kwargs):
-            ....:     print("{} {}".format(args, kwargs))
-            sage: foo(7, what='Hello')
-            doctest:...: FutureWarning: This class/method/function is
-            marked as experimental. It, its functionality or its
-            interface might change without a formal deprecation.
-            See https://trac.sagemath.org/79997 for details.
-            (7,) {'what': 'Hello'}
+        sage: @sage.misc.superseded.experimental(trac_number=79997)
+        ....: def foo(*args, **kwargs):
+        ....:     print("{} {}".format(args, kwargs))
+        sage: foo(7, what='Hello')
+        doctest:...: FutureWarning: This class/method/function is
+        marked as experimental. It, its functionality or its
+        interface might change without a formal deprecation.
+        See https://trac.sagemath.org/79997 for details.
+        (7,) {'what': 'Hello'}
 
-        ::
+    ::
 
-            sage: class bird(SageObject):
-            ....:     @sage.misc.superseded.experimental(trac_number=99999)
-            ....:     def __init__(self, *args, **kwargs):
-            ....:         print("piep {} {}".format(args, kwargs))
-            sage: _ = bird(99)
-            doctest:...: FutureWarning: This class/method/function is
-            marked as experimental. It, its functionality or its
-            interface might change without a formal deprecation.
-            See https://trac.sagemath.org/99999 for details.
-            piep (99,) {}
+        sage: class bird(SageObject):
+        ....:     @sage.misc.superseded.experimental(trac_number=99999)
+        ....:     def __init__(self, *args, **kwargs):
+        ....:         print("piep {} {}".format(args, kwargs))
+        sage: _ = bird(99)
+        doctest:...: FutureWarning: This class/method/function is
+        marked as experimental. It, its functionality or its
+        interface might change without a formal deprecation.
+        See https://trac.sagemath.org/99999 for details.
+        piep (99,) {}
 
-        TESTS:
+    TESTS:
 
-        The following test works together with the doc-test for
-        :meth:`__experimental_self_test` to demonstrate that warnings are issued only
-        once, even in doc-tests (see :trac:`20601`).
-        ::
+    The following test works together with the doc-test for
+    :meth:`__experimental_self_test` to demonstrate that warnings are issued only
+    once, even in doc-tests (see :trac:`20601`).
+    ::
 
-            sage: from sage.misc.superseded import __experimental_self_test
-            sage: _ = __experimental_self_test("A")
-            doctest:...: FutureWarning: This class/method/function is
-            marked as experimental. It, its functionality or its
-            interface might change without a formal deprecation.
-            See https://trac.sagemath.org/88888 for details.
-            I'm A
+        sage: from sage.misc.superseded import __experimental_self_test
+        sage: _ = __experimental_self_test("A")
+        doctest:...: FutureWarning: This class/method/function is
+        marked as experimental. It, its functionality or its
+        interface might change without a formal deprecation.
+        See https://trac.sagemath.org/88888 for details.
+        I'm A
+    
+    ::
 
-        .. SEEALSO::
+        sage: def foo(*args, **kwargs):
+        ....:     print("{} {}".format(args, kwargs))
+        sage: from sage.misc.superseded import experimental
+        sage: ex_foo = experimental(trac_number=99399)(foo)
+        sage: ex_foo(3, what='Hello')
+        doctest:...: FutureWarning: This class/method/function is
+        marked as experimental. It, its functionality or its
+        interface might change without a formal deprecation.
+        See https://trac.sagemath.org/99399 for details.
+        (3,) {'what': 'Hello'}
 
-            :func:`experimental`,
-            :func:`warning`,
-            :func:`deprecation`.
-        """
-        self.trac_number = trac_number
-        self.stacklevel = stacklevel
+    .. SEEALSO::
 
-    def __call__(self, func):
-        """
-        Print experimental warning.
-
-        INPUT:
-
-        - ``func`` -- the function to decorate.
-
-        OUTPUT:
-
-        The wrapper to this function.
-
-        TESTS::
-
-            sage: def foo(*args, **kwargs):
-            ....:     print("{} {}".format(args, kwargs))
-            sage: from sage.misc.superseded import experimental
-            sage: ex_foo = experimental(trac_number=99399)(foo)
-            sage: ex_foo(3, what='Hello')
-            doctest:...: FutureWarning: This class/method/function is
-            marked as experimental. It, its functionality or its
-            interface might change without a formal deprecation.
-            See https://trac.sagemath.org/99399 for details.
-            (3,) {'what': 'Hello'}
-        """
-        from sage.misc.decorators import sage_wraps
-        @sage_wraps(func)
-        def wrapper(*args, **kwds):
-            if not wrapper._already_issued:
-                experimental_warning(self.trac_number,
-                            'This class/method/function is marked as '
-                            'experimental. It, its functionality or its '
-                            'interface might change without a '
-                            'formal deprecation.',
-                            self.stacklevel)
-                wrapper._already_issued = True
-            return func(*args, **kwds)
-        wrapper._already_issued = False
-
-        return wrapper
+        :func:`experimental`,
+        :func:`warning`,
+        :func:`deprecation`.
+    """
+    def wrapper(func, *args, **kwds):
+        if not wrapper._already_issued:
+            experimental_warning(trac_number,
+                        'This class/method/function is marked as '
+                        'experimental. It, its functionality or its '
+                        'interface might change without a '
+                        'formal deprecation.',
+                        stacklevel)
+            wrapper._already_issued = True
+        return func(*args, **kwds)
+    wrapper._already_issued = False
+    return decorator(wrapper)
 
 
 class __experimental_self_test(object):

@@ -11,8 +11,7 @@ Mutability Cython Implementation
 #                  https://www.gnu.org/licenses/
 ##########################################################################
 
-from sage.misc.decorators import sage_wraps
-
+from decorator import decorater
 
 cdef class Mutability:
 
@@ -72,7 +71,8 @@ cdef class Mutability:
 ##########################################################################
 ## Method decorators for mutating methods resp. methods that assume immutability
 
-def require_mutable(f):
+@decorater
+def require_mutable(f, self, *args,**kwds):
     """
     A decorator that requires mutability for a method to be called.
 
@@ -111,15 +111,12 @@ def require_mutable(f):
 
     - Simon King <simon.king@uni-jena.de>
     """
-    @sage_wraps(f)
-    def new_f(self, *args,**kwds):
-        if getattr(self, '_is_immutable', False):
-            raise ValueError("%s instance is immutable, %s must not be called" % (type(self), repr(f)))
-        return f(self, *args, **kwds)
-    return new_f
+    if getattr(self, '_is_immutable', False):
+        raise ValueError("%s instance is immutable, %s must not be called" % (type(self), repr(f)))
+    return f(self, *args, **kwds)
 
-
-def require_immutable(f):
+@decorater
+def require_immutable(f, self, *args, **kwds):
     """
     A decorator that requires immutability for a method to be called.
 
@@ -158,9 +155,6 @@ def require_immutable(f):
 
     - Simon King <simon.king@uni-jena.de>
     """
-    @sage_wraps(f)
-    def new_f(self, *args,**kwds):
-        if not getattr(self,'_is_immutable',False):
-            raise ValueError("%s instance is mutable, %s must not be called" % (type(self), repr(f)))
-        return f(self, *args,**kwds)
-    return new_f
+    if not getattr(self,'_is_immutable',False):
+        raise ValueError("%s instance is mutable, %s must not be called" % (type(self), repr(f)))
+    return f(self, *args,**kwds)

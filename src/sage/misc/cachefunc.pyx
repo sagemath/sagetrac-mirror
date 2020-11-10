@@ -425,7 +425,7 @@ from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getarg
 from inspect import isfunction
 
 from sage.misc.weak_dict cimport CachedWeakValueDictionary
-from sage.misc.decorators import decorator_keywords
+from decorator import decorator
 
 cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
             '__and__', '__call__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__',
@@ -1243,8 +1243,8 @@ cdef class CachedFunction(object):
         for ((args,kwargs), val) in P(arglist2):
             self.set_cache(val, *args, **kwargs)
 
-
-cached_function = decorator_keywords(CachedFunction)
+def cached_function(func):
+    return decorate(func, CachedFunction(func))
 
 
 cdef class WeakCachedFunction(CachedFunction):
@@ -1433,7 +1433,8 @@ cdef class WeakCachedFunction(CachedFunction):
         self.cache = CachedWeakValueDictionary(**kwds)
 
 
-weak_cached_function = decorator_keywords(WeakCachedFunction)
+def weak_cached_function(func):
+    return decorate(func, WeakCachedFunction(func))
 
 class CachedMethodPickle(object):
     """
@@ -2995,8 +2996,8 @@ cdef class CachedSpecialMethod(CachedMethod):
             D[name] = Caller
         return Caller
 
-@decorator_keywords
-def cached_method(f, name=None, key=None, do_pickle=None):
+@decorator
+def cached_method(f, name=None, key=None, do_pickle=None, *args, **kw):
     """
     A decorator for cached methods.
 
@@ -3090,9 +3091,8 @@ def cached_method(f, name=None, key=None, do_pickle=None):
     """
     cdef str fname = name or f.__name__
     if fname in special_method_names:
-        return CachedSpecialMethod(f, name, key=key, do_pickle=do_pickle)
-    return CachedMethod(f, name, key=key, do_pickle=do_pickle)
-
+        return CachedSpecialMethod(f, name, key=key, do_pickle=do_pickle)(*args, **kw)
+    return CachedMethod(f, name, key=key, do_pickle=do_pickle)(*args, **kw)
 
 cdef class CachedInParentMethod(CachedMethod):
     r"""
@@ -3304,8 +3304,8 @@ cdef class CachedInParentMethod(CachedMethod):
             pass
         return Caller
 
-
-cached_in_parent_method = decorator_keywords(CachedInParentMethod)
+def cached_in_parent_method(func):
+    return decorate(func, CachedInParentMethod(func))
 
 
 class FileCache(object):

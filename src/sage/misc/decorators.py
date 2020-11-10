@@ -8,9 +8,7 @@ AUTHORS:
 - Tim Dumol (5 Dec 2009) -- initial version.
 - Johan S. R. Nielsen (2010) -- collect decorators from various modules.
 - Johan S. R. Nielsen (8 apr 2011) -- improve introspection on decorators.
-- Simon King (2011-05-26) -- improve introspection of sage_wraps. Put this
-  file into the reference manual.
-- Julian Rueth (2014-03-19): added ``decorator_keywords`` decorator
+- Simon King (2011-05-26) -- put this file into the reference manual.
 
 """
 #*****************************************************************************
@@ -31,149 +29,11 @@ from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
                        WRAPPER_UPDATES)
 from copy import copy
 
+from decorator import decorate, decorator
+
 from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
                                    sage_getargspec)
 from inspect import ArgSpec
-
-
-def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
-    r"""
-    Decorator factory which should be used in decorators for making sure that
-    meta-information on the decorated callables are retained through the
-    decorator, such that the introspection functions of
-    ``sage.misc.sageinspect`` retrieves them correctly. This includes
-    documentation string, source, and argument specification. This is an
-    extension of the Python standard library decorator functools.wraps.
-
-    That the argument specification is retained from the decorated functions
-    implies, that if one uses ``sage_wraps`` in a decorator which intentionally
-    changes the argument specification, one should add this information to
-    the special attribute ``_sage_argspec_`` of the wrapping function (for an
-    example, see e.g. ``@options`` decorator in this module).
-
-    EXAMPLES:
-
-    Demonstrate that documentation string and source are retained from the
-    decorated function::
-
-        sage: def square(f):
-        ....:     @sage_wraps(f)
-        ....:     def new_f(x):
-        ....:         return f(x)*f(x)
-        ....:     return new_f
-        sage: @square
-        ....: def g(x):
-        ....:     "My little function"
-        ....:     return x
-        sage: g(2)
-        4
-        sage: g(x)
-        x^2
-        sage: g.__doc__
-        'My little function'
-        sage: from sage.misc.sageinspect import sage_getsource, sage_getsourcelines, sage_getfile
-        sage: sage_getsource(g)
-        '@square...def g(x)...'
-
-    Demonstrate that the argument description are retained from the
-    decorated function through the special method (when left
-    unchanged) (see :trac:`9976`)::
-
-        sage: def diff_arg_dec(f):
-        ....:     @sage_wraps(f)
-        ....:     def new_f(y, some_def_arg=2):
-        ....:         return f(y+some_def_arg)
-        ....:     return new_f
-        sage: @diff_arg_dec
-        ....: def g(x):
-        ....:     return x
-        sage: g(1)
-        3
-        sage: g(1, some_def_arg=4)
-        5
-        sage: from sage.misc.sageinspect import sage_getargspec
-        sage: sage_getargspec(g)
-        ArgSpec(args=['x'], varargs=None, keywords=None, defaults=None)
-
-    Demonstrate that it correctly gets the source lines and the source
-    file, which is essential for interactive code edition; note that we
-    do not test the line numbers, as they may easily change::
-
-        sage: P.<x,y> = QQ[]
-        sage: I = P*[x,y]
-        sage: sage_getfile(I.interreduced_basis)       # known bug
-        '.../sage/rings/polynomial/multi_polynomial_ideal.py'
-        sage: sage_getsourcelines(I.interreduced_basis)
-        (['    @handle_AA_and_QQbar\n',
-          '    @singular_gb_standard_options\n',
-          '    @libsingular_gb_standard_options\n',
-          '    def interreduced_basis(self):\n',
-          ...
-          '        return self.basis.reduced()\n'], ...)
-
-    The ``f`` attribute of the decorated function refers to the
-    original function::
-
-        sage: foo = object()
-        sage: @sage_wraps(foo)
-        ....: def func():
-        ....:     pass
-        sage: wrapped = sage_wraps(foo)(func)
-        sage: wrapped.f is foo
-        True
-
-    Demonstrate that sage_wraps works for non-function callables
-    (:trac:`9919`)::
-
-        sage: def square_for_met(f):
-        ....:   @sage_wraps(f)
-        ....:   def new_f(self, x):
-        ....:       return f(self,x)*f(self,x)
-        ....:   return new_f
-        sage: class T:
-        ....:   @square_for_met
-        ....:   def g(self, x):
-        ....:       "My little method"
-        ....:       return x
-        sage: t = T()
-        sage: t.g(2)
-        4
-        sage: t.g.__doc__
-        'My little method'
-
-    The bug described in :trac:`11734` is fixed::
-
-        sage: def square(f):
-        ....:     @sage_wraps(f)
-        ....:     def new_f(x):
-        ....:         return f(x)*f(x)
-        ....:     return new_f
-        sage: f = lambda x:x^2
-        sage: g = square(f)
-        sage: g(3) # this line used to fail for some people if these command were manually entered on the sage prompt
-        81
-
-    """
-    #TRAC 9919: Workaround for bug in @update_wrapper when used with
-    #non-function callables.
-    assigned = set(assigned).intersection(set(dir(wrapped)))
-    #end workaround
-
-    def f(wrapper, assigned=assigned, updated=updated):
-        update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
-        # For backwards-compatibility with old versions of sage_wraps
-        wrapper.f = wrapped
-        # For forwards-compatibility with functools.wraps on Python 3
-        wrapper.__wrapped__ = wrapped
-        wrapper._sage_src_ = lambda: sage_getsource(wrapped)
-        wrapper._sage_src_lines_ = lambda: sage_getsourcelines(wrapped)
-        #Getting the signature right in documentation by Sphinx (Trac 9976)
-        #The attribute _sage_argspec_() is read by Sphinx if present and used
-        #as the argspec of the function instead of using reflection.
-        wrapper._sage_argspec_ = lambda: sage_getargspec(wrapped)
-        return wrapper
-    return f
-
 
 # Infix operator decorator
 class infix_operator(object):
@@ -299,7 +159,8 @@ class _infix_wrapper(object):
             return self.function(left, self.right)
 
 
-def decorator_defaults(func):
+@decorator
+def decorator_defaults(func, *args, **kwds):
     """
     This function allows a decorator to have default arguments.
 
@@ -336,14 +197,11 @@ def decorator_defaults(func):
         (3, 4)
         my_fun
     """
-    @sage_wraps(func)
-    def my_wrap(*args, **kwds):
-        if len(kwds) == 0 and len(args) == 1:
-            # call without parentheses
-            return func(*args)
-        else:
-            return lambda f: func(f, *args, **kwds)
-    return my_wrap
+    if len(kwds) == 0 and len(args) == 1:
+        # call without parentheses
+        return func(*args)
+    else:
+        return lambda f: func(f, *args, **kwds)
 
 
 class suboptions(object):
@@ -394,8 +252,7 @@ class suboptions(object):
             sage: sage_getargspec(f)
             ArgSpec(args=['arrow_size'], varargs='args', keywords='kwds', defaults=(2,))
         """
-        @sage_wraps(func)
-        def wrapper(*args, **kwds):
+        def wrapper(func, *args, **kwds):
             suboptions = copy(self.options)
             suboptions.update(kwds.pop(self.name+"options", {}))
 
@@ -409,6 +266,7 @@ class suboptions(object):
             kwds[self.name + "options"] = suboptions
 
             return func(*args, **kwds)
+        return decorate(func, wrapper)
 
         # Add the options specified by @options to the signature of the wrapped
         # function in the Sphinx-generated documentation (Trac 9976), using the
@@ -483,13 +341,13 @@ class options(object):
             () [('__original_opts', {'alpha': 1}), ('alpha', 1), ('rgbcolor', (0, 0, 1))]
 
         """
-        @sage_wraps(func)
-        def wrapper(*args, **kwds):
+        def wrapper(func, *args, **kwds):
             options = copy(wrapper.options)
             if self.original_opts:
                 options['__original_opts'] = kwds
             options.update(kwds)
             return func(*args, **options)
+        return decorate(func, wrapper)
 
         #Add the options specified by @options to the signature of the wrapped
         #function in the Sphinx-generated documentation (Trac 9976), using the
@@ -567,48 +425,37 @@ class options(object):
         return wrapper
 
 
-class rename_keyword(object):
-    def __init__(self, deprecated=None, deprecation=None, **renames):
-        """
-        A decorator which renames keyword arguments and optionally
-        deprecates the new keyword.
+def rename_keyword(deprecated=None, deprecation=None, **renames):
+    """
+    A decorator which renames keyword arguments and optionally
+    deprecates the new keyword.
 
-        INPUT:
+    INPUT:
 
-        - ``deprecation`` -- integer. The trac ticket number where the
-          deprecation was introduced.
+    - ``deprecation`` -- integer. The trac ticket number where the
+        deprecation was introduced.
 
-        - the rest of the arguments is a list of keyword arguments in the
-          form ``renamed_option='existing_option'``.  This will have the
-          effect of renaming ``renamed_option`` so that the function only
-          sees ``existing_option``.  If both ``renamed_option`` and
-          ``existing_option`` are passed to the function, ``existing_option``
-          will override the ``renamed_option`` value.
+    - the rest of the arguments is a list of keyword arguments in the
+        form ``renamed_option='existing_option'``.  This will have the
+        effect of renaming ``renamed_option`` so that the function only
+        sees ``existing_option``.  If both ``renamed_option`` and
+        ``existing_option`` are passed to the function, ``existing_option``
+        will override the ``renamed_option`` value.
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: from sage.misc.decorators import rename_keyword
-            sage: r = rename_keyword(color='rgbcolor')
-            sage: r.renames
-            {'color': 'rgbcolor'}
-            sage: loads(dumps(r)).renames
-            {'color': 'rgbcolor'}
+        sage: from sage.misc.decorators import rename_keyword
+        sage: r = rename_keyword(color='rgbcolor')
+        sage: r.renames
+        {'color': 'rgbcolor'}
+        sage: loads(dumps(r)).renames
+        {'color': 'rgbcolor'}
 
-        To deprecate an old keyword::
+    To deprecate an old keyword::
 
-            sage: r = rename_keyword(deprecation=13109, color='rgbcolor')
-        """
-        assert deprecated is None, 'Use @rename_keyword(deprecation=<trac_number>, ...)'
-        self.renames = renames
-        self.deprecation = deprecation
+        sage: r = rename_keyword(deprecation=13109, color='rgbcolor')
 
-    def __call__(self, func):
-        """
-        Rename keywords.
-
-        EXAMPLES::
-
-            sage: from sage.misc.decorators import rename_keyword
+        sage: from sage.misc.decorators import rename_keyword
             sage: r = rename_keyword(color='rgbcolor')
             sage: def f(*args, **kwds):
             ....:     print("{} {}".format(args, kwds))
@@ -638,94 +485,18 @@ class rename_keyword(object):
             doctest:...: DeprecationWarning: use the option 'new_option' instead of 'deprecated_option'
             See http://trac.sagemath.org/13109 for details.
             () {'new_option': 1}
-        """
-        @sage_wraps(func)
-        def wrapper(*args, **kwds):
-            for old_name, new_name in self.renames.items():
-                if old_name in kwds and new_name not in kwds:
-                    if self.deprecation is not None:
-                        from sage.misc.superseded import deprecation
-                        deprecation(self.deprecation, "use the option "
-                                    "%r instead of %r" % (new_name, old_name))
-                    kwds[new_name] = kwds[old_name]
-                    del kwds[old_name]
-            return func(*args, **kwds)
-
-        return wrapper
-
-class specialize:
-    r"""
-    A decorator generator that returns a decorator that in turn
-    returns a specialized function for function ``f``. In other words,
-    it returns a function that acts like ``f`` with arguments
-    ``*args`` and ``**kwargs`` supplied.
-
-    INPUT:
-
-    - ``*args``, ``**kwargs`` -- arguments to specialize the function for.
-
-    OUTPUT:
-
-    - a decorator that accepts a function ``f`` and specializes it
-      with ``*args`` and ``**kwargs``
-
-    EXAMPLES::
-
-        sage: f = specialize(5)(lambda x, y: x+y)
-        sage: f(10)
-        15
-        sage: f(5)
-        10
-        sage: @specialize("Bon Voyage")
-        ....: def greet(greeting, name):
-        ....:     print("{0}, {1}!".format(greeting, name))
-        sage: greet("Monsieur Jean Valjean")
-        Bon Voyage, Monsieur Jean Valjean!
-        sage: greet(name = 'Javert')
-        Bon Voyage, Javert!
     """
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+    assert deprecated is None, 'Use @rename_keyword(deprecation=<trac_number>, ...)'
+    
+    def wrapper(func, *args, **kwds):
+        for old_name, new_name in renames.items():
+            if old_name in kwds and new_name not in kwds:
+                if deprecation is not None:
+                    from sage.misc.superseded import deprecation as print_deprecation
+                    print_deprecation(deprecation, "use the option "
+                                "%r instead of %r" % (new_name, old_name))
+                kwds[new_name] = kwds[old_name]
+                del kwds[old_name]
+        return func(*args, **kwds)
 
-    def __call__(self, f):
-        return sage_wraps(f)(partial(f, *self.args, **self.kwargs))
-
-def decorator_keywords(func):
-    r"""
-    A decorator for decorators with optional keyword arguments.
-
-    EXAMPLES::
-
-        sage: from sage.misc.decorators import decorator_keywords
-        sage: @decorator_keywords
-        ....: def preprocess(f=None, processor=None):
-        ....:     def wrapper(*args, **kwargs):
-        ....:         if processor is not None:
-        ....:             args, kwargs = processor(*args, **kwargs)
-        ....:         return f(*args, **kwargs)
-        ....:     return wrapper
-
-    This decorator can be called with and without arguments::
-
-        sage: @preprocess
-        ....: def foo(x): return x
-        sage: foo(None)
-        sage: foo(1)
-        1
-
-        sage: def normalize(x): return ((0,),{}) if x is None else ((x,),{})
-        sage: @preprocess(processor=normalize)
-        ....: def foo(x): return x
-        sage: foo(None)
-        0
-        sage: foo(1)
-        1
-    """
-    @sage_wraps(func)
-    def wrapped(f=None, **kwargs):
-        if f is None:
-            return sage_wraps(func)(lambda f:func(f, **kwargs))
-        else:
-            return func(f, **kwargs)
-    return wrapped
+    return decorator(wrapper)

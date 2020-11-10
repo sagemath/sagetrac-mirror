@@ -325,6 +325,7 @@ import re
 import sys
 import pexpect
 from time import sleep
+from decorator import decorater
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -1347,7 +1348,8 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             2
         """
         RingElement.__init__(self, parent)
-        if parent is None: return
+        if parent is None:
+            return
         if not is_name:
             try:
                 self._name = parent._create(value, type)
@@ -2744,8 +2746,8 @@ class SingularGBDefaultContext:
         except SingularError:
             pass
 
-
-def singular_gb_standard_options(func):
+@decorater
+def singular_gb_standard_options(func, *args, **kwds):
     r"""
     Decorator to force a reduced Singular groebner basis.
 
@@ -2777,9 +2779,5 @@ def singular_gb_standard_options(func):
        This decorator is used automatically internally so the user
        does not need to use it manually.
     """
-    from sage.misc.decorators import sage_wraps
-    @sage_wraps(func)
-    def wrapper(*args, **kwds):
-        with SingularGBDefaultContext():
-            return func(*args, **kwds)
-    return wrapper
+    with SingularGBDefaultContext():
+        return func(*args, **kwds)

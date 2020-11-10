@@ -306,6 +306,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 from inspect import isfunction
+from decorator import decorater
 import operator
 from .ring import SR
 import sage.rings.integer
@@ -322,7 +323,6 @@ from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 cimport sage.symbolic.comparison
 from sage.rings.rational import Rational
 from sage.misc.derivative import multi_derivative
-from sage.misc.decorators import sage_wraps
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
@@ -12803,8 +12803,8 @@ def solve_diophantine(f,  *args, **kwds):
         f = SR(f)
     return f.solve_diophantine(*args, **kwds)
 
-
-def _eval_on_operands(f):
+@decorater
+def _eval_on_operands(f, ex, *args, **kwds):
     """
     Given a function ``f``, return a new function which takes a symbolic
     expression as first argument and prepends the operands of that
@@ -12829,12 +12829,9 @@ def _eval_on_operands(f):
         sage: print(g.__doc__.strip())
         Some documentation.
     """
-    @sage_wraps(f)
-    def new_f(ex, *args, **kwds):
-        new_args = list(ex._unpack_operands())
-        new_args.extend(args)
-        return f(ex, *new_args, **kwds)
-    return new_f
+    new_args = list(ex._unpack_operands())
+    new_args.extend(args)
+    return f(ex, *new_args, **kwds)
 
 
 cdef dict dynamic_class_cache = {}

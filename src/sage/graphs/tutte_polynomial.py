@@ -36,7 +36,7 @@ from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
-from sage.misc.decorators import sage_wraps
+from decorator import decorator
 
 ######################
 # Graph Modification #
@@ -482,8 +482,8 @@ def _cache_key(G):
     """
     return tuple(G.canonical_label().edges(labels=False, sort=True))
 
-
-def _cached(func):
+@decorator
+def _cached(func, G, *args, **kwds):
     """
     Wrapper used to cache results of the function `func`
 
@@ -497,17 +497,13 @@ def _cached(func):
         sage: tutte_polynomial(G)(1,1)  #indirect doctest
         2000
     """
-    @sage_wraps(func)
-    def wrapper(G, *args, **kwds):
-        cache = kwds.setdefault('cache', {})
-        key = _cache_key(G)
-        if key in cache:
-            return cache[key]
-        result = func(G, *args, **kwds)
-        cache[key] = result
-        return result
-    wrapper.original_func = func
-    return wrapper
+    cache = kwds.setdefault('cache', {})
+    key = _cache_key(G)
+    if key in cache:
+        return cache[key]
+    result = func(G, *args, **kwds)
+    cache[key] = result
+    return result
 
 ####################
 # Tutte Polynomial #

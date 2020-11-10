@@ -290,6 +290,7 @@ continue down the MRO and find the ``_add_`` method in the category.
 cimport cython
 from cpython cimport *
 from cpython.ref cimport PyObject
+from decorator import decorater
 
 from sage.ext.stdsage cimport *
 
@@ -314,7 +315,6 @@ from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
-from sage.misc.decorators import sage_wraps
 from sage.misc.superseded import deprecation
 
 
@@ -4245,8 +4245,8 @@ def coercion_traceback(dump=True):
     else:
         return coercion_model.exception_stack()
 
-
-def coerce_binop(method):
+@decorater
+def coerce_binop(method, self, other, *args, **kwargs):
     r"""
     Decorator for a binary operator method for applying coercion to the
     arguments before calling the method.
@@ -4343,14 +4343,11 @@ def coerce_binop(method):
         ...
         TypeError: algorithm 1 not supported
     """
-    @sage_wraps(method)
-    def new_method(self, other, *args, **kwargs):
-        if have_same_parent(self, other):
-            return method(self, other, *args, **kwargs)
+    if have_same_parent(self, other):
+        return method(self, other, *args, **kwargs)
+    else:
+        a, b = coercion_model.canonical_coercion(self, other)
+        if a is self:
+            return method(a, b, *args, **kwargs)
         else:
-            a, b = coercion_model.canonical_coercion(self, other)
-            if a is self:
-                return method(a, b, *args, **kwargs)
-            else:
-                return getattr(a, method.__name__)(b, *args, **kwargs)
-    return new_method
+            return getattr(a, method.__name__)(b, *args, **kwargs)

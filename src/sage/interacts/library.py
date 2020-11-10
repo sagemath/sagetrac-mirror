@@ -36,6 +36,7 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import absolute_import, division
+from decorator import decorater
 
 from sage.all import *
 x = SR.var('x')
@@ -57,7 +58,8 @@ for name in ("interact", "checkbox", "input_box", "input_grid",
     globals()[name] = obj
 
 
-def library_interact(f):
+@decorater
+def library_interact(f, *args, **kw):
     """
     This is a decorator for using interacts in the Sage library.
 
@@ -75,11 +77,8 @@ def library_interact(f):
         Interactive function <function f at ...> with 1 widget
           n: IntSlider(value=5, description=u'n', max=15, min=-5)
     """
-    @sage_wraps(f)
-    def library_wrapper():
-        # This will display the interact, no need to return anything
-        interact(f)
-    return library_wrapper
+    # This will display the interact, no need to return anything
+    interact(f)
 
 
 def html(obj):

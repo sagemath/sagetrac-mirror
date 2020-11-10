@@ -30,6 +30,8 @@ EXAMPLES::
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from decorator import decorater
+
 from sage.structure.proof.all import polynomial as proof_polynomial
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 from .giac import giacsettings, libgiac
@@ -84,9 +86,11 @@ class GiacSettingsDefaultContext:
         giacsettings.threads = self.threads
 
 
-def local_giacsettings(func):
+@decorater
+def local_giacsettings(func, *args, **kwds):
     """
     Decorator to preserve Giac's proba_epsilon and threads settings.
+    Execute function in ``GiacSettingsDefaultContext``.
 
     EXAMPLES::
 
@@ -107,17 +111,8 @@ def local_giacsettings(func):
         (True, 2)
 
     """
-    from sage.misc.decorators import sage_wraps
-
-    @sage_wraps(func)
-    def wrapper(*args, **kwds):
-        """
-        Execute function in ``GiacSettingsDefaultContext``.
-        """
-        with GiacSettingsDefaultContext():
-            return func(*args, **kwds)
-
-    return wrapper
+    with GiacSettingsDefaultContext():
+        return func(*args, **kwds)
 
 
 @local_giacsettings

@@ -154,9 +154,6 @@ class BindableClass(metaclass=ClasscallMetaclass):
         if instance is None:
             return cls
         return BoundClass(cls, instance)
-        # We probably do not need to use sage_wraps, since
-        # sageinspect already supports partial functions
-        #return sage_wraps(cls)(BoundClass(cls, instance))
 
 class BoundClass(functools.partial):
     """

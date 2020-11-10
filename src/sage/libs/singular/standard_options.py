@@ -5,6 +5,7 @@ AUTHOR:
 
 - Martin Albrecht
 """
+from decorator import decorator
 
 class LibSingularGBDefaultContext:
     def __init__(self):
@@ -99,9 +100,11 @@ class LibSingularGBDefaultContext:
         """
         self.libsingular_option_context.__exit__(typ,value,tb)
 
-def libsingular_gb_standard_options(func):
+@decorator
+def libsingular_gb_standard_options(func, *args, **kwds):
     """
     Decorator to force a reduced Singular groebner basis.
+    Execute function in ``LibSingularGBDefaultContext``.
 
     TESTS::
 
@@ -131,12 +134,5 @@ def libsingular_gb_standard_options(func):
        This decorator is used automatically internally so the user
        does not need to use it manually.
     """
-    from sage.misc.decorators import sage_wraps
-    @sage_wraps(func)
-    def wrapper(*args, **kwds):
-        """
-        Execute function in ``LibSingularGBDefaultContext``.
-        """
-        with LibSingularGBDefaultContext():
-            return func(*args, **kwds)
-    return wrapper
+    with LibSingularGBDefaultContext():
+        return func(*args, **kwds)

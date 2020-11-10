@@ -564,7 +564,7 @@ class ReferenceBuilder(AllBuilder):
             if not os.path.exists(refdir):
                 continue
             logger.info('Building bibliography')
-            self._build_bibliography(lang, format, *args, **kwds)
+            #self._build_bibliography(lang, format, *args, **kwds)
             logger.info('Bibliography finished, building dependent manuals')
             self._build_everything_except_bibliography(lang, format, *args, **kwds)
             # The html refman must be build at the end to ensure correct
