@@ -1080,7 +1080,35 @@ class Multizetas(CombinatorialFreeModule):
                 sage: our_pi2 = 6*M(2)
                 sage: Multizeta(2,2,2) == our_pi2**3 / 7.factorial()
                 True
+
+            TESTS:
+
+            Some shortcuts and coercions::
+
+                sage: M(4) == M(66) + M(33,33)
+                False
+                sage: M(33) + M(22,11) == M(3)
+                False
+                sage: M(5) == 1
+                False
+                sage: M() == 1
+                True
             """
+            try:
+                other = self.parent()(other)
+            except (TypeError, ValueError):
+                return False
+            if self.is_homogeneous() and other.is_homogeneous():
+                d0 = None if not self.support() else self.degree()
+                d1 = None if not other.support() else other.degree()
+                if d0 is None and d1 is None:
+                    return True
+                if d0 is not None and d1 is not None:
+                    zero = self.parent().zero()
+                    if d0 < d1:
+                        return self == zero == other
+                    elif d0 > d1:
+                        return other == zero == self
             return self.iterated().phi() == other.iterated().phi()
 
         def __ne__(self, other):
