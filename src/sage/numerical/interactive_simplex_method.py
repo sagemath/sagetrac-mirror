@@ -4548,6 +4548,14 @@ class LPRevisedDictionary(LPAbstractDictionary):
             \end{array}
         """
         latex.add_package_to_preamble_if_available("color")
+        if style() == 'Vanderbei':
+            l_N = r'{\mathcal{N}}'
+            l_B = r'{\mathcal{B}}'
+            l_A_N = r'N'
+        else:
+            l_N = r'N'
+            l_B = r'B'
+            l_A_N = r'A_N'
         x_B = self._x_B
         m = len(x_B)
         entering = self._entering
@@ -4558,7 +4566,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         lines = []
         lines.append(r"\begin{array}{l|r|%s||r||r%s%s}" % ("r"*m,
             "|r" if entering is not None else "", "|r" if show_ratios else ""))
-        headers = ["x_B", "c_B"]
+        headers = [rf"x_{l_B}", rf"c_{l_B}"]
         if generate_real_LaTeX:
             headers.append(r"\multicolumn{%d}{c||}{B^{-1}}" % m)
         else:
@@ -4611,16 +4619,16 @@ class LPRevisedDictionary(LPAbstractDictionary):
         if entering is not None:
             k = x_N.list().index(entering)
         lines.append(r"\begin{array}{r|" + "r" * len(x_N) + "}")
-        make_line("x_N", x_N)
+        make_line(rf"x_{l_N}", x_N)
         lines.append(r"\hline")
-        make_line("c_N^T", self.c_N())
+        make_line(rf"c_{l_N}^T", self.c_N())
         lines.append(r"\hline")
-        make_line("y^T A_N", y * self.A_N())
+        make_line(rf"y^T {l_A_N}", y * self.A_N())
         lines.append(r"\hline")
-        make_line("c_N^T - y^T A_N", self.objective_coefficients())
+        make_line(rf"c_{l_N}^T - y^T {l_A_N}", self.objective_coefficients())
         if leaving is not None and self.is_dual_feasible():
             lines.append(r"\hline")
-            make_line("B^{-1}_{%s} A_N" % latex(leaving),
+            make_line("B^{-1}_{%s} " % latex(leaving) + l_A_N,
                       self.leaving_coefficients())
             lines.append(r"\hline")
             ratios = self.dual_ratios()
