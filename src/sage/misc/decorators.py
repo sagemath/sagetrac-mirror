@@ -221,7 +221,6 @@ class suboptions(object):
             kwds[self.name + "options"] = suboptions
 
             return func(*args, **kwds)
-        return decorate(func, wrapper)
 
         # Add the options specified by @options to the signature of the wrapped
         # function in the Sphinx-generated documentation (Trac 9976), using the
@@ -239,7 +238,7 @@ class suboptions(object):
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
         wrapper._sage_argspec_ = argspec
 
-        return wrapper
+        return decorate(func, wrapper)
 
 
 class options(object):
@@ -302,8 +301,7 @@ class options(object):
                 options['__original_opts'] = kwds
             options.update(kwds)
             return func(*args, **options)
-        return decorate(func, wrapper)
-
+        
         #Add the options specified by @options to the signature of the wrapped
         #function in the Sphinx-generated documentation (Trac 9976), using the
         #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
@@ -377,7 +375,7 @@ class options(object):
         %s
         """ % self.options
 
-        return wrapper
+        return decorate(func, wrapper)
 
 
 def rename_keyword(deprecated=None, deprecation=None, **renames):
