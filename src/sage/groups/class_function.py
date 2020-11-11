@@ -14,6 +14,8 @@ AUTHORS:
 - Franco Saliola (November 2008): initial version
 
 - Volker Braun (October 2010): Bugfixes, exterior and symmetric power.
+
+- Trevor Karn (November 2020): Accept Partition when group is SymmetricGroup
 """
 
 #*****************************************************************************
@@ -980,7 +982,10 @@ class ClassFunction_libgap(SageObject):
         """
         Evaluate the character on the group element `g`.
 
-        Return an error if `g` is not in `G`.
+        Return an error if `g` is not in `G` and `G` is not a symmetric group.
+
+        If `G` is a symmetric group, this accepts partitions in lieu of the
+        group element `g`.
 
         EXAMPLES::
 
@@ -1004,10 +1009,23 @@ class ClassFunction_libgap(SageObject):
             sage: triv = G.trivial_character()
             sage: triv(h)
             1
-        """
+            sage: h.cycle_type()
+            [2,1]
+			sage: triv(h.cycle_type())
+			1
+        """  
+        from sage.combinat.partition import Partition
+        
+        if isinstance(g, Partition):
+        	from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+        	from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+
+        	assert isinstance(self._group, SymmetricGroup), f"{self._group} is not a SymmetricGroup. Give an element of {self._group}."
+
+        	g = default_representative(g, self._group)
+
         value = g.gap() ** self.gap()
         return value.sage(self._base_ring)
-
 
     def __add__(self, other):
         r"""
