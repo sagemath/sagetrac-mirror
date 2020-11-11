@@ -11,7 +11,7 @@ Mutability Cython Implementation
 #                  https://www.gnu.org/licenses/
 ##########################################################################
 
-from decorator import decorater
+from decorator import decorator
 
 cdef class Mutability:
 
@@ -71,7 +71,7 @@ cdef class Mutability:
 ##########################################################################
 ## Method decorators for mutating methods resp. methods that assume immutability
 
-@decorater
+@decorator
 def require_mutable(f, self, *args,**kwds):
     """
     A decorator that requires mutability for a method to be called.
@@ -115,7 +115,7 @@ def require_mutable(f, self, *args,**kwds):
         raise ValueError("%s instance is immutable, %s must not be called" % (type(self), repr(f)))
     return f(self, *args, **kwds)
 
-@decorater
+@decorator
 def require_immutable(f, self, *args, **kwds):
     """
     A decorator that requires immutability for a method to be called.

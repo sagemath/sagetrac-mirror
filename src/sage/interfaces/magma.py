@@ -216,7 +216,7 @@ from __future__ import absolute_import
 
 import re
 import sys
-from decorator import decorater
+from decorator import decorator
 
 from sage.structure.parent import Parent
 from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
@@ -3003,7 +3003,7 @@ class MagmaGBDefaultContext:
         """
         self.magma.SetVerbose('Groebner', self.groebner_basis_verbose)
 
-@decorater
+@decorator
 def magma_gb_standard_options(func, *args, **kwds):
     """
     Decorator to force default options for Magma.

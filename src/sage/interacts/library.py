@@ -36,7 +36,7 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import absolute_import, division
-from decorator import decorater
+from decorator import decorator
 
 from sage.all import *
 x = SR.var('x')
@@ -58,7 +58,7 @@ for name in ("interact", "checkbox", "input_box", "input_grid",
     globals()[name] = obj
 
 
-@decorater
+@decorator
 def library_interact(f, *args, **kw):
     """
     This is a decorator for using interacts in the Sage library.

@@ -325,7 +325,7 @@ import re
 import sys
 import pexpect
 from time import sleep
-from decorator import decorater
+from decorator import decorator
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -2746,7 +2746,7 @@ class SingularGBDefaultContext:
         except SingularError:
             pass
 
-@decorater
+@decorator
 def singular_gb_standard_options(func, *args, **kwds):
     r"""
     Decorator to force a reduced Singular groebner basis.

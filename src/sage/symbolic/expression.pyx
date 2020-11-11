@@ -306,7 +306,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 from inspect import isfunction
-from decorator import decorater
+from decorator import decorator
 import operator
 from .ring import SR
 import sage.rings.integer
@@ -12803,7 +12803,7 @@ def solve_diophantine(f,  *args, **kwds):
         f = SR(f)
     return f.solve_diophantine(*args, **kwds)
 
-@decorater
+@decorator
 def _eval_on_operands(f, ex, *args, **kwds):
     """
     Given a function ``f``, return a new function which takes a symbolic

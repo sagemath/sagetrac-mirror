@@ -290,7 +290,7 @@ continue down the MRO and find the ``_add_`` method in the category.
 cimport cython
 from cpython cimport *
 from cpython.ref cimport PyObject
-from decorator import decorater
+from decorator import decorator
 
 from sage.ext.stdsage cimport *
 
@@ -4245,7 +4245,7 @@ def coercion_traceback(dump=True):
     else:
         return coercion_model.exception_stack()
 
-@decorater
+@decorator
 def coerce_binop(method, self, other, *args, **kwargs):
     r"""
     Decorator for a binary operator method for applying coercion to the
