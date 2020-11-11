@@ -2,6 +2,7 @@ import sys
 import os
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
 import sage.version
+from sage.misc.sagedoc import extlinks as sage_extlinks
 import dateutil.parser
 from docutils import nodes
 from docutils.transforms import Transform
@@ -27,6 +28,9 @@ extensions = ['inventory_builder',
               'sphinx.ext.extlinks',
               'IPython.sphinxext.ipython_directive',
               'matplotlib.sphinxext.plot_directive']
+
+# Add support for special markup to shorten external links
+extlinks = sage_extlinks 
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
