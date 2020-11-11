@@ -101,6 +101,38 @@ def deprecation(trac_number, message, stacklevel=4):
     """
     warning(trac_number, message, DeprecationWarning, stacklevel)
 
+def deprecated(trac_number, message, stacklevel=4):
+    """
+    Decorator that issues a deprecation warning on use.
+
+    INPUT:
+
+    - ``trac_number`` -- integer. The trac ticket number where the
+      deprecation is introduced.
+
+    - ``message`` -- string. An explanation why things are deprecated
+      and by what it should be replaced.
+
+    - ``stack_level`` -- (default: ``4``) an integer. This is passed on to
+      :func:`warnings.warn`.
+
+    EXAMPLES::
+
+        sage: @sage.misc.superseded.deprecated(13109, 'the function foo is replaced by bar')
+        sage: def foo(): pass
+        sage: foo()
+        doctest:...: DeprecationWarning: the function foo is replaced by bar
+        See http://trac.sagemath.org/13109 for details.
+
+    .. SEEALSO::
+
+        :func:`deprecation`
+    """
+    def wrapper(func, *args, **kw):
+        deprecation(trac_number, message, stacklevel)
+        func(args, kw)
+    return decorator(wrapper)
+
 
 def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     r"""
