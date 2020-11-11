@@ -1244,7 +1244,7 @@ cdef class CachedFunction(object):
             self.set_cache(val, *args, **kwargs)
 
 def cached_function(func, *, classmethod=False, name=None, key=None, do_pickle=None):
-    return decorate(func, CachedFunction(func, classmethod, name, key, do_pickle))
+    return decorate(func, CachedFunction(func, classmethod=classmethod, name=name, key=key, do_pickle=do_pickle))
 
 
 cdef class WeakCachedFunction(CachedFunction):
@@ -1434,7 +1434,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
 
 def weak_cached_function(func, *, classmethod=False, name=None, key=None, **kwds):
-    return decorate(func, WeakCachedFunction(func, classmethod, name, key, kwds))
+    return decorate(func, WeakCachedFunction(func, classmethod=classmethod, name=name, key=key, kwds=kwds))
 
 class CachedMethodPickle(object):
     """
