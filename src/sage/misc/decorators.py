@@ -238,7 +238,7 @@ class suboptions(object):
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
         wrapper._sage_argspec_ = argspec
 
-        return decorate(func, wrapper)
+        return wrapper
 
 
 class options(object):
@@ -375,7 +375,7 @@ class options(object):
         %s
         """ % self.options
 
-        return decorate(func, wrapper)
+        return wrapper
 
 
 def rename_keyword(deprecated=None, deprecation=None, **renames):
