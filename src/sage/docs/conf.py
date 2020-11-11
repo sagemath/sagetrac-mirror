@@ -1,9 +1,7 @@
 import sys
 import os
-import sphinx
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
 import sage.version
-from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from docutils import nodes
 from docutils.transforms import Transform
@@ -22,7 +20,7 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['inventory_builder',
               'multidocs',
-              'sage_autodoc',
+              'sphinx.ext.autodoc',
               'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.todo',
