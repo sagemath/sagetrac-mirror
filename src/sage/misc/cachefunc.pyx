@@ -3722,12 +3722,3 @@ class disk_cached_function:
         """
         return DiskCachedFunction(f, self._dir, memory_cache=self._memory_cache, key=self._key)
 
-
-# Add support for _instancedoc_
-from sage.docs.instancedoc import instancedoc
-instancedoc(CachedFunction)
-instancedoc(WeakCachedFunction)
-instancedoc(CachedMethodCaller)
-instancedoc(CachedMethodCallerNoArgs)
-instancedoc(GloballyCachedMethodCaller)
-instancedoc(DiskCachedFunction)
