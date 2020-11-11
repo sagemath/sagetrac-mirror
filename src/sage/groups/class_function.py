@@ -1017,11 +1017,13 @@ class ClassFunction_libgap(SageObject):
         from sage.combinat.partition import Partition
         
         if isinstance(g, Partition):
-        	from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+        	# If self._group is a Symmetric group, we can identify a partition with a conjugacy class
         	from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 
         	assert isinstance(self._group, SymmetricGroup), f"{self._group} is not a SymmetricGroup. Give an element of {self._group}."
 
+        	from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+        	
         	g = default_representative(g, self._group)
 
         value = g.gap() ** self.gap()
