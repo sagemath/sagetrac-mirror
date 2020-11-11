@@ -425,7 +425,7 @@ from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getarg
 from inspect import isfunction
 
 from sage.misc.weak_dict cimport CachedWeakValueDictionary
-from decorator import decorator
+from decorator import decorator, decorate
 
 cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
             '__and__', '__call__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__',
