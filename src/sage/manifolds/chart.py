@@ -1767,7 +1767,7 @@ class RealChart(Chart):
         else:
             return self._bounds[i-self._sindex]
 
-    def coord_range(self, xx=None):
+    def coord_range(self, xx: str = None):
         r"""
         Display the range of a coordinate (or all coordinates), as an
         interval.

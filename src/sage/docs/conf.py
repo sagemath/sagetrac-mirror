@@ -23,12 +23,16 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 extensions = ['inventory_builder',
               'multidocs',
               'sage_autodoc',
+              'sphinx_autodoc_typehints',
               'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.todo',
               'sphinx.ext.extlinks',
               'IPython.sphinxext.ipython_directive',
               'matplotlib.sphinxext.plot_directive']
+
+set_type_checking_flag = True
+always_document_param_types = True
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
