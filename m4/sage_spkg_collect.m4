@@ -147,7 +147,23 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     SPKG_NAME=$(basename $DIR)
     SPKG_VERSION=$(newest_version $SPKG_NAME)
 
+    AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
+    AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
+    AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
+
     in_sdist=no
+
+    SPKG_TREE_VAR=SAGE_LOCAL
+    if test -f "$DIR/requirements.txt" -o -f "$DIR/install-requires.txt"; then
+        dnl A Python package
+        SPKG_TREE_VAR=SAGE_VENV
+    fi
+    AS_VAR_IF([ac_cv_path_PYTHON3], [no], [
+        AS_VAR_IF([SPKG_TREE_VAR], [SAGE_VENV], [
+            AS_VAR_SET([sage_spkg_install], no)
+            AS_VAR_SET([sage_require], no)
+        ])
+    ])
 
     uninstall_message=""
     # Check consistency of 'DIR/type' file
@@ -200,10 +216,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     fi
 
     SAGE_PACKAGE_VERSIONS="${SAGE_PACKAGE_VERSIONS}$(printf '\nvers_')${SPKG_NAME} = ${SPKG_VERSION}"
-
-        AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
-        AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
-        AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
 
         # If $sage_spkg_install_{SPKG_NAME} is set to no, then set inst_<pkgname> to
         # some dummy file to skip the installation. Note that an explicit

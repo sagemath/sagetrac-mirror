@@ -8,7 +8,7 @@ SAGE_SPKG_CONFIGURE([python3], [
        with_python=''
        ])
    AS_IF([test x"$with_python" = x"no"], [
-     ac_path_PYTHON3=no
+     ac_cv_path_PYTHON3=no
      sage_spkg_install_python3=no
    ], [
      ac_path_PYTHON3="$with_python"
