@@ -208,7 +208,7 @@ var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
 
-def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
+def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
     """
     Return the full path to a shared library file installed in
     ``$SAGE_LOCAL/lib`` or the directories associated with the
@@ -237,9 +237,9 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
         sage: if sys.platform == 'cygwin':
         ....:     pattern = "*/cygSingular-*.dll"
         ....: elif sys.platform == 'darwin':
-        ....:     pattern = "*/libSingular.dylib"
+        ....:     pattern = "*/libSingular-*.dylib"
         ....: else:
-        ....:     pattern = "*/lib*Singular.so"
+        ....:     pattern = "*/lib*Singular-*.so"
         sage: fnmatch(str(lib_filename), pattern)
         True
         sage: _get_shared_lib_path("an_absurd_lib") is None
@@ -253,11 +253,11 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
             search_directories = [
-                get_sage_local() / 'bin',
+                _get_sage_local() / 'bin',
                 Path(sysconfig.get_config_var('BINDIR')),
             ]
             # Note: The following is not very robust, since if there are multible
-             # versions for the same library this just selects one more or less
+            # versions for the same library this just selects one more or less
             # at arbitrary. However, practically speaking, on Cygwin, there
             # will only ever be one version
             patterns = [f'cyg{libname}.dll', f'cyg{libname}-*.dll']
@@ -267,12 +267,14 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
             else:
                 ext = 'so'
 
-            search_directories = [get_sage_local() / 'lib']
-            if (libdir_str := sysconfig.get_config_var('LIBDIR')) is not None:
-                libdir = Path(libdir_str)
+            search_directories = [_get_sage_local() / 'lib']
+            libdir = sysconfig.get_config_var('LIBDIR')
+            if libdir is not None:
+                libdir = Path(libdir)
                 search_directories.append(libdir)
 
-                if (multiarchlib := sysconfig.get_config_var('MULTIARCH')) is not None: 
+                multiarchlib = sysconfig.get_config_var('MULTIARCH')
+                if multiarchlib is not None: 
                     search_directories.append(libdir / multiarchlib),
 
             patterns = [f'lib{libname}.{ext}']
@@ -281,26 +283,22 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
             for pattern in patterns:
                 path = next(directory.glob(pattern), None)
                 if path is not None:
-                    return path.resolve()
+                    return str(path.resolve())
 
     # Just return None if no files were found
     return None
 
-def get_sage_local() -> Path:
+def _get_sage_local() -> Path:
     return Path(SAGE_LOCAL)
 
-def get_singular_lib_path() -> Optional[Path]:
-    """
-    Return the location of the singular shared object.
-    """
-    # On Debian it's libsingular-Singular so try that as well
-    return _get_shared_lib_path('Singular', 'singular-Singular')
+# locate singular shared object
+# On Debian it's libsingular-Singular so try that as well
+SINGULAR_SO = _get_shared_lib_path('Singular', 'singular-Singular')
+var('SINGULAR_SO', SINGULAR_SO)
 
-def get_gap_lib_path() -> Optional[Path]:
-    """ 
-    Return the location of the libgap shared object.
-    """
-    return _get_shared_lib_path('gap', '')
+# locate libgap shared object
+GAP_SO = _get_shared_lib_path('gap','')
+var('GAP_SO', GAP_SO)
 
 # post process
 if ' ' in DOT_SAGE:
