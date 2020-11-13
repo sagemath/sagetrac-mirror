@@ -36,10 +36,10 @@ jobs:
       - name: Install tools
         run: |
           apt-get update -y
-          apt-get install -y wget apt-transport-https tzdata update-notifier-common
-          wget https://raw.githubusercontent.com/averyfreeman/dotnet-sdk-5.0rc1-Ubuntu-20.10-installer/261df27fd670c052788874785ca197e7d4b0decb/install-dotnet-preview-groovy.sh
-          chmod +x install-dotnet-preview-groovy.sh
-          ./install-dotnet-preview-groovy.sh
+          apt-get install -y wget apt-transport-https tzdata update-notifier-common curl
+          curl -H 'Cache-Control: no-cache' -L https://aka.ms/install-dotnet-preview -o install-dotnet-preview.sh
+          chmod +x install-dotnet-preview.sh
+          ./install-dotnet-preview.sh
           dotnet tool install powershell --tool-path /usr/local/bin
           apt-get update -y
           apt-get install -y python3-pip
