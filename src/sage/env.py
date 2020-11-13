@@ -240,7 +240,7 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
         ....:     pattern = "*/libSingular-*.dylib"
         ....: else:
         ....:     pattern = "*/lib*Singular-*.so"
-        sage: fnmatch(str(lib_filename), pattern)
+        sage: fnmatch(lib_filename, pattern)
         True
         sage: _get_shared_lib_path("an_absurd_lib") is None
         True
@@ -454,7 +454,9 @@ def cython_aliases():
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
     if "LINBOX_CFLAGS" in aliases:
         aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
-    aliases["ARB_LIBRARY"] = ARB_LIBRARY
+
+    arb_libraries = [ARB_LIBRARY, "flint", "flint-arb"]
+    aliases["ARB_LIBRARY"] = next((arb_lib for arb_lib in arb_libraries if _get_shared_lib_path(arb_lib) is not None), ARB_LIBRARY)
 
     # TODO: Remove Cygwin hack by installing a suitable cblas.pc
     if os.path.exists('/usr/lib/libblas.dll.a'):

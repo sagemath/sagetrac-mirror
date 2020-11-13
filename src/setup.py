@@ -70,32 +70,32 @@ optional_packages = ['mcqd', 'bliss', 'tdlib', 'primecount',
 not_installed_packages = [package for package in optional_packages
                           if not is_package_installed_and_updated(package)]
 
-distributions_to_exclude = ['sage-{}'.format(pkg)
+distributions_to_exclude = [f"sage-{pkg}"
                             for pkg in not_installed_packages]
 files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
 
-log.debug('files_to_exclude = {0}'.format(files_to_exclude))
+log.debug(f"files_to_exclude = {files_to_exclude}")
 
 python_packages = find_namespace_packages(where=SAGE_SRC)
-log.debug('python_packages = {0}'.format(python_packages))
+log.debug(f"python_packages = {python_packages}")
 cython_modules = ["**/*.pyx"]
-log.debug('cython_modules = {0}'.format(cython_modules))
+log.debug(f"cython_modules = {cython_modules}")
 
 include_directories = sage_include_directories(use_sources=True)
 include_directories += ['.']
 
-log.debug('include_directories = {0}'.format(include_directories))
+log.debug(f"include_directories = {include_directories}")
 
 aliases = cython_aliases()
-log.debug('aliases = {0}'.format(aliases))
+log.debug(f"aliases = {aliases}")
 
-log.info("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
+log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
 
 #########################################################
 ### Distutils
 #########################################################
 code = setup(name = 'sage',
-      version     =  '2',
+      version     =  SAGE_VERSION,
       description = 'Sage: Open Source Mathematics Software',
       license     = 'GNU Public License (GPL)',
       author      = 'William Stein et al.',
@@ -156,7 +156,7 @@ code = setup(name = 'sage',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',
                  'bin/sage-env',
-                 #'bin/sage-env-config',
+                 #'bin/sage-env-config', -- does not exist without running bootstrap
                  # sage-env-config.in -- not to be installed',
                  'bin/sage-gdb-commands',
                  'bin/sage-grep',

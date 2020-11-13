@@ -1208,7 +1208,7 @@ class DocTestController(SageObject):
                 return 2
             return self.run_val_gdb()
         else:
-            #self.test_safe_directory()
+            self.test_safe_directory()
             self.create_run_id()
             from sage.env import SAGE_ROOT_GIT
             # SAGE_ROOT_GIT can be None on distributions which typically

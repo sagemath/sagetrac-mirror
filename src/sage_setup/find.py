@@ -191,8 +191,8 @@ def filter_cython_sources(src_dir, distributions):
     EXAMPLES::
 
         sage: from sage.env import SAGE_SRC
-        sage: from sage_setup.find import find_cython_sources
-        sage: cython_modules = find_cython_sources(SAGE_SRC, ["sage-tdlib"])
+        sage: from sage_setup.find import filter_cython_sources
+        sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sage-tdlib"])
         
     Cython module relying on tdlib::
 
@@ -206,11 +206,11 @@ def filter_cython_sources(src_dir, distributions):
 
     Benchmarking::
 
-        sage: timeit('find_cython_sources(SAGE_SRC, ["sage-tdlib"])', # random output
+        sage: timeit('filter_cython_sources(SAGE_SRC, ["sage-tdlib"])', # random output
         ....:        number=1, repeat=1)
         1 loops, best of 1: 850 ms per loop
     """
-    files = []
+    files: list[str] = []
 
     for dirpath, dirnames, filenames in os.walk(src_dir):
         for filename in filenames:
