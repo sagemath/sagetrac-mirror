@@ -306,7 +306,7 @@ class ManualIntegral(SageObject):
         """
         return integral(self._f, self._x, hold=True)._unicode_art_()
 
-    def next(self):
+    def __next__(self):
         r"""
         A ManualIntegral can be iterated over its hints. Each time the method
         ``hint`` or ``next`` is called, a new hint is returned.
@@ -320,17 +320,17 @@ class ManualIntegral(SageObject):
             sage: M.hint()
             (integrate(x^2, x) == 1/3*x^3,)
 
-        The methods ``next`` or ``hint``can be used indistinctly::
+        The methods ``__next__`` or ``hint``can be used indistinctly::
 
-            sage: M.next()
+            sage: M.__next__()
             (integrate(3*x, x) == 3*integrate(x, x),)
 
         When all the hints have been returned, and a new hint is requested,
         an exception is raised::
 
-            sage: M.next()
+            sage: M.__next__()
             (integrate(x, x) == 1/2*x^2,)
-            sage: M.next()
+            sage: M.__next__()
             Traceback (most recent call last):
             ...
             StopIteration
@@ -348,7 +348,7 @@ class ManualIntegral(SageObject):
         else:
             return integration_hint(self._rules_list[self._current_index])
 
-    hint = next
+    hint = __next__
 
     def all_hints(self):
         r"""
