@@ -17,8 +17,12 @@ jobs:
       run: brew install pari ppl singular gsl lapack boost bdw-gc glpk libatomic_ops mpfi nauty ninja openblas openssl pandoc gpatch ppl r readline suite-sparse yasm zeromq
     - name: Create virtual environment
       run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
+      env:
+          PKG_CONFIG_PATH: "/usr/local/opt/openblas/lib/pkgconfig"
     - name: Install editable manually
       run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+      env:
+          PKG_CONFIG_PATH: "/usr/local/opt/openblas/lib/pkgconfig"
     - name: Test
       run: cd src && pipenv run python -c 'import sage.all'
     - name: Configure
