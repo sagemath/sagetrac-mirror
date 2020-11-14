@@ -14,6 +14,8 @@ pytest = "*"
 ipywidgets = "*"
 sphinx = "*"
 rope = "*"
+six = "*"
+jupyter-core = "*"
 
 [packages]
 numpy = "*"
@@ -27,6 +29,8 @@ sympy = "*"
 scipy = "*"
 pplpy = "*"
 matplotlib = "*"
+cvxopt = "==1.2.5"
+rpy2 = "*"
 
 [requires]
 python_version = "3.8"
