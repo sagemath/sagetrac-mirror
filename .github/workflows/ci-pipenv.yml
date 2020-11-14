@@ -14,7 +14,7 @@ jobs:
     - name: Install pipenv
       run: brew install pipenv
     - name: Install dependencies
-      run: brew install pari ppl singular gsl lapack boost bdw-gc glpk libatomic_ops mpfi nauty ninja openblas openssl pandoc gpatch ppl r readline suite-sparse yasm zeromq
+      run: brew install pari ppl singular gsl lapack boost bdw-gc glpk libatomic_ops mpfi nauty ninja openblas openssl pandoc gpatch ppl r readline suite-sparse yasm zeromq flint
     - name: Create virtual environment
       run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
       env:
