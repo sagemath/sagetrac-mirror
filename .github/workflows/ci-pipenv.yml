@@ -59,6 +59,7 @@ jobs:
           $packages.Remove('texlive-generic-extra')
           # Add a few dependencies that are not yet listed
           $packages.Add('libsingular4-dev')
+          $packages.Add('singular')
           $packages.Add('liblinbox-dev')
           $packages.Add('libratpoints-dev')
           $packages.Add('libgap-dev')
