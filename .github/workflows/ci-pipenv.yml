@@ -77,7 +77,6 @@ jobs:
       - name: Create virtual environment
         run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --verbose && pipenv run pip list
         env:
-          PIP_GLOBAL_OPTION: -j 5
           PIP_NO_BUILD_ISOLATION: false
       # The following is for testing purposes in case the pipenv install above fails
       - name: Install editable manually
