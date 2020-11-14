@@ -200,7 +200,7 @@ var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA',                        'maxima')
 var('MAXIMA_FAS')
 var('SAGE_NAUTY_BINS_PREFIX',        '')
-var('ARB_LIBRARY',                   'arb')
+var('ARB_LIBRARY')
 var('CBLAS_PC_MODULES',              'cblas:openblas:blas')
 
 # misc
@@ -455,7 +455,7 @@ def cython_aliases():
     if "LINBOX_CFLAGS" in aliases:
         aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
 
-    arb_libraries = [ARB_LIBRARY, "flint", "flint-arb"]
+    arb_libraries = [ARB_LIBRARY, "arb", "flint-arb"]
     aliases["ARB_LIBRARY"] = next((arb_lib for arb_lib in arb_libraries if _get_shared_lib_path(arb_lib) is not None), ARB_LIBRARY)
 
     # TODO: Remove Cygwin hack by installing a suitable cblas.pc
