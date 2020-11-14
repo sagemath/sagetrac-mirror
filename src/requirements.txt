@@ -1,19 +1,53 @@
-#sage_conf
-#sage_setup
+## requirements.txt for creating venvs with sagelib
+##
+## Usage:
+##
+##                   $ ../sage -sh
+##         (sage-sh) $ python3 -m venv venv1
+## (venv1) (sage-sh) $ pip install -r requirements.txt
+## (venv1) (sage-sh) $ pip install -e .
+
+--index-url=file://${SAGE_LOCAL}/var/lib/sage/wheels/simple
+--extra-index-url=https://pypi.python.org/simple
+
+sage-conf
+#sage_setup     # Will be split out later.
 six             # use of six should be removed from sage_setup
-Cython==0.29.17
-pkgconfig
+
+
+# From build/pkgs/sagelib/dependencies
+cypari2==2.1.1        # but building bdist_wheel of cypari2 fails with recent pip... https://github.com/sagemath/cypari2/issues/93
 cysignals
+Cython>=0.29.17
 gmpy2==2.1.0b5
-
-numpy          # already needed by sage.env
 jinja2         # sage_setup.autogen.interpreters
-
-cypari2        # but building bdist_wheel of cypari2 fails with recent pip... https://github.com/sagemath/cypari2/issues/93
-
-########## Runtime
-
-psutil
-pexpect
+jupyter_core
+numpy          # already needed by sage.env
+pkgconfig
 pplpy
-ipython<=5.8
+pycygwin; sys_platform == 'cygwin'
+# pynac       # after converting to a pip-installable package
+
+
+# From Makefile.in: SAGERUNTIME
+ipython>=7
+pexpect
+psutil
+
+# From Makefile.in: DOC_DEPENDENCIES
+sphinx
+networkx
+scipy
+sympy
+matplotlib
+pillow
+mpmath
+ipykernel
+jupyter_client
+ipywidgets
+
+# Other Python packages that are standard spkg, used in doctests
+cvxopt
+rpy2
+fpylll
+#pycryptosat  # Sage distribution installs it as part of cryptominisat. According to its README on https://pypi.org/project/pycryptosat/: "The pycryptosat python package compiles while compiling CryptoMiniSat. It cannot be compiled on its own, it must be compiled at the same time as CryptoMiniSat."
