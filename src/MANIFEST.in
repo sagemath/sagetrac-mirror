@@ -1,6 +1,7 @@
 global-include *.c *.cc *.cpp *.h *.hh *.hpp *.inc *.py *.pyx *.pxd *.pxi *.rst *.txt *.tex
 
 include MANIFEST.in
+include pyproject.toml
 
 prune .tox
 
