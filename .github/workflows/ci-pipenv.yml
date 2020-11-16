@@ -78,6 +78,10 @@ jobs:
           apt-get install -y autoconf automake
           ./bootstrap -d && ./configure --enable-build-as-root
           make conway_polynomials-no-deps
+          make elliptic_curves-no-deps
+          make combinatorial_designs-no-deps
+          make graphs-no-deps
+          make polytopes_db-no-deps
       - name: Set up cache
         uses: actions/cache@v1
         with:
