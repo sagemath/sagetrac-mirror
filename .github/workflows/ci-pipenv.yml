@@ -82,6 +82,8 @@ jobs:
           make combinatorial_designs-no-deps
           make graphs-no-deps
           make polytopes_db-no-deps
+          make maxima-no-deps
+          make gap-no-deps
       - name: Set up cache
         uses: actions/cache@v1
         with:
