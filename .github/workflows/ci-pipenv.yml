@@ -99,3 +99,5 @@ jobs:
         if: always()
       - name: Test
         run: cd src && pipenv run python -c 'import sage.all; import sage.doctest.control; sage.doctest.control.run_doctests(sage)'
+        env:
+          SAGE_LOCAL: $GITHUB_WORKSPACE/local
