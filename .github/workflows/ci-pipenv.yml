@@ -73,6 +73,11 @@ jobs:
           echo "Install the following packages:" @packages
           & apt-get install -y @packages
         shell: pwsh
+      - name: Configure
+        run: |
+          apt-get install -y autoconf automake
+          ./bootstrap -d && ./configure
+          make conway_polynomials-no-deps
       - name: Set up cache
         uses: actions/cache@v1
         with:
