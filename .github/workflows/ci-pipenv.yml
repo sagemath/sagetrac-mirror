@@ -82,8 +82,8 @@ jobs:
           make combinatorial_designs-no-deps
           make graphs-no-deps
           make polytopes_db-no-deps
-          make maxima-no-deps
           make gap-no-deps
+          apt-get install -y maxima-sage 
       - name: Set up cache
         uses: actions/cache@v1
         with:
