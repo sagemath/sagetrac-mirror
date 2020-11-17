@@ -85,6 +85,7 @@ jobs:
           make graphs-no-deps
           make polytopes_db-no-deps
           make gap-no-deps
+          make jmol-no-deps
       - name: Set up cache
         uses: actions/cache@v1
         with:
