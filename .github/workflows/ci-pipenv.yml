@@ -73,6 +73,7 @@ jobs:
 
           echo "Install the following packages:" @packages
           & apt-get install -y @packages
+          & cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
         shell: pwsh
       - name: Configure
         run: |
