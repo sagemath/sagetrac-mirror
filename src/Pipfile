@@ -31,6 +31,7 @@ pplpy = "*"
 matplotlib = "*"
 cvxopt = "==1.2.5"
 rpy2 = "*"
+networkx = "*"
 
 [requires]
 python_version = "3.8"
