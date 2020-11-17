@@ -286,11 +286,11 @@ cdef initialize():
 
     argv[argc] = NULL
 
-    #sig_on()
+    sig_on()
     # Initialize GAP but disable their SIGINT handler
     GAP_Initialize(argc, argv, gasman_callback, error_handler,
                    handleSignals=False)
-    #sig_off()
+    sig_off()
 
     # Disable GAP's SIGCHLD handler ChildStatusChanged(), which calls
     # waitpid() on random child processes.
@@ -393,7 +393,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
     # so that Cython doesn't deallocate it before GAP is done with
     # its contents.
     cmd = str_to_bytes(gap_string + ';\n')
-    #sig_on()
+    sig_on()
     try:
         GAP_Enter()
         result = GAP_EvalString(cmd)
@@ -427,7 +427,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
         return ELM0_LIST(result, 2)
     finally:
         GAP_Leave()
-        #sig_off()
+        sig_off()
 
 
 ###########################################################################
