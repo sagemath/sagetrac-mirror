@@ -86,6 +86,7 @@ jobs:
           make polytopes_db-no-deps
           make gap-no-deps
           make jmol-no-deps
+          make threejs-no-deps
       - name: Set up cache
         uses: actions/cache@v1
         with:
