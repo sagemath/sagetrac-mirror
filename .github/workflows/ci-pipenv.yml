@@ -69,6 +69,7 @@ jobs:
           $packages.Add('libgap-dev')
           $packages.Add('ecl')
           $packages.Add('libpynac-dev')
+          $packages.Add('maxima-sage')
 
           echo "Install the following packages:" @packages
           & apt-get install -y @packages
@@ -83,7 +84,6 @@ jobs:
           make graphs-no-deps
           make polytopes_db-no-deps
           make gap-no-deps
-          apt-get install -y maxima-sage 
       - name: Set up cache
         uses: actions/cache@v1
         with:
