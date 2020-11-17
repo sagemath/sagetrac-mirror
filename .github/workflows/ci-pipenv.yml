@@ -70,12 +70,15 @@ jobs:
           $packages.Add('ecl')
           $packages.Add('libpynac-dev')
           $packages.Add('maxima-sage')
-          #$packages.Add('maxima')
+          $packages.Add('maxima')
 
           echo "Install the following packages:" @packages
           & apt-get install -y @packages
           & cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
         shell: pwsh
+        env:
+          # Needed since otherwise the installation of keyboard-configuration hangs
+          DEBIAN_FRONTEND=noninteractive
       - name: Configure
         run: |
           apt-get install -y autoconf automake
