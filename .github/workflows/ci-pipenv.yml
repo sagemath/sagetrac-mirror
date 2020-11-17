@@ -70,6 +70,7 @@ jobs:
           $packages.Add('ecl')
           $packages.Add('libpynac-dev')
           $packages.Add('maxima-sage')
+          $packages.Add('maxima')
 
           echo "Install the following packages:" @packages
           & apt-get install -y @packages
