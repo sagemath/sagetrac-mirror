@@ -434,7 +434,9 @@ def cython_aliases():
     # This is not a problem in practice since LinBox depends on
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
     aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
-    aliases["ARB_LIBRARY"] = ARB_LIBRARY
+    
+    arb_libraries = [ARB_LIBRARY, "arb", "flint-arb"]
+    aliases["ARB_LIBRARY"] = next((arb_lib for arb_lib in arb_libraries if _get_shared_lib_path(arb_lib) is not None), ARB_LIBRARY)
 
     # TODO: Remove Cygwin hack by installing a suitable cblas.pc
     if os.path.exists('/usr/lib/libblas.dll.a'):
