@@ -133,6 +133,18 @@ inline void bitset_set_first_n(uint64_t* bits, size_t face_length, size_t n){
 #############################################################################
 */
 
+inline size_t mpn_scan_replacement(uint64_t limb){
+    /*
+    A workaround for ``mpn_sacn1``, as some linking does not work on OSX.
+
+    As this is an intermediate solution, it seems fine.
+    */
+    for (size_t i = 0; i < 64; i++){
+        if (limb & limb_one_set_bit(i))
+            return i;
+    }
+}
+
 inline size_t _bitset_first_in_limb(uint64_t limb){
     /*
     Given a limb of a bitset, return the index of the first nonzero
@@ -140,7 +152,7 @@ inline size_t _bitset_first_in_limb(uint64_t limb){
     */
     if (limb == 0)
         return -1;
-    return mpn_scan1(&limb, 0);
+    return mpn_scan_replacement(limb);
 }
 
 inline long _bitset_first_in_limb_nonzero(uint64_t limb){
@@ -148,7 +160,7 @@ inline long _bitset_first_in_limb_nonzero(uint64_t limb){
     Given a non-zero limb of a bitset, return the index of the first
     nonzero bit.
     */
-    return mpn_scan1(&limb, 0);
+    return mpn_scan_replacement(limb);
 }
 
 inline size_t bitset_next(uint64_t* bits, size_t face_length, size_t n){
