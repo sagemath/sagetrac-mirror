@@ -289,6 +289,15 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: L(L.residue_field().zero())
             O(3)
 
+        Check that :trac:`30938` is fixed::
+
+            sage: R.<x> = QQ[]
+            sage: K = Qp(19)
+            sage: L.<b> = K.extension(x^2 - 19)
+            sage: a = L.hom([b], codomain=L)
+            sage: id = L.Hom(L).identity()
+            sage: a == id
+            True
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -482,6 +491,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     self._set(&_x.unit, _x.ordp, rprec)
             else:
                 raise NotImplementedError("Conversion from different p-adic extensions not yet supported")
+        elif x is None:
+            self._set_exact_zero()
         else:
             try:
                 x = list(x)
