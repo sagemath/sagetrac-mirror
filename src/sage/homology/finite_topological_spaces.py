@@ -71,7 +71,7 @@ from sage.interfaces import kenzo
 from sage.features.kenzo import Kenzo
 
 ###############################################################
-# This section will be included to src/sage/interfaces/kenzo.py
+# This section (lines 76 to 246) will be included to src/sage/interfaces/kenzo.py
 
 kenzonames = ['2h-regularization',
                'copier-matrice',
@@ -374,8 +374,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
         for B in data:
             eltos = eltos.union(B)
         if not eltos==set(range(n)):
-            raise ValueError("This kind of data assume the elements are in range({})" \
-                             .format(n))
+            raise ValueError("This kind of data assume the elements are in range({})".format(n))
         basis = dict(zip(range(n), data))
 
     if isinstance(data, Matrix_integer_sparse): # type 3
@@ -440,7 +439,7 @@ def FiniteSpace(data, elements=None, is_T0=False):
 
 def RandomFiniteT0Space(*args):
     r"""
-    Returns a random finite `T_0` space.
+    Return a random finite `T_0` space.
 
     INPUT:
 
@@ -622,8 +621,7 @@ class FiniteTopologicalSpace(Parent):
 
         - ``points`` -- (default ``None``) A tuple, list or set contained in ``self.elements()``.
 
-        - ``is_T0`` -- if it is known that the resulting subspace is T0, fix ``True``
-          (default ``False``).
+        - ``is_T0`` -- (default ``False``) If it is known that the resulting subspace is `T_0`, fix ``True``.
 
         EXAMPLES::
 
@@ -1444,7 +1442,7 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
 
     def stong_matrix(self):
         r"""
-        Returns the Stong matrix of the finite `T_0` space i.e. the adjacency matrix
+        Return the Stong matrix of the finite `T_0` space i.e. the adjacency matrix
         of the Hasse diagram of its associated poset, with ones in its diagonal.
 
         EXAMPLES::
@@ -1957,4 +1955,4 @@ class FiniteTopologicalSpace_T0(FiniteTopologicalSpace):
             Mh = __copier_matrice__(kenzo.__nth__(height-1, matrices))
             result[height-1] = quotient_group_matrices(Mh, right_null=True)
             return result
-                   
+
