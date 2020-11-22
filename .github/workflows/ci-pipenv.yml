@@ -40,49 +40,12 @@ jobs:
       - name: Install tools
         run: |
           apt-get update -y
-          apt-get install -y wget apt-transport-https tzdata update-notifier-common
-          wget https://packages.microsoft.com/config/ubuntu/20.10/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-          dpkg -i packages-microsoft-prod.deb
-          apt-get update -y
-          apt-get install -y dotnet-sdk-5.0
-          dotnet tool install powershell --tool-path /usr/local/bin
-          apt-get update -y
-          apt-get install -y python3-pip
+          apt-get install -y python3-pip autoconf automake python-tox
           pip install pipenv
       - name: Install dependencies
         run: |
-          Function ExtractPackages
-          {
-            param($path)
-            @(Get-Content $path | Where-Object { !$_.StartsWith("#") })
-          }
-          [System.Collections.ArrayList]$packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | Sort-Object -Unique
-          # We already installed python
-          $packages.Remove('libpython3.7-dev')
-          # libhomfly and texlive-generic-extra doesn't exist
-          $packages.Remove('texlive-generic-extra')
-          # Add a few dependencies that are not yet listed
-          $packages.Add('libsingular4-dev')
-          $packages.Add('singular')
-          $packages.Add('liblinbox-dev')
-          $packages.Add('libratpoints-dev')
-          $packages.Add('libgap-dev')
-          $packages.Add('ecl')
-          $packages.Add('libpynac-dev')
-          $packages.Add('maxima-sage')
-          $packages.Add('maxima')
-
-          echo "Install the following packages:" @packages
-          & apt-get install -y @packages
-          & cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
-        shell: pwsh
-        env:
-          # Needed since otherwise the installation of keyboard-configuration hangs
-          DEBIAN_FRONTEND: noninteractive
-      - name: Configure
-        run: |
-          apt-get install -y autoconf automake
-          ./bootstrap -d && ./configure --enable-build-as-root
+          tox -e local-sudo-standard -- config.status
+          cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
           make conway_polynomials-no-deps
           make elliptic_curves-no-deps
           make combinatorial_designs-no-deps
