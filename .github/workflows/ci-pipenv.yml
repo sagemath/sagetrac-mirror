@@ -54,6 +54,9 @@ jobs:
           make gap-no-deps
           make jmol-no-deps
           make threejs-no-deps
+        env:
+          # Needed since otherwise the installation of keyboard-configuration hangs
+          DEBIAN_FRONTEND: noninteractive
       - name: Set up cache
         uses: actions/cache@v1
         with:
