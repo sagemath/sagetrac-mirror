@@ -41,7 +41,11 @@ jobs:
         run: |
           apt-get update -y
           apt-get install -y python3-pip tox autoconf automake sudo
+          apt-get tzdata keyboard-configuration
           pip install pipenv
+        env:
+          # Needed since otherwise the installation of tzdata/keyboard-configuration hangs
+          DEBIAN_FRONTEND: noninteractive
       - name: Install dependencies
         run: |
           tox -e local-sudo-standard -- config.status
@@ -54,9 +58,6 @@ jobs:
           make gap-no-deps
           make jmol-no-deps
           make threejs-no-deps
-        env:
-          # Needed since otherwise the installation of keyboard-configuration hangs
-          DEBIAN_FRONTEND: noninteractive
       - name: Set up cache
         uses: actions/cache@v1
         with:
