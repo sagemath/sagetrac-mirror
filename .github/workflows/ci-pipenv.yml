@@ -40,7 +40,7 @@ jobs:
       - name: Install tools
         run: |
           apt-get update -y
-          apt-get install -y python3-pip autoconf automake python-tox
+          apt-get install -y python3-pip tox autoconf automake
           pip install pipenv
       - name: Install dependencies
         run: |
