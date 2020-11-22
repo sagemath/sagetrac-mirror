@@ -58,6 +58,8 @@ jobs:
           make gap-no-deps
           make jmol-no-deps
           make threejs-no-deps
+        env:
+          EXTRA_CONFIGURE_ARGS: --enable-build-as-root
       - name: Set up cache
         uses: actions/cache@v1
         with:
