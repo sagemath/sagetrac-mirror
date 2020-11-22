@@ -41,7 +41,7 @@ jobs:
         run: |
           apt-get update -y
           apt-get install -y python3-pip tox autoconf automake sudo
-          apt-get tzdata keyboard-configuration
+          apt-get install -y tzdata keyboard-configuration
           pip install pipenv
         env:
           # Needed since otherwise the installation of tzdata/keyboard-configuration hangs
