@@ -34,34 +34,12 @@ from sage.structure.element import ModuleElement as SageModuleElement
 
 from .free_element import FreeModuleElement
 
+from .timing import g_timings
 
-class FP_Element(SageModuleElement):
-    r"""
-    Create a module element of a finitely presented graded module over
-    a connected graded algebra.
+cdef class FP_Element():
 
-    INPUT::
-
-    - ``module`` -- the parent instance of this module element.
-
-    - ``coefficients`` -- a tuple of homogeneous elements of the algebra
-      over which the module is defined.
-
-    OUTPUT:: The module element given by the coefficients.
-
-    .. NOTE:: Never use this constructor explicitly, but rather the parent's
-        call method, or this class' __call__ method.  The reason for this
-        is that the dynamic type of the element class changes as a
-        consequence of the category system.
-
-    TESTS:
-
-        sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
-        sage: from sage.modules.fp_over_steenrod_algebra.fp_element import FP_Element
-        sage: FP_Element(FP_Module([0], SteenrodAlgebra(2)), [Sq(2)])
-        <Sq(2)>
-
-    """
+    cdef object _free_element
+    cdef object _parent
 
     def __init__(self, module, coefficients):
         r"""
@@ -69,9 +47,18 @@ class FP_Element(SageModuleElement):
         a connected graded algebra.
         """
         # Store the free representation of the element.
-        self.free_element = FreeModuleElement(module.j.codomain(), coefficients)
+        self._free_element = FreeModuleElement(module.j.codomain(), coefficients)
 
-        SageModuleElement.__init__(self, parent=module)
+        self._parent = module
+
+#        SageModuleElement.__init__(self, parent=module)
+
+    def parent(self):
+        return self._parent
+
+
+    def free_element(self):
+        return self._free_element
 
 
     def coefficients(self):
@@ -99,7 +86,7 @@ class FP_Element(SageModuleElement):
             (0, 0)
 
         """
-        return self.free_element.coefficients()
+        return self._free_element.coefficients()
 
 
     @cached_method
@@ -135,10 +122,10 @@ class FP_Element(SageModuleElement):
             True
 
         """
-        return self.free_element.degree() if self._nonzero_() else None
+        return self._free_element.degree() if self.nonzero() else None
 
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Return a string representation of this element.
 
@@ -158,7 +145,7 @@ class FP_Element(SageModuleElement):
              <Sq(2,0,1), Sq(2,2)>]
 
         """
-        return self.free_element._repr_()
+        return self._free_element.__repr__()
 
 
     def _lmul_(self, a):
@@ -197,10 +184,18 @@ class FP_Element(SageModuleElement):
              <0, Sq(3,2)>]
 
         """
-        return self.parent()(a*self.free_element)
+        global g_timings
+
+        xxx = self._free_element._lmul_(a)
+
+        g_timings.Start('fp_element_arithmetic_')
+        res = self.parent()(xxx)
+        g_timings.End()
+
+        return res
 
 
-    def _neg_(self):
+    def __neg__(self):
         r"""
         Return the additive inverse of this element.
 
@@ -220,10 +215,18 @@ class FP_Element(SageModuleElement):
             True
 
         """
-        return self.parent()(-self.free_element)
+        global g_timings
+
+        xxx = -self._free_element
+
+        g_timings.Start('fp_element_arithmetic_')
+        res = self.parent()(xxx)
+        g_timings.End()
+
+        return res
 
 
-    def _add_(self, other):
+    def __add__(self, other):
         r"""
         Return the module sum of this and the given module element.
 
@@ -269,10 +272,17 @@ class FP_Element(SageModuleElement):
             <Sq(2,1)>
 
         """
-        return self.parent()(self.free_element + other.free_element)
+        global g_timings
+        xxx = self._free_element + other.free_element()
+
+        g_timings.Start('fp_element_arithmetic_')
+        res = self.parent()(xxx)
+        g_timings.End()
+
+        return res
 
 
-    def _richcmp_(self, other, op):
+    def __eq__(self, other):
         r"""
         Compare this element with ``other``.
 
@@ -326,21 +336,31 @@ class FP_Element(SageModuleElement):
             False
 
         """
-        same = True
-        if self.parent() != other.parent() or\
-            self.degree() != other.degree() or\
-            (self._add_(other._neg_()))._nonzero_():
-            same = False
 
-        # Equality
-        if op == 2:
-            return same
 
-        # Non-equality
-        if op == 3:
-            return not same
+#        if type(other) is int:
+#            return self._coefficients == (other,)
+#        if self._coefficients == other.coefficients():
+#            return True
+#        else:
+        return not (self.__add__(other.__neg__())).nonzero()
 
-        return False
+#
+#        same = True
+#        if self.parent() != other.parent() or\
+#            self.degree() != other.degree() or\
+#            (self._add_(other._neg_())).nonzero():
+#            same = False
+#
+#        # Equality
+#        if op == 2:
+#            return same
+#
+#        # Non-equality
+#        if op == 3:
+#            return not same
+#
+#        return False
 
 
     def vector_presentation(self):
@@ -396,6 +416,7 @@ class FP_Element(SageModuleElement):
             True
 
         """
+        global g_timings
 
         # We cannot represent the zero element since it does not have a degree,
         # and we therefore do not know which vectorspace it belongs to.
@@ -403,14 +424,21 @@ class FP_Element(SageModuleElement):
         # In this case, we could return the integer value 0 since coercion would
         # place it inside any vectorspace.  However, this will not work for
         # homomorphisms, so we we return None to be consistent.
-        if self.free_element.degree() is None:
+        if self._free_element.degree() is None:
             return None
 
-        F_n = self.parent().vector_presentation(self.free_element.degree())
-        return F_n.quotient_map()(self.free_element.vector_presentation())
+        F_n = self.parent().vector_presentation(self._free_element.degree())
+
+        v = self._free_element.vector_presentation()
+
+        g_timings.Start('lin_alg')
+        qv = F_n.quotient_map()(v)
+        g_timings.End()
+
+        return qv
 
 
-    def _nonzero_(self):
+    def nonzero(self):
         r"""
         Determine if this element is non-zero.
 
@@ -437,6 +465,10 @@ class FP_Element(SageModuleElement):
         """
         pres = self.vector_presentation()
         return False if pres is None else (pres != 0)
+
+
+    def is_zero(self):
+        return not self.nonzero()
 
 
     def normalize(self):
@@ -466,7 +498,7 @@ class FP_Element(SageModuleElement):
             True
 
         """
-        if not self._nonzero_():
+        if not self.nonzero():
             return self.parent().zero()
 
         v = self.vector_presentation()

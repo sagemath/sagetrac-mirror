@@ -37,51 +37,24 @@ from __future__ import absolute_import
 from inspect import isfunction
 
 from sage.categories.homset import Hom
-from sage.categories.morphism import Morphism as SageMorphism
 from sage.misc.cachefunc import cached_method
 
 from .free_homspace import is_FreeModuleHomspace
 
 
-class FreeModuleMorphism(SageMorphism):
-    r"""
-    Create a homomorphism between finitely generated free graded modules.
+from .timing import g_timings
 
-    INPUT::
 
-    - ``parent`` -- A homspace in the category of finitely generated free
-        modules.
+class FreeModuleMorphism():
 
-    - ``values`` -- A list of elements in the codomain.  Each element
-        corresponds (by their ordering) to a module generator in the domain.
-
-    OUTPUT:: A module homomorphism defined by sending each generator to its
-    corresponding value.
-
-    EXAMPLES::
-
-        sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
-        sage: A = SteenrodAlgebra(2)
-        sage: F1 = FreeModule((4,5), A)
-        sage: F2 = FreeModule((3,4), A)
-        sage: F3 = FreeModule((2,3), A)
-        sage: H1 = Hom(F1, F2)
-        sage: H2 = Hom(F2, F3)
-        sage: f = H1( ( F2((Sq(4), 0)), F2((0, Sq(4))) ) )
-        sage: g = H2( ( F3((Sq(2), 0)), F3((Sq(3), Sq(2))) ) )
-        sage: g*f
-        Module homomorphism of degree 4 defined by sending the generators
-          [<1, 0>, <0, 1>]
-        to
-          [<Sq(0,2) + Sq(3,1) + Sq(6), 0>, <Sq(1,2) + Sq(7), Sq(0,2) + Sq(3,1) + Sq(6)>]
-
-    """
 
     def __init__(self, parent, values):
         r"""
         Create a homomorphism between finitely generated free graded modules.
 
         """
+        global g_timigs
+
 
         if not is_FreeModuleHomspace(parent):
             raise TypeError('the parent (%s) must be a f.p. free module homset' % parent)
@@ -96,7 +69,7 @@ class FreeModuleMorphism(SageMorphism):
         else:
             _values = [C(a) for a in values]
 
-        # Check the homomorphism is well defined.
+        # Check that the homomorphism is well defined.
         if len(D.generator_degrees()) != len(_values):
             raise ValueError('the number of values must equal the number of '\
                 'generators in the domain.  Invalid argument: %s' % _values)
@@ -127,8 +100,18 @@ class FreeModuleMorphism(SageMorphism):
                 raise ValueError(errorMessage)
 
         self._values = _values
+#
+#        SageMorphism.__init__(self, parent)
+        self._parent = parent
 
-        SageMorphism.__init__(self, parent)
+
+    def parent(self):
+        return self._parent
+
+    def base_ring(self):
+        return self._parent.base_ring()
+
+        g_timings.End()
 
 
     def degree(self):
@@ -182,7 +165,7 @@ class FreeModuleMorphism(SageMorphism):
         return self._values
 
 
-    def _richcmp_(self, other, op):
+    def __eq__(self, other):
         r"""
         Compare this homomorphism to the given homomorphism.
 
@@ -214,19 +197,9 @@ class FreeModuleMorphism(SageMorphism):
         """
 
         try:
-            same = (self - other).is_zero()
+            return (self - other).is_zero()
         except ValueError:
             return False
-
-        # Equality
-        if op == 2:
-            return same
-
-        # Non-equality
-        if op == 3:
-            return not same
-
-        return False
 
 
     def __add__(self, g):
@@ -268,7 +241,7 @@ class FreeModuleMorphism(SageMorphism):
         elif self._degree and g.degree() and self._degree != g.degree():
             raise ValueError('morphisms do not have the same degree')
 
-        v = [self(x) + g(x) for x in self.domain().generators()]
+        v = [self(x).__add__(g(x)) for x in self.domain().generators()]
 
         return self.parent()(v)
 
@@ -298,7 +271,7 @@ class FreeModuleMorphism(SageMorphism):
 
         """
 
-        return self.parent()([-x for x in self._values])
+        return self.parent()([x.__neg__() for x in self._values])
 
 
     def __sub__(self, g):
@@ -453,13 +426,19 @@ class FreeModuleMorphism(SageMorphism):
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in the domain')
 
-        value = sum([c*v for c, v in zip(
+        value = sum([v._lmul_(c) for c, v in zip(
             x.coefficients(), self._values)], self.codomain()(0))
 
         return value
 
 
-    def _repr_(self):
+    def domain(self):
+        return self._parent.domain()
+
+    def codomain(self):
+        return self._parent.codomain()
+
+    def __repr__(self):
         r"""
         A string representation of this homomorphism.
 

@@ -72,7 +72,6 @@ AUTHORS:
 
 from __future__ import absolute_import
 
-from sage.categories.homset import Homset
 from sage.misc.cachefunc import cached_method
 
 
@@ -104,11 +103,19 @@ def is_FreeModuleHomspace(x):
 from .free_morphism import FreeModuleMorphism
 
 
-class FreeModuleHomspace(Homset):
-    # In the category framework, Elements of the class FP_Module are of the
-    # class FP_Element, see
-    # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
-    Element = FreeModuleMorphism
+class FreeModuleHomspace():
+#    # In the category framework, Elements of the class FP_Module are of the
+#    # class FP_Element, see
+#    # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
+#    Element = FreeModuleMorphism
+
+    def __init__(self, domain, codomain):
+
+        self._domain = domain
+        self._codomain = codomain
+
+    def __call__(self, values):
+        return self._element_constructor_(values)
 
     def _element_constructor_(self, values):
         r"""
@@ -154,8 +161,16 @@ class FreeModuleHomspace(Homset):
         elif values == 0:
             return self.zero()
         else:
-            return self.element_class(self, values)
+            return FreeModuleMorphism(self, values)
 
+    def domain(self):
+        return self._domain
+
+    def codomain(self):
+        return self._codomain
+
+    def base_ring(self):
+        return self._domain.base_ring()
 
     def _an_element_(self):
         r"""
@@ -198,7 +213,7 @@ class FreeModuleHomspace(Homset):
             The trivial homomorphism.
 
         """
-        return self.element_class(self, self.codomain().zero())
+        return FreeModuleMorphism(self, self._codomain.zero())
 
 
     def identity(self):
@@ -228,7 +243,9 @@ class FreeModuleHomspace(Homset):
 
         """
         if self.is_endomorphism_set():
-            return self.element_class(self, self.codomain().generators())
+            return FreeModuleMorphism(self, self._codomain.generators())
         else:
             raise TypeError('this homspace does not consist of endomorphisms')
 
+    def is_endomorphism_set(self):
+        return self._codomain == self._domain

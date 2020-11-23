@@ -269,41 +269,19 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module import VectorSpace
-from sage.modules.module import Module as SageModule
+#from sage.modules.module import Module as SageModule
 from sage.rings.infinity import PlusInfinity
 from sage.structure.unique_representation import UniqueRepresentation
 
 from .free_element import FreeModuleElement
 from .free_homspace import FreeModuleHomspace
+from .timing import g_timings
 
-
-class FreeModule(UniqueRepresentation, SageModule):
-    r"""
-    Create a finitely generated free graded module over a connected graded
-    algebra.
-
-    INPUT::
-
-    - ``generator_degrees`` -- a tuple of integers defining
-      the number of generators of the module, and their degrees.
-
-    - ``algebra`` -- the connected algebra over which the module is defined.
-
-    OUTPUT:: The finitely generated free graded module on generators with
-    degrees given by ``generator_degrees``.
-
-    TESTS:
-
-        sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
-        sage: A = SteenrodAlgebra(2)
-        sage: FreeModule((-2,2,4), A)
-        Finitely presented free module on 3 generators over mod 2 Steenrod algebra, milnor basis
-
-    """
-    # To accomodate Sage's category framework, we must specify what the
-    # elements class is for this parent class.  See
-    # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
-    Element = FreeModuleElement
+class FreeModule(UniqueRepresentation):
+#   # To accomodate Sage's category framework, we must specify what the
+#   # elements class is for this parent class.  See
+#   # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
+#   Element = FreeModuleElement
 
     def __init__(self, generator_degrees, algebra):
         r"""
@@ -318,13 +296,18 @@ class FreeModule(UniqueRepresentation, SageModule):
         if not algebra.base_ring().is_field():
             raise ValueError('the ground ring of the algebra must be a field')
 
-        # Call the base class constructor.
-        SageModule.__init__(self, algebra)
+        self._algebra = algebra
+#        # Call the base class constructor.
+#        SageModule.__init__(self, algebra)
+#
+#        self._populate_coercion_lists_()
+#
 
-        self._populate_coercion_lists_()
+    def base_ring(self):
+        return self._algebra
 
-        self.ModuleClass = FreeModule
-
+    def __call__(self, c):
+        return self._element_constructor_(c)
 
     def generator_degrees(self):
         r"""
@@ -426,13 +409,16 @@ class FreeModule(UniqueRepresentation, SageModule):
             True
 
         """
-        if isinstance(coefficients, self.element_class):
+        if isinstance(coefficients, FreeModuleElement):
             return coefficients
         elif coefficients == 0:
-            return self.element_class(self, len(self._generator_degrees)*(0,))
+            return FreeModuleElement(self, len(self._generator_degrees)*(0,))
         else:
-            return self.element_class(self, coefficients)
+            return FreeModuleElement(self, coefficients)
 
+#        g_timings.End()
+
+        return res
 
     def an_element(self, n=None):
         r"""
@@ -458,7 +444,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         """
         if len(self._generator_degrees) == 0:
-            return self.element_class(self, [])
+            return FreeModuleElement(self, [])
 
         if n == None:
             n = max(self._generator_degrees) + 7
@@ -474,10 +460,10 @@ class FreeModule(UniqueRepresentation, SageModule):
             l = len(basis)
             coefficients.append(0 if l == 0 else basis[g % l])
 
-        return self.element_class(self, coefficients)
+        return FreeModuleElement(self, coefficients)
 
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Construct a string representation of the module.
 
@@ -528,10 +514,17 @@ class FreeModule(UniqueRepresentation, SageModule):
              <0, 0, Sq(4)>]
 
         """
+        global g_timings
+
         basis_n = []
         for i, generator_degree in enumerate(self._generator_degrees):
             l = n - generator_degree
-            basis_n += [a*self.generator(i) for a in self.base_ring().basis(l)]
+
+            g_timings.Start('SteenrodAlgebra')
+            bas = self.base_ring().basis(l)
+            g_timings.End()
+
+            basis_n += [self.generator(i)._lmul_(a) for a in bas]
 
         return basis_n
 
@@ -566,6 +559,8 @@ class FreeModule(UniqueRepresentation, SageModule):
             True
 
         """
+        global g_timings
+
         basis_elements = self.basis_elements(n)
 
         if len(coordinates) != len(basis_elements):
@@ -588,18 +583,17 @@ class FreeModule(UniqueRepresentation, SageModule):
         # and the total running time of the entire computation dropped from
         # 57 to 21 seconds by adding the optimization.
         #
-        element = sum([c*element for c, element in zip(coordinates, basis_elements) if c != 0])
-        if element == 0:
-            # The previous sum was over the empty list, yielding the integer
-            # 0 as a result, rather than a module element.
-            # Fix this by calling the constructor.
-            return self._element_constructor_(0)
-        else:
+        element = sum([element._lmul_(c) for c, element in zip(coordinates, basis_elements) if c != 0], self._element_constructor_(0))
+        if element.non_zero():
             # The sum defining element is of the correct type. We avoid
             # calling the constructor unnecessarily, which seems to
             # save time.
             return element
-
+        else:
+            # The previous sum was over the empty list, yielding the integer
+            # 0 as a result, rather than a module element.
+            # Fix this by calling the constructor.
+            return self._element_constructor_(0)
 
     def __getitem__(self, n):
         r"""
@@ -687,6 +681,7 @@ class FreeModule(UniqueRepresentation, SageModule):
             <0, 0, 1>
 
         """
+
         if index < 0 or index >= len(self._generator_degrees):
             raise ValueError('the parent module has generators in the index '\
                 'range [0, %s]; generator %s does not exist' %\
@@ -695,7 +690,7 @@ class FreeModule(UniqueRepresentation, SageModule):
         Kroenecker = lambda i: 1 if i == index else 0
         _coefficients = tuple([self.base_ring()(Kroenecker(i)) for i in range(len(self._generator_degrees))])
 
-        return self.element_class(self, _coefficients)
+        return FreeModuleElement(self, _coefficients)
 
 
     def generators(self):
@@ -757,7 +752,7 @@ class FreeModule(UniqueRepresentation, SageModule):
             (-4, -2, 0)
 
         """
-        return self.ModuleClass(\
+        return FreeModule(\
             generator_degrees=tuple([g + t for g in self._generator_degrees]),
             algebra=self.base_ring())
 
