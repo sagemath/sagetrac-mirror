@@ -80,8 +80,8 @@ class FreeModuleElement(SageModuleElement):
             self._coefficients = tuple([module.base_ring()(x) for x in coefficients])
 
         if len(self._coefficients) != len(module.generator_degrees()):
-            raise ValueError('The number of coefficients must match the '
-                'number of module generators: %d.' % len(module.generator_degrees()))
+            raise ValueError('the number of coefficients must match the '
+                'number of module generators: %d' % len(module.generator_degrees()))
 
         # Check homogenity and store the degree of the element.
         self._degree = None
@@ -103,7 +103,7 @@ class FreeModuleElement(SageModuleElement):
                     self._degree = d
                 else:
                     if self._degree != d:
-                        raise ValueError('Non-homogeneous element defined.')
+                        raise ValueError('non-homogeneous element defined')
 
         SageModuleElement.__init__(self, parent=module)
 
@@ -276,7 +276,7 @@ class FreeModuleElement(SageModuleElement):
             sage: x+y
             Traceback (most recent call last):
             ...
-            ValueError: Can't add element of degree 4 and 5
+            ValueError: can not add element of degree 4 and 5
             sage: z = M.zero()
             sage: x+z == x
             True
@@ -288,13 +288,13 @@ class FreeModuleElement(SageModuleElement):
         """
 
         if self.parent() != other.parent():
-            raise TypeError("Can't add element in different modules")
+            raise TypeError('can not add element in different modules')
         elif self._degree == None: # if self = 0, degree is None
             return self.parent()(other.coefficients())
         elif other._degree == None:   # if other = 0, degree is None
             return self.parent()(self._coefficients)
         elif self._degree != other._degree:
-            raise ValueError("Can't add element of degree %s and %s"\
+            raise ValueError('can not add element of degree %s and %s'\
                   %(self._degree, other._degree))
         else:
             return self.parent()(

@@ -311,7 +311,7 @@ class FreeModule(UniqueRepresentation, SageModule):
             raise ValueError('generator_degrees are not all integers: %s' % str(generator_degrees))
 
         if not algebra.base_ring().is_field():
-            raise NotImplementedError('The ground ring of the algebra must be a field.')
+            raise ValueError('the ground ring of the algebra must be a field')
 
         # Call the base class constructor.
         SageModule.__init__(self, algebra)
@@ -564,8 +564,8 @@ class FreeModule(UniqueRepresentation, SageModule):
         basis_elements = self.basis_elements(n)
 
         if len(coordinates) != len(basis_elements):
-            raise ValueError('The given coordinate vector has incorrect length: %d.  '
-                  'It should have length %d.' % (len(coordinates), len(basis_elements)))
+            raise ValueError('the given coordinate vector has incorrect length: %d.  '
+                  'It should have length %d' % (len(coordinates), len(basis_elements)))
 
 
         # Adding the condition `if c != 0` improved performance dramatically in this
@@ -683,7 +683,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         """
         if index < 0 or index >= len(self._generator_degrees):
-            raise ValueError('The parent module has generators in the index '\
+            raise ValueError('the parent module has generators in the index '\
                 'range [0, %s]; generator %s does not exist' %\
                 (len(self._generator_degrees) - 1, index))
 

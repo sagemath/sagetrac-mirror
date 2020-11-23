@@ -80,7 +80,7 @@ class FreeModuleMorphism(SageMorphism):
         """
 
         if not is_FreeModuleHomspace(parent):
-            raise TypeError("The parent (%s) must be a f.p. free module homset." % parent)
+            raise TypeError('the parent (%s) must be a f.p. free module homset' % parent)
 
         # Get the values.
         C = parent.codomain()
@@ -94,8 +94,8 @@ class FreeModuleMorphism(SageMorphism):
 
         # Check the homomorphism is well defined.
         if len(D.generator_degrees()) != len(_values):
-            raise ValueError("The number of values must equal the number of " \
-                "generators in the domain.  Invalid argument: %s." % _values)
+            raise ValueError('the number of values must equal the number of '\
+                'generators in the domain.  Invalid argument: %s' % _values)
 
         if all(v.is_zero() for v in _values):
             # The zero homomorphism does not get a degree.
@@ -258,11 +258,11 @@ class FreeModuleMorphism(SageMorphism):
         """
 
         if self.domain() != g.domain():
-            raise ValueError("Morphisms do not have the same domain.")
+            raise ValueError('morphisms do not have the same domain')
         elif self.codomain() != g.codomain():
-            raise ValueError("Morphisms do not have the same codomain.")
+            raise ValueError('morphisms do not have the same codomain')
         elif self._degree and g.degree() and self._degree != g.degree():
-            raise ValueError("Morphisms do not have the same degree.")
+            raise ValueError('morphisms do not have the same degree')
 
         v = [self(x) + g(x) for x in self.domain().generators()]
 
@@ -357,12 +357,12 @@ class FreeModuleMorphism(SageMorphism):
             sage: f.__mul__(f)
             Traceback (most recent call last):
             ...
-            ValueError: Morphisms are not composable.
+            ValueError: morphisms are not composable
 
         """
 
         if self.parent().domain() != g.parent().codomain():
-            raise ValueError("Morphisms are not composable.")
+            raise ValueError('morphisms are not composable')
         homset = Hom(g.parent().domain(), self.parent().codomain())
         return homset([self(g(x)) for x in g.domain().generators()])
 
@@ -447,7 +447,7 @@ class FreeModuleMorphism(SageMorphism):
         """
 
         if x.parent() != self.domain():
-            raise ValueError("Cannot evaluate morphism on element not in the domain.")
+            raise ValueError('cannot evaluate morphism on element not in the domain')
 
         value = sum([c*v for c, v in zip(
             x.coefficients(), self._values)], self.codomain()(0))

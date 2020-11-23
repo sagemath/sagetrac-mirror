@@ -224,11 +224,11 @@ class FreeModuleHomspace(Homset):
             sage: H.identity()
             Traceback (most recent call last):
             ...
-            TypeError: This homspace does not consist of endomorphisms.
+            TypeError: this homspace does not consist of endomorphisms
 
         """
         if self.is_endomorphism_set():
             return self.element_class(self, self.codomain().generators())
         else:
-            raise TypeError("This homspace does not consist of endomorphisms.")
+            raise TypeError('this homspace does not consist of endomorphisms')
 

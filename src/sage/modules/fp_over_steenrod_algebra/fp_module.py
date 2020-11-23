@@ -141,7 +141,7 @@ class FP_Module(UniqueRepresentation, SageModule):
 
         """
         if None in generator_degrees:
-            raise ValueError("generators are not all integers: %s" % str(generator_degrees))
+            raise ValueError('generators are not all integers: %s' % str(generator_degrees))
 
         # Store a reference to the input parameters if we need to create a
         # copy of this module.
@@ -610,7 +610,7 @@ class FP_Module(UniqueRepresentation, SageModule):
             sage: M.element_from_coordinates((0,1,0,0), 12)
             Traceback (most recent call last):
              ...
-            ValueError: The given coordinate vector has incorrect length: 4.  It should have length 3.
+            ValueError: the given coordinate vector has incorrect length: 4.  It should have length 3
 
         .. SEEALSO::
 
@@ -620,8 +620,8 @@ class FP_Module(UniqueRepresentation, SageModule):
         M_n = self.vector_presentation(n)
 
         if len(coordinates) != M_n.dimension():
-            raise ValueError('The given coordinate vector has incorrect length: %d.  '
-                  'It should have length %d.' % (len(coordinates), M_n.dimension()))
+            raise ValueError('the given coordinate vector has incorrect length: %d.  '
+                  'It should have length %d' % (len(coordinates), M_n.dimension()))
 
         free_element = self.j.codomain().element_from_coordinates(
             M_n.lift(coordinates), n)
@@ -747,9 +747,9 @@ class FP_Module(UniqueRepresentation, SageModule):
 
         """
         if not isinstance(Y, self.__class__):
-            raise ValueError('Cannot create homspace between incompatible types:\n%s  ->\n%s' % (self.__class__, type(Y)))
+            raise ValueError('cannot create homspace between incompatible types:\n%s  ->\n%s' % (self.__class__, type(Y)))
         if Y.base_ring() != self.base_ring():
-            raise ValueError('The modules are not defined over the same base ring.')
+            raise ValueError('the modules are not defined over the same base ring')
 
         return self.HomSpaceClass(self, Y, category)
 
@@ -1054,7 +1054,7 @@ class FP_Module(UniqueRepresentation, SageModule):
                 print ('Computing f_%d (%d/%d)' % (i, i, k))
 
         if k < 0:
-            raise ValueError("The length of the resolution must be non-negative.")
+            raise ValueError('the length of the resolution must be non-negative')
 
         complex = []
 

@@ -808,7 +808,7 @@ TESTS:
     sage: FPA_Module([0], algebra=ZZ)
     Traceback (most recent call last):
     ...
-    TypeError: This module class can only be instantiated when the algebra argument is an instance of sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra_generic
+    TypeError: this module class can only be instantiated when the algebra argument is an instance of sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra_generic
 
 AUTHORS:
 
@@ -900,7 +900,7 @@ class FPA_Module(FP_Module):
         # Make sure that we are creating the module over some Steenrod algebra.
         from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra_generic
         if not isinstance(algebra, SteenrodAlgebra_generic):
-            raise TypeError('This module class can only be instantiated when the algebra argument '
+            raise TypeError('this module class can only be instantiated when the algebra argument '
                 'is an instance of sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra_generic')
 
         # Call the base class constructor.
@@ -1113,11 +1113,11 @@ class FPA_Module(FP_Module):
 
         """
         if not self.base_ring().is_finite():
-            raise (RuntimeError, "This module is not defined over a finite algebra.")
+            raise (ValueError, 'this module is not defined over a finite algebra')
             return
 
         if self.base_ring().characteristic() != 2:
-            raise (RuntimeError, "This function is not implemented for odd primes.")
+            raise (ValueError, 'this function is not implemented for odd primes')
             return
 
         n = self.connectivity()
@@ -1140,9 +1140,9 @@ class FPA_Module(FP_Module):
             additive_generator_degrees += len(basis_vectors)*[dim + n]
 
         # Print the degrees of the additive generators.
-        print("%d %s" % (
+        print('%d %s' % (
             len(additive_generator_degrees),
-            " ".join(["%d" % x for x in additive_generator_degrees])))
+            ' '.join(['%d' % x for x in additive_generator_degrees])))
 
         # A private function which transforms a vector in a given dimension
         # to a vector of global indices for the basis elements corresponding
@@ -1153,7 +1153,7 @@ class FPA_Module(FP_Module):
         # last vector in the same part.
         def _GetIndices(dim, vec):
             if len(vector_space_basis[dim]) != len(vec):
-                raise (ValueError, "The given vector\n%s\nhas the wrong size, it should be %d" % (str(vec), len(vector_space_basis[dim])))
+                raise ValueError('the given vector\n%s\nhas the wrong size, it should be %d' % (str(vec), len(vector_space_basis[dim])))
             base_index = additive_generator_global_indices[dim]
             return [base_index + a for a,c in enumerate(vec) if c != 0]
 

@@ -255,7 +255,7 @@ class FP_Element(SageModuleElement):
             sage: x+y
             Traceback (most recent call last):
             ...
-            ValueError: Can't add element of degree 4 and 5
+            ValueError: can not add element of degree 4 and 5
             sage: z = M.zero()
             sage: x+z == x
             True

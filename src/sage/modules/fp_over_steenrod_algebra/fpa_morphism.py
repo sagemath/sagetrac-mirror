@@ -76,7 +76,7 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
             sage: w = Hom(Q, F)( (F((1, 0)), F((0, 1))) )
             Traceback (most recent call last):
              ...
-            ValueError: Relation <Sq(6), Sq(5)> is not sent to zero.
+            ValueError: relation <Sq(6), Sq(5)> is not sent to zero
 
         """
         # Call the base class constructor.

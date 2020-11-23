@@ -111,7 +111,7 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
     from sage.matrix.constructor import matrix
 
     if len(relations) == 0:
-        raise ValueError('No relations given, cannot build matrix.')
+        raise ValueError('no relations given, can not build matrix')
 
     # Create the block matrix of linear transformations.
     block_matrix = []
@@ -197,13 +197,13 @@ class FP_ModuleMorphism(SageMorphism):
             sage: w = Hom(Q, F)( (F((1, 0)), F((0, 1))) )
             Traceback (most recent call last):
              ...
-            ValueError: Relation <Sq(6), Sq(5)> is not sent to zero.
+            ValueError: relation <Sq(6), Sq(5)> is not sent to zero
 
         """
         from .fp_homspace import is_FP_ModuleHomspace
 
         if not is_FP_ModuleHomspace(parent):
-            raise TypeError("parent (=%s) must be a fp module hom space" % parent)
+            raise TypeError('parent (=%s) must be a fp module hom space' % parent)
 
         self.free_morphism = Hom(parent.domain().j.codomain(), parent.codomain().j.codomain())([v.free_element for v in values])
         self._values = values
@@ -215,7 +215,7 @@ class FP_ModuleMorphism(SageMorphism):
         for relation in parent.domain().j.values():
             # The relation is an element in the free part of the domain.
             if not FP_Element(parent.codomain(), self.free_morphism(relation)).is_zero():
-                raise ValueError("Relation %s is not sent to zero." % relation)
+                raise ValueError('relation %s is not sent to zero' % relation)
 
 
     def change_ring(self, algebra):
@@ -403,11 +403,11 @@ class FP_ModuleMorphism(SageMorphism):
         """
 
         if self.domain() != g.domain():
-            raise ValueError("Morphisms do not have the same domain.")
+            raise ValueError('morphisms do not have the same domain')
         elif self.codomain() != g.codomain():
-            raise ValueError("Morphisms do not have the same codomain.")
+            raise ValueError('morphisms do not have the same codomain')
         elif self.degree() and g.degree() and self.degree() != g.degree():
-            raise ValueError("Morphisms do not have the same degree.")
+            raise ValueError('morphisms do not have the same degree')
 
         v = [self(x) + g(x) for x in self.domain().generators()]
 
@@ -494,11 +494,11 @@ class FP_ModuleMorphism(SageMorphism):
             sage: f.__mul__(f)
             Traceback (most recent call last):
             ...
-            ValueError: Morphisms not composable.
+            ValueError: morphisms not composable
 
         """
         if self.parent().domain() != g.parent().codomain():
-            raise ValueError("Morphisms not composable.")
+            raise ValueError('morphisms not composable')
         homset = Hom(g.parent().domain(), self.parent().codomain())
         return homset([self(g(x)) for x in g.domain().generators()])
 
@@ -591,7 +591,7 @@ class FP_ModuleMorphism(SageMorphism):
         """
 
         if x.parent() != self.domain():
-            raise ValueError("Cannot evaluate morphism on element not in domain.")
+            raise ValueError('cannot evaluate morphism on element not in domain')
 
         return self.codomain().element_class(self.codomain(), self.free_morphism(x.free_element))
 
@@ -769,12 +769,12 @@ class FP_ModuleMorphism(SageMorphism):
             sage: f.solve(Sq(2,2)*M.generator(0))
             Traceback (most recent call last):
             ...
-            ValueError: The given element is not in the codomain of this homomorphism.
+            ValueError: the given element is not in the codomain of this homomorphism
 
         """
 
         if x.parent() != self.codomain():
-            raise ValueError("The given element is not in the codomain of this homomorphism.")
+            raise ValueError('the given element is not in the codomain of this homomorphism')
 
         # The zero element lifts over all morphisms.
         if x.is_zero():
@@ -919,7 +919,7 @@ class FP_ModuleMorphism(SageMorphism):
             sage: Hom(F, F).identity().lift(f, verbose=true)
             Traceback (most recent call last):
             ...
-            ValueError: The codomains of this homomorphism and the homomorphism we are lifting over are different.
+            ValueError: the codomains of this homomorphism and the homomorphism we are lifting over are different
 
             sage: f.lift(Hom(HZ, HZ).zero(), verbose=True)
             This homomorphism cannot lift over a trivial homomorphism since it is non-trivial.
@@ -968,8 +968,8 @@ class FP_ModuleMorphism(SageMorphism):
 
         # It is an error to call this function with incompatible arguments.
         if not f.codomain() is N:
-            raise ValueError('The codomains of this homomorphism and the homomorphism '\
-                'we are lifting over are different.')
+            raise ValueError('the codomains of this homomorphism and the homomorphism '\
+                'we are lifting over are different')
 
         # The trivial map lifts over any other map.
         if self.is_zero():
@@ -1162,9 +1162,9 @@ class FP_ModuleMorphism(SageMorphism):
         k = self.kernel(top_dim, verbose)
         f_ = f.lift(k)
         if f_ is None:
-            raise ValueError('The image of the given homomorphism is not contained '
+            raise ValueError('the image of the given homomorphism is not contained '
                  'in the kernel of this homomorphism.  The homology is '
-                 'therefore not defined for this pair of maps.')
+                 'therefore not defined for this pair of maps')
 
         return f_.cokernel()
 
@@ -1502,7 +1502,7 @@ class FP_ModuleMorphism(SageMorphism):
             sage: f._resolve_kernel()
             Traceback (most recent call last):
             ...
-            ValueError: A top dimension must be specified for this calculation to terminate.
+            ValueError: a top dimension must be specified for this calculation to terminate
             sage: f._resolve_kernel(top_dim=20)
             Module homomorphism of degree 0 defined by sending the generators
               [<1, 0, 0>, <0, 1, 0>, <0, 0, 1>]
@@ -1553,7 +1553,7 @@ class FP_ModuleMorphism(SageMorphism):
             limit = min(top_dim, limit)
 
         if limit == PlusInfinity():
-            raise ValueError('A top dimension must be specified for this calculation to terminate.')
+            raise ValueError('a top dimension must be specified for this calculation to terminate')
 
         if verbose:
             if dim > limit:
@@ -1641,7 +1641,7 @@ class FP_ModuleMorphism(SageMorphism):
             sage: f._resolve_image()
             Traceback (most recent call last):
             ...
-            ValueError: A top dimension must be specified for this calculation to terminate.
+            ValueError: a top dimension must be specified for this calculation to terminate
             sage: f._resolve_image(top_dim=20)
             Module homomorphism of degree 0 defined by sending the generators
               [<1>]
@@ -1693,7 +1693,7 @@ class FP_ModuleMorphism(SageMorphism):
             limit = min(top_dim, limit)
 
         if limit == PlusInfinity():
-            raise ValueError('A top dimension must be specified for this calculation to terminate.')
+            raise ValueError('a top dimension must be specified for this calculation to terminate')
 
         if verbose:
             if dim > limit:
