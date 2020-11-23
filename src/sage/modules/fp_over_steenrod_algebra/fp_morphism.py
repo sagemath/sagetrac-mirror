@@ -2,12 +2,12 @@ r"""
 Homomorphisms of finitely presented graded modules
 
 This class implements construction and basic manipulation of elements of the
-Sage parent :class:`sage.modules.finitely_presented_over_the_steenrod_algebra.fp_homspace.FP_ModuleHomspace`,
+Sage parent :class:`sage.modules.fp_over_steenrod_algebra.fp_homspace.FP_ModuleHomspace`,
 which models homomorphisms of finitely presented graded modules over connected
 algebras.
 
 .. NOTE:: This class is intended for private use by its derived class
-          :class:`sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_morphism.FPA_ModuleMorphism`.
+          :class:`sage.modules.fp_over_steenrod_algebra.fpa_morphism.FPA_ModuleMorphism`.
 
 AUTHORS:
 
@@ -39,7 +39,7 @@ from sage.categories.homset import End
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism as SageMorphism
 from sage.misc.cachefunc import cached_method
-from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_element import FP_Element
+from sage.modules.fp_over_steenrod_algebra.fp_element import FP_Element
 from sage.rings.infinity import PlusInfinity
 
 
@@ -81,8 +81,8 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
 
     TESTS:
 
-        sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
-        sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_morphism import _CreateRelationsMatrix
+        sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
+        sage: from sage.modules.fp_over_steenrod_algebra.fp_morphism import _CreateRelationsMatrix
         sage: A = SteenrodAlgebra(p=2)
         sage: blocks, R = _CreateRelationsMatrix(FP_Module([0], A), [[Sq(2)]], [4], [6])
 
@@ -179,7 +179,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: # Trying to map the generators of a non-free module into a
             sage: # free module:
             sage: A = SteenrodAlgebra(2)
@@ -230,7 +230,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: M = FP_Module([0], A2, relations=[[Sq(1)]])
@@ -264,7 +264,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -303,7 +303,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -343,7 +343,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -387,7 +387,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -421,7 +421,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -447,7 +447,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0], A)
             sage: N = FP_Module([0], A, [[Sq(2)]])
@@ -470,7 +470,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0], A, [[Sq(1,2)]])
             sage: N = FP_Module([0], A, [[Sq(2,2)]])
@@ -486,7 +486,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module((0,1), A)
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
@@ -513,7 +513,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -537,7 +537,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -574,7 +574,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -602,7 +602,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -648,17 +648,17 @@ class FP_ModuleMorphism(SageMorphism):
         ground field of the algebra for this module.  The domain is isomorphic
         to the vectorspace of domain elements of degree ``n`` of this free
         module, via the choice of basis given by
-        :meth:`sage.modules.finitely_presented_over_the_steenrod_algebra.free_module.FreeModule.basis_elements`.
+        :meth:`sage.modules.fp_over_steenrod_algebra.free_module.FreeModule.basis_elements`.
         If the morphism is zero, the value ``None`` is returned.
 
         .. SEEALSO::
 
-            :meth:`sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module.FP_Module.vector_presentation`,
-            :meth:`sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module.FP_Module.basis_elements`.
+            :meth:`sage.modules.fp_over_steenrod_algebra.fp_module.FP_Module.vector_presentation`,
+            :meth:`sage.modules.fp_over_steenrod_algebra.fp_module.FP_Module.basis_elements`.
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,1], A, [[Sq(2), Sq(1)]])
             sage: N = FP_Module([2], A, [[Sq(4)]])
@@ -746,7 +746,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0], A, [[Sq(3)]])
             sage: N = FP_Module([0], A, [[Sq(2,2)]])
@@ -838,7 +838,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
 
         Lifting a map from a free module is always possible::
@@ -901,7 +901,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: # The trivial map often involved in corner cases..
             sage: trivial_map = Hom(FP_Module([0], A), FP_Module([], A)).zero()
@@ -1082,7 +1082,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: M = FP_Module([0,0], A, [[0, Sq(1)]])
             sage: N = FP_Module([0], A, [[Sq(1)]])
@@ -1145,7 +1145,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FP_Module([0], A, [[Sq(3)]])
             sage: N = FP_Module([0], A, [[Sq(2,2)]])
@@ -1182,7 +1182,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: F1 = FP_Module([4,5], A)
             sage: F2 = FP_Module([5], A)
@@ -1231,7 +1231,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A1 = SteenrodAlgebra(2, profile=(2,1))
             sage: M = FP_Module([0], A1, [[Sq(2)]])
             sage: F = FP_Module([0], A1)
@@ -1284,7 +1284,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: F = FP_Module([1,3], A3);
             sage: L = FP_Module([2,3], A3, [[Sq(2),Sq(1)], [0,Sq(2)]]);
@@ -1362,7 +1362,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: F = FP_Module([1,3], A3);
             sage: L = FP_Module([2,3], A3, [[Sq(2),Sq(1)], [0,Sq(2)]]);
@@ -1424,7 +1424,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
 
             sage: K = FP_Module([2], A, [[Sq(2)]])
@@ -1451,7 +1451,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: F = FP_Module([0], A)
 
@@ -1494,7 +1494,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: F = FP_Module([0,0], A)
             sage: L = FP_Module([0,0], A, [[Sq(3),Sq(0,1)], [0,Sq(2)]])
@@ -1633,7 +1633,7 @@ class FP_ModuleMorphism(SageMorphism):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import *
             sage: A = SteenrodAlgebra(2)
             sage: F = FP_Module([0,0], A)
             sage: L = FP_Module([0,0], A, [[Sq(3),Sq(0,1)], [0,Sq(2)]])

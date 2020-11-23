@@ -5,8 +5,8 @@ This class implements methods for construction and basic manipulation of
 finitely generated free graded modules over connected graded algebras.
 
 .. NOTE:: This class is intended for private use by
-    :class:`sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module.FP_Module` and its derived class
-    :class:`sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module.FPA_Module`.
+    :class:`sage.modules.fp_over_steenrod_algebra.fp_module.FP_Module` and its derived class
+    :class:`sage.modules.fp_over_steenrod_algebra.fpa_module.FPA_Module`.
 
 ==========
 User guide
@@ -22,7 +22,7 @@ E.g.::
 The constructor of the module class takes as arguments an ordered tuple of
 degrees and the algebra over which the module is defined::
 
-    sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
+    sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
     sage: M = FreeModule(generator_degrees=(0,1), algebra=A); M
     Finitely presented free module on 2 generators over mod 2 Steenrod algebra, milnor basis
 
@@ -300,7 +300,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
             sage: A = SteenrodAlgebra(2)
             sage: FreeModule((-2,2,4), A)
             Finitely presented free module on 3 generators over mod 2 Steenrod algebra, milnor basis
@@ -331,7 +331,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((-2,2,4), A)
             sage: M.generator_degrees()
@@ -350,7 +350,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: FreeModule((-2,2,4), A).is_trivial()
             False
@@ -370,7 +370,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((-2,2,4), A)
             sage: M.connectivity()
@@ -407,7 +407,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,2,4), A)
 
@@ -445,7 +445,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,2,4), A)
             sage: M.an_element(172)
@@ -478,7 +478,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         TESTS::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,2,4), A)
             sage: M._repr_()
@@ -508,7 +508,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,2,4), A)
             sage: M.basis_elements(8)
@@ -550,7 +550,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,1), A)
             sage: x = M.element_from_coordinates((0,1,0,1), 5); x
@@ -603,7 +603,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,2,4), A)
             sage: V = M[4]; V
@@ -647,7 +647,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A1 = SteenrodAlgebra(2, profile=[2,1])
             sage: M = FreeModule((0,), A1)
             sage: M.vector_presentation(3)
@@ -671,7 +671,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,2,4), A)
             sage: M.generator(0)
@@ -702,7 +702,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,1), A)
             sage: M.generators()
@@ -720,7 +720,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,1), A)
             sage: M._Hom_(M, category=None)
@@ -743,7 +743,7 @@ class FreeModule(UniqueRepresentation, SageModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import *
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import *
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeModule((0,2,4), A)
             sage: M.suspension(4).generator_degrees()

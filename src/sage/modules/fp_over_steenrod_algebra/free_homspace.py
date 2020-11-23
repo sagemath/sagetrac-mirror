@@ -6,13 +6,13 @@ manipulation of homsets of finitely generated free graded modules over a connect
 graded `k`-algebra, where `k` is a field.
 
 .. NOTE:: This class is intended for private use by
-    :class:`sage.modules.finitely_presented_over_the_steenrod_algebra.fp_homspace.FP_ModuleHomspace`.
+    :class:`sage.modules.fp_over_steenrod_algebra.fp_homspace.FP_ModuleHomspace`.
 
 For an overview of the free module API, see :doc:`free_module`.
 
 TESTS::
 
-    sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
+    sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
     sage: from sage.misc.sage_unittest import TestSuite
     sage: A = SteenrodAlgebra(2)
     sage: F1 = FreeModule((1,3), A);
@@ -85,8 +85,8 @@ def is_FreeModuleHomspace(x):
 
     EXAMPLES::
 
-        sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
-        sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_homspace import is_FreeModuleHomspace
+        sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+        sage: from sage.modules.fp_over_steenrod_algebra.free_homspace import is_FreeModuleHomspace
         sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
         sage: F = FreeModule((1,3), A2)
         sage: L = FreeModule((2,3), A2)
@@ -131,8 +131,8 @@ class FreeModuleHomspace(Homset):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_homspace import is_FreeModuleHomspace
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+            sage: from sage.modules.fp_over_steenrod_algebra.free_homspace import is_FreeModuleHomspace
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: F = FreeModule((1,3), A2)
             sage: L = FreeModule((2,5), A2)
@@ -165,8 +165,8 @@ class FreeModuleHomspace(Homset):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_homspace import is_FreeModuleHomspace
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+            sage: from sage.modules.fp_over_steenrod_algebra.free_homspace import is_FreeModuleHomspace
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: F = FreeModule((1,3), A2)
             sage: L = FreeModule((2,3), A2)
@@ -188,8 +188,8 @@ class FreeModuleHomspace(Homset):
 
         EXAMPLES::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_homspace import is_FreeModuleHomspace
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+            sage: from sage.modules.fp_over_steenrod_algebra.free_homspace import is_FreeModuleHomspace
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: F = FreeModule((1,3), A2)
             sage: L = FreeModule((2,3), A2)
@@ -209,8 +209,8 @@ class FreeModuleHomspace(Homset):
 
         TESTS::
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_module import FreeModule
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.free_homspace import is_FreeModuleHomspace
+            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+            sage: from sage.modules.fp_over_steenrod_algebra.free_homspace import is_FreeModuleHomspace
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: L = FreeModule((2,3), A2)
             sage: H = Hom(L, L)

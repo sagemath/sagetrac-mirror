@@ -2,7 +2,7 @@ r"""
 Elements of finitely presented modules over the Steenrod algebra
 
 This class implements construction and basic manipulation of elements of the
-Sage parent :class:`sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module.FPA_Module`, which models
+Sage parent :class:`sage.modules.fp_over_steenrod_algebra.fpa_module.FPA_Module`, which models
 finitely presented modules over the `\operatorname{mod} p` Steenrod algebra.
 
 For an overview of the API, see :doc:`fpa_module`.
@@ -54,8 +54,8 @@ class FPA_Element(FP_Element):
 
         TESTS:
 
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_module import FPA_Module
-            sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fpa_element import FPA_Element
+            sage: from sage.modules.fp_over_steenrod_algebra.fpa_module import FPA_Module
+            sage: from sage.modules.fp_over_steenrod_algebra.fpa_element import FPA_Element
             sage: FPA_Element(FPA_Module([0], SteenrodAlgebra(2)), [Sq(2)])
             <Sq(2)>
 
