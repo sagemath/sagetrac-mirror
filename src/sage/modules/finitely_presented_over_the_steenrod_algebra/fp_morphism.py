@@ -1185,27 +1185,26 @@ class FP_ModuleMorphism(SageMorphism):
             sage: from sage.modules.finitely_presented_over_the_steenrod_algebra.fp_module import FP_Module
             sage: A = SteenrodAlgebra(2)
             sage: F1 = FP_Module([4,5], A)
-            sage: F2 = FP_Module([3,4], A)
-            sage: H1 = Hom(F1, F2)
+            sage: F2 = FP_Module([5], A)
 
-            sage: f = H1( ( F2([Sq(1), 0]), F2([0, Sq(1)]) ) ); f
-            Module homomorphism of degree 0 defined by sending the generators
+            sage: f = Hom(F1, F2)( ( F2([Sq(4)]), F2([Sq(5)]) ) ); f
+            Module homomorphism of degree 5 defined by sending the generators
               [<1, 0>, <0, 1>]
             to
-              (<Sq(1), 0>, <0, Sq(1)>)
+              (<Sq(4)>, <Sq(5)>)
 
             sage: e1 = F1([1, 0])
             sage: e2 = F1([0, 1])
             sage: f(e1)
-            <Sq(1), 0>
+            <Sq(4)>
             sage: f(e2)
-            <0, Sq(1)>
+            <Sq(5)>
 
             sage: sf = f.suspension(4); sf
-            Module homomorphism of degree 0 defined by sending the generators
+            Module homomorphism of degree 5 defined by sending the generators
               [<1, 0>, <0, 1>]
             to
-              [<Sq(1), 0>, <0, Sq(1)>]
+              [<Sq(4)>, <Sq(5)>]
 
             sage: sf.domain() is f.domain().suspension(4)
             True
@@ -1220,7 +1219,7 @@ class FP_ModuleMorphism(SageMorphism):
         else:
             D = self.domain().suspension(t)
             C = self.codomain().suspension(t)
-            return Hom(D, C)([D(x.free_element.coefficients()) for x in self._values])
+            return Hom(D, C)([C(x.free_element.coefficients()) for x in self._values])
 
 
     def cokernel(self):
