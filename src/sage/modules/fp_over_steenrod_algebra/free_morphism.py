@@ -43,6 +43,9 @@ from sage.misc.cachefunc import cached_method
 from .free_homspace import is_FreeModuleHomspace
 
 
+from .timing import g_timings
+
+
 class FreeModuleMorphism(SageMorphism):
     r"""
     Create a homomorphism between finitely generated free graded modules.
@@ -82,6 +85,8 @@ class FreeModuleMorphism(SageMorphism):
         Create a homomorphism between finitely generated free graded modules.
 
         """
+        global g_timigs
+
 
         if not is_FreeModuleHomspace(parent):
             raise TypeError('the parent (%s) must be a f.p. free module homset' % parent)
@@ -128,7 +133,10 @@ class FreeModuleMorphism(SageMorphism):
 
         self._values = _values
 
+        g_timings.Start('free_morphism__init__')
         SageMorphism.__init__(self, parent)
+
+        g_timings.End()
 
 
     def degree(self):

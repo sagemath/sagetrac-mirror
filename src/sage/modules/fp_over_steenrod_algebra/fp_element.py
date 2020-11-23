@@ -34,6 +34,7 @@ from sage.structure.element import ModuleElement as SageModuleElement
 
 from .free_element import FreeModuleElement
 
+from .timing import g_timings
 
 class FP_Element(SageModuleElement):
     r"""
@@ -197,7 +198,15 @@ class FP_Element(SageModuleElement):
              <0, Sq(3,2)>]
 
         """
-        return self.parent()(a*self.free_element)
+        global g_timings
+
+        xxx = a*self.free_element
+
+        g_timings.Start('fp_element_arithmetic_')
+        res = self.parent()(xxx)
+        g_timings.End()
+
+        return res
 
 
     def _neg_(self):
@@ -220,7 +229,15 @@ class FP_Element(SageModuleElement):
             True
 
         """
-        return self.parent()(-self.free_element)
+        global g_timings
+
+        xxx = -self.free_element
+
+        g_timings.Start('fp_element_arithmetic_')
+        res = self.parent()(xxx)
+        g_timings.End()
+
+        return res
 
 
     def _add_(self, other):
@@ -269,7 +286,14 @@ class FP_Element(SageModuleElement):
             <Sq(2,1)>
 
         """
-        return self.parent()(self.free_element + other.free_element)
+        global g_timings
+        xxx = self.free_element + other.free_element
+
+        g_timings.Start('fp_element_arithmetic_')
+        res = self.parent()(xxx)
+        g_timings.End()
+
+        return res
 
 
     def _richcmp_(self, other, op):
@@ -396,6 +420,7 @@ class FP_Element(SageModuleElement):
             True
 
         """
+        global g_timings
 
         # We cannot represent the zero element since it does not have a degree,
         # and we therefore do not know which vectorspace it belongs to.
@@ -407,7 +432,14 @@ class FP_Element(SageModuleElement):
             return None
 
         F_n = self.parent().vector_presentation(self.free_element.degree())
-        return F_n.quotient_map()(self.free_element.vector_presentation())
+
+        v = self.free_element.vector_presentation()
+
+        g_timings.Start('lin_alg')
+        qv = F_n.quotient_map()(v)
+        g_timings.End()
+
+        return qv
 
 
     def _nonzero_(self):
