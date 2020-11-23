@@ -49,7 +49,7 @@ User guide
 ==========
 
 Let `p` be a prime number.  The `\operatorname{mod} p` Steenrod algebra `A`
-is a connected algebra over `\mathbb{F}_p`, the finite field of `p` elements.
+is a connected algebra over `\GF{p}`, the finite field of `p` elements.
 All modules presented here will be defined over `A`, or one of its sub-Hopf
 algebras.  E.g.::
 
@@ -190,7 +190,7 @@ enforced, however::
     <0, 0, 0>
 
 For every integer `n`, the set of module elements of degree `n` form a
-vectorspace over the ground field `\mathbb{F}_p`.  A basis for this vectorspace can be
+vectorspace over the ground field `\GF{p}`.  A basis for this vectorspace can be
 computed::
 
     sage: M.basis_elements(7)
@@ -236,7 +236,7 @@ Module homomorphisms
 -------------------------------------
 
 Homomorphisms of `A`-modules `M\to N` are linear maps of their
-underlying `\mathbb{F}_p`-vectorspaces which commute with the `A`-module structure.
+underlying `\GF{p}`-vectorspaces which commute with the `A`-module structure.
 
 To create a homomorphism, first create the object modeling the set of all
 such homomorphisms using the free function ``Hom``::
@@ -435,7 +435,7 @@ all exist and can be computed through the API belonging to the homomorphism clas
 Cokernels
 .....................................
 
-In the following example, we define a cyclic module `H\mathbb{Z}` with one
+In the following example, we define a cyclic module `H\ZZ` with one
 relation in two ways: First explicitly, and then as the cokernel of a
 homomorphism of free modules.  We then construct a candidate for an isomorphism
 and check that it is both injective and surjective::
@@ -615,21 +615,21 @@ Steenrod algebra `A`:
 .. MATH::
 
     \begin{align}
-        H\mathbb{Z} &= A/A\cdot \operatorname{Sq}(1)\\
+        H\ZZ &= A/A\cdot \operatorname{Sq}(1)\\
         Hko &= A/A\cdot \{\operatorname{Sq}(2), \operatorname{Sq}(1)\} \,.
     \end{align}
 
-There is a natural projection `q: H\mathbb{Z}\to Hko`, and a non-trivial
+There is a natural projection `q: H\ZZ\to Hko`, and a non-trivial
 endomorphism of degree 28, represented as a degree zero map `f: \Sigma^{28}Hko\to Hko`
 which we define below.
 
 The problem we will solve is to find all possible homomorphisms
-`f': \Sigma^{28}Hko\to H\mathbb{Z}`, making the following diagram into a 
+`f': \Sigma^{28}Hko\to H\ZZ`, making the following diagram into a 
 commuting triangle:
 
 .. MATH::
 
-    H\mathbb{Z}\xrightarrow{q} Hko \xleftarrow{f} \Sigma^{28} Hko
+    H\ZZ\xrightarrow{q} Hko \xleftarrow{f} \Sigma^{28} Hko
 
 We begin by defining the modules and the homomorphisms `f` and `q`.  In the following,
 we let `L = \Sigma^{28}Hko`::
@@ -660,7 +660,7 @@ we let `L = \Sigma^{28}Hko`::
     False
 
 We will count the number of different lifts in two ways.  First, we will simply
-compute the vectorspace of all possible maps `L \to H\mathbb{Z}`, and then check which
+compute the vectorspace of all possible maps `L \to H\ZZ`, and then check which
 of those become `f` when composed with `q`::
 
     sage: basis = Hom(L, HZ).basis_elements(0)   # The basis for the vectorspace of degree 0 maps L -> HZ
@@ -685,7 +685,7 @@ of those become `f` when composed with `q`::
     (1, 1, 1): False
 
 From this we conclude that four out of eight different homomorphisms
-`L \to H\mathbb{Z}` are lifts of f::
+`L \to H\ZZ` are lifts of f::
 
     sage: lifts = [\
     ....:     from_coords((0,1,0)),\
@@ -727,7 +727,7 @@ There is an exact sequence
 
 .. MATH::
 
-    0\to \operatorname{Hom}_A(L, \ker(q)) \xrightarrow{iK_*} \operatorname{Hom}_A(L, H\mathbb{Z}) \xrightarrow{q_*} \operatorname{Hom}_A(L, Hko)\,,
+    0\to \operatorname{Hom}_A(L, \ker(q)) \xrightarrow{iK_*} \operatorname{Hom}_A(L, H\ZZ) \xrightarrow{q_*} \operatorname{Hom}_A(L, Hko)\,,
 
 which means that the indeterminacy of choosing a lift for
 `f\in \operatorname{Hom}_A(L, Hko)` is represented by an element in
