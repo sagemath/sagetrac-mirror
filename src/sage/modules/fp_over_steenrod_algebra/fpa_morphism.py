@@ -41,14 +41,14 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         Create a homomorphism between finitely presented graded modules over
         the `\operatorname{mod} p` Steenrod algebra.
 
-        INPUT:
+        INPUT::
 
         - ``parent`` -- A homspace object.
 
         - ``values`` -- A list of elements in the codomain.  Each element
           corresponds to a module generator in the domain.
 
-        OUTPUT: A module homomorphism defined by sending the generator with
+        OUTPUT:: A module homomorphism defined by sending the generator with
         index `i` to the corresponding element in ``values``.
 
         .. NOTE:: Never use this constructor explicitly, but rather the parent's
@@ -144,12 +144,12 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         r"""
         Determine if this homomorphism is injective.
 
-        INPUT:
+        INPUT::
 
         - ``verbose`` -- A boolean to control if log messages should be emitted.
           (optional, default: ``False``)
 
-        OUTPUT: The boolean value ``True`` if this homomorphism has a trivial
+        OUTPUT:: The boolean value ``True`` if this homomorphism has a trivial
         kernel, and ``False`` otherwise.
 
         EXAMPLES::
@@ -184,12 +184,12 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         r"""
         The kernel of this homomorphism.
 
-        INPUT:
+        INPUT::
 
         - ``verbose`` -- A boolean to control if log messages should be emitted.
           (optional, default: ``False``)
 
-        OUTPUT: An injective homomorphism into the domain ``self`` which is
+        OUTPUT:: An injective homomorphism into the domain ``self`` which is
         onto the kernel of this homomorphism.
 
         EXAMPLES::
@@ -230,12 +230,12 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         r"""
         Compute the image of this homomorphism.
 
-        INPUT:
+        INPUT::
 
         - ``verbose`` -- A boolean to control if log messages should be emitted.
           (optional, default: ``False``)
 
-        OUTPUT: An injective homomorphism into the codomain of ``self`` which is
+        OUTPUT:: An injective homomorphism into the codomain of ``self`` which is
         onto the image of this homomorphism.
 
         EXAMPLES::
@@ -280,12 +280,12 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         r"""
         Resolve the kernel of this homomorphism by a free module.
 
-        INPUT:
+        INPUT::
 
         - ``verbose`` -- A boolean to enable progress messages. (optional,
           default: ``False``)
 
-        OUTPUT: A homomorphism `j: F \rightarrow D` where `D` is the domain of
+        OUTPUT:: A homomorphism `j: F \rightarrow D` where `D` is the domain of
         this homomorphism, `F` is free and such that `\ker(self) = \operatorname{im}(j)`.
 
         TESTS:
@@ -309,12 +309,12 @@ class FPA_ModuleMorphism(FP_ModuleMorphism):
         r"""
         Resolve the image of this homomorphism by a free module.
 
-        INPUT:
+        INPUT::
 
         - ``verbose`` -- A boolean to enable progress messages. (optional,
           default: ``False``)
 
-        OUTPUT: A homomorphism `j: F \rightarrow C` where `C` is the codomain
+        OUTPUT:: A homomorphism `j: F \rightarrow C` where `C` is the codomain
         of this homomorphism, `F` is free, and
         `\operatorname{im}(self) = \operatorname{im}(j)`.
 

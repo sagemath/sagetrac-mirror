@@ -10,7 +10,7 @@ graded `k`-algebra, where `k` is a field.
 
 For an overview of the free module API, see :doc:`free_module`.
 
-TESTS::
+TESTS:
 
     sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
     sage: from sage.misc.sage_unittest import TestSuite
@@ -80,7 +80,7 @@ def is_FreeModuleHomspace(x):
     r"""
     Check if the given object is of type FreeModuleHomspace.
 
-    OUTPUT: The boolean ``True`` if and only if ``x`` is of type
+    OUTPUT:: The boolean ``True`` if and only if ``x`` is of type
     FreeModuleHomspace, and ``False`` otherwise.
 
     EXAMPLES::
@@ -93,7 +93,7 @@ def is_FreeModuleHomspace(x):
         sage: is_FreeModuleHomspace(Hom(F, L))
         True
 
-    TESTS::
+    TESTS:
 
         sage: is_FreeModuleHomspace(0)
         False
@@ -117,17 +117,17 @@ class FreeModuleHomspace(Homset):
         This function is used internally by the ()-method when creating
         homomorphisms.
 
-        INPUT:
+        INPUT::
 
         - ``values`` -- A tuple of values (i.e. elements of the
         codomain for this homset) corresponding bijectively to the generators
         of the domain of this homset, or the zero integer constant.
 
-        OUTPUT: An instance of the morphism class.  The returned morphism is
+        OUTPUT:: An instance of the morphism class.  The returned morphism is
         defined by mapping the module generators in the domain to the given
         values.
 
-        OUTPUT: A module homomorphism.
+        OUTPUT:: A module homomorphism.
 
         EXAMPLES::
 
@@ -161,7 +161,7 @@ class FreeModuleHomspace(Homset):
         r"""
         Return a morphism belonging to this homspace.
 
-        OUTPUT: A morphism in this homspace.
+        OUTPUT:: A morphism in this homspace.
 
         EXAMPLES::
 
@@ -183,7 +183,7 @@ class FreeModuleHomspace(Homset):
         r"""
         Return the trivial morphism of this homspace.
 
-        OUTPUT: The morphism evaluating to the zero element for any element in
+        OUTPUT:: The morphism evaluating to the zero element for any element in
         the domain.
 
         EXAMPLES::
@@ -205,9 +205,9 @@ class FreeModuleHomspace(Homset):
         r"""
         Return the identity morphism, if this is an endomorphism set.
 
-        OUTPUT: The identity endomorphism.
+        OUTPUT:: The identity endomorphism.
 
-        TESTS::
+        TESTS:
 
             sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
             sage: from sage.modules.fp_over_steenrod_algebra.free_homspace import is_FreeModuleHomspace

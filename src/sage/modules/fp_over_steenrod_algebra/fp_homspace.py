@@ -8,7 +8,7 @@ graded `k`-algebra, where `k` is a field.
 .. NOTE:: This class is intended for private use by
     :class:`sage.modules.fp_over_steenrod_algebra.fpa_homspace.FPA_ModuleHomspace`.
 
-TESTS::
+TESTS:
 
     sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
     sage: from sage.misc.sage_unittest import TestSuite
@@ -89,7 +89,7 @@ def is_FP_ModuleHomspace(x):
     r"""
     Check if the given object is of type FP_ModuleHomspace.
 
-    OUTPUT: A boolean which is True if ``x`` is of type FP_ModuleHomspace.
+    OUTPUT:: A boolean which is True if ``x`` is of type FP_ModuleHomspace.
 
     EXAMPLES::
 
@@ -124,11 +124,11 @@ class FP_ModuleHomspace(Homset):
         This function is not part of the public API, but is used by :meth:Hom
         method to create morphisms.
 
-        INPUT:
+        INPUT::
 
         - ``values`` -- An iterable of FP_Elements of the codomain.
 
-        OUTPUT: A module homomorphism in this homspace sending the generators
+        OUTPUT:: A module homomorphism in this homspace sending the generators
         of the domain module to the given values.
 
         EXAMPLES::
@@ -171,11 +171,11 @@ class FP_ModuleHomspace(Homset):
         r"""
         Create a homomorphism belonging to this homset.
 
-        INPUT:
+        INPUT::
 
         - ``n`` -- an integer degree.  (optional, default: 0)
 
-        OUTPUT: A module homomorphism of degree ``n``.
+        OUTPUT:: A module homomorphism of degree ``n``.
 
         EXAMPLES::
 
@@ -214,11 +214,11 @@ class FP_ModuleHomspace(Homset):
         r"""
         Compute a basis for the vectorspace of degree ``n`` morphisms.
 
-        INPUT:
+        INPUT::
 
         - ``n`` -- an integer degree.
 
-        OUTPUT: A basis for the set of all module homomorphisms of degree ``n``.
+        OUTPUT:: A basis for the set of all module homomorphisms of degree ``n``.
 
         EXAMPLES::
 
@@ -304,13 +304,13 @@ class FP_ModuleHomspace(Homset):
         This function is private and used by :meth:`basis_elements` and
         :meth:`an_element`.
 
-        INPUT:
+        INPUT::
 
         - ``n`` -- an integer degree.
         - ``basis`` -- boolean to decide if a basis should be returned, or just
           a single homomorphism.
 
-        OUTPUT: A basis for the set of all module homomorphisms of degree ``n``
+        OUTPUT:: A basis for the set of all module homomorphisms of degree ``n``
         if ``basis`` is True.  Otherwise a single element is returned.  In the
         latter case, this homomorphism is non-trivial if the vectorspace of all
         homomorphisms is non-trivial.

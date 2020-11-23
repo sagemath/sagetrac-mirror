@@ -7,7 +7,7 @@ manipulation of homsets of finitely presented graded modules over the
 
 For an overview of the API, see :doc:`fpa_module`.
 
-TESTS::
+TESTS:
 
     sage: from sage.modules.fp_over_steenrod_algebra.fpa_module import FPA_Module
     sage: from sage.misc.sage_unittest import TestSuite

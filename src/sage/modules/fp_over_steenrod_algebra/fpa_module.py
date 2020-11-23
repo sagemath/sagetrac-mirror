@@ -849,7 +849,7 @@ class FPA_Module(FP_Module):
         r"""
         Normalize input to ensure a unique representation.
 
-        INPUT:
+        INPUT::
 
         - ``generator_degrees`` -- An iterable of integer degrees.
 
@@ -859,7 +859,7 @@ class FPA_Module(FP_Module):
           coefficients `(c_1, \ldots, c_n)` corresponding to the module
           generators.
 
-        OUTPUT: The finitely presented module with presentation given by
+        OUTPUT:: The finitely presented module with presentation given by
         ``generator_degrees`` and ``relations``.
 
         EXAMPLES::
@@ -876,7 +876,7 @@ class FPA_Module(FP_Module):
         r"""
         Create a finitely presented module over the Steenrod algebra.
 
-        INPUT:
+        INPUT::
 
         - ``generator_degrees`` -- A tuple integer degrees.
 
@@ -886,7 +886,7 @@ class FPA_Module(FP_Module):
           coefficients `(c_1, \ldots, c_n)` corresponding to the module
           generators.
 
-        OUTPUT: The finitely presented module over ``algebra`` with
+        OUTPUT:: The finitely presented module over ``algebra`` with
         presentation given by ``generator_degrees`` and ``relations``.
 
         TESTS:
@@ -956,7 +956,7 @@ class FPA_Module(FP_Module):
         r"""
         A minimal presentation of this module.
 
-        OUTPUT: An isomorphism `M \to self`, where `M` has minimal
+        OUTPUT:: An isomorphism `M \to self`, where `M` has minimal
         presentation.
 
         EXAMPLES::
@@ -988,13 +988,13 @@ class FPA_Module(FP_Module):
         r"""
         A resolution of this module of the given length.
 
-        INPUT:
+        INPUT::
 
         - ``k`` -- An non-negative integer.
         - ``verbose`` -- A boolean to control if log messages should be emitted.
           (optional, default: ``False``)
 
-        OUTPUT: A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
+        OUTPUT:: A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
 
             `f_i: F_i \to F_{i-1}` for `1\leq i\leq k`,
 
@@ -1062,7 +1062,7 @@ class FPA_Module(FP_Module):
         Export the module to the input
         `format used by R. Bruner's Ext software <http://www.math.wayne.edu/~rrb/cohom/modfmt.html>`_.
 
-        INPUT:
+        INPUT::
 
         - ``powers_of_two_only`` -- A boolean to control if the output should
           contain the action of all Steenrod squaring operations (restricted

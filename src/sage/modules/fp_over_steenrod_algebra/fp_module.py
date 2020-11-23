@@ -77,7 +77,7 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         Normalize input to ensure a unique representation.
 
-        INPUT:
+        INPUT::
 
         - ``generator_degrees`` -- an iterable of integer degrees.
 
@@ -87,7 +87,7 @@ class FP_Module(UniqueRepresentation, SageModule):
           coefficients `(c_1, \ldots, c_n)` corresponding to the module
           generators.
 
-        OUTPUT: The finitely presented module with presentation given by
+        OUTPUT:: The finitely presented module with presentation given by
         the ``generator_degrees`` and ``relations``.
 
         TESTS:
@@ -105,7 +105,7 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         Create a finitely presented module over a connected graded algebra.
 
-        INPUT:
+        INPUT::
 
         - ``generator_degrees`` -- A tuple of integer degrees.
 
@@ -115,7 +115,7 @@ class FP_Module(UniqueRepresentation, SageModule):
           coefficients `(c_1, \ldots, c_n)`, ordered so that they
           correspond to the module generators.
 
-        OUTPUT: The finitely presented module over ``algebra`` with
+        OUTPUT:: The finitely presented module over ``algebra`` with
         presentation given by ``generator_degrees`` and ``relations``.
 
         EXAMPLES::
@@ -183,11 +183,11 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         Initialize from a finitely generated free module.
 
-        INPUT:
+        INPUT::
 
         - ``free_module`` -- a finitely generated free module.
 
-        OUTPUT: the finitely presented module having same set of generators
+        OUTPUT:: the finitely presented module having same set of generators
         assert ``free_module``, and no relations.
 
         EXAMPLES::
@@ -210,11 +210,11 @@ class FP_Module(UniqueRepresentation, SageModule):
         Create a finitely presented module from a morphism of finitely
         generated free modules.
 
-        INPUT:
+        INPUT::
 
         - ``morphism`` -- a morphism between finitely generated free modules.
 
-        OUTPUT:
+        OUTPUT::
 
         The finitely presented module having presentation equal to the
         homomorphism ``morphism``.
@@ -243,11 +243,11 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         Change the base ring of this module.
 
-        INPUT:
+        INPUT::
 
         - ``algebra`` -- a connected graded algebra.
 
-        OUTPUT: The finitely presented module over ``algebra`` defined with the
+        OUTPUT:: The finitely presented module over ``algebra`` defined with the
         exact same number of generators of the same degrees and relations as
         this module.
 
@@ -276,12 +276,12 @@ class FP_Module(UniqueRepresentation, SageModule):
         This function is used internally by the ()-method when creating
         module elements, and should not be called by the user explicitly.
 
-        INPUT:
+        INPUT::
 
         - ``x`` -- A tuple of coefficients, an element of FP_Module, or the
           zero integer constant.
 
-        OUTPUT: An instance of the element class with coefficients from ``x``,
+        OUTPUT:: An instance of the element class with coefficients from ``x``,
         the element ``x`` if it already was an element, or the zero element.
 
         EXAMPLES::
@@ -407,7 +407,7 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         Decide if this module is isomorphic to the trivial module.
 
-        OUTPUT: Returns ``True`` if the relations generate every non-zero
+        OUTPUT:: Returns ``True`` if the relations generate every non-zero
         element of the module, and ``False`` otherwise.
 
         EXAMPLES::
@@ -487,12 +487,12 @@ class FP_Module(UniqueRepresentation, SageModule):
         This function chooses deterministically an element, i.e the output
         dependens only on the module and its input ``n``.
 
-        INPUT:
+        INPUT::
 
         - ``n`` --  The degree of the element to construct.  If the default
           value ``None`` is given, a degree will be chosen by the function.
 
-        OUTPUT: A module element of the given degree.
+        OUTPUT:: A module element of the given degree.
 
         EXAMPLES::
 
@@ -521,14 +521,14 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         A basis for the vectorspace of degree ``n`` module elements.
 
-        INPUT:
+        INPUT::
 
         - ``n`` -- an integer.
 
         - ``verbose`` -- A boolean to control if log messages should be emitted.
           (optional, default: ``False``)
 
-        OUTPUT: A list of homogeneous module elements of degree ``n`` which is
+        OUTPUT:: A list of homogeneous module elements of degree ``n`` which is
         a basis for the vectorspace of all degree ``n`` module elements.
 
         .. SEEALSO::
@@ -580,13 +580,13 @@ class FP_Module(UniqueRepresentation, SageModule):
         This function is inverse to
         :meth:`sage.modules.fp_over_steenrod_algebra.fp_element.FP_Element.vector_presentation`.
 
-        INPUT:
+        INPUT::
 
         - ``coordinates`` -- a vector of coordinates.
 
         - ``n`` -- the degree of the element to construct.
 
-        OUTPUT: A module element of degree ``n`` having the given coordinates
+        OUTPUT:: A module element of degree ``n`` having the given coordinates
         with respect to the basis returned by :meth:`basis_elements`.
 
         EXAMPLES::
@@ -633,11 +633,11 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         A basis for the vectorspace of degree ``n`` module elements.
 
-        INPUT:
+        INPUT::
 
         - ``n`` -- an integer.
 
-        OUTPUT: A list of homogeneous module elements of degree ``n`` which is
+        OUTPUT:: A list of homogeneous module elements of degree ``n`` which is
         a basis for the vectorspace of all degree ``n`` module elements.
 
         EXAMPLES::
@@ -663,11 +663,11 @@ class FP_Module(UniqueRepresentation, SageModule):
         A vectorspace isomorphic to the vectorspace of module elements of
         degree ``n``.
 
-        INPUT:
+        INPUT::
 
         - ``n`` -- The degree of the presentation.
 
-        OUTPUT: A vectorspace.
+        OUTPUT:: A vectorspace.
 
         .. SEEALSO::
 
@@ -862,7 +862,7 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         A minimal presentation of this module.
 
-        OUTPUT: An isomorphism `M \to self`, where `M` has minimal presentation.
+        OUTPUT:: An isomorphism `M \to self`, where `M` has minimal presentation.
 
         EXAMPLES::
 
@@ -904,11 +904,11 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         The suspension of this module by the given degree.
 
-        INPUT:
+        INPUT::
 
         - ``t`` -- An integer degree by which the module is suspended.
 
-        OUTPUT: A module which is identical to this module by a shift of
+        OUTPUT:: A module which is identical to this module by a shift of
         degrees by the integer ``t``.
 
         EXAMPLES::
@@ -948,11 +948,11 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         The submodule of this module spanned by the given elements.
 
-        INPUT:
+        INPUT::
 
         -  ``spanning_elements``  - An iterable of elements of this module.
 
-        OUTPUT: The inclusion of the submodule into this module.
+        OUTPUT:: The inclusion of the submodule into this module.
 
         EXAMPLES::
 
@@ -983,14 +983,14 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         A resolution of this module of length ``k``.
 
-        INPUT:
+        INPUT::
 
         - ``k`` -- An non-negative integer.
 
         - ``verbose`` -- A boolean to control if log messages should be emitted.
           (optional, default: ``False``)
 
-        OUTPUT: A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
+        OUTPUT:: A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
 
             `f_i: F_i \to F_{i-1}` for `1<i\leq k`,
 
