@@ -587,74 +587,6 @@ class Link(SageObject):
         """
         return not self.__eq__(other)
 
-    def _markov_move_cmp(self, braid):
-        r"""
-        Return whether ``self`` can be transformed to the closure of ``braid``
-        by a sequence of Markov moves.
-
-        More precisely it is checked whether the braid of ``self`` is conjugated
-        to the given braid in the following sense. If both braids have the same
-        number of strands it is checked if they are conjugated to each other in
-        their common braid group (Markov move I).  If the number of strands differs,
-        the braid having less strands is extended by Markov moves II (appendening
-        the largest generator or its inverse recursively) until a common braid
-        group can be achieved, where conjugation is tested.
-
-        Be aware, that a negative result does not ensure that ``self`` is not
-        isotopic to the closure of ``braid``.
-
-        EXAMPLES::
-
-            sage: b = BraidGroup(4)((1, 2, -3, 2, 2, 2, 2, 2, 2, -1, 2, 3, 2))
-            sage: L = Link([[2, 1, 4, 5], [5, 4, 6, 7], [7, 6, 8, 9], [9, 8, 10, 11],
-            ....:           [11, 10, 12, 13], [13, 12, 14, 15], [15, 14, 16, 17],
-            ....:           [3, 17, 18, 19], [16, 1, 21, 18], [19, 21, 2, 3]])
-            sage: L._markov_move_cmp(b)  # both are isotopic to ``9_3``
-            True
-            sage: bL = L.braid(); bL
-            s0^7*s1*s0^-1*s1
-            sage: Lb = Link(b); Lb
-            Link with 1 component represented by 13 crossings
-            sage: Lb._markov_move_cmp(bL)
-            True
-            sage: L == Lb
-            False
-            sage: b.strands() > bL.strands()
-            True
-
-        REFERENCES:
-
-        - :wikipedia:`Markov_theorem`
-        """
-        sb      = self.braid()
-        sb_ind  = sb.strands()
-
-        ob      = braid
-        ob_ind  = ob.strands()
-
-        if sb_ind == ob_ind:
-            return sb.is_conjugated(ob)
-
-        if sb_ind > ob_ind:
-            # if the braid of self has more strands we have to perfom
-            # Markov II moves
-            B = sb.parent()
-            g = B.gen(ob_ind-1)
-            ob = B(ob)
-            if sb_ind > ob_ind+1:
-                # proceed by recursion
-                res = self._markov_move_cmp(ob*g)
-                if not res:
-                    res = self._markov_move_cmp(ob*~g)
-            else:
-                res = sb.is_conjugated(ob*g)
-                if not res:
-                    res = sb.is_conjugated(ob*~g)
-            return res
-        else:
-            L = Link(ob)
-            return L._markov_move_cmp(sb)
-
 
     def braid(self):
         """
@@ -2557,7 +2489,7 @@ class Link(SageObject):
         return [[list(i) for i in j]
                 for j in G.connected_components(sort=False)]
 
-    def homfly_polynomial(self, var1='L', var2='M', normalization='lm'):
+    def homfly_polynomial(self, var1=None, var2=None, normalization='lm'):
         r"""
         Return the HOMFLY polynomial of ``self``.
 
@@ -2567,8 +2499,10 @@ class Link(SageObject):
 
         INPUT:
 
-        - ``var1`` -- (default: ``'L'``) the first variable
-        - ``var2`` -- (default: ``'M'``) the second variable
+        - ``var1`` -- (default: ``'L'``) the first variable. If ``normalization``
+          is set to ``az`` resp. ``vz`` the default is ``a`` resp. ``v``
+        - ``var2`` -- (default: ``'M'``) the second variable. If ``normalization``
+          is set to ``az`` resp. ``vz`` the default is ``z``
         - ``normalization`` -- (default: ``lm``) the system of coordinates
           and can be one of the following:
 
@@ -2577,6 +2511,9 @@ class Link(SageObject):
 
           * ``'az'`` -- corresponding to the Skein relation
             `a\cdot P(K _+) - a^{-1}\cdot P(K _-) = z  \cdot P(K _0)`
+
+          * ``'vz'`` -- corresponding to the Skein relation
+            `v^{-1}\cdot P(K _+) - v\cdot P(K _-) = z  \cdot P(K _0)`
 
           where `P(K _+)`, `P(K _-)` and `P(K _0)` represent the HOMFLY
           polynomials of three links that vary only in one crossing;
@@ -2589,7 +2526,10 @@ class Link(SageObject):
         .. NOTE::
 
             Use the ``'az'`` normalization to agree with the data
-            in [KnotAtlas]_ and `KnotInfo <http://www.indiana.edu/~knotinfo/>`__.
+            in [KnotAtlas]_
+
+            Use the ``'vz'`` normalization to agree with the data
+            `KnotInfo <http://www.indiana.edu/~knotinfo/>`__.
 
         EXAMPLES:
 
@@ -2614,7 +2554,7 @@ class Link(SageObject):
             sage: L.homfly_polynomial()
             L^3*M^-1 - L*M + L*M^-1
             sage: L = Link([[1,4,2,3], [4,1,3,2]])
-            sage: L.homfly_polynomial('a', 'z', 'az')
+            sage: L.homfly_polynomial(normalization='az')
             a^3*z^-1 - a*z - a*z^-1
 
         The figure-eight knot::
@@ -2632,6 +2572,13 @@ class Link(SageObject):
             ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
             sage: L.homfly_polynomial()
             1
+
+        Comparison with KnotInfo::
+
+            sage: KI, m = K.get_knotinfo(); KI, m
+             (<KnotInfo.K5_1: '5_1'>, False)
+            sage: K.homfly_polynomial(normalization='vz') == KI.homfly_polynomial()
+            True
 
         The knot `9_6`::
 
@@ -2654,24 +2601,43 @@ class Link(SageObject):
             -L*M^-1 - L^-1*M^-1
             sage: L.homfly_polynomial()
             -L*M^-1 - L^-1*M^-1
-            sage: L.homfly_polynomial('a', 'z', 'az')
+            sage: L.homfly_polynomial(normalization='az')
             a*z^-1 - a^-1*z^-1
-            sage: L2.homfly_polynomial('a', 'z', 'az')
-            a*z^-1 - a^-1*z^-1
+            sage: L2.homfly_polynomial('α', 'ζ', 'az')
+            α*ζ^-1 - α^-1*ζ^-1
+            sage: L.homfly_polynomial(normalization='vz')
+            -v*z^-1 + v^-1*z^-1
+            sage: L2.homfly_polynomial('ν', 'ζ', 'vz')
+            -ν*ζ^-1 + ν^-1*ζ^-1
 
         REFERENCES:
 
         - :wikipedia:`HOMFLY_polynomial`
         - http://mathworld.wolfram.com/HOMFLYPolynomial.html
         """
+        if not var1:
+            if   normalization == 'az':
+                var1 = 'a'
+            elif normalization == 'vz':
+                var1 = 'v'
+            else:
+                var1 = 'L'
+        if not var2:
+            if  normalization == 'lm':
+                var2 = 'M'
+            else:
+                var2 = 'z'
+
         L = LaurentPolynomialRing(ZZ, [var1, var2])
         if len(self._isolated_components()) > 1:
             if normalization == 'lm':
                 fact = L({(1, -1):-1, (-1, -1):-1})
             elif normalization == 'az':
                 fact = L({(1, -1):1, (-1, -1):-1})
+            elif normalization == 'vz':
+                fact = L({(1, -1):-1, (-1, -1):1})
             else:
-                raise ValueError('normalization must be either `lm` or `az`')
+                raise ValueError('normalization must be either `lm`, `az` or `vz`')
             fact = fact ** (len(self._isolated_components())-1)
             for i in self._isolated_components():
                 fact = fact * Link(i).homfly_polynomial(var1, var2, normalization)
@@ -2699,8 +2665,13 @@ class Link(SageObject):
                 return L(auxdic)
             else:
                 return -L(auxdic)
+        elif normalization == 'vz':
+            h_az = self.homfly_polynomial(var1=var1, var2=var2, normalization='az')
+            a, z = h_az.parent().gens()
+            v = ~a
+            return h_az.subs({a:v})
         else:
-            raise ValueError('normalization must be either `lm` or `az`')
+            raise ValueError('normalization must be either `lm`, `az` or `vz`')
 
     def _coloring_matrix(self, n):
         r"""
@@ -3321,6 +3292,75 @@ class Link(SageObject):
         return image
 
 
+    def _markov_move_cmp(self, braid):
+        r"""
+        Return whether ``self`` can be transformed to the closure of ``braid``
+        by a sequence of Markov moves.
+
+        More precisely it is checked whether the braid of ``self`` is conjugated
+        to the given braid in the following sense. If both braids have the same
+        number of strands it is checked if they are conjugated to each other in
+        their common braid group (Markov move I).  If the number of strands differs,
+        the braid having less strands is extended by Markov moves II (appendening
+        the largest generator or its inverse recursively) until a common braid
+        group can be achieved, where conjugation is tested.
+
+        Be aware, that a negative result does not ensure that ``self`` is not
+        isotopic to the closure of ``braid``.
+
+        EXAMPLES::
+
+            sage: b = BraidGroup(4)((1, 2, -3, 2, 2, 2, 2, 2, 2, -1, 2, 3, 2))
+            sage: L = Link([[2, 1, 4, 5], [5, 4, 6, 7], [7, 6, 8, 9], [9, 8, 10, 11],
+            ....:           [11, 10, 12, 13], [13, 12, 14, 15], [15, 14, 16, 17],
+            ....:           [3, 17, 18, 19], [16, 1, 21, 18], [19, 21, 2, 3]])
+            sage: L._markov_move_cmp(b)  # both are isotopic to ``9_3``
+            True
+            sage: bL = L.braid(); bL
+            s0^7*s1*s0^-1*s1
+            sage: Lb = Link(b); Lb
+            Link with 1 component represented by 13 crossings
+            sage: Lb._markov_move_cmp(bL)
+            True
+            sage: L == Lb
+            False
+            sage: b.strands() > bL.strands()
+            True
+
+        REFERENCES:
+
+        - :wikipedia:`Markov_theorem`
+        """
+        sb      = self.braid()
+        sb_ind  = sb.strands()
+
+        ob      = braid
+        ob_ind  = ob.strands()
+
+        if sb_ind == ob_ind:
+            return sb.is_conjugated(ob)
+
+        if sb_ind > ob_ind:
+            # if the braid of self has more strands we have to perfom
+            # Markov II moves
+            B = sb.parent()
+            g = B.gen(ob_ind-1)
+            ob = B(ob)
+            if sb_ind > ob_ind+1:
+                # proceed by recursion
+                res = self._markov_move_cmp(ob*g)
+                if not res:
+                    res = self._markov_move_cmp(ob*~g)
+            else:
+                res = sb.is_conjugated(ob*g)
+                if not res:
+                    res = sb.is_conjugated(ob*~g)
+            return res
+        else:
+            L = Link(ob)
+            return L._markov_move_cmp(sb)
+
+
     def _knotinfo_matching_list(self):
         r"""
         Return a list of links from the KontInfo and LinkInfo databases which match
@@ -3346,35 +3386,35 @@ class Link(SageObject):
 
         """
         from sage.knots.knotinfo import KnotInfoSeries
-        cr = len(self.pd_code())
-        co = self.number_of_components()
+        cr  = len(self.pd_code())
+        co  = self.number_of_components()
+        Hp  = self.homfly_polynomial(normalization='vz')
+
+        V = self.seifert_matrix()
+        det = None
+        if cr > 6:
+            det = abs((V+V.transpose()).determinant())
 
         if self.is_knot():
-            l = KnotInfoSeries(cr, True, self.is_alternating()).lower_list(oriented=True)
+            S = KnotInfoSeries(cr, True, self.is_alternating())
+            l = S.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
         else:
             # as long as the method `is_alternating` is not implemented for
             # proper links we have to sum the lists from both series
-            l  = KnotInfoSeries(cr, False, True).lower_list(oriented=True)
-            l += KnotInfoSeries(cr, False, False).lower_list(oriented=True)
+            Sa = KnotInfoSeries(cr, False, True)
+            Sn = KnotInfoSeries(cr, False, False)
+            l  = Sa.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
+            l += Sn.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
 
-        Hp  = self.homfly_polynomial(normalization='az')
+        if len(l) <= 1:
+            return l
+
         pdm = self.mirror_image().pd_code() # for mirror_image see note below
         br  = self.braid()
         br_ind = br.strands()
 
         res = []
         for L in l:
-            if L.num_components() != co:
-                continue
-            if L.homfly_polynomial(sage_convention=True) != Hp:
-                continue
-            res.append(L)
-
-        if len(res) <= 1:
-            return res
-
-        res_red = []
-        for L in res:
             if L.pd_notation() == pdm:
                 # note that KnotInfo pd_notation works counter clockwise. Therefore,
                 # to compensate this we compare with the mirrored pd_code. See also,
@@ -3383,11 +3423,11 @@ class Link(SageObject):
 
             if L.braid_index() <= br_ind:
                 if self._markov_move_cmp(L.braid()):
-                    res_red.append(L)
+                    res.append(L)
 
-        if res_red:
-            return res_red
-        return res
+        if res:
+            return res
+        return l
 
 
 

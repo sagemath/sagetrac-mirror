@@ -132,9 +132,7 @@ Obtaining the HOMFLY-PT polynomial::
 
     sage: L.homfly_polynomial()
     -v^-1*z - v^-3*z - v^-3*z^-1 + v^-5*z^-1
-    sage: L.homfly_polynomial(sage_convention=True)
-    L^5*M^-1 - L^3*M - L^3*M^-1 - L*M
-    sage: _ == l.homfly_polynomial(normalization='az')
+    sage: _ == l.homfly_polynomial(normalization='vz')
     True
 
 
@@ -736,6 +734,13 @@ class KnotInfoBase(Enum):
         r"""
         Return the determinant of ``self``.
 
+        .. NOTE::
+
+           KnotInfo's value for the unknot ``0_1`` is zero. This is not
+           compatible whith Sage's result (the value of the Alexander
+           polynomial at -1). Since this method is needed to identify
+           Sage links we take the according value in that case.
+
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
@@ -743,7 +748,12 @@ class KnotInfoBase(Enum):
             4
             sage: KnotInfo.K3_1.determinant()
             3
+            sage: KnotInfo.K0_1.determinant()
+            1
         """
+        if self.crossing_number() == 0:
+            # see note above
+            return 1
         return int(self[self.items.determinant])
 
     @cached_method
@@ -1003,7 +1013,7 @@ class KnotInfoBase(Enum):
 
 
     @cached_method
-    def homfly_polynomial(self, var1=None, var2=None, original=False, sage_convention=False):
+    def homfly_polynomial(self, var1='v', var2='z', original=False):
         r"""
         Return the HOMFLY-PT polynomial according to the value of column
         ``homfly_polynomial`` for this knot or link (in the latter case the
@@ -1021,16 +1031,10 @@ class KnotInfoBase(Enum):
 
         INPUT:
 
-        - ``var1`` -- string for the name of the first variable (default depending
-          on keyword ``sage_convention``: ``'v'`` or ``'L'`` if
-          ``sage_convention == True``)
-        - ``var2`` -- string for the name of the second variable (default depending
-          on keyword ``sage_convention``: ``'z'`` or ``'M'`` if
-          ``sage_convention == True``)
+        - ``var1`` -- string (default ``v``) for the name of the first variable
+        - ``var2`` -- string (default ``z``) for the name of the second variable
         - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True``
-          the conversion to Sage's conventions (see the note below) is performed
 
         OUTPUT:
 
@@ -1041,20 +1045,9 @@ class KnotInfoBase(Enum):
         .. NOTE::
 
             The skein-relation for the HOMFLY-PT polynomial given on KnotInfo
-            differs from the ones used in Sage.
-
-            Using Sage's HOMFLY-PT polynomial with ``normalization='az'``
-            the corresponding skein-relation is (see :meth:`Link.homfly_polynomial`
-            of :class:`Link`):
-
-            .. MATH::
-
-                P(O) = 1,\,\,\,    a P(L_+) - a^{-1} P(L_-) = z P(L_0)
-
-            Thus, the HOMFLY-PT polynomial of KnotInfo compares to the one of Sage
-            by replacing ``v`` by ``~a``. To keep them comparable this translation
-            can be performed by setting the keyword ``sage_convention`` to ``True``.
-
+            does not match the default used in Sage. For comparison you have
+            to use the keyword argument ``normalization='vz'`` on the side
+            of Sage.
 
         EXAMPLES::
 
@@ -1064,9 +1057,7 @@ class KnotInfoBase(Enum):
             -v^4 + v^2*z^2 + 2*v^2
             sage: K3_1.homfly_polynomial(original=True)
             '(2*v^2-v^4)+ (v^2)*z^2'
-            sage: PK3_1s = K3_1.homfly_polynomial(sage_convention=True); PK3_1s
-            L^-2*M^2 + 2*L^-2 - L^-4
-            sage: PK3_1s == K3_1.link().homfly_polynomial(normalization='az')
+            sage: PK3_1 == K3_1.link().homfly_polynomial(normalization='vz')
             True
 
         for proper links::
@@ -1074,9 +1065,7 @@ class KnotInfoBase(Enum):
             sage: L4a1_1 = KnotInfo.L4a1_1
             sage: PL4a1_1 = L4a1_1.homfly_polynomial(var1='x', var2='y'); PL4a1_1
             -x^5*y + x^3*y^3 - x^5*y^-1 + 3*x^3*y + x^3*y^-1
-            sage: L4a1_1.homfly_polynomial(var1='x', var2='y', sage_convention=True)
-            x^-3*y^3 + 3*x^-3*y + x^-3*y^-1 - x^-5*y - x^-5*y^-1
-            sage: _ == L4a1_1.link().homfly_polynomial(var1='x', var2='y', normalization='az')
+            sage: _ == L4a1_1.link().homfly_polynomial('x', 'y', 'vz')
             True
 
         check the skein-relation from the KnotInfo description page (applied to one
@@ -1090,21 +1079,9 @@ class KnotInfoBase(Enum):
             sage: ~v*PK3_1 -v*PO == z*PL2a1_1
             True
 
-        check the skein-relation given in the doc string of :meth:`Link.homfly_polynomial`
-        of :class:`Link` (applied to one of the positive crossings of the
-        right-handed trefoil)::
-
-            sage: Rs = PK3_1s.parent()
-            sage: POs = Rs.one()
-            sage: PL2a1_1s = L2a1_1.homfly_polynomial(sage_convention=True)
-            sage: a, z = Rs.gens()
-            sage: a*PK3_1s - ~a*POs == z*PL2a1_1s
-            True
-
-
         TESTS::
 
-            sage: all(L.homfly_polynomial(sage_convention=True) == L.link().homfly_polynomial(normalization='az')\
+            sage: all(L.homfly_polynomial() == L.link().homfly_polynomial(normalization='vz')\
                       for L in KnotInfo if L.crossing_number() > 0 and L.crossing_number() < 7)
             True
 
@@ -1120,26 +1097,12 @@ class KnotInfoBase(Enum):
         if original:
             return homfly_polynomial
 
-        if sage_convention:
-            if not var1:
-                var1='L'
-            if not var2:
-                var2='M'
-        else:
-            if not var1:
-                var1='v'
-            if not var2:
-                var2='z'
-
         R = self._homfly_pol_ring(var1, var2)
         if not homfly_polynomial and self.crossing_number() == 0:
             return R.one()
 
         L, M = R.gens()
-        if sage_convention:
-            lc = {'v': ~L, 'z':M}  # see note above
-        else:
-            lc = {'v': L, 'z':M}
+        lc = {'v': L, 'z':M}
         return eval_knotinfo(homfly_polynomial, locals=lc)
 
     @cached_method
@@ -1867,7 +1830,7 @@ class KnotInfoSeries(UniqueRepresentation):
         self._name_unoriented   = name_unoriented
 
     @cached_method
-    def list(self, oriented=False):
+    def list(self, oriented=False, comp=None, det=None, homfly=None):
         r"""
         Return this series as a Python list.
 
@@ -1893,6 +1856,23 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: L2a.list(oriented=True)
             [<KnotInfo.L2a1_0: 'L2a1{0}'>, <KnotInfo.L2a1_1: 'L2a1{1}'>]
         """
+        if homfly is not None:
+            # additional restriction to number of components, determinant and
+            # HOMFLY-PT polynomial
+            l = self.list(oriented=True, comp=comp, det=det)
+            return [L for L in l if L.homfly_polynomial() == homfly]
+
+        if det is not None:
+            # additional restriction to number of components and determinant
+            l = self.list(oriented=True, comp=comp)
+            return [L for L in l if L.determinant() == det]
+
+        if comp is not None:
+            # additional restriction to number of components
+            l = self.list(oriented=True)
+            return [L for L in l if L.num_components() == comp]
+
+        # default case
         is_knot  = self._is_knot
         cross_nr = self._crossing_number
         is_alt   = self._is_alternating
@@ -1929,7 +1909,7 @@ class KnotInfoSeries(UniqueRepresentation):
 
 
     @cached_method
-    def lower_list(self, oriented=False):
+    def lower_list(self, oriented=False, comp=None, det=None, homfly=None):
         r"""
         Return this series together with all series with smaller crossing number
         as a Python list.
@@ -1957,10 +1937,11 @@ class KnotInfoSeries(UniqueRepresentation):
              <KnotInfo.L4a1_1: 'L4a1{1}'>]
         """
         l = []
-        for i in range(self._crossing_number):
-            LS = type(self)(i, self._is_knot, self._is_alternating, self._name_unoriented )
-            l += LS.list(oriented=oriented)
-        return l + self.list(oriented=oriented)
+        cr = self._crossing_number
+        if cr > 0:
+            LS = type(self)(cr - 1, self._is_knot, self._is_alternating, self._name_unoriented )
+            l = LS.lower_list(oriented=oriented, comp=comp, det=det, homfly=homfly)
+        return l + self.list(oriented=oriented, comp=comp, det=det, homfly=homfly)
 
 
     def __repr__(self):
