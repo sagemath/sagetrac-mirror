@@ -36,33 +36,37 @@ from .free_element import FreeModuleElement
 
 
 class FP_Element(SageModuleElement):
+    r"""
+    Create a module element of a finitely presented graded module over
+    a connected graded algebra.
+
+    INPUT::
+
+    - ``module`` -- the parent instance of this module element.
+
+    - ``coefficients`` -- a tuple of homogeneous elements of the algebra
+      over which the module is defined.
+
+    OUTPUT:: The module element given by the coefficients.
+
+    .. NOTE:: Never use this constructor explicitly, but rather the parent's
+        call method, or this class' __call__ method.  The reason for this
+        is that the dynamic type of the element class changes as a
+        consequence of the category system.
+
+    TESTS:
+
+        sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
+        sage: from sage.modules.fp_over_steenrod_algebra.fp_element import FP_Element
+        sage: FP_Element(FP_Module([0], SteenrodAlgebra(2)), [Sq(2)])
+        <Sq(2)>
+
+    """
 
     def __init__(self, module, coefficients):
         r"""
         Create a module element of a finitely presented graded module over
         a connected graded algebra.
-
-        INPUT::
-
-        - ``module`` -- the parent instance of this module element.
-
-        - ``coefficients`` -- a tuple of homogeneous elements of the algebra
-          over which the module is defined.
-
-        OUTPUT:: The module element given by the coefficients.
-
-        .. NOTE:: Never use this constructor explicitly, but rather the parent's
-            call method, or this class' __call__ method.  The reason for this
-            is that the dynamic type of the element class changes as a
-            consequence of the category system.
-
-        TESTS:
-
-            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
-            sage: from sage.modules.fp_over_steenrod_algebra.fp_element import FP_Element
-            sage: FP_Element(FP_Module([0], SteenrodAlgebra(2)), [Sq(2)])
-            <Sq(2)>
-
         """
         # Store the free representation of the element.
         self.free_element = FreeModuleElement(module.j.codomain(), coefficients)

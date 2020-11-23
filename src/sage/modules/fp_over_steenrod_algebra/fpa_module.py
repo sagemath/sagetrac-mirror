@@ -838,6 +838,30 @@ from sage.rings.infinity import PlusInfinity
 
 
 class FPA_Module(FP_Module):
+    r"""
+    Create a finitely presented module over the Steenrod algebra.
+
+    INPUT::
+
+    - ``generator_degrees`` -- A tuple integer degrees.
+
+    - ``algebra`` -- The Steenrod algebra over which the module is defined.
+
+    - ``relations`` -- A tuple of relations.  A relation is a tuple of
+      coefficients `(c_1, \ldots, c_n)` corresponding to the module
+      generators.
+
+    OUTPUT:: The finitely presented module over ``algebra`` with
+    presentation given by ``generator_degrees`` and ``relations``.
+
+    TESTS:
+
+        sage: from sage.modules.fp_over_steenrod_algebra.fpa_module import FPA_Module
+        sage: FPA_Module((0,), SteenrodAlgebra(2))
+        Finitely presented module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+
+    """
+
     # In the category framework, Elements of the class FP_Module are of the
     # class FP_Element, see
     # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
@@ -875,25 +899,6 @@ class FPA_Module(FP_Module):
     def __init__(self, generator_degrees, algebra, relations=()):
         r"""
         Create a finitely presented module over the Steenrod algebra.
-
-        INPUT::
-
-        - ``generator_degrees`` -- A tuple integer degrees.
-
-        - ``algebra`` -- The Steenrod algebra over which the module is defined.
-
-        - ``relations`` -- A tuple of relations.  A relation is a tuple of
-          coefficients `(c_1, \ldots, c_n)` corresponding to the module
-          generators.
-
-        OUTPUT:: The finitely presented module over ``algebra`` with
-        presentation given by ``generator_degrees`` and ``relations``.
-
-        TESTS:
-
-            sage: from sage.modules.fp_over_steenrod_algebra.fpa_module import FPA_Module
-            sage: FPA_Module((0,), SteenrodAlgebra(2))
-            Finitely presented module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
 
         """
 

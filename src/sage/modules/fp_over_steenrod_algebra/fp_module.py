@@ -66,6 +66,45 @@ from .free_element import FreeModuleElement
 
 
 class FP_Module(UniqueRepresentation, SageModule):
+    r"""
+    Create a finitely presented module over a connected graded algebra.
+
+    INPUT::
+
+    - ``generator_degrees`` -- A tuple of integer degrees.
+
+    - ``algebra`` -- The algebra over which the module is defined.
+
+    - ``relations`` -- A tuple of relations.  A relation is a tuple of
+      coefficients `(c_1, \ldots, c_n)`, ordered so that they
+      correspond to the module generators.
+
+    OUTPUT:: The finitely presented module over ``algebra`` with
+    presentation given by ``generator_degrees`` and ``relations``.
+
+    EXAMPLES::
+
+        sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
+        sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
+
+        sage: M = FP_Module([0, 1], A3, [[Sq(2), Sq(1)]])
+        sage: M.generators()
+        [<1, 0>, <0, 1>]
+        sage: M.relations()
+        [<Sq(2), Sq(1)>]
+        sage: M.is_trivial()
+        False
+
+        sage: Z = FP_Module([], A3)
+        sage: Z.generators()
+        []
+        sage: Z.relations()
+        []
+        sage: Z.is_trivial()
+        True
+
+    """
+
     # In the category framework, Elements of the class FP_Module are of the
     # class FP_Element, see
     # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
@@ -105,41 +144,8 @@ class FP_Module(UniqueRepresentation, SageModule):
         r"""
         Create a finitely presented module over a connected graded algebra.
 
-        INPUT::
-
-        - ``generator_degrees`` -- A tuple of integer degrees.
-
-        - ``algebra`` -- The algebra over which the module is defined.
-
-        - ``relations`` -- A tuple of relations.  A relation is a tuple of
-          coefficients `(c_1, \ldots, c_n)`, ordered so that they
-          correspond to the module generators.
-
-        OUTPUT:: The finitely presented module over ``algebra`` with
-        presentation given by ``generator_degrees`` and ``relations``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
-            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-
-            sage: M = FP_Module([0, 1], A3, [[Sq(2), Sq(1)]])
-            sage: M.generators()
-            [<1, 0>, <0, 1>]
-            sage: M.relations()
-            [<Sq(2), Sq(1)>]
-            sage: M.is_trivial()
-            False
-
-            sage: Z = FP_Module([], A3)
-            sage: Z.generators()
-            []
-            sage: Z.relations()
-            []
-            sage: Z.is_trivial()
-            True
-
         """
+
         if None in generator_degrees:
             raise ValueError('generators are not all integers: %s' % str(generator_degrees))
 

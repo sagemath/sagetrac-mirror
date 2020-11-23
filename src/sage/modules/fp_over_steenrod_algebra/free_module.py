@@ -278,6 +278,28 @@ from .free_homspace import FreeModuleHomspace
 
 
 class FreeModule(UniqueRepresentation, SageModule):
+    r"""
+    Create a finitely generated free graded module over a connected graded
+    algebra.
+
+    INPUT::
+
+    - ``generator_degrees`` -- a tuple of integers defining
+      the number of generators of the module, and their degrees.
+
+    - ``algebra`` -- the connected algebra over which the module is defined.
+
+    OUTPUT:: The finitely generated free graded module on generators with
+    degrees given by ``generator_degrees``.
+
+    TESTS:
+
+        sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+        sage: A = SteenrodAlgebra(2)
+        sage: FreeModule((-2,2,4), A)
+        Finitely presented free module on 3 generators over mod 2 Steenrod algebra, milnor basis
+
+    """
     # To accomodate Sage's category framework, we must specify what the
     # elements class is for this parent class.  See
     # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
@@ -287,23 +309,6 @@ class FreeModule(UniqueRepresentation, SageModule):
         r"""
         Create a finitely generated free graded module over a connected graded
         algebra.
-
-        INPUT::
-
-        - ``generator_degrees`` -- a tuple of integers defining
-          the number of generators of the module, and their degrees.
-
-        - ``algebra`` -- the connected algebra over which the module is defined.
-
-        OUTPUT:: The finitely generated free graded module on generators with
-        degrees given by ``generator_degrees``.
-
-        TESTS:
-
-            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
-            sage: A = SteenrodAlgebra(2)
-            sage: FreeModule((-2,2,4), A)
-            Finitely presented free module on 3 generators over mod 2 Steenrod algebra, milnor basis
 
         """
         self._generator_degrees = generator_degrees

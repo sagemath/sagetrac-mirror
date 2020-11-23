@@ -44,38 +44,42 @@ from .free_homspace import is_FreeModuleHomspace
 
 
 class FreeModuleMorphism(SageMorphism):
+    r"""
+    Create a homomorphism between finitely generated free graded modules.
+
+    INPUT::
+
+    - ``parent`` -- A homspace in the category of finitely generated free
+        modules.
+
+    - ``values`` -- A list of elements in the codomain.  Each element
+        corresponds (by their ordering) to a module generator in the domain.
+
+    OUTPUT:: A module homomorphism defined by sending each generator to its
+    corresponding value.
+
+    EXAMPLES::
+
+        sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+        sage: A = SteenrodAlgebra(2)
+        sage: F1 = FreeModule((4,5), A)
+        sage: F2 = FreeModule((3,4), A)
+        sage: F3 = FreeModule((2,3), A)
+        sage: H1 = Hom(F1, F2)
+        sage: H2 = Hom(F2, F3)
+        sage: f = H1( ( F2((Sq(4), 0)), F2((0, Sq(4))) ) )
+        sage: g = H2( ( F3((Sq(2), 0)), F3((Sq(3), Sq(2))) ) )
+        sage: g*f
+        Module homomorphism of degree 4 defined by sending the generators
+          [<1, 0>, <0, 1>]
+        to
+          [<Sq(0,2) + Sq(3,1) + Sq(6), 0>, <Sq(1,2) + Sq(7), Sq(0,2) + Sq(3,1) + Sq(6)>]
+
+    """
 
     def __init__(self, parent, values):
         r"""
         Create a homomorphism between finitely generated free graded modules.
-
-        INPUT::
-
-        - ``parent`` -- A homspace in the category of finitely generated free
-            modules.
-
-        - ``values`` -- A list of elements in the codomain.  Each element
-            corresponds (by their ordering) to a module generator in the domain.
-
-        OUTPUT:: A module homomorphism defined by sending each generator to its
-        corresponding value.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
-            sage: A = SteenrodAlgebra(2)
-            sage: F1 = FreeModule((4,5), A)
-            sage: F2 = FreeModule((3,4), A)
-            sage: F3 = FreeModule((2,3), A)
-            sage: H1 = Hom(F1, F2)
-            sage: H2 = Hom(F2, F3)
-            sage: f = H1( ( F2((Sq(4), 0)), F2((0, Sq(4))) ) )
-            sage: g = H2( ( F3((Sq(2), 0)), F3((Sq(3), Sq(2))) ) )
-            sage: g*f
-            Module homomorphism of degree 4 defined by sending the generators
-              [<1, 0>, <0, 1>]
-            to
-              [<Sq(0,2) + Sq(3,1) + Sq(6), 0>, <Sq(1,2) + Sq(7), Sq(0,2) + Sq(3,1) + Sq(6)>]
 
         """
 

@@ -37,41 +37,46 @@ from sage.structure.element import ModuleElement as SageModuleElement
 
 
 class FreeModuleElement(SageModuleElement):
+    r"""
+    Create a module element of a finitely generated free graded module over
+    a connected graded algebra.
+
+    INPUT::
+
+    - ``module`` -- the parent instance of this module element.
+
+    - ``coefficients`` -- a tuple of homogeneous algebra coefficients.
+
+    OUTPUT:: The module element given by the coefficients.
+
+    .. NOTE:: This constructor should not be used explicitly, instead use
+          the parent's call method.  The reason for this is that the
+          dynamic type of the element class changes as a consequence of the
+          category system.
+
+    EXAMPLES::  
+
+        sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
+        sage: M = FreeModule((0, 1), SteenrodAlgebra(2))
+
+        sage: M([0, 0])
+        <0, 0>
+
+        sage: M([1, 0])
+        <1, 0>
+
+        sage: M([0, 1])
+        <0, 1>
+
+        sage: M([Sq(1), 1])
+        <Sq(1), 1>
+
+    """
 
     def __init__(self, module, coefficients):
         r"""
         Create a module element of a finitely generated free graded module over
         a connected graded algebra.
-
-        INPUT::
-
-        - ``module`` -- the parent instance of this module element.
-
-        - ``coefficients`` -- a tuple of homogeneous algebra coefficients.
-
-        OUTPUT:: The module element given by the coefficients.
-
-        .. NOTE:: This constructor should not be used explicitly, instead use
-              the parent's call method.  The reason for this is that the
-              dynamic type of the element class changes as a consequence of the
-              category system.
-
-        EXAMPLES::  
-
-            sage: from sage.modules.fp_over_steenrod_algebra.free_module import FreeModule
-            sage: M = FreeModule((0, 1), SteenrodAlgebra(2))
-
-            sage: M([0, 0])
-            <0, 0>
-
-            sage: M([1, 0])
-            <1, 0>
-
-            sage: M([0, 1])
-            <0, 1>
-
-            sage: M([Sq(1), 1])
-            <Sq(1), 1>
 
         """
         if isinstance(coefficients, FreeModuleElement):
