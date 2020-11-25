@@ -64,11 +64,11 @@ build/make/Makefile: configure $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 buildbot-python3:
 	$(MAKE)
 
-# Preemptively download all standard upstream source tarballs.
+# Preemptively download all source tarballs of normal packages.
 download:
 	export SAGE_ROOT=$$(pwd) && \
-	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
-	./src/bin/sage-download-upstream
+	export PATH=$$SAGE_ROOT/build/bin:$$PATH && \
+	sage-package download :all:
 
 dist: build/make/Makefile
 	./sage --sdist
@@ -111,6 +111,10 @@ bootstrap-clean:
 	rm -f src/doc/en/installation/*.txt
 	rm -rf src/doc/en/reference/spkg/*.rst
 	rm -f src/doc/en/reference/repl/*.txt
+	rm -f environment.yml
+	rm -f src/environment.yml
+	rm -f environment-optional.yml
+	rm -f src/environment-optional.yml
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
@@ -204,7 +208,7 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*.txt build/pkgs/*/distros/*.txt
+configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/distros/*.txt
 	./bootstrap -d
 
 install: all
