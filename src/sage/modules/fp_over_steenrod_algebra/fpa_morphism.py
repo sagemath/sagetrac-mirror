@@ -30,8 +30,8 @@ AUTHORS:
 
 from __future__ import absolute_import
 
-from sage.modules.fp_over_steenrod_algebra.fp_morphism import FP_ModuleMorphism
-from sage.modules.fp_over_steenrod_algebra.profile import enveloping_profile_elements
+from .fp_morphism import FP_ModuleMorphism
+from .profile import enveloping_profile_elements
 
 
 class FPA_ModuleMorphism(FP_ModuleMorphism):

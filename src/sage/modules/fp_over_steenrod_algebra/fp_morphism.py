@@ -39,7 +39,7 @@ from sage.categories.homset import End
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism as SageMorphism
 from sage.misc.cachefunc import cached_method
-from sage.modules.fp_over_steenrod_algebra.fp_element import FP_Element
+from .fp_element import FP_Element
 from sage.rings.infinity import PlusInfinity
 
 

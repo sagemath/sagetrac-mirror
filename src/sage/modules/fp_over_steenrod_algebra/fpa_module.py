@@ -832,10 +832,10 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.homset import Hom
-from sage.modules.fp_over_steenrod_algebra.fp_module import FP_Module
-from sage.modules.fp_over_steenrod_algebra.profile import enveloping_profile_elements
 from sage.rings.infinity import PlusInfinity
 
+from .fp_module import FP_Module
+from .profile import enveloping_profile_elements
 
 class FPA_Module(FP_Module):
     r"""

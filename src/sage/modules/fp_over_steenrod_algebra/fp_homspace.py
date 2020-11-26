@@ -454,7 +454,7 @@ class FP_ModuleHomspace(Homset):
 
 
         """
-        from sage.modules.fp_over_steenrod_algebra.fp_morphism import _CreateRelationsMatrix
+        from .fp_morphism import _CreateRelationsMatrix
 
         M = self.domain()
         N = self.codomain()
