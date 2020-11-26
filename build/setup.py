@@ -22,7 +22,7 @@ class build_py(distutils_build_py):
             print('Reusing {}'.format(SAGE_ROOT))
         else:
             shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
-            cmd = "cd {} && ./configure --prefix={} PYTHON3={}".format(SAGE_ROOT, SAGE_LOCAL, sys.executable)
+            cmd = "cd {} && ./configure --prefix={} --with-python={}".format(SAGE_ROOT, SAGE_LOCAL, sys.executable)
             print("Running {}".format(cmd))
             if os.system(cmd) != 0:
                 raise DistutilsSetupError("configure failed")
