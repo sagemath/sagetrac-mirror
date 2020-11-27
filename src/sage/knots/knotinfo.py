@@ -1190,7 +1190,7 @@ class KnotInfoBase(Enum):
 
 
     @cached_method
-    def jones_polynomial(self, variab=None, skein_normalization=False, puiseux=False, original=False, sage_convention=False):
+    def jones_polynomial(self, variab=None, skein_normalization=False, puiseux=False, original=False, use_sqrt=False):
         r"""
         Return the Jones polynomial according to the value of column
         ``jones_polynomial`` for this knot or link as an element of the symbolic
@@ -1220,8 +1220,7 @@ class KnotInfoBase(Enum):
           is returned
         - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True`` the
-          conversion to Sage's conventions (see the note below) is performed
+        - ``use_sqrt`` -- boolean (default ``False``) see the note below
 
 
         OUTPUT:
@@ -1239,13 +1238,13 @@ class KnotInfoBase(Enum):
 
         .. NOTE::
 
-            The only difference of conventions concerning the Jones polynomial is
-            its representation in the case of proper links. KnotInfo does not
-            display these polynomials in the indeterminate `t` used in the skein
-            relation. Instead a variable `x` is used defined by `x^2 = t`. Sage
-            uses `t` in both cases, knots and proper links. Thus, to obtain the
-            Jones polynomial for a proper link in `t` you have to set the keyword
-            ``sage_convention`` to ``True``.
+            There is a difference to Sage's conventions concerning the Jones
+            polynomial in the case of proper links. KnotInfo does not display
+            these polynomials in the indeterminate `t` used in the skein relation.
+            Instead a variable `x` is used defined by `x^2 = t`. Sage uses `t` in
+            both cases, knots and proper links. Thus, to obtain the Jones polynomial
+            for a proper link in `t` you have to set the keyword ``use_sqrt``
+            to ``True``.
 
         EXAMPLES::
 
@@ -1263,9 +1262,9 @@ class KnotInfoBase(Enum):
             sage: L = KnotInfo.L2a1_1
             sage: Lj = L.jones_polynomial(); Lj
             -x^5 - x
-            sage: Ljt = L.jones_polynomial(sage_convention=True); Ljt
+            sage: Ljt = L.jones_polynomial(use_sqrt=True); Ljt
             -t^(5/2) - sqrt(t)
-            sage: Ljp = L.jones_polynomial(puiseux=True, sage_convention=True); Ljp
+            sage: Ljp = L.jones_polynomial(puiseux=True); Ljp
             -t^(1/2) - t^(5/2)
             sage: Ljs = L.jones_polynomial(skein_normalization=True); Ljs
             -A^2 - A^10
@@ -1347,7 +1346,7 @@ class KnotInfoBase(Enum):
             R = LaurentPolynomialRing(ZZ, variab)
         else:
             if not variab:
-                if sage_convention or self.is_knot():
+                if use_sqrt or self.is_knot() or puiseux:
                     variab='t'
                 else:
                     variab='x'
@@ -1372,7 +1371,7 @@ class KnotInfoBase(Enum):
                 lc = {'t':  t}
             elif puiseux:
                 lc = {'x':  t**(1/2)}
-            elif sage_convention:
+            elif use_sqrt:
                 from sage.functions.other import sqrt
                 lc = {'x':  sqrt(t)}
             else:
@@ -1383,7 +1382,7 @@ class KnotInfoBase(Enum):
 
 
     @cached_method
-    def alexander_polynomial(self, var='t', original=False, sage_convention=False):
+    def alexander_polynomial(self, var='t', original=False, laurent_poly=False):
         r"""
         Return the Alexander polynomial according to the value of column
         ``alexander_polynomial`` for this knot as an instance of
@@ -1405,14 +1404,13 @@ class KnotInfoBase(Enum):
         - ``var`` -- (default: ``'t'``) the variable
         - ``original`` -- boolean (optional, default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True``
-          the conversion to Sage's conventions (see the note below) is performed
+        - ``laurent_poly`` -- boolean (default ``False``) see the note below
 
         OUTPUT:
 
         A polynomial over the integers, more precisely an instance of
         :class:`~sage.rings.polynomial.polynomial_element.Polynomial`.
-        If ``sage_convention`` is set to ``True`` a Laurent polynomial
+        If ``laurent_poly`` is set to ``True`` a Laurent polynomial
         over the integers, more precisely an instance of
         :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
         is returned. If ``original`` is set to ``True`` then a string
@@ -1424,9 +1422,9 @@ class KnotInfoBase(Enum):
             a unit factor in the Laurent polynomial ring over the integers
             in the indeterminate `t`. While the normalization of the exponents
             in KnotInfo guarantees it to be a proper polynomial, this is
-            not the case for the implementation in Sage. The transition
-            can be made using the keyword ``sage_convention``. But, still
-            there may be a difference in sign (see the example below).
+            not the case for the implementation in Sage. Use the keyword
+            ``laurent_poly`` to achiev a normalization according to Sage.
+            But, still there may be a difference in sign (see the example below).
 
         EXAMPLES::
 
@@ -1440,7 +1438,7 @@ class KnotInfoBase(Enum):
             sage: k = K.link()
             sage: ka = k.alexander_polynomial(); ka
             -t^-1 + 3 - t
-            sage: K.alexander_polynomial(sage_convention=True)
+            sage: K.alexander_polynomial(laurent_poly=True)
             t^-1 - 3 + t
             sage: _ == -ka
             True
@@ -1455,7 +1453,7 @@ class KnotInfoBase(Enum):
         if original:
             return alexander_polynomial
 
-        if sage_convention:
+        if laurent_poly:
             from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
             R = LaurentPolynomialRing(ZZ, var)
         else:
@@ -1468,7 +1466,7 @@ class KnotInfoBase(Enum):
         t, = R.gens()
         lc = {'t':  t}
         ap = R(eval_knotinfo(alexander_polynomial, locals=lc))
-        if not sage_convention or ap.is_constant():
+        if not laurent_poly or ap.is_constant():
             return ap
 
         exp = ap.exponents()
