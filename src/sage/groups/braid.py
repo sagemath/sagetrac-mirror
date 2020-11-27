@@ -79,7 +79,6 @@ from sage.categories.action import Action
 from sage.sets.set import Set
 from sage.groups.finitely_presented import FinitelyPresentedGroup
 from sage.groups.artin import FiniteTypeArtinGroup, FiniteTypeArtinGroupElement
-from sage.misc.package import PackageNotFoundError
 from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.features import PythonModule
 
@@ -88,6 +87,7 @@ lazy_import('sage.libs.braiding',
              'leastcommonmultiple', 'conjugatingbraid', 'ultrasummitset',
              'thurston_type', 'rigidity', 'sliding_circuits'],
             feature=PythonModule('sage.libs.braiding', spkg='libbraiding'))
+
 
 class Braid(FiniteTypeArtinGroupElement):
     """
@@ -1358,6 +1358,26 @@ class Braid(FiniteTypeArtinGroupElement):
         slc = sliding_circuits(self)
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in slc]
+
+    def mirror_image(self):
+        r"""
+        Return the mirror image of ``self``.
+
+        This is the braid obtained from ``self`` by replacing each generator in
+        the word by it inverse. In general this is different from the inverse of
+        ``self`` since the order of the occurences of the generators is kept the
+        same. Obviously this defines a group automorphism. Especially this is an
+        involution.
+
+        EXAMPLES::
+
+            sage: b = BraidGroup(4)((1,-2,-1,3,2,1))
+            sage: b.mirror_image()
+            s0^-1*s1*s0*s2^-1*s1^-1*s0^-1
+            sage: _ == ~b
+            False
+        """
+        return self.parent()([-i for i in self.Tietze()])
 
 
 class BraidGroup_class(FiniteTypeArtinGroup):

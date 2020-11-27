@@ -205,7 +205,7 @@ in the KnotInfo database::
     ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
     ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
     sage: L.get_knotinfo()
-    (<KnotInfo.K0_1: '0_1'>, False)
+    (<KnotInfo.K0_1: '0_1'>, None)
 
 
 REFERENCES:

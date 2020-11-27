@@ -2184,7 +2184,6 @@ class Link(SageObject):
 
             if lb <= logc and lb <= lpd:
                 return type(self)(~self._braid)
-                #return type(self)(self._braid.mirror_image())
 
         # Otherwise we fallback to the PD code
         pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
@@ -3360,11 +3359,16 @@ class Link(SageObject):
             L = Link(ob)
             return L._markov_move_cmp(sb)
 
-
+    @cached_method
     def _knotinfo_matching_list(self):
         r"""
         Return a list of links from the KontInfo and LinkInfo databases which match
         the properties of ``self`` as much as possible.
+
+        OUTPUT:
+
+        A tuple ``(l, proved)`` where ``l`` is the matching list and ``proved`` a boolean
+        telling if the entries of ``l`` are checked to be isotopic to self or not.
 
         EXAMPLES::
 
@@ -3372,9 +3376,9 @@ class Link(SageObject):
             sage: KnotInfo.L5a1_0.inject()
             Defining L5a1_0
             sage: L5a1_0.link()._knotinfo_matching_list()
-            [<KnotInfo.L5a1_0: 'L5a1{0}'>]
+            ([<KnotInfo.L5a1_0: 'L5a1{0}'>], True)
             sage: Link(L5a1_0.braid())._knotinfo_matching_list()
-            [<KnotInfo.L5a1_0: 'L5a1{0}'>, <KnotInfo.L5a1_1: 'L5a1{1}'>]
+            ([<KnotInfo.L5a1_0: 'L5a1{0}'>, <KnotInfo.L5a1_1: 'L5a1{1}'>], True)
 
         Care is needed for links having non irreducible HOMFLY-PT polynomials::
 
@@ -3382,12 +3386,19 @@ class Link(SageObject):
             sage: k5_2 = KnotInfo.K5_2.link()
             sage: k = k4_1.connected_sum(k5_2)
             sage: k._knotinfo_matching_list()   # optional - database_knotinfo
-            [<KnotInfo.K9_12: '9_12'>]
+            ([<KnotInfo.K9_12: '9_12'>], False)
 
         """
         from sage.knots.knotinfo import KnotInfoSeries
         cr  = len(self.pd_code())
         co  = self.number_of_components()
+
+        # set the limits for the KnotInfoSeries
+        if cr > 11 and co > 1:
+            cr = 11
+        if cr > 12:
+            cr = 12
+
         Hp  = self.homfly_polynomial(normalization='vz')
 
         V = self.seifert_matrix()
@@ -3395,21 +3406,28 @@ class Link(SageObject):
         if cr > 6:
             det = abs((V+V.transpose()).determinant())
 
-        if self.is_knot():
-            S = KnotInfoSeries(cr, True, self.is_alternating())
+        is_knot = self.is_knot()
+        if is_knot and cr < 11:
+            S = KnotInfoSeries(cr, True, None)
             l = S.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
         else:
-            # as long as the method `is_alternating` is not implemented for
-            # proper links we have to sum the lists from both series
-            Sa = KnotInfoSeries(cr, False, True)
-            Sn = KnotInfoSeries(cr, False, False)
-            l  = Sa.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
-            l += Sn.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
+            # as long as :meth:`is_alternating` is not implemented for proper
+            # links we have to sum the lists from both series. Furthermore,
+            # we do that for knots with more than 10 crossings, as well, as long
+            # as the following issue isn't solved:
+            #
+            # sage: KnotInfo.K11a_2.is_alternating()
+            # True
+            # sage: Link(KnotInfo.K11a_2.braid()).is_alternating()
+            # False
 
-        if len(l) <= 1:
-            return l
+            Sa = KnotInfoSeries(cr, is_knot, True)
+            Sn = KnotInfoSeries(cr, is_knot, False)
+            la = Sa.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
+            ln = Sn.lower_list(oriented=True, comp=co, det=det, homfly=Hp)
+            l = sorted(list(set(la + ln)))
 
-        pdm = self.mirror_image().pd_code() # for mirror_image see note below
+        pdm = [[a[0], a[3], a[2], a[1]] for a in self.pd_code() ] # for mirror image see note below
         br  = self.braid()
         br_ind = br.strands()
 
@@ -3419,17 +3437,15 @@ class Link(SageObject):
                 # note that KnotInfo pd_notation works counter clockwise. Therefore,
                 # to compensate this we compare with the mirrored pd_code. See also,
                 # docstring of :meth:`link` of :class:`~sage.knots.knotinfo.KnotInfoBase`.
-                return[L] # pd_notation is unique in the KnotInfo database
+                return[L], True  # pd_notation is unique in the KnotInfo database
 
             if L.braid_index() <= br_ind:
                 if self._markov_move_cmp(L.braid()):
                     res.append(L)
 
         if res:
-            return res
-        return l
-
-
+            return res, True
+        return l, False
 
     def get_knotinfo(self, oriented=True, mirror_version=True, unique=True):
         r"""
@@ -3456,8 +3472,9 @@ class Link(SageObject):
         OUTPUT:
 
         A tuple ``(K, m)`` where ``K`` is an instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
-        and ``m`` a boolean telling if ``self`` corresponse to the mirrored version
-        of ``K`` or not.
+        and ``m`` a boolean (for chiral links) telling if ``self`` corresponse
+        to the mirrored version of ``K`` or not. The value of ``m`` is ``None``
+        for amphicheiral links or ``?`` if chirality cannot be detected.
 
         If ``oriented`` is set to ``False`` then the result is a series of links
         (instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`, see explanation above).
@@ -3507,7 +3524,9 @@ class Link(SageObject):
             ...
             NotImplementedError: this knot having more than 12 crossings cannot be determined
 
-            sage: KnotInfo.K9_12.link().get_knotinfo() # optional - database_knotinfo
+            sage: Link([[1, 5, 2, 4], [3, 1, 4, 8], [5, 3, 6, 2], [6, 9, 7, 10], [10, 7, 9, 8]])
+            Link with 2 components represented by 5 crossings
+            sage: _.get_knotinfo()
             Traceback (most recent call last):
             ...
             NotImplementedError: this (possibly non prime) link cannot be determined
@@ -3518,7 +3537,7 @@ class Link(SageObject):
             ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
             ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
             sage: L.get_knotinfo()
-            (<KnotInfo.K0_1: '0_1'>, False)
+            (<KnotInfo.K0_1: '0_1'>, None)
 
         Usage of option ``mirror_version``::
 
@@ -3529,7 +3548,7 @@ class Link(SageObject):
 
             sage: KnotInfo.L5a1_0.inject()
             Defining L5a1_0
-            sage: l5 = L5a1_0.link()
+            sage: l5 = Link(L5a1_0.braid())
             sage: l5.get_knotinfo()
             Traceback (most recent call last):
             ...
@@ -3599,10 +3618,82 @@ class Link(SageObject):
             sage: _.sage_link().get_knotinfo()     # optional - database_knotinfo snappy
              (<KnotInfo.K10_165: '10_165'>, False)
         """
+        def answer(L):
+            r"""
+            Return a single item of the KnotInfo database according to the keyword
+            arguments ``oriented``  and ``mirror_version``.
+            """
+            is_knot = L.is_knot()
+            if not oriented and not is_knot:
+                from sage.knots.knotinfo import KnotInfoSeries
+                L = KnotInfoSeries(L.crossing_number(), False, L.is_alternating(), L.name_unoriented())
+
+            if mirror_version:
+                chiral = True
+                if is_knot:
+                    if  L.is_amphicheiral():
+                        chiral = False
+                elif L in ls and L in lm:
+                    if proved_s and proved_m:
+                        chiral = False
+                    elif self._markov_move_cmp(self_m.braid()):
+                        chiral = False
+                    elif unique:
+                        raise NotImplementedError('this link cannot be uniquely determined (unknown chirality)')
+
+                if not chiral:
+                    mirrored = None
+                elif proved_m:
+                    mirrored = True
+                elif proved_s:
+                    mirrored = False
+                else:
+                    # nothing proved
+                    if not L in ls:
+                        mirrored = True
+                    else:
+                        mirrored = False
+
+                return L, mirrored
+            else:
+                return L
+
+        def answer_list(l):
+            r"""
+            Return a list of items of the KnotInfo database according to the keyword
+            arguments ``oriented``  and ``unique``.
+            """
+            if len(l) == 1:
+                return answer(l[0])
+
+            if not oriented:
+                lu = list(set([L.name_unoriented() for L in l]))
+                if len(lu) == 1:
+                    return answer(l[0])
+            if unique:
+                raise NotImplementedError('this link cannot be uniquely determined')
+            return sorted([answer(L) for L in l])
+
+
+        self_m = self.mirror_image()
+        ls, proved_s = self._knotinfo_matching_list()
+        lm, proved_m = self_m._knotinfo_matching_list()
+        l = list(set(ls + lm))
+
+        if proved_s and proved_m:
+            return answer_list(l)
+
+        if proved_s:
+            return answer_list(ls)
+
+        if proved_m:
+            return answer_list(lm)
+
+        # here we come if we cannot be sure about the found result
+
         cr = len(self.pd_code())
         if self.is_knot() and cr > 12:
             # we cannot not be sure if this link is recorded in the KnotInfo database
-
             raise NotImplementedError('this knot having more than 12 crossings cannot be determined')
         if not self.is_knot() and cr > 11:
             # we cannot not be sure if this link is recorded in the KnotInfo database
@@ -3615,41 +3706,12 @@ class Link(SageObject):
             # sum of K4_1 and K5_2 in the doctest of :func:`knotinfo_matching_list`)
             raise NotImplementedError('this (possibly non prime) link cannot be determined')
 
-        ls  = self._knotinfo_matching_list()
-        lm  = self.mirror_image()._knotinfo_matching_list()
-
-        from sage.sets.set import Set
-        l = list(Set(ls + lm))
-
         if not l:
             from sage.features.databases import DatabaseKnotInfo
             DatabaseKnotInfo().require()
             return None
 
-        def answer(L):
-            mirrored = not L in ls
-            if not oriented:
-                from sage.knots.knotinfo import KnotInfoSeries
-                L = KnotInfoSeries(L.crossing_number(), L.is_knot(), L.is_alternating(), L.name_unoriented())
-
-            if mirror_version:
-                return L, mirrored
-            else:
-                return L
-
-
-        if len(l) == 1:
-            return answer(l[0])
-
-        if not oriented:
-            lu = list(Set([L.name_unoriented() for L in l]))
-            if len(lu) == 1:
-                return answer(l[0])
-
-        if unique:
-            raise NotImplementedError('this link cannot be uniquely determined')
-        return sorted([answer(L) for L in l])
-
+        return answer_list(l)
 
 
     def is_isotopic(self, other):
