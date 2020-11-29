@@ -191,7 +191,13 @@ var('JMOL_DIR',                      join(SAGE_SHARE, 'jmol'))
 var('JSMOL_DIR',                     join(SAGE_SHARE, 'jsmol'))
 var('MATHJAX_DIR',                   join(SAGE_SHARE, 'mathjax'))
 var('MTXLIB',                        join(SAGE_SHARE, 'meataxe'))
-var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs-sage'))
+try:
+    import jupyter_threejs_sage
+    THREEJS_DIR = os.path.join(os.path.dirname(jupyter_threejs_sage.__file__),
+                               'static')
+except ImportError:
+    THREEJS_DIR = None
+var('THREEJS_DIR',                   THREEJS_DIR)
 var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA',                        'maxima')
