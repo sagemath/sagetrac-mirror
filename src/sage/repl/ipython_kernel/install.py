@@ -154,6 +154,9 @@ class SageKernelSpec(object):
         """
         Symlink threejs to the Jupyter notebook.
 
+        This is no longer necessary because jupyter-threejs-sage installs
+        itself as a Jupyter nbextension.
+
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
@@ -163,6 +166,8 @@ class SageKernelSpec(object):
             sage: os.path.isdir(threejs)
             True
         """
+        from sage.misc.superseded import deprecation
+        deprecation(30123, 'Symlinking threejs is no longer necessary')
         src = THREEJS_DIR
         dst = os.path.join(self.nbextensions_dir, 'threejs-sage')
         self.symlink(src, dst)
@@ -276,7 +281,6 @@ class SageKernelSpec(object):
         instance = cls(*args, **kwds)
         instance.use_local_mathjax()
         instance.use_local_jsmol()
-        instance.use_local_threejs()
         instance._install_spec()
         instance._symlink_resources()
 
