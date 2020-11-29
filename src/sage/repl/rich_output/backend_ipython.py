@@ -399,11 +399,11 @@ class BackendIPythonCommandline(BackendIPython):
 
     def threejs_offline_scripts(self):
         """
-        Three.js scripts for the IPython command line
+        Three.js script for the IPython command line
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         EXAMPLES::
 
@@ -413,23 +413,17 @@ class BackendIPythonCommandline(BackendIPython):
             '...<script ...</script>...'
         """
         from sage.env import THREEJS_DIR
+        from sage.repl.rich_output.display_manager import _required_threejs_version
 
-        scripts = [
-            os.path.join(THREEJS_DIR, script)
-            for script in [
-                'build/three.min.js',
-                'examples/js/controls/OrbitControls.js',
-            ]
-        ]
+        script = os.path.join(THREEJS_DIR, '{}/three.min.js'.format(_required_threejs_version()))
 
         if sys.platform == 'cygwin':
             import cygwin
             def normpath(p):
                 return 'file:///' + cygwin.cygpath(p, 'w').replace('\\', '/')
-            scripts = [normpath(script) for script in scripts]
+            script = normpath(script)
 
-        return '\n'.join('<script src="{0}"></script>'.format(script)
-                         for script in scripts)
+        return '\n<script src="{0}"></script>'.format(script)
 
 
 IFRAME_TEMPLATE = \
@@ -592,25 +586,26 @@ class BackendIPythonNotebook(BackendIPython):
 
     def threejs_offline_scripts(self):
         """
-        Three.js scripts for the IPython notebook
+        Three.js script for the IPython notebook
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
             sage: backend.threejs_offline_scripts()
-            '...<script src="/nbextensions/threejs/build/three.min...<\\/script>...'
+            '...<script src="/nbextensions/threejs-sage/r.../three.min.js...<\\/script>...'
         """
         from sage.repl.rich_output import get_display_manager
-        CDN_scripts = get_display_manager().threejs_scripts(online=True)
+        from sage.repl.rich_output.display_manager import _required_threejs_version
+        CDN_script = get_display_manager().threejs_scripts(online=True)
+        CDN_script = CDN_script.replace('</script>', r'<\/script>').replace('\n', ' \\\n')
         return """
-<script src="/nbextensions/threejs/build/three.min.js"></script>
-<script src="/nbextensions/threejs/examples/js/controls/OrbitControls.js"></script>
+<script src="/nbextensions/threejs-sage/{}/three.min.js"></script>
 <script>
   if ( !window.THREE ) document.write('{}');
 </script>
-        """.format(CDN_scripts.replace('</script>', r'<\/script>').replace('\n', ' \\\n'))
+        """.format(_required_threejs_version(), CDN_script)

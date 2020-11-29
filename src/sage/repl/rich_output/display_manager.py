@@ -42,6 +42,20 @@ from sage.repl.rich_output.output_basic import (
 )
 from sage.repl.rich_output.preferences import DisplayPreferences
 
+def _required_threejs_version():
+    """
+    Return the version of threejs that Sage requires.
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.display_manager import _required_threejs_version
+        sage: _required_threejs_version()
+        'r...'
+    """
+    import os
+    import sage.env
+    with open(os.path.join(sage.env.SAGE_EXTCODE, 'threejs', 'threejs-version.txt')) as f:
+        return f.read().strip()
 
 class DisplayException(Exception):
     """
@@ -718,7 +732,7 @@ class DisplayManager(SageObject):
 
     def threejs_scripts(self, online):
         """
-        Return Three.js script tags for the current backend.
+        Return Three.js script tag for the current backend.
 
         INPUT:
 
@@ -726,19 +740,19 @@ class DisplayManager(SageObject):
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         .. NOTE::
 
             This base method handles ``online=True`` case only, serving CDN
-            script tags. Location of scripts for offline usage is
+            script tag. Location of script for offline usage is
             backend-specific.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: get_display_manager().threejs_scripts(online=True)
-            '...<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@...'
+            '...<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@...'
             sage: get_display_manager().threejs_scripts(online=False)
             Traceback (most recent call last):
             ...
@@ -746,15 +760,9 @@ class DisplayManager(SageObject):
             offline threejs graphics
         """
         if online:
-            import sage.env
-            import re
-            import os
-            with open(os.path.join(sage.env.THREEJS_DIR, 'build', 'three.min.js')) as f:
-                text = f.read().replace('\n','')
-            version = re.search(r'REVISION="(\d+)"', text).group(1)
+            version = _required_threejs_version()
             return """
-<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r{0}/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r{0}/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@{0}/build/three.min.js"></script>
             """.format(version)
         try:
             return self._backend.threejs_offline_scripts()
