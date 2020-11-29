@@ -1632,6 +1632,58 @@ class KnotInfoBase(Enum):
 
         raise ValueError('Link construction using %s not possible' %use_item)
 
+    def _test_recover(self, **options):
+        r"""
+        Check if ``self`` can be recovered from its conversion to Sage links
+        using the ``pd_notation`` and the ``braid_notation`` and their
+        mirror images.
+
+        The method is used by the ``TestSuite`` of the series of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: from sage.misc.sage_unittest import instance_tester
+            sage: K = KnotInfo.K6_1
+            sage: K._test_recover(tester=instance_tester(K))
+        """
+        def recover(mirror, braid):
+            r"""
+            Check if ``self`` can be recovered form its associated
+            Sage link.
+            """
+            if braid:
+                l = self.link(self.items.braid_notation)
+            else:
+                l = self.link()
+            if mirror:
+                l = l.mirror_image()
+
+            def check_result(L):
+                r"""
+                Check a single result from ``get_knotinfo``
+                """
+                if L == (self, None):
+                    return True
+                if mirror:
+                    return L == (self, True)
+                else:
+                    return L == (self, False)
+
+            try:
+                L = l.get_knotinfo()
+                return check_result(L)
+            except NotImplementedError:
+                Ll = l.get_knotinfo(unique=False)
+                return any(check_result(L) for L in Ll)
+
+        tester = options['tester']
+        tester.assertTrue(recover(False, False))
+        tester.assertTrue(recover(True,  False))
+        tester.assertTrue(recover(False, True))
+        tester.assertTrue(recover(True, True))
+
+
 
     def inject(self, verbose=True):
         """
@@ -1657,6 +1709,7 @@ class KnotInfoBase(Enum):
         from sage.repl.user_globals import set_global
         set_global(name, self)
 
+    @cached_method
     def series(self, oriented=False):
         r"""
         Return the series of links ``self`` belongs to.
@@ -1770,7 +1823,7 @@ class KnotInfoBase(Enum):
 # --------------------------------------------------------------------------------------------
 # KnotInfoSeries
 # --------------------------------------------------------------------------------------------
-class KnotInfoSeries(UniqueRepresentation):
+class KnotInfoSeries(UniqueRepresentation, SageObject):
     r"""
     This class can be used to access knots and links via their index
     according to the series they belong to.
@@ -1820,7 +1873,6 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: L6a = KnotInfoSeries(6, False, True); L6a
             Series of links L6a
-            sage: TestSuite(L6a).run()
         """
         self._crossing_number   = crossing_number
         self._is_knot           = is_knot
@@ -2055,6 +2107,25 @@ class KnotInfoSeries(UniqueRepresentation):
         else:
             res = 'L%s%s' %(cross_nr, alt)
         return res
+
+    def _test_recover(self, **options):
+        r"""
+        Method used be ``TestSuite``. Tests if all links of the series can be
+        recovered from their conversion to Sage links. It uses :meth:`_test_recover`
+        of :class:`KnotInfoBase`.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: TestSuite(KnotInfo.L5a1_0.series()).run(verbose=True)  # indirec doctest
+            running ._test_category() . . . pass
+            running ._test_new() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
+            running ._test_recover() . . . pass
+        """
+        for L in self:
+            L._test_recover(**options)
 
 
     def inject(self, verbose=True):
