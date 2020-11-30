@@ -2117,6 +2117,7 @@ class Link(SageObject):
             regions.append(region)
         return regions
 
+    @cached_method
     def mirror_image(self):
         r"""
         Return the mirror image of ``self``.
@@ -2463,6 +2464,7 @@ class Link(SageObject):
                     cross[cross.index(b)] = a
             return t * Link(rest)._bracket() + ~t * Link(rest_2)._bracket()
 
+    @cached_method
     def _isolated_components(self):
         r"""
         Return the PD codes of the isolated components of ``self``.
@@ -2488,6 +2490,7 @@ class Link(SageObject):
         return [[list(i) for i in j]
                 for j in G.connected_components(sort=False)]
 
+    @cached_method
     def homfly_polynomial(self, var1=None, var2=None, normalization='lm'):
         r"""
         Return the HOMFLY polynomial of ``self``.
@@ -3475,7 +3478,8 @@ class Link(SageObject):
         A tuple ``(K, m)`` where ``K`` is an instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
         and ``m`` a boolean (for chiral links) telling if ``self`` corresponse
         to the mirrored version of ``K`` or not. The value of ``m`` is ``None``
-        for amphicheiral links.
+        for amphicheiral links and ``?`` if it cannot be determined uniquely
+        and the keyword option ``unique=False`` is given.
 
         If ``oriented`` is set to ``False`` then the result is a series of links
         (instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`, see explanation above).
@@ -3581,6 +3585,18 @@ class Link(SageObject):
             sage: l.get_knotinfo(unique=False)        # optional - database_knotinfo
             [(<KnotInfo.K10_25: '10_25'>, False), (<KnotInfo.K10_56: '10_56'>, False)]
 
+            sage: k11  = KnotInfo.K11n_82.link()      # optional - database_knotinfo
+            sage: k11m = k11.mirror_image()           # optional - database_knotinfo
+            sage: k11m.braid()                        # optional - database_knotinfo
+            s0*s1^-1*s0*s2^-1*s1*(s1*s2^-1)^2*s2^-2
+            sage: k11m.get_knotinfo()                 # optional - database_knotinfo
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: mirror type of this link cannot be uniquely determined
+
+            sage: k11m.get_knotinfo(unique=False)     # optional - database_knotinfo
+            [(<KnotInfo.K11n_82: '11n_82'>, '?')]
+
         Clarifying the series around the Perko pair (:wikipedia:`Perko_pair`)::
 
             sage: for i in range(160, 166):           # optional - database_knotinfo
@@ -3640,9 +3656,7 @@ class Link(SageObject):
             if mirror_version:
                 chiral = True
                 if is_knot:
-                    if  L.is_amphicheiral()\
-                     or L.is_amphicheiral(positive=True)\
-                     or L.is_amphicheiral(positive=False):
+                    if  L.is_amphicheiral() or L.is_amphicheiral(positive=True):
                         chiral = False
                 elif L in ls and L in lm:
                     if proved_s and proved_m:
@@ -3660,7 +3674,14 @@ class Link(SageObject):
                     mirrored = False
                 else:
                     # nothing proved
-                    if not L in ls:
+                    if L in ls and L in lm:
+                        # In case of a chiral link this means that the HOMFLY-PT
+                        # polynomial does not distinguish mirror images (see the above
+                        # example ``k11m``).
+                        if unique:
+                            raise NotImplementedError('mirror type of this link cannot be uniquely determined')
+                        mirrored = '?'
+                    elif L in lm:
                         mirrored = True
                     else:
                         mirrored = False

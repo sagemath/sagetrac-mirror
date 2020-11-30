@@ -824,9 +824,11 @@ class KnotInfoBase(Enum):
         """
         if not self.is_knot():
             raise NotImplementedError('This is only available for knots')
-        if not self[self.items.symmetry_type] and self.crossing_number() == 0:
+
+        symmetry_type = self[self.items.symmetry_type].strip() # for example K10_88 is a case with trailing whitespaces
+        if not symmetry_type and self.crossing_number() == 0:
             return 'fully amphicheiral'
-        return self[self.items.symmetry_type]
+        return symmetry_type
 
     @cached_method
     def is_reversible(self):
@@ -839,9 +841,10 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K6_3.is_reversible()
             True
         """
-        if self.symmetry_type() == 'reversible':
+        symmetry_type = self.symmetry_type()
+        if symmetry_type == 'reversible':
             return True
-        if self.symmetry_type() == 'fully amphicheiral':
+        if symmetry_type == 'fully amphicheiral':
             return True
         return False
 
@@ -856,22 +859,36 @@ class KnotInfoBase(Enum):
           if ``self`` is positive or negative amphicheiral (see documentation
           of :meth:`symmetry_type`)
 
+        OUTPUT:
+
+        ``True`` if ``self`` is fully or negative amphicheiral per default. if
+        ``positive`` is set to ``True`` than fully and positive amphicheiral
+        links give ``True``.
+
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: K = KnotInfo.K12a_427             # optional - database_knotinfo
-            sage: K.is_amphicheiral()               # optional - database_knotinfo
+            sage: Kp = KnotInfo.K12a_427             # optional - database_knotinfo
+            sage: Kp.is_amphicheiral()               # optional - database_knotinfo
             False
-            sage: K.is_amphicheiral(positive=True)  # optional - database_knotinfo
+            sage: Kp.is_amphicheiral(positive=True)  # optional - database_knotinfo
             True
+
+            sage: Kn = KnotInfo.K10_88               # optional - database_knotinfo
+            sage: Kn.is_amphicheiral()               # optional - database_knotinfo
+            True
+            sage: Kn.is_amphicheiral(positive=True)  # optional - database_knotinfo
+            False
         """
+        symmetry_type = self.symmetry_type()
         if positive:
-            if self.symmetry_type() == 'positive amphicheiral':
+            if symmetry_type == 'positive amphicheiral':
                 return True
         else:
-            if self.symmetry_type() == 'negative amphicheiral':
+            if symmetry_type == 'negative amphicheiral':
                 return True
-        if self.symmetry_type() == 'fully amphicheiral':
+
+        if symmetry_type == 'fully amphicheiral':
             return True
         return False
 
@@ -1663,7 +1680,7 @@ class KnotInfoBase(Enum):
                 r"""
                 Check a single result from ``get_knotinfo``
                 """
-                if L == (self, None):
+                if L == (self, None) or L == (self, '?'):
                     return True
                 if mirror:
                     return L == (self, True)
@@ -1674,8 +1691,8 @@ class KnotInfoBase(Enum):
                 L = l.get_knotinfo()
                 return check_result(L)
             except NotImplementedError:
-                Ll = l.get_knotinfo(unique=False)
-                return any(check_result(L) for L in Ll)
+                Llist = l.get_knotinfo(unique=False)
+                return any(check_result(L) for L in Llist)
 
         tester = options['tester']
         tester.assertTrue(recover(False, False))
@@ -1886,11 +1903,24 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``oriented`` -- boolean (default False) it only affects series of
-          proper links. By default the list items of a series of proper links
-          are again series of links collecting all orientation types of an
+        - ``oriented`` -- boolean (optional, default ``False``) it only affects
+          series of proper links. By default the list items of a series of proper
+          links are again series of links collecting all orientation types of an
           unoriented name. To obtain the list of the individual links this
-          keyword has to be set to ``True``.
+          keyword has to be set to ``True``
+
+        - ``comp`` (optional, default ``None``) if given an integer for this
+          keyword the list is restriced to links having the according number
+          of components. This keyword implies ``oriented=True``
+
+        - ``det`` (optional, default ``None``) if given an integer for this
+          keyword the list is restriced to links having the according value
+          for its determinant. This keyword implies ``oriented=True``
+
+        - ``homfly`` (optional, default ``None``) if given a HOMFLY-PT polynomial
+          having ``normalization='vz'`` for this keyword the list is restriced to
+          links having the according value for its HOMFLY-PT polynomial. This
+          keyword implies ``oriented=True``
 
         EXAMPLES::
 
@@ -1966,8 +1996,17 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``oriented`` -- boolean (default False) see the description
-          for :meth:`list`.
+        - ``oriented`` -- boolean (optional, default ``False``) see the
+          description for :meth:`list`
+
+        - ``comp`` (optional, default ``None``) see the description for
+          :meth:`list`
+
+        - ``det`` (optional, default ``None``) see the description for
+          :meth:`list`
+
+        - ``homfly`` (optional, default ``None``) see the description for
+          :meth:`list`
 
         EXAMPLES::
 
