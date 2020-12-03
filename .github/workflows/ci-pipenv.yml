@@ -15,6 +15,7 @@ jobs:
       run: brew install pipenv tox
     - name: Install dependencies
       run: |
+        brew install pari
         tox -e local-homebrew-macos-standard sagelib-build-deps
       env:
         EXTRA_CONFIGURE_ARGS: --enable-build-as-root
@@ -49,6 +50,7 @@ jobs:
       - name: Install dependencies
         run: |
           tox -e local-sudo-standard sagelib-build-deps
+          cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
         env:
           EXTRA_CONFIGURE_ARGS: --enable-build-as-root
           MAKE: make -j6
