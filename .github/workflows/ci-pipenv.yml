@@ -68,7 +68,7 @@ jobs:
       # The following is for testing purposes in case the pipenv install above fails
       - name: Install editable manually
         run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
-        if: failure()
+        if: always()
       - name: Test
         run: cd src && pipenv run python -c 'import sage.all; import sage.doctest.control; sage.doctest.control.run_doctests(sage)'
         env:
