@@ -14,11 +14,11 @@ jobs:
     - name: Install tools
       run: brew install pipenv tox
     - name: Install dependencies
-        run: |
-          tox -e local-homebrew-macos-standard sagelib-build-deps
-        env:
-          EXTRA_CONFIGURE_ARGS: --enable-build-as-root
-          MAKE: make -j6
+      run: |
+        tox -e local-homebrew-macos-standard sagelib-build-deps
+      env:
+        EXTRA_CONFIGURE_ARGS: --enable-build-as-root
+        MAKE: make -j6
     - name: Create virtual environment
       run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
       env:
