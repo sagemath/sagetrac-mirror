@@ -49,6 +49,7 @@ jobs:
       - name: Install dependencies
         run: |
           tox -e local-sudo-standard -- config.status
+          apt-get install -y maxima maxima-sage
           cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
           make conway_polynomials-no-deps
           make elliptic_curves-no-deps
