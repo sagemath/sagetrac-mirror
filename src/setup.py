@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from distutils.command.build_ext import build_ext
 
 import os
 import platform
@@ -10,6 +11,7 @@ from distutils import log
 from setuptools import setup, find_namespace_packages
 from sage_setup.cython_options import compiler_directives, compile_time_env_variables
 from sage_setup.extensions import create_extension
+import multiprocessing.pool
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -94,6 +96,35 @@ log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} secon
 #########################################################
 ### Distutils
 #########################################################
+
+
+class sage_build_ext(build_ext):
+
+    def initialize_options(self):
+        build_ext.initialize_options(self)
+        self.parallel = self.get_num_build_jobs()
+
+    @staticmethod
+    def get_num_build_jobs() -> int:
+        """
+        Get number of parallel build jobs used by default, i.e. unless explicitly
+        set by the --parallel command line argument of setup.py.
+
+        First, the environment variable `SAGE_NUM_BUILD_JOBS` is checked.
+        If that is unset, return the number of processors on the system,
+        with a maximum of 10 (to prevent overloading the system if there a lot of CPUs).
+
+        OUTPUT:
+            number of parallel jobs that should be run
+        """
+        try:
+            cpu_count = len(os.sched_getaffinity(0))
+        except AttributeError:
+            cpu_count = multiprocessing.cpu_count()
+        cpu_count = min(cpu_count, 10)
+        return int(os.environ.get("SAGE_NUM_BUILD_JOBS", cpu_count))
+
+
 code = setup(name = 'sage',
       version     =  SAGE_VERSION,
       description = 'Sage: Open Source Mathematics Software',
@@ -180,11 +211,14 @@ code = setup(name = 'sage',
                  'bin/sage-update-src',
                  'bin/sage-update-version',
                  ],
-        ext_modules = cythonize(cython_modules,
-                                exclude=files_to_exclude,
-                                include_path=include_directories,
-                                compile_time_env=compile_time_env_variables(),
-                                compiler_directives=compiler_directives(False),
-                                aliases=aliases,
-                                create_extension=create_extension,
-                                nthreads=4))
+        cmdclass={
+           "build_ext": sage_build_ext
+        },
+        ext_modules=cythonize(cython_modules,
+                              exclude=files_to_exclude,
+                              include_path=include_directories,
+                              compile_time_env=compile_time_env_variables(),
+                              compiler_directives=compiler_directives(False),
+                              aliases=aliases,
+                              create_extension=create_extension,
+                              nthreads=4))
