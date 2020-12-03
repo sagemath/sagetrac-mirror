@@ -51,6 +51,7 @@ jobs:
           tox -e local-sudo-standard sagelib-build-deps
         env:
           EXTRA_CONFIGURE_ARGS: --enable-build-as-root
+          MAKE: make -j6
       - name: Set up cache
         uses: actions/cache@v1
         with:
