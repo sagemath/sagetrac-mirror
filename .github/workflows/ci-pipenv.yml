@@ -11,10 +11,14 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-    - name: Install pipenv
-      run: brew install pipenv
+    - name: Install tools
+      run: brew install pipenv tox
     - name: Install dependencies
-      run: brew install pari ppl singular gsl lapack boost bdw-gc glpk libatomic_ops mpfi nauty ninja openblas openssl pandoc gpatch ppl r readline suite-sparse yasm zeromq flint arb ntl
+        run: |
+          tox -e local-homebrew-macos-standard sagelib-build-deps
+        env:
+          EXTRA_CONFIGURE_ARGS: --enable-build-as-root
+          MAKE: make -j6
     - name: Create virtual environment
       run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
       env:
