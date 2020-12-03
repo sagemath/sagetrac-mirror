@@ -48,17 +48,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
       - name: Install dependencies
         run: |
-          tox -e local-sudo-standard -- config.status
-          apt-get install -y maxima maxima-sage
-          cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
-          make conway_polynomials-no-deps
-          make elliptic_curves-no-deps
-          make combinatorial_designs-no-deps
-          make graphs-no-deps
-          make polytopes_db-no-deps
-          make gap-no-deps
-          make jmol-no-deps
-          make threejs-no-deps
+          tox -e local-sudo-standard sagelib-build-deps
         env:
           EXTRA_CONFIGURE_ARGS: --enable-build-as-root
       - name: Set up cache
