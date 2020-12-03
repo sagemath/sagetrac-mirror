@@ -20,20 +20,16 @@ jobs:
         EXTRA_CONFIGURE_ARGS: --enable-build-as-root
         MAKE: make -j6
     - name: Create virtual environment
-      run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --sequential && pipenv run pip list
+      run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock && pipenv run pip list
       env:
           PKG_CONFIG_PATH: "/usr/local/opt/openblas/lib/pkgconfig"
     - name: Install editable manually
       run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+      if: always()
       env:
           PKG_CONFIG_PATH: "/usr/local/opt/openblas/lib/pkgconfig"
     - name: Test
-      run: cd src && pipenv run python -c 'import sage.all'
-    - name: Configure
-      run: |
-        brew install autoconf automake
-        ./bootstrap -d && ./configure
-      if: always()
+      run: cd src && pipenv run python -c 'import sage.all; import sage.doctest.control; sage.doctest.control.run_doctests(sage)'
  
   linux:
     runs-on: ubuntu-latest
