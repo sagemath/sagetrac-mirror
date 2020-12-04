@@ -16300,11 +16300,11 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``should_be_invertible`` -- list of matrices; The method checks
-        whether these matrices are indeed invertible.
+          whether these matrices are indeed invertible.
 
         - ``should_be_invertible_if_self_is`` -- list of matrices (default:
-        `None`); In case ``self`` is invertible, the method checks these
-        matrices too.
+          `None`); In case ``self`` is invertible, the method checks these
+          matrices too.
 
         OUTPUT:
 
@@ -16506,7 +16506,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``t`` -- integer; represents a row in the matrix such that
-        ``self``[``t``,``t``]!=0.
+          ``self``[``t``,``t``]!=0.
 
         OUTPUT:
 
@@ -16583,7 +16583,7 @@ cdef class Matrix(Matrix1):
         The normalized form of an iwasawa decomposition is such that the
         upper-triangular matrix has powers of the uniformizer on diagonal,
         and the elements on the righthand side of the diagonal are
-        truncated :
+        truncated:
         for each row, the expansions of the elements are truncated
         starting from the valuation of the element that's on the diagonal
         in the same row. For example, over Qp(3), if the diagonal [1,1]
@@ -16597,10 +16597,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``T`` -- matrix; The upper-triangular matrix in the `iwasawa`
-        decomposition.
+          decomposition.
 
         - ``K`` -- matrix; The matrix that's invertible over the integer-
-        ring in the `iwasawa` decomposition.
+          ring in the `iwasawa` decomposition.
 
         OUTPUT:
 
@@ -16675,7 +16675,7 @@ cdef class Matrix(Matrix1):
         - ``t`` -- integer; represents a row in the matrix.
 
         - ``c`` -- integer; Represents a column in the matrix,
-        such that ``self``[``t``,``c``]!=0.
+          such that ``self``[``t``,``c``]!=0.
 
         OUTPUT:
 
@@ -16831,24 +16831,24 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``normalize`` -- boolean (default: `True`); If set to `True`,
-        the method returns a normalized iwasawa decomposition :
-        The upper-triangular matrix is normalized so that its diagonal-
-        elements are powers of the uniformizer (or zeros) and on each
-        row, the elements to the right of the diagonal are truncated
-        starting from the valuation of the element on the diagonal of
-        this row. For example, over Qp(3), if the diagonal [1,1] element
-        is 3^2, then the expansions of the other elements in the 1-th
-        row can only contain powers of 3 which are smaller than 2.
-        In case ``self`` is invertible, this defines a unique iwasawa
-        decomposition.
-        If set to `False`, the method doesn't normalize the decomposition,
-        and therefore runs more quickly.
+          the method returns a normalized iwasawa decomposition:
+          The upper-triangular matrix is normalized so that its diagonal-
+          elements are powers of the uniformizer (or zeros) and on each
+          row, the elements to the right of the diagonal are truncated
+          starting from the valuation of the element on the diagonal of
+          this row. For example, over Qp(3), if the diagonal [1,1] element
+          is 3^2, then the expansions of the other elements in the 1-th
+          row can only contain powers of 3 which are smaller than 2.
+          In case ``self`` is invertible, this defines a unique iwasawa
+          decomposition.
+          If set to `False`, the method doesn't normalize the decomposition,
+          and therefore runs more quickly.
 
         - ``certificate`` -- boolean (default: `False`); If set to `True`,
-        the method returns an additional value, which is an indication
-        to whether or not the returned matrices that should be
-        invertible are indeed so. These matrices can potentially become
-        singular due to numerical inaccuracy.
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy.
 
         OUTPUT: an iwasawa decomposition of the matrix.
 
@@ -16922,12 +16922,13 @@ cdef class Matrix(Matrix1):
             sage: T, K = M.iwasawa(normalize=False)
             sage: M - T*K == 0
             True
-            sage: # T is different from the normalized form:
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
             [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
             [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
-            sage: K
+            sage: K # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
@@ -16973,12 +16974,14 @@ cdef class Matrix(Matrix1):
             sage: T, K = M.iwasawa()
             sage: M - T*K == 0
             True
-            sage: # Note that T isn't invertible (because M isn't):
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [1 + O(a^24)           0           0]
             [          0           0 1 + O(a^40)]
             [          0           0 1 + O(a^40)]
-            sage: K
+            sage: # Note that T isn't invertible (because M isn't).
+            sage: K # doctest: +SKIP
             [1 + O(a^24)           0           0]
             [          0           0 1 + O(a^40)]
             [          0 1 + O(a^40)           0]
@@ -17064,11 +17067,13 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
             sage: T,K = M.iwasawa()
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: K
+            sage: K # doctest: +SKIP
             [1 0 0]
             [0 1 0]
             [0 0 1]
@@ -17123,13 +17128,13 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``r`` -- integer; represents a row in the matrix, such that
-        ``self``[``r``,``c``]!=0.
+          ``self``[``r``,``c``]!=0.
 
         - ``c`` -- integer; represents a column in the matrix, that should
-        be partly nullified.
+          be partly nullified.
 
         - ``rows_to_not_nullify`` -- list of integers; Rows that shouldn't
-        be touched (elements in those rows shouldn't be nullified).
+          be touched (elements in those rows shouldn't be nullified).
 
         OUTPUT:
 
@@ -17186,7 +17191,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``row`` -- integer; Row in which to look for minimal-valuation
-        elements.
+          elements.
 
         OUTPUT:
 
@@ -17333,17 +17338,17 @@ cdef class Matrix(Matrix1):
         - ``c`` -- integer; column of the element.
 
         - ``only_first_in_col`` -- boolean; whether to return only an
-        element which is the first in its column to have that (minimal)
-        valuation.
-        The meaning of 'first' is determined by the direction of the
-        search (see ``start_up`` argument).
+          element which is the first in its column to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_up`` argument).
 
         - ``start_up`` -- boolean; Whether to go over the
-        lines from top to bottom or in the opposite direction,
-        while searching for the desired element.
+          lines from top to bottom or in the opposite direction,
+          while searching for the desired element.
 
         - ``chosen_valuations`` -- list.
-        See details in the documentation of `choose_min_valuation_elem`.
+          See details in the documentation of `choose_min_valuation_elem`.
 
         OUTPUT:
 
@@ -17428,27 +17433,27 @@ cdef class Matrix(Matrix1):
         - ``r`` -- integer; row in which to search for the element.
 
         - ``only_first_in_col`` -- boolean; whether to return only an
-        element which is the first in its column to have that (minimal)
-        valuation.
-        The meaning of 'first' is determined by the direction of the
-        search (see ``start_up`` argument).
+          element which is the first in its column to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_up`` argument).
 
         - ``only_first_in_row`` -- boolean; whether to return only an
-        element which is the first in its row to have that (minimal)
-        valuation.
-        The meaning of 'first' is determined by the direction of the
-        search (see ``start_left`` argument).
+          element which is the first in its row to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_left`` argument).
 
         - ``start_up`` -- boolean; Whether to go over the
-        lines from top to bottom or in the opposite direction,
-        while searching for the desired element.
+          lines from top to bottom or in the opposite direction,
+          while searching for the desired element.
 
         - ``start_left`` -- boolean; Whether to go over
-        the columns from left to right or in the opposite direction,
-        while searching each row for the desired element.
+          the columns from left to right or in the opposite direction,
+          while searching each row for the desired element.
 
         - ``chosen_valuations`` -- list.
-        See details in the documentation of `choose_min_valuation_elem`.
+          See details in the documentation of `choose_min_valuation_elem`.
 
         OUTPUT:
 
@@ -17579,42 +17584,42 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``only_first_in_col`` -- boolean; whether to return only an
-        element which is the first in its column to have that (minimal)
-        valuation.
-        The meaning of 'first' is determined by the direction of the
-        search (see ``start_up`` argument).
+          element which is the first in its column to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_up`` argument).
 
         - ``only_first_in_row`` -- boolean; whether to return only an
-        element which is the first in its row to have that (minimal)
-        valuation.
-        The meaning of 'first' is determined by the direction of the
-        search (see ``start_left`` argument).
+          element which is the first in its row to have that (minimal)
+          valuation.
+          The meaning of 'first' is determined by the direction of the
+          search (see ``start_left`` argument).
 
         - ``start_up`` -- boolean (default: `True`); Whether to go over the
-        lines from top to bottom or in the opposite direction,
-        while searching for the desired element.
+          lines from top to bottom or in the opposite direction,
+          while searching for the desired element.
 
         - ``start_left`` -- boolean (default: `True`); Whether to go over
-        the columns from left to right or in the opposite direction,
-        while searching each row for the desired element.
+          the columns from left to right or in the opposite direction,
+          while searching each row for the desired element.
 
         - ``chosen_valuations`` -- list (default: `None`). This argument can
-        be useful in case the method is called iteratively:
-        The number of entries in ``chosen_valuations`` should be the
-        number of rows in the matrix, and each entry contains `None` in
-        case no element has been previously chosen in this row, and the
-        valuation of the chosen element, if one has been chosen. The
-        method updates the ``chosen_valuations`` list before returning a
-        chosen element, so that the entry that corresponds to its row
-        will contain the valuation of the chosen element.
-        Note that the method doesn't choose an element from a row that has
-        already been chosen (the status of the row as unchosen/chosen is
-        reflected by its entry in ``chosen_valuations`` being `None` or
-        not), and the valuation of elements is not compared against
-        elements in rows that have already been chosen. So, the returned
-        element is garaunteed to have minimal valuation in comparison with
-        its row and the part of its column that is not made up from rows
-        that have previousy been chosen.
+          be useful in case the method is called iteratively:
+          The number of entries in ``chosen_valuations`` should be the
+          number of rows in the matrix, and each entry contains `None` in
+          case no element has been previously chosen in this row, and the
+          valuation of the chosen element, if one has been chosen. The
+          method updates the ``chosen_valuations`` list before returning a
+          chosen element, so that the entry that corresponds to its row
+          will contain the valuation of the chosen element.
+          Note that the method doesn't choose an element from a row that has
+          already been chosen (the status of the row as unchosen/chosen is
+          reflected by its entry in ``chosen_valuations`` being `None` or
+          not), and the valuation of elements is not compared against
+          elements in rows that have already been chosen. So, the returned
+          element is garaunteed to have minimal valuation in comparison with
+          its row and the part of its column that is not made up from rows
+          that have previousy been chosen.
 
         OUTPUT:
 
@@ -17796,9 +17801,9 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``chosen_valuations`` -- list. This list has an entry for
-        each row in the matrix, that contains the minimal valuation
-        of elements in that row. This is the parameter by which
-        the rows are to be rearranged.
+          each row in the matrix, that contains the minimal valuation
+          of elements in that row. This is the parameter by which
+          the rows are to be rearranged.
 
         OUTPUT:
 
@@ -17857,13 +17862,13 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``chosen_valuations`` -- list of integers. This list has an
-        entry for each row in the matrix, that contains the minimal
-        valuation of elements in that row.
+          entry for each row in the matrix, that contains the minimal
+          valuation of elements in that row.
 
         - ``chosen_cols`` -- list of integers. This list has an
-        entry for each row in the matrix, that contains a column of a
-        chosen element in that row (has been chosen by the
-        `choose_min_valuation_elem` method).
+          entry for each row in the matrix, that contains a column of a
+          chosen element in that row (has been chosen by the
+          `choose_min_valuation_elem` method).
 
         OUTPUT:
 
@@ -17887,11 +17892,13 @@ cdef class Matrix(Matrix1):
             [a^-16 + O(a^24)               0               0]
             [              0  a^-1 + O(a^39)               0]
             [              0               0   a^7 + O(a^47)]
-            sage: K1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0           0 1 + O(a^40)]
             [          0 1 + O(a^40)           0]
-            sage: K2
+            sage: K2 # doctest: +SKIP
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
@@ -17985,11 +17992,13 @@ cdef class Matrix(Matrix1):
             [a^-16 + O(a^24)               0               0]
             [              0  a^-1 + O(a^39)               0]
             [              0               0   a^7 + O(a^47)]
-            sage: K1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0           0 1 + O(a^40)]
             [          0 1 + O(a^40)           0]
-            sage: K2
+            sage: K2 # doctest: +SKIP
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
@@ -18076,10 +18085,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``certificate`` -- boolean (default: `False`); If set to `True`,
-        the method returns an additional value, which is an indication
-        to whether or not the returned matrices that should be
-        invertible are indeed so. These matrices can potentially become
-        singular due to numerical inaccuracy.
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy.
 
         OUTPUT: a cartan decomposition of the matrix.
 
@@ -18126,11 +18135,13 @@ cdef class Matrix(Matrix1):
             [a^-16 + O(a^24)               0               0]
             [              0  a^-1 + O(a^39)               0]
             [              0               0   a^7 + O(a^47)]
-            sage: K1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0           0 1 + O(a^40)]
             [          0 1 + O(a^40)           0]
-            sage: K2
+            sage: K2 # doctest: +SKIP
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
@@ -18160,11 +18171,13 @@ cdef class Matrix(Matrix1):
             [s^-7    0    0]
             [   0    s    0]
             [   0    0 s^15]
-            sage: K1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
             [                            O(s^25)             3*s + 12*s^16 + O(s^19)                                   1]
             [                                  1                                   0                                   0]
             [10*s^6 + 9*s^24 + 10*s^25 + O(s^26)                                   1                                   0]
-            sage: K2
+            sage: K2 # doctest: +SKIP
             [                            O(s^30)               10 + 8*s^18 + O(s^20)          9*s^27 + 16*s^30 + O(s^31)]
             [             10 + 16*s^19 + O(s^20)                             O(s^18) 14*s^17 + 7*s^18 + 8*s^19 + O(s^20)]
             [                             O(s^5)                              O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
@@ -18191,11 +18204,13 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0           0]
-            sage: K1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0 1 + O(a^40) 1 + O(a^40)]
-            sage: K2
+            sage: K2 # doctest: +SKIP
             [1 + O(a^24)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
@@ -18280,15 +18295,17 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
             sage: K1,D,K2 = M.cartan()
-            sage: K1
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
             sage: D
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: K2
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: K1 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: K2 # doctest: +SKIP
             [1 0 0]
             [0 1 0]
             [0 0 1]
@@ -18335,13 +18352,13 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``chosen_valuations`` -- list of integers. This list has an
-        entry for each row in the matrix, that contains the minimal
-        valuation of elements in that row.
+          entry for each row in the matrix, that contains the minimal
+          valuation of elements in that row.
 
         - ``chosen_cols`` -- list of integers. This list has an
-        entry for each row in the matrix, that contains a column of a
-        chosen element in this row (has been chosen by the
-        `choose_min_valuation_elem` method).
+          entry for each row in the matrix, that contains a column of a
+          chosen element in this row (has been chosen by the
+          `choose_min_valuation_elem` method).
 
         OUTPUT:
 
@@ -18365,11 +18382,13 @@ cdef class Matrix(Matrix1):
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^47)               0]
             [              0               0  a^-1 + O(a^39)]
-            sage: B1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
-            sage: B2
+            sage: B2 # doctest: +SKIP
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
@@ -18477,11 +18496,13 @@ cdef class Matrix(Matrix1):
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^47)               0]
             [              0               0  a^-1 + O(a^39)]
-            sage: B1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
-            sage: B2
+            sage: B2 # doctest: +SKIP
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
@@ -18570,10 +18591,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``certificate`` -- boolean (default: `False`); If set to `True`,
-        the method returns an additional value, which is an indication
-        to whether or not the returned matrices that should be
-        invertible are indeed so. These matrices can potentially become
-        singular due to numerical inaccuracy.
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy.
 
         OUTPUT: a bruhat-iwahori decomposition of the matrix.
 
@@ -18623,11 +18644,13 @@ cdef class Matrix(Matrix1):
             [a^-16 + O(a^24)               0               0]
             [              0   a^7 + O(a^47)               0]
             [              0               0  a^-1 + O(a^39)]
-            sage: B1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
-            sage: B2
+            sage: B2 # doctest: +SKIP
             [            3 + 2*a^19 + O(a^40)                                0 4*a^14 + 3*a^15 + a^42 + O(a^48)]
             [                               0             2 + 4*a^20 + O(a^33)                                0]
             [                               0                                0             3 + 4*a^18 + O(a^40)]
@@ -18672,11 +18695,13 @@ cdef class Matrix(Matrix1):
             [   0    0 s^15]
             [   0 s^-7    0]
             [   s    0    0]
-            sage: B1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
             [                                  1                             O(s^25)             3*s + 12*s^16 + O(s^19)]
             [                                  0                                   1                                   0]
             [                                  0 10*s^6 + 9*s^24 + 10*s^25 + O(s^26)                                   1]
-            sage: B2
+            sage: B2 # doctest: +SKIP
             [             10 + 16*s^19 + O(s^20)                             O(s^18) 14*s^17 + 7*s^18 + 8*s^19 + O(s^20)]
             [                            O(s^30)               10 + 8*s^18 + O(s^20)          9*s^27 + 16*s^30 + O(s^31)]
             [                             O(s^5)                              O(s^4)          9 + 6*s^2 + 9*s^4 + O(s^5)]
@@ -18718,11 +18743,13 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0           0           0]
             [          0 1 + O(a^40)           0]
-            sage: B1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40) 1 + O(a^40)]
             [          0           0 1 + O(a^40)]
-            sage: B2
+            sage: B2 # doctest: +SKIP
             [1 + O(a^24)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
@@ -18804,15 +18831,17 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
             sage: B1,W,B2 = M.bruhat_iwahori()
-            sage: B1
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
             sage: W
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: B2
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: B1 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: B2 # doctest: +SKIP
             [1 0 0]
             [0 1 0]
             [0 0 1]
@@ -18865,10 +18894,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``r`` -- integer; represents a row in the matrix, such that
-        ``self``[``r``,``c``]!=0.
+          ``self``[``r``,``c``]!=0.
 
         - ``c`` -- integer; represents a column in the matrix, that should
-        be partly nullified.
+          be partly nullified.
 
         OUTPUT:
 
@@ -18930,8 +18959,8 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``row_order`` -- list of integers. ``self`` can be thought of as
-        an iwahori matrix whose rows have been rearranged so that for
-        each x,y with ``row_order``[x]==y, the x-row moved to the y-row.
+          an iwahori matrix whose rows have been rearranged so that for
+          each x,y with ``row_order``[x]==y, the x-row moved to the y-row.
 
         OUTPUT:
 
@@ -18955,11 +18984,13 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
             [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
             [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
-            sage: B
+            sage: B # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^33)           0]
             [          0           0 1 + O(a^40)]
@@ -19040,11 +19071,13 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
             [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
             [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
-            sage: B
+            sage: B # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^33)           0]
             [          0           0 1 + O(a^40)]
@@ -19123,10 +19156,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``certificate`` -- boolean (default: `False`); If set to `True`,
-        the method returns an additional value, which is an indication
-        to whether or not the returned matrices that should be
-        invertible are indeed so. These matrices can potentially become
-        singular due to numerical inaccuracy.
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy.
 
         OUTPUT: a TSB decomposition of the matrix.
 
@@ -19174,11 +19207,13 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [       3*a^-16 + 2*a^3 + O(a^24)                                0 4*a^-2 + 3*a^-1 + a^26 + O(a^32)]
             [                               0         2*a^7 + 4*a^27 + O(a^40)                                0]
             [                               0                                0        3*a^-1 + 4*a^17 + O(a^39)]
-            sage: B
+            sage: B # doctest: +SKIP
             [1 + O(a^40)           0           0]
             [          0 1 + O(a^33)           0]
             [          0           0 1 + O(a^40)]
@@ -19217,11 +19252,13 @@ cdef class Matrix(Matrix1):
             [0 0 1]
             [1 0 0]
             [0 1 0]
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [  9*s^15 + 6*s^17 + 9*s^19 + O(s^20)                      13*s^2 + O(s^7)                                    0]
             [                                   0 16*s^-5 + 6*s^13 + 13*s^14 + O(s^15)           10*s^-7 + 8*s^11 + O(s^13)]
             [                                   0                                    0          15*s^-1 + 15*s^18 + O(s^19)]
-            sage: B
+            sage: B # doctest: +SKIP
             [                          1 + O(s^20)                               O(s^18) 15*s^17 + 16*s^18 + 11*s^19 + O(s^20)]
             [           12*s^2 + 14*s^21 + O(s^22)                           1 + O(s^20)  10*s^19 + 5*s^20 + 13*s^21 + O(s^22)]
             [                               O(s^5)                                O(s^4)                            1 + O(s^5)]
@@ -19257,11 +19294,13 @@ cdef class Matrix(Matrix1):
             [1 + O(a^40)           0           0]
             [          0           0           0]
             [          0 1 + O(a^40)           0]
-            sage: T
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
             [1 + O(a^24)           0           0]
             [          0 1 + O(a^40) 1 + O(a^40)]
             [          0           0 1 + O(a^40)]
-            sage: B
+            sage: B # doctest: +SKIP
             [1 + O(a^24)           0           0]
             [          0 1 + O(a^40)           0]
             [          0           0 1 + O(a^40)]
@@ -19344,15 +19383,17 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
             sage: T,S,B = M.TSB()
-            sage: T
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
             sage: S
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: B
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: B # doctest: +SKIP
             [1 0 0]
             [0 1 0]
             [0 0 1]
@@ -19399,8 +19440,8 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``row_order`` -- list of integers. ``self`` can be thought of as
-        an upper-triangular matrix whose rows have been rearranged so that for
-        each x,y with ``row_order``[x]==y, the x-row moved to the y-row.
+          an upper-triangular matrix whose rows have been rearranged so that for
+          each x,y with ``row_order``[x]==y, the x-row moved to the y-row.
 
         OUTPUT:
 
@@ -19421,11 +19462,13 @@ cdef class Matrix(Matrix1):
             [0 1 0]
             [0 0 1]
             [1 0 0]
-            sage: T1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
             [1 2 0]
             [0 1 2]
             [0 0 1]
-            sage: T2
+            sage: T2 # doctest: +SKIP
             [   1    0  1/2]
             [   0    1    0]
             [   0    0 -1/2]
@@ -19497,11 +19540,13 @@ cdef class Matrix(Matrix1):
             [0 1 0]
             [0 0 1]
             [1 0 0]
-            sage: T1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
             [1 2 0]
             [0 1 2]
             [0 0 1]
-            sage: T2
+            sage: T2 # doctest: +SKIP
             [   1    0  1/2]
             [   0    1    0]
             [   0    0 -1/2]
@@ -19571,10 +19616,10 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``certificate`` -- boolean (default: `False`); If set to `True`,
-        the method returns an additional value, which is an indication
-        to whether or not the returned matrices that should be
-        invertible are indeed so. These matrices can potentially become
-        singular due to numerical inaccuracy.
+          the method returns an additional value, which is an indication
+          to whether or not the returned matrices that should be
+          invertible are indeed so. These matrices can potentially become
+          singular due to numerical inaccuracy.
 
         OUTPUT: a bruhat decomposition of the matrix.
 
@@ -19617,11 +19662,13 @@ cdef class Matrix(Matrix1):
             [0 1 0]
             [0 0 1]
             [1 0 0]
-            sage: T1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
             [1 2 0]
             [0 1 2]
             [0 0 1]
-            sage: T2
+            sage: T2 # doctest: +SKIP
             [   1    0  1/2]
             [   0    1    0]
             [   0    0 -1/2]
@@ -19649,11 +19696,13 @@ cdef class Matrix(Matrix1):
             [0 0 0]
             [0 1 0]
             [1 0 0]
-            sage: T1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
             [ 1 10  1]
             [ 0  1  2]
             [ 0  0  1]
-            sage: T2
+            sage: T2 # doctest: +SKIP
             [ 3 14 12]
             [ 0 18  5]
             [ 0  0  1]
@@ -19674,11 +19723,13 @@ cdef class Matrix(Matrix1):
             [         0          0 1 + O(5^3)]
             [         0 1 + O(5^3)          0]
             [1 + O(5^3)          0          0]
-            sage: T1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
             [               1 + O(5^3) 2*5^-1 + 4 + 2*5 + O(5^2)                  1 + O(5)]
             [                        0                1 + O(5^3)             5^-1 + O(5^2)]
             [                        0                         0                1 + O(5^3)]
-            sage: T2
+            sage: T2 # doctest: +SKIP
             [                2 + 5 + O(5^3)         3*5^2 + 2*5^3 + O(5^5) 3*5^4 + 2*5^5 + 2*5^6 + O(5^7)]
             [                        O(5^2)   2*5 + 2*5^2 + 4*5^3 + O(5^4)         2*5^3 + 2*5^4 + O(5^5)]
             [                          O(5)                         O(5^3)           5^2 + 4*5^3 + O(5^4)]
@@ -19711,11 +19762,13 @@ cdef class Matrix(Matrix1):
             [0 0 1]
             [0 1 0]
             [1 0 0]
-            sage: T1
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
             [                        1 4*s^7 + 16*s^22 + O(s^25)   3*s + 12*s^16 + O(s^19)]
             [                        0                         1                         0]
             [                        0                         0                         1]
-            sage: T2
+            sage: T2 # doctest: +SKIP
             [           10*s + 16*s^20 + O(s^21)         15*s^-1 + 15*s^18 + O(s^19) 14*s^18 + 7*s^19 + 8*s^20 + O(s^21)]
             [                            O(s^23)          10*s^-7 + 8*s^11 + O(s^13)          9*s^20 + 16*s^23 + O(s^24)]
             [                            O(s^20)                             O(s^18)  9*s^15 + 6*s^17 + 9*s^19 + O(s^20)]
@@ -19803,15 +19856,17 @@ cdef class Matrix(Matrix1):
             sage: S.<s> = LaurentSeriesRing(GF(17))
             sage: M = matrix(S,3,3,0)
             sage: T1,S,T2 = M.bruhat()
-            sage: T1
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
             sage: S
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: T2
+            sage: # The next 2 doctests can yield different results under 
+            sage: # different implementation, and are therefore skipped.
+            sage: T1 # doctest: +SKIP
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: T2 # doctest: +SKIP
             [1 0 0]
             [0 1 0]
             [0 0 1]
