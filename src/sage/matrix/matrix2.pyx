@@ -16496,10 +16496,10 @@ cdef class Matrix(Matrix1):
         Denote the matrix defined by the returned function by ``M``.
         Then ``M``*``self`` makes the following changes to ``self``:
         1. Converts the (``t``,``t``) element into a power of the
-            uniformizer.
+           uniformizer.
         2. Nullifies the extension of all ``t``-th row elements on the
-            righthand side of the diagonal, starting from the valuation of
-            ``self``[``t``,``t``].
+           righthand side of the diagonal, starting from the valuation of
+           ``self``[``t``,``t``].
 
         This is a helper function for the `iwasawa` decomposition method.
 
@@ -16666,7 +16666,7 @@ cdef class Matrix(Matrix1):
         Then ``self``*``M``  makes the following changes to ``self``:
         1. Switches between the columns ``t``,``c``.
         2. After switching, nullifies the first ``t`` cells in the
-            ``t``-th row.
+           ``t``-th row.
 
         This is a helper function for the `iwasawa` decomposition method.
 
@@ -17120,7 +17120,7 @@ cdef class Matrix(Matrix1):
         Denote the matrix defined by the returned function by ``M``.
         Then ``M``*``self``  makes the following changes to ``self``:
         1. Nullifies elements in the ``c`` column that are in one of the
-            following rows: {i!=``r`` | i not in ``rows_to_not_nullify``}.
+           following rows: {i!=``r`` | i not in ``rows_to_not_nullify``}.
 
         This is a helper function for the `cartan` and `bruhat-iwahori`
         decompositions methods.
@@ -17322,12 +17322,12 @@ cdef class Matrix(Matrix1):
         its column.
         Note that:
         1. In case the ``chosen_valuations`` argument is
-            used, the element is not checked against elements from rows
-            that have been previously "chosen" according to this
-            argument.
+           used, the element is not checked against elements from rows
+           that have been previously "chosen" according to this
+           argument.
         2. The method potentially approves only of an element which is
-            the first (top/bottom) in its column to have that (minimal)
-            valuation.
+           the first (top/bottom) in its column to have that (minimal)
+           valuation.
 
         This is a helper function for `choose_min_valuation_elem`.    
 
@@ -17419,12 +17419,12 @@ cdef class Matrix(Matrix1):
 
         Note that:
         1. In case the ``chosen_valuations`` argument is
-            used, the element is not checked against elements from rows
-            that have been previously "chosen" according to this
-            argument.
+           used, the element is not checked against elements from rows
+           that have been previously "chosen" according to this
+           argument.
         2. The method potentially approves only of an element which is
-            the first (left/right) in its row, and/or the first
-            (top/bottom) in its column to have that (minimal) valuation.
+           the first (left/right) in its row, and/or the first
+           (top/bottom) in its column to have that (minimal) valuation.
 
         This is a helper function for `choose_min_valuation_elem`.    
 
@@ -17574,12 +17574,12 @@ cdef class Matrix(Matrix1):
 
         Note that:
         1. In case the ``chosen_valuations`` argument is
-            used, the element is not checked against elements from rows
-            that have been previously "chosen" according to this
-            argument.
+           used, the element is not checked against elements from rows
+           that have been previously "chosen" according to this
+           argument.
         2. The method potentially chooses only an element which is
-            the first (top/bottom) in its column, or the first (right/left)
-            in its row, to have that (minimal) valuation.
+           the first (top/bottom) in its column, or the first (right/left)
+           in its row, to have that (minimal) valuation.
 
         INPUT:
 
@@ -17809,12 +17809,12 @@ cdef class Matrix(Matrix1):
 
         The method returns a tuple:
         1. ``new_row_order``, a list of tuples, that reflects the new order
-        of the rows in the following way:
-        if ``new_row_order``[i] = (j,k), it means that the j-th row (with
-        minimal valuation k) should become the i-th row.
+           of the rows in the following way:
+           if ``new_row_order``[i] = (j,k), it means that the j-th row (with
+           minimal valuation k) should become the i-th row.
         2. A function that can be used to define a permutation matrix
-        that switches between the rows of the original matrix, to
-        achieve the new row order.
+           that switches between the rows of the original matrix, to
+           achieve the new row order.
         
 
         EXAMPLES:
@@ -18886,7 +18886,7 @@ cdef class Matrix(Matrix1):
         Then ``M``*``self``  makes the following changes to ``self``:
         1. Normalizes the (``r``,``c``) element (converts it to 1).
         2. Nullifies elements in the ``c`` column above the ``r``-th row
-            (in rows with lower indexes than ``r``).
+           (in rows with lower indexes than ``r``).
 
         This is a helper function for the `TSB` and `bruhat` decompositions
         methods.
