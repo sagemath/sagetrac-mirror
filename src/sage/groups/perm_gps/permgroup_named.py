@@ -340,7 +340,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: len(list(SymmetricGroup(3)))  # indirect doctest
             6
             sage: next(iter(SymmetricGroup([2,3,5])))  # indirect doctest
-            (2,3,5)
+            ()
         """
         for p in itertools.permutations(self._domain):
             yield self.element_class(list(p), self, check=False)
@@ -3381,4 +3381,3 @@ class ComplexReflectionGroup(PermutationGroup_unique):
         ret = [self._m * i for i in reversed(range(self._n-1))]
         ret.append((self._n-1)*self._m - self._n)
         return tuple(sorted(ret, reverse=True))
-
