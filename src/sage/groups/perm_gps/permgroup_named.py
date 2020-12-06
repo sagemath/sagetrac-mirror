@@ -343,7 +343,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             (2,3,5)
         """
         for p in itertools.permutations(self._domain):
-            yield self.element_class(p, self, check=False)
+            yield self.element_class(list(p), self, check=False)
 
     def cartan_type(self):
         r"""
