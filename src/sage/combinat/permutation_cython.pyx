@@ -122,6 +122,7 @@ def permutation_iterator_transposition_list(int n):
     """
     Returns a list of transposition indices to enumerate the
     permutations on `n` letters by adjacent transpositions.
+
     Assumes zero-based lists.  We artificially limit the
     argument to `n < 12` to avoid overflowing 32-bit pointers.
     While the algorithm works for larger `n`, the user is
@@ -132,13 +133,13 @@ def permutation_iterator_transposition_list(int n):
 
         sage: import sage.combinat.permutation_cython
         sage: from sage.combinat.permutation_cython import permutation_iterator_transposition_list
-        sage: permutation_iterator_transposition_list(4)
+        sage: list(permutation_iterator_transposition_list(4))
         [2, 1, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 1, 2]
-        sage: permutation_iterator_transposition_list(200)
+        sage: list(permutation_iterator_transposition_list(200))
         Traceback (most recent call last):
         ...
         ValueError: Cowardly refusing to enumerate the permutations on more than 12 letters.
-        sage: permutation_iterator_transposition_list(1)
+        sage: list(permutation_iterator_transposition_list(1))
         []
 
         sage: # Generate the permutations of [1,2,3,4] fixing 4.
@@ -150,11 +151,11 @@ def permutation_iterator_transposition_list(int n):
         sage: print(L)
         [[1, 2, 3, 4], [1, 3, 2, 4], [3, 1, 2, 4], [3, 2, 1, 4], [2, 3, 1, 4], [2, 1, 3, 4]]
     """
-    if n <= 1:
-        return []
     if n > 12:
         raise ValueError("Cowardly refusing to enumerate the permutations "
                          "on more than 12 letters.")
+    if n <= 1:
+        return
     # Compute N = n! - 1
     cdef Py_ssize_t N = n
     cdef Py_ssize_t i
@@ -166,7 +167,8 @@ def permutation_iterator_transposition_list(int n):
     cdef int* o = c + n
     try:
         reset_swap(n, c, o)
-        return [next_swap(n, c, o) for i in range(N)]
+        for i in range(N):
+             yield next_swap(n, c, o)
     finally:
         sig_free(c)
 
@@ -415,3 +417,29 @@ cpdef list right_action_product(list S, list rp):
         rp.append(i)
     return right_action_same_n(S, rp)
 
+
+cpdef int signature(S):
+    """
+    Return the signature of S.
+
+    INPUT:
+
+    - S -- a permutation {0,...,n}
+
+    EXAMPLES::
+
+        sage: from sage.combinat.permutation_cython import signature
+        sage: signature([2,1,3,0,4])
+        1
+        sage: signature([3,1,2,0])
+        -1
+    """
+    cdef int parity = 1
+    cdef int i
+    cdef list L = list(S)
+    for i in range(len(L) - 1):
+        if L[i] != i:
+            parity = -parity
+            j = L[i:].index(i) + i
+            L[j] = L[i]
+    return parity
