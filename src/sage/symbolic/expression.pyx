@@ -5394,6 +5394,14 @@ cdef class Expression(CommutativeRingElement):
             x^2 + 1/x
             sage: (sqrt(x) + 1/sqrt(x)).subs({x: 1/x})
             sqrt(x) + 1/sqrt(x)
+
+        Check that :trac:`30378` is fixed::
+
+            sage: (x^2).subs({x: sqrt(x)})
+            x
+            sage: f(x) = x^2
+            sage: f(sqrt(x))
+            x
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -5414,7 +5422,29 @@ cdef class Expression(CommutativeRingElement):
             # Check for duplicate
             _dict_update_check_duplicate(sdict, varkwds)
 
-        cdef GExMap smap
+        cdef GExMap smap, smap0, smap1
+
+        skeys = list(sdict.keys())
+        if all(self.parent(k).is_symbol() for k in skeys):
+            # to work around the pynac bug/feature in :trac:`30378`, we do each
+            # problematic substitution in two steps: first replace the variable
+            # with a new temporary variable, then substitute into the new
+            # temporary variable
+            temp_vars = {k : self.parent().symbol() for k in skeys
+                if not set(self.parent(sdict[k]).variables()).isdisjoint(skeys)}
+            for k in skeys:
+                smap0.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
+                    (<Expression>self.coerce_in(
+                        temp_vars[k] if k in temp_vars.keys()
+                        else sdict[k]
+                        ))._gobj))
+            res = self._gobj.subs_map(smap0, 0)
+            for k in temp_vars.keys():
+                smap1.insert(make_pair((<Expression>self.coerce_in(temp_vars[k]))._gobj,
+                              (<Expression>self.coerce_in(sdict[k]))._gobj))
+            res = res.subs_map(smap1, 0)
+            return new_Expression_from_GEx(self._parent, res)
+
         for k, v in sdict.iteritems():
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
                                   (<Expression>self.coerce_in(v))._gobj))
