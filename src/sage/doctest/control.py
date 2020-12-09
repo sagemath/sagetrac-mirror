@@ -19,7 +19,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, division, print_function
 
 import random
 import os
@@ -30,7 +29,7 @@ import re
 import types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
-from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_LOCAL, SAGE_EXTCODE
+from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE
 from sage.misc.temporary_file import tmp_dir
 from cysignals.signals import AlarmInterrupt, init_cysignals
 
@@ -1079,7 +1078,7 @@ class DocTestController(SageObject):
             return 2
         opt = self.options
         if opt.gdb:
-            cmd = '''exec gdb -x "%s" --args '''%(os.path.join(SAGE_LOCAL,"bin","sage-gdb-commands"))
+            cmd = '''exec gdb -x "%s" --args '''%(os.path.join(SAGE_VENV, "bin", "sage-gdb-commands"))
             flags = ""
             if opt.logfile:
                 sage_cmd += " --logfile %s"%(opt.logfile)
