@@ -190,7 +190,11 @@ save () {
 	build/make/Makefile-auto.in \
 	src/doc/en/installation/*.txt \
 	src/doc/en/reference/spkg/*.rst \
-	src/doc/en/reference/repl/*.txt
+	src/doc/en/reference/repl/*.txt \
+	environment.yml \
+	src/environment.yml \
+	environment-optional.yml \
+	src/environment-optional.yml
 
     # Update version
     echo "$NEWCONFVERSION" >$PKG/package-version.txt
@@ -255,13 +259,6 @@ MAKE_SILENT=""
 [ "${BOOTSTRAP_QUIET}" = "yes" ] && MAKE_SILENT="-s"
 $MAKE ${MAKE_SILENT} bootstrap-clean 2>/dev/null
 mkdir config 2>/dev/null
-
-# If Sage has not been built yet, this will fail due to a missing
-# sage-env-config.
-if [ -f src/bin/sage-env-config ]; then
-    . src/bin/sage-env-config
-    . src/bin/sage-env
-fi
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
     if [ -n "$CONFTARBALL_URL" ]; then

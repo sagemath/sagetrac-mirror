@@ -175,7 +175,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, print_function
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
@@ -704,7 +703,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         - ``restart_if_needed`` (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 

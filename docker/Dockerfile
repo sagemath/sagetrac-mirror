@@ -94,7 +94,7 @@ ARG SAGE_ROOT=/home/sage/sage
 RUN mkdir -p "$SAGE_ROOT"
 WORKDIR $SAGE_ROOT
 RUN git init
-RUN git remote add trac git://trac.sagemath.org/sage.git
+RUN git remote add trac https://gitlab.com/sagemath/dev/tracmirror.git
 
 ################################################################################
 # Image with the build context added, i.e., the directory from which `docker   #
@@ -216,7 +216,10 @@ CMD ["sage"]
 # stripped that can be quickly rebuild by make.                                #
 ################################################################################
 FROM make-all as make-fast-rebuild-clean
-RUN make fast-rebuild-clean
+# Of course, without site-packages/sage, sage does not start but copying/compiling
+# them from build/pkgs/sagelib/src/build is very fast.
+RUN make fast-rebuild-clean; \
+    rm -rf local/lib/python*/site-packages/sage
 
 ################################################################################
 # Depending on whether we built from source-clean or not, this image is either #

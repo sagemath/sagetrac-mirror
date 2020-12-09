@@ -112,7 +112,6 @@ defined Cython code, and with rather tricky argument lines::
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
-from __future__ import print_function, absolute_import
 
 import ast
 import inspect
@@ -2232,7 +2231,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        20
+        21
         sage: sage_getsourcelines(matrix)[0][0]
         'def matrix(*args, **kwds):\n'
 
@@ -2313,7 +2312,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(HC)
         (['    class Homsets(HomsetsCategory):\n', ...], ...)
 
-    Testing against a bug that has occured during work on :trac:`11768`::
+    Testing against a bug that has occurred during work on :trac:`11768`::
 
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]

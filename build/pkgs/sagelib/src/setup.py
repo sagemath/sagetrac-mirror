@@ -57,18 +57,20 @@ from sage_setup.command.sage_build_ext import sage_build_ext
 print("Discovering Python/Cython source code....")
 t = time.time()
 
-distributions = ['']
-
 from sage_setup.optional_extension import is_package_installed_and_updated
 
-optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
-                                     'coxeter3', 'fes', 'sirocco', 'meataxe']
-
-distributions += ['sage-{}'.format(pkg)
-                  for pkg in optional_packages_with_extensions
-                  if is_package_installed_and_updated(pkg)]
-
-log.warn('distributions = {0}'.format(distributions))
+if sdist:
+    # No need to compute distributions.  This avoids a dependency on Cython
+    # just to make an sdist.
+    distributions = None
+else:
+    distributions = ['']
+    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
+                                         'coxeter3', 'fes', 'sirocco', 'meataxe']
+    distributions += ['sage-{}'.format(pkg)
+                      for pkg in optional_packages_with_extensions
+                      if is_package_installed_and_updated(pkg)]
+    log.warn('distributions = {0}'.format(distributions))
 
 from sage_setup.find import find_python_sources, is_package_or_namespace_package_dir
 python_packages, python_modules, cython_modules = find_python_sources(
@@ -147,7 +149,6 @@ code = setup(name = 'sage',
                  'bin/sage-cleaner',
                  ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.
                  'bin/sage-list-packages',
-                 'bin/sage-download-upstream',
                  'bin/sage-location',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',
@@ -165,7 +166,6 @@ code = setup(name = 'sage',
                  'bin/sage-num-threads.py',
                  'bin/sage-open',
                  'bin/sage-preparse',
-                 'bin/sage-pypkg-location',
                  'bin/sage-python',
                  'bin/sage-rebase.bat',
                  'bin/sage-rebase.sh',
@@ -177,7 +177,6 @@ code = setup(name = 'sage',
                  'bin/sage-startuptime.py',
                  'bin/sage-update-src',
                  'bin/sage-update-version',
-                 'bin/sage-upgrade',
                  ],
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
