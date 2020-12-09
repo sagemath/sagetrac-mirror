@@ -232,7 +232,6 @@ Classes and methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -994,7 +993,7 @@ class Permutation(CombinatorialElement):
             if toConsider == -1:
                 #Add the cycle to the list of cycles
                 if singletons:
-                    if cycle != []:
+                    if cycle:
                         cycles.append(tuple(cycle))
                 else:
                     if len(cycle) > 1:
@@ -1018,9 +1017,9 @@ class Permutation(CombinatorialElement):
                 l.remove( next )
                 toConsider = next
 
-        #When we're finished, add the last cycle
+        # When we're finished, add the last cycle
         if singletons:
-            if cycle != []:
+            if cycle:
                 cycles.append(tuple(cycle))
         else:
             if len(cycle) > 1:

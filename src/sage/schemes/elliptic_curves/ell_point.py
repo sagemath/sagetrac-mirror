@@ -116,7 +116,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, division, absolute_import
 
 import math
 
@@ -1195,7 +1194,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             (0 : 1 : 0)
 
         We now give a more interesting case, the NIST-P521 curve. Its
-        order is too big to calculate with SAGE, and takes a long time
+        order is too big to calculate with Sage, and takes a long time
         using other packages, so it is very useful here.
 
         ::
@@ -2218,7 +2217,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         e = embedding
         # It is also trivially true if we have a complex embedding
-        if not e is None:
+        if e is not None:
             if not is_RealField(e.codomain()):
                 return True
 
