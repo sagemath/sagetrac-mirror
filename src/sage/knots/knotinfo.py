@@ -23,24 +23,21 @@ access to all the properties recorded in the databases, as well.
 
 Be aware that there are a couple of conventions used differently on KnotInfo as
 in Sage, especially concerning the selection of the symmetry version of the link.
-In our transitions to Sage objects these are translated (by default) in order to
-avoid confusion about exchanged mirror versions.
 
-Briefly, these differences are:
+In this context you should note that the ``pd_notation`` is recorded counter
+clockwise in KnotInfo (see note in :meth:`KnotInfoBase.link`). In our transition
+to Sage objects this is translated (by default) in order to avoid confusion about
+exchanged mirror versions.
 
-- ``pd_notation`` --        KnotInfo: counter clockwise Sage: clockwise, see note
-  in :meth:`KnotInfoBase.link`
+Also, note that the ``braid_notation`` is used according to Sage, even thought in
+the source where they are taken from the braid generators are assumed to have a
+negative crossing which would be opposite to the convention in Sage (see definition
+3 of `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
+<https://arxiv.org/abs/math/0401051>`__).
 
-- ``homfly_polynomial`` --  KnotInfo: ``v``  Sage: `1/a`, see note in
-  :meth:`KnotInfoBase.homfly_polynomial`.
-
-- ``braid_notation``    --  This is used accordingly: The crossing of the braid
-  generators are positive in both systems. Here it is listed because there could
-  arise confusion from the source where they are taken from. There, the braid
-  generators are assumed to have a negative crossing (see definition 3  of
-  `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
-  <https://arxiv.org/abs/math/0401051>`__).
-
+For different conventions regarding normalization of the polynomial invariants see
+the according documentation of :meth:`homfly_polynomial`, :meth:`jones_polynomial`
+and :meth:`alexander_polynomial`.
 
 EXAMPLES::
 
@@ -218,6 +215,8 @@ REFERENCES:
 AUTHORS:
 
 - Sebastian Oehms August 2020: initial version
+
+Thanks to Chuck Livingston and Allison Moore for their support.
 """
 
 
@@ -234,14 +233,14 @@ AUTHORS:
 
 
 from enum import Enum
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_method
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.groups.braid import BraidGroup
 from sage.knots.knot import Knots
-from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, db
+from sage.databases.knotinfo_db import KnotInfoColumns, db
 
 
 
@@ -2149,7 +2148,7 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
     def _test_recover(self, **options):
         r"""
-        Method used be ``TestSuite``. Tests if all links of the series can be
+        Method used by ``TestSuite``. Tests if all links of the series can be
         recovered from their conversion to Sage links. It uses :meth:`_test_recover`
         of :class:`KnotInfoBase`.
 

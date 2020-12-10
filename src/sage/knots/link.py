@@ -3419,8 +3419,8 @@ class Link(SageObject):
             #
             # Since :meth:`determinant` is not implemented for proper links
             # we have to go back to the roots.
-            a = self.alexander_polynomial()
-            det = Integer(abs(a(-1)))
+            ap = self.alexander_polynomial()
+            det = Integer(abs(ap(-1)))
 
         is_knot = self.is_knot()
         if is_knot and cr < 11:
@@ -3534,14 +3534,14 @@ class Link(SageObject):
             sage: Link(b**13).get_knotinfo()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this knot having more than 12 crossings cannot be uniquely determined
+            NotImplementedError: this knot having more than 12 crossings cannot be determined
 
             sage: Link([[1, 5, 2, 4], [3, 1, 4, 8], [5, 3, 6, 2], [6, 9, 7, 10], [10, 7, 9, 8]])
             Link with 2 components represented by 5 crossings
             sage: _.get_knotinfo()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this (possibly non prime) link cannot be uniquely determined
+            NotImplementedError: this (possibly non prime) link cannot be determined
 
         Lets identify the monster unknot::
 
@@ -3616,7 +3616,8 @@ class Link(SageObject):
             10_164 ---> (<KnotInfo.K10_164: '10_164'>, False)
             10_165 ---> (<KnotInfo.K10_165: '10_165'>, True)
 
-        Clarifying ther Perko series against `SnapPy <https://snappy.math.uic.edu/index.html>`__::
+        Clarifying ther Perko series against `SnapPy
+        <https://snappy.math.uic.edu/index.html>`__::
 
             sage: import snappy                    # optional - snappy
             Plink failed to import tkinter.
@@ -3649,6 +3650,16 @@ class Link(SageObject):
             <Link 10_166: 1 comp; 10 cross>
             sage: _.sage_link().get_knotinfo()     # optional - database_knotinfo snappy
              (<KnotInfo.K10_165: '10_165'>, False)
+
+        Another pair of confusion (see the corresponding `Warning
+        <http://katlas.math.toronto.edu/wiki/10_86>`__)::
+
+           sage: Ks10_86 = snappy.Link('10_86')     # optional - snappy
+           sage: Ks10_83 = snappy.Link('10_83')     # optional - snappy
+           sage: Ks10_86.sage_link().get_knotinfo() # optional - snappy
+           (<KnotInfo.K10_83: '10_83'>, False)
+           sage: Ks10_83.sage_link().get_knotinfo() # optional - snappy
+           (<KnotInfo.K10_86: '10_86'>, True)
         """
         def answer(L):
             r"""
@@ -3657,8 +3668,7 @@ class Link(SageObject):
             """
             is_knot = L.is_knot()
             if not oriented and not is_knot:
-                from sage.knots.knotinfo import KnotInfoSeries
-                L = KnotInfoSeries(L.crossing_number(), False, L.is_alternating(), L.name_unoriented())
+                L = L.series(oriented=True)
 
             if mirror_version:
                 chiral = True
@@ -3735,20 +3745,25 @@ class Link(SageObject):
         if l and not unique:
             return answer_list(l)
 
+        uniq_txt =  ''
+        if l:
+            uniq_txt = ' uniquely'
+
         cr = len(self.pd_code())
         if self.is_knot() and cr > 12:
             # we cannot not be sure if this link is recorded in the KnotInfo database
-            raise NotImplementedError('this knot having more than 12 crossings cannot be uniquely determined')
+            raise NotImplementedError('this knot having more than 12 crossings cannot be%s determined' %uniq_txt)
+
         if not self.is_knot() and cr > 11:
             # we cannot not be sure if this link is recorded in the KnotInfo database
-            raise NotImplementedError('this link having more than 11 crossings cannot be uniquely determined')
+            raise NotImplementedError('this link having more than 11 crossings cannot be%s determined' %uniq_txt)
 
-        H = self.homfly_polynomial(normalization='az')
+        H = self.homfly_polynomial(normalization='vz')
 
-        if len(H.factor()) > 1:
+        if sum(exp for f, exp in H.factor()) > 1:
             # we cannot be sure if this is a prime link (see the example for the connected
-            # sum of K4_1 and K5_2 in the doctest of :func:`knotinfo_matching_list`)
-            raise NotImplementedError('this (possibly non prime) link cannot be uniquely determined')
+            # sum of K4_1 and K5_2 in the doctest of :meth:`_knotinfo_matching_list`)
+            raise NotImplementedError('this (possibly non prime) link cannot be%s determined' %uniq_txt)
 
         if not l:
             from sage.features.databases import DatabaseKnotInfo
