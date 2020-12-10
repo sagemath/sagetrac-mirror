@@ -27,7 +27,7 @@ class ChecksumUpdater(object):
     def __init__(self, package_name):
         self.__package = None
         self.package_name = package_name
-    
+
     @property
     def package(self):
         if self.__package is None:
@@ -53,7 +53,7 @@ class ChecksumUpdater(object):
         result.append('')   # newline at end
         return '\n'.join(result)
 
-    
+
 class PackageUpdater(ChecksumUpdater):
 
     def __init__(self, package_name, new_version):
@@ -63,9 +63,25 @@ class PackageUpdater(ChecksumUpdater):
     def _update_version(self, new_version):
         old = Package(self.package_name)
         package_version_txt = os.path.join(old.path, 'package-version.txt')
+        try:
+            with open(package_version_txt, 'r') as f:
+                self._old_version = f.read()
+        except:
+            pass
         with open(package_version_txt, 'w') as f:
             f.write(new_version.strip() + '\n')
-        
+
+    def restore_old_version(self):
+        try:
+            if self._old_version:
+                old = Package(self.package_name)
+                package_version_txt = os.path.join(old.path, 'package-version.txt')
+                with open(package_version_txt, 'w') as f:
+                    f.write(self._old_version)
+        except:
+            pass
+
+
     def download_upstream(self, download_url=None):
         tarball = self.package.tarball
         if download_url is None:

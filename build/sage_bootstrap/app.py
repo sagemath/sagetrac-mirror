@@ -73,7 +73,7 @@ class Application(object):
     def name(self, tarball_filename):
         """
         Find the package name given a tarball filename
-    
+
         $ sage --package name pari-2.8-1564-gdeac36e.tar.gz
         pari
         """
@@ -84,7 +84,7 @@ class Application(object):
     def tarball(self, package_name):
         """
         Find the tarball filename given a package name
-    
+
         $ sage --package tarball pari
         pari-2.8-1564-gdeac36e.tar.gz
         """
@@ -117,20 +117,24 @@ class Application(object):
 
     def update(self, package_name, new_version, url=None):
         """
-        Update a package. This modifies the Sage sources. 
-    
+        Update a package. This modifies the Sage sources.
+
         $ sage --package update pari 2015 --url=http://localhost/pari/tarball.tgz
         """
         log.debug('Updating %s to %s', package_name, new_version)
         update = PackageUpdater(package_name, new_version)
-        if url is not None or update.package.tarball_upstream_url:
-            log.debug('Downloading %s', url)
-            update.download_upstream(url)
-        update.fix_checksum()
+        try:
+            if url is not None or update.package.tarball_upstream_url:
+                log.debug('Downloading %s', url)
+                update.download_upstream(url)
+            update.fix_checksum()
+        except Exception as e:
+            update.restore_old_version()
+            raise e
 
     def update_latest(self, package_name):
         """
-        Update a package to the latest version. This modifies the Sage sources. 
+        Update a package to the latest version. This modifies the Sage sources.
         """
         try:
             pypi = PyPiVersion(package_name)
@@ -145,7 +149,7 @@ class Application(object):
         exclude = [
             'atlas', 'flint', 'bzip2', 'ecm', 'freetype', 'gap', 'glpk', 'graphs',
             'iconv', 'patch', 'r', 'configure', 'bliss', 'readline', 'decorator',
-            'igraph', 'rw', 'planarity', 'gambit', 
+            'igraph', 'rw', 'planarity', 'gambit',
         ]
         pc = PackageClass(':standard:')
         for package_name in pc.names:
@@ -196,7 +200,7 @@ class Application(object):
         pc.apply(self.upload)
         fs = FileServer()
         fs.publish()
-        
+
     def fix_all_checksums(self):
         """
         Fix the checksum of a package
@@ -229,7 +233,7 @@ class Application(object):
         else:
             print('Updating checksum of {0} (tarball {1})'.format(package_name, pkg.tarball_filename))
             update.fix_checksum()
-        
+
     def create(self, package_name, version, tarball, pkg_type, upstream_url):
         log.debug('Creating %s: %s, %s, %s', package_name, version, tarball, pkg_type)
         creator = PackageCreator(package_name)
@@ -245,4 +249,4 @@ class Application(object):
             else:
                 update = ChecksumUpdater(package_name)
             update.fix_checksum()
-            
+
