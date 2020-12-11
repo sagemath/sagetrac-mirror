@@ -36,6 +36,8 @@ import weakref
 
 import sage.misc.misc
 
+from cpython.object cimport Py_EQ, Py_NE
+
 from sage.libs.mpfr cimport *
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
@@ -274,7 +276,7 @@ class ComplexField_class(ring.Field):
         sage: CC == 1.1
         False
     """
-    def __init__(self, prec=53):
+    def __init__(self, prec=53, eps=None):
         """
         Initialize ``self``.
 
@@ -295,6 +297,7 @@ class ComplexField_class(ring.Field):
         from sage.categories.fields import Fields
         ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Infinite().Metric().Complete())
         self._populate_coercion_lists_(coerce_list=[RRtoCC(self._real_field(), self)])
+        self._eps = eps
 
     def __reduce__(self):
         """
@@ -1729,7 +1732,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z.is_zero()
             False
         """
-        return not (mpfr_zero_p(self.__re) and mpfr_zero_p(self.__im))
+        if self._parent._eps is None:
+            return not (mpfr_zero_p(self.__re) and mpfr_zero_p(self.__im))
+        else:
+            return abs(self) > self._parent._eps
 
     def prec(self):
         """
@@ -1972,6 +1978,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             True
         """
         cdef int a, b
+
+        if left._parent._eps is not None:
+            if op == Py_NE:
+                return abs(left - right) > left._parent._eps
+            elif op == Py_EQ:
+                return abs(left - right) <= left._parent._eps
+
         a = mpfr_nan_p(left.__re)
         b = mpfr_nan_p((<ComplexNumber>right).__re)
         if a != b:
