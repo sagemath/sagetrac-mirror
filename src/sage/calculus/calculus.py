@@ -2147,10 +2147,14 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions):
         for X in formal_functions:
+            function_name = X[1:]
             try:
-                syms[X[1:]] = _syms[X[1:]]
+                syms[function_name] = _syms[function_name]
             except KeyError:
-                syms[X[1:]] = function_factory(X[1:])
+                try:
+                    syms[function_name] = symbol_table['functions'][function_name]
+                except KeyError:
+                    syms[function_name] = function_factory(function_name)
         # You might think there is a potential very subtle bug if 'foo
         # is in a string literal -- but string literals should *never*
         # ever be part of a symbolic expression.
