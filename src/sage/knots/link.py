@@ -3458,18 +3458,20 @@ class Link(SageObject):
             return res, True
         return l, False
 
-    def get_knotinfo(self, oriented=True, mirror_version=True, unique=True):
+    def get_knotinfo(self, oriented=None, mirror_version=True, unique=True):
         r"""
         Identify this link as an item of the KontInfo database (if possible).
 
         INPUT:
 
-        - ``oriented`` -- boolean (default is ``True``). If set to ``False`` the
-          orientation of the link will be ignored and instead of an instance of
-          :class:`~sage.knots.knotinfo.KnotInfoBase` a series of links (instance
-          of :class:`~sage.knots.knotinfo.KnotInfoSeries`) will be returned collecting
-          all links having the same ``name_unoriented`` (if this is unique for
-          ``self``)
+        - ``oriented`` -- boolean (default is ``None``). If this is not set an
+          oriented link will be returned if it can be uniquely determined. If this
+          isn't possible the orientation of the link will be ignored and instead
+          of an instance of :class:`~sage.knots.knotinfo.KnotInfoBase` a series
+          of links (instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`)
+          will be returned collecting all links having the same ``name_unoriented``
+          (if this is unique for ``self``). Set this keyword to ``True`` or ``False``
+          if you like to change this behaviour.
 
         - ``mirror_version`` -- boolean (default is ``True``). If set to ``False``
           the result of the method will be just the instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
@@ -3488,8 +3490,10 @@ class Link(SageObject):
         for amphicheiral links and ``?`` if it cannot be determined uniquely
         and the keyword option ``unique=False`` is given.
 
-        If ``oriented`` is set to ``False`` then the result is a series of links
-        (instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`, see explanation above).
+        For proper links if the orientation mutant cannot be uniquely determined
+        or if the keyword ``orientation`` is set to ``False`` then K will be an
+        instance of :class:`~sage.knots.knotinfo.KnotInfoSeries` (see the
+        explanation for keyword ``orientation`` above).
 
         If ``mirror_version`` is set to ``False`` then the result is just ``K``
         (that is: ``m`` is suppressed).
@@ -3508,9 +3512,12 @@ class Link(SageObject):
             This is because all combinatorial possible oriented mutants are
             listed with individual names regardless whether they are pairwise
             non isotopic or not. In such a case the identification is not
-            unique and therefore a ``NotImplemendedError`` is raised. Here,
-            the usage of the keywords ``oriented`` and ``unique`` may help to
-            find the matching items (see example for ``L5a1_0`` below).
+            unique and therefore the unoriented series of the link will be
+            returned.
+
+            To obain the subset of this series of oriented links being isotopic
+            to ``self`` the usage of the keywords ``oriented`` and ``unique``
+            may help (see the example for ``L2a1_0`` below).
 
         EXAMPLES::
 
@@ -3556,32 +3563,7 @@ class Link(SageObject):
             sage: L.get_knotinfo(mirror_version=False) == KnotInfo.K0_1
             True
 
-        Usage of option ``oriented``::
-
-            sage: KnotInfo.L5a1_0.inject()
-            Defining L5a1_0
-            sage: l5 = Link(L5a1_0.braid())
-            sage: l5.get_knotinfo()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this link cannot be uniquely determined
-
-            sage: l5.get_knotinfo(oriented=False)
-            (Series of links L5a1, False)
-            sage: _[0].inject()
-            Defining L5a1
-            sage: list(L5a1)
-            [<KnotInfo.L5a1_0: 'L5a1{0}'>, <KnotInfo.L5a1_1: 'L5a1{1}'>]
-
         Usage of option ``unique``::
-
-            sage: L2a1 = Link(b**2)
-            sage: L2a1.get_knotinfo()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this link cannot be uniquely determined
-            sage: L2a1.get_knotinfo(unique=False)
-            [(<KnotInfo.L2a1_0: 'L2a1{0}'>, True), (<KnotInfo.L2a1_1: 'L2a1{1}'>, False)]
 
             sage: l = K.link(K.items.gauss_notation)  # optional - database_knotinfo
             sage: l.get_knotinfo()                    # optional - database_knotinfo
@@ -3603,6 +3585,40 @@ class Link(SageObject):
 
             sage: k11m.get_knotinfo(unique=False)     # optional - database_knotinfo
             [(<KnotInfo.K11n_82: '11n_82'>, '?')]
+
+        Usage of option ``oriented``::
+
+            sage: L2a1 = Link(b**2)
+            sage: L2a1.get_knotinfo()
+            (Series of links L2a1, None)
+            sage: L2a1.get_knotinfo(oriented=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this link cannot be uniquely determined
+
+            sage: L2a1.get_knotinfo(unique=False, oriented=True)
+            [(<KnotInfo.L2a1_0: 'L2a1{0}'>, True), (<KnotInfo.L2a1_1: 'L2a1{1}'>, False)]
+
+            sage: KnotInfo.L4a1_0.inject()
+            Defining L4a1_0
+            sage: l4 = L4a1_0.link()
+            sage: l4.get_knotinfo()
+            (<KnotInfo.L4a1_0: 'L4a1{0}'>, False)
+            sage: l4.get_knotinfo(oriented=False)
+            (Series of links L4a1, False)
+
+            sage: KnotInfo.L5a1_0.inject()
+            Defining L5a1_0
+            sage: l5 = Link(L5a1_0.braid())
+            sage: l5.get_knotinfo()
+            (Series of links L5a1, False)
+            sage: _[0].inject()
+            Defining L5a1
+            sage: list(L5a1)
+            [<KnotInfo.L5a1_0: 'L5a1{0}'>, <KnotInfo.L5a1_1: 'L5a1{1}'>]
+
+            sage: l5.get_knotinfo(unique=False, oriented=True)
+            [(<KnotInfo.L5a1_0: 'L5a1{0}'>, False), (<KnotInfo.L5a1_1: 'L5a1{1}'>, False)]
 
         Clarifying the series around the Perko pair (:wikipedia:`Perko_pair`)::
 
@@ -3664,24 +3680,16 @@ class Link(SageObject):
         def answer(L):
             r"""
             Return a single item of the KnotInfo database according to the keyword
-            arguments ``oriented``  and ``mirror_version``.
+            arguments ``mirror_version``.
             """
-            is_knot = L.is_knot()
-            if not oriented and not is_knot:
-                L = L.series(oriented=True)
-
             if mirror_version:
                 chiral = True
-                if is_knot:
-                    if  L.is_amphicheiral() or L.is_amphicheiral(positive=True):
-                        chiral = False
-                elif L in ls and L in lm:
-                    if proved_s and proved_m:
-                        chiral = False
-                    elif self._markov_move_cmp(self_m.braid()):
-                        chiral = False
-                    elif unique:
+                ach = L.is_amphicheiral(); achp = L.is_amphicheiral(positive=True)
+                if ach is None and achp is None:
+                    if unique:
                         raise NotImplementedError('this link cannot be uniquely determined (unknown chirality)')
+                elif  L.is_amphicheiral() or L.is_amphicheiral(positive=True):
+                    chiral = False
 
                 if not chiral:
                     mirrored = None
@@ -3707,6 +3715,31 @@ class Link(SageObject):
             else:
                 return L
 
+        def answer_unori(l):
+            r"""
+            Return a series of oriented links having the same unoriented name
+            according to the keyword ``mirror_version``.
+            """
+            S = l[0].series(oriented=True)
+            if not mirror_version:
+                return S
+
+            mirrored = [answer(L)[1] for L in l]
+            if all(mirrored):
+                # all links of the series are mirrored to self
+                return S, True
+            if any(i == '?' for i in mirrored):
+                # unknown chirality for a link of the series
+                return S, '?'
+            if any(i is None for i in mirrored):
+                # an amphicheiral link belongs to the series
+                return S, None
+            if not any(mirrored):
+                # no link of the series is mirrored to self
+                return S, False
+            # finally the series contains both mirror types
+            return S, None
+
         def answer_list(l):
             r"""
             Return a list of items of the KnotInfo database according to the keyword
@@ -3716,12 +3749,22 @@ class Link(SageObject):
                 return sorted([answer(L) for L in l])
 
             if len(l) == 1:
-                return answer(l[0])
+                L = l[0]
+                if L.is_unique() is None:
+                    # It's not known if L is isotopic to another link in the database
+                    if oriented:
+                        raise NotImplementedError('this link cannot be uniquely determined up to orientation')
+                    else:
+                        # per default the unoriented series is returned instead of L
+                        return answer_unori(l)
 
-            if not oriented:
+                if oriented is None or oriented:
+                    return answer(L)
+
+            if not oriented and not l[0].is_knot():
                 lu = list(set([L.name_unoriented() for L in l]))
                 if len(lu) == 1:
-                    return answer(l[0])
+                    return answer_unori(l)
 
             raise NotImplementedError('this link cannot be uniquely determined')
 
