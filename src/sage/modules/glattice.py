@@ -635,20 +635,7 @@ class Lattice_generic(FreeModule_generic):
 
         TESTS::
 
-            sage: TestSuite(GLattice(SymmetricGroup(3), 5)).run(verbose = True, skip=["_test_pickling", "_test_elements"])
-            running ._test_additive_associativity() . . . pass
-            running ._test_an_element() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_eq() . . . pass
-            running ._test_new() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_some_elements() . . . pass
-            running ._test_zero() . . . pass
+            sage: TestSuite(GLattice(SymmetricGroup(3), 5)).run()
         """
         self._group = G
         self._generators = G.gens()
@@ -3062,20 +3049,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             sage: act2 = matrix.identity(3)
             sage: G = PermutationGroup([(1, 2), (3, 4, 5)])
             sage: X = GLattice(G, [act1, act2])
-            sage: TestSuite(X).run(verbose = True, skip=["_test_pickling", "_test_elements"])
-            running ._test_additive_associativity() . . . pass
-            running ._test_an_element() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_eq() . . . pass
-            running ._test_new() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_some_elements() . . . pass
-            running ._test_zero() . . . pass
+            sage: TestSuite(X).run()
         """
         Lattice_generic.__init__(self, galois, action, check)
         FreeModule_ambient_pid.__init__(self, ZZ, self._rank)
@@ -3128,20 +3102,7 @@ class SubLattice(Lattice_generic, FreeModule_submodule_pid):
 
             sage: L = GLattice([10])
             sage: b = sum(L.basis())
-            sage: TestSuite(L.sublattice([b])).run(verbose = True, skip=["_test_pickling", "_test_elements"])
-            running ._test_additive_associativity() . . . pass
-            running ._test_an_element() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_eq() . . . pass
-            running ._test_new() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_some_elements() . . . pass
-            running ._test_zero() . . . pass
+            sage: TestSuite(L.sublattice([b])).run()
         """
         Lattice_generic.__init__(self, lattice.group(), lattice._action_matrices, check)
         FreeModule_submodule_pid.__init__(self, lattice.ambient_lattice(), basis)
