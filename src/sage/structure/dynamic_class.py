@@ -1,7 +1,7 @@
 """
 Dynamic classes
 
-.. rubric:: Why dynamic classes?
+.. RUBRIC:: Why dynamic classes?
 
 The short answer:
 
@@ -47,7 +47,7 @@ by inheritance::
     class MyPermutation(UniqueRepresentation, PermutationCycleType):
          ...
 
-Finaly, we may want to endow the permutations in `S` with further
+Finally, we may want to endow the permutations in `S` with further
 operations coming from the (algebraic) structure of `S`:
 
 - group operations
@@ -100,7 +100,7 @@ address. The purpose of this library is to standardize its use within
 Sage, and in particular to ensure that the constructed classes are
 reused whenever possible (unique representation), and can be pickled.
 
-.. rubric:: Combining dynamic classes and Cython classes
+.. RUBRIC:: Combining dynamic classes and Cython classes
 
 Cython classes cannot inherit from a dynamic class (there might be
 some partial support for this in the future). On the other hand, such
@@ -118,6 +118,8 @@ an inheritance can be partially emulated using :meth:`__getattr__`. See
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import copyreg
 
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -307,8 +309,8 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         (<function dynamic_class at ...>, ('FooBar', (<class __main__.Bar at ...>,), <class '__main__.Foo'>, None, None))
         sage: type(FooBar).__reduce__(FooBar)  # py3
         (<function dynamic_class at ...>, ('FooBar', (<class '__main__.Bar'>,), <class '__main__.Foo'>, None, None))
-        sage: from six.moves import cPickle
-        sage: cPickle.loads(cPickle.dumps(FooBar)) == FooBar
+        sage: import pickle
+        sage: pickle.loads(pickle.dumps(FooBar)) == FooBar
         True
 
     We check that instrospection works reasonably::
@@ -529,7 +531,6 @@ class DynamicInheritComparisonClasscallMetaclass(DynamicMetaclass, InheritCompar
     pass
 
 # This registers the appropriate reduction methods (see Trac #5985)
-from six.moves import copyreg
 for M in [DynamicMetaclass,
           DynamicClasscallMetaclass,
           DynamicInheritComparisonMetaclass,

@@ -37,7 +37,7 @@ This file contains the following elements:
       specific number of erasures in each transmitted message
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -46,7 +46,6 @@ This file contains the following elements:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -58,6 +57,7 @@ from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module import VectorSpace
 from sage.functions.other import binomial
 from copy import copy
+
 
 def random_error_vector(n, F, error_positions):
     r"""
@@ -98,7 +98,7 @@ def random_error_vector(n, F, error_positions):
 
 def format_interval(t):
     r"""
-    Returns a formatted string representation of ``t``.
+    Return a formatted string representation of ``t``.
 
     This method should be called by any representation function in Channel classes.
 
@@ -193,7 +193,7 @@ class Channel(SageObject):
 
     def transmit(self, message):
         r"""
-        Returns ``message``, modified accordingly with the algorithm of the channel it was
+        Return ``message``, modified accordingly with the algorithm of the channel it was
         transmitted through.
 
         Checks if ``message`` belongs to the input space, and returns an exception if not.
@@ -238,7 +238,7 @@ class Channel(SageObject):
         """
         if message in self.input_space():
             return self.transmit_unsafe(message)
-        else :
+        else:
             raise TypeError("Message must be an element of the input space for the given channel")
 
     #Alias for transmit method
@@ -246,7 +246,7 @@ class Channel(SageObject):
 
     def input_space(self):
         r"""
-        Returns the input space of ``self``.
+        Return the input space of ``self``.
 
         EXAMPLES::
 
@@ -260,7 +260,7 @@ class Channel(SageObject):
 
     def output_space(self):
         r"""
-        Returns the output space of ``self``.
+        Return the output space of ``self``.
 
         EXAMPLES::
 
@@ -351,7 +351,7 @@ class StaticErrorRateChannel(Channel):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -501,7 +501,7 @@ class ErrorErasureChannel(Channel):
             sage: Chan = channels.ErrorErasureChannel(GF(59)^40, n_err, n_era)
             Traceback (most recent call last):
             ...
-            ValueError: The total number of errors and erasures can not exceed the dimension of the input space
+            ValueError: The total number of errors and erasures cannot exceed the dimension of the input space
         """
         if isinstance(number_errors, (Integer, int)):
             number_errors = (number_errors, number_errors)
@@ -516,7 +516,7 @@ class ErrorErasureChannel(Channel):
         output_space = cartesian_product([space, VectorSpace(GF(2), space.dimension())])
         super(ErrorErasureChannel, self).__init__(space, output_space)
         if number_errors[1] + number_erasures[1] > space.dimension():
-            raise ValueError("The total number of errors and erasures can not exceed the dimension of the input space")
+            raise ValueError("The total number of errors and erasures cannot exceed the dimension of the input space")
         self._number_errors = number_errors
         self._number_erasures = number_erasures
 

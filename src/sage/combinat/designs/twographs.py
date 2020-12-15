@@ -30,7 +30,7 @@ AUTHORS:
 Index
 -----
 
-This module's methods are the following :
+This module's methods are the following:
 
 .. csv-table::
     :class: contentstable
@@ -41,7 +41,7 @@ This module's methods are the following :
     :meth:`~TwoGraph.complement` | returns the complement of ``self``
     :meth:`~TwoGraph.descendant` | returns the descendant graph at `w`
 
-This module's functions are the following :
+This module's functions are the following:
 
 .. csv-table::
     :class: contentstable
@@ -55,7 +55,6 @@ This module's functions are the following :
 Methods
 ---------
 """
-from __future__ import absolute_import
 
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 from itertools import combinations
@@ -247,16 +246,16 @@ def is_twograph(T):
         return bool(v_to_blocks[x] & v_to_blocks[y] & v_to_blocks[z])
 
     # Check that every quadruple contains an even number of triples
-    from six.moves.builtins import sum
     for quad in combinations(range(T.num_points()),4):
         if sum(map(has_triple,combinations(quad,3))) % 2 == 1:
             return False
 
     return True
 
+
 def twograph_descendant(G, v, name=None):
     r"""
-    Returns the descendant graph w.r.t. vertex `v` of the two-graph of `G`
+    Return the descendant graph w.r.t. vertex `v` of the two-graph of `G`
 
     In the :mod:`switching class <sage.combinat.designs.twographs>` of `G`,
     construct a graph `\Delta` with `v` an isolated vertex, and return the subgraph

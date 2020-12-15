@@ -17,8 +17,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import, division
-from six import add_metaclass
 
 from sage.combinat.partition import Partition, Partitions, _Partitions, OrderedPartitions
 from sage.combinat.partitions import ZS1_iterator
@@ -45,8 +43,8 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.combination import Combinations
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class ShiftedPrimedTableau(ClonableArray):
+class ShiftedPrimedTableau(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A shifted primed tableau.
 
@@ -1048,7 +1046,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
             ones = sorted([pos for pos, elt in read_word if elt == 1], key=lambda x: x[1])
 
-            # f_{-1} acts as zero if tableau cotnains no entries equal to 1
+            # f_{-1} acts as zero if tableau contains no entries equal to 1
             if len(ones) == 0:
                 return None
             # otherwise, f_{-1} changes last 1 in first row to 2' (if off diagonal) or 2 (if on diagonal)
@@ -2416,6 +2414,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         Check if ``self`` contains preprocessed tableau ``T``.
 
         TESTS::
+
             sage: t = ShiftedPrimedTableau._preprocess([[1,1.5],[2]])
             sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(t)
             True

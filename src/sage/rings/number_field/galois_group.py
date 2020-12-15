@@ -454,19 +454,22 @@ class GaloisGroup_v2(PermutationGroup_generic):
             # Want order to match G's, so don't sort
             return [self.element_class(x, self, check=False) for x in new_gens]
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         r"""
-        Create an element of this Galois group.
+        Create an element of this Galois group
 
         INPUT:
 
-        - ``x`` -- should be one of:
+        - ``x`` -- one of the following (`G` is this Galois group):
 
-          - the integer 1, denoting the identity of G
-          - an element of G
-          - a permutation of the right length which defines an element of G, or anything that
-            coerces into a permutation of the right length
-          - an abstract automorphism of the underlying number field.
+          - the integer 1, denoting the identity of `G`;
+
+          - an element of `G`;
+
+          - a permutation of the right length that defines an element
+            of `G`, or anything that coerces into such a permutation;
+
+          - an automorphism of the underlying number field.
 
         EXAMPLES::
 
@@ -484,7 +487,6 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if x == 1:
             return self.identity()
 
-        from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
         if isinstance(x, NumberFieldHomomorphism_im_gens) and x.parent() == self.number_field().Hom(self.number_field()):
             l = [g for g in self if g.as_hom() == x]
             if len(l) != 1:
@@ -658,15 +660,20 @@ class GaloisGroup_v2(PermutationGroup_generic):
     @cached_method
     def _ramgroups(self, P):
         """
-        Compute ramification data using Pari.
+        Compute ramification data using PARI.
 
         INPUT:
 
-        - ``P`` -- a prime ideal.
+        - ``P`` -- a prime ideal
 
         OUTPUT:
 
-        A pari vector holding the decomposition group, inertia groups, and higher ramification groups.
+        A PARI vector holding the decomposition group, inertia groups,
+        and higher ramification groups.
+
+        ALGORITHM:
+
+        This uses the PARI function :pari:`idealramgroups`.
 
         EXAMPLES::
 
@@ -831,9 +838,10 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if not self.is_galois():
             raise TypeError("Ramification breaks only defined for Galois extensions")
         ramdata = self._ramgroups(P)
+        n = len(ramdata)
         from sage.sets.set import Set
-        return Set([i - 1 for (i, (v, w)) in enumerate(zip(ramdata[:-1], ramdata[1:]))
-                    if v[1] != w[1]] + [len(ramdata) - 2])
+        return Set([i - 1 for i in range(n - 1)
+                    if ramdata[i][1] != ramdata[i + 1][1]] + [n - 2])
 
     def artin_symbol(self, P):
         r"""
@@ -938,10 +946,17 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
                To:   Number Field in a with defining polynomial x^4 + 1
                Defn: a0 |--> a^3 + a)
 
-        """
-        if self.order() == 1:
-            return self._galois_closure  # work around a silly error
+        An embedding is returned also if the subgroup is trivial
+        (:trac:`26817`)::
 
+            sage: H = G.subgroup([G.identity()])
+            sage: H.fixed_field()
+            (Number Field in a0 with defining polynomial x^4 + 1 with a0 = a,
+             Ring morphism:
+               From: Number Field in a0 with defining polynomial x^4 + 1 with a0 = a
+               To:   Number Field in a with defining polynomial x^4 + 1
+               Defn: a0 |--> a)
+        """
         vecs = [pari(g.domain()).Vecsmall() for g in self._elts]
         v = self._ambient._pari_data.galoisfixedfield(vecs)
         x = self._galois_closure(v[1])

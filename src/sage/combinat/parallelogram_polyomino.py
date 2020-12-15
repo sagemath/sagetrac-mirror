@@ -16,12 +16,6 @@ parallelogram polyominoes.
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import (
-    division, absolute_import, print_function, unicode_literals
-)
-
-from six.moves import range
-from six import add_metaclass
 
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
@@ -527,21 +521,21 @@ r"""
 This global option contains all the data needed by the Parallelogram classes
 to draw, display in ASCII, compile in latex a parallelogram polyomino.
 
-The available options are :
+The available options are:
 
 - tikz_options : this option configurate all the information useful to
   generate TIKZ code. For example, color, line size, etc ...
 
 - drawing_components : this option is used to explain to the system
   which component of the drawing you want to draw. For example,
-  you can ask to draw some elements of the following list :
+  you can ask to draw some elements of the following list:
   - the diagram,
   - the tree inside the parallelogram polyomino,
   - the bounce paths inside the parallelogram polyomino,
   - the value of the bounce on each square of a bounce path.
 
 - display : this option is used to configurate the ASCII display.
-  The available options are :
+  The available options are:
   - list : (this is the default value) is used to represent PP as a list
   containing the upper and lower path.
   - drawing : this value is used to explain we want to display an array with
@@ -650,7 +644,7 @@ class _drawing_tool:
         and XY user function.
 
         First we apply XY function, then the translation, then the mirror and
-        finaly the rotation.
+        finally the rotation.
 
         INPUT:
 
@@ -763,11 +757,11 @@ class _drawing_tool:
         - ``v2`` -- point, The second point of the line.
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -805,11 +799,11 @@ class _drawing_tool:
         - ``list_of_vertices`` -- A list of points
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -845,11 +839,11 @@ class _drawing_tool:
         - ``p1`` -- A point
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -877,8 +871,8 @@ class _drawing_tool:
         )
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class ParallelogramPolyomino(ClonableList):
+class ParallelogramPolyomino(ClonableList,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Parallelogram Polyominoes.
 
@@ -1063,22 +1057,22 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino([[0], [0]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to [0]
+            ValueError: the lower or the upper path can...t be equal to [0]
 
             sage: pp = ParallelogramPolyomino([[], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
 
             sage: pp = ParallelogramPolyomino([[0], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
 
             sage: pp = ParallelogramPolyomino([[], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
         """
         lower_path = self.lower_path()
         upper_path = self.upper_path()
@@ -1479,7 +1473,7 @@ class ParallelogramPolyomino(ClonableList):
             This is a technical function that converts binary tree to ordered
             tree with the following construction.
 
-            Add a virtual root v such that the root become :
+            Add a virtual root v such that the root become:
 
             - the left son of v if ``d`` is equal to 0;
 
@@ -1488,7 +1482,7 @@ class ParallelogramPolyomino(ClonableList):
             Then now the vertices of the ordered tree are the vertices of
             the binary tree and the virtual root.
 
-            The edges are defined as follow :
+            The edges are defined as follow:
             - if v1 is a left (resp. right) son of v2 and v2 is a right
               (resp. left) son of v3, then, in the ordered tree, v2 is the
               father of v1;
@@ -2179,7 +2173,7 @@ class ParallelogramPolyomino(ClonableList):
 
         def __getitem__(self, column):
             r"""
-            Return 0 or 1 if the is a cell inside the specific colum inside the
+            Return 0 or 1 if the is a cell inside the specific column inside the
             row.
 
             EXAMPLES::
@@ -2660,7 +2654,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.to_tikz() == pp._to_tikz_bounce()
             False
             sage: pp.set_options(drawing_components=dict(
-            ....:     diagram= False, bounce_0=True)
+            ....:     diagram=False, bounce_0=True)
             ....: )
             sage: pp.to_tikz() == pp._to_tikz_bounce([0])
             True
@@ -2833,7 +2827,7 @@ class ParallelogramPolyomino(ClonableList):
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -2880,7 +2874,7 @@ class ParallelogramPolyomino(ClonableList):
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -2938,7 +2932,7 @@ class ParallelogramPolyomino(ClonableList):
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -3343,7 +3337,7 @@ class ParallelogramPolyomino(ClonableList):
 
         OUTPUT:
 
-        A list of [row,colum] position of cells.
+        A list of [row,column] position of cells.
 
         EXAMPLES::
 
@@ -3832,7 +3826,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
         sage: PPS
         Parallelogram polyominoes of size 4
 
-        sage: sorted(list(PPS))
+        sage: sorted(PPS)
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
          [[0, 0, 1, 1], [1, 1, 0, 0]],
@@ -3862,7 +3856,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
             sage: PPS = ParallelogramPolyominoes(size=4)
             sage: PPS
             Parallelogram polyominoes of size 4
-            sage: sorted(list(PPS))
+            sage: sorted(PPS)
             [[[0, 0, 0, 1], [1, 0, 0, 0]],
              [[0, 0, 1, 1], [1, 0, 1, 0]],
              [[0, 0, 1, 1], [1, 1, 0, 0]],
@@ -3937,7 +3931,7 @@ class ParallelogramPolyominoes_size(
         sage: PPS = ParallelogramPolyominoes(4)
         sage: PPS
         Parallelogram polyominoes of size 4
-        sage: sorted(list(PPS))
+        sage: sorted(PPS)
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
          [[0, 0, 1, 1], [1, 1, 0, 0]],

@@ -97,14 +97,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import print_function, absolute_import
-from six.moves import range
 
 from .all import SL2Z
 from .arithgroup_generic import ArithmeticSubgroup
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import verbose
 import sage.arith.all as arith
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -1427,6 +1424,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: G.to_even_subgroup() == Gamma0(6)
             True
         """
+        from sage.misc.verbose import verbose
         if self.index() == 1: # the group is SL2Z (trivial case)
             return True
 

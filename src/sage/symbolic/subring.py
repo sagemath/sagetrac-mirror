@@ -86,7 +86,6 @@ AUTHORS:
 Classes and Methods
 ===================
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 # Copyright (C) 2015 Daniel Krenn <dev@danielkrenn.at>
@@ -386,6 +385,7 @@ class GenericSymbolicSubring(SymbolicRing):
             False
 
         ::
+
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: C = SymbolicSubring(no_variables=True)
             sage: C.has_coerce_map_from(ZZ)  # indirect doctest

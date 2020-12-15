@@ -1242,7 +1242,7 @@ cdef class Map(Element):
         """
         Return a section of self.
 
-        NOTE:
+        .. NOTE::
 
             By default, it returns ``None``. You may override it in subclasses.
 
@@ -1295,7 +1295,7 @@ cdef class Section(Map):
     """
     A formal section of a map.
 
-    NOTE:
+    .. NOTE::
 
         Call methods are not implemented for the base class ``Section``.
 
@@ -1464,7 +1464,7 @@ cdef class FormalCompositeMap(Map):
         - ``first``: a map or a list of maps
         - ``second``: a map or None
 
-        ..  NOTE::
+        .. NOTE::
 
             The intended use is of course that the codomain of the
             first map is contained in the domain of the second map,
@@ -1895,7 +1895,7 @@ cdef class FormalCompositeMap(Map):
             # we try the category first
             # as of 2017-06, the MRO of this class does not get patched to
             # include the category's MorphismMethods (because it is a Cython
-            # class); therefore, we can not simply call "super" but need to
+            # class); therefore, we cannot simply call "super" but need to
             # invoke the category method explicitly
             return self.getattr_from_category('is_injective')()
         except (AttributeError, NotImplementedError):
@@ -1961,7 +1961,7 @@ cdef class FormalCompositeMap(Map):
             # we try the category first
             # as of 2017-06, the MRO of this class does not get patched to
             # include the category's MorphismMethods (because it is a Cython
-            # class); therefore, we can not simply call "super" but need to
+            # class); therefore, we cannot simply call "super" but need to
             # invoke the category method explicitly
             return self.getattr_from_category('is_surjective')()
         except (AttributeError, NotImplementedError):

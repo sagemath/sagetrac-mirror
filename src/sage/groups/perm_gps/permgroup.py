@@ -128,16 +128,13 @@ REFERENCES:
    generators.
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                          David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
-from six.moves import range
-from six import integer_types
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from functools import wraps
 
@@ -158,7 +155,7 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.structure.richcmp import (richcmp_method,
-                                    richcmp, rich_to_bool, op_EQ)
+                                    richcmp, rich_to_bool, op_EQ, op_NE)
 
 
 def load_hap():
@@ -450,7 +447,7 @@ class PermutationGroup_generic(FiniteGroup):
             #Here we need to check if all of the points are integers
             #to make the domain contain all integers up to the max.
             #This is needed for backward compatibility
-            if all(isinstance(p, (Integer,) + integer_types) for p in domain):
+            if all(isinstance(p, (int, Integer)) for p in domain):
                 domain = list(range(min([1] + domain), max([1] + domain)+1))
 
         if domain not in FiniteEnumeratedSets():
@@ -692,6 +689,18 @@ class PermutationGroup_generic(FiniteGroup):
             True
             sage: H3 < H1 # since H3 is a subgroup of H1
             True
+
+        TESTS:
+
+        Check that :trac:`29624` is fixed::
+
+            sage: G = SymmetricGroup(2)
+            sage: H = PermutationGroup([(1,2)])
+            sage: not G == H
+            False
+            sage: G != H
+            False
+
         """
         if not isinstance(right, PermutationGroup_generic):
             return NotImplemented
@@ -701,7 +710,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         gSelf = self._libgap_()
         gRight = right._libgap_()
-        if op == op_EQ:
+        if op in [op_EQ,op_NE]:
             return gSelf._richcmp_(gRight, op)
 
         if gSelf.IsSubgroup(gRight):
@@ -775,7 +784,7 @@ class PermutationGroup_generic(FiniteGroup):
             ....:         if elt in G2:
             ....:             assert G1(G2(elt)) == elt
         """
-        if isinstance(x, integer_types + (Integer,)) and x == 1:
+        if isinstance(x, (int, Integer)) and x == 1:
             return self.identity()
 
         if isinstance(x, PermutationGroupElement):
@@ -840,7 +849,7 @@ class PermutationGroup_generic(FiniteGroup):
            sage: f=PG._coerce_map_from_(MG)
            sage: mg = MG.an_element()
            sage: p = f(mg); p
-           (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
+           (2,33,32,23,31,55)(3,49,38,44,40,28)(4,17,59,62,58,46)(5,21,47,20,43,8)(6,53,50)(7,37,12,57,14,29)(9,41,56,34,64,10)(11,25,19)(13,61,26,51,22,15)(16,45,36)(18,27,35,48,52,54)(24,63,42)(30,39,60)
            sage: PG(p._gap_()) == p
            True
 
@@ -889,9 +898,9 @@ class PermutationGroup_generic(FiniteGroup):
             False
             sage: g1, g2, g3 = G.gens()
             sage: P(g1*g2)
-            (1,9,7,6)(2,10)(3,11)(4,5,8,12)
+            (1,3,7,12)(2,4,8,10)(5,11)(6,9)
             sage: P1(g1*g2)
-            (1,4,13,11)(2,5,14,18)(3,15,8,16)(6,7)(9,20,19,12)(10,17)
+            (2,29,25,68)(3,57,13,54)(4,11,72,37)(5,39,60,23)(6,64,75,63)(7,21,50,73)(8,46,38,32)(9,74,35,18)(10,44,49,48)(12,16,34,71)(14,79,27,40)(15,26)(17,62,59,76)(19,78,70,65)(20,22,58,51)(24,33,36,43)(28,81,80,52)(30,53,56,69)(31,61)(41,42,67,55)(45,77)(47,66)
 
         Another check for :trac:`5583`::
 
@@ -2934,10 +2943,12 @@ class PermutationGroup_generic(FiniteGroup):
             ret_fp = ret_fp.simplified()
         return ret_fp
 
-    def quotient(self, N):
+    def quotient(self, N, **kwds):
         """
         Returns the quotient of this permutation group by the normal
         subgroup `N`, as a permutation group.
+
+        Further named arguments are passed to the permutation group constructor.
 
         Wraps the GAP operator "/".
 
@@ -2955,7 +2966,7 @@ class PermutationGroup_generic(FiniteGroup):
         # This is currently done using the right regular representation
         # FIXME: GAP certainly knows of a better way!
         phi = Q.RegularActionHomomorphism()
-        return PermutationGroup(gap_group=phi.Image())
+        return PermutationGroup(gap_group=phi.Image(), **kwds)
 
     def commutator(self, other=None):
         r"""
@@ -3582,7 +3593,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         This method returns a description of *all* block systems. Hence, the
         output is a "list of lists of lists" or a "list of lists" depending on
-        the value of ``representatives``. A bit more clearly, output is :
+        the value of ``representatives``. A bit more clearly, output is:
 
         * A list of length (#number of different block systems) of
 
@@ -4545,7 +4556,7 @@ class PermutationGroup_generic(FiniteGroup):
             1/(x^2 - 2*x + 1)
         """
         pi = self._libgap_().NaturalCharacter()
-        # because NaturalCharacter forgets about fixed points :
+        # because NaturalCharacter forgets about fixed points:
         pi += self._libgap_().TrivialCharacter() * len(self.fixed_points())
 
         # TODO: pi is a Character from a CharacterTable on self, however libgap
@@ -4671,6 +4682,28 @@ class PermutationGroup_generic(FiniteGroup):
         return [self.subgroup(gap_group=group) for group in UCS]
 
     from sage.groups.generic import structure_description
+    def sign_representation(self, base_ring=None, side="twosided"):
+        r"""
+        Return the sign representation of ``self`` over ``base_ring``.
+
+        INPUT:
+
+        - ``base_ring`` -- (optional) the base ring; the default is `\ZZ`
+        - ``side`` -- ignored
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: G.sign_representation()
+            Sign representation of Dihedral group of order 8
+             as a permutation group over Integer Ring
+        """
+        if base_ring is None:
+            from sage.rings.all import ZZ
+            base_ring = ZZ
+        from sage.modules.with_basis.representation import SignRepresentationPermgroup
+        return SignRepresentationPermgroup(self, base_ring)
+
 
 
 class PermutationGroup_subgroup(PermutationGroup_generic):

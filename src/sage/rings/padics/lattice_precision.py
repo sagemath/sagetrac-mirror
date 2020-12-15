@@ -30,7 +30,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import division
 from collections import defaultdict
 
 from sage.misc.misc import walltime
@@ -396,8 +395,6 @@ class pRational:
         else:
             val = self._valuation - other._valuation
         return self.__class__(self.p, self.x / other.x, self.exponent - other.exponent, valuation=val)
-
-    __div__ = __truediv__
 
     def _quo_rem(self, other):
         """
@@ -1893,7 +1890,7 @@ class PrecisionLattice(UniqueRepresentation, DifferentialPrecisionGeneric):
         The new precision lattice is computed as the intersection
         of the current precision lattice with the subspace
 
-        ..MATH::
+        .. MATH::
 
             p^{prec} \Z_p dx \oplus \bigoplus_{y \neq x} \Q_p dy
 
@@ -2519,12 +2516,12 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
 
         - ``prec`` -- the new precision
 
-        NOTE:
+        .. NOTE::
 
-        The new precision lattice is computed as the intersection
-        of the current precision lattice with the subspace
+            The new precision lattice is computed as the intersection
+            of the current precision lattice with the subspace.
 
-        ..MATH::
+        .. MATH::
 
             p^{prec} \Z_p dx \oplus \bigoplus_{y \neq x} \Q_p dy
 

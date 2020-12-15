@@ -38,9 +38,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
-from six import string_types
-from six import reraise as raise_
 
 import io
 import os
@@ -171,7 +168,7 @@ class Expect(Interface):
         self.__init_code = init_code
 
         #Handle the log file
-        if isinstance(logfile, string_types):
+        if isinstance(logfile, str):
             self.__logfile = None
             self.__logfilename = logfile
         else:
@@ -610,7 +607,7 @@ If this all works, you can then make calls like:
 
             sage: a = maxima('y')
             sage: maxima.quit(verbose=True)
-            Exiting Maxima with PID ... running .../bin/maxima ...
+            Exiting Maxima with PID ... running .../bin/maxima...
             sage: a._check_valid()
             Traceback (most recent call last):
             ...
@@ -782,7 +779,7 @@ If this all works, you can then make calls like:
         - ``restart_if_needed`` - (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 
@@ -884,7 +881,7 @@ If this all works, you can then make calls like:
         - ``restart_if_needed`` (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 
@@ -976,11 +973,11 @@ If this all works, you can then make calls like:
                         except (TypeError, RuntimeError):
                             pass
                         return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
-                raise_(RuntimeError, RuntimeError("%s\nError evaluating %s in %s" % (msg, line, self)), sys.exc_info()[2])
+                raise RuntimeError("%s\nError evaluating %s in %s" % (msg, line, self))
 
             if line:
                 try:
-                    if isinstance(wait_for_prompt, string_types):
+                    if isinstance(wait_for_prompt, str):
                         E.expect(str_to_bytes(wait_for_prompt))
                     else:
                         E.expect(self._prompt)
@@ -1369,7 +1366,7 @@ If this all works, you can then make calls like:
             except AttributeError:
                 pass
 
-        if not isinstance(code, string_types):
+        if not isinstance(code, str):
             raise TypeError('input code must be a string.')
 
         #Remove extra whitespace
@@ -1460,7 +1457,7 @@ class ExpectElement(InterfaceElement):
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
-        if isinstance(value, string_types) and parent._eval_using_file_cutoff and \
+        if isinstance(value, str) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True
 
@@ -1473,7 +1470,7 @@ class ExpectElement(InterfaceElement):
             # coercion to work properly.
             except (RuntimeError, ValueError) as x:
                 self._session_number = -1
-                raise_(TypeError, TypeError(*x.args), sys.exc_info()[2])
+                raise TypeError(*x.args)
             except BaseException:
                 self._session_number = -1
                 raise

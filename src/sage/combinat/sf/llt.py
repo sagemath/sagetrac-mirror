@@ -14,7 +14,6 @@ REFERENCES:
    Adv. Stud. Pure Math., vol. 28, Kinokuniya, Tokyo, 2000, pp 155-220
    :arxiv:`math/9809122v3` [math.q-alg]
 """
-from __future__ import absolute_import
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -639,7 +638,7 @@ class LLT_spin(LLT_generic):
         self._self_to_m_cache = hsp_to_m_cache[level]
         self._m_to_self_cache = m_to_hsp_cache[level]
 
-        LLT_generic.__init__(self, llt, prefix="HSp%s"%level)
+        LLT_generic.__init__(self, llt, prefix="HSp%s" % level)
 
 
     def _to_m(self, part):
@@ -708,7 +707,7 @@ class LLT_cospin(LLT_generic):
             m_to_hcosp_cache[level] = {}
         self._self_to_m_cache = hcosp_to_m_cache[level]
         self._m_to_self_cache = m_to_hcosp_cache[level]
-        LLT_generic.__init__(self, llt, prefix= "HCosp%s"%level)
+        LLT_generic.__init__(self, llt, prefix="HCosp%s" % level)
 
     def _to_m(self, part):
         r"""

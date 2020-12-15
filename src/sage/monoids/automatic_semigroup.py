@@ -18,7 +18,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import operator
 from sage.misc.all import cached_method
@@ -171,7 +170,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         ....:     z=x*y
         ....:     z.set_immutable()
         ....:     return z
-        ....:
         sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m, category=Monoids().Finite().Subobjects())
         sage: Mon.cardinality()
         24
@@ -477,7 +475,6 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             ....:     z=x*y
             ....:     z.set_immutable()
             ....:     return z
-            ....:
             sage: Mon = AutomaticSemigroup([M1,M2], mul=prod_m)
             sage: Mon.ambient()
             Full MatrixSpace of 3 by 3 dense matrices over Integer Ring

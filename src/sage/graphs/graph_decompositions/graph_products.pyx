@@ -227,7 +227,7 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
     if not g.is_connected():
         raise NotImplementedError("recognition of Cartesian product is not implemented for disconnected graphs")
 
-    # Of course the number of vertices of g can not be prime !
+    # Of course the number of vertices of g cannot be prime !
     if g.order() <= 3 or Integer(g.order()).is_prime():
         return (False, None) if relabeling else False
 
@@ -294,7 +294,7 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
     # Edges uv and u'v' such that d(u,u')+d(v,v') != d(u,v')+d(v,u') are also
     # equivalent
 
-    cdef list edges = g_int.edges(labels=False, sort=False)
+    cdef list edges = list(g_int.edges(labels=False, sort=False))
     cdef dict d = g_int.distance_all_pairs()
     cdef int uu, vv
     for i, (u, v) in enumerate(edges):

@@ -90,7 +90,6 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
         sage: v.category()
         Category of elements of Vector space of dimension 3 over Rational Field
 """
-from __future__ import absolute_import
 
 # ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu> and
@@ -449,18 +448,16 @@ class Category(UniqueRepresentation, SageObject):
 
     def __init__(self, s=None):
         """
-        Initializes this category.
+        Initialize this category.
 
         EXAMPLES::
 
             sage: class SemiprimitiveRings(Category):
             ....:     def super_categories(self):
             ....:         return [Rings()]
-            ....:
             ....:     class ParentMethods:
             ....:         def jacobson_radical(self):
             ....:             return self.ideal(0)
-            ....:
             sage: C = SemiprimitiveRings()
             sage: C
             Category of semiprimitive rings
@@ -753,7 +750,7 @@ class Category(UniqueRepresentation, SageObject):
 
     def is_abelian(self):
         """
-        Returns whether this category is abelian.
+        Return whether this category is abelian.
 
         An abelian category is a category satisfying:
 
@@ -785,6 +782,7 @@ class Category(UniqueRepresentation, SageObject):
             True
             sage: Semigroups().is_abelian()
             Traceback (most recent call last):
+            ...
             NotImplementedError: is_abelian
         """
         raise NotImplementedError("is_abelian")
@@ -1407,8 +1405,8 @@ class Category(UniqueRepresentation, SageObject):
 
         """
         tester = self._tester(**options)
-        tester.assertTrue(self.parent_class.mro() == [C.parent_class for C in self._all_super_categories] + [object])
-        tester.assertTrue(self.element_class.mro() == [C.element_class for C in self._all_super_categories] + [object])
+        tester.assertEqual(self.parent_class.mro(), [C.parent_class for C in self._all_super_categories] + [object])
+        tester.assertEqual(self.element_class.mro(), [C.element_class for C in self._all_super_categories] + [object])
 
     def _test_category(self, **options):
         r"""
@@ -2389,7 +2387,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Category.join([Groups() & Posets()], as_list=True)
             [Category of groups, Category of posets]
 
-        Support for axiom categories (TODO: put here meaningfull examples)::
+        Support for axiom categories (TODO: put here meaningful examples)::
 
             sage: Sets().Facade() & Sets().Infinite()
             Category of facade infinite sets
@@ -2898,7 +2896,6 @@ class CategoryWithParameters(Category):
         if not issubclass(C.parent_class, self.parent_class):
             return False
         return Unknown
-
 
 #############################################################
 # Join of several categories

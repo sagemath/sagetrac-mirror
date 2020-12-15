@@ -47,6 +47,7 @@ INNER_HTML_TEMPLATE = \
 </head>
 <body>
   <script type="text/javascript">
+    delete Jmol._tracker; // Prevent JSmol from phoning home.
     var script = {script};
     var Info = {{
       width: '{width}',
@@ -100,7 +101,7 @@ class JSMolHtml(SageObject):
           instance. The 3-d scene to show.
 
         - ``path_to_jsmol`` -- string (optional, default is
-          ``'/nbextensions/jsmol'``). The path (relative or absolute)
+          ``'/nbextensions/jupyter_jsmol/jsmol'``). The path (relative or absolute)
           where ``JSmol.min.js`` is served on the web server. 
 
         - ``width`` -- integer or string (optional, default:
@@ -123,7 +124,7 @@ class JSMolHtml(SageObject):
         self._jmol = jmol
         self._zip = zipfile.ZipFile(io.BytesIO(self._jmol.scene_zip.get()))
         if path_to_jsmol is None:
-            self._path = os.path.join('/', 'nbextensions', 'jsmol')
+            self._path = os.path.join('/', 'nbextensions', 'jupyter_jsmol', 'jsmol')
         else:
             self._path = path_to_jsmol
         self._width = width

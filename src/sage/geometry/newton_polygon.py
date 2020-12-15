@@ -13,7 +13,6 @@ slopes (and hence a last infinite slope).
 #
 #                  https://www.gnu.org/licenses/
 #############################################################################
-from __future__ import division
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -596,7 +595,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         sage: NP == NP2
         True
 
-    except if the contrary is explicitely mentioned::
+    except if the contrary is explicitly mentioned::
 
         sage: NewtonPolygon([0, 1, 1/2, 2/3, 1/2, 2/3, 1, 2/3], sort_slopes=False)
         Finite Newton polygon with 4 vertices: (0, 0), (1, 0), (6, 10/3), (8, 5)

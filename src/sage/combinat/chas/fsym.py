@@ -143,8 +143,8 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             FSym = self.realization_of()
             if R.realization_of() == FSym:
                 return True
-            if (isinstance(R.realization_of(), FreeSymmetricFunctions)
-                != isinstance(FSym, FreeSymmetricFunctions)):
+            if (isinstance(R.realization_of(), FreeSymmetricFunctions) !=
+                    isinstance(FSym, FreeSymmetricFunctions)):
                 # If they are dual bases, then no coercion
                 return False
             if not self.base_ring().has_coerce_map_from(R.base_ring()):
@@ -339,7 +339,6 @@ class FSymBases(Category_realization_of_parent):
                 sage: parent(z)
                 Rational Field
             """
-            x = self(x)
             y = self.dual_basis()(y)
             return self.base_ring().sum(coeff * y[t] for (t, coeff) in x)
 
@@ -1072,7 +1071,9 @@ def standardize(t):
         sage: standardize(t)
         [[1, 3, 4, 7], [2, 5, 6], [8]]
 
-    Returns an equal tableau if already standard::
+    TESTS:
+
+    This returns an equal tableau if already standard::
 
         sage: t = Tableau([[1,3,4,5],[2,6,7],[8]])
         sage: standardize(t)

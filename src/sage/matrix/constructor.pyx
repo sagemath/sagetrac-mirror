@@ -1,6 +1,6 @@
 # cython: binding=True
 """
-General matrix Constructor
+General matrix Constructor and display options
 """
 
 #*****************************************************************************
@@ -15,6 +15,7 @@ General matrix Constructor
 #*****************************************************************************
 
 from .args cimport MatrixArgs
+from sage.structure.global_options import GlobalOptions
 
 
 def matrix(*args, **kwds):
@@ -79,6 +80,10 @@ def matrix(*args, **kwds):
     - ``space`` -- matrix space which will be the parent of the output
       matrix. This determines ``ring``, ``nrows``, ``ncols`` and
       ``sparse``.
+
+    - ``immutable`` -- (boolean) make the matrix immutable. By default,
+      the output matrix is mutable.
+
 
     OUTPUT:
 
@@ -226,6 +231,14 @@ def matrix(*args, **kwds):
         [x6 x7 x8]
         sage: det(A)
         -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
+
+    ::
+
+        sage: M = Matrix([[1,2,3],[4,5,6],[7,8,9]], immutable=True)
+        sage: M[0] = [9,9,9]
+        Traceback (most recent call last):
+        ...
+        ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
     TESTS:
 
@@ -596,7 +609,6 @@ def matrix(*args, **kwds):
 
     Some calls using an iterator::
 
-        sage: from six.moves import range
         sage: matrix(QQ, 3, 6, range(18), sparse=true)
         [ 0  1  2  3  4  5]
         [ 6  7  8  9 10 11]
@@ -620,9 +632,41 @@ def matrix(*args, **kwds):
     - Jeroen Demeyer (2018-02-20): completely rewritten using
       :class:`MatrixArgs`, see :trac:`24742`
     """
-    return MatrixArgs(*args, **kwds).matrix()
-
+    immutable = kwds.pop('immutable', False)
+    M = MatrixArgs(*args, **kwds).matrix()
+    if immutable:
+        M.set_immutable()
+    return M
 
 Matrix = matrix
 
 from .special import *
+
+@matrix_method
+class options(GlobalOptions):
+    r"""
+    Global options for matrices.
+
+    @OPTIONS@
+
+    EXAMPLES::
+
+        sage: matrix.options.max_cols = 6
+        sage: matrix.options.max_rows = 3
+        sage: matrix(ZZ, 3, 6)
+        [0 0 0 0 0 0]
+        [0 0 0 0 0 0]
+        [0 0 0 0 0 0]
+        sage: matrix(ZZ, 3, 7)
+        3 x 7 dense matrix over Integer Ring...
+        sage: matrix(ZZ, 4, 6)
+        4 x 6 dense matrix over Integer Ring...
+        sage: matrix.options._reset()
+    """
+    NAME = 'Matrix'
+    max_cols = dict(default=49,
+                    description='maximum number of columns to display',
+                    checker=lambda val: val >= 0)
+    max_rows = dict(default=19,
+                    description='maximum number of rows to display',
+                    checker=lambda val: val >= 0)

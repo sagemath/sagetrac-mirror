@@ -1,5 +1,5 @@
 r"""
-Bijection classes for type `B_n^{(1)}`.
+Bijection classes for type `B_n^{(1)}`
 
 Part of the (internal) classes which runs the bijection between rigged
 configurations and KR tableaux of type `B_n^{(1)}`.
@@ -34,7 +34,6 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
 from sage.combinat.rigged_configurations.bij_type_C import KRTToRCBijectionTypeC
