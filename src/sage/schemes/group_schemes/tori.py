@@ -274,7 +274,7 @@ class AlgebraicTorus(Scheme):
 
     def splitting_degree(self):
         """
-        Returns the degree of the splitting field of the torus. It is used in :meth:`_repr_`.
+        The degree of the splitting field of the torus. It is used in :meth:`_repr_`.
 
         EXAMPLES:: 
 
@@ -284,7 +284,7 @@ class AlgebraicTorus(Scheme):
             sage: L = GLattice(Z, 1)
             sage: IL = L.induced_lattice(G)
             sage: T = AlgebraicTorus(IL)
-            sage: T
+            sage: T # indirect doctest
             Algebraic torus of rank 4 split by a degree 4 extension
             sage: T2 = AlgebraicTorus(GLattice(G, 1)); T2
             Split algebraic torus of rank 1
