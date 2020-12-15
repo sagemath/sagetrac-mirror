@@ -275,6 +275,29 @@ class AlgebraicTorus(Scheme):
         return self._lattice._rank
 
     def splitting_degree(self):
+        r"""
+        The degree of the minimal Galois extension trivializing this torus.
+
+        EXAMPLES::
+
+            sage: L = Lattice_ambient(PermutationGroup([()]), 1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3), 1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
+
+        ::
+
+            sage: T1.splitting_degree()
+            1
+            sage: T2.splitting_degree()
+            1
+            sage: T3.splitting_degree()
+            6
+        """
         return self._lattice._group.order() // self._lattice.action_kernel().order()
 
     def galois_group(self):

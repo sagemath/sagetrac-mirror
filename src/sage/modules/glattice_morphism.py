@@ -37,16 +37,16 @@ class GLatticeHomspace(sage.categories.homset.HomsetWithBase):
                 # that case
                 pass	
         for e in D.gens():
-        	for g in D.group().gens():
-        		if A*(D._action(g)(e)) != C._action(g)(A*e):
-        			raise TypeError("The morphism does not preserve the action of the group")
+            for g in D.group().gens():
+                if A*(D._action(g)(e)) != C._action(g)(A*e):
+                    raise TypeError("The morphism does not preserve the action of the group")
         return GLatticeMorphism(self, A)
 
     def _matrix_space(self):
-            try:
-                return self.__matrix_space
-            except AttributeError:
-                R = self.codomain().base_ring()
-                M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
-                self.__matrix_space = M
-                return M
+        try:
+            return self.__matrix_space
+        except AttributeError:
+            R = self.codomain().base_ring()
+            M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            self.__matrix_space = M
+            return M
