@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Basic Graphs
+Basic graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
@@ -14,7 +14,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
 
 # import from Sage library
 from sage.graphs.graph import Graph

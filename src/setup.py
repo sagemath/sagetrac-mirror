@@ -8,6 +8,12 @@ import time
 from distutils import log
 from distutils.core import setup
 
+# Work around a Cython problem in Python 3.8.x on macOS
+# https://github.com/cython/cython/issues/3262
+if os.uname().sysname == 'Darwin':
+    import multiprocessing
+    multiprocessing.set_start_method('fork', force=True)
+
 #########################################################
 ### Set source directory
 #########################################################
@@ -132,17 +138,17 @@ code = setup(name = 'sage',
                  'bin/sage-massif',
                  'bin/sage-omega',
                  'bin/sage-valgrind',
+                 'bin/sage-venv-config',
                  'bin/sage-version.sh',
                  'bin/sage-cleaner',
                  ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.
                  'bin/sage-list-packages',
-                 'bin/sage-download-upstream',
                  'bin/sage-location',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',
                  'bin/sage-env',
-                 'bin/sage-env-config',
-                 # sage-env-config.in -- not to be installed',
+                 # sage-env-config -- installed by sage_conf
+                 # sage-env-config.in -- not to be installed
                  'bin/sage-gdb-commands',
                  'bin/sage-grep',
                  'bin/sage-grepdoc',
@@ -154,7 +160,6 @@ code = setup(name = 'sage',
                  'bin/sage-num-threads.py',
                  'bin/sage-open',
                  'bin/sage-preparse',
-                 'bin/sage-pypkg-location',
                  'bin/sage-python',
                  'bin/sage-rebase.bat',
                  'bin/sage-rebase.sh',
@@ -166,7 +171,6 @@ code = setup(name = 'sage',
                  'bin/sage-startuptime.py',
                  'bin/sage-update-src',
                  'bin/sage-update-version',
-                 'bin/sage-upgrade',
                  ],
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,

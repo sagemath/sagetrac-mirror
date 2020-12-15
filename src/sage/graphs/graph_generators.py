@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Common Graphs
+Common graphs
 
 All graphs in Sage can be built through the ``graphs`` object. In order to
 build a complete graph on 15 elements, one can do::
@@ -15,7 +15,6 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from __future__ import print_function, absolute_import, division
 from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import subprocess
@@ -155,7 +154,7 @@ __append_to_doc(
      "LargeWittGraph",
      "LeonardGraph",
      "LjubljanaGraph",
-     "LintSchrijverGraph",
+     "vanLintSchrijverGraph",
      "LivingstoneGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
@@ -931,7 +930,7 @@ class GraphGenerators():
         The ``debug`` switch can be used to examine ``geng``'s reaction to the
         input in the ``options`` string.  We illustrate success.  (A failure
         will be a string beginning with ">E".)  Passing the "-q" switch to
-        ``geng`` will supress the indicator of a successful initiation, and so
+        ``geng`` will suppress the indicator of a successful initiation, and so
         the first returned value might be an empty string if ``debug`` is
         ``True``::
 
@@ -2006,7 +2005,7 @@ class GraphGenerators():
     LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
     LeonardGraph             = staticmethod(distance_regular.LeonardGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
-    LintSchrijverGraph       = staticmethod(distance_regular.LintSchrijverGraph)
+    vanLintSchrijverGraph       = staticmethod(distance_regular.vanLintSchrijverGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)

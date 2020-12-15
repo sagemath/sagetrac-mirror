@@ -1,7 +1,3 @@
-# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
-# distutils: language = c++
-# distutils: extra_compile_args = -std=c++11
-
 r"""
 Combinatorial face of a polyhedron
 
@@ -58,15 +54,15 @@ AUTHOR:
 - Jonathan Kliem (2019-05)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.superseded        import deprecated_function_alias
 
@@ -76,21 +72,8 @@ from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
-from libc.string                cimport memcpy
-
-cdef extern from "bit_vector_operations.cc":
-    cdef size_t count_atoms(uint64_t *A, size_t face_length)
-#        Return the number of atoms/vertices in A.
-#        This is the number of set bits in A.
-#        ``face_length`` is the length of A in terms of uint64_t.
-
-    cdef size_t bit_rep_to_coatom_rep(
-            uint64_t *face, uint64_t **coatoms, size_t n_coatoms,
-            size_t face_length, size_t *output)
-#        Write the coatom-representation of face in output. Return length.
-#        ``face_length`` is the length of ``face`` and ``coatoms[i]``
-#        in terms of uint64_t.
-#        ``n_coatoms`` length of ``coatoms``.
+from .face_data_structure       cimport face_len_atoms, face_init, face_copy
+from .face_list_data_structure  cimport bit_rep_to_coatom_rep
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -113,7 +96,7 @@ cdef class CombinatorialFace(SageObject):
 
         sage: F = C.face_lattice()
         sage: F._elements[3]
-        29
+        34
         sage: C.face_by_face_lattice_index(29)
         A 1-dimensional face of a 5-dimensional combinatorial polyhedron
 
@@ -184,19 +167,24 @@ cdef class CombinatorialFace(SageObject):
             # Copy data from FaceIterator.
             it = data
             self._dual              = it.dual
-            self.face_mem           = ListOfFaces(1, it.structure.face_length*64)
-            self.face               = self.face_mem.data[0]
-            memcpy(self.face, it.structure.face, it.structure.face_length*8)
             self._mem               = MemoryAllocator()
+            self.atoms              = it.atoms
+            self.coatoms            = it.coatoms
+
+            if it.structure.face_status == 0:
+                raise LookupError("face iterator not set to a face")
+
+            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_copy(self.face, it.structure.face)
+
             self._dimension         = it.structure.current_dimension
             self._ambient_dimension = it.structure.dimension
-            self.face_length        = it.structure.face_length
             self._ambient_Vrep      = it._Vrep
             self._ambient_facets    = it._facet_names
             self._equalities        = it._equalities
-            self.atoms              = it.atoms
-            self.coatoms            = it.coatoms
             self._hash_index        = it.structure._index
+
+            self._initialized_from_face_lattice = False
 
         elif isinstance(data, PolyhedronFaceLattice):
             all_faces = data
@@ -207,24 +195,36 @@ cdef class CombinatorialFace(SageObject):
 
             # Copy data from PolyhedronFaceLattice.
             self._dual              = all_faces.dual
-            self.face_mem           = ListOfFaces(1, all_faces.face_length*64)
-            self.face               = self.face_mem.data[0]
-            memcpy(self.face, all_faces.faces[dimension+1][index], all_faces.face_length*8)
             self._mem               = MemoryAllocator()
+            self.atoms              = all_faces.atoms
+            self.coatoms            = all_faces.coatoms
+
+            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_copy(self.face, all_faces.faces[dimension+1].faces[index])
+
             self._dimension         = dimension
             self._ambient_dimension = all_faces.dimension
-            self.face_length        = all_faces.face_length
             self._ambient_Vrep      = all_faces._Vrep
             self._ambient_facets    = all_faces._facet_names
             self._equalities        = all_faces._equalities
-            self.atoms              = all_faces.atoms
-            self.coatoms            = all_faces.coatoms
+
+            self._initialized_from_face_lattice = True
 
             self._hash_index = index
             for i in range(-1,dimension):
                 self._hash_index += all_faces.f_vector[i+1]
+
+            # Add the complete ``f-vector`` to the hash index,
+            # such that hash values obtained by an iterator or by the face lattice
+            # do not collide.
+            for i in range(-1,self._ambient_dimension+1):
+                self._hash_index += all_faces.f_vector[i+1]
         else:
             raise NotImplementedError("data must be face iterator or a list of all faces")
+
+        if self._dual:
+            # Reverse the hash index in dual mode to respect inclusion of faces.
+            self._hash_index = -self._hash_index - 1
 
     def _repr_(self):
         r"""
@@ -267,12 +267,18 @@ cdef class CombinatorialFace(SageObject):
         r"""
         Return an index for the face.
 
+        This is constructed such that for faces `F,G` constructed in the same manner (same face iterator or face lattice)
+        it holds that `F` contained in `G` implies ``hash(F) < hash(G)``.
+
         If the face was constructed from a :class:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
-        then this is the index of the occurence in the iterator.
+        then this is the index of the occurrence in the iterator.
+        In dual mode this value is then deducted from the maximal value of ``size_t``.
 
         If the face was constructed from
-        :meth:`sage:geometry.polyhedron.combinatorial_polyhedronn.base.CombinatorialPolyhedron.face_by_face_lattice_index`,
-        then this the index in the level set plus the number of lower dimension (or higher dimension).
+        :meth:`sage:geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron.face_by_face_lattice_index`,
+        then this is the total number of faces plus the index in the level set plus the number of lower dimensional faces
+        (or higher dimensional faces in dual mode).
+        In dual mode this value is then deducted from the maximal value of ``size_t``.
 
         EXAMPLES::
 
@@ -295,6 +301,51 @@ cdef class CombinatorialFace(SageObject):
             sage: G = F.relabel(C.face_by_face_lattice_index)
         """
         return self._hash_index
+
+    def __lt__(self, other):
+        r"""
+        Compare faces of the same polyhedron.
+
+        This is a helper function.
+        In order to construct a Hasse diagram (a digraph) with combinatorial faces,
+        we must define some order relation that is compatible with the Hasse diagram.
+
+        Any order relation compatible with ordering by dimension is suitable.
+        We use :meth:`__hash__` to define the relation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: F1 = C.face_by_face_lattice_index(0)
+            sage: F2 = C.face_by_face_lattice_index(1)
+            sage: F1 < F2
+            True
+            sage: for i,j in Combinations(range(28), 2):
+            ....:     F1 = C.face_by_face_lattice_index(i)
+            ....:     F2 = C.face_by_face_lattice_index(j)
+            ....:     if F1.dim() != F2.dim():
+            ....:          assert (F1.dim() < F2.dim()) == (F1 < F2)
+
+            sage: P = polytopes.cross_polytope(3)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: F1 = C.face_by_face_lattice_index(0)
+            sage: F2 = C.face_by_face_lattice_index(1)
+            sage: F1 < F2
+            True
+            sage: for i,j in Combinations(range(28), 2):
+            ....:     F1 = C.face_by_face_lattice_index(i)
+            ....:     F2 = C.face_by_face_lattice_index(j)
+            ....:     if F1.dim() != F2.dim():
+            ....:          assert (F1.dim() < F2.dim()) == (F1 < F2)
+        """
+        cdef CombinatorialFace other_face
+        if isinstance(other, CombinatorialFace):
+            other_face = other
+            if (self._initialized_from_face_lattice == other_face._initialized_from_face_lattice and
+                    self.atoms is other_face.atoms):
+                # They are faces of the same polyhedron obtained in the same way.
+                return hash(self) < hash(other)
 
     def dimension(self):
         r"""
@@ -705,32 +756,23 @@ cdef class CombinatorialFace(SageObject):
         Compute the number of atoms in the current face by counting the
         number of set bits.
         """
-        if self.face:
-            return count_atoms(self.face, self.face_length)
-
-        # The face was not initialized properly.
-        raise LookupError("``FaceIterator`` does not point to a face")
+        return face_len_atoms(self.face)
 
     cdef size_t set_coatom_rep(self) except -1:
         r"""
         Set ``coatom_rep`` to be the coatom-representation of the current face.
         Return its length.
         """
-        cdef size_t n_coatoms = self.coatoms.n_faces
-        cdef uint64_t **coatoms = self.coatoms.data
-        cdef size_t face_length = self.face_length
         if not self.coatom_rep:
-            self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
-        return bit_rep_to_coatom_rep(self.face, coatoms, n_coatoms,
-                                       face_length, self.coatom_rep)
+            self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
+        return bit_rep_to_coatom_rep(self.face, self.coatoms.data, self.coatom_rep)
 
     cdef size_t set_atom_rep(self) except -1:
         r"""
         Set ``atom_rep`` to be the atom-representation of the current face.
         Return its length.
         """
-        cdef size_t face_length = self.face_length
         if not self.atom_rep:
-            self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
-        return bit_rep_to_Vrep_list(self.face, self.atom_rep, face_length)
+            self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
+        return bit_rep_to_Vrep_list(self.face, self.atom_rep)
 

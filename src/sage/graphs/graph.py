@@ -410,7 +410,6 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 import itertools
 
 from copy import copy
@@ -424,6 +423,10 @@ from sage.graphs.independent_sets import IndependentSets
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
 from sage.graphs.views import EdgesView
 
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('sage.graphs.mcqd', ['mcqd'],
+            feature=PythonModule('sage.graphs.mcqd', spkg='mcqd'))
 
 class Graph(GenericGraph):
     r"""
@@ -1031,7 +1034,7 @@ class Graph(GenericGraph):
             data_structure = 'static_sparse'
 
         # If the data structure is static_sparse, we first build a graph
-        # using the sparse data structure, then reencode the resulting graph
+        # using the sparse data structure, then re-encode the resulting graph
         # as a static sparse graph.
         from sage.graphs.base.sparse_graph import SparseGraphBackend
         from sage.graphs.base.dense_graph import DenseGraphBackend
@@ -1178,9 +1181,8 @@ class Graph(GenericGraph):
             if data.get_pos() is not None:
                 pos = data.get_pos()
             self.name(data.name())
-            self.add_vertices(data.vertex_iterator())
             self.set_vertices(data.get_vertices())
-            self.add_edges(data.edge_iterator(), loops=loops)
+            data._backend.subgraph_given_vertices(self._backend, data)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
                 r = lambda x: None if x=={} else x
@@ -1370,6 +1372,32 @@ class Graph(GenericGraph):
             sage: H = Graph(_)
             sage: H.order(), H.size()
             (1, 2)
+
+        Sparse6 encoding of canonical graph is unique (:trac:`31026`)::
+
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: H = Graph([(0,1),(1,2),(2,3),(3,0),(1,3)])
+            sage: G == H
+            False
+            sage: G.is_isomorphic(H)
+            True
+            sage: G.sparse6_string() == H.sparse6_string()
+            False
+            sage: G_ = G.canonical_label()
+            sage: H_ = H.canonical_label()
+            sage: G_ == H_
+            True
+            sage: G_.sparse6_string() == H_.sparse6_string()
+            True
+
+        The method can handle vertices with different types (:trac:`31026`)::
+
+            sage: G = Graph([(1, 'a')])
+            sage: H = Graph(G.sparse6_string())
+            sage: G.is_isomorphic(H)
+            True
+            sage: set(G) == set(H)
+            False
         """
         n = self.order()
         if not n:
@@ -1379,7 +1407,11 @@ class Graph(GenericGraph):
         if n == 1:
             s = '0' * self.size()
         else:
-            v_to_int = {v:i for i,v in enumerate(self)}
+            try:
+                V = sorted(self)
+            except TypeError:
+                V = self
+            v_to_int = {v:i for i,v in enumerate(V)}
             edges = [sorted((v_to_int[u], v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
             edges.sort(key=lambda e: (e[1], e[0])) # reverse lexicographic order
 
@@ -1430,116 +1462,6 @@ class Graph(GenericGraph):
             False
         """
         return False
-
-
-    @doc_index("Connectivity, orientations, trees")
-    def spanning_trees(self, labels=False):
-        """
-        Returns a list of all spanning trees.
-
-        If the graph is disconnected, returns the empty list.
-
-        Uses the Read-Tarjan backtracking algorithm [RT1975a]_.
-
-        INPUT:
-
-        - ``labels`` -- boolean (default: ``False``); whether to return edges
-          labels in the spanning trees or not
-
-        EXAMPLES::
-
-            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)], multiedges=True)
-            sage: len(G.spanning_trees())
-            8
-            sage: G.spanning_trees_count()
-            8
-            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)], multiedges=True)
-            sage: len(G.spanning_trees())
-            6
-            sage: G.spanning_trees_count()
-            6
-
-        .. SEEALSO::
-
-            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-              -- counts the number of spanning trees.
-
-            - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
-              -- returns a random spanning tree.
-
-        TESTS:
-
-        Works with looped graphs::
-
-            sage: g = Graph({i:[i,(i+1)%6] for i in range(6)})
-            sage: g.spanning_trees()
-            [Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices,
-             Graph on 6 vertices]
-
-        Edges of the spanning trees can be labeled
-        or unlabeled (:trac:`27557`)::
-
-            sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
-            sage: l = g.spanning_trees(labels=True)
-            sage: l[0].edges()
-            [(1, 2, 4), (1, 4, 5)]
-            sage: l[1].edges()
-            [(1, 2, 1), (1, 4, 5)]
-            sage: l[2].edges()
-            [(1, 2, 2), (1, 4, 5)]
-        """
-
-        def _recursive_spanning_trees(G, forest, labels):
-            """
-            Returns all the spanning trees of G containing forest
-            """
-            if not G.is_connected():
-                return []
-
-            if G.size() == forest.size():
-                return [forest.copy()]
-            else:
-                # Pick an edge e from G-forest
-                for e in G.edge_iterator(labels=labels):
-                    if not forest.has_edge(e):
-                        break
-
-                # 1) Recursive call with e removed from G
-                G.delete_edge(e)
-                trees = _recursive_spanning_trees(G, forest, labels)
-                G.add_edge(e)
-
-                # 2) Recursive call with e include in forest
-                #
-                # e=xy links the CC (connected component) of forest containing x
-                # with the CC containing y. Any other edge which does that
-                # cannot be added to forest anymore, and B is the list of them
-                c1 = forest.connected_component_containing_vertex(e[0])
-                c2 = forest.connected_component_containing_vertex(e[1])
-                G.delete_edge(e)
-                B = G.edge_boundary(c1, c2, sort=False)
-                G.add_edge(e)
-
-                # Actual call
-                forest.add_edge(e)
-                G.delete_edges(B)
-                trees.extend(_recursive_spanning_trees(G, forest, labels))
-                G.add_edges(B)
-                forest.delete_edge(e)
-
-                return trees
-
-        if self.is_connected() and self.order():
-            forest = Graph()
-            forest.add_vertices(self.vertex_iterator())
-            forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest, labels)
-        else:
-            return []
 
     ### Properties
     @doc_index("Graph properties")
@@ -1716,7 +1638,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate=True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate=True)
-            (False, [62, 63, 68, 66, 61])
+            (False, [68, 66, 69, 67, 65])
         """
         connected_components = self.connected_components()
         number_of_connected_components = len(connected_components)
@@ -2647,308 +2569,6 @@ class Graph(GenericGraph):
         return left == right
 
     @doc_index("Algorithmically hard stuff")
-    def treewidth(self, k=None, certificate=False, algorithm=None):
-        r"""
-        Computes the tree-width of `G` (and provides a decomposition)
-
-        INPUT:
-
-        - ``k`` -- integer (default: ``None``); indicates the width to be
-          considered. When ``k`` is an integer, the method checks that the graph
-          has treewidth `\leq k`. If ``k`` is ``None`` (default), the method
-          computes the optimal tree-width.
-
-        - ``certificate`` -- boolean (default: ``False``); whether to return the
-          tree-decomposition itself.
-
-        - ``algorithm`` -- whether to use ``"sage"`` or ``"tdlib"`` (requires
-          the installation of the 'tdlib' package). The default behaviour is to
-          use 'tdlib' if it is available, and Sage's own algorithm when it is
-          not.
-
-        OUTPUT:
-
-            ``g.treewidth()`` returns the treewidth of ``g``. When ``k`` is
-             specified, it returns ``False`` when no tree-decomposition of width
-             `\leq k` exists or ``True`` otherwise. When ``certificate=True``,
-             the tree-decomposition is also returned.
-
-        ALGORITHM:
-
-            This function virtually explores the graph of all pairs
-            ``(vertex_cut,cc)``, where ``vertex_cut`` is a vertex cut of the
-            graph of cardinality `\leq k+1`, and ``connected_component`` is a
-            connected component of the graph induced by ``G-vertex_cut``.
-
-            We deduce that the pair ``(vertex_cut,cc)`` is feasible with
-            tree-width `k` if ``cc`` is empty, or if a vertex ``v`` from
-            ``vertex_cut`` can be replaced with a vertex from ``cc``, such that
-            the pair ``(vertex_cut+v,cc-v)`` is feasible.
-
-        .. NOTE::
-
-            The implementation would be much faster if ``cc``, the argument of the
-            recursive function, was a bitset. It would also be very nice to not copy
-            the graph in order to compute connected components, for this is really a
-            waste of time.
-
-        .. SEEALSO::
-
-            :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
-            computes the pathwidth of a graph. See also the
-            :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
-
-        EXAMPLES:
-
-        The PetersenGraph has treewidth 4::
-
-            sage: graphs.PetersenGraph().treewidth()
-            4
-            sage: graphs.PetersenGraph().treewidth(certificate=True)
-            Tree decomposition: Graph on 6 vertices
-
-        The treewidth of a 2d grid is its smallest side::
-
-            sage: graphs.Grid2dGraph(2,5).treewidth()
-            2
-            sage: graphs.Grid2dGraph(3,5).treewidth()
-            3
-
-        TESTS::
-
-            sage: g = graphs.PathGraph(3)
-            sage: g.treewidth()
-            1
-            sage: g = 2*graphs.PathGraph(3)
-            sage: g.treewidth()
-            1
-            sage: g.treewidth(certificate=True)
-            Tree decomposition: Graph on 4 vertices
-            sage: g.treewidth(2)
-            True
-            sage: g.treewidth(1)
-            True
-            sage: Graph(1).treewidth()
-            0
-            sage: Graph(0).treewidth()
-            -1
-            sage: graphs.PetersenGraph().treewidth(k=2)
-            False
-            sage: graphs.PetersenGraph().treewidth(k=6)
-            True
-            sage: graphs.PetersenGraph().treewidth(certificate=True).is_tree()
-            True
-            sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
-            False
-            sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
-            Tree decomposition: Graph on 6 vertices
-
-        All edges do appear (:trac:`17893`)::
-
-            sage: from itertools import combinations
-            sage: g = graphs.PathGraph(10)
-            sage: td = g.treewidth(certificate=True)
-            sage: for bag in td:
-            ....:    g.delete_edges(list(combinations(bag,2)))
-            sage: g.size()
-            0
-
-        :trac:`19358`::
-
-            sage: g = Graph()
-            sage: for i in range(3):
-            ....:     for j in range(2):
-            ....:         g.add_path([i,(i,j),(i+1)%3])
-            sage: g.treewidth()
-            2
-
-        The decomposition is a tree (:trac:`23546`)::
-
-            sage: g = Graph({0:[1,2], 3:[4,5]})
-            sage: t = g.treewidth(certificate=True)
-            sage: t.is_tree()
-            True
-            sage: vertices = set()
-            sage: for s in t.vertices():
-            ....:     vertices = vertices.union(s)
-            sage: vertices == set(g.vertices())
-            True
-
-        Trivially true::
-
-            sage: graphs.PetersenGraph().treewidth(k=35)
-            True
-            sage: graphs.PetersenGraph().treewidth(k=35,certificate=True)
-            Tree decomposition: Graph on 1 vertex
-
-        Bad input:
-
-            sage: graphs.PetersenGraph().treewidth(k=-3)
-            Traceback (most recent call last):
-            ...
-            ValueError: k(=-3) must be a nonnegative integer
-        """
-        g = self
-
-        # Check Input
-        if algorithm is None or algorithm == 'tdlib':
-            try:
-                import sage.graphs.graph_decompositions.tdlib as tdlib
-                tdlib_found = True
-            except ImportError:
-                tdlib_found = False
-
-        elif algorithm != "sage":
-            raise ValueError("'algorithm' must be equal to 'tdlib', 'sage', or None")
-
-        if algorithm is None and tdlib_found:
-            algorithm = 'tdlib'
-        else:
-            algorithm = 'sage'
-
-        if k is not None and k < 0:
-            raise ValueError("k(={}) must be a nonnegative integer".format(k))
-
-        # Stupid cases
-        if not g.order():
-            if certificate:
-                return Graph()
-            elif k is None:
-                return -1
-            else:
-                return True
-
-        if k is not None and k >= g.order() - 1:
-            if certificate:
-                from sage.sets.set import Set
-                return Graph({Set(g): []}, name="Tree decomposition")
-            return True
-
-        # TDLIB
-        if algorithm == 'tdlib':
-            if not tdlib_found:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("tdlib")
-
-            T = tdlib.treedecomposition_exact(g, -1 if k is None else k)
-            width = tdlib.get_width(T)
-
-            if certificate:
-                return T if (k is None or width <= k) else False
-            elif k is None:
-                return width
-            else:
-                return width <= k
-
-        # Disconnected cases
-        if not g.is_connected():
-            if not certificate:
-                if k is None:
-                    return max(cc.treewidth() for cc in g.connected_components_subgraphs())
-                else:
-                    return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
-            else:
-                T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
-                tree = Graph([list(itertools.chain(*T)),
-                              list(itertools.chain(*[t.edges(labels=False, sort=False) for t in T]))],
-                             format='vertices_and_edges', name="Tree decomposition")
-                v = next(T[0].vertex_iterator())
-                for t in T[1:]:
-                    tree.add_edge(next(t.vertex_iterator()),v)
-                return tree
-
-        # Forcing k to be defined
-        if k is None:
-            for i in range(max(0, g.clique_number() - 1, min(g.degree())), g.order()+1):
-                ans = g.treewidth(k=i, certificate=certificate)
-                if ans:
-                    return ans if certificate else i
-
-        # This is the recursion described in the method's documentation. All
-        # computations are cached, and depends on the pair ``cut,
-        # connected_component`` only.
-        #
-        # It returns either a boolean or the corresponding tree-decomposition,
-        # as a list of edges between vertex cuts (as it is done for the complete
-        # tree-decomposition at the end of the main function.
-        from sage.misc.cachefunc import cached_function
-        @cached_function
-        def rec(cut, cc):
-            # Easy cases
-            if len(cut) > k:
-                return False
-            if len(cc) + len(cut) <= k + 1:
-                return [(cut, cut.union(cc))] if certificate else True
-
-            # We explore all possible extensions of the cut
-            for v in cc:
-
-                # New cuts and connected components, with v respectively added
-                # and removed
-                cutv = cut.union([v])
-                ccv = cc.difference([v])
-
-                # The values returned by the recursive calls.
-                sons = []
-
-                # Removing v may have disconnected cc. We iterate on its
-                # connected components
-                for cci in g.subgraph(ccv).connected_components(sort=False):
-
-                    # The recursive subcalls. We remove on-the-fly the vertices
-                    # from the cut which play no role in separating the
-                    # connected component from the rest of the graph.
-                    reduced_cut = frozenset([x for x in cutv if any(xx in cci for xx in g.neighbor_iterator(x))])
-                    son = rec(reduced_cut, frozenset(cci))
-                    if not son:
-                        break
-
-                    if certificate:
-                        sons.extend(son)
-                        sons.append((cut, cutv))
-                        sons.append((cutv, reduced_cut))
-
-                # Weird Python syntax which is useful once in a lifetime : if break
-                # was never called in the loop above, we return "sons".
-                else:
-                    return sons if certificate else True
-
-            return False
-
-        # Main call to rec function, i.e. rec({v}, V-{v})
-        V = list(g)
-        v = frozenset([V.pop()])
-        TD = rec(v, frozenset(V))
-
-        if TD is False:
-            return False
-
-        if not certificate:
-            return True
-
-        # Building the Tree-Decomposition graph. Its vertices are cuts of the
-        # decomposition, and there is an edge from a cut C1 to a cut C2 if C2 is an
-        # immediate subcall of C1
-        from sage.sets.set import Set
-        G = Graph(name="Tree decomposition")
-        G.add_edges(((Set(x), Set(y)) for x,y in TD), loops=False)
-
-        # The Tree-Decomposition contains a lot of useless nodes.
-        #
-        # We merge all edges between two sets S,S' where S is a subset of S'
-        changed = True
-        while changed:
-            changed = False
-            for v in G.vertices(sort=False):
-                for u in G.neighbor_iterator(v):
-                    if u.issuperset(v):
-                        G.merge_vertices([u, v]) # the new vertex is named 'u'
-                        changed = True
-                        break
-
-        return G
-
-    @doc_index("Algorithmically hard stuff")
     def is_perfect(self, certificate=False):
         r"""
         Tests whether the graph is perfect.
@@ -3230,6 +2850,60 @@ class Graph(GenericGraph):
         return (self.is_regular() and
                 self.is_edge_transitive() and not
                 self.is_vertex_transitive())
+
+    @doc_index("Graph properties")
+    def is_path(self):
+        r"""
+        Check whether ``self`` is a path.
+
+        A connected graph of order `n \geq 2` is a path if it is a tree
+        (see :meth:`is_tree`) with `n-2` vertices of degree 2 and two of
+        degree 1. By convention, a graph of order 1 without loops is a path,
+        but the empty graph is not a path.
+
+        EXAMPLES:
+
+            sage: G = graphs.PathGraph(5)
+            sage: G.is_path()
+            True
+            sage: H = graphs.CycleGraph(5)
+            sage: H.is_path()
+            False
+            sage: D = graphs.PathGraph(5).disjoint_union(graphs.CycleGraph(5))
+            sage: D.is_path()
+            False
+            sage: E = graphs.EmptyGraph()
+            sage: E.is_path()
+            False
+            sage: O = Graph([[1], []])
+            sage: O.is_path()
+            True
+            sage: O.allow_loops(True)
+            sage: O.add_edge(1, 1)
+            sage: O.is_path()
+            False
+        """
+        order = self.order()
+        if order != self.size() + 1:
+            return False
+
+        if order <= 1:
+            return order == 1
+
+        deg_one_counter = 0
+        seen_counter = 0
+        for v in self.depth_first_search(next(self.vertex_iterator())):
+            seen_counter += 1
+            deg = self._backend.degree(v, False)
+            if deg == 1:
+                deg_one_counter += 1
+                if deg_one_counter > 2:
+                    return False
+
+            elif deg != 2:
+                return False
+        return deg_one_counter == 2 and seen_counter == order
+
 
     @doc_index("Connectivity, orientations, trees")
     def degree_constrained_subgraph(self, bounds, solver=None, verbose=0):
@@ -6345,7 +6019,7 @@ class Graph(GenericGraph):
             Sage's implementation of the enumeration of *maximal* independent
             sets is not much faster than NetworkX' (expect a 2x speedup), which
             is surprising as it is written in Cython. This being said, the
-            algorithm from NetworkX appears to be sligthly different from this
+            algorithm from NetworkX appears to be slightly different from this
             one, and that would be a good thing to explore if one wants to
             improve the implementation.
 
@@ -6466,11 +6140,6 @@ class Graph(GenericGraph):
         elif algorithm == "MILP":
             return self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose)
         elif algorithm == "mcqd":
-            try:
-                from sage.graphs.mcqd import mcqd
-            except ImportError:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("mcqd")
             return mcqd(self)
         else:
             raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
@@ -6569,11 +6238,6 @@ class Graph(GenericGraph):
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose))
         elif algorithm == "mcqd":
-            try:
-                from sage.graphs.mcqd import mcqd
-            except ImportError:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("mcqd")
             return len(mcqd(self))
         else:
             raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")
@@ -7199,7 +6863,7 @@ class Graph(GenericGraph):
         # Traverse() : Function that use G-T (non-tree edges) to find cycles
         #              and chains by traversing in DFS tree.
         def traverse(start, pointer):
-            # Make the firt end of non-tree edge visited
+            # Make the first end of non-tree edge visited
             traversed.add(start)
             chain = [start]
 
@@ -7336,9 +7000,11 @@ class Graph(GenericGraph):
             sage: d = F.cliques_containing_vertex()
             sage: all(F.degree(u) == len(cliques) for u,cliques in d.items())
             True
-            sage: F.cliques_containing_vertex(vertices=[(0, 1)])
-            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]}
-
+            sage: d = F.cliques_containing_vertex(vertices=[(0, 1)])
+            sage: list(d)
+            [(0, 1)]
+            sage: sorted(sorted(x for x in L) for L in d[(0, 1)])
+            [[(0, 0), (0, 1)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
         """
         import networkx
         return networkx.cliques_containing_node(self.networkx_graph(), vertices, cliques)
@@ -7710,8 +7376,11 @@ class Graph(GenericGraph):
 
         Vertices may be arbitrary --- check that :trac:`24898` is fixed::
 
-            sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
-            (SERIES, [(1, 2), (2, 3)])
+            sage: md = Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
+            sage: md[0]
+            SERIES
+            sage: sorted(md[1])
+            [(1, 2), (2, 3)]
 
         Unknown algorithm::
 
@@ -9607,12 +9276,14 @@ class Graph(GenericGraph):
     from sage.graphs.asteroidal_triples import is_asteroidal_triple_free
     from sage.graphs.chrompoly import chromatic_polynomial
     from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
+    from sage.graphs.graph_decompositions.tree_decomposition import treewidth
     from sage.graphs.graph_decompositions.vertex_separation import pathwidth
     from sage.graphs.graph_decompositions.clique_separators import atoms_and_clique_separators
     from sage.graphs.matchpoly import matching_polynomial
     from sage.graphs.cliquer import all_max_clique as cliques_maximum
     from sage.graphs.cliquer import all_cliques
     from sage.graphs.spanning_tree import random_spanning_tree
+    from sage.graphs.spanning_tree import spanning_trees
     from sage.graphs.graph_decompositions.graph_products import is_cartesian_product
     from sage.graphs.distances_all_pairs import is_distance_regular
     from sage.graphs.base.static_dense_graph import is_strongly_regular
@@ -9642,6 +9313,7 @@ _additional_categories = {
     "is_asteroidal_triple_free" : "Graph properties",
     "chromatic_polynomial"      : "Coloring",
     "rank_decomposition"        : "Algorithmically hard stuff",
+    "treewidth"                 : "Algorithmically hard stuff",
     "pathwidth"                 : "Algorithmically hard stuff",
     "matching_polynomial"       : "Algorithmically hard stuff",
     "all_max_clique"            : "Clique-related methods",
@@ -9649,6 +9321,7 @@ _additional_categories = {
     "all_cliques"               : "Clique-related methods",
     "atoms_and_clique_separators" : "Clique-related methods",
     "random_spanning_tree"      : "Connectivity, orientations, trees",
+    "spanning_trees"            : "Connectivity, orientations, trees",
     "is_cartesian_product"      : "Graph properties",
     "is_distance_regular"       : "Graph properties",
     "is_strongly_regular"       : "Graph properties",
