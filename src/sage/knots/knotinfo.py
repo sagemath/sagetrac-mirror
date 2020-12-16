@@ -30,7 +30,7 @@ to Sage objects this is translated (by default) in order to avoid confusion abou
 exchanged mirror versions.
 
 Also, note that the braid notation is used according to Sage, even thought in
-the source where they are taken from the braid generators are assumed to have a
+the source where it is taken from the braid generators are assumed to have a
 negative crossing which would be opposite to the convention in Sage (see definition
 3 of `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
 <https://arxiv.org/abs/math/0401051>`__).
@@ -862,7 +862,7 @@ class KnotInfoBase(Enum):
 
         Boolean or ``None`` if this cannot be determined.
 
-        ``True`` if ``self`` is fully or negative amphicheiral per default. if
+        ``True`` if ``self`` is fully or negative amphicheiral per default. If
         ``positive`` is set to ``True`` than fully and positive amphicheiral
         links give ``True``.
 
@@ -1713,8 +1713,14 @@ class KnotInfoBase(Enum):
             True
             sage: KnotInfo.L5a1_0.is_unique()
             False
-            sage: KnotInfo.L7a7_1_0.is_unique() is None  # optional - database_knotinfo
-            True
+            sage: L = KnotInfo.L7a7_0_0              # optional - database_knotinfo
+            sage: L.series(oriented=True).inject()   # optional - database_knotinfo
+            Defining L7a7
+            sage: [(L,L.is_unique()) for L in L7a7]  # optional - database_knotinfo
+            [(<KnotInfo.L7a7_0_0: 'L7a7{0,0}'>, False),
+             (<KnotInfo.L7a7_1_0: 'L7a7{1,0}'>, None),
+             (<KnotInfo.L7a7_0_1: 'L7a7{0,1}'>, False),
+             (<KnotInfo.L7a7_1_1: 'L7a7{1,1}'>, True)]
         """
         # an isotopic pair must have the same unoriented name. So, we can focus
         # on such series
@@ -1782,25 +1788,30 @@ class KnotInfoBase(Enum):
             if mirror:
                 l = l.mirror_image()
 
-            def check_result(L):
+            def check_result(L, m):
                 r"""
                 Check a single result from ``get_knotinfo``
                 """
-                if L == (self, None) or L == (self, '?'):
+                if L != self:
+                    return False
+                if m is None or m == '?':
                     return True
                 if mirror:
-                    return L == (self, True)
+                    return m
                 else:
-                    return L == (self, False)
+                    return not m
 
             try:
-                L = l.get_knotinfo(oriented=True)
-                return check_result(L)
+                L, m = l.get_knotinfo()
+                if isinstance(L, KnotInfoBase):
+                    return check_result(L,m)
+                elif unique:
+                    return False
             except NotImplementedError:
                 if unique:
                     return False
-                Llist = l.get_knotinfo(unique=False, oriented=True)
-                return any(check_result(L) for L in Llist)
+            Llist = l.get_knotinfo(unique=False)
+            return any(check_result(L, m) for (L, m) in Llist)
 
         from sage.misc.misc import some_tuples
         return all(recover(mirror, braid) for mirror, braid in some_tuples([True, False], 2, 4))

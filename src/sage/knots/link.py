@@ -3458,20 +3458,11 @@ class Link(SageObject):
             return res, True
         return l, False
 
-    def get_knotinfo(self, oriented=None, mirror_version=True, unique=True):
+    def get_knotinfo(self, mirror_version=True, unique=True):
         r"""
         Identify this link as an item of the KontInfo database (if possible).
 
         INPUT:
-
-        - ``oriented`` -- boolean (default is ``None``). If this is not set an
-          oriented link will be returned if it can be uniquely determined. If this
-          isn't possible the orientation of the link will be ignored and instead
-          of an instance of :class:`~sage.knots.knotinfo.KnotInfoBase` a series
-          of links (instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`)
-          will be returned collecting all links having the same ``name_unoriented``
-          (if this is unique for ``self``). Set this keyword to ``True`` or ``False``
-          if you like to change this behaviour.
 
         - ``mirror_version`` -- boolean (default is ``True``). If set to ``False``
           the result of the method will be just the instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
@@ -3490,10 +3481,9 @@ class Link(SageObject):
         for amphicheiral links and ``?`` if it cannot be determined uniquely
         and the keyword option ``unique=False`` is given.
 
-        For proper links if the orientation mutant cannot be uniquely determined
-        or if the keyword ``orientation`` is set to ``False`` then K will be an
-        instance of :class:`~sage.knots.knotinfo.KnotInfoSeries` (see the
-        explanation for keyword ``orientation`` above).
+        For proper links, if the orientation mutant cannot be uniquely determined
+        K will be a series of links collecting all links having the same unoriented
+        name, that is an instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`.
 
         If ``mirror_version`` is set to ``False`` then the result is just ``K``
         (that is: ``m`` is suppressed).
@@ -3504,20 +3494,20 @@ class Link(SageObject):
 
         .. NOTE::
 
-            The identification of proper links may fail due to the following
-            fact: In opposite to the database for knots, there are pairs of
-            oriented mutants of an unoriented link which are isotopic to each
+            The identification of proper links may fail to be unique due to the
+            following fact: In opposite to the database for knots, there are pairs
+            of oriented mutants of an unoriented link which are isotopic to each
             other. For example ``L5a1_0`` and ``L5a1_1`` is such a pair.
 
             This is because all combinatorial possible oriented mutants are
             listed with individual names regardless whether they are pairwise
             non isotopic or not. In such a case the identification is not
-            unique and therefore the unoriented series of the link will be
-            returned.
+            unique and therefore a series of the links will be returned which
+            collects all having the same unoriented name.
 
             To obain the subset of this series of oriented links being isotopic
-            to ``self`` the usage of the keywords ``oriented`` and ``unique``
-            may help (see the example for ``L2a1_0`` below).
+            to ``self`` the usage of the keyword ``unique`` may help (see the
+            example for ``L2a1_1``, ``L5a1_0`` and ``L9n25_0_0`` below).
 
         EXAMPLES::
 
@@ -3586,26 +3576,15 @@ class Link(SageObject):
             sage: k11m.get_knotinfo(unique=False)     # optional - database_knotinfo
             [(<KnotInfo.K11n_82: '11n_82'>, '?')]
 
-        Usage of option ``oriented``::
+        Also, if the result is a series of oriented links having the same unoriented
+        name (according to the note above) the option can be used to achieve more
+        detailed information::
 
             sage: L2a1 = Link(b**2)
             sage: L2a1.get_knotinfo()
             (Series of links L2a1, None)
-            sage: L2a1.get_knotinfo(oriented=True)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this link cannot be uniquely determined
-
-            sage: L2a1.get_knotinfo(unique=False, oriented=True)
+            sage: L2a1.get_knotinfo(unique=False)
             [(<KnotInfo.L2a1_0: 'L2a1{0}'>, True), (<KnotInfo.L2a1_1: 'L2a1{1}'>, False)]
-
-            sage: KnotInfo.L4a1_0.inject()
-            Defining L4a1_0
-            sage: l4 = L4a1_0.link()
-            sage: l4.get_knotinfo()
-            (<KnotInfo.L4a1_0: 'L4a1{0}'>, False)
-            sage: l4.get_knotinfo(oriented=False)
-            (Series of links L4a1, False)
 
             sage: KnotInfo.L5a1_0.inject()
             Defining L5a1_0
@@ -3616,9 +3595,16 @@ class Link(SageObject):
             Defining L5a1
             sage: list(L5a1)
             [<KnotInfo.L5a1_0: 'L5a1{0}'>, <KnotInfo.L5a1_1: 'L5a1{1}'>]
-
-            sage: l5.get_knotinfo(unique=False, oriented=True)
+            sage: l5.get_knotinfo(unique=False)
             [(<KnotInfo.L5a1_0: 'L5a1{0}'>, False), (<KnotInfo.L5a1_1: 'L5a1{1}'>, False)]
+
+            sage: b9 = KnotInfo.L9n25_0_0.braid()     # optional - database_knotinfo
+            sage: L9 = Link(b9)                       # optional - database_knotinfo
+            sage: L9.get_knotinfo()                   # optional - database_knotinfo
+            (Series of links L9n25, False)
+            sage: L9.get_knotinfo(unique=False)       # optional - database_knotinfo
+            [(<KnotInfo.L9n25_0_0: 'L9n25{0,0}'>, False),
+             (<KnotInfo.L9n25_1_1: 'L9n25{1,1}'>, False)]
 
         Clarifying the series around the Perko pair (:wikipedia:`Perko_pair`)::
 
@@ -3743,7 +3729,7 @@ class Link(SageObject):
         def answer_list(l):
             r"""
             Return a list of items of the KnotInfo database according to the keyword
-            arguments ``oriented``  and ``unique``.
+            argument ``unique``.
             """
             if not unique:
                 return sorted([answer(L) for L in l])
@@ -3752,16 +3738,12 @@ class Link(SageObject):
                 L = l[0]
                 if L.is_unique() is None:
                     # It's not known if L is isotopic to another link in the database
-                    if oriented:
-                        raise NotImplementedError('this link cannot be uniquely determined up to orientation')
-                    else:
-                        # per default the unoriented series is returned instead of L
-                        return answer_unori(l)
+                    # per default the unoriented series is returned instead of L
+                    return answer_unori(l)
 
-                if oriented is None or oriented:
-                    return answer(L)
+                return answer(L)
 
-            if not oriented and not l[0].is_knot():
+            if not l[0].is_knot():
                 lu = list(set([L.name_unoriented() for L in l]))
                 if len(lu) == 1:
                     return answer_unori(l)

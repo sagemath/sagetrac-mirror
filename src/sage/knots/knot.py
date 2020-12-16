@@ -545,14 +545,14 @@ class Knots(Singleton, Parent):
 
         a knot
 
-        .. NOTE::
+        .. WARNING::
 
-            Caution: In general the Dowker-Thistlethwaite code does not describe a knot
-            uniquely. It is not only insensitive on mirror images, but may also mix up
-            non prime knots. For example ``[4, 6, 2, 10, 12, 8]`` describes the connected
-            sum of two trefoil knots, as well as the connected sum of a trefoil with
-            its mirror (see the corresponding example in the documentation of
-            :meth:`connected_sum`).
+            In general the Dowker-Thistlethwaite code does not describe a knot
+            uniquely. It is not only insensitive on mirror images, but may also
+            mix up non prime knots. For example ``[4, 6, 2, 10, 12, 8]`` describes
+            the connected sum of two trefoil knots, as well as the connected sum
+            of a trefoil with its mirror (see the corresponding example in the
+            documentation of :meth:`connected_sum`).
 
         EXAMPLES::
 
