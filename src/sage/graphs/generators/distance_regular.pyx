@@ -2856,6 +2856,7 @@ _infinite_families_database = [
     (is_pseudo_partition_graph, pseudo_partition_graph),
     (is_near_polygon, near_polygon_graph),
     (is_from_GQ_spread, graph_from_GQ_spread),
+    (is_hermitian_cover, hermitian_cover),
 ]
 
 def distance_regular_graph(list arr, existence=False, check=True):
