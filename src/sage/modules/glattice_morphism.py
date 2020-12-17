@@ -217,6 +217,24 @@ class GLatticeMorphism_left(sage.categories.morphism.Morphism):
 
 
     def _repr_(self):
+        """
+        The print representation of a lattice morphism.
+
+        EXAMPLES::
+
+            sage: L = GLattice([3])
+            sage: h = L.left_morphism(identity_matrix(3)); h
+            Lattice endomorphism defined by the left action of the matrix
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            Domain: Ambient lattice of rank 3 with a faithful action by a group of order 3
+            sage: q = L1.quotient_lattice(L1.zero_sum_sublattice(), True, True); q[1]
+            Lattice morphism defined by the left action of the matrix
+            [1 1 1]
+            Domain: Ambient lattice of rank 3 with a faithful action by a group of order 3
+            Codomain: Ambient lattice of rank 1 with the trivial action of a group of order 3
+        """
         if self.domain() == self.codomain():
             r = "Lattice endomorphism defined by the left action of the matrix\n{!r}\nDomain: {}"
             return r.format(self.matrix(), self.domain())
