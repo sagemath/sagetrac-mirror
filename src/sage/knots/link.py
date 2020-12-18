@@ -3455,7 +3455,8 @@ class Link(SageObject):
                     res.append(L)
 
         if res:
-            return res, True
+            if len(res) > 1 or res[0].is_unique():
+                return res, True
         return l, False
 
     def get_knotinfo(self, mirror_version=True, unique=True):
@@ -3505,9 +3506,9 @@ class Link(SageObject):
             unique and therefore a series of the links will be returned which
             collects all having the same unoriented name.
 
-            To obain the subset of this series of oriented links being isotopic
-            to ``self`` the usage of the keyword ``unique`` may help (see the
-            example for ``L2a1_1``, ``L5a1_0`` and ``L9n25_0_0`` below).
+            To obain the individual oriented links being isotopic to ``self``
+            use the keyword ``unique`` (see the example for ``L2a1_1`` below
+            ``L5a1_0`` below).
 
         EXAMPLES::
 
@@ -3560,6 +3561,7 @@ class Link(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: this link cannot be uniquely determined
+            use keyword argument `unique` to obtain more details
 
             sage: l.get_knotinfo(unique=False)        # optional - database_knotinfo
             [(<KnotInfo.K10_25: '10_25'>, False), (<KnotInfo.K10_56: '10_56'>, False)]
@@ -3572,13 +3574,38 @@ class Link(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: mirror type of this link cannot be uniquely determined
+            use keyword argument `unique` to obtain more details
 
             sage: k11m.get_knotinfo(unique=False)     # optional - database_knotinfo
             [(<KnotInfo.K11n_82: '11n_82'>, '?')]
 
-        Also, if the result is a series of oriented links having the same unoriented
-        name (according to the note above) the option can be used to achieve more
-        detailed information::
+            sage: t = (-1, 2, -1, 2, -1, 3, -2, 3, -2)
+            sage: l9 = Link(BraidGroup(4)(t))
+            sage: l9.get_knotinfo()                   # optional - database_knotinfo
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this link cannot be uniquely determined
+            use keyword argument `unique` to obtain more details
+
+            sage: l9.get_knotinfo(unique=False)       # optional - database_knotinfo
+            [(<KnotInfo.L9n25_0_0: 'L9n25{0,0}'>, False),
+             (<KnotInfo.L9n25_1_1: 'L9n25{1,1}'>, False)]
+
+            sage: t = (1, 2, 3, -4, 3, -2, -1, 3, -2, 3, -2, 3, -4, 3, -2)
+            sage: l15 = Link(BraidGroup(5)(t))
+            sage: l15.get_knotinfo()                  # optional - database_knotinfo
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this link having more than 11 crossings cannot be uniquely determined
+            use keyword argument `unique` to obtain more details
+
+            sage:l15.get_knotinfo(unique=False)       # optional - database_knotinfo
+            [(<KnotInfo.L11a1_0: 'L11a1{0}'>, False),
+             (<KnotInfo.L11a1_1: 'L11a1{1}'>, False)]
+
+        Furthermore, if the result is a complete  series of oriented links having
+        the same unoriented name (according to the note above) the option can be
+        used to achieve more detailed information::
 
             sage: L2a1 = Link(b**2)
             sage: L2a1.get_knotinfo()
@@ -3597,14 +3624,6 @@ class Link(SageObject):
             [<KnotInfo.L5a1_0: 'L5a1{0}'>, <KnotInfo.L5a1_1: 'L5a1{1}'>]
             sage: l5.get_knotinfo(unique=False)
             [(<KnotInfo.L5a1_0: 'L5a1{0}'>, False), (<KnotInfo.L5a1_1: 'L5a1{1}'>, False)]
-
-            sage: b9 = KnotInfo.L9n25_0_0.braid()     # optional - database_knotinfo
-            sage: L9 = Link(b9)                       # optional - database_knotinfo
-            sage: L9.get_knotinfo()                   # optional - database_knotinfo
-            (Series of links L9n25, False)
-            sage: L9.get_knotinfo(unique=False)       # optional - database_knotinfo
-            [(<KnotInfo.L9n25_0_0: 'L9n25{0,0}'>, False),
-             (<KnotInfo.L9n25_1_1: 'L9n25{1,1}'>, False)]
 
         Clarifying the series around the Perko pair (:wikipedia:`Perko_pair`)::
 
@@ -3663,67 +3682,67 @@ class Link(SageObject):
            sage: Ks10_83.sage_link().get_knotinfo() # optional - snappy
            (<KnotInfo.K10_86: '10_86'>, True)
         """
+        non_unique_hint = '\nuse keyword argument `unique` to obtain more details'
         def answer(L):
             r"""
             Return a single item of the KnotInfo database according to the keyword
             arguments ``mirror_version``.
             """
-            if mirror_version:
-                chiral = True
-                ach = L.is_amphicheiral(); achp = L.is_amphicheiral(positive=True)
-                if ach is None and achp is None:
-                    if unique:
-                        raise NotImplementedError('this link cannot be uniquely determined (unknown chirality)')
-                elif  L.is_amphicheiral() or L.is_amphicheiral(positive=True):
-                    chiral = False
-
-                if not chiral:
-                    mirrored = None
-                elif proved_m and not proved_s:
-                    mirrored = True
-                elif proved_s and not proved_m:
-                    mirrored = False
-                else:
-                    # nothing proved
-                    if L in ls and L in lm:
-                        # In case of a chiral link this means that the HOMFLY-PT
-                        # polynomial does not distinguish mirror images (see the above
-                        # example ``k11m``).
-                        if unique:
-                            raise NotImplementedError('mirror type of this link cannot be uniquely determined')
-                        mirrored = '?'
-                    elif L in lm:
-                        mirrored = True
-                    else:
-                        mirrored = False
-
-                return L, mirrored
-            else:
+            if not mirror_version:
                 return L
 
-        def answer_unori(l):
+            chiral = True
+            ach = L.is_amphicheiral(); achp = L.is_amphicheiral(positive=True)
+            if ach is None and achp is None:
+                if unique:
+                    raise NotImplementedError('this link cannot be uniquely determined (unknown chirality)%s' %non_unique_hint)
+            elif  L.is_amphicheiral() or L.is_amphicheiral(positive=True):
+                chiral = False
+
+            if not chiral:
+                mirrored = None
+            elif proved_m and not proved_s:
+                mirrored = True
+            elif proved_s and not proved_m:
+                mirrored = False
+            else:
+                # nothing proved
+                if L in ls and L in lm:
+                    # In case of a chiral link this means that the HOMFLY-PT
+                    # polynomial does not distinguish mirror images (see the above
+                    # example ``k11m``).
+                    if unique:
+                        raise NotImplementedError('mirror type of this link cannot be uniquely determined%s' %non_unique_hint)
+                    mirrored = '?'
+                elif L in lm:
+                    mirrored = True
+                else:
+                    mirrored = False
+
+            return L, mirrored
+
+        def answer_unori(S):
             r"""
             Return a series of oriented links having the same unoriented name
             according to the keyword ``mirror_version``.
             """
-            S = l[0].series(oriented=True)
             if not mirror_version:
                 return S
 
-            mirrored = [answer(L)[1] for L in l]
+            mirrored = [answer(L)[1] for L in S]
             if all(mirrored):
-                # all links of the series are mirrored to self
+                # all matching links are mirrored to self
                 return S, True
             if any(i == '?' for i in mirrored):
-                # unknown chirality for a link of the series
+                # unknown chirality for a matching link
                 return S, '?'
             if any(i is None for i in mirrored):
-                # an amphicheiral link belongs to the series
+                # an amphicheiral link matches
                 return S, None
             if not any(mirrored):
-                # no link of the series is mirrored to self
+                # no matching link is mirrored to self
                 return S, False
-            # finally the series contains both mirror types
+            # finally both mirror types match
             return S, None
 
         def answer_list(l):
@@ -3735,20 +3754,14 @@ class Link(SageObject):
                 return sorted([answer(L) for L in l])
 
             if len(l) == 1:
-                L = l[0]
-                if L.is_unique() is None:
-                    # It's not known if L is isotopic to another link in the database
-                    # per default the unoriented series is returned instead of L
-                    return answer_unori(l)
-
-                return answer(L)
+                return answer(l[0])
 
             if not l[0].is_knot():
-                lu = list(set([L.name_unoriented() for L in l]))
-                if len(lu) == 1:
-                    return answer_unori(l)
+                S = l[0].series(oriented=True)
+                if set(list(S)) == set(l):
+                    return answer_unori(S)
 
-            raise NotImplementedError('this link cannot be uniquely determined')
+            raise NotImplementedError('this link cannot be uniquely determined%s' %non_unique_hint)
 
 
         self_m = self.mirror_image()
@@ -3770,25 +3783,25 @@ class Link(SageObject):
         if l and not unique:
             return answer_list(l)
 
-        uniq_txt =  ''
+        uniq_txt = ('', '')
         if l:
-            uniq_txt = ' uniquely'
+            uniq_txt = (' uniquely', non_unique_hint)
 
         cr = len(self.pd_code())
         if self.is_knot() and cr > 12:
             # we cannot not be sure if this link is recorded in the KnotInfo database
-            raise NotImplementedError('this knot having more than 12 crossings cannot be%s determined' %uniq_txt)
+            raise NotImplementedError('this knot having more than 12 crossings cannot be%s determined%s' %uniq_txt)
 
         if not self.is_knot() and cr > 11:
             # we cannot not be sure if this link is recorded in the KnotInfo database
-            raise NotImplementedError('this link having more than 11 crossings cannot be%s determined' %uniq_txt)
+            raise NotImplementedError('this link having more than 11 crossings cannot be%s determined%s' %uniq_txt)
 
         H = self.homfly_polynomial(normalization='vz')
 
         if sum(exp for f, exp in H.factor()) > 1:
             # we cannot be sure if this is a prime link (see the example for the connected
             # sum of K4_1 and K5_2 in the doctest of :meth:`_knotinfo_matching_list`)
-            raise NotImplementedError('this (possibly non prime) link cannot be%s determined' %uniq_txt)
+            raise NotImplementedError('this (possibly non prime) link cannot be%s determined%s' %uniq_txt)
 
         if not l:
             from sage.features.databases import DatabaseKnotInfo
@@ -3820,6 +3833,22 @@ class Link(SageObject):
             sage: l3 = l2.mirror_image()
             sage: l1.is_isotopic(l3)
             False
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: L = KnotInfo.L7a7_0_0             # optional - database_knotinfo
+            sage: L.series(oriented=True).inject()  # optional - database_knotinfo
+            Defining L7a7
+            sage: L == L7a7(0)
+            True
+            sage: l = L.link()                      # optional - database_knotinfo
+            sage: l.is_isotopic(L7a7(1).link())     # optional - database_knotinfo
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison not possible!
+            sage: l.is_isotopic(L7a7(2).link())     # optional - database_knotinfo
+            True
+            sage: l.is_isotopic(L7a7(3).link())     # optional - database_knotinfo
+            False
         """
         if not isinstance(other, Link):
             return False
@@ -3836,10 +3865,19 @@ class Link(SageObject):
             # surely isotopic
             return True
 
-        ki = self.get_knotinfo()
-        if ki and type(ki) == tuple:
-            kio = other.get_knotinfo()
-            if kio and type(kio) == tuple:
-                return ki == kio
+        try:
+            ki, m = self.get_knotinfo()
+            try:
+                if ki.is_unique():
+                    try:
+                        kio = other.get_knotinfo()
+                        return  (ki, m) == kio
+                    except NotImplementedError:
+                        pass
+            except AttributeError:
+                # ki is a series
+                pass
+        except NotImplementedError:
+            pass
 
         raise NotImplementedError('comparison not possible!')
