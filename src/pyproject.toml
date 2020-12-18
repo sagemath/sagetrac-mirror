@@ -1,0 +1,15 @@
+[tool.black]
+target-version = ['py37', 'py38']
+exclude = '''
+(
+  /(
+      \.tox
+    | \.venv
+    | \.pytest_cache
+    | build
+    | dist
+    | __pycache__
+    | sage.egg-info
+  )/
+)
+'''

@@ -31,6 +31,17 @@ Pycodestyle
 *Configuration:* ``[pycodestyle]`` block in ``src/tox.ini``
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html
 
+Black
+===============================
+`Black <https://github.com/psf/black>`_ reformats Python source files.
+
+*Installation:* ``pip install -U black --user``
+*Usage:*
+- Manual: Run ``black path/to/the/file.py``
+- VS Code: Activate by adding the setting ``"python.formatting.provider": "black"``, see `official VS Code documentation <https://code.visualstudio.com/docs/python/settings-reference#_formatting-settings>`_ for details.
+*Configuration:* ``[tool.black]`` block in ``src/pyproject.toml``
+*Documentation:* https://black.readthedocs.io/en/stable/
+
 Pyflakes
 ===============================
 `Pyflakes <https://github.com/PyCQA/pyflakes>`_ checks for common coding errors.
