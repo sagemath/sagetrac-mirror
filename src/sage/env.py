@@ -28,11 +28,9 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from typing import Optional
-
+from typing import List, Optional
 
 import sage
-import glob
 import os
 import socket
 import sys
@@ -211,7 +209,7 @@ var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
 
-def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
+def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     """
     Return the full path to a shared library file installed in
     ``$SAGE_LOCAL/lib`` or the directories associated with the
@@ -229,7 +227,7 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
     For distributions like Debian that use a multiarch layout, we also try the
     multiarch lib paths (i.e. ``/usr/lib/<arch>/``).
 
-    This returns ``None`` if the file does not exist.
+    This returns ``None`` if no matching library file could be found.
 
     EXAMPLES::
 
@@ -249,14 +247,14 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
         True
     """
 
-    for libname in (libname,) + additional_libnames:
-        search_directories: list[Path] = []
-        patterns: list[str] = []
+    for libname in libnames:
+        search_directories: List[Path] = []
+        patterns: List[str] = []
         if sys.platform == 'cygwin':
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
             search_directories = [
-                _get_sage_local() / 'bin',
+                Path(SAGE_LOCAL) / 'bin',
                 Path(sysconfig.get_config_var('BINDIR')),
             ]
             # Note: The following is not very robust, since if there are multible
@@ -270,7 +268,7 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
             else:
                 ext = 'so'
 
-            search_directories = [_get_sage_local() / 'lib']
+            search_directories = [Path(SAGE_LOCAL) / 'lib']
             libdir = sysconfig.get_config_var('LIBDIR')
             if libdir is not None:
                 libdir = Path(libdir)
@@ -291,16 +289,13 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
     # Just return None if no files were found
     return None
 
-def _get_sage_local() -> Path:
-    return Path(SAGE_LOCAL)
-
 # locate singular shared object
 # On Debian it's libsingular-Singular so try that as well
 SINGULAR_SO = _get_shared_lib_path('Singular', 'singular-Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
 # locate libgap shared object
-GAP_SO = _get_shared_lib_path('gap','')
+GAP_SO = _get_shared_lib_path('gap')
 var('GAP_SO', GAP_SO)
 
 # post process
