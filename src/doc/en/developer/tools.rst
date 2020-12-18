@@ -27,6 +27,7 @@ Pycodestyle
 *Installation:* ``pip install -U pycodestyle --user``
 *Usage:*
 - Manual: Run ``pycodestyle path/to/the/file.py``
+- Tox: Run ``tox -e pycodestyle path/to/the/file.py``
 - VS Code: Activate by adding the setting ``"python.linting.pycodestyleEnabled": true``, see `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>`_ for details.
 *Configuration:* ``[pycodestyle]`` block in ``src/tox.ini``
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html
@@ -38,6 +39,7 @@ Black
 *Installation:* ``pip install -U black --user``
 *Usage:*
 - Manual: Run ``black path/to/the/file.py``
+- Tox: Run ``tox -e black path/to/the/file.py``
 - VS Code: Activate by adding the setting ``"python.formatting.provider": "black"``, see `official VS Code documentation <https://code.visualstudio.com/docs/python/settings-reference#_formatting-settings>`_ for details.
 *Configuration:* ``[tool.black]`` block in ``src/pyproject.toml``
 *Documentation:* https://black.readthedocs.io/en/stable/
