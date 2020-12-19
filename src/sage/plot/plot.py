@@ -2312,9 +2312,9 @@ def _plot(funcs, xrange, parametric=False,
 
     for i in range(len(data)-1):
         # If the difference between consecutive x-values is more than
-        # 2 times the average difference between two consecutive plot points, then
+        # 5 times the average difference between two consecutive plot points, then
         # add an exclusion point.
-        if abs(data[i+1][0] - data[i][0]) > 2*average_distance_between_points:
+        if abs(data[i+1][0] - data[i][0]) > 5*average_distance_between_points:
             excluded_points.append((data[i][0] + data[i+1][0])/2)
 
     # If we did a change in variables, undo it now
