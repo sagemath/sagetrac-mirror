@@ -89,37 +89,6 @@ class Semigroups(CategoryWithAxiom):
 
     class ParentMethods:
 
-        def _test_associativity(self, **options):
-            r"""
-            Test associativity for (not necessarily all) elements of this
-            semigroup.
-
-            INPUT:
-
-            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
-
-            EXAMPLES:
-
-            By default, this method tests only the elements returned by
-            ``self.some_elements()``::
-
-                sage: L = Semigroups().example(choice='leftzero')
-                sage: L._test_associativity()
-
-            However, the elements tested can be customized with the
-            ``elements`` keyword argument::
-
-                sage: L._test_associativity(elements = (L(1), L(2), L(3)))
-
-            See the documentation for :class:`TestSuite` for more information.
-
-            """
-            tester = self._tester(**options)
-            S = tester.some_elements()
-            from sage.misc.misc import some_tuples
-            for x, y, z in some_tuples(S, 3, tester._max_runs):
-                tester.assertEqual((x * y) * z, x * (y * z))
-
         @abstract_method(optional=True)
         def semigroup_generators(self):
             """
