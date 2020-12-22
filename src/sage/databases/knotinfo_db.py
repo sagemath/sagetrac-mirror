@@ -336,7 +336,7 @@ class KnotInfoFilename(Enum):
 
 
     knots = ['https://knotinfo.math.indiana.edu/', 'knotinfo_data_complete']
-    links = ['https://linkinfo.sitehost.iu.edu/',   'linkinfo_data_complete']
+    links = ['https://linkinfo.sitehost.iu.edu/',  'linkinfo_data_complete']
 
 
 
@@ -364,7 +364,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
     filename = KnotInfoFilename
 
-    def __init__(self):
+    def __init__(self, install=False):
         r"""
         Python constructor.
 
@@ -376,26 +376,36 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
             <KnotInfoFilename.links: ['https://linkinfo.sitehost.iu.edu/',
                                       'linkinfo_data_complete']>
         """
-        from sage.features.databases import DatabaseKnotInfo
-        self._feature = DatabaseKnotInfo()
-        self._feature._cache_is_present = None # must be reset for package installation
-
-        self._sobj_path  = KnotInfoFilename.knots.sobj_path()
-        version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._feature.spkg)
-        f = open(version_file)
-        self._version = f.read().splitlines()[0]
-        f.close()
-
         # some constants
         self._delimiter    = '|'
         self._names_column = 'name'
         self._components_column = 'components'
         self._knot_prefix  = 'K'
+        self._sobj_path  = KnotInfoFilename.knots.sobj_path()
 
         self._knot_list = None
         self._link_list = None
         self._demo      = None
         self._num_knots = None
+
+        if install:
+            knot_list = self.knot_list()
+            num_knots = len(knot_list) - 1
+            print('Setting the number of Knots: %s!' %num_knots)
+            save(num_knots, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_num_knots()))
+
+        from sage.features.databases import DatabaseKnotInfo
+        self._feature = DatabaseKnotInfo()
+
+        version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._feature.spkg)
+        f = open(version_file)
+        self._version = f.read().splitlines()[0]
+        f.close()
+
+        if install:
+            self._feature._cache_is_present = None # must be reset for package installation
+            self._create_col_dict_sobj()
+            self._create_data_sobj()
 
     def demo_version(self):
         r"""
@@ -502,7 +512,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         link_csv.close()
         return self._link_list
 
-    def create_col_dict_sobj(self):
+    def _create_col_dict_sobj(self):
         r"""
         Create ``sobj`` files containing the number of knots and a dictionary
         for the columns of the table.
@@ -511,7 +521,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.create_col_dict_sobj() # not tested (used on installation)
+            sage: ki_db._create_col_dict_sobj() # not tested (used on installation)
         """
         knot_list = self.knot_list()
         knot_column_names = knot_list[0]
@@ -522,9 +532,6 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
         from sage.misc.misc import sage_makedirs
         sage_makedirs(self._sobj_path)
-
-        num_knots = len_knots - 1 
-        save(num_knots, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_num_knots()))
 
         column_dict = {}
 
@@ -564,7 +571,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
 
 
-    def create_data_sobj(self):
+    def _create_data_sobj(self):
         r"""
         Create ``sobj`` files containing the contents of the whole table.
         To each column there is created one file containing a list of
@@ -581,7 +588,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.create_data_sobj() # not tested (just used on installation)
+            sage: ki_db._create_data_sobj() # not tested (just used on installation)
         """
         knot_list = self.knot_list()
         link_list = self.link_list()
