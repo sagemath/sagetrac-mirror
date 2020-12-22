@@ -30,6 +30,7 @@ import csv
 from enum import Enum
 
 from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.persist import save, load
 from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
@@ -343,7 +344,7 @@ class KnotInfoFilename(Enum):
 #----------------------------------------------------------------------------------------------------------------------------
 # Class to provide data for knots and links from the KnotInfo web-page
 #----------------------------------------------------------------------------------------------------------------------------
-class KnotInfoDataBase(SageObject):
+class KnotInfoDataBase(SageObject, UniqueRepresentation):
     r"""
     Database interface to KnotInfo
 
@@ -377,6 +378,8 @@ class KnotInfoDataBase(SageObject):
         """
         from sage.features.databases import DatabaseKnotInfo
         self._feature = DatabaseKnotInfo()
+        self._feature._cache_is_present = None # must be reset for package installation
+
         self._sobj_path  = KnotInfoFilename.knots.sobj_path()
         version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._feature.spkg)
         f = open(version_file)
@@ -393,7 +396,6 @@ class KnotInfoDataBase(SageObject):
         self._link_list = None
         self._demo      = None
         self._num_knots = None
-
 
     def demo_version(self):
         r"""
@@ -779,6 +781,26 @@ class KnotInfoDataBase(SageObject):
         verbose('... finished!')
 
         return res
+
+    def _test_database(self, **options):
+        r"""
+        Method used by TestSuite. Performs :meth:`KnotInfoBase.is_recoverable`.
+
+        EXAMPLES::
+
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: TestSuite(ki_db).run()    # long time
+        """
+        from sage.knots.knotinfo import KnotInfo
+        from sage.misc.misc import some_tuples
+        tester = options['tester']
+        max_samples = tester._max_samples
+        if not max_samples:
+            max_samples = 20
+        l = list(KnotInfo)
+        sample = some_tuples(l, 1, len(l), max_samples=max_samples)
+        tester.assertTrue(all(L.is_recoverable(unique=False) for L, in sample))
 
 
 

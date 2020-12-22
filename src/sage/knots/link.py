@@ -3477,13 +3477,13 @@ class Link(SageObject):
         OUTPUT:
 
         A tuple ``(K, m)`` where ``K`` is an instance of :class:`~sage.knots.knotinfo.KnotInfoBase`
-        and ``m`` a boolean (for chiral links) telling if ``self`` corresponse
+        and ``m`` a boolean (for chiral links) telling if ``self`` corresponds
         to the mirrored version of ``K`` or not. The value of ``m`` is ``None``
         for amphicheiral links and ``?`` if it cannot be determined uniquely
         and the keyword option ``unique=False`` is given.
 
-        For proper links, if the orientation mutant cannot be uniquely determined
-        K will be a series of links collecting all links having the same unoriented
+        For proper links, if the orientation mutant cannot be uniquely determined,
+        K will be a series of links gathering all links having the same unoriented
         name, that is an instance of :class:`~sage.knots.knotinfo.KnotInfoSeries`.
 
         If ``mirror_version`` is set to ``False`` then the result is just ``K``
@@ -3504,10 +3504,10 @@ class Link(SageObject):
             listed with individual names regardless whether they are pairwise
             non isotopic or not. In such a case the identification is not
             unique and therefore a series of the links will be returned which
-            collects all having the same unoriented name.
+            gathers all having the same unoriented name.
 
-            To obain the individual oriented links being isotopic to ``self``
-            use the keyword ``unique`` (see the example for ``L2a1_1`` below
+            To obtain the individual oriented links being isotopic to ``self``
+            use the keyword ``unique`` (see the examples for ``L2a1_1`` and
             ``L5a1_0`` below).
 
         EXAMPLES::
@@ -3838,7 +3838,7 @@ class Link(SageObject):
             sage: L = KnotInfo.L7a7_0_0             # optional - database_knotinfo
             sage: L.series(oriented=True).inject()  # optional - database_knotinfo
             Defining L7a7
-            sage: L == L7a7(0)
+            sage: L == L7a7(0)                      # optional - database_knotinfo
             True
             sage: l = L.link()                      # optional - database_knotinfo
             sage: l.is_isotopic(L7a7(1).link())     # optional - database_knotinfo

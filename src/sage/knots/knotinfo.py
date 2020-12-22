@@ -30,7 +30,7 @@ to Sage objects this is translated (by default) in order to avoid confusion abou
 exchanged mirror versions.
 
 Also, note that the braid notation is used according to Sage, even thought in
-the source where it is taken from the braid generators are assumed to have a
+the source where it is taken from, the braid generators are assumed to have a
 negative crossing which would be opposite to the convention in Sage (see definition
 3 of `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
 <https://arxiv.org/abs/math/0401051>`__).
@@ -870,7 +870,7 @@ class KnotInfoBase(Enum):
 
             For proper links this property is not provided in the database.
             Anyway, we support it here in this case, as well, except for a few
-            items where it could not be determined easily and where ``None``
+            items where it cannot be determined easily and where ``None``
             is returned as answer.
 
         EXAMPLES::
@@ -1758,7 +1758,7 @@ class KnotInfoBase(Enum):
         INPUT:
 
         - ``unique`` -- boolean (optional, default=``True``) if set to ``False``
-          it is only checked if ``self``is among the recovered items
+          it is only checked if ``self`` is among the recovered items
 
         EXAMPLES::
 
@@ -1790,7 +1790,7 @@ class KnotInfoBase(Enum):
 
             def check_result(L, m):
                 r"""
-                Check a single result from ``get_knotinfo``
+                Check a single result from ``get_knotinfo``.
                 """
                 if L != self:
                     return False
@@ -2271,9 +2271,11 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``unique`` -- boolean (optional, default=``True``) see :meth:`KnotInfoBase.is_recoverable`
-        - ``max_samples`` non negative integer or ``infinity`` (optional, default `8`) limits the number of
-          items to check (random sample). If set to ``infinity`` then no limit is set.
+        - ``unique`` -- boolean (optional, default=``True``) see
+          :meth:`KnotInfoBase.is_recoverable`
+        - ``max_samples`` -- non negative integer or ``infinity`` (optional,
+          default ``8``) limits the number of items to check (random sample).
+          If set to ``infinity`` then no limit is set.
 
         EXAMPLES::
 
