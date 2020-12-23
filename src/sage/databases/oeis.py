@@ -753,7 +753,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
         except AttributeError:
             fields = defaultdict(list)
             for line in self.raw_entry().splitlines():
-                fields[line[1]].append(line[11:])
+                if line:
+                    fields[line[1]].append(line[11:])
             self._fields = fields
             self.is_dead(warn_only=True)
             return self._fields[key]
