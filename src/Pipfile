@@ -36,6 +36,10 @@ networkx = "*"
 [requires]
 python_version = "3.8"
 
+[dev-packages.8c46424]
+path = "./../build/pkgs/sage_conf/src"
+editable = true
+
 [packages.e1839a8]
 path = "."
 editable = true
