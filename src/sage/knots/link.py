@@ -3382,7 +3382,6 @@ class Link(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L5a1_0.inject()
             Defining L5a1_0
             sage: L5a1_0.link()._knotinfo_matching_list()
@@ -3512,7 +3511,6 @@ class Link(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = Link([[4,2,5,1], [10,3,11,4], [5,16,6,17], [7,12,8,13],
             ....:           [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
             ....:           [22,18,1,17], [8,19,9,20], [21,14,22,15]])
@@ -3651,7 +3649,6 @@ class Link(SageObject):
             DeprecationWarning: the complex_number module is deprecated, please use sage.rings.complex_mpfr
             See http://trac.sagemath.org/24483 for details.
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(10, True, True)   # optional - database_knotinfo
             Series of knots K10
             sage: _.inject()                       # optional - database_knotinfo
@@ -3701,9 +3698,9 @@ class Link(SageObject):
 
             if not chiral:
                 mirrored = None
-            elif proved_m and not proved_s:
+            elif proved_m and not proved_s and L in lm:
                 mirrored = True
-            elif proved_s and not proved_m:
+            elif proved_s and not proved_m and L in ls:
                 mirrored = False
             else:
                 # nothing proved
@@ -3769,6 +3766,9 @@ class Link(SageObject):
         lm, proved_m = self_m._knotinfo_matching_list()
         l = list(set(ls + lm))
 
+        if l and not unique:
+            return answer_list(l)
+
         if proved_s and proved_m:
             return answer_list(l)
 
@@ -3779,9 +3779,6 @@ class Link(SageObject):
             return answer_list(lm)
 
         # here we come if we cannot be sure about the found result
-
-        if l and not unique:
-            return answer_list(l)
 
         uniq_txt = ('', '')
         if l:
@@ -3834,7 +3831,6 @@ class Link(SageObject):
             sage: l1.is_isotopic(l3)
             False
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L7a7_0_0             # optional - database_knotinfo
             sage: L.series(oriented=True).inject()  # optional - database_knotinfo
             Defining L7a7

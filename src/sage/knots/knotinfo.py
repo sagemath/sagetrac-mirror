@@ -41,7 +41,6 @@ the according documentation of :meth:`KnotInfoBase.homfly_polynomial`,
 
 EXAMPLES::
 
-    sage: from sage.knots.knotinfo import KnotInfo
     sage: L = KnotInfo.L4a1_0
     sage: L.pd_notation()
     [[6, 1, 7, 2], [8, 3, 5, 4], [2, 5, 3, 6], [4, 7, 1, 8]]
@@ -256,7 +255,7 @@ def eval_knotinfo(string, locals={}, to_tuple=True):
 
     EXAMPLES::
 
-        sage: from sage.knots.knotinfo import KnotInfo, eval_knotinfo
+        sage: from sage.knots.knotinfo import eval_knotinfo
         sage: L = KnotInfo.L4a1_0
         sage: L.braid_notation(original=True)
         '{4, {1, -2, 3, -2, -1, -2, -3, -2}}'
@@ -304,7 +303,6 @@ class KnotInfoBase(Enum):
 
     EXAMPLES::
 
-        sage: from sage.knots.knotinfo import KnotInfo
         sage: [knot.name for knot in KnotInfo if knot.crossing_number() < 5]
         ['K0_1', 'K3_1', 'K4_1', 'L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
 
@@ -327,7 +325,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L4a1_0 < KnotInfo.L4a1_1 # indirect doctest
             True
             sage: KnotInfo.L2a1_0 < KnotInfo.K3_1   # indirect doctest
@@ -348,7 +345,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: it = L.items
             sage: [i.name for i in it if i.name.startswith('braid')]
@@ -373,7 +369,6 @@ class KnotInfoBase(Enum):
     @cached_method
     def __getitem__(self, item):
         r"""
-        sage: from sage.knots.knotinfo import KnotInfo
         sage: L = KnotInfo.L4a1_0
         sage: L[L.items.alternating]
         'Y'
@@ -411,7 +406,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: L._offset_knots()          # optional - database_knotinfo
             2978
@@ -426,7 +420,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: L._braid_group()
             Braid group on 4 strands
@@ -446,7 +439,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_1
             sage: L._homfly_pol_ring('u', 'v')
             Multivariate Laurent Polynomial Ring in u, v over Integer Ring
@@ -473,7 +465,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: L.pd_notation()
             [[6, 1, 7, 2], [8, 3, 5, 4], [2, 5, 3, 6], [4, 7, 1, 8]]
@@ -516,7 +507,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: L.dt_notation()
             [[6, 8], [2, 4]]
@@ -559,7 +549,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: L.gauss_notation()
             [[1, -3, 2, -4], [3, -1, 4, -2]]
@@ -595,7 +584,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: L.braid_notation()
             (1, -2, 3, -2, -1, -2, -3, -2)
@@ -641,7 +629,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: L.braid_index()
             4
@@ -666,7 +653,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K3_1
             sage: K.braid_length()
             3
@@ -681,7 +667,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K3_1
             sage: K.braid()
             s^3
@@ -697,7 +682,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L6a1_0.num_components()
             2
         """
@@ -718,7 +702,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L4a1_0.crossing_number()
             4
             sage: KnotInfo.K3_1.crossing_number()
@@ -742,7 +725,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L4a1_0.determinant()
             4
             sage: KnotInfo.K3_1.determinant()
@@ -762,7 +744,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L7a1_0.is_knot()      # optional - database_knotinfo
             False
             sage: KnotInfo.K6_3.is_knot()
@@ -778,7 +759,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L10a122_1_0.name_unoriented()  # optional - database_knotinfo
             'L10a122'
         """
@@ -813,7 +793,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K6_1.series().inject()
             Defining K6
             sage: [(K.name, K.symmetry_type()) for K in K6]
@@ -836,7 +815,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K6_3.is_reversible()
             True
         """
@@ -875,7 +853,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: Kp = KnotInfo.K12a_427             # optional - database_knotinfo
             sage: Kp.is_amphicheiral()               # optional - database_knotinfo
             False
@@ -946,7 +923,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_alternating()
             True
         """
@@ -959,7 +935,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_almost_alternating() # optional - database_knotinfo
             False
         """
@@ -973,7 +948,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_quasi_alternating() # optional - database_knotinfo
             True
         """
@@ -987,7 +961,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_adequate()         # optional - database_knotinfo
             True
         """
@@ -1001,7 +974,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_positive()
             True
         """
@@ -1014,7 +986,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_quasipositive()     # optional - database_knotinfo
             True
         """
@@ -1028,7 +999,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_strongly_quasipositive() # optional - database_knotinfo
             True
         """
@@ -1042,7 +1012,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.is_positive_braid()         # optional - database_knotinfo
             False
         """
@@ -1056,7 +1025,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K6_3.is_fibered()
             True
         """
@@ -1069,7 +1037,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L6a2_1.is_oriented()
             True
         """
@@ -1115,7 +1082,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K3_1 = KnotInfo.K3_1
             sage: PK3_1 = K3_1.homfly_polynomial(); PK3_1
             -v^4 + v^2*z^2 + 2*v^2
@@ -1204,7 +1170,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L2a1_1
             sage: L.kauffman_polynomial()
             a^-1*z - a^-1*z^-1 + a^-2 + a^-3*z - a^-3*z^-1
@@ -1312,7 +1277,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K4_1
             sage: Kj = K.jones_polynomial(); Kj
             t^2 - t - 1/t + 1/t^2 + 1
@@ -1492,7 +1456,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K4_1
             sage: Ka = K.alexander_polynomial(); Ka
             t^2 - 3*t + 1
@@ -1586,7 +1549,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K3_1
             sage: K.link()
             Knot represented by 3 crossings
@@ -1708,7 +1670,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L4a1_0.is_unique()
             True
             sage: KnotInfo.L5a1_0.is_unique()
@@ -1762,7 +1723,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L4a1_0.inject()
             Defining L4a1_0
             sage: L4a1_0.is_recoverable()
@@ -1828,7 +1788,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.K5_2.inject()
             Defining K5_2
             sage: K5_2.is_alternating()
@@ -1855,7 +1814,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K5 = KnotInfo.K5_2.series()
             sage: K5(1)
             <KnotInfo.K5_1: '5_1'>
@@ -1890,7 +1848,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K3_1
             sage: K.diagram()            # not tested
             True
@@ -1921,7 +1878,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K3_1
             sage: K.knot_atlas_webpage()        # not tested
             True
@@ -1941,7 +1897,6 @@ class KnotInfoBase(Enum):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: K = KnotInfo.K3_1
             sage: K.knotilus_webpage(new=1)   # not tested
             True
@@ -1973,7 +1928,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
     EXAMPLES::
 
-        sage: from sage.knots.knotinfo import KnotInfoSeries
         sage: K6 = KnotInfoSeries(6, True, True); K6
         Series of knots K6
         sage: K6(3)
@@ -2001,7 +1955,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: L6a = KnotInfoSeries(6, False, True); L6a
             Series of links L6a
         """
@@ -2038,7 +1991,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: K6 = KnotInfoSeries(6, True, True); K6
             Series of knots K6
             sage: K6.list()
@@ -2124,7 +2076,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(5, True, True).lower_list()
             [<KnotInfo.K0_1: '0_1'>,
              <KnotInfo.K3_1: '3_1'>,
@@ -2153,7 +2104,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(6, True, True)
             Series of knots K6
             sage: _.__repr__()
@@ -2172,7 +2122,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(6, True, True).inject()
             Defining K6
             sage: list(K6)                      # indirect doctest
@@ -2197,13 +2146,11 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(6, True, True).inject()
             Defining K6
             sage: K6(2)                         # indirect doctest
             <KnotInfo.K6_2: '6_2'>
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L8a21_0_1_0.inject()  # optional - database_knotinfo
             Defining L8a21_0_1_0
             sage: L8a21_0_1_0.series().inject()  # optional - database_knotinfo
@@ -2237,7 +2184,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(6, True, True)._name()
             'K6'
         """
@@ -2279,7 +2225,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L4a1_0.series().inject()
             Defining L4a
             sage: L4a.is_recoverable()
@@ -2308,7 +2253,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfo
             sage: TestSuite(KnotInfo.L5a1_0.series()).run(verbose=True)  # indirec doctest
             running ._test_category() . . . pass
             running ._test_new() . . . pass
@@ -2337,7 +2281,6 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(6, True, True).inject()
             Defining K6
             sage: K6(2)
