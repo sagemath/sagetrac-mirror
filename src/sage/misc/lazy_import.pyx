@@ -58,7 +58,6 @@ AUTHOR:
 cimport cython
 from cpython.object cimport PyObject_RichCompare
 from cpython.number cimport PyNumber_TrueDivide, PyNumber_Power, PyNumber_Index
-import sage.misc.startup_guard as startup_guard
 
 cdef extern from *:
     int likely(int) nogil  # Defined by Cython
