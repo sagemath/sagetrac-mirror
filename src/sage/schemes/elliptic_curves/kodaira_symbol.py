@@ -101,7 +101,7 @@ class KodairaSymbol_class(SageObject):
         Check that `trac`:31147 is fixed::
 
             sage: latex(KodairaSymbol_class(-14))
-            'I_{10}^{*}'
+            I_{10}^{*}
         """
         if not isinstance(symbol, str):
             n = Integer(symbol)
