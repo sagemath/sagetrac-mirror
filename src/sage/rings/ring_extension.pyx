@@ -54,7 +54,7 @@ Once we have constructed an extension (or a tower of extensions), we
 have interesting methods attached to it. As a basic example, one can
 compute a basis of the top ring over any base in the tower::
 
-    sage: L.basis_over(K)
+    sage: L.basis\_over(K)
     [1, b]
     sage: L.basis_over(F)
     [1, a, b, a*b]
@@ -1076,10 +1076,13 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         """
         return self._base
 
+    def _ring_extension(self):
+        return self
+
     def bases(self):
         r"""
         Return the list of successive bases of this extension
-        (including itself).
+        (including itself), as ring extensions.
 
         EXAMPLES::
 
@@ -1108,9 +1111,11 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         """
         L = [ self ]
         base = self
-        while isinstance(base, RingExtension_generic):
+        while hasattr(base, '_ring_extension'):
+            if base is base.base_ring():
+                break
+            L.append(base._ring_extension())
             base = base.base_ring()
-            L.append(base)
         return L
 
     def absolute_base(self):
@@ -1179,12 +1184,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
             !meth:`base`, :meth:`bases`, :meth:`absolute_base`
         """
-        cdef CommutativeRing b
-        b = self
-        while isinstance(b, RingExtension_generic):
-            if b is base or (<RingExtension_generic>b)._backend is base: return True
-            b = (<RingExtension_generic>b)._base
-        return b is base
+        return any(b is base or (<RingExtension_generic?>b)._backend is base for b in self.bases())
 
     cpdef CommutativeRing _check_base(self, CommutativeRing base):
         r"""
@@ -1229,12 +1229,9 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         cdef CommutativeRing b
         if base is None:
             return self._base
-        b = self
-        while isinstance(b, RingExtension_generic):
-            if b is base or (<RingExtension_generic>b)._backend is base: return b
-            b = (<RingExtension_generic>b)._base
-        if b is base:
-            return b
+        for b in self.bases():
+            if b is base or (<RingExtension_generic?>b)._backend is base:
+                return b
         raise ValueError("not (explicitly) defined over %s" % base)
 
     def defining_morphism(self, base=None):
@@ -1326,8 +1323,8 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: T.over(QQ).gens()
             (y, x)
         """
-        self._check_base(base)
-        return tuple([ self(x) for x in generators(self._backend, backend_parent(self._base)) ])
+        base = self._check_base(base)
+        return tuple([ self(x) for x in generators(self._backend, backend_parent(base)) ])
 
     def ngens(self, base=None):
         r"""
