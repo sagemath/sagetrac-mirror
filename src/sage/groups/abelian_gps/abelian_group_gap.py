@@ -328,7 +328,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             f2
         """
         if isinstance(x, AbelianGroupElement_gap):
-            try :
+            try:
                 if x in self._cover:
                     x = self.gap().NaturalHomomorphism().Image(x.gap())
                 else:
@@ -357,7 +357,6 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
                 raise ValueError("input does not match the number of generators")
             x = gens_gap[0]**0
             for i in range(len(exp)):
-
                 x *= gens_gap[i]**(exp[i] % orders[i])
             x = x.gap()
         return self.element_class(self, x, check=check)
@@ -558,7 +557,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
 
     def quotient(self, N):
         r"""
-        Return the quotient of this group by the normal subgroup N.
+        Return the quotient of this group by the normal subgroup `N`.
 
         INPUT:
 
@@ -831,7 +830,9 @@ class AbelianGroupQuotient_gap(AbelianGroup_gap):
     r"""
     Quotients of abelian groups by a subgroup.
 
-    Do not call this directly. Instead use :meth:`quotient`.
+    .. NOTE::
+
+        Do not call this directly. Instead use :meth:`quotient`.
 
     EXAMPLES::
 
@@ -917,9 +918,10 @@ class AbelianGroupQuotient_gap(AbelianGroup_gap):
             sage: G = AbelianGroupGap([2,3,4,5])
             sage: gen = G.gens()[:2]
             sage: S = G.subgroup(gen)
-            sage: G._coerce_map_from_(S)
+            sage: Q = G.quotient(S)
+            sage: Q._coerce_map_from_(G)
             True
-            sage: S._coerce_map_from_(G)
+            sage: G._coerce_map_from_(Q)
             False
         """
         if isinstance(S, AbelianGroup_gap):
@@ -928,18 +930,40 @@ class AbelianGroupQuotient_gap(AbelianGroup_gap):
 
     def cover(self):
         r"""
+        Return the covering group of this quotient group.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: gen = G.gens()[:2]
+            sage: S = G.subgroup(gen)
+            sage: Q = G.quotient(S)
+            sage: Q.cover() is G
+            True
         """
         return self._cover
 
     def relations(self):
         r"""
+        Return the relations of this quotient group.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: gen = G.gens()[:2]
+            sage: S = G.subgroup(gen)
+            sage: Q = G.quotient(S)
+            sage: Q.relations() is S
+            True
         """
         return self._relations
 
     @cached_method
     def natural_homomorphism(self):
         r"""
-        Return the defining homomorphism into self.
+        Return the defining homomorphism into ``self``.
 
         EXAMPLES::
 

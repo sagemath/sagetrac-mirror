@@ -161,7 +161,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function, absolute_import
 from itertools import islice
 
 from . import free_module_element
@@ -178,7 +177,6 @@ import sage.rings.infinity
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
-from sage.structure.element import is_Matrix
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
                                     richcmp_not_equal, revop,
@@ -1391,8 +1389,6 @@ done from the right side.""")
         if not (self._inner_product_is_dot_product()
                 and other._inner_product_is_dot_product()):
             # This only affects free_quadratic_modules
-            if self.inner_product_ring() != other.inner_product_ring():
-                return False
             if self.inner_product_matrix() != other.inner_product_matrix():
                 return False
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
@@ -2209,31 +2205,6 @@ done from the right side.""")
         """
         return sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.degree(), sparse=True)(1)
 
-    def inner_product_ring(self):
-        r"""
-        Return the codomain of the inner product.
-
-        EXAMPLES::
-
-            sage: G = Matrix(CC, 1, [1+ I])
-            sage: F = FreeQuadraticModule(QQ,1,G)
-            sage: F.inner_product_ring()
-            Complex Field with 53 bits of precision
-
-        TESTS::
-
-            sage: A = ZZ^2
-            sage: A.inner_product_ring()
-            Integer Ring
-            sage: V = A.span([(1,1/3)])
-            sage: V.inner_product_ring()
-            Rational Field
-        """
-        if self._inner_product_is_dot_product():
-            return self.coordinate_ring()
-        else:
-            return self.inner_product_matrix().base_ring()
-
     def _inner_product_is_dot_product(self):
         """
         Return whether or not the inner product on this module is induced
@@ -2245,7 +2216,7 @@ done from the right side.""")
             sage: FreeModule(ZZ, 3)._inner_product_is_dot_product()
             True
             sage: FreeModule(ZZ, 3, inner_product_matrix=1)._inner_product_is_dot_product()
-            True
+            False
             sage: FreeModule(ZZ, 2, inner_product_matrix=[1,0,-1,0])._inner_product_is_dot_product()
             False
 

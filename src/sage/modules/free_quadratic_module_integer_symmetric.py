@@ -1671,9 +1671,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-
-
-
+            sage: L = IntegralLattice('A2')
+            sage: L.lll()==L
+            True
         """
         p, n = self.signature_pair()
         if p*n != 0:

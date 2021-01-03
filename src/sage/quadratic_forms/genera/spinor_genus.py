@@ -1,11 +1,13 @@
 r"""
 Spinor genus computations.
 
-<Paragraph description>
+This file defines the group of spinor operators used for the computation of spinor genera.
+It is meant for internal use only.
 
 EXAMPLES::
 
-<Lots and lots of examples>
+    sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
+    sage: A = SpinorOperators((2, 3, 7))
 
 AUTHORS:
 
@@ -23,27 +25,44 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap, AbelianGroupElement_gap
-from sage.quadratic_forms.genera.normal_form import _min_nonsquare
 from sage.rings.all import ZZ,QQ
 
-class AdelicSquareClass(AbelianGroupElement_gap):
+class SpinorOperator(AbelianGroupElement_gap):
+    r"""
+    A spinor operator seen as a tuple of square classes.
+
+    For `2` the square class is represented as one of `1,3,5,7` and for
+    `p` odd it is `1` for a p-adic unit square and `-1` for a non-square.
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.spinor_genus import *
+        sage: A = SpinorOperators((2, 3, 7))
+        sage: A.an_element()
+        [2:7, 3:-1, 7:-1]
+    """
 
     def _repr_(self):
         r"""
         Return the print representation.
 
         EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.spinor_genus import *
+            sage: A = SpinorOperators((2, 3, 7))
+            sage: A.an_element()
+            [2:7, 3:-1, 7:-1]
         """
         e = self.exponents()
         p = self.parent()._primes
         s = "[2:"
-        if e[0]==0 and e[1]==0:
+        if e[0] == 0 and e[1] == 0:
             s += "1"
-        elif e[0]==1 and e[1]==0:
+        elif e[0] == 1 and e[1] == 0:
             s += "3"
-        elif e[0]==0 and e[1]==1:
+        elif e[0] == 0 and e[1] == 1:
             s += "5"
-        elif e[0]==1 and e[1]==1:
+        elif e[0] == 1 and e[1] == 1:
             s += "7"
         for k in range(1,len(p)):
             s += ", %s:%s"%(p[k], (-1)**e[k+1])
@@ -51,36 +70,71 @@ class AdelicSquareClass(AbelianGroupElement_gap):
         return s
 
 
-class AdelicSquareClasses(AbelianGroupGap):
+class SpinorOperators(AbelianGroupGap):
     r"""
-    A group of square classes used for spinor norm computations.
+    The group of spinor operators of a genus.
+
+    It is a product of `p`-adic unit square classes used for spinor genus computations.
 
     INPUT:
 
     - a tuple of primes `(p_1=2,\dots, p_n`)
 
-    OUTPUT
-
-    MATH::
-
-      \QQ_{p_1^*/(\QQ_{p_1}^*)^2 \times \dots \ times \QQ_{p_n^*/(\QQ_{p_n}^*)^2
-
     EXAMPLES::
 
-
+        sage: from sage.quadratic_forms.genera.spinor_genus import *
+        sage: SpinorOperators((2, 3, 7))
+        Group of SpinorOperators at primes (2, 3, 7)
     """
     def __init__(self, primes):
         r"""
+        Initialize the group of spinor operators
+
+        TESTS::
+
+            sage: from sage.quadratic_forms.genera.spinor_genus import *
+            sage: S = SpinorOperators((2, 3, 7))
+            sage: TestSuite(S).run()
         """
         if primes[0] != 2:
             raise ValueError("first prime must be 2")
         self._primes = tuple(ZZ(p) for p in primes)
         orders = len(self._primes)*[2] + [2]
         # 3, 5, unit_p1, unit_p2,...
-        order = tuple(orders)
+        orders = tuple(orders)
         AbelianGroupGap.__init__(self, orders)
 
-    Element = AdelicSquareClass
+    def __reduce__(self):
+        r"""
+        Implement pickling.
+
+        OUTPUT:
+
+        - a tuple ``f`` such that this element is ``f[0](*f[1])``
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
+            sage: S = SpinorOperators((2, 3, 7))
+            sage: S == loads(dumps(S))
+            True
+        """
+        return SpinorOperators, (self._primes,)
+
+    Element = SpinorOperator
+
+    def _repr_(self):
+      r"""
+      Return the print representation of ``self``.
+
+      EXAMPLES::
+
+          sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
+          sage: SpinorOperators((2, 3, 7))
+          Group of SpinorOperators at primes (2, 3, 7)
+      """
+      s = "Group of SpinorOperators at primes %s"%(self._primes,)
+      return s
 
     def to_square_class(self, x, p):
         r"""
@@ -94,8 +148,8 @@ class AdelicSquareClasses(AbelianGroupGap):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
-            sage: AS = AdelicSquareClasses((2, 3, 7))
+            sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
+            sage: AS = SpinorOperators((2, 3, 7))
             sage: AS.to_square_class(5, 7)
             [2:1, 3:1, 7:-1]
             sage: AS.to_square_class(5, 2)
@@ -135,7 +189,8 @@ class AdelicSquareClasses(AbelianGroupGap):
 
         INPUT:
 
-        - ``r`` -- a non zero rational number
+        - ``r`` -- a non zero integer;
+          if ``prime`` is ``None``, ``r`` must not be divisible by the defining primes of ``self``
 
         - ``prime`` --(default:``None``) a prime or `-1`
 
@@ -144,12 +199,15 @@ class AdelicSquareClasses(AbelianGroupGap):
         If a prime `p` is given the method returns
         `\Delta_p(r)`
         otherwise returns `\Delta(r)`
-        where both are as defined by Conway-Sloane.
+        where both are as defined by Conway-Sloane in
+        Chapter 15 9.3 of [CS1988]_.
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
-            sage: AS = AdelicSquareClasses((2, 3, 7))
+            sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
+            sage: AS = SpinorOperators((2, 3, 7))
+            sage: AS.delta(5)
+            [2:5, 3:-1, 7:-1]
             sage: AS.delta(2, prime=3)
             [2:1, 3:-1, 7:1]
             sage: AS.delta(11)
@@ -157,8 +215,10 @@ class AdelicSquareClasses(AbelianGroupGap):
             sage: AS.delta(3, prime=7)
             [2:1, 3:1, 7:-1]
         """
-        r = QQ(r)
+        r = ZZ(r)
         if prime is None:
+            if any(p.divides(r) for p in self._primes):
+                raise ValueError("r must not be divisible by %s"%(self._primes,))
             return self.prod([self.to_square_class(r, p) for p in self._primes])
         prime = ZZ(prime)
         if prime == -1:

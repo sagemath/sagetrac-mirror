@@ -66,7 +66,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import weakref
 
@@ -75,9 +74,7 @@ import sage.misc.latex as latex
 import sage.rings.ring as ring
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
-from sage.categories.integral_domains import IntegralDomains
 from . import free_module
-from sage.structure.richcmp import richcmp_not_equal, rich_to_bool, richcmp
 
 ###############################################################################
 #
@@ -110,8 +107,8 @@ def FreeQuadraticModule(
     .. NOTE::
 
         In Sage it is the case that there is only one dense and one
-        sparse free ambient quadratic module of rank `n` over `R` given
-        inner product matrix and given base ring.
+        sparse free ambient quadratic module of rank `n` over `R` and given
+        inner product matrix.
 
     EXAMPLES::
 
@@ -127,86 +124,23 @@ def FreeQuadraticModule(
 
     TESTS:
 
-        sage: M4 = FreeQuadraticModule(ZZ,2,Matrix([[1,2],[3/7,4]]))
-        sage: M4
-        Ambient free quadratic module of rank 2 over the principal ideal domain Integer Ring
+    Check for :trac:`10577`::
+
+        sage: m = matrix.diagonal(GF(2), [1,1])
+        sage: V2 = VectorSpace(GF(2), 2, inner_product_matrix=m)
+        sage: deepcopy(V2)
+        Ambient quadratic space of dimension 2 over Finite Field of size 2
         Inner product matrix:
-        [  1   2]
-        [3/7   4]
-        Inner product ring: Rational Field
-
-        sage: M5 = FreeQuadraticModule(RR, 2, Matrix([[1,2],[1.3+CC(i),4]]))
-        sage: M5
-        Ambient quadratic space of dimension 2 over Real Field with 53 bits of precision
-        Inner product matrix:
-        [                     1.00000000000000                      2.00000000000000]
-        [1.30000000000000 + 1.00000000000000*I                      4.00000000000000]
-         Inner product ring: Complex Field with 53 bits of precision
-
-    The following does not work since ``QQ`` does not coerce into ``GF(2)``::
-
-        sage: M6 = FreeQuadraticModule(ZZ, 2, Matrix(GF(2),[[0,1],[1,0]]))
-        Traceback (most recent call last):
-        ...
-        ValueError: The fraction field of the base_ring (=Integer Ring)
-         must coerce into the inner_product_ring(=Finite Field of size 2).
-
-    The following does not work since GF(9) does not coerce into GF(3)[x]::
-
-        sage: R.<x> = GF(3)[]
-        sage: M6 = FreeQuadraticModule(GF(9), 2, Matrix(R,[[x,1],[1,2*x]]))
-        Traceback (most recent call last):
-        ...
-        ValueError: The base_ring (=Finite Field in z2 of size 3^2)
-         must coerce into the inner_product_ring(=Univariate Polynomial Ring
-         in x over Finite Field of size 3).
-
-    We can fix this by being more explicit::
-
-        sage: S.<x> = GF(9)[]
-        sage: M7 = FreeQuadraticModule(GF(9), 2, Matrix(S,[[x,1],[1,2*x]]))
-        sage: M7
-        Ambient quadratic space of dimension 2 over Finite Field in z2 of size 3^2
-        Inner product matrix:
-        [  x   1]
-        [  1 2*x]
-         Inner product ring: Univariate Polynomial Ring in x over Finite Field in z2 of size 3^2
+        [1 0]
+        [0 1]
     """
     global _cache
     rank = int(rank)
 
-    if inner_product_matrix is None:
-        raise ValueError("An inner_product_matrix must be specified.")
-    try:
-        P = inner_product_matrix.parent()
-    except AttributeError:
-        P = None
-
-    # try a conversion if the inner_product_matrix is not yet a matrix
-    from sage.matrix.matrix_space import MatrixSpace
-    if not isinstance(P, MatrixSpace):
-        inner_product_matrix = MatrixSpace(base_ring, rank)(inner_product_matrix)
-
-    try:
-        inner_product_matrix = inner_product_matrix.base_extend(base_ring)
-    except TypeError:
-        pass
-
-    if inner_product_ring is None:
-        inner_product_ring = inner_product_matrix.base_ring()
-
-    if inner_product_ring != base_ring:
-        if base_ring in IntegralDomains():
-            if not inner_product_ring.has_coerce_map_from(base_ring):
-                raise ValueError("The base_ring (=%s) must coerce into the " %base_ring +
-                                 "inner_product_ring(=%s)." %inner_product_ring)
-            if not inner_product_ring.has_coerce_map_from(base_ring.fraction_field()):
-                raise ValueError("The fraction field of the base_ring (=%s) "%base_ring +
-                                 "must coerce into the inner_product_ring(=%s)."
-                                 %inner_product_ring)
-        else:
-            raise ValueError("An inner product ring different from the base ring may "+
-                             "only be defined for integral domains.")
+    # In order to use coercion into the inner_product_ring we need to pass
+    # this ring into the vector classes.
+    if inner_product_ring is not None:
+        raise NotImplementedError("An inner_product_ring cannot currently be defined.")
 
     # We intentionally create a new matrix instead of using the given
     # inner_product_matrix. This ensures that the matrix has the correct
@@ -214,7 +148,7 @@ def FreeQuadraticModule(
     # because matrices with and without subdivisions compare equal.
     # Because of uniqueness, we need a canonical matrix, which is the one
     # without subdivisions.
-    MS = MatrixSpace(inner_product_ring, rank)
+    MS = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)
     inner_product_matrix = MS(list(inner_product_matrix))
     inner_product_matrix.set_immutable()
 
@@ -283,8 +217,8 @@ def QuadraticSpace(K, dimension, inner_product_matrix, sparse=False):
     """
     if not K.is_field():
         raise TypeError("Argument K (= %s) must be a field." % K)
-    if not sparse in (True,False):
-        raise TypeError("Argument sparse (= %s) must be a boolean."%sparse)
+    if sparse not in (True, False):
+        raise TypeError("Argument sparse (= %s) must be a boolean." % sparse)
     return FreeQuadraticModule(K, rank=dimension, inner_product_matrix=inner_product_matrix, sparse=sparse)
 
 InnerProductSpace = QuadraticSpace
@@ -388,7 +322,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         """
         free_module.FreeModule_generic.__init__(
             self, base_ring=base_ring, rank=rank, degree=degree, sparse=sparse)
-        self._inner_product_matrix=inner_product_matrix
+        self._inner_product_matrix = inner_product_matrix
 
     def _dense_module(self):
         """
@@ -579,6 +513,10 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
 
         N.B. The inner product does not have to be symmetric (see examples).
 
+        TODO: Differentiate the image ring of the inner product from the base ring of
+        the module and/or ambient space.  E.g. On an integral module over ZZ the inner
+        product pairing could naturally take values in ZZ, QQ, RR, or CC.
+
         EXAMPLES::
 
             sage: M = FreeModule(ZZ, 3)
@@ -629,7 +567,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: FreeModule(ZZ, 3)._inner_product_is_dot_product()
             True
             sage: FreeModule(ZZ, 3, inner_product_matrix=1)._inner_product_is_dot_product()
-            True
+            False
             sage: FreeModule(ZZ, 2, inner_product_matrix=[1,0,-1,0])._inner_product_is_dot_product()
             False
 
@@ -667,27 +605,13 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: M3._inner_product_is_diagonal()
             False
 
-        TODO: Actually use the diagonal form of the inner product.
+        .. TODO:: Actually use the diagonal form of the inner product.
         """
         A = self.inner_product_matrix()
-        D = sage.matrix.constructor.diagonal_matrix([ A[i,i] for i in range(A.nrows()) ])
+        D = sage.matrix.constructor.diagonal_matrix([A[i, i]
+                                                     for i in range(A.nrows())])
         return A == D
 
-    def inner_product_ring(self):
-        """
-        Return the inner product ring of this FreeQuadraticModule
-
-        TESTS::
-
-            sage: M = FreeQuadraticModule(ZZ,1,Matrix(CC,1))
-            sage: M.inner_product_ring()
-            Complex Field with 53 bits of precision
-        """
-        ipr = self._inner_product_matrix.base_ring()
-        if ipr.is_subring(self.coordinate_ring()):
-            return self.coordinate_ring()
-        else:
-            return ipr
 
 class FreeQuadraticModule_generic_pid(
     free_module.FreeModule_generic_pid, FreeQuadraticModule_generic):
@@ -820,12 +744,7 @@ class FreeQuadraticModule_generic_field(
             [0 0 0 0 0 0 1]
         """
         if not isinstance(base_field, ring.Field):
-            raise TypeError("The base_field (=%s) must be a field" %base_field)
-        inner_product_ring = inner_product_matrix.base_ring()
-        if not inner_product_ring.has_coerce_map_from(base_ring):
-           raise ValueError("The base field (=%s) must coerce into the " +
-                            "inner_product_ring(=%s)." %(base_ring, inner_product_ring))
-
+            raise TypeError("The base_field (=%s) must be a field" % base_field)
         free_module.FreeModule_generic_field.__init__(
             self, base_field=base_field, dimension=dimension, degree=degree, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
@@ -975,14 +894,11 @@ class FreeQuadraticModule_ambient(
             Ambient sparse free module of rank 12 over Ring of integers modulo 12
         """
         if self.is_sparse():
-            rep = "Ambient sparse free quadratic module of rank %s over %s\n" % ( self.rank(), self.base_ring() ) + \
-                "Inner product matrix:\n%s" % (self.inner_product_matrix())
-        else:
-            rep = "Ambient free quadratic module of rank %s over %s\n" % ( self.rank(), self.base_ring() ) + \
+            return "Ambient sparse free quadratic module of rank %s over %s\n" % ( self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
-        if self.coordinate_ring() != self.inner_product_ring():
-            rep += "\nInner product ring: %s" %self.inner_product_ring()
-        return rep
+        else:
+            return "Ambient free quadratic module of rank %s over %s\n" % ( self.rank(), self.base_ring() ) + \
+                "Inner product matrix:\n%s" % self.inner_product_matrix()
 
     def _latex_(self):
         r"""
@@ -1105,17 +1021,13 @@ class FreeQuadraticModule_ambient_domain(
             -b^2 + 4*a*c
         """
         if self.is_sparse():
-            rep = "Ambient sparse free quadratic module of rank %s over the integral domain %s\n"%(
+            return "Ambient sparse free quadratic module of rank %s over the integral domain %s\n"%(
                 self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
         else:
-            rep = "Ambient free quadratic module of rank %s over the integral domain %s\n"%(
+            return "Ambient free quadratic module of rank %s over the integral domain %s\n"%(
                 self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
-        if self.coordinate_ring() != self.inner_product_ring():
-            rep += "\nInner product ring: %s" %self.inner_product_ring()
-        return rep
-
 
     def ambient_vector_space(self):
         """
@@ -1215,16 +1127,13 @@ class FreeQuadraticModule_ambient_pid(
 
         """
         if self.is_sparse():
-            rep = "Ambient sparse free quadratic module of rank %s over the principal ideal domain %s\n"%(
+            return "Ambient sparse free quadratic module of rank %s over the principal ideal domain %s\n"%(
                 self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
         else:
-            rep = "Ambient free quadratic module of rank %s over the principal ideal domain %s\n"%(
+            return "Ambient free quadratic module of rank %s over the principal ideal domain %s\n"%(
                 self.rank(), self.base_ring()) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
-        if self.coordinate_ring() != self.inner_product_ring():
-            rep += "\nInner product ring: %s" %self.inner_product_ring()
-        return rep
 
 ###############################################################################
 #
@@ -1303,14 +1212,11 @@ class FreeQuadraticModule_ambient_field(
             Sparse vector space of dimension 7 over Rational Field
         """
         if self.is_sparse():
-            rep = "Ambient sparse free quadratic space of dimension %s over %s\n" % ( self.rank(), self.base_ring() ) + \
+            return "Ambient sparse free quadratic space of dimension %s over %s\n" % ( self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
         else:
-            rep = "Ambient quadratic space of dimension %s over %s\n" % ( self.rank(), self.base_ring() ) + \
+            return "Ambient quadratic space of dimension %s over %s\n" % ( self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
-        if self.coordinate_ring() != self.inner_product_ring():
-            rep += "\nInner product ring: %s" %self.inner_product_ring()
-        return rep
 
 ###############################################################################
 #
@@ -1411,11 +1317,11 @@ class FreeQuadraticModule_submodule_with_basis_pid(
 
         EXAMPLES::
 
-            sage: L = FreeQuadraticModule(ZZ, 8, -matrix.identity(QQ,8))
+            sage: L = ZZ^8
             sage: E = L.submodule_with_basis([ L.gen(i) - L.gen(0) for i in range(1,8) ])
             sage: E # indirect doctest
-            Free quadratic module of degree 8 and rank 7 over Integer Ring
-            Basis matrix:
+            Free module of degree 8 and rank 7 over Integer Ring
+            User basis matrix:
             [-1  1  0  0  0  0  0  0]
             [-1  0  1  0  0  0  0  0]
             [-1  0  0  1  0  0  0  0]
@@ -1423,22 +1329,12 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             [-1  0  0  0  0  1  0  0]
             [-1  0  0  0  0  0  1  0]
             [-1  0  0  0  0  0  0  1]
-            Inner product matrix:
-            [-1  0  0  0  0  0  0  0]
-            [ 0 -1  0  0  0  0  0  0]
-            [ 0  0 -1  0  0  0  0  0]
-            [ 0  0  0 -1  0  0  0  0]
-            [ 0  0  0  0 -1  0  0  0]
-            [ 0  0  0  0  0 -1  0  0]
-            [ 0  0  0  0  0  0 -1  0]
-            [ 0  0  0  0  0  0  0 -1]
-            Inner product ring: Rational Field
 
-            sage: M = FreeQuadraticModule(ZZ,8, matrix.diagonal(range(8)),sparse=True)
+            sage: M = FreeModule(ZZ,8,sparse=True)
             sage: N = M.submodule_with_basis([ M.gen(i) - M.gen(0) for i in range(1,8) ])
             sage: N # indirect doctest
-            Sparse free quadratic module of degree 8 and rank 7 over Integer Ring
-            Basis matrix:
+            Sparse free module of degree 8 and rank 7 over Integer Ring
+            User basis matrix:
             [-1  1  0  0  0  0  0  0]
             [-1  0  1  0  0  0  0  0]
             [-1  0  0  1  0  0  0  0]
@@ -1446,30 +1342,17 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             [-1  0  0  0  0  1  0  0]
             [-1  0  0  0  0  0  1  0]
             [-1  0  0  0  0  0  0  1]
-            Inner product matrix:
-            [0 0 0 0 0 0 0 0]
-            [0 1 0 0 0 0 0 0]
-            [0 0 2 0 0 0 0 0]
-            [0 0 0 3 0 0 0 0]
-            [0 0 0 0 4 0 0 0]
-            [0 0 0 0 0 5 0 0]
-            [0 0 0 0 0 0 6 0]
-            [0 0 0 0 0 0 0 7]
         """
         if self.is_sparse():
-            rep = "Sparse free quadratic module of degree %s and rank %s over %s\n"%(
+            s = "Sparse free quadratic module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
                 "Basis matrix:\n%r\n" % self.basis_matrix() + \
                 "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
-            rep = "Free quadratic module of degree %s and rank %s over %s\n"%(
+            s = "Free quadratic module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
                 "Basis matrix:\n%r\n" % self.basis_matrix() + \
                 "Inner product matrix:\n%r" % self.inner_product_matrix()
-        if self.coordinate_ring() != self.inner_product_ring():
-            rep += "\nInner product ring: %s" %self.inner_product_ring()
-        return rep
-
         return s
 
     def _latex_(self):
@@ -1579,7 +1462,7 @@ class FreeQuadraticModule_submodule_pid(
 
         EXAMPLES::
 
-            sage: M = FreeModule(ZZ,8,inner_product_matrix=-1)
+            sage: M = FreeModule(ZZ,8,inner_product_matrix=1)
             sage: L = M.submodule([ M.gen(i) - M.gen(0) for i in range(1,8) ])
             sage: L # indirect doctest
             Free quadratic module of degree 8 and rank 7 over Integer Ring
@@ -1687,34 +1570,22 @@ class FreeQuadraticModule_submodule_with_basis_field(
 
         EXAMPLES::
 
-            sage: V = VectorSpace(QQ, 5, inner_product_matrix=2)
+            sage: V = VectorSpace(QQ,5)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
             sage: U # indirect doctest
-            Quadratic space of degree 5 and dimension 4 over Rational Field
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [2 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 2 0 0]
-            [0 0 0 2 0]
-            [0 0 0 0 2]
             sage: print(U._repr_())
-            Quadratic space of degree 5 and dimension 4 over Rational Field
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [2 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 2 0 0]
-            [0 0 0 2 0]
-            [0 0 0 0 2]
 
         The system representation can be overwritten, but leaves
         :meth:`_repr_` unmodified::
@@ -1723,51 +1594,35 @@ class FreeQuadraticModule_submodule_with_basis_field(
             sage: U
             U
             sage: print(U._repr_())
-            Quadratic space of degree 5 and dimension 4 over Rational Field
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [2 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 2 0 0]
-            [0 0 0 2 0]
-            [0 0 0 0 2]
 
         Sparse vector spaces print this fact::
 
-            sage: V = VectorSpace(QQ,5,inner_product_matrix=2, sparse=True)
+            sage: V = VectorSpace(QQ,5,sparse=True)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
             sage: U # indirect doctest
-            Sparse quadratic space of degree 5 and dimension 4 over Rational Field
+            Sparse vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [2 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 2 0 0]
-            [0 0 0 2 0]
-            [0 0 0 0 2]
         """
         if self.is_sparse():
-            rep = "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
+            return "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
                     "Basis matrix:\n%r" % self.basis_matrix() + \
                     "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
-            rep = "Quadratic space of degree %s and dimension %s over %s\n"%(
+            return "Quadratic space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
                     "Basis matrix:\n%r\n" % self.basis_matrix() + \
                     "Inner product matrix:\n%r" % self.inner_product_matrix()
-        if self.coordinate_ring() != self.inner_product_ring():
-            rep += "\nInner product ring: %s" %self.inner_product_ring()
-        return rep
-
 
 class FreeQuadraticModule_submodule_field(
     free_module.FreeModule_submodule_field, FreeQuadraticModule_submodule_with_basis_field):
@@ -1824,37 +1679,22 @@ class FreeQuadraticModule_submodule_field(
 
         EXAMPLES::
 
-            sage: V = VectorSpace(QQ,5, inner_product_matrix=RR(pi)*matrix.identity(RR,5))
+            sage: V = VectorSpace(QQ,5)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
             sage: U # indirect doctest
-            Quadratic space of degree 5 and dimension 4 over Rational Field
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [ 3.14159265358979 0.000000000000000 0.000000000000000 0.000000000000000 0.000000000000000]
-            [0.000000000000000  3.14159265358979 0.000000000000000 0.000000000000000 0.000000000000000]
-            [0.000000000000000 0.000000000000000  3.14159265358979 0.000000000000000 0.000000000000000]
-            [0.000000000000000 0.000000000000000 0.000000000000000  3.14159265358979 0.000000000000000]
-            [0.000000000000000 0.000000000000000 0.000000000000000 0.000000000000000  3.14159265358979]
-            Inner product ring: Real Field with 53 bits of precision
-
             sage: print(U._repr_())
-            Quadratic space of degree 5 and dimension 4 over Rational Field
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [ 3.14159265358979 0.000000000000000 0.000000000000000 0.000000000000000 0.000000000000000]
-            [0.000000000000000  3.14159265358979 0.000000000000000 0.000000000000000 0.000000000000000]
-            [0.000000000000000 0.000000000000000  3.14159265358979 0.000000000000000 0.000000000000000]
-            [0.000000000000000 0.000000000000000 0.000000000000000  3.14159265358979 0.000000000000000]
-            [0.000000000000000 0.000000000000000 0.000000000000000 0.000000000000000  3.14159265358979]
-            Inner product ring: Real Field with 53 bits of precision
 
         The system representation can be overwritten, but leaves
         :meth:`_repr_` unmodified::
@@ -1863,53 +1703,35 @@ class FreeQuadraticModule_submodule_field(
             sage: U
             U
             sage: print(U._repr_())
-            Quadratic space of degree 5 and dimension 4 over Rational Field
+            Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [ 3.14159265358979 0.000000000000000 0.000000000000000 0.000000000000000 0.000000000000000]
-            [0.000000000000000  3.14159265358979 0.000000000000000 0.000000000000000 0.000000000000000]
-            [0.000000000000000 0.000000000000000  3.14159265358979 0.000000000000000 0.000000000000000]
-            [0.000000000000000 0.000000000000000 0.000000000000000  3.14159265358979 0.000000000000000]
-            [0.000000000000000 0.000000000000000 0.000000000000000 0.000000000000000  3.14159265358979]
-            Inner product ring: Real Field with 53 bits of precision
 
         Sparse vector spaces print this fact::
 
-            sage: V = VectorSpace(QQ,5,inner_product_matrix=matrix.identity(CyclotomicField(15),5),sparse=True)
+            sage: V = VectorSpace(QQ,5,sparse=True)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
             sage: U # indirect doctest
-            Sparse quadratic space of degree 5 and dimension 4 over Rational Field
+            Sparse vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            Inner product matrix:
-            [1 0 0 0 0]
-            [0 1 0 0 0]
-            [0 0 1 0 0]
-            [0 0 0 1 0]
-            [0 0 0 0 1]
-            Inner product ring: Cyclotomic Field of order 15 and degree 8
         """
         if self.is_sparse():
-            rep = "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
+            return "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
                 "Basis matrix:\n%r\n" % self.basis_matrix() + \
                 "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
-            rep = "Quadratic space of degree %s and dimension %s over %s\n"%(
+            return "Quadratic space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
                 "Basis matrix:\n%r\n" % self.basis_matrix() + \
                 "Inner product matrix:\n%r" % self.inner_product_matrix()
-        if self.coordinate_ring() != self.inner_product_ring():
-            rep += "\nInner product ring: %s" %self.inner_product_ring()
-        return rep
-
 
 #class RealDoubleQuadraticSpace_class(free_module.RealDoubleVectorSpace_class, FreeQuadraticModule_ambient_field):
 #    def __init__(self, dimension, inner_product_matrix, sparse=False):
@@ -1927,4 +1749,3 @@ class FreeQuadraticModule_submodule_field(
 #        self._inner_product_matrix = inner_product_matrix
 
 ######################################################
-
