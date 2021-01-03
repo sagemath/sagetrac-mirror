@@ -3278,3 +3278,69 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if not isinstance(item, AbsIrreducibeRep):
             raise ValueError('item must be an instance of %s' %(AbsIrreducibeRep))
         return self.schur_elements(generic=generic)[item.gap_index()]
+
+    def center(self, denom=False):
+        r"""
+        Return a tuple of elmenents of ``self`` which span its center over the
+        field of fraction of the base ring.
+
+        EXAMPLES::
+
+            sage: CHA3 = algebras.CubicHecke(3)
+            sage: Z3 = CHA3.center()
+            sage: g1, g2 = CHA3.gens()
+            sage: all(g1*z == z *g1 for z in Z3)
+            True
+            sage: all(g2*z == z *g2 for z in Z3)
+            True
+            sage: len(Z3)
+            7
+
+         Khovanov polynomial skein relation::
+
+            sage: Q.<q,t> = ZZ[]
+            sage: t = (-q, -q**6*t**2, q**7*t**2)
+            sage: CHA3kh = algebras.CubicHecke(3, cubic_equation_parameters=t)
+            sage: Z3kh, denkh = CHA3kh.center(denom=True)
+            sage: len(Z3kh)
+            7
+            sage: denkh
+            (1, q, 1, 1, q, 1, -q)
+        """
+        R = self._ring_of_definition
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        if self.base_ring() == R:
+            P = PolynomialRing(ZZ, 3, 'p')
+            L = R.create_specialization(P.gens())
+            phi = L.hom(R.gens_over_ground())
+        else:
+            L = self.base_ring()
+            from sage.categories.homset import Hom
+            phi = Hom(L, L).one()
+        FP = L.fraction_field()
+        cub_par = [FP(L(cf)) for cf in self.cubic_equation_parameters(generic=True)]
+        F = R.create_specialization(tuple(cub_par))
+        commute = None
+        for g in self.gens():
+            ml = g.matrix(representation_type=self.repr_type.RegularLeft)
+            mr = g.matrix(representation_type=self.repr_type.RegularRight)
+            mlF = ml.change_ring(F)
+            mrF = mr.change_ring(F)
+            commute_g = mlF - mrF
+            if commute:
+                commute = commute.stack(commute_g)
+            else:
+                commute = commute_g
+        ker = commute.right_kernel()
+        res = []
+        den = []
+        B = self.base_ring()
+        from sage.arith.functions import lcm
+        for b in ker.basis():
+            d = lcm([cf.denominator() for cf in b])
+            bB = vector(B, [phi(d*cf) for cf in b])
+            res.append(self.from_vector(bB))
+            den.append(B(phi(d)))
+        if denom:
+            return tuple(res), tuple(den)
+        return tuple(res)
