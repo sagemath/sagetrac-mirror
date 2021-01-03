@@ -3470,6 +3470,7 @@ class Link(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.knots.knotinfo import KnotInfo
             sage: KnotInfo.L5a1_0.inject()
             Defining L5a1_0
             sage: L5a1_0.link()._knotinfo_matching_list()
@@ -3599,6 +3600,7 @@ class Link(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = Link([[4,2,5,1], [10,3,11,4], [5,16,6,17], [7,12,8,13],
             ....:           [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
             ....:           [22,18,1,17], [8,19,9,20], [21,14,22,15]])
@@ -3737,6 +3739,7 @@ class Link(SageObject):
             DeprecationWarning: the complex_number module is deprecated, please use sage.rings.complex_mpfr
             See http://trac.sagemath.org/24483 for details.
 
+            sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(10, True, True)   # optional - database_knotinfo
             Series of knots K10
             sage: _.inject()                       # optional - database_knotinfo
@@ -3766,6 +3769,16 @@ class Link(SageObject):
            (<KnotInfo.K10_83: '10_83'>, False)
            sage: Ks10_83.sage_link().get_knotinfo() # optional - snappy
            (<KnotInfo.K10_86: '10_86'>, True)
+
+        TESTS:
+
+            sage: L = KnotInfo.L10a171_1_1_0         # optional - database_knotinfo
+            sage: l = L.link(L.items.braid_notation) # optional - database_knotinfo
+            sage: l.get_knotinfo(unique=False)       # optional - database_knotinfo
+            [(<KnotInfo.L10a171_0_1_0: 'L10a171{0,1,0}'>, True),
+             (<KnotInfo.L10a171_1_0_1: 'L10a171{1,0,1}'>, True),
+             (<KnotInfo.L10a171_1_1_0: 'L10a171{1,1,0}'>, False),
+             (<KnotInfo.L10a171_1_1_1: 'L10a171{1,1,1}'>, False)]
         """
         non_unique_hint = '\nuse keyword argument `unique` to obtain more details'
         def answer(L):
@@ -3788,7 +3801,7 @@ class Link(SageObject):
                 mirrored = None
             elif proved_m and not proved_s and L in lm:
                 mirrored = True
-            elif proved_s and not proved_m and L in ls:
+            elif proved_s and not proved_m and L in l:
                 mirrored = False
             else:
                 # nothing proved
@@ -3919,6 +3932,7 @@ class Link(SageObject):
             sage: l1.is_isotopic(l3)
             False
 
+            sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L7a7_0_0             # optional - database_knotinfo
             sage: L.series(oriented=True).inject()  # optional - database_knotinfo
             Defining L7a7

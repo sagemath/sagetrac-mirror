@@ -915,7 +915,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         self._base_ring                  = base_ring
         self._extension_ring             = extension_ring
         self._base_ring_embedding        = base_ring_embedding
-        self._ring_of_definition_map      = base_ring.convert_map_from(ring_of_definition)
+        self._ring_of_definition_map     = base_ring.convert_map_from(ring_of_definition)
         self._generic_extension_ring_map = extension_ring.convert_map_from(generic_extension_ring)
         self._cubic_equation_parameters  = cubic_equation_parameters
         self._cubic_equation_roots       = cubic_equation_roots
@@ -1795,6 +1795,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             sage: b1, b2 = CHA3.braid_group().gens(); br = ~b2*b1*~b2
             sage: CHA3._braid_image_from_filecache(br)
             ((w^-1)*v)*c1^-1*c0 + ((-w^-1)*u)*c0*c1*c0^-1 + (w^-1)*c0*c1*c0^-1*c1
+            sage: F = CHA3.base_ring().fraction_field()
+            sage: par = tuple([F(p) for p in CHA3.cubic_equation_parameters()])
+            sage: CHA3F = algebras.CubicHecke(3, cubic_equation_parameters=par)
+            doctest:...
+            UserWarning: Assuming h^3 - u*h^2 + v*h - w to have maximal Galois group!
+            sage: CHA3F._braid_image_from_filecache(br)
+            ((w^-1)*v)*c1^-1*c0 + ((-w^-1)*u)*c0*c1*c0^-1 + (w^-1)*c0*c1*c0^-1*c1
             sage: CHA3.reset_filecache(CHA3.select_filecache_section().braid_images)
             sage: CHA3._braid_image_from_filecache(br)
         """
@@ -1805,7 +1812,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if not result_vect is None:
             if gen_base_ring != base_ring:
                 base_map = self._ring_of_definition_map
-                result_vect = base_map(result_vect)
+                result_vect = vector(base_ring, [base_map(cf) for cf in result_vect])
             return self.from_vector(result_vect)
         return None
 
