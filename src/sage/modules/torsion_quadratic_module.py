@@ -1001,6 +1001,8 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             self._orthogonal_group = Oq
         return Oq
 
+    O = orthogonal_group
+
 
     def orthogonal_submodule_to(self, S):
         r"""
@@ -1557,13 +1559,48 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
                             for g in S.GeneratorsOfGroup()])
         return S
 
-    def stab(self, G, S):
+    def stab(self, G, S, backend="sage"):
         r"""
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4")
+            sage: D = L.discriminant_group()
+            sage: G = D.orthogonal_group()
+            sage: S = D.submodule([D.0])
+            sage: D.stab(G,S).order()
+            2
+            sage: D.stab(G,S,backend="magma").order()
+            2
+
+        NEED MORE TESTS!
         """
-        Oq = self.orthogonal_group()
-        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
-        stab = libgap.Stabilizer(G.gap(), Sgap, mu)
-        return stab
+        if self.cardinality()==1:
+            return G
+        if backend=="sage":
+            mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
+            Sgap = self._subgroup_to_gap(S)
+            stab = libgap.Stabilizer(G.gap(), Sgap, mu)
+            return G._subgroup_constructor(stab)
+        elif backend=="magma":
+            from sage.interfaces.magma import magma as m
+            from sage.rings.all import GF
+            degree = len(self.gens())
+            p = self.invariants()[0]
+            assert p.is_prime() and all(p==g for g in self.invariants())
+            field =  GF(p)
+            V = field**degree
+            gensG = [g.matrix().change_ring(field) for g in G.gens()]
+            GL = m.GeneralLinearGroup(degree, field)
+            mG = GL.sub(gensG)
+            gensS = [V(self(s).vector()) for s in S.gens()]
+            mS = m(V).sub(gensS)
+            stab = mG.Stabiliser(mS)
+            stab = stab.Generators().SetToSequence()
+            stab = [g.Matrix().sage().change_ring(ZZ) for g in stab]
+            stab = G.subgroup(stab)
+            assert all(s*g in S for s in S.gens() for g in stab.gens())
+            return stab
 
     def subgroup_representatives(self, H, G, order, g=1, algorithm=None):
         r"""
@@ -1998,12 +2035,10 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
         OnSubgroups = libgap.function_factory("OnSubgroups")
 
         primitive_extensions = []
-        if glue_order == 1:
+        if glue_order == 1 or H1.cardinality()==1 or H2.cardinality()==1:
             gens = embedG1.Image(G1.gap()).GeneratorsOfGroup()
             gens = gens.Concatenation(embedG2.Image(G2.gap()).GeneratorsOfGroup())
-            return [[D.submodule([]),OD.subgroup(gens)]]
-        if H1.cardinality()==1 or H2.cardinality()==1:
-            return []
+            return [[D.submodule([]),OD.subgroup(gens)],iV1,iV2]
 
         # these may not be invariant subspaces!!! ---> crap
         subs1 = self.subgroup_representatives(H1, G1, algorithm="hulpke",

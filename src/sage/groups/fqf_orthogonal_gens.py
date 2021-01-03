@@ -35,6 +35,7 @@ from sage.groups.fqf_orthogonal_lift import (Hensel_qf,
 from sage.groups.matrix_gps.linear import GL
 from sage.matrix.matrix_space import MatrixSpace
 from copy import copy
+from sage.groups.fqf_orthogonal import _isom_fqf
 
 def _mod_p_to_a_kernel(G, a):
     r"""
@@ -1003,7 +1004,7 @@ def _compute_gens(T, deg=True):
                 gens.append(copy(h))
         return [N._to_gens() * g * N._to_smith() for g in gens]
     elif deg and T.is_degenerate():
-        return sage.groups.fqf_orthogonal._isom_fqf(T)
+        return _isom_fqf(T)
 
     # normal form gens for the different primes
     blocks = []

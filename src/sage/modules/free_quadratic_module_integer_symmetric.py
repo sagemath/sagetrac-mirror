@@ -1497,6 +1497,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         return G
 
     automorphisms=orthogonal_group
+    O = orthogonal_group
 
     def genus(self):
         r"""
