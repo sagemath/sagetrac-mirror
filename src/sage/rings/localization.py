@@ -363,6 +363,26 @@ class LocalizationElement(IntegralDomainElement):
         """
         return self.parent()._fraction_to_element(self._value * c)
 
+    def factor(self):
+        r"""
+
+        EXAMPLES::
+
+            sage: P.<X, Y> = QQ['x, y']
+            sage: L = P.localization(X-Y)
+            sage: x, y = L.gens()
+            sage: p = (x^2 - y^2)/(x-y)^2
+            sage: p.factor()
+            ((-1)/(-x + y)) * (x + y)
+        """
+        num = self._value.numerator()
+        den = self._value.denominator()
+        F = num.factor()
+        P   = self.parent()
+        fac = [(P(f), e) for (f,e) in F]
+        from sage.structure.factorization import Factorization
+        return Factorization(fac, unit=~P(den)*F.unit())
+
 
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
