@@ -1855,6 +1855,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # -------------------------------------------------------------------------------------------------------------
     # _braid_image
     # -------------------------------------------------------------------------------------------------------------
+    @cached_method
     def _braid_image(self, braid):
         r"""
         Return the image of the given braid in ``self``.
@@ -1995,6 +1996,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # -------------------------------------------------------------------------------------------------------------
     # _braid_image_from_former_calculations
     # -------------------------------------------------------------------------------------------------------------
+    @cached_method
     def _braid_image_from_former_calculations(self, braid_tietze):
         r"""
         Return the image of a braid in ``self`` as far as this can be done by use of former calculations and is sure not to
@@ -2092,6 +2094,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # -------------------------------------------------------------------------------------------------------------
     # _braid_image_by_basis_expansion_
     # -------------------------------------------------------------------------------------------------------------
+    @cached_method
     def _braid_image_by_basis_extension(self, braid_tietze):
         r"""
         Return the given braid as a new basis element of ``self`` expanding the incomplete order (which is just a part
@@ -2157,6 +2160,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # -------------------------------------------------------------------------------------------------------------
     # _reduce_all_gen_powers
     # -------------------------------------------------------------------------------------------------------------
+    @cached_method
     def _reduce_all_gen_powers(self, braid_tietze):
         r"""
         Return  a linear combination of braids that have no higher powers in the braid generators having the same
@@ -2326,6 +2330,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     # -------------------------------------------------------------------------------------------------------------
     # _mult_by_regular_rep
     # -------------------------------------------------------------------------------------------------------------
+    @cached_method
     def _mult_by_regular_rep(self, vect, gen_tuple, representation_type, braid_preimage=None):
         r"""
         Return the product of an`element of ``self`` given as a coefficient vector with a sequence (tuple) of generators
