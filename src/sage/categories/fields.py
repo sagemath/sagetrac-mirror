@@ -15,6 +15,7 @@ Fields
 
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_import import LazyImport
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_contains_method_by_parent_class
 from sage.categories.euclidean_domains import EuclideanDomains
@@ -826,3 +827,82 @@ class Fields(CategoryWithAxiom):
                 +infinity
             """
             return ~self
+
+    class SubcategoryMethods:
+
+        @cached_method
+        def Exact(self):
+            """
+            Return the full subcategory of the exact objects of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.fields import Fields
+                sage: Fields().Exact()
+                Category of exact fields
+
+            TESTS::
+
+                sage: Fields().Exact().__module__
+                'sage.categories.fields'
+            """
+            return self._with_axiom('Exact')
+
+        @cached_method
+        def Numerical(self):
+            """
+            Return the full subcategory of the inexact, i.e. numerically
+            implemented objects of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.fields import Fields
+                sage: Fields().Numerical()
+                Category of numerical fields
+
+            TESTS::
+
+                sage: Fields().Numerical().__module__
+                'sage.categories.fields'
+            """
+            return self._with_axiom('Numerical')
+
+    class Exact(CategoryWithAxiom):
+        r"""
+        The category of exact fields.
+        """
+
+        class ParentMethods:
+
+            def is_exact(self):
+                r"""
+                Returns True if ``self`` is an exact field.
+
+                EXAMPLES::
+
+                    sage: QQ.is_exact()
+                    True
+                    sage: Parent(QQ,category=Fields().Exact()).is_exact()
+                    True
+                """
+                return True
+
+    class Numerical(CategoryWithAxiom):
+        r"""
+        The category of numerical fields.
+        """
+
+        class ParentMethods:
+
+            def is_exact(self):
+                r"""
+                Returns True if ``self`` is an exact field.
+
+                EXAMPLES::
+
+                    sage: RBF.is_exact()
+                    False
+                    sage: Parent(RBF,category=Fields().Numerical()).is_exact()
+                    True
+                """
+                return False

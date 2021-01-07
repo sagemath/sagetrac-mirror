@@ -79,7 +79,7 @@ class EmptySetError(ValueError):
     pass
 
 
-class Sets(Category_singleton):
+class Sets(Category_singleton): 
     r"""
     The category of sets.
 
