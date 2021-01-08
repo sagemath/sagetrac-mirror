@@ -88,7 +88,7 @@ REFERENCES:
 [1] Predrag Cvitanović
 Group Theory: Birdtracks, Lie's, and Exceptional Groups
 Princeton University Press, 2008
-ISBN	0691118361, 9780691118369
+ISBN    0691118361, 9780691118369
 
 [2] E Gretzler, MM Kapranov
 Cyclic operads and cyclic homology
@@ -124,20 +124,21 @@ AUTHORS:
 
 from dataclasses import dataclass
 from sage.misc.cachefunc import cached_method
+from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableElement
+from sage.graphs.graph import Graph
 
 class halfedge():
-    r"""The class of half edges in a surface graph.
+    """
+    The class of half edges in a surface graph.
     """
     def __init__(self):
-        r"""
-        Initialise a half-edge.
-
+        """
         EXAMPLES::
 
             sage: halfedge()
-            <__main__.halfedge object at ...>
+            <sage.combinat.spherical_spider.halfedge object at ...>
         """
 
 class SphericalWeb(ClonableElement):
@@ -192,7 +193,7 @@ class SphericalWeb(ClonableElement):
         e = {D[a]:D[self.e[a]] for a in self.e}
         b = [D[a] for a in self.boundary]
         result = self.parent()(c,e,b)
-        result._set_mutable()
+        #result._set_mutable()
         return result
 
     def check(self):
@@ -290,7 +291,7 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: polygon(3)._repr_()
+            sage: polygon_web(3)._repr_()
             'The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).'
         """
         cn, en = self.canonical()
@@ -302,7 +303,7 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: str(polygon(4))
+            sage: str(polygon_web(4))
             'A plain spherical web with 4 internal edges and 4 boundary edges.'
         """
         return f"A {self.parent()._name} spherical web with {int(len(self.e)/2)} internal edges and {len(self.boundary)} boundary edges."
@@ -321,7 +322,7 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: cn, en = polygon(4).canonical()
+            sage: cn, en = polygon_web(4).canonical()
             sage: cn
             (4, 6, 8, 10, 5, 0, 7, 1, 9, 2, 11, 3)
             sage: en
@@ -345,9 +346,9 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: polygon(4)._hash_()  # random
+            sage: polygon_web(4)._hash_()  # random
 
-            sage: hash(polygon(4)) # random
+            sage: hash(polygon_web(4)) # random
         """
         return hash((self.parent(),*self.canonical()))
 
@@ -372,8 +373,8 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: u = polygon(4)
-            sage: v = polygon(4)
+            sage: u = polygon_web(4)
+            sage: v = polygon_web(4)
             sage: u is v, u == v # indirect doctest
             (False, True)
         """
@@ -389,8 +390,8 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: u = polygon(4)
-            sage: v = polygon(4)
+            sage: u = polygon_web(4)
+            sage: v = polygon_web(4)
             sage: u != v # indirect doctest
             False
         """
@@ -450,14 +451,16 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: polygon(5).rotate(3)
+            sage: polygon_web(5).rotate(3)
             The plain spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
-            sage: polygon(5).rotate(-1)
+            sage: polygon_web(5).rotate(-1)
             The plain spherical web with c = (5, 7, 9, 11, 13, 6, 0, 8, 1, 10, 2, 12, 3, 14, 4) and e = (8, 13, 10, 5, 12, 7, 14, 9, 6, 11).
         """
-        with self.clone() as result:
-            b = result.boundary
-            result.boundary = b[k:]+b[:k]
+        result = self.__copy__()
+        b = result.boundary
+        result._set_mutable()
+        result.boundary = b[k:]+b[:k]
+        result.set_immutable()
         return result
 
     def glue(self, other, n: int):
@@ -529,7 +532,7 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: [len(a) for a in polygon(4).vertices()]
+            sage: [len(a) for a in polygon_web(4).vertices()]
             [3, 3, 3, 3]
         """
         c = self.cp
@@ -625,7 +628,7 @@ class SphericalWeb(ClonableElement):
 
             sage: SphericalSpider('plain').vertex(3).to_graph()
             Graph on 3 vertices
-            sage: polygon(3).to_graph()
+            sage: polygon_web(3).to_graph()
             Graph on 9 vertices
         """
         c = self.cp
@@ -655,7 +658,7 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: len(list(polygon(4).search(SphericalSpider('plain').vertex(3))))
+            sage: len(list(polygon_web(4).search(SphericalSpider('plain').vertex(3))))
             12
 
         TODO::
@@ -713,10 +716,10 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
-            sage: g = polygon(4)
+            sage: g = polygon_web(4)
             sage: h = SphericalSpider('plain').vertex(3)
             sage: D = next(g.search(h))
-            sage: g.replace(polygon(3),D,h)
+            sage: g.replace(polygon_web(3),D,h)
             The plain spherical web with c = (4, 6, 8,..., 13, 14, 15) and e = (12, 13, 9,..., 21, 16, 19).
         """
         parent = self.parent()
@@ -826,10 +829,10 @@ class SphericalSpider(Parent,UniqueRepresentation):
         """
         if n<2:
             raise ValueError(f"n={n} must be at least 2")
-        h = [ halfedge() for i in range(n) ]
-        c = {h[i-1]:h[i] for i in range(n)}
+        b = [ halfedge() for i in range(n) ]
+        c = {b[i-1]:b[i] for i in range(n)}
         e = dict([])
-        b = copy(h)
+        #b = copy(h)
         return self.element_class(c,e,b,self)
 
     def loop(self):
@@ -875,13 +878,13 @@ class SphericalSpider(Parent,UniqueRepresentation):
 # A strand is self-dual if it is fixed by this involution and a
 # self-dual representation is either 'orthogonal' or 'symplectic'.
 #
-# Each halfedge of a web will have an attribute which
+# Each halfedge() of a web will have an attribute which
 # is an instance of the Decoration class. One of the entries of the
 # Decoration class is a Strand. We require that this is an element
 # of the strand set of the parent of the web. The mechanism for
 # enforcing this is that we only construct vertices that satisfy
 # this condition and we only construct webs using rotate and glue.
-# For example, :func:``polygon`` should be rewritten to become a
+# For example, :func:``polygon_web`` should be rewritten to become a
 # method that uses rotate and glue to build the polygon.
 #
 # In python we have @dataclass, nametuple, NamedTuple
@@ -909,9 +912,9 @@ class Strands():
         duals = {str(x):str(y) for x,y in duals.items()}
         objs = set(str(a) for a in objs)
         if not duals.keys().issubset(objs):
-            raise ValueError("domain of dual map is not a subset of objects")
+            raise ValueError("domain of dual map is not a subset of halfedges")
         if not duals.values().issubset(objs):
-            raise ValueError("range of dual map is not a subset of objects")
+            raise ValueError("range of dual map is not a subset of halfedges")
         if any(duals[duals[a]] != a):
             raise ValueError("the dual map must be an involution")
 
@@ -943,27 +946,26 @@ class Decoration:
 # I have not done this because glue is not working properly;
 # these functions use glue and are not used elsewhere.
 
-def polygon(n: int):
+def polygon_web(n: int):
     r"""Construct a polygon with n sides.
 
     EXAMPLES::
 
-        sage: polygon(3)
+        sage: polygon_web(3)
         The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).
-        sage: polygon(1)
+        sage: polygon_web(1)
         The plain spherical web with c = (1, 2, 0) and e = (2, 1).
     """
     if n<1: raise ValueError
-    a =  [ halfedge() for i in range(n) ]
-    b1 = [ halfedge() for i in range(n) ]
-    b2 = [ halfedge() for i in range(n) ]
+    a =  [halfedge() for i in range(n)]
+    b1 = [halfedge() for i in range(n)]
+    b2 = [halfedge() for i in range(n)]
     c = {a[i]:b1[i] for i in range(n)}
     c.update({b1[i]:b2[i] for i in range(n)})
     c.update({b2[i]:a[i] for i in range(n)})
     e = {b1[i-1]:b2[i] for i in range(n)}
     e.update({b2[i]:b1[i-1] for i in range(n)})
-    b = copy(a)
-    return SphericalSpider('plain')(c,e,b)
+    return SphericalSpider('plain')(c,e,a)
 
 
 
