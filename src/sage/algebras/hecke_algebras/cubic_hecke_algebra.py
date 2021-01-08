@@ -440,6 +440,17 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         return self.parent().orientation_antiinvolution(self)
 
 
+    def formal_markov_trace(self):
+        r"""
+        """
+        cha = self.parent()
+        mtcf = cha._markov_trace_coeffs()
+        if not mtcf:
+            mtcf = cha._create_markov_trace_coeffs()
+        vs = self.to_vector()
+        vm = vector(mtcf)
+        f = vm.parent().convert_map_from(vs.parent())
+        return f(vs) * vm
 
 
 
@@ -3349,3 +3360,88 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         if denom:
             return tuple(res), tuple(den)
         return tuple(res)
+
+    def _class_function(self, irr):
+        r"""
+        """
+        def class_function(ele):
+            m = ele.matrix()
+            return m[irr].trace()
+        return class_function
+
+    @cached_method
+    def _markov_trace_coeffs(self):
+        r"""
+        """
+        if self.strands() == 2:
+            B = self.base_ring(generic=True)
+            BB = B.base_ring()
+            var = B.variable_names() + BB.variable_names()
+            P = ZZ[var +('s', 'U1', 'U2')]
+            L = P.localization((P.gen(2),P.gen(3)))
+            u, v, w, s, U1, U2 = L.gens()
+            B.create_specialization((u, v, w))
+            return [U2, s*U1, ~s*U1]
+
+    @cached_method
+    def _markov_trace_irr_coeffs(self):
+        r"""
+        """
+        irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
+        dClF = len(irrs)
+        ClF = [self._class_function(irrs[i]) for i in range(dClF)]
+
+        U = self.cubic_hecke_subalgebra()
+        BU = list(U.basis())
+        dU = U.dimension()
+        ringU = U._markov_trace_coeffs()[0].parent()
+        g = self.gen(self.ngens()-1)
+        E = self.extension_ring(generic=True)
+        var = E.variable_names()
+
+        from sage.rings.number_field.number_field import CyclotomicField
+        C3 = CyclotomicField(3)
+        varU = ringU.base_ring().variable_names()
+        P = C3[var + tuple([varU[i] for i in range(3, len(varU))])]
+        F = P.fraction_field()
+        a, b, c, s, *remain, = F.gens()
+        phi = E.hom((F(C3.gen()), a, b, c))
+
+        B = self.base_ring(generic=True)
+        img_E = [phi(E(v)) for v in B.gens_over_ground()]
+        img = tuple(img_E) + (s,) + tuple(remain)
+        psi = ringU.hom(img)
+
+        from sage.matrix.constructor import matrix
+        eq_p = matrix(F, dU, dClF, lambda i,j: phi(ClF[j](self(BU[i])*g)))
+        eq_m = matrix(F, dU, dClF, lambda i,j: phi(ClF[j](self(BU[i])*~g)))
+        eq_b = eq_p.stack(eq_m)
+        MU = [F(psi(b.formal_markov_trace())) for b in U.basis()]
+        MU_b = vector(F, [s*mtr for mtr in MU] + [~s*mtr for mtr in MU])
+        sol = eq_b.solve_right(MU_b)
+        ker = eq_b.right_kernel()
+
+        # adjusting
+
+        dk = ker.dimension()
+        kM = ker.basis_matrix()
+        def genClF(ele, i=None):
+            if i:
+                return sum(kM[i, j]*phi(ClF[j](ele)) for j in range(dClF))
+            else:
+                return sum(sol[j]*phi(ClF[j](ele)) for j in range(dClF))
+
+        if self.strands() == 3:
+            adj_elements = [self.one(), self(self.braid_group()((1, -2, 1, -2)))] # U3 K4_1
+        FF = F['U3, L4']
+        U3, L4 = FF.gens()
+        M = matrix(FF, dk, dk, lambda i, j: genClF(adj_elements[i], j))
+        v = vector(FF, [genClF(adj_elements[i]) for i in range(dk)])
+        w = vector(FF, [U3, L4])
+        cfs = M.solve_right(w-v)
+
+        def mtr_ext(ele):
+            return genClF(ele) + sum( cfs[i]*genClF(ele,i) for i in range(dk))
+
+        return mtr_ext
+        return sol, ker, cfs, M, v

@@ -460,6 +460,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
         else:
             if base_map is None:
                 raise ValueError("number of images must be four (inculding a third root of unity at first position) or a base_map (on %s) must be given" %self.base_ring())
+            ia, ib, ic, = im_gens
             return super(CubicHeckeExtensionRing, self).hom([ia, ib, ic], codomain=codomain, check=check, base_map=base_map)
 
     def _an_element_(self):

@@ -820,7 +820,19 @@ class Localization(IntegralDomain, UniqueRepresentation):
             1
             sage: L._cut_off_additional_units_from_base_ring_element(x*z)
             1
+
+        TESTS:
+
+        check that :trac:`?????` is fixed:
+
+            sage: L = ZZ.localization(5)
+            sage: L(0).is_unit()
+            False
         """
+        if x.is_zero() or x.numerator().is_unit():
+            # treat corner cases
+            return x
+
         add_units = self._additional_units
         res = x
         for au in add_units:
