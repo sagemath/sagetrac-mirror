@@ -1,0 +1,8 @@
+$(INST)/python3-$(vers_python3)
+
+----------
+All lines of this file are ignored except the first.
+It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
+
+Adding the above instead of "python3" makes sure that the dependency is not replaced
+by ".dummy".  In this way, python3_tkinter delegates building to python3.
