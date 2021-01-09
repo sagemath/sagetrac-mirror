@@ -3426,22 +3426,21 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         dk = ker.dimension()
         kM = ker.basis_matrix()
         def genClF(ele, i=None):
-            if i:
-                return sum(kM[i, j]*phi(ClF[j](ele)) for j in range(dClF))
-            else:
+            if i is None:
                 return sum(sol[j]*phi(ClF[j](ele)) for j in range(dClF))
+            else:
+                return sum(kM[i, j]*phi(ClF[j](ele)) for j in range(dClF))
 
         if self.strands() == 3:
             adj_elements = [self.one(), self(self.braid_group()((1, -2, 1, -2)))] # U3 K4_1
-        FF = F['U3, L4']
-        U3, L4 = FF.gens()
+        FF = F['U3, K4']
+        U3, K4 = FF.gens()
         M = matrix(FF, dk, dk, lambda i, j: genClF(adj_elements[i], j))
         v = vector(FF, [genClF(adj_elements[i]) for i in range(dk)])
-        w = vector(FF, [U3, L4])
-        cfs = M.solve_right(w-v)
+        w = vector(FF, [U3, K4])
+        cfs = M.solve_right(v-w)
+        irr_coeff = sol + cfs*kM
 
         def mtr_ext(ele):
-            return genClF(ele) + sum( cfs[i]*genClF(ele,i) for i in range(dk))
-
-        return mtr_ext
-        return sol, ker, cfs, M, v
+            return sum(irr_coeff[j]*phi(ClF[j](ele)) for j in range(dClF))
+        return mtr_ext, irr_coeff, phi, ClF
