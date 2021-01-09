@@ -522,11 +522,11 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
         Traceback (most recent call last):
         ...
-        ValueError: no default backend for computations with Real Field with 40 bits of precision
+        ValueError: no default backend for computations with Real Floating-Point Field with 40 bits of precision
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(53))
         Traceback (most recent call last):
         ...
-        ValueError: no default backend for computations with Real Field with 53 bits of precision
+        ValueError: no default backend for computations with Real Floating-Point Field with 53 bits of precision
 
     Check that :trac:`17339` is fixed::
 

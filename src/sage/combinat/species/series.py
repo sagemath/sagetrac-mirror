@@ -1803,7 +1803,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: a = L([1])
             sage: b = L2(a)
             sage: b.parent()
-            Lazy Power Series Ring over Real Field with 53 bits of precision
+            Lazy Power Series Ring over Real Floating-Point Field with 53 bits of precision
             sage: b.coefficients(3)
             [1.00000000000000, 1.00000000000000, 1.00000000000000]
         """

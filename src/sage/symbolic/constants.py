@@ -77,7 +77,7 @@ constants by coercing into the real field with given precision. For
 example, to 200 decimal places we have the following::
 
     sage: R = RealField(200); R
-    Real Field with 200 bits of precision
+    Real Floating-Point Field with 200 bits of precision
 
 ::
 
@@ -863,7 +863,7 @@ class Log2(Constant):
         sage: RR(log2)
         0.693147180559945
         sage: R = RealField(200); R
-        Real Field with 200 bits of precision
+        Real Floating-Point Field with 200 bits of precision
         sage: R(log2)
         0.69314718055994530941723212145817656807550013436025525412068
         sage: l = (1-log2)/(1+log2); l
@@ -938,7 +938,7 @@ class EulerGamma(Constant):
         sage: R(euler_gamma)
         0.577215664901533
         sage: R = RealField(200); R
-        Real Field with 200 bits of precision
+        Real Floating-Point Field with 200 bits of precision
         sage: R(euler_gamma)
         0.57721566490153286060651209008240243104215933593992359880577
         sage: eg = euler_gamma + euler_gamma; eg

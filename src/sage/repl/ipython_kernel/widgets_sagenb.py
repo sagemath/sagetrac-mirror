@@ -212,7 +212,7 @@ def slider(vmin, vmax=None, step_size=None, default=None, label=None, display_va
         sage: w = slider(e, pi); w
         TransformFloatSlider(value=2.718281828459045, max=3.141592653589793, min=2.718281828459045)
         sage: parent(w.get_interact_value())
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
 
     For a selection slider, the default is adjusted to one of the
     possible values::

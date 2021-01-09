@@ -1010,7 +1010,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             sage: F(ZZ)          # indirect doctest
             Multivariate Polynomial Ring in x, y, z over Integer Ring
             sage: F(RR)          # indirect doctest
-            Multivariate Polynomial Ring in x, y, z over Real Field with 53 bits of precision
+            Multivariate Polynomial Ring in x, y, z over Real Floating-Point Field with 53 bits of precision
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(R, self.vars)
@@ -1587,7 +1587,7 @@ class MatrixFunctor(ConstructionFunctor):
 
             sage: F = MatrixSpace(ZZ,2,3).construction()[0]
             sage: F(RR)         # indirect doctest
-            Full MatrixSpace of 2 by 3 dense matrices over Real Field with 53 bits of precision
+            Full MatrixSpace of 2 by 3 dense matrices over Real Floating-Point Field with 53 bits of precision
             sage: F(RR) in F.codomain()
             True
 
@@ -2536,7 +2536,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: R3(1) + R4(1)   # indirect doctest
             2.0000000
             sage: (R3(1) + R4(1)).parent()
-            Real Field with 30 bits of precision
+            Real Floating-Point Field with 30 bits of precision
 
         TESTS:
 
@@ -2933,7 +2933,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         sage: F(CC)
         Univariate Quotient Polynomial Ring in a over Complex Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
         sage: F(RR)
-        Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+        Univariate Quotient Polynomial Ring in a over Real Floating-Point Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
 
     Note that the construction functor of a number field applied to
     the integers returns an order (not necessarily maximal) of that
@@ -3146,7 +3146,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F(ZZ['t'])  # indirect doctest
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
-            Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+            Univariate Quotient Polynomial Ring in a over Real Floating-Point Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
 
         Check that :trac:`13538` is fixed::
 
@@ -3815,24 +3815,24 @@ def pushout(R, S):
         sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ)
         Even Power Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), RR)
-        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        Even Power Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
 
         sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ['x'])
         Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ['x'])
         Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), RR['x'])
-        Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
 
         sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(QQ, 'x'))
         Even Power Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(RR, 'x'))
-        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        Even Power Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
 
         sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR^2)
-        Ambient free module of rank 2 over the principal ideal domain Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        Ambient free module of rank 2 over the principal ideal domain Even Power Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
         sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR['x']^2)
-        Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
 
     Some more tests related to univariate/multivariate
     constructions. We consider a generalization of polynomial rings,

@@ -165,7 +165,7 @@ class VoronoiDiagram(SageObject):
         EXAMPLES::
 
             sage: V = VoronoiDiagram([[.5, 3], [2, 5], [4, 5], [4, -1]]); V.points()
-            A point configuration in affine 2-space over Real Field
+            A point configuration in affine 2-space over Real Floating-Point Field
             with 53 bits of precision consisting of 4 points.
             The triangulations of this point configuration are
             assumed to be connected, not necessarily fine,

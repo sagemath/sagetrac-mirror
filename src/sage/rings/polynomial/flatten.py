@@ -476,7 +476,7 @@ class SpecializationMorphism(Morphism):
             sage: H = End(P)
             sage: f = H([z^2 + c])
             sage: f.specialization({c:1})
-            Scheme endomorphism of Affine Space of dimension 1 over Real Field with 53 bits of precision
+            Scheme endomorphism of Affine Space of dimension 1 over Real Floating-Point Field with 53 bits of precision
               Defn: Defined on coordinates by sending (z) to
                     (z^2 + 1.00000000000000)
         """

@@ -1953,10 +1953,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
               To:   Complex Double Field
               Defn:   Generic map:
                       From: Rational Field
-                      To:   Real Field with 53 bits of precision
+                      To:   Real Floating-Point Field with 53 bits of precision
                     then
                       Native morphism:
-                      From: Real Field with 53 bits of precision
+                      From: Real Floating-Point Field with 53 bits of precision
                       To:   Complex Double Field
 
             sage: copy(CDF._coerce_map_via([ZZ, RR, CC], CC))

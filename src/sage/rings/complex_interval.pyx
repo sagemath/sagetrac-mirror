@@ -601,7 +601,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(1,2), RIF(3,4)).magnitude()
             4.47213595499958
             sage: parent(CIF(1).magnitude())
-            Real Field with 53 bits of precision and rounding RNDU
+            Real Floating-Point Field with 53 bits of precision and rounding RNDU
         """
         cdef real_mpfi.RealIntervalField_class RIF = self._parent.real_field()
         cdef RealNumber x = RIF.__upper_field._new()
@@ -625,7 +625,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(1,2), RIF(3,4)).mignitude()
             3.16227766016837
             sage: parent(CIF(1).mignitude())
-            Real Field with 53 bits of precision and rounding RNDD
+            Real Floating-Point Field with 53 bits of precision and rounding RNDD
         """
         cdef real_mpfi.RealIntervalField_class RIF = self._parent.real_field()
         cdef RealNumber x = RIF.__lower_field._new()

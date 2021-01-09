@@ -619,7 +619,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
     space::
 
         sage: E.category()
-        Join of Category of smooth manifolds over Real Field with 53 bits of
+        Join of Category of smooth manifolds over Real Floating-Point Field with 53 bits of
          precision and Category of complete metric spaces
         sage: dim(E)
         4
@@ -1136,7 +1136,7 @@ class EuclideanPlane(EuclideanSpace):
     space::
 
         sage: E.category()
-        Join of Category of smooth manifolds over Real Field with 53 bits of
+        Join of Category of smooth manifolds over Real Floating-Point Field with 53 bits of
          precision and Category of complete metric spaces
         sage: dim(E)
         2
@@ -1664,7 +1664,7 @@ class Euclidean3dimSpace(EuclideanSpace):
     space::
 
         sage: E.category()
-        Join of Category of smooth manifolds over Real Field with 53 bits of
+        Join of Category of smooth manifolds over Real Floating-Point Field with 53 bits of
          precision and Category of complete metric spaces
         sage: dim(E)
         3

@@ -501,7 +501,7 @@ class Lseries_ell(SageObject):
             sage: L, err
             (0.253804, 0.000181444)
             sage: parent(L)
-            Real Field with 24 bits of precision
+            Real Floating-Point Field with 24 bits of precision
             sage: E = EllipticCurve('37b')
             sage: E.lseries().at1()
             (0.7257177, 0.000800697)
@@ -511,11 +511,11 @@ class Lseries_ell(SageObject):
             sage: L
             0.72568106193615278233620554102639654873
             sage: parent(L)
-            Real Field with 128 bits of precision
+            Real Floating-Point Field with 128 bits of precision
             sage: err
             1.70693e-37
             sage: parent(err)
-            Real Field with 24 bits of precision and rounding RNDU
+            Real Floating-Point Field with 24 bits of precision and rounding RNDU
 
         Rank 1 through 3 elliptic curves::
 
@@ -660,9 +660,9 @@ class Lseries_ell(SageObject):
             sage: L,err
             (0.305999773834052302, 5.55318e-18)
             sage: parent(L)
-            Real Field with 64 bits of precision
+            Real Floating-Point Field with 64 bits of precision
             sage: parent(err)
-            Real Field with 24 bits of precision and rounding RNDU
+            Real Floating-Point Field with 24 bits of precision and rounding RNDU
 
         Rank 2 and rank 3 elliptic curves::
 

@@ -325,7 +325,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             [(0.000000000000000 : 0.000000000000000 : 1.00000000000000),
              (1.00000000000000 : 1.00000000000000 : 0.000000000000000)]
             sage: L[0].codomain()
-            Projective Space of dimension 2 over Real Field with 53 bits of precision
+            Projective Space of dimension 2 over Real Floating-Point Field with 53 bits of precision
 
         ::
 

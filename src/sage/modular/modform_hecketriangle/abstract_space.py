@@ -1713,7 +1713,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: WF = WeakModularForms(n=14)
             sage: qexp = WF.J_inv().q_expansion_fixed_d(d_num_prec=1000)
             sage: qexp.parent()
-            Laurent Series Ring in q over Real Field with 1000 bits of precision
+            Laurent Series Ring in q over Real Floating-Point Field with 1000 bits of precision
             sage: WF.construct_form(qexp, rationalize=True) == WF.J_inv()
             doctest:...: UserWarning: Using an experimental rationalization of coefficients, please check the result for correctness!
             True
@@ -2010,7 +2010,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: el = QF(QF.f_inf()*QF.E2())
             sage: qexp = el.q_expansion_fixed_d(d_num_prec=1000)
             sage: qexp.parent()
-            Power Series Ring in q over Real Field with 1000 bits of precision
+            Power Series Ring in q over Real Floating-Point Field with 1000 bits of precision
             sage: QF.construct_quasi_form(qexp, rationalize=True) == el
             True
         """
@@ -2229,7 +2229,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: WF = WeakModularForms(n=14)
             sage: qexp = WF.J_inv().q_expansion_fixed_d(d_num_prec=1000)
             sage: qexp.parent()
-            Laurent Series Ring in q over Real Field with 1000 bits of precision
+            Laurent Series Ring in q over Real Floating-Point Field with 1000 bits of precision
             sage: qexp_int = WF.rationalize_series(qexp)
             sage: qexp_int.add_bigoh(3)
             d*q^-1 + 37/98 + 2587/(38416*d)*q + 899/(117649*d^2)*q^2 + O(q^3)
@@ -2263,7 +2263,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: el = QF(QF.f_inf()*QF.E2())
             sage: qexp = el.q_expansion_fixed_d(d_num_prec=1000)
             sage: qexp.parent()
-            Power Series Ring in q over Real Field with 1000 bits of precision
+            Power Series Ring in q over Real Floating-Point Field with 1000 bits of precision
             sage: qexp_int = QF.rationalize_series(qexp)
             sage: qexp_int.parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring

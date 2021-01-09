@@ -1262,7 +1262,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: G(x^3 * log(x)^5)._substitute_({'x': 2.2})  # rel tol 1e-6
                 3.24458458945
                 sage: _.parent()
-                Real Field with 53 bits of precision
+                Real Floating-Point Field with 53 bits of precision
                 sage: G(1 / x)._substitute_({'x': 0})
                 Traceback (most recent call last):
                 ...

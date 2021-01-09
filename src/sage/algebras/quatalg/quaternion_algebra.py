@@ -116,7 +116,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
         sage: QuaternionAlgebra(1r,1)
         Quaternion Algebra (1, 1) with base ring Rational Field
         sage: QuaternionAlgebra(1,1.0r)
-        Quaternion Algebra (1.00000000000000, 1.00000000000000) with base ring Real Field with 53 bits of precision
+        Quaternion Algebra (1.00000000000000, 1.00000000000000) with base ring Real Floating-Point Field with 53 bits of precision
         sage: QuaternionAlgebra(0,0)
         Traceback (most recent call last):
         ...

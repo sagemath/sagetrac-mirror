@@ -87,7 +87,7 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
         sage: H = Hom(M, N) ; H
         Set of Morphisms from 2-dimensional differentiable manifold M to
          3-dimensional differentiable manifold N in Category of smooth
-         manifolds over Real Field with 53 bits of precision
+         manifolds over Real Floating-Point Field with 53 bits of precision
         sage: type(H)
         <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset_with_category'>
         sage: H.category()
@@ -120,7 +120,7 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
         sage: E = Hom(M, M) ; E
         Set of Morphisms from 2-dimensional differentiable manifold M to
          2-dimensional differentiable manifold M in Category of smooth
-         manifolds over Real Field with 53 bits of precision
+         manifolds over Real Floating-Point Field with 53 bits of precision
         sage: E.category()
         Category of endsets of topological spaces
         sage: E.is_endomorphism_set()
@@ -170,7 +170,7 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
             sage: H = Hom(M, N) ; H
             Set of Morphisms from 2-dimensional differentiable manifold M to
              3-dimensional differentiable manifold N in Category of smooth
-             manifolds over Real Field with 53 bits of precision
+             manifolds over Real Floating-Point Field with 53 bits of precision
             sage: TestSuite(H).run()
 
         Test for an endomorphism set::
@@ -178,7 +178,7 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
             sage: E = Hom(M, M) ; E
             Set of Morphisms from 2-dimensional differentiable manifold M to
              2-dimensional differentiable manifold M in Category of smooth
-             manifolds over Real Field with 53 bits of precision
+             manifolds over Real Floating-Point Field with 53 bits of precision
             sage: TestSuite(E).run()
 
         """
@@ -257,7 +257,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: H = Hom(R, M) ; H
         Set of Morphisms from Real number line R to 2-dimensional
          differentiable manifold M in Category of smooth manifolds over Real
-         Field with 53 bits of precision
+         Floating-Point Field with 53 bits of precision
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
@@ -289,7 +289,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: H = Hom(I, U) ; H
         Set of Morphisms from Real interval (0, 1) to Open subset U of the
          2-dimensional differentiable manifold M in Join of Category of
-         subobjects of sets and Category of smooth manifolds over Real Field
+         subobjects of sets and Category of smooth manifolds over Real Floating-Point Field
          with 53 bits of precision
 
     An element of ``H`` is a curve in ``U``::
@@ -306,7 +306,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
         sage: E = Hom(R, R) ; E
         Set of Morphisms from Real number line R to Real number line R in
-         Category of smooth manifolds over Real Field with 53 bits of precision
+         Category of smooth manifolds over Real Floating-Point Field with 53 bits of precision
         sage: E.category()
         Category of endsets of topological spaces
         sage: E.is_endomorphism_set()
@@ -345,7 +345,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: EI = Hom(I, I) ; EI
         Set of Morphisms from Real interval (0, 1) to Real interval (0, 1) in
          Join of Category of subobjects of sets and
-             Category of smooth manifolds over Real Field with 53 bits of precision
+             Category of smooth manifolds over Real Floating-Point Field with 53 bits of precision
         sage: EI.category()
         Category of endsets of subobjects of sets and topological spaces
         sage: EI is End(I)
@@ -383,26 +383,26 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             sage: H = Hom(R, M); H
             Set of Morphisms from Real number line R to 3-dimensional
              differentiable manifold M in Category of smooth manifolds over
-             Real Field with 53 bits of precision
+             Real Floating-Point Field with 53 bits of precision
             sage: TestSuite(H).run()
             sage: Hom(R, M) is Hom(R, M)
             True
             sage: H = Hom(R, R); H
             Set of Morphisms from Real number line R to Real number line R in
-             Category of smooth manifolds over Real Field with 53 bits of
+             Category of smooth manifolds over Real Floating-Point Field with 53 bits of
              precision
             sage: TestSuite(H).run()
             sage: I = R.open_interval(-1, 2)
             sage: H = Hom(I, M); H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
              differentiable manifold M in Join of Category of subobjects of
-             sets and Category of smooth manifolds over Real Field with 53 bits
+             sets and Category of smooth manifolds over Real Floating-Point Field with 53 bits
              of precision
             sage: TestSuite(H).run()
             sage: H = Hom(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval (-1, 2)
              in Join of Category of subobjects of sets and Category of smooth
-             manifolds over Real Field with 53 bits of precision
+             manifolds over Real Floating-Point Field with 53 bits of precision
             sage: TestSuite(H).run()
 
         """

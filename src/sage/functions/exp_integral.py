@@ -1468,7 +1468,7 @@ def exponential_integral_1(x, n=0):
         sage: r
         0.21938393439552027367716377546012164903104729
         sage: parent(r)
-        Real Field with 150 bits of precision
+        Real Floating-Point Field with 150 bits of precision
         sage: exponential_integral_1(RealField(150)(100))
         3.6835977616820321802351926205081189876552201e-46
 

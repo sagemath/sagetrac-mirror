@@ -1588,7 +1588,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: singular.eval('ring r4 = (real,20),(a,b,c),dp')
             ''
             sage: singular('r4').sage_global_ring()
-            Multivariate Polynomial Ring in a, b, c over Real Field with 70 bits of precision
+            Multivariate Polynomial Ring in a, b, c over Real Floating-Point Field with 70 bits of precision
 
         The case of complex coefficients is not fully supported, yet, since
         the generator of a complex field in Sage is always called "I"::

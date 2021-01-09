@@ -260,9 +260,9 @@ def symplectic_basis_over_field(M):
         True
 
         sage: F.parent()
-        Full MatrixSpace of 8 by 8 dense matrices over Real Field with 53 bits of precision
+        Full MatrixSpace of 8 by 8 dense matrices over Real Floating-Point Field with 53 bits of precision
         sage: C.parent()
-        Full MatrixSpace of 8 by 8 dense matrices over Real Field with 53 bits of precision
+        Full MatrixSpace of 8 by 8 dense matrices over Real Floating-Point Field with 53 bits of precision
     """
     if not M.base_ring().is_field():
         raise ValueError("Can only find symplectic bases for matrices over fields")

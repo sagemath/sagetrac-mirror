@@ -2350,7 +2350,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         sage: PA = PartitionAlgebra(2, q, R, prefix='B')
         sage: PA
         Partition Algebra of rank 2 with parameter q over
-         Univariate Polynomial Ring in q over Real Field with 53 bits of precision
+         Univariate Polynomial Ring in q over Real Floating-Point Field with 53 bits of precision
         sage: PA([[1,2],[-1,-2]])
         1.00000000000000*B{{-2, -1}, {1, 2}}
         sage: PA = PartitionAlgebra(2, 5, base_ring=ZZ, prefix='B')

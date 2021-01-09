@@ -346,7 +346,7 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None,
         sage: RR.coerce_map_from(K)
         Composite map:
           From: Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
-          To:   Real Field with 53 bits of precision
+          To:   Real Floating-Point Field with 53 bits of precision
           Defn:   Generic morphism:
                   From: Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
                   To:   Real Lazy Field
@@ -354,7 +354,7 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None,
                 then
                   Conversion via _mpfr_ method map:
                   From: Real Lazy Field
-                  To:   Real Field with 53 bits of precision
+                  To:   Real Floating-Point Field with 53 bits of precision
         sage: RR(a)
         1.25992104989487
         sage: 1.1 + a
@@ -2045,7 +2045,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = QuadraticField(2)
             sage: K.completion(infinity, 100)
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: K.<zeta> = CyclotomicField(12)
             sage: K.completion(infinity, 53, extras={'type': 'RDF'})
             Complex Double Field
@@ -3096,21 +3096,21 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 + 2
-              To:   Real Field with 53 bits of precision
+              To:   Real Floating-Point Field with 53 bits of precision
               Defn: a |--> -1.25992104989487
             ]
             sage: K.real_embeddings(16)
             [
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 + 2
-              To:   Real Field with 16 bits of precision
+              To:   Real Floating-Point Field with 16 bits of precision
               Defn: a |--> -1.260
             ]
             sage: K.real_embeddings(100)
             [
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 + 2
-              To:   Real Field with 100 bits of precision
+              To:   Real Floating-Point Field with 100 bits of precision
               Defn: a |--> -1.2599210498948731647672106073
             ]
 
@@ -8996,15 +8996,15 @@ class NumberField_absolute(NumberField_generic):
             sage: F.<alpha> = NumberField(x^3-100*x+1) ; F.places()
             [Ring morphism:
             From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: alpha |--> -10.00499625499181184573367219280,
             Ring morphism:
             From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: alpha |--> 0.01000001000003000012000055000273,
             Ring morphism:
             From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: alpha |--> 9.994996244991781845613530439509]
 
         ::
@@ -9012,7 +9012,7 @@ class NumberField_absolute(NumberField_generic):
             sage: F.<alpha> = NumberField(x^3+7) ; F.places()
             [Ring morphism:
             From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: alpha |--> -1.912931182772389101199116839549,
             Ring morphism:
             From: Number Field in alpha with defining polynomial x^3 + 7
@@ -9033,7 +9033,7 @@ class NumberField_absolute(NumberField_generic):
             sage: F.places(prec=10)
             [Ring morphism:
             From: Number Field in alpha with defining polynomial x^3 + 7
-            To:   Real Field with 10 bits of precision
+            To:   Real Floating-Point Field with 10 bits of precision
             Defn: alpha |--> -1.9,
             Ring morphism:
             From: Number Field in alpha with defining polynomial x^3 + 7
@@ -9089,11 +9089,11 @@ class NumberField_absolute(NumberField_generic):
             sage: F.<alpha> = NumberField(x^4-7) ; F.real_places()
             [Ring morphism:
             From: Number Field in alpha with defining polynomial x^4 - 7
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: alpha |--> -1.626576561697785743211232345494,
             Ring morphism:
             From: Number Field in alpha with defining polynomial x^4 - 7
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: alpha |--> 1.626576561697785743211232345494]
         """
         return self.places(prec=prec)[0:self.signature()[0]]
@@ -11120,7 +11120,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             [
             Ring morphism:
               From: Cyclotomic Field of order 2 and degree 1
-              To:   Real Field with 53 bits of precision
+              To:   Real Floating-Point Field with 53 bits of precision
               Defn: -1 |--> -1.00000000000000
             ]
         """
@@ -11961,7 +11961,7 @@ def refine_embedding(e, prec=None):
         sage: e = K.embeddings(RR)[0]; e
         Ring morphism:
         From: Number Field in a with defining polynomial x^3 - 2
-        To:   Real Field with 53 bits of precision
+        To:   Real Floating-Point Field with 53 bits of precision
         Defn: a |--> 1.25992104989487
         sage: e = refine_embedding(e,Infinity); e
         Ring morphism:
@@ -12024,7 +12024,7 @@ def refine_embedding(e, prec=None):
         sage: refine_embedding(K.specified_complex_embedding(), 100)
         Ring morphism:
           From: Number Field in a with defining polynomial x^3 + x - 1 with a = 0.6823278038280193?
-          To:   Real Field with 100 bits of precision
+          To:   Real Floating-Point Field with 100 bits of precision
           Defn: a |--> 0.68232780382801932736948373971
         sage: refine_embedding(K.specified_complex_embedding(), Infinity)
         Ring morphism:

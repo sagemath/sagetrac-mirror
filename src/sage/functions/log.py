@@ -667,7 +667,7 @@ class Function_dilog(GinacFunction):
             -0.822467033424113
             sage: y = dilog(RealField(13)(0.5))
             sage: parent(y)
-            Real Field with 13 bits of precision
+            Real Floating-Point Field with 13 bits of precision
             sage: dilog(RealField(13)(1.1))
             1.96 - 0.300*I
             sage: parent(_)

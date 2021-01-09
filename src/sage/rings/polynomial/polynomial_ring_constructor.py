@@ -340,11 +340,11 @@ def PolynomialRing(base_ring, *args, **kwds):
     square brackets::
 
         sage: RR["x"]
-        Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
         sage: RR["x,y"]
-        Multivariate Polynomial Ring in x, y over Real Field with 53 bits of precision
+        Multivariate Polynomial Ring in x, y over Real Floating-Point Field with 53 bits of precision
         sage: P.<x,y> = RR[]; P
-        Multivariate Polynomial Ring in x, y over Real Field with 53 bits of precision
+        Multivariate Polynomial Ring in x, y over Real Floating-Point Field with 53 bits of precision
 
     This notation does not allow to set any of the optional arguments.
 
@@ -466,7 +466,7 @@ def PolynomialRing(base_ring, *args, **kwds):
         sage: PolynomialRing(RR, name="x", implementation="singular")
         Traceback (most recent call last):
         ...
-        NotImplementedError: polynomials over Real Field with 53 bits of precision are not supported in Singular
+        NotImplementedError: polynomials over Real Floating-Point Field with 53 bits of precision are not supported in Singular
 
     The following corner case used to result in a warning message from
     ``libSingular``, and the generators of the resulting polynomial

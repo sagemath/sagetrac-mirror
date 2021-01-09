@@ -586,7 +586,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Tropical semiring over
-             Real Field with 53 bits of precision to Tropical semiring over Rational Field
+             Real Floating-Point Field with 53 bits of precision to Tropical semiring over Rational Field
         """
         if isinstance(S, TropicalSemiring) and self._use_min == S._use_min \
                 and self.base().has_coerce_map_from(S.base()):

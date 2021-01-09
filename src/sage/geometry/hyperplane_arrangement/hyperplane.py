@@ -731,7 +731,7 @@ class AmbientVectorSpace(LinearExpressionModule):
             sage: M.<y> = HyperplaneArrangements(QQ)
             sage: V = M.ambient_space()
             sage: V.change_ring(RR)
-            1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
+            1-dimensional linear space over Real Floating-Point Field with 53 bits of precision with coordinate y
 
         TESTS::
 

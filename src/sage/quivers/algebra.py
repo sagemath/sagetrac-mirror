@@ -419,7 +419,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
             sage: P = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: P.algebra(RR) # indirect doctest
-            Path algebra of Multi-digraph on 3 vertices over Real Field with 53 bits of precision
+            Path algebra of Multi-digraph on 3 vertices over Real Floating-Point Field with 53 bits of precision
         """
         return "Path algebra of {0} over {1}".format(self._quiver, self._base)
 

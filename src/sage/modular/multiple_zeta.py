@@ -399,12 +399,12 @@ class MultizetaValues(UniqueRepresentation):
         sage: M((1,2))
         1.202056903159594285399738161511449990764986292340...
         sage: parent(M((2,3)))
-        Real Field with 1024 bits of precision
+        Real Floating-Point Field with 1024 bits of precision
 
         sage: M((2,3), prec=53)
         0.228810397603354
         sage: parent(M((2,3), prec=53))
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
 
         sage: M((2,3), reverse=False) == M((3,2))
         True
@@ -415,9 +415,9 @@ class MultizetaValues(UniqueRepresentation):
         0.0011829360522243605614404196778185433287651...
 
         sage: parent(M((2,3,4,5)))
-        Real Field with 1024 bits of precision
+        Real Floating-Point Field with 1024 bits of precision
         sage: parent(M((2,3,4,5), prec=128))
-        Real Field with 128 bits of precision
+        Real Floating-Point Field with 128 bits of precision
     """
     def __init__(self):
         """
@@ -1403,7 +1403,7 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M(Word((3,2))).n()  # indirect doctest
                 0.711566197550572
                 sage: parent(M(Word((3,2))).n())
-                Real Field with 53 bits of precision
+                Real Floating-Point Field with 53 bits of precision
 
                 sage: (M((3,)) * M((2,))).n(prec=80)
                 1.9773043502972961181971

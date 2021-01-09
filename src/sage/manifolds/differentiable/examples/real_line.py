@@ -69,9 +69,9 @@ class OpenInterval(DifferentiableManifold):
     ``I`` is a 1-dimensional smooth manifold over `\RR`::
 
         sage: I.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating-Point Field with 53 bits of precision
         sage: I.base_field()
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: dim(I)
         1
 
@@ -238,17 +238,17 @@ class OpenInterval(DifferentiableManifold):
 
         sage: J.category()
         Join of Category of subobjects of sets and Category of smooth manifolds
-         over Real Field with 53 bits of precision
+         over Real Floating-Point Field with 53 bits of precision
         sage: K.category()
         Join of Category of subobjects of sets and Category of smooth manifolds
-         over Real Field with 53 bits of precision
+         over Real Floating-Point Field with 53 bits of precision
 
     On the contrary, ``I``, which has not been created as a subinterval,
     is in the category of smooth manifolds (see
     :class:`~sage.categories.manifolds.Manifolds`)::
 
         sage: I.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating-Point Field with 53 bits of precision
 
     and we have::
 
@@ -521,7 +521,7 @@ class OpenInterval(DifferentiableManifold):
             sage: H = I._Hom_(M); H
             Set of Morphisms from Real interval (-1, 1) to 3-dimensional
              differentiable manifold M in Category of smooth manifolds over
-             Real Field with 53 bits of precision
+             Real Floating-Point Field with 53 bits of precision
             sage: H is Hom(I, M)
             True
 
@@ -742,7 +742,7 @@ class RealLine(OpenInterval):
     ``R`` is a 1-dimensional real smooth manifold::
 
         sage: R.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating-Point Field with 53 bits of precision
         sage: isinstance(R, sage.manifolds.differentiable.manifold.DifferentiableManifold)
         True
         sage: dim(R)
@@ -889,7 +889,7 @@ class RealLine(OpenInterval):
             sage: R = RealLine() ; R
             Real number line R
             sage: R.category()
-            Category of smooth manifolds over Real Field with 53 bits of precision
+            Category of smooth manifolds over Real Floating-Point Field with 53 bits of precision
             sage: TestSuite(R).run(skip='_test_elements')  # pickling of elements fails
 
         """

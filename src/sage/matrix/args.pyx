@@ -226,7 +226,7 @@ cdef class MatrixArgs:
         [1.0 2.0]
         [3.0 4.0]
         sage: ma = MatrixArgs(RealField(20), array([[1.,2.],[3.,4.]])); ma.finalized(); ma.matrix()
-        <MatrixArgs for Full MatrixSpace of 2 by 2 dense matrices over Real Field with 20 bits of precision; typ=MATRIX; entries=[1.0 2.0]
+        <MatrixArgs for Full MatrixSpace of 2 by 2 dense matrices over Real Floating-Point Field with 20 bits of precision; typ=MATRIX; entries=[1.0 2.0]
         [3.0 4.0]>
         [1.0000 2.0000]
         [3.0000 4.0000]
@@ -825,7 +825,7 @@ cdef class MatrixArgs:
             ...
             TypeError: the dimensions of the matrix must be specified
             sage: MatrixArgs(2, 3, 0.0).finalized()
-            <MatrixArgs for Full MatrixSpace of 2 by 3 dense matrices over Real Field with 53 bits of precision; typ=ZERO; entries=0.000000000000000>
+            <MatrixArgs for Full MatrixSpace of 2 by 3 dense matrices over Real Floating-Point Field with 53 bits of precision; typ=ZERO; entries=0.000000000000000>
             sage: MatrixArgs(RR, 2, 3, 1.0).finalized()
             Traceback (most recent call last):
             ...

@@ -104,7 +104,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection", base_ring=RR)
         sage: W
-        Finite Coxeter group over Real Field with 53 bits of precision with Coxeter matrix:
+        Finite Coxeter group over Real Floating-Point Field with 53 bits of precision with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]

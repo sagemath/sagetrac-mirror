@@ -1663,9 +1663,9 @@ cdef class RealBall(RingElement):
             sage: RealBallField(16)(1/3).mid()
             0.3333
             sage: RealBallField(16)(1/3).mid().parent()
-            Real Field with 16 bits of precision
+            Real Floating-Point Field with 16 bits of precision
             sage: RealBallField(16)(RBF(1/3)).mid().parent()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: RBF('inf').mid()
             +infinity
 
@@ -1698,7 +1698,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/3).rad()
             5.5511151e-17
             sage: RBF(1/3).rad().parent()
-            Real Field with 30 bits of precision
+            Real Floating-Point Field with 30 bits of precision
 
         .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`, :meth:`diameter`
 
@@ -1732,7 +1732,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/3).diameter()
             1.1102230e-16
             sage: RBF(1/3).diameter().parent()
-            Real Field with 30 bits of precision
+            Real Floating-Point Field with 30 bits of precision
             sage: RBF(RIF(1.02, 1.04)).diameter()
             0.020000000
 
@@ -1882,7 +1882,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1/3).upper()
             -0.333333333333333
             sage: RBF(-1/3).upper().parent()
-            Real Field with 53 bits of precision and rounding RNDU
+            Real Floating-Point Field with 53 bits of precision and rounding RNDU
 
         .. SEEALSO::
 
@@ -1910,7 +1910,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1/3).lower()
             -0.333333333333334
             sage: RBF(-1/3).lower().parent()
-            Real Field with 53 bits of precision and rounding RNDD
+            Real Floating-Point Field with 53 bits of precision and rounding RNDD
 
         .. SEEALSO:: :meth:`upper`, :meth:`endpoints`
         """

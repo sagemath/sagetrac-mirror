@@ -688,9 +688,9 @@ class FormsRing_abstract(Parent):
             sage: ModularFormsRing(n=5).get_d(fix_d = True)
             0.0070522341...
             sage: ModularFormsRing(n=5).get_d(fix_d = True).parent()
-            Real Field with 40 bits of precision
+            Real Floating-Point Field with 40 bits of precision
             sage: ModularFormsRing(n=5).get_d(fix_d = True, d_num_prec=100).parent()
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: ModularFormsRing(n=5).get_d(fix_d=1).parent()
             Integer Ring
         """
@@ -752,9 +752,9 @@ class FormsRing_abstract(Parent):
             12
             sage: ModularFormsRing(n=5).default_num_prec(40)
             sage: ModularFormsRing(n=5).get_q(fix_d = True).parent()
-            Power Series Ring in q over Real Field with 40 bits of precision
+            Power Series Ring in q over Real Floating-Point Field with 40 bits of precision
             sage: ModularFormsRing(n=5).get_q(fix_d = True, d_num_prec=100).parent()
-            Power Series Ring in q over Real Field with 100 bits of precision
+            Power Series Ring in q over Real Floating-Point Field with 100 bits of precision
             sage: ModularFormsRing(n=5).get_q(fix_d=1).parent()
             Power Series Ring in q over Rational Field
         """

@@ -53,7 +53,7 @@ either parents or have a parent. Typically whenever one sees the word
     sage: ZZ
     Integer Ring
     sage: parent(1.50000000000000000000000000000000000)
-    Real Field with 120 bits of precision
+    Real Floating-Point Field with 120 bits of precision
     sage: parent(x)
     Symbolic Ring
     sage: x^sin(x)
@@ -302,7 +302,7 @@ Note that the user-visible method (without underscore) automates this copy::
     sage: (QQ2).get_action(QQ)
     Right scalar multiplication by Rational Field on Vector space of dimension 2 over Rational Field
     sage: QQ['x'].get_action(RR)
-    Right scalar multiplication by Real Field with 53 bits of precision on Univariate Polynomial Ring in x over Rational Field
+    Right scalar multiplication by Real Floating-Point Field with 53 bits of precision on Univariate Polynomial Ring in x over Rational Field
 
 How to Implement
 ----------------
@@ -611,7 +611,7 @@ These are accessed via the :meth:`construction` method, which returns a
 ::
 
     sage: CC.construction()
-    (AlgebraicClosureFunctor, Real Field with 53 bits of precision)
+    (AlgebraicClosureFunctor, Real Floating-Point Field with 53 bits of precision)
     sage: RR.construction()
     (Completion[+Infinity, prec=53], Rational Field)
     sage: QQ.construction()

@@ -1020,7 +1020,7 @@ cdef class CoercionModel:
             sage: cm.common_parent(ZZ, QQ)
             Rational Field
             sage: cm.common_parent(ZZ, QQ, RR)
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: ZZT = ZZ[['T']]
             sage: QQT = QQ['T']
             sage: cm.common_parent(ZZT, QQT, RDF)
@@ -1031,7 +1031,7 @@ cdef class CoercionModel:
             <type 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
-            Real Field with 10 bits of precision
+            Real Floating-Point Field with 10 bits of precision
 
         There are some cases where the ordering does matter, but if a parent
         can be found it is always the same::
@@ -1559,7 +1559,7 @@ cdef class CoercionModel:
               From: Integer Ring
               To:   Rational Field, Generic map:
               From: Rational Field
-              To:   Real Field with 53 bits of precision)
+              To:   Real Floating-Point Field with 53 bits of precision)
         """
         if homs is None:
             return None
@@ -1632,7 +1632,7 @@ cdef class CoercionModel:
             (None, (map internal to coercion system -- copy before use)
              Generic map:
               From: Rational Field
-              To:   Real Field with 53 bits of precision)
+              To:   Real Floating-Point Field with 53 bits of precision)
 
         Otherwise, try and compute an appropriate cover::
 

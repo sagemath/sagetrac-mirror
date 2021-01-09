@@ -424,7 +424,7 @@ class FormalSums(UniqueRepresentation, Module):
         EXAMPLES::
 
             sage: A = FormalSums(RR);  A.get_action(RR)     # indirect doctest
-            Right scalar multiplication by Real Field with 53 bits of precision on Abelian Group of all Formal Finite Sums over Real Field with 53 bits of precision
+            Right scalar multiplication by Real Floating-Point Field with 53 bits of precision on Abelian Group of all Formal Finite Sums over Real Floating-Point Field with 53 bits of precision
 
             sage: A = FormalSums(ZZ);  A.get_action(QQ)
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field

@@ -78,7 +78,7 @@ cdef class E(Expression):
             sage: RR(e)
             2.71828182845905
             sage: R = RealField(200); R
-            Real Field with 200 bits of precision
+            Real Floating-Point Field with 200 bits of precision
             sage: R(e)
             2.7182818284590452353602874713526624977572470936999595749670
             sage: em = 1 + e^(1-e); em

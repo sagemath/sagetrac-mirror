@@ -523,11 +523,11 @@ class Function_Bessel_Y(BuiltinFunction):
         sage: r = bessel_Y(RealField(200)(1), 1.0); r
         -0.781212821300289
         sage: parent(r)
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: r = bessel_Y(RealField(200)(1), 1); r
         -0.78121282130028871654715000004796482054990639071644460784383
         sage: parent(r)
-        Real Field with 200 bits of precision
+        Real Floating-Point Field with 200 bits of precision
 
     REFERENCES:
 

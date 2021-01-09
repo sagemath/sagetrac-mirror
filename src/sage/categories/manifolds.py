@@ -27,7 +27,7 @@ class Manifolds(Category_over_base_ring):
 
         sage: from sage.categories.manifolds import Manifolds
         sage: C = Manifolds(RR); C
-        Category of manifolds over Real Field with 53 bits of precision
+        Category of manifolds over Real Floating-Point Field with 53 bits of precision
         sage: C.super_categories()
         [Category of topological spaces]
 
@@ -102,7 +102,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).Connected()
                 Category of connected manifolds
-                 over Real Field with 53 bits of precision
+                 over Real Floating-Point Field with 53 bits of precision
 
             TESTS::
 
@@ -122,7 +122,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: C = Manifolds(RR).Connected().FiniteDimensional(); C
                 Category of finite dimensional connected manifolds
-                 over Real Field with 53 bits of precision
+                 over Real Floating-Point Field with 53 bits of precision
 
             TESTS::
 
@@ -143,7 +143,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).Differentiable()
                 Category of differentiable manifolds
-                 over Real Field with 53 bits of precision
+                 over Real Floating-Point Field with 53 bits of precision
 
             TESTS::
 
@@ -163,7 +163,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).Smooth()
                 Category of smooth manifolds
-                 over Real Field with 53 bits of precision
+                 over Real Floating-Point Field with 53 bits of precision
 
             TESTS::
 
@@ -183,7 +183,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).Analytic()
                 Category of analytic manifolds
-                 over Real Field with 53 bits of precision
+                 over Real Floating-Point Field with 53 bits of precision
 
             TESTS::
 
@@ -204,7 +204,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).AlmostComplex()
                 Category of almost complex manifolds
-                 over Real Field with 53 bits of precision
+                 over Real Floating-Point Field with 53 bits of precision
 
             TESTS::
 
@@ -258,7 +258,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).Smooth().super_categories() # indirect doctest
                 [Category of differentiable manifolds
-                 over Real Field with 53 bits of precision]
+                 over Real Floating-Point Field with 53 bits of precision]
             """
             return [Manifolds(self.base()).Differentiable()]
 
@@ -279,7 +279,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).Analytic().super_categories() # indirect doctest
                 [Category of smooth manifolds
-                 over Real Field with 53 bits of precision]
+                 over Real Floating-Point Field with 53 bits of precision]
             """
             return [Manifolds(self.base()).Smooth()]
 
@@ -303,7 +303,7 @@ class Manifolds(Category_over_base_ring):
                 sage: from sage.categories.manifolds import Manifolds
                 sage: Manifolds(RR).AlmostComplex().super_categories() # indirect doctest
                 [Category of smooth manifolds
-                 over Real Field with 53 bits of precision]
+                 over Real Floating-Point Field with 53 bits of precision]
             """
             return [Manifolds(self.base()).Smooth()]
 

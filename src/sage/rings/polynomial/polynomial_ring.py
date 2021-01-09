@@ -999,7 +999,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: R.<x> = RR[]; R
-            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
             sage: R.base_extend(CC)
             Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: R.base_extend(QQ)

@@ -99,7 +99,7 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         sage: Polyhedra(RR, 3)
         Traceback (most recent call last):
         ...
-        ValueError: no default backend for computations with Real Field with 53 bits of precision
+        ValueError: no default backend for computations with Real Floating-Point Field with 53 bits of precision
         sage: Polyhedra(QQ[I], 2)
         Traceback (most recent call last):
         ...

@@ -1082,7 +1082,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: Conic(RR, [1, 1, 1]).rational_point()
             Traceback (most recent call last):
             ...
-            ValueError: Conic Projective Conic Curve over Real Field with 53 bits of precision defined by x^2 + y^2 + z^2 has no rational points over Real Field with 53 bits of precision!
+            ValueError: Conic Projective Conic Curve over Real Floating-Point Field with 53 bits of precision defined by x^2 + y^2 + z^2 has no rational points over Real Floating-Point Field with 53 bits of precision!
         """
         bl,pt = self.has_rational_point(point = True, algorithm = algorithm,
                                         read_cache = read_cache)

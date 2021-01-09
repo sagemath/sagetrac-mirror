@@ -189,7 +189,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         TESTS::
 
             sage: FiniteDimensionalAlgebra(RR, [Matrix([1])])._repr_()
-            'Finite-dimensional algebra of degree 1 over Real Field with 53 bits of precision'
+            'Finite-dimensional algebra of degree 1 over Real Floating-Point Field with 53 bits of precision'
         """
         return "Finite-dimensional algebra of degree {} over {}".format(self.degree(), self.base_ring())
 

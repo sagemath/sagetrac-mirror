@@ -263,7 +263,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             sage: L = lie_algebras.Heisenberg(RR, 1)
             sage: L.lie_group()
             Lie group G of Heisenberg algebra of rank 1 over
-             Real Field with 53 bits of precision
+             Real Floating-Point Field with 53 bits of precision
         """
         return "Lie group %s of %s" % (self._name, self.lie_algebra())
 

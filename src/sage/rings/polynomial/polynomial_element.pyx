@@ -686,14 +686,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: one = Pol_xy(1)
             sage: one(1, 1.).parent()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
 
             sage: zero = GF(2)['x'](0)
             sage: zero(1.).parent() # should raise an error
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents:
-            'Finite Field of size 2' and 'Real Field with 53 bits of precision'
+            'Finite Field of size 2' and 'Real Floating-Point Field with 53 bits of precision'
 
             sage: pol(x, y, x=1)
             Traceback (most recent call last):
@@ -7500,9 +7500,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:         for rt in rts:
             ....:             assert(abs(f2(rt)) <= 1e-10)
             ....:             assert(rt.parent() == fld_out)
-            Real Field with 53 bits of precision [1.25992104989487]
+            Real Floating-Point Field with 53 bits of precision [1.25992104989487]
             Real Double Field [1.25992104989...]
-            Real Field with 100 bits of precision [1.2599210498948731647672106073]
+            Real Floating-Point Field with 100 bits of precision [1.2599210498948731647672106073]
             Complex Field with 53 bits of precision [1.25992104989487, -0.62996052494743... - 1.09112363597172*I, -0.62996052494743... + 1.09112363597172*I]
             Complex Double Field [1.25992104989..., -0.629960524947... - 1.0911236359717...*I, -0.629960524947... + 1.0911236359717...*I]
             Complex Field with 100 bits of precision [1.2599210498948731647672106073, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I]
@@ -8102,7 +8102,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: x = polygen(RealField(100))
             sage: (x^2 - x - 1).real_roots()[0].parent()
-                Real Field with 100 bits of precision
+                Real Floating-Point Field with 100 bits of precision
             sage: x = polygen(RDF)
             sage: (x^2 - x - 1).real_roots()[0].parent()
             Real Double Field

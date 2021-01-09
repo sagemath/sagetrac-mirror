@@ -237,12 +237,12 @@ class EllipticCurveFactory(UniqueFactory):
         Algebraic Field
 
         sage: E = EllipticCurve(RR,[1,2]); E; E.base_field()
-        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 2.00000000000000 over Real Field with 53 bits of precision
-        Real Field with 53 bits of precision
+        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 2.00000000000000 over Real Floating-Point Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: EllipticCurve(CC,[3,4]); E; E.base_field()
         Elliptic Curve defined by y^2 = x^3 + 3.00000000000000*x + 4.00000000000000 over Complex Field with 53 bits of precision
-        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 2.00000000000000 over Real Field with 53 bits of precision
-        Real Field with 53 bits of precision
+        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 2.00000000000000 over Real Floating-Point Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: E = EllipticCurve(QQbar,[5,6]); E; E.base_field()
         Elliptic Curve defined by y^2 = x^3 + 5*x + 6 over Algebraic Field
         Algebraic Field
@@ -269,7 +269,7 @@ class EllipticCurveFactory(UniqueFactory):
         <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
 
         sage: E = EllipticCurve([RR(1),3]); E
-        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 3.00000000000000 over Real Field with 53 bits of precision
+        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 3.00000000000000 over Real Floating-Point Field with 53 bits of precision
         sage: type(E)
         <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
 

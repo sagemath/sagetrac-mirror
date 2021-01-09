@@ -2233,7 +2233,7 @@ cdef class Field(PrincipalIdealDomain):
             sage: QQ.fraction_field()
             Rational Field
             sage: RR.fraction_field()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: CC.fraction_field()
             Complex Field with 53 bits of precision
 

@@ -340,7 +340,7 @@ class MatlabElement(ExpectElement):
 
             sage: a = matlab('eye(50)')         # optional - matlab
             sage: matrix(RR, a)                 # optional - matlab
-            50 x 50 dense matrix over Real Field with 53 bits of precision
+            50 x 50 dense matrix over Real Floating-Point Field with 53 bits of precision
 
         """
         from sage.matrix.all import matrix

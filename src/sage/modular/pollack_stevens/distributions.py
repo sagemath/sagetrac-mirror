@@ -172,7 +172,7 @@ class Symk_factory(UniqueFactory):
         sage: Symk(5)
         Sym^5 Q^2
         sage: Symk(5, RR)
-        Sym^5 (Real Field with 53 bits of precision)^2
+        Sym^5 (Real Floating-Point Field with 53 bits of precision)^2
         sage: Symk(5, oo.parent()) # don't do this
         Sym^5 (The Infinity Ring)^2
         sage: Symk(5, act_on_left = True)

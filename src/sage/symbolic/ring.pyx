@@ -437,7 +437,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: t.subs(x = 2*x^2)
             (1, 2, 2*x^2, 2*x^2 + 1, 2*x^2 + 2)
             sage: SR._force_pyobject((QQ, RR, CC))
-            (Rational Field, Real Field with 53 bits of precision, Complex Field with 53 bits of precision)
+            (Rational Field, Real Floating-Point Field with 53 bits of precision, Complex Field with 53 bits of precision)
             sage: t = SR._force_pyobject((QQ, (x, x + 1, x + 2), CC)); t
             (Rational Field, (x, x + 1, x + 2), Complex Field with 53 bits of precision)
             sage: t.subs(x=x^2)

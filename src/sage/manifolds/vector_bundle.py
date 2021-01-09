@@ -89,7 +89,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         sage: E.base_space()
         4-dimensional topological manifold M
         sage: E.base_ring()
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: E.rank()
         1
 

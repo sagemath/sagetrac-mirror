@@ -37,7 +37,7 @@ Since the base topological field has not been specified in the argument list
 of ``Manifold``, `\RR` is assumed::
 
     sage: M.base_field()
-    Real Field with 53 bits of precision
+    Real Floating-Point Field with 53 bits of precision
     sage: dim(M)
     2
 
@@ -414,7 +414,7 @@ class TopologicalManifold(ManifoldSubset):
         sage: type(M)
         <class 'sage.manifolds.manifold.TopologicalManifold_with_category'>
         sage: M.base_field()
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: dim(M)
         4
 
@@ -453,7 +453,7 @@ class TopologicalManifold(ManifoldSubset):
         sage: isinstance(M, Parent)
         True
         sage: M.category()
-        Category of manifolds over Real Field with 53 bits of precision
+        Category of manifolds over Real Floating-Point Field with 53 bits of precision
         sage: from sage.categories.manifolds import Manifolds
         sage: M.category() is Manifolds(RR)
         True
@@ -496,7 +496,7 @@ class TopologicalManifold(ManifoldSubset):
         True
         sage: U.category()
         Join of Category of subobjects of sets and Category of manifolds over
-         Real Field with 53 bits of precision
+         Real Floating-Point Field with 53 bits of precision
 
     The manifold passes all the tests of the test suite relative to its
     category::
@@ -984,7 +984,7 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: M = Manifold(3, 'M', structure='topological')
             sage: M.base_field()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: M = Manifold(3, 'M', structure='topological', field='complex')
             sage: M.base_field()
             Complex Field with 53 bits of precision
@@ -2142,7 +2142,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: H = M._Hom_(N); H
             Set of Morphisms from 2-dimensional topological manifold M to
              3-dimensional topological manifold N in Category of manifolds over
-             Real Field with 53 bits of precision
+             Real Floating-Point Field with 53 bits of precision
 
         The result is cached::
 
@@ -2233,7 +2233,7 @@ class TopologicalManifold(ManifoldSubset):
             Traceback (most recent call last):
             ...
             ValueError: Integer Ring is not a manifold
-             over Real Field with 53 bits of precision
+             over Real Floating-Point Field with 53 bits of precision
 
         .. SEEALSO::
 

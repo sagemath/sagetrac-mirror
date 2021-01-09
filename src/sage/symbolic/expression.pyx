@@ -6933,7 +6933,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = f.polynomial(RR); g
             2.71828182845905*x^2 + x + 1.15572734979092
             sage: g.parent()
-            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
             sage: f.polynomial(RealField(100))
             2.7182818284590452353602874714*x^2 + x + 1.1557273497909217179100931833
             sage: f.polynomial(CDF)  # abs tol 5e-16
@@ -12209,7 +12209,7 @@ cdef class Expression(CommutativeRingElement):
             sage: b
             10201.0000000000
             sage: parent(b)
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
 
         Check that :trac:`15030` is fixed::
 

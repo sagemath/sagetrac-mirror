@@ -34,7 +34,7 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
 
         sage: from sage.rings.real_field import create_RealField
         sage: create_RealField(30)
-        Real Field with 30 bits of precision
+        Real Floating-Point Field with 30 bits of precision
         sage: create_RealField(20, 'RDF') # ignores precision
         Real Double Field
         sage: create_RealField(60, 'Interval')

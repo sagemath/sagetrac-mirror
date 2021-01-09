@@ -56,7 +56,7 @@ We illustrate the exponent notation for creation of free modules.
     sage: QQ^2
     Vector space of dimension 2 over Rational Field
     sage: RR^3
-    Vector space of dimension 3 over Real Field with 53 bits of precision
+    Vector space of dimension 3 over Real Floating-Point Field with 53 bits of precision
 
 Base ring::
 
@@ -371,7 +371,7 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
     Of course we can make rank 0 free modules::
 
         sage: FreeModule(RealField(100),0)
-        Vector space of dimension 0 over Real Field with 100 bits of precision
+        Vector space of dimension 0 over Real Floating-Point Field with 100 bits of precision
 
     Next we create a free module with sparse representation of
     elements. Functionality with sparse modules is *identical* to dense
@@ -2594,7 +2594,7 @@ done from the right side.""")
             sage: M.Type() # optional - magma
             ModTupFld
             sage: m = M.sage(); m # optional - magma
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-Point Field with 53 bits of precision
             sage: m is F # optional - magma
             True
 
@@ -2608,7 +2608,7 @@ done from the right side.""")
             sage: M.Type() # optional - magma
             ModTupFld
             sage: m = M.sage(); m # optional - magma
-            Vector space of dimension 3 over Real Field with 100 bits of precision
+            Vector space of dimension 3 over Real Floating-Point Field with 100 bits of precision
             sage: m is F # optional - magma
             False
         """
@@ -4389,7 +4389,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: (RR^3).linear_dependence([v1,v2], check=True)
             Traceback (most recent call last):
             ...
-            ValueError: vector (1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000) is not an element of Vector space of dimension 3 over Real Field with 53 bits of precision
+            ValueError: vector (1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000) is not an element of Vector space of dimension 3 over Real Floating-Point Field with 53 bits of precision
 
         The ``zeros`` keyword is checked. ::
 

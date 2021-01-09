@@ -184,7 +184,7 @@ def ComplexField(prec=53, names=None):
         sage: ComplexField(100)
         Complex Field with 100 bits of precision
         sage: ComplexField(100).base_ring()
-        Real Field with 100 bits of precision
+        Real Floating-Point Field with 100 bits of precision
         sage: i = ComplexField(200).gen()
         sage: i^2
         -1.0000000000000000000000000000000000000000000000000000000000
@@ -376,7 +376,7 @@ class ComplexField_class(ring.Field):
         EXAMPLES::
 
             sage: RF = ComplexField(10)._real_field(); RF
-            Real Field with 10 bits of precision
+            Real Floating-Point Field with 10 bits of precision
             sage: ComplexField(10)._real_field() is RF
             True
         """
@@ -651,7 +651,7 @@ class ComplexField_class(ring.Field):
         EXAMPLES::
 
             sage: c, S = CC.construction(); S
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: CC == c(S)
             True
         """
@@ -1754,7 +1754,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.real(); x
             2.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: z.real_part()
             2.0000000000000000000000000000
         """
@@ -1776,7 +1776,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.imag(); x
             3.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: z.imag_part()
             3.0000000000000000000000000000
         """
@@ -3342,7 +3342,7 @@ cdef class RRtoCC(Map):
             sage: from sage.rings.complex_mpfr import RRtoCC
             sage: RRtoCC(RR, CC)
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating-Point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         Map.__init__(self, RR, CC)
@@ -3368,7 +3368,7 @@ cdef class RRtoCC(Map):
             sage: g = copy(f) # indirect doctest
             sage: g
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating-Point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         slots = Map._extra_slots(self)
@@ -3388,7 +3388,7 @@ cdef class RRtoCC(Map):
             sage: from sage.rings.complex_mpfr import RRtoCC
             sage: RRtoCC(RR, CC)
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating-Point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         Map._update_slots(self, _slots)

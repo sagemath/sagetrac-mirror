@@ -25,7 +25,7 @@ class VectorBundles(Category_over_base_ring):
         sage: M = Manifold(2, 'M', structure='top')
         sage: from sage.categories.vector_bundles import VectorBundles
         sage: C = VectorBundles(M, RR); C
-        Category of vector bundles over Real Field with 53 bits of precision
+        Category of vector bundles over Real Floating-Point Field with 53 bits of precision
          with base space 2-dimensional topological manifold M
         sage: C.super_categories()
         [Category of topological spaces]
@@ -90,7 +90,7 @@ class VectorBundles(Category_over_base_ring):
             sage: M = Manifold(2, 'M')
             sage: from sage.categories.vector_bundles import VectorBundles
             sage: VectorBundles(M, RR)._repr_object_names()
-            'vector bundles over Real Field with 53 bits of precision with base
+            'vector bundles over Real Floating-Point Field with 53 bits of precision with base
              space 2-dimensional differentiable manifold M'
 
         """
@@ -110,7 +110,7 @@ class VectorBundles(Category_over_base_ring):
                 sage: M = Manifold(2, 'M')
                 sage: from sage.categories.vector_bundles import VectorBundles
                 sage: VectorBundles(M, RR).Differentiable()
-                Category of differentiable vector bundles over Real Field with
+                Category of differentiable vector bundles over Real Floating-Point Field with
                  53 bits of precision with base space 2-dimensional
                  differentiable manifold M
 
@@ -133,7 +133,7 @@ class VectorBundles(Category_over_base_ring):
                 sage: M = Manifold(2, 'M')
                 sage: from sage.categories.vector_bundles import VectorBundles
                 sage: VectorBundles(M, RR).Smooth()
-                Category of smooth vector bundles over Real Field with 53 bits
+                Category of smooth vector bundles over Real Floating-Point Field with 53 bits
                  of precision with base space 2-dimensional differentiable
                  manifold M
 

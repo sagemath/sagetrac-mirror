@@ -942,7 +942,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: c=f.coefficient({x:0,y:0}); c
             5.00000000000000
             sage: parent(c)
-            Multivariate Polynomial Ring in x, y over Real Field with 53 bits of precision
+            Multivariate Polynomial Ring in x, y over Real Floating-Point Field with 53 bits of precision
 
         AUTHORS:
 

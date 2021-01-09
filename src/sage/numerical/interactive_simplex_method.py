@@ -1009,7 +1009,7 @@ class InteractiveLPProblem(SageObject):
             sage: c = (10, 5.)
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.base_ring()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
         """
         return self._Abcx[0].base_ring()
 

@@ -39,7 +39,7 @@ When converting back to Sage, the precision from PARI is taken::
     sage: y
     3.1415926535897932384626433832793333156
     sage: parent(y)
-    Real Field with 128 bits of precision
+    Real Floating-Point Field with 128 bits of precision
 
 So ``pari(x).sage()`` is definitely not equal to ``x`` since it has
 28 bogus bits.
@@ -135,13 +135,13 @@ wordsize. ::
 
     sage: s = pari(1).sin(precision=180).sage(); print(s); print(parent(s))
     0.841470984807896506652502321630298999622563060798371065673
-    Real Field with 192 bits of precision
+    Real Floating-Point Field with 192 bits of precision
     sage: s = pari(1).sin(precision=40).sage(); print(s); print(parent(s))
     0.841470984807896507
-    Real Field with 64 bits of precision
+    Real Floating-Point Field with 64 bits of precision
     sage: s = pari(1).sin().sage(); print(s); print(parent(s))
     0.841470984807896507
-    Real Field with 64 bits of precision
+    Real Floating-Point Field with 64 bits of precision
 
 In the third case, the precision is determined only by the inexact
 inputs and the ``precision`` argument is ignored::

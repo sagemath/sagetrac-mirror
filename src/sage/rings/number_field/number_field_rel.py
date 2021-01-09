@@ -2128,12 +2128,12 @@ class NumberField_relative(NumberField_generic):
             sage: L.places()
             [Relative number field morphism:
             From: Number Field in b with defining polynomial x^2 - 5 over its base field
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: b |--> -2.236067977499789696409173668937
             c |--> -1.213411662762229634132131377426,
             Relative number field morphism:
             From: Number Field in b with defining polynomial x^2 - 5 over its base field
-            To:   Real Field with 106 bits of precision
+            To:   Real Floating-Point Field with 106 bits of precision
             Defn: b |--> 2.236067977499789696411548005367
             c |--> -1.213411662762229634130492421800,
             Relative number field morphism:

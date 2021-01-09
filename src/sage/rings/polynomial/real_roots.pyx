@@ -2185,7 +2185,7 @@ def cl_maximum_root_first_lambda(cl):
         sage: bnd = cl_maximum_root_first_lambda(list(map(RIF, [0, 0, 0, 14, 1])))
         sage: bnd, bnd.parent()
         (0.000000000000000,
-        Real Field with 53 bits of precision and rounding RNDU)
+        Real Floating-Point Field with 53 bits of precision and rounding RNDU)
     """
     n = len(cl) - 1
     assert(cl[n] > 0)
@@ -4245,11 +4245,11 @@ def get_realfield_rndu(n):
 
         sage: from sage.rings.polynomial.real_roots import *
         sage: get_realfield_rndu(20)
-        Real Field with 20 bits of precision and rounding RNDU
+        Real Floating-Point Field with 20 bits of precision and rounding RNDU
         sage: get_realfield_rndu(53)
-        Real Field with 53 bits of precision and rounding RNDU
+        Real Floating-Point Field with 53 bits of precision and rounding RNDU
         sage: get_realfield_rndu(20)
-        Real Field with 20 bits of precision and rounding RNDU
+        Real Floating-Point Field with 20 bits of precision and rounding RNDU
     """
     try:
         return realfield_rndu_cache[n]

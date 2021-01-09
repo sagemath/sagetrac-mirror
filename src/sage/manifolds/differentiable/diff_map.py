@@ -116,7 +116,7 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent()
         Set of Morphisms from 2-dimensional differentiable manifold S^2 to
          3-dimensional differentiable manifold R^3 in Category of smooth
-         manifolds over Real Field with 53 bits of precision
+         manifolds over Real Floating-Point Field with 53 bits of precision
         sage: Phi.parent() is Hom(M, N)
         True
         sage: type(Phi)
@@ -276,7 +276,7 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent()
         Set of Morphisms from 1-dimensional differentiable manifold R to
          2-dimensional differentiable manifold R^2 in Category of smooth
-         manifolds over Real Field with 53 bits of precision
+         manifolds over Real Floating-Point Field with 53 bits of precision
         sage: Phi.parent() is Hom(R, R2)
         True
         sage: Phi.display()
@@ -297,7 +297,7 @@ class DiffMap(ContinuousMap):
         Set of Morphisms from Open subset D of the 2-dimensional differentiable
          manifold R^2 to 2-dimensional differentiable manifold R^2 in Join of
          Category of subobjects of sets and Category of smooth manifolds over
-         Real Field with 53 bits of precision
+         Real Floating-Point Field with 53 bits of precision
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
@@ -356,7 +356,7 @@ class DiffMap(ContinuousMap):
         Set of Morphisms from Open subset D of the 2-dimensional differentiable
          manifold R^2 to Open subset D of the 2-dimensional differentiable
          manifold R^2 in Join of Category of subobjects of sets and Category of
-         smooth manifolds over Real Field with 53 bits of precision
+         smooth manifolds over Real Floating-Point Field with 53 bits of precision
         sage: id.parent() is Hom(D, D)
         True
         sage: id is Hom(D,D).one()  # the identity element of the monoid Hom(D,D)

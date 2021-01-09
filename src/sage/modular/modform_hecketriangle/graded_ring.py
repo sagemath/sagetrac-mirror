@@ -36,7 +36,7 @@ def canonical_parameters(group, base_ring, red_hom, n=None):
         sage: canonical_parameters(4, ZZ, 1)
         (Hecke triangle group for n = 4, Integer Ring, True, 4)
         sage: canonical_parameters(infinity, RR, 0)
-        (Hecke triangle group for n = +Infinity, Real Field with 53 bits of precision, False, +Infinity)
+        (Hecke triangle group for n = +Infinity, Real Floating-Point Field with 53 bits of precision, False, +Infinity)
     """
 
     if not (n is None):

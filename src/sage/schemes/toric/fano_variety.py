@@ -915,7 +915,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             Rational Field
             sage: P1xP1_RR = P1xP1.change_ring(RR)
             sage: P1xP1_RR.base_ring()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: P1xP1_QQ = P1xP1_RR.change_ring(QQ)
             sage: P1xP1_QQ.base_ring()
             Rational Field
@@ -923,7 +923,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             Traceback (most recent call last):
             ...
             ValueError: no natural map from the base ring
-            (=Real Field with 53 bits of precision)
+            (=Real Floating-Point Field with 53 bits of precision)
             to R (=Rational Field)!
             sage: R = PolynomialRing(QQ, 2, 'a')
             sage: P1xP1.change_ring(R)

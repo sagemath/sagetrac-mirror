@@ -226,7 +226,7 @@ def mpfr_prec_max():
         2147483391
         sage: R = RealField(2^31-257)
         sage: R
-        Real Field with 2147483391 bits of precision
+        Real Floating-Point Field with 2147483391 bits of precision
         sage: R = RealField(2^31-256)
         Traceback (most recent call last):
         ...
@@ -406,11 +406,11 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
     EXAMPLES::
 
         sage: RealField(10)
-        Real Field with 10 bits of precision
+        Real Floating-Point Field with 10 bits of precision
         sage: RealField()
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: RealField(100000)
-        Real Field with 100000 bits of precision
+        Real Floating-Point Field with 100000 bits of precision
 
     Here we show the effect of rounding::
 
@@ -468,40 +468,40 @@ cdef class RealField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: RealField()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: RealField(100000)
-            Real Field with 100000 bits of precision
+            Real Floating-Point Field with 100000 bits of precision
             sage: RealField(17,rnd='RNDD')
-            Real Field with 17 bits of precision and rounding RNDD
+            Real Floating-Point Field with 17 bits of precision and rounding RNDD
 
         TESTS:
 
         Test the various rounding modes::
 
             sage: RealField(100, rnd="RNDN")
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: RealField(100, rnd="RNDZ")
-            Real Field with 100 bits of precision and rounding RNDZ
+            Real Floating-Point Field with 100 bits of precision and rounding RNDZ
             sage: RealField(100, rnd="RNDU")
-            Real Field with 100 bits of precision and rounding RNDU
+            Real Floating-Point Field with 100 bits of precision and rounding RNDU
             sage: RealField(100, rnd="RNDD")
-            Real Field with 100 bits of precision and rounding RNDD
+            Real Floating-Point Field with 100 bits of precision and rounding RNDD
             sage: RealField(100, rnd="RNDA")
-            Real Field with 100 bits of precision and rounding RNDA
+            Real Floating-Point Field with 100 bits of precision and rounding RNDA
             sage: RealField(100, rnd="RNDF")
-            Real Field with 100 bits of precision and rounding RNDF
+            Real Floating-Point Field with 100 bits of precision and rounding RNDF
             sage: RealField(100, rnd=0)
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: RealField(100, rnd=1)
-            Real Field with 100 bits of precision and rounding RNDZ
+            Real Floating-Point Field with 100 bits of precision and rounding RNDZ
             sage: RealField(100, rnd=2)
-            Real Field with 100 bits of precision and rounding RNDU
+            Real Floating-Point Field with 100 bits of precision and rounding RNDU
             sage: RealField(100, rnd=3)
-            Real Field with 100 bits of precision and rounding RNDD
+            Real Floating-Point Field with 100 bits of precision and rounding RNDD
             sage: RealField(100, rnd=4)
-            Real Field with 100 bits of precision and rounding RNDA
+            Real Floating-Point Field with 100 bits of precision and rounding RNDA
             sage: RealField(100, rnd=5)
-            Real Field with 100 bits of precision and rounding RNDF
+            Real Floating-Point Field with 100 bits of precision and rounding RNDF
             sage: RealField(100, rnd=3.14)
             Traceback (most recent call last):
             ...
@@ -555,11 +555,11 @@ cdef class RealField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: RealField() # indirect doctest
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: RealField(100000) # indirect doctest
-            Real Field with 100000 bits of precision
+            Real Floating-Point Field with 100000 bits of precision
             sage: RealField(17,rnd='RNDD') # indirect doctest
-            Real Field with 17 bits of precision and rounding RNDD
+            Real Floating-Point Field with 17 bits of precision and rounding RNDD
         """
         s = "Real Floating-Point Field with {} bits of precision".format(self.__prec)
         if self.rnd != MPFR_RNDN:
@@ -707,7 +707,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RealField(100).coerce(3.4)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Real Field with 100 bits of precision
+            TypeError: no canonical coercion from Real Floating-Point Field with 53 bits of precision to Real Floating-Point Field with 100 bits of precision
             sage: RR.coerce(17/5)
             3.40000000000000
             sage: RR.coerce(2^4000)
@@ -715,7 +715,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RR.coerce_map_from(float)
             Generic map:
               From: Set of Python objects of class 'float'
-              To:   Real Field with 53 bits of precision
+              To:   Real Floating-Point Field with 53 bits of precision
 
         TESTS::
 
@@ -723,7 +723,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             -6.00000000000000
             sage: R = RR['x']   # Hold reference to avoid garbage collection, see Trac #24709
             sage: R.get_action(ZZ)
-            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Real Floating-Point Field with 53 bits of precision
         """
         if S is ZZ:
             return ZZtoRR(ZZ, self)
@@ -1010,7 +1010,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: 10^21 < 2^70 < 10^22
             True
             sage: s = magma(RealField(70)).sage(); s # optional - magma # indirect doctest
-            Real Field with 70 bits of precision
+            Real Floating-Point Field with 70 bits of precision
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
@@ -1022,10 +1022,10 @@ cdef class RealField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: RR.to_prec(212)
-            Real Field with 212 bits of precision
+            Real Floating-Point Field with 212 bits of precision
             sage: R = RealField(30, rnd="RNDZ")
             sage: R.to_prec(300)
-            Real Field with 300 bits of precision and rounding RNDZ
+            Real Floating-Point Field with 300 bits of precision and rounding RNDZ
         """
         if prec == self.__prec:
             return self
@@ -2470,7 +2470,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b*a
             154760.
             sage: parent(b*a)
-            Real Field with 20 bits of precision
+            Real Floating-Point Field with 20 bits of precision
         """
         cdef RealNumber x = self._new()
         mpfr_mul(x.value, self.value, (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
@@ -2758,7 +2758,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: e
             3.45446742203777785e-77
             sage: parent(e)
-            Real Field with 64 bits of precision
+            Real Floating-Point Field with 64 bits of precision
             sage: e = a.ulp(QQ)
             Traceback (most recent call last):
             ...
@@ -2775,7 +2775,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a.ulp()
             NaN
             sage: parent(RR('nan').ulp(RealField(42)))
-            Real Field with 42 bits of precision
+            Real Floating-Point Field with 42 bits of precision
         """
         cdef RealField_class _parent
         if field is None:
@@ -2848,7 +2848,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: e
             2.71313236878478868e-77
             sage: parent(e)
-            Real Field with 64 bits of precision
+            Real Floating-Point Field with 64 bits of precision
             sage: e = a.epsilon(QQ)
             Traceback (most recent call last):
             ...
@@ -2859,7 +2859,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR('nan').epsilon()
             NaN
             sage: parent(RR('nan').epsilon(RealField(42)))
-            Real Field with 42 bits of precision
+            Real Floating-Point Field with 42 bits of precision
             sage: RR('+Inf').epsilon()
             +infinity
             sage: RR('-Inf').epsilon()
@@ -5738,9 +5738,9 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     The rounding mode is respected in all cases::
 
         sage: RealNumber("1.5", rnd="RNDU").parent()
-        Real Field with 53 bits of precision and rounding RNDU
+        Real Floating-Point Field with 53 bits of precision and rounding RNDU
         sage: RealNumber("1.50000000000000000000000000000000000000", rnd="RNDU").parent()
-        Real Field with 130 bits of precision and rounding RNDU
+        Real Floating-Point Field with 130 bits of precision and rounding RNDU
 
     TESTS::
 
@@ -5840,7 +5840,7 @@ def __create__RealField_version0(prec, sci_not, rnd):
     EXAMPLES::
 
         sage: sage.rings.real_mpfr.__create__RealField_version0(53, 0, 'RNDN')
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
     """
     return RealField(prec, sci_not, rnd)
 
@@ -5871,8 +5871,8 @@ cdef class RRtoRR(Map):
             sage: g = f.section()
             sage: g
             Generic map:
-              From: Real Field with 10 bits of precision
-              To:   Real Field with 100 bits of precision
+              From: Real Floating-Point Field with 10 bits of precision
+              To:   Real Floating-Point Field with 100 bits of precision
             sage: g(f(a)) # indirect doctest
             1.1992187500000000000000000000
             sage: b = R10(2).sqrt()
@@ -5900,8 +5900,8 @@ cdef class RRtoRR(Map):
             sage: f = RRtoRR(R100, R10)
             sage: f.section()
             Generic map:
-              From: Real Field with 10 bits of precision
-              To:   Real Field with 100 bits of precision
+              From: Real Floating-Point Field with 10 bits of precision
+              To:   Real Floating-Point Field with 100 bits of precision
         """
         return RRtoRR(self._codomain, self.domain())
 
@@ -6011,7 +6011,7 @@ def create_RealField(*args, **kwds):
         sage: create_RealField()
         doctest:...: DeprecationWarning: Please import create_RealField from sage.rings.real_field
         See http://trac.sagemath.org/24511 for details.
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
     """
     from sage.misc.superseded import deprecation
     deprecation(24511, "Please import create_RealField from sage.rings.real_field")

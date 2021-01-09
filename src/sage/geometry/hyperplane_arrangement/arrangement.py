@@ -3551,7 +3551,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L.<x> = HyperplaneArrangements(QQ);  L
             Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
             sage: M.<y> = HyperplaneArrangements(RR);  M
-            Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
+            Hyperplane arrangements in 1-dimensional linear space over Real Floating-Point Field with 53 bits of precision with coordinate y
 
             sage: L.coerce_map_from(ZZ)
             Coercion map:
@@ -3560,7 +3560,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: M.coerce_map_from(L)
             Coercion map:
               From: Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
-              To:   Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
+              To:   Hyperplane arrangements in 1-dimensional linear space over Real Floating-Point Field with 53 bits of precision with coordinate y
             sage: L.coerce_map_from(M)
         """
         if self.ambient_space().has_coerce_map_from(P):

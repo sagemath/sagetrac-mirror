@@ -885,7 +885,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         TESTS::
 
             sage: SymmetricFunctions(RR) # indirect doctest
-            Symmetric Functions over Real Field with 53 bits of precision
+            Symmetric Functions over Real Floating-Point Field with 53 bits of precision
         """
         return "Symmetric Functions over %s"%self.base_ring()
 

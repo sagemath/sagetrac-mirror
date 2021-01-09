@@ -1069,7 +1069,7 @@ class ToricVariety_field(AmbientSpace):
             Rational Field
             sage: P1xA1_RR = P1xA1.change_ring(RR)
             sage: P1xA1_RR.base_ring()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: P1xA1_QQ = P1xA1_RR.change_ring(QQ)
             sage: P1xA1_QQ.base_ring()
             Rational Field
@@ -1077,7 +1077,7 @@ class ToricVariety_field(AmbientSpace):
             Traceback (most recent call last):
             ...
             ValueError: no natural map from the base ring
-            (=Real Field with 53 bits of precision)
+            (=Real Floating-Point Field with 53 bits of precision)
             to R (=Rational Field)!
             sage: R = PolynomialRing(QQ, 2, 'a')
             sage: P1xA1.change_ring(R)

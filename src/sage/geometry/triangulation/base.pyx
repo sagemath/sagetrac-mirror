@@ -579,7 +579,7 @@ cdef class PointConfiguration_base(Parent):
 
             sage: p = PointConfiguration([(0.2, 5)])
             sage: p.base_ring()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
         """
         return self._base_ring
 

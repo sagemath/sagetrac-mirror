@@ -413,9 +413,9 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis(prec=30)[0].parent()
-            Real Field with 30 bits of precision
+            Real Floating-Point Field with 30 bits of precision
             sage: E.period_lattice().basis(prec=100)[0].parent()
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
 
         ::
 
@@ -1699,7 +1699,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.elliptic_exponential(z)
             (0.999999999999999 : -2.00000000000000 : 1.00000000000000)
             sage: _.curve()
-            Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
+            Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Floating-Point Field with 53 bits of precision
             sage: L.elliptic_exponential(z,to_curve=False)
             (1.41666666666667, -2.00000000000000)
             sage: z = L(P,prec=201); z

@@ -327,7 +327,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         EXAMPLES::
 
             sage: QQ.completion(infinity, 53)
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: QQ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Field with capped relative precision 15
         """
@@ -666,7 +666,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.places()
             [Ring morphism:
               From: Rational Field
-              To:   Real Field with 53 bits of precision
+              To:   Real Floating-Point Field with 53 bits of precision
               Defn: 1 |--> 1.00000000000000]
             sage: QQ.places(prec=53)
             [Ring morphism:

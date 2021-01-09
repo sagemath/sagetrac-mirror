@@ -111,13 +111,13 @@ cpdef gen_to_sage(Gen z, locals=None):
         sage: a = gen_to_sage(z); a
         1.234000000000000000000000000000000000000000000000000000000000000000000000000
         sage: a.parent()
-        Real Field with 256 bits of precision
+        Real Floating-Point Field with 256 bits of precision
         sage: pari.set_real_precision(15)
         70
         sage: a = gen_to_sage(pari('1.234')); a
         1.23400000000000000
         sage: a.parent()
-        Real Field with 64 bits of precision
+        Real Floating-Point Field with 64 bits of precision
 
     For complex numbers, the parent depends on the PARI type::
 
@@ -181,7 +181,7 @@ cpdef gen_to_sage(Gen z, locals=None):
         (<... 'list'>, <... 'list'>)
         sage: [parent(b) for b in a1]
         [Integer Ring,
-         Real Field with 64 bits of precision,
+         Real Floating-Point Field with 64 bits of precision,
          Number Field in i with defining polynomial x^2 + 1 with i = 1*I]
         sage: [parent(b) for b in a2]
         [Complex Field with 64 bits of precision, <... 'list'>]

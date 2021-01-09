@@ -216,7 +216,7 @@ class Scheme(Parent):
             sage: A(QQ)
             Set of rational points of Affine Space of dimension 2 over Rational Field
             sage: A(RR)
-            Set of rational points of Affine Space of dimension 2 over Real Field
+            Set of rational points of Affine Space of dimension 2 over Real Floating-Point Field
             with 53 bits of precision
 
         Space of dimension 2 over Rational Field::

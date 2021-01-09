@@ -165,7 +165,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         Affine Space of dimension 5 over Univariate Polynomial Ring in z over Rational Field
 
         sage: AffineSpace(RealField(), 3, 'Z')
-        Affine Space of dimension 3 over Real Field with 53 bits of precision
+        Affine Space of dimension 3 over Real Floating-Point Field with 53 bits of precision
 
         sage: AffineSpace(Qp(7), 2, 'x')
         Affine Space of dimension 2 over 7-adic Field with capped relative precision 20

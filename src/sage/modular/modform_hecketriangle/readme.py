@@ -1176,7 +1176,7 @@ Modular forms ring and spaces for Hecke triangle groups:
      sage: WF = WeakModularForms(n=14)
      sage: qexp = WF.J_inv().q_expansion_fixed_d(d_num_prec=1000)
      sage: qexp.parent()
-     Laurent Series Ring in q over Real Field with 1000 bits of precision
+     Laurent Series Ring in q over Real Floating-Point Field with 1000 bits of precision
      sage: qexp_int = WF.rationalize_series(qexp)
      doctest:...: UserWarning: Using an experimental rationalization of coefficients, please check the result for correctness!
      sage: qexp_int.parent()

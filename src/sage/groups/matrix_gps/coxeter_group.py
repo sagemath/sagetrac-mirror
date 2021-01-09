@@ -132,7 +132,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
 
         sage: W = CoxeterGroup(m, base_ring=RR, index_set=['a','b','c','d'])
         sage: W.base_ring()
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
         sage: W.index_set()
         ('a', 'b', 'c', 'd')
 

@@ -41,7 +41,7 @@ class Fields(CategoryWithAxiom):
         Fraction Field of Univariate Polynomial Ring in x over
         Finite Field of size 3
         sage: K(RealField())
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
 
     TESTS::
 
@@ -172,7 +172,7 @@ class Fields(CategoryWithAxiom):
             Fraction Field of Univariate Polynomial Ring in x over
             Finite Field of size 3
             sage: K(RealField())
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
         """
         try:
             return x.fraction_field()

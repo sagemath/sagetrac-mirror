@@ -361,7 +361,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
              (1.57693558184861, 1.30713548084184),
              (4.80659931965815, 37.0162574656220)]
             sage: L[0].codomain()
-            Affine Space of dimension 2 over Real Field with 53 bits of precision
+            Affine Space of dimension 2 over Real Floating-Point Field with 53 bits of precision
 
         ::
 

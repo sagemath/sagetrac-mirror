@@ -1683,18 +1683,18 @@ class FriCASElement(ExpectElement):
             sage: fricas(2.1234).sage()                                         # optional - fricas
             2.12340000000000
             sage: _.parent()                                                    # optional - fricas
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: a = RealField(100)(pi)                                        # optional - fricas
             sage: fricas(a).sage()                                              # optional - fricas
             3.1415926535897932384626433833
             sage: _.parent()                                                    # optional - fricas
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: fricas(a).sage() == a                                         # optional - fricas
             True
             sage: fricas(2.0).sage()                                            # optional - fricas
             2.00000000000000
             sage: _.parent()                                                    # optional - fricas
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
 
         Algebraic numbers::
 

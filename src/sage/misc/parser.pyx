@@ -496,7 +496,7 @@ cdef class Parser:
             sage: p.parse("1.5 + foo(b)")
             b^2 + b + 1.50000000000000
             sage: p.parse("1.9").parent()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
         """
         self.integer_constructor = make_int
         self.float_constructor = make_float

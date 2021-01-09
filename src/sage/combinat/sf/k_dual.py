@@ -177,7 +177,7 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(RR) # indirect doctest
             sage: Sym.kBoundedQuotient(4,t=1)
-            4-Bounded Quotient of Symmetric Functions over Real Field with 53 bits of precision with t=1.00000000000000
+            4-Bounded Quotient of Symmetric Functions over Real Floating-Point Field with 53 bits of precision with t=1.00000000000000
         """
         ending = ""
         if str(self.t)!='t':

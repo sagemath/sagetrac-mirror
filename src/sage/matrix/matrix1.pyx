@@ -777,7 +777,7 @@ cdef class Matrix(Matrix0):
             []
             sage: m = matrix(RR, 3, 3, {(1,2): pi, (2, 2): -1, (0,1): sqrt(2)})
             sage: parent(m.columns()[0])
-            Sparse vector space of dimension 3 over Real Field with 53 bits of precision
+            Sparse vector space of dimension 3 over Real Floating-Point Field with 53 bits of precision
 
         Sparse matrices produce sparse columns.  ::
 
@@ -833,7 +833,7 @@ cdef class Matrix(Matrix0):
             [(), ()]
             sage: m = matrix(RR, 3, 3, {(1,2): pi, (2, 2): -1, (0,1): sqrt(2)})
             sage: parent(m.rows()[0])
-            Sparse vector space of dimension 3 over Real Field with 53 bits of precision
+            Sparse vector space of dimension 3 over Real Floating-Point Field with 53 bits of precision
 
         Sparse matrices produce sparse rows.  ::
 
@@ -1413,13 +1413,13 @@ cdef class Matrix(Matrix0):
             [ 1.00000000000000  2.00000000000000]
             [0.891207360061435 0.808496403819590]
             sage: C.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
+            Full MatrixSpace of 2 by 2 dense matrices over Real Floating-Point Field with 53 bits of precision
 
             sage: D = B.stack(A); D
             [0.891207360061435 0.808496403819590]
             [ 1.00000000000000  2.00000000000000]
             sage: D.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
+            Full MatrixSpace of 2 by 2 dense matrices over Real Floating-Point Field with 53 bits of precision
 
         ::
 
@@ -1687,7 +1687,7 @@ cdef class Matrix(Matrix0):
             [0.89120736006...  1.00000000000000]
             [0.80849640381...  2.00000000000000]
             sage: D.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
+            Full MatrixSpace of 2 by 2 dense matrices over Real Floating-Point Field with 53 bits of precision
 
         Sometimes it is not possible to coerce into the base ring of
         ``self``.  A solution is to change the base ring of ``self`` to
@@ -2537,7 +2537,7 @@ cdef class Matrix(Matrix0):
             [0.000000000000000 0.000000000000000 0.000000000000000]
             [0.000000000000000 0.000000000000000 0.000000000000000]
             sage: A.new_matrix().parent()
-            Full MatrixSpace of 2 by 3 dense matrices over Real Field with 53 bits of precision
+            Full MatrixSpace of 2 by 3 dense matrices over Real Floating-Point Field with 53 bits of precision
 
         ::
 

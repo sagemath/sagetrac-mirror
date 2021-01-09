@@ -1160,7 +1160,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         EXAMPLES::
 
             sage: AA.completion(infinity, 500)
-            Real Field with 500 bits of precision
+            Real Floating-Point Field with 500 bits of precision
             sage: AA.completion(infinity, prec=53, extras={'type':'RDF'})
             Real Double Field
             sage: AA.completion(infinity, 53) is RR

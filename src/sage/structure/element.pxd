@@ -35,7 +35,7 @@ cpdef inline parent(x):
         Rational Field
         sage: c = 42.0
         sage: parent(c)
-        Real Field with 53 bits of precision
+        Real Floating-Point Field with 53 bits of precision
 
     Some more complicated examples::
 

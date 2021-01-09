@@ -254,7 +254,7 @@ class Sphere(PseudoRiemannianSubmanifold):
 
         sage: S2.category()
         Join of Category of compact topological spaces and Category of
-         smooth manifolds over Real Field with 53 bits of precision and
+         smooth manifolds over Real Floating-Point Field with 53 bits of precision and
          Category of complete metric spaces
 
     If not stated otherwise, each `n`-sphere is automatically endowed with

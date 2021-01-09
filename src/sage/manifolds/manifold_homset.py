@@ -68,7 +68,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
         sage: H = Hom(M, N) ; H
         Set of Morphisms from 2-dimensional topological manifold M to
          3-dimensional topological manifold N in Category of manifolds over
-         Real Field with 53 bits of precision
+         Real Floating-Point Field with 53 bits of precision
         sage: type(H)
         <class 'sage.manifolds.manifold_homset.TopologicalManifoldHomset_with_category'>
         sage: H.category()
@@ -101,7 +101,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
         sage: E = Hom(M, M) ; E
         Set of Morphisms from 2-dimensional topological manifold M to
          2-dimensional topological manifold M in Category of manifolds over
-         Real Field with 53 bits of precision
+         Real Floating-Point Field with 53 bits of precision
         sage: E.category()
         Category of endsets of topological spaces
         sage: E.is_endomorphism_set()
@@ -153,7 +153,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             sage: H = Hom(M, N) ; H
             Set of Morphisms from 2-dimensional topological manifold M to
              3-dimensional topological manifold N in Category of manifolds
-             over Real Field with 53 bits of precision
+             over Real Floating-Point Field with 53 bits of precision
             sage: TestSuite(H).run()
 
         Test for an endomorphism set::
@@ -161,7 +161,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             sage: E = Hom(M, M) ; E
             Set of Morphisms from 2-dimensional topological manifold M to
              2-dimensional topological manifold M in Category of manifolds over
-             Real Field with 53 bits of precision
+             Real Floating-Point Field with 53 bits of precision
             sage: TestSuite(E).run()
 
         """
@@ -396,7 +396,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             sage: H = Hom(M, M) ; H
             Set of Morphisms from 2-dimensional topological manifold M to
              2-dimensional topological manifold M in Category of manifolds over
-             Real Field with 53 bits of precision
+             Real Floating-Point Field with 53 bits of precision
             sage: H in Monoids()
             True
             sage: H.one()
@@ -423,7 +423,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             TypeError: Set of Morphisms
              from 2-dimensional topological manifold M
              to 3-dimensional topological manifold N
-             in Category of manifolds over Real Field with 53 bits of precision
+             in Category of manifolds over Real Floating-Point Field with 53 bits of precision
              is not a monoid
 
         """

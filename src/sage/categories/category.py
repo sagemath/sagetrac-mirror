@@ -565,7 +565,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Algebras.an_instance()
             Category of algebras over Rational Field
             sage: Bimodules.an_instance()
-            Category of bimodules over Rational Field on the left and Real Field with 53 bits of precision on the right
+            Category of bimodules over Rational Field on the left and Real Floating-Point Field with 53 bits of precision on the right
             sage: AlgebraIdeals.an_instance()
             Category of algebra ideals in Univariate Polynomial Ring in x over Rational Field
         """

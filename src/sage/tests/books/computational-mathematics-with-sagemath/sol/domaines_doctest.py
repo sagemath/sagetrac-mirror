@@ -20,7 +20,7 @@ Sage example in ./sol/domaines.tex, line 28::
   sage: type(a) == type(b)
   True
   sage: parent(a), parent(b)
-  (Real Field with 17 bits of precision, Real Field with 42 bits of precision)
+  (Real Floating-Point Field with 17 bits of precision, Real Floating-Point Field with 42 bits of precision)
 
 Sage example in ./sol/domaines.tex, line 46::
 

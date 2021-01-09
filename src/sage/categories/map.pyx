@@ -385,7 +385,7 @@ cdef class Map(Element):
             sage: f = Map(Hom(QQ, ZZ, Rings()))
             sage: f._update_slots_test({"_domain": RR, "_codomain": QQ}) # indirect doctest
             sage: f.domain()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: f.codomain()
             Rational Field
             sage: f._repr_type_str
@@ -415,7 +415,7 @@ cdef class Map(Element):
             sage: f = Map(Hom(QQ, ZZ, Rings()))
             sage: f._update_slots_test({"_domain": RR, "_codomain": QQ})
             sage: f.domain()
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: f.codomain()
             Rational Field
             sage: f._repr_type_str

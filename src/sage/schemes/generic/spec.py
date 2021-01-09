@@ -150,7 +150,7 @@ class SpecFunctor(Functor, UniqueRepresentation):
             sage: from sage.schemes.generic.spec import SpecFunctor
             sage: F = SpecFunctor()
             sage: F(RR) # indirect doctest
-            Spectrum of Real Field with 53 bits of precision
+            Spectrum of Real Floating-Point Field with 53 bits of precision
         """
         # The second argument of AffineScheme defaults to None.
         # However, AffineScheme has unique representation, so there is

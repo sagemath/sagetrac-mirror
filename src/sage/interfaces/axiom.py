@@ -800,18 +800,18 @@ class PanAxiomElement(ExpectElement):
             sage: axiom(2.1234)._sage_() #optional - axiom
             2.12340000000000
             sage: _.parent()             #optional - axiom
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
             sage: a = RealField(100)(pi)
             sage: axiom(a)._sage_()      #optional - axiom
             3.1415926535897932384626433833
             sage: _.parent()             #optional - axiom
-            Real Field with 100 bits of precision
+            Real Floating-Point Field with 100 bits of precision
             sage: axiom(a)._sage_() == a #optional - axiom
             True
             sage: axiom(2.0)._sage_() #optional - axiom
             2.00000000000000
             sage: _.parent() #optional  - axiom
-            Real Field with 53 bits of precision
+            Real Floating-Point Field with 53 bits of precision
 
 
         We can also convert Axiom's polynomials to Sage polynomials.
