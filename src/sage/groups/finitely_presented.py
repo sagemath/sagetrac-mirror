@@ -107,6 +107,67 @@ obtained by modding out the commutator subgroup of the free group::
     those cases the process may run until the available memory is
     exhausted.
 
+.. WARNING::
+
+    Sage does not "normalize" elements of finitely generated groups.
+    Thus, one will run into trouble when trying to put group elements
+    into a set or use them as keys for a dictionary.
+
+.. EXAMPLES::
+
+The following example shows that two different representations of the
+same element can be two distinct elements of a set.
+
+    sage: G.<r,s,t> = FreeGroup()
+    sage: gr = tetrahedral_group = G / (r^2, s^3, t^3, r*s*t)
+    sage: gr.order()
+    12
+    sage: a,b = gr(r*s),gr(~t) # ~t is an alternative for t^-1
+    sage: set2 = {a,b}
+    sage: print(set2, len(set2)) # a two-element set
+    {r*s, t^-1} 2
+    sage: a==b # the same element!
+    True
+
+As a consequence, the 
+:meth:`~sage.categories.magmas.ParentMethods.multiplication_table`
+method fails:
+
+    sage: gr.multiplication_table()
+    Error in lines 1-1
+    ...
+    KeyError: t^2
+
+    During handling of the above exception, another exception occurred:
+
+    Traceback (most recent call last):
+    ...
+    ValueError: t*t=t^2, and so the set is not closed
+
+After converting the group to permutation group, these problems
+are go away:
+
+    sage: gr_p = gr.as_permutation_group()
+    sage: gr_p.multiplication_table()
+    *  a b c d e f g h i j k l    
+     +------------------------
+    a| a b c d e f g h i j k l
+    b| b a f g h c d e k l i j
+    c| c i d a b h l j e f g k
+    d| d e a c i j k f b h l g
+    e| e d j k f a c i l g b h
+    f| f k g b a e j l h c d i
+    g| g h b f k l i c a e j d
+    h| h g l i c b f k j d a e
+    i| i c h l j d a b g k e f
+    j| j l k e d i h g f a c b
+    k| k f e j l g b a d i h c
+    l| l j i h g k e d c b f a
+    sage: a_p,b_p = gr_p(r*s),gr_p(~t)
+    sage: set2_p = {a_p,b_p} # a one-element set
+    sage: print(set2_p, len(set2_p))
+    {(1,6,5)(2,3,8)(4,10,9)(7,12,11)} 1
+
 REFERENCES:
 
 - :wikipedia:`Presentation_of_a_group`
