@@ -1,0 +1,60 @@
+From 3c109994a50715e4a94e39e2424f693dee065c6b Mon Sep 17 00:00:00 2001
+From: gh-bmlivin <togtdyalttai@live.com>
+Date: Sun, 11 Oct 2020 14:20:14 -0700
+Subject: [PATCH 1/2] Check for MPQ in the same fashion as MPZ in
+ numeric::pow_int_exp
+
+---
+ ginac/numeric.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/ginac/numeric.cpp b/ginac/numeric.cpp
+index 276d86c..c0be4ba 100644
+--- a/ginac/numeric.cpp
++++ b/ginac/numeric.cpp
+@@ -1801,8 +1801,10 @@ const numeric numeric::power(signed long exp_si) const
+ const numeric numeric::pow_intexp(const numeric &exponent) const
+ {
+         if (not exponent.is_integer())
+-                throw std::runtime_error("nueric::pow_intexp: exponent not integer");
+-        if (exponent.t == MPZ) {
++                throw std::runtime_error("numeric::pow_intexp: exponent not integer");
++	// Because Sage may have simplified a fraction to an integer,
++	// we should check whether the type is MPQ as well as MPZ
++        if (exponent.t == MPZ || exponent.t == MPQ) {
+                 if (not mpz_fits_sint_p(exponent.v._bigint))
+                         throw std::runtime_error("size of exponent exceeds signed long size");
+                 return power(mpz_get_si(exponent.v._bigint));
+
+From db382f13786538d84dc7d18c9fdeb43abb02c221 Mon Sep 17 00:00:00 2001
+From: gh-bmlivin <togtdyalttai@live.com>
+Date: Wed, 4 Nov 2020 14:54:40 -0800
+Subject: [PATCH 2/2] Made change suggested by burcin with a couple
+ modifications
+
+---
+ ginac/numeric.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/ginac/numeric.cpp b/ginac/numeric.cpp
+index c0be4ba..8188741 100644
+--- a/ginac/numeric.cpp
++++ b/ginac/numeric.cpp
+@@ -1804,11 +1804,16 @@ const numeric numeric::pow_intexp(const numeric &exponent) const
+                 throw std::runtime_error("numeric::pow_intexp: exponent not integer");
+ 	// Because Sage may have simplified a fraction to an integer,
+ 	// we should check whether the type is MPQ as well as MPZ
+-        if (exponent.t == MPZ || exponent.t == MPQ) {
++        if (exponent.t == MPZ) {
+                 if (not mpz_fits_sint_p(exponent.v._bigint))
+                         throw std::runtime_error("size of exponent exceeds signed long size");
+                 return power(mpz_get_si(exponent.v._bigint));
+         }
++	if (exponent.t == MPQ) {
++		if (not mpz_fits_sint_p(mpq_numref(exponent.v._bigrat)))
++			throw std::runtime_error("size of exponent exceeds signed long size");
++		return power(mpz_get_si(mpq_numref(exponent.v._bigrat)));
++        }
+         return power(exponent.v._long);
+ }
+ 
