@@ -3427,7 +3427,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         sol = eq_b.solve_right(mtr_sub_b)
         ker = eq_b.right_kernel()
 
-        # adjusting
+        # adjusting kernel to new variables
 
         dk = ker.dimension()
         kerm = ker.basis_matrix()
@@ -3445,21 +3445,31 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
         w = vector(F, new_variables)
         cfs = M.solve_right(w-v)
-
-        den_kerm = tuple(set([cf.denominator() for cf in kerm]))
-        den_sol  = tuple(set([cf.denominator() for cf in sol]))
-        den_cfs  = tuple(set([cf.denominator() for cf in cfs]))
-        L = P.localization(den_kerm + den_sol + den_cfs)
-
-        cfs = cfs.change_ring(L)
-        kerm = kerm.change_ring(L)
-        sol = sol.change_ring(L)
-        a, b, c, s, *remain, = L.gens()
-        emb_ER = ER.hom((L(C3.gen()), a, b, c))
-
         irr_coeff = sol + cfs*kerm
+
+        # find minimal coefficient ring
+
+        denoms = tuple(set([cf.denominator() for cf in irr_coeff] +[a, b, c]))
+
+        # from sage.algebras.splitting_algebra import SplittingAlgebra
+        # from sage.misc.functional import cyclotomic_polynomial
+        # S = SplittingAlgebra(cyclotomic_polynomial(3))
+        # var_dict = P.gens_dict()
+        # var_names = list(var_dict.keys())
+        # PS = S[tuple(var_names)]
+
+        # add_units = tuple([PS(den.dict()) for den in denoms])
+        # return irr_coeff, add_units, denoms, PS
+        # L = PS.localization(add_units)
+        # irr_coeff = [L(cf.numerator())/L(cf.denominator()) for cf in irr_coeff]
+        # c3 = L(S.gen())
+
+        L = P.localization(denoms)
+        irr_coeff = irr_coeff.change_ring(L)
+        a, b, c, s, *remain, = L.gens()
+        c3 = L(C3.gen())
+        emb_ER = ER.hom((L(C3.gen()), a, b, c))
 
         def mtr_ext(ele):
             return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
-        return mtr_ext, irr_coeff, emb_ER, ClF, kerm, sol
-        return mtr_ext, irr_coeff, emb_ER, ClF
+        return mtr_ext
