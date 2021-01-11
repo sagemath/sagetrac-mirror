@@ -3384,7 +3384,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             return [U2, s*U1, ~s*U1]
 
     @cached_method
-    def _markov_trace_irr_coeffs(self):
+    def _markov_trace_irr_coeffs(self, integral=False):
         r"""
         """
         irrs = [irr for irr in self.irred_repr if  irr.number_gens()== self.strands() -1]
@@ -3449,26 +3449,28 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         # find minimal coefficient ring
 
-        denoms = tuple(set([cf.denominator() for cf in irr_coeff] +[a, b, c]))
+        denoms = tuple(set([cf.denominator() for cf in irr_coeff] +[P(a), P(b), P(c)]))
 
-        # from sage.algebras.splitting_algebra import SplittingAlgebra
-        # from sage.misc.functional import cyclotomic_polynomial
-        # S = SplittingAlgebra(cyclotomic_polynomial(3))
-        # var_dict = P.gens_dict()
-        # var_names = list(var_dict.keys())
-        # PS = S[tuple(var_names)]
+        if integral:
+            from sage.algebras.splitting_algebra import SplittingAlgebra
+            from sage.misc.functional import cyclotomic_polynomial
+            S = SplittingAlgebra(cyclotomic_polynomial(3))
+            var_dict = P.gens_dict()
+            var_names = list(var_dict.keys())
+            PS = S[tuple(var_names)]
 
-        # add_units = tuple([PS(den.dict()) for den in denoms])
-        # return irr_coeff, add_units, denoms, PS
-        # L = PS.localization(add_units)
-        # irr_coeff = [L(cf.numerator())/L(cf.denominator()) for cf in irr_coeff]
-        # c3 = L(S.gen())
+            add_units = tuple([PS(den.dict()) for den in denoms])
+            # return irr_coeff, add_units, denoms, PS
+            L = PS.localization(add_units)
+            irr_coeff = [L(cf.numerator())/L(cf.denominator()) for cf in irr_coeff]
+            c3 = L(S.gen())
+        else:
+            L = P.localization(denoms)
+            irr_coeff = irr_coeff.change_ring(L)
+            c3 = L(C3.gen())
 
-        L = P.localization(denoms)
-        irr_coeff = irr_coeff.change_ring(L)
         a, b, c, s, *remain, = L.gens()
-        c3 = L(C3.gen())
-        emb_ER = ER.hom((L(C3.gen()), a, b, c))
+        emb_ER = ER.hom((c3, a, b, c))
 
         def mtr_ext(ele):
             return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
