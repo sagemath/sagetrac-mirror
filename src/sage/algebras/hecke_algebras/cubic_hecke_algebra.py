@@ -3391,56 +3391,75 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         dClF = len(irrs)
         ClF = [self._class_function(irrs[i]) for i in range(dClF)]
 
-        U = self.cubic_hecke_subalgebra()
-        BU = list(U.basis())
-        dU = U.dimension()
-        ringU = U._markov_trace_coeffs()[0].parent()
-        g = self.gen(self.ngens()-1)
-        E = self.extension_ring(generic=True)
-        var = E.variable_names()
-
+        ER = self.extension_ring(generic=True)
         from sage.rings.number_field.number_field import CyclotomicField
         C3 = CyclotomicField(3)
-        varU = ringU.base_ring().variable_names()
-        P = C3[var + tuple([varU[i] for i in range(3, len(varU))])]
+
+        if self.strands() == 3:
+            new_vars = {'U3':self.one(), 'K4': self(self.braid_group()((1, -2, 1, -2)))} # K4 <-> K4_1
+
+        sub = self.cubic_hecke_subalgebra()
+        sub_basis = list(sub.basis())
+        sub_dim = sub.dimension()
+        subR = sub._markov_trace_coeffs()[0].parent()
+        sub_var = subR.base_ring().variable_names()
+        sub_var_add = tuple([sub_var[i] for i in range(3, len(sub_var))])
+        var = ER.variable_names()
+        new_var = tuple(new_vars.keys())
+
+        P = C3[var + sub_var_add + new_var]
         F = P.fraction_field()
         a, b, c, s, *remain, = F.gens()
-        phi = E.hom((F(C3.gen()), a, b, c))
+        emb_ER = ER.hom((F(C3.gen()), a, b, c))
 
-        B = self.base_ring(generic=True)
-        img_E = [phi(E(v)) for v in B.gens_over_ground()]
-        img = tuple(img_E) + (s,) + tuple(remain)
-        psi = ringU.hom(img)
+        BR = self.base_ring(generic=True)
+        img_ER = [emb_ER(ER(v)) for v in BR.gens_over_ground()]
+        img = tuple(img_ER) + (s,) + tuple([remain[i] for i in range(len(remain)-len(new_var))])
+        emb_subR = subR.hom(img)
 
         from sage.matrix.constructor import matrix
-        eq_p = matrix(F, dU, dClF, lambda i,j: phi(ClF[j](self(BU[i])*g)))
-        eq_m = matrix(F, dU, dClF, lambda i,j: phi(ClF[j](self(BU[i])*~g)))
+        g = self.gen(self.ngens()-1)
+        eq_p = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*g)))
+        eq_m = matrix(F, sub_dim, dClF, lambda i,j: emb_ER(ClF[j](self(sub_basis[i])*~g)))
         eq_b = eq_p.stack(eq_m)
-        MU = [F(psi(b.formal_markov_trace())) for b in U.basis()]
-        MU_b = vector(F, [s*mtr for mtr in MU] + [~s*mtr for mtr in MU])
-        sol = eq_b.solve_right(MU_b)
+        mtr_sub = [F(emb_subR(b.formal_markov_trace())) for b in sub_basis]
+        mtr_sub_b = vector(F, [s*mtr for mtr in mtr_sub] + [~s*mtr for mtr in mtr_sub])
+        sol = eq_b.solve_right(mtr_sub_b)
         ker = eq_b.right_kernel()
 
         # adjusting
 
         dk = ker.dimension()
-        kM = ker.basis_matrix()
+        kerm = ker.basis_matrix()
+
         def genClF(ele, i=None):
             if i is None:
-                return sum(sol[j]*phi(ClF[j](ele)) for j in range(dClF))
+                return sum(sol[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
             else:
-                return sum(kM[i, j]*phi(ClF[j](ele)) for j in range(dClF))
+                return sum(kerm[i, j]*emb_ER(ClF[j](ele)) for j in range(dClF))
 
-        if self.strands() == 3:
-            adj_elements = [self.one(), self(self.braid_group()((1, -2, 1, -2)))] # U3 K4_1
-        FF = F['U3, K4']
-        U3, K4 = FF.gens()
-        M = matrix(FF, dk, dk, lambda i, j: genClF(adj_elements[i], j))
-        v = vector(FF, [genClF(adj_elements[i]) for i in range(dk)])
-        w = vector(FF, [U3, K4])
-        cfs = M.solve_right(v-w)
-        irr_coeff = sol + cfs*kM
+        vars_dict = F.gens_dict_recursive()
+        new_variables = [vars_dict[v] for v in new_vars.keys()]
+        new_var_elements = list(new_vars.values())
+        M = matrix(F, dk, dk, lambda i, j: genClF(new_var_elements[i], j))
+        v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
+        w = vector(F, new_variables)
+        cfs = M.solve_right(w-v)
+
+        den_kerm = tuple(set([cf.denominator() for cf in kerm]))
+        den_sol  = tuple(set([cf.denominator() for cf in sol]))
+        den_cfs  = tuple(set([cf.denominator() for cf in cfs]))
+        L = P.localization(den_kerm + den_sol + den_cfs)
+
+        cfs = cfs.change_ring(L)
+        kerm = kerm.change_ring(L)
+        sol = sol.change_ring(L)
+        a, b, c, s, *remain, = L.gens()
+        emb_ER = ER.hom((L(C3.gen()), a, b, c))
+
+        irr_coeff = sol + cfs*kerm
 
         def mtr_ext(ele):
-            return sum(irr_coeff[j]*phi(ClF[j](ele)) for j in range(dClF))
-        return mtr_ext, irr_coeff, phi, ClF
+            return sum(irr_coeff[j]*emb_ER(ClF[j](ele)) for j in range(dClF))
+        return mtr_ext, irr_coeff, emb_ER, ClF, kerm, sol
+        return mtr_ext, irr_coeff, emb_ER, ClF
