@@ -58,7 +58,8 @@ jobs:
       - name: Build
         run: |
           tox -e local-sudo-standard sagelib-build-deps
-          make maxima
+          make maxima conway_polynomials jmol
+          echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
         env:
           MAKE: make -j2
           SKIP_SYSTEM_PKG_INSTALL: yes
