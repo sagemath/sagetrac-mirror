@@ -558,6 +558,8 @@ class SphericalWeb(ClonableElement):
 
         EXAMPLES::
 
+            sage: len(SphericalSpider('plain').vertex(4).faces())
+            4
         """
         c = self.cp
         e = self.e
@@ -565,7 +567,7 @@ class SphericalWeb(ClonableElement):
         result = set()
 
         # First find the external faces.
-        for i,a in enumerate(b):
+        for i,a in enumerate(self.boundary):
             u = a
             face = [a]
             he.discard(a)
@@ -665,8 +667,15 @@ class SphericalWeb(ClonableElement):
 
         This means each face has distinct vertices.
         Including the boundary faces.
+
+        EXAMPLES::
+
+            sage: S = SphericalSpider('plain')
+            sage: S.vertex(4).glue(S.vertex(2),2).is_separable()
+            True
         """
-        for v,f in itertools.product(self.vertices(),self.faces()):
+        from itertools import product
+        for v,f in product(self.vertices(),self.faces()):
             if len(set(v).intersection(set(f))) > 1:
                 return True
         return False
