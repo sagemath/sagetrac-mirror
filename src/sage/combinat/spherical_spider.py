@@ -157,7 +157,7 @@ class SphericalWeb(ClonableElement):
     The only orbits of `c` of order two have both half-edges in the boundary.
     """
 
-    def __init__(self, c: dict, e: dict, b: list, parent: Parent):
+    def __init__(self, c: dict, e: dict, b: list, parent: Parent, check=True):
         r"""
         Initialise a ``SphericalWeb``.
 
@@ -179,12 +179,13 @@ class SphericalWeb(ClonableElement):
         self.e = e
         self.boundary = tuple(b)
         self.normalize()
-        self.set_immutable()
-        self.check()
+        self._is_immutable = True
+        if check:
+            self.check()
 
     def __copy__(self):
         r"""
-        Implement the abstract method of :class:`ClonableElement`.
+        Implement the abstract method :meth:`__copy__` of :class:`ClonableElement`.
 
         EXAMPLES::
 
@@ -200,7 +201,7 @@ class SphericalWeb(ClonableElement):
 
     def check(self):
         r"""
-        Implement the abstract method of :class:`ClonableElement`.
+        Implement the abstract method :meth:`check` of :class:`ClonableElement`.
 
         Check ``self`` is a valid web.
         """
@@ -234,7 +235,7 @@ class SphericalWeb(ClonableElement):
 
     def normalize(self):
         r"""
-        Overload the :method:`normalize` of :class:`ClonableElement`.
+        Overload the :meth:`normalize` of :class:`ClonableElement`.
 
         This removes nearly all vertices of degree two.
 
@@ -285,7 +286,6 @@ class SphericalWeb(ClonableElement):
                     c.pop(z)
                     e.pop(x)
                     e.pop(z)
-        self.set_immutable()
 
     def _repr_(self):
         r"""
@@ -725,7 +725,7 @@ class SphericalWeb(ClonableElement):
         G = Graph({a:[c[a]] for a in c})
         for a in e:
             G.add_edge(a,e[a],'e')
-        return G.copy(immutable=True)
+        return G
 
     def show(self):
         r"""Show the web ``self``.
@@ -736,6 +736,72 @@ class SphericalWeb(ClonableElement):
             Graphics object consisting of 4 graphics primitives
         """
         return self.to_graph().plot(vertex_labels=False)
+
+    def plot(self,size=4):
+        r"""
+        Draw the planar map.
+
+        EXAMPLES::
+
+            sage: polygon_web(3).plot()
+
+
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: u.glue(u,1).plot()
+        """
+        from sage.matrix.all import matrix
+        from sage.rings.all import QQ
+        from sage.functions.trig import sin, cos
+        from sage.all import pi
+        from sage.plot.circle import circle
+        from sage.plot.line import line
+        from sage.plot.colors import blue
+
+        vt = list(self.vertices())
+        n = len(vt)
+        d = len(self.boundary)
+        M = matrix(QQ,n)
+        for i,u in enumerate(vt):
+            M[i,i] = n
+            x = set(self.e[a] for a in u if a in self.e)
+            for j,v in enumerate(vt):
+                if i != j:
+                    M[i,j] = -len(x.intersection(set(v)))
+
+        U = matrix(QQ,n,1,0)
+        for i,b in enumerate(self.boundary):
+            x = size*cos(2*pi*i/d).n()
+            for j,v in enumerate(vt):
+                if b in v:
+                    U[j,0] += x
+
+        V = matrix(QQ,n,1,0)
+        for i,b in enumerate(self.boundary):
+            y = size*sin(2*pi*i/d).n()
+            for j,v in enumerate(vt):
+                if b in v:
+                    V[j,0] += y
+
+        G = circle((0,0),size)
+        pos = [(r[0],s[0]) for r,s in zip(M.inverse()*U, M.inverse()*V)]
+
+        for i,u in enumerate(vt):
+            for j,b in enumerate(self.boundary):
+                if self.cp[b] in u:
+                    x = size*cos(2*pi*j/d).n()
+                    y = size*sin(2*pi*j/d).n()
+                    G += line([(x,y),pos[i]],thickness=2,rgbcolor=(1,0,0))
+        for i,u in enumerate(vt):
+            x = set(self.e[a] for a in u if a in self.e)
+            for j,v in enumerate(vt):
+                if i < j:
+                    if any(r in v for r in x):
+                        G += line([pos[i],pos[j]],thickness=2,rgbcolor=(1,0,0))
+
+        G.set_aspect_ratio(1)
+        G.axes(False)
+        return G
 
 #### End of methods for working with webs ####
 
