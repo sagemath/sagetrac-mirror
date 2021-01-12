@@ -179,7 +179,7 @@ class SphericalWeb(ClonableElement):
         self.e = e
         self.boundary = tuple(b)
         self.set_immutable()
-        self.check()
+        #self.check()
 
     def __copy__(self):
         r"""
@@ -254,7 +254,7 @@ class SphericalWeb(ClonableElement):
             Check loops are not removed.
 
             sage: SphericalSpider('plain').loop() # indirect doctest
-            The plain spherical web with c = (1, 0) and e = ().
+            A closed plain spherical web with 1 edges.
         """
         self._set_mutable()
         flag = True
@@ -295,8 +295,11 @@ class SphericalWeb(ClonableElement):
             sage: polygon_web(3)._repr_()
             'The plain spherical web with c = (3, 5, 7, 4, 0, 6, 1, 8, 2) and e = (6, 7, 8, 3, 4, 5).'
         """
-        cn, en = self.canonical()
-        return f"The {self.parent()._name} spherical web with c = {cn} and e = {en}."
+        if len(self.boundary) > 0:
+            cn, en = self.canonical()
+            return f"The {self.parent()._name} spherical web with c = {cn} and e = {en}."
+        else:
+            return f"A closed {self.parent()._name} spherical web with {int(len(self.e)/2)} edges."
 
     def __str__(self):
         r"""
@@ -557,6 +560,34 @@ class SphericalWeb(ClonableElement):
         EXAMPLES::
 
         """
+        c = self.cp
+        e = self.e
+        he = set(c.keys())
+        result = set()
+
+        # First find the external faces.
+        for i,a in enumerate(b):
+            u = a
+            face = [a]
+            he.discard(a)
+            while c[u] in e:
+                u = e[c[u]]
+                face.append(u)
+                he.discard(u)
+            result.add(tuple(face))
+
+        # Now find the internal faces.
+        while len(he) != 0:
+            a = he.pop()
+            face = [a]
+            u = e[c[a]]
+            while u != a:
+                face.append(u)
+                he.discard(u)
+                u = e[c[u]]
+            result.add(tuple(face))
+
+        return result
 
     def is_closed(self):
         """
@@ -877,11 +908,11 @@ class SphericalSpider(Parent,UniqueRepresentation):
         EXAMPLES::
 
             sage: SphericalSpider('plain').loop()
-            The plain spherical web with c = (1, 0) and e = ().
+            A closed plain spherical web with 1 edges.
         """
-        b = [halfedge(),halfedge()]
-        c = {b[0]:b[1], b[1]:b[0]}
-        e = {b[0]:b[1], b[1]:b[0]}
+        h = [halfedge(),halfedge()]
+        c = {h[0]:h[1], h[1]:h[0]}
+        e = {h[0]:h[1], h[1]:h[0]}
         return self.element_class(c,e,[],self)
 
     def empty(self):
@@ -891,7 +922,7 @@ class SphericalSpider(Parent,UniqueRepresentation):
         EXAMPLES::
 
             sage: SphericalSpider('plain').empty()
-            The plain spherical web with c = () and e = ().
+            A closed plain spherical web with 0 edges.
         """
         return self.element_class({},{},[],self)
 
