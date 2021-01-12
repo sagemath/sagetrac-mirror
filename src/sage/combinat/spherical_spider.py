@@ -744,11 +744,12 @@ class SphericalWeb(ClonableElement):
         EXAMPLES::
 
             sage: polygon_web(3).plot()
-
+            Graphics object consisting of 7 graphics primitives
 
             sage: S = SphericalSpider('plain')
             sage: u = S.vertex(3)
             sage: u.glue(u,1).plot()
+            Graphics object consisting of 6 graphics primitives
         """
         from sage.matrix.all import matrix
         from sage.rings.all import QQ
