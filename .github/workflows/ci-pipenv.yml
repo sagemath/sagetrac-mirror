@@ -58,7 +58,7 @@ jobs:
       - name: Build
         run: |
           tox -e local-sudo-standard sagelib-build-deps
-          make maxima conway_polynomials jmol
+          make maxima conway_polynomials jmol conway_polynomials elliptic_curves combinatorial_designs polytopes_db graphs threejs
           echo "$GITHUB_WORKSPACE/.tox/local-sudo-standard/local/bin" >> $GITHUB_PATH
         env:
           MAKE: make -j2
