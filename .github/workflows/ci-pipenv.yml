@@ -58,6 +58,7 @@ jobs:
       - name: Build
         run: |
           tox -e local-sudo-standard sagelib-build-deps
+          make maxima
         env:
           MAKE: make -j2
           SKIP_SYSTEM_PKG_INSTALL: yes
