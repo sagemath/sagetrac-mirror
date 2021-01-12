@@ -38,22 +38,29 @@ jobs:
       image: ubuntu:20.10
     steps:
       - uses: actions/checkout@v2
-      - name: Install tools
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
         run: |
           apt-get update -y
-          apt-get install -y python3-pip tox autoconf automake sudo
+          apt-get install -y tox sudo
           apt-get install -y tzdata keyboard-configuration
           pip install pipenv
+          tox -e local-sudo-standard Makefile
+          apt-get remove -y ecl maxima
         env:
           # Needed since otherwise the installation of tzdata/keyboard-configuration hangs
           DEBIAN_FRONTEND: noninteractive
-      - name: Install dependencies
+          SKIP_BOOTSTRAP: yes
+          SKIP_CONFIGURE: yes
+      - name: Build
         run: |
           tox -e local-sudo-standard sagelib-build-deps
-          cp -f /usr/lib/ecl/maxima.fas /usr/lib/x86_64-linux-gnu/ecl-20.4.24/maxima.fas
         env:
-          EXTRA_CONFIGURE_ARGS: --enable-build-as-root
-          MAKE: make -j6
+          MAKE: make -j2
+          SKIP_SYSTEM_PKG_INSTALL: yes
       - name: Set up cache
         uses: actions/cache@v1
         with:
