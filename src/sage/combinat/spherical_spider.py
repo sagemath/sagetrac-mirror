@@ -178,8 +178,9 @@ class SphericalWeb(ClonableElement):
         self.cp = c
         self.e = e
         self.boundary = tuple(b)
+        self.normalize()
         self.set_immutable()
-        #self.check()
+        self.check()
 
     def __copy__(self):
         r"""
@@ -244,7 +245,7 @@ class SphericalWeb(ClonableElement):
             sage: e = {h[1]:h[2],h[2]:h[1]}
             sage: b = [h[0],h[3]]
             sage: SphericalSpider('plain')(c,e,b) # indirect doctest
-            The plain spherical web with c = (2, 3, 0, 1) and e = (3, 2).
+            The plain spherical web with c = (1, 0) and e = ().
 
             This should not ever happen.
 
@@ -474,9 +475,7 @@ class SphericalWeb(ClonableElement):
 
             sage: u = SphericalSpider('plain').vertex(3)
             sage: v = SphericalSpider('plain').vertex(3)
-            sage: w = u.glue(v,1);w
-            The plain spherical web with c = (1, 4, 3, 5, 0, 2, 8, 9, 6, 7) and e = (6, 7, 4, 5, 9, 8).
-            sage: w.normalize();w
+            sage: u.glue(v,1)
             The plain spherical web with c = (1, 4, 3, 5, 0, 2) and e = (5, 4).
         """
         if n < 0:
@@ -620,7 +619,7 @@ class SphericalWeb(ClonableElement):
             sage: u = SphericalSpider('plain').vertex(3)
             sage: v = SphericalSpider('plain').vertex(3)
             sage: u.glue(v,0).is_connected()
-            True
+            False
         """
         return len(self.cp) == len(self.canonical()[0])
 
@@ -787,7 +786,7 @@ class SphericalWeb(ClonableElement):
             sage: h = SphericalSpider('plain').vertex(3)
             sage: D = next(g.search(h))
             sage: g.replace(polygon_web(3),D,h)
-            The plain spherical web with c = (4, 6, 8,..., 13, 14, 15) and e = (12, 13, 9,..., 21, 16, 19).
+            The plain spherical web with c = (4, 6, 8, ... 13, 15, 12) and e = (12, 13, 9, ... 10, 17, 16).
         """
         parent = self.parent()
         if parent != k.parent():
