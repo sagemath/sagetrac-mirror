@@ -61,6 +61,8 @@ jobs:
         env:
           MAKE: make -j2
           SKIP_SYSTEM_PKG_INSTALL: yes
+          # Tox runs everything as root, so we have to enable build as root user
+          EXTRA_CONFIGURE_ARGS: "--enable-build-as-root"
       - name: Set up cache
         uses: actions/cache@v1
         with:
