@@ -132,6 +132,8 @@ from sage.graphs.graph import Graph
 class halfedge():
     """
     The class of half edges in a surface graph.
+
+    This should probably be an attribute either of SphericalWeb or SphericalSpider
     """
     def __init__(self):
         """
@@ -193,7 +195,6 @@ class SphericalWeb(ClonableElement):
         e = {D[a]:D[self.e[a]] for a in self.e}
         b = [D[a] for a in self.boundary]
         result = self.parent()(c,e,b)
-        #result._set_mutable()
         return result
 
     def check(self):
@@ -549,6 +550,14 @@ class SphericalWeb(ClonableElement):
             result.add(tuple(vertex))
         return result
 
+    def faces(self):
+        """
+        Find the faces of ``self``.
+
+        EXAMPLES::
+
+        """
+
     def is_closed(self):
         """
         Return True if ``self`` is closed.
@@ -619,6 +628,33 @@ class SphericalWeb(ClonableElement):
         if len(self.boundary) == 0:
             raise ValueError("not implemented for a closed web")
         return len(self.cp) == len(list(self._traversal(self.boundary[0])))
+
+    def is_separable(self):
+        r"""
+        Return ``True`` if ``self`` is separable.
+
+        This means each face has distinct vertices.
+        Including the boundary faces.
+        """
+        for v,f in itertools.product(self.vertices(),self.faces()):
+            if len(set(v).intersection(set(f))) > 1:
+                return True
+        return False
+
+    def to__permutation(self):
+        """
+        If ``self`` is non separable, encode ``self`` as a
+        two stack sortable permutation.
+
+        There should also be a from_permutation
+        """
+        # Construct rooted non-separable planar map.
+        ## Add new vertex and connect to boundary, root connects to first boundary point.
+        ## For inverse, delete vertex containing root and reconstruct boundary.
+        # Construct bipolar oriented planar map.
+        ## This means edges round a vertex are partitioned into two ordered subsets.
+        # Construct the two ordered trees.
+        # Traverse the trees and construct the permutation.
 
     def to_graph(self):
         r"""
@@ -832,7 +868,6 @@ class SphericalSpider(Parent,UniqueRepresentation):
         b = [ halfedge() for i in range(n) ]
         c = {b[i-1]:b[i] for i in range(n)}
         e = dict([])
-        #b = copy(h)
         return self.element_class(c,e,b,self)
 
     def loop(self):
