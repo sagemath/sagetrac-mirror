@@ -85,6 +85,6 @@ jobs:
       - name: Test
         run: |
           cd src
-          pipenv run sage-runtests .
+          pipenv run sage-runtests --all
         env:
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
