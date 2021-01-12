@@ -69,14 +69,22 @@ jobs:
           path: src/.venv
           key: venv-runner.os-${{ hashFiles('src/Pipfile.lock') }}
       - name: Create virtual environment
-        run: cd src && mkdir -p .venv && pipenv install --dev --skip-lock --verbose && pipenv run pip list
+        run: |
+          cd src 
+          mkdir -p .venv
+          pipenv install --dev --skip-lock --verbose
+          pipenv run pip list
         env:
           PIP_NO_BUILD_ISOLATION: false
       # The following is for testing purposes in case the pipenv install above fails
       - name: Install editable manually
-        run: cd src && pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+        run: |
+          cd src
+          pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
         if: always()
       - name: Test
-        run: cd src && pipenv run python -c 'import sage.all; import sage.doctest.control; sage.doctest.control.run_doctests(sage)'
+        run: |
+          cd src
+          pipenv run sage-runtests .
         env:
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
