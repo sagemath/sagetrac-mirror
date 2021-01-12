@@ -680,6 +680,20 @@ class SphericalWeb(ClonableElement):
                 return True
         return False
 
+    def is_simple(self):
+        """
+        Return ``True`` if ``self`` is a simple graph.
+
+        EXAMPLES::
+
+            sage: S = SphericalSpider('plain')
+            sage: S.vertex(4).glue(S.vertex(2),2).is_simple()
+            False
+            sage: S.vertex(4).glue(S.vertex(4),2).is_simple()
+            False
+        """
+        return all(len(x)>2 for x in self.faces())
+
     def to__permutation(self):
         """
         If ``self`` is non separable, encode ``self`` as a
