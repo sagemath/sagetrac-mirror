@@ -84,7 +84,7 @@ jobs:
         working-directory: src
         if: always()
       - name: Test
-        run: pipenv run sage-runtests --all --nthreads 2 --timeout=0
+        run: pipenv run sage-runtests --all --nthreads 2 --timeout=300
         working-directory: src
         env:
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
