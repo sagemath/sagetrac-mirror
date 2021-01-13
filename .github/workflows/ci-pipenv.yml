@@ -55,7 +55,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
           SKIP_BOOTSTRAP: yes
           SKIP_CONFIGURE: yes
-      - name: Build
+      - name: Build dependencies
         run: |
           tox -e local-sudo-standard sagelib-build-deps
           make maxima conway_polynomials jmol conway_polynomials elliptic_curves combinatorial_designs polytopes_db graphs threejs
@@ -72,21 +72,19 @@ jobs:
           key: venv-runner.os-${{ hashFiles('src/Pipfile.lock') }}
       - name: Create virtual environment
         run: |
-          cd src 
           mkdir -p .venv
           pipenv install --dev --skip-lock --verbose
           pipenv run pip list
+        working-directory: src
         env:
           PIP_NO_BUILD_ISOLATION: false
       # The following is for testing purposes in case the pipenv install above fails
       - name: Install editable manually
-        run: |
-          cd src
-          pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+        run: pipenv run pip install -e . --verbose --upgrade --exists-action=i --no-build-isolation
+        working-directory: src
         if: always()
       - name: Test
-        run: |
-          cd src
-          pipenv run sage-runtests --all --nthreads 2 --timeout=0
+        run: pipenv run sage-runtests --all --nthreads 2 --timeout=0
+        working-directory: src
         env:
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
