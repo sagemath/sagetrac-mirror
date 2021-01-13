@@ -87,6 +87,6 @@ jobs:
       - name: Test
         run: |
           cd src
-          pipenv run sage-runtests --all
+          pipenv run sage-runtests --all --nthreads 2
         env:
           SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
