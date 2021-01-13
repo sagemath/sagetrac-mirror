@@ -3370,17 +3370,18 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     def _markov_vars(self):
         r"""
         """
+        B = self.braid_group()
         if    self.strands() == 2:
             sub_vars = {'U1':None}   # U1 belongs to the 1 strand algebra which isn't implemented
-            new_vars = {'U2':self.one()}
+            new_vars = {'U2':B(())}
         else:
-            sub_vars = self.cubic_hecke_subalgebra()._markov_vars()
+            sub_vars, new_vars = self.cubic_hecke_subalgebra()._markov_vars()
             if  self.strands() == 3:
-                new_vars = {'U3':self.one(), 'K4': self(self.braid_group()((1, -2, 1, -2)))} # K4 := K4_1
+                new_vars = {'U3':B(()), 'K4':B((1, -2, 1, -2))} # K4 := K4_1
             else:
-                new_vars = {'U4':self.one()} # ToDo
+                new_vars = {'U4':B(())} # ToDo
         sub_vars.update(new_vars)
-        return sub_vars
+        return sub_vars, new_vars
 
     @cached_method
     def _markov_trace_coeffs(self):
@@ -3389,37 +3390,44 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         B = self.base_ring(generic=True)
         BB = B.base_ring()
         var = B.variable_names() + BB.variable_names()
-        add_vars = list(self._markov_vars().keys())
-        P = ZZ[var +('s',) + tuple(add_vars)]
+        all_vars, new_vars =self._markov_vars()
+        P = ZZ[var +('s',) + tuple(all_vars.keys())]
         L = P.localization((P.gen(2),P.gen(3)))
         u, v, w, s, *remain = L.gens()
         L = B.create_specialization((u, v, w))
+        u, v, w, s, *remain = L.gens()
 
         if self.strands() == 2:
             U1, U2 = remain
             return [U2, s*U1, ~s*U1]
 
+        from sage.functions.generalized import sign
         mtr = self._markov_trace_irr_coeffs()
-        mtr_list = [mtr(g) for g in self.basis()]
+        mtr_list = [(mtr(g), sum( sign(i) for i in g.Tietze())) for g in self.basis()]
         E = self.extension_ring()
-        PE = E[('s',) + tuple(add_vars)]
-        EC3 = mtr_list[0].parent().base_ring()
+        PE = E[('s',) + tuple(all_vars)]
+        EC3 = mtr_list[0][0].parent().base_ring()
         EZ = ZZ[EC3.variable_names()]
         img = tuple(self.cubic_equation_roots()) + PE.gens()
         emb_EZ = EZ.hom(img)
 
         subs_dict = L.gens_dict_recursive()
         from sage.misc.sage_eval import sage_eval
+        spe = PE.gen(0)
 
-        def convert_coeff(cf):
+        def convert_coeff(cf, writhe):
             num = cf.numerator()
             den = cf.denominator()
             num_PE = emb_EZ(EZ(num.dict()))
             den_PE = emb_EZ(EZ(den.dict()))
+            if writhe >= 0:
+                den_PE *= spe**(writhe)
+            else:
+                num_PE *= spe**(-writhe)
             num_L = sage_eval(str(num_PE), locals=subs_dict)
             den_L = sage_eval(str(den_PE), locals=subs_dict)
             return num_L/den_L
-        return [convert_coeff(cf) for cf in mtr_list]
+        return [convert_coeff(cf, writhe) for cf, writhe in mtr_list]
 
 
     @cached_method
@@ -3434,8 +3442,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         from sage.rings.number_field.number_field import CyclotomicField
         C3 = CyclotomicField(3)
 
-        if self.strands() == 3:
-            new_vars = {'U3':self.one(), 'K4': self(self.braid_group()((1, -2, 1, -2)))} # K4 <-> K4_1
+        all_vars, new_vars = self._markov_vars()
 
         sub = self.cubic_hecke_subalgebra()
         sub_basis = list(sub.basis())
@@ -3479,7 +3486,8 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         vars_dict = F.gens_dict_recursive()
         new_variables = [vars_dict[v] for v in new_vars.keys()]
-        new_var_elements = list(new_vars.values())
+        new_var_braids = list(new_vars.values())
+        new_var_elements = [self(braid) for braid in new_var_braids]
         M = matrix(F, dk, dk, lambda i, j: genClF(new_var_elements[i], j))
         v = vector(F, [genClF(new_var_elements[i]) for i in range(dk)])
         w = vector(F, new_variables)
