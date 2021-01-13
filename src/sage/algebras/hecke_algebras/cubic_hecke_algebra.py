@@ -445,8 +445,6 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         """
         cha = self.parent()
         mtcf = cha._markov_trace_coeffs()
-        if not mtcf:
-            mtcf = cha._create_markov_trace_coeffs()
         vs = self.to_vector()
         vm = vector(mtcf)
         f = vm.parent().convert_map_from(vs.parent())
@@ -3369,19 +3367,60 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             return m[irr].trace()
         return class_function
 
+    def _markov_vars(self):
+        r"""
+        """
+        if    self.strands() == 2:
+            sub_vars = {'U1':None}   # U1 belongs to the 1 strand algebra which isn't implemented
+            new_vars = {'U2':self.one()}
+        else:
+            sub_vars = self.cubic_hecke_subalgebra()._markov_vars()
+            if  self.strands() == 3:
+                new_vars = {'U3':self.one(), 'K4': self(self.braid_group()((1, -2, 1, -2)))} # K4 := K4_1
+            else:
+                new_vars = {'U4':self.one()} # ToDo
+        sub_vars.update(new_vars)
+        return sub_vars
+
     @cached_method
     def _markov_trace_coeffs(self):
         r"""
         """
+        B = self.base_ring(generic=True)
+        BB = B.base_ring()
+        var = B.variable_names() + BB.variable_names()
+        add_vars = list(self._markov_vars().keys())
+        P = ZZ[var +('s',) + tuple(add_vars)]
+        L = P.localization((P.gen(2),P.gen(3)))
+        u, v, w, s, *remain = L.gens()
+        L = B.create_specialization((u, v, w))
+
         if self.strands() == 2:
-            B = self.base_ring(generic=True)
-            BB = B.base_ring()
-            var = B.variable_names() + BB.variable_names()
-            P = ZZ[var +('s', 'U1', 'U2')]
-            L = P.localization((P.gen(2),P.gen(3)))
-            u, v, w, s, U1, U2 = L.gens()
-            B.create_specialization((u, v, w))
+            U1, U2 = remain
             return [U2, s*U1, ~s*U1]
+
+        mtr = self._markov_trace_irr_coeffs()
+        mtr_list = [mtr(g) for g in self.basis()]
+        E = self.extension_ring()
+        PE = E[('s',) + tuple(add_vars)]
+        EC3 = mtr_list[0].parent().base_ring()
+        EZ = ZZ[EC3.variable_names()]
+        img = tuple(self.cubic_equation_roots()) + PE.gens()
+        emb_EZ = EZ.hom(img)
+
+        subs_dict = L.gens_dict_recursive()
+        from sage.misc.sage_eval import sage_eval
+
+        def convert_coeff(cf):
+            num = cf.numerator()
+            den = cf.denominator()
+            num_PE = emb_EZ(EZ(num.dict()))
+            den_PE = emb_EZ(EZ(den.dict()))
+            num_L = sage_eval(str(num_PE), locals=subs_dict)
+            den_L = sage_eval(str(den_PE), locals=subs_dict)
+            return num_L/den_L
+        return [convert_coeff(cf) for cf in mtr_list]
+
 
     @cached_method
     def _markov_trace_irr_coeffs(self, integral=False):
@@ -3462,6 +3501,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
             add_units = tuple([PS(den.dict()) for den in denoms])
             # return irr_coeff, add_units, denoms, PS
             L = PS.localization(add_units)
+            return L, irr_coeff
             irr_coeff = [L(cf.numerator())/L(cf.denominator()) for cf in irr_coeff]
             c3 = L(S.gen())
         else:
