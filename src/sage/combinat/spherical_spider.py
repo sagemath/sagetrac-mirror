@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 
 ### Introduction
@@ -128,6 +129,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableElement
 from sage.graphs.graph import Graph
+from sage.combinat.permutation import Permutation
+from sage.combinat.baxter_permutations import BaxterPermutations
 
 class halfedge():
     """
@@ -161,7 +164,7 @@ class SphericalWeb(ClonableElement):
         r"""
         Initialise a ``SphericalWeb``.
 
-        INPUT::
+        INPUT:
 
             * `c` a bijection of the set of half-edges
             * `e` a partial involution of the set of half-edges
@@ -737,9 +740,85 @@ class SphericalWeb(ClonableElement):
         """
         return self.to_graph().plot(vertex_labels=False)
 
-    def plot(self,size=4):
+    def _layout(self):
         r"""
-        Draw the planar map.
+        Layout the planar map.
+
+        This uses the barycentric layout. The boundary points are the vertices of
+        a regular polygon. Then the vertices are positioned so that each vertex
+        is at the centre of mass of its neighbours.
+
+        EXAMPLES::
+
+            sage: len(polygon_web(3)._layout())
+            6
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: len(u.glue(u,1)._layout())
+            5
+
+            If the graph is not simple the diagram will degenerate.
+
+            sage: S = SphericalSpider('plain')
+            sage: len(S.vertex(4).glue(S.vertex(2),2)._layout())
+            2
+
+            If there are no boundary points only the boundary circle is drawn.
+
+            sage: S.loop()._layout()
+            set()
+        """
+        from sage.matrix.all import matrix
+        from sage.rings.all import RealField
+        from sage.functions.trig import sin, cos
+        from sage.all import pi
+
+        vt = list(self.vertices())
+        nv = len(vt)
+        d = len(self.boundary)
+        M = matrix(nv,nv)
+        for i,u in enumerate(vt):
+            M[i,i] = len(u)
+            x = set(self.e[a] for a in u if a in self.e)
+            for j,v in enumerate(vt):
+                if i != j:
+                    M[i,j] = -len(x.intersection(set(v)))
+
+        U = matrix(nv,1,0.0)
+        for i,b in enumerate(self.boundary):
+            x = cos(2*pi*i/d).n()
+            for j,v in enumerate(vt):
+                if b in v:
+                    U[j,0] = U[j,0] + x
+
+        V = matrix(nv,1,0.0)
+        for i,b in enumerate(self.boundary):
+            y = sin(2*pi*i/d).n()
+            for j,v in enumerate(vt):
+                if b in v:
+                    V[j,0] = V[j,0] + y
+
+        Mi = M.inverse()
+        pos = [(r[0],s[0]) for r,s in zip(Mi*U, Mi*V)]
+
+        result = set()
+        for i,u in enumerate(vt):
+            for j,b in enumerate(self.boundary):
+                if self.cp[b] in u:
+                    x = cos(2*pi*j/d).n()
+                    y = sin(2*pi*j/d).n()
+                    result.add(((x,y),pos[i],))
+            x = set(self.e[a] for a in u if a in self.e)
+            for j,v in enumerate(vt):
+                if i < j:
+                    if any(r in v for r in x):
+                        result.add((pos[i],pos[j],))
+
+        return result
+
+    def plot(self):
+        r"""
+        Plot the planar map.
 
         EXAMPLES::
 
@@ -750,59 +829,64 @@ class SphericalWeb(ClonableElement):
             sage: u = S.vertex(3)
             sage: u.glue(u,1).plot()
             Graphics object consisting of 6 graphics primitives
+
+            If the graph is not simple the diagram will degenerate.
+
+            sage: S = SphericalSpider('plain')
+            sage: S.vertex(4).glue(S.vertex(2),2).plot()
+            Graphics object consisting of 3 graphics primitives
+
+            If there are no boundary points only the boundary circle is drawn.
+
+            sage: S.loop().plot()
+            Graphics object consisting of 1 graphics primitive
         """
-        from sage.matrix.all import matrix
-        from sage.rings.all import QQ
-        from sage.functions.trig import sin, cos
-        from sage.all import pi
         from sage.plot.circle import circle
         from sage.plot.line import line
-        from sage.plot.colors import blue
 
-        vt = list(self.vertices())
-        n = len(vt)
-        d = len(self.boundary)
-        M = matrix(QQ,n)
-        for i,u in enumerate(vt):
-            M[i,i] = n
-            x = set(self.e[a] for a in u if a in self.e)
-            for j,v in enumerate(vt):
-                if i != j:
-                    M[i,j] = -len(x.intersection(set(v)))
-
-        U = matrix(QQ,n,1,0)
-        for i,b in enumerate(self.boundary):
-            x = size*cos(2*pi*i/d).n()
-            for j,v in enumerate(vt):
-                if b in v:
-                    U[j,0] += x
-
-        V = matrix(QQ,n,1,0)
-        for i,b in enumerate(self.boundary):
-            y = size*sin(2*pi*i/d).n()
-            for j,v in enumerate(vt):
-                if b in v:
-                    V[j,0] += y
-
-        G = circle((0,0),size)
-        pos = [(r[0],s[0]) for r,s in zip(M.inverse()*U, M.inverse()*V)]
-
-        for i,u in enumerate(vt):
-            for j,b in enumerate(self.boundary):
-                if self.cp[b] in u:
-                    x = size*cos(2*pi*j/d).n()
-                    y = size*sin(2*pi*j/d).n()
-                    G += line([(x,y),pos[i]],thickness=2,rgbcolor=(1,0,0))
-        for i,u in enumerate(vt):
-            x = set(self.e[a] for a in u if a in self.e)
-            for j,v in enumerate(vt):
-                if i < j:
-                    if any(r in v for r in x):
-                        G += line([pos[i],pos[j]],thickness=2,rgbcolor=(1,0,0))
-
+        lines = self._layout()
+        G = circle((0,0),1)
+        for a in lines:
+                G += line(a,thickness=2,rgbcolor=(1,0,0))
         G.set_aspect_ratio(1)
         G.axes(False)
         return G
+
+    def _latex_(self):
+        """
+        Return a LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: polygon_web(3)._latex_()
+            ...
+
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: u.glue(u,1)._latex_()
+            ...
+
+            If the graph is not simple the diagram will degenerate.
+
+            sage: S = SphericalSpider('plain')
+            sage: S.vertex(4).glue(S.vertex(2),2)._latex_()
+            ...
+
+            If there are no boundary points only the boundary circle is drawn.
+
+            sage: S.loop()._latex_()
+            '\\begin{tikzpicture}\n\\draw (0,0) circle (3cm);\n\\end{tikzpicture}\n'
+        """
+        lines = self._layout()
+
+        result = r"""\begin{tikzpicture}""" + "\n"
+        result += r"""\draw (0,0) circle (3cm);""" + "\n"
+
+        for a in lines:
+            result += f"\draw ({a[0][0]},{a[0][1]}) -- ({a[1][0]},{a[1][1]});\n"
+
+        result += r"""\end{tikzpicture}""" + "\n"
+        return result
 
 #### End of methods for working with webs ####
 
@@ -822,7 +906,7 @@ class SphericalWeb(ClonableElement):
             This should be rewritten to use :meth:``_traversal``.
         """
         if self.parent() != h.parent():
-            raise ValueError(f"the two parents {self.parent()} and {other.parent()} are different")
+            raise ValueError(f"the two parents {self.parent()} and {h.parent()} are different")
 
         def test(x):
             flag = True
@@ -1015,6 +1099,74 @@ class SphericalSpider(Parent,UniqueRepresentation):
         """
         return self.element_class({},{},[],self)
 
+    def from_permutation(self,π: Permutation,baxter=True):
+        r"""
+        Construct a planar map from a two stack sorted permutation.
+
+        This is taken from https://arxiv.org/abs/0805.4180
+
+        EXAMPLES::
+
+            sage: S = SphericalSpider('plain')
+            sage: π = Permutation([5,3,4,9,7,8,10,6,1,2])
+            sage: S.from_permutation(π)
+
+            sage: π = Permutation([2,4,1,3])
+            sage: S.from_permutation(π)
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 4, 1, 3] is not a Baxter permutation
+            sage: S.from_permutation(π,baxter=False)
+        """
+        if baxter:
+            if not π in BaxterPermutations():
+                raise ValueError(f"{π} is not a Baxter permutation")
+        black = set((i+1,a) for i, a in enumerate(π))
+        n = len(π)
+        white = set([(1/2,1/2),(n+1/2,n+1/2)])
+        ascents = [i+1 for i,a in enumerate(zip(π,π[1:])) if a[0] < a[1]]
+        for a in ascents:
+            l = max(π[i] for i in range(a) if π[i] < π[a])
+            white.add((a+1/2,l+1/2))
+
+        Dup = {}
+        Ddn = {}
+        e = {}
+        for a in black:
+            w = [c for c in white if c[0]>a[0] and c[1]>a[1]]
+            w.sort(key=lambda a: a[0]+a[1])
+            r = halfedge()
+            Dup[(w[0],a)] = r
+            w = [c for c in white if c[0]<a[0] and c[1]<a[1]]
+            w.sort(key=lambda a: a[0]+a[1])
+            s = halfedge()
+            Ddn[(w[-1],a)] = s
+            e[r] = s
+            e[s] = r
+
+        c = {}
+        for g in white:
+            inc = [(w,a) for (w,a) in Dup if w == g]
+            inc.sort(key=lambda t: t[1][0]+t[1][1])
+            out = [(w,a) for (w,a) in Dup if w == g]
+            out.sort(key=lambda t: t[1][0]+t[1][1])
+            inc.reverse()
+            for (w,a),(x,b) in zip(inc,inc[1:]):
+                c[Dup[(w,a)]] = Dup[(x,b)]
+            for (w,a),(x,b) in zip(out,out[1:]):
+                c[Ddn[(w,a)]] = Ddn[(x,b)]
+            if len(inc) > 0 and len(out) > 0:
+                c[Dup[inc[-1]]] = Ddn[out[0]]
+                c[Dup[out[-1]]] = Ddn[inc[0]]
+            elif len(inc) > 0:
+                c[Dup[out[-1]]] = Ddn[out[0]]
+            elif len(out) > 0:
+                c[Dup[out[-1]]] = Ddn[out[0]]
+            else:
+                pass
+
+        return self.element_class(c,e,[],self)
+
 #### End of Parent ####
 
 #### Start of generators (work in progress) ####
@@ -1062,7 +1214,7 @@ class Strands():
     This defines a set with involution.
     """
     def __init__(self,objs: set, duals: dict=None):
-        if any(notinstance(a,Strand) for a in objs):
+        if any(not isinstance(a,Strand) for a in objs):
             raise ValueError(f"entries of {objs} must all be a Strand")
         duals = {str(x):str(y) for x,y in duals.items()}
         objs = set(str(a) for a in objs)
