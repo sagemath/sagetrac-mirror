@@ -33,6 +33,7 @@ matplotlib = "*"
 cvxopt = "==1.2.5"
 rpy2 = "*"
 networkx = "*"
+fpylll = "==0.5.2dev"
 
 [requires]
 python_version = "3.8"
