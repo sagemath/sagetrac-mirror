@@ -86,5 +86,3 @@ jobs:
       - name: Test
         run: pipenv run sage-runtests --all --timeout=300
         working-directory: src
-        env:
-          SAGE_LOCAL: ${{GITHUB.WORKSPACE}}/.tox/local-sudo-standard/local
