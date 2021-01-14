@@ -8,13 +8,13 @@ There are technical details which I skate over and which need to
 be dealt with in the implementation.
 
 This is intended to be the first phase of a project to implement
-the Bendix-Knuth completion algorithm discussed in [5]. This algorithm starts
+the Bendix-Knuth completion algorithm discussed in [5]_. This algorithm starts
 with a finite presentation and iteratively constructs new relations.
 If it terminates the final presentation is confluent.
 
 ### Spiders
 
-The notion of spiders was introduced in [3].
+The notion of spiders was introduced in [3]_.
 A spider consists of a set (or vector space) with the operations of rotate, join and stitch.
 There are axioms for these operations and a spider is equivalent to a strict pivotal
 category or, with an extra axiom, to a strict spherical category. The motivation was
@@ -27,7 +27,7 @@ It has been an open problem since then to construct finite confluent presentatio
 for higher rank examples. It is known (unpublished) that these examples are finitely
 generated but not that these are finitely presented. A finite confuent presentation
 would give algorithms for computing link polynomials and for doing the caculations
-in [1].
+in [1]_.
 
 ### Webs.
 
@@ -80,32 +80,32 @@ boundaries match. Then we fill in each hole by attaching the object. For example
 glueing has two punched out holes corresponding to the two inputs of the glueing operation.
 However we could also fill in a punched out hole by the picture of an operation.
 This gives the picture of some operation. This means that these operations have the structure
-of an operad. In fact this is a cyclic operad as defined in [2]. Furthermore a spider
+of an operad. In fact this is a cyclic operad as defined in [2]_ and _[4]. Furthermore a spider
 is a cyclic algebra for this cyclic operad. Taking the glueing operation as basic and
 building up operations is the componential approach to cyclic operads given in
 
 REFERENCES:
 
-[1] Predrag Cvitanović
+.. [1] Predrag Cvitanović
 Group Theory: Birdtracks, Lie's, and Exceptional Groups
 Princeton University Press, 2008
 ISBN    0691118361, 9780691118369
 
-[2] E Gretzler, MM Kapranov
+.. [2] E Gretzler, MM Kapranov
 Cyclic operads and cyclic homology
 http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.146.2678&rep=rep1&type=pdf
 
-[3] G.Kuperberg
+.. [3] G.Kuperberg
 Spiders for rank 2 Lie algebras
 Commun.Math. Phys. 180, 109–151 (1996)
 https://arxiv.org/abs/1103.3519.
 
-[4] Jovana Obradovic
+.. [4] Jovana Obradovic
 Monoid-like definitions of cyclic operad
 Theory and Applications of Categories, Vol. 32, 2017, No. 12, pp 396-436.
 http://www.tac.mta.ca/tac/volumes/32/12/32-12.pdf
 
-[5] Adam S Sikora and Bruce W Westbury
+.. [5] Adam S Sikora and Bruce W Westbury
 Confluence theory for graphs
 Algebraic & Geometric Topology 7 (2007) 439–478
 https://arxiv.org/abs/math/0609832
@@ -126,8 +126,9 @@ AUTHORS:
 from dataclasses import dataclass
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
+from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableElement
+#from sage.structure.list_clone import ClonableElement
 from sage.graphs.graph import Graph
 from sage.combinat.permutation import Permutation
 from sage.combinat.baxter_permutations import BaxterPermutations
@@ -146,8 +147,8 @@ class halfedge():
             <sage.combinat.spherical_spider.halfedge object at ...>
         """
 
-class SphericalWeb(ClonableElement):
-    r"""The class of mutable ribbon graphs.
+class SphericalWeb(Element):
+    r"""The class of webs.
 
     This consists of
     * a set of half-edges
@@ -157,7 +158,8 @@ class SphericalWeb(ClonableElement):
     The half-edges for which `e` is undefined are the boundary half-edges.
     This set has a total order.
 
-    The only orbits of `c` of order two have both half-edges in the boundary.
+    The only orbits of `c` of order two have both half-edges in the boundary
+    or are a loop.
     """
 
     def __init__(self, c: dict, e: dict, b: list, parent: Parent, check=True):
@@ -177,12 +179,12 @@ class SphericalWeb(ClonableElement):
             sage: SphericalSpider('plain')(c,{},b)
             The plain spherical web with c = (1, 0) and e = ().
         """
-        ClonableElement.__init__(self,parent=parent)
+        Element.__init__(self,parent=parent)
         self.cp = c
         self.e = e
         self.boundary = tuple(b)
         self.normalize()
-        self._is_immutable = True
+        #self._is_immutable = True
         if check:
             self.check()
 
@@ -261,7 +263,7 @@ class SphericalWeb(ClonableElement):
             sage: SphericalSpider('plain').loop() # indirect doctest
             A closed plain spherical web with 1 edges.
         """
-        self._set_mutable()
+        #self._set_mutable()
         flag = True
         while(flag):
             flag = False
@@ -348,7 +350,7 @@ class SphericalWeb(ClonableElement):
         en = tuple([Dp[e[a]] for a in gl])
         return cn, en
 
-    def _hash_(self):
+    def __hash__(self):
         r"""
         Implement the :method:`_hash_` of :class:`ClonableElement`.
 
@@ -360,7 +362,7 @@ class SphericalWeb(ClonableElement):
         """
         return hash((self.parent(),*self.canonical()))
 
-    __hash__ = _hash_
+    #__hash__ = _hash_
     """
     Overload the :method:`__hash__`.
 
@@ -466,9 +468,9 @@ class SphericalWeb(ClonableElement):
         """
         result = self.__copy__()
         b = result.boundary
-        result._set_mutable()
+        #result._set_mutable()
         result.boundary = b[k:]+b[:k]
-        result.set_immutable()
+        #result.set_immutable()
         return result
 
     def glue(self, other, n: int):
@@ -523,6 +525,17 @@ class SphericalWeb(ClonableElement):
     def mirror_image(self):
         r"""
         Construct the mirror image of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SphericalSpider('plain')
+            sage: u = S.vertex(3)
+            sage: u.glue(S.vertex(4),1).mirror_image()
+            The plain spherical web with c = (1, 2, 5, 4, 6, 0, 3) and e = (6, 5).
+
+            sage: v = u.glue(u,1).glue(S.vertex(4),1)
+            sage: v == v.mirror_image()
+            False
         """
         D =  {a:halfedge() for a in self.cp}
         cn = {D[self.cp[a]]:D[a] for a in D}
@@ -595,7 +608,7 @@ class SphericalWeb(ClonableElement):
 
     def is_closed(self):
         """
-        Return True if ``self`` is closed.
+        Return ``True`` if ``self`` is closed.
 
         Note that this means that the boundary is empty.
 
@@ -610,7 +623,7 @@ class SphericalWeb(ClonableElement):
 
     def is_connected(self):
         """
-        Return True if ``self`` is connected.
+        Return ``True`` if ``self`` is connected.
 
         Note that this means that the diagram including the boundary
         is connected.
@@ -633,6 +646,9 @@ class SphericalWeb(ClonableElement):
         Return the closed components of ``self``.
 
         This is the complement of the connected component of the boundary.
+
+        EXAMPLES::
+
         """
         Dn = {a:halfedge() for a in self.boundary}
         for a in self._traversal(self.boundary):
@@ -659,6 +675,9 @@ class SphericalWeb(ClonableElement):
 
         Note that this means that the diagram excluding the boundary
         is connected.
+
+        EXAMPLES::
+
         """
         if len(self.boundary) == 0:
             raise ValueError("not implemented for a closed web")
@@ -696,21 +715,6 @@ class SphericalWeb(ClonableElement):
             False
         """
         return all(len(x)>2 for x in self.faces())
-
-    def to__permutation(self):
-        """
-        If ``self`` is non separable, encode ``self`` as a
-        two stack sortable permutation.
-
-        There should also be a from_permutation
-        """
-        # Construct rooted non-separable planar map.
-        ## Add new vertex and connect to boundary, root connects to first boundary point.
-        ## For inverse, delete vertex containing root and reconstruct boundary.
-        # Construct bipolar oriented planar map.
-        ## This means edges round a vertex are partitioned into two ordered subsets.
-        # Construct the two ordered trees.
-        # Traverse the trees and construct the permutation.
 
     def to_graph(self):
         r"""
@@ -879,13 +883,13 @@ class SphericalWeb(ClonableElement):
         """
         lines = self._layout()
 
-        result = r"""\begin{tikzpicture}""" + "\n"
-        result += r"""\draw (0,0) circle (3cm);""" + "\n"
+        result = r"\begin{tikzpicture}" + "\n"
+        result += r"\draw (0,0) circle (3cm);" + "\n"
 
         for a in lines:
             result += f"\draw ({a[0][0]},{a[0][1]}) -- ({a[1][0]},{a[1][1]});\n"
 
-        result += r"""\end{tikzpicture}""" + "\n"
+        result += r"\end{tikzpicture}" + "\n"
         return result
 
 #### End of methods for working with webs ####
@@ -1017,6 +1021,14 @@ class SphericalSpider(Parent,UniqueRepresentation):
         The plain spherical spider.
     """
     def __init__(self,name: str):
+        r"""
+        Initialise an instance of this class.
+
+        EXAMPLES::
+
+            sage: SphericalSpider('plain') # indirect doctest
+            The plain spherical spider.
+        """
         Parent.__init__(self)
 
         self._name = name
@@ -1146,24 +1158,24 @@ class SphericalSpider(Parent,UniqueRepresentation):
 
         c = {}
         for g in white:
-            inc = [(w,a) for (w,a) in Dup if w == g]
-            inc.sort(key=lambda t: t[1][0]+t[1][1])
-            out = [(w,a) for (w,a) in Dup if w == g]
-            out.sort(key=lambda t: t[1][0]+t[1][1])
-            inc.reverse()
-            for (w,a),(x,b) in zip(inc,inc[1:]):
+            inco = [(w,a) for (w,a) in Dup if w == g]
+            inco.sort(key=lambda t: t[1][0]-t[1][1])
+            outg = [(w,a) for (w,a) in Dup if w == g]
+            outg.sort(key=lambda t: t[1][0]-t[1][1])
+            inco.reverse()
+            for (w,a),(x,b) in zip(inco,inco[1:]):
                 c[Dup[(w,a)]] = Dup[(x,b)]
-            for (w,a),(x,b) in zip(out,out[1:]):
-                c[Ddn[(w,a)]] = Ddn[(x,b)]
-            if len(inc) > 0 and len(out) > 0:
-                c[Dup[inc[-1]]] = Ddn[out[0]]
-                c[Dup[out[-1]]] = Ddn[inc[0]]
-            elif len(inc) > 0:
-                c[Dup[out[-1]]] = Ddn[out[0]]
-            elif len(out) > 0:
-                c[Dup[out[-1]]] = Ddn[out[0]]
+            for (w,a),(x,b) in zip(outg,outg[1:]):
+                c[Ddn[(w,a)]] = Ddn[(x,b)] # problem
+            if len(inco) > 0 and len(outg) > 0:
+                c[Dup[inco[-1]]] = Ddn[outg[0]] # problem
+                c[Dup[outg[-1]]] = Ddn[inco[0]]
+            elif len(inco) == 0 and len(outg) > 0:
+                c[Dup[outg[-1]]] = Ddn[outg[0]]
+            elif len(inco) > 0 and len(outg) == 0:
+                c[Dup[inco[-1]]] = Ddn[inco[0]]
             else:
-                pass
+                raise RuntimeError("this can't happen")
 
         return self.element_class(c,e,[],self)
 
