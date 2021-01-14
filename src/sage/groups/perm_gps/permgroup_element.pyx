@@ -1469,25 +1469,36 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             sage: G = SymmetricGroup(5)
             sage: hash(G([2,1,5,3,4]))
-            -1203337681           # 32-bit
-            -1527414595000039889  # 64-bit
+            469834019             # 32-bit
+            8254696460688365859   # 64-bit
+            sage: hash(G([1,2,3,4,5]))
+            1
 
         Check that the hash looks reasonable::
 
-            sage: s = set()
-            sage: s.update(map(hash,SymmetricGroup(0)))
-            sage: s.update(map(hash,SymmetricGroup(1)))
-            sage: s.update(map(hash,SymmetricGroup(2)))
-            sage: s.update(map(hash,SymmetricGroup(3)))
-            sage: s.update(map(hash,SymmetricGroup(4)))
-            sage: s.update(map(hash,SymmetricGroup(5)))
-            sage: len(s) == 1 + 1 + 2 + 6 + 24 + 120
+            sage: for n in range(1, 8):
+            ....:    assert hash(G.one()) == 1
+            ....:    assert len(set(map(hash, SymmetricGroup(n)))) == factorial(n)
+
+        Compatibility with natural embeddings :trac:`31236`::
+
+            sage: S4 = SymmetricGroup(4)
+            sage: S5 = SymmetricGroup(5)
+            sage: S6 = SymmetricGroup(6)
+            sage: p = S4("(1,2)(3,4)")
+            sage: hash(p) == hash(S5(p)) == hash(S6(p))
+            True
+            sage: p = S4("(1,3,4)")
+            sage: hash(p) == hash(S5(p)) == hash(S6(p))
             True
         """
         cdef size_t i
-        cdef long ans = self.n
+        cdef long ans = 1
+        cdef long mult = 145623773L
         for i in range(self.n):
-            ans = (ans ^ (self.perm[i])) * 1000003L
+            if i != self.perm[i]:
+                ans = (ans ^ (self.perm[i])) * mult
+            mult += 1000033L
         return ans
 
     def tuple(self):
