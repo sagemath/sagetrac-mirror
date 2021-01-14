@@ -22,6 +22,7 @@ to study the category of finite dimensional representations of a quantum group.
 These categories give examples of spiders and the main result of the paper was to
 give finite confluent presentations for the rank two examples, A2, B2=C2, G2, (the rank one example
 was known previously as the skein relation approach to the Jones polynomial).
+A rank three example is given in [6]_.
 
 It has been an open problem since then to construct finite confluent presentations
 for higher rank examples. It is known (unpublished) that these examples are finitely
@@ -98,7 +99,7 @@ http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.146.2678&rep=rep1&type=
 .. [3] G.Kuperberg
 Spiders for rank 2 Lie algebras
 Commun.Math. Phys. 180, 109–151 (1996)
-https://arxiv.org/abs/1103.3519.
+https://arxiv.org/abs/q-alg/9712003
 
 .. [4] Jovana Obradovic
 Monoid-like definitions of cyclic operad
@@ -109,6 +110,11 @@ http://www.tac.mta.ca/tac/volumes/32/12/32-12.pdf
 Confluence theory for graphs
 Algebraic & Geometric Topology 7 (2007) 439–478
 https://arxiv.org/abs/math/0609832
+
+
+.. [6] Bruce W. Westbury
+Invariant tensors for the spin representation of so(7)
+https://arxiv.org/abs/math/0601209
 
 AUTHORS:
 
@@ -360,6 +366,11 @@ class SphericalWeb(Element):
             sage: polygon_web(4).__hash__()  # random
 
             sage: hash(polygon_web(4)) # random
+
+            sage: u = SphericalSpider('plain').vertex(3)
+            sage: v = SphericalSpider('plain').vertex(3)
+            sage: set([u,v]) # indirect doctest
+            {The plain spherical web with c = (1, 2, 0) and e = ().}
         """
         return hash((self.parent(),*self.canonical()))
 
@@ -373,11 +384,10 @@ class SphericalWeb(Element):
             sage: v = polygon_web(4)
             sage: u is v, u == v, u != v # indirect doctest
             (False, True, False)
-
-            sage: u = SphericalSpider('plain').vertex(3)
-            sage: v = SphericalSpider('plain').vertex(3)
-            sage: set([u,v]) # indirect doctest
-            {The plain spherical web with c = (1, 2, 0) and e = ().}
+            sage: u < v # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: '<' not supported between ... and 'SphericalSpider.element_class'
 
         TODO:
 
@@ -867,7 +877,7 @@ class SphericalWeb(Element):
 
         for a in lines:
             result += f"\draw ({a[0][0]},{a[0][1]}) -- ({a[1][0]},{a[1][1]});\n"
-
+            # DeprecationWarning: invalid escape sequence \d
         result += r"\end{tikzpicture}" + "\n"
         return result
 
@@ -1101,6 +1111,7 @@ class SphericalSpider(Parent,UniqueRepresentation):
             sage: S = SphericalSpider('plain')
             sage: π = Permutation([5,3,4,9,7,8,10,6,1,2])
             sage: S.from_permutation(π)
+            A closed plain spherical web with 7 edges.
 
             sage: π = Permutation([2,4,1,3])
             sage: S.from_permutation(π)
@@ -1108,6 +1119,7 @@ class SphericalSpider(Parent,UniqueRepresentation):
             ...
             ValueError: [2, 4, 1, 3] is not a Baxter permutation
             sage: S.from_permutation(π,baxter=False)
+            A closed plain spherical web with 1 edges.
         """
         if baxter:
             if not π in BaxterPermutations():
@@ -1137,22 +1149,22 @@ class SphericalSpider(Parent,UniqueRepresentation):
 
         c = {}
         for g in white:
-            inco = [(w,a) for (w,a) in Dup if w == g]
-            inco.sort(key=lambda t: t[1][0]-t[1][1])
-            outg = [(w,a) for (w,a) in Dup if w == g]
-            outg.sort(key=lambda t: t[1][0]-t[1][1])
-            inco.reverse()
-            for (w,a),(x,b) in zip(inco,inco[1:]):
-                c[Dup[(w,a)]] = Dup[(x,b)]
-            for (w,a),(x,b) in zip(outg,outg[1:]):
-                c[Ddn[(w,a)]] = Ddn[(x,b)] # problem
+            inco = [a for (w,a) in Ddn if w == g]
+            inco.sort(key=lambda t: t[1]-t[0])
+            outg = [a for (w,a) in Dup if w == g]
+            outg.sort(key=lambda t: t[0]-t[1])
+            #inco.reverse()
+            for x,y in zip(inco,inco[1:]):
+                c[Ddn[(g,x)]] = Ddn[(g,y)]
+            for x,y in zip(outg,outg[1:]):
+                c[Dup[(g,x)]] = Dup[(g,y)]
             if len(inco) > 0 and len(outg) > 0:
-                c[Dup[inco[-1]]] = Ddn[outg[0]] # problem
-                c[Dup[outg[-1]]] = Ddn[inco[0]]
+                c[Ddn[(g,inco[-1])]] = Dup[(g,outg[0])]
+                c[Dup[(g,outg[-1])]] = Ddn[(g,inco[0])]
             elif len(inco) == 0 and len(outg) > 0:
-                c[Dup[outg[-1]]] = Ddn[outg[0]]
+                c[Dup[(g,outg[-1])]] = Dup[(g,outg[0])]
             elif len(inco) > 0 and len(outg) == 0:
-                c[Dup[inco[-1]]] = Ddn[inco[0]]
+                c[Ddn[(g,inco[-1])]] = Ddn[(g,inco[0])]
             else:
                 raise RuntimeError("this can't happen")
 
