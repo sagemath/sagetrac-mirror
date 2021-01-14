@@ -128,10 +128,10 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-#from sage.structure.list_clone import ClonableElement
 from sage.graphs.graph import Graph
 from sage.combinat.permutation import Permutation
 from sage.combinat.baxter_permutations import BaxterPermutations
+from sage.structure.richcmp import richcmp, op_EQ, op_NE
 
 class halfedge():
     """
@@ -184,7 +184,6 @@ class SphericalWeb(Element):
         self.e = e
         self.boundary = tuple(b)
         self.normalize()
-        #self._is_immutable = True
         if check:
             self.check()
 
@@ -263,7 +262,6 @@ class SphericalWeb(Element):
             sage: SphericalSpider('plain').loop() # indirect doctest
             A closed plain spherical web with 1 edges.
         """
-        #self._set_mutable()
         flag = True
         while(flag):
             flag = False
@@ -352,60 +350,43 @@ class SphericalWeb(Element):
 
     def __hash__(self):
         r"""
-        Implement the :method:`_hash_` of :class:`ClonableElement`.
+        Overload the :method:`__hash__`.
+
+        This is needed to put a :class:`SphericalWeb` into a :class:`set`
+        or to use it as a key in a :class:`dict'.
 
         EXAMPLES::
 
-            sage: polygon_web(4)._hash_()  # random
+            sage: polygon_web(4).__hash__()  # random
 
             sage: hash(polygon_web(4)) # random
         """
         return hash((self.parent(),*self.canonical()))
 
-    #__hash__ = _hash_
-    """
-    Overload the :method:`__hash__`.
-
-    This is needed to put a :class:`SphericalWeb` into a :class:`set`
-    or to use it as a key in a :class:`dict'.
-
-    EXAMPLES::
-
-        sage: u = vertex(3)
-        sage: v = vertex(3)
-        sage: set([u,v]) # indirect doctest
-        {The plain spherical web with c = (1, 2, 0) and e = ().}
-    """
-
-    def __eq__(self,other):
+    def _richcmp_(self, other, op):
         """
-        Overload :method:`__eq__`.
+        Overload :meth:`__eq__` and :meth:`__ne__`.
 
         EXAMPLES::
 
             sage: u = polygon_web(4)
             sage: v = polygon_web(4)
-            sage: u is v, u == v # indirect doctest
-            (False, True)
-        """
-        if type(self) != type(other):
-            return False
-        if self.parent() != other.parent():
-            return False
-        return self.canonical() == other.canonical()
+            sage: u is v, u == v, u != v # indirect doctest
+            (False, True, False)
 
-    def __ne__(self,other):
-        """
-        Overload :method:`__ne__`.
+            sage: u = SphericalSpider('plain').vertex(3)
+            sage: v = SphericalSpider('plain').vertex(3)
+            sage: set([u,v]) # indirect doctest
+            {The plain spherical web with c = (1, 2, 0) and e = ().}
 
-        EXAMPLES::
+        TODO:
 
-            sage: u = polygon_web(4)
-            sage: v = polygon_web(4)
-            sage: u != v # indirect doctest
-            False
+            This should take the parent and/or type into account.
         """
-        return not self == other
+        if op == op_EQ or op == op_NE:
+            return richcmp(self.canonical(), other.canonical(), op)
+        else:
+            return NotImplemented
 
 #### End of underscore methods ####
 
@@ -468,9 +449,7 @@ class SphericalWeb(Element):
         """
         result = self.__copy__()
         b = result.boundary
-        #result._set_mutable()
         result.boundary = b[k:]+b[:k]
-        #result.set_immutable()
         return result
 
     def glue(self, other, n: int):
